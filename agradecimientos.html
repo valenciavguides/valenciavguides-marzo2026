@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+    <title>Agradecimientos – València Be Guides</title>
+    <style>
+        /* Escalado proporcional puro: 2.5% del menor lado del viewport */
+        html { font-size: 2.5vmin; }
+
+        * { font-family: Verdana, sans-serif !important; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000; /* Fondo negro */
+            color: #fff; /* Letra blanca */
+            margin: 0;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; /* Asegura que ocupe al menos toda la altura de la ventana */
+            box-sizing: border-box; /* Incluye padding en el cálculo del tamaño */
+        }
+
+        .content-container {
+            max-width: 50rem; /* Ancho máximo para el contenido */
+            width: 100%;
+            padding: 1.5625rem;
+            line-height: 1.6;
+            text-align: justify;
+            /* Los bordes deben ser siempre de igual grosor. */
+            border: 0.1875rem solid #FFA500; /* Borde naranja */
+            border-radius: 0.625rem; /* Bordes ligeramente redondeados */
+            margin-bottom: 1.25rem;
+            overflow-y: auto; /* Permite desplazamiento si el contenido es largo */
+            flex-grow: 1; /* Permite que el contenedor crezca para ocupar espacio */
+            box-shadow: 0 0 0.9375rem rgba(255, 165, 0, 0.5); /* Sombra suave para el borde */
+        }
+
+        h1 {
+            color: #FFC107; /* Un tono amarillo/naranja para el título */
+            text-align: center;
+            margin-bottom: 1.875rem;
+            font-size: 2em;
+            /* Los bordes deben ser siempre de igual grosor. */
+            border-bottom: 0.125rem solid #FFC107; /* Subrayado del título */
+            padding-bottom: 0.625rem;
+        }
+
+        p {
+            margin-bottom: 1em;
+        }
+
+        strong {
+            color: #FDD835; /* Un amarillo brillante para el texto en negrita */
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 2rem;
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-container" id="contenido-agradecimientos">
+        <p class="loading">Cargando agradecimientos...</p>
+    </div>
+    
+    <script type="module">
+        // ============================================================
+        // CARGAR AGRADECIMIENTOS SEGÚN IDIOMA
+        // ============================================================
+        
+        /**
+         * Obtiene el idioma actual de la aplicación
+         * Prioridad: URL param > localStorage > 'es' (default)
+         */
+        function obtenerIdioma() {
+            // 1. Verificar parámetro URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const idiomaUrl = urlParams.get('idioma') || urlParams.get('lang');
+            if (idiomaUrl && ['es', 'en', 'fr', 'it', 'nl', 'ja'].includes(idiomaUrl)) {
+                return idiomaUrl;
+            }
+            
+            // 2. Verificar localStorage
+            const idiomaStorage = localStorage.getItem('idioma_seleccionado') || 
+                                  localStorage.getItem('vv_idioma') ||
+                                  localStorage.getItem('idioma');
+            if (idiomaStorage && ['es', 'en', 'fr', 'it', 'nl', 'ja'].includes(idiomaStorage)) {
+                return idiomaStorage;
+            }
+            
+            // 3. Default: español
+            return 'es';
+        }
+        
+        /**
+         * Carga y muestra el contenido de agradecimientos según idioma
+         */
+        async function cargarAgradecimientos() {
+            const contenedor = document.getElementById('contenido-agradecimientos');
+            const idioma = obtenerIdioma();
+            
+            console.log(`[AGRADECIMIENTOS] Cargando contenido para idioma: ${idioma}`);
+            
+            try {
+                // Importar módulo de agradecimientos
+                const modulo = await import('./js/agradecimientos-aventuras.js');
+                const AGRADECIMIENTOS = modulo.AGRADECIMIENTOS_AVENTURAS;
+                
+                if (!AGRADECIMIENTOS || !AGRADECIMIENTOS.agradecimientos_idiomas) {
+                    throw new Error('Estructura de agradecimientos no válida');
+                }
+                
+                // Obtener contenido del idioma seleccionado
+                let contenido = AGRADECIMIENTOS.agradecimientos_idiomas[idioma];
+                
+                // Si no hay contenido para el idioma, intentar fallback a español
+                if (!contenido || contenido.trim() === '') {
+                    console.warn(`[AGRADECIMIENTOS] Sin contenido para idioma "${idioma}", usando español`);
+                    contenido = AGRADECIMIENTOS.agradecimientos_idiomas['es'];
+                }
+                
+                // Si sigue sin contenido, mostrar mensaje
+                if (!contenido || contenido.trim() === '') {
+                    contenedor.innerHTML = `
+                        <h1>Agradecimientos – València Be Guides</h1>
+                        <p class="error">Contenido no disponible para este idioma.</p>
+                    `;
+                    return;
+                }
+                
+                // Mostrar contenido
+                contenedor.innerHTML = contenido;
+                console.log(`[AGRADECIMIENTOS] Contenido cargado correctamente para idioma: ${idioma}`);
+                
+            } catch (error) {
+                console.error('[AGRADECIMIENTOS] Error cargando contenido:', error);
+                contenedor.innerHTML = `
+                    <h1>Agradecimientos – València Be Guides</h1>
+                    <p class="error">Error al cargar los agradecimientos: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Ejecutar al cargar la página
+        document.addEventListener('DOMContentLoaded', cargarAgradecimientos);
+        
+        // También ejecutar inmediatamente por si DOMContentLoaded ya pasó
+        if (document.readyState !== 'loading') {
+            cargarAgradecimientos();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+    <title>Gastronomía Típica Valenciana</title>
+    <style>
+        /* Escalado proporcional puro: 2.5% del menor lado del viewport */
+        html { font-size: 2.5vmin; }
+
+        * { font-family: Verdana, sans-serif !important; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000; /* Black background */
+            color: #fff; /* White text */
+            margin: 0;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            box-sizing: border-box; /* Include padding in total size calculation */
+        }
+
+        .content-container {
+            max-width: 50rem; /* Max width for readability */
+            width: 100%;
+            padding: 1.5625rem;
+            line-height: 1.6;
+            text-align: left;
+            /* Los bordes deben ser siempre de igual grosor. */
+            border: 0.1875rem solid #FFA500; /* Orange border */
+            border-radius: 0.625rem; /* Slightly rounded corners */
+            margin-bottom: 1.25rem;
+            overflow-y: auto; /* Enable scrolling if content is too long */
+            flex-grow: 1; /* Allow container to grow and take available space */
+            box-shadow: 0 0 0.9375rem rgba(255, 165, 0, 0.5); /* Subtle orange glow */
+        }
+
+        h1 {
+            color: #FFC107; /* A bright, inviting yellow for the main title */
+            text-align: center;
+            margin-bottom: 1.875rem;
+            font-size: 2.2em;
+            /* Los bordes deben ser siempre de igual grosor. */
+            border-bottom: 0.125rem solid #FFC107; /* Underline for the title */
+            padding-bottom: 0.625rem;
+        }
+
+        h2 {
+            color: #8BC34A; /* Green for subheadings */
+            margin-top: 2.1875rem;
+            margin-bottom: 0.9375rem;
+            font-size: 1.6em;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem; /* Space between icon and text */
+        }
+
+        p {
+            margin-bottom: 0.8em;
+        }
+
+        ul {
+            list-style: none; /* Remove default bullet points */
+            padding: 0;
+            margin-left: 0.9375rem;
+        }
+
+        li {
+            margin-bottom: 0.9375rem;
+            padding-left: 1.25rem;
+            position: relative;
+        }
+
+        li::before {
+            content: '•'; /* Custom bullet point */
+            color: #4CAF50; /* Green for bullet points */
+            font-size: 1.2em;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        a {
+            color: #4CAF50; /* Green for links */
+            text-decoration: none; /* No underline by default */
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #66BB6A; /* Lighter green on hover */
+            text-decoration: underline; /* Underline on hover */
+        }
+
+        .dish-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #E0E0E0; /* Slightly different shade for dish titles */
+        }
+
+        .youtube-link {
+            font-size: 0.9em;
+            margin-left: 0.3125rem;
+            vertical-align: middle;
+        }
+
+        .youtube-icon {
+            font-family: 'Segoe UI Symbol', sans-serif; /* Fallback for TV icon */
+        }
+    </style>
+</head>
+<body>
+    <div class="content-container">
+        <h1>Gastronomía Típica Valenciana</h1>
+
+        <hr> <h2><span role="img" aria-label="paella">🥘</span> PLATOS PRINCIPALES VALENCIANOS</h2>
+        <ul>
+            <li>
+                <span class="dish-title">1. Paella Valenciana</span><br>
+                Receta tradicional con pollo, conejo, garrofó y judía verde.
+                <a href="https://www.youtube.com/watch?v=6YK4DLewG-8" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">2. Fideuà de Gandía (con mariscos)</span><br>
+                Fideos gruesos cocinados como una paella, con sepia, calamares y gambas.
+                <a href="https://www.youtube.com/watch?v=eWkV0m9H4L0" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">3. All i Pebre (de anguila)</span><br>
+                Plato típico de la Albufera: anguila, patatas, ajo y pimentón.
+                <a href="https://www.youtube.com/watch?v=Bh6JurURMTE" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">4. Arroz al Horno (arròs al forn)</span><br>
+                Con costillas, morcilla, garbanzos, tomate, patatas.
+                <a href="https://www.youtube.com/watch?v=VtVf1Zt7k6U" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">5. Arroz Negro (con tinta de calamar)</span><br>
+                Típico de la costa valenciana.
+                <a href="https://www.youtube.com/watch?v=F3SduOSduGw" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">6. Arroz a Banda</span><br>
+                Arroz cocido con fumet de pescado, servido aparte del acompañamiento.
+                <a href="https://www.youtube.com/watch?v=W8c3UckHjSE" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+        </ul>
+
+        <hr> <h2><span role="img" aria-label="skewer">🍢</span> TAPAS Y PLATOS POPULARES</h2>
+        <ul>
+            <li>
+                <span class="dish-title">1. Esgarraet</span><br>
+                Bacalao desmigado, pimientos rojos asados, ajo y aceite de oliva.
+                <a href="https://www.youtube.com/watch?v=tAHBkU0wy0w" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">2. Clóchinas Valencianas (mejillones pequeños)</span><br>
+                Cocinadas al vapor con limón, laurel y pimienta.
+                <a href="https://www.youtube.com/watch?v=xIMm5yGwfh4" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">3. Titaina del Cabanyal</span><br>
+                Guiso de pimiento rojo, atún, tomate y piñones.
+                <a href="https://www.youtube.com/watch?v=RWfa4qRz0AE" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">4. Figatells</span><br>
+                Hamburguesas valencianas de cerdo con especias.
+                <a href="https://www.youtube.com/watch?v=0ZIB6yU3J4g" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">5. Cocas Valencianas (saladas)</span><br>
+                Con pimientos, sardinas, longaniza, cebolla, etc.
+                <a href="https://www.youtube.com/watch?v=bkTyHwM4k9Q" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+        </ul>
+
+        <hr> <h2><span role="img" aria-label="cake">🍰</span> POSTRES Y BEBIDAS</h2>
+        <ul>
+            <li>
+                <span class="dish-title">1. Horchata de Chufa</span><br>
+                Típica de Alboraya. Refrescante, dulce, vegetal.
+                <a href="https://www.youtube.com/watch?v=vmNX9PO4EY8" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">2. Fartons Caseros</span><br>
+                Bollería alargada, suave y esponjosa, para mojar en horchata.
+                <a href="https://www.youtube.com/watch?v=FCtRIIOE0lc" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">3. Agua de Valencia</span><br>
+                Cóctel con cava, zumo de naranja, ginebra y vodka.
+                <a href="https://www.youtube.com/watch?v=y3_f2cZ9Ycw" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+            <li>
+                <span class="dish-title">4. Arnadí (postre de calabaza o boniato)</span><br>
+                Típico de Semana Santa.
+                <a href="https://www.youtube.com/watch?v=jdhv_0uIvK4" target="_blank" class="youtube-link"><span class="youtube-icon">📺</span> Ver Receta</a>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

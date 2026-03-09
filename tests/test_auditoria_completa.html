@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Auditoría Completa del Proyecto Valencia VGuides</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            color: #eee; 
+            min-height: 100vh;
+        }
+        h1 { color: #00d9ff; border-bottom: 2px solid #00d9ff; padding-bottom: 10px; }
+        .test-group { 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .test-group h3 { 
+            margin-top: 0; 
+            color: #00d9ff; 
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .test-item { 
+            padding: 10px 15px; 
+            margin: 8px 0; 
+            border-radius: 6px; 
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .pass { background: rgba(27, 67, 50, 0.8); color: #95d5b2; border-left: 4px solid #2d6a4f; }
+        .fail { background: rgba(84, 11, 14, 0.8); color: #f8d7da; border-left: 4px solid #9d0208; }
+        .warn { background: rgba(102, 77, 3, 0.8); color: #fff3cd; border-left: 4px solid #ffc107; }
+        .pending { background: rgba(73, 80, 87, 0.6); color: #dee2e6; }
+        .skip { background: rgba(108, 117, 125, 0.5); color: #adb5bd; font-style: italic; }
+        #summary { 
+            font-size: 1.3em; 
+            padding: 25px; 
+            margin-bottom: 25px; 
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        #summary.all-pass { background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); }
+        #summary.has-fails { background: linear-gradient(135deg, #540b0e 0%, #9d0208 100%); }
+        #summary.has-warns { background: linear-gradient(135deg, #664d03 0%, #997404 100%); }
+        .summary-stats { display: flex; gap: 20px; }
+        .stat { padding: 10px 20px; background: rgba(0,0,0,0.3); border-radius: 8px; }
+        .stat-pass { color: #95d5b2; }
+        .stat-fail { color: #f8d7da; }
+        .stat-warn { color: #fff3cd; }
+        .stat-skip { color: #adb5bd; }
+        button { 
+            padding: 12px 25px; 
+            font-size: 1em; 
+            cursor: pointer; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        #runAll { background: linear-gradient(135deg, #00d9ff 0%, #00b4d8 100%); color: #000; }
+        .progress { 
+            width: 100%; 
+            height: 8px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 4px; 
+            overflow: hidden; 
+            margin: 15px 0; 
+        }
+        .progress-bar { 
+            height: 100%; 
+            background: linear-gradient(90deg, #00d9ff, #00b4d8); 
+            transition: width 0.3s ease; 
+        }
+        .icon { font-size: 1.2em; }
+        .collapsible { cursor: pointer; }
+        .collapsible:after { content: ' ▼'; font-size: 0.8em; }
+        .collapsed:after { content: ' ▶'; }
+        .collapsed + .test-items { display: none; }
+        .test-items { margin-top: 10px; }
+        .note { font-size: 0.85em; color: #adb5bd; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Auditoría Completa - Valencia VGuides</h1>
+    
+    <div id="summary" class="pending">
+        <span id="summaryText">Presiona "Ejecutar Auditoría" para comenzar</span>
+        <div class="summary-stats" id="stats" style="display:none;">
+            <div class="stat stat-pass">✅ <span id="passCount">0</span></div>
+            <div class="stat stat-fail">❌ <span id="failCount">0</span></div>
+            <div class="stat stat-warn">⚠️ <span id="warnCount">0</span></div>
+            <div class="stat stat-skip">⏭️ <span id="skipCount">0</span></div>
+        </div>
+    </div>
+    
+    <button id="runAll" onclick="ejecutarAuditoria()">▶ Ejecutar Auditoría Completa</button>
+    
+    <div class="progress" id="progressContainer" style="display:none;">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+    </div>
+    
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        const resultados = {
+            pass: 0,
+            fail: 0,
+            warn: 0,
+            skip: 0,
+            tests: []
+        };
+
+        function log(grupo, test, status, mensaje) {
+            resultados.tests.push({ grupo, test, status, mensaje });
+            resultados[status]++;
+        }
+
+        async function verificarArchivoExiste(url) {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                return response.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        async function verificarContenidoArchivo(url, buscar, opciones = {}) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) return { existe: false, error: 'No se pudo cargar' };
+                const contenido = await response.text();
+                const encontrado = contenido.includes(buscar);
+                const cuenta = opciones.contar ? (contenido.match(new RegExp(buscar, 'g')) || []).length : 0;
+                return { existe: encontrado, cuenta, tamaño: contenido.length };
+            } catch (e) {
+                return { existe: false, error: e.message };
+            }
+        }
+
+        async function ejecutarAuditoria() {
+            resultados.pass = 0;
+            resultados.fail = 0;
+            resultados.warn = 0;
+            resultados.skip = 0;
+            resultados.tests = [];
+            
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('results').innerHTML = '<p style="color:#adb5bd;">Ejecutando auditoría...</p>';
+            
+            let completados = 0;
+            const totalTests = 35;
+            
+            function actualizarProgreso() {
+                completados++;
+                const pct = Math.round((completados / totalTests) * 100);
+                document.getElementById('progressBar').style.width = pct + '%';
+                actualizarContadores();
+            }
+
+            function actualizarContadores() {
+                document.getElementById('passCount').textContent = resultados.pass;
+                document.getElementById('failCount').textContent = resultados.fail;
+                document.getElementById('warnCount').textContent = resultados.warn;
+                document.getElementById('skipCount').textContent = resultados.skip;
+            }
+
+            // ========== GRUPO 1: ARCHIVOS CORE ==========
+            const archivosCore = [
+                { nombre: 'codigo-padre.html', ruta: '../codigo-padre.html' },
+                { nombre: 'index.html', ruta: '../index.html' },
+                { nombre: 'En-busca-del-tesoro.html', ruta: '../En-busca-del-tesoro.html' }
+            ];
+
+            for (const archivo of archivosCore) {
+                const existe = await verificarArchivoExiste(archivo.ruta);
+                log('📄 Archivos Core', archivo.nombre, existe ? 'pass' : 'fail', 
+                    existe ? 'Archivo existe' : 'ARCHIVO NO ENCONTRADO');
+                actualizarProgreso();
+            }
+
+            // ========== GRUPO 2: HIJOS IFRAME ==========
+            const archivosHijos = [
+                { nombre: 'hijo2 - coordenadas-hijo2.html', ruta: '../coordenadas-hijo2.html' },
+                { nombre: 'hijo3 - audio-hijo3.html', ruta: '../audio-hijo3.html' },
+                { nombre: 'hijo4 - retos-hijo4.html', ruta: '../retos-hijo4.html' },
+                { nombre: 'hijo5 - boton-casa-hijo5.html', ruta: '../boton-casa-hijo5.html' },
+                { nombre: 'hamburguesa', ruta: '../botones-y-subfunciones-hamburguesa.html' },
+                { nombre: 'opciones', ruta: '../botones-y-subfunciones-opciones.html' }
+            ];
+
+            for (const archivo of archivosHijos) {
+                const existe = await verificarArchivoExiste(archivo.ruta);
+                log('🖼️ Archivos Hijos', archivo.nombre, existe ? 'pass' : 'fail',
+                    existe ? 'Archivo existe' : 'ARCHIVO NO ENCONTRADO');
+                actualizarProgreso();
+            }
+
+            // ========== GRUPO 3: MÓDULOS JS ==========
+            const modulosJS = [
+                { nombre: 'constants.js', ruta: '../js/constants.js' },
+                { nombre: 'config.js', ruta: '../js/config.js' },
+                { nombre: 'logger.js', ruta: '../js/logger.js' },
+                { nombre: 'mensajeria.js', ruta: '../js/mensajeria.js' },
+                { nombre: 'utils.js', ruta: '../js/utils.js' },
+                { nombre: 'app.js', ruta: '../js/app.js' },
+                { nombre: 'funciones-mapa.js', ruta: '../js/funciones-mapa.js' },
+                { nombre: 'state-manager.js', ruta: '../js/state-manager.js' }
+            ];
+
+            for (const modulo of modulosJS) {
+                const existe = await verificarArchivoExiste(modulo.ruta);
+                log('📦 Módulos JS', modulo.nombre, existe ? 'pass' : 'fail',
+                    existe ? 'Módulo existe' : 'MÓDULO NO ENCONTRADO');
+                actualizarProgreso();
+            }
+
+            // ========== GRUPO 4: DATOS CENTRALIZADOS ==========
+            const datosCentralizados = [
+                { nombre: 'DATOS_PADRE', ruta: '../js/aventuras-ID-padre.js', buscar: 'export const DATOS_PADRE' },
+                { nombre: 'INDICE_AVENTURAS', ruta: '../js/indice-aventuras.js', buscar: 'export const INDICE_AVENTURAS' },
+                { nombre: 'Coordenadas', ruta: '../js/coordenadas-aventuras.js', buscar: 'window.__vv_DATOS_AVENTURAS' },
+                { nombre: 'Audios', ruta: '../js/audios-aventuras.js', buscar: 'window.__vv_DATOS_AVENTURAS' },
+                { nombre: 'Retos', ruta: '../js/retos-aventuras.js', buscar: 'window.__vv_DATOS_AVENTURAS' }
+            ];
+
+            for (const dato of datosCentralizados) {
+                const result = await verificarContenidoArchivo(dato.ruta, dato.buscar);
+                log('💾 Datos Centralizados', dato.nombre, result.existe ? 'pass' : 'fail',
+                    result.existe ? 'Exportación encontrada' : 'EXPORTACIÓN NO ENCONTRADA');
+                actualizarProgreso();
+            }
+
+            // ========== GRUPO 5: CONTROLADORES CRÍTICOS EN PADRE ==========
+            const controladores = [
+                { nombre: 'HIJO_LISTO', buscar: 'SISTEMA.HIJO_LISTO' },
+                { nombre: 'CAMBIO_MODO', buscar: 'SISTEMA.CAMBIO_MODO' },
+                { nombre: 'CAMBIO_PARADA', buscar: 'NAVEGACION.CAMBIO_PARADA' },
+                { nombre: 'INICIAR_AVENTURA', buscar: 'SELECCION.INICIAR_AVENTURA' },
+                { nombre: 'RESPUESTA_DATOS_PARADAS', buscar: 'RESPUESTA_DATOS_PARADAS' },
+                { nombre: 'SOLICITAR_RETO', buscar: 'DATOS.SOLICITAR_RETO' }
+            ];
+
+            for (const ctrl of controladores) {
+                const result = await verificarContenidoArchivo('../codigo-padre.html', ctrl.buscar, { contar: true });
+                const status = result.existe ? 'pass' : 'fail';
+                log('🎮 Controladores Padre', ctrl.nombre, status,
+                    result.existe ? `Encontrado (${result.cuenta} referencias)` : 'NO ENCONTRADO');
+                actualizarProgreso();
+            }
+
+            // ========== GRUPO 6: CONTROLADORES EN HIJOS ==========
+            const controladoresHijos = [
+                { nombre: 'hijo2: CARGAR_COORDENADAS', archivo: '../coordenadas-hijo2.html', buscar: 'CARGAR_COORDENADAS' },
+                { nombre: 'hijo2: COORDENADAS_PARADAS_REQUEST', archivo: '../coordenadas-hijo2.html', buscar: 'COORDENADAS_PARADAS_REQUEST' },
+                { nombre: 'hijo3: CARGAR_AUDIOS', archivo: '../audio-hijo3.html', buscar: 'CARGAR_AUDIOS' },
+                { nombre: 'hijo3: SOLICITAR_AUDIO', archivo: '../audio-hijo3.html', buscar: 'SOLICITAR_AUDIO' },
+                { nombre: 'hijo4: CARGAR_RETOS', archivo: '../retos-hijo4.html', buscar: 'CARGAR_RETOS' },
+                { nombre: 'hijo4: SOLICITAR_RETO', archivo: '../retos-hijo4.html', buscar: 'SOLICITAR_RETO' },
+                { nombre: 'hijo5: RESPUESTA_DATOS_PARADAS', archivo: '../boton-casa-hijo5.html', buscar: 'RESPUESTA_DATOS_PARADAS' },
+                { nombre: 'hijo5: estado.aventuraParadas', archivo: '../boton-casa-hijo5.html', buscar: 'estado.aventuraParadas' }
+            ];
+
+            for (const ctrl of controladoresHijos) {
+                const result = await verificarContenidoArchivo(ctrl.archivo, ctrl.buscar);
+                log('🔌 Controladores Hijos', ctrl.nombre, result.existe ? 'pass' : 'fail',
+                    result.existe ? 'Implementado' : 'FALTANTE');
+                actualizarProgreso();
+            }
+
+            // ========== GRUPO 7: FLUJO DE POLYLINE ==========
+            const flujoPolyline = [
+                { nombre: 'fitBounds en funciones-mapa', archivo: '../js/funciones-mapa.js', buscar: 'fitBounds' },
+                { nombre: 'dibujarRutaConMarcadores', archivo: '../js/funciones-mapa.js', buscar: 'dibujarRutaConMarcadores' },
+                { nombre: 'Solicitud coordenadas inicio', archivo: '../codigo-padre.html', buscar: 'inicio_aventura_polyline' }
+            ];
+
+            for (const item of flujoPolyline) {
+                const result = await verificarContenidoArchivo(item.archivo, item.buscar);
+                log('🗺️ Flujo Polyline', item.nombre, result.existe ? 'pass' : 'warn',
+                    result.existe ? 'Encontrado' : 'No encontrado (revisar)');
+                actualizarProgreso();
+            }
+
+            // ========== MOSTRAR RESULTADOS ==========
+            mostrarResultados();
+        }
+
+        function mostrarResultados() {
+            const resultsDiv = document.getElementById('results');
+            const summary = document.getElementById('summary');
+            const summaryText = document.getElementById('summaryText');
+            
+            // Agrupar por grupo
+            const grupos = {};
+            resultados.tests.forEach(t => {
+                if (!grupos[t.grupo]) grupos[t.grupo] = [];
+                grupos[t.grupo].push(t);
+            });
+
+            let html = '';
+            for (const [grupo, tests] of Object.entries(grupos)) {
+                const fails = tests.filter(t => t.status === 'fail').length;
+                const warns = tests.filter(t => t.status === 'warn').length;
+                const statusIcon = fails > 0 ? '❌' : warns > 0 ? '⚠️' : '✅';
+                
+                html += `<div class="test-group">
+                    <h3 class="collapsible" onclick="this.classList.toggle('collapsed')">${statusIcon} ${grupo} (${tests.length} tests)</h3>
+                    <div class="test-items">`;
+                
+                tests.forEach(t => {
+                    const icon = t.status === 'pass' ? '✅' : t.status === 'fail' ? '❌' : t.status === 'warn' ? '⚠️' : '⏭️';
+                    html += `<div class="test-item ${t.status}">
+                        <span class="icon">${icon}</span>
+                        <strong>${t.test}</strong>
+                        <span style="flex:1"></span>
+                        <span>${t.mensaje}</span>
+                    </div>`;
+                });
+                html += '</div></div>';
+            }
+            
+            resultsDiv.innerHTML = html;
+
+            // Resumen
+            const total = resultados.pass + resultados.fail + resultados.warn + resultados.skip;
+            const pctPass = total > 0 ? Math.round((resultados.pass / total) * 100) : 0;
+            summaryText.textContent = `Auditoría completa: ${pctPass}% passed (${total} tests)`;
+            
+            if (resultados.fail > 0) {
+                summary.className = 'has-fails';
+            } else if (resultados.warn > 0) {
+                summary.className = 'has-warns';
+            } else {
+                summary.className = 'all-pass';
+            }
+        }
+
+        // Auto-ejecución para master-test
+        window.runTest = function() {
+            ejecutarAuditoria();
+            setTimeout(() => {
+                window.TestReporter.report({
+                    name: 'Verification: Auditoría Completa',
+                    resultsContainer: document.getElementById('results')
+                });
+            }, 1000);
+        };
+    </script>
+    
+    <div class="note" style="margin-top: 30px; text-align: center;">
+        <p>💡 Nota: Los archivos de imágenes y audios no se verifican porque están en GitHub.</p>
+        <p>Este test verifica la estructura del código y la implementación de controladores.</p>
+    </div>
+</body>
+</html>

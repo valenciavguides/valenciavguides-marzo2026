@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test DATOS.CARGAR_AUDIOS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #cce5ff; border: 1px solid #b8daff; }
+        #log { white-space: pre-wrap; background: #f4f4f4; padding: 10px; max-height: 300px; overflow-y: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test: DATOS.CARGAR_AUDIOS</h1>
+    <p>Verifica que hijo3 (audio-hijo3.html) reciba y procese correctamente los audios enviados por el padre.</p>
+
+    <div id="status">Estado: Esperando...</div>
+    <button onclick="runTest()">Ejecutar Test</button>
+    <button onclick="clearLog()">Limpiar Log</button>
+
+    <div id="results"></div>
+    <h3>Log:</h3>
+    <div id="log"></div>
+
+    <iframe id="hijo3" src="../audio-hijo3.html" style="width:100%;height:300px;border:1px solid #ccc;margin-top:20px;"></iframe>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+
+        const resultsDiv = document.getElementById('results');
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+
+        function log(msg) {
+            const time = new Date().toISOString().substr(11, 12);
+            logDiv.textContent += `[${time}] ${msg}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addResult(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>${details ? ': ' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+
+        window.clearLog = function() {
+            logDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+        };
+
+        window.runTest = async function() {
+            clearLog();
+            statusDiv.textContent = 'Estado: Ejecutando tests...';
+            log('Iniciando test DATOS.CARGAR_AUDIOS...');
+
+            const hijo3 = document.getElementById('hijo3');
+            
+            // Esperar a que hijo3 cargue completamente
+            await new Promise(resolve => {
+                if (hijo3.contentDocument.readyState === 'complete') {
+                    resolve();
+                } else {
+                    hijo3.onload = resolve;
+                }
+            });
+            log('hijo3 iframe cargado');
+
+            // Datos de prueba
+            const audiosPrueba = [
+                { 
+                    id: 'P-0', 
+                    parada_id: 'P-0',
+                    tipo: 'inicio',
+                    titulo: 'Bienvenida Test',
+                    url: 'audios/test/bienvenida.mp3',
+                    duracion: 120,
+                    idioma: 'es'
+                },
+                { 
+                    id: 'P-1', 
+                    parada_id: 'P-1',
+                    tipo: 'parada',
+                    titulo: 'Historia Parada 1 Test',
+                    url: 'audios/test/parada1.mp3',
+                    duracion: 180,
+                    idioma: 'es'
+                },
+                { 
+                    id: 'T-1', 
+                    parada_id: 'T-1',
+                    tipo: 'tramo',
+                    titulo: 'Narración Tramo 1 Test',
+                    url: 'audios/test/tramo1.mp3',
+                    duracion: 90,
+                    idioma: 'es'
+                }
+            ];
+
+            // Configurar listener para respuesta
+            let respuestaRecibida = false;
+            let respuestaDatos = null;
+
+            const messageHandler = (event) => {
+                try {
+                    const msg = event.data;
+                    if (msg && msg.tipo === TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS) {
+                        respuestaRecibida = true;
+                        respuestaDatos = msg.datos;
+                        log(`Respuesta recibida: ${JSON.stringify(msg)}`);
+                    }
+                } catch (e) {
+                    log(`Error procesando mensaje: ${e}`);
+                }
+            };
+            window.addEventListener('message', messageHandler);
+
+            // Enviar mensaje CARGAR_AUDIOS a hijo3
+            log('Enviando DATOS.CARGAR_AUDIOS a hijo3...');
+            hijo3.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS,
+                origen: 'padre',
+                destino: 'hijo3',
+                datos: {
+                    audios: audiosPrueba,
+                    aventuraId: 'Aventura1',
+                    idioma: 'es'
+                },
+                timestamp: Date.now()
+            }, '*');
+
+            // Esperar respuesta con timeout
+            const timeout = 5000;
+            const startTime = Date.now();
+            
+            while (!respuestaRecibida && (Date.now() - startTime) < timeout) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            window.removeEventListener('message', messageHandler);
+
+            // Evaluar resultados
+            if (respuestaRecibida) {
+                addResult('Mensaje CARGAR_AUDIOS enviado y respuesta recibida', true);
+                
+                if (respuestaDatos && respuestaDatos.exito !== false) {
+                    addResult('Audios procesados exitosamente', true, 
+                        `Total: ${respuestaDatos.total || audiosPrueba.length}`);
+                } else {
+                    addResult('Error en procesamiento de audios', false, 
+                        respuestaDatos?.error || 'Sin detalles');
+                }
+            } else {
+                addResult('Respuesta AUDIOS_CARGADOS', false, 
+                    'No se recibió respuesta en ' + timeout + 'ms');
+                
+                // Test alternativo: verificar que hijo3 tenga los audios almacenados
+                try {
+                    const estadoHijo3 = hijo3.contentWindow.estadoComponente;
+                    if (estadoHijo3 && estadoHijo3.arrayAudiosLocal) {
+                        addResult('Audios almacenados en estadoComponente', true,
+                            `${estadoHijo3.arrayAudiosLocal.length} audios`);
+                    } else {
+                        addResult('Verificación alternativa de estadoComponente', false, 
+                            'No se encontraron audios almacenados');
+                    }
+                } catch (e) {
+                    addResult('Verificación alternativa', false, 
+                        'No se pudo acceder a estadoComponente (cross-origin)');
+                }
+            }
+
+            // Test adicional: verificar constantes disponibles
+            try {
+                const tipos = hijo3.contentWindow.TIPOS_MENSAJE;
+                if (tipos && tipos.DATOS && tipos.DATOS.CARGAR_AUDIOS) {
+                    addResult('TIPOS_MENSAJE disponible en hijo3', true);
+                } else {
+                    addResult('TIPOS_MENSAJE en hijo3', false, 'No encontrado o incompleto');
+                }
+            } catch (e) {
+                addResult('Verificación TIPOS_MENSAJE', false, `Error: ${e.message}`);
+            }
+
+            statusDiv.textContent = 'Estado: Tests completados';
+            log('Tests finalizados.');
+
+            // Reportar al master-test
+            window.reportTest({
+                name: 'Data: Cargar Audios',
+                resultsContainer: resultsDiv
+            });
+        };
+    </script>
+</body>
+</html>

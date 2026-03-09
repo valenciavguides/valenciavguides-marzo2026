@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test DATOS.CARGAR_RETOS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #cce5ff; border: 1px solid #b8daff; }
+        #log { white-space: pre-wrap; background: #f4f4f4; padding: 10px; max-height: 300px; overflow-y: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test: DATOS.CARGAR_RETOS</h1>
+    <p>Verifica que hijo4 (retos-hijo4.html) reciba y procese correctamente los retos enviados por el padre.</p>
+
+    <div id="status">Estado: Esperando...</div>
+    <button onclick="runTest()">Ejecutar Test</button>
+    <button onclick="clearLog()">Limpiar Log</button>
+
+    <div id="results"></div>
+    <h3>Log:</h3>
+    <div id="log"></div>
+
+    <iframe id="hijo4" src="../retos-hijo4.html" style="width:100%;height:300px;border:1px solid #ccc;margin-top:20px;"></iframe>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+
+        const resultsDiv = document.getElementById('results');
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+
+        function log(msg) {
+            const time = new Date().toISOString().substr(11, 12);
+            logDiv.textContent += `[${time}] ${msg}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addResult(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>${details ? ': ' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+
+        window.clearLog = function() {
+            logDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+        };
+
+        window.runTest = async function() {
+            clearLog();
+            statusDiv.textContent = 'Estado: Ejecutando tests...';
+            log('Iniciando test DATOS.CARGAR_RETOS...');
+
+            const hijo4 = document.getElementById('hijo4');
+            
+            // Esperar a que hijo4 cargue completamente
+            await new Promise(resolve => {
+                if (hijo4.contentDocument.readyState === 'complete') {
+                    resolve();
+                } else {
+                    hijo4.onload = resolve;
+                }
+            });
+            // Dar tiempo adicional para inicialización de scripts
+            await new Promise(r => setTimeout(r, 1000));
+            log('hijo4 iframe cargado');
+
+            // Datos de prueba - retos con diferentes tipos de validación
+            const retosPrueba = [
+                { 
+                    id: 'reto-P1',
+                    parada_id: 'P-1',
+                    tipo: 'trivial',
+                    pregunta: '¿Cuál es el nombre de la torre más famosa de Valencia?',
+                    opciones: ['Torre del Miguelete', 'Torre Eiffel', 'Torre de Pisa', 'Big Ben'],
+                    respuesta_correcta: 'Torre del Miguelete',
+                    pistas: ['Está en la Catedral', 'Es de estilo gótico'],
+                    puntos: 10,
+                    idioma: 'es'
+                },
+                { 
+                    id: 'reto-P2',
+                    parada_id: 'P-2',
+                    tipo: 'verdadero_falso',
+                    pregunta: 'La Ciudad de las Artes y las Ciencias fue diseñada por Santiago Calatrava.',
+                    respuesta_correcta: true,
+                    puntos: 5,
+                    idioma: 'es'
+                },
+                { 
+                    id: 'reto-T1',
+                    parada_id: 'T-1',
+                    tipo: 'texto_libre',
+                    pregunta: '¿Cómo se llama el río que atraviesa Valencia?',
+                    respuesta_correcta: 'Turia',
+                    respuestas_alternativas: ['Río Turia', 'El Turia'],
+                    puntos: 15,
+                    idioma: 'es'
+                }
+            ];
+
+            // Configurar listener para respuesta
+            let respuestaRecibida = false;
+            let respuestaDatos = null;
+
+            const messageHandler = (event) => {
+                try {
+                    const msg = event.data;
+                    log(`Mensaje recibido: tipo=${msg?.tipo}`);
+                    if (msg && msg.tipo === TIPOS_MENSAJE.DATOS.RETOS_CARGADOS) {
+                        respuestaRecibida = true;
+                        respuestaDatos = msg.datos;
+                        log(`Respuesta RETOS_CARGADOS: ${JSON.stringify(msg.datos)}`);
+                    }
+                } catch (e) {
+                    log(`Error procesando mensaje: ${e}`);
+                }
+            };
+            window.addEventListener('message', messageHandler);
+
+            // Enviar mensaje CARGAR_RETOS a hijo4
+            log('Enviando DATOS.CARGAR_RETOS a hijo4...');
+            hijo4.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.DATOS.CARGAR_RETOS,
+                origen: 'padre',
+                destino: 'hijo4',
+                datos: {
+                    retos: retosPrueba,
+                    aventuraId: 'Aventura1',
+                    idioma: 'es'
+                },
+                timestamp: Date.now()
+            }, '*');
+
+            // Esperar respuesta con timeout
+            const timeout = 5000;
+            const startTime = Date.now();
+            
+            while (!respuestaRecibida && (Date.now() - startTime) < timeout) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            window.removeEventListener('message', messageHandler);
+
+            // Evaluar resultados
+            if (respuestaRecibida) {
+                addResult('Mensaje CARGAR_RETOS enviado y respuesta recibida', true);
+                
+                if (respuestaDatos && respuestaDatos.exito !== false) {
+                    addResult('Retos procesados exitosamente', true, 
+                        `Total: ${respuestaDatos.total || retosPrueba.length}`);
+                } else {
+                    addResult('Error en procesamiento de retos', false, 
+                        respuestaDatos?.error || 'Sin detalles');
+                }
+            } else {
+                addResult('Respuesta RETOS_CARGADOS', false, 
+                    'No se recibió respuesta en ' + timeout + 'ms');
+                
+                // Test alternativo: verificar almacenamiento global
+                try {
+                    const retosGlobal = hijo4.contentWindow.__vv_retosAventura;
+                    if (retosGlobal && Array.isArray(retosGlobal) && retosGlobal.length > 0) {
+                        addResult('Retos almacenados en __vv_retosAventura', true,
+                            `${retosGlobal.length} retos`);
+                    } else {
+                        addResult('Verificación alternativa __vv_retosAventura', false, 
+                            'No se encontraron retos almacenados');
+                    }
+                } catch (e) {
+                    addResult('Verificación alternativa', false, 
+                        'No se pudo acceder a __vv_retosAventura (cross-origin)');
+                }
+            }
+
+            // Test verificar registro del controlador
+            try {
+                const mensajeria = hijo4.contentWindow.mensajeria;
+                if (mensajeria) {
+                    addResult('Sistema de mensajería disponible en hijo4', true);
+                } else {
+                    addResult('Sistema de mensajería', false, 'mensajeria no encontrado');
+                }
+            } catch (e) {
+                addResult('Verificación mensajería', false, `Error: ${e.message}`);
+            }
+
+            statusDiv.textContent = 'Estado: Tests completados';
+            log('Tests finalizados.');
+
+            // Reportar al master-test
+            window.reportTest({
+                name: 'Data: Cargar Retos',
+                resultsContainer: resultsDiv
+            });
+        };
+    </script>
+</body>
+</html>

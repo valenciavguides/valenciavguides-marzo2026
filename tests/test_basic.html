@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Basic Loading</title>
+</head>
+<body>
+    <h1>Testing Basic Loading</h1>
+    <div id="status">Loading...</div>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        // Very basic test
+        document.getElementById('status').innerHTML = 'Script executed successfully!';
+        
+        setTimeout(() => {
+            document.getElementById('status').innerHTML += '<br>Timeout executed successfully!';
+        }, 1000);
+
+        // Auto-execution function
+        window.runTest = function() {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = 'pass';
+            div.textContent = '✅ Basic loading test passed';
+            resultsDiv.appendChild(div);
+
+            window.TestReporter.report({
+                name: 'Basic: Loading',
+                resultsContainer: resultsDiv
+            });
+        };
+    </script>
+</body>
+</html>

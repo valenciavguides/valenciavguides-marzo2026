@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Master Test Suite - Valencia VGuides</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            grid-column: 1 / -1;
+        }
+
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-run-all {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            min-width: 200px;
+        }
+
+        .btn-run-all:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-run-all:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            background: #c0392b;
+        }
+
+        .btn-export {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #d68910;
+        }
+
+        .progress-container {
+            grid-column: 1 / -1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        .test-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ecf0f1;
+            border-radius: 6px;
+        }
+
+        .test-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .test-item:hover {
+            background: #f8f9fa;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-status {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .status-pending {
+            background: #bdc3c7;
+        }
+
+        .status-running {
+            background: #f39c12;
+            animation: pulse 0.8s infinite;
+        }
+
+        .status-passed {
+            background: #27ae60;
+        }
+
+        .status-failed {
+            background: #e74c3c;
+        }
+
+        .status-skipped {
+            background: #95a5a6;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .test-name {
+            flex: 1;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .test-time {
+            font-size: 0.8em;
+            color: #999;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .summary {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        .summary-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .summary-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-card.passed { border-left: 4px solid #27ae60; }
+        .summary-card.failed { border-left: 4px solid #e74c3c; }
+        .summary-card.skipped { border-left: 4px solid #95a5a6; }
+        .summary-card.total { border-left: 4px solid #667eea; }
+
+        .summary-value.passed { color: #27ae60; }
+        .summary-value.failed { color: #e74c3c; }
+
+        .log-container {
+            grid-column: 1 / -1;
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            padding: 15px;
+            border-radius: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+
+        .log-error { color: #ff6b6b; }
+        .log-success { color: #51cf66; }
+        .log-warning { color: #ffd93d; }
+        .log-info { color: #74c0fc; }
+
+        .export-area {
+            grid-column: 1 / -1;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px dashed #bdc3c7;
+        }
+
+        .export-area textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            border: none;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        .api-doc {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .api-doc code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Master Test Suite</h1>
+            <p>Valencia VGuides - Sistema de Testing Unificado</p>
+            <div class="api-doc" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto; text-align: left;">
+                <strong>📡 API de Reporte:</strong> Los tests deben llamar a 
+                <code>window.parent.window.reportTestResult({name, passed, failed, warnings})</code>
+                para reportar sus resultados. Ver <a href="TEST_REPORTING_API.md" target="_blank">TEST_REPORTING_API.md</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Controles -->
+            <div class="controls">
+                <button class="btn-run-all" id="runAllBtn">▶️ RUN ALL TESTS</button>
+                <button class="btn-clear" id="clearBtn">🗑️ Clear Results</button>
+                <button class="btn-export" id="exportBtn">📊 Export Report</button>
+            </div>
+
+            <!-- Progreso -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Ready to run tests</div>
+            </div>
+
+            <!-- Lista de tests -->
+            <div class="section">
+                <h2>📋 Available Tests</h2>
+                <div class="test-list" id="testList"></div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="section">
+                <h2>📊 Summary</h2>
+                <div class="summary" id="summary">
+                    <div class="summary-card total">
+                        <div class="summary-label">Total</div>
+                        <div class="summary-value" id="totalCount">0</div>
+                    </div>
+                    <div class="summary-card passed">
+                        <div class="summary-label">Passed</div>
+                        <div class="summary-value passed" id="passedCount">0</div>
+                    </div>
+                    <div class="summary-card failed">
+                        <div class="summary-label">Failed</div>
+                        <div class="summary-value failed" id="failedCount">0</div>
+                    </div>
+                    <div class="summary-card skipped">
+                        <div class="summary-label">Skipped</div>
+                        <div class="summary-value" id="skippedCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="section" style="grid-column: 1 / -1;">
+                <h2>📝 Test Log</h2>
+                <div class="log-container" id="logContainer"></div>
+            </div>
+
+            <!-- Export -->
+            <div class="export-area hidden" id="exportArea">
+                <h3>Test Report</h3>
+                <textarea id="reportArea" readonly></textarea>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Last run: <span id="lastRun">Never</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Lista completa de tests
+        const TESTS = [
+            // Backend Tests (requieren npm test)
+            {
+                name: 'Backend: Health API',
+                file: 'backend',
+                type: 'jest',
+                category: 'Backend'
+            },
+            {
+                name: 'Backend: Aventuras API',
+                file: 'backend',
+                type: 'jest',
+                category: 'Backend'
+            },
+            {
+                name: 'Backend: Coordenadas API',
+                file: 'backend',
+                type: 'jest',
+                category: 'Backend'
+            },
+            {
+                name: 'Backend: Audios API',
+                file: 'backend',
+                type: 'jest',
+                category: 'Backend'
+            },
+            {
+                name: 'Backend: Retos API',
+                file: 'backend',
+                type: 'jest',
+                category: 'Backend'
+            },
+            {
+                name: 'Backend: Puzzles API',
+                file: 'backend',
+                type: 'jest',
+                category: 'Backend'
+            },
+            {
+                name: 'Backend: Error Handling',
+                file: 'backend',
+                type: 'jest',
+                category: 'Backend'
+            },
+
+            // Frontend Tests - Integración
+            {
+                name: 'Integration: Cambio de Parada',
+                file: 'test_cambio_parada.html',
+                type: 'browser',
+                category: 'Integration'
+            },
+            {
+                name: 'Integration: Flujo Completo Aventura',
+                file: 'test_flujo_completo_aventura.html',
+                type: 'browser',
+                category: 'Integration'
+            },
+            {
+                name: 'Integration: Datos Combinados',
+                file: 'test_datos_solicitar_paradas_combinados.html',
+                type: 'browser',
+                category: 'Integration'
+            },
+            {
+                name: 'Integration: Distribución Datos',
+                file: 'test_integracion_distribuir_datos.html',
+                type: 'browser',
+                category: 'Integration'
+            },
+            {
+                name: 'Integration: Completa',
+                file: 'test_integracion_completa.html',
+                type: 'browser',
+                category: 'Integration'
+            },
+
+            // Frontend Tests - Carga de Datos
+            {
+                name: 'Data: Cargar Coordenadas',
+                file: 'test_cargar_coordenadas.html',
+                type: 'browser',
+                category: 'Data'
+            },
+            {
+                name: 'Data: Cargar Audios',
+                file: 'test_cargar_audios.html',
+                type: 'browser',
+                category: 'Data'
+            },
+            {
+                name: 'Data: Cargar Retos',
+                file: 'test_cargar_retos.html',
+                type: 'browser',
+                category: 'Data'
+            },
+
+            // Frontend Tests - Comunicación
+            {
+                name: 'Communication: Handshake Hijo',
+                file: 'test_hijo_handshake.html',
+                type: 'browser',
+                category: 'Communication'
+            },
+            {
+                name: 'Communication: Heartbeat',
+                file: 'test_heartbeat.html',
+                type: 'browser',
+                category: 'Communication'
+            },
+            {
+                name: 'Communication: Sincronización Confirmaciones',
+                file: 'test_sincronizacion_confirmaciones.html',
+                type: 'browser',
+                category: 'Communication'
+            },
+
+            // Frontend Tests - GPS
+            {
+                name: 'GPS: Activation Restriction',
+                file: 'test_gps_activation_restriction.html',
+                type: 'browser',
+                category: 'GPS'
+            },
+            {
+                name: 'GPS: Fallback',
+                file: 'test_gps_fallback.html',
+                type: 'browser',
+                category: 'GPS'
+            },
+            {
+                name: 'GPS: Message Validation',
+                file: 'test_gps_message_validation.html',
+                type: 'browser',
+                category: 'GPS'
+            },
+
+            // Frontend Tests - Verificación
+            {
+                name: 'Verification: Audio Distribution',
+                file: 'test_audio_distribution.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+            {
+                name: 'Verification: Carga Secuencial iframes',
+                file: 'test_carga_secuencial_iframes.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+            {
+                name: 'Verification: Controlador Fusionado',
+                file: 'test_controlador_fusionado.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+            {
+                name: 'Verification: Cambio de Modo',
+                file: 'test_cambio_modo.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+            {
+                name: 'Verification: Índice Aventuras',
+                file: 'test_indice_aventuras.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+            {
+                name: 'Verification: Eventos Duplicados',
+                file: 'test_verificacion_eventos_duplicados.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+            {
+                name: 'Verification: Correcciones Inicialización',
+                file: 'test_verificacion_final_correcciones.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+
+            // Frontend Tests - Fixes
+            {
+                name: 'Fix: Audio Files',
+                file: 'test_fix_audio_files.html',
+                type: 'browser',
+                category: 'Fixes'
+            },
+            {
+                name: 'Fix: Coordenadas Paradas',
+                file: 'test_fix_coordenadas_paradas.html',
+                type: 'browser',
+                category: 'Fixes'
+            },
+            {
+                name: 'Fix: enviarMensaje S1',
+                file: 'test_fix_enviarMensaje_S1.html',
+                type: 'browser',
+                category: 'Fixes'
+            },
+            {
+                name: 'Fix: Retos',
+                file: 'test_fix_retos.html',
+                type: 'browser',
+                category: 'Fixes'
+            },
+
+            // Frontend Tests - Específicos
+            {
+                name: 'Specific: Solicitar Reto (hijo4)',
+                file: 'test_solicitar_reto_hijo4.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'Specific: Respuesta Datos Paradas (hijo5)',
+                file: 'test_respuesta_datos_paradas_hijo5.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'Specific: Message Handlers No Throw',
+                file: 'test_message_handlers_no_throw.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'Specific: Phone Detection',
+                file: 'test_phone_detection.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'Specific: UI Visibility Handshake',
+                file: 'test_ui_visibility_handshake.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+
+            // Frontend Tests - Básicos
+            {
+                name: 'Basic: Loading',
+                file: 'test_basic.html',
+                type: 'browser',
+                category: 'Basic'
+            },
+            {
+                name: 'Basic: iframe Basico',
+                file: 'test-iframe-basico.html',
+                type: 'browser',
+                category: 'Basic'
+            },
+            {
+                name: 'Basic: Carga Hijos',
+                file: 'test-carga-hijos.html',
+                type: 'browser',
+                category: 'Basic'
+            },
+            {
+                name: 'Basic: Código Padre',
+                file: 'test-codigo-padre.html',
+                type: 'browser',
+                category: 'Basic'
+            },
+
+            // Frontend Tests - Módulos
+            {
+                name: 'Module: Mensajería Loading',
+                file: 'test_mensajeria.html',
+                type: 'browser',
+                category: 'Module'
+            },
+            {
+                name: 'Module: ejecutarValidacion',
+                file: 'test_ejecutarValidacion.html',
+                type: 'browser',
+                category: 'Module'
+            },
+            {
+                name: 'Module: registrarMetrica',
+                file: 'test_registrarMetrica.html',
+                type: 'browser',
+                category: 'Module'
+            },
+            {
+                name: 'Data: Videos por Aventura',
+                file: 'test_video_aventuras.html',
+                type: 'browser',
+                category: 'Data'
+            }
+        ];
+
+        let results = {};
+        let isRunning = false;
+
+        // Inicializar UI
+        function initUI() {
+            renderTestList();
+            setupEventListeners();
+        }
+
+        function renderTestList() {
+            const list = document.getElementById('testList');
+            list.innerHTML = TESTS.map((test, idx) => `
+                <div class="test-item" id="test-${idx}">
+                    <div class="test-status status-pending" id="status-${idx}">⏳</div>
+                    <div class="test-name">${test.name}</div>
+                    <div class="test-time" id="time-${idx}"></div>
+                </div>
+            `).join('');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('runAllBtn').addEventListener('click', runAllTests);
+            document.getElementById('clearBtn').addEventListener('click', clearResults);
+            document.getElementById('exportBtn').addEventListener('click', exportReport);
+        }
+
+        function addLog(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function runAllTests() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('runAllBtn').disabled = true;
+            document.getElementById('logContainer').innerHTML = '';
+            results = {};
+
+            addLog('🚀 Starting test suite...', 'info');
+            const startTime = performance.now();
+
+            // Ejecutar tests de navegador
+            for (let i = 0; i < TESTS.length; i++) {
+                const test = TESTS[i];
+                if (test.type === 'jest') {
+                    updateTestStatus(i, 'skipped', 0);
+                    addLog(`⏭️ Skipped: ${test.name} (Backend - run 'npm test')`, 'warning');
+                    results[i] = { status: 'skipped', time: 0 };
+                } else {
+                    await runBrowserTest(i, test);
+                }
+                updateProgress(i + 1, TESTS.length);
+            }
+
+            const endTime = performance.now();
+            const totalTime = ((endTime - startTime) / 1000).toFixed(2);
+
+            addLog(`✅ Test suite completed in ${totalTime}s`, 'success');
+            updateSummary();
+            isRunning = false;
+            document.getElementById('runAllBtn').disabled = false;
+            document.getElementById('lastRun').textContent = new Date().toLocaleString();
+        }
+
+        async function runBrowserTest(idx, test) {
+            return new Promise((resolve) => {
+                updateTestStatus(idx, 'running', 0);
+                addLog(`⏳ Running: ${test.name}`, 'info');
+
+                const startTime = performance.now();
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = test.file;
+
+                // Flag para detectar si el test reportó resultado
+                let testReported = false;
+
+                // Exponer función global para que tests reporten sus resultados
+                window.reportTestResult = (result) => {
+                    if (testReported) return;
+                    testReported = true;
+
+                    const time = performance.now() - startTime;
+                    const passed = result.passed || 0;
+                    const failed = result.failed || 0;
+                    const warnings = result.warnings || 0;
+
+                    // Determinar estado: failed si hay fallos, warning si hay warnings, passed si todo OK
+                    let status = 'passed';
+                    if (failed > 0) {
+                        status = 'failed';
+                    } else if (warnings > 0) {
+                        status = 'warning';
+                    }
+
+                    updateTestStatus(idx, status, time);
+                    const emoji = status === 'failed' ? '❌' : (status === 'warning' ? '⚠️' : '✅');
+                    addLog(`${emoji} ${test.name}: ${passed} passed, ${failed} failed, ${warnings} warnings (${time.toFixed(0)}ms)`, 
+                           status === 'failed' ? 'error' : (status === 'warning' ? 'warning' : 'success'));
+                    results[idx] = { status, time, passed, failed, warnings };
+
+                    clearTimeout(timeout);
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                    resolve();
+                };
+
+                const timeout = setTimeout(() => {
+                    if (testReported) return;
+                    testReported = true;
+
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                    updateTestStatus(idx, 'failed', performance.now() - startTime);
+                    addLog(`❌ TIMEOUT: ${test.name} (no response after 15s)`, 'error');
+                    results[idx] = { status: 'failed', time: performance.now() - startTime, error: 'Timeout' };
+                    resolve();
+                }, 15000); // 15 segundos timeout
+
+                iframe.onload = () => {
+                    try {
+                        // Intentar ejecutar automáticamente si el test tiene funciones de ejecución
+                        const iframeWindow = iframe.contentWindow;
+                        if (iframeWindow.runTest && typeof iframeWindow.runTest === 'function') {
+                            iframeWindow.runTest();
+                        } else if (iframeWindow.runFullTest && typeof iframeWindow.runFullTest === 'function') {
+                            iframeWindow.runFullTest();
+                        } else if (iframeWindow.testSincronizacionCompleta && typeof iframeWindow.testSincronizacionCompleta === 'function') {
+                            iframeWindow.testSincronizacionCompleta();
+                        } else if (iframeWindow.runIndiceTest && typeof iframeWindow.runIndiceTest === 'function') {
+                            iframeWindow.runIndiceTest();
+                        }
+                    } catch (e) {
+                        console.log(`No auto-execution function found for ${test.name}:`, e.message);
+                    }
+                };
+
+                iframe.onerror = () => {
+                    if (testReported) return;
+                    testReported = true;
+
+                    clearTimeout(timeout);
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                    updateTestStatus(idx, 'failed', performance.now() - startTime);
+                    addLog(`❌ LOAD ERROR: ${test.name}`, 'error');
+                    results[idx] = { status: 'failed', time: performance.now() - startTime, error: 'Load Error' };
+                    resolve();
+                };
+
+                document.body.appendChild(iframe);
+            });
+        }
+
+        function updateTestStatus(idx, status, time) {
+            const statusEl = document.getElementById(`status-${idx}`);
+            const timeEl = document.getElementById(`time-${idx}`);
+            const testEl = document.getElementById(`test-${idx}`);
+
+            statusEl.className = `test-status status-${status}`;
+            statusEl.textContent = {
+                pending: '⏳',
+                running: '▶️',
+                passed: '✅',
+                failed: '❌',
+                skipped: '⏭️'
+            }[status];
+
+            if (time) {
+                timeEl.textContent = `${time.toFixed(0)}ms`;
+            }
+
+            testEl.style.opacity = status === 'running' ? '1' : '1';
+        }
+
+        function updateProgress(current, total) {
+            const percent = (current / total) * 100;
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `${current} / ${total} tests completed`;
+        }
+
+        function updateSummary() {
+            const statuses = Object.values(results);
+            const passed = statuses.filter(r => r.status === 'passed').length;
+            const failed = statuses.filter(r => r.status === 'failed').length;
+            const skipped = statuses.filter(r => r.status === 'skipped').length;
+            const warning = statuses.filter(r => r.status === 'warning').length;
+            const total = statuses.length;
+
+            // Sumar checks internos
+            let totalChecks = 0;
+            let totalFailed = 0;
+            let totalWarnings = 0;
+            statuses.forEach(s => {
+                if (s.passed) totalChecks += s.passed;
+                if (s.failed) totalFailed += s.failed;
+                if (s.warnings) totalWarnings += s.warnings;
+            });
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('passedCount').textContent = passed;
+            document.getElementById('failedCount').textContent = failed;
+            document.getElementById('skippedCount').textContent = skipped;
+        }
+
+        function clearResults() {
+            results = {};
+            document.getElementById('logContainer').innerHTML = '';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressText').textContent = 'Ready to run tests';
+            renderTestList();
+            updateSummary();
+            document.getElementById('exportArea').classList.add('hidden');
+        }
+
+        function exportReport() {
+            const statuses = Object.values(results);
+            const passed = statuses.filter(r => r.status === 'passed').length;
+            const failed = statuses.filter(r => r.status === 'failed').length;
+            const warning = statuses.filter(r => r.status === 'warning').length;
+            const skipped = statuses.filter(r => r.status === 'skipped').length;
+
+            let report = `VALENCIA VGUIDES - COMPREHENSIVE TEST REPORT\n`;
+            report += `Generated: ${new Date().toLocaleString()}\n`;
+            report += `Master Suite: master-test.html\n\n`;
+            
+            report += `=== SUMMARY ===\n`;
+            report += `Total Tests: ${statuses.length}\n`;
+            report += `Passed: ${passed}\n`;
+            report += `Failed: ${failed}\n`;
+            report += `Warnings: ${warning}\n`;
+            report += `Skipped: ${skipped}\n`;
+            report += `Success Rate: ${passed > 0 ? ((passed / (passed + failed + warning)) * 100).toFixed(2) : '0'}%\n\n`;
+            
+            report += `=== DETAILED RESULTS ===\n`;
+            TESTS.forEach((test, idx) => {
+                const result = results[idx];
+                if (result) {
+                    const statusSymbol = result.status === 'passed' ? '✅' : 
+                                        (result.status === 'failed' ? '❌' : 
+                                        (result.status === 'warning' ? '⚠️' : '⏭️'));
+                    
+                    report += `${statusSymbol} ${test.name.padEnd(50)} - ${result.status.toUpperCase()}`;
+                    
+                    if (result.time) {
+                        report += ` (${result.time.toFixed(0)}ms)`;
+                    }
+                    
+                    if (result.passed !== undefined || result.failed !== undefined) {
+                        report += ` [${result.passed || 0}✓ ${result.failed || 0}✗ ${result.warnings || 0}⚠]`;
+                    }
+                    
+                    report += `\n`;
+                }
+            });
+
+            report += `\n=== TEST CATEGORIES ===\n`;
+            const categories = {};
+            TESTS.forEach((test, idx) => {
+                if (!categories[test.category]) {
+                    categories[test.category] = { total: 0, passed: 0, failed: 0 };
+                }
+                categories[test.category].total++;
+                if (results[idx]) {
+                    if (results[idx].status === 'passed') {
+                        categories[test.category].passed++;
+                    } else if (results[idx].status === 'failed') {
+                        categories[test.category].failed++;
+                    }
+                }
+            });
+
+            Object.entries(categories).forEach(([cat, stats]) => {
+                report += `${cat}: ${stats.passed}/${stats.total} passed\n`;
+            });
+
+            report += `\n=== RECOMMENDATIONS ===\n`;
+            if (failed > 0) {
+                report += `- Fix ${failed} failing tests\n`;
+            }
+            if (warning > 0) {
+                report += `- Review ${warning} tests with warnings\n`;
+            }
+            if (failed === 0 && warning === 0) {
+                report += `- All tests passed! ✅\n`;
+            }
+            report += `- Consider running 'npm test' for backend tests\n`;
+
+            document.getElementById('reportArea').value = report;
+            document.getElementById('exportArea').classList.remove('hidden');
+        }
+
+        // Iniciar cuando carga la página
+        window.addEventListener('load', initUI);
+    </script>
+</body>
+</html>

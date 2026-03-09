@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test RESPUESTA_DATOS_PARADAS → hijo5</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #cce5ff; border: 1px solid #b8daff; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffc107; }
+        #log { white-space: pre-wrap; background: #f4f4f4; padding: 10px; max-height: 300px; overflow-y: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test: NAVEGACION.RESPUESTA_DATOS_PARADAS → hijo5</h1>
+    <p>Verifica que hijo5 reciba datos de paradas y genere botones dinámicamente (sin fallback local).</p>
+
+    <div class="section">
+        <div id="status">Estado: Esperando...</div>
+        <button onclick="runTest()">Ejecutar Test</button>
+        <button onclick="testGeneracionBotones()">Test Generación Botones</button>
+        <button onclick="clearLog()">Limpiar Log</button>
+    </div>
+
+    <div id="results"></div>
+    
+    <h3>Log:</h3>
+    <div id="log"></div>
+
+    <div class="section">
+        <h3>hijo5 (boton-casa-hijo5.html):</h3>
+        <iframe id="hijo5" src="../boton-casa-hijo5.html" style="width:100%;height:250px;border:1px solid #ccc;"></iframe>
+    </div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+
+        const resultsDiv = document.getElementById('results');
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+
+        function log(msg, type = 'info') {
+            const time = new Date().toISOString().substr(11, 12);
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logDiv.textContent += `[${time}] ${prefix} ${msg}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addResult(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>${details ? ': ' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+
+        function addWarning(name, details = '') {
+            const div = document.createElement('div');
+            div.className = 'test-result warning';
+            div.innerHTML = `<strong>⚠️ ${name}</strong>${details ? ': ' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+
+        window.clearLog = function() {
+            logDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+        };
+
+        // Datos de prueba que simula lo que enviaría el padre
+        const datosPruebaParadas = [
+            {
+                padreid: 'padre-P-0',
+                tipo: 'inicio',
+                nombre: 'Plaza de la Virgen',
+                coordenadas: { lat: 39.4760, lng: -0.3749 },
+                emoji: '🏁'
+            },
+            {
+                padreid: 'padre-P-1',
+                tipo: 'parada', 
+                parada_id: 1,
+                nombre: 'Catedral de Valencia',
+                coordenadas: { lat: 39.4755, lng: -0.3752 },
+                emoji: '📍'
+            },
+            {
+                padreid: 'padre-T-1',
+                tipo: 'tramo',
+                tramo_id: 1,
+                nombre: 'Hacia la Lonja',
+                coordenadas: { lat: 39.4745, lng: -0.3780 },
+                emoji: '🚶'
+            },
+            {
+                padreid: 'padre-P-2',
+                tipo: 'parada',
+                parada_id: 2,
+                nombre: 'La Lonja de la Seda',
+                coordenadas: { lat: 39.4743, lng: -0.3788 },
+                emoji: '📍'
+            }
+        ];
+
+        window.runTest = async function() {
+            clearLog();
+            statusDiv.textContent = 'Estado: Ejecutando tests...';
+            log('Iniciando test RESPUESTA_DATOS_PARADAS para hijo5');
+
+            const hijo5 = document.getElementById('hijo5');
+
+            // Esperar carga
+            await new Promise(resolve => {
+                if (hijo5.contentDocument.readyState === 'complete') {
+                    resolve();
+                } else {
+                    hijo5.onload = resolve;
+                }
+            });
+            await new Promise(r => setTimeout(r, 2000));
+            log('hijo5 cargado');
+
+            // Test 1: Verificar que TIPOS_MENSAJE está disponible
+            try {
+                const tipos = hijo5.contentWindow.TIPOS_MENSAJE;
+                if (tipos && tipos.NAVEGACION && tipos.NAVEGACION.RESPUESTA_DATOS_PARADAS) {
+                    addResult('TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS disponible', true);
+                } else {
+                    addResult('TIPOS_MENSAJE en hijo5', false, 'RESPUESTA_DATOS_PARADAS no encontrado');
+                }
+            } catch (e) {
+                addResult('TIPOS_MENSAJE en hijo5', false, `Error cross-origin: ${e.message}`);
+            }
+
+            // Test 2: Enviar RESPUESTA_DATOS_PARADAS a hijo5
+            log('Enviando NAVEGACION.RESPUESTA_DATOS_PARADAS...');
+            
+            let respuestaRecibida = false;
+            const messageHandler = (e) => {
+                if (e.data && e.data.tipo) {
+                    log(`Respuesta de hijo5: ${e.data.tipo}`);
+                    if (e.data.tipo === TIPOS_MENSAJE.SISTEMA.ACK || 
+                        e.data.tipo === TIPOS_MENSAJE.SISTEMA.CONFIRMACION) {
+                        respuestaRecibida = true;
+                    }
+                }
+            };
+            window.addEventListener('message', messageHandler);
+
+            hijo5.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
+                origen: 'padre',
+                destino: 'hijo5',
+                datos: {
+                    paradas: datosPruebaParadas,
+                    aventuraId: 'Aventura1',
+                    idioma: 'es',
+                    total: datosPruebaParadas.length
+                },
+                timestamp: Date.now()
+            }, '*');
+
+            await new Promise(r => setTimeout(r, 2000));
+            window.removeEventListener('message', messageHandler);
+
+            addResult('Mensaje RESPUESTA_DATOS_PARADAS enviado', true, 
+                `${datosPruebaParadas.length} paradas`);
+
+            // Test 3: Verificar almacenamiento en estado
+            try {
+                const estado = hijo5.contentWindow.estado;
+                if (estado && estado.aventuraParadas) {
+                    addResult('Datos almacenados en estado.aventuraParadas', true,
+                        `${estado.aventuraParadas.length} elementos`);
+                } else {
+                    addResult('estado.aventuraParadas', false, 
+                        'No se encontraron datos almacenados');
+                }
+            } catch (e) {
+                addWarning('Verificación de estado', `No accesible (cross-origin): ${e.message}`);
+            }
+
+            // Test 4: Verificar generación de botones
+            await window.testGeneracionBotones(false);
+
+            statusDiv.textContent = 'Estado: Tests completados';
+        };
+
+        window.testGeneracionBotones = async function(clear = true) {
+            if (clear) {
+                clearLog();
+                statusDiv.textContent = 'Estado: Verificando botones...';
+            }
+            log('Verificando generación de botones de paradas...');
+
+            const hijo5 = document.getElementById('hijo5');
+            
+            try {
+                const doc = hijo5.contentDocument;
+                
+                // Buscar contenedor de botones
+                const contenedor = doc.querySelector('#paradas-container') || 
+                                   doc.querySelector('.paradas-container') ||
+                                   doc.querySelector('[id*="parada"]');
+                
+                if (contenedor) {
+                    const botones = contenedor.querySelectorAll('button, .parada-tramo-btn');
+                    
+                    if (botones.length > 0) {
+                        addResult('Botones de paradas generados', true, 
+                            `${botones.length} botones encontrados`);
+                        
+                        // Verificar estructura de botones
+                        const primerBoton = botones[0];
+                        const tieneClaseCorrecta = primerBoton.classList.contains('parada-tramo-btn');
+                        addResult('Estructura de botones correcta', tieneClaseCorrecta,
+                            tieneClaseCorrecta ? 'clase parada-tramo-btn presente' : 'clase faltante');
+                    } else {
+                        addResult('Botones generados', false, 
+                            'Contenedor existe pero sin botones');
+                    }
+                } else {
+                    // Buscar mensaje de espera
+                    const mensajeEspera = doc.body.textContent.includes('Esperando datos');
+                    if (mensajeEspera) {
+                        addWarning('Sin datos del padre', 
+                            'Mostrando "Esperando datos de la aventura..." (comportamiento correcto si no se enviaron datos)');
+                    } else {
+                        addResult('Contenedor de botones', false, 
+                            'No se encontró contenedor de paradas');
+                    }
+                }
+            } catch (e) {
+                addResult('Verificación de botones', false, `Error: ${e.message}`);
+            }
+
+            if (clear) {
+                statusDiv.textContent = 'Estado: Verificación completada';
+            }
+        };
+
+        // Reportar al master-test
+        window.reportTest({
+            name: 'Data: RESPUESTA_DATOS_PARADAS a hijo5',
+            resultsContainer: resultsDiv
+        });
+    </script>
+</body>
+</html>

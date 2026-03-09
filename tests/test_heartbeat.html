@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test SISTEMA.HEARTBEAT</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #cce5ff; border: 1px solid #b8daff; }
+        #log { white-space: pre-wrap; background: #f4f4f4; padding: 10px; max-height: 300px; overflow-y: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test: SISTEMA.HEARTBEAT</h1>
+    <p>Verifica el sistema de heartbeat entre padre e hijos.</p>
+
+    <div class="section">
+        <div id="status">Estado: Esperando...</div>
+        <button onclick="runTest()">Ejecutar Test</button>
+        <button onclick="testHeartbeatStart()">Test HEARTBEAT_START</button>
+        <button onclick="testHeartbeatPause()">Test HEARTBEAT_PAUSE</button>
+        <button onclick="clearLog()">Limpiar Log</button>
+    </div>
+
+    <div id="results"></div>
+    
+    <h3>Log:</h3>
+    <div id="log"></div>
+
+    <div class="section">
+        <h3>Padre:</h3>
+        <iframe id="padre" src="../codigo-padre.html" style="width:100%;height:200px;border:1px solid #ccc;"></iframe>
+    </div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+
+        const resultsDiv = document.getElementById('results');
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+
+        let heartbeatResponses = [];
+
+        function log(msg, type = 'info') {
+            const time = new Date().toISOString().substr(11, 12);
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logDiv.textContent += `[${time}] ${prefix} ${msg}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addResult(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>${details ? ': ' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+
+        window.clearLog = function() {
+            logDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+            heartbeatResponses = [];
+        };
+
+        // Listener para respuestas de heartbeat
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.tipo) {
+                if (e.data.tipo === TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE ||
+                    e.data.tipo === TIPOS_MENSAJE.SISTEMA.HEARTBEAT) {
+                    heartbeatResponses.push({
+                        tipo: e.data.tipo,
+                        origen: e.data.origen,
+                        timestamp: Date.now()
+                    });
+                    log(`Heartbeat recibido: ${e.data.tipo} de ${e.data.origen}`, 'info');
+                }
+            }
+        });
+
+        window.runTest = async function() {
+            clearLog();
+            statusDiv.textContent = 'Estado: Ejecutando tests...';
+            log('Iniciando test de HEARTBEAT');
+
+            const padre = document.getElementById('padre');
+            
+            // Esperar carga
+            await new Promise(resolve => {
+                if (padre.contentDocument.readyState === 'complete') {
+                    resolve();
+                } else {
+                    padre.onload = resolve;
+                }
+            });
+            await new Promise(r => setTimeout(r, 3000));
+            log('Padre cargado');
+
+            // Test 1: Verificar constantes de heartbeat
+            try {
+                const tipos = padre.contentWindow.TIPOS_MENSAJE;
+                if (tipos && tipos.SISTEMA) {
+                    const tieneHeartbeat = tipos.SISTEMA.HEARTBEAT !== undefined;
+                    const tieneStart = tipos.SISTEMA.HEARTBEAT_START !== undefined;
+                    const tienePause = tipos.SISTEMA.HEARTBEAT_PAUSE !== undefined;
+                    const tieneResponse = tipos.SISTEMA.HEARTBEAT_RESPONSE !== undefined;
+                    
+                    addResult('Constantes HEARTBEAT definidas', 
+                        tieneHeartbeat && tieneStart && tienePause && tieneResponse,
+                        `HEARTBEAT: ${tieneHeartbeat}, START: ${tieneStart}, PAUSE: ${tienePause}, RESPONSE: ${tieneResponse}`);
+                }
+            } catch (e) {
+                addResult('Verificación de constantes', false, e.message);
+            }
+
+            // Test 2: Enviar heartbeat al padre
+            log('Enviando HEARTBEAT al padre...');
+            heartbeatResponses = [];
+            
+            padre.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
+                origen: 'test-runner',
+                destino: 'padre',
+                datos: {
+                    timestamp: Date.now(),
+                    componenteId: 'test-runner'
+                }
+            }, '*');
+
+            await new Promise(r => setTimeout(r, 2000));
+            
+            const respuestas = heartbeatResponses.filter(h => 
+                h.tipo === TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE
+            );
+            
+            addResult('Respuesta a HEARTBEAT', respuestas.length > 0,
+                respuestas.length > 0 ? `${respuestas.length} respuesta(s)` : 'Sin respuesta');
+
+            // Test 3: Verificar estado del heartbeat
+            try {
+                const estadoHeartbeat = padre.contentWindow.heartbeatEstado || 
+                                        padre.contentWindow.window.heartbeatEstado;
+                if (estadoHeartbeat) {
+                    addResult('Estado heartbeat accesible', true, 
+                        `Activo: ${estadoHeartbeat.activo || 'N/A'}`);
+                }
+            } catch (e) {
+                addResult('Estado heartbeat', false, 'No accesible (cross-origin)');
+            }
+
+            statusDiv.textContent = 'Estado: Tests completados';
+            log('Tests finalizados');
+        };
+
+        window.testHeartbeatStart = async function() {
+            clearLog();
+            log('Enviando HEARTBEAT_START...');
+            const padre = document.getElementById('padre');
+            
+            padre.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START,
+                origen: 'test-runner',
+                destino: 'padre',
+                datos: {
+                    intervalo: 5000
+                }
+            }, '*');
+            
+            await new Promise(r => setTimeout(r, 1000));
+            addResult('HEARTBEAT_START enviado', true);
+            log('HEARTBEAT_START enviado - verificar en consola del padre');
+        };
+
+        window.testHeartbeatPause = async function() {
+            clearLog();
+            log('Enviando HEARTBEAT_PAUSE...');
+            const padre = document.getElementById('padre');
+            
+            padre.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE,
+                origen: 'test-runner',
+                destino: 'padre',
+                datos: {}
+            }, '*');
+            
+            await new Promise(r => setTimeout(r, 1000));
+            addResult('HEARTBEAT_PAUSE enviado', true);
+            log('HEARTBEAT_PAUSE enviado - verificar en consola del padre');
+        };
+
+        // Reportar al master-test
+        window.reportTest({
+            name: 'Verification: SISTEMA.HEARTBEAT',
+            resultsContainer: resultsDiv
+        });
+    </script>
+</body>
+</html>

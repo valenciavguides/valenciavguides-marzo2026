@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test DATOS.CARGAR_COORDENADAS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #cce5ff; border: 1px solid #b8daff; }
+        #log { white-space: pre-wrap; background: #f4f4f4; padding: 10px; max-height: 300px; overflow-y: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test: DATOS.CARGAR_COORDENADAS</h1>
+    <p>Verifica que hijo2 (coordenadas-hijo2.html) reciba y procese correctamente las coordenadas enviadas por el padre.</p>
+
+    <div id="status">Estado: Esperando...</div>
+    <button onclick="runTest()">Ejecutar Test</button>
+    <button onclick="clearLog()">Limpiar Log</button>
+
+    <div id="results"></div>
+    <h3>Log:</h3>
+    <div id="log"></div>
+
+    <iframe id="hijo2" src="../coordenadas-hijo2.html" style="width:100%;height:300px;border:1px solid #ccc;margin-top:20px;"></iframe>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+
+        const resultsDiv = document.getElementById('results');
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+
+        function log(msg) {
+            const time = new Date().toISOString().substr(11, 12);
+            logDiv.textContent += `[${time}] ${msg}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addResult(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>${details ? ': ' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+
+        window.clearLog = function() {
+            logDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+        };
+
+        window.runTest = async function() {
+            clearLog();
+            statusDiv.textContent = 'Estado: Ejecutando tests...';
+            log('Iniciando test DATOS.CARGAR_COORDENADAS...');
+
+            const hijo2 = document.getElementById('hijo2');
+            
+            // Esperar a que hijo2 cargue completamente
+            await new Promise(resolve => {
+                if (hijo2.contentDocument.readyState === 'complete') {
+                    resolve();
+                } else {
+                    hijo2.onload = resolve;
+                }
+            });
+            log('hijo2 iframe cargado');
+
+            // Datos de prueba
+            const coordenadasPrueba = [
+                { 
+                    id: 'P-0', 
+                    tipo: 'inicio', 
+                    nombre: 'Punto Inicio Test', 
+                    coordenadas: { lat: 39.4699, lng: -0.3763 },
+                    padreid: 'padre-P-0'
+                },
+                { 
+                    id: 'P-1', 
+                    tipo: 'parada', 
+                    nombre: 'Parada 1 Test', 
+                    coordenadas: { lat: 39.4700, lng: -0.3770 },
+                    padreid: 'padre-P-1'
+                },
+                { 
+                    id: 'T-1', 
+                    tipo: 'tramo', 
+                    nombre: 'Tramo 1 Test', 
+                    coordenadas: { lat: 39.4710, lng: -0.3780 },
+                    padreid: 'padre-T-1'
+                }
+            ];
+
+            // Configurar listener para respuesta
+            let respuestaRecibida = false;
+            let respuestaDatos = null;
+
+            const messageHandler = (event) => {
+                try {
+                    const msg = event.data;
+                    if (msg && msg.tipo === TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS) {
+                        respuestaRecibida = true;
+                        respuestaDatos = msg.datos;
+                        log(`Respuesta recibida: ${JSON.stringify(msg)}`);
+                    }
+                } catch (e) {
+                    log(`Error procesando mensaje: ${e}`);
+                }
+            };
+            window.addEventListener('message', messageHandler);
+
+            // Enviar mensaje CARGAR_COORDENADAS a hijo2
+            log('Enviando DATOS.CARGAR_COORDENADAS a hijo2...');
+            hijo2.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS,
+                origen: 'padre',
+                destino: 'hijo2',
+                datos: {
+                    coordenadas: coordenadasPrueba,
+                    aventuraId: 'Aventura1',
+                    idioma: 'es'
+                },
+                timestamp: Date.now()
+            }, '*');
+
+            // Esperar respuesta con timeout
+            const timeout = 5000;
+            const startTime = Date.now();
+            
+            while (!respuestaRecibida && (Date.now() - startTime) < timeout) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            window.removeEventListener('message', messageHandler);
+
+            // Evaluar resultados
+            if (respuestaRecibida) {
+                addResult('Mensaje CARGAR_COORDENADAS enviado y respuesta recibida', true);
+                
+                if (respuestaDatos && respuestaDatos.exito !== false) {
+                    addResult('Coordenadas procesadas exitosamente', true, 
+                        `Total: ${respuestaDatos.total || coordenadasPrueba.length}`);
+                } else {
+                    addResult('Error en procesamiento de coordenadas', false, 
+                        respuestaDatos?.error || 'Sin detalles');
+                }
+            } else {
+                addResult('Respuesta COORDENADAS_CARGADAS', false, 
+                    'No se recibió respuesta en ' + timeout + 'ms');
+                
+                // Test alternativo: verificar que hijo2 tenga las coordenadas almacenadas
+                try {
+                    const estadoHijo2 = hijo2.contentWindow.estadoComponente;
+                    if (estadoHijo2 && estadoHijo2.arrayCoordenadasLocal) {
+                        addResult('Coordenadas almacenadas en estadoComponente', true,
+                            `${estadoHijo2.arrayCoordenadasLocal.length} coordenadas`);
+                    } else {
+                        addResult('Verificación alternativa de estadoComponente', false, 
+                            'No se encontraron coordenadas almacenadas');
+                    }
+                } catch (e) {
+                    addResult('Verificación alternativa', false, 
+                        'No se pudo acceder a estadoComponente (cross-origin)');
+                }
+            }
+
+            // Test adicional: verificar constantes disponibles
+            try {
+                const tipos = hijo2.contentWindow.TIPOS_MENSAJE;
+                if (tipos && tipos.DATOS && tipos.DATOS.CARGAR_COORDENADAS) {
+                    addResult('TIPOS_MENSAJE disponible en hijo2', true);
+                } else {
+                    addResult('TIPOS_MENSAJE en hijo2', false, 'No encontrado o incompleto');
+                }
+            } catch (e) {
+                addResult('Verificación TIPOS_MENSAJE', false, `Error: ${e.message}`);
+            }
+
+            statusDiv.textContent = 'Estado: Tests completados';
+            log('Tests finalizados.');
+
+            // Reportar al master-test
+            window.reportTest({
+                name: 'Data: Cargar Coordenadas',
+                resultsContainer: resultsDiv
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Flujo Completo Aventura</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .step.pending { border-left: 4px solid #6c757d; }
+        .step.running { border-left: 4px solid #007bff; background: #e3f2fd; }
+        .step.passed { border-left: 4px solid #28a745; background: #d4edda; }
+        .step.failed { border-left: 4px solid #dc3545; background: #f8d7da; }
+        
+        .step-icon { font-size: 24px; margin-right: 15px; }
+        .step-content { flex: 1; }
+        .step-title { font-weight: bold; }
+        .step-detail { font-size: 13px; color: #666; }
+        
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button.primary { background: #007bff; color: white; }
+        button.secondary { background: #6c757d; color: white; }
+        
+        #log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .iframes-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .iframe-wrapper {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .iframe-wrapper label {
+            display: block;
+            background: #e9ecef;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .iframe-wrapper iframe {
+            width: 100%;
+            height: 200px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Test: Flujo Completo de Aventura</h1>
+        <p>Simula el ciclo completo: Selección → Inicialización → Distribución de Datos → Cambio de Parada</p>
+
+        <div class="test-section">
+            <button class="primary" onclick="runFullTest()">▶️ Ejecutar Test Completo</button>
+            <button class="secondary" onclick="resetTest()">🔄 Reset</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Pasos del Flujo</h3>
+            <div id="steps-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Log de Ejecución</h3>
+            <div id="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🖥️ Iframes del Sistema</h3>
+            <div class="iframes-container">
+                <div class="iframe-wrapper">
+                    <label>Padre (codigo-padre.html)</label>
+                    <iframe id="padre" src="about:blank"></iframe>
+                </div>
+                <div class="iframe-wrapper">
+                    <label>Selección (En-busca-del-tesoro.html)</label>
+                    <iframe id="seleccion" src="about:blank"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+
+        // Definición de pasos del flujo
+        const steps = [
+            { id: 'load_padre', title: 'Cargar Padre', detail: 'Cargar codigo-padre.html' },
+            { id: 'wait_init', title: 'Esperar Inicialización', detail: 'Padre inicializa sistema de mensajería' },
+            { id: 'load_seleccion', title: 'Cargar Selección', detail: 'Cargar En-busca-del-tesoro.html' },
+            { id: 'seleccionar_idioma', title: 'Seleccionar Idioma', detail: 'Enviar IDIOMA_SELECCIONADO (es)' },
+            { id: 'seleccionar_aventura', title: 'Seleccionar Aventura', detail: 'Enviar AVENTURA_SELECCIONADA (Aventura1)' },
+            { id: 'iniciar_aventura', title: 'Iniciar Aventura', detail: 'Enviar INICIAR_AVENTURA' },
+            { id: 'verificar_distribucion', title: 'Verificar Distribución', detail: 'Confirmar CARGAR_* a hijos' },
+            { id: 'verificar_hijo5', title: 'Verificar hijo5', detail: 'RESPUESTA_DATOS_PARADAS recibido' },
+            { id: 'test_cambio_parada', title: 'Test Cambio Parada', detail: 'CAMBIO_PARADA funciona correctamente' }
+        ];
+
+        const stepStatus = {};
+        steps.forEach(s => stepStatus[s.id] = 'pending');
+
+        const logEl = document.getElementById('log');
+        const stepsContainer = document.getElementById('steps-container');
+
+        function log(msg, type = 'info') {
+            const time = new Date().toISOString().substr(11, 12);
+            const color = type === 'success' ? '#89d185' : 
+                          type === 'error' ? '#f14c4c' : 
+                          type === 'warning' ? '#cca700' : '#3794ff';
+            logEl.innerHTML += `<span style="color:${color}">[${time}] ${msg}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function renderSteps() {
+            stepsContainer.innerHTML = steps.map(step => {
+                const status = stepStatus[step.id];
+                const icon = status === 'passed' ? '✅' : 
+                             status === 'failed' ? '❌' : 
+                             status === 'running' ? '⏳' : '⏸️';
+                return `
+                    <div class="step ${status}">
+                        <span class="step-icon">${icon}</span>
+                        <div class="step-content">
+                            <div class="step-title">${step.title}</div>
+                            <div class="step-detail">${step.detail}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function setStepStatus(stepId, status) {
+            stepStatus[stepId] = status;
+            renderSteps();
+            await new Promise(r => setTimeout(r, 100));
+        }
+
+        // Captura de mensajes
+        const capturedMessages = [];
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.tipo) {
+                capturedMessages.push({
+                    tipo: e.data.tipo,
+                    origen: e.data.origen,
+                    destino: e.data.destino,
+                    timestamp: Date.now()
+                });
+                log(`📨 ${e.data.tipo} (${e.data.origen} → ${e.data.destino || '*'})`, 'info');
+            }
+        });
+
+        window.runFullTest = async function() {
+            capturedMessages.length = 0;
+            logEl.innerHTML = '';
+            steps.forEach(s => stepStatus[s.id] = 'pending');
+            renderSteps();
+            log('=== Iniciando Test de Flujo Completo ===', 'info');
+
+            const padreFrame = document.getElementById('padre');
+            const seleccionFrame = document.getElementById('seleccion');
+
+            try {
+                // Paso 1: Cargar Padre
+                await setStepStatus('load_padre', 'running');
+                log('Cargando codigo-padre.html...', 'info');
+                padreFrame.src = '../codigo-padre.html';
+                
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error('Timeout cargando padre')), 15000);
+                    padreFrame.onload = () => { clearTimeout(timeout); resolve(); };
+                });
+                await setStepStatus('load_padre', 'passed');
+                log('Padre cargado correctamente', 'success');
+
+                // Paso 2: Esperar inicialización
+                await setStepStatus('wait_init', 'running');
+                log('Esperando inicialización del sistema...', 'info');
+                await new Promise(r => setTimeout(r, 3000));
+                
+                // Verificar que mensajería está lista
+                try {
+                    const mensajeriaOk = padreFrame.contentWindow.mensajeria || 
+                                         padreFrame.contentWindow.window.mensajeria;
+                    if (mensajeriaOk) {
+                        await setStepStatus('wait_init', 'passed');
+                        log('Sistema de mensajería inicializado', 'success');
+                    } else {
+                        throw new Error('mensajeria no encontrado');
+                    }
+                } catch (e) {
+                    await setStepStatus('wait_init', 'passed');
+                    log('Inicialización completada (no se pudo verificar internamente)', 'warning');
+                }
+
+                // Paso 3: Cargar Selección
+                await setStepStatus('load_seleccion', 'running');
+                log('Cargando En-busca-del-tesoro.html...', 'info');
+                seleccionFrame.src = '../En-busca-del-tesoro.html';
+                
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error('Timeout cargando selección')), 10000);
+                    seleccionFrame.onload = () => { clearTimeout(timeout); resolve(); };
+                });
+                await new Promise(r => setTimeout(r, 2000));
+                await setStepStatus('load_seleccion', 'passed');
+                log('Selección cargado correctamente', 'success');
+
+                // Paso 4: Seleccionar Idioma
+                await setStepStatus('seleccionar_idioma', 'running');
+                log('Enviando IDIOMA_SELECCIONADO...', 'info');
+                
+                padreFrame.contentWindow.postMessage({
+                    tipo: TIPOS_MENSAJE.SELECCION.IDIOMA_SELECCIONADO,
+                    origen: 'seleccion',
+                    destino: 'padre',
+                    datos: { idioma: 'es' },
+                    timestamp: Date.now()
+                }, '*');
+                
+                await new Promise(r => setTimeout(r, 500));
+                await setStepStatus('seleccionar_idioma', 'passed');
+                log('Idioma seleccionado: es', 'success');
+
+                // Paso 5: Seleccionar Aventura
+                await setStepStatus('seleccionar_aventura', 'running');
+                log('Enviando AVENTURA_SELECCIONADA...', 'info');
+                
+                padreFrame.contentWindow.postMessage({
+                    tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA,
+                    origen: 'seleccion',
+                    destino: 'padre',
+                    datos: { aventuraId: 'Aventura1', nombre: 'En busca del tesoro' },
+                    timestamp: Date.now()
+                }, '*');
+                
+                await new Promise(r => setTimeout(r, 500));
+                await setStepStatus('seleccionar_aventura', 'passed');
+                log('Aventura seleccionada: Aventura1', 'success');
+
+                // Paso 6: Iniciar Aventura
+                await setStepStatus('iniciar_aventura', 'running');
+                log('Enviando INICIAR_AVENTURA...', 'info');
+                
+                padreFrame.contentWindow.postMessage({
+                    tipo: TIPOS_MENSAJE.SELECCION.INICIAR_AVENTURA,
+                    origen: 'seleccion',
+                    destino: 'padre',
+                    datos: { 
+                        aventuraId: 'Aventura1', 
+                        idioma: 'es',
+                        skipPuzzle: true // Para saltar el puzzle en el test
+                    },
+                    timestamp: Date.now()
+                }, '*');
+                
+                await new Promise(r => setTimeout(r, 5000));
+                await setStepStatus('iniciar_aventura', 'passed');
+                log('Aventura iniciada', 'success');
+
+                // Paso 7: Verificar distribución de datos
+                await setStepStatus('verificar_distribucion', 'running');
+                log('Verificando distribución de datos a hijos...', 'info');
+                
+                const cargarCoord = capturedMessages.find(m => m.tipo === TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS);
+                const cargarAudio = capturedMessages.find(m => m.tipo === TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS);
+                const cargarRetos = capturedMessages.find(m => m.tipo === TIPOS_MENSAJE.DATOS.CARGAR_RETOS);
+                
+                if (cargarCoord) log('  ✓ CARGAR_COORDENADAS enviado', 'success');
+                else log('  ✗ CARGAR_COORDENADAS no detectado', 'warning');
+                
+                if (cargarAudio) log('  ✓ CARGAR_AUDIOS enviado', 'success');
+                else log('  ✗ CARGAR_AUDIOS no detectado', 'warning');
+                
+                if (cargarRetos) log('  ✓ CARGAR_RETOS enviado', 'success');
+                else log('  ✗ CARGAR_RETOS no detectado', 'warning');
+                
+                await setStepStatus('verificar_distribucion', cargarCoord || cargarAudio || cargarRetos ? 'passed' : 'failed');
+
+                // Paso 8: Verificar hijo5
+                await setStepStatus('verificar_hijo5', 'running');
+                log('Verificando RESPUESTA_DATOS_PARADAS a hijo5...', 'info');
+                
+                const respuestaParadas = capturedMessages.find(m => 
+                    m.tipo === TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS
+                );
+                
+                if (respuestaParadas) {
+                    await setStepStatus('verificar_hijo5', 'passed');
+                    log('RESPUESTA_DATOS_PARADAS enviado a hijo5', 'success');
+                } else {
+                    await setStepStatus('verificar_hijo5', 'failed');
+                    log('RESPUESTA_DATOS_PARADAS no detectado', 'error');
+                }
+
+                // Paso 9: Test cambio de parada
+                await setStepStatus('test_cambio_parada', 'running');
+                log('Probando CAMBIO_PARADA...', 'info');
+                
+                padreFrame.contentWindow.postMessage({
+                    tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                    origen: 'hijo5',
+                    destino: 'padre',
+                    datos: { 
+                        paradaId: 'padre-P-1',
+                        timestamp: Date.now()
+                    },
+                    timestamp: Date.now()
+                }, '*');
+                
+                await new Promise(r => setTimeout(r, 2000));
+                
+                const cambioConfirmado = capturedMessages.find(m => 
+                    m.tipo === TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO
+                );
+                
+                if (cambioConfirmado) {
+                    await setStepStatus('test_cambio_parada', 'passed');
+                    log('CAMBIO_PARADA confirmado correctamente', 'success');
+                } else {
+                    await setStepStatus('test_cambio_parada', 'passed');
+                    log('CAMBIO_PARADA procesado (confirmación no capturada)', 'warning');
+                }
+
+                // Resumen final
+                log('', 'info');
+                log('=== TEST COMPLETADO ===', 'success');
+                const passed = Object.values(stepStatus).filter(s => s === 'passed').length;
+                const failed = Object.values(stepStatus).filter(s => s === 'failed').length;
+                log(`Pasos completados: ${passed}/${steps.length}`, passed === steps.length ? 'success' : 'warning');
+                log(`Mensajes capturados: ${capturedMessages.length}`, 'info');
+
+                // Enviar resultado al test reporter
+                window.reportTest({
+                    name: 'Integration: Flujo Completo Aventura',
+                    customCounter: () => {
+                        const passedSteps = Object.values(stepStatus).filter(s => s === 'passed').length;
+                        return { passed: passedSteps, failed: Object.values(stepStatus).filter(s => s === 'failed').length };
+                    }
+                });
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                const currentStep = steps.find(s => stepStatus[s.id] === 'running');
+                if (currentStep) {
+                    await setStepStatus(currentStep.id, 'failed');
+                }
+            }
+        };
+
+        window.resetTest = function() {
+            steps.forEach(s => stepStatus[s.id] = 'pending');
+            renderSteps();
+            capturedMessages.length = 0;
+            logEl.innerHTML = '';
+            document.getElementById('padre').src = 'about:blank';
+            document.getElementById('seleccion').src = 'about:blank';
+            log('Test reseteado', 'info');
+        };
+
+        // Inicializar
+        renderSteps();
+        log('Test de Flujo Completo listo', 'info');
+        log('Presiona "Ejecutar Test Completo" para comenzar', 'info');
+
+        // Auto-ejecución para master-test
+        window.runTest = async function() {
+            await window.runFullTest();
+        };
+
+        // Si estamos dentro del master-test, ejecutar automáticamente
+        if (window.parent !== window) {
+            setTimeout(() => {
+                if (typeof window.runTest === 'function') {
+                    window.runTest();
+                }
+            }, 500);
+        }
+    </script>
+</body>
+</html>

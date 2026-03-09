@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test NAVEGACION.CAMBIO_PARADA</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .pass { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #cce5ff; border: 1px solid #b8daff; }
+        #log { white-space: pre-wrap; background: #f4f4f4; padding: 10px; max-height: 400px; overflow-y: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test: NAVEGACION.CAMBIO_PARADA</h1>
+    <p>Verifica el flujo completo de cambio de parada: hijo5 → padre → (hijo2, hijo3, hijo4)</p>
+
+    <div class="section">
+        <div id="status">Estado: Esperando...</div>
+        <button onclick="runTest()">Ejecutar Test Completo</button>
+        <button onclick="testCambioPadre()">Test: hijo5 → padre</button>
+        <button onclick="clearLog()">Limpiar Log</button>
+    </div>
+
+    <div id="results"></div>
+    
+    <h3>Log de Mensajes:</h3>
+    <div id="log"></div>
+
+    <div class="section">
+        <h3>Iframes de prueba:</h3>
+        <p><strong>Padre:</strong></p>
+        <iframe id="padre" src="../codigo-padre.html" style="width:100%;height:200px;border:1px solid #ccc;"></iframe>
+        
+        <p><strong>hijo5 (boton-casa):</strong></p>
+        <iframe id="hijo5" src="../boton-casa-hijo5.html" style="width:100%;height:150px;border:1px solid #ccc;"></iframe>
+    </div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+
+        const resultsDiv = document.getElementById('results');
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+
+        // Rastreo de mensajes
+        const mensajesCapturados = [];
+
+        function log(msg, type = 'info') {
+            const time = new Date().toISOString().substr(11, 12);
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logDiv.textContent += `[${time}] ${prefix} ${msg}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addResult(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>${details ? ': ' + details : ''}`;
+            resultsDiv.appendChild(div);
+        }
+
+        window.clearLog = function() {
+            logDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+            mensajesCapturados.length = 0;
+        };
+
+        // Listener global para capturar mensajes
+        window.addEventListener('message', (event) => {
+            try {
+                const msg = event.data;
+                if (msg && msg.tipo) {
+                    mensajesCapturados.push({
+                        tipo: msg.tipo,
+                        origen: msg.origen,
+                        destino: msg.destino,
+                        timestamp: Date.now(),
+                        datos: msg.datos
+                    });
+                    log(`Mensaje capturado: ${msg.tipo} (${msg.origen} → ${msg.destino || 'todos'})`);
+                }
+            } catch (e) { /* ignorar */ }
+        });
+
+        // Test: hijo5 envía CAMBIO_PARADA al padre
+        window.testCambioPadre = async function() {
+            clearLog();
+            statusDiv.textContent = 'Estado: Probando hijo5 → padre...';
+            log('Iniciando test: hijo5 envía CAMBIO_PARADA al padre');
+
+            const padre = document.getElementById('padre');
+            const hijo5 = document.getElementById('hijo5');
+
+            // Esperar carga
+            await Promise.all([
+                new Promise(r => padre.contentDocument.readyState === 'complete' ? r() : padre.onload = r),
+                new Promise(r => hijo5.contentDocument.readyState === 'complete' ? r() : hijo5.onload = r)
+            ]);
+            await new Promise(r => setTimeout(r, 2000)); // Esperar inicialización
+            log('Iframes cargados');
+
+            // Simular un clic en un botón de parada en hijo5
+            const paradaId = 'padre-P-1';
+            
+            log(`Enviando CAMBIO_PARADA con paradaId: ${paradaId}`);
+            
+            // Enviar mensaje desde hijo5 hacia el padre
+            hijo5.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                origen: 'hijo5',
+                destino: 'padre',
+                datos: {
+                    paradaId: paradaId,
+                    timestamp: Date.now(),
+                    origen: 'hijo5'
+                }
+            }, '*');
+
+            // Esperar procesamiento
+            await new Promise(r => setTimeout(r, 2000));
+
+            // Verificar si el padre recibió y procesó el mensaje
+            const cambioParadaRecibido = mensajesCapturados.find(m => 
+                m.tipo === TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA
+            );
+
+            if (cambioParadaRecibido) {
+                addResult('CAMBIO_PARADA enviado desde hijo5', true, 
+                    `paradaId: ${cambioParadaRecibido.datos?.paradaId}`);
+            } else {
+                addResult('CAMBIO_PARADA enviado desde hijo5', false, 
+                    'No se capturó el mensaje');
+            }
+
+            // Verificar respuesta CAMBIO_PARADA_CONFIRMADO
+            const confirmacionRecibida = mensajesCapturados.find(m => 
+                m.tipo === TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO
+            );
+
+            if (confirmacionRecibida) {
+                addResult('CAMBIO_PARADA_CONFIRMADO recibido', true);
+            } else {
+                addResult('CAMBIO_PARADA_CONFIRMADO recibido', false, 
+                    'El padre debería confirmar el cambio');
+            }
+
+            statusDiv.textContent = 'Estado: Test hijo5→padre completado';
+        };
+
+        // Test completo del flujo
+        window.runTest = async function() {
+            clearLog();
+            statusDiv.textContent = 'Estado: Ejecutando test completo...';
+            log('Iniciando test completo de CAMBIO_PARADA');
+
+            const padre = document.getElementById('padre');
+            const hijo5 = document.getElementById('hijo5');
+
+            // Esperar carga completa
+            await Promise.all([
+                new Promise(r => padre.contentDocument.readyState === 'complete' ? r() : padre.onload = r),
+                new Promise(r => hijo5.contentDocument.readyState === 'complete' ? r() : hijo5.onload = r)
+            ]);
+            await new Promise(r => setTimeout(r, 3000));
+            log('Todos los iframes cargados');
+
+            // Test 1: Verificar que TIPOS_MENSAJE está disponible
+            try {
+                const tiposPadre = padre.contentWindow.TIPOS_MENSAJE;
+                if (tiposPadre && tiposPadre.NAVEGACION && tiposPadre.NAVEGACION.CAMBIO_PARADA) {
+                    addResult('TIPOS_MENSAJE disponible en padre', true);
+                } else {
+                    addResult('TIPOS_MENSAJE en padre', false, 'Incompleto o no encontrado');
+                }
+            } catch (e) {
+                addResult('TIPOS_MENSAJE en padre', false, `Error: ${e.message}`);
+            }
+
+            // Test 2: Verificar controlador CAMBIO_PARADA en padre
+            try {
+                const controladores = padre.contentWindow.registeredControllers;
+                if (controladores) {
+                    const tieneCambioParada = controladores.has && 
+                        controladores.has(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA);
+                    addResult('Controlador CAMBIO_PARADA registrado en padre', 
+                        tieneCambioParada, 
+                        tieneCambioParada ? '' : 'No encontrado en registeredControllers');
+                } else {
+                    addResult('Verificación de controladores', false, 
+                        'registeredControllers no accesible');
+                }
+            } catch (e) {
+                addResult('Verificación de controladores', false, `Error: ${e.message}`);
+            }
+
+            // Test 3: Enviar CAMBIO_PARADA y verificar propagación
+            log('Enviando CAMBIO_PARADA de prueba...');
+            const paradaIdTest = 'padre-P-2';
+            
+            padre.contentWindow.postMessage({
+                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                origen: 'test-runner',
+                destino: 'padre',
+                datos: {
+                    paradaId: paradaIdTest,
+                    timestamp: Date.now()
+                }
+            }, '*');
+
+            await new Promise(r => setTimeout(r, 3000));
+
+            // Verificar mensajes propagados a hijos
+            const mensajesHijo2 = mensajesCapturados.filter(m => 
+                m.destino === 'hijo2' || m.tipo.includes('COORDENADAS')
+            );
+            const mensajesHijo3 = mensajesCapturados.filter(m => 
+                m.destino === 'hijo3' || m.tipo.includes('AUDIO')
+            );
+
+            addResult('Propagación a hijo2 (coordenadas)', mensajesHijo2.length > 0,
+                mensajesHijo2.length > 0 ? `${mensajesHijo2.length} mensaje(s)` : 'Sin mensajes');
+            addResult('Propagación a hijo3 (audio)', mensajesHijo3.length > 0,
+                mensajesHijo3.length > 0 ? `${mensajesHijo3.length} mensaje(s)` : 'Sin mensajes');
+
+            // Resumen
+            const totalMensajes = mensajesCapturados.length;
+            log(`\nResumen: ${totalMensajes} mensajes capturados en total`, 'info');
+            
+            statusDiv.textContent = 'Estado: Test completo finalizado';
+
+            // Reportar al master-test
+            window.reportTest({
+                name: 'Integration: Cambio de Parada',
+                resultsContainer: resultsDiv
+            });
+        };
+    </script>
+</body>
+</html>

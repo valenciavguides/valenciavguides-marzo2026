@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 ValenciaVGuides - Test Runner</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 20px; }
+        
+        .controls {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        button:hover { transform: translateY(-1px); }
+        button.primary { background: #007bff; color: white; }
+        button.success { background: #28a745; color: white; }
+        button.danger { background: #dc3545; color: white; }
+        button.secondary { background: #6c757d; color: white; }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .summary-card .number { font-size: 32px; font-weight: bold; }
+        .summary-card .label { color: #666; font-size: 14px; }
+        .summary-card.total .number { color: #007bff; }
+        .summary-card.passed .number { color: #28a745; }
+        .summary-card.failed .number { color: #dc3545; }
+        .summary-card.pending .number { color: #ffc107; }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 15px;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #6c757d;
+        }
+        .test-card.running { border-left-color: #007bff; }
+        .test-card.passed { border-left-color: #28a745; }
+        .test-card.failed { border-left-color: #dc3545; }
+        
+        .test-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .test-card .description { color: #666; font-size: 13px; margin-bottom: 10px; }
+        .test-card .status { font-size: 12px; color: #888; }
+        .test-card .actions { margin-top: 10px; }
+        .test-card button { padding: 5px 12px; font-size: 12px; }
+        
+        .category-header {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 20px 0 10px 0;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        #log-container {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .log-info { color: #3794ff; }
+        .log-success { color: #89d185; }
+        .log-error { color: #f14c4c; }
+        .log-warning { color: #cca700; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow: auto;
+        }
+        .modal-content iframe {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 ValenciaVGuides - Test Runner</h1>
+    <p class="subtitle">Ejecuta y monitorea todos los tests del proyecto</p>
+
+    <div class="controls">
+        <button class="primary" onclick="runAllTests()">▶️ Ejecutar Todos</button>
+        <button class="success" onclick="runCategory('mensajeria')">📬 Tests Mensajería</button>
+        <button class="success" onclick="runCategory('comunicacion')">🔄 Tests Comunicación</button>
+        <button class="success" onclick="runCategory('navegacion')">🗺️ Tests Navegación</button>
+        <button class="secondary" onclick="resetAll()">🔄 Reset</button>
+        <button class="danger" onclick="clearLog()">🗑️ Limpiar Log</button>
+    </div>
+
+    <div class="summary">
+        <div class="summary-card total">
+            <div class="number" id="total-count">0</div>
+            <div class="label">Total Tests</div>
+        </div>
+        <div class="summary-card passed">
+            <div class="number" id="passed-count">0</div>
+            <div class="label">Pasados</div>
+        </div>
+        <div class="summary-card failed">
+            <div class="number" id="failed-count">0</div>
+            <div class="label">Fallidos</div>
+        </div>
+        <div class="summary-card pending">
+            <div class="number" id="pending-count">0</div>
+            <div class="label">Pendientes</div>
+        </div>
+    </div>
+
+    <div class="category-header">📬 Tests de Mensajería y Carga de Datos</div>
+    <div class="test-grid" id="tests-mensajeria"></div>
+
+    <div class="category-header">🔄 Tests de Comunicación Padre ↔ Hijos</div>
+    <div class="test-grid" id="tests-comunicacion"></div>
+
+    <div class="category-header">🗺️ Tests de Navegación y GPS</div>
+    <div class="test-grid" id="tests-navegacion"></div>
+
+    <div class="category-header">⚙️ Tests de Sistema</div>
+    <div class="test-grid" id="tests-sistema"></div>
+
+    <div id="log-container">
+        <h3>📋 Log de Ejecución</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- Modal para ver test individual -->
+    <div class="modal" id="test-modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 id="modal-title">Test</h3>
+                <button class="secondary" onclick="closeModal()">✕ Cerrar</button>
+            </div>
+            <iframe id="test-frame" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Definición de todos los tests
+        const tests = [
+            // Mensajería
+            { id: 'cargar_coordenadas', name: 'CARGAR_COORDENADAS', file: 'test_cargar_coordenadas.html', 
+              category: 'mensajeria', description: 'Verifica carga de coordenadas en hijo2' },
+            { id: 'cargar_audios', name: 'CARGAR_AUDIOS', file: 'test_cargar_audios.html', 
+              category: 'mensajeria', description: 'Verifica carga de audios en hijo3' },
+            { id: 'cargar_retos', name: 'CARGAR_RETOS', file: 'test_cargar_retos.html', 
+              category: 'mensajeria', description: 'Verifica carga de retos en hijo4' },
+            { id: 'audio_distribution', name: 'Distribución Audio', file: 'test_audio_distribution.html', 
+              category: 'mensajeria', description: 'Test completo de distribución de audio' },
+            { id: 'distribuir_datos', name: 'Distribuir Datos', file: 'test_integracion_distribuir_datos.html', 
+              category: 'mensajeria', description: 'Integración de distribución de datos' },
+
+            // Comunicación
+            { id: 'cambio_parada', name: 'CAMBIO_PARADA', file: 'test_cambio_parada.html', 
+              category: 'comunicacion', description: 'Flujo hijo5 → padre → hijos' },
+            { id: 'respuesta_paradas_hijo5', name: 'RESPUESTA_DATOS_PARADAS', file: 'test_respuesta_datos_paradas_hijo5.html', 
+              category: 'comunicacion', description: 'Recepción de paradas en hijo5' },
+            { id: 'hijo_handshake', name: 'Handshake', file: 'test_hijo_handshake.html', 
+              category: 'comunicacion', description: 'HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO' },
+            { id: 'solicitar_reto', name: 'SOLICITAR_RETO', file: 'test_solicitar_reto_hijo4.html', 
+              category: 'comunicacion', description: 'Solicitud y respuesta de retos' },
+            { id: 'solicitar_paradas', name: 'SOLICITAR_PARADAS', file: 'test_datos_solicitar_paradas_combinados.html', 
+              category: 'comunicacion', description: 'Datos combinados de paradas' },
+
+            // Navegación
+            { id: 'gps_activation', name: 'GPS Restricción', file: 'test_gps_activation_restriction.html', 
+              category: 'navegacion', description: 'GPS.ACTIVAR solo en modo AVENTURA' },
+            { id: 'gps_fallback', name: 'GPS Fallback', file: 'test_gps_fallback.html', 
+              category: 'navegacion', description: 'Fallback a P-0 en baja precisión' },
+            { id: 'gps_validation', name: 'GPS Validación', file: 'test_gps_message_validation.html', 
+              category: 'navegacion', description: 'Validación de mensajes GPS' },
+            { id: 'flujo_completo', name: 'Flujo Completo', file: 'test_flujo_completo_aventura.html', 
+              category: 'navegacion', description: 'Ciclo completo: selección → aventura → cambio parada' },
+
+            // Sistema
+            { id: 'auditoria_completa', name: 'Auditoría Completa', file: 'test_auditoria_completa.html', 
+              category: 'sistema', description: 'Verificación exhaustiva de archivos y controladores' },
+            { id: 'cambio_modo', name: 'Cambio Modo', file: 'test_cambio_modo.html', 
+              category: 'sistema', description: 'Casa ↔ Aventura' },
+            { id: 'heartbeat', name: 'Heartbeat', file: 'test_heartbeat.html', 
+              category: 'sistema', description: 'Sistema de heartbeat padre ↔ hijos' },
+            { id: 'controlador_fusionado', name: 'Controlador Fusionado', file: 'test_controlador_fusionado.html', 
+              category: 'sistema', description: 'HIJO_LISTO fusionado' },
+            { id: 'carga_iframes', name: 'Carga Iframes', file: 'test_carga_secuencial_iframes.html', 
+              category: 'sistema', description: 'Carga secuencial de iframes' },
+            { id: 'mensajeria', name: 'Mensajería Base', file: 'test_mensajeria.html', 
+              category: 'sistema', description: 'Carga de módulo mensajería' },
+            { id: 'message_handlers', name: 'Handlers No Throw', file: 'test_message_handlers_no_throw.html', 
+              category: 'sistema', description: 'Handlers toleran mensajes malformados' },
+            { id: 'ui_handshake', name: 'UI Visibility', file: 'test_ui_visibility_handshake.html', 
+              category: 'sistema', description: 'UI oculta antes de handshake' },
+            { id: 'indice_aventuras', name: 'Índice Aventuras', file: 'test_indice_aventuras.html', 
+              category: 'sistema', description: 'Carga del índice de aventuras' },
+            { id: 'integracion_completa', name: 'Integración Completa', file: 'test_integracion_completa.html', 
+              category: 'sistema', description: 'Test integral del sistema' },
+        ];
+
+        // Estado de tests
+        const testStatus = {};
+        tests.forEach(t => testStatus[t.id] = 'pending');
+
+        // Renderizar tests
+        function renderTests() {
+            const containers = {
+                mensajeria: document.getElementById('tests-mensajeria'),
+                comunicacion: document.getElementById('tests-comunicacion'),
+                navegacion: document.getElementById('tests-navegacion'),
+                sistema: document.getElementById('tests-sistema')
+            };
+
+            // Limpiar
+            Object.values(containers).forEach(c => c.innerHTML = '');
+
+            tests.forEach(test => {
+                const container = containers[test.category];
+                if (!container) return;
+
+                const status = testStatus[test.id];
+                const statusIcon = status === 'passed' ? '✅' : 
+                                   status === 'failed' ? '❌' : 
+                                   status === 'running' ? '⏳' : '⏸️';
+
+                const card = document.createElement('div');
+                card.className = `test-card ${status}`;
+                card.innerHTML = `
+                    <h3>${statusIcon} ${test.name}</h3>
+                    <div class="description">${test.description}</div>
+                    <div class="status">Estado: ${status}</div>
+                    <div class="actions">
+                        <button onclick="runTest('${test.id}')">▶️ Ejecutar</button>
+                        <button onclick="viewTest('${test.id}')">👁️ Ver</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const total = tests.length;
+            const passed = Object.values(testStatus).filter(s => s === 'passed').length;
+            const failed = Object.values(testStatus).filter(s => s === 'failed').length;
+            const pending = Object.values(testStatus).filter(s => s === 'pending').length;
+
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('passed-count').textContent = passed;
+            document.getElementById('failed-count').textContent = failed;
+            document.getElementById('pending-count').textContent = pending;
+        }
+
+        function log(msg, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toISOString().substr(11, 12);
+            const span = document.createElement('span');
+            span.className = `log-${type}`;
+            span.textContent = `[${time}] ${msg}\n`;
+            logEl.appendChild(span);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function runTest(testId) {
+            const test = tests.find(t => t.id === testId);
+            if (!test) return;
+
+            testStatus[testId] = 'running';
+            renderTests();
+            log(`Iniciando test: ${test.name}`, 'info');
+
+            // Abrir test en iframe oculto y esperar resultado
+            return new Promise((resolve) => {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = test.file;
+                
+                const timeout = setTimeout(() => {
+                    testStatus[testId] = 'failed';
+                    log(`TIMEOUT: ${test.name}`, 'error');
+                    iframe.remove();
+                    renderTests();
+                    resolve(false);
+                }, 30000);
+
+                // Escuchar mensajes de resultado del test
+                const handler = (e) => {
+                    if (e.data && e.data.testResult !== undefined) {
+                        clearTimeout(timeout);
+                        window.removeEventListener('message', handler);
+                        
+                        testStatus[testId] = e.data.testResult ? 'passed' : 'failed';
+                        log(`${test.name}: ${e.data.testResult ? 'PASSED' : 'FAILED'}`, 
+                            e.data.testResult ? 'success' : 'error');
+                        
+                        iframe.remove();
+                        renderTests();
+                        resolve(e.data.testResult);
+                    }
+                };
+                window.addEventListener('message', handler);
+                
+                document.body.appendChild(iframe);
+            });
+        }
+
+        function viewTest(testId) {
+            const test = tests.find(t => t.id === testId);
+            if (!test) return;
+
+            document.getElementById('modal-title').textContent = `Test: ${test.name}`;
+            document.getElementById('test-frame').src = test.file;
+            document.getElementById('test-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('test-modal').classList.remove('active');
+            document.getElementById('test-frame').src = 'about:blank';
+        }
+
+        async function runAllTests() {
+            log('=== Ejecutando todos los tests ===', 'info');
+            for (const test of tests) {
+                await runTest(test.id);
+            }
+            log('=== Todos los tests completados ===', 'info');
+        }
+
+        async function runCategory(category) {
+            const categoryTests = tests.filter(t => t.category === category);
+            log(`=== Ejecutando tests de ${category} ===`, 'info');
+            for (const test of categoryTests) {
+                await runTest(test.id);
+            }
+            log(`=== Tests de ${category} completados ===`, 'info');
+        }
+
+        function resetAll() {
+            tests.forEach(t => testStatus[t.id] = 'pending');
+            renderTests();
+            log('Tests reseteados', 'warning');
+        }
+
+        // Click fuera del modal lo cierra
+        document.getElementById('test-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'test-modal') closeModal();
+        });
+
+        // Inicializar
+        renderTests();
+        log('Test Runner inicializado', 'success');
+        log(`${tests.length} tests disponibles`, 'info');
+    </script>
+</body>
+</html>

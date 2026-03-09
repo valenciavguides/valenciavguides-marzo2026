@@ -1,0 +1,164 @@
+{
+  "PUZZLES_AVENTURAS": {
+    "INTRO": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "PZ-intro",
+            "imagen": "fotos-botones/logo-luna.jpg"
+          }
+        ]
+      }
+    },
+    "Aventura1": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "PZ-01",
+            "imagen": "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg"
+          },
+          {
+            "id": "PZ-02",
+            "imagen": "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg"
+          },
+          {
+            "id": "PZ-03",
+            "imagen": "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg"
+          }
+        ]
+      }
+    },
+    "Aventura2": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          }
+        ]
+      }
+    },
+    "Aventura3": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          }
+        ]
+      }
+    },
+    "Aventura4": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          }
+        ]
+      }
+    },
+    "Aventura5": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          }
+        ]
+      }
+    },
+    "AventuraFallas": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          }
+        ]
+      }
+    },
+    "Aventura34km": {
+      "puzzle.html": {
+        "puzzle_id": [
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          },
+          {
+            "id": "",
+            "imagen": ""
+          }
+        ]
+      }
+    }
+  }
+}
