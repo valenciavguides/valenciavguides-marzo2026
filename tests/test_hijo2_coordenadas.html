@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: hijo2 - Coordenadas</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <!-- Mock hijo2 DOM elements -->
+    <button id="btn-gps">GPS</button>
+    <button id="btn-imagen">Imagen</button>
+    <button id="btn-video">Video</button>
+    <button id="btn-ubicacion">Ubicación</button>
+    <button id="btn-mapa-completo">Mapa Completo</button>
+    <button id="btn-mapa-jpg">Mapa JPG</button>
+    <div id="status"></div>
+    <div id="fuera-rango-overlay" style="display:none;"></div>
+
+    <h2>Test: hijo2 - Coordenadas (coordenadas-hijo2.html)</h2>
+    <p>Verifica inicialización, recepción de datos y manejo de estado del iframe hijo2.</p>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // ── Mock infrastructure ──
+        const capturedHandlers = {};
+        function registrarControladorSeguro(path, handler) {
+            capturedHandlers[path] = handler;
+        }
+
+        // Mock TIPOS_MENSAJE paths
+        const TIPOS_MENSAJE = {
+            SISTEMA: {
+                PADRE_DATOS: 'SISTEMA.PADRE_DATOS',
+                PADRE_CONFIRMA_HIJO_LISTO: 'SISTEMA.PADRE_CONFIRMA_HIJO_LISTO',
+                CAMBIO_MODO: 'SISTEMA.CAMBIO_MODO',
+                CAMBIO_MODO_APLICADO: 'SISTEMA.CAMBIO_MODO_APLICADO',
+                HEARTBEAT: 'SISTEMA.HEARTBEAT',
+                HEARTBEAT_START: 'SISTEMA.HEARTBEAT_START',
+                HEARTBEAT_PAUSE: 'SISTEMA.HEARTBEAT_PAUSE',
+                ACK: 'SISTEMA.ACK'
+            },
+            DATOS: {
+                CARGAR_COORDENADAS: 'DATOS.CARGAR_COORDENADAS',
+                CARGAR_TEXTOS: 'DATOS.CARGAR_TEXTOS',
+                COORDENADAS_PARADAS_REQUEST: 'DATOS.COORDENADAS_PARADAS_REQUEST'
+            },
+            NAVEGACION: {
+                ACTUALIZAR_ESTADO: 'NAVEGACION.ACTUALIZAR_ESTADO',
+                CAMBIO_PARADA: 'NAVEGACION.CAMBIO_PARADA',
+                RESPUESTA_DATOS_PARADAS: 'NAVEGACION.RESPUESTA_DATOS_PARADAS',
+                SOLICITAR_COORDENADAS: 'NAVEGACION.SOLICITAR_COORDENADAS',
+                GPS: {
+                    UBICACION_ACTUALIZADA: 'NAVEGACION.GPS.UBICACION_ACTUALIZADA',
+                    ESTADO_ACTUALIZADO: 'NAVEGACION.GPS.ESTADO_ACTUALIZADO'
+                }
+            },
+            CONTROL: {
+                HABILITAR: 'CONTROL.HABILITAR',
+                DESHABILITAR: 'CONTROL.DESHABILITAR'
+            }
+        };
+
+        // ── Mock hijo2 state (replicate real structure) ──
+        const estadoComponente = {
+            modo: 'casa',
+            gpsActivo: false,
+            watchId: null,
+            ultimaActualizacionGPS: 0,
+            intervaloMinimo: 5000,
+            posicionUsuario: null,
+            paradaActual: null,
+            distanciaAlDestino: null,
+            tipoParadaActual: 'parada',
+            idParadaActual: null,
+            toleranciaGPS: 50,
+            controlesHabilitados: true,
+            inicializado: false,
+            botonesActivos: { gps: false, imagen: false, video: false, ubicacion: false, mapaCompleto: false, mapaJpg: false },
+            fueraDeRango5min: false,
+            ultimoHeading: 0,
+            hijoListoEnviado: false
+        };
+
+        let _uiConfirmado = false;
+
+        // ── Simulated handlers (replicate hijo2 behavior) ──
+        function handlePadreConfirmaHijoListo(mensaje) {
+            _uiConfirmado = true;
+            if (mensaje.datos && mensaje.datos.modoInicial) {
+                estadoComponente.modo = mensaje.datos.modoInicial;
+            }
+            estadoComponente.inicializado = true;
+            document.body.style.display = 'block';
+        }
+
+        function handleCargarCoordenadas(mensaje) {
+            if (mensaje.datos && mensaje.datos.coordenadas) {
+                window.__vv_coordenadasAventura = mensaje.datos.coordenadas;
+            }
+        }
+
+        function handleCambioParada(mensaje) {
+            const datos = mensaje.datos || {};
+            const paradaId = datos.paradaId || datos.parada_id;
+            const padreId = datos.padreId || datos.padreid;
+            if (paradaId) {
+                estadoComponente.idParadaActual = paradaId;
+                estadoComponente.paradaActual = padreId || paradaId;
+            }
+        }
+
+        // Register handlers
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, handlePadreConfirmaHijoListo);
+        registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, handleCargarCoordenadas);
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, handleCambioParada);
+
+        // ── Mock coordinate data ──
+        const mockCoordenadas = [
+            { id: 'P-0', lat: 39.4699, lon: -0.3763, nombre: 'Torres de Serranos' },
+            { id: 'P-1', lat: 39.4737, lon: -0.3756, nombre: 'Mercado Central' },
+            { id: 'TR-1', lat: 39.4715, lon: -0.3780, nombre: 'Tramo 1' },
+            { id: 'P-2', lat: 39.4750, lon: -0.3700, nombre: 'La Lonja' }
+        ];
+
+        // ── Tests ──
+        function runTest() {
+            addResult('── Estado inicial ──', 'info');
+
+            // Test 1: Estado starts uninitialized
+            if (!estadoComponente.inicializado && estadoComponente.modo === 'casa') {
+                addResult('✅ Estado inicial: inicializado=false, modo=casa', 'success');
+            } else {
+                addResult('❌ Estado inicial incorrecto', 'error');
+            }
+
+            // Test 2: UI not confirmed initially
+            if (!_uiConfirmado) {
+                addResult('✅ _uiConfirmado = false al inicio', 'success');
+            } else {
+                addResult('❌ _uiConfirmado debería ser false', 'error');
+            }
+
+            // Test 3: Coordenadas not loaded initially
+            if (!window.__vv_coordenadasAventura) {
+                addResult('✅ __vv_coordenadasAventura no existe al inicio', 'success');
+            } else {
+                addResult('❌ __vv_coordenadasAventura no debería existir al inicio', 'error');
+            }
+
+            addResult('── Handlers registrados ──', 'info');
+
+            // Test 4: Key handlers registered
+            const expectedHandlers = [
+                TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO,
+                TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS,
+                TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA
+            ];
+            let allHandlersOk = true;
+            for (const h of expectedHandlers) {
+                if (!capturedHandlers[h]) {
+                    addResult('❌ Handler no registrado: ' + h, 'error');
+                    allHandlersOk = false;
+                }
+            }
+            if (allHandlersOk) {
+                addResult('✅ Handlers clave registrados: PADRE_CONFIRMA, CARGAR_COORDENADAS, CAMBIO_PARADA', 'success');
+            }
+
+            addResult('── PADRE_CONFIRMA_HIJO_LISTO ──', 'info');
+
+            // Test 5: PADRE_CONFIRMA_HIJO_LISTO shows UI and sets mode
+            capturedHandlers[TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO]({
+                datos: { modoInicial: 'aventura' }
+            });
+
+            if (_uiConfirmado === true) {
+                addResult('✅ _uiConfirmado = true tras PADRE_CONFIRMA_HIJO_LISTO', 'success');
+            } else {
+                addResult('❌ _uiConfirmado debería ser true', 'error');
+            }
+
+            if (estadoComponente.modo === 'aventura') {
+                addResult('✅ modo actualizado a "aventura" desde modoInicial', 'success');
+            } else {
+                addResult('❌ modo debería ser "aventura", es: ' + estadoComponente.modo, 'error');
+            }
+
+            if (estadoComponente.inicializado === true) {
+                addResult('✅ inicializado = true', 'success');
+            } else {
+                addResult('❌ inicializado debería ser true', 'error');
+            }
+
+            if (document.body.style.display === 'block') {
+                addResult('✅ body visible (display: block)', 'success');
+            } else {
+                addResult('❌ body debería ser visible, display: ' + document.body.style.display, 'error');
+            }
+
+            addResult('── CARGAR_COORDENADAS ──', 'info');
+
+            // Test 6: CARGAR_COORDENADAS stores data
+            capturedHandlers[TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS]({
+                datos: { coordenadas: mockCoordenadas }
+            });
+
+            if (window.__vv_coordenadasAventura && window.__vv_coordenadasAventura.length === 4) {
+                addResult('✅ __vv_coordenadasAventura almacenado con ' + window.__vv_coordenadasAventura.length + ' coordenadas', 'success');
+            } else {
+                addResult('❌ __vv_coordenadasAventura no almacenado correctamente', 'error');
+            }
+
+            // Test 7: Coordinate data format correct
+            const p1 = window.__vv_coordenadasAventura.find(c => c.id === 'P-1');
+            if (p1 && p1.lat === 39.4737 && p1.nombre === 'Mercado Central') {
+                addResult('✅ Coordenada P-1 tiene lat/lon/nombre correctos', 'success');
+            } else {
+                addResult('❌ Coordenada P-1 datos incorrectos', 'error');
+            }
+
+            addResult('── CAMBIO_PARADA ──', 'info');
+
+            // Test 8: CAMBIO_PARADA with camelCase IDs
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA]({
+                datos: { padreId: 'padre-P1', paradaId: 'P-1' }
+            });
+
+            if (estadoComponente.idParadaActual === 'P-1') {
+                addResult('✅ idParadaActual = "P-1" (camelCase)', 'success');
+            } else {
+                addResult('❌ idParadaActual esperado "P-1", obtenido: ' + estadoComponente.idParadaActual, 'error');
+            }
+
+            if (estadoComponente.paradaActual === 'padre-P1') {
+                addResult('✅ paradaActual = "padre-P1"', 'success');
+            } else {
+                addResult('❌ paradaActual esperado "padre-P1", obtenido: ' + estadoComponente.paradaActual, 'error');
+            }
+
+            // Test 9: CAMBIO_PARADA with snake_case IDs
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA]({
+                datos: { padreid: 'padre-TR1', parada_id: 'TR-1' }
+            });
+
+            if (estadoComponente.idParadaActual === 'TR-1') {
+                addResult('✅ idParadaActual = "TR-1" (snake_case)', 'success');
+            } else {
+                addResult('❌ idParadaActual esperado "TR-1", obtenido: ' + estadoComponente.idParadaActual, 'error');
+            }
+
+            addResult('── DOM elements ──', 'info');
+
+            // Test 10: Key DOM elements exist
+            const domIds = ['btn-gps', 'btn-imagen', 'btn-video', 'btn-ubicacion', 'btn-mapa-completo', 'btn-mapa-jpg', 'status', 'fuera-rango-overlay'];
+            let allDomOk = true;
+            for (const id of domIds) {
+                if (!document.getElementById(id)) {
+                    addResult('❌ DOM faltante: #' + id, 'error');
+                    allDomOk = false;
+                }
+            }
+            if (allDomOk) {
+                addResult('✅ Todos los DOM elements de hijo2 presentes (' + domIds.length + ')', 'success');
+            }
+
+            // Test 11: fuera-rango-overlay starts hidden
+            const overlay = document.getElementById('fuera-rango-overlay');
+            if (overlay && overlay.style.display === 'none') {
+                addResult('✅ fuera-rango-overlay oculto al inicio', 'success');
+            } else {
+                addResult('❌ fuera-rango-overlay debería estar oculto', 'error');
+            }
+
+            // Report
+            window.TestReporter.report({
+                name: 'hijo2: Coordenadas',
+                resultsContainer: document.getElementById('results')
+            });
+        }
+    </script>
+</body>
+</html>

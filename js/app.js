@@ -172,6 +172,10 @@ function limpiarPromesasPendientes() {
 // Intervalo separado para limpiar promesas pendientes cada 30s (sincronizado)
 const intervaloLimpiezaPromesas = setInterval(() => {
     limpiarPromesasPendientes();
+    // Limpiar mensajes trackeados en state-manager para evitar consumo RAM ilimitado
+    if (window.__vv_stateManager && typeof window.__vv_stateManager.limpiarMensajesAntiguos === 'function') {
+        window.__vv_stateManager.limpiarMensajesAntiguos(1000);
+    }
 }, 30000);  // Sincronizado con mensajeria.js
 
 // ==================== FUNCIONES AUXILIARES ====================
@@ -832,32 +836,40 @@ export async function manejarCambioModo(estado, mensaje) {
                                     logger.debug('[APP][CAMBIO_MODO] Iniciado GPS aventura tras pre-warm');
                                 }
 
-                                // Establecer parada por defecto "padre-P-0" y solicitar coordenadas a hijo2
+                                // Establecer la parada por defecto usando el mismo flujo principal
+                                // NAVEGACION.CAMBIO_PARADA que usa el resto de la app.
                                 try {
                                     const { elementosIDpadre } = DATOS_PADRE[window.aventuraSeleccionada][window.idiomaSeleccionado];
                                     if (elementosIDpadre && elementosIDpadre.length > 0) {
                                         const paradaDefecto = elementosIDpadre.find(p => p.padreid === 'padre-P-0') || elementosIDpadre[0];
-                                        estado.paradaActual = paradaDefecto.padreid;
-                                        estado.elementoActual = paradaDefecto;
-                                        logger.info('[APP][CAMBIO_MODO] Establecida parada por defecto: padre-P-0');
-
-                                        // Solicitar coordenadas a hijo2
-                                        await enviarMensaje({
-                                            tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST,
-                                            origen: getPadreId(),
-                                            destino: 'hijo2',
-                                            datos: { paradaId: 'P-0', padreId: 'padre-P-0' }
-                                        });
-                                        logger.debug('[APP][CAMBIO_MODO] Solicitadas coordenadas de P-0 a hijo2');
-
-                                        // Enviar cambio de parada a funciones-mapa
-                                        await enviarMensaje({
+                                        const paradaId = paradaDefecto.parada_id || paradaDefecto.tramo_id || paradaDefecto.id || 'P-0';
+                                        const padreId = paradaDefecto.padreid || `padre-${paradaId}`;
+                                        const payloadCambioParada = {
                                             tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                                             origen: getPadreId(),
-                                            destino: 'funciones-mapa',
-                                            datos: { paradaId: 'padre-P-0' }
-                                        });
-                                        logger.debug('[APP][CAMBIO_MODO] Enviado cambio de parada padre-P-0 a funciones-mapa');
+                                            destino: getPadreId(),
+                                            datos: {
+                                                paradaId,
+                                                parada_id: paradaId,
+                                                padreId,
+                                                padreid: padreId,
+                                                contexto: 'arranque_aventura',
+                                                timestamp: Date.now()
+                                            }
+                                        };
+
+                                        logger.info(`[APP][CAMBIO_MODO] Activando flujo principal de CAMBIO_PARADA para ${padreId}`);
+
+                                        if (window.__vv_stateManager && typeof window.__vv_stateManager.enviarMensajeCentral === 'function') {
+                                            await window.__vv_stateManager.enviarMensajeCentral(payloadCambioParada);
+                                            logger.debug(`[APP][CAMBIO_MODO] CAMBIO_PARADA inicial enviado al controlador central para ${padreId}`);
+                                        } else {
+                                            window.postMessage({
+                                                ...payloadCambioParada,
+                                                origen: 'app-bootstrap'
+                                            }, '*');
+                                            logger.warn(`[APP][CAMBIO_MODO] State manager no disponible; fallback via postMessage para ${padreId}`);
+                                        }
                                     }
                                 } catch (e) {
                                     logger.warn('[APP][CAMBIO_MODO] Error estableciendo parada por defecto:', e);

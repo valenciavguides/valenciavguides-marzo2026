@@ -181,6 +181,7 @@ import { esMovil } from './device-detection.js';
 
 // Estado del módulo
 let marcadoresParadas = new Map();
+let marcadoresReferencias = new Map(); // Referencias visuales (tipo: "referencia")
 let marcadorDestino = null;
 let marcadorParadaActual = null; // Marcador para la parada actualmente visitada
 let marcadorPosicionActual = null; // Marcador para la posición GPS actual del usuario
@@ -253,7 +254,8 @@ const ESCALA_BASE = {
     ICONO_DESTINO: 26,          // Tamaño emoji destino 🎯
     ICONO_USUARIO_CASA: 48,     // Tamaño emoji 🛸 modo casa
     ICONO_USUARIO_AVENTURA: 32, // Tamaño flecha modo aventura
-    
+    ICONO_REFERENCIA: 36,        // Tamaño base marcador referencia visual 🏛️ (pill)
+
     // Referencia de escala
     PANTALLA_REF: 400,          // Pantalla de referencia (vmin)
     ZOOM_REF: 15,               // Zoom de referencia
@@ -330,7 +332,8 @@ function getIconoEscalado() {
         inicio: Math.round(ESCALA_BASE.ICONO_INICIO * escala),
         destino: Math.round(ESCALA_BASE.ICONO_DESTINO * escala),
         usuarioCasa: Math.round(ESCALA_BASE.ICONO_USUARIO_CASA * escala),
-        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escala)
+        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escala),
+        referencia: Math.round(ESCALA_BASE.ICONO_REFERENCIA * escala)
     };
 }
 
@@ -377,6 +380,15 @@ function reescalarMarcadoresEmoji() {
         } catch (e) { /* ignore individual marker errors */ }
     });
     
+    // Re-escalar marcadores de referencias visuales (🏛️)
+    marcadoresReferencias.forEach((marker) => {
+        try {
+            if (marker._refData) {
+                marker.setIcon(crearIconoReferencia(marker._refData));
+            }
+        } catch(e) { /* ignore individual marker errors */ }
+    });
+
     // Re-escalar marcador de destino de navegación (🎯)
     if (marcadorDestinoNavegacion) {
         try {
@@ -389,6 +401,190 @@ function reescalarMarcadoresEmoji() {
             }));
         } catch (e) { /* ignore */ }
     }
+}
+
+// =====================================================
+// REFERENCIAS VISUALES (tipo: "referencia")
+// Monumentos que se mencionan en el texto pero que el usuario
+// no visita. Aparecen como pin 🏛️+número en el mapa,
+// sin participar en lógica GPS ni en elementosIDpadre.
+// =====================================================
+
+let _refPopupEstilosInyectados = false;
+
+/**
+ * Inyecta una vez los estilos CSS del popup de referencia visual.
+ * @private
+ */
+function _inyectarEstilosReferencia() {
+    if (_refPopupEstilosInyectados) return;
+    _refPopupEstilosInyectados = true;
+    const style = document.createElement('style');
+    style.id = 'estilos-referencia-popup';
+    style.textContent = `
+        #referencia-popup {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1000015;
+            background: rgba(0,0,0,0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInMedia 0.3s ease-out;
+        }
+        #referencia-popup .ref-popup-card {
+            position: relative;
+            background: white;
+            border: 0.3125rem solid #00ff00;
+            border-radius: 0.9375rem;
+            box-shadow: 0 0.9375rem 3.125rem rgba(0,0,0,0.7);
+            padding: 2.2rem 2rem 1.5rem;
+            max-width: min(80vw, 22rem);
+            width: max-content;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        #referencia-popup .ref-popup-emoji {
+            font-size: clamp(2rem, 8vw, 3rem);
+            line-height: 1;
+        }
+        #referencia-popup .ref-popup-numero {
+            font-size: clamp(0.7rem, 2.8vw, 0.85rem);
+            color: #ff8c00;
+            font-weight: bold;
+            letter-spacing: 0.04em;
+        }
+        #referencia-popup .ref-popup-nombre {
+            font-size: clamp(0.95rem, 3.5vw, 1.1rem);
+            color: #222;
+            font-weight: 600;
+            margin: 0;
+            line-height: 1.3;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+/**
+ * Muestra el popup de información de una referencia visual.
+ * Reutiliza .btn-cerrar-overlay de codigo-padre.html.
+ * @param {Object} referencia - Objeto referencia con nombre y mapa_numero
+ */
+function mostrarPopupReferencia(referencia) {
+    _inyectarEstilosReferencia();
+
+    const existente = document.getElementById('referencia-popup');
+    if (existente) existente.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'referencia-popup';
+    popup.innerHTML = `
+        <div class="ref-popup-card">
+            <button class="btn-cerrar-overlay"
+                onclick="document.getElementById('referencia-popup').remove()"
+                title="Cerrar">×</button>
+            <div class="ref-popup-emoji">🏛️</div>
+            <div class="ref-popup-numero">Nº ${referencia.mapa_numero} · Referencia visual</div>
+            <p class="ref-popup-nombre">${referencia.nombre || ''}</p>
+        </div>
+    `;
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) popup.remove();
+    });
+    document.body.appendChild(popup);
+}
+
+/**
+ * Crea el L.divIcon para un marcador de referencia visual.
+ * Círculo/pill blanco con borde naranja, 🏛️ y número de mapa.
+ * Se escala dinámicamente con el sistema de escalado del mapa.
+ * @param {Object} referencia - Objeto referencia con mapa_numero
+ * @returns {L.DivIcon}
+ */
+function crearIconoReferencia(referencia) {
+    const escala = getEscalaMapa();
+    const h = Math.round(ESCALA_BASE.ICONO_REFERENCIA * escala);
+    const borde = Math.max(2, Math.round(h * 0.08));
+    const emojiPx = Math.round(h * 0.50);
+    const numPx = Math.round(h * 0.34);
+    const gap = Math.round(h * 0.06);
+    const px = Math.round(h * 0.15);
+
+    const numStr = String(referencia.mapa_numero);
+    const w = Math.round(h + numStr.length * numPx * 0.62 + px * 2);
+
+    const html = `<div style="
+        width:${w}px;height:${h}px;
+        background:white;
+        border:${borde}px solid #ff8c00;
+        border-radius:${Math.round(h / 2)}px;
+        display:flex;align-items:center;justify-content:center;
+        gap:${gap}px;padding:0 ${px}px;box-sizing:border-box;
+        box-shadow:0 2px 6px rgba(0,0,0,0.35);
+        cursor:pointer;
+    "><span style="font-size:${emojiPx}px;line-height:1;">🏛️</span><span style="font-size:${numPx}px;font-weight:bold;color:#ff8c00;line-height:1;">${numStr}</span></div>`;
+
+    return L.divIcon({
+        className: 'referencia-visual-marker',
+        html,
+        iconSize: [w, h],
+        iconAnchor: [Math.round(w / 2), Math.round(h / 2)]
+    });
+}
+
+/**
+ * Dibuja en el mapa todos los elementos tipo "referencia" del array de coordenadas.
+ * No participa en GPS ni en la secuencia de la aventura.
+ * Llamar después de dibujarRutaConMarcadores con el array completo de coordenadas.
+ * @param {Array} coordenadasBrutas - Array completo de coordenadas de la aventura
+ */
+export function dibujarReferencias(coordenadasBrutas) {
+    if (!_mapaInstance) {
+        logger.warn('[MAPA] dibujarReferencias: mapa no inicializado');
+        return;
+    }
+    limpiarReferencias();
+
+    if (!Array.isArray(coordenadasBrutas)) return;
+
+    const referencias = coordenadasBrutas.filter(c => c.tipo === 'referencia');
+
+    referencias.forEach(ref => {
+        const coords = _getLatLng(ref);
+        if (!coords) {
+            logger.warn(`[MAPA] Referencia "${ref.id}" sin coordenadas válidas`);
+            return;
+        }
+        const icono = crearIconoReferencia(ref);
+        const marcador = L.marker([coords.lat, coords.lng], {
+            icon: icono,
+            title: ref.nombre || `Referencia ${ref.mapa_numero}`,
+            zIndexOffset: 400  // Por debajo de paradas (600) pero visible
+        }).addTo(_mapaInstance);
+
+        marcador._refData = ref; // Guardamos para poder re-escalar
+        marcador.on('click', () => mostrarPopupReferencia(ref));
+
+        marcadoresReferencias.set(ref.id, marcador);
+        logger.debug(`[MAPA] Referencia visual dibujada: ${ref.id} (${ref.nombre})`);
+    });
+
+    if (referencias.length > 0) {
+        logger.info(`[MAPA] ${referencias.length} referencia(s) visual(es) dibujada(s)`);
+    }
+}
+
+/**
+ * Elimina del mapa todos los marcadores de referencias visuales.
+ */
+function limpiarReferencias() {
+    marcadoresReferencias.forEach(m => {
+        try { if (_mapaInstance) _mapaInstance.removeLayer(m); } catch(e) { /* ignore */ }
+    });
+    marcadoresReferencias.clear();
 }
 
 /**
@@ -525,7 +721,9 @@ function limpiarRecursosInactivos() {
     }
 }
 
-// Configurar listeners de actividad
+// Configurar listeners de actividad (guardamos referencias para poder limpiarlos)
+let _eventosActividadRegistrados = [];
+
 if (typeof document !== 'undefined') {
     // Reduce event listeners for mobile (only essential ones)
     const eventosActividad = esMovil
@@ -534,6 +732,7 @@ if (typeof document !== 'undefined') {
 
     eventosActividad.forEach(evento => {
         document.addEventListener(evento, actualizarUltimaActividad, { passive: true });
+        _eventosActividadRegistrados.push(evento);
     });
 
     // Configurar limpieza automática (less frequent for mobile)
@@ -991,6 +1190,9 @@ export function limpiarRecursos() {
         marcadoresParadas.forEach(marcador => _mapaInstance.removeLayer(marcador));
         marcadoresParadas.clear();
 
+        // Limpiar referencias visuales
+        limpiarReferencias();
+
         // Limpiar rutas
         logger.debug(`[funciones-mapa] Eliminando ${rutasTramos.length} rutas de tramos y ${rutasActivas.length} rutas activas`);
         rutasTramos.forEach(ruta => _mapaInstance.removeLayer(ruta));
@@ -1015,6 +1217,19 @@ export function limpiarRecursos() {
         });
 
         console.debug('Recursos del mapa limpiados completamente');
+
+        // Limpiar listeners globales de actividad para evitar memory leak
+        _eventosActividadRegistrados.forEach(evento => {
+            document.removeEventListener(evento, actualizarUltimaActividad);
+        });
+        _eventosActividadRegistrados = [];
+
+        // Limpiar intervalo de limpieza automática
+        if (intervaloLimpiezaAutomatica) {
+            clearInterval(intervaloLimpiezaAutomatica);
+            intervaloLimpiezaAutomatica = null;
+        }
+
         logger.info('[funciones-mapa] Limpieza completa de recursos finalizada');
         return true;
     } catch (error) {
@@ -1731,7 +1946,18 @@ async function manejarCambiarParada(mensaje) {
         if (!paradaId && !padreId) {
             throw new Error('ID de parada no especificado (paradaId o padreId)');
         }
-        
+
+        // Guardia: elementos sin ubicación física (pre-intro, intro...) — parada_id es el string "null"
+        // o el tipo no corresponde a una parada/tramo con coordenadas reales.
+        // Salir limpio para no bloquear consultaParadaPendiente.
+        const TIPOS_CON_MAPA = ['inicio', 'parada', 'tramo'];
+        const tipoElemento = mensaje.datos?.tipo;
+        const paradaIdEsNull = paradaId === 'null' || paradaId === null;
+        if (paradaIdEsNull || (tipoElemento && !TIPOS_CON_MAPA.includes(tipoElemento))) {
+            logger.info(`${logPrefix} Elemento sin coordenadas de mapa (tipo="${tipoElemento}", paradaId="${paradaId}") — ignorando`);
+            return { exito: false, error: 'elemento_sin_coordenadas' };
+        }
+
         // Validar que el mapa esté inicializado
         if (!_mapaInstance) {
             throw new Error('Mapa no inicializado');
@@ -1745,9 +1971,10 @@ async function manejarCambiarParada(mensaje) {
 
         // Validar que la parada existe en AVENTURA_PARADAS (soporta both padreId and paradaId)
         const idToMatch = padreId || paradaId;
-        const paradaBase = window.AVENTURA_PARADAS?.find(p => p.padreid === idToMatch || p.parada_id === idToMatch || p.tramo_id === idToMatch || p.id === idToMatch);
+        const idSinPrefijo = idToMatch?.startsWith('padre-') ? idToMatch.substring(6) : idToMatch;
+        const paradaBase = window.AVENTURA_PARADAS?.find(p => p.padreid === idToMatch || p.parada_id === idToMatch || p.tramo_id === idToMatch || p.id === idToMatch || p.parada_id === idSinPrefijo || p.tramo_id === idSinPrefijo);
         if (!paradaBase) {
-            throw new Error(`Parada ${paradaId} no encontrada en datos base`);
+            throw new Error(`Parada ${paradaId} (idToMatch=${idToMatch}, idSinPrefijo=${idSinPrefijo}) no encontrada en datos base (AVENTURA_PARADAS tiene ${window.AVENTURA_PARADAS?.length || 0} elementos)`);
         }
 
         // Registrar consulta pendiente (usar parsed id)
@@ -1761,32 +1988,56 @@ async function manejarCambiarParada(mensaje) {
             mensajeId
         };
         estadoMapa.esperandoCoordenadas = true;
-        estadoMapa.esperandoAudio = true;
-        estadoMapa.esperandoReto = true;
+        estadoMapa.esperandoAudio = false;
+        estadoMapa.esperandoReto = false;
         estadoMapa.datosRecopilados = {};
 
-        logger.info(`${logPrefix} Iniciando consultas para parada ${paradaId}`);
+        logger.info(`${logPrefix} Iniciando consulta de coordenadas para parada ${paradaId}`);
 
-        // Enviar consultas a hijos
-        const consultas = [
-            enviarConsultaCoordenadas(resolvedParadaId, resolvedPadreId),
-            enviarConsultaAudio(resolvedParadaId, resolvedPadreId)
-        ];
+        // Red de seguridad: si hijo2 no responde en 8s, limpiar el lock para no bloquear zooms futuros
+        const _timeoutSeguridad = setTimeout(() => {
+            if (estadoMapa.consultaParadaPendiente?.paradaId === resolvedParadaId) {
+                logger.warn(`${logPrefix} Timeout de seguridad: sin respuesta de hijo2 para ${resolvedParadaId} — limpiando lock`);
+                estadoMapa.consultaParadaPendiente = null;
+                estadoMapa.esperandoCoordenadas = false;
+                estadoMapa.datosRecopilados = {};
+            }
+        }, 8000);
 
-        // Solo enviar consulta de reto si es una parada (no tramo)
-        if ((resolvedParadaId && resolvedParadaId.startsWith('P-')) || (resolvedPadreId && resolvedPadreId.startsWith('padre-P-'))) {
-            consultas.push(enviarConsultaReto(resolvedParadaId, resolvedPadreId));
-        } else {
-            // Para tramos, marcar reto como no disponible
-            estadoMapa.esperandoReto = false;
-            estadoMapa.datosRecopilados.reto = null;
-            logger.debug(`${logPrefix} Saltando consulta de reto para tramo ${paradaId}`);
+        // Ruta 1: caché local del padre (mismo window, sin postMessage, sin race condition)
+        const _aventura = window.aventuraSeleccionada;
+        const _datosAv = window.__vv_DATOS_AVENTURAS?.[_aventura];
+        const _todasCoords = _datosAv?.['coordenadas-hijo2.html']?.coordenadas || [];
+        const _entrada = _todasCoords.find(c => c.id === resolvedParadaId);
+        if (_entrada) {
+            const _lat = _entrada.lat ?? _entrada.coordenadas?.lat ?? _entrada.inicio?.lat;
+            const _lng = _entrada.lng ?? _entrada.coordenadas?.lng ?? _entrada.inicio?.lng;
+            if (_lat != null && _lng != null) {
+                clearTimeout(_timeoutSeguridad);
+                logger.info(`${logPrefix} Coordenadas del caché local (window.__vv_DATOS_AVENTURAS) — zoom sin postMessage`);
+                await procesarRespuestaConsulta('coordenadas', {
+                    paradaId: resolvedParadaId,
+                    id: _entrada.id,
+                    tipo: _entrada.tipo,
+                    nombre: _entrada.nombre,
+                    lat: _lat,
+                    lng: _lng,
+                    coordenadas: _entrada.coordenadas || _entrada.inicio || { lat: _lat, lng: _lng },
+                    coordenadasFin: _entrada.fin || null,
+                    waypoints: _entrada.waypoints || [],
+                    imagen: _entrada.imagen || null,
+                    video: _entrada.video || null
+                });
+                return { exito: true, estado: 'coordenadas_cache_local' };
+            }
         }
 
-        await Promise.all(consultas);
+        // Ruta 2 (fallback): pedir coordenadas a hijo2 vía postMessage
+        logger.info(`${logPrefix} Parada ${resolvedParadaId} no encontrada en caché local — solicitando a hijo2`);
+        await enviarConsultaCoordenadas(resolvedParadaId, resolvedPadreId);
 
-        logger.info(`${logPrefix} Consultas enviadas, esperando respuestas`);
-        
+        logger.info(`${logPrefix} Consulta enviada a hijo2, esperando respuesta`);
+
         return { exito: true, estado: 'consultas_enviadas' };
         
     } catch (error) {
@@ -1978,14 +2229,15 @@ async function completarCambioParada() {
                 }
             }
 
-            // Limpiar marcador anterior
+            // Limpiar marcador anterior si existía
             if (marcadorParadaActual) {
                 ejecutarOperacionMapa(mapa => {
                     try { mapa.removeLayer(marcadorParadaActual); } catch (e) { /* ignore */ }
                     return true;
                 }).catch(() => {});
+                marcadorParadaActual = null;
             }
-            
+
             // Limpiar polylines/rutas activas antes de dibujar la nueva
             await ejecutarOperacionMapa(mapa => {
                 rutasActivas.forEach(r => { try { mapa.removeLayer(r); } catch(e){} });
@@ -1994,72 +2246,93 @@ async function completarCambioParada() {
                 rutasTramos = [];
                 return true;
             }).catch(() => {});
-            
+
             // Determinar si es tramo o parada
             const esTramo = coordenadas.tipo === 'tramo' || !!coordenadas.coordenadasFin;
-
-            // Crear marcador (sin zoom todavía)
-            await ejecutarOperacionMapa(mapa => {
-                marcadorParadaActual = L.marker([coordenadas.lat, coordenadas.lng], {
-                    icon: L.icon({
-                        iconUrl: 'current-stop-pin.png',
-                        iconSize: [35, 51],
-                        iconAnchor: [17, 51],
-                        popupAnchor: [0, -51]
-                    }),
-                    title: coordenadas.nombre || `Parada ${paradaId}`
-                }).addTo(mapa);
-                const infoPopup = `<b>${coordenadas.nombre || `Parada ${paradaId}`}</b><br>ID: ${paradaId}`;
-                try { marcadorParadaActual.bindPopup(infoPopup).openPopup(); } catch (e) { /* ignore */ }
-                return true;
-            }).catch(err => logger.warn(`${logPrefix} Error al agregar marcador:`, err));
+            // Los emojis 📌 (tramo) y 🎯 (parada) los dibujan dibujarTramo / dibujarRutaConMarcadores
+            // — no se añade marcador PNG adicional aquí para no superponer iconos rotos.
 
             // ============================================================
-            // DIBUJAR + ZOOM ÚNICO
+            // ZOOM: out→in si hay parada previa, solo in si es la primera
             // ============================================================
+
+            const zoomMax = (CONFIG?.MAPA?.ZOOM_MAX ?? 19) - 1;
+            const zoomOut = CONFIG?.MAPA?.ZOOM_INICIAL || 14;
+            const durFase = 0.7; // segundos por fase
+            const tieneParadaAnterior = !!estadoMapa.paradaActual;
+
+            // Helper compartido: espera moveend de Leaflet con timeout de seguridad
+            const esperarMoveEnd = (extraMs = 0) => new Promise(r => {
+                let resuelto = false;
+                const resolver = () => { if (!resuelto) { resuelto = true; r(); } };
+                const fallback = setTimeout(resolver, durFase * 1000 + 600 + extraMs);
+                if (_mapaInstance) {
+                    _mapaInstance.once('moveend', () => { clearTimeout(fallback); resolver(); });
+                }
+            });
+
             if (esTramo && coordenadas.coordenadasFin) {
-                // TRAMO: dibujar polyline + fitBounds
+                // TRAMO: dibujar polyline azul
                 const tramoData = {
                     inicio: { lat: coordenadas.lat, lng: coordenadas.lng },
                     fin: coordenadas.coordenadasFin,
                     waypoints: coordenadas.waypoints || []
                 };
-                const polyline = dibujarTramo(tramoData, true);
+                const polyline = dibujarTramo(tramoData, false);
                 if (polyline) {
                     rutasActivas.push(polyline);
                     logger.info(`${logPrefix} Tramo dibujado para ${paradaId}`);
                 }
 
-                // ZOOM ÚNICO para tramo: flyToBounds sobre todos los puntos
-                // Usa flyToBounds para hacer zoom-out → pan → zoom-in suave
                 const puntos = [tramoData.inicio, ...tramoData.waypoints, tramoData.fin]
                     .filter(p => p && p.lat && p.lng)
                     .map(p => [p.lat, p.lng]);
+
                 if (puntos.length > 1) {
                     estadoMapa.zoomEnCurso = true;
+
+                    // Si hay parada anterior: zoom-out desde posición actual primero
+                    if (tieneParadaAnterior) {
+                        await ejecutarOperacionMapa(mapa => {
+                            mapa.flyTo(mapa.getCenter(), zoomOut, { duration: durFase, easeLinearity: 0.5 });
+                            return true;
+                        }).catch(() => {});
+                        await esperarMoveEnd();
+                    }
+
+                    // Zoom-in final: centrar en el inicio del tramo (donde está 📌)
+                    const centroInicio = [tramoData.inicio.lat, tramoData.inicio.lng];
                     await ejecutarOperacionMapa(mapa => {
-                        const bounds = L.latLngBounds(puntos);
-                        mapa.flyToBounds(bounds, {
-                            padding: [80, 80],
-                            maxZoom: 18,
-                            duration: 1.5
-                        });
+                        mapa.flyTo(centroInicio, zoomMax, { duration: durFase * 1.5, easeLinearity: 0.25 });
                         return true;
-                    }).catch(err => logger.warn(`${logPrefix} Error en flyToBounds del tramo:`, err));
-                    // Dar tiempo a que la animación termine antes de desbloquear
-                    setTimeout(() => { estadoMapa.zoomEnCurso = false; }, 1600);
+                    }).catch(err => logger.warn(`${logPrefix} Error en flyTo inicio tramo:`, err));
+
+                    await esperarMoveEnd(200);
+                    estadoMapa.zoomEnCurso = false;
                 }
             } else {
-                // PARADA: flyTo al punto (zoom-out → pan → zoom-in suave)
-                logger.debug(`${logPrefix} Parada individual ${paradaId}`);
+                // PARADA: zoom-out→in si hay anterior, solo in si es la primera
+                const destino = [coordenadas.lat, coordenadas.lng];
+                logger.debug(`${logPrefix} Parada individual ${paradaId} — zoom ${tieneParadaAnterior ? 'out→in' : 'in'}`);
                 estadoMapa.zoomEnCurso = true;
+
+                // Si hay parada anterior: zoom-out desde posición actual
+                if (tieneParadaAnterior) {
+                    await ejecutarOperacionMapa(mapa => {
+                        mapa.flyTo(mapa.getCenter(), zoomOut, { duration: durFase, easeLinearity: 0.5 });
+                        return true;
+                    }).catch(() => {});
+                    await esperarMoveEnd();
+                }
+
+                // Zoom-in al destino
                 await ejecutarOperacionMapa(mapa => {
-                    mapa.flyTo([coordenadas.lat, coordenadas.lng], 18, {
-                        duration: 1.5
-                    });
+                    mapa.flyTo(destino, zoomMax, { duration: durFase * 1.5, easeLinearity: 0.25 });
                     return true;
                 }).catch(err => logger.warn(`${logPrefix} Error en flyTo parada:`, err));
-                setTimeout(() => { estadoMapa.zoomEnCurso = false; }, 1600);
+
+                await esperarMoveEnd(200);
+                estadoMapa.zoomEnCurso = false;
             }
             
             estadoMapa.ultimoZoomAuto = Date.now();
@@ -3486,14 +3759,36 @@ export function registrarManejadoresMensajes() {
             throw new Error('La función registrarControlador no está disponible');
         }
         
+        // Helper: solo registrar si el padre no lo registró ya (evita sobrescribir)
+        const registrarSiNoExiste = (tipo, handler) => {
+            if (window.__CONTROLADOR_REGISTRADOS && window.__CONTROLADOR_REGISTRADOS.has(tipo)) {
+                logger.debug(`[funciones-mapa] Handler para ${tipo} ya registrado por padre, omitiendo`);
+                return;
+            }
+            registrarControlador(tipo, handler);
+        };
+
         // Registrar manejadores de mensajes con manejo de errores
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.ESTABLECER_DESTINO, manejarEstablecerDestino);
         // ACTUALIZAR_POSICION eliminado - tipo de mensaje obsoleto (legacy code)
-        registrarControlador(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, manejarCambioModoMapa);
+        registrarSiNoExiste(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, manejarCambioModoMapa);
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_RUTA, manejarMostrarRuta);
         
         // Controladores de navegación adicionales
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, manejarCambiarParada);
+        // CAMBIO_PARADA: el handler de mensajería lo gestiona padre (codigo-padre.html)
+        // que coordina hijo2/hijo3/hijo4/hijo5. Funciones-mapa escucha un CustomEvent
+        // disparado por padre DESPUÉS de procesar, para dibujar marcadores/polylines/zoom.
+        window.addEventListener('vv-parada-cambiada', async (e) => {
+            try {
+                const mensajeOriginal = e.detail;
+                if (mensajeOriginal && mensajeOriginal.datos) {
+                    logger.info('[funciones-mapa] Evento vv-parada-cambiada recibido, iniciando visualización');
+                    await manejarCambiarParada(mensajeOriginal);
+                }
+            } catch (err) {
+                logger.warn('[funciones-mapa] Error procesando vv-parada-cambiada:', err);
+            }
+        });
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, manejarActualizarEstadoNavegacion);
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.INICIAR, manejarIniciarNavegacion);
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.INICIADA, manejarNavegacionIniciada);
@@ -4012,6 +4307,8 @@ window.funcionesMapa = {
     mostrarTodasLasParadas,
     limpiarRecursos,
     dibujarRutaConMarcadores,
+    dibujarReferencias,
+    limpiarReferencias,
     registrarManejadoresMensajes,
     limpiarPorEstado,
     calcularToleranciaGPS,

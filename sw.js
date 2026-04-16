@@ -4,17 +4,15 @@
  * Estrategia: Network First para el shell de la app, Network Only para media.
  *
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║  PARA ACTUALIZAR LA CACHÉ: cambia CACHE_VERSION (ej: v2, v3…)  ║
- * ║  El navegador detectará el cambio y recargará todo en la        ║
- * ║  próxima visita del usuario. El contenido media (audios,        ║
- * ║  videos, imágenes de aventuras) NUNCA se cachea: siempre        ║
- * ║  viene de red. Puedes añadir aventuras/audios/videos sin        ║
- * ║  tocar este fichero.                                            ║
+ * ║  CACHE_VERSION se genera automáticamente con un hash del        ║
+ * ║  contenido del APP_SHELL. Cualquier cambio en la lista de       ║
+ * ║  ficheros cacheados genera una nueva versión sin intervención.  ║
+ * ║  Además, el navegador re-registra el SW si detecta que este    ║
+ * ║  fichero (sw.js) ha cambiado en un solo byte.                  ║
+ * ║  El contenido media (audios, videos, imágenes de aventuras)    ║
+ * ║  NUNCA se cachea: siempre viene de red.                        ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
-
-const CACHE_VERSION = 'v2';
-const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 
 // ─── App Shell ────────────────────────────────────────────────────────────────
 // Estos ficheros se precargan al instalar el SW.
@@ -33,7 +31,7 @@ const APP_SHELL = [
   '/paginas-oficiales-valencia.html',
   '/videos-valencia-historica.html',
   '/puzzle.html',
-  '/botones-y-subfunciones-opciones.html',
+  '/extrainfo-hijo1.html',
   '/manifest.json',
   // Lógica de la app
   '/js/constants.js',
@@ -50,6 +48,7 @@ const APP_SHELL = [
   '/js/error-handler-ui.js',
   '/js/api-client.js',
   '/js/suppress-warnings.js',
+  '/js/proteccion.js',
   // Datos de aventuras (se actualizan con Network First en runtime)
   '/js/indice-aventuras.js',
   '/js/coordenadas-aventuras.js',
@@ -65,6 +64,22 @@ const APP_SHELL = [
   '/imagenes/imagenes-aplicación/logo-redondo.png',
   '/imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg',
 ];
+
+// Auto-versión: hash generado a partir de la lista APP_SHELL.
+// Cualquier cambio en la lista (añadir, quitar, renombrar fichero) genera
+// una nueva CACHE_VERSION automáticamente. Además, el navegador detecta
+// cuando sw.js cambia (byte-a-byte) y re-registra el SW, así que cualquier
+// cambio en ESTE fichero (incluido tocar la lista) invalida la caché vieja.
+function generarHashShell(lista) {
+  const str = lista.join('|');
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return 'auto-' + Math.abs(hash).toString(36);
+}
+const CACHE_VERSION = generarHashShell(APP_SHELL);
+const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 
 // ─── Rutas que NUNCA se cachean (siempre desde red) ──────────────────────────
 // Audios y videos son demasiado pesados y cambian con cada aventura nueva.

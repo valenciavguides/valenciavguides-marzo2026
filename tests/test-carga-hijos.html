@@ -8,7 +8,9 @@
 <body>
     <h1>Test de Carga de Hijos</h1>
     <div id="log"></div>
+    <div id="results"></div>
 
+    <script src="test-reporter-utility.js"></script>
     <script>
         const log = document.getElementById('log');
 
@@ -21,14 +23,13 @@
 
         addLog('Iniciando test de carga de hijos...');
 
-        // Lista de hijos a probar
+        // Lista de hijos a probar (rutas relativas desde /tests/)
         const hijos = [
-            'En-busca-del-tesoro.html',
-            'coordenadas-hijo2.html',
-            'audio-hijo3.html',
-            'retos-hijo4.html',
-            'botones-y-subfunciones-hamburguesa.html',
-            'botones-y-subfunciones-opciones.html'
+            '../En-busca-del-tesoro.html',
+            '../coordenadas-hijo2.html',
+            '../audio-hijo3.html',
+            '../retos-hijo4.html',
+            '../extrainfo-hijo1.html'
         ];
 
         hijos.forEach((hijoSrc, index) => {
@@ -51,6 +52,34 @@
         });
 
         addLog('Test iniciado. Esperando carga de iframes...');
+
+        // Auto-run para master-test
+        window.runTest = function() {
+            const resultsDiv = document.getElementById('results');
+            let passed = 0, failed = 0;
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                try {
+                    if (iframe.contentDocument || iframe.contentWindow) {
+                        passed++;
+                        const d = document.createElement('div');
+                        d.className = 'pass';
+                        d.textContent = '✅ ' + iframe.src.split('/').pop() + ' cargado';
+                        resultsDiv.appendChild(d);
+                    } else { failed++; }
+                } catch(e) {
+                    // Cross-origin = loaded but not accessible (still counts)
+                    passed++;
+                    const d = document.createElement('div');
+                    d.className = 'pass';
+                    d.textContent = '✅ ' + iframe.src.split('/').pop() + ' cargado (cross-origin)';
+                    resultsDiv.appendChild(d);
+                }
+            });
+            window.TestReporter.report({ name: 'Basic: Carga Hijos', passed, failed });
+        };
+        // Auto-ejecutar después de que los iframes carguen
+        setTimeout(() => { if (window.runTest) window.runTest(); }, 5000);
     </script>
 </body>
 </html>

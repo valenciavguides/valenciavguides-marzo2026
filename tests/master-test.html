@@ -697,6 +697,44 @@
                 file: 'test_video_aventuras.html',
                 type: 'browser',
                 category: 'Data'
+            },
+            {
+                name: 'Audit: Auditoría Completa',
+                file: 'test_auditoria_completa.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+
+            // Frontend Tests - Hijos (iframe specifics)
+            {
+                name: 'IDs: AVENTURA_PARADAS Search',
+                file: 'test_aventura_paradas_ids.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'hijo2: Coordenadas',
+                file: 'test_hijo2_coordenadas.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'hijo3: Audio',
+                file: 'test_hijo3_audio.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'hijo4: Reto Visibility',
+                file: 'test_hijo4_reto_visibility.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'hijo5: Navegación',
+                file: 'test_hijo5_navegacion.html',
+                type: 'browser',
+                category: 'Specific'
             }
         ];
 
@@ -776,7 +814,7 @@
                 const startTime = performance.now();
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
-                iframe.src = test.file;
+                iframe.src = test.file + '?_cb=' + Date.now();
 
                 // Flag para detectar si el test reportó resultado
                 let testReported = false;
@@ -837,6 +875,10 @@
                             iframeWindow.testSincronizacionCompleta();
                         } else if (iframeWindow.runIndiceTest && typeof iframeWindow.runIndiceTest === 'function') {
                             iframeWindow.runIndiceTest();
+                        } else if (iframeWindow.runFullIntegrationTest && typeof iframeWindow.runFullIntegrationTest === 'function') {
+                            iframeWindow.runFullIntegrationTest();
+                        } else if (iframeWindow.runIntegrationTest && typeof iframeWindow.runIntegrationTest === 'function') {
+                            iframeWindow.runIntegrationTest();
                         }
                     } catch (e) {
                         console.log(`No auto-execution function found for ${test.name}:`, e.message);

@@ -17,7 +17,12 @@ router.get('/', (req, res) => {
         version: '1.0.0',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
+        auth_enabled: process.env.AUTH_ENABLED === 'true',
         endpoints: {
+            auth: {
+                activar: 'POST /api/auth/activar',
+                verificar: 'GET /api/auth/verificar'
+            },
             aventuras: {
                 lista: 'GET /api/aventuras',
                 detalle: 'GET /api/aventuras/:id',

@@ -21,15 +21,35 @@ const audiosRoutes = require('./routes/audios');
 const retosRoutes = require('./routes/retos');
 const puzzlesRoutes = require('./routes/puzzles');
 const healthRoutes = require('./routes/health');
+const authRoutes = require('./routes/auth');
 
 // Importar middleware
 const errorHandler = require('./middleware/errorHandler');
+const { requireAuth } = require('./middleware/auth');
+const { ipBanMiddleware } = require('./middleware/ipBan');
+const { sanitizeInputMiddleware } = require('./middleware/inputSanitizer');
 const { ApiError } = require('./utils/ApiError');
+const { logSecurityEvent, SecurityEvents } = require('./utils/securityLogger');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const DOMAIN = process.env.DOMAIN || 'localhost';
+
+// ========================================
+// VALIDACIÓN DE ARRANQUE (producción)
+// ========================================
+if (NODE_ENV === 'production') {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret || jwtSecret === 'dev-secret-no-usar-en-produccion') {
+        console.error('CRITICAL: JWT_SECRET no está configurado para producción. Establece una clave segura en .env');
+        process.exit(1);
+    }
+    if (process.env.AUTH_ENABLED !== 'true') {
+        console.error('CRITICAL: AUTH_ENABLED debe ser true en producción. El servidor no arrancará sin autenticación activa.');
+        process.exit(1);
+    }
+}
 
 // ========================================
 // MIDDLEWARE DE SEGURIDAD
@@ -52,8 +72,11 @@ app.use(helmet({
 // CORS - Configuración de orígenes permitidos (dinámica según entorno)
 const corsOptions = {
     origin: function (origin, callback) {
-        // Permitir requests sin origin (apps móviles, Postman, etc.)
-        if (!origin) return callback(null, true);
+        // Requests sin origin: permitir solo en desarrollo (Postman, curl, etc.)
+        if (!origin) {
+            if (NODE_ENV !== 'production') return callback(null, true);
+            return callback(new ApiError(403, 'Origin header requerido'));
+        }
         
         const allowedOrigins = [
             'http://localhost:8080',
@@ -75,10 +98,13 @@ const corsOptions = {
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 app.use(cors(corsOptions));
+
+// Bloqueo de IPs baneadas (ANTES de cualquier otra lógica)
+app.use(ipBanMiddleware);
 
 // Rate limiting - Protección contra ataques de fuerza bruta
 const limiter = rateLimit({
@@ -91,9 +117,50 @@ const limiter = rateLimit({
         reintentar_en: '15 minutos'
     },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    handler: (req, res, next, options) => {
+        const ip = req.ip || req.socket.remoteAddress;
+        logSecurityEvent({
+            type: SecurityEvents.RATE_LIMIT_HIT,
+            ip,
+            message: 'Límite global de peticiones alcanzado (100/15min)',
+            path: req.path,
+            method: req.method
+        });
+        res.status(options.statusCode).json(options.message);
+    }
 });
 app.use('/api/', limiter);
+
+// Rate limiting estricto para activación de códigos (anti fuerza bruta)
+const activarLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 10, // Máximo 10 intentos de activación por IP cada 15 min
+    message: {
+        error: true,
+        codigo: 'ACTIVACION_RATE_LIMIT',
+        mensaje: 'Demasiados intentos de activación. Espere 15 minutos antes de intentar de nuevo.',
+        reintentar_en: '15 minutos'
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use('/api/auth/activar', activarLimiter);
+
+// Rate limiting para validación de retos (anti fuerza bruta de respuestas)
+const retosLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000, // 5 minutos
+    max: 30, // Máximo 30 validaciones por IP cada 5 min
+    message: {
+        error: true,
+        codigo: 'RATE_LIMIT_EXCEEDED',
+        mensaje: 'Demasiados intentos. Espere unos minutos antes de continuar.',
+        reintentar_en: '5 minutos'
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use('/api/retos/', retosLimiter);
 
 // ========================================
 // MIDDLEWARE GENERAL
@@ -104,23 +171,27 @@ if (process.env.NODE_ENV !== 'test') {
     app.use(morgan('dev'));
 }
 
-// Parseo de JSON
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Parseo de JSON (100KB suficiente para códigos de activación y respuestas de retos)
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+
+// Sanitización de inputs (después de parsear JSON, antes de rutas)
+app.use(sanitizeInputMiddleware);
 
 // ========================================
 // RUTAS API
 // ========================================
 
-// Health check
+// Rutas públicas (sin autenticación)
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
 
-// Rutas principales
-app.use('/api/aventuras', aventurasRoutes);
-app.use('/api/coordenadas', coordenadasRoutes);
-app.use('/api/audios', audiosRoutes);
-app.use('/api/retos', retosRoutes);
-app.use('/api/puzzles', puzzlesRoutes);
+// Rutas protegidas (requireAuth es pass-through en desarrollo)
+app.use('/api/aventuras', requireAuth, aventurasRoutes);
+app.use('/api/coordenadas', requireAuth, coordenadasRoutes);
+app.use('/api/audios', requireAuth, audiosRoutes);
+app.use('/api/retos', requireAuth, retosRoutes);
+app.use('/api/puzzles', requireAuth, puzzlesRoutes);
 
 // ========================================
 // MANEJO DE ERRORES

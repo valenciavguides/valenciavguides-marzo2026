@@ -107,6 +107,15 @@
         window.clearResults = function() {
             document.getElementById('results').innerHTML = '';
         };
+
+        // Auto-run para master-test
+        window.runTest = async function() {
+            await window.testFusionControlador();
+            window.TestReporter.report({
+                name: 'Verification: Controlador Fusionado',
+                resultsContainer: document.getElementById('results')
+            });
+        };
     </script>
 </body>
 </html>

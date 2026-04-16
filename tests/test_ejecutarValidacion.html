@@ -12,43 +12,43 @@
 
     <script>
         window.runTest = function() {
-            try {
-                // Simular la función ejecutarValidacion del archivo principal
-                function ejecutarValidacion(reto, respuestaUsuario) {
-                    console.log('ejecutarValidacion llamada con:', reto, respuestaUsuario);
-                    // Validación personalizada por defecto - siempre pasa
-                    return true;
+            const resultDiv = document.getElementById('resultado');
+            let passed = 0, failed = 0;
+
+            // Simular la función ejecutarValidacion con lógica real
+            function ejecutarValidacion(reto, respuestaUsuario) {
+                if (!reto || !respuestaUsuario) return false;
+                if (reto.tipo === 'opcion') {
+                    return Array.isArray(reto.correctas) && reto.correctas.includes(respuestaUsuario);
                 }
-
-                // Simular un reto de prueba
-                const retoPrueba = {
-                    id: "R-1",
-                    tipo: "opcion",
-                    pregunta: "Pregunta de prueba",
-                    correctas: ["opcion1"]
-                };
-
-                // Probar la función
-                const resultado = ejecutarValidacion(retoPrueba, "opcion1");
-                document.getElementById('resultado').textContent = '✅ Test pasado: ejecutarValidacion funciona correctamente. Resultado: ' + resultado;
-                console.log('Test pasado');
-                
-                window.TestReporter.report({
-                    name: 'Validación: ejecutarValidacion',
-                    passed: 1,
-                    failed: 0,
-                    resultsContainer: document.getElementById('resultado')
-                });
-            } catch (error) {
-                document.getElementById('resultado').textContent = '❌ Test fallado: ' + error.message;
-                console.error('Test fallado:', error);
-                window.TestReporter.report({
-                    name: 'Validación: ejecutarValidacion',
-                    passed: 0,
-                    failed: 1,
-                    resultsContainer: document.getElementById('resultado')
-                });
+                if (reto.tipo === 'texto') {
+                    return reto.correctas.some(c => c.toLowerCase().trim() === String(respuestaUsuario).toLowerCase().trim());
+                }
+                return false;
             }
+
+            // Test 1: Opción correcta
+            const reto1 = { id: 'R3-Av1-es', tipo: 'opcion', pregunta: '¿Siglo torres?', correctas: ['XIV'] };
+            if (ejecutarValidacion(reto1, 'XIV') === true) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Opción correcta validada</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Opción correcta falló</div>'; }
+
+            // Test 2: Opción incorrecta
+            if (ejecutarValidacion(reto1, 'XVI') === false) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Opción incorrecta rechazada</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Opción incorrecta no rechazada</div>'; }
+
+            // Test 3: Texto correcto
+            const reto2 = { id: 'R-txt', tipo: 'texto', correctas: ['Madrid'] };
+            if (ejecutarValidacion(reto2, 'madrid') === true) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Texto correcto (case-insensitive)</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Texto case-insensitive falló</div>'; }
+
+            // Test 4: Null input
+            if (ejecutarValidacion(null, 'test') === false) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Input null rechazado</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Input null no rechazado</div>'; }
+
+            window.TestReporter.report({
+                name: 'Module: ejecutarValidacion',
+                passed, failed
+            });
         };
         window.runTest();
     </script>

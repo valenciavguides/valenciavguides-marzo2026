@@ -4,6 +4,29 @@ const path = require('path');
 
 const port = 8080;
 
+// ========================================
+// PROTECCIÓN DE ARCHIVOS SENSIBLES
+// ========================================
+// En producción (PROTECT_DATA=true), bloquear acceso directo a ficheros
+// que contienen datos de aventuras (coordenadas, respuestas, textos, audios).
+// El frontend debe obtener estos datos a través de la API autenticada.
+const PROTECT_DATA = process.env.PROTECT_DATA === 'true';
+
+const PROTECTED_FILES = [
+    '/js/coordenadas-aventuras.js',
+    '/js/textos-aventuras.js',
+    '/js/retos-aventuras.js',
+    '/js/puzzles-aventuras.js',
+    '/js/audios-aventuras.js',
+    '/backend/'
+];
+
+function isProtectedFile(urlPath) {
+    if (!PROTECT_DATA) return false;
+    const normalized = urlPath.split('?')[0].toLowerCase();
+    return PROTECTED_FILES.some(pf => normalized.startsWith(pf.toLowerCase()));
+}
+
 const mimeTypes = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -33,6 +56,18 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     res.end();
+    return;
+  }
+
+  // Bloquear acceso a archivos sensibles en producción
+  if (isProtectedFile(req.url)) {
+    console.warn(`🚫 Acceso bloqueado a archivo protegido: ${req.url}`);
+    res.writeHead(403, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      error: true,
+      codigo: 'ACCESO_DENEGADO',
+      mensaje: 'Este recurso no está disponible directamente. Use la API autenticada.'
+    }));
     return;
   }
 

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk '{gsub\\(/[ \\\\t]+\\(\\\\r\\)?$/, \"\\\\r\"\\); printf \"%s\\\\n\", $0}' \"/c/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/js/coordenadas-aventuras.js\")",
+      "Bash(wc -l \"/c/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/js\"/*.js)"
+    ]
+  }
+}

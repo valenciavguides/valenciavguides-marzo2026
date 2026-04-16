@@ -53,23 +53,8 @@ export function esMovil() {
         /tablet/i
     ];
     
-    // Verificar por User Agent
-    const esMovilPorUA = patronesMovil.some(patron => patron.test(ua));
-    
-    // Verificar por características de pantalla
-    const esMovilPorPantalla = (
-        window.innerWidth <= 1024 ||
-        ('orientation' in window) ||
-        ('ontouchstart' in window)
-    );
-    
-    // Verificar por media queries
-    const esMovilPorMedia = window.matchMedia && (
-        window.matchMedia('(max-width: 1024px)').matches ||
-        window.matchMedia('(pointer: coarse)').matches
-    );
-    
-    cache.esMovil = esMovilPorUA || (esMovilPorPantalla && esMovilPorMedia);
+    // Verificar por User Agent (único método fiable)
+    cache.esMovil = patronesMovil.some(patron => patron.test(ua));
     return cache.esMovil;
 }
 

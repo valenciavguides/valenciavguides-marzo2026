@@ -8,6 +8,7 @@ const express = require('express');
 const router = express.Router();
 const dataService = require('../services/dataService');
 const { validateAventuraId, validateIdioma, requireParam } = require('../middleware/validation');
+const { validateRespuesta } = require('../middleware/inputSanitizer');
 const { ApiError, ErrorCodes } = require('../utils/ApiError');
 
 /**
@@ -95,20 +96,14 @@ router.post('/:aventuraId/:idioma/:retoId/validar', (req, res, next) => {
         
         const { respuesta } = req.body;
         
-        if (respuesta === undefined || respuesta === null) {
-            throw new ApiError(
-                400,
-                'La respuesta es requerida',
-                ErrorCodes.PARAMETRO_REQUERIDO,
-                { parametro: 'respuesta' }
-            );
-        }
+        // Validar y sanitizar respuesta (strip HTML, límites de longitud)
+        const respuestaLimpia = validateRespuesta(respuesta);
         
         const resultado = dataService.validarRespuestaReto(
             aventuraId, 
             idioma, 
             retoId, 
-            respuesta
+            respuestaLimpia
         );
         
         res.json({

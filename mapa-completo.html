@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+  <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
+  <title>Mapa completo de aventura</title>
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* Marcador pill de monumento */
+    .monumento-marker {
+      background: #fff;
+      border: 2px solid #8B6914;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: clamp(0.7rem, 2.5vmin, 1rem);
+      font-weight: bold;
+      color: #8B6914;
+      white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* Overlay popup de monumento */
+    #monumento-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    #monumento-overlay.visible {
+      display: flex;
+    }
+    #monumento-card {
+      background: #fff;
+      border-radius: 12px;
+      max-width: min(90vw, 420px);
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    #monumento-card img {
+      width: 100%;
+      max-height: 55vw;
+      object-fit: cover;
+      display: block;
+    }
+    #monumento-card .sin-imagen {
+      width: 100%;
+      height: 140px;
+      background: #f0ebe0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+    #monumento-card .info {
+      padding: 0.9rem 1rem 1rem;
+    }
+    #monumento-card .info .numero {
+      font-size: 0.75rem;
+      color: #8B6914;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+    #monumento-card .info .nombre {
+      font-size: clamp(1rem, 3.5vmin, 1.3rem);
+      font-weight: bold;
+      color: #222;
+    }
+    #monumento-cerrar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    #monumento-cerrar:hover {
+      background: rgba(0,0,0,0.8);
+    }
+
+    /* Control de rotación */
+    .leaflet-control-rotate {
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }
+    .leaflet-control-rotate button:hover {
+      background-color: rgba(0,0,0,0.1);
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <!-- Overlay popup monumento -->
+  <div id="monumento-overlay">
+    <div id="monumento-card">
+      <button id="monumento-cerrar" title="Cerrar">✕</button>
+      <div id="monumento-imagen-wrap"></div>
+      <div class="info">
+        <div class="numero" id="monumento-numero"></div>
+        <div class="nombre" id="monumento-nombre"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <script>
+    // Control de rotación simple
+    (function() {
+      if (typeof L === 'undefined') return;
+      L.Map.include({
+        _bearing: 0,
+        setBearing: function(bearing) {
+          this._bearing = bearing;
+          this._updateMapRotation();
+          return this;
+        },
+        getBearing: function() {
+          return this._bearing;
+        },
+        _updateMapRotation: function() {
+          if (this._container) {
+            this._container.style.transform = `rotate(${this._bearing}deg)`;
+            this._container.style.transformOrigin = 'center center';
+          }
+        }
+      });
+      L.Control.Rotate = L.Control.extend({
+        options: { position: 'bottomleft' },
+        onAdd: function(map) {
+          const container = L.DomUtil.create('div', 'leaflet-control-rotate');
+          container.style.cssText = 'background:white;padding:5px;border:2px solid rgba(0,0,0,0.2);border-radius:5px;';
+          const button = L.DomUtil.create('button', '', container);
+          button.innerHTML = '🔄';
+          button.style.cssText = 'font-size:20px;border:none;background:none;cursor:pointer;';
+          button.title = 'Rotar mapa';
+          L.DomEvent.on(button, 'click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            map.setBearing((map.getBearing() + 90) % 360);
+          });
+          return container;
+        }
+      });
+      L.control.rotate = function(opts) { return new L.Control.Rotate(opts); };
+    })();
+  </script>
+
+  <script type="module">
+    import { DATOS_AVENTURAS } from './js/coordenadas-aventuras.js';
+
+    // ── Aventura desde URL ──────────────────────────────────────────────────
+    const params  = new URLSearchParams(window.location.search);
+    const aventura = params.get('aventura') || 'Aventura1';
+
+    const datos = DATOS_AVENTURAS[aventura];
+    if (!datos || !datos['coordenadas-hijo2.html']) {
+      document.getElementById('map').innerHTML =
+        `<p style="padding:2rem;font-size:1.5rem;">Aventura "${aventura}" no encontrada.</p>`;
+      throw new Error(`Aventura "${aventura}" no existe en DATOS_AVENTURAS`);
+    }
+
+    const coordenadas = datos['coordenadas-hijo2.html'].coordenadas;
+
+    // ── Construir polyline ──────────────────────────────────────────────────
+    const rutaPuntos = [];
+    coordenadas.forEach(entry => {
+      if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
+        rutaPuntos.push([entry.coordenadas.lat, entry.coordenadas.lng]);
+      } else if (entry.tipo === 'tramo') {
+        rutaPuntos.push([entry.inicio.lat, entry.inicio.lng]);
+        entry.waypoints.forEach(wp => rutaPuntos.push([wp.lat, wp.lng]));
+        rutaPuntos.push([entry.fin.lat, entry.fin.lng]);
+      }
+    });
+
+    // ── Inicializar mapa ────────────────────────────────────────────────────
+    const map = L.map('map', { center: [39.476, -0.375], zoom: 15 });
+    L.control.rotate().addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // ── Dibujar polyline ────────────────────────────────────────────────────
+    if (rutaPuntos.length > 0) {
+      const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
+      map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
+    }
+
+    // ── Popup de monumento ──────────────────────────────────────────────────
+    const overlay    = document.getElementById('monumento-overlay');
+    const imgWrap    = document.getElementById('monumento-imagen-wrap');
+    const numEl      = document.getElementById('monumento-numero');
+    const nombreEl   = document.getElementById('monumento-nombre');
+    const btnCerrar  = document.getElementById('monumento-cerrar');
+
+    function mostrarMonumento(ref) {
+      numEl.textContent    = `Nº ${ref.mapa_numero} · Monumento`;
+      nombreEl.textContent = ref.nombre || '';
+      if (ref.imagen) {
+        imgWrap.innerHTML = `<img src="${ref.imagen}" alt="${ref.nombre || ''}">`;
+      } else {
+        imgWrap.innerHTML = `<div class="sin-imagen">🏛️</div>`;
+      }
+      overlay.classList.add('visible');
+    }
+
+    function cerrarOverlay() {
+      overlay.classList.remove('visible');
+    }
+
+    btnCerrar.addEventListener('click', cerrarOverlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) cerrarOverlay(); });
+
+    // ── Dibujar monumentos (tipo: "referencia") ─────────────────────────────
+    const referencias = coordenadas.filter(c => c.tipo === 'referencia');
+    referencias.forEach(ref => {
+      if (!ref.coordenadas || ref.coordenadas.lat == null) return; // sin coords → ignorar
+
+      const icono = L.divIcon({
+        html: `<div class="monumento-marker">🏛️ ${ref.mapa_numero}</div>`,
+        className: '',
+        iconAnchor: [0, 0]
+      });
+
+      L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
+        icon: icono,
+        title: ref.nombre || `Monumento ${ref.mapa_numero}`,
+        zIndexOffset: 400
+      })
+        .addTo(map)
+        .on('click', () => mostrarMonumento(ref));
+    });
+
+    // ── Comunicación con ventana padre (compatibilidad) ─────────────────────
+    const rutaCompleta = [];
+    coordenadas.forEach(entry => {
+      if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
+        rutaCompleta.push({ tipo: 'parada', nombre: entry.nombre, lat: entry.coordenadas.lat, lng: entry.coordenadas.lng });
+      } else if (entry.tipo === 'tramo') {
+        rutaCompleta.push({ tipo: 'waypoint', lat: entry.inicio.lat, lng: entry.inicio.lng });
+        entry.waypoints.forEach(wp => rutaCompleta.push({ tipo: 'waypoint', lat: wp.lat, lng: wp.lng }));
+        rutaCompleta.push({ tipo: 'waypoint', lat: entry.fin.lat, lng: entry.fin.lng });
+      }
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.tipo === 'solicitar-ruta') {
+        window.parent.postMessage({
+          tipo: 'ruta-completa',
+          paradas: rutaCompleta.filter(p => p.tipo === 'parada'),
+          waypoints: rutaCompleta.filter(p => p.tipo === 'waypoint'),
+          ruta: rutaCompleta
+        }, '*');
+      }
+    });
+  </script>
+</body>
+</html>

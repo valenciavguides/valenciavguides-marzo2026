@@ -20,6 +20,7 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
     <title>coordenadas-hijo2</title>
+    <script src="js/proteccion.js"></script>
     <script src="js/suppress-warnings.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -30,12 +31,12 @@
         * { font-family: Verdana, sans-serif !important; }
         
         :root {
-            --btn-size: 4.0625rem;
+            --btn-size: calc((100vh - 16px) / 6);
             --icon-size: 1.3em;
             --progress-thick: 0.75rem;
             --trapecio-width: 100%; /* Ocupar todo el ancho del iframe */
             --trapecio-height: 9.375rem;
-            --trapecio-bg: white;
+            --trapecio-bg: transparent;
             --trapecio-shadow: 0 0.125rem 0.625rem rgba(0,0,0,0.15);
             --trapecio-radius: 0.75rem;
             --progress-color: #0077cc;
@@ -81,15 +82,15 @@
             height: 100% !important;
             max-height: 100% !important;
             background: var(--trapecio-bg);
-            border-radius: 0.75rem 0.75rem 0 0; /* Solo bordes superiores redondeados */
-            box-shadow: none; /* Eliminar sombra */
+            border-radius: 0.75rem 0 0 0.75rem; /* Bordes izquierdos redondeados (lado mapa) */
+            box-shadow: none;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-end; /* botones pegados al borde derecho */
             justify-content: flex-start;
-            gap: 0.9375rem; /* 15px de espaciado entre filas */
+            gap: 2px;
             z-index: 1200;
-            padding: 0.625rem 0.625rem 0.1875rem 0.625rem; /* 10px arriba y 10px a los lados */
+            padding: 3px 2px 3px 0;
             box-sizing: border-box;
             border: none;
             margin: 0;
@@ -97,19 +98,10 @@
             overflow: hidden !important;
         }
 
-        .botones-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            gap: 0.625rem; /* Espaciado entre botones dentro de la fila */
-            width: calc(100% - 1.25rem); /* Restar el padding lateral (10px * 2) */
-            padding: 0 0.625rem; /* 10px a cada lado */
-            box-sizing: border-box;
-        }
-
         .boton {
             width: var(--btn-size);
             height: var(--btn-size);
+            flex-shrink: 0;
             border-radius: 50%;
             border: 0.0625rem solid rgba(255, 255, 255, 0.3);
             background: linear-gradient(to right, #28a745, #218838);
@@ -345,49 +337,26 @@
     <style>
         /* Botón: imagen interna */
         .boton img {
-            width: 3rem;
-            height: 3rem;
+            width: calc((100vh - 16px) / 6 * 0.90);
+            height: calc((100vh - 16px) / 6 * 0.94);
             object-fit: contain;
             display: block;
             pointer-events: none; /* evitar que la img bloquee clicks */
         }
 
-        /* Dimensiones específicas para cada imagen */
-        img[src*="fotoruta-A-B.png"] {
-            width: 3.125rem !important;
-            height: 3.4375rem !important;
+        /* Imágenes más estrechas: mapa-completo, imagen, ubicacion */
+        #btn-mapa-completo img,
+        #btn-imagen img,
+        #btn-ubicacion img {
+            width: calc((100vh - 16px) / 6 * 0.87);
         }
 
-        img[src*="H2-fotoproximo-monumento.png"] {
-            width: 3.25rem !important;
-            height: 3rem !important;
-        }
-
-        img[src*="H2-fotodron.png"] {
-            width: 3.25rem !important;
-            height: 3.25rem !important;
-        }
-
-        img[src*="H2-fotodistancia.png"] {
-            width: 3rem !important;
-            height: 3.4375rem !important;
-        }
-
-        img[src*="H2-fotomapa-moderno.png"] {
-            width: 2.1875rem !important;
-            height: 3.4375rem !important;
-        }
-
-        img[src*="H2-fotomapa-vintage.png"] {
-            width: 3.125rem !important;
-            height: 3.4375rem !important;
-        }
 
         .boton .label-text {
             display: none; /* ocultar texto si existe */
         }
 
-        /* Overlay fuera de rango >5min — arriba, 30% altura, no tapa botones */
+        /* Overlay fuera de rango — arriba, 30% altura, no tapa botones (aparece inmediatamente al salir >50m) */
         #fuera-rango-overlay {
             position: fixed;
             top: 0;
@@ -446,44 +415,72 @@
             pointer-events: auto;
             touch-action: manipulation;
         }
+
+        /* Countdown timer fuera de rango — fijo en borde inferior, centrado */
+        #fuera-rango-countdown {
+            position: fixed;
+            bottom: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999999;
+            background: rgba(0, 0, 0, 0.88);
+            border: 0.25rem solid #ff0000;
+            border-radius: 0.75rem;
+            padding: 0.4rem 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 1.5rem rgba(255, 0, 0, 0.4), 0 0.3rem 1rem rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #fuera-rango-countdown.countdown-hidden {
+            display: none;
+        }
+        #countdown-timer {
+            font-family: 'Courier New', monospace;
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 0 0 0.625rem rgba(255, 0, 0, 0.6);
+            letter-spacing: 0.2rem;
+        }
     </style>
 </head>
 <body class="modo-casa hijo2-container">
-    <!-- Contenedor con bordes redondeados con 6 botones -->
+    <!-- Contenedor columna vertical con 6 botones -->
     <div class="container">
-        <div class="botones-row">
-                        <button id="btn-gps" class="boton" title="Activar GPS">
-                                <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="GPS">
-                        </button>
-            <button id="btn-imagen" class="boton" title="Mostrar Imagen">
-                <img src="imagenes/imagenes-aplicación/H2-fotoproximo-monumento.png" alt="Imagen parada">
-            </button>
-            <button id="btn-video" class="boton" title="Reproducir Video">
-                <img src="imagenes/imagenes-aplicación/H2-fotodron.png" alt="Video">
-            </button>
-        </div>
-        <div class="botones-row">
-                        <button id="btn-ubicacion" class="boton" title="Centrar en Ubicación">
-                                <img src="imagenes/imagenes-aplicación/H2-fotodistancia.png" alt="Ubicación">
-                        </button>
-                        <button id="btn-mapa-completo" class="boton" title="Mostrar Mapa Completo">
-                                <img src="imagenes/imagenes-aplicación/H2-fotomapa-moderno.png" alt="Mapa moderno">
-                        </button>
-                        <button id="btn-mapa-jpg" class="boton" title="Mostrar Mapa JPG">
-                            <img src="imagenes/imagenes-aplicación/H2-fotomapa-vintage.png" alt="Mapa vintage">
-                        </button>
-
-                        
-        </div>
-        <!-- <div id="status" class="status">Listo</div> -->
+        <button id="btn-mapa-completo" class="boton" title="Mostrar Mapa Completo">
+            <img src="imagenes/imagenes-aplicación/H2-fotomapa-moderno.png" alt="Mapa moderno">
+        </button>
+        <button id="btn-mapa-jpg" class="boton" title="Mostrar Mapa JPG">
+            <img src="imagenes/imagenes-aplicación/H2-fotomapa-vintage.png" alt="Mapa vintage">
+        </button>
+        <button id="btn-video" class="boton" title="Reproducir Video">
+            <img src="imagenes/imagenes-aplicación/H2-fotodron.png" alt="Video">
+        </button>
+        <button id="btn-imagen" class="boton" title="Mostrar Imagen">
+            <img src="imagenes/imagenes-aplicación/H2-fotoproximo-monumento.png" alt="Imagen parada">
+        </button>
+        <button id="btn-gps" class="boton" title="Activar GPS">
+            <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="GPS">
+        </button>
+        <button id="btn-ubicacion" class="boton" title="Centrar en Ubicación">
+            <img src="imagenes/imagenes-aplicación/H2-fotodistancia.png" alt="Ubicación">
+        </button>
     </div>
 
-    <!-- Overlay fuera de rango >5min -->
+    <!-- Overlay fuera de rango -->
     <div id="fuera-rango-overlay" role="dialog" aria-label="Fuera de rango">
         <div class="fuera-rango-inner">
             <button class="btn-cerrar-fuera-rango" type="button" aria-label="Cerrar">✖</button>
             <img src="imagenes/imagenes-aplicación/foto-fuera-rango.png" alt="Estás fuera de rango">
         </div>
+    </div>
+
+    <!-- Countdown timer fuera de rango (borde inferior centrado) -->
+    <div id="fuera-rango-countdown" class="countdown-hidden">
+        <span id="countdown-timer">05:00</span>
     </div>
 
     <!-- ARRAY DE COORDENADAS - COMENTADO: Los datos ahora vienen centralizados del padre via CARGAR_COORDENADAS -->
@@ -726,8 +723,7 @@ if (typeof window !== 'undefined' && typeof window.registrarControladorSeguro ==
                         (window.logger || console).info && (window.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
                         return res;
                     } catch (error) {
-                        logger.error(`${logPrefix} Error:`, error);
-                        actualizarEstado('Error actualizando parada', 'error');
+                        (window.logger || console).error && (window.logger || console).error(`[HIJO] Error registrando controlador ${tipo}:`, error);
                     }
                 }
             } catch (e) {
@@ -842,6 +838,7 @@ const estadoComponente = {
     timestampSalioDeRango: null, // Timestamp cuando salió >50m (null si está <50m)
     tiempoFueraRequerido: 5 * 60 * 1000, // 5 minutos en milisegundos
     fueraDeRango5min: false, // Flag: true cuando usuario lleva >5min fuera de rango (>50m)
+    countdownInterval: null, // Interval ID para el countdown visual fuera de rango
     ultimoHeading: 0, // Última dirección del usuario (0-360 grados)
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
 };
@@ -933,6 +930,55 @@ function ocultarOverlayFueraRango() {
     if (!overlay) return;
     overlay.classList.remove('visible');
     setTimeout(() => { overlay.style.display = 'none'; }, 300);
+    detenerCountdown();
+}
+
+function iniciarCountdown() {
+    const countdownEl = document.getElementById('countdown-timer');
+    const countdownContainer = document.getElementById('fuera-rango-countdown');
+    if (!countdownEl || !countdownContainer) return;
+
+    countdownContainer.classList.remove('countdown-hidden');
+
+    if (estadoComponente.countdownInterval) {
+        clearInterval(estadoComponente.countdownInterval);
+    }
+
+    // Actualización inmediata
+    const elapsedNow = Date.now() - estadoComponente.timestampSalioDeRango;
+    const remainingNow = Math.max(0, estadoComponente.tiempoFueraRequerido - elapsedNow);
+    const minsNow = Math.floor(remainingNow / 60000);
+    const secsNow = Math.floor((remainingNow % 60000) / 1000);
+    countdownEl.textContent = `${String(minsNow).padStart(2, '0')}:${String(secsNow).padStart(2, '0')}`;
+
+    estadoComponente.countdownInterval = setInterval(() => {
+        if (estadoComponente.timestampSalioDeRango === null) {
+            detenerCountdown();
+            return;
+        }
+        const elapsed = Date.now() - estadoComponente.timestampSalioDeRango;
+        const remaining = Math.max(0, estadoComponente.tiempoFueraRequerido - elapsed);
+        const mins = Math.floor(remaining / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        if (remaining <= 0) {
+            clearInterval(estadoComponente.countdownInterval);
+            estadoComponente.countdownInterval = null;
+            countdownEl.textContent = '00:00';
+        }
+    }, 1000);
+}
+
+function detenerCountdown() {
+    if (estadoComponente.countdownInterval) {
+        clearInterval(estadoComponente.countdownInterval);
+        estadoComponente.countdownInterval = null;
+    }
+    const countdownContainer = document.getElementById('fuera-rango-countdown');
+    if (countdownContainer) {
+        countdownContainer.classList.add('countdown-hidden');
+    }
 }
 
 // Actualizar los estados de todos los botones según reglas específicas
@@ -967,29 +1013,39 @@ function actualizarEstadoBotones() {
         return;
     }
 
-    // === FUERA DE RANGO 5min: forzar botones específicos a rojo ===
+    // === FUERA DE RANGO 5min: solo btn-ubicacion habilitado, todos los demás deshabilitados ===
     const fueraDeRango5min = estadoComponente.fueraDeRango5min;
 
-    // Nueva lógica para VIDEO e IMAGEN
-    // VIDEO: en modo casa siempre activo (salvo reto); en modo aventura solo si es tramo
+    if (fueraDeRango5min) {
+        // Deshabilitar TODOS excepto btn-ubicacion
+        if (elementosDOM.btnVideo) desactivarBoton(elementosDOM.btnVideo);
+        if (elementosDOM.btnImagen) desactivarBoton(elementosDOM.btnImagen);
+        if (elementosDOM.btnGps) desactivarBoton(elementosDOM.btnGps);
+        if (elementosDOM.btnMapaCompleto) desactivarBoton(elementosDOM.btnMapaCompleto);
+        if (elementosDOM.btnMapaJpg) desactivarBoton(elementosDOM.btnMapaJpg);
+        // btn-ubicacion: habilitado (lo gestiona verificarDistanciaYActualizarBotones, aquí forzar)
+        if (elementosDOM.btnUbicacion) activarBoton(elementosDOM.btnUbicacion);
+        logger.debug('⚠️ Fuera de rango >5min: solo btn-ubicacion habilitado, resto deshabilitado');
+        return;
+    }
+
+    // VIDEO (fotodron): habilitado SOLO cuando hay tramo seleccionado (ambos modos)
     if (elementosDOM.btnVideo) {
         const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
-        const hayParadaSeleccionada = !!idParadaActual;
-        const modoCasa = modo === 'casa';
 
-        if (retoActivo || fueraDeRango5min) {
+        if (retoActivo) {
             desactivarBoton(elementosDOM.btnVideo);
-            logger.debug(`🎥 Botón video DESACTIVADO: ${retoActivo ? 'reto activo' : 'fuera de rango >5min'}`);
-        } else if (esTramo && (modoCasa || hayParadaSeleccionada)) {
+            logger.debug('🎥 Botón video DESACTIVADO: reto activo');
+        } else if (esTramo) {
             activarBoton(elementosDOM.btnVideo);
-            logger.debug(`🎥 Botón video ACTIVADO: es tramo${modoCasa ? ' (modo casa)' : ' y parada seleccionada'}`);
+            logger.debug(`🎥 Botón video ACTIVADO: tramo seleccionado (${idParadaActual})`);
         } else {
             desactivarBoton(elementosDOM.btnVideo);
-            logger.debug('🎥 Botón video DESACTIVADO: no es tramo o no hay parada seleccionada');
+            logger.debug('🎥 Botón video DESACTIVADO: no es tramo');
         }
     }
 
-    // IMAGEN: habilitado siempre salvo reto activo (NO se deshabilita por fuera de rango)
+    // IMAGEN: habilitado siempre salvo reto activo
     if (elementosDOM.btnImagen) {
         if (retoActivo) {
             desactivarBoton(elementosDOM.btnImagen);
@@ -1000,15 +1056,15 @@ function actualizarEstadoBotones() {
         }
     }
 
-    // 🛰️ GPS: Deshabilitado en modo casa, reto activo o fuera de rango >5min
+    // 🛰️ GPS: Deshabilitado en modo casa o reto activo; en aventura por distancia
     if (elementosDOM.btnGps) {
         const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
         if (modo === 'casa') {
             desactivarBoton(elementosDOM.btnGps);
             logger.debug('🛰️ Botón GPS DESACTIVADO: modo casa (forzado)');
-        } else if (retoActivo || fueraDeRango5min) {
+        } else if (retoActivo) {
             desactivarBoton(elementosDOM.btnGps);
-            logger.debug(`🛰️ Botón GPS DESACTIVADO: ${retoActivo ? 'reto activo' : 'fuera de rango >5min'}`);
+            logger.debug('🛰️ Botón GPS DESACTIVADO: reto activo');
         } else if (modo === 'aventura') {
             let rangoMinimo = esTramo ? 5 : 0;
             let rangoMaximo = esTramo ? toleranciaGPS : 20;
@@ -1035,19 +1091,12 @@ function actualizarEstadoBotones() {
         }
     }
 
-    // 📍 UBICACIÓN: Deshabilitado en modo casa, habilitado en aventura >50m
-    // ✅ CORRECCIÓN: Umbral actualizado de 22m a 50m para consistencia con verificarDistanciaYActualizarBotones()
-    // ✅ CORRECCIÓN: btn-ubicacion ahora NO gestiona PARADA_COMPLETADA aquí.
-    // La lógica de fuera de rango la maneja verificarDistanciaYActualizarBotones() que
-    // comprueba waypoints de tramos y tiene timer de 5 minutos.
+    // 📍 UBICACIÓN: Deshabilitado en modo casa; en aventura lo gestiona verificarDistanciaYActualizarBotones()
     if (elementosDOM.btnUbicacion) {
         if (modo === 'casa') {
             desactivarBoton(elementosDOM.btnUbicacion);
             logger.debug('🧭 Botón ubicación DESACTIVADO: modo casa (forzado)');
         } else if (modo === 'aventura') {
-            // No modificar btn-ubicacion aquí: verificarDistanciaYActualizarBotones()
-            // lo controla con lógica de waypoints + timer de 5 minutos.
-            // Solo desactivar si hay reto activo (fuera de rango 5min lo gestiona verificar...)
             if (retoActivo) {
                 desactivarBoton(elementosDOM.btnUbicacion);
                 logger.debug('🧭 Botón ubicación DESACTIVADO: reto activo');
@@ -1194,17 +1243,18 @@ function verificarDistanciaYActualizarBotones() {
         btn.style.backgroundColor = '#f44336';
         btn.style.opacity = '0.6';
         
-        // Resetear timer si volvió dentro de rango antes de 5 min
+        // Resetear timer si volvió dentro de rango
         if (estadoComponente.timestampSalioDeRango !== null) {
             logger.info(`${logPrefix} ✅ Usuario volvió DENTRO de rango (timer reseteado)`);
             estadoComponente.timestampSalioDeRango = null;
             estadoComponente._notificacionFueraRangoEnviada = false;
+            // Ocultar overlay + countdown (visible desde que salió de rango)
+            ocultarOverlayFueraRango();
         }
 
-        // Si estaba en modo fuera-de-rango-5min, desactivarlo y ocultar overlay
+        // Si estaba en modo fuera-de-rango-5min, desactivarlo
         if (estadoComponente.fueraDeRango5min) {
             estadoComponente.fueraDeRango5min = false;
-            ocultarOverlayFueraRango();
             logger.info(`${logPrefix} ✅ Fuera de rango 5min DESACTIVADO: usuario volvió a ruta`);
             // Recalcular todos los botones para restaurar estados normales
             actualizarEstadoBotones();
@@ -1213,7 +1263,10 @@ function verificarDistanciaYActualizarBotones() {
         // FUERA de rango (>50m)
         if (estadoComponente.timestampSalioDeRango === null) {
             estadoComponente.timestampSalioDeRango = ahora;
-            logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango (iniciando timer 5min)`);
+            logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango (mostrando overlay + countdown 5min)`);
+            // Mostrar overlay + countdown INMEDIATAMENTE al salir de rango
+            mostrarOverlayFueraRango();
+            iniciarCountdown();
         }
         
         const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
@@ -1227,7 +1280,7 @@ function verificarDistanciaYActualizarBotones() {
             // Activar estado fuera-de-rango-5min (deshabilita GPS, video en actualizarEstadoBotones)
             if (!estadoComponente.fueraDeRango5min) {
                 estadoComponente.fueraDeRango5min = true;
-                mostrarOverlayFueraRango();
+                // Overlay ya visible desde que salió de rango; countdown llegó a 00:00
                 // Recalcular botones para forzar GPS, video a rojo
                 actualizarEstadoBotones();
                 logger.info(`${logPrefix} ✅ Fuera de rango 5min ACTIVADO: GPS/video deshabilitados`);
@@ -1364,8 +1417,15 @@ elementosDOM.btnImagen?.addEventListener('click', async () => {
         });
 
         // ✅ SIEMPRE abrir ventana flotante, con o sin imagen
-        const urlImagen = parada.imagen || parada.imagenes?.[0];
-        const hayImagen = urlImagen && urlImagen.trim() !== '';
+        // Recopilar todas las imágenes disponibles (imagen, imagen2, imagen3, imagen4)
+        const todasImagenes = [parada.imagen, parada.imagen2, parada.imagen3, parada.imagen4]
+            .filter(url => url && typeof url === 'string' && url.trim() !== '');
+        const urlImagen = todasImagenes.length > 0 ? todasImagenes[0] : null;
+        const hayImagen = todasImagenes.length > 0;
+
+        // Determinar tipo (parada o tramo)
+        const tipoEntrada = (parada.id && parada.id.startsWith('TR')) || estadoComponente.tipoParadaActual === 'tramo' ? 'tramo' : 'parada';
+        const mapaNumero = parada.mapa_numero != null ? parada.mapa_numero : null;
         
         if (!hayImagen) {
             logger.warn(`[hijo2] No hay imagen para parada ${estadoComponente.idParadaActual} - abriendo ventana con mensaje`);
@@ -1398,14 +1458,17 @@ elementosDOM.btnImagen?.addEventListener('click', async () => {
                 nombre: parada.nombre || parada.title,
                 sinContenido: !hayImagen,
                 mensajeError: !hayImagen ? 'No hay imagen disponible para esta parada/tramo' : null,
-                textoParada: textoParada
+                textoParada: textoParada,
+                imagenes: todasImagenes,
+                tipo: tipoEntrada,
+                mapa_numero: mapaNumero
             }
         });
 
         const mensaje = hayImagen ? 'Mostrando imagen' : 'Ventana de imagen abierta (sin contenido)';
         const estado = hayImagen ? 'success' : 'warn';
         actualizarEstado(mensaje, estado);
-        logger.info(`[hijo2] Ventana imagen solicitada para parada ${estadoComponente.idParadaActual}:`, { hayImagen, urlImagen });
+        logger.info(`[hijo2] Ventana imagen solicitada para parada ${estadoComponente.idParadaActual}:`, { hayImagen, urlImagen, totalImagenes: todasImagenes.length, tipo: tipoEntrada, mapa_numero: mapaNumero });
     } catch (error) {
         logger.error(`[hijo2] Error al mostrar imagen:`, error);
         actualizarEstado('Error imagen', 'error');
@@ -1429,11 +1492,9 @@ elementosDOM.btnVideo?.addEventListener('click', async () => {
         // Verificar condiciones antes de enviar
         const esTramo = estadoComponente.tipoParadaActual === 'tramo' ||
                        (estadoComponente.idParadaActual && estadoComponente.idParadaActual.startsWith('TR-'));
-        const distanciaEnRango = estadoComponente.distanciaAlDestino !== null &&
-                                estadoComponente.distanciaAlDestino >= 5 &&
-                                estadoComponente.distanciaAlDestino <= 20;
 
-        if (estadoComponente.modo === 'casa' || (estadoComponente.modo === 'aventura' && esTramo && distanciaEnRango)) {
+        // Consistente con actualizarEstadoBotones: video habilitado si es tramo (ambos modos) y sin reto activo
+        if (esTramo && !estadoComponente.retoActivo) {
             // Si no hay parada seleccionada, abrir la ventana flotante vacía igualmente
             if (!estadoComponente.idParadaActual) {
                 logger.warn(`[hijo2] No hay parada seleccionada - abriendo ventana de video vacía`);
@@ -1572,7 +1633,7 @@ elementosDOM.btnMapaCompleto?.addEventListener('click', async () => {
         // Enviar mensaje al padre para mostrar mapa completo
         // Usa el mismo handler MOSTRAR_MAPA_JPG (detecta iframe vs imagen por extensión)
         const aventuraActual = window.__vv_aventuraActual || 'Aventura1';
-        const urlMapaCompleto = 'mapa completo.html?aventura=' + encodeURIComponent(aventuraActual);
+        const urlMapaCompleto = 'mapa-completo.html?aventura=' + encodeURIComponent(aventuraActual);
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_JPG,
             origen: CONFIG_HIJO.IFRAME_ID,
@@ -1719,12 +1780,15 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
     try {
         const { motivo } = mensaje.datos || {};
         logger.info(`${logPrefix} Recibido - motivo: ${motivo}`);
-        
+
         // Actualizar estado interno
         if (motivo === 'reto_cerrado') {
             estadoComponente.retoActivo = false;
         }
-        
+
+        // Resetear botón activo al cerrar cualquier vista
+        setBotonActivo(null);
+
         // Recalcular estados de todos los botones según reglas GPS
         actualizarEstadoBotones();
         
@@ -1874,6 +1938,28 @@ try {
             // Preparado para futuras solicitudes de datos adicionales del padre
             logger.debug(`${logPrefix} Componente listo para recibir datos adicionales si es necesario`);
 
+            // Verificación diferida: si CARGAR_COORDENADAS o CARGAR_TEXTOS no llegaron, solicitarlos
+            setTimeout(() => {
+                if (!window.__vv_coordenadasAventura || !Array.isArray(window.__vv_coordenadasAventura) || window.__vv_coordenadasAventura.length === 0) {
+                    logger.warn('[hijo2] ⚠️ Coordenadas no recibidas tras 3s — solicitando al padre');
+                    enviarMensaje({
+                        tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_COORDENADAS,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: getPadreId(),
+                        datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
+                    }).catch(err => logger.error('[hijo2] Error solicitando coordenadas:', err));
+                }
+                if (!window.__vv_textosAventura || !Array.isArray(window.__vv_textosAventura) || window.__vv_textosAventura.length === 0) {
+                    logger.warn('[hijo2] ⚠️ Textos no recibidos tras 3s — solicitando al padre');
+                    enviarMensaje({
+                        tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_TEXTOS,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: getPadreId(),
+                        datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
+                    }).catch(err => logger.error('[hijo2] Error solicitando textos:', err));
+                }
+            }, 3000);
+
             // Si teníamos un cambio de modo pendiente, aplicarlo ahora
             try {
                 if (estadoComponente.pendingCambioModo && estadoComponente.pendingCambioModo.modo) {
@@ -1952,8 +2038,8 @@ try {
             
             // Validación explícita antes de enviar
             const destinoEntendido = mensaje.origen;
-            const tipoEntendido = 'SISTEMA.CAMBIO_MODO_ENTENDIDO'; // String literal para evitar problemas de timing
-            const origenEntendido = 'hijo2'; // String literal para evitar undefined
+            const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
+            const origenEntendido = CONFIG_HIJO?.IFRAME_ID || 'hijo2';
             
             // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
             if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
@@ -2020,8 +2106,8 @@ try {
             logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);
             await enviarMensaje({
                 destino: mensaje.origen,
-                tipo: 'SISTEMA.CAMBIO_MODO_EFECTUADO', // String literal
-                origen: 'hijo2', // String literal
+                tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
+                origen: CONFIG_HIJO?.IFRAME_ID || 'hijo2',
                 datos: { 
                     modo, 
                     exito: true, 
@@ -2359,9 +2445,12 @@ try {
         const logPrefix = `[hijo2][NAVEGACION.RESPUESTA_DATOS_PARADAS][${mensaje?.origen || 'desconocido'}]`;
         
         try {
-            // Evitar procesamiento duplicado
-            if (estadoComponente.datosRecibidos) {
-                logger.debug(`${logPrefix} Datos ya recibidos anteriormente, ignorando mensaje duplicado`);
+            // Solo bloquear el primer envío masivo de datos (carga inicial).
+            // Actualizaciones posteriores (cambio de parada) deben procesarse.
+            const esCargaInicial = !estadoComponente.datosRecibidos;
+
+            if (!esCargaInicial && mensaje.datos?.paradas?.length > 5) {
+                logger.debug(`${logPrefix} Datos iniciales ya recibidos, ignorando envío masivo duplicado`);
                 return;
             }
             
@@ -2390,6 +2479,9 @@ try {
                 logger.debug(`${logPrefix} Parada actual actualizada: ${mensaje.datos.paradaActual}`);
             }
             
+            // ✅ Refrescar botones tras actualizar estado de parada
+            actualizarEstadoBotones();
+
             logger.info(`${logPrefix} Datos almacenados:`, {
                 totalParadas: estadoComponente.arrayParadasLocal.length,
                 paradaActual: estadoComponente.idParadaActual,
@@ -2648,7 +2740,7 @@ try {
             // Telemetría: incrementar contador por código de error GPS en hijo2
             try { if (codigo !== undefined) { typeof window.incrementarContador === 'function' && window.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { /* ignore */ }
             // Enviar métrica a monitoreo (si mensajería disponible)
-            try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo2', destino: 'sistema-monitoreo', datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (ignore) { /* ignore */ }
+            try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo2', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (ignore) { /* ignore */ }
             return { exito: true };
         } catch (e) {
             logger.error('[hijo2][GPS.ERROR] Error en handler no-op:', e);
@@ -2670,6 +2762,9 @@ try {
             estadoComponente.tipoParadaActual = tipoRecibido;
 
             logger.debug(`[hijo2][CAMBIO_PARADA] parada=${parada_id} tipo=${tipoRecibido}`);
+
+            // Resetear botón activo al cambiar de parada
+            setBotonActivo(null);
 
             // Refrescar estado de botones con el nuevo tipo
             actualizarEstadoBotones();

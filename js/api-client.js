@@ -33,6 +33,48 @@
 
 const API_CONFIG = window.API_CONFIG;
 
+// ========================================
+// GESTIÓN DE TOKEN DE SESIÓN
+// ========================================
+
+/**
+ * Almacena y recupera el token de sesión.
+ * El token se obtiene al activar un código y se envía en cada petición API.
+ * En desarrollo (AUTH_ENABLED=false en backend), las peticiones pasan sin token.
+ */
+const TokenManager = {
+    _token: null,
+
+    /** Guarda el token en memoria y sessionStorage */
+    setToken(token) {
+        this._token = token;
+        try { sessionStorage.setItem('vbg_session_token', token); } catch (_e) { /* ok */ }
+    },
+
+    /** Recupera el token (memoria > sessionStorage) */
+    getToken() {
+        if (this._token) return this._token;
+        try { this._token = sessionStorage.getItem('vbg_session_token'); } catch (_e) { /* ok */ }
+        return this._token;
+    },
+
+    /** Elimina el token (logout / expiración) */
+    clearToken() {
+        this._token = null;
+        try { sessionStorage.removeItem('vbg_session_token'); } catch (_e) { /* ok */ }
+    },
+
+    /** ¿Hay token almacenado? */
+    hasToken() {
+        return !!this.getToken();
+    }
+};
+
+// Exponer globalmente
+if (typeof window !== 'undefined') {
+    window.TokenManager = TokenManager;
+}
+
 /**
  * Clase para errores de la API
  */
@@ -75,7 +117,13 @@ class ApiClientError extends Error {
             'RESPUESTA_INVALIDA': 'La respuesta enviada no es válida.',
             
             // Rate limiting
-            'RATE_LIMIT_EXCEEDED': 'Demasiadas solicitudes. Espera un momento antes de continuar.'
+            'RATE_LIMIT_EXCEEDED': 'Demasiadas solicitudes. Espera un momento antes de continuar.',
+
+            // Autenticación
+            'TOKEN_REQUERIDO': 'Se requiere activar la aventura antes de continuar.',
+            'TOKEN_INVALIDO': 'Tu sesión ha expirado. Por favor, vuelve a activar tu aventura.',
+            'CODIGO_REQUERIDO': 'Se requiere un código de activación.',
+            'CODIGO_INVALIDO': 'El código de activación no es válido.'
         };
         
         return mensajes[this.codigo] || this.mensaje || 'Ha ocurrido un error inesperado.';
@@ -90,14 +138,21 @@ async function fetchWithRetry(url, options = {}, retriesLeft = API_CONFIG.retrie
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
     
     try {
+        // Construir headers con token de autenticación si existe
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            ...options.headers
+        };
+        const token = TokenManager.getToken();
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(url, {
             ...options,
             signal: controller.signal,
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                ...options.headers
-            }
+            headers
         });
         
         clearTimeout(timeoutId);
@@ -116,6 +171,10 @@ async function fetchWithRetry(url, options = {}, retriesLeft = API_CONFIG.retrie
         
         // Verificar si la respuesta indica error
         if (!response.ok || data.error) {
+            // Si el token expiró o es inválido, limpiarlo
+            if (response.status === 401) {
+                TokenManager.clearToken();
+            }
             throw new ApiClientError(
                 data.codigo || 'ERROR_SERVIDOR',
                 data.mensaje || `Error HTTP ${response.status}`,
@@ -184,6 +243,52 @@ const ApiClient = {
         }
     },
     
+    // ========================================
+    // AUTENTICACIÓN
+    // ========================================
+
+    /**
+     * Activa una aventura con un código y obtiene un token de sesión.
+     * @param {string} codigo - Código de activación
+     * @param {string} aventuraId - ID de la aventura
+     * @returns {Promise<{exito: boolean, token: string}>}
+     */
+    async activar(codigo, aventuraId = 'Aventura1') {
+        const url = `${API_CONFIG.baseUrl}/auth/activar`;
+        const data = await fetchWithRetry(url, {
+            method: 'POST',
+            body: JSON.stringify({ codigo, aventuraId })
+        });
+        if (data.token) {
+            TokenManager.setToken(data.token);
+        }
+        return data;
+    },
+
+    /**
+     * Verifica si el token actual sigue siendo válido
+     * @returns {Promise<{valido: boolean}>}
+     */
+    async verificarSesion() {
+        if (!TokenManager.hasToken()) {
+            return { valido: false };
+        }
+        try {
+            const data = await fetchWithRetry(`${API_CONFIG.baseUrl}/auth/verificar`);
+            return { valido: data.valido };
+        } catch (_error) {
+            TokenManager.clearToken();
+            return { valido: false };
+        }
+    },
+
+    /**
+     * Cierra la sesión eliminando el token
+     */
+    cerrarSesion() {
+        TokenManager.clearToken();
+    },
+
     // ========================================
     // AVENTURAS
     // ========================================
@@ -333,13 +438,14 @@ const ApiClient = {
 
 // Exportar para uso en módulos
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ApiClient, ApiClientError, API_CONFIG };
+    module.exports = { ApiClient, ApiClientError, API_CONFIG, TokenManager };
 }
 
 // Exponer globalmente para uso en navegador
 if (typeof window !== 'undefined') {
     window.ApiClient = ApiClient;
     window.ApiClientError = ApiClientError;
+    window.TokenManager = TokenManager;
 }
 
-export { ApiClient, ApiClientError, API_CONFIG };
+export { ApiClient, ApiClientError, API_CONFIG, TokenManager };

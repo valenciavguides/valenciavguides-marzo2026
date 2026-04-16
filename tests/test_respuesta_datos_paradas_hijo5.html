@@ -71,37 +71,38 @@
             resultsDiv.innerHTML = '';
         };
 
-        // Datos de prueba que simula lo que enviaría el padre
+        // Datos de prueba que simula lo que enviaría el padre (formato real)
         const datosPruebaParadas = [
             {
-                padreid: 'padre-P-0',
+                padreid: 'padre-P0',
+                parada_id: 'P-0',
                 tipo: 'inicio',
-                nombre: 'Plaza de la Virgen',
-                coordenadas: { lat: 39.4760, lng: -0.3749 },
+                nombre: 'Torres de Serranos (start)',
+                coordenadas: { lat: 39.4789, lng: -0.3756 },
                 emoji: '🏁'
             },
             {
-                padreid: 'padre-P-1',
-                tipo: 'parada', 
-                parada_id: 1,
-                nombre: 'Catedral de Valencia',
-                coordenadas: { lat: 39.4755, lng: -0.3752 },
+                padreid: 'padre-P1',
+                tipo: 'parada',
+                parada_id: 'P-1',
+                nombre: 'Plaza de la crída',
+                coordenadas: { lat: 39.4799, lng: -0.3760 },
                 emoji: '📍'
             },
             {
-                padreid: 'padre-T-1',
+                padreid: 'padre-TR1',
                 tipo: 'tramo',
-                tramo_id: 1,
-                nombre: 'Hacia la Lonja',
-                coordenadas: { lat: 39.4745, lng: -0.3780 },
+                tramo_id: 'TR-1',
+                nombre: 'Torres de Serranos → Plaza de la crída',
+                coordenadas: { lat: 39.4794, lng: -0.3758 },
                 emoji: '🚶'
             },
             {
-                padreid: 'padre-P-2',
+                padreid: 'padre-P2',
                 tipo: 'parada',
-                parada_id: 2,
-                nombre: 'La Lonja de la Seda',
-                coordenadas: { lat: 39.4743, lng: -0.3788 },
+                parada_id: 'P-2',
+                nombre: 'Calle Muro de Santa Ana',
+                coordenadas: { lat: 39.4780, lng: -0.3755 },
                 emoji: '📍'
             }
         ];

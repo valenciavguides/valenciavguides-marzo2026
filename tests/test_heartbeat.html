@@ -190,13 +190,13 @@
             await new Promise(r => setTimeout(r, 1000));
             addResult('HEARTBEAT_PAUSE enviado', true);
             log('HEARTBEAT_PAUSE enviado - verificar en consola del padre');
-        };
 
-        // Reportar al master-test
-        window.reportTest({
-            name: 'Verification: SISTEMA.HEARTBEAT',
-            resultsContainer: resultsDiv
-        });
+            // Reportar al master-test (al final de runTest)
+            window.reportTest({
+                name: 'Communication: Heartbeat',
+                resultsContainer: resultsDiv
+            });
+        };
     </script>
 </body>
 </html>

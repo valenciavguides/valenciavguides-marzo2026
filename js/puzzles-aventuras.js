@@ -1,178 +1,46 @@
 export const PUZZLES_AVENTURAS = {
   INTRO: {"puzzle.html": {
       puzzle_id: [
-        // puzzle para INTRO
-        {
+        // puzzles para las aventuras//
+    {
         id:"PZ-intro",
-        imagen: "imagenes/imagenes-aplicación/logo-luna-png.png",
-    },   
-      ]
-  },
+        imagen: "imagenes/imagenes-aplicación/logo-luna.png",
     },
-    Aventura1: {
-    "puzzle.html": {
-      puzzle_id: [
-        // puzzle para aventura 1
-        {
+    {
         id: "PZ-01",
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     {
         id: "PZ-02",
-        imagen: "imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
     },
     {
         id: "PZ-03",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg",
+    },
+    {
+        id: "PZ-04",
         imagen: "imagenes/imagenes-aventuras/lonja.jpg",
     },
-    
-      ]
-    }
-  },
- Aventura2: {
-    "puzzle.html": {
-      puzzle_id: [
-        // puzzle para aventura 2
-        {
-        id: "",
-        imagen: "",
+    {
+        id: "PZ-05",
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
     },
     {
-        id: "",
-        imagen: "",
+        id: "PZ-06",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
     },
     {
-        id: "",
-        imagen: "",
+        id: "PZ-07",
+        imagen: "imagenes/imagenes-aventuras/plaza_redonda.jpg",
     },
     {
-        id: "",
-        imagen: "",
-    },
-    
-      ]
-    }
-  },
-
-Aventura3: {
-   "puzzle.html": {
-      puzzle_id: [
-        // puzzle para aventura 3
-        {
-        id: "",
-        imagen: "",
+        id: "PZ-08",
+        imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
     },
     {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    
-      ]
-    }
-  },
-
- Aventura4: {
-    "puzzle.html": {
-      puzzle_id: [
-        // puzzle para aventura 4
-        {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    
-      ]
-    }
-     },
-    
-Aventura5: {
-    "puzzle.html": {
-      puzzle_id: [
-        // puzzle para aventura 5
-        {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    
-      ]
-    }
-  },
-
-AventuraFallas: {
-    "puzzle.html": {
-      puzzle_id: [
-        // puzzle para aventura Fallas
-        {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    
-      ]
-    }
-  },
-
- Aventura34km: {
-    "puzzle.html": {
-      puzzle_id: [
-        // puzzle para aventura 34km
-        {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
-    },
-    {
-        id: "",
-        imagen: "",
+        id: "PZ-09",
+        imagen: "imagenes/imagenes-aventuras/agora.jpg",
     },
     
       ]

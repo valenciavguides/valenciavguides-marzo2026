@@ -1,0 +1,30 @@
+# ====================================
+# Valencia VGuides — .gitignore
+# ====================================
+
+# Variables de entorno (credenciales reales — NUNCA al repositorio)
+backend/.env
+backend/.env.local
+backend/.env.production
+
+# Certificados SSL
+backend/certs/
+
+# Logs (pueden contener IPs reales)
+backend/logs/
+
+# Dependencias
+node_modules/
+backend/node_modules/
+
+# Caché y builds
+.cache/
+dist/
+
+# Editor
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

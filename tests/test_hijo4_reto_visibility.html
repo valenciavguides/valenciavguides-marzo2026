@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: hijo4 - Reto Visibility</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+        /* Mock hijo4 DOM structure */
+        #retoDiv { display: none; }
+        .button-container { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <!-- Mock hijo4 DOM elements -->
+    <div id="retoDiv" style="display:none;">
+        <div class="button-container"></div>
+    </div>
+    <button id="btnNext" style="display:none;">Siguiente</button>
+    <button id="btnMostrarRespuesta" style="display:none;">Mostrar Respuesta</button>
+    <button id="btnEnviar" style="display:none;">Enviar</button>
+
+    <h2>Test: hijo4 - Reto Visibility (retos-hijo4.html)</h2>
+    <p>Verifica inicialización, visibilidad del overlay de retos y manejo de CAMBIO_PARADA.</p>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // ── Mock infrastructure ──
+        const capturedHandlers = {};
+        function registrarControladorSeguro(path, handler) {
+            capturedHandlers[path] = handler;
+        }
+
+        const TIPOS_MENSAJE = {
+            SISTEMA: {
+                PADRE_DATOS: 'SISTEMA.PADRE_DATOS',
+                PADRE_CONFIRMA_HIJO_LISTO: 'SISTEMA.PADRE_CONFIRMA_HIJO_LISTO',
+                CAMBIO_MODO: 'SISTEMA.CAMBIO_MODO',
+                CAMBIO_MODO_APLICADO: 'SISTEMA.CAMBIO_MODO_APLICADO',
+                HEARTBEAT: 'SISTEMA.HEARTBEAT',
+                HEARTBEAT_START: 'SISTEMA.HEARTBEAT_START',
+                HEARTBEAT_PAUSE: 'SISTEMA.HEARTBEAT_PAUSE'
+            },
+            RETO: {
+                MOSTRAR: 'RETO.MOSTRAR',
+                OCULTAR: 'RETO.OCULTAR'
+            },
+            DATOS: {
+                CARGAR_RETOS: 'DATOS.CARGAR_RETOS',
+                SOLICITAR_RETO: 'DATOS.SOLICITAR_RETO'
+            },
+            NAVEGACION: {
+                CAMBIO_PARADA: 'NAVEGACION.CAMBIO_PARADA'
+            },
+            CONTROL: {
+                HABILITAR: 'CONTROL.HABILITAR',
+                DESHABILITAR: 'CONTROL.DESHABILITAR'
+            }
+        };
+
+        // ── Mock hijo4 state (replicate real structure) ──
+        const estado = {
+            retoActualId: null,
+            inicializado: false,
+            modoActual: 'aventura',
+            padreIdActual: null,
+            paradaIdActual: null,
+            paradaPendiente: false,
+            hijoListoEnviado: false
+        };
+        let _uiConfirmado = false;
+        let retoActual = null;
+
+        // ── Mock reto data ──
+        const mockRetos = [
+            {
+                id: 'R4-Av1-es',
+                parada_id: 'P-1',
+                tipo: 'opciones',
+                pregunta: '¿Cuál es la torre más antigua de Valencia?',
+                opciones: ['Torres de Serranos', 'Miguelete', 'Torre del Carmen'],
+                multiple: false,
+                correctas: [0]
+            },
+            {
+                id: 'R5-Av1-es',
+                parada_id: 'P-2',
+                tipo: 'texto',
+                pregunta: '¿En qué año se construyó La Lonja?',
+                respuesta: '1482'
+            }
+        ];
+
+        window.__vv_retosAventura = mockRetos;
+
+        function obtenerRetos() {
+            return window.__vv_retosAventura || [];
+        }
+
+        // ── Simulated handlers (replicate hijo4 behavior) ──
+        function handlePadreConfirmaHijoListo(mensaje) {
+            _uiConfirmado = true;
+            estado.inicializado = true;
+            document.body.style.display = 'block';
+        }
+
+        function handleRetoMostrar(mensaje) {
+            const datos = mensaje.datos || {};
+            const retoId = datos.retoId || datos.reto_id;
+            const retos = obtenerRetos();
+
+            const reto = retos.find(r => r.id === retoId);
+            if (!reto) {
+                console.error('[hijo4] mostrarReto: reto no encontrado:', retoId, 'disponibles:', retos.map(r => r.id));
+                return false;
+            }
+
+            retoActual = reto;
+            estado.retoActualId = retoId;
+
+            const retoDiv = document.getElementById('retoDiv');
+            if (!retoDiv) return false;
+
+            // Clear and populate
+            retoDiv.innerHTML = '';
+
+            // Create h3 with question
+            const h3 = document.createElement('h3');
+            h3.textContent = reto.pregunta;
+            retoDiv.appendChild(h3);
+
+            // Create options if tipo=opciones
+            if (reto.tipo === 'opciones' && reto.opciones) {
+                reto.opciones.forEach((opcion, idx) => {
+                    const divOpcion = document.createElement('div');
+                    divOpcion.className = 'opcion';
+                    const input = document.createElement('input');
+                    input.type = reto.multiple ? 'checkbox' : 'radio';
+                    input.name = 'reto-opcion';
+                    input.value = idx;
+                    const label = document.createElement('label');
+                    label.textContent = opcion;
+                    divOpcion.appendChild(input);
+                    divOpcion.appendChild(label);
+                    retoDiv.appendChild(divOpcion);
+                });
+            }
+
+            // Add button container
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'button-container';
+            const btnEnviar = document.getElementById('btnEnviar');
+            if (btnEnviar) {
+                btnEnviar.style.display = 'inline-block';
+                btnContainer.appendChild(btnEnviar);
+            }
+            retoDiv.appendChild(btnContainer);
+
+            // Show reto overlay
+            retoDiv.style.display = 'block';
+
+            return true;
+        }
+
+        function handleCambioParada(mensaje) {
+            const datos = mensaje.datos || {};
+            // Fixed: Read directly from datos, not resolverIdsParada() which returns array
+            const padreId = datos.padreId || datos.padreid;
+            const paradaId = datos.paradaId || datos.parada_id;
+            const retoId = datos.retoId || datos.reto_id;
+
+            estado.padreIdActual = padreId;
+            estado.paradaIdActual = paradaId;
+            if (retoId) {
+                estado.retoActualId = retoId;
+            }
+        }
+
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, handlePadreConfirmaHijoListo);
+        registrarControladorSeguro(TIPOS_MENSAJE.RETO.MOSTRAR, handleRetoMostrar);
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, handleCambioParada);
+
+        // ── Tests ──
+        function runTest() {
+            addResult('── Estado inicial ──', 'info');
+
+            // Test 1: Initial state
+            if (!estado.inicializado && estado.retoActualId === null) {
+                addResult('✅ Estado inicial: inicializado=false, retoActualId=null', 'success');
+            } else {
+                addResult('❌ Estado inicial incorrecto', 'error');
+            }
+
+            // Test 2: retoDiv starts hidden
+            const retoDiv = document.getElementById('retoDiv');
+            if (retoDiv && retoDiv.style.display === 'none') {
+                addResult('✅ retoDiv oculto al inicio (display: none)', 'success');
+            } else {
+                addResult('❌ retoDiv debería estar oculto', 'error');
+            }
+
+            addResult('── PADRE_CONFIRMA_HIJO_LISTO ──', 'info');
+
+            // Test 3: Confirm hijo listo
+            capturedHandlers[TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO]({ datos: {} });
+
+            if (_uiConfirmado && estado.inicializado && document.body.style.display === 'block') {
+                addResult('✅ UI confirmada, inicializado, body visible', 'success');
+            } else {
+                addResult('❌ PADRE_CONFIRMA no procesado correctamente', 'error');
+            }
+
+            addResult('── RETO.MOSTRAR (opciones) ──', 'info');
+
+            // Test 4: Show reto with options
+            const shown = capturedHandlers[TIPOS_MENSAJE.RETO.MOSTRAR]({
+                datos: { retoId: 'R4-Av1-es' }
+            });
+
+            if (shown === true) {
+                addResult('✅ RETO.MOSTRAR retornó true (éxito)', 'success');
+            } else {
+                addResult('❌ RETO.MOSTRAR retornó false/undefined', 'error');
+            }
+
+            // Test 5: retoDiv now visible
+            if (retoDiv && retoDiv.style.display === 'block') {
+                addResult('✅ retoDiv visible (display: block)', 'success');
+            } else {
+                addResult('❌ retoDiv debería ser visible, display: ' + (retoDiv ? retoDiv.style.display : 'null'), 'error');
+            }
+
+            // Test 6: h3 with question text created
+            const h3 = retoDiv ? retoDiv.querySelector('h3') : null;
+            if (h3 && h3.textContent === '¿Cuál es la torre más antigua de Valencia?') {
+                addResult('✅ h3 con pregunta correcta', 'success');
+            } else {
+                addResult('❌ h3 faltante o pregunta incorrecta: ' + (h3 ? h3.textContent : 'null'), 'error');
+            }
+
+            // Test 7: Radio buttons created (3 options, not multiple → radio)
+            const radios = retoDiv ? retoDiv.querySelectorAll('input[type="radio"]') : [];
+            if (radios.length === 3) {
+                addResult('✅ 3 radio buttons creados para opciones', 'success');
+            } else {
+                addResult('❌ Esperados 3 radios, encontrados: ' + radios.length, 'error');
+            }
+
+            // Test 8: Labels with option text
+            const labels = retoDiv ? retoDiv.querySelectorAll('.opcion label') : [];
+            const labelTexts = Array.from(labels).map(l => l.textContent);
+            if (labelTexts.includes('Torres de Serranos') && labelTexts.includes('Miguelete')) {
+                addResult('✅ Labels con texto de opciones correcto', 'success');
+            } else {
+                addResult('❌ Labels incorrectos: ' + labelTexts.join(', '), 'error');
+            }
+
+            // Test 9: btnEnviar visible
+            const btnEnviar = document.getElementById('btnEnviar');
+            if (btnEnviar && btnEnviar.style.display === 'inline-block') {
+                addResult('✅ btnEnviar visible (inline-block)', 'success');
+            } else {
+                addResult('❌ btnEnviar debería ser visible', 'error');
+            }
+
+            // Test 10: estado updated
+            if (estado.retoActualId === 'R4-Av1-es' && retoActual && retoActual.id === 'R4-Av1-es') {
+                addResult('✅ estado.retoActualId y retoActual actualizados', 'success');
+            } else {
+                addResult('❌ estado no actualizado correctamente', 'error');
+            }
+
+            addResult('── RETO.MOSTRAR (ID inexistente) ──', 'info');
+
+            // Test 11: Show non-existent reto → returns false
+            const result2 = capturedHandlers[TIPOS_MENSAJE.RETO.MOSTRAR]({
+                datos: { retoId: 'R99-noexiste' }
+            });
+            if (result2 === false) {
+                addResult('✅ Reto inexistente retorna false', 'success');
+            } else {
+                addResult('❌ Reto inexistente debería retornar false', 'error');
+            }
+
+            addResult('── CAMBIO_PARADA (fix: direct datos read) ──', 'info');
+
+            // Test 12: CAMBIO_PARADA with camelCase (fixed version)
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA]({
+                datos: {
+                    padreId: 'padre-P2',
+                    paradaId: 'P-2',
+                    retoId: 'R5-Av1-es'
+                }
+            });
+
+            if (estado.padreIdActual === 'padre-P2' && estado.paradaIdActual === 'P-2') {
+                addResult('✅ CAMBIO_PARADA camelCase: padreId=padre-P2, paradaId=P-2', 'success');
+            } else {
+                addResult('❌ CAMBIO_PARADA camelCase falló: ' + estado.padreIdActual + '/' + estado.paradaIdActual, 'error');
+            }
+
+            if (estado.retoActualId === 'R5-Av1-es') {
+                addResult('✅ retoId actualizado a R5-Av1-es', 'success');
+            } else {
+                addResult('❌ retoId debería ser R5-Av1-es, es: ' + estado.retoActualId, 'error');
+            }
+
+            // Test 13: CAMBIO_PARADA with snake_case
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA]({
+                datos: {
+                    padreid: 'padre-P1',
+                    parada_id: 'P-1',
+                    reto_id: 'R4-Av1-es'
+                }
+            });
+
+            if (estado.padreIdActual === 'padre-P1' && estado.paradaIdActual === 'P-1') {
+                addResult('✅ CAMBIO_PARADA snake_case: padreid=padre-P1, parada_id=P-1', 'success');
+            } else {
+                addResult('❌ CAMBIO_PARADA snake_case falló', 'error');
+            }
+
+            addResult('── Diagnostic logging (mostrarReto) ──', 'info');
+
+            // Test 14: Verify DOM state after reto show (diagnostic info)
+            const children = retoDiv ? retoDiv.childNodes.length : 0;
+            const display = retoDiv ? retoDiv.style.display : 'N/A';
+            if (children > 0 && display === 'block') {
+                addResult('✅ Diagnostic: retoDiv children=' + children + ', display=' + display, 'success');
+            } else {
+                addResult('❌ Diagnostic: retoDiv vacío o oculto. children=' + children + ', display=' + display, 'error');
+            }
+
+            // Report
+            window.TestReporter.report({
+                name: 'hijo4: Reto Visibility',
+                resultsContainer: document.getElementById('results')
+            });
+        }
+    </script>
+</body>
+</html>

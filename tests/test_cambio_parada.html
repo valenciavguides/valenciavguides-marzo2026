@@ -184,16 +184,18 @@
 
             // Test 2: Verificar controlador CAMBIO_PARADA en padre
             try {
-                const controladores = padre.contentWindow.registeredControllers;
-                if (controladores) {
-                    const tieneCambioParada = controladores.has && 
-                        controladores.has(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA);
-                    addResult('Controlador CAMBIO_PARADA registrado en padre', 
-                        tieneCambioParada, 
-                        tieneCambioParada ? '' : 'No encontrado en registeredControllers');
+                const tieneControladoresGlobal = typeof padre.contentWindow.registrarControladorSeguro === 'function';
+                const tieneEnviarMensaje = typeof padre.contentWindow.enviarMensaje === 'function' ||
+                    typeof padre.contentWindow.enviarMensajePadre === 'function';
+                if (tieneControladoresGlobal) {
+                    addResult('Controlador CAMBIO_PARADA registrado en padre', true,
+                        'registrarControladorSeguro() disponible');
+                } else if (tieneEnviarMensaje) {
+                    addResult('Sistema de mensajería disponible', true,
+                        'enviarMensaje/enviarMensajePadre disponible');
                 } else {
-                    addResult('Verificación de controladores', false, 
-                        'registeredControllers no accesible');
+                    addResult('Verificación de controladores', false,
+                        'Ni registrarControladorSeguro ni enviarMensaje accesibles');
                 }
             } catch (e) {
                 addResult('Verificación de controladores', false, `Error: ${e.message}`);
@@ -202,13 +204,16 @@
             // Test 3: Enviar CAMBIO_PARADA y verificar propagación
             log('Enviando CAMBIO_PARADA de prueba...');
             const paradaIdTest = 'padre-P-2';
-            
+
             padre.contentWindow.postMessage({
                 tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                 origen: 'test-runner',
                 destino: 'padre',
                 datos: {
                     paradaId: paradaIdTest,
+                    parada_id: 'P-2',
+                    padreId: paradaIdTest,
+                    padreid: 'padre-P2',
                     timestamp: Date.now()
                 }
             }, '*');

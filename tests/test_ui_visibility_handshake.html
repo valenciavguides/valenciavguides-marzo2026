@@ -23,7 +23,7 @@
     append('[test] Parent cargado');
 
     const win = iframe.contentWindow;
-    const childIds = ['hijo1-hamburguesa','hijo1-opciones','hijo2','hijo3','hijo4','hijo5'];
+    const childIds = ['hijo1-opciones','hijo2','hijo3','hijo4','hijo5'];
 
     // Wait short time to allow children to initialize (but before confirm flows should complete)
     await new Promise(r => setTimeout(r, 2000));

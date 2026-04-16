@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: AVENTURA_PARADAS ID Search</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <h2>Test: AVENTURA_PARADAS ID Search</h2>
+    <p>Verifica que el algoritmo de búsqueda de paradas por ID funciona con todos los formatos reales.</p>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // ── Real data from aventuras-ID-padre.js ──
+        const elementosIDpadre = [
+            { tipo: 'intro', nombre: 'Pre-intro', padreid: 'padre-pre-intro1', parada_id: 'pre-intro1', tramo_id: '', audio_id: 'audio-Av1-pre-intro1-es', reto_id: '' },
+            { tipo: 'intro', nombre: 'Intro', padreid: 'padre-intro', parada_id: 'intro', tramo_id: '', audio_id: 'audio-Av1-intro-es', reto_id: '' },
+            { tipo: 'parada', nombre: 'Parada 0', padreid: 'padre-P0', parada_id: 'P-0', tramo_id: '', audio_id: 'audio-Av1-P0-es', reto_id: '' },
+            { tipo: 'parada', nombre: 'Parada 1', padreid: 'padre-P1', parada_id: 'P-1', tramo_id: '', audio_id: 'audio-Av1-P1-es', reto_id: 'R4-Av1-es' },
+            { tipo: 'tramo', nombre: 'Tramo 1', padreid: 'padre-TR1', parada_id: '', tramo_id: 'TR-1', audio_id: 'audio-Av1-TR1-es', reto_id: '' },
+            { tipo: 'parada', nombre: 'Parada 2', padreid: 'padre-P2', parada_id: 'P-2', tramo_id: '', audio_id: 'audio-Av1-P2-es', reto_id: 'R5-Av1-es' },
+            { tipo: 'tramo', nombre: 'Tramo 2', padreid: 'padre-TR2', parada_id: '', tramo_id: 'TR-2', audio_id: 'audio-Av1-TR2-es', reto_id: '' }
+        ];
+
+        // ── Replicate search logic from funciones-mapa.js manejarCambiarParada ──
+        function buscarParadaEnAventuraParadas(paradas, idToMatch) {
+            if (!paradas || !idToMatch) return undefined;
+
+            const idSinPrefijo = idToMatch.startsWith('padre-') ? idToMatch.substring(6) : idToMatch;
+
+            return paradas.find(p =>
+                p.padreid === idToMatch ||
+                p.parada_id === idToMatch ||
+                p.tramo_id === idToMatch ||
+                p.parada_id === idSinPrefijo ||
+                p.tramo_id === idSinPrefijo ||
+                p.id === idToMatch
+            );
+        }
+
+        // ── Tests ──
+        function runTest() {
+            addResult('── Búsqueda por padreid exacto ──', 'info');
+
+            // Test 1: Search by padreid "padre-P1" → exact match
+            let result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-P1');
+            if (result && result.padreid === 'padre-P1' && result.parada_id === 'P-1') {
+                addResult('✅ padreid "padre-P1" → encontrado Parada 1', 'success');
+            } else {
+                addResult('❌ padreid "padre-P1" no encontrado', 'error');
+            }
+
+            // Test 2: Search by padreid "padre-TR1" → exact match tramo
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-TR1');
+            if (result && result.tramo_id === 'TR-1' && result.tipo === 'tramo') {
+                addResult('✅ padreid "padre-TR1" → encontrado Tramo 1', 'success');
+            } else {
+                addResult('❌ padreid "padre-TR1" no encontrado', 'error');
+            }
+
+            // Test 3: Search by padreid "padre-P0"
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-P0');
+            if (result && result.parada_id === 'P-0') {
+                addResult('✅ padreid "padre-P0" → encontrado Parada 0', 'success');
+            } else {
+                addResult('❌ padreid "padre-P0" no encontrado', 'error');
+            }
+
+            addResult('── Búsqueda por parada_id directo ──', 'info');
+
+            // Test 4: Search directly by parada_id "P-1"
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'P-1');
+            if (result && result.padreid === 'padre-P1') {
+                addResult('✅ parada_id "P-1" → encontrado Parada 1', 'success');
+            } else {
+                addResult('❌ parada_id "P-1" no encontrado', 'error');
+            }
+
+            // Test 5: Search directly by tramo_id "TR-1"
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'TR-1');
+            if (result && result.padreid === 'padre-TR1') {
+                addResult('✅ tramo_id "TR-1" → encontrado Tramo 1', 'success');
+            } else {
+                addResult('❌ tramo_id "TR-1" no encontrado', 'error');
+            }
+
+            addResult('── Búsqueda con formato hijo5 (padre-P-1) ──', 'info');
+
+            // Test 6: hijo5 sends "padre-P-1" (with hyphen from coord.id "P-1")
+            // idSinPrefijo strips "padre-" → "P-1" → matches parada_id
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-P-1');
+            if (result && result.padreid === 'padre-P1' && result.parada_id === 'P-1') {
+                addResult('✅ hijo5 formato "padre-P-1" → encontrado via idSinPrefijo "P-1"', 'success');
+            } else {
+                addResult('❌ hijo5 formato "padre-P-1" no encontrado (idSinPrefijo fallback falló)', 'error');
+            }
+
+            // Test 7: hijo5 sends "padre-TR-1" → strips to "TR-1" → matches tramo_id
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-TR-1');
+            if (result && result.tramo_id === 'TR-1') {
+                addResult('✅ hijo5 formato "padre-TR-1" → encontrado via idSinPrefijo "TR-1"', 'success');
+            } else {
+                addResult('❌ hijo5 formato "padre-TR-1" no encontrado', 'error');
+            }
+
+            addResult('── Búsqueda de intros y especiales ──', 'info');
+
+            // Test 8: Search for intro
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-intro');
+            if (result && result.tipo === 'intro' && result.parada_id === 'intro') {
+                addResult('✅ "padre-intro" → encontrado intro', 'success');
+            } else {
+                addResult('❌ "padre-intro" no encontrado', 'error');
+            }
+
+            // Test 9: Search for pre-intro
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-pre-intro1');
+            if (result && result.parada_id === 'pre-intro1') {
+                addResult('✅ "padre-pre-intro1" → encontrado pre-intro', 'success');
+            } else {
+                addResult('❌ "padre-pre-intro1" no encontrado', 'error');
+            }
+
+            addResult('── Casos límite ──', 'info');
+
+            // Test 10: Non-existent ID → undefined
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, 'padre-P99');
+            if (result === undefined) {
+                addResult('✅ ID inexistente "padre-P99" → undefined', 'success');
+            } else {
+                addResult('❌ ID inexistente retornó: ' + JSON.stringify(result), 'error');
+            }
+
+            // Test 11: null idToMatch → undefined
+            result = buscarParadaEnAventuraParadas(elementosIDpadre, null);
+            if (result === undefined) {
+                addResult('✅ null idToMatch → undefined', 'success');
+            } else {
+                addResult('❌ null idToMatch no retornó undefined', 'error');
+            }
+
+            // Test 12: Empty paradas array → undefined
+            result = buscarParadaEnAventuraParadas([], 'padre-P1');
+            if (result === undefined) {
+                addResult('✅ Array vacío → undefined', 'success');
+            } else {
+                addResult('❌ Array vacío no retornó undefined', 'error');
+            }
+
+            // Test 13: Verify AVENTURA_PARADAS assignment pattern
+            window.AVENTURA_PARADAS = elementosIDpadre;
+            if (window.AVENTURA_PARADAS && window.AVENTURA_PARADAS.length === 7) {
+                addResult('✅ window.AVENTURA_PARADAS asignado con ' + window.AVENTURA_PARADAS.length + ' elementos', 'success');
+            } else {
+                addResult('❌ window.AVENTURA_PARADAS no asignado correctamente', 'error');
+            }
+
+            // Test 14: Search within AVENTURA_PARADAS global
+            result = buscarParadaEnAventuraParadas(window.AVENTURA_PARADAS, 'padre-P2');
+            if (result && result.reto_id === 'R5-Av1-es') {
+                addResult('✅ Búsqueda en window.AVENTURA_PARADAS → Parada 2 con reto R5-Av1-es', 'success');
+            } else {
+                addResult('❌ Búsqueda en window.AVENTURA_PARADAS falló', 'error');
+            }
+
+            // Report results
+            window.TestReporter.report({
+                name: 'AVENTURA_PARADAS ID Search',
+                resultsContainer: document.getElementById('results')
+            });
+        }
+    </script>
+</body>
+</html>

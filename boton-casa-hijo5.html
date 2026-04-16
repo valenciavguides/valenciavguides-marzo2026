@@ -21,6 +21,7 @@
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
     <meta name="description" content="Panel de control de GPS para la ruta turística">
     <title>Boton-casa (hijo5)</title>
+    <script src="js/proteccion.js"></script>
     <script src="js/suppress-warnings.js"></script>
     <script type="module" src="js/monitoreo.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -548,7 +549,7 @@
         paradasWindow.style.display = paradasWindow.style.display === 'none' ? 'block' : 'none';
         try {
             if (window.parent && typeof window.parent.postMessage === 'function') {
-                parent.postMessage({ tipo: 'VV:PARADAS:SHOWN', datos: { visible: paradasWindow.style.display === 'block' } }, '*'); // '*' para compatibilidad con file://
+                parent.postMessage({ tipo: TIPOS_MENSAJE.PARADAS.SHOWN, datos: { visible: paradasWindow.style.display === 'block' } }, '*'); // '*' para compatibilidad con file://
             }
         } catch (e) { /* ignore */ }
     }
@@ -602,7 +603,16 @@
                         logger.warn(`${logPrefix} Punto ${index} sin tipo, omitiendo`);
                         return;
                     }
-                    
+
+                    // Solo mostrar paradas con ubicación física en el mapa
+                    // Los elementos tipo "pre-intro1", "intro", etc. pertenecen a las
+                    // pantallas de En-busca-del-tesoro.html y no tienen coordenadas
+                    const TIPOS_CON_MAPA = ['inicio', 'parada', 'tramo'];
+                    if (!TIPOS_CON_MAPA.includes(punto.tipo)) {
+                        logger.debug(`${logPrefix} Punto ${index} tipo "${punto.tipo}" sin ubicación en mapa, omitiendo`);
+                        return;
+                    }
+
                     // Crear botón
                     const btn = document.createElement('button');
                     
@@ -721,7 +731,7 @@
             logger.info(`${logPrefix} ${botonesGenerados} botones generados exitosamente`);
             try {
                 if (window.parent && window.parent !== window && typeof window.parent.postMessage === 'function') {
-                    parent.postMessage({ tipo: 'VV:PARADAS:READY', datos: { count: botonesGenerados } }, '*'); // '*' para compatibilidad con file://
+                    parent.postMessage({ tipo: TIPOS_MENSAJE.PARADAS.READY, datos: { count: botonesGenerados } }, '*'); // '*' para compatibilidad con file://
                 }
             } catch (e) { /* ignore */ }
             
@@ -1154,7 +1164,7 @@
                 
                 // Validación explícita antes de enviar
                 const destinoEntendido = mensaje.origen;
-                const tipoEntendido = 'SISTEMA.CAMBIO_MODO_ENTENDIDO'; // String literal para evitar problemas de timing
+                const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
                 const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
                 
                 // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
@@ -1220,8 +1230,8 @@
                 // Enviar EFECTUADO
                 await enviarMensaje({
                     destino: mensaje.origen,
-                    tipo: 'SISTEMA.CAMBIO_MODO_EFECTUADO', // String literal
-                    origen: 'hijo5', // String literal
+                    tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
+                    origen: CONFIG_HIJO?.IFRAME_ID || 'hijo5',
                     datos: { 
                         modo, 
                         exito: true, 

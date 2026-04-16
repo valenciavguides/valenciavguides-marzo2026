@@ -201,8 +201,7 @@
                 { nombre: 'hijo3 - audio-hijo3.html', ruta: '../audio-hijo3.html' },
                 { nombre: 'hijo4 - retos-hijo4.html', ruta: '../retos-hijo4.html' },
                 { nombre: 'hijo5 - boton-casa-hijo5.html', ruta: '../boton-casa-hijo5.html' },
-                { nombre: 'hamburguesa', ruta: '../botones-y-subfunciones-hamburguesa.html' },
-                { nombre: 'opciones', ruta: '../botones-y-subfunciones-opciones.html' }
+                { nombre: 'hijo1-opciones', ruta: '../extrainfo-hijo1.html' }
             ];
 
             for (const archivo of archivosHijos) {
@@ -235,9 +234,9 @@
             const datosCentralizados = [
                 { nombre: 'DATOS_PADRE', ruta: '../js/aventuras-ID-padre.js', buscar: 'export const DATOS_PADRE' },
                 { nombre: 'INDICE_AVENTURAS', ruta: '../js/indice-aventuras.js', buscar: 'export const INDICE_AVENTURAS' },
-                { nombre: 'Coordenadas', ruta: '../js/coordenadas-aventuras.js', buscar: 'window.__vv_DATOS_AVENTURAS' },
-                { nombre: 'Audios', ruta: '../js/audios-aventuras.js', buscar: 'window.__vv_DATOS_AVENTURAS' },
-                { nombre: 'Retos', ruta: '../js/retos-aventuras.js', buscar: 'window.__vv_DATOS_AVENTURAS' }
+                { nombre: 'Coordenadas', ruta: '../js/coordenadas-aventuras.js', buscar: 'export const DATOS_AVENTURAS' },
+                { nombre: 'Audios', ruta: '../js/audios-aventuras.js', buscar: 'export const AUDIOS_AVENTURAS' },
+                { nombre: 'Retos', ruta: '../js/retos-aventuras.js', buscar: 'export const RETOS_AVENTURAS' }
             ];
 
             for (const dato of datosCentralizados) {
@@ -354,13 +353,14 @@
 
         // Auto-ejecución para master-test
         window.runTest = function() {
-            ejecutarAuditoria();
-            setTimeout(() => {
+            ejecutarAuditoria().then(() => {
                 window.TestReporter.report({
                     name: 'Verification: Auditoría Completa',
-                    resultsContainer: document.getElementById('results')
+                    passed: resultados.pass,
+                    failed: resultados.fail,
+                    warnings: resultados.warn
                 });
-            }, 1000);
+            });
         };
     </script>
     

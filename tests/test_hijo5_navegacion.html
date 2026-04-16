@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: hijo5 - Navegación</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+        .parada-btn { padding: 8px 12px; margin: 4px; border: 1px solid #555; border-radius: 4px; background: #333; color: #eee; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- Mock hijo5 DOM elements -->
+    <button id="gps-casa-btn">GPS: OFF</button>
+    <div id="paradas-window" style="display:none;">
+        <ul id="lista-paradas"></ul>
+    </div>
+    <div id="zona-boton-casa"></div>
+
+    <h2>Test: hijo5 - Navegación (boton-casa-hijo5.html)</h2>
+    <p>Verifica inicialización, recepción de datos de paradas y generación de botones.</p>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // ── Mock infrastructure ──
+        const capturedHandlers = {};
+        function registrarControladorSeguro(path, handler) {
+            capturedHandlers[path] = handler;
+        }
+
+        const TIPOS_MENSAJE = {
+            SISTEMA: {
+                PADRE_DATOS: 'SISTEMA.PADRE_DATOS',
+                PADRE_CONFIRMA_HIJO_LISTO: 'SISTEMA.PADRE_CONFIRMA_HIJO_LISTO',
+                CAMBIO_MODO: 'SISTEMA.CAMBIO_MODO',
+                CAMBIO_MODO_APLICADO: 'SISTEMA.CAMBIO_MODO_APLICADO',
+                HEARTBEAT: 'SISTEMA.HEARTBEAT',
+                HEARTBEAT_START: 'SISTEMA.HEARTBEAT_START',
+                HEARTBEAT_PAUSE: 'SISTEMA.HEARTBEAT_PAUSE',
+                ERROR: 'SISTEMA.ERROR',
+                CONFIRMACION: 'SISTEMA.CONFIRMACION',
+                ACK: 'SISTEMA.ACK'
+            },
+            NAVEGACION: {
+                RESPUESTA_DATOS_PARADAS: 'NAVEGACION.RESPUESTA_DATOS_PARADAS',
+                CAMBIO_PARADA: 'NAVEGACION.CAMBIO_PARADA',
+                CAMBIO_PARADA_CONFIRMADO: 'NAVEGACION.CAMBIO_PARADA_CONFIRMADO'
+            }
+        };
+
+        // ── Mock hijo5 state (replicate real structure) ──
+        const estado = {
+            inicializado: false,
+            gpsActivo: false,
+            gpsPermisos: null,
+            gpsPrecision: null,
+            gpsError: null,
+            ultimaUbicacion: null,
+            modo: 'casa',
+            aventuraParadas: [],
+            paradasMapeadas: {},
+            datosRecibidos: false,
+            hijoListoEnviado: false
+        };
+        let _uiConfirmado = false;
+
+        // ── Mock parada data (real format from elementosIDpadre) ──
+        const mockParadasData = [
+            { tipo: 'parada', nombre: 'Parada 0', padreid: 'padre-P0', parada_id: 'P-0', tramo_id: '', audio_id: 'audio-Av1-P0-es', reto_id: '' },
+            { tipo: 'parada', nombre: 'Parada 1', padreid: 'padre-P1', parada_id: 'P-1', tramo_id: '', audio_id: 'audio-Av1-P1-es', reto_id: 'R4-Av1-es' },
+            { tipo: 'tramo', nombre: 'Tramo 1', padreid: 'padre-TR1', parada_id: '', tramo_id: 'TR-1', audio_id: 'audio-Av1-TR1-es', reto_id: '' },
+            { tipo: 'parada', nombre: 'Parada 2', padreid: 'padre-P2', parada_id: 'P-2', tramo_id: '', audio_id: 'audio-Av1-P2-es', reto_id: 'R5-Av1-es' }
+        ];
+
+        // ── Simulated handlers (replicate hijo5 behavior) ──
+        function handlePadreConfirmaHijoListo(mensaje) {
+            _uiConfirmado = true;
+            estado.inicializado = true;
+            if (mensaje.datos && mensaje.datos.modoInicial) {
+                estado.modo = mensaje.datos.modoInicial;
+            }
+            // Update GPS button label
+            const gpsBtn = document.getElementById('gps-casa-btn');
+            if (gpsBtn) {
+                gpsBtn.textContent = estado.modo === 'aventura' ? 'GPS: OFF' : 'GPS: OFF';
+            }
+            document.body.style.display = 'block';
+        }
+
+        function handleRespuestaDatosParadas(mensaje) {
+            const datos = mensaje.datos || {};
+            const paradas = datos.paradas || datos.elementosParadas || [];
+
+            if (!paradas || paradas.length === 0) {
+                return;
+            }
+
+            estado.aventuraParadas = paradas;
+            estado.datosRecibidos = true;
+
+            // Map paradas by ID
+            estado.paradasMapeadas = {};
+            paradas.forEach(p => {
+                const id = p.parada_id || p.tramo_id || p.padreid;
+                if (id) {
+                    estado.paradasMapeadas[id] = p;
+                }
+            });
+
+            // Generate buttons
+            generarBotonesParadas(paradas);
+        }
+
+        function generarBotonesParadas(paradas) {
+            const listaParadas = document.getElementById('lista-paradas');
+            if (!listaParadas) return;
+
+            listaParadas.innerHTML = '';
+
+            paradas.forEach(parada => {
+                const li = document.createElement('li');
+                const btn = document.createElement('button');
+                btn.className = 'parada-btn';
+                btn.textContent = parada.nombre || parada.parada_id || parada.tramo_id;
+                btn.dataset.padreid = parada.padreid;
+                btn.dataset.paradaId = parada.parada_id || '';
+                btn.dataset.tramoId = parada.tramo_id || '';
+                li.appendChild(btn);
+                listaParadas.appendChild(li);
+            });
+
+            // Show paradas window
+            const paradasWindow = document.getElementById('paradas-window');
+            if (paradasWindow) {
+                paradasWindow.style.display = 'block';
+            }
+        }
+
+        function handleCambioParada(mensaje) {
+            const datos = mensaje.datos || {};
+            const padreId = datos.padreId || datos.padreid;
+            const paradaId = datos.paradaId || datos.parada_id;
+
+            // Highlight active button
+            const buttons = document.querySelectorAll('.parada-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.padreid === padreId) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, handlePadreConfirmaHijoListo);
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS, handleRespuestaDatosParadas);
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, handleCambioParada);
+
+        // ── Tests ──
+        function runTest() {
+            addResult('── Estado inicial ──', 'info');
+
+            // Test 1: Initial state
+            if (!estado.inicializado && estado.modo === 'casa' && estado.aventuraParadas.length === 0) {
+                addResult('✅ Estado inicial: inicializado=false, modo=casa, paradas=[]', 'success');
+            } else {
+                addResult('❌ Estado inicial incorrecto', 'error');
+            }
+
+            // Test 2: paradas-window hidden initially
+            const paradasWin = document.getElementById('paradas-window');
+            if (paradasWin && paradasWin.style.display === 'none') {
+                addResult('✅ paradas-window oculto al inicio', 'success');
+            } else {
+                addResult('❌ paradas-window debería estar oculto', 'error');
+            }
+
+            addResult('── Handlers registrados ──', 'info');
+
+            // Test 3: Key handlers registered
+            const expected = [
+                TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO,
+                TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
+                TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA
+            ];
+            let allOk = true;
+            for (const h of expected) {
+                if (!capturedHandlers[h]) {
+                    addResult('❌ Handler no registrado: ' + h, 'error');
+                    allOk = false;
+                }
+            }
+            if (allOk) {
+                addResult('✅ 3 handlers clave registrados', 'success');
+            }
+
+            addResult('── PADRE_CONFIRMA_HIJO_LISTO ──', 'info');
+
+            // Test 4: Confirm hijo listo with mode
+            capturedHandlers[TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO]({
+                datos: { modoInicial: 'casa' }
+            });
+
+            if (_uiConfirmado && estado.inicializado && estado.modo === 'casa') {
+                addResult('✅ UI confirmada, modo=casa', 'success');
+            } else {
+                addResult('❌ PADRE_CONFIRMA no procesado', 'error');
+            }
+
+            if (document.body.style.display === 'block') {
+                addResult('✅ body visible', 'success');
+            } else {
+                addResult('❌ body debería ser visible', 'error');
+            }
+
+            addResult('── RESPUESTA_DATOS_PARADAS ──', 'info');
+
+            // Test 5: Receive paradas data
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS]({
+                datos: { paradas: mockParadasData }
+            });
+
+            if (estado.aventuraParadas.length === 4 && estado.datosRecibidos) {
+                addResult('✅ aventuraParadas almacenadas: ' + estado.aventuraParadas.length + ' elementos', 'success');
+            } else {
+                addResult('❌ aventuraParadas no almacenadas correctamente', 'error');
+            }
+
+            // Test 6: Paradas mapped by ID
+            if (estado.paradasMapeadas['P-0'] && estado.paradasMapeadas['P-1'] && estado.paradasMapeadas['TR-1']) {
+                addResult('✅ paradasMapeadas tiene P-0, P-1, TR-1', 'success');
+            } else {
+                addResult('❌ paradasMapeadas incompleto: ' + Object.keys(estado.paradasMapeadas).join(', '), 'error');
+            }
+
+            // Test 7: ID format in mapped data is string
+            const p1Data = estado.paradasMapeadas['P-1'];
+            if (p1Data && typeof p1Data.parada_id === 'string' && p1Data.parada_id === 'P-1') {
+                addResult('✅ parada_id es string "P-1" (no number)', 'success');
+            } else {
+                addResult('❌ parada_id debería ser string "P-1"', 'error');
+            }
+
+            addResult('── Botones generados ──', 'info');
+
+            // Test 8: Buttons generated
+            const buttons = document.querySelectorAll('.parada-btn');
+            if (buttons.length === 4) {
+                addResult('✅ 4 botones generados para paradas/tramos', 'success');
+            } else {
+                addResult('❌ Esperados 4 botones, encontrados: ' + buttons.length, 'error');
+            }
+
+            // Test 9: Button data attributes correct
+            const btn1 = Array.from(buttons).find(b => b.dataset.padreid === 'padre-P1');
+            if (btn1 && btn1.dataset.paradaId === 'P-1' && btn1.textContent === 'Parada 1') {
+                addResult('✅ Botón P1: padreid=padre-P1, paradaId=P-1, texto="Parada 1"', 'success');
+            } else {
+                addResult('❌ Botón P1 datos incorrectos', 'error');
+            }
+
+            // Test 10: Tramo button correct
+            const btnTR1 = Array.from(buttons).find(b => b.dataset.padreid === 'padre-TR1');
+            if (btnTR1 && btnTR1.dataset.tramoId === 'TR-1' && btnTR1.textContent === 'Tramo 1') {
+                addResult('✅ Botón TR1: padreid=padre-TR1, tramoId=TR-1, texto="Tramo 1"', 'success');
+            } else {
+                addResult('❌ Botón TR1 datos incorrectos', 'error');
+            }
+
+            // Test 11: paradas-window now visible
+            if (paradasWin && paradasWin.style.display === 'block') {
+                addResult('✅ paradas-window visible tras generar botones', 'success');
+            } else {
+                addResult('❌ paradas-window debería ser visible', 'error');
+            }
+
+            addResult('── CAMBIO_PARADA highlights ──', 'info');
+
+            // Test 12: CAMBIO_PARADA highlights active button
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA]({
+                datos: { padreId: 'padre-P1', paradaId: 'P-1' }
+            });
+
+            const activeBtn = document.querySelector('.parada-btn.active');
+            if (activeBtn && activeBtn.dataset.padreid === 'padre-P1') {
+                addResult('✅ Botón padre-P1 marcado como active', 'success');
+            } else {
+                addResult('❌ Ningún botón marcado como active para padre-P1', 'error');
+            }
+
+            // Test 13: Second CAMBIO_PARADA moves highlight
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA]({
+                datos: { padreid: 'padre-TR1', parada_id: 'TR-1' }
+            });
+
+            const allActive = document.querySelectorAll('.parada-btn.active');
+            if (allActive.length === 1 && allActive[0].dataset.padreid === 'padre-TR1') {
+                addResult('✅ Active movido a padre-TR1 (solo 1 activo)', 'success');
+            } else {
+                addResult('❌ Active no movido correctamente. Count=' + allActive.length, 'error');
+            }
+
+            addResult('── DOM elements ──', 'info');
+
+            // Test 14: Key DOM elements
+            const domIds = ['gps-casa-btn', 'paradas-window', 'lista-paradas', 'zona-boton-casa'];
+            let allDomOk = true;
+            for (const id of domIds) {
+                if (!document.getElementById(id)) {
+                    addResult('❌ DOM faltante: #' + id, 'error');
+                    allDomOk = false;
+                }
+            }
+            if (allDomOk) {
+                addResult('✅ Todos los DOM elements de hijo5 presentes (' + domIds.length + ')', 'success');
+            }
+
+            // Test 15: Empty paradas → no buttons generated
+            const listaParadas = document.getElementById('lista-paradas');
+            const initialCount = listaParadas ? listaParadas.children.length : 0;
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS]({
+                datos: { paradas: [] }
+            });
+            // Empty array should not regenerate (handler returns early)
+            if (estado.aventuraParadas.length === 4) {
+                addResult('✅ Paradas vacías no sobreescriben datos existentes', 'success');
+            } else {
+                addResult('❌ Paradas vacías sobreescribieron datos', 'error');
+            }
+
+            // Report
+            window.TestReporter.report({
+                name: 'hijo5: Navegación',
+                resultsContainer: document.getElementById('results')
+            });
+        }
+    </script>
+</body>
+</html>

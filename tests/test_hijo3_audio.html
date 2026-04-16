@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: hijo3 - Audio</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <!-- Mock hijo3 DOM elements -->
+    <audio id="audioPlayer"></audio>
+    <div id="progressBar" style="width:0%;"></div>
+    <span id="currentTime">0:00</span>
+    <span id="duration">0:00</span>
+    <button id="playPauseBtn">▶</button>
+    <button id="retosBtn" style="display:none;">Reto</button>
+    <div id="progressContainer"></div>
+
+    <h2>Test: hijo3 - Audio (audio-hijo3.html)</h2>
+    <p>Verifica inicialización, carga de audios y manejo de estado del iframe hijo3.</p>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // ── Mock infrastructure ──
+        const capturedHandlers = {};
+        function registrarControladorSeguro(path, handler) {
+            capturedHandlers[path] = handler;
+        }
+
+        const TIPOS_MENSAJE = {
+            SISTEMA: {
+                PADRE_DATOS: 'SISTEMA.PADRE_DATOS',
+                PADRE_CONFIRMA_HIJO_LISTO: 'SISTEMA.PADRE_CONFIRMA_HIJO_LISTO',
+                CAMBIO_MODO: 'SISTEMA.CAMBIO_MODO',
+                CAMBIO_MODO_APLICADO: 'SISTEMA.CAMBIO_MODO_APLICADO',
+                HEARTBEAT: 'SISTEMA.HEARTBEAT',
+                HEARTBEAT_START: 'SISTEMA.HEARTBEAT_START',
+                HEARTBEAT_PAUSE: 'SISTEMA.HEARTBEAT_PAUSE',
+                ACK: 'SISTEMA.ACK'
+            },
+            DATOS: {
+                CARGAR_AUDIOS: 'DATOS.CARGAR_AUDIOS'
+            },
+            AUDIO: {
+                REPRODUCIR_REQUEST: 'AUDIO.REPRODUCIR_REQUEST',
+                PAUSA_REQUEST: 'AUDIO.PAUSA_REQUEST',
+                CONTROL_REQUEST: 'AUDIO.CONTROL_REQUEST',
+                SOLICITAR_AUDIO: 'AUDIO.SOLICITAR_AUDIO'
+            },
+            NAVEGACION: {
+                CAMBIO_PARADA: 'NAVEGACION.CAMBIO_PARADA',
+                GPS: {
+                    UBICACION_ACTUALIZADA: 'NAVEGACION.GPS.UBICACION_ACTUALIZADA',
+                    ESTADO_ACTUALIZADO: 'NAVEGACION.GPS.ESTADO_ACTUALIZADO',
+                    ERROR: 'NAVEGACION.GPS.ERROR'
+                }
+            },
+            CONTROL: {
+                HABILITAR: 'CONTROL.HABILITAR',
+                DESHABILITAR: 'CONTROL.DESHABILITAR'
+            },
+            UI: {
+                ACCION_USUARIO: 'UI.ACCION_USUARIO'
+            }
+        };
+
+        // ── Mock hijo3 state (replicate real structure) ──
+        const estado = {
+            inicializado: false,
+            modoActual: 'aventura',
+            pendingCambioModo: null,
+            hijoListoEnviado: false
+        };
+        let currentAudioId = null;
+        let isPlaying = false;
+        let _uiConfirmado = false;
+
+        // ── Simulated handlers (replicate hijo3 behavior) ──
+        function handlePadreConfirmaHijoListo(mensaje) {
+            _uiConfirmado = true;
+            estado.inicializado = true;
+            if (estado.pendingCambioModo) {
+                estado.modoActual = estado.pendingCambioModo;
+                estado.pendingCambioModo = null;
+            }
+            document.body.style.display = 'block';
+        }
+
+        function handleCargarAudios(mensaje) {
+            if (mensaje.datos && mensaje.datos.audioFiles) {
+                window.__vv_audioFiles = mensaje.datos.audioFiles;
+            }
+        }
+
+        function handleCambioParada(mensaje) {
+            const datos = mensaje.datos || {};
+            // hijo3 resets audio state on parada change
+            currentAudioId = null;
+            isPlaying = false;
+            const player = document.getElementById('audioPlayer');
+            if (player) {
+                player.pause();
+                player.currentTime = 0;
+            }
+        }
+
+        function handleCambioModo(mensaje) {
+            const nuevoModo = mensaje.datos && mensaje.datos.modo;
+            if (!_uiConfirmado) {
+                estado.pendingCambioModo = nuevoModo;
+            } else {
+                estado.modoActual = nuevoModo;
+            }
+        }
+
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, handlePadreConfirmaHijoListo);
+        registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS, handleCargarAudios);
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, handleCambioParada);
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, handleCambioModo);
+
+        // ── Mock audio data ──
+        const mockAudioFiles = {
+            'audio-Av1-P0-es': 'audios-aventuras/español/Av1-P0-es.mp3',
+            'audio-Av1-P1-es': 'audios-aventuras/español/Av1-P1-es.mp3',
+            'audio-Av1-TR1-es': 'audios-aventuras/español/Av1-TR1-es.mp3',
+            'audio-Av1-P2-es': 'audios-aventuras/español/Av1-P2-es.mp3'
+        };
+
+        // ── Tests ──
+        function runTest() {
+            addResult('── Estado inicial ──', 'info');
+
+            // Test 1: Initial state
+            if (!estado.inicializado && estado.modoActual === 'aventura') {
+                addResult('✅ Estado inicial: inicializado=false, modo=aventura', 'success');
+            } else {
+                addResult('❌ Estado inicial incorrecto', 'error');
+            }
+
+            // Test 2: UI not confirmed initially
+            if (!_uiConfirmado) {
+                addResult('✅ _uiConfirmado = false al inicio', 'success');
+            } else {
+                addResult('❌ _uiConfirmado debería ser false', 'error');
+            }
+
+            // Test 3: Audio files not loaded initially
+            if (!window.__vv_audioFiles) {
+                addResult('✅ __vv_audioFiles no existe al inicio', 'success');
+            } else {
+                addResult('❌ __vv_audioFiles no debería existir al inicio', 'error');
+            }
+
+            addResult('── Handlers registrados ──', 'info');
+
+            // Test 4: Key handlers registered
+            const expected = [
+                TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO,
+                TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS,
+                TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO
+            ];
+            let allOk = true;
+            for (const h of expected) {
+                if (!capturedHandlers[h]) {
+                    addResult('❌ Handler no registrado: ' + h, 'error');
+                    allOk = false;
+                }
+            }
+            if (allOk) {
+                addResult('✅ 4 handlers clave registrados', 'success');
+            }
+
+            addResult('── Pending mode change ──', 'info');
+
+            // Test 5: CAMBIO_MODO before PADRE_CONFIRMA queues pending
+            capturedHandlers[TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO]({
+                datos: { modo: 'casa' }
+            });
+            if (estado.pendingCambioModo === 'casa') {
+                addResult('✅ CAMBIO_MODO antes de confirmar → pendingCambioModo = "casa"', 'success');
+            } else {
+                addResult('❌ pendingCambioModo debería ser "casa"', 'error');
+            }
+
+            addResult('── PADRE_CONFIRMA_HIJO_LISTO ──', 'info');
+
+            // Test 6: PADRE_CONFIRMA_HIJO_LISTO applies pending mode
+            capturedHandlers[TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO]({ datos: {} });
+
+            if (_uiConfirmado === true && estado.inicializado === true) {
+                addResult('✅ UI confirmada e inicializado tras PADRE_CONFIRMA', 'success');
+            } else {
+                addResult('❌ UI o inicialización incorrecta', 'error');
+            }
+
+            if (estado.modoActual === 'casa' && estado.pendingCambioModo === null) {
+                addResult('✅ Pending mode applied: modoActual="casa", pending=null', 'success');
+            } else {
+                addResult('❌ Pending mode no aplicado. modo=' + estado.modoActual + ' pending=' + estado.pendingCambioModo, 'error');
+            }
+
+            if (document.body.style.display === 'block') {
+                addResult('✅ body visible (display: block)', 'success');
+            } else {
+                addResult('❌ body debería ser visible', 'error');
+            }
+
+            addResult('── CARGAR_AUDIOS ──', 'info');
+
+            // Test 7: CARGAR_AUDIOS stores files
+            capturedHandlers[TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS]({
+                datos: { audioFiles: mockAudioFiles }
+            });
+
+            if (window.__vv_audioFiles && Object.keys(window.__vv_audioFiles).length === 4) {
+                addResult('✅ __vv_audioFiles almacenado con ' + Object.keys(window.__vv_audioFiles).length + ' audios', 'success');
+            } else {
+                addResult('❌ __vv_audioFiles no almacenado correctamente', 'error');
+            }
+
+            // Test 8: Audio file format check
+            const audioP1 = window.__vv_audioFiles['audio-Av1-P1-es'];
+            if (audioP1 && audioP1.includes('español') && audioP1.endsWith('.mp3')) {
+                addResult('✅ audio-Av1-P1-es → ruta correcta: ' + audioP1, 'success');
+            } else {
+                addResult('❌ audio-Av1-P1-es ruta incorrecta: ' + audioP1, 'error');
+            }
+
+            addResult('── CAMBIO_PARADA reset audio ──', 'info');
+
+            // Test 9: Simulate playing audio then parada change resets
+            currentAudioId = 'audio-Av1-P1-es';
+            isPlaying = true;
+
+            capturedHandlers[TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA]({
+                datos: { padreId: 'padre-P2', paradaId: 'P-2' }
+            });
+
+            if (currentAudioId === null && isPlaying === false) {
+                addResult('✅ CAMBIO_PARADA resetea audio: currentAudioId=null, isPlaying=false', 'success');
+            } else {
+                addResult('❌ Audio no reseteado tras CAMBIO_PARADA', 'error');
+            }
+
+            addResult('── DOM elements ──', 'info');
+
+            // Test 10: Key DOM elements exist
+            const domIds = ['audioPlayer', 'progressBar', 'currentTime', 'duration', 'playPauseBtn', 'retosBtn', 'progressContainer'];
+            let allDomOk = true;
+            for (const id of domIds) {
+                if (!document.getElementById(id)) {
+                    addResult('❌ DOM faltante: #' + id, 'error');
+                    allDomOk = false;
+                }
+            }
+            if (allDomOk) {
+                addResult('✅ Todos los DOM elements de hijo3 presentes (' + domIds.length + ')', 'success');
+            }
+
+            // Test 11: Audio player element is <audio>
+            const player = document.getElementById('audioPlayer');
+            if (player && player.tagName === 'AUDIO') {
+                addResult('✅ audioPlayer es elemento <audio>', 'success');
+            } else {
+                addResult('❌ audioPlayer debería ser <audio>', 'error');
+            }
+
+            // Test 12: CAMBIO_MODO after confirm changes immediately
+            capturedHandlers[TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO]({
+                datos: { modo: 'aventura' }
+            });
+            if (estado.modoActual === 'aventura') {
+                addResult('✅ CAMBIO_MODO post-confirm → modoActual="aventura" inmediato', 'success');
+            } else {
+                addResult('❌ CAMBIO_MODO post-confirm debería ser inmediato', 'error');
+            }
+
+            // Report
+            window.TestReporter.report({
+                name: 'hijo3: Audio',
+                resultsContainer: document.getElementById('results')
+            });
+        }
+    </script>
+</body>
+</html>

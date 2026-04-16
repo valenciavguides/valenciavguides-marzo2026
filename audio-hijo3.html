@@ -20,6 +20,7 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
     <title>audio-hijo3</title>
+    <script src="js/proteccion.js"></script>
     <script src="js/suppress-warnings.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -30,12 +31,12 @@
         * { font-family: Verdana, sans-serif !important; }
         
         :root {
-            --btn-size: 3.75rem;
+            --btn-size: calc(100vh - 4px);
             --icon-size: 1.5em;
-            --progress-thick: 1.25rem;
+            --progress-thick: 2rem;
             --trapecio-width: 100%; /* Ocupar todo el ancho del iframe */
             --trapecio-height: 8.4375rem;
-            --trapecio-bg: white;
+            --trapecio-bg: transparent;
             --trapecio-shadow: 0 0.125rem 0.75rem rgba(0,0,0,0.13);
             --trapecio-radius: 0.75rem;
             --progress-color: #0077cc;
@@ -66,36 +67,89 @@
         }
 
         .audio-player-controls {
-            width: var(--trapecio-width);
-            max-width: 100%;
-            min-width: 11.25rem;
-            height: var(--trapecio-height);
+            width: 100%;
+            height: 100%;
             background: var(--trapecio-bg);
-            border-radius: 0 0 0.75rem 0.75rem; /* Solo bordes inferiores redondeados */
+            border-radius: 0.75rem 0.75rem 0 0;
             box-shadow: var(--trapecio-shadow);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: flex-start;
             gap: 0;
             z-index: 9999;
-            padding: 0.3125rem 0.5rem 0.3125rem 0.5rem; /* 5px bottom para los números */
+            padding: 2px 0 2px 3px;
             box-sizing: border-box;
             border: none;
             margin: 0;
             position: relative;
             opacity: 1 !important;
             visibility: visible !important;
-            background-color: white !important;
+            background-color: transparent !important;
         }
 
-        .player-buttons-row {
+        /* Izquierda: barra arriba + título abajo */
+        .content-left {
+            width: calc(100vw - 2*(100vh - 4px) - 36px);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6px;
+            padding: 2px 0 2px 10px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        /* Barra de progreso: alto = (100vh - 10px) / 2 */
+        .progress-row {
+            width: 100%;
+            height: calc((100vh - 10px) / 2);
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 1.75rem; /* Aumentado 8px adicionales */
+            margin: 0;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        /* Título con efecto marquee si no cabe */
+        .titulo-parada {
+            height: calc((100vh - 10px) / 2);
+            font-size: calc((100vh - 10px) / 2);
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
             width: 100%;
-            margin-top: 0.4375rem; /* 7px desde la barra de progreso */
+            display: flex;
+            align-items: center;
+        }
+
+        .titulo-parada span {
+            display: inline-block;
+            padding-right: 2rem;
+        }
+
+        .titulo-parada.marquee span {
+            animation: marquee-scroll 10s linear infinite;
+        }
+
+        @keyframes marquee-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Derecha: botones a 3px del borde derecho, centrados verticalmente */
+        .buttons-right {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            align-self: center;
+            gap: 6px;
+            margin-left: auto;
+            margin-right: 3px;
+            flex-shrink: 0;
         }
 
         #playPauseBtn {
@@ -111,8 +165,9 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.2);
+            box-shadow: none;
             padding: 0;
+            margin: 0;
         }
 
         #playPauseBtn .icon-play {
@@ -124,21 +179,21 @@
 
         #playPauseBtn:active:not(:disabled) { 
             transform: scale(0.95);
-            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.2), inset 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.1);
+            box-shadow: none;
         }
 
         @media (hover: hover) {
             #playPauseBtn:hover:not(:disabled) {
                 transform: scale(1.05);
-                box-shadow: 0 0.375rem 1rem rgba(0, 0, 0, 0.3), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.2);
+                box-shadow: none;
             }
         }
 
-        #playPauseBtn:disabled { 
+        #playPauseBtn:disabled {
             background: linear-gradient(to right, #dc3545, #c82333);
             opacity: 0.6;
             cursor: not-allowed;
-            box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.15);
+            box-shadow: none;
         }
 
         #retosBtn {
@@ -154,8 +209,9 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.2);
+            box-shadow: none;
             padding: 0;
+            margin: 0;
         }
 
         #retosBtn .icon-puzzle {
@@ -168,46 +224,37 @@
             background: linear-gradient(to right, #dc3545, #c82333);
             cursor: not-allowed; 
             opacity: 0.6;
-            box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.15);
+            box-shadow: none;
         }
 
-        #retosBtn:active:not(:disabled) { 
+        #retosBtn:active:not(:disabled) {
             transform: scale(0.95);
-            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.2), inset 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.1);
+            box-shadow: none;
         }
 
         @media (hover: hover) {
             #retosBtn:hover:not(:disabled) {
                 transform: scale(1.05);
-                box-shadow: 0 0.375rem 1rem rgba(0, 0, 0, 0.3), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.2);
+                box-shadow: none;
             }
         }
 
-        /* Imagen dentro del botón retos */
+        /* Imagen dentro del botón retos: 93% del diámetro del botón */
         #retosBtn img {
-            width: 3.4375rem;
-            height: 3.4375rem;
+            width: calc((100vh - 4px) * 0.93);
+            height: calc((100vh - 4px) * 0.93);
             object-fit: contain;
             display: block;
             pointer-events: none;
             border-radius: 50%;
         }
 
-        .progress-row {
-            display: flex;
-            align-items: center;
-            width: 90%;
-            margin: 0.3125rem 0 0 0; /* 5px desde la barra al espacio anterior */
-            padding: 0;
-            justify-content: center;
-        }
-
         .progress-container {
             flex: 1;
             width: 100%;
-            height: var(--progress-thick);
+            height: 100%;
             background-color: #f0f0f0;
-            border-radius: calc(var(--progress-thick) / 2);
+            border-radius: calc((100vh - 10px) / 4);
             cursor: pointer;
             position: relative;
             margin: 0;
@@ -217,6 +264,23 @@
             align-items: center;
             border: 0.0625rem solid #ddd;
             box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.1);
+        }
+
+        .time-overlay {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 2;
+            font-size: calc((100vh - 10px) / 4);
+            font-weight: bold;
+            color: #333;
+            gap: 0.2em;
         }
 
         #progressBar {
@@ -231,11 +295,11 @@
         #progressBar::after {
             content: '';
             position: absolute;
-            right: -0.5rem;
+            right: calc(-(100vh - 10px) / 4 - 2px);
             top: 50%;
             transform: translateY(-50%);
-            width: 1rem;
-            height: 1rem;
+            width: calc((100vh - 10px) / 2 + 4px);
+            height: calc((100vh - 10px) / 2 + 4px);
             border-radius: 50%;
             background: #007bff;
             border: 0.1875rem solid white;
@@ -252,10 +316,10 @@
         .time-display {
             display: flex;
             justify-content: space-between;
-            width: 90%;
+            width: 100%;
             font-size: var(--timer-font-size);
             color: var(--timer-color);
-            margin-bottom: 0.3125rem; /* 5px desde números a la barra de progreso */
+            margin: 0;
             font-weight: 500;
         }
 
@@ -336,7 +400,24 @@
     </script>
     
     <div class="audio-player-controls">
-        <div class="player-buttons-row">
+        <!-- Izquierda: barra arriba + título abajo -->
+        <div class="content-left">
+            <div class="progress-row">
+                <div class="progress-container" id="progressContainer" role="slider" aria-label="Barra de progreso de audio" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+                    <div id="progressBar"></div>
+                    <div class="time-overlay">
+                        <span id="currentTime">00:00</span>
+                        <span>/</span>
+                        <span id="duration">00:00</span>
+                    </div>
+                </div>
+            </div>
+            <div id="titulo-parada" class="titulo-parada">
+                <span id="titulo-parada-text"></span>
+            </div>
+        </div>
+        <!-- Derecha: play/pausa + retos, a 3px del borde derecho -->
+        <div class="buttons-right">
             <button id="playPauseBtn" aria-label="Reproducir/Pausar">
                 <i class="fas fa-play icon-play"></i>
             </button>
@@ -344,18 +425,9 @@
                 <img src="imagenes/imagenes-aplicación/H4-fotoretos.png" alt="Retos">
             </button>
         </div>
-        <div class="progress-row">
-            <div class="progress-container" id="progressContainer" role="slider" aria-label="Barra de progreso de audio" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
-                <div id="progressBar"></div>
-            </div>
-        </div>
-        <div class="time-display">
-            <span id="currentTime">00:00</span>
-            <span id="duration">00:00</span>
-        </div>
     </div>
 
-    <audio id="audioPlayer" preload="metadata">
+    <audio id="audioPlayer" preload="metadata" controlsList="nodownload">
         Tu navegador no soporta el elemento de audio.
     </audio>
 
@@ -694,6 +766,22 @@
         audioPlayer.src = audioData.file;
         currentAudioId = audioId;
 
+        // Actualizar título de la parada con efecto marquee si no cabe
+        const tituloEl = document.getElementById('titulo-parada');
+        const tituloSpan = document.getElementById('titulo-parada-text');
+        if (tituloEl && tituloSpan && audioData.title) {
+            tituloSpan.textContent = audioData.title;
+            tituloEl.classList.remove('marquee');
+            // Activar marquee si el texto es más ancho que el contenedor
+            requestAnimationFrame(() => {
+                if (tituloSpan.scrollWidth > tituloEl.clientWidth) {
+                    // Duplicar texto para efecto continuo
+                    tituloSpan.textContent = audioData.title + '\u00A0\u00A0\u00A0\u00A0\u00A0' + audioData.title;
+                    tituloEl.classList.add('marquee');
+                }
+            });
+        }
+
         if (autoplay) {
             try {
                 await audioPlayer.play();
@@ -729,6 +817,7 @@
     // Event listener para botón de Retos
     retosBtn.addEventListener('click', async () => {
         try {
+            retosBtn.classList.add('activo');
             logger.info(`[hijo3] Botón de retos clickeado, solicitando reto al padre`);
             
             // Enviar solicitud al padre para mostrar un reto
@@ -1195,6 +1284,19 @@
                 // Preparado para futuras solicitudes de datos adicionales del padre
                 logger.debug(`${logPrefix} Componente listo para recibir datos adicionales si es necesario`);
 
+                // Verificación diferida: si CARGAR_AUDIOS no llegó en 3s, solicitarlo al padre
+                setTimeout(() => {
+                    if (!window.__vv_audioFiles || !Array.isArray(window.__vv_audioFiles) || window.__vv_audioFiles.length === 0) {
+                        logger.warn('[hijo3] ⚠️ Audios no recibidos tras 3s de inicialización — solicitando al padre');
+                        enviarMensaje({
+                            tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            destino: getPadreId(),
+                            datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
+                        }).catch(err => logger.error('[hijo3] Error solicitando audios:', err));
+                    }
+                }, 3000);
+
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
             }
@@ -1310,77 +1412,6 @@
             }
         });
 
-        // Controlador para pausar audio (REQUEST del padre)
-        registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.PAUSA_REQUEST, async (mensaje) => {
-            try {
-                logger.debug(`[hijo3] PAUSA_REQUEST recibido:`, mensaje.datos);
-                audioPlayer.pause();
-                
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.AUDIO.PAUSA_RESPONSE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: mensaje.origen,
-                    datos: { 
-                        exito: true,
-                        audioId: currentAudioId,
-                        mensajeOriginal: mensaje.id 
-                    }
-                });
-            } catch (error) {
-                logger.error(`[hijo3] Error procesando PAUSA_REQUEST:`, error);
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.AUDIO.PAUSA_RESPONSE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: mensaje.origen,
-                    datos: { 
-                        exito: false,
-                        error: error.message,
-                        mensajeOriginal: mensaje.id 
-                    }
-                });
-            }
-        });
-
-        // Controlador para control genérico (REQUEST del padre)
-        registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.CONTROL_REQUEST, async (mensaje) => {
-            try {
-                logger.debug(`[hijo3] CONTROL_REQUEST recibido:`, mensaje.datos);
-                const { accion } = mensaje.datos || {};
-                
-                if (accion === 'pausar') {
-                    audioPlayer.pause();
-                } else if (accion === 'reproducir') {
-                    audioPlayer.play();
-                } else if (accion === 'detener') {
-                    audioPlayer.pause();
-                    audioPlayer.currentTime = 0;
-                }
-                
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.AUDIO.CONTROL_RESPONSE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: mensaje.origen,
-                    datos: { 
-                        exito: true,
-                        accion,
-                        mensajeOriginal: mensaje.id 
-                    }
-                });
-            } catch (error) {
-                logger.error(`[hijo3] Error procesando CONTROL_REQUEST:`, error);
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.AUDIO.CONTROL_RESPONSE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: mensaje.origen,
-                    datos: { 
-                        exito: false,
-                        error: error.message,
-                        mensajeOriginal: mensaje.id 
-                    }
-                });
-            }
-        });
-
         /**
          * Controlador: SISTEMA.CAMBIO_MODO
          * Descripción: Actualiza la interfaz según el modo (casa/aventura)
@@ -1425,7 +1456,7 @@
                 
                 // Validación explícita antes de enviar
                 const destinoEntendido = mensaje.origen;
-                const tipoEntendido = 'SISTEMA.CAMBIO_MODO_ENTENDIDO'; // String literal para evitar problemas de timing
+                const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
                 const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
                 
                 // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
@@ -1476,8 +1507,8 @@
                 logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);
                 await enviarMensaje({
                     destino: mensaje.origen,
-                    tipo: 'SISTEMA.CAMBIO_MODO_EFECTUADO', // String literal
-                    origen: 'hijo3', // String literal
+                    tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
+                    origen: CONFIG_HIJO?.IFRAME_ID || 'hijo3',
                     datos: { 
                         modo, 
                         exito: true, 
@@ -1521,16 +1552,16 @@
                 const { control } = mensaje.datos;
                 logger.info(`[hijo3] CONTROL.HABILITAR recibido para: ${control}`);
 
-                // Solo aplicar en modo aventura - en modo casa los botones siempre están habilitados
-                if (document.body.classList.contains('modo-aventura')) {
-                    if (control === 'retosBtn') {
-                        retosBtn.disabled = false;
-                        retosBtn.style.opacity = '1';
-                        retosBtn.style.pointerEvents = 'auto';
-                        logger.debug(`[hijo3] Botón de retos habilitado (modo aventura)`);
-                    }
-                } else {
-                    logger.debug(`[hijo3] CONTROL.HABILITAR ignorado - modo casa mantiene botones siempre habilitados`);
+                // retosBtn se controla en ambos modos (aventura y casa)
+                if (control === 'retosBtn') {
+                    retosBtn.disabled = false;
+                    retosBtn.style.opacity = '1';
+                    retosBtn.style.pointerEvents = 'auto';
+                    retosBtn.classList.remove('activo');
+                    logger.debug(`[hijo3] Botón de retos habilitado`);
+                } else if (document.body.classList.contains('modo-aventura')) {
+                    // Otros controles solo en modo aventura
+                    logger.debug(`[hijo3] CONTROL.HABILITAR aplicado en modo aventura para: ${control}`);
                 }
             } catch (error) {
                 logger.error(`[hijo3] Error en CONTROL.HABILITAR:`, error);
@@ -1546,16 +1577,15 @@
                 const { control } = mensaje.datos;
                 logger.info(`[hijo3] CONTROL.DESHABILITAR recibido para: ${control}`);
 
-                // Solo aplicar en modo aventura - en modo casa los botones siempre están habilitados
-                if (document.body.classList.contains('modo-aventura')) {
-                    if (control === 'retosBtn') {
-                        retosBtn.disabled = true;
-                        retosBtn.style.opacity = '0.5';
-                        retosBtn.style.pointerEvents = 'none';
-                        logger.debug(`[hijo3] Botón de retos deshabilitado (modo aventura)`);
-                    }
-                } else {
-                    logger.debug(`[hijo3] CONTROL.DESHABILITAR ignorado - modo casa mantiene botones siempre habilitados`);
+                // retosBtn se controla en ambos modos (aventura y casa)
+                if (control === 'retosBtn') {
+                    retosBtn.disabled = true;
+                    retosBtn.style.opacity = '0.5';
+                    retosBtn.style.pointerEvents = 'none';
+                    logger.debug(`[hijo3] Botón de retos deshabilitado`);
+                } else if (document.body.classList.contains('modo-aventura')) {
+                    // Otros controles solo en modo aventura
+                    logger.debug(`[hijo3] CONTROL.DESHABILITAR aplicado en modo aventura para: ${control}`);
                 }
             } catch (error) {
                 logger.error(`[hijo3] Error en CONTROL.DESHABILITAR:`, error);
@@ -1608,6 +1638,8 @@
                     logger.info(`${logPrefix} Cambio de parada recibido: ${padreId || paradaId}`);
                 // Actualizar estado local para audio si corresponde
                 if (paradaId) window.__hijo3_paradaActual = paradaId;
+                // Resetear botón retos al cambiar de parada
+                if (retosBtn) retosBtn.classList.remove('activo');
                 // Enviar confirmación al padre
                 try {
                     await enviarMensaje({
@@ -1796,7 +1828,7 @@
                 // Enviar métrica a monitoreo (si mensajería disponible)
                 try {
                     if (typeof enviarMensaje === 'function') {
-                        enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo3', destino: 'sistema-monitoreo', datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {});
+                        enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo3', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {});
                     }
                 } catch (ignore) { /* ignore */ }
                 return { exito: true };

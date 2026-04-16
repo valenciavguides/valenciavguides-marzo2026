@@ -24,19 +24,23 @@
 
     <script src="test-reporter-utility.js"></script>
     <script type="module">
-        // Simular datos de prueba
+        // Simular datos de prueba con formato real
         const testData = {
             coordenadas: [
-                { id: 1, nombre: "Parada 1", lat: 39.4699, lng: -0.3763 },
-                { id: 2, nombre: "Parada 2", lat: 39.4700, lng: -0.3764 }
+                { id: 'P-0', tipo: 'inicio', nombre: "Torres de Serranos", lat: 39.4789, lng: -0.3756 },
+                { id: 'P-1', tipo: 'parada', nombre: "Plaza de la crída", lat: 39.4799, lng: -0.3760 }
             ],
             audios: [
-                { id: 1, nombre: "Audio 1", url: "audio1.mp3" },
-                { id: 2, nombre: "Audio 2", url: "audio2.mp3" }
+                { id: 'audio-Av1-P0-es', parada_id: 'P-0', nombre: "Audio P0", url: "audio-p0.mp3" },
+                { id: 'audio-Av1-P1-es', parada_id: 'P-1', nombre: "Audio P1", url: "audio-p1.mp3" }
             ],
             retos: [
-                { id: 1, pregunta: "¿Cuál es la capital de España?", respuesta: "Madrid" },
-                { id: 2, pregunta: "¿Cuántos continentes hay?", respuesta: "7" }
+                { id: 'R3-Av1-es', parada_id: 'P-0', tipo: 'opcion', pregunta: '¿De qué siglo?', opciones: ['XIV','XVI'], correctas: ['XIV'] },
+                { id: 'R4-Av1-es', parada_id: 'P-1', tipo: 'opcion', pregunta: '¿Color bandera?', opciones: ['Azul','Verde'], correctas: ['Azul'] }
+            ],
+            elementosIDpadre: [
+                { tipo: 'inicio', nombre: 'Torres de Serranos', padreid: 'padre-P0', parada_id: 'P-0', audio_id: 'audio-Av1-P0-es', reto_id: 'R3-Av1-es' },
+                { tipo: 'parada', nombre: 'Plaza de la crída', padreid: 'padre-P1', parada_id: 'P-1', audio_id: 'audio-Av1-P1-es', reto_id: 'R4-Av1-es' }
             ]
         };
 
@@ -45,12 +49,15 @@
             DATOS: {
                 CARGAR_COORDENADAS: 'DATOS.CARGAR_COORDENADAS',
                 CARGAR_AUDIOS: 'DATOS.CARGAR_AUDIOS',
-                CARGAR_RETOS: 'DATOS.CARGAR_RETOS'
+                CARGAR_RETOS: 'DATOS.CARGAR_RETOS',
+                CARGAR_TEXTOS: 'DATOS.CARGAR_TEXTOS'
             }
         };
 
         // Simular estadoComponente
         window.estadoComponente = {};
+        // Simular AVENTURA_PARADAS (nuevo: se asigna en distribuirDatosAventura)
+        window.AVENTURA_PARADAS = null;
 
         // Funciones getter (simulando las implementadas en los componentes)
         function obtenerCoordenadasParadas() {
@@ -120,6 +127,12 @@
                 resultados.retos = true;
                 console.log('Retos:', retoResult);
 
+                // Nuevo: Asignar AVENTURA_PARADAS (como hace el código real)
+                if (Array.isArray(testData.elementosIDpadre) && testData.elementosIDpadre.length > 0) {
+                    window.AVENTURA_PARADAS = testData.elementosIDpadre;
+                    console.log('AVENTURA_PARADAS asignado:', testData.elementosIDpadre.length, 'elementos');
+                }
+
             } catch (error) {
                 console.error('Error en distribución:', error);
             }
@@ -185,6 +198,26 @@
                     `obtenerAudioFiles() funciona: ${typeof obtenerAudioFiles === 'function'}\n` +
                     `obtenerRetos() funciona: ${typeof obtenerRetos === 'function'}`,
                     'success'
+                );
+
+                // Paso 6: Verificar window.AVENTURA_PARADAS
+                const paradasOk = Array.isArray(window.AVENTURA_PARADAS) && window.AVENTURA_PARADAS.length === testData.elementosIDpadre.length;
+                addTestResult('Validación AVENTURA_PARADAS',
+                    `window.AVENTURA_PARADAS asignado: ${Array.isArray(window.AVENTURA_PARADAS)}\n` +
+                    `Elementos: ${window.AVENTURA_PARADAS?.length || 0} (esperado: ${testData.elementosIDpadre.length})\n` +
+                    `Primer padreid: ${window.AVENTURA_PARADAS?.[0]?.padreid || 'N/A'}\n` +
+                    `Primer parada_id: ${window.AVENTURA_PARADAS?.[0]?.parada_id || 'N/A'}`,
+                    paradasOk ? 'success' : 'error'
+                );
+
+                // Paso 7: Verificar formato de IDs en AVENTURA_PARADAS
+                const formatoOk = window.AVENTURA_PARADAS?.every(p =>
+                    p.padreid && p.padreid.startsWith('padre-') && p.parada_id
+                );
+                addTestResult('Validación Formato IDs',
+                    `Todos los elementos tienen padreid (padre-X): ${formatoOk}\n` +
+                    `Ejemplo: padreid=${window.AVENTURA_PARADAS?.[0]?.padreid}, parada_id=${window.AVENTURA_PARADAS?.[0]?.parada_id}`,
+                    formatoOk ? 'success' : 'error'
                 );
 
             } catch (error) {

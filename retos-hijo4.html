@@ -20,6 +20,7 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
     <title>retos-hijo4</title>
+    <script src="js/proteccion.js"></script>
     <script src="js/suppress-warnings.js"></script>
     <script>
         // Definir ejecutarValidacion globalmente lo antes posible para evitar errores de "not defined"
@@ -51,8 +52,8 @@
         }
         h3 {
             margin-bottom: 0.2em;
-            font-size: 1.5em; /* Aumentado para que las preguntas de retos normales sean más grandes */
-            text-align: center; /* Centrar la pregunta por defecto */
+            font-size: 2em;
+            text-align: center;
         }
         #reto {
             /* Los bordes deben ser siempre de igual grosor. */
@@ -62,21 +63,27 @@
             margin-bottom: 1em;
             position: relative;
             min-height: 13.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
             .respuesta {
-            margin: 0.4em 0;
-            font-size: 1.3em; /* Aumentado el tamaño de las opciones de respuesta */
+            margin: 0.85em 0;
+            font-size: 1.7em;
             display: flex;
             align-items: center;
         }
         .respuesta input[type="radio"] {
-            margin-right: 0.7em;
-            transform: scale(1.3);
+            margin-right: 1.2em;
+            transform: scale(2.0);
+            flex-shrink: 0;
             cursor: pointer;
         }
         .respuesta input[type="checkbox"] {
-            margin-right: 0.7em;
-            transform: scale(1.3);
+            margin-right: 1.2em;
+            transform: scale(2.0);
+            flex-shrink: 0;
             cursor: pointer;
         }
         .respuesta input[type="text"] {
@@ -220,6 +227,15 @@
                 margin-bottom: 0.3em; /* Margen inferior ajustado */
                 font-size: 1em; /* Letra más pequeña (ajustado de 1.1em a 1em) */
             }
+        }
+
+        /* Modo puzzle: sin scroll, sin h2, sin margen */
+        body.puzzle-mode {
+            overflow: hidden;
+            margin: 0;
+        }
+        body.puzzle-mode h2 {
+            display: none;
         }
     </style>
 
@@ -671,8 +687,9 @@
         // Asignar los elementos del DOM a las variables globales
         retoDiv = document.getElementById("reto");
         btnEnviar = document.createElement("button");
-        btnEnviar.textContent = "Enviar";
+        btnEnviar.textContent = "🫵";
         btnEnviar.className = "btn";
+        btnEnviar.style.backgroundColor = "#0077cc";
 
         btnMostrarRespuesta = document.getElementById("btnMostrarRespuesta");
         divRespuestaCorrecta = document.getElementById("respuestaCorrectaTexto");
@@ -692,9 +709,11 @@
             logger.debug(`[hijo4] mostrarReto llamado con retoId: ${retoId}`);
             // Buscar el reto usando función centralizada
             const retosArray = obtenerRetos();
+            console.log(`[hijo4][DEBUG] mostrarReto("${retoId}") — retosArray.length=${retosArray.length}, IDs disponibles:`, retosArray.map(r => r.id));
             const reto = retosArray.find(r => r.id === retoId);
             if (!reto) {
-                console.error(`Reto con ID ${retoId} no encontrado`);
+                console.error(`[hijo4] Reto con ID "${retoId}" no encontrado. IDs disponibles: ${retosArray.map(r=>r.id).join(', ')}`);
+                console.error(`[hijo4] body.display=${document.body?.style?.display}, __vv_retosAventura length=${window.__vv_retosAventura?.length || 0}`);
                 return;
             }
             logger.debug(`[hijo4] Reto encontrado:`, reto);
@@ -709,8 +728,9 @@
             ocultarControles();
 
             // Los botones están siempre visibles, pero btnNext está deshabilitado hasta respuesta correcta
-            if (btnNext) btnNext.disabled = true;
+            if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#0077cc"; }
             if (btnMostrarRespuesta) btnMostrarRespuesta.disabled = false;
+            if (btnEnviar) { btnEnviar.textContent = "🫵"; btnEnviar.style.backgroundColor = "#0077cc"; }
 
             retoDiv.classList.remove("correct", "incorrect");
             fuegosDiv.innerHTML = "";
@@ -719,10 +739,14 @@
             retoDiv.innerHTML = ""; // Limpiar contenido anterior del reto
             retoDiv.setAttribute("tabindex", "0");
             retoDiv.classList.remove('puzzle-active'); // Remover la clase puzzle-active
+            document.body.classList.remove('puzzle-mode');
+            if (btnMostrarRespuesta) btnMostrarRespuesta.style.display = '';
 
-            let preguntaElem = document.createElement("h3");
-            preguntaElem.textContent = `${reto.pregunta}`;
-            retoDiv.appendChild(preguntaElem);
+            if (reto.tipo !== 'puzzle') {
+                let preguntaElem = document.createElement("h3");
+                preguntaElem.textContent = `${reto.pregunta}`;
+                retoDiv.appendChild(preguntaElem);
+            }
 
             if (reto.tipo === "opcion" || reto.tipo === "opcion-multiple") {
                 const inputType = reto.multiple ? "checkbox" : "radio";
@@ -749,6 +773,8 @@
                 }
                 btnEnviar.style.display = "inline-block"; // Mostrar el botón Enviar
                 btnEnviar.disabled = false;
+
+
             }
             else if (reto.tipo === "texto") {
                 const inputTexto = document.createElement("input");
@@ -772,6 +798,7 @@
             }
             else if (reto.tipo === "puzzle") {
                 retoDiv.classList.add('puzzle-active');
+                document.body.classList.add('puzzle-mode');
                 const puzzleIframe = document.createElement("iframe");
                 puzzleIframe.id = "puzzleIframe";
                 puzzleIframe.src = reto.src;
@@ -779,8 +806,9 @@
                 puzzleIframe.allowFullscreen = true;
                 retoDiv.appendChild(puzzleIframe);
 
-                // Ocultar botones de la página principal para puzzles, ya que el puzzle gestiona su propia lógica.
+                // Ocultar botones de la página principal para puzzles
                 ocultarControles();
+                if (btnMostrarRespuesta) btnMostrarRespuesta.style.display = 'none';
             }
         }
 
@@ -857,10 +885,20 @@
                 retoDiv.classList.add("correct");
                 fuegosArtificiales(); // Llama a la animación
 
-                // Habilitar btnNext después de una respuesta correcta
-                if (btnNext) btnNext.disabled = false;
+                // Cambiar btnEnviar a 👍 verde
+                ocultarControles();
+                if (btnEnviar) {
+                    btnEnviar.textContent = "👍";
+                    btnEnviar.style.backgroundColor = "#28a745";
+                    btnEnviar.style.display = "inline-block";
+                    btnEnviar.disabled = true;
+                }
 
-                ocultarControles(); // Ocultar todos los controles (incluye btnEnviar)
+                // Habilitar btnNext y ponerlo verde
+                if (btnNext) {
+                    btnNext.disabled = false;
+                    btnNext.style.backgroundColor = "#28a745";
+                }
 
                 // Enviar mensaje al padre indicando que el reto se completó
                 // Actualizar estado de progreso
@@ -904,10 +942,16 @@
                     // No bloqueamos el flujo local, el usuario ya ganó visualmente
                 }
             } else {
-
                 retoDiv.classList.add("incorrect");
                 vibrar();
-                btnEnviar.disabled = false; // Permitir reintentar
+                btnEnviar.textContent = "👎";
+                btnEnviar.style.backgroundColor = "#dc3545";
+                btnEnviar.disabled = true;
+                setTimeout(() => {
+                    btnEnviar.textContent = "🫵";
+                    btnEnviar.style.backgroundColor = "#0077cc";
+                    btnEnviar.disabled = false;
+                }, 3000);
             }
         }
 
@@ -918,7 +962,7 @@
             const reto = retoActual;
             if (!reto) return; // Verificar que retoActual existe
             if (reto.tipo === "opcion" || reto.tipo === "opcion-multiple" || reto.tipo === "texto") {
-                divRespuestaCorrecta.textContent = "Respuesta correcta: " + ((reto.correctas || []).join(", "));
+                divRespuestaCorrecta.textContent = "Respuesta correcta: " + (reto.correctas || []).join(", ");
             } else {
                 divRespuestaCorrecta.textContent = "No hay respuesta correcta disponible para este tipo de reto.";
             }
@@ -975,7 +1019,10 @@
                         completado: true
                     }
                 });
-                if (btnNext) btnNext.disabled = false;
+                if (btnNext) {
+                    btnNext.disabled = false;
+                    btnNext.style.backgroundColor = "#28a745";
+                }
             }
             else if (event.data === "puzzle-state-timeout") {
                 retoDiv.classList.add("incorrect");
@@ -1062,7 +1109,10 @@
             let _uiConfirmado = false;
             const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
             try { if (document.body) document.body.style.display = 'none'; } catch (e) { /* ignore */ }
-            function mostrarUI() { if (!_uiConfirmado) { console.warn('[hijo4] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; } try { if (document.body) document.body.style.display = _originalDisplay || 'block'; console.log('[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); } catch (e) {} }
+            function mostrarUI() {
+                if (!_uiConfirmado) { return; }
+                try { if (document.body) { document.body.style.display = _originalDisplay || 'block'; console.log(`[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO — body.display=${document.body.style.display}`); } } catch (e) {}
+            }
 
             // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
 
@@ -1149,6 +1199,19 @@
                 // Mostrar UI ahora que el padre confirmó
                 try { _uiConfirmado = true; mostrarUI(); } catch (e) { /* ignore */ }
                 try { await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { /* ignore */ }
+
+                // Verificación diferida: si CARGAR_RETOS no llegó en 3s, solicitarlo al padre
+                setTimeout(() => {
+                    if (!window.__vv_retosAventura || !Array.isArray(window.__vv_retosAventura) || window.__vv_retosAventura.length === 0) {
+                        logger.warn('[hijo4] ⚠️ Retos no recibidos tras 3s de inicialización — solicitando al padre');
+                        enviarMensaje({
+                            tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            destino: getPadreId(),
+                            datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
+                        }).catch(err => logger.error('[hijo4] Error solicitando retos:', err));
+                    }
+                }, 3000);
             });
 
             // Controlador para mostrar reto específico
@@ -1158,9 +1221,27 @@
                         logger.warn('[hijo4] RETO.MOSTRAR recibido sin datos, ignorando');
                         return;
                     }
-                    const { retoId } = mensaje.datos;
+                    const { retoId, retosArray } = mensaje.datos;
+                    console.log(`[hijo4][DEBUG] RETO.MOSTRAR handler — retoId="${retoId}", retosArray recibido=${retosArray?.length || 0}, local __vv_retosAventura=${window.__vv_retosAventura?.length || 0}`);
                     logger.info(`[hijo4] RETO.MOSTRAR recibido para reto: ${retoId}`);
-                    console.log(`[hijo4] Mensaje RETO.MOSTRAR completo:`, mensaje);
+
+                    // FIX: Forzar body visible al recibir RETO.MOSTRAR
+                    // Si PADRE_CONFIRMA_HIJO_LISTO no llego, body puede estar display:none
+                    try {
+                        document.body.style.display = 'block';
+                        document.body.style.visibility = 'visible';
+                        document.body.style.opacity = '1';
+                    } catch(e) { /* ignore */ }
+
+                    // Si el padre envió el array completo de retos y nosotros no tenemos datos,
+                    // almacenarlos como respaldo (fix: CARGAR_RETOS pudo no haber llegado)
+                    if (retosArray && Array.isArray(retosArray) && retosArray.length > 0) {
+                        if (!window.__vv_retosAventura || !Array.isArray(window.__vv_retosAventura) || window.__vv_retosAventura.length === 0) {
+                            window.__vv_retosAventura = retosArray;
+                            logger.info(`[hijo4] ✅ ${retosArray.length} retos almacenados desde RETO.MOSTRAR (respaldo)`);
+                        }
+                    }
+
                     await mostrarReto(retoId);
                     estado.retoActualId = retoId;
                 } catch (e) {
@@ -1209,7 +1290,7 @@
                     
                     // Validación explícita antes de enviar
                     const destinoEntendido = mensaje.origen;
-                    const tipoEntendido = 'SISTEMA.CAMBIO_MODO_ENTENDIDO'; // String literal para evitar problemas de timing
+                    const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
                     const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
                     
                     // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
@@ -1255,8 +1336,8 @@
                     logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);
                     await enviarMensaje({
                         destino: mensaje.origen,
-                        tipo: 'SISTEMA.CAMBIO_MODO_EFECTUADO', // String literal
-                        origen: 'hijo4', // String literal
+                        tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
+                        origen: CONFIG_HIJO?.IFRAME_ID || 'hijo4',
                         datos: { 
                             modo, 
                             exito: true, 
@@ -1501,10 +1582,10 @@
             // Controlador: NAVEGACION.CAMBIO_PARADA
             registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => {
                 try {
-                    const resolved = resolverIdsParada(mensaje.datos || {});
-                        const padreId = resolved.padreId;
-                        const paradaId = resolved.paradaId;
-                        logger.info(`[hijo4][NAVEGACION.CAMBIO_PARADA] recibido: ${padreId || paradaId}`);
+                    const datos = mensaje.datos || {};
+                    const padreId = datos.padreId || datos.padreid || null;
+                    const paradaId = datos.paradaId || datos.parada_id || null;
+                    logger.info(`[hijo4][NAVEGACION.CAMBIO_PARADA] recibido: padreId=${padreId}, paradaId=${paradaId}, retoId=${datos.retoId}`);
                     // update local state such as current challenge if necessary
                     if (paradaId && typeof parseInt === 'function') {
                         // No-op: placeholder for actual reto prefetch logic
@@ -1620,7 +1701,7 @@
                     // Telemetría: incrementar contador por código de error GPS en hijo4
                     try { if (codigo !== undefined) { typeof window.incrementarContador === 'function' && window.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { /* ignore */ }
                     // Enviar métrica a monitoreo
-                    try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo4', destino: 'sistema-monitoreo', datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (ignore) { /* ignore */ }
+                    try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo4', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (ignore) { /* ignore */ }
                 return { exito: true };
             } catch (e) {
                 logger.error('[hijo4][GPS.ERROR] Error en handler no-op:', e);
@@ -1654,6 +1735,8 @@
 
             estado.inicializado = true;
             logger.info(`[hijo4] Inicialización completada exitosamente`);
+
+
         } catch (error) {
             logger.error(`[hijo4] Error en inicialización:`, error);
         }
@@ -1668,8 +1751,8 @@
 <div id="reto" tabindex="0"></div>
 
 <div id="button-container">
-    <button id="btnMostrarRespuesta">¿Respuesta Correcta?</button>
-    <button id="btnNextAfterReto">Continuar su Aventura</button>
+    <button id="btnMostrarRespuesta">🆘❓</button>
+    <button id="btnNextAfterReto">➡️🎯</button>
 </div>
 <div id="respuestaCorrectaTexto"></div>
 

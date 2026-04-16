@@ -39,8 +39,11 @@ class DataService {
             this._cache.lastLoad = new Date();
             console.log('[DataService] Datos cargados correctamente');
         } catch (error) {
-            console.error('[DataService] Error cargando datos:', error.message);
-            // En producción lanzaríamos el error, aquí usamos datos vacíos
+            console.error('[DataService] ❌ ERROR CRÍTICO cargando datos:', error.message);
+            if (process.env.NODE_ENV === 'production') {
+                throw new Error(`[DataService] No se pueden cargar los datos: ${error.message}`);
+            }
+            console.warn('[DataService] ⚠️ Usando datos vacíos (solo desarrollo)');
             this._initializeEmptyData();
         }
     }
@@ -55,7 +58,11 @@ class DataService {
             }
             return JSON.parse(content);
         }
-        console.warn(`[DataService] Archivo no encontrado: ${filename}`);
+        const msg = `[DataService] Archivo no encontrado: ${filename}`;
+        if (process.env.NODE_ENV === 'production') {
+            throw new Error(msg);
+        }
+        console.warn(msg);
         return null;
     }
     

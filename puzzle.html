@@ -90,36 +90,6 @@
         width: 100%; /* Asegura que el canvas use todo el ancho disponible dentro del wrapper */
         height: calc(100% - 3.125rem); /* Ajusta la altura del canvas restando el margen */
     }
-    #completeMsg {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(255, 255, 255, 0.9);
-        padding: 1.5em 2em;
-        border-radius: 0.625rem;
-        box-shadow: 0 0.3125rem 0.9375rem rgba(0,0,0,0.3);
-        font-size: 1.8em;
-        font-weight: bold;
-        color: #222;
-        text-align: center;
-        z-index: 50;
-        display: none;
-    }
-    #completeMsg button {
-        margin-top: 1em;
-        padding: 0.8em 1.5em;
-        font-size: 1em;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 0.3125rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    #completeMsg button:hover {
-        background-color: #0056b3;
-    }
     #errorMsg {
         position: absolute;
         top: 50%;
@@ -148,10 +118,6 @@
     <span id="timer">03:00</span>
   </div>
   <canvas id="puzzleCanvas"></canvas>
-  <div id="completeMsg">
-    <strong id="messageText"></strong><br />
-    <button id="continueBtn">Continuar Aventura</button>
-  </div>
   <div id="errorMsg">
     <strong id="errorText"></strong>
   </div>
@@ -162,7 +128,6 @@ import { PUZZLES_AVENTURAS } from './js/puzzles-aventuras.js';
 // Obtener el ID del puzzle de la URL
 const urlParams = new URLSearchParams(window.location.search);
 const puzzleId = urlParams.get('id');
-const noOverlay = urlParams.get('noOverlay') === '1';
 
 // Obtener la aventura desde la URL o desde el padre
 // Prioridad: URL param > padre > default (Aventura1)
@@ -183,10 +148,23 @@ if (!aventuraActual) {
 }
 
 // Buscar el puzzle en la estructura de PUZZLES_AVENTURAS
-// Estructura: PUZZLES_AVENTURAS[aventura]["puzzle.html"].puzzle_id = [{id, imagen, ...}, ...]
-const aventuraData = PUZZLES_AVENTURAS[aventuraActual];
-const puzzleArray = aventuraData?.['puzzle.html']?.puzzle_id || [];
-const puzzleConfig = puzzleArray.find(p => p.id === puzzleId);
+
+// Búsqueda robusta: primero en la aventura actual, luego global
+let aventuraData = PUZZLES_AVENTURAS[aventuraActual];
+let puzzleArray = aventuraData?.['puzzle.html']?.puzzle_id || [];
+let puzzleConfig = puzzleArray.find(p => p.id === puzzleId);
+
+if (!puzzleConfig) {
+    for (const [aventura, data] of Object.entries(PUZZLES_AVENTURAS)) {
+        const arr = data?.['puzzle.html']?.puzzle_id || [];
+        const found = arr.find(p => p.id === puzzleId);
+        if (found) {
+            puzzleConfig = found;
+            aventuraActual = aventura; // opcional: para saber dónde se encontró
+            break;
+        }
+    }
+}
 
 if (!puzzleId || !puzzleConfig) {
     const errorMsg = document.getElementById("errorMsg");
@@ -217,13 +195,10 @@ let pieces = [], draggingPiece = null;
 let offsetX = 0, offsetY = 0, placedCount = 0;
 let img = new Image();
 let animatingPiece = null, animFrame = 0, animDirection = 1, animScale = 1;
-const completeMsg = document.getElementById("completeMsg");
-const messageText = document.getElementById("messageText");
 const restartBtn = document.getElementById("restartBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const timerDisplay = document.getElementById("timer");
 const puzzleWrapper = document.getElementById("puzzleWrapper");
-const continueBtn = document.getElementById("continueBtn");
 
 const placeSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
 const failSound = new Audio("https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg");
@@ -344,8 +319,6 @@ function init() {
     const ph = canvas.height / rows;
 
     pieces = []; placedCount = 0;
-    completeMsg.style.display = "none";
-    continueBtn.style.display = "none";
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -477,20 +450,14 @@ function updateTimerDisplay() {
 function endPuzzle(success) {
     puzzleEnded = true;
     clearInterval(timerInterval);
-    if (!noOverlay) {
-        completeMsg.style.display = "block";
-        continueBtn.style.display = "block";
-    }
 
     if (success) {
         successSound.play();
-        messageText.textContent = "🎉 ¡Puzzle completado!";
         puzzleWrapper.style.borderColor = "green";
         runFireworks();
         window.parent.postMessage("puzzle-state-completed", "*");
     } else {
         failSound.play();
-        messageText.textContent = "⏰ Tiempo agotado. Gracias por participar.";
         puzzleWrapper.style.borderColor = "red";
         runConfetti();
         window.parent.postMessage("puzzle-state-timeout", "*");
@@ -609,8 +576,6 @@ function runConfetti() {
 restartBtn.addEventListener("click", () => {
     paused = false;
     puzzleEnded = false;
-    completeMsg.style.display = "none";
-    continueBtn.style.display = "none";
     init();
     puzzleWrapper.style.borderColor = "#007bff";
     requestAnimationFrame(draw);
@@ -625,10 +590,6 @@ pauseBtn.addEventListener("click", () => {
     } else {
         clearInterval(timerInterval);
     }
-});
-
-continueBtn.addEventListener("click", () => {
-    window.parent.postMessage('advance-to-next', '*');
 });
 
 canvas.addEventListener("pointerdown", onPointerDown);

@@ -63,27 +63,62 @@
         addResult('Test inicializado. Esperando acciones del usuario...');
     </script>
 
-    <!-- Simular la estructura del script global -->
+    <!-- Simular la estructura del script global con formato real -->
     <script>
-        // Simular retosAventura1Es
+        // Simular retosAventura usando el formato real de __vv_RETOS_AVENTURAS
         const retosAventura1Es = [
-            { reto: 1, id: 'R-1', pregunta: 'Pregunta 1' },
-            { reto: 2, id: 'R-2', pregunta: 'Pregunta 2' }
+            { id: 'R3-Av1-es', parada_id: 'P-0', tipo: 'opcion', pregunta: '¿De qué siglo son las Torres?', opciones: ['XIV', 'XVI', 'XVIII'], multiple: false, correctas: ['XIV'] },
+            { id: 'R4-Av1-es', parada_id: 'P-1', tipo: 'opcion', pregunta: '¿Colores de la bandera?', opciones: ['Violeta', 'Verde', 'Azul'], multiple: false, correctas: ['Azul'] }
         ];
 
-        // Función getter
+        // Simular el formato centralizado __vv_RETOS_AVENTURAS
+        window.__vv_RETOS_AVENTURAS = {
+            Aventura1: {
+                es: retosAventura1Es
+            }
+        };
+
+        // Función getter (estilo actual de la app)
         function obtenerRetos() {
-            return retosAventura1Es;
+            const aventura = window.aventuraSeleccionada || 'Aventura1';
+            const idioma = window.idiomaSeleccionado || 'es';
+            return window.__vv_RETOS_AVENTURAS?.[aventura]?.[idioma] || [];
         }
 
         // Exponer globalmente
         window.obtenerRetos = obtenerRetos;
         window.retosAventura1Es = retosAventura1Es;
+        window.aventuraSeleccionada = 'Aventura1';
+        window.idiomaSeleccionado = 'es';
 
         // Función auto-ejecutable
         window.runTest = function() {
             testObtenerRetos();
             testAccesoDirecto();
+
+            // Test 3: Verificar formato de datos
+            try {
+                const retos = obtenerRetos();
+                const reto = retos[0];
+                const tieneFormatoCorrecto = reto && reto.id && reto.parada_id && reto.tipo && reto.pregunta && Array.isArray(reto.opciones);
+                addResult(tieneFormatoCorrecto
+                    ? '✅ Formato de reto correcto (id, parada_id, tipo, pregunta, opciones)'
+                    : '❌ Formato de reto incorrecto', tieneFormatoCorrecto ? 'success' : 'error');
+            } catch (e) {
+                addResult('❌ Error verificando formato: ' + e.message, 'error');
+            }
+
+            // Test 4: Verificar acceso vía __vv_RETOS_AVENTURAS
+            try {
+                const retosViaGlobal = window.__vv_RETOS_AVENTURAS?.Aventura1?.es;
+                const ok = Array.isArray(retosViaGlobal) && retosViaGlobal.length === 2;
+                addResult(ok
+                    ? '✅ __vv_RETOS_AVENTURAS accesible: ' + retosViaGlobal.length + ' retos'
+                    : '❌ __vv_RETOS_AVENTURAS no accesible', ok ? 'success' : 'error');
+            } catch (e) {
+                addResult('❌ Error accediendo __vv_RETOS_AVENTURAS: ' + e.message, 'error');
+            }
+
             // Reportar
             window.TestReporter.report({
                 name: 'Fix: Retos',

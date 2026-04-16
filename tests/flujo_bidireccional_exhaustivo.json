@@ -8,7 +8,7 @@
     "SISTEMA": {
       "HIJO_PREPARADO": {
         "descripcion": "El hijo notifica al padre que está preparado y envía sus capacidades",
-        "origen": "hijo2|hijo3|hijo4|hijo5|seleccion|hijo1-hamburguesa|hijo1-opciones",
+        "origen": "hijo2|hijo3|hijo4|hijo5|seleccion|hijo1-opciones",
         "ruta": "hijo -> padre (postMessage)",
         "destino": "padre (codigo-padre.html)",
         "requiere_respuesta": true,

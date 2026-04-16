@@ -1,4 +1,8 @@
 // js/indice-aventuras.js
+// Metadatos estáticos de cada aventura (lo que no es computable desde los arrays).
+// Los totales (totalParadas, totalTramos, totalRetos, totalMonumentos, totalAudios)
+// se calculan dinámicamente en cargarAventurasDinamicamente() (En-busca-del-tesoro.html)
+// importando los módulos fuente en tiempo de ejecución.
 
 export const MAPEO_IDIOMAS = {
     es: { nombre: 'Español', bandera: 'Bandera España.jpeg' },
@@ -15,56 +19,50 @@ export const INDICE_AVENTURAS = {
         nombre: 'València centro histórico 1',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // 60 horas en minutos
-        totalParadas: 36,
-        totalTramos: 23,
-        totalRetos: 28,
-        totalAudios: 47,
+        tiempoEstimado: 3600, // minutos
+        distanciaKm: 4,
+        vehiculo: '👣',
         idiomas: {
             es: { disponible: true },
-            en: { disponible: false },
-            fr: { disponible: false },
-            it: { disponible: false },
-            nl: { disponible: false },
-            ja: { disponible: false }
+            en: { disponible: true },
+            fr: { disponible: true },
+            it: { disponible: true },
+            nl: { disponible: true },
+            ja: { disponible: true }
         }
     },
     Aventura2: {
         id: 'Aventura2',
         nombre: 'València centro histórico 2',
-        disponible: false,
+        disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // 60 horas en minutos
-        totalParadas: 0,
-        totalTramos: 0,
-        totalRetos: 0,
-        totalAudios: 0,
+        tiempoEstimado: 3600,
+        distanciaKm: 4,
+        vehiculo: '👣',
         idiomas: {
-            es: { disponible: false },
-            en: { disponible: false },
-            fr: { disponible: false },
-            it: { disponible: false },
-            nl: { disponible: false },
-            ja: { disponible: false }
+            es: { disponible: true },
+            en: { disponible: true },
+            fr: { disponible: true },
+            it: { disponible: true },
+            nl: { disponible: true },
+            ja: { disponible: true }
         }
     },
     Aventura3: {
         id: 'Aventura3',
         nombre: 'València Ciudad de las Artes y las Ciencias',
-        disponible: false,
+        disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // 60 horas en minutos
-        totalParadas: 0,
-        totalTramos: 0,
-        totalRetos: 0,
-        totalAudios: 0,
+        tiempoEstimado: 3600,
+        distanciaKm: 10,
+        vehiculo: '🚲🛴',
         idiomas: {
-            es: { disponible: false },
-            en: { disponible: false },
-            fr: { disponible: false },
-            it: { disponible: false },
-            nl: { disponible: false },
-            ja: { disponible: false }
+            es: { disponible: true },
+            en: { disponible: true },
+            fr: { disponible: true },
+            it: { disponible: true },
+            nl: { disponible: true },
+            ja: { disponible: true }
         }
     },
     Aventura4: {
@@ -72,11 +70,9 @@ export const INDICE_AVENTURAS = {
         nombre: 'València Parque de Cabecera y Viveros',
         disponible: false,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // 60 horas en minutos
-        totalParadas: 0,
-        totalTramos: 0,
-        totalRetos: 0,
-        totalAudios: 0,
+        tiempoEstimado: 3600,
+        distanciaKm: 10,
+        vehiculo: '🚲🛴',
         idiomas: {
             es: { disponible: false },
             en: { disponible: false },
@@ -91,11 +87,9 @@ export const INDICE_AVENTURAS = {
         nombre: 'València murallas',
         disponible: false,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // 60 horas en minutos
-        totalParadas: 0,
-        totalTramos: 0,
-        totalRetos: 0,
-        totalAudios: 0,
+        tiempoEstimado: 3600,
+        distanciaKm: 6,
+        vehiculo: '🚲🛴',
         idiomas: {
             es: { disponible: false },
             en: { disponible: false },
@@ -110,11 +104,9 @@ export const INDICE_AVENTURAS = {
         nombre: 'València en Fallas',
         disponible: false,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // 60 horas en minutos
-        totalParadas: 0,
-        totalTramos: 0,
-        totalRetos: 0,
-        totalAudios: 0,
+        tiempoEstimado: 3600,
+        distanciaKm: 4,
+        vehiculo: '👣',
         idiomas: {
             es: { disponible: false },
             en: { disponible: false },
@@ -129,11 +121,9 @@ export const INDICE_AVENTURAS = {
         nombre: 'València 34 kilómetros',
         disponible: false,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 9000, // 150 horas en minutos
-        totalParadas: 0,
-        totalTramos: 0,
-        totalRetos: 0,
-        totalAudios: 0,
+        tiempoEstimado: 9000,
+        distanciaKm: 34,
+        vehiculo: '🚲🛴👣',
         idiomas: {
             es: { disponible: false },
             en: { disponible: false },

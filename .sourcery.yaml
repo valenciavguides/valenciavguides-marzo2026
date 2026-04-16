@@ -1,0 +1,7 @@
+ignore:
+  - backend/coverage
+  - backend/coverage/**
+  - "**/coverage/**"
+  - _translate_*.py
+  - _check_*.py
+  - _count_*.py

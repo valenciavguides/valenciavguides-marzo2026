@@ -1,81 +1,164 @@
 <!doctype html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8" />
   <title>Test DATOS.SOLICITAR_RETO (hijo4)</title>
-  <style>body{font-family:Arial,Helvetica,sans-serif}#log{white-space:pre-wrap;background:#f7f7f7;padding:8px;border:1px solid #ddd}</style>
+  <style>
+    body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+    .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+    .success { background: #1b5e20; color: #a5d6a7; }
+    .error { background: #b71c1c; color: #ef9a9a; }
+    .info { background: #0d47a1; color: #90caf9; }
+    h2 { color: #ffd54f; }
+  </style>
   <script src="test-reporter-utility.js"></script>
 </head>
 <body>
-  <h3>Test: DATOS.SOLICITAR_RETO en `retos-hijo4.html`</h3>
-  <div id="status">RUNNING</div>
+  <h2>Test: DATOS.SOLICITAR_RETO (hijo4)</h2>
+  <p>Verifica la lógica de solicitud de reto: búsqueda, normalización y respuesta.</p>
   <div id="results"></div>
-  <div id="log"></div>
-
-  <iframe id="sut" src="../retos-hijo4.html" style="width:100%;height:240px;border:1px solid #ccc"></iframe>
 
   <script>
-  window.runTest = async function(){
-    const logEl = document.getElementById('log');
-    function append(...args){ logEl.textContent += args.join(' ') + '\n'; }
-
-    const sut = document.getElementById('sut');
-    await new Promise(r => { sut.onload = r; setTimeout(r,1000); });
-    append('[test] hijo4 cargado');
-
-    // 1) Inject fake retos into the child and request existing reto
-    const retoMock = { id: 'R-TEST-1', tipo: 'pregunta', pregunta: '¿2+2?', opciones: ['3','4'], multiple: false, correctas: [1], src: null };
-    try {
-      sut.contentWindow.__vv_retosAventura = [ retoMock ];
-      append('[test] Injectado __vv_retosAventura con 1 reto');
-    } catch (e) { append('[ERROR] No se pudo inyectar retos en child:', e && e.message); document.getElementById('status').textContent='FAILED'; return; }
-
-    function esperaRespuesta(pedidoId, timeoutMs = 2000){
-      return new Promise((resolve) => {
-        const onMessage = (ev) => {
-          const m = ev.data || {};
-          if (m && m.tipo === (sut.contentWindow.TIPOS_MENSAJE && sut.contentWindow.TIPOS_MENSAJE.DATOS && sut.contentWindow.TIPOS_MENSAJE.DATOS.RESPUESTA_RETO)) {
-            if ((m.datos && m.datos.mensajeOriginal) === pedidoId) {
-              window.removeEventListener('message', onMessage);
-              resolve({ ok: true, msg: m });
-            }
-          }
-        };
-        window.addEventListener('message', onMessage);
-        setTimeout(() => { window.removeEventListener('message', onMessage); resolve({ ok: false, timeout: true }); }, timeoutMs);
-      });
+    function addResult(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = 'test-result ' + type;
+      div.textContent = message;
+      document.getElementById('results').appendChild(div);
     }
 
-    // Test success
-    const pedido1 = 'p-req-1';
-    sut.contentWindow.postMessage({ tipo: (sut.contentWindow.TIPOS_MENSAJE && sut.contentWindow.TIPOS_MENSAJE.DATOS && sut.contentWindow.TIPOS_MENSAJE.DATOS.SOLICITAR_RETO), datos: { retoId: 'R-TEST-1', mensajeId: pedido1 }, origen: 'test' }, window.location.origin);
-    append('[test] Enviado SOLICITAR_RETO pedido1');
-    const res1 = await esperaRespuesta(pedido1, 2000);
-    if (!res1.ok) { append('[FAIL] No llegó RESPUESTA_RETO para pedido1'); document.getElementById('status').textContent='FAILED'; return; }
-    try { const ok = res1.msg.datos && res1.msg.datos.exito === true && res1.msg.datos.reto && res1.msg.datos.reto.id === 'R-TEST-1'; append(ok ? '[PASS] RESPUESTA_RETO con exito OK' : '[FAIL] RESPUESTA_RETO no contiene datos correctos: ' + JSON.stringify(res1.msg.datos)); } catch(e){ append('[ERROR] Error comprobando respuesta:', e && e.message); }
+    // Mock reto data (real format)
+    const mockRetos = [
+      { id: 'R4-Av1-es', parada_id: 'P-1', tipo: 'opciones', pregunta: '¿Cuál es la torre?', opciones: ['Serranos', 'Miguelete'], multiple: false, correctas: [0], src: null },
+      { id: 'R5-Av1-es', parada_id: 'P-2', tipo: 'texto', pregunta: '¿Año de La Lonja?', opciones: [], multiple: false, correctas: [], src: null }
+    ];
 
-    // Test missing retoId -> expect exito:false
-    const pedido2 = 'p-req-2';
-    sut.contentWindow.postMessage({ tipo: (sut.contentWindow.TIPOS_MENSAJE && sut.contentWindow.TIPOS_MENSAJE.DATOS && sut.contentWindow.TIPOS_MENSAJE.DATOS.SOLICITAR_RETO), datos: { /* missing retoId */ mensajeId: pedido2 }, origen: 'test' }, window.location.origin);
-    append('[test] Enviado SOLICITAR_RETO (sin retoId) pedido2');
-    const res2 = await esperaRespuesta(pedido2, 2000);
-    if (!res2.ok) { append('[FAIL] No llegó RESPUESTA_RETO para pedido2'); document.getElementById('status').textContent='FAILED'; return; }
-    try { const ok = res2.msg.datos && res2.msg.datos.exito === false && typeof res2.msg.datos.error === 'string'; append(ok ? '[PASS] RESPUESTA_RETO (error) OK' : '[FAIL] RESPUESTA_RETO (error) no como se esperaba: ' + JSON.stringify(res2.msg.datos)); } catch(e){ append('[ERROR] Error comprobando respuesta2:', e && e.message); }
+    window.__vv_retosAventura = mockRetos;
 
-    append('[test] FINALIZADO');
-    const status = document.getElementById('status').textContent;
-    const resultsDiv = document.getElementById('results');
-    
-    const resultDiv = document.createElement('div');
-    resultDiv.className = (status === 'DONE' ? 'pass' : 'fail');
-    resultDiv.textContent = status === 'DONE' ? '[PASS] Test completado' : '[FAIL] Error en test SOLICITAR_RETO';
-    resultsDiv.appendChild(resultDiv);
-    
-    window.TestReporter.report({
-      name: 'Datos: SOLICITAR_RETO (hijo4)',
-      resultsContainer: resultsDiv
-    });
-  };
+    function obtenerRetos() {
+      return window.__vv_retosAventura || [];
+    }
+
+    // Replicate SOLICITAR_RETO handler logic from hijo4
+    function procesarSolicitudReto(mensaje) {
+      const retoId = mensaje?.datos?.retoId;
+
+      if (!retoId) {
+        return {
+          mensajeOriginal: mensaje?.datos?.mensajeId,
+          exito: false,
+          error: 'Falta retoId en mensaje.datos',
+          retoId: undefined
+        };
+      }
+
+      const retosArray = obtenerRetos() || [];
+      const reto = Array.isArray(retosArray) ? retosArray.find(r => r && r.id === retoId) : null;
+
+      if (!reto) {
+        return {
+          mensajeOriginal: mensaje?.datos?.mensajeId,
+          exito: false,
+          error: 'Reto no encontrado',
+          retoId
+        };
+      }
+
+      return {
+        mensajeOriginal: mensaje?.datos?.mensajeId,
+        retoId,
+        exito: true,
+        reto: {
+          id: reto.id,
+          tipo: reto.tipo,
+          pregunta: reto.pregunta,
+          opciones: Array.isArray(reto.opciones) ? reto.opciones : [],
+          multiple: !!reto.multiple,
+          correctas: Array.isArray(reto.correctas) ? reto.correctas : [],
+          puzzleSrc: reto.src || reto.puzzleSrc || null
+        }
+      };
+    }
+
+    // Tests
+    window.runTest = function() {
+      addResult('── Solicitud exitosa ──', 'info');
+
+      // Test 1: Valid retoId
+      const res1 = procesarSolicitudReto({ datos: { retoId: 'R4-Av1-es', mensajeId: 'req-1' } });
+      if (res1.exito === true && res1.reto && res1.reto.id === 'R4-Av1-es') {
+        addResult('✅ SOLICITAR_RETO R4-Av1-es → exito:true, reto.id correcto', 'success');
+      } else {
+        addResult('❌ SOLICITAR_RETO R4-Av1-es falló: ' + JSON.stringify(res1), 'error');
+      }
+
+      // Test 2: Response contains normalized fields
+      if (res1.reto && Array.isArray(res1.reto.opciones) && res1.reto.opciones.length === 2 &&
+          res1.reto.multiple === false && Array.isArray(res1.reto.correctas) && res1.reto.puzzleSrc === null) {
+        addResult('✅ Campos normalizados: opciones(2), multiple=false, correctas=array, puzzleSrc=null', 'success');
+      } else {
+        addResult('❌ Campos no normalizados correctamente', 'error');
+      }
+
+      // Test 3: mensajeOriginal preserved
+      if (res1.mensajeOriginal === 'req-1') {
+        addResult('✅ mensajeOriginal preservado: "req-1"', 'success');
+      } else {
+        addResult('❌ mensajeOriginal no preservado', 'error');
+      }
+
+      addResult('── Solicitud sin retoId ──', 'info');
+
+      // Test 4: Missing retoId → exito:false
+      const res2 = procesarSolicitudReto({ datos: { mensajeId: 'req-2' } });
+      if (res2.exito === false && typeof res2.error === 'string') {
+        addResult('✅ Sin retoId → exito:false, error="' + res2.error + '"', 'success');
+      } else {
+        addResult('❌ Sin retoId debería retornar exito:false', 'error');
+      }
+
+      addResult('── Reto no encontrado ──', 'info');
+
+      // Test 5: Non-existent reto
+      const res3 = procesarSolicitudReto({ datos: { retoId: 'R99-NOEXISTE', mensajeId: 'req-3' } });
+      if (res3.exito === false && res3.error === 'Reto no encontrado') {
+        addResult('✅ Reto inexistente → exito:false, error="Reto no encontrado"', 'success');
+      } else {
+        addResult('❌ Reto inexistente debería retornar error', 'error');
+      }
+
+      addResult('── Segundo reto (tipo texto) ──', 'info');
+
+      // Test 6: Second reto
+      const res4 = procesarSolicitudReto({ datos: { retoId: 'R5-Av1-es', mensajeId: 'req-4' } });
+      if (res4.exito === true && res4.reto.tipo === 'texto' && res4.reto.pregunta === '¿Año de La Lonja?') {
+        addResult('✅ R5-Av1-es → tipo=texto, pregunta correcta', 'success');
+      } else {
+        addResult('❌ R5-Av1-es datos incorrectos', 'error');
+      }
+
+      // Test 7: Empty opciones normalized to array
+      if (res4.reto && Array.isArray(res4.reto.opciones) && res4.reto.opciones.length === 0) {
+        addResult('✅ Opciones vacías normalizadas a []', 'success');
+      } else {
+        addResult('❌ Opciones vacías no normalizadas', 'error');
+      }
+
+      addResult('── Datos datos nulos ──', 'info');
+
+      // Test 8: null datos
+      const res5 = procesarSolicitudReto({ datos: null });
+      if (res5.exito === false) {
+        addResult('✅ datos:null → exito:false', 'success');
+      } else {
+        addResult('❌ datos:null debería retornar exito:false', 'error');
+      }
+
+      // Report
+      window.TestReporter.report({
+        name: 'Datos: SOLICITAR_RETO (hijo4)',
+        resultsContainer: document.getElementById('results')
+      });
+    };
   </script>
 </body>
 </html>

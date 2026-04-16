@@ -67,18 +67,22 @@
         </ul>
     </div>
 
+    <script src="test-reporter-utility.js"></script>
     <script>
         function openTestPage() {
-            window.open('./codigo-padre.html', '_blank');
+            window.open('../codigo-padre.html', '_blank');
         }
 
         // Verificar si los archivos críticos existen
         async function checkFiles() {
             const criticalFiles = [
-                './js/logger.js',
-                './js/config.js',
-                './js/utils.js',
-                './js/mensajeria.js'
+                '../js/logger.js',
+                '../js/config.js',
+                '../js/utils.js',
+                '../js/mensajeria.js',
+                '../js/constants.js',
+                '../js/funciones-mapa.js',
+                '../js/aventuras-ID-padre.js'
             ];
 
             const results = [];
@@ -115,6 +119,20 @@
 
         // Ejecutar verificación al cargar
         checkFiles();
+
+        // Auto-run para master-test
+        window.runTest = function() {
+            checkFiles().then(() => {
+                const statusDiv = document.getElementById('corrections-status');
+                const passed = statusDiv.querySelectorAll('.success').length;
+                const failed = statusDiv.querySelectorAll('.error').length;
+                window.TestReporter.report({
+                    name: 'Basic: Código Padre',
+                    passed: passed,
+                    failed: failed
+                });
+            });
+        };
     </script>
 </body>
 </html>
