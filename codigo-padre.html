@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <!--
     @ts-nocheck
     eslint-disable no-redeclare
@@ -244,6 +244,15 @@
         /* Escalado proporcional puro: 2.5% del menor lado del viewport */
         html { font-size: 2.5vmin; }
 
+        /* Variables de layout responsivo.
+           En landscape: vmin = vh → mismo resultado que antes.
+           En portrait mobile: vmin = vw → escala sobre el lado pequeño. */
+        :root {
+            --franja-lateral: clamp(48px, calc((84vmin - 16px) / 6 + 2px), 150px);
+            --franja-inferior: clamp(48px, calc((84vmin - 16px) / 6 + 4px), 150px);
+            --gap-inferior: 0.6cm;
+        }
+
         /* Estilos generales, mapa, debug, logo, iframes, etc. */
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: transparent; }
         iframe { background: transparent; border: none; }
@@ -283,8 +292,8 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: calc(100vw - (84vh - 16px) / 3 - 1px);
-            height: calc((84vh - 16px) / 6 + 6px + 0.5cm);
+            width: calc(100vw - 2 * var(--franja-lateral) - 1px);
+            height: calc(var(--franja-inferior) + 2px + 0.5cm);
             background: rgba(255,255,255,0.85);
             z-index: 1000;
             pointer-events: none;
@@ -713,12 +722,12 @@
         /* Layout: marco alrededor del mapa */
         #hijo3 {
             position: fixed;
-            bottom: 0.6cm;
-            left: calc((84vh - 16px) / 6 + 2.5px);
-            right: calc((84vh - 16px) / 6 + 2.5px);
+            bottom: var(--gap-inferior);
+            left: calc(var(--franja-lateral) + 0.5px);
+            right: calc(var(--franja-lateral) + 0.5px);
             top: auto;
-            height: calc((84vh - 16px) / 6 + 4px);
-            width: calc(100vw - (84vh - 16px) / 3 - 5px);
+            height: var(--franja-inferior);
+            width: calc(100vw - 2 * var(--franja-lateral) - 1px);
             z-index: 1500 !important;
             display: block !important;
             visibility: visible !important;
@@ -736,10 +745,9 @@
             position: fixed;
             top: 16vh;
             right: 0.5px;
-            bottom: 0;
+            bottom: var(--gap-inferior);
             left: auto;
-            height: 84vh;
-            width: calc((84vh - 16px) / 6 + 2px);
+            width: var(--franja-lateral);
             z-index: 1501 !important;
             display: block !important;
             visibility: visible !important;
@@ -2017,7 +2025,7 @@
     <iframe id="hijo1-opciones" src=""
         title="Opciones de usuario"
         aria-label="Opciones y configuración"
-        style="position:fixed; left:0.5px; top:16vh; bottom:0; height:84vh; width:calc((84vh - 16px) / 6 + 2px); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
+        style="position:fixed; left:0.5px; top:16vh; bottom:var(--gap-inferior); width:var(--franja-lateral); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
         onload="handleIframeLoad('hijo1-opciones')" onerror="handleIframeError('hijo1-opciones', event)"></iframe>
 
     <iframe id="hijo5" src=""
