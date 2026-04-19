@@ -45,7 +45,7 @@
     .checkmark { color: #28a745; font-size: 3rem; font-weight: bold; margin-top: -0.125rem; }
     .cross { color: #dc3545; font-size: 3rem; font-weight: bold; margin-top: -0.125rem; }
     .free-demo { position: absolute; top: 0.625rem; left: 0.625rem; background-color: red; color: white; padding: 0.3125rem 0.625rem; font-weight: bold; font-size: 0.875rem; border-radius: 0.3125rem; }
-    .texto-box { max-height: 18.75rem; overflow-y: auto; border: 0.125rem solid #0074d9; padding: 1.25rem; margin-top: 1.25rem; background-color: #fff8e7; color: #333; border-radius: 0.625rem; text-align: left; width: 80%; }
+    .texto-box { max-height: 18.75rem; overflow-y: auto; border: 0.125rem solid white; padding: 1.25rem; margin-top: 1.25rem; background-color: #111; border-radius: 0.625rem; text-align: left; width: 80%; }
     .borde-azul { border: 0.25rem solid #0074d9; }
     .banderas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-top: 1.875rem; }
     .bandera-container { position: relative; }
@@ -53,10 +53,10 @@
     #pantalla2 { overflow: hidden; }
     .en-desarrollo { position: absolute; top: 0.625rem; left: 0.625rem; background-color: white; color: red; padding: 0.3125rem; font-size: 0.75rem; font-weight: bold; transform: rotate(-20deg); }
     .audio-controls { margin-top: 1.875rem; }
-    .reto-box { background: #fff8e7; color: #333; border-radius: 1.25rem; padding: 1.25rem; border: 0.3125rem solid blue; width: 95vw; max-width: 95vw; max-height: calc(82vh - env(safe-area-inset-bottom, 0px)); overflow-y: auto; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
-    .respuesta { margin: 0.9rem 0; font-size: clamp(14px, 3.5vmin, 18px); display: flex; align-items: center; }
+    .reto-box { background: white; color: black; border-radius: 1.25rem; padding: 1.25rem; border: 0.3125rem solid blue; width: 80%; max-width: 25rem; }
+    .respuesta { margin: 0.9rem 0; font-size: 1.3rem; display: flex; align-items: center; }
     .reto-box input[type="radio"], .reto-box input[type="checkbox"] { transform: scale(2.0); flex-shrink: 0; margin-right: 0.8rem; cursor: pointer; }
-    .reto-box p { font-size: clamp(14px, 3.5vmin, 18px); }
+    .reto-box p { font-size: 1.4rem; }
     #reto-r1-opciones, #reto-r2-opciones { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
     .tick, .x { display: none; font-weight: bold; font-size: 3rem; margin-top: -0.125rem; }
     .tick.correcto { display: inline; color: #28a745; }
@@ -64,11 +64,9 @@
     .visual-feedback { font-size: 2rem; font-weight: bold; }
     .visual-feedback.success { color: #28a745; }
     .visual-feedback.error { color: #dc3545; }
-    .aventuras-lista { display: flex; flex-direction: column; gap: clamp(0.15rem, 0.5vmin, 0.35rem); width: 95vw; max-width: 95vw; flex: 1; }
+    .aventuras-lista { display: flex; flex-direction: column; gap: clamp(0.15rem, 0.5vmin, 0.35rem); width: 90%; max-width: 90vw; flex: 1; }
     .aventuras-lista .btn { margin-top: 0; min-height: 0; flex: 1; padding: 0.25rem 0.8rem; font-size: var(--btn-font-size, clamp(0.75rem, 3vmin, 1.8rem)); }
-    #pantalla6 { justify-content: flex-start; padding-top: 3rem; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
-    #pantalla5, #pantalla8 { padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
-    #pantalla5 #terminos-contenido { width: 95vw; max-width: 95vw; }
+    #pantalla6 { justify-content: flex-start; padding-top: 3rem; }
     
     /* Escalar controles de audio nativos - proporcional al viewport */
     audio { 
@@ -80,20 +78,32 @@
     audio::-webkit-media-controls-download-button { display: none !important; }
     audio::-webkit-media-controls-overflow-button { display: none !important; }
     .audio-player-container { padding: clamp(0.5rem, 1.5vmin, 1.5rem) 0; width: 72vw; margin-left: 6vw; margin-right: 0; margin-top: clamp(0.5rem, 1.5vmin, 1.5rem); margin-bottom: clamp(0.5rem, 1.5vmin, 1.5rem); border: 0.25rem solid #0074d9; }
+      /* Solo texto legible - mismo tamaño que hijo2, sin afectar UI */
+      .texto-box,
+      #pantalla11 .audio-overlay,
+      .reto-box p,
+      .respuesta,
+      #reto-r1-pregunta, #reto-r2-pregunta,
+      #reto-r1-titulo, #reto-r2-titulo,
+      #aventura-seleccionada-texto,
+      #audio-warning-text {
+        font-size: clamp(16px, 5vmin, 24px) !important;
+      }
+
       /* Scrollbar unificado para .texto-box y #pantalla11 .audio-overlay */
       .texto-box,
       #pantalla11 .audio-overlay {
-        scrollbar-color: #0074d9 #e0f0fa;
+        scrollbar-color: #fff #222;
         scrollbar-width: thin;
       }
       .texto-box::-webkit-scrollbar,
       #pantalla11 .audio-overlay::-webkit-scrollbar {
         width: 0.7rem;
-        background: #e0f0fa;
+        background: #222;
       }
       .texto-box::-webkit-scrollbar-thumb,
       #pantalla11 .audio-overlay::-webkit-scrollbar-thumb {
-        background: #0074d9;
+        background: #fff;
         border-radius: 0.5rem;
       }
   </style>
@@ -174,7 +184,7 @@
   <!-- P5: Términos y Condiciones (carga dinámica desde js/terminos-aventuras.js) -->
   <div class="pantalla" id="pantalla5">
     <div class="free-demo">FREE DEMO</div>
-    <div id="terminos-contenido" class="texto-box borde-azul" style="max-height:calc(82vh - env(safe-area-inset-bottom, 0px)); overflow-y:auto;" onscroll="checkTerminosScroll()">
+    <div id="terminos-contenido" class="texto-box borde-azul" style="max-height:50vh; overflow-y:auto;" onscroll="checkTerminosScroll()">
       <!-- Contenido cargado dinámicamente según idioma seleccionado -->
       <p>Cargando términos...</p>
     </div>
@@ -226,7 +236,7 @@
   <!-- P9: Puzzle (carga puzzle.html mediante iframe) -->
   <div class="pantalla" id="pantalla9" style="padding:0; justify-content:center; align-items:center;">
     <div class="free-demo">FREE DEMO</div>
-    <div style="position:relative; width:95vw; height:calc(85vh - env(safe-area-inset-bottom, 0px)); max-width:95vw;">
+    <div style="position:relative; width:90vw; height:85vh; max-width:90vw;">
       <div id="puzzle-container" style="width:100%; height:100%; border-radius:0.9375rem; overflow:hidden; box-shadow:0 0.25rem 1.25rem rgba(0,0,0,0.3);">
         <iframe id="puzzle-iframe" src="" style="width:100%; height:100%; border:none;" title="Puzzle"></iframe>
       </div>
@@ -321,8 +331,7 @@
     }
     #pantalla11 .audio-overlay {
       width: 85vw;
-      background: #fff8e7;
-      color: #333;
+      background: #f5a623;
       border: 0.25rem solid #0074d9;
       border-radius: 1.25rem;
       margin-left: auto;
@@ -1000,10 +1009,10 @@
           const innerStyle = 'display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:0.4em; width:100%;';
           if (estaDisponible) {
             boton.onclick = () => seleccionarAventura(aventura.id);
-            boton.innerHTML = `<span style="font-weight:bold;">${aventura.nombre}</span><span style="opacity:0.75; font-size:0.8em; white-space:nowrap;">${stats}</span>`;
+            boton.innerHTML = `<span style="font-weight:bold;">${aventura.nombre}</span><span style="opacity:0.75; font-size:0.8em;">${stats}</span>`;
           } else {
             boton.disabled = true;
-            boton.innerHTML = `<span style="font-weight:bold; opacity:0.5;">${aventura.nombre}</span><span style="opacity:0.3; font-size:0.8em; white-space:nowrap;">${stats}</span>`;
+            boton.innerHTML = `<span style="font-weight:bold; opacity:0.5;">${aventura.nombre}</span><span style="opacity:0.3; font-size:0.8em;">${stats}</span>`;
           }
           boton.style.flexWrap = 'wrap';
           boton.style.justifyContent = 'center';
