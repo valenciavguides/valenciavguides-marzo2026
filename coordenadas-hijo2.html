@@ -10,6 +10,9 @@
             catch(e) { w = window.innerWidth; h = window.innerHeight; }
             var f = Math.min(w, h) * 0.025; // Sin límites - proporcional puro
             document.documentElement.style.fontSize = f + "px";
+            // Dimensiones reales del iframe (fiables en móvil, no afectadas por bugs vw/vh)
+            document.documentElement.style.setProperty('--iframe-w', window.innerWidth + 'px');
+            document.documentElement.style.setProperty('--iframe-h', window.innerHeight + 'px');
         }
         escalar();
         window.addEventListener("resize", escalar);
@@ -31,7 +34,7 @@
         * { font-family: Verdana, sans-serif !important; }
         
         :root {
-            --btn-size: min(calc((100vh - 16px) / 6), calc(100vw - 1px));
+            --btn-size: min(calc((var(--iframe-h, 100vh) - 16px) / 6), calc(var(--iframe-w, 100vw) - 1px));
             --icon-size: 1.3em;
             --progress-thick: 0.75rem;
             --trapecio-width: 100%; /* Ocupar todo el ancho del iframe */
@@ -318,9 +321,9 @@
             font-weight: bold;
         }
 
-        /* Ajustar altura del contenedor para acomodar 6 botones */
+        /* Contenedor ocupa 100% del iframe — botones se redimensionan solos */
         .container {
-            height: 12.5rem;
+            height: 100%;
         }
 
         /* Estilos para el estado del GPS */
@@ -337,8 +340,8 @@
     <style>
         /* Botón: imagen interna */
         .boton img {
-            width: calc((100vh - 16px) / 6 * 0.90);
-            height: calc((100vh - 16px) / 6 * 0.94);
+            width: calc(var(--btn-size) * 0.90);
+            height: calc(var(--btn-size) * 0.94);
             object-fit: contain;
             display: block;
             pointer-events: none; /* evitar que la img bloquee clicks */
