@@ -745,10 +745,10 @@
             position: fixed;
             top: 10.7vh;
             right: 0.5px;
-            bottom: var(--gap-inferior);
+            bottom: calc(var(--franja-inferior) + var(--gap-inferior));
             left: auto;
             width: var(--franja-lateral);
-            height: calc(89.3vh - var(--gap-inferior));
+            height: calc(89.3vh - var(--franja-inferior) - var(--gap-inferior));
             z-index: 1501 !important;
             display: block !important;
             visibility: visible !important;
@@ -2026,7 +2026,7 @@
     <iframe id="hijo1-opciones" src=""
         title="Opciones de usuario"
         aria-label="Opciones y configuración"
-        style="position:fixed; left:0.5px; top:10.7vh; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(89.3vh - var(--gap-inferior)); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
+        style="position:fixed; left:0.5px; top:10.7vh; bottom:calc(var(--franja-inferior) + var(--gap-inferior)); width:var(--franja-lateral); height:calc(89.3vh - var(--franja-inferior) - var(--gap-inferior)); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
         onload="handleIframeLoad('hijo1-opciones')" onerror="handleIframeError('hijo1-opciones', event)"></iframe>
 
     <iframe id="hijo5" src=""
