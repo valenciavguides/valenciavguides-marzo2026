@@ -50,7 +50,7 @@ export const INDICE_AVENTURAS = {
     },
     Aventura3: {
         id: 'Aventura3',
-        nombre: 'València Ciudad de las Artes y las Ciencias',
+        nombre: 'Ciudad de las Artes y las Ciencias',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
         tiempoEstimado: 3600,
@@ -67,7 +67,7 @@ export const INDICE_AVENTURAS = {
     },
     Aventura4: {
         id: 'Aventura4',
-        nombre: 'València Parque de Cabecera y Viveros',
+        nombre: 'Parque de Cabecera y Viveros',
         disponible: false,
         claveCoord: 'coordenadas-hijo2.html',
         tiempoEstimado: 3600,
@@ -84,7 +84,7 @@ export const INDICE_AVENTURAS = {
     },
     Aventura5: {
         id: 'Aventura5',
-        nombre: 'València murallas',
+        nombre: 'Murallas de València',
         disponible: false,
         claveCoord: 'coordenadas-hijo2.html',
         tiempoEstimado: 3600,
@@ -118,7 +118,7 @@ export const INDICE_AVENTURAS = {
     },
     Aventura34km: {
         id: 'Aventura34km',
-        nombre: 'València 34 kilómetros',
+        nombre: 'Aventura 34 kilómetros',
         disponible: false,
         claveCoord: 'coordenadas-hijo2.html',
         tiempoEstimado: 9000,
