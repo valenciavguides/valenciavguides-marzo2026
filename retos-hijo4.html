@@ -37,15 +37,16 @@
     </script>
     <style>
         /* Escalado proporcional puro: 2.5% del menor lado del viewport */
-        html { font-size: 2.5vmin; }
+        html { font-size: clamp(16px, 5vmin, 24px); }
 
         * { font-family: Verdana, sans-serif !important; }
         body {
             font-family: "Book Antiqua", "Palatino Linotype", "Palatino", Georgia, serif;
             margin: 1em;
-            background: #fff;
+            background: #fff8e7;
             color: #222;
-            font-size: 1rem; /* Asegura un tamaño base para 'em' */
+            font-size: 1rem;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         h2 { /* Este es el título visible en la página */
             margin-bottom: 0.8em;
@@ -139,7 +140,7 @@
             width: 100%;
 
     
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: #fff8e7;
             padding: 1em;
             border-radius: 0.5rem;
             box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.2);
