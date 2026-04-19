@@ -1839,8 +1839,9 @@ Aventura2: {
         mapa_numero: "1→2",
         nombre: "Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
         inicio: { lat: 39.47876, lng: -0.37626 },
-        waypoints: [
+         waypoints: [
             { lat: 39.47905, lng: -0.37613 },
+            { lat: 39.479341, lng: -0.376408 },
             { lat: 39.4795, lng:  -0.37621 },
             { lat: 39.47943, lng: -0.37597 }
         ],
