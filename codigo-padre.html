@@ -944,26 +944,28 @@
             height: 100%;
         }
 
-        /* Gallery wrapper: imagen central + columnas laterales para controles */
+        /* Gallery wrapper: columnas laterales para controles, imagen en el centro */
         .galeria-imagen-wrapper {
             position: relative;
             width: 100%;
             flex: 0 0 65%;
             height: 65%;
             min-height: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: visible;
-            padding: 0 5rem;
             box-sizing: border-box;
         }
 
+        /* Imagen ocupa el área central restando las columnas laterales */
         .galeria-imagen-wrapper img {
-            display: block;
-            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 5rem;
+            right: 5rem;
+            bottom: 0;
+            width: calc(100% - 10rem);
             height: 100%;
             object-fit: cover;
+            display: block;
             user-select: none;
             -webkit-user-select: none;
             transition: opacity 0.3s ease;
@@ -994,8 +996,8 @@
             transform: scale(1.1);
             box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.4);
         }
-        .galeria-flecha-izq { left: 0.75rem; }
-        .galeria-flecha-der { right: 0.75rem; }
+        .galeria-flecha-izq { left: 0.5rem; }
+        .galeria-flecha-der { right: 0.5rem; }
 
         .galeria-flecha-icono {
             font-size: 2rem;
@@ -1040,13 +1042,13 @@
             pointer-events: none;
         }
         /* Parada: solo badge, debajo del hueco del botón X (~3.75rem) */
-        .galeria-badge-mapa.parada-pos { top: 4rem; right: 0.75rem; }
-        /* Tramo inicio: badge debajo del emoji izquierdo */
-        .galeria-badge-mapa.tramo-inicio-pos { top: 0.75rem; left: 0.75rem; }
-        .galeria-badge-mapa.tramo-inicio-pos.debajo-emoji { top: 4.75rem; }
+        .galeria-badge-mapa.parada-pos { top: 4.5rem; right: 0.5rem; }
+        /* Tramo inicio: badge debajo del emoji izquierdo (emoji 3.4rem + 1rem gap) */
+        .galeria-badge-mapa.tramo-inicio-pos { top: 0.5rem; left: 0.5rem; }
+        .galeria-badge-mapa.tramo-inicio-pos.debajo-emoji { top: 5rem; }
         /* Tramo fin: badge debajo del emoji derecho */
-        .galeria-badge-mapa.tramo-fin-pos { top: 4rem; right: 0.75rem; }
-        .galeria-badge-mapa.tramo-fin-pos.debajo-emoji { top: 8rem; }
+        .galeria-badge-mapa.tramo-fin-pos { top: 4.5rem; right: 0.5rem; }
+        .galeria-badge-mapa.tramo-fin-pos.debajo-emoji { top: 9rem; }
 
         /* Badge emoji (chincheta/diana) */
         .galeria-badge-emoji {
@@ -1066,9 +1068,9 @@
             pointer-events: none;
         }
         /* Inicio: columna izquierda, desde arriba (sin X en esta columna) */
-        .galeria-badge-emoji.inicio-pos { top: 0.75rem; left: 0.75rem; }
-        /* Fin: columna derecha, debajo del botón X (~3.75rem de alto) */
-        .galeria-badge-emoji.fin-pos { top: 4rem; right: 0.75rem; }
+        .galeria-badge-emoji.inicio-pos { top: 0.5rem; left: 0.5rem; }
+        /* Fin: columna derecha, debajo del botón X (X mide ~3.75rem, margen 0.75rem) */
+        .galeria-badge-emoji.fin-pos { top: 4.5rem; right: 0.5rem; }
 
         /* Texto parada debajo de la galería con scroll vertical */
         .texto-parada-overlay {
