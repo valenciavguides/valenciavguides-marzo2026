@@ -997,10 +997,10 @@
           const innerStyle = 'display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:0.4em; width:100%;';
           if (estaDisponible) {
             boton.onclick = () => seleccionarAventura(aventura.id);
-            boton.innerHTML = `<span style="font-weight:bold;">${aventura.nombre}</span><span style="opacity:0.75; font-size:0.8em;">${stats}</span>`;
+            boton.innerHTML = `<span style="font-weight:bold;">${aventura.nombre}</span><span style="opacity:0.75; font-size:0.8em; white-space:nowrap;">${stats}</span>`;
           } else {
             boton.disabled = true;
-            boton.innerHTML = `<span style="font-weight:bold; opacity:0.5;">${aventura.nombre}</span><span style="opacity:0.3; font-size:0.8em;">${stats}</span>`;
+            boton.innerHTML = `<span style="font-weight:bold; opacity:0.5;">${aventura.nombre}</span><span style="opacity:0.3; font-size:0.8em; white-space:nowrap;">${stats}</span>`;
           }
           boton.style.flexWrap = 'wrap';
           boton.style.justifyContent = 'center';
