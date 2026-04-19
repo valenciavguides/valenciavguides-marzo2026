@@ -242,7 +242,7 @@
 
     <style>
         /* Escalado proporcional puro: 2.5% del menor lado del viewport */
-        html { font-size: 2.5vmin; }
+        html { font-size: clamp(16px, 5vmin, 24px); }
 
         /* Variables de layout responsivo.
            En landscape: vmin = vh → mismo resultado que antes.
@@ -748,7 +748,7 @@
             bottom: var(--gap-inferior);
             left: auto;
             width: var(--franja-lateral);
-            height: calc(89.3vh - var(--gap-inferior));
+            height: calc(89.3vh - var(--gap-inferior) - var(--franja-inferior));
             z-index: 1501 !important;
             display: block !important;
             visibility: visible !important;
@@ -766,7 +766,7 @@
             transform: translateX(-50%);
             top: 0;
             height: 16vh;
-            width: 65vw;
+            width: 85vw;
             z-index: 1000000 !important;
             /* display y visibility se controlan via JS en INICIAR_AVENTURA */
             pointer-events: auto;
@@ -934,43 +934,47 @@
         /* Estilos específicos para imagen */
         #imagen-overlay .imagen-contenedor {
             position: relative;
-            overflow: visible;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             padding: 0;
             box-sizing: border-box;
+            height: 100%;
         }
 
-        /* Gallery wrapper: imagen + flechas + badges */
+        /* Gallery wrapper: imagen central + columnas laterales para controles */
         .galeria-imagen-wrapper {
             position: relative;
             width: 100%;
-            flex: 0 0 66%;
+            flex: 0 0 65%;
+            height: 65%;
             min-height: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow: visible;
+            padding: 0 5rem;
+            box-sizing: border-box;
         }
 
         .galeria-imagen-wrapper img {
             display: block;
             width: 100%;
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            height: 100%;
+            object-fit: cover;
             user-select: none;
             -webkit-user-select: none;
             transition: opacity 0.3s ease;
         }
 
-        /* Flechas de navegación galería */
+        /* Flechas — ancladas al fondo de cada columna lateral */
         .galeria-flecha {
             position: absolute;
-            top: 65%;
-            transform: translateY(-50%);
+            bottom: 0.75rem;
+            top: auto;
+            transform: none;
             width: 3.5rem;
             height: 3.5rem;
             border: 0.25rem solid #007bff;
@@ -987,11 +991,11 @@
             user-select: none;
         }
         .galeria-flecha:hover {
-            transform: translateY(-50%) scale(1.1);
+            transform: scale(1.1);
             box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.4);
         }
-        .galeria-flecha-izq { left: 0.5rem; }
-        .galeria-flecha-der { right: 0.5rem; }
+        .galeria-flecha-izq { left: 0.75rem; }
+        .galeria-flecha-der { right: 0.75rem; }
 
         .galeria-flecha-icono {
             font-size: 2rem;
@@ -1016,7 +1020,7 @@
             pointer-events: none;
         }
 
-        /* Badge número de mapa (estilo btn-cerrar-overlay pero naranja) */
+        /* Badge número de mapa */
         .galeria-badge-mapa {
             position: absolute;
             width: 3.4rem;
@@ -1035,11 +1039,14 @@
             user-select: none;
             pointer-events: none;
         }
-        .galeria-badge-mapa.parada-pos { top: 4rem; right: 0.5rem; }
-        .galeria-badge-mapa.tramo-inicio-pos { top: 4rem; left: 0.5rem; }
-        .galeria-badge-mapa.tramo-fin-pos { top: 4rem; right: 0.5rem; }
-        /* Si hay emoji encima, bajar el badge */
-        .galeria-badge-mapa.debajo-emoji { top: 8.5rem; }
+        /* Parada: solo badge, debajo del hueco del botón X (~3.75rem) */
+        .galeria-badge-mapa.parada-pos { top: 4rem; right: 0.75rem; }
+        /* Tramo inicio: badge debajo del emoji izquierdo */
+        .galeria-badge-mapa.tramo-inicio-pos { top: 0.75rem; left: 0.75rem; }
+        .galeria-badge-mapa.tramo-inicio-pos.debajo-emoji { top: 4.75rem; }
+        /* Tramo fin: badge debajo del emoji derecho */
+        .galeria-badge-mapa.tramo-fin-pos { top: 4rem; right: 0.75rem; }
+        .galeria-badge-mapa.tramo-fin-pos.debajo-emoji { top: 8rem; }
 
         /* Badge emoji (chincheta/diana) */
         .galeria-badge-emoji {
@@ -1058,14 +1065,17 @@
             user-select: none;
             pointer-events: none;
         }
-        .galeria-badge-emoji.inicio-pos { top: 4rem; left: 0.5rem; }
-        .galeria-badge-emoji.fin-pos { top: 4rem; right: 0.5rem; }
+        /* Inicio: columna izquierda, desde arriba (sin X en esta columna) */
+        .galeria-badge-emoji.inicio-pos { top: 0.75rem; left: 0.75rem; }
+        /* Fin: columna derecha, debajo del botón X (~3.75rem de alto) */
+        .galeria-badge-emoji.fin-pos { top: 4rem; right: 0.75rem; }
 
         /* Texto parada debajo de la galería con scroll vertical */
         .texto-parada-overlay {
             width: 100%;
-            flex-shrink: 0;
-            max-height: 40%;
+            flex: 1 1 35%;
+            max-height: 35%;
+            min-height: 0;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             background: #f5a623;
@@ -2027,13 +2037,13 @@
     <iframe id="hijo1-opciones" src=""
         title="Opciones de usuario"
         aria-label="Opciones y configuración"
-        style="position:fixed; left:0.5px; top:10.7vh; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(89.3vh - var(--gap-inferior)); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
+        style="position:fixed; left:0.5px; top:10.7vh; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(89.3vh - var(--gap-inferior) - var(--franja-inferior)); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
         onload="handleIframeLoad('hijo1-opciones')" onerror="handleIframeError('hijo1-opciones', event)"></iframe>
 
     <iframe id="hijo5" src=""
         title="Botón Casa"
         aria-label="Botón para cambiar entre modo Casa y Aventura"
-        style="position:fixed; left:50%; transform:translateX(-50%); top:1vw; height:6.25rem; width:99%; z-index:1000000; pointer-events:auto; transition:width 0.3s; display:none; visibility:hidden; background: transparent;"
+        style="position:fixed; left:50%; transform:translateX(-50%); top:1vw; height:6.25rem; width:85vw; z-index:1000000; pointer-events:auto; transition:width 0.3s; display:none; visibility:hidden; background: transparent;"
         onload="handleIframeLoad('hijo5')" onerror="handleIframeError('hijo5', event)"></iframe>
 
         <!-- Optional: sistema-ui for monitoring / important notifications
