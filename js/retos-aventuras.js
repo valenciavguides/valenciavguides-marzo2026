@@ -3047,101 +3047,851 @@ export const RETOS_AVENTURAS = {
     Aventura3: {
         es: [
             // Array de retos Aventura3 ESPAÑOL
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av3-es",
+                tipo: "opcion",
+                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av3-es",
+                tipo: "opcion",
+                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                opciones: ["Sí", "NO"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         en: [
             // Array de retos Aventura3 INGLÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av3-en",
+                tipo: "opcion",
+                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av3-en",
+                tipo: "opcion",
+                pregunta: "2. Is it a good time to start your adventure?",
+                opciones: ["Yes", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         fr: [
             // Array de retos Aventura3 FRANCÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av3-fr",
+                tipo: "opcion",
+                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av3-fr",
+                tipo: "opcion",
+                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                opciones: ["Oui", "Non"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         it: [
             // Array de retos Aventura3 ITALIANO
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av3-it",
+                tipo: "opcion",
+                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av3-it",
+                tipo: "opcion",
+                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                opciones: ["Sì", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         nl: [
             // Array de retos Aventura3 HOLANDÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av3-nl",
+                tipo: "opcion",
+                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av3-nl",
+                tipo: "opcion",
+                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                opciones: ["Ja", "Nee"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         ja: [
             // Array de retos Aventura3 JAPONÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av3-ja",
+                tipo: "opcion",
+                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av3-ja",
+                tipo: "opcion",
+                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                opciones: ["はい", "いいえ"],
+                correctas: ["?"],
+                multiple: false
+            }
         ]
     },
     Aventura4: {
         es: [
             // Array de retos Aventura4 ESPAÑOL
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av4-es",
+                tipo: "opcion",
+                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av4-es",
+                tipo: "opcion",
+                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                opciones: ["Sí", "NO"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         en: [
             // Array de retos Aventura4 INGLÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av4-en",
+                tipo: "opcion",
+                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av4-en",
+                tipo: "opcion",
+                pregunta: "2. Is it a good time to start your adventure?",
+                opciones: ["Yes", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         fr: [
             // Array de retos Aventura4 FRANCÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av4-fr",
+                tipo: "opcion",
+                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av4-fr",
+                tipo: "opcion",
+                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                opciones: ["Oui", "Non"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         it: [
             // Array de retos Aventura4 ITALIANO
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av4-it",
+                tipo: "opcion",
+                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av4-it",
+                tipo: "opcion",
+                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                opciones: ["Sì", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         nl: [
             // Array de retos Aventura4 HOLANDÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av4-nl",
+                tipo: "opcion",
+                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av4-nl",
+                tipo: "opcion",
+                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                opciones: ["Ja", "Nee"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         ja: [
             // Array de retos Aventura4 JAPONÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av4-ja",
+                tipo: "opcion",
+                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av4-ja",
+                tipo: "opcion",
+                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                opciones: ["はい", "いいえ"],
+                correctas: ["?"],
+                multiple: false
+            }
         ]
     },
     Aventura5: {
         es: [
             // Array de retos Aventura5 ESPAÑOL
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av5-es",
+                tipo: "opcion",
+                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av5-es",
+                tipo: "opcion",
+                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                opciones: ["Sí", "NO"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         en: [
             // Array de retos Aventura5 INGLÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av5-en",
+                tipo: "opcion",
+                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av5-en",
+                tipo: "opcion",
+                pregunta: "2. Is it a good time to start your adventure?",
+                opciones: ["Yes", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         fr: [
             // Array de retos Aventura5 FRANCÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av5-fr",
+                tipo: "opcion",
+                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av5-fr",
+                tipo: "opcion",
+                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                opciones: ["Oui", "Non"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         it: [
             // Array de retos Aventura5 ITALIANO
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av5-it",
+                tipo: "opcion",
+                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av5-it",
+                tipo: "opcion",
+                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                opciones: ["Sì", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         nl: [
             // Array de retos Aventura5 HOLANDÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av5-nl",
+                tipo: "opcion",
+                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av5-nl",
+                tipo: "opcion",
+                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                opciones: ["Ja", "Nee"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         ja: [
             // Array de retos Aventura5 JAPONÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av5-ja",
+                tipo: "opcion",
+                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av5-ja",
+                tipo: "opcion",
+                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                opciones: ["はい", "いいえ"],
+                correctas: ["?"],
+                multiple: false
+            }
         ]
     },
     AventuraFallas: {
         es: [
             // Array de retos AventuraFallas ESPAÑOL
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-AvFallas-es",
+                tipo: "opcion",
+                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-AvFallas-es",
+                tipo: "opcion",
+                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                opciones: ["Sí", "NO"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         en: [
             // Array de retos AventuraFallas INGLÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "2. Is it a good time to start your adventure?",
+                opciones: ["Yes", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         fr: [
             // Array de retos AventuraFallas FRANCÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                opciones: ["Oui", "Non"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         it: [
             // Array de retos AventuraFallas ITALIANO
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                opciones: ["Sì", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         nl: [
             // Array de retos AventuraFallas HOLANDÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                opciones: ["Ja", "Nee"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         ja: [
             // Array de retos AventuraFallas JAPONÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                opciones: ["はい", "いいえ"],
+                correctas: ["?"],
+                multiple: false
+            }
         ]
     },
     Aventura34km: {
         es: [
             // Array de retos Aventura34km ESPAÑOL
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av34km-es",
+                tipo: "opcion",
+                pregunta: "1. ¿Cuántas Aventuras pueden hacerse con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av34km-es",
+                tipo: "opcion",
+                pregunta: "2. ¿Es buen momento para comenzar su aventura?",
+                opciones: ["Sí", "NO"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         en: [
             // Array de retos Aventura34km INGLÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av34km-en",
+                tipo: "opcion",
+                pregunta: "1. How many adventures can be done with Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av34km-en",
+                tipo: "opcion",
+                pregunta: "2. Is it a good time to start your adventure?",
+                opciones: ["Yes", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         fr: [
             // Array de retos Aventura34km FRANCÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av34km-fr",
+                tipo: "opcion",
+                pregunta: "1. Combien d'aventures peut-on faire avec Valencia be Guides ?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av34km-fr",
+                tipo: "opcion",
+                pregunta: "2. Est-ce le bon moment pour commencer votre aventure ?",
+                opciones: ["Oui", "Non"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         it: [
             // Array de retos Aventura34km ITALIANO
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av34km-it",
+                tipo: "opcion",
+                pregunta: "1. Quante avventure si possono fare con Valencia be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av34km-it",
+                tipo: "opcion",
+                pregunta: "2. È un buon momento per iniziare la tua avventura?",
+                opciones: ["Sì", "No"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         nl: [
             // Array de retos Aventura34km HOLANDÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av34km-nl",
+                tipo: "opcion",
+                pregunta: "1. Hoeveel avonturen kun je doen met València be Guides?",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av34km-nl",
+                tipo: "opcion",
+                pregunta: "2. Is het een goed moment om je avontuur te beginnen?",
+                opciones: ["Ja", "Nee"],
+                correctas: ["?"],
+                multiple: false
+            }
         ],
         ja: [
             // Array de retos Aventura34km JAPONÉS
+            {
+                reto: 0,
+                id: "PZ-intro",
+                tipo: "puzzle",
+                pregunta: "Puzzle INTRO",
+                src: "puzzle.html?id=PZ-intro"
+            },
+            {
+                reto: 1,
+                id: "R1-Av34km-ja",
+                tipo: "opcion",
+                pregunta: "1. Valencia be Guides ではいくつのアドベンチャーが体験できますか？",
+                opciones: ["4", "5", "6", "7"],
+                correctas: ["7"],
+                multiple: false
+            },
+            {
+                reto: 2,
+                id: "R2-Av34km-ja",
+                tipo: "opcion",
+                pregunta: "2. 今は冒険を始めるのに良いタイミングですか？",
+                opciones: ["はい", "いいえ"],
+                correctas: ["?"],
+                multiple: false
+            }
         ]
     }
 };
