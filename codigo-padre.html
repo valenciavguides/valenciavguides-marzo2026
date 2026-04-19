@@ -294,7 +294,7 @@
             transform: translateX(-50%);
             width: calc(100vw - 2 * var(--franja-lateral) - 1px);
             height: calc(var(--franja-inferior) + 2px + 0.5cm);
-            background: rgba(255,255,255,0.85);
+            background: transparent;
             z-index: 1000;
             pointer-events: none;
             display: none; /* Initially hidden until adventure starts */
@@ -722,23 +722,23 @@
         /* Layout: marco alrededor del mapa */
         #hijo3 {
             position: fixed;
+            top: 10.7vh;
+            right: calc(2 * var(--franja-lateral) + 0.5px);
             bottom: var(--gap-inferior);
-            left: calc(var(--franja-lateral) + 0.5px);
-            right: calc(var(--franja-lateral) + 0.5px);
-            top: auto;
-            height: var(--franja-inferior);
-            width: calc(100vw - 2 * var(--franja-lateral) - 1px);
+            left: auto;
+            width: var(--franja-lateral);
+            height: calc(89.3vh - var(--gap-inferior) - var(--franja-inferior));
             z-index: 1500 !important;
             display: block !important;
             visibility: visible !important;
             pointer-events: auto;
             border: none;
-            border-radius: 0.75rem 0.75rem 0 0;
+            border-radius: 0.75rem 0 0 0.75rem;
             overflow: visible;
             will-change: transform;
             outline: 0 solid transparent;
             transition: outline 0.3s ease;
-            background: transparent;
+            background: rgba(255,255,255,0.85);
         }
 
         #hijo2 {
@@ -2039,7 +2039,7 @@
     <iframe id="hijo1-opciones" src=""
         title="Opciones de usuario"
         aria-label="Opciones y configuración"
-        style="position:fixed; left:0.5px; top:10.7vh; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(89.3vh - var(--gap-inferior) - var(--franja-inferior)); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
+        style="position:fixed; right:calc(var(--franja-lateral) + 0.5px); top:10.7vh; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(89.3vh - var(--gap-inferior) - var(--franja-inferior)); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: rgba(255,255,255,0.85);"
         onload="handleIframeLoad('hijo1-opciones')" onerror="handleIframeError('hijo1-opciones', event)"></iframe>
 
     <iframe id="hijo5" src=""
