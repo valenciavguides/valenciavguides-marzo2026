@@ -286,20 +286,6 @@
             display: none; /* Initially hidden until adventure starts */
         }
 
-        /* Background panel behind hijo3: bottom band */
-        #fondo-blanco-inferior {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100vw - 2 * var(--franja-lateral) - 1px);
-            height: calc(var(--franja-inferior) + 2px + 0.5cm);
-            background: transparent;
-            z-index: 1000;
-            pointer-events: none;
-            display: none; /* Initially hidden until adventure starts */
-        }
-
         #info-parada { font-weight: bold; margin: 0; padding: 0.4375rem 0.75rem; background-color: rgba(255, 255, 255, 0.9); border-radius: 0.4375rem; position: fixed; left: 50%; transform: translateX(-50%); z-index: 1201; display: none; color: #333; font-family: sans-serif; text-align: center; bottom: 20.3125rem; min-width: 13.75rem; max-width: 90vw; box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.10); }
 
         /* Shape styles for trapezoid iframes - DESACTIVADO, ahora se usa bordes redondeados
@@ -722,23 +708,23 @@
         /* Layout: marco alrededor del mapa */
         #hijo3 {
             position: fixed;
-            top: 10.7vh;
-            right: calc(2 * var(--franja-lateral) + 0.5px);
             bottom: var(--gap-inferior);
-            left: auto;
-            width: var(--franja-lateral);
-            height: calc(89.3vh - var(--gap-inferior) - var(--franja-inferior));
+            left: 0;
+            right: auto;
+            top: auto;
+            height: var(--franja-inferior);
+            width: calc(100vw - 2 * var(--franja-lateral));
             z-index: 1500 !important;
             display: block !important;
             visibility: visible !important;
             pointer-events: auto;
             border: none;
-            border-radius: 0.75rem 0 0 0.75rem;
+            border-radius: 0.75rem 0.75rem 0 0;
             overflow: visible;
             will-change: transform;
             outline: 0 solid transparent;
             transition: outline 0.3s ease;
-            background: rgba(255,255,255,0.85);
+            background: transparent;
         }
 
         #hijo2 {
