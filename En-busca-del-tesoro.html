@@ -20,7 +20,7 @@
   <script src="js/suppress-warnings.js"></script>
   <style>
         /* Escalado proporcional puro: 2.5% del menor lado del viewport */
-        html { font-size: 2.5vmin; }
+        html { font-size: clamp(16px, 5vmin, 24px); }
 
     * { font-family: Verdana, sans-serif !important; }
     body { margin: 0; font-family: Verdana, sans-serif; background-color: #ff8c00; color: white; }
@@ -45,7 +45,7 @@
     .checkmark { color: #28a745; font-size: 3rem; font-weight: bold; margin-top: -0.125rem; }
     .cross { color: #dc3545; font-size: 3rem; font-weight: bold; margin-top: -0.125rem; }
     .free-demo { position: absolute; top: 0.625rem; left: 0.625rem; background-color: red; color: white; padding: 0.3125rem 0.625rem; font-weight: bold; font-size: 0.875rem; border-radius: 0.3125rem; }
-    .texto-box { max-height: 18.75rem; overflow-y: auto; border: 0.125rem solid #0074d9; padding: 1.25rem; margin-top: 1.25rem; background-color: #c8e6f7; color: #333; border-radius: 0.625rem; text-align: left; width: 80%; }
+    .texto-box { max-height: 18.75rem; overflow-y: auto; border: 0.125rem solid #0074d9; padding: 1.25rem; margin-top: 1.25rem; background-color: #fff8e7; color: #333; border-radius: 0.625rem; text-align: left; width: 80%; }
     .borde-azul { border: 0.25rem solid #0074d9; }
     .banderas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-top: 1.875rem; }
     .bandera-container { position: relative; }
@@ -53,7 +53,7 @@
     #pantalla2 { overflow: hidden; }
     .en-desarrollo { position: absolute; top: 0.625rem; left: 0.625rem; background-color: white; color: red; padding: 0.3125rem; font-size: 0.75rem; font-weight: bold; transform: rotate(-20deg); }
     .audio-controls { margin-top: 1.875rem; }
-    .reto-box { background: #c8e6f7; color: #333; border-radius: 1.25rem; padding: 1.25rem; border: 0.3125rem solid blue; width: 95vw; max-width: 95vw; max-height: calc(82vh - env(safe-area-inset-bottom, 0px)); overflow-y: auto; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
+    .reto-box { background: #fff8e7; color: #333; border-radius: 1.25rem; padding: 1.25rem; border: 0.3125rem solid blue; width: 95vw; max-width: 95vw; max-height: calc(82vh - env(safe-area-inset-bottom, 0px)); overflow-y: auto; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
     .respuesta { margin: 0.9rem 0; font-size: clamp(14px, 3.5vmin, 18px); display: flex; align-items: center; }
     .reto-box input[type="radio"], .reto-box input[type="checkbox"] { transform: scale(2.0); flex-shrink: 0; margin-right: 0.8rem; cursor: pointer; }
     .reto-box p { font-size: clamp(14px, 3.5vmin, 18px); }
@@ -321,7 +321,7 @@
     }
     #pantalla11 .audio-overlay {
       width: 85vw;
-      background: #c8e6f7;
+      background: #fff8e7;
       color: #333;
       border: 0.25rem solid #0074d9;
       border-radius: 1.25rem;
