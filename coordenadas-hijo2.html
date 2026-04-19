@@ -34,7 +34,7 @@
         * { font-family: Verdana, sans-serif !important; }
         
         :root {
-            --btn-size: min(calc((var(--iframe-h, 100vh) - 16px) / 6), calc(var(--iframe-w, 100vw) - 1px));
+            --btn-size: calc(var(--iframe-w, 100vw) - 2px);
             --icon-size: 1.3em;
             --progress-thick: 0.75rem;
             --trapecio-width: 100%; /* Ocupar todo el ancho del iframe */
@@ -90,7 +90,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end; /* botones pegados al borde derecho */
-            justify-content: flex-start;
+            justify-content: flex-end;
             gap: 2px;
             z-index: 1200;
             padding: 3px 2px 3px 0;
@@ -351,7 +351,7 @@
         #btn-mapa-completo img,
         #btn-imagen img,
         #btn-ubicacion img {
-            width: calc((100vh - 16px) / 6 * 0.87);
+            width: calc(var(--btn-size) * 0.87);
         }
 
 
