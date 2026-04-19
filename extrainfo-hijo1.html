@@ -10,6 +10,9 @@
             catch(e) { w = window.innerWidth; h = window.innerHeight; }
             var f = Math.min(w, h) * 0.025; // Sin límites - proporcional puro
             document.documentElement.style.fontSize = f + "px";
+            // Dimensiones reales del iframe (fiables en móvil, no afectadas por bugs vw/vh)
+            document.documentElement.style.setProperty('--iframe-w', window.innerWidth + 'px');
+            document.documentElement.style.setProperty('--iframe-h', window.innerHeight + 'px');
         }
         escalar();
         window.addEventListener("resize", escalar);
@@ -974,14 +977,16 @@
             }
 
             const G = 2; // gap entre botones (px)
-            const D = (iframeHeight - 16) / 6;          // diámetro botón central
-            const S = (5 * iframeHeight - 92) / 36;     // diámetro sub-botones
-            const btnTop = iframeHeight / 2;             // centro del iframe = centro del botón central
+            const iframeWidth = document.body.clientWidth;
+            const D = Math.min((iframeHeight - 16) / 6, iframeWidth - 1);   // diámetro botón central
+            const S = Math.min((5 * iframeHeight - 92) / 36, iframeWidth - 1); // diámetro sub-botones
+            const btnTopEdge = iframeHeight - 3 - D;    // borde superior del botón principal (fijo abajo)
             let mostrados = 0;
             let errores = 0;
 
-            // Mostrar iconos superiores (i=0 más cercano al centro)
-            iconosArriba.forEach((icono, i) => {
+            // Todos los iconos se despliegan hacia arriba desde el botón principal
+            const todosIconosOrdenados = [...iconosArriba, ...iconosAbajo];
+            todosIconosOrdenados.forEach((icono, i) => {
                 try {
                     const el = document.getElementById(icono.id);
 
@@ -991,33 +996,7 @@
                         return;
                     }
 
-                    const posicionTop = btnTop - D / 2 - (i + 1) * (S + G);
-
-                    el.style.display = 'flex';
-                    el.style.opacity = '1';
-                    el.style.top = `${posicionTop}px`;
-
-                    mostrados++;
-                    logger.debug(`${logPrefix} ${icono.nombre} posicionado en ${posicionTop}px`);
-
-                } catch (error) {
-                    logger.error(`${logPrefix} Error mostrando ${icono.id}:`, error);
-                    errores++;
-                }
-            });
-
-            // Mostrar iconos inferiores (i=0 más cercano al centro)
-            iconosAbajo.forEach((icono, i) => {
-                try {
-                    const el = document.getElementById(icono.id);
-
-                    if (!el) {
-                        logger.warn(`${logPrefix} Elemento no encontrado: ${icono.id}`);
-                        errores++;
-                        return;
-                    }
-
-                    const posicionTop = btnTop + D / 2 + G + i * (S + G);
+                    const posicionTop = btnTopEdge - (i + 1) * (S + G);
 
                     el.style.display = 'flex';
                     el.style.opacity = '1';
@@ -1143,16 +1122,25 @@
                 throw new Error('Botón mas-opciones no encontrado');
             }
 
+            masOpcionesBtn.addEventListener('animationend', () => {
+                masOpcionesBtn.classList.remove('spinning');
+            });
+
             masOpcionesBtn.onclick = async (event) => {
                 const clickPrefix = `${logPrefix}[click-toggle]`;
-                
+
                 try {
                     logger.info(`${clickPrefix} Click detectado`);
-                    
+
                     if (event) {
                         event.preventDefault();
                         event.stopPropagation();
                     }
+
+                    // Spin ruleta
+                    masOpcionesBtn.classList.remove('spinning');
+                    void masOpcionesBtn.offsetWidth;
+                    masOpcionesBtn.classList.add('spinning');
 
                     const resultado = await toggleMenu();
                     
@@ -1591,10 +1579,11 @@
         .boton-flotante {
             position: absolute;
             left: 1px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: min(calc((100vh - 16px) / 6), calc(100vw - 1px));
-            height: min(calc((100vh - 16px) / 6), calc(100vw - 1px));
+            bottom: 3px;
+            top: auto;
+            transform: none;
+            width: min(calc((var(--iframe-h, 100vh) - 16px) / 6), calc(var(--iframe-w, 100vw) - 1px));
+            height: min(calc((var(--iframe-h, 100vh) - 16px) / 6), calc(var(--iframe-w, 100vw) - 1px));
             background: #007acc; color: white; border-radius: 50%;
             font-size: 2.5rem; display: flex; align-items: center; justify-content: center;
             border: none; outline: none; box-shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.3);
@@ -1606,8 +1595,8 @@
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      width: calc((500vh - 92px) / 36);
-      height: calc((500vh - 92px) / 36);
+      width: min(calc((var(--iframe-h, 100vh) * 5 - 92px) / 36), calc(var(--iframe-w, 100vw) - 1px));
+      height: min(calc((var(--iframe-h, 100vh) * 5 - 92px) / 36), calc(var(--iframe-w, 100vw) - 1px));
       background: #007acc; color: white; border-radius: 50%;
       font-size: 1.8rem; display: none; align-items: center; justify-content: center;
       border: none; outline: none; box-shadow: 0 0.125rem 0.375rem rgba(0,0,0,0.3);
@@ -1638,6 +1627,16 @@
         }
         
         /* NOTA: Estilos del temporizador movidos al padre (codigo-padre.html) */
+
+        @keyframes spin-ruleta {
+            0%   { transform: rotate(0deg); }
+            60%  { transform: rotate(1080deg); }
+            85%  { transform: rotate(1350deg); }
+            100% { transform: rotate(1440deg); }
+        }
+        .spinning {
+            animation: spin-ruleta 0.9s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+        }
   </style>
 </head>
 <body>
