@@ -1,4 +1,4 @@
-﻿export const DATOS_AVENTURAS = {
+export const DATOS_AVENTURAS = {
   Aventura1: {
     "coordenadas-hijo2.html": {
       coordenadas: [
@@ -8,32 +8,188 @@
     // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
+        id: "REF-1",
+        mapa_numero: 1,
+        coordenadas: { lat: 39.47921, lng: -0.37604 },
+        nombre: "Torres de Serranos",
+        imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+    },
+    {
+        tipo: "referencia",
         id: "REF-2",
         mapa_numero: 2,
-        coordenadas: null,
-        nombre: null,
+        coordenadas: { lat: 39.47789, lng: -0.37469 },
+        nombre: "Palacio de los Borgia (Cortes Valencianas)",
+        imagen: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-3",
+        mapa_numero: 3,
+        coordenadas: { lat: 39.47634, lng: -0.37531 },
+        nombre: "Plaza de la Virgen",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
     {
         tipo: "referencia",
         id: "REF-4",
         mapa_numero: 4,
-        coordenadas: null,
-        nombre: null,
+        coordenadas: { lat: 39.47615, lng: -0.3744 },
+        nombre: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        imagen: ""     
+    },
+    {
+        tipo: "referencia",
+        id: "REF-5",
+        mapa_numero: 5,
+        coordenadas: { lat: 39.47576, lng: -0.37486 },
+        nombre: "Catedral de Valencia",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-6",
+        mapa_numero: 6,
+        coordenadas: { lat: 39.47626, lng: -0.37416 },
+        nombre: "Museo Arqueológico de la Almoína",
+        imagen: "imagenes/imagenes-aventuras/museo_la_almoina.jpg"
     },
     {
         tipo: "referencia",
         id: "REF-7",
         mapa_numero: 7,
-        coordenadas: null,
-        nombre: null,
+        coordenadas: { lat: 39.47626, lng: -0.37484 },
+        nombre: "Real Basílica de Nuestra Señora de los Desamparados",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-8",
+        mapa_numero: 8,
+        coordenadas: { lat: 39.47537, lng: -0.37431 },
+        nombre: "Palacio Arzobispal",
+        imagen: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-9",
+        mapa_numero: 9,
+        coordenadas: { lat: 39.47062, lng: -0.37684 },
+        nombre: "Plaza del Ayuntamiento",
+        imagen: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-10",
+        mapa_numero: 10,
+        coordenadas: { lat: 39.46981, lng: -0.37706 },
+        nombre: "Ayuntamiento de Valencia",
+        imagen: "imagenes/imagenes-aventuras/ayuntamiento.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-11",
+        mapa_numero: 11,
+        coordenadas: { lat: 39.46708, lng: -0.37719 },
+        nombre: "Estación del Norte",
+        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-12",
+        mapa_numero: 12,
+        coordenadas: { lat: 39.46666, lng: -0.37614 },
+        nombre: "Plaza de Toros",
+        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-13",
+        mapa_numero: 13,
+        coordenadas: { lat: 39.46758, lng: -0.37515 },
+        nombre: "Case estilo árabe",
+        imagen: "imagenes/imagenes-aventuras/Casa_arabe.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-14",
+        mapa_numero: 14,
+        coordenadas: { lat: 39.46945, lng: -0.37554 },
+        nombre: "Palacio de Comunicaciones (Correos)",
+        imagen: "imagenes/imagenes-aventuras/correos.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-15",
+        mapa_numero: 15,
+        coordenadas: { lat: 39.4707, lng: -0.37391 },
+        nombre: "Banco Central de Valencia",
+        imagen: "imagenes/imagenes-aventuras/banco_de_valencia.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-16",
+        mapa_numero: 16,
+        coordenadas: { lat: 39.47272, lng: -0.37468 },
+        nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_2.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-17",
+        mapa_numero: 17,
+        coordenadas: { lat: 39.4737, lng: -0.37868 },
+        nombre: "Mercado Central",
+        imagen: "imagenes/imagenes-aventuras/mercado_central.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-18",
+        mapa_numero: 18,
+        coordenadas: { lat: 39.47421, lng: -0.37919 },
+        nombre: "Real Parroquia de los Santos Juanes (San Juan del Mercado)",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-19",
+        mapa_numero: 19,
+        coordenadas: { lat: 39.47438, lng: -0.37834 },
+        nombre: "Lonja de la Seda",
+        imagen: "imagenes/imagenes-aventuras/lonja.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-20",
+        mapa_numero: 20,
+        coordenadas: { lat: 39.47433, lng: -0.37778 },
+        nombre: "Plaza del Doctor López Collado",
+        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-21",
+        mapa_numero: 21,
+        coordenadas: { lat: 39.47608, lng: -0.37736 },
+        nombre: "Plaza del Negrito",
+        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg"
     },
     {
         tipo: "referencia",
         id: "REF-22",
         mapa_numero: 22,
-        coordenadas: null,
-        nombre: null,
+        coordenadas: { lat: 39.47662, lng: -0.37713 },
+        nombre: "Calle Caballeros",
+        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg"
     },
+    {
+        tipo: "referencia",
+        id: "REF-23",
+        mapa_numero: 23,
+        coordenadas: { lat: 39.4767, lng: -0.37665 },
+        nombre: "Palacio de la Generalitat Valenciana",
+        imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg"
+    },
+
 
     // ────-------------------------------------------------
 // coordenadas completas hijo2 Aventura1 //
