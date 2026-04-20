@@ -35,8 +35,8 @@ export const DATOS_AVENTURAS = {
         id: "REF-4",
         mapa_numero: 4,
         coordenadas: { lat: 39.47615, lng: -0.3744 },
-        nombre: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
-        imagen: ""     
+        nombre: "Plaza Décimo Junio Bruto (Almoína)",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg"     
     },
     {
         tipo: "referencia",
@@ -44,7 +44,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 5,
         coordenadas: { lat: 39.47576, lng: -0.37486 },
         nombre: "Catedral de Valencia",
-        imagen: ""
+        imagen: "imagenes/imagenes-aventuras/catedral_almoina.jpg"
     },
     {
         tipo: "referencia",
@@ -60,6 +60,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 7,
         coordenadas: { lat: 39.47626, lng: -0.37484 },
         nombre: "Real Basílica de Nuestra Señora de los Desamparados",
+        imagen: "imagenes/imagenes-aventuras/basilica_almoina.jpg"
     },
     {
         tipo: "referencia",
@@ -342,13 +343,13 @@ export const DATOS_AVENTURAS = {
         imagen: "", //no hay imagen porque es un reto de puzzle
     },
 
-    // Tramo 5: Plaza de la Virgen → Plaza de la Almoína (Párrafos: 83)
+    // Tramo 5: Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína) (Párrafos: 83)
     {
         id: "TR-5",
         tipo: "tramo",
         tramo: 5, //De mapa número 3 a mapa número 4
         mapa_numero: "3→4",
-        nombre: "Plaza de la Virgen → Plaza de la Almoína",
+        nombre: "Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína)",
         inicio: { lat: 39.47656, lng: -0.37516 },
         waypoints: [
             { lat: 39.47658, lng: -0.37496 },
@@ -358,6 +359,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: 39.47629, lng: -0.3746 },
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2: "imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg",
+        imagen3: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
         video: "videos-aventuras/av1/tramo_5.mp4",
     },
 
@@ -402,8 +404,9 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "5,9",
         nombre: "Arco Novo Catedral y Puerta Negra Basílica",
         coordenadas: { lat: 39.47607, lng: -0.3749 },
-        imagen: "imagenes/imagenes-aventuras/arco_novo_catedral.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puerta_negra_relieve_basilica.jpg",
+        imagen: "imagenes/imagenes-aventuras/capilla_pared_catedral.jpg",
+        imagen2: "imagenes/imagenes-aventuras/arco_novo_catedral.jpg",
+        imagen3: "imagenes/imagenes-aventuras/puerta_negra_relieve_basilica.jpg",
     },
 
     // Parada 11: Casa del Punt de Gantxo (Reto 13) (Párrafos: 51-C, 454, 455, 455-B, 148, 456)
@@ -465,6 +468,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Vista de la Catedral, Cimborrio",
         coordenadas: { lat: 39.47622, lng: -0.37428 },
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/catedral_almoina.jpg"
     },
 
     // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal (Párrafos: 85)
@@ -535,9 +539,10 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: 39.47056, lng: -0.37677 },
         imagen: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_Reina_2.jpg",
-        imagen3: "imagenes/imagenes-aventuras/calle_san_Vicente_2.jpg",
-        imagen4: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
+        imagen2: "imagenes/imagenes-aventuras/catedral_hacia_plaza_reina.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Plaza_Reina_2.jpg",
+        imagen4: "imagenes/imagenes-aventuras/calle_san_Vicente_2.jpg",
+        imagen5: "imagenes/imagenes-aventuras/plaza_del_ayuntamiento.jpg",
         video: "videos-aventuras/av1/tramo_8.mp4",
     },
 
@@ -1121,44 +1126,143 @@ Aventura2: {
     // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
+        id: "REF-1",
+        mapa_numero: 1,
+        coordenadas: { lat: 39.47921, lng: -0.37604 },
+        nombre: "Torres de Serranos",
+        imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+    },
+    {
+        tipo: "referencia",
         id: "REF-2",
         mapa_numero: 2,
-        coordenadas: null,
-        nombre: null,
+        coordenadas: { lat: 39.47831, lng: -0.37654 },
+        nombre: "Refugio de la Guerra Civil 1936-39",
+        imagen: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg"
     },
     {
         tipo: "referencia",
+        id: "REF-3",
+        mapa_numero: 3,
+         coordenadas: { lat: 39.4767, lng: -0.37665 },
+        nombre: "Palacio de la Generalitat Valenciana",
+        imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg"
+    },
+    {
+       tipo: "referencia",
         id: "REF-4",
         mapa_numero: 4,
-        coordenadas: null,
-        nombre: null,
+        coordenadas: { lat: 39.47662, lng: -0.37713 },
+        nombre: "Calle Caballeros",
+        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
     },
     {
         tipo: "referencia",
+        id: "REF-5",
+        mapa_numero: 5,
+        coordenadas: { lat: 39.47655, lng: -0.37883 },
+        nombre: "Parroquia San Nicolás",
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-6",
+        mapa_numero: 6,
+        coordenadas: { lat: 39.47607, lng: -0.37916 },
+        nombre: "Parroquia San Nicolás 2",
+        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+    },
+    {
+       tipo: "referencia",
         id: "REF-7",
         mapa_numero: 7,
-        coordenadas: null,
-        nombre: null,
+        coordenadas: { lat: 39.47608, lng: -0.37736 },
+        nombre: "Plaza del Negrito",
+        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg"
     },
     {
         tipo: "referencia",
-        id: "REF-22",
-        mapa_numero: 22,
-        coordenadas: null,
-        nombre: null,
+        id: "REF-8",
+        mapa_numero: 8,
+        coordenadas: { lat: 39.47628, lng: -0.3801 },
+        nombre: "Plaza del Tossal",
+        imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
     },
+    {
+        tipo: "referencia",
+        id: "REF-9",
+        mapa_numero: 9,
+        coordenadas: { lat: 39.47755, lng: -0.3786 },
+        nombre: "Portal de la Valldigna",
+        imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",       
+    },
+    {
+        tipo: "referencia",
+        id: "REF-10",
+        mapa_numero: 10,
+        coordenadas: { lat: 39.47816, lng: -0.3777 },
+        nombre: "Torre del Ángel (árabe)",
+        imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+    },
+    {
+       tipo: "referencia",
+        id: "REF-11",
+        mapa_numero: 11,
+        coordenadas: { lat: 39.47634, lng: -0.37531 },
+        nombre: "Plaza de la Virgen",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-12",
+        mapa_numero: 12,
+        coordenadas: { lat: 39.47533, lng: -0.37563 },
+        nombre: "Torre del Miguelete",
+        imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-13",
+        mapa_numero: 13,
+        coordenadas: { lat: 39.47528, lng: -0.37547 },
+        nombre: "Catedral de Valencia (Puerta Barroca)",
+        imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-14",
+        mapa_numero: 14,
+        coordenadas: { lat: 39.47397, lng: -0.37622 },
+        nombre: "Torre de Santa Catalina",
+        imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-15",
+        mapa_numero: 15,
+        coordenadas: { lat: 39.4741, lng: -0.37641 },
+        nombre: "Iglesia de Santa Catalina",
+        imagen: "imagenes/imagenes-aventuras/iglesia_santa_catalina.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-16",
+        mapa_numero: 16,
+        coordenadas: { lat: 39.47367, lng: -0.37657 },
+        nombre: "Plaza Redonda",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-17",
+        mapa_numero: 17,
+        coordenadas: { lat: 39.47449, lng: -0.37614 },
+        nombre: "Plaza Milagro del Mocadoret (Mercado de Tapinería)",
+        imagen: "imagenes/imagenes-aventuras/milagro_del_mocaoret.jpg",
+    },
+    
     // ────---------------------------------------------
 
                 // coordenadas completas hijo2 Aventura2 //
-
-    // ─── CÓMO AÑADIR UNA REFERENCIA VISUAL ───────────────────────────────────
-    // { tipo: "referencia", id: "REF-X", mapa_numero: X,
-    //   coordenadas: { lat: XX.XXXXX, lng: -X.XXXXX },
-    //   nombre: "Nombre del monumento" },
-    // Colócala justo después de la parada que la menciona.
-    // ─────────────────────────────────────────────────────────────────────────
-
-
                 // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228)
                 {
                     id: "P-0",
