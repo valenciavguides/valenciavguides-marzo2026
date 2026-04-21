@@ -2313,7 +2313,7 @@ Aventura2: {
         mapa_numero: 33,
         coordenadas: { lat: 39.47615, lng: -0.3744 },
         nombre: "Plaza Décimo Junio Bruto (Almoína)",
-        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg" 
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
     },
     {
         tipo: "referencia",
@@ -3500,8 +3500,386 @@ Aventura2: {
     }
   },
   Aventura4: {
+
     "coordenadas-hijo2.html": {
-      coordenadas: [/* array de coordenadas hijo2 (Aventura4) */]
+      coordenadas: [
+
+    // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+    {
+        tipo: "referencia",
+        id: "REF-1",
+        mapa_numero: 1,
+        coordenadas: { lat: 39.47921, lng: -0.37604 },
+        nombre: "Torres de Serranos",
+        imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-2",
+        mapa_numero: 2,
+        coordenadas: { lat: 39.47905, lng: -0.37688 },
+        nombre: "Museo Corpus Christi",
+        imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-3",
+        mapa_numero: 3,
+        coordenadas: { lat: 39.47926, lng: -0.37862 },
+        nombre: "Parroquia de la Santísima Cruz (Carmen)",
+        imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-4",
+        mapa_numero: 4,
+        coordenadas: { lat: 39.47937, lng: -0.37883 },
+        nombre: "Centro Cultural Contemporáneo “El Carmen”",
+        imagen: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-5",
+        mapa_numero: 5,
+        coordenadas: { lat: 39.4797, lng: -0.37952 },
+        nombre: "Casa de los Gatos",
+        imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-6",
+        mapa_numero: 6,
+        coordenadas: { lat: 39.47988, lng: -0.38306 },
+        nombre: "Museo IVAM",
+        imagen: "imagenes/imagenes-aventuras/ivam.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-7",
+        mapa_numero: 7,
+        coordenadas: { lat: 39.48101, lng: -0.3836 },
+        nombre: "Puente de las Artes",
+        imagen: "imagenes/imagenes-aventuras/puente_de_las_artes.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-8",
+        mapa_numero: 8,
+        coordenadas: { lat: 39.47812, lng: -0.39047 },
+        nombre: "Puente de las Glorias Valencianas",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-9",
+        mapa_numero: 9,
+        coordenadas: { lat: 39.4772, lng: -0.39314 },
+        nombre: "Estadio de Atletismo",
+        imagen: "imagenes/imagenes-aventuras/estadio_atletismo.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-10",
+        mapa_numero: 10,
+        coordenadas: { lat: 39.47574, lng: -0.39624 },
+        nombre: "Puente de Campanar",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-11",
+        mapa_numero: 11,
+        coordenadas: { lat: 39.47533, lng: -0.3976 },
+        nombre: "Na Turia",
+        imagen: "imagenes/imagenes-aventuras/naturia.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-12",
+        mapa_numero: 12,
+        coordenadas: { lat: 39.47427, lng: -0.40275 },
+        nombre: "Puente Amarillo (Casa del Agua)",
+        imagen: "imagenes/imagenes-aventuras/puente_amarillo.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-13",
+        mapa_numero: 13,
+        coordenadas: { lat: 39.47391, lng: -0.4056 },
+        nombre: "Puente 9 de Octubre",
+        imagen: "imagenes/imagenes-aventuras/puente_9_octubre.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-14",
+        mapa_numero: 14,
+        coordenadas: { lat: 39.475716, lng: -0.408403 },
+        nombre: "Parque de Cabecera",
+        imagen: "imagenes/imagenes-aventuras/parque_de_cabecera_el_morro_middle.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-15",
+        mapa_numero: 15,
+        coordenadas: { lat: 39.477981, lng: -0.407598 },
+        nombre: "Bioparc (tickets)",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-16",
+        mapa_numero: 15,
+        coordenadas: { lat: 39.478406, lng: -0.410455 },
+        nombre: "Bioparc (Zoo)",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-17",
+        mapa_numero: 16,
+        coordenadas: { lat: 39.481463, lng: -0.410306 },
+        nombre: "Azud Molino del Sol",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-18",
+        mapa_numero: 17,
+        coordenadas: { lat: 39.47287, lng: -0.40827 },
+        nombre: "Museo de Historia de Valencia",
+        imagen: "imagenes/imagenes-aventuras/museo_de_historia.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-19",
+        mapa_numero: 18,
+        coordenadas: { lat: 39.478456, lng: -0.387692 },
+        nombre: "Petxina en el Turia",
+        imagen: "imagenes/imagenes-aventuras/petxina_en_el_rio.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-20",
+        mapa_numero: 19,
+        coordenadas: { lat: 39.482209, lng: -0.380320 },
+        nombre: "Puente de San José",
+        imagen: "imagenes/imagenes-aventuras/puente_san_jose_close.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-21",
+        mapa_numero: 20,
+        coordenadas: { lat: 39.47977, lng: -0.37578 },
+        nombre: "Puente de Serranos (Plaza de la Crída)",
+        imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-22",
+        mapa_numero: 21,
+        coordenadas: { lat: 39.479922, lng: -0.374242 },
+        nombre: "Puente de Madera",
+        imagen: "imagenes/imagenes-aventuras/pont_fusta.jpg",
+
+    },
+    {
+        tipo: "referencia",
+        id: "REF-23",
+        mapa_numero: 22,
+        coordenadas: { lat: 39.479116, lng: -0.372620 },
+        nombre: "Puente de la Trinidad",
+        imagen: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-24",
+        mapa_numero: 23,
+        coordenadas: { lat: 39.47902, lng: -0.37117 },
+        nombre: "Museo de Bellas Artes",
+        imagen: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-25",
+        mapa_numero: 24,
+        coordenadas: { lat: 39.47785, lng: -0.37129 },
+        nombre: "Ruinas en el Jardín del Turia",
+        imagen: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-26",
+        mapa_numero: 25,
+        coordenadas: { lat: 39.477473, lng: -0.368361 },
+        nombre: "Jardines del Real (Viveros)",
+        imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
+    },
+
+    // Inicio Numeración individual de los Jardines del Real (viveros)//
+    {
+        tipo: "referencia",
+        id: "REF-27",
+        mapa_numero: v1,
+        coordenadas: { lat: 39.47771, lng: -0.36824 },
+        nombre: "Paseo de las Palmeras",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-28",
+        mapa_numero: v2,
+        coordenadas: { lat: 39.47808, lng: -0.36773 },
+        nombre: "Ruinas del Palacio del Real",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-29",
+        mapa_numero: v3,
+        coordenadas: { lat: 39.47821, lng: -0.36741 },
+        nombre: "Montículo de Elio",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-30",
+        mapa_numero: v4,
+        coordenadas: { lat: 39.47891, lng: -0.36778 },
+        nombre: "Casa del Jardinero Mayor",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-31",
+        mapa_numero: v5,
+        coordenadas: { lat: 39.47979, lng: -0.3672 },
+        nombre: "Circuito Vial Urbano",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-32",
+        mapa_numero: v6,
+        coordenadas: { lat: 39.47949, lng: -0.36784 },
+        nombre: "Calle de los Jardineros Mayores",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-33",
+        mapa_numero: v7,
+        coordenadas: { lat: 39.47935, lng: -0.36834 },
+        nombre: "Antigua Alquería de Canet",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-34",
+        mapa_numero: v8,
+        coordenadas: { lat: 39.47933, lng: -0.36874 },
+        nombre: "Museo de Ciencias Naturales",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-35",
+        mapa_numero: v9,
+        coordenadas: { lat: 39.48027, lng: -0.36855 },
+        nombre: "Pequeños Jardines de Versalles",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-36",
+        mapa_numero: v10,
+        coordenadas: { lat:39.48128, lng: -0.36853 },
+        nombre: "Rosaleda",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-37",
+        mapa_numero: v11,
+        coordenadas: { lat: 39.47898, lng: -0.36939 },
+        nombre: "Estanque de los Patos",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-38",
+        mapa_numero: v13,
+        coordenadas: { lat: 39.47862, lng: -0.36984 },
+        nombre: "Portón del Convento de San Julián",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-39",
+        mapa_numero: v13,
+        coordenadas: { lat: 39.482985, lng: -0.366368 },
+        nombre: "👣​",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-40",
+        mapa_numero: v13,
+        coordenadas: { lat: 39.481577, lng: -0.366261 },
+        nombre: "👣​",
+        imagen: ""
+    },
+    {
+        tipo: "referencia",
+        id: "REF-41",
+        mapa_numero: v13,
+        coordenadas: { lat: 39.478844, lng: -0.370196 },
+        nombre: "👣​",
+        imagen: ""
+    },{
+        tipo: "referencia",
+        id: "REF-42",
+        mapa_numero: v13,
+        coordenadas: { lat: 39.478119, lng: -0.368530 },
+        nombre: "👣​",
+        imagen: ""
+    },
+    // Fin Numeración individual de los Jardines del Real (viveros)//
+    {
+        tipo: "referencia",
+        id: "REF-43",
+        mapa_numero: 26,
+        coordenadas: { lat: 39.4765, lng: -0.36876 },
+        nombre: "Puente del Real",
+        imagen: "imagenes/imagenes-aventuras/puente_del_real_top.jpg",
+    },
+
+    // Coordenadas completas Aventura 4
+        // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228)
+    {
+        id: "P-0",
+        tipo: "inicio",
+        parada: 0, // mapa número 1
+        mapa_numero: 1,
+        nombre: "Torres de Serranos (start)",
+        coordenadas: { lat: 39.47876, lng: -0.37626 },
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+    },
+    // Tramo 1: Torres de Serranos →  (Parrafos: )
+    {
+        id: "TR-1",
+        tipo: "tramo",
+        tramo: 1, // De mapa número 1 a mapa número 2
+        mapa_numero: "1→2",
+        nombre: "Torres de Serranos →",
+        inicio: { lat: 39.47876, lng: -0.37626 },
+         waypoints: [],
+        fin: {},
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen2: "",
+        video: "",
+    },
+
+    ]
     }
   },
   Aventura5: {
@@ -4124,11 +4502,6 @@ Aventura2: {
         coordenadas: { lat: 39.47773, lng: -0.37671 },
         imagen: "imagenes/imagenes-aventuras/00_torres_de_serranos_back.jpg"
     },
-
-    // ─── REFERENCIAS VISUALES AVENTURA 3 ──────────────────────────────────────
-    // Aventura en desarrollo — añadir referencias cuando se complete el mapa del tesoro.
-    // ──────────────────────────────────────────────────────────────────────────
-
       ]
     }
   }
