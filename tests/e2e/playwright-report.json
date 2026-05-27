@@ -1,0 +1,3929 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\gomez\\Desktop\\proyecto ValenciaVguides Marzo 2026\\playwright.config.js",
+    "rootDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.js"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.js"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "pixel5",
+        "name": "pixel5",
+        "testDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.js"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "iphone12",
+        "name": "iphone12",
+        "testDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.js"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "tests/e2e/report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "tests/e2e/playwright-report.json"
+        }
+      ],
+      [
+        "line",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node js/server.js",
+      "url": "http://localhost:8080",
+      "reuseExistingServer": true,
+      "timeout": 15000,
+      "stdout": "ignore",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "01-fase1-boot.spec.js",
+      "file": "01-fase1-boot.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FASE 1 — Secuencia de arranque del padre",
+          "file": "01-fase1-boot.spec.js",
+          "line": 21,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1a. Race #5 CORREGIDO: state-manager SÍ está en window cuando mensajeriaReady se dispara",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 377,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:39.319Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-a1f595d7a0c9e4accc9c",
+              "file": "01-fase1-boot.spec.js",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "1a. globalThis.mensajeria existe en el momento en que mensajeriaReady se dispara",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 349,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:39.776Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-080187611f86d9b92a0d",
+              "file": "01-fase1-boot.spec.js",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "1a. __MENSAJERIA_INICIADA ya era true cuando el spy capturó mensajeriaReady",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 347,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:40.134Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-41c6f0e7a6404ad6805a",
+              "file": "01-fase1-boot.spec.js",
+              "line": 47,
+              "column": 3
+            },
+            {
+              "title": "1a. globalThis.__vv_stateManager es un objeto con las APIs esperadas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 341,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:40.489Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-c1abca51875389dd7bf4",
+              "file": "01-fase1-boot.spec.js",
+              "line": 57,
+              "column": 3
+            },
+            {
+              "title": "globalThis.mensajeria expone registrarControlador como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 338,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:40.840Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-e06af44f90d9280fbbca",
+              "file": "01-fase1-boot.spec.js",
+              "line": 75,
+              "column": 3
+            },
+            {
+              "title": "globalThis.mensajeria expone enviarMensaje como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 366,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:41.187Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-c32cab0633d59cd91257",
+              "file": "01-fase1-boot.spec.js",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "globalThis.mensajeria expone inicializarMensajeria como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 416,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:41.561Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-4228fb9d2018f67c67db",
+              "file": "01-fase1-boot.spec.js",
+              "line": 85,
+              "column": 3
+            },
+            {
+              "title": "globalThis.mensajeria expone enviarMensajeConConfirmacion como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 340,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:41.985Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-4c9673a32c752efdf14b",
+              "file": "01-fase1-boot.spec.js",
+              "line": 90,
+              "column": 3
+            },
+            {
+              "title": "procesarControladoresPendientes existe y es una función tras el arranque",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 340,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:42.333Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "52e41b4056dd55e7b0f2-6a4eb88b529426aceaea",
+              "file": "01-fase1-boot.spec.js",
+              "line": 97,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "02-global-variables.spec.js",
+      "file": "02-global-variables.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Globals requeridas tras FASE 1",
+          "file": "02-global-variables.spec.js",
+          "line": 22,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1f. globalThis.TIPOS_MENSAJE existe y es un objeto no vacío",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 337,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:42.691Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-9a71dff235f50832d74a",
+              "file": "02-global-variables.spec.js",
+              "line": 32,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.MODOS existe con claves CASA y AVENTURA",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 323,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:43.035Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-084f7d880f80cdc2f7ec",
+              "file": "02-global-variables.spec.js",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.registrarControlador es una función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:43.366Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-b9b56d82c47ab9ab4e34",
+              "file": "02-global-variables.spec.js",
+              "line": 58,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.enviarMensaje es una función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:43.700Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-f3f1bacd959ba4d56afb",
+              "file": "02-global-variables.spec.js",
+              "line": 63,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.enviarMensajeConConfirmacion es una función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 346,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:44.035Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-5b1c64a5bf823236bcb5",
+              "file": "02-global-variables.spec.js",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.logger existe con métodos info/warn/error/debug",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 339,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:44.388Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-1741c2d0837213c7aa48",
+              "file": "02-global-variables.spec.js",
+              "line": 75,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.esTelefonoMovil existe (booleano o función)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 345,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:44.735Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-d66757762d24a7fcb589",
+              "file": "02-global-variables.spec.js",
+              "line": 95,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.ajustarTimeoutPorConexion existe como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 400,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:45.088Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-5276455aff03b0e230ee",
+              "file": "02-global-variables.spec.js",
+              "line": 103,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.ajustarTimeoutPorConexionSafe existe como función (wrapper seguro)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 332,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:45.495Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-05f27ebc33837c342ca2",
+              "file": "02-global-variables.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.CONFIG_PADRE existe con todas las claves requeridas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 347,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:45.835Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-72abb870f86570fc7a58",
+              "file": "02-global-variables.spec.js",
+              "line": 115,
+              "column": 3
+            },
+            {
+              "title": "1f. globalThis.getPadreId() es una función que retorna un string no vacío",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 321,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:46.190Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-3b078e7b044d7f49bd08",
+              "file": "02-global-variables.spec.js",
+              "line": 137,
+              "column": 3
+            },
+            {
+              "title": "globalThis.__MENSAJERIA_INICIADA es exactamente true (no truthy)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 346,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:46.518Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-138c4756efcdaa9cefaf",
+              "file": "02-global-variables.spec.js",
+              "line": 150,
+              "column": 3
+            },
+            {
+              "title": "globalThis.__CONTROLADOR_REGISTRADOS existe y es un Set",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 340,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:46.871Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "74bcc55e751c4c978134-e2fd9304c788b2e377b2",
+              "file": "02-global-variables.spec.js",
+              "line": 155,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "03-handler-registration.spec.js",
+      "file": "03-handler-registration.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Registro de handlers — estado tras FASE 1",
+          "file": "03-handler-registration.spec.js",
+          "line": 24,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1g. __CONTROLADORES_PENDIENTES está vacío tras el drenaje",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 321,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:47.224Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "23f204e69cbb0b57722e-6011060006e7e151e3eb",
+              "file": "03-handler-registration.spec.js",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "1b. __CONTROLADOR_REGISTRADOS tiene entradas (algún handler fue registrado)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 322,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:47.552Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "23f204e69cbb0b57722e-b3169747af7d2576e5b3",
+              "file": "03-handler-registration.spec.js",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "1b. state-manager tiene handlers en su mapa de controladores",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 330,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:47.882Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "23f204e69cbb0b57722e-0c60163800b66c0df0d5",
+              "file": "03-handler-registration.spec.js",
+              "line": 60,
+              "column": 3
+            },
+            {
+              "title": "1b. el mapa de controladores en state-manager no está vacío",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 417,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:48.221Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "23f204e69cbb0b57722e-6c05aff42698787de8c4",
+              "file": "03-handler-registration.spec.js",
+              "line": 79,
+              "column": 3
+            },
+            {
+              "title": "1b. __vv_manejadoresLocales está vacío o no existe (sin fuga del path nominal)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 334,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:48.645Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "23f204e69cbb0b57722e-d70f7165046b7748662a",
+              "file": "03-handler-registration.spec.js",
+              "line": 98,
+              "column": 3
+            },
+            {
+              "title": "globalThis.registrarControladorSeguro existe como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 339,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:48.987Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "23f204e69cbb0b57722e-91b6f201e4af0c6c1984",
+              "file": "03-handler-registration.spec.js",
+              "line": 114,
+              "column": 3
+            },
+            {
+              "title": "registrarControladorSeguro no registra un mismo tipo dos veces",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 329,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:49.333Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "23f204e69cbb0b57722e-1893a68cc342596f9a0a",
+              "file": "03-handler-registration.spec.js",
+              "line": 119,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "04-iframe-dom.spec.js",
+      "file": "04-iframe-dom.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "DOM de iframes — estructura antes de selección de aventura",
+          "file": "04-iframe-dom.spec.js",
+          "line": 34,
+          "column": 6,
+          "specs": [
+            {
+              "title": "iframe #seleccion existe en el DOM (Selección de aventura e idioma)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 324,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:49.672Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-8da74364f41da5a045df",
+              "file": "04-iframe-dom.spec.js",
+              "line": 45,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo1-opciones existe en el DOM (Opciones de usuario (extrainfo-hijo1.html))",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 427,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:50.003Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-02105ac71341d1fedbb3",
+              "file": "04-iframe-dom.spec.js",
+              "line": 45,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo2 existe en el DOM (Coordenadas/navegación (coordenadas-hijo2.html))",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 345,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:50.438Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-f3d37ba8a05911f1f453",
+              "file": "04-iframe-dom.spec.js",
+              "line": 45,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo3 existe en el DOM (Audio (audio-hijo3.html))",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 420,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:50.790Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-7c4ea3e347a22df91c09",
+              "file": "04-iframe-dom.spec.js",
+              "line": 45,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo4 existe en el DOM (Retos y preguntas (retos-hijo4.html))",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 330,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:51.218Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-3a1bd9e0c2204f113e39",
+              "file": "04-iframe-dom.spec.js",
+              "line": 45,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo5 existe en el DOM (Botón Casa (boton-casa-hijo5.html))",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 349,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:51.555Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-2f74fd99dcba8b6bd2ed",
+              "file": "04-iframe-dom.spec.js",
+              "line": 45,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo2 tiene src vacío antes de selección de aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 338,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:51.912Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-ef518e3bed58b6a0b59b",
+              "file": "04-iframe-dom.spec.js",
+              "line": 60,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo3 tiene src vacío antes de selección de aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 341,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:52.258Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-2a7bd972dfd1aa8f06bc",
+              "file": "04-iframe-dom.spec.js",
+              "line": 60,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo4 tiene src vacío antes de selección de aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 338,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:52.607Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-7da596abad9f7e5e07e3",
+              "file": "04-iframe-dom.spec.js",
+              "line": 60,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo5 tiene src vacío antes de selección de aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 345,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:52.952Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-ae878e2339805c528441",
+              "file": "04-iframe-dom.spec.js",
+              "line": 60,
+              "column": 5
+            },
+            {
+              "title": "iframe #hijo1-opciones tiene src vacío antes de selección de aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 324,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:53.305Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-ac2ffe0bfd67da162c2e",
+              "file": "04-iframe-dom.spec.js",
+              "line": 60,
+              "column": 5
+            },
+            {
+              "title": "1c. globalThis.__vv_DATOS_AVENTURAS es null antes de seleccionar aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 337,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:53.636Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-f51edf2a6ced38e94185",
+              "file": "04-iframe-dom.spec.js",
+              "line": 75,
+              "column": 3
+            },
+            {
+              "title": "1c. globalThis.__vv_AUDIOS_AVENTURAS es null antes de seleccionar aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 329,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:53.980Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-bfdb9ce84cae447402ec",
+              "file": "04-iframe-dom.spec.js",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "1c. globalThis.__vv_RETOS_AVENTURAS es null antes de seleccionar aventura",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 328,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:54.316Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-ac8f1ab7af78c6c0cef6",
+              "file": "04-iframe-dom.spec.js",
+              "line": 85,
+              "column": 3
+            },
+            {
+              "title": "1c. globalThis.__cargarDatosAventuraDiferidos existe como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 339,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:54.655Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-bf88725d341a24d0d108",
+              "file": "04-iframe-dom.spec.js",
+              "line": 90,
+              "column": 3
+            },
+            {
+              "title": "iframe #sistema-ui existe con srcdoc (no src externo)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 326,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:55.001Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0f1bbe33c8d1c30ccd91-a4ffda8f672cbb383967",
+              "file": "04-iframe-dom.spec.js",
+              "line": 97,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "05-queues-draining.spec.js",
+      "file": "05-queues-draining.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Drenaje de colas tras FASE 1",
+          "file": "05-queues-draining.spec.js",
+          "line": 28,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1g. __CONTROLADORES_PENDIENTES está vacío o null tras el drenaje",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 320,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:55.337Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bfa0ad9fe9fe8ecf4ba-73856aad98e9b1d01975",
+              "file": "05-queues-draining.spec.js",
+              "line": 38,
+              "column": 3
+            },
+            {
+              "title": "1g. procesarControladoresPendientes() existe y se puede llamar sin errores",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 336,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:55.665Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bfa0ad9fe9fe8ecf4ba-9ab44b675d6271111faa",
+              "file": "05-queues-draining.spec.js",
+              "line": 53,
+              "column": 3
+            },
+            {
+              "title": "1g. tras segunda llamada a procesarControladoresPendientes(), la cola sigue vacía",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 335,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:56.008Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bfa0ad9fe9fe8ecf4ba-a92852e9526b91f0da22",
+              "file": "05-queues-draining.spec.js",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "1h. __pendingDistribucion no existe (ningún mensaje de distribución pendiente sin aventura)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 330,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:56.351Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bfa0ad9fe9fe8ecf4ba-ad309fefe2659d82c352",
+              "file": "05-queues-draining.spec.js",
+              "line": 80,
+              "column": 3
+            },
+            {
+              "title": "1h. __pendingBroadcast no existe (ningún broadcast pendiente sin aventura)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 324,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:56.689Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bfa0ad9fe9fe8ecf4ba-0e083137cad30bf67964",
+              "file": "05-queues-draining.spec.js",
+              "line": 95,
+              "column": 3
+            },
+            {
+              "title": "1g. el spy NO capturó handlers pendientes en el momento de mensajeriaReady",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 322,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:57.020Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bfa0ad9fe9fe8ecf4ba-62cd29e30460d1009a86",
+              "file": "05-queues-draining.spec.js",
+              "line": 110,
+              "column": 3
+            },
+            {
+              "title": "globalThis.mensajeria está configurada como tipo \"padre\"",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 341,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:57.349Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bfa0ad9fe9fe8ecf4ba-73528d481c9365c11711",
+              "file": "05-queues-draining.spec.js",
+              "line": 128,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "06-race-conditions.spec.js",
+      "file": "06-race-conditions.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Race conditions documentadas — DT-1 Opción B",
+          "file": "06-race-conditions.spec.js",
+          "line": 44,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Race #1a. globalThis.funcionesMapa existe con la API esperada",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 326,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:57.701Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-5a988f23e18df1094638",
+              "file": "06-race-conditions.spec.js",
+              "line": 62,
+              "column": 3
+            },
+            {
+              "title": "Race #1b. isMapInitialized() no lanza error al llamarse sin instancia Leaflet real",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 396,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:58.035Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-f50cbfafeca77406bf91",
+              "file": "06-race-conditions.spec.js",
+              "line": 78,
+              "column": 3
+            },
+            {
+              "title": "Race #1c. llamar isMapInitialized() dos veces devuelve el mismo valor (idempotente)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 325,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:58.438Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-872721d28d54ff1108b7",
+              "file": "06-race-conditions.spec.js",
+              "line": 98,
+              "column": 3
+            },
+            {
+              "title": "Race #3a. __CONTROLADOR_REGISTRADOS es un Set con entradas tras el boot",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 326,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:58.771Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-3fc523b4437c3ae6de74",
+              "file": "06-race-conditions.spec.js",
+              "line": 124,
+              "column": 3
+            },
+            {
+              "title": "Race #3b. registrarControladorSeguro ignora tipo ya registrado (no crece el Set)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 341,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:59.104Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-720321a7e5bd2bcb0cf8",
+              "file": "06-race-conditions.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "Race #3c. los handlers de modo CAMBIO_MODO_ENTENDIDO/EFECTUADO están en el Set (no hubo doble registro)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 329,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:59.453Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-e720aefced5695dbddaf",
+              "file": "06-race-conditions.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "Race #4a. globalThis.mensajeria.registrarControlador existe (necesario para Script 2)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 325,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:19:59.789Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-18ee72ae7543e226706b",
+              "file": "06-race-conditions.spec.js",
+              "line": 217,
+              "column": 3
+            },
+            {
+              "title": "Race #4b. globalThis.mensajeria.enviarMensaje existe (necesario para Script 2)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 320,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:00.121Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-863f215268ee406076ac",
+              "file": "06-race-conditions.spec.js",
+              "line": 222,
+              "column": 3
+            },
+            {
+              "title": "Race #4c. globalThis.mensajeria fue asignado ANTES de que __MENSAJERIA_INICIADA fuera true",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 332,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:00.448Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-726ce4f4bb17565a2b60",
+              "file": "06-race-conditions.spec.js",
+              "line": 227,
+              "column": 3
+            },
+            {
+              "title": "Race #4d. las funciones de Script 2 en app.js están disponibles vía window tras boot",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 320,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:00.787Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1730211662a09bae6f1d-5af8b97c0af71b05aa1d",
+              "file": "06-race-conditions.spec.js",
+              "line": 245,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "07-performance-baseline.spec.js",
+      "file": "07-performance-baseline.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Performance baseline — arranque FASE 1 (pre-refactor)",
+          "file": "07-performance-baseline.spec.js",
+          "line": 43,
+          "column": 6,
+          "specs": [
+            {
+              "title": "PB-1. Tiempo total de boot FASE 1 está dentro del umbral",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 327,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    ┌─────────────────────────────────────────────────────────────┐\n    │  PERFORMANCE BASELINE — pre-refactor (DT-1 Opción B)        │\n    ├─────────────────────────────────────────────────────────────┤\n    │  T_wallClock (Playwright)    :    130 ms             │\n    │  T_boot_page (performance.now):     93 ms             │\n    │  Max delta permitido (DT-1)  :     50 ms             │\n    │                                                             │\n    │  GUARDAR ESTOS VALORES en DEUDA-TECNICA (sección baseline)  │\n    └─────────────────────────────────────────────────────────────┘\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:01.117Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbf167e33a1352612570-9ffa35a524bc4baa35b5",
+              "file": "07-performance-baseline.spec.js",
+              "line": 55,
+              "column": 3
+            },
+            {
+              "title": "PB-2. Baseline: conteo de handlers registrados en state-manager",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 342,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n    ┌─────────────────────────────────────────────────────────────┐\n    │  HANDLER BASELINE — pre-refactor (DT-1 Opción B)            │\n    ├─────────────────────────────────────────────────────────────┤\n    │  state-manager handler count :   43                      │\n    │  __CONTROLADOR_REGISTRADOS   :   15 tipos                 │\n    │  __vv_manejadoresLocales     :    0 (debe ser 0)         │\n    ├─────────────────────────────────────────────────────────────┤\n    │  Tipos registrados:                                         │\n"
+                        },
+                        {
+                          "text": "    │    DATOS.COORDENADAS_PARADAS_RESPONSE                     │\n"
+                        },
+                        {
+                          "text": "    │    DATOS.SOLICITAR_AUDIOS                                 │\n"
+                        },
+                        {
+                          "text": "    │    DATOS.SOLICITAR_RETOS                                  │\n"
+                        },
+                        {
+                          "text": "    │    DATOS.SOLICITAR_TEXTOS                                 │\n"
+                        },
+                        {
+                          "text": "    │    NAVEGACION.SOLICITAR_DATOS_PARADAS                     │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.APLICACION_INICIALIZADA                        │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.CAMBIO_MODO                                    │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.CAMBIO_MODO_RESPONSE                           │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.HEARTBEAT                                      │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.HEARTBEAT_RESPONSE                             │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.HIJO_FALLIDO                                   │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.HIJO_LISTO                                     │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.HIJO_MANEJADORES                               │\n"
+                        },
+                        {
+                          "text": "    │    SISTEMA.HIJO_PREPARADO                                 │\n"
+                        },
+                        {
+                          "text": "    │    UI.ACCION_USUARIO                                      │\n"
+                        },
+                        {
+                          "text": "    └─────────────────────────────────────────────────────────────┘\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:01.452Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbf167e33a1352612570-10612ad9f690a5a015ef",
+              "file": "07-performance-baseline.spec.js",
+              "line": 121,
+              "column": 3
+            },
+            {
+              "title": "PB-3. Baseline: variables globales críticas presentes y con los tipos correctos",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 343,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:01.804Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbf167e33a1352612570-29579352a92ebc59a434",
+              "file": "07-performance-baseline.spec.js",
+              "line": 195,
+              "column": 3
+            },
+            {
+              "title": "PB-4. DT-1 criterio #5: __vv_manejadoresLocales está vacío (handlers en state-manager, no en local)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 337,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:02.154Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbf167e33a1352612570-24a8c085ee278750f857",
+              "file": "07-performance-baseline.spec.js",
+              "line": 248,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "08-children-handshake.spec.js",
+      "file": "08-children-handshake.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Handshake padre↔hijos — infraestructura (escenario 1d)",
+          "file": "08-children-handshake.spec.js",
+          "line": 52,
+          "column": 6,
+          "specs": [
+            {
+              "title": "HD-1a. HIJO_PREPARADO está en __CONTROLADOR_REGISTRADOS tras FASE 1",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 334,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:02.501Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-84b32ed672a9837b7246",
+              "file": "08-children-handshake.spec.js",
+              "line": 62,
+              "column": 3
+            },
+            {
+              "title": "HD-1b. HIJO_LISTO está en __CONTROLADOR_REGISTRADOS tras FASE 1",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 400,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:02.842Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-b994ab3bd21293068ab1",
+              "file": "08-children-handshake.spec.js",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "HD-1c. Los tipos de handshake fueron registrados mediante registrarControladorSeguro",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 325,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:03.250Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-24c48b5d9cc8f17de9aa",
+              "file": "08-children-handshake.spec.js",
+              "line": 82,
+              "column": 3
+            },
+            {
+              "title": "HD-2a. globalThis.estadoPadre existe con estructura correcta",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 346,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:03.581Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-fd315c36efe6d1d07b36",
+              "file": "08-children-handshake.spec.js",
+              "line": 103,
+              "column": 3
+            },
+            {
+              "title": "HD-2b. estadoPadre.hijosInicializados comienza vacío antes de cargar iframes",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:03.935Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-43bd47c39215b0e48c9d",
+              "file": "08-children-handshake.spec.js",
+              "line": 120,
+              "column": 3
+            },
+            {
+              "title": "HD-2c. estadoPadre.estadoHijos es un Map (aunque vacío inicialmente)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:04.269Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-4609141bc1c34aab019d",
+              "file": "08-children-handshake.spec.js",
+              "line": 130,
+              "column": 3
+            },
+            {
+              "title": "HD-3a. globalThis.cargarIframeSoloSeleccion está expuesta",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 350,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:04.603Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-30c3c3c15704fb4bda79",
+              "file": "08-children-handshake.spec.js",
+              "line": 144,
+              "column": 3
+            },
+            {
+              "title": "HD-3b. globalThis.cargarRestoDeiframes está expuesta",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 352,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:04.961Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-2f80d7d831320bebb256",
+              "file": "08-children-handshake.spec.js",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "HD-3c. globalThis.cargarHijoCasa está expuesta",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 348,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:05.321Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-1bb922e93f681b6b9849",
+              "file": "08-children-handshake.spec.js",
+              "line": 154,
+              "column": 3
+            },
+            {
+              "title": "HD-4. Mensaje HIJO_PREPARADO sintético actualiza estadoPadre.hijosPreparados",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 864,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:05.677Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-57e469afd291a6f76338",
+              "file": "08-children-handshake.spec.js",
+              "line": 164,
+              "column": 3
+            },
+            {
+              "title": "HD-5. Mensaje HIJO_LISTO sintético actualiza estadoPadre.hijosInicializados",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 882,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:06.548Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-cc6a17c633fe66b3b5d6",
+              "file": "08-children-handshake.spec.js",
+              "line": 205,
+              "column": 3
+            },
+            {
+              "title": "HD-6a. globalThis.intentarReconectarHijosFallidos no está expuesta (es función interna)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 357,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:07.437Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-329d35bc6ba9550a22ba",
+              "file": "08-children-handshake.spec.js",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "HD-6b. El mecanismo de registro de hijos fallidos usa estadoHijos.set()",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 478,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:07.803Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-05ae53c46806afff77c6",
+              "file": "08-children-handshake.spec.js",
+              "line": 251,
+              "column": 3
+            },
+            {
+              "title": "HD-7. TIPOS_MENSAJE.SISTEMA contiene HIJO_PREPARADO y HIJO_LISTO",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 366,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:08.290Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9685fbfe330065f6cde8-f9b0ca9642f48a80a766",
+              "file": "08-children-handshake.spec.js",
+              "line": 272,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "09-mode-change.spec.js",
+      "file": "09-mode-change.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Protocolo de cambio de modo — escenario 1e",
+          "file": "09-mode-change.spec.js",
+          "line": 37,
+          "column": 6,
+          "specs": [
+            {
+              "title": "MC-1a. globalThis.manejarCambioModo existe como función (expuesta por app.js)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 326,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:08.668Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-d79bb6728f31878435b7",
+              "file": "09-mode-change.spec.js",
+              "line": 47,
+              "column": 3
+            },
+            {
+              "title": "MC-1b. globalThis.actualizarInterfazModo existe como función",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 329,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:09.002Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-84fd2820f104d51d7787",
+              "file": "09-mode-change.spec.js",
+              "line": 56,
+              "column": 3
+            },
+            {
+              "title": "MC-2. actualizarInterfazModo es una función (expuesta en window por app.js)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 319,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:09.339Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-9bbebe70c4c8839e22d9",
+              "file": "09-mode-change.spec.js",
+              "line": 66,
+              "column": 3
+            },
+            {
+              "title": "MC-3a. TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO existe",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 331,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:09.665Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-6e8324645fb2e58bb862",
+              "file": "09-mode-change.spec.js",
+              "line": 86,
+              "column": 3
+            },
+            {
+              "title": "MC-3b. TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO existe",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 324,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:10.004Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-d906a86cac9e46b39ff7",
+              "file": "09-mode-change.spec.js",
+              "line": 95,
+              "column": 3
+            },
+            {
+              "title": "MC-3c. TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO existe",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 325,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:10.336Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-a4991c5bf8026e4a5452",
+              "file": "09-mode-change.spec.js",
+              "line": 104,
+              "column": 3
+            },
+            {
+              "title": "MC-3d. Los 3 tipos del protocolo son strings distintos",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 340,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:10.669Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-135c5316e010842a9efd",
+              "file": "09-mode-change.spec.js",
+              "line": 113,
+              "column": 3
+            },
+            {
+              "title": "MC-4. CAMBIO_MODO está en __CONTROLADOR_REGISTRADOS tras FASE 1",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 325,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:11.016Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-abfd4be366c425e68925",
+              "file": "09-mode-change.spec.js",
+              "line": 133,
+              "column": 3
+            },
+            {
+              "title": "MC-5. Mensaje CAMBIO_MODO sintético es procesado por el handler registrado",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1147,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:11.349Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-4a3b8507e0347f63a2a7",
+              "file": "09-mode-change.spec.js",
+              "line": 147,
+              "column": 3
+            },
+            {
+              "title": "MC-6a. CAMBIO_MODO_ENTENDIDO aparece solo una vez en __CONTROLADOR_REGISTRADOS (Race #3)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 479,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:12.504Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-448af1d35e0b17afcd88",
+              "file": "09-mode-change.spec.js",
+              "line": 207,
+              "column": 3
+            },
+            {
+              "title": "MC-6b. CAMBIO_MODO_EFECTUADO aparece solo una vez en __CONTROLADOR_REGISTRADOS (Race #3)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 363,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:12.991Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-ff974df0b329e8c1691e",
+              "file": "09-mode-change.spec.js",
+              "line": 222,
+              "column": 3
+            },
+            {
+              "title": "MC-6c. __CONTROLADOR_REGISTRADOS es un Set (garantía de unicidad)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 418,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:13.363Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-5ecc81dfbeaf90a0b312",
+              "file": "09-mode-change.spec.js",
+              "line": 232,
+              "column": 3
+            },
+            {
+              "title": "MC-7a. En modo CASA (inicial), el heartbeat no está activo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 339,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:13.788Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-2d5f199a700bbecd1cf6",
+              "file": "09-mode-change.spec.js",
+              "line": 243,
+              "column": 3
+            },
+            {
+              "title": "MC-7b. HEARTBEAT y HEARTBEAT_RESPONSE están en __CONTROLADOR_REGISTRADOS",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 325,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:14.135Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-c2df34e7f34af7201d89",
+              "file": "09-mode-change.spec.js",
+              "line": 259,
+              "column": 3
+            },
+            {
+              "title": "MC-8. globalThis.pendingModeChanges existe como Map (reenvíos tras HIJO_LISTO)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 323,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:14.468Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-10041401a70ff68d26cd",
+              "file": "09-mode-change.spec.js",
+              "line": 277,
+              "column": 3
+            },
+            {
+              "title": "MC-9. MODOS.CASA y MODOS.AVENTURA están definidos en window",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 330,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:14.799Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-4887eb002e360ee8cbfa",
+              "file": "09-mode-change.spec.js",
+              "line": 297,
+              "column": 3
+            },
+            {
+              "title": "MC-10. Los 4 tipos del protocolo completo existen: CAMBIO_MODO + ENTENDIDO + EFECTUADO + RESPONSE",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 320,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:15.137Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5996dae39b99e42c88bd-3e49918dde6d4bf2b7f6",
+              "file": "09-mode-change.spec.js",
+              "line": 312,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "10-controladores-padre.spec.js",
+      "file": "10-controladores-padre.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "CP — Controladores de datos extraídos (js/controladores-padre.js)",
+          "file": "10-controladores-padre.spec.js",
+          "line": 37,
+          "column": 6,
+          "specs": [
+            {
+              "title": "CP-1. Los 4 tipos extraídos están en __CONTROLADOR_REGISTRADOS",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 324,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:15.467Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-201d59e82f9cd9cdaeec",
+              "file": "10-controladores-padre.spec.js",
+              "line": 46,
+              "column": 3
+            },
+            {
+              "title": "CP-2. Los tipos extraídos NO están en __vv_manejadoresLocales",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 328,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:15.799Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-1652a9e2094f87a9f884",
+              "file": "10-controladores-padre.spec.js",
+              "line": 58,
+              "column": 3
+            },
+            {
+              "title": "CP-3. El total de controladores registrados es >= 11 (incluye los 4 extraídos)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 325,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:16.134Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-d7a37f9736e96f426a57",
+              "file": "10-controladores-padre.spec.js",
+              "line": 71,
+              "column": 3
+            },
+            {
+              "title": "CP-4. SOLICITAR_AUDIOS → el padre responde CARGAR_AUDIOS o maneja sin lanzar",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1847,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:16.467Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-2c6843f9ba666b68e223",
+              "file": "10-controladores-padre.spec.js",
+              "line": 118,
+              "column": 3
+            },
+            {
+              "title": "CP-5. SOLICITAR_TEXTOS → handler registrado y no lanza",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1863,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:18.322Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-d36adde0ba8a8c5eeadb",
+              "file": "10-controladores-padre.spec.js",
+              "line": 130,
+              "column": 3
+            },
+            {
+              "title": "CP-6. SOLICITAR_RETOS → handler registrado y no lanza",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1898,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:20.198Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-728a3e94a99dcaefb1b5",
+              "file": "10-controladores-padre.spec.js",
+              "line": 139,
+              "column": 3
+            },
+            {
+              "title": "CP-7. SOLICITAR_COORDENADAS → handler registrado y no lanza",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1889,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:22.110Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-13e732281551bc71c963",
+              "file": "10-controladores-padre.spec.js",
+              "line": 148,
+              "column": 3
+            },
+            {
+              "title": "CP-8. SOLICITAR_DATOS_PARADAS → handler registrado y no lanza",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1868,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-05-11T14:20:24.014Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1118e486fc04547f2cdf-85bc93ee183407439e9e",
+              "file": "10-controladores-padre.spec.js",
+              "line": 157,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-05-11T14:19:38.056Z",
+    "duration": 48194.127,
+    "expected": 105,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Valencia VGuides",
+  "short_name": "VGuides",
+  "description": "Audioguía interactiva con GPS de la Valencia histórica",
+  "start_url": "/codigo-padre.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#ff8c00",
+  "lang": "es",
+  "categories": ["travel", "navigation", "entertainment"],
+  "icons": [
+    {
+      "src": "imagenes/imagenes-aplicación/logo-redondo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "imagenes/imagenes-aplicación/logo-redondo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Iniciar Aventura",
+      "url": "/codigo-padre.html",
+      "icons": [
+        {
+          "src": "imagenes/imagenes-aplicación/logo-redondo.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

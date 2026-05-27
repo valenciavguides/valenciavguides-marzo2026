@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+    <meta http-equiv="refresh" content="0; url=codigo-padre.html">
+    <title>Valencia VGuides - Redirigiendo...</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff8c00">
+    <style>
+        /* Escalado proporcional puro: 2.5% del menor lado del viewport */
+        html { font-size: clamp(16px, 5vmin, 18px); }
+
+        /* Fuente global Verdana */
+        * { font-family: Verdana, sans-serif !important; }
+        
+        body {
+            font-family: Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+        .spinner {
+            border: 0.25rem solid rgba(255, 255, 255, 0.3);
+            border-top: 0.25rem solid white;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            animation: spin 1s linear infinite;
+            margin: 1.25rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        a {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Valencia VGuides</h1>
+        <div class="spinner"></div>
+        <p>Redirigiendo a la aventura...</p>
+        <p><small>Si no eres redirigido automáticamente, <a href="codigo-padre.html">haz clic aquí</a>.</small></p>
+    </div>
+    <script>
+        // Force HTTPS redirect for valenciavguides.es
+        if (globalThis.location.protocol !== 'https:' && 
+            globalThis.location.hostname === 'valenciavguides.es') {
+            globalThis.location.href = 'https://' + globalThis.location.hostname + globalThis.location.pathname + globalThis.location.search + globalThis.location.hash;
+        } else {
+            // Redirect to codigo-padre.html if meta refresh doesn't work
+            setTimeout(function() {
+                globalThis.location.href = 'codigo-padre.html';
+            }, 100);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'});
+            // Cuando el SW cambia de versión (skipWaiting + clients.claim),
+            // recargar la página para garantizar un SW y caché consistentes.
+            // Solo se recarga si había un controlador previo (UPDATE real).
+            // Sin el chequeo de previousController, el clients.claim() del primer
+            // install también dispara controllerchange y provoca un bucle infinito.
+            const previousController = navigator.serviceWorker.controller;
+            let _swReloading = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (_swReloading) return;
+                if (!previousController) return; // primera instalación, no recargar
+                _swReloading = true;
+                globalThis.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>

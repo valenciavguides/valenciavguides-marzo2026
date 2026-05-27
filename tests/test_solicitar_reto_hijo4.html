@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Test DATOS.SOLICITAR_RETO (hijo4)</title>
+  <style>
+    body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+    .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+    .success { background: #1b5e20; color: #a5d6a7; }
+    .error { background: #b71c1c; color: #ef9a9a; }
+    .info { background: #0d47a1; color: #90caf9; }
+    h2 { color: #ffd54f; }
+  </style>
+  <script src="test-reporter-utility.js"></script>
+</head>
+<body>
+  <h2>Test: DATOS.SOLICITAR_RETO (hijo4)</h2>
+  <p>Verifica la lógica de solicitud de reto: búsqueda, normalización y respuesta.</p>
+  <div id="results"></div>
+
+  <script>
+    function addResult(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = 'test-result ' + type;
+      div.textContent = message;
+      document.getElementById('results').appendChild(div);
+    }
+
+    // Mock reto data (real format)
+    const mockRetos = [
+      { id: 'R4-Av1-es', parada_id: 'P-1', tipo: 'opciones', pregunta: '¿Cuál es la torre?', opciones: ['Serranos', 'Miguelete'], multiple: false, correctas: [0], src: null },
+      { id: 'R5-Av1-es', parada_id: 'P-2', tipo: 'texto', pregunta: '¿Año de La Lonja?', opciones: [], multiple: false, correctas: [], src: null }
+    ];
+
+    globalThis.__vv_retosAventura = mockRetos;
+
+    function obtenerRetos() {
+      return globalThis.__vv_retosAventura || [];
+    }
+
+    // Replicate SOLICITAR_RETO handler logic from hijo4
+    function procesarSolicitudReto(mensaje) {
+      const retoId = mensaje?.datos?.retoId;
+
+      if (!retoId) {
+        return {
+          mensajeOriginal: mensaje?.datos?.mensajeId,
+          exito: false,
+          error: 'Falta retoId en mensaje.datos',
+          retoId: undefined
+        };
+      }
+
+      const retosArray = obtenerRetos() || [];
+      const reto = Array.isArray(retosArray) ? retosArray.find(r => r && r.id === retoId) : null;
+
+      if (!reto) {
+        return {
+          mensajeOriginal: mensaje?.datos?.mensajeId,
+          exito: false,
+          error: 'Reto no encontrado',
+          retoId
+        };
+      }
+
+      return {
+        mensajeOriginal: mensaje?.datos?.mensajeId,
+        retoId,
+        exito: true,
+        reto: {
+          id: reto.id,
+          tipo: reto.tipo,
+          pregunta: reto.pregunta,
+          opciones: Array.isArray(reto.opciones) ? reto.opciones : [],
+          multiple: !!reto.multiple,
+          correctas: Array.isArray(reto.correctas) ? reto.correctas : [],
+          puzzleSrc: reto.src || reto.puzzleSrc || null
+        }
+      };
+    }
+
+    // Tests
+    globalThis.runTest = function() {
+      addResult('── Solicitud exitosa ──', 'info');
+
+      // Test 1: Valid retoId
+      const res1 = procesarSolicitudReto({ datos: { retoId: 'R4-Av1-es', mensajeId: 'req-1' } });
+      if (res1.exito === true && res1.reto && res1.reto.id === 'R4-Av1-es') {
+        addResult('✅ SOLICITAR_RETO R4-Av1-es → exito:true, reto.id correcto', 'success');
+      } else {
+        addResult('❌ SOLICITAR_RETO R4-Av1-es falló: ' + JSON.stringify(res1), 'error');
+      }
+
+      // Test 2: Response contains normalized fields
+      if (res1.reto && Array.isArray(res1.reto.opciones) && res1.reto.opciones.length === 2 &&
+          res1.reto.multiple === false && Array.isArray(res1.reto.correctas) && res1.reto.puzzleSrc === null) {
+        addResult('✅ Campos normalizados: opciones(2), multiple=false, correctas=array, puzzleSrc=null', 'success');
+      } else {
+        addResult('❌ Campos no normalizados correctamente', 'error');
+      }
+
+      // Test 3: mensajeOriginal preserved
+      if (res1.mensajeOriginal === 'req-1') {
+        addResult('✅ mensajeOriginal preservado: "req-1"', 'success');
+      } else {
+        addResult('❌ mensajeOriginal no preservado', 'error');
+      }
+
+      addResult('── Solicitud sin retoId ──', 'info');
+
+      // Test 4: Missing retoId → exito:false
+      const res2 = procesarSolicitudReto({ datos: { mensajeId: 'req-2' } });
+      if (res2.exito === false && typeof res2.error === 'string') {
+        addResult('✅ Sin retoId → exito:false, error="' + res2.error + '"', 'success');
+      } else {
+        addResult('❌ Sin retoId debería retornar exito:false', 'error');
+      }
+
+      addResult('── Reto no encontrado ──', 'info');
+
+      // Test 5: Non-existent reto
+      const res3 = procesarSolicitudReto({ datos: { retoId: 'R99-NOEXISTE', mensajeId: 'req-3' } });
+      if (res3.exito === false && res3.error === 'Reto no encontrado') {
+        addResult('✅ Reto inexistente → exito:false, error="Reto no encontrado"', 'success');
+      } else {
+        addResult('❌ Reto inexistente debería retornar error', 'error');
+      }
+
+      addResult('── Segundo reto (tipo texto) ──', 'info');
+
+      // Test 6: Second reto
+      const res4 = procesarSolicitudReto({ datos: { retoId: 'R5-Av1-es', mensajeId: 'req-4' } });
+      if (res4.exito === true && res4.reto.tipo === 'texto' && res4.reto.pregunta === '¿Año de La Lonja?') {
+        addResult('✅ R5-Av1-es → tipo=texto, pregunta correcta', 'success');
+      } else {
+        addResult('❌ R5-Av1-es datos incorrectos', 'error');
+      }
+
+      // Test 7: Empty opciones normalized to array
+      if (res4.reto && Array.isArray(res4.reto.opciones) && res4.reto.opciones.length === 0) {
+        addResult('✅ Opciones vacías normalizadas a []', 'success');
+      } else {
+        addResult('❌ Opciones vacías no normalizadas', 'error');
+      }
+
+      addResult('── Datos datos nulos ──', 'info');
+
+      // Test 8: null datos
+      const res5 = procesarSolicitudReto({ datos: null });
+      if (res5.exito === false) {
+        addResult('✅ datos:null → exito:false', 'success');
+      } else {
+        addResult('❌ datos:null debería retornar exito:false', 'error');
+      }
+
+      // Report
+      globalThis.TestReporter.report({
+        name: 'Datos: SOLICITAR_RETO (hijo4)',
+        resultsContainer: document.getElementById('results')
+      });
+    };
+  </script>
+</body>
+</html>

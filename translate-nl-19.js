@@ -1,0 +1,26 @@
+import { readFileSync, writeFileSync } from 'fs';
+const ES_FILE = 'js/parrafos-textos/parrafos-texto-espanol.json';
+const TARGET_FILE = 'js/parrafos-textos/parrafos-texto-neerlandes.json';
+const LOGO = "<img src='imagenes/imagenes-aplicación/logo_alargado_3.png' alt='València be Guides' style='height:1.4em;vertical-align:baseline;position:relative;bottom:-0.2em;'>";
+const rawEs = readFileSync(ES_FILE, 'utf8');
+const esKeys = [...rawEs.matchAll(/^  "([^"]+)":/mg)].map(m => m[1]);
+let existing = {};
+try { existing = JSON.parse(readFileSync(TARGET_FILE, 'utf8')); } catch (e) {}
+const batch = {
+  "VIV7": "<p>De kaart van deze tuinen voert u weg van dit punt om later terug te keren.</p>\n\n<p>Begeef u voorlopig naar rechts waar een zone op u wacht die doet denken aan de tuinen van Versailles.</p>\n\n<p>Dit correspondeert met nummer <mark>9</mark> op uw kaart.</p>",
+  "VIV8": "<p>Een grote lantaarnpaal, een van de enige in de stad, laat ons ons volgende doel al een beetje zien.</p>",
+  "VIV9": "<p>Enkele meters verderop, in de Rozentuin (Rosaleda), verschijnt een grote ronde fontein afkomstig van de Plaza de la Reina, omgeven door bijna zesduizend rozen van verschillende soorten, naast andere siergewassen.</p>\n\n<p>De rozentuin, geplant in 1974 en gerenoveerd in 2010, correspondeert met nummer <mark>10</mark> op uw kaart.</p>",
+  "VIV10": `<p>Uitgaand aan de tegenovergestelde kant van de rozentuin bevinden zich de kwekerijen die de botanische soorten en flora aan de stad zouden leveren.</p>\n\n<p>${LOGO} moedigt u aan op pauze te drukken en dit botanische gebied op uw eigen tempo te verkennen; u kunt uw zoektocht hervatten vanaf het museum dat overeenkomt met nummer <mark>8</mark> op uw kaart.</p>\n\n<p>Bedenk dat u de pauzeknop naar eigen goeddunken kunt gebruiken en hem kunt indrukken wanneer u dat wenselijk acht. Druk daarna eenvoudigweg op start en ga verder met het oplossen van onze uitdagingen terwijl u de stad ontdekt.</p>\n\n<p>De Jardines del Real bieden een ruime verscheidenheid aan beeldhouwwerken: El Reposo, La Dama de Elche, Las Cuatro Falsas Estaciones, Despertar en La Fuente de Neptuno zijn enkele exemplaren die u op uw tocht kunt vinden.</p>`,
+  "VIV11": "<p>Stelt u zich, als u zo vriendelijk wilt zijn, op tussen de alquería en het museum; nummers <mark>7</mark> en <mark>8</mark> respectievelijk.</p>\n\n<p>Met de Alquería aan uw linkerkant en het Museum aan uw rechterkant, let u erop dat er voor u een plein opent dat bestemd is voor muzikale evenementen; zoals concerten en typische dansen. Aan het einde van deze ruimte opent zich een bescheiden meer aan uw rechterkant.</p>\n\n<p>Dit is het bekende meer van de zwanen, waar trekvogels, zoals ooievaars en eenden, rusten in dit beschermde habitat om krachten te verzamelen alvorens hun vlucht te hervatten. Dit correspondeert met nummer <mark>11</mark> op uw kaart.</p>",
+  "VIV11-B": "<p>Aan het einde van deze ruimte opent zich een bescheiden meer aan uw rechterkant. Begeef u naar het meer van de zwanen. Dit correspondeert met nummer <mark>11</mark> op uw kaart.</p>",
+  "VIV11-C": "<p>Dit is het bekende meer van de zwanen, waar trekvogels, zoals ooievaars en eenden, rusten in dit beschermde habitat om krachten te verzamelen alvorens hun vlucht te hervatten.</p>",
+  "VIV12": "<p>Welke figuur siert de fontein? Is het een eend? Een ooievaar? Of misschien een vis?</p>\n\n<p>Druk op pauze en ga naar de aangegeven plek om uw uitdaging te voltooien.</p>",
+  "VIV13": "<p>Volgend de vorm van de tuin verwelkomt een beeldhouwwerk gewijd aan het water een van de meest ingetogen hoekjes van het park. Dit correspondeert met nummer <mark>12</mark> op uw kaart.</p>",
+  "VIV14": "<p>Een kind is veel meer dan een decoratief element: het is een symbolisch kunstwerk dat de menselijke relatie met water vertegenwoordigt. Gelegen in een omgeving die historisch verbonden is met irrigatie en de huerta, herinnert het aan het essentiële belang van water als basis van het leven, zonder welke noch de landbouw noch de steden zouden bestaan. De compositie versterkt deze boodschap: water symboliseert de oorsprong van het leven, de moeder de zorg en bescherming, en het kind de continuïteit en de toekomst.</p>",
+  "VIV15": `<p>Achter de fontein opent zich een barokke portaal gewijd aan de Heilige Julianus.</p>\n\n<p>Deze intieme ruimte verbergt twee portalen naar de oude paleistuinen die graven en hertogen vanuit hun woning hadden.</p>\n\n<p>Tegenwoordig is het een romantisch en rustig hoekje waar men zich kan ontspannen en genieten van rust en stilte in een stad in voortdurende beweging.</p>\n\n<p>Dit correspondeert met nummer <mark>12</mark> op uw kaart.</p>\n\n<p>Met de portaal en de fontein achter u, avontuurt u zich in de zone van de vijgebomen (Ficus), grote bomen afkomstig uit Australië.</p>\n\n<p>${LOGO} moedigt u aan dit gebied rustig te verkennen.</p>\n\n<p>Hervat dit avontuur vanaf de uitgang van de Jardines del Real, via dezelfde deur waardoor u binnenging. Dit correspondeert met nummer <mark>1</mark> op uw kaart.</p>`,
+};
+const merged = { ...existing, ...batch };
+const lines = esKeys.filter(k => merged[k] !== undefined).map(k => `  ${JSON.stringify(k)}: ${JSON.stringify(merged[k])}`);
+const json = '{\n' + lines.join(',\n') + '\n}';
+writeFileSync(TARGET_FILE, json, 'utf8');
+console.log('Total entradas:', lines.length);

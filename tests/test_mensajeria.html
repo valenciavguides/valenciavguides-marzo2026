@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Mensajeria Loading</title>
+</head>
+<body>
+    <h1>Testing Mensajeria Loading</h1>
+    <div id="status">Loading modules...</div>
+    <div id="results"></div>
+
+    <!-- Load modules using script tags that actually execute the module code -->
+    <script type="module" src="../js/constants.js"></script>
+    <script type="module" src="../js/mensajeria.js"></script>
+    
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        // Wait for modules to be fully loaded and executed (with timeout)
+        async function waitForModules() {
+            console.log('Waiting for modules to be ready...');
+            const maxWait = 8000;
+            const start = Date.now();
+
+            // Wait for constants to be available (with timeout)
+            while (!globalThis.constants && (Date.now() - start) < maxWait) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            if (globalThis.constants) console.log('✅ Constants available on window');
+            else { console.warn('⏱️ Timeout waiting for constants'); return; }
+
+            // Wait for mensajeria to be available (with timeout)
+            while (!globalThis.mensajeria && (Date.now() - start) < maxWait) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            if (globalThis.mensajeria) console.log('✅ Mensajeria available on window');
+            else { console.warn('⏱️ Timeout waiting for mensajeria'); return; }
+
+            // Now initialize mensajeria
+            console.log('Initializing mensajeria...');
+            if (globalThis.mensajeria.inicializarMensajeria) {
+                try {
+                    await globalThis.mensajeria.inicializarMensajeria({ rol: 'padre', debug: true });
+                    console.log('✅ Mensajeria initialized successfully');
+                } catch(e) { console.warn('⚠️ Init error:', e.message); }
+            }
+
+            // Set ready flag
+            globalThis.mensajeriaReady = true;
+            console.log('✅ mensajeriaReady flag set');
+            document.getElementById('status').innerHTML = 'Modules loaded and initialized successfully!';
+        }
+
+        // Start waiting immediately
+        waitForModules();
+    </script>
+
+    <script>
+        // Check after modules are loaded and initialized
+        setTimeout(() => {
+            const status = document.getElementById('status');
+            let message = status.innerHTML + '<br><br>Final check:<br>';
+
+            if (globalThis.constants) {
+                message += '✅ globalThis.constants available<br>';
+            } else {
+                message += '❌ globalThis.constants not available<br>';
+            }
+
+            if (globalThis.mensajeria) {
+                message += '✅ globalThis.mensajeria available<br>';
+                
+                // Check if mensajeria is properly initialized
+                if (globalThis.mensajeria.enviarMensaje && globalThis.mensajeria.registrarControlador && globalThis.mensajeria.inicializarMensajeria) {
+                    message += '✅ mensajeria functions available<br>';
+                } else {
+                    message += '❌ mensajeria functions not available<br>';
+                }
+            } else {
+                message += '❌ globalThis.mensajeria not available<br>';
+            }
+
+            status.innerHTML = message;
+        }, 3000);
+
+        // Auto-ejecución para master-test
+        globalThis.runTest = function() {
+            // Wait up to 5s for modules to load, then report
+            let attempts = 0;
+            const maxAttempts = 50;
+            function checkAndReport() {
+                attempts++;
+                if ((globalThis.mensajeria && globalThis.constants) || attempts >= maxAttempts) {
+                    let passed = 0, failed = 0;
+                    if (globalThis.constants) passed++; else failed++;
+                    if (globalThis.mensajeria) passed++; else failed++;
+                    globalThis.TestReporter.report({
+                        name: 'Module: Mensajeria Loading',
+                        passed: passed,
+                        failed: failed
+                    });
+                } else {
+                    setTimeout(checkAndReport, 100);
+                }
+            }
+            checkAndReport();
+        };
+    </script>
+</body>
+</html>

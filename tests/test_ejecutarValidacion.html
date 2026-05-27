@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test ejecutarValidacion</title>
+</head>
+<body>
+    <h1>Test de ejecutarValidacion</h1>
+    <div id="resultado"></div>
+    <script src="test-reporter-utility.js"></script>
+
+    <script>
+        globalThis.runTest = function() {
+            const resultDiv = document.getElementById('resultado');
+            let passed = 0, failed = 0;
+
+            // Simular la función ejecutarValidacion con lógica real
+            function ejecutarValidacion(reto, respuestaUsuario) {
+                if (!reto || !respuestaUsuario) return false;
+                if (reto.tipo === 'opcion') {
+                    return Array.isArray(reto.correctas) && reto.correctas.includes(respuestaUsuario);
+                }
+                if (reto.tipo === 'texto') {
+                    return reto.correctas.some(c => c.toLowerCase().trim() === String(respuestaUsuario).toLowerCase().trim());
+                }
+                return false;
+            }
+
+            // Test 1: Opción correcta
+            const reto1 = { id: 'R3-Av1-es', tipo: 'opcion', pregunta: '¿Siglo torres?', correctas: ['XIV'] };
+            if (ejecutarValidacion(reto1, 'XIV') === true) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Opción correcta validada</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Opción correcta falló</div>'; }
+
+            // Test 2: Opción incorrecta
+            if (ejecutarValidacion(reto1, 'XVI') === false) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Opción incorrecta rechazada</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Opción incorrecta no rechazada</div>'; }
+
+            // Test 3: Texto correcto
+            const reto2 = { id: 'R-txt', tipo: 'texto', correctas: ['Madrid'] };
+            if (ejecutarValidacion(reto2, 'madrid') === true) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Texto correcto (case-insensitive)</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Texto case-insensitive falló</div>'; }
+
+            // Test 4: Null input
+            if (ejecutarValidacion(null, 'test') === false) { passed++; resultDiv.innerHTML += '<div class="pass">✅ Input null rechazado</div>'; }
+            else { failed++; resultDiv.innerHTML += '<div class="fail">❌ Input null no rechazado</div>'; }
+
+            globalThis.TestReporter.report({
+                name: 'Module: ejecutarValidacion',
+                passed, failed
+            });
+        };
+        globalThis.runTest();
+    </script>
+</body>
+</html></content>
+<parameter name="filePath">c:\Users\gomez\.windsurf\proyecto valenciavguides\test_ejecutarValidacion.html

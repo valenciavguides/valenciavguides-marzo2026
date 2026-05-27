@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+    /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÍMITES */
+    (function(){
+        function escalar(){
+            var w, h;
+            w = globalThis.innerWidth; h = globalThis.innerHeight;
+            var f = Math.max(16, Math.min(Math.min(w, h) * 0.025, 18));
+            document.documentElement.style.fontSize = f + "px";
+        }
+        escalar();
+        globalThis.addEventListener("resize", escalar);
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+    <title>audio-hijo3</title>
+    <script src="js/proteccion.js"></script>
+    <script src="js/suppress-warnings.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Escalado proporcional puro: 2.5% del menor lado del viewport */
+        html { font-size: clamp(16px, 5vmin, 18px); }
+
+        /* Fuente global Verdana */
+        * { font-family: Verdana, sans-serif !important; }
+        
+        :root {
+            --btn-size: calc(50vh - 4px);
+            --icon-size: 1.5em;
+            --progress-thick: 2rem;
+            --trapecio-width: 100%; /* Ocupar todo el ancho del iframe */
+            --trapecio-height: 8.4375rem;
+            --trapecio-bg: transparent;
+            --trapecio-shadow: 0 0.125rem 0.75rem rgba(0,0,0,0.13);
+            --trapecio-radius: 0.75rem;
+            --progress-color: #0077cc;
+            --progress-bg: #e0e0e0;
+            --timer-font-size: 1.1em;
+            --timer-color: #333;
+        }
+
+        /* Encapsular estilos */
+        .hijo3-container body, .hijo3-container html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+        }
+
+        body {
+            font-family: "Book Antiqua", "Palatino Linotype", Palatino, Georgia, serif;
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Centrar verticalmente para que el contenedor ocupe el espacio */
+            height: 100%;
+            width: 100%;
+        }
+
+        .audio-player-controls {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border-radius: 0.75rem 0.75rem 0 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 6px;
+            z-index: 9999;
+            padding: 2px 0px 2px 1px;
+            box-sizing: border-box;
+            border: none;
+            margin: 0;
+            position: relative;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background-color: transparent !important;
+        }
+
+        /* Arriba: barra de progreso, recortada por la derecha en un ancho de botón */
+        .progress-top-row {
+            width: calc(100% - var(--btn-size) - 5px);
+            height: calc(50vh - 7px);
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        /* Abajo: título izquierda + botones derecha */
+        .bottom-row {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            min-height: 0;
+        }
+
+        /* Izquierda de la fila inferior: nombre de la pista */
+        .content-left {
+            flex: 1;
+            min-width: 0;
+            height: calc(50vh - 7px);
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
+            box-sizing: border-box;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            border-radius: calc((50vh - 7px) / 2);
+            border: 0.0625rem solid #ddd;
+            box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.1);
+        }
+
+        /* Título con efecto marquee si no cabe */
+        .titulo-parada {
+            height: 100%;
+            font-size: calc(50vh - 10px);  /* fila inferior ≈ 50vh, letras grandes */
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            padding-left: 1px;
+            padding-right: 1px;
+        }
+
+        .titulo-parada span {
+            display: inline-block;
+            padding-right: 2rem;
+        }
+
+        .titulo-parada.marquee span {
+            animation: marquee-scroll 10s linear infinite;
+        }
+
+        @keyframes marquee-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Derecha de la fila inferior: botones */
+        .buttons-right {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            align-self: center;
+            gap: 6px;
+            margin-left: auto;
+            margin-right: 9px;
+            flex-shrink: 0;
+        }
+
+        #retosBtn {
+            width: var(--btn-size);
+            height: var(--btn-size);
+            position: relative;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(180deg, #1e7e34 0%, #166528 50%, #0d4c1d 100%);
+            color: white;
+            font-size: var(--icon-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #retosBtn .icon-puzzle {
+            color: white;
+            font-weight: bold;
+            filter: drop-shadow(0 0.0625rem 0.125rem rgba(0,0,0,0.1));
+        }
+
+        #retosBtn:disabled {
+            background: linear-gradient(to right, #dc3545, #c82333);
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+
+        @media (hover: hover) {
+            #retosBtn:hover:not(:disabled) {
+                transform: scale(1.05);
+                box-shadow: none;
+            }
+        }
+
+        #retosBtn:active:not(:disabled) {
+            transform: scale(0.93);
+            box-shadow: none;
+        }
+
+        /* Imagen dentro del botón retos: cubrir todo el botón */
+        #retosBtn img {
+            position: absolute;
+            top: -1.5%;
+            left: -1.5%;
+            width: 103%;
+            height: 103%;
+            min-width: 103%;
+            min-height: 103%;
+            max-width: none;
+            max-height: none;
+            margin: 0;
+            padding: 0;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            pointer-events: none;
+        }
+
+        .progress-container {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            border-radius: calc((50vh - 7px) / 2);
+            cursor: pointer;
+            position: relative;
+            margin: 0;
+            min-width: 0;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            border: 0.0625rem solid #ddd;
+            box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.1);
+        }
+
+        .time-overlay {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 2;
+            font-size: calc((50vh - 7px) / 4);
+            font-weight: bold;
+            color: #333;
+            gap: 0.2em;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #28a745, #1e7e34);
+            border-radius: calc(var(--progress-thick) / 2);
+            transition: width 0.1s linear;
+            position: relative;
+            padding-left: 1px;
+            padding-right: 1px;
+            box-sizing: border-box;
+        }
+
+        .progress-container::after {
+            content: '';
+            position: absolute;
+            left: max(0px, calc(var(--bar-w, 0) * 100% - 1.25rem));
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: #007bff;
+            border: 0.1875rem solid white;
+            box-shadow: 0 0 0 0.0625rem rgba(0,0,0,0.1);
+            display: block;
+            opacity: 1;
+            pointer-events: none;
+            z-index: 3;
+            transition: left 0.1s linear, opacity 0.2s ease;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: var(--timer-font-size);
+            color: var(--timer-color);
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .time-display span {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Estilos para los botones del hijo3 */
+        #hijo3 .boton {
+            transition: background 0.3s ease, color 0.3s ease;
+            background: none; /* Se asegura que no haya colores adicionales */
+        }
+
+        /* Botón habilitado: degradado verde */
+        #hijo3 .boton.habilitado {
+            background: linear-gradient(to right, #1e7e34, #155c27);
+            color: white;
+        }
+
+        /* Botón deshabilitado: degradado rojo */
+        #hijo3 .boton.deshabilitado {
+            background: linear-gradient(to right, #dc3545, #c82333);
+            color: white;
+        }
+
+        /* Estilos para el modo casa (controles completamente visibles y habilitados) */
+        body.modo-casa .audio-player-controls {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Estilos de modo casa eliminados - los botones siguen el estado habilitado/deshabilitado estándar */
+
+        /* Estilos para el modo aventura (controles normales) */
+        body.modo-aventura .audio-player-controls {
+            display: flex;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="modo-aventura hijo3-container">
+    <!-- ARRAY DE AUDIOS - NO ELIMINAR NI MODIFICAR SIN REVISIÓN: Este array es esencial para mapear audioId a archivos MP3. Cualquier cambio debe coordinarse con el padre. -->
+    <script type="module">
+        // ╔════════════════════════════════════════════════════════════════════════════╗
+        // ║ ARRAY VACÍO - Los audios se cargan desde el PADRE via mensaje CARGAR_AUDIOS ║
+        // ║ El array de backup está comentado abajo por si necesitamos restaurar        ║
+        // ╚════════════════════════════════════════════════════════════════════════════╝
+        const audioFiles = [];
+        
+        // Función getter que prioriza datos del padre sobre datos locales
+        function obtenerAudioFiles() {
+            // Prioridad 1: Datos recibidos del padre
+            if (globalThis.__vv_audioFiles && Array.isArray(globalThis.__vv_audioFiles) && globalThis.__vv_audioFiles.length > 0) {
+                return globalThis.__vv_audioFiles;
+            }
+            // Prioridad 2: Array local como fallback de emergencia
+            console.warn('[hijo3] ⚠️ Usando audioFiles local vacío - ¿Se cargaron los audios desde el padre?');
+            return audioFiles;
+        }
+        
+        // Exponer función globalmente
+        globalThis.obtenerAudioFiles = obtenerAudioFiles;
+        
+        /* ═══════════════════════════════════════════════════════════════════════════════
+         * ██ BACKUP: Array de audios original - COMENTADO PARA USAR DATOS CENTRALIZADOS
+         * ██ Descomentar solo si falla el flujo centralizado y necesitamos fallback
+         * ═══════════════════════════════════════════════════════════════════════════════
+        
+        // Array de audios correspondientes a las paradas y tramos del recorrido
+        // Usando P- para paradas y TR- para tramos, coincidiendo con los IDs del hijo 2
+        /*
+        const audioFiles_BACKUP = [
+        ═══════════════════════════════════════════════════════════════════════════════ */
+        
+        // ✅ Exponer función getter globalmente (sustituye la exposición directa del array)
+        // La línea original era: try { globalThis.__vv_audioFiles = audioFiles; } catch (e) { /* ignore */ }
+        // Ahora los audios llegan desde el padre via CARGAR_AUDIOS
+    </script>
+    
+    <div class="audio-player-controls">
+        <!-- Arriba: barra de progreso (ancho completo) -->
+        <div class="progress-top-row">
+            <div class="progress-container" id="progressContainer" aria-label="Barra de progreso de audio">
+                <div id="progressBar"></div>
+                <div class="time-overlay">
+                    <span id="currentTime">00:00</span>
+                    <span>/</span>
+                    <span id="duration">00:00</span>
+                </div>
+            </div>
+        </div>
+        <!-- Abajo: nombre de pista (izquierda) + botones (derecha) -->
+        <div class="bottom-row">
+            <div class="content-left">
+                <div id="titulo-parada" class="titulo-parada">
+                    <span id="titulo-parada-text"></span>
+                </div>
+            </div>
+            <div class="buttons-right">
+                <button id="retosBtn" aria-label="Retos">
+                    <img src="imagenes/imagenes-aplicación/H4-fotoretos.png" alt="Retos">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" preload="metadata" controlsList="nodownload">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <script type="module">
+    import { retryUntilAvailable, resolverIdsParada, getPadreId } from './js/utils.js';
+    import { TIPOS_MENSAJE } from './js/constants.js';
+    import logger from './js/logger.js';
+
+    // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
+    // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
+
+    // Fallbacks que esperan a que globalThis.mensajeria esté disponible
+    const enviarMensaje = async (...args) => {
+        // En hijos, usar postMessage directamente al padre
+        if (globalThis.parent && globalThis.parent !== globalThis) {
+            const mensaje = args[0];
+            try {
+                globalThis.parent.postMessage({
+                    tipo: mensaje.tipo,
+                    origen: mensaje.origen || 'hijo3',
+                    destino: mensaje.destino,
+                    datos: mensaje.datos,
+                    timestamp: Date.now()
+                }, globalThis.location.origin);
+                return;
+            } catch (e) {
+                console.error('[hijo3] Error enviando mensaje via postMessage:', e);
+                throw e;
+            }
+        } else {
+            // Fallback al método anterior si no estamos en iframe
+            return await retryUntilAvailable(
+                () => globalThis.mensajeria.enviarMensaje(...args),
+                () => globalThis.mensajeria && globalThis.mensajeria.enviarMensaje,
+                10, 500, (...a) => (globalThis.logger || console).error(...a)
+            );
+        }
+    };
+
+    const registrarControlador = async (tipo, callback, _opciones = {}) => {
+        // En hijos, los controladores se registran localmente para mensajes del padre
+        if (globalThis.parent && globalThis.parent !== globalThis) {
+            // Registrar listener para mensajes del padre
+            const listener = (event) => {
+                if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
+                    callback(event.data);
+                }
+            };
+            globalThis.addEventListener('message', listener);
+            return () => globalThis.removeEventListener('message', listener);
+        } else {
+            // Fallback al método anterior
+            return await retryUntilAvailable(
+                () => globalThis.mensajeria.registrarControlador(tipo, callback),
+                () => globalThis.mensajeria && globalThis.mensajeria.registrarControlador,
+                10, 500, (...a) => (globalThis.logger || console).error(...a)
+            );
+        }
+    };
+
+    const enviarMensajeConConfirmacion = async (...args) => {
+        // Similar a enviarMensaje pero esperando confirmación
+        if (globalThis.parent && globalThis.parent !== globalThis) {
+            const mensaje = args[0];
+            return new Promise((resolve, reject) => {
+                const idMensaje = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmación')),
+                    ajustarTimeoutPorConexion(5000));
+                
+                const confirmListener = (event) => {
+                    if (event.source === globalThis.parent && event.data && event.data.tipo === 'SISTEMA.CONFIRMACION' && event.data.idOriginal === idMensaje) {
+                        clearTimeout(timeout);
+                        globalThis.removeEventListener('message', confirmListener);
+                        resolve();
+                    }
+                };
+                
+                globalThis.addEventListener('message', confirmListener);
+                
+                try {
+                    globalThis.parent.postMessage({
+                        tipo: mensaje.tipo,
+                        origen: mensaje.origen || 'hijo3',
+                        destino: mensaje.destino,
+                        datos: mensaje.datos,
+                        timestamp: Date.now(),
+                        id: idMensaje,
+                        requiereConfirmacion: true
+                    }, globalThis.location.origin);
+                } catch (e) {
+                    clearTimeout(timeout);
+                    globalThis.removeEventListener('message', confirmListener);
+                    reject(e);
+                }
+            });
+        } else {
+            return await retryUntilAvailable(
+                () => globalThis.mensajeria.enviarMensajeConConfirmacion(...args),
+                () => globalThis.mensajeria && globalThis.mensajeria.enviarMensajeConConfirmacion,
+                10, 500, (...a) => (globalThis.logger || console).error(...a)
+            );
+        }
+    };
+
+    // ==================== MESSAGING ADAPTER PARA COMUNICACIÓN CON PADRE ====================
+    // Este adapter permite a los hijos registrar controladores centralmente en el state-manager del padre
+    if (globalThis.messagingAdapter === undefined) {
+        globalThis.messagingAdapter = {
+            _listenerRegistry: new Map(),
+
+            registrarControladorCentral: async function(controladorId, handler, opciones = {}) {
+                const iframeId = globalThis.name || (globalThis.CONFIG_HIJO !== undefined && globalThis.CONFIG_HIJO.IFRAME_ID) || 'hijo';
+                const tipo = opciones.tipoMensaje || controladorId;
+
+                // Evitar doble registro del mismo tipo
+                if (this._listenerRegistry.has(tipo)) {
+                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[messagingAdapter] Listener ya registrado para ${tipo}, omitiendo`);
+                    return false;
+                }
+
+                const adapterListener = async function(event) {
+                    if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
+                        try {
+                            const resultado = await handler(event.data);
+                            
+                            if (event.data.requiereConfirmacion && event.data.id && resultado !== undefined) {
+                                try {
+                                    const confirmacion = {
+                                        tipo: (globalThis.TIPOS_MENSAJE !== undefined && globalThis.TIPOS_MENSAJE.SISTEMA && globalThis.TIPOS_MENSAJE.SISTEMA.CONFIRMACION) || 'SISTEMA.CONFIRMACION',
+                                        idOriginal: event.data.id,
+                                        origen: iframeId,
+                                        destino: event.data.origen || 'padre',
+                                        timestamp: Date.now(),
+                                        datos: resultado
+                                    };
+                                    if (globalThis.parent && globalThis.parent !== globalThis) {
+                                        globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
+                                        (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Auto-confirmación enviada para ${event.data.id}`);
+                                    }
+                                } catch (confError) {
+                                    (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error enviando confirmación:`, confError);
+                                }
+                            }
+                        } catch (e) {
+                            (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error en handler ${tipo}:`, e && e.message);
+                        }
+                    }
+                };
+                globalThis.addEventListener('message', adapterListener);
+                this._listenerRegistry.set(tipo, adapterListener);
+                
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Handler registrado para ${tipo} en ${iframeId}`);
+                return true;
+            },
+            
+            enviarMensajeCentral: async function(mensaje) {
+                if (globalThis.parent && globalThis.parent !== globalThis) {
+                    globalThis.parent.postMessage(mensaje, globalThis.location.origin);
+                    return { exito: true, metodo: 'postMessage' };
+                }
+                return { exito: false, error: 'No hay padre disponible' };
+            }
+        };
+        (globalThis.logger || console).info && (globalThis.logger || console).info('[HIJO] messagingAdapter creado para comunicación con padre');
+
+        globalThis.addEventListener('pagehide', function() {
+            if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
+                for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
+                    globalThis.removeEventListener('message', listener);
+                }
+                globalThis.messagingAdapter._listenerRegistry.clear();
+            }
+        }, { once: true });
+    }
+
+    // Wrapper seguro para evitar doble registro de controladores en hijos
+    if (globalThis.registrarControladorSeguro === undefined) {
+        globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
+        globalThis.registrarControladorSeguro = async function(tipo, handler, opciones) {
+            try {
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
+                if (!tipo || typeof handler !== 'function') {
+                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControladorSeguro parámetros inválidos: tipo=${tipo}`);
+                    return;
+                }
+                if (globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) {
+                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Controlador ya registrado, omitiendo: ${tipo}`);
+                    return;
+                }
+                globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
+                // Prefer central registration via messagingAdapter/state-manager when available
+                try {
+                    const iframeId = (globalThis.name || (globalThis.CONFIG_HIJO !== undefined && globalThis.CONFIG_HIJO.IFRAME_ID) || 'hijo');
+                    const controladorId = `${iframeId}:${tipo}`;
+                    if (globalThis.messagingAdapter && typeof globalThis.messagingAdapter.registrarControladorCentral === 'function') {
+                        try {
+                            const centralRes = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
+                            if (centralRes === true) {
+                                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
+                                return true;
+                            }
+                        } catch (e) {
+                            (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Central registrar failed for ${tipo}: ${e && e.message}`);
+                        }
+                    }
+                    if (typeof registrarControlador === 'function') {
+                        try {
+                            const res = await safeRegistrar(tipo, handler, opciones);
+                            (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
+                            return res;
+                        } catch (err) {
+                            (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControlador failed for ${tipo}: ${err && err.message}`);
+                        }
+                    }
+                } catch (e) {
+                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControladorSeguro central attempt error for ${tipo}: ${e && e.message}`);
+                }
+                // Handler remains tracked locally in `globalThis.__CONTROLADOR_REGISTRADOS`
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] Handler queued for migration: ${tipo} (local queue)`);
+                return;
+            } catch (e) {
+                (globalThis.logger || console).error(`[HIJO] Error registrando controlador seguro ${tipo}:`, e && e.message);
+            }
+        };
+    }
+
+    // Helper: safeRegistrar delegates to registrarControladorSeguro when available
+    if (globalThis.safeRegistrar === undefined) {
+        globalThis.safeRegistrar = async function(tipo, handler, opciones) {
+            try {
+                if (!tipo || typeof handler !== 'function') return;
+                if (globalThis.__CONTROLADOR_REGISTRADOS && globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) return;
+                if (typeof globalThis.registrarControladorSeguro === 'function') return globalThis.registrarControladorSeguro(tipo, handler, opciones);
+                if (typeof registrarControlador === 'function') return registrarControlador(tipo, handler, opciones);
+            } catch (e) { (globalThis.logger || console).warn && (globalThis.logger || console).warn('[HIJO] safeRegistrar error', e && e.message); }
+        };
+    }
+
+    const CONFIG_HIJO = {
+        IFRAME_ID: 'hijo3',
+        COMPONENTE_ID: 'AUDIO',
+        DEBUG: true
+    };
+
+    // Exportar CONFIG_HIJO para compatibilidad con mensajeria.js y para que el padre lo consulte
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = CONFIG_HIJO;
+    } else {
+        globalThis.CONFIG_HIJO = CONFIG_HIJO;
+    }
+
+    let currentAudioId = null;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 🔧 UTILIDADES - AJUSTE DINÁMICO DE TIMEOUTS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Calcula multiplicador de timeout según tipo de conexión
+     * Metodología consistente con codigo-padre.html (utils.js)
+     * @returns {number} Multiplicador (1.0-3.0)
+     */
+    function calcularMultiplicadorTimeoutConexion() {
+        try {
+            if (!navigator.connection) {
+                return 1.5; // Valor moderado si no hay info de conexión
+            }
+
+            const effectiveType = navigator.connection.effectiveType || 'unknown';
+            const multiplicadores = {
+                '4g': 1,        // Conexión rápida
+                '3g': 1.5,      // Conexión media - 50% más tiempo
+                '2g': 2,        // Conexión lenta - doble tiempo
+                'slow-2g': 3,   // Conexión muy lenta - triple tiempo
+                'unknown': 1.5  // Desconocido - moderado
+            };
+
+            return multiplicadores[effectiveType] || 1.5;
+        } catch (error) {
+            console.warn('[HIJO3][TIMEOUT] Error calculando multiplicador:', error);
+            return 1.5;
+        }
+    }
+
+    /**
+     * Ajusta timeout según conexión de red actual
+     * @param {number} timeoutBase - Timeout base en ms
+     * @returns {number} Timeout ajustado
+     */
+    function ajustarTimeoutPorConexion(timeoutBase) {
+        const multiplicador = calcularMultiplicadorTimeoutConexion();
+        const timeoutAjustado = Math.round(timeoutBase * multiplicador);
+        console.debug(`[HIJO3][TIMEOUT] ${timeoutBase}ms -> ${timeoutAjustado}ms (${multiplicador}x)`);
+        return timeoutAjustado;
+    }
+
+    // Estado del componente (homologado con otros hijos)
+    const estado = {
+        inicializado: false,
+        modo: { actual: 'aventura' },
+        pendingCambioModo: null,
+        hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
+    };
+
+    // Funciones de reproductor (fusionadas y adaptadas)
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    // Prepara el audio en el reproductor y opcionalmente lo reproduce.
+    // autoplay: boolean (por defecto false) — si es true intentará iniciar reproducción inmediatamente.
+    async function cargarYReproducirAudio(audioId, autoplay = false) {
+        // ✅ Usar función centralizada que prioriza datos del padre
+        const files = obtenerAudioFiles();
+        if (!files || !Array.isArray(files) || files.length === 0) {
+            logger.error(`Audio array no disponible o vacío. Imposible preparar ${audioId}. ¿Se cargaron los audios desde el padre?`);
+            return { exito: false, error: 'audioFiles_missing' };
+        }
+        const audioData = files.find(audio => audio.id === audioId || audio.id === `audio-${audioId}`);
+        if (!audioData) {
+            logger.error(`Audio no encontrado: ${audioId}`);
+            return { exito: false, error: 'audio_not_found' };
+        }
+
+        // Guard: si el archivo de audio no está configurado aún (file vacío), devolver
+        // error controlado en lugar de asignar src vacío y disparar MEDIA_ELEMENT_ERROR
+        if (!audioData.file) {
+            logger.warn(`[hijo3] Audio ${audioId} no tiene archivo configurado (pendiente de producción)`);
+            return { exito: false, error: 'audio_file_not_configured' };
+        }
+
+        // Preparar la fuente siempre (permite que el usuario pulse Play más tarde)
+        audioPlayer.src = audioData.file;
+        currentAudioId = audioId;
+
+        // Actualizar título de la parada con efecto marquee si no cabe
+        const tituloEl = document.getElementById('titulo-parada');
+        const tituloSpan = document.getElementById('titulo-parada-text');
+        if (tituloEl && tituloSpan && audioData.title) {
+            tituloSpan.textContent = audioData.title;
+            tituloEl.classList.remove('marquee');
+            // Activar marquee si el texto es más ancho que el contenedor
+            requestAnimationFrame(() => {
+                if (tituloSpan.scrollWidth > tituloEl.clientWidth) {
+                    // Duplicar texto para efecto continuo
+                    tituloSpan.textContent = audioData.title + '\u00A0\u00A0\u00A0\u00A0\u00A0' + audioData.title;
+                    tituloEl.classList.add('marquee');
+                }
+            });
+        }
+
+        if (autoplay) {
+            try {
+                await audioPlayer.play();
+                return { exito: true, reproducido: true };
+            } catch (playError) {
+                // Es posible que el intento de autoplay sea bloqueado por la política del navegador.
+                logger.warn(`[hijo3] Intento de autoplay bloqueado o fallido para ${audioId}:`, playError && playError.message ? playError.message : playError);
+                return { exito: true, reproducido: false, autoplayBlocked: true };
+            }
+        }
+
+        // Si no se debe reproducir automáticamente, indicamos que la carga fue correcta
+        return { exito: true, reproducido: false };
+    }
+
+    // Elementos DOM
+    const audioPlayer = document.getElementById('audioPlayer');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeElement = document.getElementById('currentTime');
+    const durationElement = document.getElementById('duration');
+    const retosBtn = document.getElementById('retosBtn');
+
+    // Event listener para botón de Retos
+    retosBtn.addEventListener('click', async () => {
+        try {
+            retosBtn.classList.add('activo');
+            logger.info(`[hijo3] Botón de retos clickeado, solicitando reto al padre`);
+            
+            // Enviar solicitud al padre para mostrar un reto
+            await enviarMensaje({
+                tipo: TIPOS_MENSAJE.RETO.SOLICITAR_RETO,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                destino: getPadreId(),
+                datos: { 
+                    contexto: 'manual',
+                    audioId: currentAudioId 
+                }
+            });
+            
+            logger.debug(`[hijo3] Solicitud de reto enviada exitosamente`);
+        } catch (error) {
+            logger.error(`[hijo3] Error al solicitar reto:`, error);
+        }
+    });
+
+    // Event listener para barra de progreso (seek)
+    const progressContainer = document.getElementById('progressContainer');
+    // Allow vertical page scrolling while enabling horizontal drag on the bar
+    // `pan-y` lets vertical scrolling but allows us to intercept horizontal gestures.
+    progressContainer.style.touchAction = 'pan-y';
+    // Internal state for dragging/seeking
+    let isSeeking = false;
+    let activePointerId = null;
+    let initialX = 0;
+    let initialY = 0;
+    let lockedToSeeking = null; // null = undecided, true = seeking (horizontal), false = allow vertical scroll
+    let wasPlayingDuringSeek = false;
+
+    function updateProgressFromClientX(clientX) {
+        try {
+            const rect = progressContainer.getBoundingClientRect();
+            const clickX = clientX - rect.left;
+            const percent = clickX / rect.width;
+            const validPercent = Math.max(0, Math.min(1, percent));
+            // Update progress bar UI
+            if (Number.isFinite(audioPlayer.duration) && audioPlayer.duration > 0) {
+                progressBar.style.width = `${validPercent * 100}%`;
+                // Update accessible attribute
+                progressContainer.setAttribute('aria-valuenow', Math.round(validPercent * 100));
+            } else {
+                // If duration not available, just update visual width temporarily
+                progressBar.style.width = `${validPercent * 100}%`;
+            }
+            progressContainer.style.setProperty('--bar-w', validPercent);
+            return validPercent;
+        } catch (error) {
+            logger.error('[hijo3] updateProgressFromClientX error', error);
+            return 0;
+        }
+    }
+
+    progressContainer.addEventListener('click', (e) => {
+        try {
+            // Calcular posición del click relativa a la barra
+            const percent = updateProgressFromClientX(e.clientX);
+            
+            // Validar rango (0-100%)
+            const validPercent = Math.max(0, Math.min(1, percent));
+            
+            // Validar que el audio esté cargado y duration sea finito
+            if (!audioPlayer || !Number.isFinite(audioPlayer.duration) || audioPlayer.duration === 0) {
+                logger.warn(`[hijo3] Audio no cargado o duration inválido, ignorando seek`);
+                return;
+            }
+            
+            // Saltar a la posición clickeada
+            audioPlayer.currentTime = validPercent * audioPlayer.duration;
+            
+            logger.debug(`[hijo3] Seek en barra de progreso: ${(validPercent * 100).toFixed(1)}%`);
+        } catch (error) {
+            logger.error(`[hijo3] Error al hacer seek en barra de progreso:`, error);
+        }
+    });
+
+    // Pointer/touch drag handlers for seamless mobile and desktop seeking
+    progressContainer.addEventListener('pointerdown', (e) => {
+        try {
+            if (e.pointerType === 'mouse' && e.button !== 0) return; // only left button
+            isSeeking = true;
+            lockedToSeeking = null;
+            initialX = e.clientX;
+            initialY = e.clientY;
+            activePointerId = e.pointerId;
+            // We defer pausing until the user moves horizontally and we lock the gesture to seeking.
+            activePointerId = e.pointerId;
+            // Do not set pointer capture yet to allow normal vertical scrolling unless we lock to seeking.
+            // updateProgressFromClientX(e.clientX); // only set on lock
+        } catch (err) {
+            logger.error('[hijo3] pointerdown error', err);
+        }
+    });
+
+    progressContainer.addEventListener('pointermove', (e) => {
+        try {
+            if (!isSeeking || e.pointerId !== activePointerId) return;
+            // If undecided, check if movement leans horizontal vs vertical to lock behavior
+            if (lockedToSeeking === null) {
+                const dx = Math.abs(e.clientX - initialX);
+                const dy = Math.abs(e.clientY - initialY);
+                const H_LOCK_THRESHOLD = 10; // pixels before locking
+                // If horizontal movement is more pronounced than vertical, lock to seeking
+                if (dx > H_LOCK_THRESHOLD && dx > dy * 1.5) {
+                    lockedToSeeking = true;
+                    // Capture pointer now to receive subsequent pointer events without the page scrolling
+                    try { progressContainer.setPointerCapture(activePointerId); } catch (err) { logger.debug('[hijo3] setPointerCapture no disponible', err && err.message); }
+                    wasPlayingDuringSeek = !audioPlayer.paused && !audioPlayer.ended;
+                    if (wasPlayingDuringSeek) audioPlayer.pause();
+                    e.preventDefault();
+                    updateProgressFromClientX(e.clientX);
+                } else if (dy > H_LOCK_THRESHOLD && dy > dx * 1.5) {
+                    // Lock to vertical scrolling and stop seeking behavior
+                    lockedToSeeking = false;
+                    // Release pointer capture if previously set
+                    try { progressContainer.releasePointerCapture(activePointerId); } catch (err) { logger.debug('[hijo3] releasePointerCapture no disponible', err && err.message); }
+                    isSeeking = false; // allow page to scroll vertically
+                } else {
+                    // Not enough movement to decide yet; do nothing
+                }
+            } else if (lockedToSeeking === true) {
+                // We are currently seeking; update progress
+                e.preventDefault();
+                updateProgressFromClientX(e.clientX);
+            } else {
+                // lockedToSeeking === false -> vertical scroll in progress; ignore pointermove
+            }
+        } catch (err) {
+            logger.error('[hijo3] pointermove error', err);
+        }
+    });
+
+    function finalizeSeek(clientX) {
+        try {
+            const percent = updateProgressFromClientX(clientX);
+            if (Number.isFinite(audioPlayer.duration) && audioPlayer.duration > 0) {
+                audioPlayer.currentTime = percent * audioPlayer.duration;
+            }
+            // resume playback if it was playing before seek
+            if (wasPlayingDuringSeek) {
+                audioPlayer.play().catch(err => logger.warn('[hijo3] Unable to resume playback after seek', err));
+            }
+        } catch (err) {
+            logger.error('[hijo3] finalizeSeek error', err);
+        }
+    }
+
+    progressContainer.addEventListener('pointerup', (e) => {
+        try {
+            if (!isSeeking || e.pointerId !== activePointerId) return;
+            if (lockedToSeeking === true) {
+                finalizeSeek(e.clientX);
+            }
+            // Clean up
+            isSeeking = false;
+            lockedToSeeking = null;
+            try { progressContainer.releasePointerCapture(e.pointerId); } catch (error_) { logger.debug('[hijo3] pointerup releasePointerCapture omitido', error_ && error_.message); }
+            activePointerId = null;
+        } catch (err) {
+            logger.error('[hijo3] pointerup error', err);
+        }
+    });
+
+    progressContainer.addEventListener('pointercancel', (e) => {
+        try {
+            if (!isSeeking || e.pointerId !== activePointerId) return;
+            if (lockedToSeeking === true) finalizeSeek(e.clientX);
+            isSeeking = false;
+            lockedToSeeking = null;
+            try { progressContainer.releasePointerCapture(e.pointerId); } catch (error_) { logger.debug('[hijo3] pointercancel releasePointerCapture omitido', error_ && error_.message); }
+            activePointerId = null;
+        } catch (err) {
+            logger.error('[hijo3] pointercancel error', err);
+        }
+    });
+
+    // Fallback for older browsers: touch events (if pointer events unsupported)
+    progressContainer.addEventListener('touchstart', (e) => {
+        try {
+            const touch = e.touches[0];
+            isSeeking = true;
+            lockedToSeeking = null;
+            initialX = touch.clientX;
+            initialY = touch.clientY;
+            // don't update yet until the user moves horizontally enough
+            e.preventDefault();
+        } catch (err) { logger.error('[hijo3] touchstart error', err); }
+    }, { passive: false });
+    progressContainer.addEventListener('touchmove', (e) => {
+        try {
+            if (!isSeeking) return;
+            const touch = e.touches[0];
+            const dx = Math.abs(touch.clientX - initialX);
+            const dy = Math.abs(touch.clientY - initialY);
+            const H_LOCK_THRESHOLD = 10;
+            if (lockedToSeeking === null) {
+                if (dx > H_LOCK_THRESHOLD && dx > dy * 1.5) {
+                    lockedToSeeking = true;
+                    wasPlayingDuringSeek = !audioPlayer.paused && !audioPlayer.ended;
+                    if (wasPlayingDuringSeek) audioPlayer.pause();
+                    e.preventDefault();
+                    updateProgressFromClientX(touch.clientX);
+                } else if (dy > H_LOCK_THRESHOLD && dy > dx * 1.5) {
+                    lockedToSeeking = false;
+                    isSeeking = false;
+                    // allow scrolling
+                }
+            } else if (lockedToSeeking === true) {
+                e.preventDefault();
+                updateProgressFromClientX(touch.clientX);
+            } else {
+                // locked to vertical scrolling - ignore
+            }
+        } catch (err) { logger.error('[hijo3] touchmove error', err); }
+    }, { passive: false });
+    progressContainer.addEventListener('touchend', (e) => {
+        try {
+            if (!isSeeking) return;
+            // touchend has no touches, use changedTouches
+            const touch = e.changedTouches[0];
+            if (lockedToSeeking === true) finalizeSeek(touch.clientX);
+            isSeeking = false;
+            lockedToSeeking = null;
+        } catch (err) { logger.error('[hijo3] touchend error', err); }
+    });
+
+    // Keyboard support: seek with left/right arrow while progress container is focused
+    progressContainer.addEventListener('keydown', (e) => {
+        try {
+            const step = 5; // 5 seconds per keypress
+            if (!audioPlayer || !Number.isFinite(audioPlayer.duration)) return;
+            if (e.key === 'ArrowLeft') {
+                audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - step);
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight') {
+                audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + step);
+                e.preventDefault();
+            }
+        } catch (err) {
+            logger.error('[hijo3] keydown error on progressContainer', err);
+        }
+    });
+
+    // Event listeners para audio (adaptados para notificar al padre con enviarMensaje)
+    audioPlayer.addEventListener('timeupdate', () => {
+        // Validar que duration sea finito antes de calcular porcentaje
+        if (Number.isFinite(audioPlayer.duration) && audioPlayer.duration > 0) {
+            const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            progressBar.style.width = `${percent}%`;
+            progressContainer.style.setProperty('--bar-w', percent / 100);
+            progressContainer.setAttribute('aria-valuenow', Math.round(percent));
+            currentTimeElement.textContent = formatTime(audioPlayer.currentTime);
+        }
+    });
+
+    audioPlayer.addEventListener('loadedmetadata', () => {
+        durationElement.textContent = formatTime(audioPlayer.duration);
+    });
+
+    audioPlayer.addEventListener('play', async () => {
+        if (currentAudioId) {
+            await enviarMensaje({
+                tipo: TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                destino: getPadreId(),
+                datos: { audioId: currentAudioId, estado: 'reproduciendo' }
+            });
+        }
+    });
+
+    audioPlayer.addEventListener('pause', async () => {
+        if (currentAudioId) {
+            await enviarMensaje({
+                tipo: TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO,
+                origen: CONFIG_HIJO.IFRAME_ID, // Se agrega el valor correcto
+                datos: { audioId: currentAudioId, estado: 'pausado' }
+            });
+        }
+    });
+
+    audioPlayer.addEventListener('ended', async () => {
+        if (currentAudioId) {
+            await enviarMensaje({
+                tipo: TIPOS_MENSAJE.AUDIO.FIN_REPRODUCCION,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                destino: getPadreId(),
+                datos: { audioId: currentAudioId, estado: 'finalizado' }
+            });
+        }
+    });
+
+    audioPlayer.addEventListener('error', async () => {
+        // Enviar AUDIO.ERROR al padre en caso de fallo
+        await enviarMensaje({
+            tipo: TIPOS_MENSAJE.AUDIO.ERROR,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: getPadreId(),
+            datos: { audioId: currentAudioId, error: audioPlayer.error?.message || 'Error desconocido' }
+        });
+    });
+
+    // Normaliza un valor de modo (acepta string u objeto) y devuelve
+    // una cadena segura para usar en clases CSS y dataset.
+    function normalizarModo(modo) {
+        try {
+            if (typeof modo === 'string') {
+                modo = modo.trim();
+            } else if (modo && typeof modo === 'object') {
+                modo = modo.actual || modo.modo || modo.nombre || Object.values(modo).find(v => typeof v === 'string') || '';
+            } else if (modo == null) {
+                modo = '';
+            } else {
+                modo = String(modo);
+            }
+            modo = String(modo || '').trim().toLowerCase();
+            // Dejar sólo caracteres seguros para clases: a-z0-9_- (reemplazar otros con guión)
+            modo = modo.replace(/[^a-z0-9_-]/g, '-').replace(/^-+|-+$/g, '');
+            return modo;
+        } catch (error_) {
+            logger.debug('[hijo3] normalizarModo devolvio fallback vacio', error_ && error_.message);
+            return '';
+        }
+    }
+
+    // Función para actualizar la interfaz según el modo
+    function actualizarInterfazModo(modo) {
+        const modoSeguro = normalizarModo(modo);
+        console.log(`[AUDIO] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
+        const body = document.body;
+
+        // Actualizar clases CSS (sólo si hay un modo válido)
+        body.classList.remove('modo-casa', 'modo-aventura');
+        if (modoSeguro) body.classList.add(`modo-${modoSeguro}`);
+
+        logger.info(`[hijo3] Interfaz actualizada para modo: ${modoSeguro}`);
+    }
+
+    // Inicialización y controladores (adaptados a mensajería actual)
+    try {
+        // Ocultar la UI hasta que el padre confirme que los controladores están listos
+        let _uiConfirmado = false;
+        const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
+        try { if (document.body) document.body.style.display = 'none'; } catch (e) { logger.debug('[hijo3] no se pudo ocultar UI inicial', e && e.message); }
+        function mostrarUI() {
+            if (!_uiConfirmado) { console.warn('[hijo3] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
+            try {
+                if (document.body) {
+                    document.body.style.display = _originalDisplay || 'block';
+                }
+                console.log('[hijo3] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
+            } catch (e) {
+                logger.debug('[hijo3] no se pudo mostrar UI', e && e.message);
+            }
+        }
+
+        // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
+
+        // NOTA: HIJO_PREPARADO se envía MÁS ABAJO, DESPUÉS de registrar todos los controladores críticos.
+        // Esto garantiza que el padre no envíe PADRE_DATOS antes de que los controladores estén listos.
+
+        // ============================================================
+        // CONTROLADOR 1: SISTEMA.PADRE_DATOS
+        // ============================================================
+        logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} registrado el controlador PADRE_DATOS`);
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {
+            const logPrefix = `[hijo3][PADRE_DATOS]`;
+
+            try {
+                if (!mensaje || !mensaje.origen) {
+                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
+                    return;
+                }
+
+                logger.info(`${logPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
+                logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} recibió PADRE_DATOS`);
+
+                // ✅ PROCESAR DATOS INICIALES DEL PADRE
+                if (mensaje.datos) {
+                    const { modo, paradas, paradaActual } = mensaje.datos;
+
+                    if (modo) {
+                        logger.info(`${logPrefix} Procesando modo inicial del padre: ${modo}`);
+                        actualizarInterfazModo(modo);
+                    }
+
+                    if (paradas) {
+                        logger.debug(`${logPrefix} Paradas recibidas: ${paradas.length}`);
+                        // Procesar paradas si necesario
+                    }
+
+                    if (paradaActual) {
+                        logger.debug(`${logPrefix} Parada actual: ${paradaActual}`);
+                        // Procesar parada actual si necesario
+                    }
+                }
+
+            } catch (error) {
+                logger.error(`${logPrefix} Error procesando PADRE_DATOS:`, error);
+            }
+
+            // Enviar HIJO_LISTO para completar handshake
+            if (!estado.hijoListoEnviado) {
+                try {
+                    await enviarMensaje({
+                        destino: getPadreId(),
+                        tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        datos: {
+                            componenteId: CONFIG_HIJO.COMPONENTE_ID,
+                            iframeId: CONFIG_HIJO.IFRAME_ID,
+                            timestamp: Date.now()
+                        }
+                    });
+                    estado.hijoListoEnviado = true;
+                    logger.info('[hijo3] HIJO_LISTO enviado al padre');
+                } catch (error) {
+                    logger.error('[hijo3] Error enviando HIJO_LISTO:', error);
+                }
+            }
+        });
+
+        /**
+         * Controlador: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
+         * Descripción: Recibe confirmación del padre de que los controladores están listos
+         * Origen esperado: padre
+         * Respuesta: Ninguna (preparado para futuras solicitudes de datos)
+         */
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
+            const logPrefix = `[hijo3][PADRE_CONFIRMA_HIJO_LISTO][${mensaje?.origen || 'desconocido'}]`;
+
+            try {
+                console.log('[hijo3] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
+                if (!mensaje?.origen) {
+                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
+                    return;
+                }
+
+                logger.info(`${logPrefix} Confirmación recibida del padre - controladores listos`);
+
+                // Aplicar cambio de modo encolado si existía
+                try {
+                    if (estado && estado.pendingCambioModo && estado.pendingCambioModo.modo) {
+                        const modoPendiente = estado.pendingCambioModo.modo;
+                        logger.info(`${logPrefix} Aplicando modo pendiente: ${modoPendiente}`);
+                        actualizarInterfazModo(modoPendiente);
+                        await enviarMensaje({
+                            destino: mensaje.origen,
+                            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            datos: { tipo: 'inicializacion', modo: modoPendiente }
+                        });
+                        if (estado) delete estado.pendingCambioModo;
+                    }
+                    // Mostrar UI ahora que el padre confirmó
+                    try {
+                        _uiConfirmado = true;
+                        mostrarUI();
+                    } catch (e) {
+                        logger.debug(`${logPrefix} No se pudo forzar mostrarUI`, e && e.message);
+                    }
+                    try {
+                        enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
+                    } catch (e) {
+                        logger.debug(`${logPrefix} Error armando confirmacion UI_VISIBLE`, e && e.message);
+                    }
+                } catch (err) {
+                    logger.error(`${logPrefix} Error aplicando modo pendiente:`, err);
+                }
+
+                // 🔥 NUEVO: Procesar modo inicial si viene en datos
+                const { modoInicial } = mensaje.datos || {};
+                if (modoInicial) {
+                    logger.info(`${logPrefix} Modo inicial recibido: ${modoInicial}`);
+                    actualizarInterfazModo(modoInicial);
+                    logger.debug(`${logPrefix} Interfaz actualizada según modo inicial`);
+                }
+
+                // Preparado para futuras solicitudes de datos adicionales del padre
+                logger.debug(`${logPrefix} Componente listo para recibir datos adicionales si es necesario`);
+
+                // Verificación diferida: si CARGAR_AUDIOS no llegó en 3s, solicitarlo al padre
+                setTimeout(() => {
+                    if (!globalThis.__vv_audioFiles || !Array.isArray(globalThis.__vv_audioFiles) || globalThis.__vv_audioFiles.length === 0) {
+                        logger.debug('[hijo3] Audios no recibidos tras 3s — solicitando al padre');
+                        enviarMensaje({
+                            tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            destino: getPadreId(),
+                            datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
+                        }).catch(err => logger.error('[hijo3] Error solicitando audios:', err));
+                    }
+                }, 3000);
+
+            } catch (error) {
+                logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
+            }
+        });
+
+        // ============================================================
+        // CONTROLADOR: DATOS.CARGAR_AUDIOS
+        // Recibe audios centralizados del padre al iniciar aventura
+        // ============================================================
+        
+        /**
+         * Controlador: DATOS.CARGAR_AUDIOS
+         * Descripción: Recibe y almacena los audios de la aventura seleccionada
+         * Origen: padre (codigo-padre.html)
+         * Datos recibidos: { aventura, idioma, audios: Array, total, timestamp }
+         */
+        registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS, async (mensaje) => {
+            const logPrefix = `[hijo3][CARGAR_AUDIOS]`;
+            
+            try {
+                const { aventura, idioma, audios, total } = mensaje.datos || {};
+                
+                logger.info(`${logPrefix} 📥 Recibiendo audios de ${aventura} (${idioma}): ${total} pistas`);
+                
+                if (!audios || !Array.isArray(audios)) {
+                    throw new Error('Datos de audios inválidos o no son un array');
+                }
+                
+                // Almacenar en estado global para uso en funciones de reproducción
+                globalThis.__vv_audioFiles = audios;
+                globalThis.__vv_aventuraActual = aventura;
+                globalThis.__vv_idiomaActual = idioma;
+                
+                // También exponer como variable local si audioFiles estaba definida
+                if (typeof audioFiles !== 'undefined') {
+                    // audioFiles ya existe como const, no se puede reasignar
+                    // Los audios están disponibles en globalThis.__vv_audioFiles
+                }
+                
+                logger.info(`${logPrefix} ✅ ${audios.length} audios almacenados en globalThis.__vv_audioFiles`);
+                
+                await enviarMensajeConConfirmacion({
+                    tipo: TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS,
+                    origen: CONFIG_HIJO.IFRAME_ID,
+                    destino: getPadreId(),
+                    datos: {
+                        exito: true,
+                        aventura: aventura,
+                        idioma: idioma,
+                        totalCargados: audios.length,
+                        timestamp: Date.now()
+                    }
+                });
+                
+                logger.success(`${logPrefix} ✅ Confirmación AUDIOS_CARGADOS enviada al padre`);
+                
+            } catch (error) {
+                logger.error(`${logPrefix} Error cargando audios:`, error);
+                
+                // Enviar error al padre
+                try {
+                    await enviarMensaje({
+                        tipo: TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: getPadreId(),
+                        datos: {
+                            exito: false,
+                            error: error.message,
+                            timestamp: Date.now()
+                        }
+                    });
+                } catch (sendError) {
+                    logger.error(`${logPrefix} Error enviando confirmación de error:`, sendError);
+                }
+            }
+        });
+
+        // Controlador para reproducir audio (REQUEST del padre)
+        registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, async (mensaje) => {
+            try {
+                logger.debug(`[hijo3] REPRODUCIR_REQUEST recibido:`, mensaje.datos);
+                const { audioId, autoplay = false } = mensaje.datos || {};
+
+                if (!audioId) {
+                    throw new Error('audioId no proporcionado');
+                }
+
+                const resultado = await cargarYReproducirAudio(audioId, !!autoplay);
+
+                // Enviar RESPONSE confirmando (indicar si la reproducción realmente comenzó)
+                await enviarMensaje({
+                    tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE,
+                    origen: CONFIG_HIJO.IFRAME_ID,
+                    destino: mensaje.origen,
+                    datos: {
+                        audioId,
+                        exito: resultado.exito === true,
+                        mensajeOriginal: mensaje.id,
+                        ...(resultado ? { reproducido: !!resultado.reproducido, autoplayBlocked: !!resultado.autoplayBlocked } : {})
+                    }
+                });
+            } catch (error) {
+                logger.error(`[hijo3] Error procesando REPRODUCIR_REQUEST:`, error);
+                await enviarMensaje({
+                    tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE,
+                    origen: CONFIG_HIJO.IFRAME_ID,
+                    destino: mensaje.origen,
+                    datos: { 
+                        exito: false,
+                        error: error.message,
+                        mensajeOriginal: mensaje.id 
+                    }
+                });
+            }
+        });
+
+        /**
+         * Controlador: SISTEMA.CAMBIO_MODO
+         * Descripción: Actualiza la interfaz según el modo (casa/aventura)
+         */
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
+            const logPrefix = `[hijo3][CAMBIO_MODO]`;
+
+            try {
+                // Validar carga secuencial
+                if (!mensaje.datos?.secuenciaCompleta) {
+                    logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
+                    if (estado) estado.pendingCambioModo = mensaje.datos || { modo: null };
+                    await enviarMensaje({
+                        tipo: TIPOS_MENSAJE.SISTEMA.NACK,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: mensaje.origen,
+                        datos: {
+                            error: 'Secuencia no completa',
+                            esperarPermiso: true,
+                            tipoOriginal: mensaje.tipo,
+                            modoSolicitado: mensaje.datos?.modo
+                        }
+                    });
+                    return;
+                }
+
+                // Extraer y validar datos
+                const { modo } = mensaje.datos || {};
+                if (!modo || !['casa', 'aventura'].includes(modo)) {
+                    logger.error(`${logPrefix} Modo inválido: ${modo}`);
+                    await enviarMensaje({
+                        tipo: TIPOS_MENSAJE.SISTEMA.NACK,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: mensaje.origen,
+                        datos: { error: 'Modo inválido', modoRecibido: modo }
+                    });
+                    return;
+                }
+
+                // Enviar ENTENDIDO
+                logger.info(`${logPrefix} Cambio de modo a "${modo}" entendido`);
+                
+                // Validación explícita antes de enviar
+                const destinoEntendido = mensaje.origen;
+                const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
+                const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
+                
+                // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
+                if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
+                    const debugInfo = {
+                        destino: destinoEntendido,
+                        tipo: tipoEntendido,
+                        origen: origenEntendido,
+                        TIPOS_MENSAJE_exists: globalThis.TIPOS_MENSAJE !== undefined,
+                        TIPOS_MENSAJE_SISTEMA_exists: globalThis.TIPOS_MENSAJE?.SISTEMA !== undefined,
+                        CONFIG_HIJO_exists: globalThis.CONFIG_HIJO !== undefined,
+                        mensaje_origen: mensaje?.origen
+                    };
+                    console.error('[hijo3][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
+                    logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
+                    throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
+                }
+                
+                await enviarMensaje({
+                    destino: destinoEntendido,
+                    tipo: tipoEntendido,
+                    origen: origenEntendido,
+                    datos: { 
+                        modo, 
+                        timestamp: Date.now(),
+                        mensajeId: mensaje.datos?.mensajeId || mensaje.id
+                    }
+                });
+                
+                // Procesar cambio
+                logger.info(`${logPrefix} Procesando cambio a modo: ${modo}`);
+                const audioPlayer = document.getElementById('audioPlayer');
+                if (audioPlayer && !audioPlayer.paused) {
+                    audioPlayer.pause();
+                    audioPlayer.currentTime = 0;
+                }
+                currentAudioId = null;
+                // Fix: updateProgressBar no existe, usar DOM directo
+                const progressBar = document.getElementById('progressBar');
+                const progressContainer = document.getElementById('progressContainer');
+                if (progressBar) progressBar.style.width = '0%';
+                if (progressContainer) { progressContainer.setAttribute('aria-valuenow', 0); progressContainer.style.setProperty('--bar-w', 0); }
+                logger.debug(`${logPrefix} Estado de audio reseteado`);
+                estado.modo = estado.modo || {};
+                estado.modo.actual = modo;
+                actualizarInterfazModo(modo);
+
+                // Enviar EFECTUADO
+                logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);
+                await enviarMensaje({
+                    destino: mensaje.origen,
+                    tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
+                    origen: CONFIG_HIJO?.IFRAME_ID || 'hijo3',
+                    datos: { 
+                        modo, 
+                        exito: true, 
+                        timestamp: Date.now(),
+                        mensajeId: mensaje.datos?.mensajeId || mensaje.id
+                    }
+                });
+
+            } catch (error) {
+                logger.error(`${logPrefix} Error:`, error);
+                try {
+                    await enviarMensaje({
+                        tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: mensaje.origen || 'padre',
+                        datos: { error: error.message, tipo: 'CAMBIO_MODO_FALLIDO' }
+                    });
+                } catch (e) {
+                    logger.error(`${logPrefix} Error notificando fallo:`, e);
+                }
+            }
+        });
+
+        // Controlador: SISTEMA.CAMBIO_MODO_APLICADO
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_APLICADO, async (mensaje) => {
+            const logPrefix = `[hijo3][CAMBIO_MODO_APLICADO]`;
+            try {
+                const { modo } = mensaje.datos || {};
+                logger.success(`${logPrefix} ✅ Cambio de modo a "${modo}" aplicado globalmente`);
+            } catch (error) {
+                logger.error(`${logPrefix} Error:`, error);
+            }
+        });
+
+        /**
+         * Controlador: CONTROL.HABILITAR
+         * Descripción: Habilita controles específicos según el mensaje del padre
+         */
+        registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
+            try {
+                const { control } = mensaje.datos;
+                logger.info(`[hijo3] CONTROL.HABILITAR recibido para: ${control}`);
+
+                // retosBtn se controla en ambos modos (aventura y casa)
+                if (control === 'retosBtn') {
+                    retosBtn.disabled = false;
+                    retosBtn.style.opacity = '1';
+                    retosBtn.style.pointerEvents = 'auto';
+                    retosBtn.classList.remove('activo');
+                    logger.debug(`[hijo3] Botón de retos habilitado`);
+                } else if (document.body.classList.contains('modo-aventura')) {
+                    // Otros controles solo en modo aventura
+                    logger.debug(`[hijo3] CONTROL.HABILITAR aplicado en modo aventura para: ${control}`);
+                }
+            } catch (error) {
+                logger.error(`[hijo3] Error en CONTROL.HABILITAR:`, error);
+            }
+        });
+
+        /**
+         * Controlador: CONTROL.DESHABILITAR
+         * Descripción: Deshabilita controles específicos según el mensaje del padre
+         */
+        registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) => {
+            try {
+                const { control } = mensaje.datos;
+                logger.info(`[hijo3] CONTROL.DESHABILITAR recibido para: ${control}`);
+
+                // retosBtn se controla en ambos modos (aventura y casa)
+                if (control === 'retosBtn') {
+                    retosBtn.disabled = true;
+                    retosBtn.style.opacity = '0.5';
+                    retosBtn.style.pointerEvents = 'none';
+                    logger.debug(`[hijo3] Botón de retos deshabilitado`);
+                } else if (document.body.classList.contains('modo-aventura')) {
+                    // Otros controles solo en modo aventura
+                    logger.debug(`[hijo3] CONTROL.DESHABILITAR aplicado en modo aventura para: ${control}`);
+                }
+            } catch (error) {
+                logger.error(`[hijo3] Error en CONTROL.DESHABILITAR:`, error);
+            }
+        });
+
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, async (mensaje) => {
+            await enviarMensaje({
+                destino: mensaje.origen,
+                tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                datos: { timestamp: Date.now() }
+            });
+            logger.debug(`[hijo3] HEARTBEAT recibido, respuesta enviada.`);
+        });
+
+        // Controlador: SISTEMA.HEARTBEAT.START
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async (mensaje) => {
+            const logPrefix = `[hijo3][HEARTBEAT_START][${mensaje?.origen || 'desconocido'}]`;
+            try {
+                globalThis.__HEARTBEAT_ACTIVO = true;
+                logger.info(`${logPrefix} Activado heartbeat local`);
+                return { started: true };
+            } catch (error) {
+                logger.error(`${logPrefix} Error procesando HEARTBEAT_START:`, error);
+                return { started: false, error: error && error.message };
+            }
+        });
+
+        // Controlador: SISTEMA.HEARTBEAT.PAUSE
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE, async (mensaje) => {
+            const logPrefix = `[hijo3][HEARTBEAT_PAUSE][${mensaje?.origen || 'desconocido'}]`;
+            try {
+                globalThis.__HEARTBEAT_ACTIVO = false;
+                logger.info(`${logPrefix} Pausado heartbeat local`);
+                return { paused: true };
+            } catch (error) {
+                logger.error(`${logPrefix} Error procesando HEARTBEAT_PAUSE:`, error);
+                return { paused: false, error: error && error.message };
+            }
+        });
+
+        // Controlador: NAVEGACION.CAMBIO_PARADA (acepta cambio y confirma)
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => {
+            const logPrefix = `[hijo3][NAVEGACION.CAMBIO_PARADA][${mensaje?.origen || 'desconocido'}]`;
+            try {
+                    const resolved = resolverIdsParada(mensaje.datos || {});
+                    const padreId = resolved.padreId;
+                    const paradaId = resolved.paradaId;
+                    logger.info(`${logPrefix} Cambio de parada recibido: ${padreId || paradaId}`);
+                // Actualizar estado local para audio si corresponde
+                if (paradaId) globalThis.__hijo3_paradaActual = paradaId;
+                // Resetear botón retos al cambiar de parada
+                if (retosBtn) retosBtn.classList.remove('activo');
+                // Enviar confirmación al padre
+                try {
+                    await enviarMensaje({
+                        tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: mensaje.origen || getPadreId(),
+                            datos: { paradaId: paradaId || null, parada_id: paradaId || null, padreId: padreId || null, padreid: padreId || null, timestamp: Date.now() }
+                    });
+                    logger.info(`${logPrefix} Confirmación enviada`);
+                } catch (err) { logger.warn(`${logPrefix} No se pudo enviar confirmación:`, err); }
+            } catch (error) {
+                logger.warn(`${logPrefix} Error procesando CAMBIO_PARADA:`, error);
+            }
+        });
+
+        // Controlador para solicitud de audio del padre
+        registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.SOLICITAR_AUDIO, async (mensaje) => {
+            const logPrefix = `[hijo3][AUDIO.SOLICITAR_AUDIO][${mensaje?.origen || 'desconocido'}]`;
+            
+            try {
+                const { paradaId, tipoConsulta, audioIdEsperado } = mensaje.datos;
+                
+                // Validar datos requeridos
+                if (!paradaId) {
+                    logger.error(`${logPrefix} paradaId requerido faltante`);
+                    return { exito: false, error: 'paradaId requerido faltante' };
+                }
+                if (!tipoConsulta) {
+                    logger.error(`${logPrefix} tipoConsulta requerido faltante`);
+                    return { exito: false, error: 'tipoConsulta requerido faltante' };
+                }
+                if (tipoConsulta !== 'AUDIO') {
+                    logger.error(`${logPrefix} tipoConsulta inválido: ${tipoConsulta}, esperado: AUDIO`);
+                    return { exito: false, error: `tipoConsulta inválido: ${tipoConsulta}` };
+                }
+                
+                logger.debug(`${logPrefix} Solicitud de audio para ${paradaId}`);
+
+                const files = obtenerAudioFiles();
+                if (!Array.isArray(files) || files.length === 0) {
+                    const errorData = { exito: false, error: 'audioFiles_missing', paradaId };
+                    await enviarMensaje({
+                        destino: mensaje.origen || getPadreId(),
+                        tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
+                        idOriginal: mensaje.id,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        timestamp: Date.now(),
+                        datos: errorData
+                    });
+                    return errorData;
+                }
+
+                const paradaNorm = String(paradaId || '').replace(/^padre-/i, '').toUpperCase();
+                const paradaCompacta = paradaNorm.replaceAll('-', '');
+                let audioEncontrado = null;
+
+                // Prioridad 1: ID explícito esperado desde el padre (fuente de verdad)
+                if (audioIdEsperado) {
+                    audioEncontrado = files.find(a => a && a.id === audioIdEsperado) || null;
+                }
+
+                // Prioridad 2: fallback dinámico por parada/tramo compatible con todos los idiomas
+                if (!audioEncontrado) {
+                    audioEncontrado = files.find(a => {
+                        const id = String(a?.id || '').toUpperCase();
+                        if (!id) return false;
+
+                        // Compatibilidad con formato simple legacy: audio-P-0 / audio-TR-1 / audio-intro
+                        if (id === `AUDIO-${paradaNorm}`) return true;
+
+                        // Formato actual: audio-AvX-P0-es, audio-AvX-TR1-en, etc.
+                        // Se compara por token compacto delimitado por guiones para evitar falsos positivos.
+                        return id.includes(`-${paradaCompacta}-`) || id.endsWith(`-${paradaCompacta}`);
+                    }) || null;
+                }
+
+                if (!audioEncontrado) {
+                    const errorData = {
+                        exito: false,
+                        error: 'audio_not_found_for_parada',
+                        paradaId,
+                        audioIdEsperado: audioIdEsperado || null
+                    };
+                    await enviarMensaje({
+                        destino: mensaje.origen || getPadreId(),
+                        tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
+                        idOriginal: mensaje.id,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        timestamp: Date.now(),
+                        datos: errorData
+                    });
+                    return errorData;
+                }
+
+                const audioData = {
+                    paradaId,
+                    audioId: audioEncontrado.id,
+                    url: audioEncontrado.file || null,
+                    title: audioEncontrado.title || null,
+                    exito: true
+                };
+                
+                // Enviar confirmación con formato correcto para que enviarMensajeConConfirmacion resuelva
+                // Debe tener: tipo=SISTEMA.CONFIRMACION, idOriginal=mensaje.id, datos=resultado
+                await enviarMensaje({
+                    destino: mensaje.origen || getPadreId(),
+                    tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
+                    idOriginal: mensaje.id, // CLAVE: permite resolver la promesa pendiente
+                    origen: CONFIG_HIJO.IFRAME_ID,
+                    timestamp: Date.now(),
+                    datos: audioData
+                });
+                
+                logger.info(`${logPrefix} Confirmación de audio enviada para ${paradaId}`);
+                
+                // Return para auto-confirmación del messagingAdapter
+                return audioData;
+                
+            } catch (error) {
+                logger.error(`${logPrefix} Error respondiendo audio:`, error);
+                return { exito: false, error: error.message };
+            }
+        });
+
+        // Controlador para acciones de UI desde botones horizontales
+        registrarControladorSeguro(TIPOS_MENSAJE.UI.ACCION_USUARIO, async (mensaje) => {
+            const logPrefix = `[hijo3][UI.ACCION_USUARIO][${mensaje?.origen || 'desconocido'}]`;
+            
+            try {
+                const { accion, elemento, contexto, comando, audioId } = mensaje?.datos || {};
+                
+                if (accion === 'simular_click' && elemento && contexto === 'boton_horizontal') {
+                    logger.info(`${logPrefix} Simulando click en ${elemento} desde boton horizontal`);
+                    
+                    // Buscar el elemento y simular click
+                    const boton = document.getElementById(elemento);
+                    if (boton) {
+                        logger.info(`${logPrefix} ✅ Elemento ${elemento} encontrado, ejecutando click`);
+                        boton.click();
+                        
+                        // Enviar confirmación al padre
+                        await enviarMensaje({
+                            destino: mensaje.origen,
+                            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            datos: {
+                                accion: 'click_ejecutado',
+                                elemento,
+                                exito: true,
+                                timestamp: Date.now()
+                            }
+                        });
+                    } else {
+                        logger.warn(`${logPrefix} ⚠️ Elemento ${elemento} no encontrado`);
+                        
+                        // Enviar error al padre
+                        await enviarMensaje({
+                            destino: mensaje.origen,
+                            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            datos: {
+                                codigo: 'ELEMENTO_NO_ENCONTRADO',
+                                mensaje: `Elemento ${elemento} no existe`,
+                                elemento,
+                                timestamp: Date.now()
+                            }
+                        });
+                    }
+                } else if (accion === 'audio_control') {
+                    logger.info(`${logPrefix} Ejecutando comando de audio: ${comando}`);
+
+                    const resetearProgresoVisual = () => {
+                        if (progressBar) progressBar.style.width = '0%';
+                        if (progressContainer) {
+                            progressContainer.setAttribute('aria-valuenow', 0);
+                            progressContainer.style.setProperty('--bar-w', 0);
+                        }
+                        if (currentTimeElement) currentTimeElement.textContent = '00:00';
+                    };
+
+                    if (comando === 'play') {
+                        if (!audioPlayer.src && audioId) {
+                            await cargarYReproducirAudio(audioId, true);
+                        } else {
+                            await audioPlayer.play();
+                        }
+                    } else if (comando === 'pause') {
+                        audioPlayer.pause();
+                    } else if (comando === 'stop') {
+                        audioPlayer.pause();
+                        audioPlayer.currentTime = 0;
+                        resetearProgresoVisual();
+                    } else if (comando === 'replay') {
+                        const objetivo = audioId || currentAudioId;
+                        if (objetivo && (!audioPlayer.src || currentAudioId !== objetivo)) {
+                            await cargarYReproducirAudio(objetivo, true);
+                        } else {
+                            audioPlayer.currentTime = 0;
+                            await audioPlayer.play();
+                        }
+                    } else {
+                        throw new Error(`Comando de audio no soportado: ${comando}`);
+                    }
+
+                    await enviarMensaje({
+                        destino: mensaje.origen,
+                        tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        datos: {
+                            accion: 'audio_control',
+                            comando,
+                            exito: true,
+                            timestamp: Date.now()
+                        }
+                    });
+                } else {
+                    logger.warn(`${logPrefix} Acción no reconocida:`, { accion, elemento, contexto });
+                }
+                
+            } catch (error) {
+                logger.error(`${logPrefix} Error procesando acción UI:`, error);
+            }
+        });
+
+        // Controlador para ACK del sistema
+        registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
+            const logPrefix = `[hijo3][SISTEMA.ACK][${mensaje?.origen || 'desconocido'}]`;
+            
+            try {
+                logger.debug(`${logPrefix} ACK recibido, respondiendo...`);
+                
+                // Responder al ACK
+                await enviarMensaje({
+                    destino: getPadreId(),
+                    tipo: TIPOS_MENSAJE.SISTEMA.ACK,
+                    origen: CONFIG_HIJO.IFRAME_ID,
+                    datos: {
+                        componenteId: CONFIG_HIJO.COMPONENTE_ID,
+                        timestamp: Date.now(),
+                        estado: 'activo'
+                    }
+                });
+                
+                logger.debug(`${logPrefix} ACK respondido`);
+                
+            } catch (error) {
+                logger.error(`${logPrefix} Error respondiendo ACK:`, error);
+            }
+        });
+
+        // ============================================================
+        // HANDLERS GPS
+        // ============================================================
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA, async (_mensaje) => {
+            try {
+                console.debug(`[hijo3][GPS.UBICACION_ACTUALIZADA] Ubicación recibida (no-op)`);
+                return { exito: true };
+            } catch (e) {
+                console.error('[hijo3][GPS.UBICACION_ACTUALIZADA] Error en handler no-op:', e);
+                return { exito: false, error: e.message };
+            }
+        });
+
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, async (mensaje) => {
+            try {
+                console.debug(`[hijo3][GPS.ESTADO_ACTUALIZADO] Estado GPS recibido (no-op):`, mensaje?.datos || {});
+                return { exito: true };
+            } catch (e) {
+                console.error('[hijo3][GPS.ESTADO_ACTUALIZADO] Error en handler no-op:', e);
+                return { exito: false, error: e.message };
+            }
+        });
+
+        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ERROR, async (mensaje) => {
+            try {
+                const datos = mensaje?.datos || {};
+                const { codigo } = datos;
+                const errorMensaje = datos.mensaje || datos.message || null;
+                const contexto = datos.contexto || datos.context || 'desconocido';
+                const codeMap = { 1: 'PERMISSION_DENIED', 2: 'POSITION_UNAVAILABLE', 3: 'TIMEOUT' };
+                const codeDesc = codeMap[codigo] || 'UNKNOWN_CODE';
+                let details;
+                try { details = JSON.stringify({ codigo, codeDesc, mensaje: errorMensaje, contexto }, null, 2); } catch { details = `codigo=${codigo} mensaje=${String(errorMensaje)} contexto=${String(contexto)}`; }
+                logger.error(`[hijo3][GPS.ERROR] Error GPS recibido: ${details}`);
+                // Telemetría: incrementar contador por código de error GPS en hijo3
+                try { if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { logger.debug('[hijo3][GPS.ERROR] no se pudo incrementar contador', err && err.message); }
+                // Enviar métrica a monitoreo (si mensajería disponible)
+                try {
+                    if (typeof enviarMensaje === 'function') {
+                        enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo3', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {});
+                    }
+                } catch (error_) { logger.debug('[hijo3][GPS.ERROR] no se pudo enviar metrica', error_ && error_.message); }
+                return { exito: true };
+            } catch (e) {
+                logger.error('[hijo3][GPS.ERROR] Error en handler no-op:', e);
+                return { exito: false, error: e.message };
+            }
+        });
+
+        // ============================================================
+        // ENVIAR HIJO_PREPARADO AHORA QUE TODOS LOS CONTROLADORES ESTÁN REGISTRADOS
+        // ============================================================
+        try {
+            logger.debug('[hijo3] Todos los controladores registrados; enviando HIJO_PREPARADO ahora');
+            await enviarMensaje({
+                destino: getPadreId(),
+                tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                datos: {
+                    componenteId: CONFIG_HIJO.COMPONENTE_ID,
+                    version: '1.0.0',
+                    capacidades: ['audio', 'reproduccion', 'controles'],
+                    timestamp: Date.now()
+                }
+            });
+            logger.debug('[hijo3] HIJO_PREPARADO enviado; esperando PADRE_DATOS');
+        } catch (e) {
+            logger.warn('[hijo3] Error enviando HIJO_PREPARADO:', e);
+        }
+
+        logger.info(`[hijo3] Inicialización completada exitosamente`);
+    } catch (error) {
+        logger.error(`[hijo3] Error durante la inicialización:`, error);
+    }
+
+    // Implementar pagehide para limpiar recursos
+    globalThis.addEventListener('pagehide', () => {
+        logger.info(`[hijo3] Limpiando recursos en pagehide`);
+    });
+    </script>
+</body>
+</html>

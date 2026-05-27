@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script>
+  (function(){
+    function escalar(){
+      var f = Math.max(14, Math.min(Math.min(globalThis.innerWidth, globalThis.innerHeight) * 0.025, 18));
+      document.documentElement.style.fontSize = f + 'px';
+      document.documentElement.style.setProperty('--iframe-w', globalThis.innerWidth  + 'px');
+      document.documentElement.style.setProperty('--iframe-h', globalThis.innerHeight + 'px');
+    }
+    escalar();
+    globalThis.addEventListener('resize', escalar);
+  })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+  <title>Asistente de soporte</title>
+  <style>
+    :root {
+      --gap-inferior:    env(safe-area-inset-bottom, 0px);
+      --color-fondo:     #c8e6f7;
+      --color-header:    #1a6ea8;
+      --color-tema:      #ff8c00;
+      --color-pregunta:  #1a6ea8;
+      --color-resp-bg:   #fff;
+      --radio:           0.75rem;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: clamp(14px, 3.5vmin, 18px);
+      background: transparent;
+      color: #222;
+    }
+
+    #contenedor {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--color-fondo);
+    }
+
+    /* ── Header ── */
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: var(--color-header);
+      color: #fff;
+      flex-shrink: 0;
+    }
+    #header h1 {
+      font-size: clamp(15px, 4vmin, 20px);
+      font-weight: bold;
+      letter-spacing: 0.02em;
+    }
+    #btn-cerrar {
+      background: #ff8c00;
+      border: 0.2rem solid #ff0000;
+      border-radius: 50%;
+      width: clamp(40px, 10vmin, 52px);
+      height: clamp(40px, 10vmin, 52px);
+      font-size: clamp(22px, 6vmin, 30px);
+      font-weight: bold;
+      color: #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      flex-shrink: 0;
+    }
+    #btn-cerrar:hover { background: #ff6600; }
+
+    /* ── Área FAQ ── */
+    #faq {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem 0.75rem calc(0.75rem + var(--gap-inferior));
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    /* ── Tema (nivel 1) ── */
+    .tema-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.7rem 1rem;
+      background: var(--color-tema);
+      color: #fff;
+      border: none;
+      border-radius: var(--radio);
+      font-size: clamp(14px, 3.5vmin, 17px);
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      text-align: left;
+      line-height: 1.3;
+      transition: opacity 0.15s;
+    }
+    .tema-btn:active { opacity: 0.82; }
+    .tema-flecha {
+      flex-shrink: 0;
+      font-size: 0.8em;
+      transition: transform 0.25s ease;
+    }
+    .tema-btn[aria-expanded="true"] .tema-flecha { transform: rotate(90deg); }
+
+    /* ── Lista de preguntas ── */
+    .preguntas-lista {
+      display: none;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.3rem 0 0.1rem 0.6rem;
+    }
+    .preguntas-lista.visible { display: flex; }
+
+    /* ── Pregunta (nivel 2) ── */
+    .pregunta-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.55rem 0.85rem;
+      background: var(--color-pregunta);
+      color: #fff;
+      border: none;
+      border-radius: calc(var(--radio) * 0.7);
+      font-size: clamp(13px, 3.2vmin, 16px);
+      cursor: pointer;
+      touch-action: manipulation;
+      text-align: left;
+      line-height: 1.35;
+      transition: opacity 0.15s;
+    }
+    .pregunta-btn:active { opacity: 0.82; }
+    .pregunta-flecha {
+      flex-shrink: 0;
+      font-size: 0.75em;
+      transition: transform 0.25s ease;
+    }
+    .pregunta-btn[aria-expanded="true"] .pregunta-flecha { transform: rotate(90deg); }
+
+    /* ── Respuesta ── */
+    .respuesta-panel {
+      display: none;
+      background: var(--color-resp-bg);
+      border: 1px solid #b0cfe0;
+      border-top: none;
+      border-radius: 0 0 calc(var(--radio) * 0.7) calc(var(--radio) * 0.7);
+      padding: 0.75rem 0.85rem;
+    }
+    .respuesta-panel.visible { display: block; }
+
+    .respuesta-texto {
+      font-size: clamp(13px, 3.2vmin, 16px);
+      line-height: 1.55;
+      color: #222;
+      white-space: pre-line;
+    }
+    .respuesta-imagen {
+      display: block;
+      width: 100%;
+      margin-top: 0.75rem;
+      border-radius: calc(var(--radio) * 0.5);
+      border: 1px solid #b0cfe0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="contenedor">
+  <div id="header">
+    <h1 id="titulo-header">Soporte</h1>
+    <button id="btn-cerrar" aria-label="Cerrar chat" onclick="return cerrarChatVentana();">✕</button>
+  </div>
+  <div id="faq" aria-label="Preguntas frecuentes"></div>
+</div>
+
+<script>
+  function obtenerOrigenPadreSeguro() {
+    return globalThis.location.origin === 'null' ? '*' : globalThis.location.origin;
+  }
+
+  function cerrarChatVentana() {
+    // 1) Preferred path: parent exposed close API.
+    try {
+      if (globalThis.parent && typeof globalThis.parent.cerrarChatSoporte === 'function') {
+        globalThis.parent.cerrarChatSoporte();
+      }
+    } catch (error_) {
+      console.debug('[hijo6] cerrarChatSoporte no disponible', error_ && error_.message);
+    }
+
+    // 2) Direct DOM fallback for same-origin.
+    try {
+      var iframeChat = globalThis.parent.document.getElementById('hijo6-chat');
+      if (iframeChat) {
+        iframeChat.style.display = 'none';
+        iframeChat.style.visibility = 'hidden';
+      }
+    } catch (error_) {
+      console.debug('[hijo6] No se pudo ocultar iframe por DOM directo', error_ && error_.message);
+    }
+
+    // 3) Messaging fallback.
+    try {
+      globalThis.parent.postMessage({ tipo: 'CHAT.CERRAR' }, obtenerOrigenPadreSeguro());
+    } catch (error_) {
+      console.debug('[hijo6] postMessage CHAT.CERRAR falló', error_ && error_.message);
+    }
+
+    return false;
+  }
+  globalThis.cerrarChatVentana = cerrarChatVentana;
+</script>
+
+<script type="module">
+  import { retryUntilAvailable, getPadreId } from './js/utils.js';
+  import { TIPOS_MENSAJE } from './js/constants.js';
+  import logger from './js/logger.js';
+  import {
+    IDIOMAS_SOPORTADOS,
+    TEMAS_ETIQUETAS,
+    ORDEN_TEMAS,
+    TEMAS_AGRUPADOS,
+    PREGUNTAS_SOPORTE,
+    obtenerRespuesta
+  } from './js/chat-asistente.js';
+
+  // ── CONFIG ────────────────────────────────────────────────────────────────
+  const CONFIG_HIJO = { IFRAME_ID: 'hijo6-chat', COMPONENTE_ID: 'CHAT' };
+  globalThis.CONFIG_HIJO = CONFIG_HIJO;
+
+  // ── Wrappers de mensajería (mismo patrón que el resto de hijos) ───────────
+  const enviarMensaje = async (...args) => {
+    if (globalThis.parent && globalThis.parent !== globalThis) {
+      const msg = args[0];
+      try {
+        globalThis.parent.postMessage(
+          { tipo: msg.tipo, origen: msg.origen || CONFIG_HIJO.IFRAME_ID, destino: msg.destino, datos: msg.datos, timestamp: Date.now() },
+          globalThis.location.origin
+        );
+        return;
+      } catch (e) { logger.error('[hijo6] Error enviando mensaje:', e && e.message); throw e; }
+    } else {
+      return await retryUntilAvailable(
+        () => globalThis.mensajeria.enviarMensaje(...args),
+        () => globalThis.mensajeria && globalThis.mensajeria.enviarMensaje,
+        10, 500, (...a) => logger.error(...a)
+      );
+    }
+  };
+
+  if (globalThis.registrarControladorSeguro === undefined) {
+    globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
+    globalThis.registrarControladorSeguro = async function(tipo, handler) {
+      if (!tipo || typeof handler !== 'function') return;
+      if (globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) return;
+      globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
+      const listener = (event) => {
+        if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
+          handler(event.data);
+        }
+      };
+      globalThis.addEventListener('message', listener);
+    };
+  }
+  const registrarControladorSeguro = globalThis.registrarControladorSeguro;
+
+  // ── Estado ────────────────────────────────────────────────────────────────
+  let idioma      = 'es';
+  let estadoPadre = {};
+  let hijoListoEnviado = false;
+  let inicializado = false;
+
+  const TITULOS = {
+    es: 'Soporte', en: 'Support', fr: 'Assistance',
+    it: 'Supporto', nl: 'Ondersteuning', ja: 'サポート'
+  };
+
+  const tituloEl  = document.getElementById('titulo-header');
+  const faqEl     = document.getElementById('faq');
+  const btnCerrar = document.getElementById('btn-cerrar');
+
+  // ── Construcción del acordeón ─────────────────────────────────────────────
+  function construirFAQ() {
+    faqEl.innerHTML = '';
+    for (const temaKey of ORDEN_TEMAS) {
+      const etiqueta  = TEMAS_ETIQUETAS[temaKey]?.[idioma] || TEMAS_ETIQUETAS[temaKey]?.es || temaKey;
+      const intenciones = TEMAS_AGRUPADOS[temaKey] || [];
+      const preguntasActivas = intenciones.filter(k => {
+        const txt = PREGUNTAS_SOPORTE[k]?.[idioma] || PREGUNTAS_SOPORTE[k]?.es || '';
+        return txt.trim() !== '';
+      });
+      const temaBtn = document.createElement('button');
+      temaBtn.className = 'tema-btn';
+      temaBtn.setAttribute('aria-expanded', 'false');
+      temaBtn.innerHTML = `<span>${etiqueta}</span><span class="tema-flecha" aria-hidden="true">▶</span>`;
+      const lista = document.createElement('div');
+      lista.className = 'preguntas-lista';
+      lista.setAttribute('role', 'list');
+      for (const intencion of preguntasActivas) {
+        const textoPregunta = PREGUNTAS_SOPORTE[intencion]?.[idioma] || PREGUNTAS_SOPORTE[intencion]?.es || '';
+        const { texto: textoResp, imagen } = obtenerRespuesta(intencion, idioma, estadoPadre);
+        const pregBtn = document.createElement('button');
+        pregBtn.className = 'pregunta-btn';
+        pregBtn.setAttribute('aria-expanded', 'false');
+        pregBtn.setAttribute('role', 'listitem');
+        pregBtn.innerHTML = `<span>${textoPregunta}</span><span class="pregunta-flecha" aria-hidden="true">▶</span>`;
+        const panel = document.createElement('div');
+        panel.className = 'respuesta-panel';
+        const pTexto = document.createElement('p');
+        pTexto.className = 'respuesta-texto';
+        pTexto.textContent = textoResp;
+        panel.appendChild(pTexto);
+        if (imagen) {
+          const img = document.createElement('img');
+          img.src = imagen; img.alt = textoPregunta; img.className = 'respuesta-imagen';
+          panel.appendChild(img);
+        }
+        pregBtn.addEventListener('click', () => {
+          const abierta = panel.classList.toggle('visible');
+          pregBtn.setAttribute('aria-expanded', String(abierta));
+        });
+        const item = document.createElement('div');
+        item.setAttribute('role', 'listitem');
+        item.appendChild(pregBtn);
+        item.appendChild(panel);
+        lista.appendChild(item);
+      }
+      temaBtn.addEventListener('click', () => {
+        const abierto = lista.classList.toggle('visible');
+        temaBtn.setAttribute('aria-expanded', String(abierto));
+      });
+      const temaItem = document.createElement('div');
+      temaItem.setAttribute('role', 'listitem');
+      temaItem.appendChild(temaBtn);
+      temaItem.appendChild(lista);
+      faqEl.appendChild(temaItem);
+    }
+  }
+
+  function actualizarIdioma(nuevoIdioma) {
+    idioma = IDIOMAS_SOPORTADOS.includes(nuevoIdioma) ? nuevoIdioma : 'es';
+    tituloEl.textContent = TITULOS[idioma] || TITULOS.es;
+    document.documentElement.lang = idioma;
+    construirFAQ();
+  }
+
+  // ── Eventos UI ────────────────────────────────────────────────────────────
+  btnCerrar.addEventListener('click', () => { cerrarChatVentana(); });
+
+  // ── Controladores de mensajería ───────────────────────────────────────────
+  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {
+    logger.info('[hijo6][PADRE_DATOS] Datos del padre recibidos');
+    if (mensaje.datos) {
+      estadoPadre = { ...estadoPadre, ...mensaje.datos };
+      if (mensaje.datos.idioma) actualizarIdioma(mensaje.datos.idioma);
+      else construirFAQ();
+    }
+    if (!hijoListoEnviado) {
+      try {
+        await enviarMensaje({
+          destino: getPadreId(),
+          tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+          origen: CONFIG_HIJO.IFRAME_ID,
+          datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
+        });
+        hijoListoEnviado = true;
+        inicializado = true;
+        logger.info('[hijo6] HIJO_LISTO enviado al padre');
+      } catch (e) { logger.error('[hijo6] Error enviando HIJO_LISTO:', e && e.message); }
+    }
+  });
+
+  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (_mensaje) => {
+    logger.debug('[hijo6] PADRE_CONFIRMA_HIJO_LISTO recibido');
+  });
+
+  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, async (mensaje) => {
+    await enviarMensaje({
+      destino: mensaje.origen,
+      tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
+      origen: CONFIG_HIJO.IFRAME_ID,
+      datos: { timestamp: Date.now(), estado: inicializado ? 'activo' : 'inicializando' }
+    });
+    logger.debug('[hijo6] HEARTBEAT respondido');
+  });
+
+  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async () => {
+    logger.debug('[hijo6] HEARTBEAT_START recibido');
+  });
+
+  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE, async () => {
+    logger.debug('[hijo6] HEARTBEAT_PAUSE recibido');
+  });
+
+  registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
+    logger.debug(`[hijo6] CAMBIO_MODO recibido: ${mensaje?.datos?.modo}`);
+  });
+
+  // ── HIJO_PREPARADO — después de registrar todos los controladores ─────────
+  try {
+    await enviarMensaje({
+      destino: getPadreId(),
+      tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
+      origen: CONFIG_HIJO.IFRAME_ID,
+      datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, version: '1.0.0', capacidades: ['chat', 'faq'], timestamp: Date.now() }
+    });
+    logger.debug('[hijo6] HIJO_PREPARADO enviado; esperando PADRE_DATOS');
+  } catch (e) { logger.warn('[hijo6] Error enviando HIJO_PREPARADO:', e && e.message); }
+
+  // Construcción inicial
+  construirFAQ();
+</script>
+
+</body>
+</html>
