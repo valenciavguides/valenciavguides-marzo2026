@@ -8,8 +8,8 @@ export const MAPAS_VINTAGE = {
     Aventura3: 'imagenes/imagenes-mapas-vintage/Av3_Mapa.jpg',
     Aventura4: 'imagenes/imagenes-mapas-vintage/Av4_Mapa.jpg',
     Aventura5: 'imagenes/imagenes-mapas-vintage/Av5_Mapa.jpg',
-    // AventuraFallas: 'imagenes/imagenes-mapas-vintage/AvFallas_Mapa.jpg', // TODO: añadir ruta cuando el mapa esté listo
-    // Aventura34km: 'imagenes/imagenes-mapas-vintage/Av34km_Mapa.jpg',    // TODO: añadir ruta cuando el mapa esté listo
+    // AventuraFallas: 'imagenes/imagenes-mapas-vintage/AvFallas_Mapa.jpg', // pendiente: mapa aún no disponible
+    // Aventura34km: 'imagenes/imagenes-mapas-vintage/Av34km_Mapa.jpg',    // pendiente: mapa aún no disponible
 };
 
 /**
