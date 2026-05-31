@@ -1535,53 +1535,31 @@
         // ============================================================
         let _galeriaEstado = { imagenes: [], indice: 0, tipo: null, mapa_numero: null };
 
-        globalThis.mostrarImagenOverlay = function(urlImagen, titulo = '', mensajeError = null, textoParada = null, opciones = {}) {
-            // opciones: { imagenes: [], tipo: 'parada'|'tramo', mapa_numero: number|string|null }
-            let imagenes;
-            if (opciones.imagenes && opciones.imagenes.length > 0) {
-                imagenes = opciones.imagenes;
-            } else {
-                imagenes = (urlImagen && urlImagen.trim() && urlImagen !== 'undefined' && urlImagen !== 'null') ? [urlImagen] : [];
-            }
-            const tipo = opciones.tipo || 'parada';
-            const mapa_numero = opciones.mapa_numero ?? null;
-            const objectFit = opciones.objectFit || 'fill';
-            const fullHeight = opciones.fullHeight || false;
-
-            // Sin imágenes: mostrar aviso
-            if (imagenes.length === 0) {
-                let overlay = document.getElementById('imagen-overlay');
-                if (overlay) { overlay.remove(); overlay = null; }
-                overlay = document.createElement('div');
-                overlay.id = 'imagen-overlay';
-                overlay.className = 'media-overlay';
-                overlay.innerHTML = `
+        function _mostrarOverlaySinImagenes(mensajeError) {
+            let overlay = document.getElementById('imagen-overlay');
+            if (overlay) { overlay.remove(); overlay = null; }
+            overlay = document.createElement('div');
+            overlay.id = 'imagen-overlay';
+            overlay.className = 'media-overlay';
+            overlay.innerHTML = `
                     <div class="media-contenedor imagen-contenedor" style="justify-content:center;align-items:center;display:flex;flex-direction:column;gap:1rem;">
                         <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen">&times;</button>
                         <div style="font-size:3rem;opacity:0.3;">🖼️</div>
                         <p style="color:#666;font-size:0.9em;text-align:center;margin:0;padding:0 1rem;">${_galeriaEscaparHTML(mensajeError || 'No hay imagen disponible para esta parada')}</p>
                     </div>
                 `;
-                document.body.appendChild(overlay);
-                overlay.querySelector('.btn-cerrar-overlay')?.addEventListener('click', cerrarImagenOverlay);
-                _galeriaProtegerBoton(overlay);
-                overlay.classList.add('visible');
-                if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                    globalThis.actualizarVisibilidadSelectorMapa();
-                }
-                return;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.btn-cerrar-overlay')?.addEventListener('click', cerrarImagenOverlay);
+            _galeriaProtegerBoton(overlay);
+            overlay.classList.add('visible');
+            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
+                globalThis.actualizarVisibilidadSelectorMapa();
             }
+        }
 
-            // Si hay mensaje de error personalizado con URL real
-            if (mensajeError) {
-                mostrarErrorOverlay(mensajeError, 'imagen');
-                return;
-            }
-
-            // Guardar estado de la galería
+        function _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight) {
             _galeriaEstado = { imagenes, indice: 0, tipo, mapa_numero, objectFit, fullHeight };
 
-            // Preparar HTML del texto
             const _tituloHTML = (textoParada && textoParada.title) ? `<h3 class="texto-parada-titulo" style="color:#003366;">${_galeriaEscaparHTML(textoParada.title)}</h3>` : '';
             const textoHTML = textoParada ? `
                 <div id="texto-parada-overlay" class="texto-parada-overlay">
@@ -1590,10 +1568,8 @@
                 </div>
             ` : '';
 
-            // Crear overlay
             let overlay = document.getElementById('imagen-overlay');
             if (overlay) { overlay.remove(); overlay = null; }
-
             overlay = document.createElement('div');
             overlay.id = 'imagen-overlay';
             overlay.className = 'media-overlay';
@@ -1613,10 +1589,32 @@
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                 globalThis.actualizarVisibilidadSelectorMapa();
             }
-
-            // Renderizar la primera imagen con badges y flechas
             _galeriaRenderizar();
             (globalThis.logger || console).info('Galería mostrada:', imagenes.length, 'imágenes, tipo:', tipo, 'mapa:', mapa_numero);
+        }
+
+        globalThis.mostrarImagenOverlay = function(urlImagen, titulo = '', mensajeError = null, textoParada = null, opciones = {}) {
+            // opciones: { imagenes: [], tipo: 'parada'|'tramo', mapa_numero: number|string|null }
+            let imagenes;
+            if (opciones.imagenes && opciones.imagenes.length > 0) {
+                imagenes = opciones.imagenes;
+            } else {
+                imagenes = (urlImagen && urlImagen.trim() && urlImagen !== 'undefined' && urlImagen !== 'null') ? [urlImagen] : [];
+            }
+            const tipo = opciones.tipo || 'parada';
+            const mapa_numero = opciones.mapa_numero ?? null;
+            const objectFit = opciones.objectFit || 'fill';
+            const fullHeight = opciones.fullHeight || false;
+
+            if (imagenes.length === 0) {
+                _mostrarOverlaySinImagenes(mensajeError);
+                return;
+            }
+            if (mensajeError) {
+                mostrarErrorOverlay(mensajeError, 'imagen');
+                return;
+            }
+            _mostrarOverlayGaleria(imagenes, titulo, textoParada, tipo, mapa_numero, objectFit, fullHeight);
         };
 
         globalThis.cerrarImagenOverlay = function() {
@@ -6034,6 +6032,18 @@
             }
         }
 
+        async function _enviarHeartbeatStartAHijo(h, origen, logPrefix) {
+            try {
+                if (typeof enviarMensaje_S1 === 'function') {
+                    await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START, origen: CONFIG_PADRE.ID, destino: h, datos: { timestamp: Date.now(), propagadoDesde: origen } });
+                } else {
+                    logger.warn(`${logPrefix} enviarMensaje_S1 no disponible para HEARTBEAT_START`);
+                }
+            } catch (error) {
+                logger.warn(`${logPrefix} Error enviando HEARTBEAT_START a ${h}:`, error);
+            }
+        }
+
         async function _activarHeartbeatAventura(hijosCriticos, mensaje, logPrefix) {
             try {
                 if (typeof enviarMensaje_S1 === 'function') {
@@ -6043,15 +6053,7 @@
                 }
             } catch (e) { logger.error(`${logPrefix} Error iniciando heartbeat local via messaging:`, e); }
             for (const h of hijosCriticos) {
-                try {
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START, origen: CONFIG_PADRE.ID, destino: h, datos: { timestamp: Date.now(), propagadoDesde: mensaje.origen } });
-                    } else {
-                        logger.warn(`${logPrefix} enviarMensaje_S1 no disponible para HEARTBEAT_START`);
-                    }
-                } catch (error) {
-                    logger.warn(`${logPrefix} Error enviando HEARTBEAT_START a ${h}:`, error);
-                }
+                await _enviarHeartbeatStartAHijo(h, mensaje.origen, logPrefix);
             }
             try { await ensureDefaultParada(); } catch (err) { logger.warn('[CAMBIO_MODO] ensureDefaultParada error', err); }
         }
@@ -6320,7 +6322,7 @@
             }
         }
 
-        async function _handleMostrarImagen(urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix) {
+        async function _handleMostrarImagen({ urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix }) {
             let textoFinal = textoParada;
             if (!textoFinal && paradaActual) {
                 textoFinal = await _buscarTextoParaParada(paradaActual, logPrefix);
@@ -6350,7 +6352,7 @@
                 const { accion, paradaActual, urlImagen, urlVideo, nombre, mensajeError, textoParada, imagenes, tipo, mapa_numero } = mensaje.datos || {};
                 logger.info(`${logPrefix} Acción recibida desde ${mensaje.origen}: ${accion}`);
                 if (accion === 'mostrar-imagen') {
-                    await _handleMostrarImagen(urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix);
+                    await _handleMostrarImagen({ urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix });
                 } else if (accion === 'reproducir-video') {
                     _handleReproducirVideo(urlVideo, nombre, mensajeError, logPrefix);
                 } else {
@@ -7238,43 +7240,41 @@
         if (globalThis.enviarMensaje === undefined) { globalThis.enviarMensaje = enviarMensaje_S2 || globalThis.enviarMensaje; }
         if (globalThis.ajustarTimeoutPorConexion === undefined) { globalThis.ajustarTimeoutPorConexion = ajustarTimeoutPorConexion_S2 || globalThis.ajustarTimeoutPorConexion; }
 
+        function _enriquecerPayloadPadre(payload) {
+            try {
+                const padreId = (typeof getPadreIdLocal === 'function' ? getPadreIdLocal() : (globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) || 'padre');
+                const origenVal = payload.origen === undefined ? '' : payload.origen;
+                const looksLikePlaceholder = (typeof origenVal === 'string' && (
+                    origenVal.trim() === '' ||
+                    origenVal === 'sistema' ||
+                    origenVal === 'undefined' ||
+                    origenVal === 'mensaje.origen' ||
+                    origenVal === 'mensaje?.origen' ||
+                    origenVal.includes('mensaje.origen')
+                ));
+                if (!origenVal || looksLikePlaceholder) {
+                    payload.origen = padreId;
+                }
+                return enviarMensaje(payload);
+            } catch (e) {
+                logger.debug('[PADRE][ENVIAR_PADRE] enrichPayload fallback:', e);
+                payload.origen = payload.origen || ((globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) || 'padre');
+                return enviarMensaje(payload);
+            }
+        }
+
         // Helper: enviarMensajePadre
         // Ensures all messages originating from the padre include a valid origen (PADRE ID)
         // Handles both object-style and legacy signature (destino, tipo, datos)
         function enviarMensajePadre(...args) {
             try {
-                // Object-style: enviarMensaje({ tipo, origen, destino, datos })
                 if (args.length === 1 && args[0] && typeof args[0] === 'object') {
-                    const payload = { ...args[0] };
-                    // Prefer explicit CONFIG_PADRE_LOCAL.ID but fall back to global helper
-                    try {
-                        const padreId = (typeof getPadreIdLocal === 'function' ? getPadreIdLocal() : (globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) || 'padre');
-                        // If the payload has no origen or uses placeholder values like 'sistema' or 'mensaje.origen', override it
-                        // Avoid referencing an in-scope 'mensaje' variable (which may not exist) to prevent ReferenceErrors.
-                        const origenVal = payload.origen === undefined ? '' : payload.origen;
-                        const looksLikePlaceholder = (typeof origenVal === 'string' && (
-                            origenVal.trim() === '' ||
-                            origenVal === 'sistema' ||
-                            origenVal === 'undefined' ||
-                            origenVal === 'mensaje.origen' ||
-                            origenVal === 'mensaje?.origen' ||
-                            origenVal.includes('mensaje.origen')
-                        ));
-                        if (!origenVal || looksLikePlaceholder) {
-                            payload.origen = padreId;
-                        }
-                        return enviarMensaje(payload);
-                    } catch (e) {
-                        logger.debug('[PADRE][ENVIAR_PADRE] enrichPayload fallback:', e);
-                        payload.origen = payload.origen || ((globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.ID) || 'padre');
-                        return enviarMensaje(payload);
-                    }
+                    return _enriquecerPayloadPadre({ ...args[0] });
                 }
                 // Legacy signature: enviarMensaje(destino, tipo, datos)
                 return enviarMensaje(...args);
             } catch (e) {
                 logger.debug('[PADRE][ENVIAR_PADRE] enviarMensaje wrapper error:', e);
-                // If enviarMensaje is not available, rethrow or fail silently depending on context
                 try { return enviarMensaje(...args); } catch (err) { logger.warn('[PADRE][ENVIAR_PADRE] enviarMensaje not available:', err); }
             }
         }
@@ -9054,7 +9054,7 @@
             try { persistProgressState(); } catch (e) { logger.warn('[CAMBIO_PARADA] persistProgressState failed', e); }
         }
 
-        async function _notificarCambioParadaHijos(datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix) {
+        async function _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix }) {
             const notificaciones = [];
             if (mensaje.origen !== 'hijo5') {
                 notificaciones.push(
@@ -9213,7 +9213,7 @@
                     coordenadas: paradaNormalized?.coordenadas
                 });
 
-                await _notificarCambioParadaHijos(datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix);
+                await _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix });
 
                 // ✅ En modo casa: habilitar/deshabilitar retosBtn según si hay reto
                 const retosDeParada = obtenerRetosIds(parada);
@@ -10139,98 +10139,79 @@
             }
         }
 
+        async function _fase2CargarDatos(logPrefix) {
+            logger.info(`${logPrefix} 🚀 Iniciando Fase 2: Cargando datos de aventura...`);
+            try {
+                if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
+                    const datosCargados = await globalThis.__cargarDatosAventuraDiferidos();
+                    if (datosCargados) {
+                        logger.success(`${logPrefix} ✅ Datos de aventura cargados correctamente (Fase 2)`);
+                    } else {
+                        logger.error(`${logPrefix} ❌ Error cargando datos de aventura`);
+                    }
+                } else {
+                    logger.warn(`${logPrefix} ⚠️ Función de carga diferida no disponible`);
+                }
+            } catch (cargaError) {
+                logger.error(`${logPrefix} ❌ Error en carga diferida:`, cargaError);
+            }
+        }
+
+        async function _distribuirConEspera(aventura, idioma, logPrefix) {
+            try {
+                logger.info(`${logPrefix} Distribuyendo datos de aventura ${aventura} (${idioma}) a los hijos...`);
+                await new Promise((resolve) => {
+                    const check = () => {
+                        if (typeof globalThis.enviarMensaje === 'function') { resolve(); } else { setTimeout(check, 50); }
+                    };
+                    check();
+                });
+                logger.debug(`${logPrefix} enviarMensaje disponible, procediendo con distribución`);
+                const resultados = await distribuirDatosAventura(aventura, idioma);
+                if (resultados.pospuesto) {
+                    logger.warn(`${logPrefix} ⚠️ ${resultados.mensaje}, marcando como pendiente`);
+                    globalThis.__pendingDistribucion = { aventura, idioma };
+                } else {
+                    logger.success(`${logPrefix} ✅ Distribución completada:`, resultados);
+                }
+            } catch (distribucionError) {
+                if (distribucionError.message.includes('Datos centralizados no disponibles')) {
+                    logger.warn(`${logPrefix} ⚠️ Datos aún no disponibles, se distribuirán cuando se complete la carga inicial`);
+                } else {
+                    logger.error(`${logPrefix} ❌ Error distribuyendo datos:`, distribucionError);
+                }
+            }
+        }
+
         async function _hdl_SELECCION_AVENTURA_SELECCIONADA(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.AVENTURA]`;
-
             try {
                 const { aventura, idioma, timestamp } = mensaje.datos || {};
-
                 logger.info(`${logPrefix} Aventura seleccionada: ${aventura} (idioma: ${idioma}) desde ${mensaje.origen}`);
 
-                // Almacenar en estado global
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.aventura = aventura;
                 estado.seleccion.idioma = idioma || estado.seleccion.idioma;
                 estado.seleccion.timestampAventura = timestamp;
-
-                // Exponer globalmente
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado;
                 try {
                     localStorage.setItem('vv_aventura', aventura);
                     localStorage.setItem('vv_idioma', idioma || globalThis.idiomaSeleccionado || 'es');
-                } catch (_e) { logger.debug('[VV]:', _e?.message); } // NOSONAR
-
+                } catch (_e) { logger.debug('[VV]:', _e?.message); }
                 logger.debug(`${logPrefix} Aventura almacenada en estado global: ${aventura}`);
 
-                // � FASE 2: CARGAR DATOS DIFERIDOS DE AVENTURA
-                // Cargar coordenadas, audios y retos AHORA que el usuario seleccionó
-                logger.info(`${logPrefix} 🚀 Iniciando Fase 2: Cargando datos de aventura...`);
-                try {
-                    if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
-                        const datosCargados = await globalThis.__cargarDatosAventuraDiferidos();
-                        if (datosCargados) {
-                            logger.success(`${logPrefix} ✅ Datos de aventura cargados correctamente (Fase 2)`);
-                        } else {
-                            logger.error(`${logPrefix} ❌ Error cargando datos de aventura`);
-                        }
-                    } else {
-                        logger.warn(`${logPrefix} ⚠️ Función de carga diferida no disponible`);
-                    }
-                } catch (cargaError) {
-                    logger.error(`${logPrefix} ❌ Error en carga diferida:`, cargaError);
-                }
+                await _fase2CargarDatos(logPrefix);
+                await _distribuirConEspera(aventura, idioma, logPrefix);
 
-                // �🔥 DISTRIBUIR DATOS A LOS HIJOS
-                // Enviar coordenadas, audios y retos a los hijos correspondientes
-                try {
-                    logger.info(`${logPrefix} Distribuyendo datos de aventura ${aventura} (${idioma}) a los hijos...`);
-
-                    // Esperar a que enviarMensaje esté disponible
-                    const esperarEnviarMensaje = () => new Promise((resolve) => {
-                        const check = () => {
-                            if (typeof globalThis.enviarMensaje === 'function') {
-                                resolve();
-                            } else {
-                                setTimeout(check, 50);
-                            }
-                        };
-                        check();
-                    });
-
-                    await esperarEnviarMensaje();
-                    logger.debug(`${logPrefix} enviarMensaje disponible, procediendo con distribución`);
-
-                    const resultados = await distribuirDatosAventura(aventura, idioma);
-
-                    if (resultados.pospuesto) {
-                        logger.warn(`${logPrefix} ⚠️ ${resultados.mensaje}, marcando como pendiente`);
-                        // Marcar que se necesita distribución pendiente
-                        globalThis.__pendingDistribucion = { aventura, idioma };
-                    } else {
-                        logger.success(`${logPrefix} ✅ Distribución completada:`, resultados);
-                    }
-                } catch (distribucionError) {
-                    if (distribucionError.message.includes('Datos centralizados no disponibles')) {
-                        logger.warn(`${logPrefix} ⚠️ Datos aún no disponibles, se distribuirán cuando se complete la carga inicial`);
-                        // Los datos se distribuirán automáticamente cuando se complete la carga inicial
-                        // mediante el mecanismo de sincronización existente
-                    } else {
-                        logger.error(`${logPrefix} ❌ Error distribuyendo datos:`, distribucionError);
-                    }
-                }
-
-                // 🔥 CARGAR RESTO DE IFRAMES después de selección de aventura
                 logger.info(`${logPrefix} 🚀 Cargando resto de iframes después de selección de aventura...`);
                 try {
                     await cargarRestoDeiframes();
                     logger.success(`${logPrefix} ✅ Resto de iframes cargados correctamente`);
                 } catch (error) {
                     logger.error(`${logPrefix} ❌ Error cargando resto de iframes:`, error);
-                    // Continuar aunque algunos iframes fallen
                 }
 
-                // 🔥 CARGAR hijo5 después de selección de aventura
                 logger.info(`${logPrefix} 🚀 Cargando hijo5 después de selección de aventura...`);
                 await cargarHijoCasa();
 
@@ -10320,80 +10301,81 @@
             }
         }
 
+        function _normalizarSetHijos(estado, idsRecargados, logPrefix) {
+            if (!(estado.hijosInicializados instanceof Set)) {
+                const _prev = Array.isArray(estado.hijosInicializados) ? estado.hijosInicializados : [];
+                estado.hijosInicializados = new Set(_prev);
+                logger.warn(`${logPrefix} hijosInicializados no era Set; re-inicializado para evitar bloqueo en activación`);
+            }
+            for (const _idR of idsRecargados) {
+                estado.hijosInicializados.delete(_idR);
+            }
+        }
+
+        function _mostrarUIActivada(logPrefix) {
+            const iframeSeleccion = document.getElementById('seleccion');
+            if (iframeSeleccion) iframeSeleccion.style.display = 'none';
+            const iframesToShow = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
+            for (const iframeId of iframesToShow) {
+                const iframe = document.getElementById(iframeId);
+                if (iframe) { iframe.style.display = 'block'; iframe.style.visibility = 'visible'; }
+            }
+            const _selMapa2 = document.getElementById('selector-tipo-mapa');
+            if (_selMapa2) _selMapa2.style.display = 'flex';
+            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
+                globalThis.actualizarVisibilidadSelectorMapa();
+            }
+            const logoElement = document.getElementById('logo-aventura');
+            const fondoElement = document.getElementById('fondo-blanco');
+            const fondoInferiorElement = document.getElementById('fondo-blanco-inferior');
+            if (logoElement) logoElement.style.display = 'block';
+            if (fondoElement) fondoElement.style.display = 'block';
+            if (fondoInferiorElement) fondoInferiorElement.style.display = 'block';
+            logger.debug(`${logPrefix} UI de aventura activada`);
+        }
+
         async function _hdl_SELECCION_AVENTURA_ACTIVADA(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.ACTIVADA]`;
-
             logger.info('🎯 [PADRE] AVENTURA_ACTIVADA RECIBIDO:', mensaje);
-
             try {
                 const { aventura, idioma, terminosAceptados, timestamp } = mensaje.datos || {};
-
                 logger.info(`${logPrefix} ✅ Aventura activada: ${aventura} (idioma: ${idioma}) — modo CASA mantenido`);
 
-                if (!aventura) {
-                    logger.error(`${logPrefix} No se especificó aventura`);
-                    return;
-                }
+                if (!aventura) { logger.error(`${logPrefix} No se especificó aventura`); return; }
 
                 globalThis.showParentLoadingOverlay?.('Preparando aventura...', 'Cargando componentes principales', 12);
 
-                // Almacenar configuración registrada (sin marcar como "iniciada en AVENTURA")
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.aventura = aventura;
                 estado.seleccion.idioma = idioma || 'es';
                 estado.seleccion.terminosAceptados = terminosAceptados;
-                estado.seleccion.activada = true;   // registrada, pendiente de lanzar en AVENTURA
-                estado.seleccion.iniciada = false;   // el timer aún no ha arrancado
-
+                estado.seleccion.activada = true;
+                estado.seleccion.iniciada = false;
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
 
-                // =====================================================
-                // CARGAR IFRAMES HIJOS (diferido hasta que el usuario termine la selección)
-                // =====================================================
                 logger.info(`${logPrefix} 📦 Cargando iframes hijos...`);
-
                 const iframesHijos = [
                     { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
                     { id: 'hijo2', src: 'coordenadas-hijo2.html' },
                     { id: 'hijo3', src: 'audio-hijo3.html' },
                     { id: 'hijo5', src: 'boton-casa-hijo5.html' }
                 ];
-
-                const promesasCarga = iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix));
-
-                await Promise.all(promesasCarga);
+                await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
                 logger.success(`${logPrefix} ✅ Iframes hijos cargados`);
                 updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
                 estado.seleccion.timestampInicio = timestamp;
 
-                // Esperar HIJO_LISTO de cada iframe recargado antes de distribuir datos
                 const _idsRecargados = iframesHijos.map(c => c.id);
-                if (!(estado.hijosInicializados instanceof Set)) {
-                    const _prev = Array.isArray(estado.hijosInicializados)
-                        ? estado.hijosInicializados
-                        : [];
-                    estado.hijosInicializados = new Set(_prev);
-                    logger.warn(`${logPrefix} hijosInicializados no era Set; re-inicializado para evitar bloqueo en activación`);
-                }
-                for (const _idR of _idsRecargados) {
-                    estado.hijosInicializados.delete(_idR);
-                }
+                _normalizarSetHijos(estado, _idsRecargados, logPrefix);
                 await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
                 updateLoadingStatus('Hijos sincronizados', 'Distribuyendo datos de aventura', 62);
 
-                // Persistir que la aventura ha sido activada (en CASA — timer NO arranca aún)
                 try {
-                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({
-                        aventura: aventura,
-                        idioma: idioma || 'es',
-                        modo: MODOS.CASA,
-                        timestamp: Date.now()
-                    }));
+                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura, idioma: idioma || 'es', modo: MODOS.CASA, timestamp: Date.now() }));
                     logger.debug(`${logPrefix} Aventura persistida en localStorage (modo CASA)`);
-                } catch (_e) { logger.debug('[VV]:', _e?.message); } // NOSONAR
+                } catch (_e) { logger.debug('[VV]:', _e?.message); }
 
-                // Distribuir datos de aventura a los hijos
                 try {
                     const resultadosDistribucion = await distribuirDatosAventura(aventura, idioma);
                     if (resultadosDistribucion.pospuesto) {
@@ -10406,62 +10388,24 @@
                 }
                 updateLoadingStatus('Datos distribuidos', 'Aplicando interfaz final', 82);
 
-                // Ocultar iframe de selección
-                const iframeSeleccion = document.getElementById('seleccion');
-                if (iframeSeleccion) iframeSeleccion.style.display = 'none';
+                _mostrarUIActivada(logPrefix);
 
-                // Mostrar iframes de la aventura
-                const iframesToShow = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
-                for (const iframeId of iframesToShow) {
-                    const iframe = document.getElementById(iframeId);
-                    if (iframe) {
-                        iframe.style.display = 'block';
-                        iframe.style.visibility = 'visible';
-                    }
-                }
-                const _selMapa2 = document.getElementById('selector-tipo-mapa');
-                if (_selMapa2) _selMapa2.style.display = 'flex';
-                if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                    globalThis.actualizarVisibilidadSelectorMapa();
-                }
-
-                const logoElement = document.getElementById('logo-aventura');
-                const fondoElement = document.getElementById('fondo-blanco');
-                const fondoInferiorElement = document.getElementById('fondo-blanco-inferior');
-                if (logoElement) logoElement.style.display = 'block';
-                if (fondoElement) fondoElement.style.display = 'block';
-                if (fondoInferiorElement) fondoInferiorElement.style.display = 'block';
-
-                // Broadcast a todos los hijos: selección registrada, modo CASA
                 try {
                     if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({
-                            tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-                            origen: getPadreId(),
-                            destino: 'broadcast',
-                            datos: { evento: 'AVENTURA_ACTIVADA', aventura, idioma: idioma || 'es', timestamp: Date.now() }
-                        });
+                        await enviarMensaje_S1({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'broadcast', datos: { evento: 'AVENTURA_ACTIVADA', aventura, idioma: idioma || 'es', timestamp: Date.now() } });
                     }
                 } catch (broadcastError) {
                     logger.warn(`${logPrefix} Error en broadcast de activación:`, broadcastError);
                 }
 
                 updateLoadingStatus('Aventura lista', 'Entrando en modo CASA', 100);
-                setTimeout(() => {
-                    if (typeof globalThis.hideParentLoadingOverlay === 'function') {
-                        globalThis.hideParentLoadingOverlay();
-                    }
-                }, 250);
-
-                // Timer NO se inicia aquí — arranca cuando hijo5 cambia modo a AVENTURA
+                setTimeout(() => { if (typeof globalThis.hideParentLoadingOverlay === 'function') { globalThis.hideParentLoadingOverlay(); } }, 250);
                 logger.info(`${logPrefix} 🏠 Modo CASA activo → timer pendiente hasta que el usuario active GPS en hijo5`);
                 logger.success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
 
             } catch (error) {
                 logger.error(`${logPrefix} Error registrando aventura:`, error);
-                if (typeof globalThis.hideParentLoadingOverlay === 'function') {
-                    globalThis.hideParentLoadingOverlay();
-                }
+                if (typeof globalThis.hideParentLoadingOverlay === 'function') { globalThis.hideParentLoadingOverlay(); }
             }
         }
 
@@ -11306,65 +11250,55 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
     <!-- Cleanup on pagehide: removes iframes and global references to reduce memory -->
     <script>
     // Implementar pagehide para limpiar iframes y referencias globales
-    globalThis.addEventListener('pagehide', () => {
-        logger.info(`[codigo-padre] Limpiando recursos en pagehide`);
-        const iframes = document.querySelectorAll('iframe');
-        iframes.forEach(iframe => {
-            iframe.src = 'about:blank';
-            iframe.remove();
-        });
-        // DATOS_PADRE is a module import, no need to delete
-        if (globalThis.modoActual) {
-            globalThis.modoActual = undefined;
-        }
-        if (globalThis.intervaloMonitoreo) {
-            clearInterval(globalThis.intervaloMonitoreo);
-        }
-        // Detener limpieza periódica de correlaciones
-        if (globalThis.__vv_correlacion_cleanup) {
-            try { clearInterval(globalThis.__vv_correlacion_cleanup); } catch (e) { logger.debug('[VV]:', e?.message); } // NOSONAR
-            globalThis.__vv_correlacion_cleanup = undefined;
-        }
-
-        // Detener limpieza periódica de pendings
-        if (globalThis.__VV_PENDING_CLEANUP) {
-            try { clearInterval(globalThis.__VV_PENDING_CLEANUP); } catch (e) { logger.debug('[VV]:', e?.message); } // NOSONAR
-            globalThis.__VV_PENDING_CLEANUP = undefined;
-        }
-
-        // Rechazar correlaciones pendientes y limpiar mapa
+    function _limpiarCorrelacionesPendientes() {
         try {
             if (globalThis.estadoPadre && globalThis.estadoPadre.correlacionesMensajes) {
                 for (const [, meta] of globalThis.estadoPadre.correlacionesMensajes) {
-                    try { meta.reject && meta.reject(new Error('Page hidden - correlation aborted')); } catch (e) { logger.debug('[VV]:', e?.message); } // NOSONAR
+                    try { meta.reject && meta.reject(new Error('Page hidden - correlation aborted')); } catch { }
                 }
                 globalThis.estadoPadre.correlacionesMensajes.clear();
             }
         } catch (e) {
             (globalThis.logger || console).warn('[PADRE] Error limpiando correlaciones en pagehide:', e && e.message);
         }
+    }
 
-        // Intentar detener heartbeat si existe
+    function _detenerHeartbeatSeguro() {
         try {
             if (globalThis.__HEARTBEAT_INICIADO) {
                 if (typeof globalThis.detenerHeartbeat === 'function') {
-                    try { globalThis.detenerHeartbeat(); } catch (e) { logger.debug('[VV]:', e?.message); } // NOSONAR
+                    try { globalThis.detenerHeartbeat(); } catch { }
                 }
                 globalThis.__HEARTBEAT_INICIADO = false;
             }
         } catch (e) {
             (globalThis.logger || console).warn('[PADRE] Error deteniendo heartbeat en pagehide:', e && e.message);
         }
+    }
 
-        // Limpiar registro de controladores locales
+    function _limpiarPagehide() {
+        logger.info(`[codigo-padre] Limpiando recursos en pagehide`);
+        document.querySelectorAll('iframe').forEach(iframe => { iframe.src = 'about:blank'; iframe.remove(); });
+        if (globalThis.modoActual) globalThis.modoActual = undefined;
+        if (globalThis.intervaloMonitoreo) clearInterval(globalThis.intervaloMonitoreo);
+        if (globalThis.__vv_correlacion_cleanup) {
+            try { clearInterval(globalThis.__vv_correlacion_cleanup); } catch { }
+            globalThis.__vv_correlacion_cleanup = undefined;
+        }
+        if (globalThis.__VV_PENDING_CLEANUP) {
+            try { clearInterval(globalThis.__VV_PENDING_CLEANUP); } catch { }
+            globalThis.__VV_PENDING_CLEANUP = undefined;
+        }
+        _limpiarCorrelacionesPendientes();
+        _detenerHeartbeatSeguro();
         if (globalThis.__CONTROLADOR_REGISTRADOS && typeof globalThis.__CONTROLADOR_REGISTRADOS.clear === 'function') {
-            try { globalThis.__CONTROLADOR_REGISTRADOS.clear(); } catch (e) { logger.debug('[VV]:', e?.message); } // NOSONAR
+            try { globalThis.__CONTROLADOR_REGISTRADOS.clear(); } catch { }
         }
-        if (globalThis.controladores) {
-            globalThis.controladores.clear();
-        }
+        if (globalThis.controladores) globalThis.controladores.clear();
         logger.info('Recursos limpiados completamente');
-    });
+    }
+
+    globalThis.addEventListener('pagehide', _limpiarPagehide);
     </script>
 
     <script type="module">
