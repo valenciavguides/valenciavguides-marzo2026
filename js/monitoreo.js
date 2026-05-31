@@ -6,7 +6,7 @@
  * del sistema de mensajería y componentes.
  */
 
-import { TIPOS_MENSAJE, LOG_LEVELS } from './constants.js';
+import { TIPOS_MENSAJE } from './constants.js';
 import logger from './logger.js';
 import { CONFIG } from './config.js';
 
@@ -103,13 +103,6 @@ export async function inicializarMonitoreo(opciones = {}) {
  * @param {Object} [tags] - Tags adicionales
  */
 export function registrarMetrica(nombre, valor, tags = {}) {
-    const metrica = {
-        nombre,
-        valor,
-        tags,
-        timestamp: Date.now()
-    };
-    
     // Actualizar métricas según tipo
     switch (nombre) {
         case 'mensaje_enviado':
