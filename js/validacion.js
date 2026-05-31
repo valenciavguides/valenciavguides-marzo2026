@@ -5,7 +5,7 @@
  * Proporciona funciones de validación para datos, mensajes y parámetros.
  */
 
-import { TIPOS_MENSAJE, ERRORES } from './constants.js';
+import { TIPOS_MENSAJE } from './constants.js';
 
 /**
  * Validadores disponibles por tipo
@@ -32,8 +32,8 @@ const validadores = {
     coordenadas: (valor) => {
         if (!valor || typeof valor !== 'object') return false;
         const { lat, lng, latitude, longitude } = valor;
-        const latVal = lat !== undefined ? lat : latitude;
-        const lngVal = lng !== undefined ? lng : longitude;
+        const latVal = lat === undefined ? latitude : lat;
+        const lngVal = lng === undefined ? longitude : lng;
         return typeof latVal === 'number' && typeof lngVal === 'number' &&
                latVal >= -90 && latVal <= 90 &&
                lngVal >= -180 && lngVal <= 180;
@@ -62,93 +62,52 @@ const validadores = {
  * @param {number} [opciones.max] - Valor máximo
  * @returns {Object} Resultado de validación { valido, valor, error }
  */
+function _validarRango(valor, min, max) {
+    let longitudValor;
+    if (typeof valor === 'number') {
+        longitudValor = valor;
+    } else if (typeof valor === 'string' || Array.isArray(valor)) {
+        longitudValor = valor.length;
+    }
+    if (longitudValor === undefined) return null;
+    if (min !== undefined && longitudValor < min) return { valido: false, valor, error: `El valor debe ser al menos ${min}` };
+    if (max !== undefined && longitudValor > max) return { valido: false, valor, error: `El valor debe ser como máximo ${max}` };
+    return null;
+}
+
+function _transformarValor(valor, transformar) {
+    if (!transformar || typeof transformar !== 'function') return { ok: true, valor };
+    try {
+        return { ok: true, valor: transformar(valor) };
+    } catch (e) {
+        return { ok: false, valor, error: `Error al transformar valor: ${e.message}` };
+    }
+}
+
 export function validarDato(valor, tipo, opciones = {}) {
     const { requerido = true, defecto, transformar, min, max } = opciones;
-    
-    // Verificar si está vacío
-    const estaVacio = valor === null || valor === undefined || 
+
+    const estaVacio = valor === null || valor === undefined ||
                       (typeof valor === 'string' && valor.trim() === '');
-    
+
     if (estaVacio) {
-        if (!requerido) {
-            return {
-                valido: true,
-                valor: defecto !== undefined ? defecto : valor,
-                error: null
-            };
-        }
-        return {
-            valido: false,
-            valor,
-            error: `El valor es requerido`
-        };
+        if (!requerido) return { valido: true, valor: defecto === undefined ? valor : defecto, error: null };
+        return { valido: false, valor, error: `El valor es requerido` };
     }
-    
-    // Obtener validador
+
     const validador = validadores[tipo];
-    if (!validador) {
-        return {
-            valido: false,
-            valor,
-            error: `Tipo de validación desconocido: ${tipo}`
-        };
-    }
-    
-    // Validar tipo
-    if (!validador(valor)) {
-        return {
-            valido: false,
-            valor,
-            error: `Se esperaba tipo "${tipo}"`
-        };
-    }
-    
-    // Validar min/max
+    if (!validador) return { valido: false, valor, error: `Tipo de validación desconocido: ${tipo}` };
+    if (!validador(valor)) return { valido: false, valor, error: `Se esperaba tipo "${tipo}"` };
+
     if (min !== undefined || max !== undefined) {
-        let longitudValor;
-        if (typeof valor === 'number') {
-            longitudValor = valor;
-        } else if (typeof valor === 'string' || Array.isArray(valor)) {
-            longitudValor = valor.length;
-        }
-        
-        if (longitudValor !== undefined) {
-            if (min !== undefined && longitudValor < min) {
-                return {
-                    valido: false,
-                    valor,
-                    error: `El valor debe ser al menos ${min}`
-                };
-            }
-            if (max !== undefined && longitudValor > max) {
-                return {
-                    valido: false,
-                    valor,
-                    error: `El valor debe ser como máximo ${max}`
-                };
-            }
-        }
+        const errorRango = _validarRango(valor, min, max);
+        if (errorRango) return errorRango;
     }
-    
-    // Transformar si es necesario
-    let valorFinal = valor;
-    if (transformar && typeof transformar === 'function') {
-        try {
-            valorFinal = transformar(valor);
-        } catch (e) {
-            return {
-                valido: false,
-                valor,
-                error: `Error al transformar valor: ${e.message}`
-            };
-        }
-    }
-    
-    return {
-        valido: true,
-        valor: valorFinal,
-        error: null
-    };
+
+    const transformacion = _transformarValor(valor, transformar);
+    if (!transformacion.ok) return { valido: false, valor: transformacion.valor, error: transformacion.error };
+
+    return { valido: true, valor: transformacion.valor, error: null };
 }
 
 /**
@@ -201,8 +160,8 @@ export function validarCoordenadas(coords) {
         return { valido: false, error: 'Coordenadas inválidas', coordenadas: null };
     }
     
-    const lat = coords.lat !== undefined ? coords.lat : coords.latitude;
-    const lng = coords.lng !== undefined ? coords.lng : coords.longitude;
+    const lat = coords.lat === undefined ? coords.latitude : coords.lat;
+    const lng = coords.lng === undefined ? coords.longitude : coords.lng;
     
     if (typeof lat !== 'number' || typeof lng !== 'number') {
         return { valido: false, error: 'Latitud y longitud deben ser números', coordenadas: null };
@@ -355,7 +314,7 @@ export function sanitizarObjeto(obj) {
  */
 export function registrarValidador(nombre, fn) {
     if (typeof nombre !== 'string' || typeof fn !== 'function') {
-        throw new Error('Nombre debe ser string y fn debe ser función');
+        throw new TypeError('Nombre debe ser string y fn debe ser función');
     }
     validadores[nombre] = fn;
 }
