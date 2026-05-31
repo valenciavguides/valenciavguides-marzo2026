@@ -2,13 +2,13 @@
  * reciclaje-digital.js - Sistema de limpieza total de datos de aventura
  * 
  * Implementa reciclaje digital automático al finalizar aventura o exceder tiempo límite.
- * Elimina absolutamente todo del dispositivo: localStorage, sessionStorage, cachés y Service Worker.
+ * Elimina por completo el dispositivo: localStorage, sessionStorage, cachés y Service Worker.
  */
 
 'use strict';
 
 /**
- * Limpia absolutamente todo del dispositivo (reciclaje digital total)
+ * Limpia el dispositivo por completo (reciclaje digital total)
  * @param {string} motivo - Razón de la limpieza (para logging)
  * @returns {Promise<Object>} Resultado de la operación
  */
@@ -41,7 +41,7 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
         // 1. BORRAR EL localStorage COMPLETO
         // ========================================
         try {
-            localStorage.clear(); // Elimina todo el contenido sin excepciones
+            localStorage.clear(); // Vacía el almacenamiento sin excepciones
             logger.info(`${logPrefix} ♻️ localStorage VACIADO COMPLETAMENTE`);
         } catch (e) {
             logger.warn(`${logPrefix} Error limpiando localStorage:`, e);
@@ -51,7 +51,7 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
         // 2. BORRAR EL sessionStorage COMPLETO
         // ========================================
         try {
-            sessionStorage.clear(); // Elimina todo el contenido sin excepciones
+            sessionStorage.clear(); // Vacía el almacenamiento sin excepciones
             logger.info(`${logPrefix} ♻️ sessionStorage VACIADO COMPLETAMENTE`);
         } catch (e) {
             logger.warn(`${logPrefix} Error limpiando sessionStorage:`, e);
