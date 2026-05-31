@@ -160,50 +160,38 @@ export function esAndroid() {
  * Detecta el navegador actual
  * @returns {Object} Información del navegador
  */
+function _extraerVersion(ua, regex) {
+    const match = regex.exec(ua);
+    return match ? match[1] : '';
+}
+
 export function detectarNavegador() {
     if (cache.navegador !== null) {
         return cache.navegador;
     }
-    
+
     const ua = getUserAgent();
     let nombre = 'Desconocido';
     let version = '';
-    
-    // Chrome
+
     if (/Chrome/i.test(ua) && !/Chromium|Edge|OPR|Opera/i.test(ua)) {
         nombre = 'Chrome';
-        const match = ua.match(/Chrome\/(\d+)/);
-        version = match ? match[1] : '';
-    }
-    // Firefox
-    else if (/Firefox/i.test(ua)) {
+        version = _extraerVersion(ua, /Chrome\/(\d+)/);
+    } else if (/Firefox/i.test(ua)) {
         nombre = 'Firefox';
-        const match = ua.match(/Firefox\/(\d+)/);
-        version = match ? match[1] : '';
-    }
-    // Safari
-    else if (/Safari/i.test(ua) && !/Chrome|Chromium/i.test(ua)) {
+        version = _extraerVersion(ua, /Firefox\/(\d+)/);
+    } else if (/Safari/i.test(ua) && !/Chrome|Chromium/i.test(ua)) {
         nombre = 'Safari';
-        const match = ua.match(/Version\/(\d+)/);
-        version = match ? match[1] : '';
-    }
-    // Edge
-    else if (/Edg/i.test(ua)) {
+        version = _extraerVersion(ua, /Version\/(\d+)/);
+    } else if (/Edg/i.test(ua)) {
         nombre = 'Edge';
-        const match = ua.match(/Edg\/(\d+)/);
-        version = match ? match[1] : '';
-    }
-    // Opera
-    else if (/OPR|Opera/i.test(ua)) {
+        version = _extraerVersion(ua, /Edg\/(\d+)/);
+    } else if (/OPR|Opera/i.test(ua)) {
         nombre = 'Opera';
-        const match = ua.match(/(?:OPR|Opera)\/(\d+)/);
-        version = match ? match[1] : '';
-    }
-    // IE
-    else if (/MSIE|Trident/i.test(ua)) {
+        version = _extraerVersion(ua, /(?:OPR|Opera)\/(\d+)/);
+    } else if (/MSIE|Trident/i.test(ua)) {
         nombre = 'Internet Explorer';
-        const match = ua.match(/(?:MSIE |rv:)(\d+)/);
-        version = match ? match[1] : '';
+        version = _extraerVersion(ua, /(?:MSIE |rv:)(\d+)/);
     }
     
     cache.navegador = { nombre, version };
