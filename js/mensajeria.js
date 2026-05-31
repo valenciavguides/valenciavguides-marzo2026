@@ -440,53 +440,49 @@ function crearMensaje(tipo, datos) {
  * @param {string|Window} destino - Destino
  * @returns {boolean} True si se envió
  */
+function _enviarDesdePadre(mensaje, destino) {
+    // Destino específico (excluir 'broadcast'/'todos' para que caigan al broadcast)
+    if (typeof destino === 'string' && destino !== 'broadcast' && destino !== 'todos') {
+        const iframeInfo = iframesRegistrados.get(destino);
+        const targetWindow = iframeInfo?.elemento?.contentWindow || iframeInfo?.contentWindow;
+        if (targetWindow) {
+            targetWindow.postMessage(mensaje, globalThis.location.origin);
+            return true;
+        }
+        logger.warn(`[mensajeria] Iframe no encontrado o sin contentWindow: ${destino}`);
+        return false;
+    }
+    // Window específica
+    if (destino && typeof destino.postMessage === 'function') {
+        destino.postMessage(mensaje, globalThis.location.origin);
+        return true;
+    }
+    // Broadcast a todos los iframes
+    let enviados = 0;
+    for (const [, iframeInfo] of iframesRegistrados) {
+        const targetWindow = iframeInfo?.elemento?.contentWindow || iframeInfo?.contentWindow;
+        if (targetWindow) {
+            targetWindow.postMessage(mensaje, globalThis.location.origin);
+            enviados++;
+        }
+    }
+    return enviados > 0;
+}
+
 function enviarMensajeInterno(mensaje, destino) {
     try {
-        // Si es hijo, enviar al padre
         if (tipoComponente === 'hijo' && ventanaPadre) {
             ventanaPadre.postMessage(mensaje, globalThis.location.origin);
             return true;
         }
-        
-        // Si es padre
         if (tipoComponente === 'padre') {
-            // Destino específico (excluir 'broadcast'/'todos' para que caigan al bloque de todos los iframes)
-            if (typeof destino === 'string' && destino !== 'broadcast' && destino !== 'todos') {
-                const iframeInfo = iframesRegistrados.get(destino);
-                // Usar elemento.contentWindow para asegurar referencia actual
-                const targetWindow = iframeInfo?.elemento?.contentWindow || iframeInfo?.contentWindow;
-                if (targetWindow) {
-                    targetWindow.postMessage(mensaje, globalThis.location.origin);
-                    return true;
-                }
-                logger.warn(`[mensajeria] Iframe no encontrado o sin contentWindow: ${destino}`);
-                return false;
-            }
-            
-            // Window específica
-            if (destino && typeof destino.postMessage === 'function') {
-                destino.postMessage(mensaje, globalThis.location.origin);
-                return true;
-            }
-            
-            // Broadcast a todos los iframes
-            let enviados = 0;
-            for (const [, iframeInfo] of iframesRegistrados) {
-                const targetWindow = iframeInfo?.elemento?.contentWindow || iframeInfo?.contentWindow;
-                if (targetWindow) {
-                    targetWindow.postMessage(mensaje, globalThis.location.origin);
-                    enviados++;
-                }
-            }
-            return enviados > 0;
+            return _enviarDesdePadre(mensaje, destino);
         }
-        
         // Fallback: postMessage genérico
         if (globalThis.window !== undefined) {
             globalThis.postMessage(mensaje, globalThis.location.origin);
             return true;
         }
-        
         return false;
     } catch (error) {
         logger.error(`[mensajeria] Error enviando mensaje: ${error.message}`);
