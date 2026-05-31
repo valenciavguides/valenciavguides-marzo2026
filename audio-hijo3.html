@@ -513,6 +513,20 @@
         }
     };
 
+    async function _enviarAutoConfirmacion(event, iframeId, resultado) {
+        if (!event.data.requiereConfirmacion || !event.data.id || resultado === undefined) return;
+        try {
+            const tipoConf = (globalThis.TIPOS_MENSAJE !== undefined && globalThis.TIPOS_MENSAJE.SISTEMA && globalThis.TIPOS_MENSAJE.SISTEMA.CONFIRMACION) || 'SISTEMA.CONFIRMACION';
+            const confirmacion = { tipo: tipoConf, idOriginal: event.data.id, origen: iframeId, destino: event.data.origen || 'padre', timestamp: Date.now(), datos: resultado };
+            if (globalThis.parent && globalThis.parent !== globalThis) {
+                globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Auto-confirmación enviada para ${event.data.id}`);
+            }
+        } catch (confError) {
+            (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error enviando confirmación:`, confError);
+        }
+    }
+
     // ==================== MESSAGING ADAPTER PARA COMUNICACIÓN CON PADRE ====================
     // Este adapter permite a los hijos registrar controladores centralmente en el state-manager del padre
     if (globalThis.messagingAdapter === undefined) {
@@ -533,25 +547,7 @@
                     if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
                         try {
                             const resultado = await handler(event.data);
-                            
-                            if (event.data.requiereConfirmacion && event.data.id && resultado !== undefined) {
-                                try {
-                                    const confirmacion = {
-                                        tipo: (globalThis.TIPOS_MENSAJE !== undefined && globalThis.TIPOS_MENSAJE.SISTEMA && globalThis.TIPOS_MENSAJE.SISTEMA.CONFIRMACION) || 'SISTEMA.CONFIRMACION',
-                                        idOriginal: event.data.id,
-                                        origen: iframeId,
-                                        destino: event.data.origen || 'padre',
-                                        timestamp: Date.now(),
-                                        datos: resultado
-                                    };
-                                    if (globalThis.parent && globalThis.parent !== globalThis) {
-                                        globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
-                                        (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Auto-confirmación enviada para ${event.data.id}`);
-                                    }
-                                } catch (confError) {
-                                    (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error enviando confirmación:`, confError);
-                                }
-                            }
+                            await _enviarAutoConfirmacion(event, iframeId, resultado);
                         } catch (e) {
                             (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error en handler ${tipo}:`, e && e.message);
                         }
@@ -584,6 +580,31 @@
         }, { once: true });
     }
 
+    async function _intentarRegistroCentralAudio(tipo, handler, opciones, iframeId) {
+        const controladorId = `${iframeId}:${tipo}`;
+        if (globalThis.messagingAdapter && typeof globalThis.messagingAdapter.registrarControladorCentral === 'function') {
+            try {
+                const centralRes = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
+                if (centralRes === true) {
+                    (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
+                    return true;
+                }
+            } catch (e) {
+                (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Central registrar failed for ${tipo}: ${e && e.message}`);
+            }
+        }
+        if (typeof registrarControlador === 'function') {
+            try {
+                const res = await safeRegistrar(tipo, handler, opciones);
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
+                return res;
+            } catch (err) {
+                (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControlador failed for ${tipo}: ${err && err.message}`);
+            }
+        }
+        return null;
+    }
+
     // Wrapper seguro para evitar doble registro de controladores en hijos
     if (globalThis.registrarControladorSeguro === undefined) {
         globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
@@ -602,27 +623,8 @@
                 // Prefer central registration via messagingAdapter/state-manager when available
                 try {
                     const iframeId = (globalThis.name || (globalThis.CONFIG_HIJO !== undefined && globalThis.CONFIG_HIJO.IFRAME_ID) || 'hijo');
-                    const controladorId = `${iframeId}:${tipo}`;
-                    if (globalThis.messagingAdapter && typeof globalThis.messagingAdapter.registrarControladorCentral === 'function') {
-                        try {
-                            const centralRes = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
-                            if (centralRes === true) {
-                                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
-                                return true;
-                            }
-                        } catch (e) {
-                            (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Central registrar failed for ${tipo}: ${e && e.message}`);
-                        }
-                    }
-                    if (typeof registrarControlador === 'function') {
-                        try {
-                            const res = await safeRegistrar(tipo, handler, opciones);
-                            (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
-                            return res;
-                        } catch (err) {
-                            (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControlador failed for ${tipo}: ${err && err.message}`);
-                        }
-                    }
+                    const resultado = await _intentarRegistroCentralAudio(tipo, handler, opciones, iframeId);
+                    if (resultado !== null) return resultado;
                 } catch (e) {
                     (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControladorSeguro central attempt error for ${tipo}: ${e && e.message}`);
                 }
@@ -884,39 +886,33 @@
         }
     });
 
+    function _lockToSeeking(e) {
+        lockedToSeeking = true;
+        try { progressContainer.setPointerCapture(activePointerId); } catch { logger.debug('[hijo3] setPointerCapture no disponible'); }
+        wasPlayingDuringSeek = !audioPlayer.paused && !audioPlayer.ended;
+        if (wasPlayingDuringSeek) audioPlayer.pause();
+        e.preventDefault();
+        updateProgressFromClientX(e.clientX);
+    }
+
     progressContainer.addEventListener('pointermove', (e) => {
         try {
             if (!isSeeking || e.pointerId !== activePointerId) return;
-            // If undecided, check if movement leans horizontal vs vertical to lock behavior
-            if (lockedToSeeking === null) {
-                const dx = Math.abs(e.clientX - initialX);
-                const dy = Math.abs(e.clientY - initialY);
-                const H_LOCK_THRESHOLD = 10; // pixels before locking
-                // If horizontal movement is more pronounced than vertical, lock to seeking
-                if (dx > H_LOCK_THRESHOLD && dx > dy * 1.5) {
-                    lockedToSeeking = true;
-                    // Capture pointer now to receive subsequent pointer events without the page scrolling
-                    try { progressContainer.setPointerCapture(activePointerId); } catch (err) { logger.debug('[hijo3] setPointerCapture no disponible', err && err.message); }
-                    wasPlayingDuringSeek = !audioPlayer.paused && !audioPlayer.ended;
-                    if (wasPlayingDuringSeek) audioPlayer.pause();
-                    e.preventDefault();
-                    updateProgressFromClientX(e.clientX);
-                } else if (dy > H_LOCK_THRESHOLD && dy > dx * 1.5) {
-                    // Lock to vertical scrolling and stop seeking behavior
-                    lockedToSeeking = false;
-                    // Release pointer capture if previously set
-                    try { progressContainer.releasePointerCapture(activePointerId); } catch (err) { logger.debug('[hijo3] releasePointerCapture no disponible', err && err.message); }
-                    isSeeking = false; // allow page to scroll vertically
-                } else {
-                    // Not enough movement to decide yet; do nothing
-                }
-            } else if (lockedToSeeking === true) {
-                // We are currently seeking; update progress
-                e.preventDefault();
-                updateProgressFromClientX(e.clientX);
-            } else {
-                // lockedToSeeking === false -> vertical scroll in progress; ignore pointermove
+            if (lockedToSeeking === false) return; // vertical scroll in progress
+            if (lockedToSeeking === true) { e.preventDefault(); updateProgressFromClientX(e.clientX); return; }
+
+            // lockedToSeeking === null: determine gesture direction
+            const dx = Math.abs(e.clientX - initialX);
+            const dy = Math.abs(e.clientY - initialY);
+            const H_LOCK_THRESHOLD = 10;
+            if (dx > H_LOCK_THRESHOLD && dx > dy * 1.5) {
+                _lockToSeeking(e);
+            } else if (dy > H_LOCK_THRESHOLD && dy > dx * 1.5) {
+                lockedToSeeking = false;
+                try { progressContainer.releasePointerCapture(activePointerId); } catch { logger.debug('[hijo3] releasePointerCapture no disponible'); }
+                isSeeking = false;
             }
+            // else: not enough movement to decide yet
         } catch (err) {
             logger.error('[hijo3] pointermove error', err);
         }
@@ -1752,101 +1748,54 @@
             }
         });
 
+        function _resetearProgresoVisual() {
+            if (progressBar) progressBar.style.width = '0%';
+            if (progressContainer) { progressContainer.setAttribute('aria-valuenow', 0); progressContainer.style.setProperty('--bar-w', 0); }
+            if (currentTimeElement) currentTimeElement.textContent = '00:00';
+        }
+
+        async function _manejarSimularClick(elemento, msg, logPrefix) {
+            const boton = document.getElementById(elemento);
+            if (boton) {
+                logger.info(`${logPrefix} ✅ Elemento ${elemento} encontrado, ejecutando click`);
+                boton.click();
+                await enviarMensaje({ destino: msg.origen, tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { accion: 'click_ejecutado', elemento, exito: true, timestamp: Date.now() } });
+            } else {
+                logger.warn(`${logPrefix} ⚠️ Elemento ${elemento} no encontrado`);
+                await enviarMensaje({ destino: msg.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: `Elemento ${elemento} no existe`, elemento, timestamp: Date.now() } });
+            }
+        }
+
+        async function _manejarAudioControl(comando, audioId, msg, logPrefix) {
+            logger.info(`${logPrefix} Ejecutando comando de audio: ${comando}`);
+            if (comando === 'play') {
+                if (!audioPlayer.src && audioId) { await cargarYReproducirAudio(audioId, true); } else { await audioPlayer.play(); }
+            } else if (comando === 'pause') {
+                audioPlayer.pause();
+            } else if (comando === 'stop') {
+                audioPlayer.pause(); audioPlayer.currentTime = 0; _resetearProgresoVisual();
+            } else if (comando === 'replay') {
+                const objetivo = audioId || currentAudioId;
+                if (objetivo && (!audioPlayer.src || currentAudioId !== objetivo)) { await cargarYReproducirAudio(objetivo, true); } else { audioPlayer.currentTime = 0; await audioPlayer.play(); }
+            } else {
+                throw new Error(`Comando de audio no soportado: ${comando}`);
+            }
+            await enviarMensaje({ destino: msg.origen, tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { accion: 'audio_control', comando, exito: true, timestamp: Date.now() } });
+        }
+
         // Controlador para acciones de UI desde botones horizontales
         registrarControladorSeguro(TIPOS_MENSAJE.UI.ACCION_USUARIO, async (mensaje) => {
             const logPrefix = `[hijo3][UI.ACCION_USUARIO][${mensaje?.origen || 'desconocido'}]`;
-            
             try {
                 const { accion, elemento, contexto, comando, audioId } = mensaje?.datos || {};
-                
                 if (accion === 'simular_click' && elemento && contexto === 'boton_horizontal') {
                     logger.info(`${logPrefix} Simulando click en ${elemento} desde boton horizontal`);
-                    
-                    // Buscar el elemento y simular click
-                    const boton = document.getElementById(elemento);
-                    if (boton) {
-                        logger.info(`${logPrefix} ✅ Elemento ${elemento} encontrado, ejecutando click`);
-                        boton.click();
-                        
-                        // Enviar confirmación al padre
-                        await enviarMensaje({
-                            destino: mensaje.origen,
-                            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            datos: {
-                                accion: 'click_ejecutado',
-                                elemento,
-                                exito: true,
-                                timestamp: Date.now()
-                            }
-                        });
-                    } else {
-                        logger.warn(`${logPrefix} ⚠️ Elemento ${elemento} no encontrado`);
-                        
-                        // Enviar error al padre
-                        await enviarMensaje({
-                            destino: mensaje.origen,
-                            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            datos: {
-                                codigo: 'ELEMENTO_NO_ENCONTRADO',
-                                mensaje: `Elemento ${elemento} no existe`,
-                                elemento,
-                                timestamp: Date.now()
-                            }
-                        });
-                    }
+                    await _manejarSimularClick(elemento, mensaje, logPrefix);
                 } else if (accion === 'audio_control') {
-                    logger.info(`${logPrefix} Ejecutando comando de audio: ${comando}`);
-
-                    const resetearProgresoVisual = () => {
-                        if (progressBar) progressBar.style.width = '0%';
-                        if (progressContainer) {
-                            progressContainer.setAttribute('aria-valuenow', 0);
-                            progressContainer.style.setProperty('--bar-w', 0);
-                        }
-                        if (currentTimeElement) currentTimeElement.textContent = '00:00';
-                    };
-
-                    if (comando === 'play') {
-                        if (!audioPlayer.src && audioId) {
-                            await cargarYReproducirAudio(audioId, true);
-                        } else {
-                            await audioPlayer.play();
-                        }
-                    } else if (comando === 'pause') {
-                        audioPlayer.pause();
-                    } else if (comando === 'stop') {
-                        audioPlayer.pause();
-                        audioPlayer.currentTime = 0;
-                        resetearProgresoVisual();
-                    } else if (comando === 'replay') {
-                        const objetivo = audioId || currentAudioId;
-                        if (objetivo && (!audioPlayer.src || currentAudioId !== objetivo)) {
-                            await cargarYReproducirAudio(objetivo, true);
-                        } else {
-                            audioPlayer.currentTime = 0;
-                            await audioPlayer.play();
-                        }
-                    } else {
-                        throw new Error(`Comando de audio no soportado: ${comando}`);
-                    }
-
-                    await enviarMensaje({
-                        destino: mensaje.origen,
-                        tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        datos: {
-                            accion: 'audio_control',
-                            comando,
-                            exito: true,
-                            timestamp: Date.now()
-                        }
-                    });
+                    await _manejarAudioControl(comando, audioId, mensaje, logPrefix);
                 } else {
                     logger.warn(`${logPrefix} Acción no reconocida:`, { accion, elemento, contexto });
                 }
-                
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando acción UI:`, error);
             }
