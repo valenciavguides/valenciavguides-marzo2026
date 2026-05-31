@@ -5,7 +5,6 @@
  * Funciones de utilidad comunes usadas a lo largo de toda la aplicación.
  */
 
-import { TIPOS_MENSAJE } from './constants.js';
 
 /**
  * Canonicaliza un modo a su forma estándar
@@ -96,7 +95,7 @@ function normalizarParada(parada, index) {
     if (typeof parada === 'object' && parada !== null) {
         return {
             id: parada.id || parada.ID || parada.parada_id || `parada_${index}`,
-            index: parada.index !== undefined ? parada.index : index,
+            index: parada.index === undefined ? index : parada.index,
             nombre: parada.nombre || parada.name || parada.titulo || `Parada ${index + 1}`,
             coordenadas: parada.coordenadas || parada.coords || null,
             audio: parada.audio || null,
@@ -117,89 +116,70 @@ function normalizarParada(parada, index) {
  * @param {*} input - Input que puede contener IDs de parada
  * @returns {{paradaId: string|null, padreId: string|null, ids: Array<string>}} IDs resueltos en formato canónico
  */
+function _stripPadrePrefix(valor) {
+    return String(valor).trim().replace(/^(padre-)+/i, '');
+}
+
+function _normalizarParadaId(valor) {
+    if (valor === undefined || valor === null) return null;
+    const raw = String(valor).trim();
+    if (!raw) return null;
+    return /^padre-/i.test(raw) ? _stripPadrePrefix(raw) : raw;
+}
+
+function _normalizarPadreId(valor) {
+    if (valor === undefined || valor === null) return null;
+    const raw = String(valor).trim();
+    if (!raw) return null;
+    return 'padre-' + raw.replace(/^(padre-)+/i, '');
+}
+
+function _registrarId(idsSet, valor) {
+    if (valor === undefined || valor === null) return;
+    const raw = String(valor).trim();
+    if (!raw) return;
+    idsSet.add(raw);
+}
+
+function _resolverDesdeArray(input, idsSet, resultado) {
+    for (const item of input) {
+        const parcial = resolverIdsParada(item);
+        parcial.ids.forEach(v => _registrarId(idsSet, v));
+        if (!resultado.paradaId && parcial.paradaId) resultado.paradaId = parcial.paradaId;
+        if (!resultado.padreId && parcial.padreId) resultado.padreId = parcial.padreId;
+    }
+    resultado.ids = Array.from(idsSet);
+}
+
 export function resolverIdsParada(input) {
-    const resultado = {
-        paradaId: null,
-        padreId: null,
-        ids: []
-    };
-
+    const resultado = { paradaId: null, padreId: null, ids: [] };
     if (!input) return resultado;
-
     const idsSet = new Set();
 
-    function stripPadrePrefix(valor) {
-        return String(valor).trim().replace(/^(padre-)+/i, '');
-    }
-
-    function normalizarParadaId(valor) {
-        if (valor === undefined || valor === null) return null;
-        const raw = String(valor).trim();
-        if (!raw) return null;
-        return /^padre-/i.test(raw) ? stripPadrePrefix(raw) : raw;
-    }
-
-    function normalizarPadreId(valor) {
-        if (valor === undefined || valor === null) return null;
-        const raw = String(valor).trim();
-        if (!raw) return null;
-        return `padre-${stripPadrePrefix(raw)}`;
-    }
-
-    function registrarId(valor) {
-        if (valor === undefined || valor === null) return;
-        const raw = String(valor).trim();
-        if (!raw) return;
-        idsSet.add(raw);
-    }
-
-    // Strings y números: soportar listas separadas por coma
     if (typeof input === 'string' || typeof input === 'number') {
-        String(input)
-            .split(',')
-            .map(id => id.trim())
-            .filter(Boolean)
-            .forEach(registrarId);
-
+        String(input).split(',').map(id => id.trim()).filter(Boolean)
+            .forEach(v => _registrarId(idsSet, v));
         const primero = Array.from(idsSet)[0] || null;
         if (primero) {
-            resultado.paradaId = normalizarParadaId(primero);
-            resultado.padreId = normalizarPadreId(primero);
+            resultado.paradaId = _normalizarParadaId(primero);
+            resultado.padreId = _normalizarPadreId(primero);
         }
         resultado.ids = Array.from(idsSet);
         return resultado;
     }
 
-    // Arrays: resolver recursivamente y consolidar
     if (Array.isArray(input)) {
-        for (const item of input) {
-            const parcial = resolverIdsParada(item);
-            parcial.ids.forEach(registrarId);
-            if (!resultado.paradaId && parcial.paradaId) resultado.paradaId = parcial.paradaId;
-            if (!resultado.padreId && parcial.padreId) resultado.padreId = parcial.padreId;
-        }
-        resultado.ids = Array.from(idsSet);
+        _resolverDesdeArray(input, idsSet, resultado);
         return resultado;
     }
 
-    // Objetos: aceptar alias de contrato y derivar faltantes
     if (typeof input === 'object' && input !== null) {
-        const paradaRaw =
-            input.paradaId ??
-            input.parada_id ??
-            input.tramo_id ??
-            input.id ??
-            input.ID ??
-            null;
-
+        const paradaRaw = input.paradaId ?? input.parada_id ?? input.tramo_id ?? input.id ?? input.ID ?? null;
         const padreRaw = input.padreId ?? input.padreid ?? null;
-
-        registrarId(paradaRaw);
-        registrarId(padreRaw);
-
-        resultado.paradaId = normalizarParadaId(paradaRaw || padreRaw);
-        resultado.padreId = normalizarPadreId(padreRaw || paradaRaw);
-
+        _registrarId(idsSet, paradaRaw);
+        _registrarId(idsSet, padreRaw);
+        resultado.paradaId = _normalizarParadaId(paradaRaw || padreRaw);
+        resultado.padreId = _normalizarPadreId(padreRaw || paradaRaw);
         resultado.ids = Array.from(idsSet);
         return resultado;
     }
@@ -246,12 +226,12 @@ export function getEnviarMensaje() {
     }
     
     // Intentar desde parent.mensajeria
-    if (globalThis.parent && globalThis.parent !== window) {
+    if (globalThis.parent && globalThis.parent !== globalThis.window) {
         try {
             if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensaje === 'function') {
                 return globalThis.parent.mensajeria.enviarMensaje;
             }
-        } catch (e) {
+        } catch {
             // Cross-origin, ignorar
         }
     }
@@ -263,11 +243,11 @@ export function getEnviarMensaje() {
             return globalThis.mensajeria.enviarMensaje({ tipo, datos, destino, origen: globalThis.name || 'utils_fallback' });
         }
         try {
-            if (globalThis.parent && globalThis.parent !== window &&
+            if (globalThis.parent && globalThis.parent !== globalThis.window &&
                 globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensaje === 'function') {
                 return globalThis.parent.mensajeria.enviarMensaje({ tipo, datos, destino, origen: globalThis.name || 'utils_fallback' });
             }
-        } catch (e) { /* cross-origin */ }
+        } catch { /* cross-origin */ }
         const mensaje = {
             tipo,
             datos,
@@ -275,7 +255,7 @@ export function getEnviarMensaje() {
             timestamp: Date.now(),
             id: generarIdUnico('msg')
         };
-        if (globalThis.parent && globalThis.parent !== window) {
+        if (globalThis.parent && globalThis.parent !== globalThis.window) {
             globalThis.parent.postMessage(mensaje, globalThis.location.origin);
         }
     };
@@ -292,12 +272,12 @@ export function getRegistrarControlador() {
     }
     
     // Intentar desde parent.mensajeria
-    if (globalThis.parent && globalThis.parent !== window) {
+    if (globalThis.parent && globalThis.parent !== globalThis.window) {
         try {
             if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.registrarControlador === 'function') {
                 return globalThis.parent.mensajeria.registrarControlador;
             }
-        } catch (e) {
+        } catch {
             // Cross-origin, ignorar
         }
     }
@@ -321,12 +301,12 @@ export function getEnviarMensajeConConfirmacion() {
         return globalThis.mensajeria.enviarMensajeConConfirmacion;
     }
     
-    if (globalThis.parent && globalThis.parent !== window) {
+    if (globalThis.parent && globalThis.parent !== globalThis.window) {
         try {
             if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensajeConConfirmacion === 'function') {
                 return globalThis.parent.mensajeria.enviarMensajeConConfirmacion;
             }
-        } catch (e) {
+        } catch {
             // Cross-origin
         }
     }
@@ -370,7 +350,7 @@ export function retryUntilAvailable(checkFn, options = {}) {
                     resolve(true);
                     return;
                 }
-            } catch (e) {
+            } catch {
                 // Ignorar errores en checkFn
             }
             
@@ -440,10 +420,10 @@ export function deepClone(obj) {
     }
     
     if (obj instanceof Date) {
-        return new Date(obj.getTime());
+        return new Date(obj);
     }
     
-    if (obj instanceof Array) {
+    if (Array.isArray(obj)) {
         return obj.map(item => deepClone(item));
     }
     
@@ -466,7 +446,7 @@ export function deepClone(obj) {
     if (typeof obj === 'object') {
         const clone = {};
         for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            if (Object.hasOwn(obj, key)) {
                 clone[key] = deepClone(obj[key]);
             }
         }
@@ -523,7 +503,7 @@ export function formatearBytes(bytes, decimales = 2) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimales)) + ' ' + sizes[i];
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(decimales)) + ' ' + sizes[i];
 }
 
 /**
@@ -578,7 +558,7 @@ export function getByPath(obj, path, defecto = undefined) {
         actual = actual[parte];
     }
     
-    return actual !== undefined ? actual : defecto;
+    return actual === undefined ? defecto : actual;
 }
 
 /**
@@ -637,7 +617,7 @@ export function sonIguales(a, b) {
  * @param {boolean} [opciones.reenviar=false] - Si debe reenviar el error
  */
 export function manejarError(error, contexto = null, opciones = {}) {
-    const { notificar = true, reenviar = false } = opciones;
+    const { reenviar = false } = opciones;
     
     // Construir información del error
     const errorInfo = {
@@ -657,7 +637,7 @@ export function manejarError(error, contexto = null, opciones = {}) {
     console.error('[ERROR]', errorInfo.mensaje, errorInfo);
     
     // Intentar enviar error al padre si estamos en un iframe
-    if (globalThis.parent && globalThis.parent !== window) {
+    if (globalThis.parent && globalThis.parent !== globalThis.window) {
         try {
             const _errOrigin = globalThis.location.origin === 'null' ? '*' : globalThis.location.origin;
             globalThis.parent.postMessage({
@@ -666,7 +646,7 @@ export function manejarError(error, contexto = null, opciones = {}) {
                 origen: globalThis.name || 'hijo-desconocido',
                 timestamp: Date.now()
             }, _errOrigin);
-        } catch (e) {
+        } catch {
             // Ignorar errores de cross-origin
         }
     }
