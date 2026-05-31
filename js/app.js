@@ -504,7 +504,7 @@ export async function manejarCambioModo(estado, mensaje) {
         // 5. Validar permisos (si es necesario) - comprobar en MODOS_OPERACION de forma segura
         // Buscar configuración de permisos en MODOS_OPERACION usando varias formas de key
         const permisoCfg = MODOS_OPERACION?.[modoNormalized] || MODOS_OPERACION?.[modoKey?.toLowerCase?.()] || MODOS_OPERACION?.[modoKey];
-        if (permisoCfg && permisoCfg.requiereAutenticacion) {
+        if (permisoCfg?.requiereAutenticacion) {
             const tienePermisos = await validarPermisosCambioModo(mensaje.origen, modoNormalized);
             if (!tienePermisos) {
                 const errorMsg = 'No tiene permisos para cambiar a este modo';
@@ -863,7 +863,7 @@ export async function iniciarPrewarmEnCasa(estado = globalThis.estadoPadre) {
 
 // Auto-run seguro: si el estado del padre ya existe y está en CASA, iniciar pre-warm.
 // Si no está disponible aún, comprobar periódicamente durante unos segundos.
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== undefined) {
     (async () => {
         try {
             const tryStart = async () => {
@@ -1154,7 +1154,7 @@ if (globalThis.performance?.memory && !globalThis.__vv_intervaloMemoria) {
 }
 
 // Exponer funciones de monitoreo globalmente
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== undefined) {
     globalThis.registrarEvento = registrarEvento;
     globalThis.registrarMetrica = registrarMetrica;
     globalThis.notificarError = notificarError;
@@ -1320,7 +1320,7 @@ globalThis.addEventListener('online', () => manejarReconexion(globalThis.estadoP
 // Revisar cualquier librería externa antes de integrarla para evitar estos listeners.
 
 // Limpieza agresiva de globales al descargar la página
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== undefined) {
     globalThis.addEventListener('pagehide', () => {
         // En pagehide, evitar limpiar durante init
         if (globalThis.estado?.sistema?.cambiandoModo) {
@@ -1402,55 +1402,43 @@ const estadoCoordinacion = {
  * @returns {Promise<Object>} Datos del componente
  */
 export async function solicitarDatosAHijo(componenteId, tipoDatos, parametros = {}) {
-    const idSolicitud = `solicitud_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const idSolicitud = `solicitud_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
-    return new Promise(async (resolve, reject) => {
-        try {
-            // Verificar si los datos están en cache y son válidos
-            const claveCache = `${componenteId}_${tipoDatos}`;
-            const datosCache = estadoCoordinacion.datosCache.get(claveCache);
+    return new Promise((resolve, reject) => {
+        const claveCache = `${componenteId}_${tipoDatos}`;
+        const datosCache = estadoCoordinacion.datosCache.get(claveCache);
 
-            if (datosCache && (Date.now() - datosCache.timestamp) < estadoCoordinacion.cacheTTL) {
-                logger.debug(`Usando datos cacheados para ${claveCache}`);
-                resolve(datosCache.datos);
-                return;
-            }
+        if (datosCache && (Date.now() - datosCache.timestamp) < estadoCoordinacion.cacheTTL) {
+            logger.debug(`Usando datos cacheados para ${claveCache}`);
+            resolve(datosCache.datos);
+            return;
+        }
 
-            // Configurar timeout para la solicitud
-            const timeout = setTimeout(() => {
-                estadoCoordinacion.solicitudesPendientes.delete(idSolicitud);
-                reject(new Error(`Timeout esperando respuesta de ${componenteId} para ${tipoDatos}`));
-            }, estadoCoordinacion.tiempoEsperaMax);
+        const timeout = setTimeout(() => {
+            estadoCoordinacion.solicitudesPendientes.delete(idSolicitud);
+            reject(new Error(`Timeout esperando respuesta de ${componenteId} para ${tipoDatos}`));
+        }, estadoCoordinacion.tiempoEsperaMax);
 
-            // Registrar solicitud pendiente
-            estadoCoordinacion.solicitudesPendientes.set(idSolicitud, {
-                componente: componenteId,
-                tipoDatos,
-                timestamp: Date.now(),
-                resolve,
-                reject,
-                timeout
-            });
+        estadoCoordinacion.solicitudesPendientes.set(idSolicitud, {
+            componente: componenteId,
+            tipoDatos,
+            timestamp: Date.now(),
+            resolve,
+            reject,
+            timeout
+        });
 
-            // Enviar solicitud al componente
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.COORDINACION.SOLICITAR_DATOS_HIJO,
-                destino: componenteId,
-                origen: getPadreId(),
-                datos: {
-                    idSolicitud,
-                    tipoDatos,
-                    parametros,
-                    timestamp: new Date().toISOString()
-                }
-            });
-
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.COORDINACION.SOLICITAR_DATOS_HIJO,
+            destino: componenteId,
+            origen: getPadreId(),
+            datos: { idSolicitud, tipoDatos, parametros, timestamp: new Date().toISOString() }
+        }).then(() => {
             logger.debug(`Solicitud enviada a ${componenteId} para ${tipoDatos} (ID: ${idSolicitud})`);
-
-        } catch (error) {
+        }).catch(error => {
             logger.error(`Error solicitando datos a ${componenteId}:`, error);
             reject(error);
-        }
+        });
     });
 }
 
@@ -1550,13 +1538,7 @@ async function ejecutarAccionCoordinada(accion) {
 
     } catch (error) {
         logger.error(`Error ejecutando acción coordinada para ${componente}:`, error);
-        throw {
-            componente,
-            tipo,
-            exito: false,
-            error: error.message,
-            timestamp: Date.now()
-        };
+        throw Object.assign(new Error(error.message), { componente, tipo, exito: false, timestamp: Date.now() });
     }
 }
 
