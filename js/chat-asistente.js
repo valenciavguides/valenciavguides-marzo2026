@@ -129,11 +129,11 @@ export function obtenerRespuesta(intencion, idioma, estadoPadre = {}) {
     const entrada = mapa?.[lang] || mapa?.es || { texto: '', imagen: null };
 
     const texto = (entrada.texto || '')
-        .replace(/\{\{PARADA_ACTUAL\}\}/g,      estadoPadre.paradaActualNombre    ?? '')
-        .replace(/\{\{PARADA_SIGUIENTE\}\}/g,    estadoPadre.siguienteParadaNombre ?? '')
-        .replace(/\{\{PARADAS_RESTANTES\}\}/g,   estadoPadre.paradasRestantes      ?? '')
-        .replace(/\{\{IDIOMA_ACTIVO\}\}/g,       estadoPadre.idioma                ?? lang)
-        .replace(/\{\{AVENTURA\}\}/g,            estadoPadre.aventura              ?? '');
+        .replaceAll('{{PARADA_ACTUAL}}',      estadoPadre.paradaActualNombre    ?? '')
+        .replaceAll('{{PARADA_SIGUIENTE}}',    estadoPadre.siguienteParadaNombre ?? '')
+        .replaceAll('{{PARADAS_RESTANTES}}',   estadoPadre.paradasRestantes      ?? '')
+        .replaceAll('{{IDIOMA_ACTIVO}}',       estadoPadre.idioma                ?? lang)
+        .replaceAll('{{AVENTURA}}',            estadoPadre.aventura              ?? '');
 
     return { texto, imagen: entrada.imagen || null };
 }
