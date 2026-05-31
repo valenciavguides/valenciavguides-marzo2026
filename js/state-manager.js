@@ -1,7 +1,7 @@
 // Simple lock implementation for browser compatibility (no async-mutex dependency)
 class SimpleMutex {
   constructor() {
-    this.lock = Promise.resolve();
+    this.lock = Promise.resolve(); // NOSONAR — inicialización intencional del mutex
   }
 
   async runExclusive(fn) {
@@ -177,44 +177,24 @@ export async function setRetosCargados(value) {
   await mutexes.retosCargados.runExclusive(() => { state.retosCargados = value; });
 }
 
+function _deepCopy(obj) {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj instanceof Set) return new Set(obj);
+  if (obj instanceof Map) return new Map(obj);
+  if (Array.isArray(obj)) return obj.map(_deepCopy);
+  const copy = {};
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) copy[key] = _deepCopy(obj[key]);
+  }
+  return copy;
+}
+
 export async function getEstadoPadre() {
-  return await mutexes.estadoPadre.runExclusive(() => {
-    const deepCopy = (obj) => {
-      if (obj === null || typeof obj !== 'object') return obj;
-      if (obj instanceof Set) return new Set([...obj]);
-      if (obj instanceof Map) return new Map([...obj]);
-      if (Array.isArray(obj)) return obj.map(deepCopy);
-      
-      const copy = {};
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          copy[key] = deepCopy(obj[key]);
-        }
-      }
-      return copy;
-    }
-    return deepCopy(state.estadoPadre);
-  });
+  return await mutexes.estadoPadre.runExclusive(() => _deepCopy(state.estadoPadre));
 }
 
 export async function setEstadoPadre(value) {
-  await mutexes.estadoPadre.runExclusive(() => {
-    const deepCopy = (obj) => {
-      if (obj === null || typeof obj !== 'object') return obj;
-      if (obj instanceof Set) return new Set([...obj]);
-      if (obj instanceof Map) return new Map([...obj]);
-      if (Array.isArray(obj)) return obj.map(deepCopy);
-      
-      const copy = {};
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          copy[key] = deepCopy(obj[key]);
-        }
-      }
-      return copy;
-    }
-    state.estadoPadre = deepCopy(value);
-  });
+  await mutexes.estadoPadre.runExclusive(() => { state.estadoPadre = _deepCopy(value); });
 }
 
 export async function updateEstadoPadre(updates) {
@@ -366,8 +346,8 @@ export async function validarMensaje(mensaje) {
   const posiblesIds = new Set();
   if (mensaje.mensajeId) posiblesIds.add(mensaje.mensajeId);
   if (mensaje.id) posiblesIds.add(mensaje.id);
-  if (mensaje.datos && mensaje.datos.mensajeId) posiblesIds.add(mensaje.datos.mensajeId);
-  if (mensaje.datos && mensaje.datos.id) posiblesIds.add(mensaje.datos.id);
+  if (mensaje.datos?.mensajeId) posiblesIds.add(mensaje.datos.mensajeId);
+  if (mensaje.datos?.id) posiblesIds.add(mensaje.datos.id);
 
   if (posiblesIds.size > 0) {
     await mutexes.mensajesEnviados.runExclusive(() => {
@@ -389,29 +369,29 @@ export async function validarMensaje(mensaje) {
  * @param {Object} opciones - Options like tipoMensaje, origen, etc.
  * @returns {boolean} - True if registered, false if duplicate
  */
-export async function registrarControladorCentral(controladorId, handler, opciones = {}) {
-  const hashString = (s) => {
-    if (!s) return '0';
-    let h = 5381;
-    for (let i = 0; i < s.length; i++) {
-      h = ((h << 5) + h) + s.charCodeAt(i);
-      h &= 0xffffffff;
-    }
-    return (h >>> 0).toString(36);
-  };
+function _hashString(s) {
+  if (!s) return '0';
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) + h) + s.codePointAt(i);
+    h &= 0xffffffff;
+  }
+  return (h >>> 0).toString(36);
+}
 
+export async function registrarControladorCentral(controladorId, handler, opciones = {}) {
   return await mutexes.controladores.runExclusive(() => {
     let handlerSrc = '';
-    try { handlerSrc = (handler && handler.toString) ? handler.toString() : String(handler); } catch (_e) { handlerSrc = String(handler); } // NOSONAR
-    const tipo = opciones && opciones.tipoMensaje ? opciones.tipoMensaje : '';
-    const fingerprint = `${tipo}|${hashString(handlerSrc)}`;
+    try { handlerSrc = handler?.toString?.() ?? String(handler); } catch (_e) { handlerSrc = String(handler); } // NOSONAR
+    const tipo = opciones?.tipoMensaje ?? '';
+    const fingerprint = `${tipo}|${_hashString(handlerSrc)}`;
 
     for (const [id, c] of state.controladores) {
       try {
-        if (!c || !c.handler) continue;
-        const existingSrc = (c.handler && c.handler.toString) ? c.handler.toString() : String(c.handler);
-        const existingTipo = c.opciones && c.opciones.tipoMensaje ? c.opciones.tipoMensaje : '';
-        const existingFingerprint = `${existingTipo}|${hashString(existingSrc)}`;
+        if (!c?.handler) continue;
+        const existingSrc = c.handler?.toString?.() ?? String(c.handler);
+        const existingTipo = c.opciones?.tipoMensaje ?? '';
+        const existingFingerprint = `${existingTipo}|${_hashString(existingSrc)}`;
         if (existingFingerprint === fingerprint) {
           console.debug(`[STATE-MGR] Controlador lógicamente duplicado detectado (fingerprint). Skipping registration for '${controladorId}' (matches '${id}')`);
           return false;
@@ -445,32 +425,14 @@ export async function registrarControladorCentral(controladorId, handler, opcion
  * @param {Object} mensaje - The message to send
  * @returns {Promise<Object>} - Result of sending
  */
-export async function enviarMensajeCentral(mensaje) {
-  if (!mensaje.mensajeId) {
-    mensaje.mensajeId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  await validarMensaje(mensaje);
-
-  await mutexes.mensajesEnviados.runExclusive(() => {
-    state.mensajesEnviados.add(mensaje.mensajeId);
-    try {
-      console.debug(`[STATE-MGR] Mensaje registrado: ${mensaje.mensajeId} (tipo=${mensaje.tipo}) totalMensajes=${state.mensajesEnviados.size}`);
-    } catch (_e) {} // NOSONAR
-  });
-
-  const resultados = [];
+async function _enviarAControladores(mensaje, resultados) {
   await mutexes.controladores.runExclusive(async () => {
     for (const [id, controlador] of state.controladores) {
       if (!controlador.activo) continue;
-
       const { opciones } = controlador;
       const matchesTipo = !opciones.tipoMensaje || mensaje.tipo === opciones.tipoMensaje;
       const matchesOrigen = !opciones.origen || mensaje.origen === opciones.origen;
-      const matchesDestino = mensaje.destino === 'broadcast' || 
-                            mensaje.destino === opciones.destino || 
-                            !opciones.destino;
-
+      const matchesDestino = mensaje.destino === 'broadcast' || mensaje.destino === opciones.destino || !opciones.destino;
       if (matchesTipo && matchesOrigen && matchesDestino) {
         try {
           const resultado = await controlador.handler(mensaje);
@@ -482,59 +444,75 @@ export async function enviarMensajeCentral(mensaje) {
       }
     }
   });
+}
 
-  if (resultados.length === 0) {
+function _broadcastAIframes(mensaje, resultados) {
+  const origenSeguro = globalThis.location.origin || '*';
+  const iframes = Array.from(document.getElementsByTagName('iframe'));
+  let enviados = 0;
+  for (const iframe of iframes) {
     try {
-      if (mensaje.destino === 'broadcast' && globalThis.window !== undefined) {
-        if (globalThis.parent === globalThis.window) {
-          const origenSeguro = globalThis.location.origin || '*';
-          const iframes = Array.from(document.getElementsByTagName('iframe'));
-          let enviados = 0;
-          for (const iframe of iframes) {
-            try {
-              if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.postMessage(mensaje, origenSeguro);
-                enviados++;
-              }
-            } catch (err) {
-              console.warn('[STATE-MGR] Error enviando broadcast a iframe:', err && err.message);
-            }
-          }
-          resultados.push({ metodo: 'broadcast', exito: true, enviados });
-        } else if (globalThis.parent && typeof globalThis.parent.postMessage === 'function') {
-          try {
-            if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensaje === 'function') {
-              globalThis.parent.mensajeria.enviarMensaje(mensaje);
-              resultados.push({ metodo: 'parent_mensajeria', exito: true });
-            } else {
-              globalThis.parent.postMessage(mensaje, globalThis.location.origin);
-              resultados.push({ metodo: 'forwardToParent', exito: true });
-            }
-          } catch (err) {
-            console.warn('[STATE-MGR] Error forward broadcast to parent:', err && err.message);
-            resultados.push({ metodo: 'forwardToParent', exito: false, error: err && err.message });
-          }
-        }
-      } else if (globalThis.postMessage) {
-        try {
-          globalThis.postMessage(mensaje, globalThis.location.origin);
-          resultados.push({ metodo: 'postMessage', exito: true });
-        } catch (error) {
-          console.error('Error enviando mensaje via postMessage:', error);
-          resultados.push({ metodo: 'postMessage', exito: false, error: error.message });
-        }
-      }
-    } catch (error) {
-      console.error('Error en fallback de envio en state-manager:', error);
-      resultados.push({ metodo: 'fallback', exito: false, error: error.message });
-    }
+      if (iframe?.contentWindow) { iframe.contentWindow.postMessage(mensaje, origenSeguro); enviados++; }
+    } catch (err) { console.warn('[STATE-MGR] Error enviando broadcast a iframe:', err?.message); }
   }
+  resultados.push({ metodo: 'broadcast', exito: true, enviados });
+}
 
-  return {
-    mensajeId: mensaje.mensajeId,
-    resultados,
-    timestamp: Date.now()
-  };
+function _reenviarAlPadre(mensaje, resultados) {
+  try {
+    if (globalThis.parent.mensajeria && typeof globalThis.parent.mensajeria.enviarMensaje === 'function') {
+      globalThis.parent.mensajeria.enviarMensaje(mensaje);
+      resultados.push({ metodo: 'parent_mensajeria', exito: true });
+    } else {
+      globalThis.parent.postMessage(mensaje, globalThis.location.origin);
+      resultados.push({ metodo: 'forwardToParent', exito: true });
+    }
+  } catch (err) {
+    console.warn('[STATE-MGR] Error forward broadcast to parent:', err?.message);
+    resultados.push({ metodo: 'forwardToParent', exito: false, error: err?.message });
+  }
+}
+
+function _enviarBroadcast(mensaje, resultados) {
+  if (globalThis.parent === globalThis.window) {
+    _broadcastAIframes(mensaje, resultados);
+  } else if (globalThis.parent && typeof globalThis.parent.postMessage === 'function') {
+    _reenviarAlPadre(mensaje, resultados);
+  }
+}
+
+async function _enviarFallback(mensaje, resultados) {
+  try {
+    if (mensaje.destino === 'broadcast' && globalThis.window !== undefined) {
+      await _enviarBroadcast(mensaje, resultados);
+    } else if (globalThis.postMessage) {
+      try {
+        globalThis.postMessage(mensaje, globalThis.location.origin);
+        resultados.push({ metodo: 'postMessage', exito: true });
+      } catch (error) {
+        console.error('Error enviando mensaje via postMessage:', error);
+        resultados.push({ metodo: 'postMessage', exito: false, error: error.message });
+      }
+    }
+  } catch (error) {
+    console.error('Error en fallback de envio en state-manager:', error);
+    resultados.push({ metodo: 'fallback', exito: false, error: error.message });
+  }
+}
+
+export async function enviarMensajeCentral(mensaje) {
+  if (!mensaje.mensajeId) {
+    mensaje.mensajeId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+  }
+  await validarMensaje(mensaje);
+  await mutexes.mensajesEnviados.runExclusive(() => {
+    state.mensajesEnviados.add(mensaje.mensajeId);
+    try { console.debug(`[STATE-MGR] Mensaje registrado: ${mensaje.mensajeId} (tipo=${mensaje.tipo}) totalMensajes=${state.mensajesEnviados.size}`); } catch (_e) {} // NOSONAR
+  });
+  const resultados = [];
+  await _enviarAControladores(mensaje, resultados);
+  if (resultados.length === 0) await _enviarFallback(mensaje, resultados);
+  return { mensajeId: mensaje.mensajeId, resultados, timestamp: Date.now() };
 }
 
 /**
@@ -556,8 +534,8 @@ export async function getControladoresPorTipo(tipo) {
   return await mutexes.controladores.runExclusive(() => {
     const results = [];
     for (const [id, c] of state.controladores) {
-      if (!c || !c.activo) continue;
-      const tipoCfg = c.opciones && c.opciones.tipoMensaje;
+      if (!c?.activo) continue;
+      const tipoCfg = c.opciones?.tipoMensaje;
       if (!tipoCfg || tipoCfg === tipo) {
         results.push({ id, handler: c.handler, opciones: c.opciones });
       }
@@ -574,9 +552,9 @@ export async function getControladoresPorTipo(tipo) {
 export async function getMapaControladores() {
   return await mutexes.controladores.runExclusive(() => {
     const mapa = new Map();
-    for (const [id, c] of state.controladores) {
-      if (!c || !c.activo) continue;
-      const tipo = c.opciones && c.opciones.tipoMensaje;
+    for (const [, c] of state.controladores) {
+      if (!c?.activo) continue;
+      const tipo = c.opciones?.tipoMensaje;
       if (tipo && !mapa.has(tipo)) {
         mapa.set(tipo, c.handler);
       }
@@ -592,9 +570,9 @@ export async function getMapaControladores() {
  */
 export function getMapaControladoresSync() {
   const mapa = new Map();
-  for (const [id, c] of state.controladores) {
-    if (!c || !c.activo) continue;
-    const tipo = c.opciones && c.opciones.tipoMensaje;
+  for (const [, c] of state.controladores) {
+    if (!c?.activo) continue;
+    const tipo = c.opciones?.tipoMensaje;
     if (tipo && !mapa.has(tipo)) {
       mapa.set(tipo, c.handler);
     }
