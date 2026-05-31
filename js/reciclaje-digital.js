@@ -2,16 +2,34 @@
  * reciclaje-digital.js - Sistema de limpieza total de datos de aventura
  * 
  * Implementa reciclaje digital automático al finalizar aventura o exceder tiempo límite.
- * Elimina ABSOLUTAMENTE TODO del dispositivo: localStorage, sessionStorage, cachés y Service Worker.
+ * Elimina absolutamente todo del dispositivo: localStorage, sessionStorage, cachés y Service Worker.
  */
 
 'use strict';
 
 /**
- * Limpia ABSOLUTAMENTE TODO del dispositivo (reciclaje digital total)
+ * Limpia absolutamente todo del dispositivo (reciclaje digital total)
  * @param {string} motivo - Razón de la limpieza (para logging)
  * @returns {Promise<Object>} Resultado de la operación
  */
+async function _limpiarCaches(logger, logPrefix) {
+    if (!('caches' in globalThis)) return;
+    try {
+        const cacheNames = await caches.keys();
+        let totalDeleted = 0;
+        for (const cacheName of cacheNames) {
+            const deleted = await caches.delete(cacheName);
+            if (deleted) {
+                totalDeleted++;
+                logger.info(`${logPrefix} ♻️ Caché eliminada: ${cacheName}`);
+            }
+        }
+        logger.info(`${logPrefix} ♻️ ${totalDeleted} cachés eliminadas del Service Worker`);
+    } catch (e) {
+        logger.warn(`${logPrefix} Error eliminando cachés:`, e);
+    }
+}
+
 export async function limpiarDatosAventura(motivo = 'desconocido') {
     const logPrefix = '[RECICLAJE_DIGITAL]';
     const logger = globalThis.logger || console;
@@ -20,20 +38,20 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
         logger.info(`${logPrefix} 🗑️ Iniciando limpieza TOTAL del dispositivo. Motivo: ${motivo}`);
         
         // ========================================
-        // 1. BORRAR TODO EL localStorage
+        // 1. BORRAR EL localStorage COMPLETO
         // ========================================
         try {
-            localStorage.clear(); // Elimina TODO sin excepciones
+            localStorage.clear(); // Elimina todo el contenido sin excepciones
             logger.info(`${logPrefix} ♻️ localStorage VACIADO COMPLETAMENTE`);
         } catch (e) {
             logger.warn(`${logPrefix} Error limpiando localStorage:`, e);
         }
         
         // ========================================
-        // 2. BORRAR TODO EL sessionStorage
+        // 2. BORRAR EL sessionStorage COMPLETO
         // ========================================
         try {
-            sessionStorage.clear(); // Elimina TODO sin excepciones
+            sessionStorage.clear(); // Elimina todo el contenido sin excepciones
             logger.info(`${logPrefix} ♻️ sessionStorage VACIADO COMPLETAMENTE`);
         } catch (e) {
             logger.warn(`${logPrefix} Error limpiando sessionStorage:`, e);
@@ -42,25 +60,7 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
         // ========================================
         // 3. ELIMINAR TODAS LAS CACHÉS DEL SERVICE WORKER
         // ========================================
-        if ('caches' in window) {
-            try {
-                const cacheNames = await caches.keys();
-                let totalDeleted = 0;
-                
-                for (const cacheName of cacheNames) {
-                    // Eliminar TODAS las cachés (media Y código)
-                    const deleted = await caches.delete(cacheName);
-                    if (deleted) {
-                        totalDeleted++;
-                        logger.info(`${logPrefix} ♻️ Caché eliminada: ${cacheName}`);
-                    }
-                }
-                
-                logger.info(`${logPrefix} ♻️ ${totalDeleted} cachés eliminadas del Service Worker`);
-            } catch (e) {
-                logger.warn(`${logPrefix} Error eliminando cachés:`, e);
-            }
-        }
+        await _limpiarCaches(logger, logPrefix);
         
         // ========================================
         // 4. DESREGISTRAR EL SERVICE WORKER (radical pero necesario)
@@ -112,7 +112,7 @@ export function verificarTimeoutAventura() {
         if (!aventura || !timestamp) return false;
         
         // Obtener tiempo máximo de la aventura específica
-        const INDICE = globalThis.__vv_INDICE_AVENTURAS || window.INDICE_AVENTURAS;
+        const INDICE = globalThis.__vv_INDICE_AVENTURAS || globalThis.INDICE_AVENTURAS;
         const metadatos = INDICE?.[aventura];
         
         if (!metadatos) {
