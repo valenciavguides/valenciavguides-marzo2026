@@ -25,12 +25,12 @@
   <script src="js/suppress-warnings.js"></script>
   <script type="module" src="js/monitoreo.js"></script>
   <script type="module">
-    import { getEnviarMensaje, getRegistrarControlador } from './js/utils.js';
+    import { getEnviarMensaje, getRegistrarControlador, getPadreId } from './js/utils.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {
         // En hijos, usar postMessage directamente al padre
-        if (globalThis.parent && globalThis.parent !== window) {
+        if (globalThis.parent && globalThis.parent !== globalThis) {
             const mensaje = args[0];
             try {
                 globalThis.parent.postMessage({
@@ -40,29 +40,27 @@
                     datos: mensaje.datos,
                     timestamp: Date.now()
                 }, globalThis.location.origin);
-                return Promise.resolve();
+                return;
             } catch (e) {
                 console.error('[hijo1-opciones] Error enviando mensaje via postMessage:', e);
-                return Promise.reject(e);
+                throw e;
             }
-        } else {
+        } else if (globalThis.mensajeria && globalThis.mensajeria.enviarMensaje) {
             // Fallback al método anterior si no estamos en iframe
-            if (globalThis.mensajeria && globalThis.mensajeria.enviarMensaje) {
-                return globalThis.mensajeria.enviarMensaje(...args);
-            } else {
-                try {
-                    const send = await getEnviarMensaje();
-                    return send(...args);
-                } catch (e) {
-                    console.error('mensajeria not loaded', args, e);
-                }
+            return globalThis.mensajeria.enviarMensaje(...args);
+        } else {
+            try {
+                const send = await getEnviarMensaje();
+                return send(...args);
+            } catch (e) {
+                console.error('mensajeria not loaded', args, e);
             }
         }
     };
 
     const registrarControlador = async (tipo, callback) => {
         // En hijos, los controladores se registran localmente para mensajes del padre
-        if (globalThis.parent && globalThis.parent !== window) {
+        if (globalThis.parent && globalThis.parent !== globalThis) {
             // Registrar listener para mensajes del padre
             const listener = (event) => {
                 if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
@@ -70,19 +68,17 @@
                 }
             };
             globalThis.addEventListener('message', listener);
-            return Promise.resolve(() => globalThis.removeEventListener('message', listener));
-        } else {
+            return () => globalThis.removeEventListener('message', listener);
+        } else if (globalThis.mensajeria && globalThis.mensajeria.registrarControlador) {
             // Fallback al método anterior
-            if (globalThis.mensajeria && globalThis.mensajeria.registrarControlador) {
-                return globalThis.mensajeria.registrarControlador(tipo, callback);
-            } else {
-                // Esperar a que esté disponible
-                try {
-                    const reg = await getRegistrarControlador();
-                    return reg(tipo, callback);
-                } catch (e) {
-                    console.error('mensajeria not loaded for registrarControlador', tipo, e);
-                }
+            return globalThis.mensajeria.registrarControlador(tipo, callback);
+        } else {
+            // Esperar a que esté disponible
+            try {
+                const reg = await getRegistrarControlador();
+                return reg(tipo, callback);
+            } catch (e) {
+                console.error('mensajeria not loaded for registrarControlador', tipo, e);
             }
         }
     };
@@ -95,7 +91,7 @@
             _listenerRegistry: new Map(),
 
             registrarControladorCentral: async function(controladorId, handler, opciones = {}) {
-                const iframeId = globalThis.name || (typeof CONFIG_HIJO !== 'undefined' && CONFIG_HIJO.IFRAME_ID) || 'hijo';
+                const iframeId = globalThis.name || (CONFIG_HIJO !== undefined && CONFIG_HIJO.IFRAME_ID) || 'hijo';
                 const tipo = opciones.tipoMensaje || controladorId;
 
                 if (this._listenerRegistry.has(tipo)) {
@@ -103,28 +99,31 @@
                     return false;
                 }
 
+                const _enviarAutoConfirmacion = function(eventData, resultado) {
+                    try {
+                        const confirmacion = {
+                            tipo: (TIPOS_MENSAJE !== undefined && TIPOS_MENSAJE.SISTEMA && TIPOS_MENSAJE.SISTEMA.CONFIRMACION) || 'SISTEMA.CONFIRMACION',
+                            idOriginal: eventData.id,
+                            origen: iframeId,
+                            destino: eventData.origen || 'padre',
+                            timestamp: Date.now(),
+                            datos: resultado
+                        };
+                        if (globalThis.parent && globalThis.parent !== globalThis) {
+                            globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
+                            (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Auto-confirmación enviada para ${eventData.id}`);
+                        }
+                    } catch (confError) {
+                        (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error enviando confirmación:`, confError);
+                    }
+                };
+
                 const adapterListener = async function(event) {
                     if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
                         try {
                             const resultado = await handler(event.data);
-                            
                             if (event.data.requiereConfirmacion && event.data.id && resultado !== undefined) {
-                                try {
-                                    const confirmacion = {
-                                        tipo: (typeof TIPOS_MENSAJE !== 'undefined' && TIPOS_MENSAJE.SISTEMA && TIPOS_MENSAJE.SISTEMA.CONFIRMACION) || 'SISTEMA.CONFIRMACION',
-                                        idOriginal: event.data.id,
-                                        origen: iframeId,
-                                        destino: event.data.origen || 'padre',
-                                        timestamp: Date.now(),
-                                        datos: resultado
-                                    };
-                                    if (globalThis.parent && globalThis.parent !== window) {
-                                        globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
-                                        (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Auto-confirmación enviada para ${event.data.id}`);
-                                    }
-                                } catch (confError) {
-                                    (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error enviando confirmación:`, confError);
-                                }
+                                _enviarAutoConfirmacion(event.data, resultado);
                             }
                         } catch (e) {
                             (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error en handler ${tipo}:`, e && e.message);
@@ -139,7 +138,7 @@
             },
             
             enviarMensajeCentral: async function(mensaje) {
-                if (globalThis.parent && globalThis.parent !== window) {
+                if (globalThis.parent && globalThis.parent !== globalThis) {
                     globalThis.parent.postMessage(mensaje, globalThis.location.origin);
                     return { exito: true, metodo: 'postMessage' };
                 }
@@ -161,6 +160,37 @@
     // Wrapper seguro para evitar doble registro de controladores en hijos
     if (globalThis.window !== undefined && globalThis.registrarControladorSeguro === undefined) {
         globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
+
+        const _intentarRegistroCentral = async function(tipo, handler) {
+            const iframeId = (globalThis.name || (CONFIG_HIJO !== undefined && CONFIG_HIJO.IFRAME_ID) || 'hijo');
+            const controladorId = `${iframeId}:${tipo}`;
+            if (globalThis.messagingAdapter && typeof globalThis.messagingAdapter.registrarControladorCentral === 'function') {
+                try {
+                    const centralRes = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
+                    if (centralRes === true) {
+                        (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
+                        return true;
+                    }
+                } catch (e) {
+                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Central registrar failed for ${tipo}: ${e && e.message}`);
+                }
+            }
+            return false;
+        };
+
+        const _intentarRegistroMensajeria = async function(tipo, handler, opciones) {
+            if (typeof registrarControlador === 'function') {
+                try {
+                    const res = await safeRegistrar(tipo, handler, opciones);
+                    (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
+                    return res;
+                } catch (err) {
+                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControlador failed for ${tipo}: ${err && err.message}`);
+                }
+            }
+            return undefined;
+        };
+
         globalThis.registrarControladorSeguro = async function(tipo, handler, opciones) {
             try {
                 (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
@@ -173,30 +203,11 @@
                     return;
                 }
                 globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
-                // Prefer central registration via messagingAdapter/state-manager when available
                 try {
-                    const iframeId = (globalThis.name || (typeof CONFIG_HIJO !== 'undefined' && CONFIG_HIJO.IFRAME_ID) || 'hijo');
-                    const controladorId = `${iframeId}:${tipo}`;
-                    if (globalThis.messagingAdapter && typeof globalThis.messagingAdapter.registrarControladorCentral === 'function') {
-                        try {
-                            const centralRes = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
-                            if (centralRes === true) {
-                                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
-                                return true;
-                            }
-                        } catch (e) {
-                            (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Central registrar failed for ${tipo}: ${e && e.message}`);
-                        }
-                    }
-                    if (typeof registrarControlador === 'function') {
-                        try {
-                            const res = await safeRegistrar(tipo, handler, opciones);
-                            (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
-                            return res;
-                        } catch (err) {
-                            (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControlador failed for ${tipo}: ${err && err.message}`);
-                        }
-                    }
+                    const centralOk = await _intentarRegistroCentral(tipo, handler);
+                    if (centralOk) return true;
+                    const res = await _intentarRegistroMensajeria(tipo, handler, opciones);
+                    if (res !== undefined) return res;
                 } catch (e) {
                     (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControladorSeguro central attempt error for ${tipo}: ${e && e.message}`);
                 }
@@ -215,12 +226,11 @@
                 if (!tipo || typeof handler !== 'function') return;
                 if (globalThis.__CONTROLADOR_REGISTRADOS && globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) return;
                 if (typeof globalThis.registrarControladorSeguro === 'function') return globalThis.registrarControladorSeguro(tipo, handler, opciones);
-                if (typeof registrarControlador === 'function') return registrarControlador(tipo, handler, opciones);
+                if (typeof registrarControlador === 'function') return registrarControlador(tipo, handler);
             } catch (e) { (globalThis.logger || console).warn && (globalThis.logger || console).warn('[HIJO] safeRegistrar error', e && e.message); }
         };
     }
     import { TIPOS_MENSAJE } from './js/constants.js';
-    import { getPadreId } from './js/utils.js';
     import logger from './js/logger.js';
 
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
@@ -262,8 +272,8 @@
         } 
         try { 
             if (document.body) document.body.style.display = _originalDisplay || 'block'; 
-            console.log(`${CONFIG_HIJO.IFRAME_ID} UI visible tras PADRE_CONFIRMA_HIJO_LISTO`); 
-        } catch (e) {} 
+            console.log(`${CONFIG_HIJO.IFRAME_ID} UI visible tras PADRE_CONFIRMA_HIJO_LISTO`);
+        } catch (e) { console.warn('[hijo1-opciones] mostrarUI error:', e); }
     }
 
     // ============================================================
@@ -280,7 +290,7 @@
             logger.info(`${logPrefix} Iniciando componente...`);
 
             // 1. Esperar a que el padre esté listo (con timeout)
-            if (globalThis.parent && globalThis.parent !== window) {
+            if (globalThis.parent && globalThis.parent !== globalThis) {
                 logger.debug(`${logPrefix} Esperando a que el padre esté listo...`);
                 
                 let attempts = 0;
@@ -303,7 +313,7 @@
             // Ocultar UI hasta recibir PADRE_CONFIRMA_HIJO_LISTO
             globalThis._uiConfirmado = false;
             _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
-            try { if (document.body) document.body.style.display = 'none'; } catch (e) { /* ignore */ }
+            try { if (document.body) document.body.style.display = 'none'; } catch (e) { console.warn('[hijo1-opciones] Error ocultando body:', e); }
 
             // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
 
@@ -446,7 +456,7 @@
                     try { if (typeof inicializarLogicaMenu === 'function') inicializarLogicaMenu(); } catch (e) { logger.warn(`${controladorPrefix} inicializarLogicaMenu falló:`, e); }
                     globalThis._uiConfirmado = true;
                     mostrarUI();
-                    try { await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { /* ignore */ }
+                    try { await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { console.warn('[hijo1-opciones] Error notificando UI_VISIBLE:', e); }
 
                     return {
                         exito: true,
@@ -511,9 +521,18 @@
                     logger.debug(`${controladorPrefix} Parámetro except=${except}`);
 
                     // 3. Cerrar menú si no está exceptuado
-                    if (except !== 'mas-opciones') {
+                    if (except === 'mas-opciones') {
+                        logger.debug(`${controladorPrefix} Menú exceptuado, no se cierra`);
+
+                        return {
+                            exito: true,
+                            menuCerrado: false,
+                            razon: 'exceptuado',
+                            timestamp: Date.now()
+                        };
+                    } else {
                         const resultado = ocultarTodos();
-                        
+
                         if (resultado.exito) {
                             logger.info(`${controladorPrefix} Menú cerrado exitosamente`);
                         } else {
@@ -524,15 +543,6 @@
                             exito: true,
                             menuCerrado: true,
                             estadoAnterior: estadoMenu.abierto,
-                            timestamp: Date.now()
-                        };
-                    } else {
-                        logger.debug(`${controladorPrefix} Menú exceptuado, no se cierra`);
-                        
-                        return {
-                            exito: true,
-                            menuCerrado: false,
-                            razon: 'exceptuado',
                             timestamp: Date.now()
                         };
                     }
@@ -695,9 +705,9 @@
                 try {
                     logger.warn(`${gPrefix} Error GPS recibido (no-op):`, mensaje?.datos || {});
                     // Telemetría: incrementar contador por código de error GPS en hijo1-opciones
-                    try { const codigo = mensaje?.datos?.codigo; if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { /* ignore */ }
+                    try { const codigo = mensaje?.datos?.codigo; if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { console.warn('[hijo1-opciones] Error incrementando contador GPS:', err); }
                     // Enviar métrica a monitoreo
-                    try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo1-opciones', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (ignore) { /* ignore */ }
+                    try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo1-opciones', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (error_) { console.warn('[hijo1-opciones] Error enviando métrica GPS:', error_); }
                     return { exito: true };
                 } catch (e) {
                     logger.error(`${gPrefix} Error en handler no-op:`, e);
@@ -1064,7 +1074,7 @@
 
                     // Spin ruleta
                     masOpcionesBtn.classList.remove('spinning');
-                    void masOpcionesBtn.offsetWidth;
+                    globalThis._reflow = masOpcionesBtn.offsetWidth; // fuerza reflow para reiniciar animación
                     masOpcionesBtn.classList.add('spinning');
 
                     const resultado = await toggleMenu();
@@ -1326,7 +1336,7 @@
                     }
                 });
             } catch (e) {
-                // Silenciar errores de envío para no saturar el log
+                console.warn('[hijo1-opciones] Error enviando actualización de tiempo:', e);
             }
             
             // Verificar si se agotó el tiempo
@@ -1534,7 +1544,7 @@
             transform: none;
             width: calc(var(--iframe-w, 100vw) - 2px);
             height: calc(var(--iframe-w, 100vw) - 2px);
-            background: linear-gradient(145deg, #4ade80 0%, #22c55e 50%, #16a34a 100%); color: white; border-radius: 50%;
+            background: linear-gradient(145deg, #1e7e34 0%, #155724 50%, #0d3a16 100%); color: white; border-radius: 50%;
             font-size: 2.5rem; display: flex; align-items: center; justify-content: center;
             border: none; outline: none; box-shadow: none;
             cursor: pointer; z-index: 1300;
@@ -1551,7 +1561,7 @@
       transform: translateX(-50%);
       width: calc(var(--iframe-w, 100vw) - 2px);
       height: calc(var(--iframe-w, 100vw) - 2px);
-      background: linear-gradient(145deg, #4ade80 0%, #22c55e 50%, #16a34a 100%); color: white; border-radius: 50%;
+      background: linear-gradient(145deg, #1e7e34 0%, #155724 50%, #0d3a16 100%); color: white; border-radius: 50%;
       font-size: 1.8rem; display: none; align-items: center; justify-content: center;
       border: none; outline: none; box-shadow: none;
     cursor: pointer; z-index: 1300; opacity: 0; transition: opacity 0.3s;

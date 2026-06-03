@@ -8,8 +8,8 @@
 
   <style>
     :root { --gap-inferior: env(safe-area-inset-bottom, 0px); }
-    body, html { margin: 0; padding: 0; height: 100%; }
-    #map { width: 100%; height: 100vh; }
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+    #map { width: 100%; height: 100%; }
 
     .monumento-marker {
       background: #fff;
@@ -62,10 +62,10 @@
     }
     #monumento-cerrar:hover { background: #ff6600; border-color: #cc0000; transform: scale(1.1); }
 
-    .labels-tiles { }
+    /* .labels-tiles reserved for future use */
   </style>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 
@@ -82,8 +82,8 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="js/vendor/leaflet-rotate-src.js"></script>
 
   <script type="module">
     import { DATOS_AVENTURAS } from './js/coordenadas-aventuras.js';
@@ -261,6 +261,11 @@
       const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
       map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
     }
+
+    // El overlay tiene transición CSS — forzar recálculo de tamaño una vez pintado
+    globalThis.addEventListener('resize', () => map.invalidateSize());
+    setTimeout(() => map.invalidateSize(), 50);
+    setTimeout(() => map.invalidateSize(), 400);
 
     // ── Popup de monumento ──────────────────────────────────────────────────
     const overlay   = document.getElementById('monumento-overlay');

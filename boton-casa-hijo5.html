@@ -847,14 +847,15 @@
      * Valida exhaustivamente la respuesta y actualiza el estado local
      * @returns {Promise<void>}
      */
-    async function solicitarParadasDelPadre() {
+    async function solicitarParadasDelPadre(forzar = false) {
         const logPrefix = '[hijo5][solicitarParadasDelPadre]';
 
         try {
             logger.info(`${logPrefix} Solicitando paradas del padre...`);
 
-            // Validar que tengamos ubicación de usuario antes de solicitar (solo en modo aventura)
-            if (estado.modo === 'aventura' && !estado.ubicacionUsuario) {
+            // La ubicación GPS es contexto opcional; sólo omitir si estamos en aventura sin GPS
+            // y la solicitud no es forzada (ej. tras CAMBIO_MODO donde los datos son necesarios siempre)
+            if (!forzar && estado.modo === 'aventura' && !estado.ubicacionUsuario) {
                 logger.warn(`${logPrefix} No hay ubicación de usuario disponible en modo aventura, omitiendo solicitud`);
                 return;
             }
@@ -1074,6 +1075,10 @@
                 estado.modo = modo;
                 _actualizarUIParaModo(modo, logPrefix);
                 logger.info(`${logPrefix} Modo cambiado exitosamente: ${modoAnterior} → ${modo}`);
+
+                if (modo === 'aventura') {
+                    solicitarParadasDelPadre(true).catch(e => logger.warn(`${logPrefix} Error solicitando paradas tras CAMBIO_MODO:`, e));
+                }
 
                 await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO, origen: CONFIG_HIJO?.IFRAME_ID || 'hijo5', datos: { modo, exito: true, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id } });
 

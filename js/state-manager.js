@@ -484,7 +484,7 @@ function _enviarBroadcast(mensaje, resultados) {
 async function _enviarFallback(mensaje, resultados) {
   try {
     if (mensaje.destino === 'broadcast' && globalThis.window !== undefined) {
-      await _enviarBroadcast(mensaje, resultados);
+      _enviarBroadcast(mensaje, resultados);
     } else if (globalThis.postMessage) {
       try {
         globalThis.postMessage(mensaje, globalThis.location.origin);
@@ -504,7 +504,7 @@ export async function enviarMensajeCentral(mensaje) {
   if (!mensaje.mensajeId) {
     mensaje.mensajeId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
   }
-  await validarMensaje(mensaje);
+  await validarMensaje(mensaje); // NOSONAR
   await mutexes.mensajesEnviados.runExclusive(() => {
     state.mensajesEnviados.add(mensaje.mensajeId);
     try { console.debug(`[STATE-MGR] Mensaje registrado: ${mensaje.mensajeId} (tipo=${mensaje.tipo}) totalMensajes=${state.mensajesEnviados.size}`); } catch (_e) {} // NOSONAR
@@ -667,7 +667,7 @@ export async function inicializarStateManager() {
  * @returns {Object} Información de diagnóstico
  */
 export async function diagnosticarStateManager() {
-  const controladores = await getControladoresRegistrados();
+  const controladores = await getControladoresRegistrados(); // NOSONAR
   const controladoresPorTipo = new Map();
   
   await mutexes.controladores.runExclusive(() => {

@@ -669,7 +669,7 @@ async function solicitarDatosParadas() {
         logger.info('Solicitando datos de paradas al padre...');
         datosParadasSolicitados = true;
 
-        await enviarMensaje({
+        enviarMensaje({
             destino: getPadreId(),
             tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS,
             origen: 'funciones-mapa',
@@ -1819,7 +1819,11 @@ export function limpiarPorEstado(nuevoEstado) {
         }
 
         // Activar/desactivar flecha de usuario
-        toggleFlechaUsuario(tramoActual !== null);
+        if (tramoActual !== null) {
+            activarFlechaUsuario();
+        } else {
+            desactivarFlechaUsuario();
+        }
 
         return limpiado;
     } catch (error) {
@@ -1828,32 +1832,31 @@ export function limpiarPorEstado(nuevoEstado) {
     }
 }
 
-/**
- * Activa o desactiva la flecha de dirección del usuario en el tramo.
- * @param {boolean} activar - True para activar, false para desactivar
- */
-function toggleFlechaUsuario(activar) {
-    if (activar && !flechaActiva && estadoMapa.tramoActual && estadoMapa.modo === MODOS.AVENTURA) {
+function activarFlechaUsuario() {
+    if (!flechaActiva && estadoMapa.tramoActual && estadoMapa.modo === MODOS.AVENTURA) {
         flechaActiva = true;
         if (_mapaInstance) {
             _mapaInstance.on('zoomend', actualizarPosicionFlecha);
         }
         logger.info('Flecha de ruta activada');
-    } else if (!activar && flechaActiva) {
-        flechaActiva = false;
-        if (_mapaInstance) {
-            _mapaInstance.off('zoomend', actualizarPosicionFlecha);
-        }
-        if (marcadorFlechaUsuario && _mapaInstance) {
-            _mapaInstance.removeLayer(marcadorFlechaUsuario);
-            marcadorFlechaUsuario = null;
-        }
-        if (marcadorHaloUsuario && _mapaInstance) {
-            _mapaInstance.removeLayer(marcadorHaloUsuario);
-            marcadorHaloUsuario = null;
-        }
-        logger.info('Flecha de ruta desactivada');
     }
+}
+
+function desactivarFlechaUsuario() {
+    if (!flechaActiva) { return; }
+    flechaActiva = false;
+    if (_mapaInstance) {
+        _mapaInstance.off('zoomend', actualizarPosicionFlecha);
+    }
+    if (marcadorFlechaUsuario && _mapaInstance) {
+        _mapaInstance.removeLayer(marcadorFlechaUsuario);
+        marcadorFlechaUsuario = null;
+    }
+    if (marcadorHaloUsuario && _mapaInstance) {
+        _mapaInstance.removeLayer(marcadorHaloUsuario);
+        marcadorHaloUsuario = null;
+    }
+    logger.info('Flecha de ruta desactivada');
 }
 
 /**
@@ -2021,7 +2024,36 @@ async function manejarCambiarParada(mensaje) {
         // Validar que la parada existe en AVENTURA_PARADAS (soporta both padreId and paradaId)
         const idToMatch = padreId || paradaId;
         const idSinPrefijo = idToMatch?.startsWith('padre-') ? idToMatch.substring(6) : idToMatch;
-        const paradaBase = globalThis.AVENTURA_PARADAS?.find(p => p.padreid === idToMatch || p.parada_id === idToMatch || p.tramo_id === idToMatch || p.id === idToMatch || p.parada_id === idSinPrefijo || p.tramo_id === idSinPrefijo);
+        
+        // DEBUG: Verificar estructura del array
+        logger.debug(`${logPrefix} 🔍 Buscando parada con idToMatch=${idToMatch}, idSinPrefijo=${idSinPrefijo}`);
+        logger.debug(`${logPrefix} 🔍 AVENTURA_PARADAS tiene ${globalThis.AVENTURA_PARADAS?.length || 0} elementos`);
+        if (globalThis.AVENTURA_PARADAS?.length > 0) {
+            const firstElement = globalThis.AVENTURA_PARADAS[0];
+            logger.debug(`${logPrefix} 🔍 Primer elemento estructura:`, {
+                id: firstElement.id,
+                padreid: firstElement.padreid,
+                parada_id: firstElement.parada_id,
+                tramo_id: firstElement.tramo_id,
+                tipo: firstElement.tipo
+            });
+        }
+        
+        const paradaBase = globalThis.AVENTURA_PARADAS?.find(p => 
+            p.padreid === idToMatch || 
+            p.parada_id === idToMatch || 
+            p.tramo_id === idToMatch || 
+            p.id === idToMatch || 
+            p.parada_id === idSinPrefijo || 
+            p.tramo_id === idSinPrefijo ||
+            p.id === idSinPrefijo
+        );
+        
+        logger.debug(`${logPrefix} 🔍 Resultado búsqueda: ${paradaBase ? 'ENCONTRADA' : 'NO ENCONTRADA'}`);
+        if (paradaBase) {
+            logger.debug(`${logPrefix} 🔍 Parada encontrada:`, { id: paradaBase.id, tipo: paradaBase.tipo });
+        }
+        
         if (!paradaBase) {
             throw new Error(`Parada ${paradaId} (idToMatch=${idToMatch}, idSinPrefijo=${idSinPrefijo}) no encontrada en datos base (AVENTURA_PARADAS tiene ${globalThis.AVENTURA_PARADAS?.length || 0} elementos)`);
         }
@@ -2099,7 +2131,7 @@ async function manejarCambiarParada(mensaje) {
         estadoMapa.esperandoReto = false;
         estadoMapa.datosRecopilados = {};
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -2121,7 +2153,7 @@ async function manejarCambiarParada(mensaje) {
  */
 async function enviarConsultaCoordenadas(paradaId, padreId) {
     const mensajeId = generarIdUnico();
-    await enviarMensaje({
+    enviarMensaje({
         destino: 'hijo2',
         tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_COORDENADAS,
         origen: getPadreId(),
@@ -2140,7 +2172,7 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
  */
 async function enviarConsultaAudio(paradaId, padreId) {
     const mensajeId = generarIdUnico();
-    await enviarMensaje({
+    enviarMensaje({
         destino: 'hijo3',
         tipo: TIPOS_MENSAJE.AUDIO.SOLICITAR_AUDIO,
         origen: getPadreId(),
@@ -2159,7 +2191,7 @@ async function enviarConsultaAudio(paradaId, padreId) {
  */
 async function enviarConsultaReto(paradaId, padreId) {
     const mensajeId = generarIdUnico();
-    await enviarMensaje({
+    enviarMensaje({
         destino: 'hijo4',
         tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETO,
         origen: getPadreId(),
@@ -2202,7 +2234,7 @@ async function procesarRespuestaConsulta(tipo, datos) {
                 // ✅ DISTRIBUIR INFORMACIÓN COMPLETA a hijo2 para que botones funcionen
                 if (datos?.imagen !== undefined && datos?.video !== undefined) {
                     try {
-                        await enviarMensaje({
+                        enviarMensaje({
                             destino: 'hijo2',
                             tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
                             origen: 'funciones-mapa',
@@ -2236,7 +2268,10 @@ async function procesarRespuestaConsulta(tipo, datos) {
         
         // Verificar si todas las respuestas llegaron
         if (!estadoMapa.esperandoCoordenadas && !estadoMapa.esperandoAudio && !estadoMapa.esperandoReto) {
+            logger.info(`${logPrefix} ✅ Todas las respuestas recibidas - llamando a completarCambioParada`);
             await completarCambioParada();
+        } else {
+            logger.debug(`${logPrefix} Aún esperando respuestas - coord:${estadoMapa.esperandoCoordenadas}, audio:${estadoMapa.esperandoAudio}, reto:${estadoMapa.esperandoReto}`);
         }
         
     } catch (error) {
@@ -2255,13 +2290,15 @@ async function completarCambioParada() {
         const { paradaId, padreId: resolvedPadreId, origen, mensajeId } = estadoMapa.consultaParadaPendiente;
         const { coordenadas, audio, reto } = estadoMapa.datosRecopilados;
         
-        logger.info(`${logPrefix} Completando cambio de parada ${paradaId}`);
+        logger.info(`${logPrefix} ⚡ Completando cambio de parada ${paradaId}`);
+        logger.debug(`${logPrefix} DEBUG coordenadas:`, coordenadas);
         
         // Resetear flag de interacción del usuario al cambiar de parada/tramo
         estadoMapa.usuarioMovioMapa = false;
         
         // Actualizar marcador si hay coordenadas
         if (coordenadas?.lat && coordenadas?.lng) {
+            logger.info(`${logPrefix} ✅ Coordenadas válidas (${coordenadas.lat}, ${coordenadas.lng}) - iniciando zoom`);
             // Si el mapa no está inicializado, esperar a que se inicialice
             if (!_mapaInstance) {
                 logger.info(`${logPrefix} Mapa no inicializado, esperando inicialización...`);
@@ -2370,26 +2407,30 @@ async function completarCambioParada() {
                     .map(p => [p.lat, p.lng]);
 
                 if (puntos.length > 1) {
+                    logger.info(`${logPrefix} 🎬 Iniciando zoom para TRAMO ${paradaId} (${puntos.length} puntos)`);
                     estadoMapa.zoomEnCurso = true;
 
                     // Si hay parada anterior: zoom-out desde posición actual primero
                     if (tieneParadaAnterior) {
+                        logger.debug(`${logPrefix} 📤 Zoom-out a nivel ${zoomOut} desde parada anterior`);
                         await ejecutarOperacionMapa(mapa => {
                             mapa.flyTo(mapa.getCenter(), zoomOut, { duration: durFase, easeLinearity: 0.5 });
                             return true;
-                        }).catch(() => {});
+                        }).catch(err => logger.error(`${logPrefix} ❌ Error en zoom-out tramo:`, err));
                         await esperarMoveEnd();
                     }
 
                     // Zoom-in final: centrar en el inicio del tramo (donde está 📌)
                     const centroInicio = [tramoData.inicio.lat, tramoData.inicio.lng];
+                    logger.debug(`${logPrefix} 📥 Zoom-in a ${centroInicio} nivel ${zoomMax}`);
                     await ejecutarOperacionMapa(mapa => {
                         mapa.flyTo(centroInicio, zoomMax, { duration: durFase * 1.5, easeLinearity: 0.25 });
                         return true;
-                    }).catch(err => logger.warn(`${logPrefix} Error en flyTo inicio tramo:`, err));
+                    }).catch(err => logger.error(`${logPrefix} ❌ Error en flyTo inicio tramo:`, err));
 
                     await esperarMoveEnd(200);
                     estadoMapa.zoomEnCurso = false;
+                    logger.info(`${logPrefix} ✅ Zoom TRAMO completado`);
                 }
             } else {
                 // PARADA: zoom-out→in si hay anterior, solo in si es la primera
@@ -2412,29 +2453,39 @@ async function completarCambioParada() {
                     marcadorParadaActual = mP;
                 } catch(e) { logger.warn(`${logPrefix} Error añadiendo marcador parada:`, e); } // NOSONAR
 
+                logger.info(`${logPrefix} 🎬 Iniciando zoom para PARADA ${paradaId} a ${destino}`);
                 estadoMapa.zoomEnCurso = true;
 
                 // Si hay parada anterior: zoom-out desde posición actual
                 if (tieneParadaAnterior) {
+                    logger.debug(`${logPrefix} 📤 Zoom-out a nivel ${zoomOut} desde parada anterior`);
                     await ejecutarOperacionMapa(mapa => {
                         mapa.flyTo(mapa.getCenter(), zoomOut, { duration: durFase, easeLinearity: 0.5 });
                         return true;
-                    }).catch(() => {});
+                    }).catch(err => logger.error(`${logPrefix} ❌ Error en zoom-out parada:`, err));
                     await esperarMoveEnd();
                 }
 
                 // Zoom-in al destino
+                logger.debug(`${logPrefix} 📥 Zoom-in a ${destino} nivel ${zoomMax}`);
                 await ejecutarOperacionMapa(mapa => {
                     mapa.flyTo(destino, zoomMax, { duration: durFase * 1.5, easeLinearity: 0.25 });
                     return true;
-                }).catch(err => logger.warn(`${logPrefix} Error en flyTo parada:`, err));
+                }).catch(err => logger.error(`${logPrefix} ❌ Error en flyTo parada:`, err));
 
                 await esperarMoveEnd(200);
                 estadoMapa.zoomEnCurso = false;
+                logger.info(`${logPrefix} ✅ Zoom PARADA completado`);
             }
             
             estadoMapa.ultimoZoomAuto = Date.now();
-            logger.info(`${logPrefix} Zoom único aplicado para ${paradaId}`);
+            logger.info(`${logPrefix} 🎯 Zoom único aplicado para ${paradaId}`);
+        } else {
+            logger.warn(`${logPrefix} ⚠️ NO SE HIZO ZOOM - coordenadas inválidas:`, { 
+                lat: coordenadas?.lat, 
+                lng: coordenadas?.lng,
+                coordenadasCompletas: coordenadas 
+            });
         }
         
         if (audio) {
@@ -2449,7 +2500,7 @@ async function completarCambioParada() {
         estadoMapa.timestamp = Date.now();
         
         // Confirmar a hijo5-casa
-        await enviarMensaje({
+        enviarMensaje({
             destino: origen,
             tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
             origen: 'funciones-mapa',
@@ -2525,7 +2576,7 @@ async function manejarActualizarEstadoNavegacion(mensaje) {
         }
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -2544,7 +2595,7 @@ async function manejarActualizarEstadoNavegacion(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al actualizar estado: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -2601,7 +2652,7 @@ async function manejarIniciarNavegacion(mensaje) {
         }
 
         // Notificar que la navegación está iniciando
-        await enviarMensaje({
+        enviarMensaje({
             destino: 'sistema',
             tipo: TIPOS_MENSAJE.NAVEGACION.INICIADA,
             origen: 'funciones-mapa',
@@ -2616,7 +2667,7 @@ async function manejarIniciarNavegacion(mensaje) {
         });
 
         // Enviar confirmación al origen
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -2635,7 +2686,7 @@ async function manejarIniciarNavegacion(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al iniciar navegación: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -2713,7 +2764,7 @@ async function manejarNavegacionCancelada(mensaje) {
         estadoMapa.timestamp = Date.now();
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -2732,7 +2783,7 @@ async function manejarNavegacionCancelada(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al cancelar navegación: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -2817,7 +2868,7 @@ async function manejarLlegadaDetectada(mensaje) {
         }
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -2836,7 +2887,7 @@ async function manejarLlegadaDetectada(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al procesar llegada: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -2886,7 +2937,7 @@ async function manejarErrorNavegacion(mensaje) {
         // Si es error crítico, cancelar navegación
         if (severidad === 'critico') {
             logger.warn(`${logPrefix} Error crítico detectado, cancelando navegación`);
-            await manejarNavegacionCancelada({
+            await manejarNavegacionCancelada({ // NOSONAR
                 origen: 'funciones-mapa',
                 datos: { motivo: 'error_critico', error, codigo }
             });
@@ -3042,7 +3093,7 @@ async function verificarPermisosGeolocalizacion() {
             logger.warn(`${logPrefix} ${warningMsg}`);
             
             // Enviar advertencia al usuario
-            await enviarMensaje({
+            enviarMensaje({
                 tipo: TIPOS_MENSAJE.SISTEMA.ADVERTENCIA,
                 origen: 'funciones-mapa',
                 destino: getPadreId(),
@@ -3131,7 +3182,7 @@ export async function manejarGPSActivar(mensaje) {
         // Si estamos en un iframe, delegar al padre
         logger.info(`${logPrefix} Delegando activación GPS al padre`);
 
-        await enviarMensaje({
+        enviarMensaje({
             destino: getPadreId(),
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR,
             origen: 'funciones-mapa',
@@ -3205,7 +3256,7 @@ export async function manejarGPSDesactivar(mensaje) {
         // Si estamos en un iframe, delegar al padre
         logger.info(`${logPrefix} Delegando desactivación GPS al padre`);
 
-        await enviarMensaje({
+        enviarMensaje({
             destino: getPadreId(),
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR,
             origen: 'funciones-mapa',
@@ -3258,7 +3309,7 @@ async function manejarInvalidarTamanio(mensaje) {
         await invalidarTamañoMapa();
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -3277,7 +3328,7 @@ async function manejarInvalidarTamanio(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al invalidar tamaño: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -3328,7 +3379,7 @@ async function manejarSetView(mensaje) {
         await setMapView(center, zoom, opciones);
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -3347,7 +3398,7 @@ async function manejarSetView(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al configurar vista: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -3391,7 +3442,7 @@ async function manejarGetCenter(mensaje) {
         };
 
         // Enviar respuesta con el centro
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -3410,7 +3461,7 @@ async function manejarGetCenter(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al obtener centro: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -3495,7 +3546,7 @@ async function manejarAddMarker(mensaje) {
         marcadoresParadas.set(id, marker);
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -3515,7 +3566,7 @@ async function manejarAddMarker(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al añadir marcador: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -3565,7 +3616,7 @@ async function manejarRemoveMarker(mensaje) {
         marcadoresParadas.delete(id);
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -3585,7 +3636,7 @@ async function manejarRemoveMarker(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al eliminar marcador: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -3688,7 +3739,7 @@ async function manejarClearLayers(mensaje) {
         };
 
         // Enviar confirmación
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
             origen: 'funciones-mapa',
@@ -3707,7 +3758,7 @@ async function manejarClearLayers(mensaje) {
     } catch (error) {
         logger.error(`${logPrefix} Error al limpiar capas: ${error.message}`, error);
         
-        await enviarMensaje({
+        enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
             origen: 'funciones-mapa',
@@ -3759,7 +3810,7 @@ async function manejarCambioModoMapa(mensaje) {
         // En modo CASA, el GPS permanece activo pero sin validaciones de distancia
 
         // Aplicar cambios según el modo usando la lógica existente de limpiarPorEstado
-        const limpiado = await limpiarPorEstado({ modo });
+        const limpiado = limpiarPorEstado({ modo });
         
         logger.info(`${logPrefix} DEBUG: Cambio de modo ${modoAnterior} -> ${modo}, limpiado=${limpiado}`);
         
@@ -3793,7 +3844,7 @@ async function manejarCambioModoMapa(mensaje) {
         
         // Enviar mensaje de error si es posible
         try {
-            await enviarMensaje({
+            enviarMensaje({
                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                 origen: 'funciones-mapa',
                 destino: mensaje?.origen || getPadreId(),
@@ -3886,12 +3937,16 @@ export function registrarManejadoresMensajes() {
         globalThis.addEventListener('vv-parada-cambiada', async (e) => {
             try {
                 const mensajeOriginal = e.detail;
+                logger.info('[funciones-mapa] ⚡ Evento vv-parada-cambiada recibido:', mensajeOriginal?.datos);
                 if (mensajeOriginal?.datos) {
-                    logger.info('[funciones-mapa] Evento vv-parada-cambiada recibido, iniciando visualización');
-                    await manejarCambiarParada(mensajeOriginal);
+                    logger.info('[funciones-mapa] Iniciando manejarCambiarParada para visualización');
+                    await manejarCambiarParada(mensajeOriginal); // NOSONAR
+                    logger.info('[funciones-mapa] ✅ manejarCambiarParada completado');
+                } else {
+                    logger.warn('[funciones-mapa] Evento vv-parada-cambiada sin datos');
                 }
             } catch (err) {
-                logger.warn('[funciones-mapa] Error procesando vv-parada-cambiada:', err);
+                logger.error('[funciones-mapa] ❌ Error procesando vv-parada-cambiada:', err);
             }
         });
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, manejarActualizarEstadoNavegacion);
@@ -3940,7 +3995,7 @@ export function registrarManejadoresMensajes() {
                 );
                 const dentroDelRango = distancia <= rango;
 
-                await enviarMensaje({
+                enviarMensaje({
                     tipo: TIPOS_MENSAJE.NAVEGACION.VALIDAR_RANGO_PARADA,
                     origen: 'mapa',
                     destino: mensaje.origen,
@@ -3958,7 +4013,7 @@ export function registrarManejadoresMensajes() {
                     throw new Error('Datos incompletos para enviar parada completada');
                 }
 
-                await enviarMensaje({
+                enviarMensaje({
                     tipo: TIPOS_MENSAJE.NAVEGACION.ENVIAR_PARADA_COMPLETADA,
                     origen: 'mapa',
                     destino: mensaje.origen,
@@ -3981,7 +4036,7 @@ export function registrarManejadoresMensajes() {
                     throw new Error('Error al dibujar polyline');
                 }
 
-                await enviarMensaje({
+                enviarMensaje({
                     tipo: TIPOS_MENSAJE.NAVEGACION.DIBUJAR_POLYLINE,
                     origen: 'mapa',
                     destino: mensaje.origen,
@@ -4265,7 +4320,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
         // CRÍTICO: Incluir toleranciaGPS para que hijo2 ajuste lógica de botones dinámicamente
         try {
-            await enviarMensaje({
+            enviarMensaje({
                 destino: 'hijo2',
                 tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
                 origen: 'funciones-mapa',
@@ -4286,7 +4341,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // Razón: Usuario debe estar CERCA (50m) para desactivar ubicación y activar botones
         if (distancia <= 50) {
             try {
-                await enviarMensaje({
+                enviarMensaje({
                     destino: 'hijo2',
                     tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
                     origen: 'funciones-mapa',
@@ -4380,7 +4435,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
             // Derivar ids para compatibilidad (padreId vs paradaId)
             const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
             const derivedPadreId = siguienteParada.padreid || (derivedParadaId ? `padre-${derivedParadaId}` : null);
-            await enviarMensaje({
+            enviarMensaje({
                 destino: getPadreId(),
                 tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                 origen: 'funciones-mapa',
@@ -4453,7 +4508,6 @@ globalThis.funcionesMapa = {
             return true;
         });
     }
-    ,
     // Note: GPS warmup helpers removed
 };
 

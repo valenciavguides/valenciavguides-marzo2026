@@ -1,4 +1,4 @@
-export const TEXTOS_AVENTURAS = {
+﻿export const TEXTOS_AVENTURAS = {
   Aventura1: [
     // Intro
     { id: "txt-intro", parrafos: [200, 201, 202, 203, 204, 205, 207, 208, 209, 210, 211, 212, 213, 214, 215, 219, 220, 221, 222] },
@@ -825,8 +825,8 @@ export const TEXTOS_AVENTURAS = {
     // Parada 9: Casa de los Dragones (Reto: 9) (Párrafos: 304, 305) (mapa 8)
     { id: "txt-Av5-P9", parrafos: [304, 305] },
 
-    // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13, 307) (mapa 8→9)
-    { id: "txt-Av5-TR9", parrafos: [306, 13, 307] },
+    // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13) (mapa 8→9)
+    { id: "txt-Av5-TR9", parrafos: [306, 13] },
 
     // Parada 10: Mercado de Colón 1 (Reto: 10) (Párrafos: 308, 309, 310) (mapa 9)
     { id: "txt-Av5-P10", parrafos: [308, 309, 310] },

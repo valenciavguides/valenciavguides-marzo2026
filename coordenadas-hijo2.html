@@ -18,16 +18,21 @@
     })();
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- NOSONAR -->
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
     <title>coordenadas-hijo2</title>
     <script src="js/proteccion.js"></script>
     <script src="js/suppress-warnings.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
         /* Escalado proporcional puro: 2.5% del menor lado del viewport */
-        html { font-size: clamp(16px, 5vmin, 18px); }
+        html {
+            font-size: clamp(16px, 5vmin, 18px);
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
 
         /* Fuente global Verdana */
         * { font-family: Verdana, sans-serif !important; }
@@ -73,12 +78,6 @@
             width: 100%;
         }
 
-        html {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
         /* Contenedor principal con bordes redondeados */
         .container {
             width: var(--trapecio-width);
@@ -107,7 +106,7 @@
             position: relative;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(180deg, #43c465 0%, #28a745 50%, #1e8035 100%);
+            background: linear-gradient(180deg, #1e7e34 0%, #155724 50%, #0d3a16 100%);
             color: white;
             font-size: var(--icon-size);
             display: flex;
@@ -177,21 +176,6 @@
         .icon-mapa-jpg {
             font-size: 1.2em;
         }
-
-        /* .status {
-            width: 100%;
-            text-align: center;
-            font-size: 0.9em;
-            padding: 0.3125rem 0;
-            border-radius: 0.25rem;
-            background-color: rgba(255, 255, 255, 0.7);
-            color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3125rem;
-            min-height: 1.5rem;
-        } */
 
         .gps-icon {
             animation: pulse 1.5s infinite;
@@ -324,11 +308,6 @@
             white-space: nowrap;
             overflow: hidden;
             font-weight: bold;
-        }
-
-        /* Contenedor ocupa 100% del iframe — botones se redimensionan solos */
-        .container {
-            height: 100%;
         }
 
         /* Estilos para el estado del GPS */
@@ -473,7 +452,7 @@
             <img src="imagenes/imagenes-aplicación/H2-fotodron.png" alt="Video">
         </button>
         <button id="btn-imagen" class="boton" title="Mostrar Imagen">
-            <img src="imagenes/imagenes-aplicación/H2-fotoproximo-monumento.png" alt="Imagen parada">
+            <img src="imagenes/imagenes-aplicación/H2-fotoproximo-monumento.png" alt="Parada">
         </button>
         <button id="btn-gps" class="boton" title="Activar GPS">
             <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="GPS">
@@ -484,12 +463,12 @@
     </div>
 
     <!-- Overlay fuera de rango -->
-    <div id="fuera-rango-overlay" role="dialog" aria-label="Fuera de rango">
+    <dialog id="fuera-rango-overlay" aria-label="Fuera de rango">
         <div class="fuera-rango-inner">
             <button class="btn-cerrar-fuera-rango" type="button" aria-label="Cerrar">✖</button>
             <img src="imagenes/imagenes-aplicación/foto-fuera-rango.png" alt="Estás fuera de rango">
         </div>
-    </div>
+    </dialog>
 
     <!-- Countdown timer fuera de rango (borde inferior centrado) -->
     <div id="fuera-rango-countdown" class="countdown-hidden">
@@ -498,8 +477,8 @@
 
     <!-- ARRAY DE COORDENADAS - COMENTADO: Los datos ahora vienen centralizados del padre via CARGAR_COORDENADAS -->
     <script type="module">
-        import { normalizarParadas } from './js/utils.js';
-        
+        import { normalizarParadas, retryUntilAvailable, getPadreId } from './js/utils.js';
+
         // ============================================================
         // 🔄 DATOS CENTRALIZADOS: Las coordenadas ahora se reciben del padre
         // El array vacío sirve como fallback de emergencia
@@ -532,13 +511,12 @@
 
 // ==================== INICIALIZACIÓN DE MENSAJERÍA ====================
 
-import { retryUntilAvailable } from './js/utils.js';
 import { obtenerMapaVintage } from './js/mapa-vintage-aventuras.js';
 
 // Fallbacks que esperan a que globalThis.mensajeria esté disponible
 const enviarMensaje = async (...args) => {
     // En hijos, usar postMessage directamente al padre
-    if (globalThis.parent && globalThis.parent !== window) {
+    if (globalThis.parent && globalThis.parent !== globalThis) {
         const mensaje = args[0];
         try {
             globalThis.parent.postMessage({
@@ -548,10 +526,10 @@ const enviarMensaje = async (...args) => {
                 datos: mensaje.datos,
                 timestamp: Date.now()
             }, globalThis.location.origin);
-            return Promise.resolve();
+            return;
         } catch (e) {
             console.error('[hijo2] Error enviando mensaje via postMessage:', e);
-            return Promise.reject(e);
+            throw e;
         }
     } else {
         // Fallback al método anterior si no estamos en iframe
@@ -565,7 +543,7 @@ const enviarMensaje = async (...args) => {
 
 const registrarControlador = async (tipo, callback) => {
     // En hijos, los controladores se registran localmente para mensajes del padre
-    if (globalThis.parent && globalThis.parent !== window) {
+    if (globalThis.parent && globalThis.parent !== globalThis) {
         // Registrar listener para mensajes del padre
         const listener = (event) => {
             if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
@@ -573,7 +551,7 @@ const registrarControlador = async (tipo, callback) => {
             }
         };
         globalThis.addEventListener('message', listener);
-        return Promise.resolve(() => globalThis.removeEventListener('message', listener));
+        return () => globalThis.removeEventListener('message', listener);
     } else {
         // Fallback al método anterior
         return await retryUntilAvailable(
@@ -586,7 +564,7 @@ const registrarControlador = async (tipo, callback) => {
 
 const enviarMensajeConConfirmacion = async (...args) => {
     // Similar a enviarMensaje pero esperando confirmación
-    if (globalThis.parent && globalThis.parent !== window) {
+    if (globalThis.parent && globalThis.parent !== globalThis) {
         const mensaje = args[0];
         return new Promise((resolve, reject) => {
             const idMensaje = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
@@ -630,7 +608,7 @@ const enviarMensajeConConfirmacion = async (...args) => {
 
 // ==================== MESSAGING ADAPTER PARA COMUNICACIÓN CON PADRE ====================
 // Este adapter permite a los hijos registrar controladores centralmente en el state-manager del padre
-if (globalThis.window !== undefined && globalThis.messagingAdapter === undefined) {
+if (globalThis !== undefined && globalThis.messagingAdapter === undefined) {
     globalThis.messagingAdapter = {
         _listenerRegistry: new Map(),
 
@@ -642,7 +620,7 @@ if (globalThis.window !== undefined && globalThis.messagingAdapter === undefined
          * @returns {Promise<boolean>} - True si se registró, false si ya existía
          */
         registrarControladorCentral: async function(controladorId, handler, opciones = {}) {
-            const iframeId = globalThis.name || (typeof CONFIG_HIJO !== 'undefined' && CONFIG_HIJO.IFRAME_ID) || 'hijo';
+            const iframeId = globalThis.name || (CONFIG_HIJO !== undefined && CONFIG_HIJO.IFRAME_ID) || 'hijo';
             const tipo = opciones.tipoMensaje || controladorId;
 
             // Evitar doble registro del mismo tipo
@@ -695,7 +673,7 @@ if (globalThis.window !== undefined && globalThis.messagingAdapter === undefined
          * Envía mensaje al padre para que lo procese centralmente
          */
         enviarMensajeCentral: async function(mensaje) {
-            if (globalThis.parent && globalThis.parent !== window) {
+            if (globalThis.parent && globalThis.parent !== globalThis) {
                 globalThis.parent.postMessage(mensaje, globalThis.location.origin);
                 return { exito: true, metodo: 'postMessage' };
             }
@@ -716,8 +694,39 @@ if (globalThis.window !== undefined && globalThis.messagingAdapter === undefined
 }
 
 // Wrapper seguro para evitar doble registro de controladores en hijos
-if (globalThis.window !== undefined && globalThis.registrarControladorSeguro === undefined) {
+if (globalThis !== undefined && globalThis.registrarControladorSeguro === undefined) {
     globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
+
+    async function _intentarRegistroCentral(tipo, handler) {
+        const iframeId = (globalThis.name || (CONFIG_HIJO !== undefined && CONFIG_HIJO.IFRAME_ID) || 'hijo');
+        const controladorId = `${iframeId}:${tipo}`;
+        if (globalThis.messagingAdapter && typeof globalThis.messagingAdapter.registrarControladorCentral === 'function') {
+            try {
+                const centralRes = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
+                if (centralRes === true) {
+                    (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
+                    return true;
+                }
+            } catch (e) {
+                (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Central registrar failed for ${tipo}: ${e && e.message}`);
+            }
+        }
+        return false;
+    }
+
+    async function _intentarRegistroMensajeria(tipo, handler, opciones) {
+        if (typeof registrarControlador === 'function') {
+            try {
+                const res = await safeRegistrar(tipo, handler, opciones);
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
+                return res;
+            } catch (error) {
+                (globalThis.logger || console).error && (globalThis.logger || console).error(`[HIJO] Error registrando controlador ${tipo}:`, error);
+            }
+        }
+        return undefined;
+    }
+
     globalThis.registrarControladorSeguro = async function(tipo, handler, opciones) {
         try {
             (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
@@ -729,38 +738,16 @@ if (globalThis.window !== undefined && globalThis.registrarControladorSeguro ===
                 (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Controlador ya registrado, omitiendo: ${tipo}`);
                 return;
             }
-            // Track locally (used to generate manifest for migration)
             globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
 
-            // Prefer central registration via messagingAdapter/state-manager when available
             try {
-                const iframeId = (globalThis.name || (typeof CONFIG_HIJO !== 'undefined' && CONFIG_HIJO.IFRAME_ID) || 'hijo');
-                const controladorId = `${iframeId}:${tipo}`;
-                if (globalThis.messagingAdapter && typeof globalThis.messagingAdapter.registrarControladorCentral === 'function') {
-                    try {
-                        const centralRes = await globalThis.messagingAdapter.registrarControladorCentral(controladorId, handler, { tipoMensaje: tipo });
-                        if (centralRes === true) {
-                            (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador registered centrally: ${controladorId} -> ${tipo}`);
-                            return true;
-                        }
-                    } catch (e) {
-                        (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Central registrar failed for ${tipo}: ${e && e.message}`);
-                    }
-                }
-                if (typeof registrarControlador === 'function') {
-                    try {
-                        const res = await safeRegistrar(tipo, handler, opciones);
-                        (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
-                        return res;
-                    } catch (error) {
-                        (globalThis.logger || console).error && (globalThis.logger || console).error(`[HIJO] Error registrando controlador ${tipo}:`, error);
-                    }
-                }
+                if (await _intentarRegistroCentral(tipo, handler)) return true;
+                const res = await _intentarRegistroMensajeria(tipo, handler, opciones);
+                if (res !== undefined) return res;
             } catch (e) {
                 (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] Error in registration attempts for ${tipo}: ${e && e.message}`);
             }
 
-            // If we reached here the handler remains tracked locally in __CONTROLADOR_REGISTRADOS
             (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] Handler queued for migration: ${tipo} (local queue)`);
             return;
         } catch (e) {
@@ -769,13 +756,13 @@ if (globalThis.window !== undefined && globalThis.registrarControladorSeguro ===
     }
 
     // Helper: safeRegistrar delegates to registrarControladorSeguro when available
-    if (globalThis.window !== undefined && globalThis.safeRegistrar === undefined) {
+    if (globalThis !== undefined && globalThis.safeRegistrar === undefined) {
         globalThis.safeRegistrar = async function(tipo, handler, opciones) {
             try {
                 if (!tipo || typeof handler !== 'function') return;
                 if (globalThis.__CONTROLADOR_REGISTRADOS && globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) return;
                 if (typeof globalThis.registrarControladorSeguro === 'function') return globalThis.registrarControladorSeguro(tipo, handler, opciones);
-                if (typeof registrarControlador === 'function') return registrarControlador(tipo, handler, opciones);
+                if (typeof registrarControlador === 'function') return registrarControlador(tipo, handler);
             } catch (e) { (globalThis.logger || console).warn && (globalThis.logger || console).warn('[HIJO] safeRegistrar error', e && e.message); }
         };
     }
@@ -784,7 +771,6 @@ if (globalThis.window !== undefined && globalThis.registrarControladorSeguro ===
 // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
 // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
 
-import { getPadreId } from './js/utils.js';
 import { TIPOS_MENSAJE } from './js/constants.js';
 import logger from './js/logger.js';
 
@@ -811,10 +797,10 @@ function calcularMultiplicadorTimeoutConexion() {
 
         const effectiveType = navigator.connection.effectiveType || 'unknown';
         const multiplicadores = {
-            '4g': 1.0,      // Conexión rápida
+            '4g': 1,        // Conexión rápida
             '3g': 1.5,      // Conexión media - 50% más tiempo
-            '2g': 2.0,      // Conexión lenta - doble tiempo
-            'slow-2g': 3.0, // Conexión muy lenta - triple tiempo
+            '2g': 2,        // Conexión lenta - doble tiempo
+            'slow-2g': 3,   // Conexión muy lenta - triple tiempo
             'unknown': 1.5  // Desconocido - moderado
         };
 
@@ -927,7 +913,7 @@ function mostrarOverlayFueraRango() {
     if (!overlay) return;
     overlay.style.display = 'flex';
     // Forzar reflow para que la transición funcione
-    void overlay.offsetWidth;
+    overlay.getBoundingClientRect(); // force reflow for CSS transition
     overlay.classList.add('visible');
     // Botón cerrar
     const btnCerrar = overlay.querySelector('.btn-cerrar-fuera-rango');
@@ -1000,6 +986,88 @@ function detenerCountdown() {
 //   * GPS habilitado: 5m hasta toleranciaGPS (puede ser 150m+ en tramos largos)
 //   * VIDEO habilitado: 5m hasta toleranciaGPS (para ver video completo del tramo)
 //   * Razón: Usuario necesita seguir polyline completa con waypoints del tramo
+
+function _actualizarBotonVideo(elementosDOM, retoActivo, tipoParadaActual, idParadaActual) {
+    if (!elementosDOM.btnVideo) return;
+    const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    if (retoActivo) {
+        desactivarBoton(elementosDOM.btnVideo);
+        logger.debug('🎥 Botón video DESACTIVADO: reto activo');
+    } else if (esTramo) {
+        activarBoton(elementosDOM.btnVideo);
+        logger.debug(`🎥 Botón video ACTIVADO: tramo seleccionado (${idParadaActual})`);
+    } else {
+        desactivarBoton(elementosDOM.btnVideo);
+        logger.debug('🎥 Botón video DESACTIVADO: no es tramo');
+    }
+}
+
+function _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, idParadaActual, distanciaAlDestino, toleranciaGPS) {
+    if (!elementosDOM.btnGps) return;
+    const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    if (modo === 'casa') {
+        desactivarBoton(elementosDOM.btnGps);
+        logger.debug('🛰️ Botón GPS DESACTIVADO: modo casa (forzado)');
+        return;
+    }
+    if (retoActivo) {
+        desactivarBoton(elementosDOM.btnGps);
+        logger.debug('🛰️ Botón GPS DESACTIVADO: reto activo');
+        return;
+    }
+    if (modo === 'aventura') {
+        _actualizarGpsEnModoAventura(elementosDOM.btnGps, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS);
+    }
+}
+
+function _actualizarGpsEnModoAventura(btnGps, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS) {
+    const rangoMinimo = esTramo ? 5 : 0;
+    const rangoMaximo = esTramo ? toleranciaGPS : 20;
+    const distanciaEnRango = distanciaAlDestino !== null &&
+                           distanciaAlDestino >= rangoMinimo &&
+                           distanciaAlDestino <= rangoMaximo;
+    if (distanciaEnRango) {
+        activarBoton(btnGps);
+        logger.debug(`🛰️ Botón GPS ACTIVADO (${esTramo ? 'TRAMO' : 'PARADA'}): distancia ${distanciaAlDestino.toFixed(1)}m en rango ${rangoMinimo}-${rangoMaximo}m`);
+    } else {
+        desactivarBoton(btnGps);
+        logger.debug(`🛰️ Botón GPS DESACTIVADO: distancia ${distanciaAlDestino?.toFixed(1) || 'desconocida'}m fuera de rango ${rangoMinimo}-${rangoMaximo}m`);
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: getPadreId(),
+            datos: { idParada: idParadaActual, distancia: distanciaAlDestino, disponible: 'solo_imagen' }
+        }).catch(e => logger.debug('[hijo2] Error notificando GPS restringido:', e.message));
+    }
+}
+
+function _actualizarBotonUbicacion(elementosDOM, modo, retoActivo) {
+    if (!elementosDOM.btnUbicacion) return;
+    if (modo === 'casa') {
+        desactivarBoton(elementosDOM.btnUbicacion);
+        logger.debug('🧭 Botón ubicación DESACTIVADO: modo casa (forzado)');
+    } else if (modo === 'aventura') {
+        if (retoActivo) {
+            desactivarBoton(elementosDOM.btnUbicacion);
+            logger.debug('🧭 Botón ubicación DESACTIVADO: reto activo');
+        }
+        // En caso contrario, no tocar: verificarDistanciaYActualizarBotones() manda.
+    } else {
+        desactivarBoton(elementosDOM.btnUbicacion);
+        logger.debug(`🧭 Botón ubicación DESACTIVADO: fuera de condiciones`);
+    }
+}
+
+function _desactivarBotonesRangoExcedido(elementosDOM) {
+    if (elementosDOM.btnVideo) desactivarBoton(elementosDOM.btnVideo);
+    if (elementosDOM.btnImagen) desactivarBoton(elementosDOM.btnImagen);
+    if (elementosDOM.btnGps) desactivarBoton(elementosDOM.btnGps);
+    if (elementosDOM.btnMapaCompleto) desactivarBoton(elementosDOM.btnMapaCompleto);
+    if (elementosDOM.btnMapaJpg) desactivarBoton(elementosDOM.btnMapaJpg);
+    if (elementosDOM.btnUbicacion) activarBoton(elementosDOM.btnUbicacion);
+    logger.debug('⚠️ Fuera de rango >5min: solo btn-ubicacion habilitado, resto deshabilitado');
+}
+
 function actualizarEstadoBotones() {
     const {
         modo,
@@ -1012,50 +1080,22 @@ function actualizarEstadoBotones() {
         retoActivo
     } = estadoComponente;
 
-    // Log para debugging - mostrar tolerancia GPS actual
     if (tipoParadaActual === 'tramo' && toleranciaGPS !== 50) {
         logger.debug(`[hijo2] 📏 Usando tolerancia GPS dinámica: ${toleranciaGPS}m para ${idParadaActual}`);
     }
 
-    // Si los controles están deshabilitados globalmente, desactivar todo
     if (!controlesHabilitados) {
         Object.values(elementosDOM).forEach(boton => desactivarBoton(boton));
         return;
     }
 
-    // === FUERA DE RANGO 5min: solo btn-ubicacion habilitado, todos los demás deshabilitados ===
-    const fueraDeRango5min = estadoComponente.fueraDeRango5min;
-
-    if (fueraDeRango5min) {
-        // Deshabilitar TODOS excepto btn-ubicacion
-        if (elementosDOM.btnVideo) desactivarBoton(elementosDOM.btnVideo);
-        if (elementosDOM.btnImagen) desactivarBoton(elementosDOM.btnImagen);
-        if (elementosDOM.btnGps) desactivarBoton(elementosDOM.btnGps);
-        if (elementosDOM.btnMapaCompleto) desactivarBoton(elementosDOM.btnMapaCompleto);
-        if (elementosDOM.btnMapaJpg) desactivarBoton(elementosDOM.btnMapaJpg);
-        // btn-ubicacion: habilitado (lo gestiona verificarDistanciaYActualizarBotones, aquí forzar)
-        if (elementosDOM.btnUbicacion) activarBoton(elementosDOM.btnUbicacion);
-        logger.debug('⚠️ Fuera de rango >5min: solo btn-ubicacion habilitado, resto deshabilitado');
+    if (estadoComponente.fueraDeRango5min) {
+        _desactivarBotonesRangoExcedido(elementosDOM);
         return;
     }
 
-    // VIDEO (fotodron): habilitado SOLO cuando hay tramo seleccionado (ambos modos)
-    if (elementosDOM.btnVideo) {
-        const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    _actualizarBotonVideo(elementosDOM, retoActivo, tipoParadaActual, idParadaActual);
 
-        if (retoActivo) {
-            desactivarBoton(elementosDOM.btnVideo);
-            logger.debug('🎥 Botón video DESACTIVADO: reto activo');
-        } else if (esTramo) {
-            activarBoton(elementosDOM.btnVideo);
-            logger.debug(`🎥 Botón video ACTIVADO: tramo seleccionado (${idParadaActual})`);
-        } else {
-            desactivarBoton(elementosDOM.btnVideo);
-            logger.debug('🎥 Botón video DESACTIVADO: no es tramo');
-        }
-    }
-
-    // IMAGEN: habilitado siempre salvo reto activo
     if (elementosDOM.btnImagen) {
         if (retoActivo) {
             desactivarBoton(elementosDOM.btnImagen);
@@ -1066,66 +1106,11 @@ function actualizarEstadoBotones() {
         }
     }
 
-    // 🛰️ GPS: Deshabilitado en modo casa o reto activo; en aventura por distancia
-    if (elementosDOM.btnGps) {
-        const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
-        if (modo === 'casa') {
-            desactivarBoton(elementosDOM.btnGps);
-            logger.debug('🛰️ Botón GPS DESACTIVADO: modo casa (forzado)');
-        } else if (retoActivo) {
-            desactivarBoton(elementosDOM.btnGps);
-            logger.debug('🛰️ Botón GPS DESACTIVADO: reto activo');
-        } else if (modo === 'aventura') {
-            let rangoMinimo = esTramo ? 5 : 0;
-            let rangoMaximo = esTramo ? toleranciaGPS : 20;
-            const distanciaEnRango = distanciaAlDestino !== null &&
-                                   distanciaAlDestino >= rangoMinimo &&
-                                   distanciaAlDestino <= rangoMaximo;
-            if (distanciaEnRango) {
-                activarBoton(elementosDOM.btnGps);
-                logger.debug(`🛰️ Botón GPS ACTIVADO (${esTramo ? 'TRAMO' : 'PARADA'}): distancia ${distanciaAlDestino.toFixed(1)}m en rango ${rangoMinimo}-${rangoMaximo}m`);
-            } else {
-                desactivarBoton(elementosDOM.btnGps);
-                logger.debug(`🛰️ Botón GPS DESACTIVADO: distancia ${distanciaAlDestino?.toFixed(1) || 'desconocida'}m fuera de rango ${rangoMinimo}-${rangoMaximo}m`);
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
-                    datos: {
-                        idParada: idParadaActual,
-                        distancia: distanciaAlDestino,
-                        disponible: 'solo_imagen'
-                    }
-                }).catch(e => logger.debug('[hijo2] Error notificando GPS restringido:', e.message));
-            }
-        }
-    }
+    _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, idParadaActual, distanciaAlDestino, toleranciaGPS);
+    _actualizarBotonUbicacion(elementosDOM, modo, retoActivo);
 
-    // 📍 UBICACIÓN: Deshabilitado en modo casa; en aventura lo gestiona verificarDistanciaYActualizarBotones()
-    if (elementosDOM.btnUbicacion) {
-        if (modo === 'casa') {
-            desactivarBoton(elementosDOM.btnUbicacion);
-            logger.debug('🧭 Botón ubicación DESACTIVADO: modo casa (forzado)');
-        } else if (modo === 'aventura') {
-            if (retoActivo) {
-                desactivarBoton(elementosDOM.btnUbicacion);
-                logger.debug('🧭 Botón ubicación DESACTIVADO: reto activo');
-            }
-            // En caso contrario, no tocar: verificarDistanciaYActualizarBotones() manda.
-        } else {
-            desactivarBoton(elementosDOM.btnUbicacion);
-            logger.debug(`🧭 Botón ubicación DESACTIVADO: fuera de condiciones`);
-        }
-    }
-
-    // Botones de mapa completo y mapa JPG siempre están habilitados
-    if (elementosDOM.btnMapaCompleto) {
-        activarBoton(elementosDOM.btnMapaCompleto);
-    }
-
-    if (elementosDOM.btnMapaJpg) {
-        activarBoton(elementosDOM.btnMapaJpg);
-    }
+    if (elementosDOM.btnMapaCompleto) activarBoton(elementosDOM.btnMapaCompleto);
+    if (elementosDOM.btnMapaJpg) activarBoton(elementosDOM.btnMapaJpg);
 }
 
 // ============================================================
@@ -1155,6 +1140,88 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     return R * c; // Distancia en metros
 }
 
+function _calcularProximidadParadas(posicion, paradas, RADIO_PERMITIDO, logPrefix) {
+    let dentroDeRango = false;
+    let elementoMasCercano = null;
+    let distanciaMinima = Infinity;
+
+    paradas.forEach(elemento => {
+        if (elemento.tipo === 'parada' && elemento.coordenadas) {
+            const dist = calcularDistancia(posicion.lat, posicion.lng, elemento.coordenadas.lat, elemento.coordenadas.lng);
+            logger.debug(`${logPrefix} Distancia a parada ${elemento.id}: ${dist.toFixed(1)}m`);
+            if (dist < distanciaMinima) { distanciaMinima = dist; elementoMasCercano = elemento; }
+            if (dist <= RADIO_PERMITIDO) dentroDeRango = true;
+        }
+        if (elemento.tipo === 'tramo') {
+            const puntosAValidar = _obtenerPuntosTramo(elemento);
+            puntosAValidar.forEach(punto => {
+                const dist = calcularDistancia(posicion.lat, posicion.lng, punto.lat, punto.lng);
+                logger.debug(`${logPrefix} Distancia a ${elemento.id}[${punto.tipo}]: ${dist.toFixed(1)}m`);
+                if (dist < distanciaMinima) { distanciaMinima = dist; elementoMasCercano = elemento; }
+                if (dist <= RADIO_PERMITIDO) dentroDeRango = true;
+            });
+        }
+    });
+
+    return { dentroDeRango, elementoMasCercano, distanciaMinima };
+}
+
+function _obtenerPuntosTramo(elemento) {
+    const puntosAValidar = [];
+    if (elemento.inicio) puntosAValidar.push({ ...elemento.inicio, tipo: 'inicio' });
+    if (elemento.waypoints && Array.isArray(elemento.waypoints)) {
+        elemento.waypoints.forEach((wp, idx) => puntosAValidar.push({ ...wp, tipo: `waypoint-${idx}` }));
+    }
+    if (elemento.fin) puntosAValidar.push({ ...elemento.fin, tipo: 'fin' });
+    return puntosAValidar;
+}
+
+function _procesarDentroDeRango(btn, logPrefix) {
+    btn.disabled = true;
+    btn.style.backgroundColor = '#f44336';
+    btn.style.opacity = '0.6';
+    if (estadoComponente.timestampSalioDeRango !== null) {
+        logger.info(`${logPrefix} ✅ Usuario volvió DENTRO de rango (timer reseteado)`);
+        estadoComponente.timestampSalioDeRango = null;
+        estadoComponente._notificacionFueraRangoEnviada = false;
+        ocultarOverlayFueraRango();
+    }
+    if (estadoComponente.fueraDeRango5min) {
+        estadoComponente.fueraDeRango5min = false;
+        logger.info(`${logPrefix} ✅ Fuera de rango 5min DESACTIVADO: usuario volvió a ruta`);
+        actualizarEstadoBotones();
+    }
+}
+
+function _procesarFueraDeRango5min(btn, logPrefix, distanciaMinima, elementoMasCercano, tiempoFuera) {
+    btn.disabled = false;
+    btn.style.backgroundColor = '#4CAF50';
+    btn.style.opacity = '1';
+    if (!estadoComponente.fueraDeRango5min) {
+        estadoComponente.fueraDeRango5min = true;
+        actualizarEstadoBotones();
+        logger.info(`${logPrefix} ✅ Fuera de rango 5min ACTIVADO: GPS/video deshabilitados`);
+    }
+    logger.info(`${logPrefix} ✅ btn-ubicacion HABILITADO: Usuario >5min fuera de rango`);
+    if (!estadoComponente._notificacionFueraRangoEnviada) {
+        estadoComponente._notificacionFueraRangoEnviada = true;
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: getPadreId(),
+            datos: { distancia: distanciaMinima, tiempoFuera, elementoMasCercano: elementoMasCercano?.id || null, timestamp: Date.now() }
+        }).catch(e => logger.debug(`${logPrefix} Error notificando usuario fuera de rango:`, e.message));
+        const elementoId = estadoComponente.idParadaActual || 'P-0';
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: getPadreId(),
+            datos: { ubicacionUsuario: estadoComponente.posicionActualUsuario, elementoId, centrar: true, zoom: 16 }
+        }).catch(e => logger.debug(`${logPrefix} Error solicitando polyline:`, e.message));
+        logger.info(`${logPrefix} 📢 Notificación USUARIO_FUERA_RANGO + polyline enviadas al padre`);
+    }
+}
+
 /**
  * Verifica si el usuario está dentro/fuera del radio de paradas/tramos
  * y actualiza el estado visual del botón de ubicación
@@ -1163,185 +1230,94 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
  */
 function verificarDistanciaYActualizarBotones() {
     const logPrefix = '[hijo2][verificarDistanciaYActualizarBotones]';
-    
     if (!estadoComponente.posicionActualUsuario) {
         logger.warn(`${logPrefix} No hay posición GPS disponible`);
         return;
     }
-    
-    const RADIO_PERMITIDO = 50; // metros - radio de validación GPS
+    const RADIO_PERMITIDO = 50;
     const paradas = globalThis.__vv_coordenadasAventura || [];
-    
     if (paradas.length === 0) {
         logger.warn(`${logPrefix} No hay paradas disponibles para validar`);
         return;
     }
-    
-    let dentroDeRango = false;
-    let elementoMasCercano = null;
-    let distanciaMinima = Infinity;
-    
-    // Buscar elemento más cercano (parada o cualquier punto de tramo)
-    paradas.forEach(elemento => {
-        // PARADAS: Solo validar coordenadas
-        if (elemento.tipo === 'parada' && elemento.coordenadas) {
-            const dist = calcularDistancia(
-                estadoComponente.posicionActualUsuario.lat,
-                estadoComponente.posicionActualUsuario.lng,
-                elemento.coordenadas.lat,
-                elemento.coordenadas.lng
-            );
-            
-            logger.debug(`${logPrefix} Distancia a parada ${elemento.id}: ${dist.toFixed(1)}m`);
-            
-            if (dist < distanciaMinima) {
-                distanciaMinima = dist;
-                elementoMasCercano = elemento;
-            }
-            
-            if (dist <= RADIO_PERMITIDO) {
-                dentroDeRango = true;
-            }
-        }
-        
-        // TRAMOS: Validar inicio, waypoints y fin (importante para viewpoints)
-        if (elemento.tipo === 'tramo') {
-            const puntosAValidar = [];
-            
-            if (elemento.inicio) puntosAValidar.push({ ...elemento.inicio, tipo: 'inicio' });
-            if (elemento.waypoints && Array.isArray(elemento.waypoints)) {
-                elemento.waypoints.forEach((wp, idx) => {
-                    puntosAValidar.push({ ...wp, tipo: `waypoint-${idx}` });
-                });
-            }
-            if (elemento.fin) puntosAValidar.push({ ...elemento.fin, tipo: 'fin' });
-            
-            puntosAValidar.forEach(punto => {
-                const dist = calcularDistancia(
-                    estadoComponente.posicionActualUsuario.lat,
-                    estadoComponente.posicionActualUsuario.lng,
-                    punto.lat,
-                    punto.lng
-                );
-                
-                logger.debug(`${logPrefix} Distancia a ${elemento.id}[${punto.tipo}]: ${dist.toFixed(1)}m`);
-                
-                if (dist < distanciaMinima) {
-                    distanciaMinima = dist;
-                    elementoMasCercano = elemento;
-                }
-                
-                if (dist <= RADIO_PERMITIDO) {
-                    dentroDeRango = true;
-                }
-            });
-        }
-    });
-    
+
+    const { dentroDeRango, elementoMasCercano, distanciaMinima } = _calcularProximidadParadas(estadoComponente.posicionActualUsuario, paradas, RADIO_PERMITIDO, logPrefix);
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
-    
     if (!btn) {
         logger.warn(`${logPrefix} Botón de ubicación no encontrado`);
         return;
     }
-    
-    // LÓGICA CORREGIDA:
+
     if (dentroDeRango) {
-        // DENTRO de rango (<50m) → ROJO DESHABILITADO (estás en la ruta, no necesitas navegar)
+        _procesarDentroDeRango(btn, logPrefix);
+        return;
+    }
+
+    if (estadoComponente.timestampSalioDeRango === null) {
+        estadoComponente.timestampSalioDeRango = ahora;
+        logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango (mostrando overlay + countdown 5min)`);
+        mostrarOverlayFueraRango();
+        iniciarCountdown();
+    }
+    const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
+    if (tiempoFuera >= estadoComponente.tiempoFueraRequerido) {
+        _procesarFueraDeRango5min(btn, logPrefix, distanciaMinima, elementoMasCercano, tiempoFuera);
+    } else {
         btn.disabled = true;
         btn.style.backgroundColor = '#f44336';
         btn.style.opacity = '0.6';
-        
-        // Resetear timer si volvió dentro de rango
-        if (estadoComponente.timestampSalioDeRango !== null) {
-            logger.info(`${logPrefix} ✅ Usuario volvió DENTRO de rango (timer reseteado)`);
-            estadoComponente.timestampSalioDeRango = null;
-            estadoComponente._notificacionFueraRangoEnviada = false;
-            // Ocultar overlay + countdown (visible desde que salió de rango)
-            ocultarOverlayFueraRango();
-        }
-
-        // Si estaba en modo fuera-de-rango-5min, desactivarlo
-        if (estadoComponente.fueraDeRango5min) {
-            estadoComponente.fueraDeRango5min = false;
-            logger.info(`${logPrefix} ✅ Fuera de rango 5min DESACTIVADO: usuario volvió a ruta`);
-            // Recalcular todos los botones para restaurar estados normales
-            actualizarEstadoBotones();
-        }
-    } else {
-        // FUERA de rango (>50m)
-        if (estadoComponente.timestampSalioDeRango === null) {
-            estadoComponente.timestampSalioDeRango = ahora;
-            logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango (mostrando overlay + countdown 5min)`);
-            // Mostrar overlay + countdown INMEDIATAMENTE al salir de rango
-            mostrarOverlayFueraRango();
-            iniciarCountdown();
-        }
-        
-        const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
-        
-        if (tiempoFuera >= estadoComponente.tiempoFueraRequerido) {
-            // Más de 5 min fuera → btn-ubicacion VERDE HABILITADO
-            btn.disabled = false;
-            btn.style.backgroundColor = '#4CAF50';
-            btn.style.opacity = '1';
-
-            // Activar estado fuera-de-rango-5min (deshabilita GPS, video en actualizarEstadoBotones)
-            if (!estadoComponente.fueraDeRango5min) {
-                estadoComponente.fueraDeRango5min = true;
-                // Overlay ya visible desde que salió de rango; countdown llegó a 00:00
-                // Recalcular botones para forzar GPS, video a rojo
-                actualizarEstadoBotones();
-                logger.info(`${logPrefix} ✅ Fuera de rango 5min ACTIVADO: GPS/video deshabilitados`);
-            }
-
-            logger.info(`${logPrefix} ✅ btn-ubicacion HABILITADO: Usuario >5min fuera de rango`);
-            
-            // Notificar al padre (solo una vez) y solicitar polyline
-            if (!estadoComponente._notificacionFueraRangoEnviada) {
-                estadoComponente._notificacionFueraRangoEnviada = true;
-                
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
-                    datos: {
-                        distancia: distanciaMinima,
-                        tiempoFuera: tiempoFuera,
-                        elementoMasCercano: elementoMasCercano?.id || null,
-                        timestamp: Date.now()
-                    }
-                }).catch(e => logger.debug(`${logPrefix} Error notificando usuario fuera de rango:`, e.message));
-
-                // Solicitar polyline desde ubicación actual hasta parada/tramo destino
-                const elementoId = estadoComponente.idParadaActual || 'P-0';
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
-                    datos: {
-                        ubicacionUsuario: estadoComponente.posicionActualUsuario,
-                        elementoId: elementoId,
-                        centrar: true,
-                        zoom: 16
-                    }
-                }).catch(e => logger.debug(`${logPrefix} Error solicitando polyline:`, e.message));
-                
-                logger.info(`${logPrefix} 📢 Notificación USUARIO_FUERA_RANGO + polyline enviadas al padre`);
-            }
-        } else {
-            // Menos de 5 min fuera → ROJO DESHABILITADO (esperando)
-            btn.disabled = true;
-            btn.style.backgroundColor = '#f44336';
-            btn.style.opacity = '0.6';
-            const segundosRestantes = Math.ceil(Math.max(0, estadoComponente.tiempoFueraRequerido - tiempoFuera) / 1000);
-            logger.debug(`${logPrefix} ⏳ Esperando: ${segundosRestantes}s restantes`);
-        }
+        const segundosRestantes = Math.ceil(Math.max(0, estadoComponente.tiempoFueraRequerido - tiempoFuera) / 1000);
+        logger.debug(`${logPrefix} ⏳ Esperando: ${segundosRestantes}s restantes`);
     }
 }
 
 // Inicializar estado de botones al cargar
+function _buscarTextoParada(idParadaActual) {
+    try {
+        const textos = globalThis.__vv_textosAventura;
+        if (textos && Array.isArray(textos) && textos.length > 0) {
+            const paradaNorm = idParadaActual.replaceAll('-', '');
+            const textoParada = textos.find(t => t && t.id && t.id.replaceAll('-', '').includes(paradaNorm)) || null;
+            if (textoParada) logger.info(`[hijo2] Texto encontrado para ${idParadaActual}: "${textoParada.title}"`);
+            return textoParada;
+        }
+    } catch (textoErr) {
+        logger.warn(`[hijo2] Error buscando texto para parada:`, textoErr);
+    }
+    return null;
+}
+
+async function _reproducirVideoParada(idParadaActual) {
+    if (!idParadaActual) {
+        logger.warn(`[hijo2] No hay parada seleccionada - abriendo ventana de video vacía`);
+        await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, origen: CONFIG_HIJO.IFRAME_ID, destino: getPadreId(), datos: { accion: 'reproducir-video', sinContenido: true, mensajeError: 'No hay parada/tramo seleccionado' } });
+        actualizarEstado('Ventana video abierta (sin parada)', 'warn');
+        return;
+    }
+    const datosDisponibles = obtenerCoordenadasParadas();
+    const parada = datosDisponibles.find(p => p.id === idParadaActual || p.parada_id === idParadaActual);
+    if (!parada) {
+        logger.warn(`[hijo2] No se encontró parada/tramo ${idParadaActual} - abriendo ventana de video vacía`);
+        logger.debug(`[hijo2][DEBUG] IDs disponibles:`, datosDisponibles?.map(p => ({ id: p.id, parada_id: p.parada_id })));
+        await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, origen: CONFIG_HIJO.IFRAME_ID, destino: getPadreId(), datos: { accion: 'reproducir-video', sinContenido: true, mensajeError: 'No hay video disponible para esta parada/tramo' } });
+        actualizarEstado('Ventana video abierta (sin datos)', 'warn');
+        return;
+    }
+    logger.debug(`[hijo2][DEBUG_VIDEO] Parada encontrada:`, { id: parada.id, nombre: parada.nombre, tieneVideo: !!parada.video, urlVideo: parada.video, tieneImagen: !!parada.imagen });
+    const urlVideo = parada.video;
+    const hayVideo = urlVideo && urlVideo.trim() !== '';
+    if (!hayVideo) logger.warn(`[hijo2] No hay video para parada/tramo ${idParadaActual} - abriendo ventana con mensaje`);
+    await enviarMensaje({
+        tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
+        origen: CONFIG_HIJO.IFRAME_ID,
+        destino: getPadreId(),
+        datos: { accion: 'reproducir-video', paradaActual: idParadaActual, urlVideo: hayVideo ? urlVideo : null, nombre: parada.nombre || parada.title, sinContenido: !hayVideo, mensajeError: hayVideo ? null : 'No hay video disponible para esta parada/tramo' }
+    });
+    actualizarEstado(hayVideo ? 'Reproduciendo video' : 'Ventana de video abierta (sin contenido)', hayVideo ? 'success' : 'warn');
+    logger.info(`[hijo2] Ventana video solicitada para parada/tramo ${idParadaActual}:`, { hayVideo, urlVideo });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     actualizarEstadoBotones();
     
@@ -1373,90 +1349,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 elementosDOM.btnImagen?.addEventListener('click', async () => {
     try {
         setBotonActivo('btnImagen');
-
         logger.info(`[hijo2][BOTON_IMAGEN] Botón pulsado, verificando estado:`, {
             idParadaActual: estadoComponente.idParadaActual,
             tipoParada: estadoComponente.tipoParadaActual,
             modo: estadoComponente.modo,
             datosRecibidos: estadoComponente.datosRecibidos
         });
-        
-        // ✅ DEBUG: Confirmar ID actual antes de buscar
         logger.info(`[hijo2][BOTON_IMAGEN] ID actual confirmado: "${estadoComponente.idParadaActual}" (tipo: ${typeof estadoComponente.idParadaActual})`);
 
-        // Si no hay parada seleccionada, abrir la ventana flotante vacía igualmente
         if (!estadoComponente.idParadaActual) {
             logger.warn(`[hijo2] No hay parada seleccionada - abriendo ventana de imagen vacía`);
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
-                datos: { accion: 'mostrar-imagen', sinContenido: true, mensajeError: 'No hay parada seleccionada' }
-            });
+            await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, origen: CONFIG_HIJO.IFRAME_ID, destino: getPadreId(), datos: { accion: 'mostrar-imagen', sinContenido: true, mensajeError: 'No hay parada seleccionada' } });
             actualizarEstado('Ventana imagen abierta (sin parada)', 'warn');
             return;
         }
 
-        // ✅ BUSCAR datos: usar función centralizada que prioriza datos del padre
-        const datosDisponibles = obtenerCoordenadasParadas();
-        const parada = datosDisponibles.find(p => 
-            p.id === estadoComponente.idParadaActual ||
-            p.parada_id === estadoComponente.idParadaActual
-        );
+        let datosDisponibles = obtenerCoordenadasParadas();
+        if (datosDisponibles.length === 0 && estadoComponente.idParadaActual) {
+            // Coordenadas aún no propagadas — esperar hasta 2 s
+            let intentos = 0;
+            while (datosDisponibles.length === 0 && intentos < 20) {
+                await new Promise(r => setTimeout(r, 100));
+                datosDisponibles = obtenerCoordenadasParadas();
+                intentos++;
+            }
+            if (datosDisponibles.length === 0) logger.warn('[hijo2][BOTON_IMAGEN] Coordenadas no disponibles tras espera');
+        }
+        const parada = datosDisponibles.find(p => p.id === estadoComponente.idParadaActual || p.parada_id === estadoComponente.idParadaActual);
 
         if (!parada) {
             logger.warn(`[hijo2] No se encontró parada ${estadoComponente.idParadaActual} - abriendo ventana de imagen vacía`);
             logger.debug(`[hijo2][DEBUG] IDs disponibles:`, datosDisponibles?.map(p => ({ id: p.id, parada_id: p.parada_id })));
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
-                datos: { accion: 'mostrar-imagen', sinContenido: true, mensajeError: 'No hay imagen disponible para esta parada' }
-            });
+            await enviarMensaje({ tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO, origen: CONFIG_HIJO.IFRAME_ID, destino: getPadreId(), datos: { accion: 'mostrar-imagen', sinContenido: true, mensajeError: 'No hay imagen disponible para esta parada' } });
             actualizarEstado('Ventana imagen abierta (sin datos)', 'warn');
             return;
         }
-        
-        // 🔍 DEBUG: Ver qué contiene la parada encontrada
-        logger.debug(`[hijo2][DEBUG_IMAGEN] Parada encontrada:`, {
-            id: parada.id,
-            nombre: parada.nombre,
-            tieneImagen: !!parada.imagen,
-            urlImagen: parada.imagen,
-            tieneVideo: !!parada.video
-        });
 
-        // ✅ SIEMPRE abrir ventana flotante, con o sin imagen
-        // Recopilar todas las imágenes disponibles (imagen, imagen2, imagen3, imagen4)
+        logger.debug(`[hijo2][DEBUG_IMAGEN] Parada encontrada:`, { id: parada.id, nombre: parada.nombre, tieneImagen: !!parada.imagen, urlImagen: parada.imagen, tieneVideo: !!parada.video });
+
         const todasImagenes = [parada.imagen, parada.imagen2, parada.imagen3, parada.imagen4]
             .filter(url => url && typeof url === 'string' && url.trim() !== '');
         const urlImagen = todasImagenes.length > 0 ? todasImagenes[0] : null;
         const hayImagen = todasImagenes.length > 0;
-
-        // Determinar tipo (parada o tramo)
         const tipoEntrada = (parada.id && parada.id.startsWith('TR')) || estadoComponente.tipoParadaActual === 'tramo' ? 'tramo' : 'parada';
-        const mapaNumero = parada.mapa_numero != null ? parada.mapa_numero : null;
-        
-        if (!hayImagen) {
-            logger.warn(`[hijo2] No hay imagen para parada ${estadoComponente.idParadaActual} - abriendo ventana con mensaje`);
-        }
+        const mapaNumero = parada.mapa_numero == null ? null : parada.mapa_numero;
 
-        // Buscar texto correspondiente a la parada
-        let textoParada = null;
-        try {
-            const textos = globalThis.__vv_textosAventura;
-            if (textos && Array.isArray(textos) && textos.length > 0) {
-                const paradaNorm = estadoComponente.idParadaActual.replace(/-/g, '');
-                textoParada = textos.find(t => t && t.id && t.id.replaceAll('-', '').includes(paradaNorm)) || null;
-                if (textoParada) {
-                    logger.info(`[hijo2] Texto encontrado para ${estadoComponente.idParadaActual}: "${textoParada.title}"`);
-                }
-            }
-        } catch (textoErr) {
-            logger.warn(`[hijo2] Error buscando texto para parada:`, textoErr);
-        }
+        if (!hayImagen) logger.warn(`[hijo2] No hay imagen para parada ${estadoComponente.idParadaActual} - abriendo ventana con mensaje`);
 
-        // Notificar al padre que se requiere mostrar ventana de imagen (con o sin contenido)
+        const textoParada = _buscarTextoParada(estadoComponente.idParadaActual);
+
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
             origen: CONFIG_HIJO.IFRAME_ID,
@@ -1467,8 +1408,8 @@ elementosDOM.btnImagen?.addEventListener('click', async () => {
                 urlImagen: hayImagen ? urlImagen : null,
                 nombre: parada.nombre || parada.title,
                 sinContenido: !hayImagen,
-                mensajeError: !hayImagen ? 'No hay imagen disponible para esta parada/tramo' : null,
-                textoParada: textoParada,
+                mensajeError: hayImagen ? null : 'No hay imagen disponible para esta parada/tramo',
+                textoParada,
                 imagenes: todasImagenes,
                 tipo: tipoEntrada,
                 mapa_numero: mapaNumero
@@ -1476,8 +1417,7 @@ elementosDOM.btnImagen?.addEventListener('click', async () => {
         });
 
         const mensaje = hayImagen ? 'Mostrando imagen' : 'Ventana de imagen abierta (sin contenido)';
-        const estado = hayImagen ? 'success' : 'warn';
-        actualizarEstado(mensaje, estado);
+        actualizarEstado(mensaje, hayImagen ? 'success' : 'warn');
         logger.info(`[hijo2] Ventana imagen solicitada para parada ${estadoComponente.idParadaActual}:`, { hayImagen, urlImagen, totalImagenes: todasImagenes.length, tipo: tipoEntrada, mapa_numero: mapaNumero });
     } catch (error) {
         logger.error(`[hijo2] Error al mostrar imagen:`, error);
@@ -1488,92 +1428,19 @@ elementosDOM.btnImagen?.addEventListener('click', async () => {
 elementosDOM.btnVideo?.addEventListener('click', async () => {
     try {
         setBotonActivo('btnVideo');
-
         logger.info(`[hijo2][BOTON_VIDEO] Botón pulsado, verificando estado:`, {
             idParadaActual: estadoComponente.idParadaActual,
             tipoParada: estadoComponente.tipoParadaActual,
             modo: estadoComponente.modo,
             datosRecibidos: estadoComponente.datosRecibidos
         });
-        
-        // ✅ DEBUG: Confirmar ID actual antes de buscar
         logger.info(`[hijo2][BOTON_VIDEO] ID actual confirmado: "${estadoComponente.idParadaActual}" (tipo: ${typeof estadoComponente.idParadaActual})`);
 
-        // Verificar condiciones antes de enviar
         const esTramo = estadoComponente.tipoParadaActual === 'tramo' ||
                        (estadoComponente.idParadaActual && estadoComponente.idParadaActual.includes('-TR-'));
 
-        // Consistente con actualizarEstadoBotones: video habilitado si es tramo (ambos modos) y sin reto activo
         if (esTramo && !estadoComponente.retoActivo) {
-            // Si no hay parada seleccionada, abrir la ventana flotante vacía igualmente
-            if (!estadoComponente.idParadaActual) {
-                logger.warn(`[hijo2] No hay parada seleccionada - abriendo ventana de video vacía`);
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
-                    datos: { accion: 'reproducir-video', sinContenido: true, mensajeError: 'No hay parada/tramo seleccionado' }
-                });
-                actualizarEstado('Ventana video abierta (sin parada)', 'warn');
-                return;
-            }
-
-            // ✅ BUSCAR datos: usar función centralizada que prioriza datos del padre
-            const datosDisponibles = obtenerCoordenadasParadas();
-            const parada = datosDisponibles.find(p => 
-                p.id === estadoComponente.idParadaActual ||
-                p.parada_id === estadoComponente.idParadaActual
-            );
-
-            if (!parada) {
-                logger.warn(`[hijo2] No se encontró parada/tramo ${estadoComponente.idParadaActual} - abriendo ventana de video vacía`);
-                logger.debug(`[hijo2][DEBUG] IDs disponibles:`, datosDisponibles?.map(p => ({ id: p.id, parada_id: p.parada_id })));
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
-                    datos: { accion: 'reproducir-video', sinContenido: true, mensajeError: 'No hay video disponible para esta parada/tramo' }
-                });
-                actualizarEstado('Ventana video abierta (sin datos)', 'warn');
-                return;
-            }
-            
-            // 🔍 DEBUG: Ver qué contiene la parada encontrada  
-            logger.debug(`[hijo2][DEBUG_VIDEO] Parada encontrada:`, {
-                id: parada.id,
-                nombre: parada.nombre,
-                tieneVideo: !!parada.video,
-                urlVideo: parada.video,
-                tieneImagen: !!parada.imagen
-            });
-
-            // ✅ SIEMPRE abrir ventana flotante, con o sin video
-            const urlVideo = parada.video;
-            const hayVideo = urlVideo && urlVideo.trim() !== '';
-            
-            if (!hayVideo) {
-                logger.warn(`[hijo2] No hay video para parada/tramo ${estadoComponente.idParadaActual} - abriendo ventana con mensaje`);
-            }
-
-            // Notificar al padre que se requiere mostrar ventana de video (con o sin contenido)
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
-                datos: {
-                    accion: 'reproducir-video',
-                    paradaActual: estadoComponente.idParadaActual,
-                    urlVideo: hayVideo ? urlVideo : null,
-                    nombre: parada.nombre || parada.title,
-                    sinContenido: !hayVideo,
-                    mensajeError: !hayVideo ? 'No hay video disponible para esta parada/tramo' : null
-                }
-            });
-
-            const mensaje = hayVideo ? 'Reproduciendo video' : 'Ventana de video abierta (sin contenido)';
-            const estado = hayVideo ? 'success' : 'warn';
-            actualizarEstado(mensaje, estado);
-            logger.info(`[hijo2] Ventana video solicitada para parada/tramo ${estadoComponente.idParadaActual}:`, { hayVideo, urlVideo });
+            await _reproducirVideoParada(estadoComponente.idParadaActual);
         } else {
             actualizarEstado('Video no disponible en esta ubicación', 'warn');
         }
@@ -1643,7 +1510,7 @@ elementosDOM.btnMapaCompleto?.addEventListener('click', async () => {
         // Enviar mensaje al padre para mostrar mapa completo
         // Usa el mismo handler MOSTRAR_MAPA_JPG (detecta iframe vs imagen por extensión)
         const aventuraActual = globalThis.__vv_aventuraActual
-            || (globalThis.parent && globalThis.parent !== window && globalThis.parent.aventuraSeleccionada)
+            || (globalThis.parent && globalThis.parent !== globalThis && globalThis.parent.aventuraSeleccionada)
             || (console.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
         const urlMapaCompleto = 'mapa-completo.html?aventura=' + encodeURIComponent(aventuraActual);
         await enviarMensaje({
@@ -1673,7 +1540,7 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 
         // Determinar la aventura actual y obtener el mapa vintage correspondiente
         const aventuraActual = globalThis.__vv_aventuraActual
-            || (globalThis.parent && globalThis.parent !== window && globalThis.parent.aventuraSeleccionada)
+            || (globalThis.parent && globalThis.parent !== globalThis && globalThis.parent.aventuraSeleccionada)
             || (console.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
         const urlJpg = obtenerMapaVintage(aventuraActual);
 
@@ -1711,73 +1578,56 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 // ACTUALIZAR_POSICION eliminado - tipo de mensaje obsoleto (legacy code)
 // Ahora se usa ACTUALIZAR_ESTADO que incluye distancia y otros datos
 
+function _aplicarDatosEstado(datos, logPrefix) {
+    const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva } = datos;
+    if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
+    if (idParada !== undefined) estadoComponente.idParadaActual = idParada;
+    if (tipoParada !== undefined) estadoComponente.tipoParadaActual = tipoParada;
+    if (toleranciaGPS !== undefined) {
+        estadoComponente.toleranciaGPS = toleranciaGPS;
+        logger.debug(`${logPrefix} 📏 Tolerancia GPS actualizada: ${toleranciaGPS}m (${tipoParada})`);
+    }
+    if (retoActivo !== undefined) {
+        estadoComponente.retoActivo = retoActivo;
+        logger.info(`${logPrefix} 🎯 Estado de reto actualizado: ${retoActivo ? 'ACTIVO' : 'INACTIVO'}`);
+    }
+    if (ubicacionActiva !== undefined) {
+        estadoComponente.ubicacionActiva = ubicacionActiva;
+        logger.info(`${logPrefix} 🧭 Estado de ubicación actualizado: ${ubicacionActiva ? 'ACTIVA' : 'INACTIVA'}`);
+    }
+}
+
+async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix) {
+    if (distanciaAlDestino <= toleranciaGPS) {
+        if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
+            estadoComponente._llegadaNotificada = idParada;
+            logger.info(`${logPrefix} 🎯 Llegada detectada a tramo ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${toleranciaGPS}m)`);
+            await enviarMensaje({
+                tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                destino: getPadreId(),
+                datos: { paradaId: idParada, parada_id: idParada, distancia: distanciaAlDestino, tipoParada: 'tramo', timestamp: Date.now() }
+            }).catch(e => logger.warn(`${logPrefix} Error notificando llegada a tramo:`, e.message));
+        }
+    } else if (estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > toleranciaGPS * 1.5) {
+        logger.debug(`${logPrefix} 🔄 Usuario salió del rango de ${idParada}, reseteando flag de llegada`);
+        estadoComponente._llegadaNotificada = null;
+    }
+}
+
 // 📡 Controlador para actualización de estado GPS (enviado por funciones-mapa.js)
 registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (mensaje) => {
     const logPrefix = '[hijo2][ACTUALIZAR_ESTADO]';
-    
     try {
-        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva } = mensaje.datos;
-        
-        // Actualizar estado del componente
-        if (distanciaAlDestino !== undefined) {
-            estadoComponente.distanciaAlDestino = distanciaAlDestino;
-        }
-        if (idParada !== undefined) {
-            estadoComponente.idParadaActual = idParada;
-        }
-        if (tipoParada !== undefined) {
-            estadoComponente.tipoParadaActual = tipoParada;
-        }
-        if (toleranciaGPS !== undefined) {
-            estadoComponente.toleranciaGPS = toleranciaGPS;
-            logger.debug(`${logPrefix} 📏 Tolerancia GPS actualizada: ${toleranciaGPS}m (${tipoParada})`);
-        }
-        if (retoActivo !== undefined) {
-            estadoComponente.retoActivo = retoActivo;
-            logger.info(`${logPrefix} 🎯 Estado de reto actualizado: ${retoActivo ? 'ACTIVO' : 'INACTIVO'}`);
-        }
-        if (ubicacionActiva !== undefined) {
-            estadoComponente.ubicacionActiva = ubicacionActiva;
-            logger.info(`${logPrefix} 🧭 Estado de ubicación actualizado: ${ubicacionActiva ? 'ACTIVA' : 'INACTIVA'}`);
-        }
-        
-        // ✅ CORRECCIÓN CRÍTICA: Detectar llegada a TRAMOS (paradas se manejan en funciones-mapa.js)
-        // Las paradas se detectan con watchPosition en funciones-mapa.js, pero los tramos necesitan notificación desde hijo2
+        const datos = mensaje.datos;
+        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS } = datos;
+        _aplicarDatosEstado(datos, logPrefix);
+
         if (tipoParada === 'tramo' && typeof distanciaAlDestino === 'number' && typeof toleranciaGPS === 'number') {
-            if (distanciaAlDestino <= toleranciaGPS) {
-                // Usuario llegó al rango del tramo → notificar al padre
-                // ⚠️ PROTECCIÓN ANTI-DUPLICADOS: Solo enviar una vez por tramo
-                if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
-                    estadoComponente._llegadaNotificada = idParada;
-                    
-                    logger.info(`${logPrefix} 🎯 Llegada detectada a tramo ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${toleranciaGPS}m)`);
-                    
-                    // Notificar al PADRE (no comunicación cruzada)
-                    await enviarMensaje({
-                        tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        destino: getPadreId(),
-                        datos: {
-                            paradaId: idParada,
-                            parada_id: idParada,
-                            distancia: distanciaAlDestino,
-                            tipoParada: 'tramo',
-                            timestamp: Date.now()
-                        }
-                    }).catch(e => logger.warn(`${logPrefix} Error notificando llegada a tramo:`, e.message));
-                }
-            } else {
-                // Usuario salió del rango → resetear flag para permitir nueva detección
-                if (estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > toleranciaGPS * 1.5) {
-                    logger.debug(`${logPrefix} 🔄 Usuario salió del rango de ${idParada}, reseteando flag de llegada`);
-                    estadoComponente._llegadaNotificada = null;
-                }
-            }
+            await _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix);
         }
-        
-        // Recalcular estados de botones según nueva información
+
         actualizarEstadoBotones();
-        
         logger.debug(`${logPrefix} 📍 Estado actualizado: distancia=${distanciaAlDestino}m, tolerancia=${toleranciaGPS}m, parada=${idParada}, tipo=${tipoParada}, reto=${estadoComponente.retoActivo}, ubicacion=${estadoComponente.ubicacionActiva}`);
     } catch (error) {
         logger.error(`${logPrefix} Error procesando actualización de estado:`, error);
@@ -1843,8 +1693,19 @@ try {
     // Ocultar la UI hasta que el padre confirme que los controladores están listos
     let _uiConfirmado = false;
     const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
-    try { if (document.body) document.body.style.display = 'none'; } catch (e) { /* ignore */ }
-    function mostrarUI() { if (!_uiConfirmado) { console.warn('[hijo2] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; } try { if (document.body) document.body.style.display = _originalDisplay || 'block'; console.log('[hijo2] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); } catch (e) {} }
+    try { if (document.body) document.body.style.display = 'none'; } catch (e) { console.warn('[hijo2] Error ocultando UI inicial:', e && e.message); }
+    function mostrarUI() {
+        if (!_uiConfirmado) {
+            console.warn('[hijo2] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO');
+            return;
+        }
+        try {
+            if (document.body) document.body.style.display = _originalDisplay || 'block';
+            console.log('[hijo2] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
+        } catch (e) {
+            console.warn('[hijo2] Error mostrando UI:', e && e.message);
+        }
+    }
 
     // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
 
@@ -1858,66 +1719,51 @@ try {
     // ============================================================
     // CONTROLADOR 1: SISTEMA.PADRE_DATOS
     // ============================================================
+    async function _enviarHijoListo() {
+        if (estadoComponente.hijoListoEnviado) return;
+        try {
+            await enviarMensaje({
+                destino: getPadreId(),
+                tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
+            });
+            estadoComponente.hijoListoEnviado = true;
+            estadoComponente.inicializado = true;
+            logger.info('[hijo2] HIJO_LISTO enviado al padre');
+        } catch (error) {
+            logger.error('[hijo2] Error enviando HIJO_LISTO:', error);
+        }
+    }
+
+    function _procesarDatosPadre(datos, logPrefix) {
+        const { modo, paradas, paradaActual } = datos;
+        if (modo) {
+            const modoSeguro = (modo === 'casa' || modo === 'aventura') ? modo : '';
+            logger.info(`${logPrefix} Procesando modo inicial del padre:`, { original: modo, normalizado: modoSeguro });
+            estadoComponente.modo = modoSeguro || modo;
+            if (modoSeguro) document.body.className = `modo-${modoSeguro} hijo2-container`;
+            actualizarEstadoBotones();
+            actualizarEstado(`Modo inicial: ${modoSeguro || modo}`, 'info');
+        }
+        if (paradas) logger.debug(`${logPrefix} Paradas recibidas: ${paradas.length}`);
+        if (paradaActual) logger.debug(`${logPrefix} Parada actual: ${paradaActual}`);
+    }
+
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {
         const logPrefix = `[hijo2][PADRE_DATOS]`;
-
         try {
             if (!mensaje || !mensaje.origen) {
                 logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
                 return;
             }
-
             logger.info(`${logPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
             logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} recibió PADRE_DATOS`);
-
-            // ✅ PROCESAR DATOS INICIALES DEL PADRE
-            if (mensaje.datos) {
-                const { modo, paradas, paradaActual } = mensaje.datos;
-
-                if (modo) {
-                    const modoSeguro = (modo === 'casa' || modo === 'aventura') ? modo : '';
-                    logger.info(`${logPrefix} Procesando modo inicial del padre:`, { original: modo, normalizado: modoSeguro });
-                    estadoComponente.modo = modoSeguro || modo;
-                    if (modoSeguro) document.body.className = `modo-${modoSeguro} hijo2-container`;
-                    actualizarEstadoBotones();
-                    actualizarEstado(`Modo inicial: ${modoSeguro || modo}`, 'info');
-                }
-
-                if (paradas) {
-                    logger.debug(`${logPrefix} Paradas recibidas: ${paradas.length}`);
-                    // Procesar paradas si necesario
-                }
-
-                if (paradaActual) {
-                    logger.debug(`${logPrefix} Parada actual: ${paradaActual}`);
-                    // Procesar parada actual si necesario
-                }
-            }
-
+            if (mensaje.datos) _procesarDatosPadre(mensaje.datos, logPrefix);
         } catch (error) {
             logger.error(`${logPrefix} Error procesando PADRE_DATOS:`, error);
         }
-
-        // Enviar HIJO_LISTO para completar handshake
-        if (!estadoComponente.hijoListoEnviado) {
-            try {
-                await enviarMensaje({
-                    destino: getPadreId(),
-                    tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    datos: {
-                        componenteId: CONFIG_HIJO.COMPONENTE_ID,
-                        iframeId: CONFIG_HIJO.IFRAME_ID,
-                        timestamp: Date.now()
-                    }
-                });
-                estadoComponente.hijoListoEnviado = true;
-                estadoComponente.inicializado = true;
-                logger.info('[hijo2] HIJO_LISTO enviado al padre');
-            } catch (error) {
-                logger.error('[hijo2] Error enviando HIJO_LISTO:', error);
-            }
-        }
+        await _enviarHijoListo();
     });
 
     // NOTA: Controlador SISTEMA.PADRE_PIDE_MANEJADORES eliminado (obsoleto).
@@ -1996,13 +1842,41 @@ try {
             }
 
             // Mostrar UI ahora que el padre confirmó
-            try { _uiConfirmado = true; mostrarUI(); } catch (e) { /* ignore */ }
-            try { await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(() => {}); } catch (e) { /* ignore */ }
+            try { _uiConfirmado = true; mostrarUI(); } catch (e) { console.warn('[hijo2] Error mostrando UI:', e && e.message); }
+            try { await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(e => logger.warn('[hijo2] Error confirmando UI_VISIBLE:', e && e.message)); } catch (e) { console.warn('[hijo2] Error enviando UI_VISIBLE:', e && e.message); }
 
         } catch (error) {
             logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
         }
     });
+
+    function _resetarEstadoParaModo(modo, logPrefix) {
+        estadoComponente.modo = modo;
+        estadoComponente.paradaActual = null;
+        estadoComponente.tipoParadaActual = null;
+        estadoComponente.retoActivo = false;
+        estadoComponente.ubicacionActiva = false;
+        estadoComponente.gpsActivo = false;
+        if (estadoComponente.timestampSalioDeRango !== null) {
+            logger.info(`${logPrefix} Reseteando timer GPS por cambio de modo`);
+            estadoComponente.timestampSalioDeRango = null;
+        }
+        const btn = elementosDOM.btnUbicacion;
+        if (btn) {
+            if (modo === 'casa') {
+                btn.disabled = true;
+                btn.style.backgroundColor = '#f44336';
+                btn.style.opacity = '0.6';
+                btn.title = 'Ubicación no disponible en modo casa';
+                logger.info(`${logPrefix} → Modo CASA: botón rojo deshabilitado`);
+            } else {
+                logger.info(`${logPrefix} → Modo AVENTURA: botón controlado por distancias`);
+                if (estadoComponente.posicionActualUsuario) verificarDistanciaYActualizarBotones();
+            }
+        }
+        logger.debug(`${logPrefix} Estado reseteado para nuevo modo`);
+        actualizarEstadoBotones();
+    }
 
     /**
      * Controlador: SISTEMA.CAMBIO_MODO
@@ -2062,9 +1936,9 @@ try {
                     destino: destinoEntendido,
                     tipo: tipoEntendido,
                     origen: origenEntendido,
-                    TIPOS_MENSAJE_exists: typeof TIPOS_MENSAJE !== 'undefined',
-                    TIPOS_MENSAJE_SISTEMA_exists: typeof TIPOS_MENSAJE?.SISTEMA !== 'undefined',
-                    CONFIG_HIJO_exists: typeof CONFIG_HIJO !== 'undefined',
+                    TIPOS_MENSAJE_exists: TIPOS_MENSAJE !== undefined,
+                    TIPOS_MENSAJE_SISTEMA_exists: TIPOS_MENSAJE?.SISTEMA !== undefined,
+                    CONFIG_HIJO_exists: CONFIG_HIJO !== undefined,
                     mensaje_origen: mensaje?.origen
                 };
                 console.error('[hijo2][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
@@ -2085,37 +1959,7 @@ try {
 
             // Paso 4: Procesar cambio
             logger.info(`${logPrefix} Procesando cambio a modo: ${modo}`);
-            estadoComponente.modo = modo;
-            estadoComponente.paradaActual = null;
-            estadoComponente.tipoParadaActual = null;
-            estadoComponente.retoActivo = false;
-            estadoComponente.ubicacionActiva = false;
-            estadoComponente.gpsActivo = false;
-            
-            // Paso 4.1: Resetear timer GPS y actualizar botón según nuevo modo
-            if (estadoComponente.timestampSalioDeRango !== null) {
-                logger.info(`${logPrefix} Reseteando timer GPS por cambio de modo`);
-                estadoComponente.timestampSalioDeRango = null;
-            }
-            
-            const btn = elementosDOM.btnUbicacion;
-            if (btn) {
-                if (modo === 'casa') {
-                    btn.disabled = true;
-                    btn.style.backgroundColor = '#f44336'; // Rojo
-                    btn.style.opacity = '0.6';
-                    btn.title = 'Ubicación no disponible en modo casa';
-                    logger.info(`${logPrefix} → Modo CASA: botón rojo deshabilitado`);
-                } else {
-                    logger.info(`${logPrefix} → Modo AVENTURA: botón controlado por distancias`);
-                    if (estadoComponente.posicionActualUsuario) {
-                        verificarDistanciaYActualizarBotones();
-                    }
-                }
-            }
-            
-            logger.debug(`${logPrefix} Estado reseteado para nuevo modo`);
-            actualizarEstadoBotones();
+            _resetarEstadoParaModo(modo, logPrefix);
 
             // Paso 5: Enviar EFECTUADO
             logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);
@@ -2629,75 +2473,60 @@ try {
     // ============================================================
     // HANDLERS GPS
     // ============================================================
+    function _calcularHeadingMovimiento(lat, lng, posicionPrevia) {
+        if (posicionPrevia && posicionPrevia.lat && posicionPrevia.lng) {
+            const deltaLat = lat - posicionPrevia.lat;
+            const deltaLng = lng - posicionPrevia.lng;
+            if (Math.abs(deltaLat) > 0.00001 || Math.abs(deltaLng) > 0.00001) {
+                let h = Math.atan2(deltaLng, deltaLat) * (180 / Math.PI);
+                if (h < 0) h += 360;
+                estadoComponente.ultimoHeading = h;
+            }
+        }
+    }
+
+    function _actualizarBotonesSegunModo(modoActual, logPrefix) {
+        if (modoActual === 'aventura') {
+            logger.debug(`${logPrefix} 📏 Modo AVENTURA: verificando distancias a paradas`);
+            verificarDistanciaYActualizarBotones();
+        } else {
+            logger.debug(`${logPrefix} 🏠 Modo CASA: GPS activo pero botón siempre rojo deshabilitado`);
+            const btn = elementosDOM.btnUbicacion;
+            if (btn) {
+                btn.disabled = true;
+                btn.style.backgroundColor = '#f44336';
+                btn.style.opacity = '0.6';
+                btn.title = 'Ubicación no disponible en modo casa';
+            }
+        }
+    }
+
     registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA, async (mensaje) => {
         const logPrefix = '[hijo2][GPS.UBICACION_ACTUALIZADA]';
         try {
             const datos = mensaje.datos || {};
             const { lat, lng, accuracy, cached, fresh, heading } = datos;
-            
-            // Validar datos mínimos
             if (lat === undefined || lng === undefined) {
                 logger.warn(`${logPrefix} Datos GPS incompletos:`, datos);
                 return { exito: false, error: 'Coordenadas inválidas' };
             }
-            
-            // Actualizar heading si está disponible (brújula del dispositivo)
-            if (heading !== undefined && heading !== null) {
-                estadoComponente.ultimoHeading = heading;
-            }
-            
-            // Guardar posición en estadoComponente
+            if (heading !== undefined && heading !== null) estadoComponente.ultimoHeading = heading;
             const posicionPrevia = estadoComponente.posicionActualUsuario;
             estadoComponente.posicionActualUsuario = { lat, lng };
-            logger.info(`${logPrefix} 📍 Ubicación GPS recibida: [${lat}, ${lng}] ±${Math.round(accuracy || 0)}m ${cached ? '(caché)' : fresh ? '(fresca)' : ''}`);
-            
-            // Calcular heading basado en movimiento si no viene del GPS
-            if (heading === undefined && posicionPrevia && posicionPrevia.lat && posicionPrevia.lng) {
-                const deltaLat = lat - posicionPrevia.lat;
-                const deltaLng = lng - posicionPrevia.lng;
-                if (Math.abs(deltaLat) > 0.00001 || Math.abs(deltaLng) > 0.00001) {
-                    // Calcular ángulo de movimiento (0° = Norte, 90° = Este)
-                    estadoComponente.ultimoHeading = Math.atan2(deltaLng, deltaLat) * (180 / Math.PI);
-                    if (estadoComponente.ultimoHeading < 0) estadoComponente.ultimoHeading += 360;
-                }
-            }
-            
-            // Solicitar al padre que actualice el marcador en el mapa (NO tocamos Leaflet aquí)
-            // BUG CORREGIDO: localStorage.getItem('modoActual') nunca se escribía → siempre devolvía 'casa'
-            // Ahora se usa estadoComponente.modo que SÍ se actualiza en el handler CAMBIO_MODO
+            let estadoCache = '';
+            if (cached) { estadoCache = '(caché)'; } else if (fresh) { estadoCache = '(fresca)'; }
+            logger.info(`${logPrefix} 📍 Ubicación GPS recibida: [${lat}, ${lng}] ±${Math.round(accuracy || 0)}m ${estadoCache}`);
+            if (heading === undefined) _calcularHeadingMovimiento(lat, lng, posicionPrevia);
             const modoActual = (estadoComponente && estadoComponente.modo) || 'casa';
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 destino: getPadreId(),
-                datos: {
-                    lat: lat,
-                    lng: lng,
-                    heading: estadoComponente.ultimoHeading || 0,
-                    accuracy: accuracy || 0,
-                    modo: modoActual // AVENTURA: flecha azul, CASA: emoji 🛸
-                }
+                datos: { lat, lng, heading: estadoComponente.ultimoHeading || 0, accuracy: accuracy || 0, modo: modoActual }
             });
-            
-            // Solo validar distancias si estamos en modo aventura (GPS activo en ambos modos)
-            if (modoActual === 'aventura') {
-                logger.debug(`${logPrefix} 📏 Modo AVENTURA: verificando distancias a paradas`);
-                verificarDistanciaYActualizarBotones();
-            } else {
-                logger.debug(`${logPrefix} 🏠 Modo CASA: GPS activo pero botón siempre rojo deshabilitado`);
-                // Forzar botón rojo en modo casa (no validar distancias)
-                const btn = elementosDOM.btnUbicacion;
-                if (btn) {
-                    btn.disabled = true;
-                    btn.style.backgroundColor = '#f44336'; // Rojo
-                    btn.style.opacity = '0.6';
-                    btn.title = 'Ubicación no disponible en modo casa';
-                }
-            }
-            
+            _actualizarBotonesSegunModo(modoActual, logPrefix);
             actualizarEstado(`GPS ±${Math.round(accuracy || 0)}m`, 'success');
             return { exito: true };
-            
         } catch (e) {
             logger.error(`${logPrefix} Error procesando ubicación GPS:`, e);
             actualizarEstado('Error procesando ubicación', 'error');
@@ -2750,12 +2579,12 @@ try {
             const codeMap = { 1: 'PERMISSION_DENIED', 2: 'POSITION_UNAVAILABLE', 3: 'TIMEOUT' };
             const codeDesc = codeMap[codigo] || 'UNKNOWN_CODE';
             let details;
-            try { details = JSON.stringify({ codigo, codeDesc, mensaje: errorMensaje, contexto }, null, 2); } catch (e) { details = `codigo=${codigo} mensaje=${String(errorMensaje)} contexto=${String(contexto)}`; }
+            try { details = JSON.stringify({ codigo, codeDesc, mensaje: errorMensaje, contexto }, null, 2); } catch (error_) { details = `codigo=${codigo} mensaje=${String(errorMensaje)} contexto=${String(contexto)}`; logger.debug('[hijo2][GPS.ERROR] Error serializando detalles:', error_?.message); }
             logger.error(`[hijo2][GPS.ERROR] Error GPS recibido: ${details}`);
             // Telemetría: incrementar contador por código de error GPS en hijo2
-            try { if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { /* ignore */ }
+            try { if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { logger.warn('[hijo2][GPS.ERROR] Error en telemetría:', err && err.message); }
             // Enviar métrica a monitoreo (si mensajería disponible)
-            try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo2', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (ignore) { /* ignore */ }
+            try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo2', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(e => logger.warn('[hijo2][GPS.ERROR] Error enviando métrica:', e && e.message)); } } catch (error_) { logger.warn('[hijo2][GPS.ERROR] Error enviando métrica GPS:', error_ && error_.message); }
             return { exito: true };
         } catch (e) {
             logger.error('[hijo2][GPS.ERROR] Error en handler no-op:', e);
@@ -2789,9 +2618,7 @@ try {
     });
 
     // Notificar al padre que hijo2 está listo
-    try {
-        logger.debug('[hijo2] Controladores críticos registrados; enviando HIJO_PREPARADO ahora');
-    } catch (e) { /* ignore */ }
+    logger.debug('[hijo2] Controladores críticos registrados; enviando HIJO_PREPARADO ahora');
 
     // Enviar HIJO_PREPARADO para indicar que estamos listos para recibir datos del padre
     try {
@@ -2819,39 +2646,43 @@ globalThis.addEventListener('pagehide', () => {
     estadoComponente.inicializado = false;
 });
 
+    function _esPadreIdActual(padreId) {
+        return padreId && (padreId === estadoComponente.idParadaActual || padreId === (`padre-${estadoComponente.idParadaActual}`));
+    }
+
+    async function _manejarPendingCancelado(datos, mensaje, logPrefix) {
+        const padreId = datos?.padreId || datos?.padreid || null;
+        const motivo = datos?.motivo || 'sin_motivo';
+        logger.info(`${logPrefix} Pendiente cancelado: ${padreId} motivo: ${motivo}`);
+        if (_esPadreIdActual(padreId)) {
+            try {
+                estadoComponente.paradaPendiente = false;
+                if (elementosDOM.btnUbicacion) { desactivarBoton(elementosDOM.btnUbicacion); estadoComponente.botonesActivos.ubicacion = false; }
+                actualizarEstado(`Parada cancelada por: ${motivo}`, 'warn');
+            } catch (err) { logger.warn(`${logPrefix} Error actualizando UI al cancelar pending:`, err && err.message); }
+        }
+        try { await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, destino: mensaje.origen, datos: { mensaje: 'PENDING_CANCELADO recibido', padreId, motivo } }); } catch (e) { logger.warn(`${logPrefix} Error enviando ACK PENDING_CANCELADO:`, e && e.message); }
+    }
+
+    function _manejarPendingIniciado(datos, logPrefix) {
+        const padreId = datos?.padreId || datos?.padreid || null;
+        const ttlMs = datos?.ttlMs || null;
+        logger.info(`${logPrefix} PENDING_INICIADO para ${padreId} ttl=${ttlMs}`);
+        if (_esPadreIdActual(padreId)) {
+            estadoComponente.paradaPendiente = true;
+            if (elementosDOM.btnUbicacion) { desactivarBoton(elementosDOM.btnUbicacion); estadoComponente.botonesActivos.ubicacion = false; }
+            actualizarEstado('Pendiente creado: esperando condiciones', 'info');
+        }
+    }
+
     // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_CANCELADO
     safeRegistrar(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
         const logPrefix = `[hijo2][NOTIFICACION][${mensaje?.origen || 'desconocido'}]`;
         try {
             const evento = mensaje.datos?.evento;
             if (!evento) return;
-            if (evento === 'PENDING_CANCELADO') {
-                const padreId = mensaje.datos?.padreId || mensaje.datos?.padreid || null;
-                const motivo = mensaje.datos?.motivo || 'sin_motivo';
-                logger.info(`${logPrefix} Pendiente cancelado: ${padreId} motivo: ${motivo}`);
-                // Si corresponde a la parada actual, actualizar UI
-                if (padreId && (padreId === estadoComponente.idParadaActual || padreId === (`padre-${estadoComponente.idParadaActual}`))) {
-                    try {
-                        estadoComponente.paradaPendiente = false;
-                        // Deshabilitar botones relacionados (ubicación/controles de completado)
-                        if (elementosDOM.btnUbicacion) { desactivarBoton(elementosDOM.btnUbicacion); estadoComponente.botonesActivos.ubicacion = false; }
-                        // Informar al usuario
-                        actualizarEstado(`Parada cancelada por: ${motivo}`, 'warn');
-                    } catch (err) {}
-                }
-                // Acknowledge to padre
-                try { await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, destino: mensaje.origen, datos: { mensaje: 'PENDING_CANCELADO recibido', padreId, motivo } }); } catch (e) { /* ignore */ }
-            }
-            if (evento === 'PENDING_INICIADO') {
-                const padreId = mensaje.datos?.padreId || mensaje.datos?.padreid || null;
-                const ttlMs = mensaje.datos?.ttlMs || null;
-                logger.info(`${logPrefix} PENDING_INICIADO para ${padreId} ttl=${ttlMs}`);
-                if (padreId && (padreId === estadoComponente.idParadaActual || padreId === (`padre-${estadoComponente.idParadaActual}`))) {
-                    estadoComponente.paradaPendiente = true;
-                    if (elementosDOM.btnUbicacion) { desactivarBoton(elementosDOM.btnUbicacion); estadoComponente.botonesActivos.ubicacion = false; }
-                    actualizarEstado('Pendiente creado: esperando condiciones', 'info');
-                }
-            }
+            if (evento === 'PENDING_CANCELADO') await _manejarPendingCancelado(mensaje.datos, mensaje, logPrefix);
+            if (evento === 'PENDING_INICIADO') _manejarPendingIniciado(mensaje.datos, logPrefix);
         } catch (err) {
             logger.warn(`${logPrefix} Error procesando NOTIFICACION:`, err);
         }

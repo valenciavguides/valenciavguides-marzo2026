@@ -81,7 +81,11 @@ export const PUZZLES_AVENTURAS = {
     {
         id: "PZ-18",
         imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg",
-    }
+    },
+    {
+        id: "PZ-19",
+        imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+    },
       ]
     }
   }

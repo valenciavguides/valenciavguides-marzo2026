@@ -821,14 +821,18 @@ if (globalThis.window !== undefined) {
     
     setInterval(() => {
         const ahora = Date.now();
-        
-        // Limpiar confirmaciones expiradas
-        for (const [, pendiente] of confirmacionesPendientes) {
+
+        // Limpiar confirmaciones expiradas — colectar keys antes de borrar para no mutar durante iteración
+        const keysAEliminar = [];
+        for (const [key, pendiente] of confirmacionesPendientes) {
             if (ahora - pendiente.timestamp > ttlMensajeria) {
                 clearTimeout(pendiente.timeoutId);
-                confirmacionesPendientes.delete(id);
                 pendiente.reject(new Error('Confirmación expirada'));
+                keysAEliminar.push(key);
             }
+        }
+        for (const key of keysAEliminar) {
+            confirmacionesPendientes.delete(key);
         }
     }, ttlMensajeria / 2);
 }

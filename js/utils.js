@@ -335,15 +335,51 @@ export function getEnviarMensajeConConfirmacion() {
  * @param {string} [options.mensaje=''] - Mensaje de log
  * @returns {Promise<boolean>} Promise que resuelve cuando está listo
  */
-export function retryUntilAvailable(checkFn, options = {}) {
-    const { maxIntentos = 10, intervalo = 100, mensaje = '' } = options;
-    
-    return new Promise((resolve, reject) => {
+export function retryUntilAvailable(checkFn, optionsOrReadyFn, maxIntentosArg, intervaloArg, logFn) {
+    // Legacy calling convention: (actionFn, readyFn, maxIntentos, intervalo, logFn)
+    if (typeof optionsOrReadyFn === 'function') {
+        const actionFn = checkFn;
+        const readyFn = optionsOrReadyFn;
+        const maxIntentos = maxIntentosArg ?? 10;
+        const intervalo = intervaloArg ?? 100;
+
+        return new Promise((resolve) => {
+            let intentos = 0;
+
+            const intentar = function() {
+                intentos++;
+                try {
+                    if (readyFn()) {
+                        try { resolve(actionFn()); } catch (e) {
+                            if (logFn) logFn('[utils] retryUntilAvailable actionFn error:', e);
+                            resolve(false);
+                        }
+                        return;
+                    }
+                } catch {
+                    // readyFn threw — not ready yet
+                }
+                if (intentos >= maxIntentos) {
+                    if (logFn) logFn('[utils] retryUntilAvailable: no disponible tras', maxIntentos, 'intentos');
+                    resolve(false);
+                    return;
+                }
+                setTimeout(intentar, intervalo);
+            };
+
+            intentar();
+        });
+    }
+
+    // Current calling convention: (checkFn, options={})
+    const { maxIntentos = 10, intervalo = 100, mensaje = '' } = optionsOrReadyFn ?? {};
+
+    return new Promise((resolve) => {
         let intentos = 0;
-        
+
         const intentar = function() {
             intentos++;
-            
+
             try {
                 if (checkFn()) {
                     if (mensaje) console.log(`[utils] ${mensaje} - disponible después de ${intentos} intentos`);
@@ -353,16 +389,16 @@ export function retryUntilAvailable(checkFn, options = {}) {
             } catch {
                 // Ignorar errores en checkFn
             }
-            
+
             if (intentos >= maxIntentos) {
                 if (mensaje) console.warn(`[utils] ${mensaje} - no disponible después de ${maxIntentos} intentos`);
                 resolve(false);
                 return;
             }
-            
+
             setTimeout(intentar, intervalo);
-        }
-        
+        };
+
         intentar();
     });
 }

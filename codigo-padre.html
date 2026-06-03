@@ -1521,7 +1521,7 @@
                 btnChat.addEventListener('click', abrirChat);
 
                 globalThis.addEventListener('message', function(ev) {
-                    if (ev.data && ev.data.tipo === 'CHAT.CERRAR') cerrarChat();
+                    if (ev.data && (ev.data.tipo === 'CHAT.CERRAR')) cerrarChat();
                 });
             })();
 
@@ -2013,7 +2013,7 @@
                 overlay.innerHTML = `
                     <div class="media-contenedor iframe-contenedor">
                         <button type="button" class="btn-cerrar-overlay" title="Cerrar">×</button>
-                        <iframe src="${urlIframe}" frameborder="0" allowfullscreen style="width:100%; height:100%"></iframe>
+                        <iframe src="${urlIframe}" frameborder="0" scrolling="no" allowfullscreen style="width:100%; height:100%; display:block; border:0;"></iframe>
                     </div>
                 `;
                 document.body.appendChild(overlay);
@@ -3229,7 +3229,7 @@
 
         // Suprimir aviso de rotación cuando un iframe (ej: mapa vintage) lo solicite
         globalThis.addEventListener('message', function(event) {
-            if (event.data && event.data.tipo === 'SUPPRESS_ROTATION') {
+            if (event.data && (event.data.tipo === 'NAVEGACION.SUPRIMIR_ROTACION' || event.data.tipo === 'SUPPRESS_ROTATION')) {
                 globalThis.rotationSuppressed = !!event.data.value;
                 const rotMsg = document.getElementById('rotation-message');
                 if (rotMsg) {
@@ -3342,8 +3342,12 @@
             }
         })();
 
-        // Alias global para compatibilidad (var para evitar redeclaración entre bloques script)
-        var estado = globalThis.estadoPadre;
+        // Alias global para compatibilidad usando getter para siempre referenciar el objeto actual
+        Object.defineProperty(globalThis, 'estadoScript1', {
+            get() { return globalThis.estadoPadre; },
+            configurable: true
+        });
+        var estado = globalThis.estadoScript1;
 
         // Helper runtime-safe para obtener el estado del padre sin lanzar si aún no existe
         function getEstadoSafe() {
@@ -3991,9 +3995,14 @@
                 }
                 let res = await globalThis.distribuirDatosAventura(datosGuardados.aventura, datosGuardados.idioma);
                 if (res?.pospuesto) {
-                    const t0 = Date.now();
-                    while (!globalThis.sistemaInicializado && (Date.now() - t0 < 5000)) { await sleep(200); }
-                    await globalThis.distribuirDatosAventura(datosGuardados.aventura, datosGuardados.idioma);
+                    let delay = 200;
+                    for (let attempt = 0; attempt < 3 && res?.pospuesto; attempt++) {
+                        const t0 = Date.now();
+                        while (!globalThis.sistemaInicializado && (Date.now() - t0 < delay * 5)) { await sleep(delay); }
+                        delay = Math.min(delay * 2, 2000);
+                        res = await globalThis.distribuirDatosAventura(datosGuardados.aventura, datosGuardados.idioma);
+                    }
+                    if (res?.pospuesto) { logger.warn(`${logPrefix} distribuirDatosAventura aún pospuesto tras reintentos`); }
                 }
                 logger.success(`${logPrefix} ✅ Datos distribuidos a hijos tras reanudación`);
             } catch (distErr) { logger.warn(`${logPrefix} Error distribuyendo datos en reanudación:`, distErr); }
@@ -4011,8 +4020,28 @@
                 }
             } catch (_e2) { logger.warn(`${logPrefix} Error enviando RESPUESTA_DATOS_PARADAS a hijo2:`, _e2); }
             try {
+                // FIX: Esperar a que __vv_DATOS_AVENTURAS se cargue antes de enviar a hijo5
+                if (!globalThis.__vv_DATOS_AVENTURAS) {
+                    logger.warn(`${logPrefix} ⏳ __vv_DATOS_AVENTURAS no disponible aún, esperando carga...`);
+                    let intentos = 0;
+                    while (!globalThis.__vv_DATOS_AVENTURAS && intentos++ < 20) {
+                        await sleep(250);
+                    }
+                    if (!globalThis.__vv_DATOS_AVENTURAS) {
+                        logger.error(`${logPrefix} ❌ Timeout esperando __vv_DATOS_AVENTURAS — no se pueden enviar paradas a hijo5`);
+                        return;
+                    }
+                }
                 const coords = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
-                if (Array.isArray(coords) && coords.length > 0 && typeof enviarMensaje_S1 === 'function') {
+                if (!coords || !Array.isArray(coords)) {
+                    logger.warn(`${logPrefix} ⚠️ No hay coordenadas para ${av} en __vv_DATOS_AVENTURAS — hijo5 quedará sin paradas`);
+                    return;
+                }
+                if (coords.length === 0) {
+                    logger.warn(`${logPrefix} ⚠️ Array de coordenadas vacío para ${av} — hijo5 quedará sin paradas`);
+                    return;
+                }
+                if (typeof enviarMensaje_S1 === 'function') {
                     const pH5 = coords.map(c => ({ id: `padre-${c.id}`, parada_id: c.id, tipo: c.tipo, parada: c.parada, tramo: c.tramo, nombre: c.nombre, padreid: `padre-${c.id}`, coordenadas: c.coordenadas || c.inicio || null }));
                     await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pH5, aventura: av, timestamp: Date.now() } });
                     logger.info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pH5.length} paradas)`);
@@ -4324,7 +4353,11 @@
                     return;
                 }
 
-                if (!globalThis.estadoPadre) globalThis.estadoPadre = {};
+                // Nunca crear objeto vacío - debe existir desde Script 1
+                if (!globalThis.estadoPadre) {
+                    logger.error(`${logPrefix2} ❌ globalThis.estadoPadre no existe al procesar HIJO_MANEJADORES`);
+                    return;
+                }
                 if (!globalThis.estadoPadre.estadoHijos?.has(hijoOrigen)) {
                     logger.warn(`${logPrefix2} Origen ${hijoOrigen} no registrado como hijo preparado; revisar seguridad`);
                     // continue processing but mark with a flag
@@ -4635,9 +4668,13 @@
                 logger.error(`${logPrefix} Error notificando estado GPS:`, error);
             }
 
-            // Sincronizar estado local con global
-            globalThis.estadoPadre = globalThis.estadoPadre || {};
-            globalThis.estadoPadre.gps = est.gps;
+            // Sincronizar estado local con global (nunca sobrescribir el objeto completo)
+            if (!globalThis.estadoPadre) {
+                logger.error(`${logPrefix} ❌ CRITICAL: globalThis.estadoPadre no existe al sincronizar GPS`);
+                return;
+            }
+            if (!globalThis.estadoPadre.gps) globalThis.estadoPadre.gps = {};
+            Object.assign(globalThis.estadoPadre.gps, est.gps);
         }
 
         function _gpsAccuracyFuente(accuracy) {
@@ -5913,14 +5950,19 @@
         async function _hijoListo_enviarDatosHijo2(logPrefix) {
             try {
                 const av = globalThis.aventuraSeleccionada, id = globalThis.idiomaSeleccionado;
-                if (av && id && DATOS_PADRE[av] && DATOS_PADRE[av][id]) {
+                // ⚠️ CRÍTICO: Solo enviar datos si la aventura YA está seleccionada
+                // Si no hay aventura, distribuirDatosAventura se encargará más tarde
+                if (!av || !id) {
+                    logger.debug(`${logPrefix} Aventura no seleccionada aún, omitiendo envío de datos de paradas a hijo2`);
+                    return;
+                }
+                
+                if (DATOS_PADRE[av] && DATOS_PADRE[av][id]) {
                     const paradasNormalizadas = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
                     if (typeof enviarMensaje_S1 === 'function') {
                         await enviarMensaje_S1({ destino: 'hijo2', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: paradasNormalizadas, timestamp: Date.now() } });
                         logger.info(`${logPrefix} Datos de paradas enviados a hijo2 para inicialización (normalizados)`);
                     }
-                } else {
-                    logger.debug(`${logPrefix} Aventura no seleccionada aún, omitiendo envío de datos de paradas a hijo2`);
                 }
             } catch (error) { logger.error(`${logPrefix} Error enviando datos de paradas a hijo2:`, error); }
         }
@@ -5999,6 +6041,10 @@
                 logger.info(`${logPrefix} ✅ ${hijoId} listo y estado actualizado.`);
                 await _hijoListo_confirmarAlHijo(hijoId, logPrefix);
                 if (hijoId === 'hijo2') { await _hijoListo_enviarDatosHijo2(logPrefix); }
+                if (hijoId === 'hijo3' && estado.elementoActual) {
+                    const retosDeParada = obtenerRetosIds(estado.elementoActual);
+                    await _configurarRetoBtn(estado.elementoActual, retosDeParada, estado, logPrefix).catch(e => logger.warn(`${logPrefix} Error reconfigurando retosBtn tras hijo3 listo:`, e && e.message));
+                }
                 const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
                 const todosListos = hijosCriticos.every(id => estado.hijosInicializados && estado.hijosInicializados.has(id));
                 if (todosListos && !estado.todosHijosListos) { await _hijoListo_onTodosListos(logPrefix, hijosCriticos, timestamp); }
@@ -6720,15 +6766,17 @@
 
             // Validar también que globalThis.estadoPadre existe
             if (!globalThis.estadoPadre) {
-                logger.warn(`${logPrefix} ⚠️ globalThis.estadoPadre no existe, creando estructura básica...`);
-                globalThis.estadoPadre = {
-                    modo: { actual: MODOS.CASA },
-                    hijosInicializados: new Set(),
-                    hijosPreparados: new Set(),
-                    hijosListos: new Set(),
-                    estadoHijos: new Map(),
-                    retoActual: { id: null, disponible: false, completado: false, cola: [], indiceCola: 0, colaCompletados: new Set() }
-                };
+                logger.error(`${logPrefix} ❌ CRITICAL: globalThis.estadoPadre no existe en Script 2 - Script 1 no se ejecutó correctamente`);
+                throw new Error('estadoPadre debe ser inicializado por Script 1');
+            }
+            
+            // Asegurar propiedades mínimas sin destruir el objeto existente
+            if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
+            if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
+            if (!globalThis.estadoPadre.hijosListos) globalThis.estadoPadre.hijosListos = new Set();
+            if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
+            if (!globalThis.estadoPadre.retoActual) {
+                globalThis.estadoPadre.retoActual = { id: null, disponible: false, completado: false, cola: [], indiceCola: 0, colaCompletados: new Set() };
             }
 
             // Verificar que enviarMensaje_S1 también esté disponible (alias usado en iframes)
@@ -7220,8 +7268,193 @@
         const registrarEventoScript2 = registrarEventoGlobal;
 
         // Aliases adicionales para mantener compatibilidad con código que usa nombres cortos
-        var estado = estadoScript2 || globalThis.estadoPadre || {};
+        // CRITICAL FIX: Use getter to always reference current globalThis.estadoPadre with validation
+        Object.defineProperty(globalThis, 'estado', {
+            get() {
+                if (!globalThis.estadoPadre) {
+                    // Script 2 se ejecuta antes que Script 1, retornar objeto vacío temporal
+                    return {};
+                }
+                return globalThis.estadoPadre;
+            },
+            configurable: true
+        });
+        const estado = globalThis.estado; // Alias local that uses the getter
         let logger = loggerScript2;
+
+        // ============================================================
+        // 🔥 FUNCIÓN CRÍTICA: distribuirDatosAventura
+        // Distribuye proactivamente datos a todos los hijos
+        // ============================================================
+        async function distribuirDatosAventura(aventura, idioma) {
+            const logPrefix = '[PADRE][DISTRIBUIR_DATOS]';
+            logger.info(`${logPrefix} 🔥 INICIANDO distribución de ${aventura} (${idioma}) a todos los hijos...`);
+            
+            try {
+                // USAR ESTADO GLOBAL CORRECTO
+                const estadoPadre = globalThis.estadoPadre || globalThis.estadoScript2 || {};
+                const hijosInicializados = estadoPadre.hijosInicializados || new Set();
+                
+                // DIAGNÓSTICO: Ver estado de datos centralizados
+                logger.info(`${logPrefix} 📊 Estado datos centralizados:`, {
+                    DATOS: !!globalThis.__vv_DATOS_AVENTURAS,
+                    AUDIOS: !!globalThis.__vv_AUDIOS_AVENTURAS,
+                    RETOS: !!globalThis.__vv_RETOS_AVENTURAS,
+                    TEXTOS: !!globalThis.__vv_TEXTOS_AVENTURAS,
+                    hijosInit: Array.from(hijosInicializados)
+                });
+
+                // Verificar que los datos están disponibles
+                if (!globalThis.__vv_DATOS_AVENTURAS || !globalThis.__vv_AUDIOS_AVENTURAS || !globalThis.__vv_RETOS_AVENTURAS || !globalThis.__vv_TEXTOS_AVENTURAS) {
+                    logger.warn(`${logPrefix} ⚠️ Datos no disponibles aún, pospuesto`);
+                    return { pospuesto: true, mensaje: 'Datos centralizados no disponibles' };
+                }
+
+                const resultados = { 
+                    coordenadas: { enviado: false, destinos: [] },
+                    audios: { enviado: false, destinos: [] },
+                    retos: { enviado: false, destinos: [] },
+                    textos: { enviado: false, destinos: [] }
+                };
+
+                // 1. Enviar coordenadas a hijo2
+                const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
+                logger.info(`${logPrefix} 📍 Coordenadas disponibles: ${coords.length} para ${aventura}`);
+                
+                // CRITICAL FIX: Establecer globalThis.AVENTURA_PARADAS para funciones-mapa.js
+                if (coords.length > 0) {
+                    globalThis.AVENTURA_PARADAS = coords;
+                    logger.info(`${logPrefix} ✅ globalThis.AVENTURA_PARADAS establecido con ${coords.length} elementos`);
+                } else {
+                    logger.warn(`${logPrefix} ⚠️ No hay coordenadas para ${aventura} - globalThis.AVENTURA_PARADAS quedará vacío`);
+                }
+                
+                if (coords.length > 0) {
+                    if (!hijosInicializados.has('hijo2')) {
+                        logger.info(`${logPrefix} 📍 hijo2 no listo, esperando hasta 5s...`);
+                        const t2 = Date.now();
+                        while (!hijosInicializados.has('hijo2') && Date.now() - t2 < 5000) { await sleep(200); }
+                    }
+                    const hijo2Listo = hijosInicializados.has('hijo2');
+                    logger.info(`${logPrefix} 📍 hijo2 listo: ${hijo2Listo}`);
+                    if (hijo2Listo) {
+                        await enviarMensaje_S2({
+                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_COORDENADAS,
+                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                            destino: 'hijo2',
+                            datos: { aventura, idioma, coordenadas: coords, total: coords.length, timestamp: Date.now() }
+                        });
+                        resultados.coordenadas.enviado = true;
+                        resultados.coordenadas.destinos.push('hijo2');
+                        logger.info(`${logPrefix} ✅ ${coords.length} coordenadas enviadas a hijo2`);
+                    } else {
+                        logger.warn(`${logPrefix} ⚠️ hijo2 NO listo tras espera, no se enviaron coordenadas`);
+                    }
+                } else {
+                    logger.warn(`${logPrefix} ⚠️ No hay coordenadas para ${aventura}`);
+                }
+
+                // 2. Enviar audios a hijo3
+                const audios = globalThis.__vv_AUDIOS_AVENTURAS?.[aventura]?.[idioma] || [];
+                logger.info(`${logPrefix} 🎵 Audios disponibles: ${audios.length} para ${aventura}/${idioma}`);
+                if (audios.length > 0) {
+                    if (!hijosInicializados.has('hijo3')) {
+                        logger.info(`${logPrefix} 🎵 hijo3 no listo, esperando hasta 5s...`);
+                        const t3 = Date.now();
+                        while (!hijosInicializados.has('hijo3') && Date.now() - t3 < 5000) { await sleep(200); }
+                    }
+                    const hijo3Listo = hijosInicializados.has('hijo3');
+                    logger.info(`${logPrefix} 🎵 hijo3 listo: ${hijo3Listo}`);
+                    if (hijo3Listo) {
+                        await enviarMensaje_S2({
+                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_AUDIOS,
+                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                            destino: 'hijo3',
+                            datos: { aventura, idioma, audios, total: audios.length, timestamp: Date.now() }
+                        });
+                        resultados.audios.enviado = true;
+                        resultados.audios.destinos.push('hijo3');
+                        logger.info(`${logPrefix} ✅ ${audios.length} audios enviados a hijo3`);
+                    } else {
+                        logger.warn(`${logPrefix} ⚠️ hijo3 NO listo tras espera, no se enviaron audios`);
+                    }
+                } else {
+                    logger.warn(`${logPrefix} ⚠️ No hay audios para ${aventura}/${idioma}`);
+                }
+
+                // 3. Enviar retos a hijo4  
+                const retos = globalThis.__vv_RETOS_AVENTURAS?.[aventura]?.[idioma] || [];
+                logger.info(`${logPrefix} 🎯 Retos disponibles: ${retos.length} para ${aventura}/${idioma}`);
+                if (retos.length > 0) {
+                    if (!hijosInicializados.has('hijo4')) {
+                        logger.info(`${logPrefix} 🎯 hijo4 no listo, esperando hasta 5s...`);
+                        const t4 = Date.now();
+                        while (!hijosInicializados.has('hijo4') && Date.now() - t4 < 5000) { await sleep(200); }
+                    }
+                    const hijo4Listo = hijosInicializados.has('hijo4');
+                    logger.info(`${logPrefix} 🎯 hijo4 listo: ${hijo4Listo}`);
+                    if (hijo4Listo) {
+                        await enviarMensaje_S2({
+                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_RETOS,
+                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                            destino: 'hijo4',
+                            datos: { aventura, idioma, retos, total: retos.length, timestamp: Date.now() }
+                        });
+                        resultados.retos.enviado = true;
+                        resultados.retos.destinos.push('hijo4');
+                        logger.info(`${logPrefix} ✅ ${retos.length} retos enviados a hijo4`);
+                    } else {
+                        logger.warn(`${logPrefix} ⚠️ hijo4 NO listo tras espera, no se enviaron retos`);
+                    }
+                } else {
+                    logger.warn(`${logPrefix} ⚠️ No hay retos para ${aventura}/${idioma}`);
+                }
+
+                // 4. Enviar textos a hijo1 (extrainfo)
+                const textos = globalThis.__vv_TEXTOS_AVENTURAS?.[aventura]?.[idioma] || [];
+                logger.info(`${logPrefix} 📝 Textos disponibles: ${textos.length} para ${aventura}/${idioma}`);
+                if (textos.length > 0) {
+                    if (!hijosInicializados.has('hijo1-opciones')) {
+                        logger.info(`${logPrefix} 📝 hijo1-opciones no listo, esperando hasta 5s...`);
+                        const t1 = Date.now();
+                        while (!hijosInicializados.has('hijo1-opciones') && Date.now() - t1 < 5000) { await sleep(200); }
+                    }
+                    const hijo1Listo = hijosInicializados.has('hijo1-opciones');
+                    logger.info(`${logPrefix} 📝 hijo1-opciones listo: ${hijo1Listo}`);
+                    if (hijo1Listo) {
+                        await enviarMensaje_S2({
+                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_TEXTOS,
+                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                            destino: 'hijo1-opciones',
+                            datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
+                        });
+                        resultados.textos.enviado = true;
+                        resultados.textos.destinos.push('hijo1-opciones');
+                        logger.info(`${logPrefix} ✅ ${textos.length} textos enviados a hijo1-opciones`);
+                    } else {
+                        logger.warn(`${logPrefix} ⚠️ hijo1-opciones NO listo tras espera, no se enviaron textos`);
+                    }
+                } else {
+                    logger.warn(`${logPrefix} ⚠️ No hay textos para ${aventura}/${idioma}`);
+                }
+
+                logger.success(`${logPrefix} ✅ Distribución completada`);
+                return { pospuesto: false, resultados };
+                
+            } catch (error) {
+                logger.error(`${logPrefix} ❌ Error distribuyendo datos:`, error);
+                throw error;
+            }
+        }
+
+        // Exponer globalmente
+        globalThis.distribuirDatosAventura = distribuirDatosAventura;
+        
+        // Resolver promesa de espera
+        if (_resolveDistribuirReady) {
+            _resolveDistribuirReady();
+            logger.info('[PADRE] ✅ distribuirDatosAventura disponible globalmente');
+        }
 
         // SAFETY: helper para obtener el ID del padre guardando contra ReferenceErrors
         function getPadreIdLocal() {
@@ -7355,9 +7588,9 @@
                 })();
                 try {
                     const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs, outOfRangeM: estado.pendingCompleciones[key].outOfRangeM, arrivalRequired: estado.pendingCompleciones[key].arrivalRequired };
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo2', datos: notifyData }).catch(() => {}); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo3', datos: notifyData }).catch(() => {}); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo4', datos: notifyData }).catch(() => {}); // NOSONAR
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo2', datos: notifyData }).catch(e => logger.debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo3', datos: notifyData }).catch(e => logger.debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
+                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo4', datos: notifyData }).catch(e => logger.debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
                 } catch (err) { logger.debug('[VV]:', err?.message); } // NOSONAR
             }
             return estado.pendingCompleciones[key];
@@ -8081,6 +8314,7 @@
         // Since modules execute deferred (after DOM is ready),
         // DOMContentLoaded has ALREADY fired - execute immediately
         // ============================================================
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
         async function _setupRegistrarControladores() {
             // Wait a tick to ensure Script 1's DOMContentLoaded has run
             await sleep(0);
@@ -8489,7 +8723,11 @@
                         Promise.allSettled(promesasReenvio).then((resultados) => {
                             const exitosos = resultados.filter(r => r.status === 'fulfilled').length;
                             const fallidos = resultados.filter(r => r.status === 'rejected').length;
-                            logger.debug(`${logPrefix} Reenvío GPS completado: ${exitosos} exitosos, ${fallidos} fallidos`);
+                            if (fallidos > 0) {
+                                logger.warn(`${logPrefix} Reenvío GPS: ${exitosos} exitosos, ${fallidos} fallidos`);
+                            } else {
+                                logger.debug(`${logPrefix} Reenvío GPS completado: ${exitosos} exitosos`);
+                            }
                         });
                     }
                 } catch (e) {
@@ -8994,30 +9232,60 @@
             return null;
         }
 
-        async function _configurarRetoModosCasa(parada, retosDeParada, estado, logPrefix) {
-            if (estado.modo?.actual !== MODOS.CASA || !estado.hijosInicializados?.has('hijo3')) return;
-            if (retosDeParada.length > 0) {
-                estado.retoActual = {
-                    id: retosDeParada[0],
-                    disponible: true,
-                    completado: false,
-                    cola: retosDeParada,
-                    indiceCola: 0,
-                    colaCompletados: new Set()
-                };
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                    origen: getPadreId(),
-                    destino: 'hijo3',
-                    datos: { control: 'retosBtn', razon: 'parada_con_reto_casa', retoId: retosDeParada[0] }
-                });
+        async function _configurarRetoBtn(parada, retosDeParada, estado, logPrefix) {
+            if (!estado.hijosInicializados?.has('hijo3')) {
+                logger.warn(`${logPrefix} hijo3 no inicializado, retosBtn no configurado`);
+                return;
+            }
+            const modo = estado.modo?.actual;
+            const tieneReto = retosDeParada.length > 0;
+            const tieneAudio = Boolean(parada?.audio_id);
+
+            if (modo === MODOS.AVENTURA) {
+                if (tieneReto && tieneAudio) {
+                    // Con audio: el botón se habilita solo tras terminar el audio (_procesarFinAudioElemento).
+                    // TODO: cuando toda la app tenga audios, este será el único camino en aventura —
+                    //       eliminar la rama sin audio y habilitar únicamente desde el audio-finish path.
+                    estado.retoActual = { id: retosDeParada[0], disponible: false, completado: false, cola: retosDeParada, indiceCola: 0, colaCompletados: new Set() };
+                    await enviarMensajePadre({
+                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                        origen: getPadreId(),
+                        destino: 'hijo3',
+                        datos: { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }
+                    });
+                } else if (tieneReto) {
+                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, indiceCola: 0, colaCompletados: new Set() };
+                    await enviarMensajePadre({
+                        tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
+                        origen: getPadreId(),
+                        destino: 'hijo3',
+                        datos: { control: 'retosBtn', razon: 'parada_con_reto_sin_audio_aventura', retoId: retosDeParada[0] }
+                    });
+                } else {
+                    await enviarMensajePadre({
+                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                        origen: getPadreId(),
+                        destino: 'hijo3',
+                        datos: { control: 'retosBtn', razon: 'parada_sin_reto_aventura' }
+                    });
+                }
             } else {
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                    origen: getPadreId(),
-                    destino: 'hijo3',
-                    datos: { control: 'retosBtn', razon: 'parada_sin_reto_casa' }
-                });
+                if (tieneReto) {
+                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, indiceCola: 0, colaCompletados: new Set() };
+                    await enviarMensajePadre({
+                        tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
+                        origen: getPadreId(),
+                        destino: 'hijo3',
+                        datos: { control: 'retosBtn', razon: 'parada_con_reto_casa', retoId: retosDeParada[0] }
+                    });
+                } else {
+                    await enviarMensajePadre({
+                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                        origen: getPadreId(),
+                        destino: 'hijo3',
+                        datos: { control: 'retosBtn', razon: 'parada_sin_reto_casa' }
+                    });
+                }
             }
         }
 
@@ -9215,9 +9483,9 @@
 
                 await _notificarCambioParadaHijos({ datosNotificacion, parada, paradaIdBase, padreIdNorm, paradaNormalized, mensaje, estado, logPrefix });
 
-                // ✅ En modo casa: habilitar/deshabilitar retosBtn según si hay reto
+                // Habilitar/deshabilitar retosBtn según modo y existencia de reto en la parada
                 const retosDeParada = obtenerRetosIds(parada);
-                await _configurarRetoModosCasa(parada, retosDeParada, estado, logPrefix);
+                await _configurarRetoBtn(parada, retosDeParada, estado, logPrefix);
 
                 // Disparar CustomEvent para que funciones-mapa.js dibuje marcadores/polylines/zoom
                 // (funciones-mapa escucha 'vv-parada-cambiada' en vez de registrar CAMBIO_PARADA)
@@ -9846,6 +10114,16 @@
                     logger.success(`${logPrefix} ✅ hijo2 confirmó: ${totalCargadas} coordenadas cargadas (${aventura}/${idioma})`);
                     if (!estado.seleccion) estado.seleccion = {};
                     estado.seleccion.coordenadasCargadas = true;
+                    
+                    // 🔥 CRÍTICO: Dibujar marcadores y polylines ahora que tenemos los datos
+                    try {
+                        const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
+                        if (coords.length > 0) {
+                            logger.success(`${logPrefix} 🗺️ Datos de coordenadas disponibles: ${coords.length} elementos`);
+                        }
+                    } catch (dibujarError) {
+                        logger.error(`${logPrefix} Error procesando coordenadas:`, dibujarError);
+                    }
                 } else {
                     logger.error(`${logPrefix} ⚠️ hijo2 reportó error: ${errorMsg}`);
                     if (!estado.seleccion) estado.seleccion = {};
@@ -10067,10 +10345,18 @@
         async function _hdl_DATOS_SOLICITAR_RETOS(mensaje) {
             const av = globalThis.aventuraSeleccionada;
             const id = globalThis.idiomaSeleccionado || 'es';
-            if (!av) return;
+            if (!av) {
+                logger.warn(`[PADRE][SOLICITAR_RETOS] ⚠️ No hay aventura seleccionada — ignorando solicitud de ${mensaje.origen}`);
+                return;
+            }
             const { cargarRetos: _cRt } = await import('./js/data-loader.js');
             const retos = await _cRt(av, id) || [];
-            if (retos.length === 0) return;
+            if (retos.length === 0) {
+                logger.warn(`[PADRE][SOLICITAR_RETOS] ⚠️ Array de retos vacío para ${av}/${id} — verifique RETOS_AVENTURAS["${av}"]["${id}"]`);
+                // Enviar array vacío de todos modos para que hijo4 sepa que no hay retos
+                await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_RETOS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, retos: [], total: 0, timestamp: Date.now(), error: 'NO_RETOS_DISPONIBLES' } });
+                return;
+            }
             logger.info(`[PADRE][SOLICITAR_RETOS] Reenviando ${retos.length} retos a ${mensaje.origen}`);
             await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_RETOS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, retos, total: retos.length, timestamp: Date.now() } });
         }
@@ -10078,10 +10364,18 @@
         async function _hdl_DATOS_SOLICITAR_TEXTOS(mensaje) {
             const av = globalThis.aventuraSeleccionada;
             const id = globalThis.idiomaSeleccionado || 'es';
-            if (!av) return;
+            logger.debug(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] aventura=${av}, idioma=${id}`);
+            if (!av) {
+                logger.warn(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] ⚠️ No hay aventura seleccionada, omitiendo solicitud`);
+                return;
+            }
             const { cargarTextos: _cTx } = await import('./js/data-loader.js');
             const textos = await _cTx(av, id);
-            if (textos.length === 0) return;
+            logger.debug(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] cargarTextos devolvió ${textos?.length ?? 0} textos`);
+            if (textos.length === 0) {
+                logger.warn(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] Sin textos disponibles para ${av}/${id}`);
+                return;
+            }
             logger.info(`[PADRE][SOLICITAR_TEXTOS] Reenviando ${textos.length} textos a ${mensaje.origen}`);
             await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_TEXTOS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, textos, total: textos.length, timestamp: Date.now() } });
         }
@@ -10122,6 +10416,10 @@
                 const { idioma, timestamp } = mensaje.datos || {};
 
                 logger.info(`${logPrefix} Idioma seleccionado: ${idioma} desde ${mensaje.origen}`);
+                
+                // DEBUG: Verificar estado
+                logger.debug(`${logPrefix} DEBUG estado:`, typeof estado, estado);
+                logger.debug(`${logPrefix} DEBUG globalThis.estadoPadre:`, typeof globalThis.estadoPadre, !!globalThis.estadoPadre);
 
                 // Almacenar idioma en estado global
                 if (!estado.seleccion) estado.seleccion = {};
@@ -10135,7 +10433,9 @@
                 logger.debug(`${logPrefix} Idioma almacenado en estado global: ${idioma}`);
 
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando selección de idioma:`, error);
+                logger.error(`${logPrefix} Error procesando selección de idioma:`, error, error?.stack);
+                logger.error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, estado);
+                logger.error(`${logPrefix} DEBUG en catch - globalThis.estadoPadre:`, typeof globalThis.estadoPadre);
             }
         }
 
@@ -10216,7 +10516,8 @@
                 await cargarHijoCasa();
 
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando selección de aventura:`, error);
+                logger.error(`${logPrefix} Error procesando selección de aventura:`, error, error?.stack);
+                logger.error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
             }
         }
 
@@ -10232,7 +10533,8 @@
                 if (idioma) estado.seleccion.idioma = idioma;
                 estado.seleccion.preSeleccionTimestamp = timestamp;
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando pre-selección:`, error);
+                logger.error(`${logPrefix} Error procesando pre-selección:`, error, error?.stack);
+                logger.error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
             }
         }
 
@@ -10404,7 +10706,9 @@
                 logger.success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
 
             } catch (error) {
-                logger.error(`${logPrefix} Error registrando aventura:`, error);
+                logger.error(`${logPrefix} Error registrando aventura:`, error, error?.stack);
+                logger.error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
+                logger.error(`${logPrefix} DEBUG en catch - globalThis.estadoPadre:`, typeof globalThis.estadoPadre, !!globalThis.estadoPadre);
                 if (typeof globalThis.hideParentLoadingOverlay === 'function') { globalThis.hideParentLoadingOverlay(); }
             }
         }
@@ -10665,6 +10969,9 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 const { aceptados, timestamp } = mensaje.datos || {};
 
                 logger.info(`${logPrefix} Términos aceptados: ${aceptados}`);
+                
+                // DEBUG: Verificar estado
+                logger.debug(`${logPrefix} DEBUG estado disponible:`, !!estado, typeof estado);
 
                 // Almacenar en estado
                 if (!estado.seleccion) estado.seleccion = {};
@@ -10672,7 +10979,8 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 estado.seleccion.timestampTerminos = timestamp;
 
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando aceptación de términos:`, error);
+                logger.error(`${logPrefix} Error procesando aceptación de términos:`, error, error?.stack);
+                logger.error(`${logPrefix} DEBUG en catch - tipo de error:`, typeof error, Object.prototype.toString.call(error));
             }
         }
 
@@ -11307,6 +11615,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         // NOTA: inicializarMensajeria ya fue llamada en Script 1
         // ============================================================
 
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
         while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
             await sleep(50);

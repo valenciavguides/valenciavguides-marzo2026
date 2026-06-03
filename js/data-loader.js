@@ -138,16 +138,26 @@ async function cargarMapaParrafos(idioma) {
  */
 export async function cargarTextos(aventuraId, idioma) {
     const key = getCacheKey('textos', aventuraId, idioma);
-    if (dataCache.has(key)) return dataCache.get(key);
+    console.log(`[DataLoader][cargarTextos] aventuraId=${aventuraId}, idioma=${idioma}, cacheKey=${key}`);
+    if (dataCache.has(key)) {
+        const cached = dataCache.get(key);
+        console.log(`[DataLoader][cargarTextos] Devolviendo ${cached?.length ?? 0} textos desde cache`);
+        return cached;
+    }
 
     let result;
     if (DATA_MODE === 'local') {
+        console.log(`[DataLoader][cargarTextos] Modo local - importando módulos...`);
         const { TEXTOS_AVENTURAS } = await import('./textos-aventuras.js');
         const { AUDIOS_AVENTURAS } = await import('./audios-aventuras.js');
+        console.log(`[DataLoader][cargarTextos] TEXTOS_AVENTURAS disponible:`, TEXTOS_AVENTURAS ? 'SÍ' : 'NO');
+        console.log(`[DataLoader][cargarTextos] TEXTOS_AVENTURAS[${aventuraId}]:`, TEXTOS_AVENTURAS[aventuraId] ? `${TEXTOS_AVENTURAS[aventuraId].length} entradas` : 'undefined');
         const entradas = TEXTOS_AVENTURAS[aventuraId] ?? [];
         const audios = AUDIOS_AVENTURAS[aventuraId]?.[idioma] ?? [];
         const audioMap = new Map(audios.map(a => [a.id, a]));
+        console.log(`[DataLoader][cargarTextos] Cargando mapa de párrafos para idioma=${idioma}...`);
         const mapa = await cargarMapaParrafos(idioma);
+        console.log(`[DataLoader][cargarTextos] Mapa de párrafos cargado: ${Object.keys(mapa).length} párrafos`);
 
         result = entradas.map(entrada => {
             const idLang = entrada.id + '-' + idioma;
@@ -163,6 +173,7 @@ export async function cargarTextos(aventuraId, idioma) {
                 .join('');
             return { id: idLang, title, content };
         });
+        console.log(`[DataLoader][cargarTextos] Ensamblados ${result.length} textos`);
     } else {
         // NOTE (PRODUCCIÓN): este endpoint devuelve el mapa crudo de párrafos,
         // no el array [{id,title,content}] que necesita la app.
@@ -175,6 +186,7 @@ export async function cargarTextos(aventuraId, idioma) {
     }
 
     dataCache.set(key, result);
+    console.log(`[DataLoader][cargarTextos] Guardado en cache y devolviendo ${result?.length ?? 0} textos`);
     return result;
 }
 

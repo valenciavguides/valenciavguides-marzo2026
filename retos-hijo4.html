@@ -1029,10 +1029,15 @@
                     btnEnviar.disabled = true;
                 }
 
-                // Habilitar btnNext y ponerlo verde
+                // Habilitar btnNext y ponerlo verde (solo si hay siguiente reto)
                 if (btnNext) {
-                    btnNext.disabled = false;
-                    btnNext.style.backgroundColor = "#28a745";
+                    const retosArray = obtenerRetos();
+                    const hayMasRetos = indiceReto < retosArray.length - 1;
+                    btnNext.disabled = !hayMasRetos;
+                    btnNext.style.backgroundColor = hayMasRetos ? "#28a745" : "#999";
+                    if (!hayMasRetos) {
+                        logger.info('[hijo4] ✅ Último reto completado — botón Next deshabilitado');
+                    }
                 }
 
                 // Enviar mensaje al padre indicando que el reto se completó
@@ -1157,7 +1162,12 @@
                 return;
             }
 
-            if (event.data === "puzzle-state-completed") {
+            // Soporte para mensajes tipados (nuevo formato objeto) y legacy (string)
+            const tipoPuzzle = event.data?.tipo;
+            const esCompletado = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.COMPLETADO || event.data === "puzzle-state-completed";
+            const esTimeout    = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.TIMEOUT   || event.data === "puzzle-state-timeout";
+
+            if (esCompletado) {
                 retoDiv.classList.add("correct");
                 retoDiv.classList.remove("incorrect");
                 fuegosArtificiales();
@@ -1175,7 +1185,7 @@
                 const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
                 if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
             }
-            else if (event.data === "puzzle-state-timeout") {
+            else if (esTimeout) {
                 retoDiv.classList.add("incorrect");
                 retoDiv.classList.remove("correct");
                 vibrar();
@@ -1380,7 +1390,7 @@
                     // FIX: Forzar body visible al recibir RETO.MOSTRAR
                     // Si PADRE_CONFIRMA_HIJO_LISTO no llego, body puede estar display:none
                     try {
-                        document.body.style.display = 'block';
+                        document.body.style.display = _originalDisplay || 'flex';
                         document.body.style.visibility = 'visible';
                         document.body.style.opacity = '1';
                     } catch(_e) { /* ignore */ } // NOSONAR

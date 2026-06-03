@@ -256,8 +256,9 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478660'), lng: Number('-0.374700') },
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
-        video: "videos-aventuras/av1/tramo_2.mp4",
+        imagen2: "imagenes/imagenes-aventuras/serranos_pont_fusta.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
+        video: "",
     },
 
     // Parada 2: calle Muro Santa Ana (Reto 5) (Párrafos: 68)
@@ -285,7 +286,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.477840'), lng: Number('-0.374850') },
         imagen: "imagenes/imagenes-aventuras/Calle_Muro_Santa_Ana.jpg",
         imagen2: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
-        video: "videos-aventuras/av1/tramo_3.mp4",
+        video: "",
     },
 
     // Parada 3: Iglesia de San Lorenzo (Reto 6) (Párrafos: 682-B, 462, 684, 683)
@@ -313,7 +314,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.476610'), lng: Number('-0.375160') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_lorenzo.jpg",
         imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
-        video: "videos-aventuras/av1/tramo_4.mp4",
+        video: "",
     },
 
     // Parada 4: Plaza de la Virgen (Reto 7) (Párrafos: 466, 467)
@@ -347,7 +348,8 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 3,
         nombre: "Plaza de la Virgen",
         coordenadas: { lat: Number('39.476560'), lng: Number('-0.375160') },
-        imagen: "imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg",
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Puerta_gotica_catedral.jpg",
     },
 
     // Tramo 5: Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína) (Párrafos: 83)
@@ -367,7 +369,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
         imagen2: "imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
-        video: "videos-aventuras/av1/tramo_5.mp4",
+        video: "",
     },
 
     // Parada 7: Panel cerámico muro Catedral (Reto 10) (Párrafos: 8-C, 434, 440, 441, 442 )
@@ -443,7 +445,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.476240'), lng: Number('-0.374250') },
        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
-        video: "videos-aventuras/av1/tramo_6.mp4",
+        video: "",
     },
 
     // Parada 12: Museo arqueológico La Almoína (Reto 14) (Párrafos: 458)
@@ -497,7 +499,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.475490'), lng: Number('-0.374270') },
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         imagen2: "imagenes/imagenes-aventuras/palacio_arzobispal.jpg",
-        video: "videos-aventuras/av1/tramo_7.mp4",
+        video: "",
     },
 
     // Parada 15: Palacio Arzobispal, Puerta Románica de la Catedral y Torre del Miguelete (Reto 17) (Párrafos: 673, 86, 426-B, 141, 437, 438)
@@ -968,7 +970,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.474560'), lng: Number('-0.378700') },
         imagen: "imagenes/imagenes-aventuras/Lonja_esquina_izquierda.jpg",
         imagen2: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_far_view.jpg",
-        imagen3: "imagenes/imagenes-aventuras/Lonja_patio_narajnos_close_view.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg",
         video: "",
     },
 
@@ -2408,6 +2410,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_serranos_2.jpg",
         imagen3:"imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
         video: "",
     },
     // Parada 2: Centro Puente Serranos 1 (Reto 5) (Párrafos: 608, 609, 610)
@@ -2418,7 +2421,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: null,
         nombre: "Centro Puente Serranos",
         coordenadas: { lat: Number('39.480620'), lng: Number('-0.375350') },
-        imagen: "imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
     },
     // Parada 3: Centro Puente Serranos 2 (Párrafos: 602, 232, 234, 8, 235, 224)
     {
@@ -2428,7 +2431,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: null,
         nombre: "Centro Puente Serranos 2",
         coordenadas: { lat: Number('39.480640'), lng: Number('-0.375340') },
-        imagen: "imagenes/imagenes-aventuras/museo de bellas artes.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
     },
     // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia (Párrafos: 236, 644, 7-B)
     {
@@ -2468,12 +2471,13 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.477790'), lng: Number('-0.371490') },
         ],
         fin: { lat: Number('39.477730'), lng: Number('-0.371390') },
-        imagen: "imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
-        imagen3: "imagenes/imagenes-aventuras/pont_fusta.jpg",
-        imagen4: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
-        imagen5: "imagenes/imagenes-aventuras/bajada_rio_ruinas.jpg",
-        imagen6: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
+        imagen3: "imagenes/imagenes-aventuras/serranos_pont_fusta.jpg",
+        imagen4: "imagenes/imagenes-aventuras/pont_fusta.jpg",
+        imagen5: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
+        imagen6: "imagenes/imagenes-aventuras/bajada_rio_ruinas.jpg",
+        imagen7: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
         video: "",
     },
     // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A)
@@ -2899,7 +2903,8 @@ export const DATOS_AVENTURAS = {
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
         imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
-        imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg"
+        imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
+        imagen3: "imagenes/imagenes-aventuras/CAC-6.jpg",
     },
     // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or (Párrafos: 276, 32-B)
     {
@@ -2931,7 +2936,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 21,
         nombre: "Puente l'Assut de l'Or",
         coordenadas:  { lat: Number('39.455825'), lng: Number('-0.348149') },
-        imagen: "imagenes/imagenes-aventuras/puente_Assut-2.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
     },
     // Tramo 14: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 116)
     {
@@ -2950,7 +2955,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.453620'), lng: Number('-0.351120') },
         ],
         fin: { lat: Number('39.453520'), lng: Number('-0.350810') },
-        imagen: "imagenes/imagenes-aventuras/puente_Assut-2.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
         imagen2: "imagenes/imagenes-aventuras/agora.jpg",
         imagen3: "imagenes/imagenes-aventuras/oceanografic.jpg",
         imagen4:"imagenes/imagenes-aventuras/agora_oceanografic.jpg",
@@ -3053,7 +3058,7 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.458224'), lng: Number('-0.353780') },
             { lat: Number('39.458632'), lng: Number('-0.354407') },
             { lat: Number('39.459077'), lng: Number('-0.355962') },
-            {lat: Number('39.459412'), lng: Number('-0.357080') },
+            { lat: Number('39.459412'), lng: Number('-0.357080') },
             { lat: Number('39.459684'), lng: Number('-0.358352') },
             { lat: Number('39.460893'), lng: Number('-0.359343') },
             { lat: Number('39.462333'), lng: Number('-0.360201') },
@@ -4627,7 +4632,11 @@ export const DATOS_AVENTURAS = {
          ],
         fin: {lat: Number('39.479635'), lng: Number('-0.375845') },
         imagen: "imagenes/imagenes-aventuras/puente_san_jose.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/ivam_serranos_2.jpg",
+        imagen3: "imagenes/imagenes-aventuras/ivam_serranos_3.jpg",
+        imagen4: "imagenes/imagenes-aventuras/ivam_serranos_4.jpg",
+        imagen5: "imagenes/imagenes-aventuras/ivam_serranos_5.jpg",
+        imagen6: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
     // Parada 24: Torres de Serranos Front (Reto 17) (Párrafos: 471, 687, 145, 126, 233 )
@@ -4656,6 +4665,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_serranos_2.jpg",
         imagen3:"imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
         video: "",
     },
     // Parada 25: Centro Puente Serranos (Párrafos: 234, 34-B, 235)
@@ -4706,12 +4716,14 @@ export const DATOS_AVENTURAS = {
             { lat: Number('39.477790'), lng: Number('-0.371490') },
         ],
         fin: { lat: Number('39.477730'), lng: Number('-0.371390') },
-        imagen: "imagenes/imagenes-aventuras/puente_serranos.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
-        imagen3: "imagenes/imagenes-aventuras/pont_fusta.jpg",
-        imagen4: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
-        imagen5: "imagenes/imagenes-aventuras/bajada_rio_ruinas.jpg",
-        imagen6: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagen3: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagen4: "imagenes/imagenes-aventuras/serranos_pont_fusta.jpg",
+        imagen5: "imagenes/imagenes-aventuras/pont_fusta.jpg",
+        imagen6: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
+        imagen7: "imagenes/imagenes-aventuras/bajada_rio_ruinas.jpg",
+        imagen8: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
         video: "",
     },
     // Parada 26: Ruinas del Jardín del Turia (Reto18puzzle PZ-13) (Párrafos: 705, 703, 645, 646)
@@ -4846,6 +4858,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.479455'), lng: Number('-0.368610') },
         imagen: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg",
+        imagen2: "imagenes/imagenes-aventuras/viveros_paseo_poetas_2.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_pajarera.jpg",
         imagen3: "imagenes/imagenes-aventuras/viveros_plano.png",
         imagen4: "imagenes/imagenes-aventuras/viveros_alqueria_canet.jpg",
@@ -4988,8 +5001,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.476941'), lng: Number('-0.367427') },
         imagen: "imagenes/imagenes-aventuras/viveros_entrada.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
-        imagen3: "",
-        imagen4: "imagenes/imagenes-aventuras/puente_real_up.jpg",
+        imagen3: "imagenes/imagenes-aventuras/puente_real_up.jpg",
         video: "",
     },
     // Parada 34: Puente del Real (Párrafos: 651, 652, 653)
@@ -5036,7 +5048,7 @@ export const DATOS_AVENTURAS = {
          ],
         fin: { lat: Number('39.478590'), lng: Number('-0.376330')},
         imagen: "imagenes/imagenes-aventuras/puente_real_up.jpg",
-        imagen2: "imagenes/imagenes-aventuras/puente_real_torres_serranos.jpg",
+        imagen2: "imagenes/imagenes-aventuras/pont_real_serranos.jpg",
         imagen3: "imagenes/imagenes-aventuras/iglesia_del_temple.jpg",
         imagen4: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
         video: "",
@@ -5297,7 +5309,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: null,
         nombre: "Centro Puente Serranos",
         coordenadas: { lat: Number('39.480620'), lng: Number('-0.375350') },
-        imagen: "imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
     },
     // Parada 3: Centro Puente Serranos 2 (Párrafos: 602, 232-B, 234, 235, 224)
     {
@@ -5307,7 +5319,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: null,
         nombre: "Centro Puente Serranos 2",
         coordenadas: { lat: Number('39.480640'), lng: Number('-0.375340') },
-        imagen: "imagenes/imagenes-aventuras/museo de bellas artes.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
     },
     // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia (Párrafos: 236, 644, 6)
     {
@@ -5350,7 +5362,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
         imagen2: "imagenes/imagenes-aventuras/puente_serranos.jpg",
         imagen3: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
-        imagen4: "imagenes/imagenes-aventuras/Torres_serranos_a_pont_fusta.jpg",
+        imagen4: "imagenes/imagenes-aventuras/serranos_pont_fusta.jpg",
         imagen5: "imagenes/imagenes-aventuras/pont_fusta.jpg",
         imagen6: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
         imagen7: "imagenes/imagenes-aventuras/bajada_rio_ruinas.jpg",
@@ -5585,7 +5597,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/casa_dragones.jpg",
         imagen2: "imagenes/imagenes-aventuras/casa_dragones_dragon.jpg",
     },
-    // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13, 307)
+    // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13)
     {
         id: "Av5-TR-9",
         tipo: "tramo",
@@ -5747,7 +5759,8 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.467031'), lng: Number('-0.375683') },
         imagen: "imagenes/imagenes-aventuras/ruinas_calle_colon.jpg",
-        imagen2: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_colon_2.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
         video: "",
     },
     // Parada 16: Plaza de Toros(Reto: 14) (Párrafos: 320, 321, 323, 322)
@@ -5850,7 +5863,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470638'), lng: Number('-0.383312') },
         imagen: "imagenes/imagenes-aventuras/plaza_de_toros_y_estacion_del_norte.jpg",
-        imagen2: "imagenes/imagenes-aventuras/calle_guillem_castro.jpg",
+        imagen2: "imagenes/imagenes-aventuras/guillem-castro-1.jpg",
         imagen3: "imagenes/imagenes-aventuras/calle_hospital_fuente.jpg",
         imagen3: "imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg",
         video: "",
@@ -5905,7 +5918,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.470928'), lng: Number('-0.380926') },
         imagen: "imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg",
-        imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital_entrada_antigua.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_hospital_antigua_entrada.jpg",
         imagen3: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
         imagen4: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         video: "",
@@ -5919,7 +5932,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Museo y Colegio del Arte Mayor de la Seda",
         coordenadas: { lat: Number('39.470928'), lng: Number('-0.380926') },
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
-        imagen2: "imagenes/imagenes-aventuras/museo_seda_fecha.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_seda_date.jpg",
     },
     // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587)
     {
@@ -5954,7 +5967,7 @@ export const DATOS_AVENTURAS = {
         fin: { lat: Number('39.469930'), lng: Number('-0.381871') },
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
-        imagen3: "imagenes/imagenes-aventuras/biblioteca_hospital_entrada_trasera.jpg",
+        imagen3: "imagenes/imagenes-aventuras/biblioteca-hospital-trasera.jpg",
         imagen3: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
@@ -6005,9 +6018,9 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital.jpg",
         imagen3: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
-        imagen4: "imagenes/imagenes-aventuras/calle_hospital_3.jpg",
-        imagen5: "imagenes/imagenes-aventuras/avenida_oeste.jpg",
-        imagen6: "imagenes/imagenes-aventuras/mercado_central_avenida_oeste.jpg",
+        imagen4: "imagenes/imagenes-aventuras/calle_hospital_avenida_oeste.jpg",
+        imagen5: "imagenes/imagenes-aventuras/avenida-oeste.jpg",
+        imagen6: "imagenes/imagenes-aventuras/avenida-oeste-mercado-central.jpg",
         imagen4: "imagenes/imagenes-aventuras/mercado_central.jpg",
         video: "",
     },
@@ -6140,7 +6153,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Torres de Quart",
         coordenadas: { lat: Number('39.475815'), lng: Number('-0.384196') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
-        imagen2: "imagenes/imagenes-aventuras/torres_quart_palleter.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
     },
     // Tramo 21: Torres de Quart → Museo de Prehistoria y Etnología (Párrafos: 333, 27-D)
     {
@@ -6164,9 +6177,10 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.478248'), lng: Number('-0.383117') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
-        imagen2: "imagenes/imagenes-aventuras/guillem_castro_quart.jpg",
-        imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_side.jpg",
-        imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres-quart-guillem-castro.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_far.jpg",
+        imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
+        imagen5: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
         video: "",
     },
     // Parada 33: Museo de prehistoria y Etnología (Párrafos: 565, 566)
@@ -6177,7 +6191,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: "18/19",
         nombre: "Museo de Prehistoria y Etnología",
         coordenadas: { lat: Number('39.478248'), lng: Number('-0.383117') },
-        imagen: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
     },
     // Tramo 22: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 31)
     {
@@ -6230,9 +6244,10 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.480042'), lng: Number('-0.382967') },
         imagen: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
-        imagen2: "imagenes/imagenes-aventuras/museo_prehistoria_front.jpg",
-        imagen3: "imagenes/imagenes-aventuras/guillem_castro_museo_prehistoria_2.jpg",
-        imagen2: "imagenes/imagenes-aventuras/ivam.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
+        imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_guillem_castro.jpg",
+        imagen5: "imagenes/imagenes-aventuras/ivam.jpg",
         video: "",
     },
     // Parada 35: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 4)
@@ -6277,12 +6292,14 @@ export const DATOS_AVENTURAS = {
         ],
         fin: {  lat: Number('39.478590'), lng: Number('-0.376330') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
-        imagen2: "imagenes/imagenes-aventuras/ivam_a_torres_serranos_4.jpg",
-        imagen3: "imagenes/imagenes-aventuras/ivam_a_torres_serranos.jpg",
-        imagen4: "imagenes/imagenes-aventuras/ivam_a_torres_serranos_2.jpg",
-        imagen5: "imagenes/imagenes-aventuras/ivam_a_torres_serranos_3.jpg",
-        imagen6: "imagenes/imagenes-aventuras/ivam_a_torres_serranos_5.jpg",
-        imagen7: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_de_las_artes.jpg",
+        imagen3: "imagenes/imagenes-aventuras/ivam_serranos_1.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_san_jose.jpg",
+        imagen5: "imagenes/imagenes-aventuras/ivam_serranos_2.jpg",
+        imagen6: "imagenes/imagenes-aventuras/ivam_serranos_3.jpg",
+        imagen7: "imagenes/imagenes-aventuras/ivam_serranos_4.jpg",
+        imagen8: "imagenes/imagenes-aventuras/ivam_serranos_5.jpg",
+        imagen9: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
     // Parada 36 - FINAL: Torres de Serranos Final (Reto35Puzzle PZ-05) (Párrafos: 475, 503, 507, 526,)

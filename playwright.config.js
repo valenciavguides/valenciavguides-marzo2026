@@ -22,7 +22,7 @@ module.exports = defineConfig({
     ['line'],
   ],
 
-  // Servidor estático local — sirve todo el proyecto desde la raíz
+  // Servidor estático local — sirve el proyecto completo desde la raíz
   webServer: {
     command: 'node js/server.js',
     url: 'http://localhost:8080',

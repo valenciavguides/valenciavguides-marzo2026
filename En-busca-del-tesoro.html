@@ -1251,7 +1251,11 @@
     function _onPuzzleMessage(event) {
       const msg = event.data;
       const btnContinuar = document.getElementById('btn-continuar-puzzle');
-      if (msg === 'puzzle-state-completed' || msg === 'puzzle-state-timeout') {
+      // Soporte para mensajes tipados (nuevo formato) y legacy (string crudo)
+      const tipoPuzzle = msg?.tipo;
+      const esCompletado = tipoPuzzle === 'PUZZLE.COMPLETADO' || msg === 'puzzle-state-completed';
+      const esTimeout    = tipoPuzzle === 'PUZZLE.TIMEOUT'    || msg === 'puzzle-state-timeout';
+      if (esCompletado || esTimeout) {
         if (btnContinuar) btnContinuar.style.display = 'flex';
       } else if (msg === 'advance-to-next') {
         globalThis.removeEventListener('message', globalThis._puzzleListener);
@@ -1743,14 +1747,14 @@
         img.src = rutaAlt;
       };
       overlay.style.display = 'flex';
-      try { globalThis.parent.postMessage({ tipo: 'SUPPRESS_ROTATION', value: true }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
+      try { globalThis.parent.postMessage({ tipo: 'NAVEGACION.SUPRIMIR_ROTACION', origen: globalThis.name || 'seleccion', value: true }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
       _log.info('[SELECCION] Mapa vintage mostrado:', rutaMapa);
     }
 
     function cerrarMapaVintage() {
       const overlay = document.getElementById('mapa-vintage-overlay');
       if (overlay) overlay.style.display = 'none';
-      try { globalThis.parent.postMessage({ tipo: 'SUPPRESS_ROTATION', value: false }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
+      try { globalThis.parent.postMessage({ tipo: 'NAVEGACION.SUPRIMIR_ROTACION', origen: globalThis.name || 'seleccion', value: false }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
       void mostrar(8);
     }
 

@@ -217,7 +217,8 @@
 
     // 3) Messaging fallback.
     try {
-      globalThis.parent.postMessage({ tipo: 'CHAT.CERRAR' }, obtenerOrigenPadreSeguro());
+      var tipoCerrar = (globalThis.constants && globalThis.constants.TIPOS_MENSAJE && globalThis.constants.TIPOS_MENSAJE.CHAT && globalThis.constants.TIPOS_MENSAJE.CHAT.CERRAR) || 'CHAT.CERRAR';
+      globalThis.parent.postMessage({ tipo: tipoCerrar }, obtenerOrigenPadreSeguro());
     } catch (error_) {
       console.debug('[hijo6] postMessage CHAT.CERRAR falló', error_ && error_.message);
     }

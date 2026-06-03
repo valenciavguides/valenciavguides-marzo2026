@@ -437,6 +437,176 @@ const MODOS_OPERACION = {
     }
 };
 
+async function _activarParadaDefectoAventura() {
+    try {
+        const { elementosIDpadre } = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado];
+        if (elementosIDpadre && elementosIDpadre.length > 0) {
+            const paradaDefecto = elementosIDpadre.find(p => p.padreid === 'padre-P-0') || elementosIDpadre[0];
+            const paradaId = paradaDefecto.parada_id || paradaDefecto.tramo_id || paradaDefecto.id || 'P-0';
+            const padreId = paradaDefecto.padreid || `padre-${paradaId}`;
+            const payloadCambioParada = {
+                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                origen: getPadreId(),
+                destino: getPadreId(),
+                datos: {
+                    paradaId,
+                    parada_id: paradaId,
+                    padreId,
+                    padreid: padreId,
+                    contexto: 'arranque_aventura',
+                    timestamp: Date.now()
+                }
+            };
+
+            logger.info(`[APP][CAMBIO_MODO] Activando flujo principal de CAMBIO_PARADA para ${padreId}`);
+
+            if (globalThis.__vv_stateManager && typeof globalThis.__vv_stateManager.enviarMensajeCentral === 'function') {
+                await globalThis.__vv_stateManager.enviarMensajeCentral(payloadCambioParada);
+                logger.debug(`[APP][CAMBIO_MODO] CAMBIO_PARADA inicial enviado al controlador central para ${padreId}`);
+            } else {
+                const targetOrigin = globalThis.location.origin === 'null'
+                    ? '*'
+                    : globalThis.location.origin;
+                globalThis.postMessage({
+                    ...payloadCambioParada,
+                    origen: 'app-bootstrap'
+                }, targetOrigin);
+                logger.warn(`[APP][CAMBIO_MODO] State manager no disponible; fallback via postMessage para ${padreId}`);
+            }
+        }
+    } catch (e) {
+        logger.warn('[APP][CAMBIO_MODO] Error estableciendo parada por defecto:', e);
+    }
+}
+
+function _preiniciarHeartbeatSiNecesario(estado, promises) {
+    if (estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado) {
+        logger.debug('[APP][CAMBIO_MODO] Pre-warm detectado (iniciado en CASA), se reanudará en lugar de reiniciarse');
+    } else {
+        if (globalThis.mensajeria && typeof globalThis.mensajeria.preiniciarHeartbeat === 'function') {
+            promises.push(globalThis.mensajeria.preiniciarHeartbeat());
+            logger.debug('[APP][CAMBIO_MODO] Pre-iniciando heartbeat en background (no estaba pre-iniciado)');
+        }
+        logger.debug('[APP][CAMBIO_MODO] GPS warmup disabled; skipping GPS prewarm');
+    }
+}
+
+async function _reanudarSubsistemasTrasPrewarm(estado) {
+    if (globalThis.mensajeria && typeof globalThis.mensajeria.reanudarHeartbeat === 'function') {
+        globalThis.mensajeria.reanudarHeartbeat();
+        logger.debug('[APP][CAMBIO_MODO] Heartbeat reanudado tras pre-warm');
+    }
+    if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.iniciarGPSAventura === 'function') {
+        await globalThis.funcionesMapa.iniciarGPSAventura();
+        logger.debug('[APP][CAMBIO_MODO] Iniciado GPS aventura tras pre-warm');
+    }
+    if (!(estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado)) {
+        await _activarParadaDefectoAventura();
+        estado.sistema.prewarmIniciado = true;
+    }
+    estado.sistema.prewarmPausado = false;
+}
+
+async function _prewarmAventura(estado) {
+    const cfgConfirmTimeout = globalThis.Config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION || 10000;
+    const promises = [];
+
+    try {
+        _preiniciarHeartbeatSiNecesario(estado, promises);
+    } catch (prewarmError) { logger.warn('[APP][CAMBIO_MODO] Error lanzando prewarm inicial:', prewarmError); }
+
+    const hijosPromise = (globalThis.mensajeria && typeof globalThis.mensajeria.esperarHijosListos === 'function')
+        ? globalThis.mensajeria.esperarHijosListos(cfgConfirmTimeout)
+        : Promise.resolve({ ready: true });
+
+    try {
+        const race = await Promise.race([
+            (async () => { await Promise.allSettled(promises); return hijosPromise; })(),
+            new Promise(resolve => setTimeout(() => resolve({ timeout: true }), cfgConfirmTimeout * 2))
+        ]);
+
+        if (race?.timeout) {
+            logger.info('[APP][CAMBIO_MODO] Pre-warm / HIJO_LISTO timed out; proceeding anyway');
+        } else {
+            logger.info('[APP][CAMBIO_MODO] Pre-warm and/or HIJO_LISTO completed or settled');
+        }
+
+        try {
+            await _reanudarSubsistemasTrasPrewarm(estado);
+        } catch (e) { logger.warn('[APP][CAMBIO_MODO] Error reanudando/iniciando subsistemas tras pre-warm:', e); }
+    } catch (e) {
+        logger.warn('[APP][CAMBIO_MODO] Error esperando prewarm/hijosListos:', e);
+    }
+}
+
+function _pausarHeartbeatCasa(estado) {
+    try {
+        if (globalThis.mensajeria && typeof globalThis.mensajeria.pausarHeartbeat === 'function') {
+            globalThis.mensajeria.pausarHeartbeat();
+            logger.debug('[APP][CAMBIO_MODO] Heartbeat pausado al cambiar a CASA');
+        }
+    } catch (e) { logger.warn('[APP][CAMBIO_MODO] Error pausando heartbeat al cambiar a CASA:', e); }
+
+    estado.sistema.prewarmPausado = estado.sistema.prewarmPausado || false;
+}
+
+async function _flujoPrewarmModo(estado, modoKey, modoNormalized) {
+    const esAventura = (modoKey === 'AVENTURA') || (modoNormalized === MODOS.AVENTURA);
+    const esCasa = (modoKey === 'CASA') || (modoNormalized === MODOS.CASA);
+
+    try {
+        if (esAventura) {
+            await _prewarmAventura(estado);
+        } else if (esCasa) {
+            _pausarHeartbeatCasa(estado);
+        }
+    } catch (e) {
+        logger.warn('[APP][CAMBIO_MODO] Error en flujo de pre-warm:', e);
+    }
+}
+
+async function _limpiarMapaTrasMode(modoNormalized, logPrefix) {
+    try {
+        if (globalThis.funcionesMapa) {
+            if (typeof globalThis.funcionesMapa.limpiarPorEstado === 'function') {
+                await globalThis.funcionesMapa.limpiarPorEstado({ modo: modoNormalized });
+                logger.debug(`${logPrefix} Capas del mapa limpiadas para modo ${modoNormalized}`);
+            }
+            if (typeof globalThis.funcionesMapa.setMapView === 'function') {
+                const defaultCenter = CONFIG?.MAPA?.CENTER || [39.4699, -0.3763];
+                const defaultZoom = (typeof CONFIG?.MAPA?.ZOOM === 'number') ? CONFIG.MAPA.ZOOM : 13;
+                await globalThis.funcionesMapa.setMapView(defaultCenter, defaultZoom, { animate: true, duration: 0.6 });
+                logger.debug(`${logPrefix} Vista del mapa restaurada a zoom ${defaultZoom}`);
+            }
+        }
+    } catch (mapaErr) {
+        logger.warn(`${logPrefix} Error limpiando mapa tras cambio de modo:`, mapaErr?.message);
+    }
+}
+
+async function _notificarErrorCambioModo(mensaje, errorMsg, error, modo, logPrefix) {
+    try {
+        await enviarMensaje({
+            destino: mensaje?.origen || 'sistema',
+            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
+            origen: getPadreId(),
+            mensajeId: generarIdUnico(),
+            timestamp: Date.now(),
+            datos: {
+                codigo: 'ERROR_CAMBIO_MODO',
+                mensaje: errorMsg,
+                detalles: error.message,
+                modoSolicitado: modo,
+                mensajeOriginal: mensaje
+            }
+        });
+    } catch (errorNotificacion) { // NOSONAR
+        logger.error(`${logPrefix} Error al notificar fallo: ${errorNotificacion.message}`, {
+            error: errorNotificacion
+        });
+    }
+}
+
 /**
  * Maneja los cambios de modo en la aplicación.
  * Este controlador se encarga de:
@@ -444,7 +614,7 @@ const MODOS_OPERACION = {
  * - Validar la transición de modos
  * - Actualizar el estado global
  * - Notificar a los componentes afectados
- * 
+ *
  * @param {Object} mensaje - El mensaje de cambio de modo
  * @param {string} mensaje.origen - Origen del mensaje
  * @param {Object} estado - Estado global de la aplicación
@@ -560,141 +730,9 @@ export async function manejarCambioModo(estado, mensaje) {
             await withTimeout(notificarCambioModoInminente(modoActual, modoNormalized, motivo), 15000, 'notificarCambioModoInminente');
 
             // 8.1 Preparar pre-warm / pausar según el modo (usar valores normalizados)
+            await _flujoPrewarmModo(estado, modoKey, modoNormalized);
 
-            // 8.1 Preparar pre-warm / pausar según el modo (usar valores normalizados)
-            try {
-                const esAventura = (modoKey === 'AVENTURA') || (modoNormalized === MODOS.AVENTURA);
-                const esCasa = (modoKey === 'CASA') || (modoNormalized === MODOS.CASA);
-
-                // Si vamos a AVENTURA, precalentar subsistemas que reducen latencia
-                if (esAventura) {
-                    const cfgConfirmTimeout = globalThis.Config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION || 10000;
-                    const promises = [];
-
-                    try {
-                        // Si el prewarm ya se inició en modo CASA y está pausado, no volver a reiniciarlo
-                        if (estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado) {
-                            logger.debug('[APP][CAMBIO_MODO] Pre-warm detectado (iniciado en CASA), se reanudará en lugar de reiniciarse');
-                        } else {
-                            // Only pre-init heartbeat; GPS warmup removed
-                            if (globalThis.mensajeria && typeof globalThis.mensajeria.preiniciarHeartbeat === 'function') {
-                                promises.push(globalThis.mensajeria.preiniciarHeartbeat());
-                                logger.debug('[APP][CAMBIO_MODO] Pre-iniciando heartbeat en background (no estaba pre-iniciado)');
-                            }
-                            logger.debug('[APP][CAMBIO_MODO] GPS warmup disabled; skipping GPS prewarm');
-                        }
-                    } catch (prewarmError) { logger.warn('[APP][CAMBIO_MODO] Error lanzando prewarm inicial:', prewarmError); }
-
-                    const hijosPromise = (globalThis.mensajeria && typeof globalThis.mensajeria.esperarHijosListos === 'function')
-                        ? globalThis.mensajeria.esperarHijosListos(cfgConfirmTimeout)
-                        : Promise.resolve({ ready: true });
-
-                    try {
-                        const race = await Promise.race([
-                            (async () => { await Promise.allSettled(promises); return hijosPromise; })(),
-                            new Promise(resolve => setTimeout(() => resolve({ timeout: true }), cfgConfirmTimeout * 2))  // Timeout extendido
-                        ]);
-
-                        if (race?.timeout) {
-                            logger.info('[APP][CAMBIO_MODO] Pre-warm / HIJO_LISTO timed out; proceeding anyway');
-                        } else {
-                            logger.info('[APP][CAMBIO_MODO] Pre-warm and/or HIJO_LISTO completed or settled');
-                        }
-
-                        // Tras pre-warm o si estaba pre-iniciado, reanudar heartbeat e iniciar GPS aventura
-                        try {
-                            if (estado.sistema?.prewarmIniciado && estado.sistema?.prewarmPausado) {
-                                // Reanudar desde estado preiniciado
-                                if (globalThis.mensajeria && typeof globalThis.mensajeria.reanudarHeartbeat === 'function') {
-                                    globalThis.mensajeria.reanudarHeartbeat();
-                                    logger.debug('[APP][CAMBIO_MODO] Heartbeat reanudado desde pre-warm en CASA');
-                                }
-
-                                // Start GPS adventure flow directly (warmup removed)
-                                if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.iniciarGPSAventura === 'function') {
-                                    await globalThis.funcionesMapa.iniciarGPSAventura();
-                                    logger.debug('[APP][CAMBIO_MODO] Iniciado GPS aventura (sin warmup)');
-                                }
-
-                                estado.sistema.prewarmPausado = false;
-                            } else {
-                                if (globalThis.mensajeria && typeof globalThis.mensajeria.reanudarHeartbeat === 'function') {
-                                    globalThis.mensajeria.reanudarHeartbeat();
-                                    logger.debug('[APP][CAMBIO_MODO] Heartbeat reanudado tras pre-warm');
-                                }
-                                if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.iniciarGPSAventura === 'function') {
-                                    await globalThis.funcionesMapa.iniciarGPSAventura();
-                                    logger.debug('[APP][CAMBIO_MODO] Iniciado GPS aventura tras pre-warm');
-                                }
-
-                                // Establecer la parada por defecto usando el mismo flujo principal
-                                // NAVEGACION.CAMBIO_PARADA que usa el resto de la app.
-                                try {
-                                    const { elementosIDpadre } = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado];
-                                    if (elementosIDpadre && elementosIDpadre.length > 0) {
-                                        const paradaDefecto = elementosIDpadre.find(p => p.padreid === 'padre-P-0') || elementosIDpadre[0];
-                                        const paradaId = paradaDefecto.parada_id || paradaDefecto.tramo_id || paradaDefecto.id || 'P-0';
-                                        const padreId = paradaDefecto.padreid || `padre-${paradaId}`;
-                                        const payloadCambioParada = {
-                                            tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                                            origen: getPadreId(),
-                                            destino: getPadreId(),
-                                            datos: {
-                                                paradaId,
-                                                parada_id: paradaId,
-                                                padreId,
-                                                padreid: padreId,
-                                                contexto: 'arranque_aventura',
-                                                timestamp: Date.now()
-                                            }
-                                        };
-
-                                        logger.info(`[APP][CAMBIO_MODO] Activando flujo principal de CAMBIO_PARADA para ${padreId}`);
-
-                                        if (globalThis.__vv_stateManager && typeof globalThis.__vv_stateManager.enviarMensajeCentral === 'function') {
-                                            await globalThis.__vv_stateManager.enviarMensajeCentral(payloadCambioParada);
-                                            logger.debug(`[APP][CAMBIO_MODO] CAMBIO_PARADA inicial enviado al controlador central para ${padreId}`);
-                                        } else {
-                                            const targetOrigin = globalThis.location.origin === 'null'
-                                                ? '*'
-                                                : globalThis.location.origin;
-                                            globalThis.postMessage({
-                                                ...payloadCambioParada,
-                                                origen: 'app-bootstrap'
-                                            }, targetOrigin);
-                                            logger.warn(`[APP][CAMBIO_MODO] State manager no disponible; fallback via postMessage para ${padreId}`);
-                                        }
-                                    }
-                                } catch (e) {
-                                    logger.warn('[APP][CAMBIO_MODO] Error estableciendo parada por defecto:', e);
-                                }
-                                estado.sistema.prewarmPausado = false;
-                                estado.sistema.prewarmIniciado = true;
-                            }
-                        } catch (e) { logger.warn('[APP][CAMBIO_MODO] Error reanudando/iniciando subsistemas tras pre-warm:', e); }
-                    } catch (e) {
-                        logger.warn('[APP][CAMBIO_MODO] Error esperando prewarm/hijosListos:', e);
-                    }
-
-                // Si volvemos a CASA, pausar heartbeat y detener warmup GPS para ahorrar recursos
-                } else if (esCasa) {
-                    // GPS warmup was removed, nothing to pause/stop here
-
-                    try {
-                        if (globalThis.mensajeria && typeof globalThis.mensajeria.pausarHeartbeat === 'function') {
-                            globalThis.mensajeria.pausarHeartbeat();
-                            logger.debug('[APP][CAMBIO_MODO] Heartbeat pausado al cambiar a CASA');
-                        }
-                    } catch (e) { logger.warn('[APP][CAMBIO_MODO] Error pausando heartbeat al cambiar a CASA:', e); }
-
-                    // Si no fue modificado arriba, asegurar que la bandera quede marcada como pausada
-                    estado.sistema.prewarmPausado = estado.sistema.prewarmPausado || false;
-                }
-            } catch (e) {
-                logger.warn('[APP][CAMBIO_MODO] Error en flujo de pre-warm:', e);
-            }
-
-                // (Estado ya actualizado de forma optimista antes) - asegurar campos mínimos
+            // (Estado ya actualizado de forma optimista antes) - asegurar campos mínimos
             estado.modo = estado.modo || {};
             estado.modo.anterior = estado.modo.anterior || modoActual;
             estado.modo.actual = estado.modo.actual || modoNormalized;
@@ -712,22 +750,7 @@ export async function manejarCambioModo(estado, mensaje) {
 
             // 10b. Limpiar capas del mapa y restaurar vista por defecto según modo
             // (funciones-mapa no recibe CAMBIO_MODO por conflicto de handler, así que lo hacemos directamente)
-            try {
-                if (globalThis.funcionesMapa) {
-                    if (typeof globalThis.funcionesMapa.limpiarPorEstado === 'function') {
-                        await globalThis.funcionesMapa.limpiarPorEstado({ modo: modoNormalized });
-                        logger.debug(`${logPrefix} Capas del mapa limpiadas para modo ${modoNormalized}`);
-                    }
-                    if (typeof globalThis.funcionesMapa.setMapView === 'function') {
-                        const defaultCenter = CONFIG?.MAPA?.CENTER || [39.4699, -0.3763];
-                        const defaultZoom = (typeof CONFIG?.MAPA?.ZOOM === 'number') ? CONFIG.MAPA.ZOOM : 13;
-                        await globalThis.funcionesMapa.setMapView(defaultCenter, defaultZoom, { animate: true, duration: 0.6 });
-                        logger.debug(`${logPrefix} Vista del mapa restaurada a zoom ${defaultZoom}`);
-                    }
-                }
-            } catch (mapaErr) {
-                logger.warn(`${logPrefix} Error limpiando mapa tras cambio de modo:`, mapaErr?.message);
-            }
+            await _limpiarMapaTrasMode(modoNormalized, logPrefix);
 
             // 11. Notificar a los componentes del cambio completado (no bloquear>5s)
             await withTimeout(notificarCambioModoCompletado(modoActual, modoNormalized, motivo), 15000, 'notificarCambioModoCompletado');
@@ -790,26 +813,7 @@ export async function manejarCambioModo(estado, mensaje) {
         });
 
         // Notificar error sin causar bucle
-        try {
-            await enviarMensaje({
-                destino: mensaje?.origen || 'sistema',
-                tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                origen: getPadreId(),
-                mensajeId: generarIdUnico(),
-                timestamp: Date.now(),
-                datos: {
-                    codigo: 'ERROR_CAMBIO_MODO',
-                    mensaje: errorMsg,
-                    detalles: error.message,
-                    modoSolicitado: modo,
-                    mensajeOriginal: mensaje
-                }
-            });
-        } catch (errorNotificacion) { // NOSONAR
-            logger.error(`${logPrefix} Error al notificar fallo: ${errorNotificacion.message}`, {
-                error: errorNotificacion
-            });
-        }
+        await _notificarErrorCambioModo(mensaje, errorMsg, error, modo, logPrefix);
 
         return { 
             exito: false, 
