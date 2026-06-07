@@ -36,7 +36,7 @@
 
         /* Fuente global Verdana */
         * { font-family: Verdana, sans-serif !important; }
-        
+
         :root {
             --btn-size: calc(var(--iframe-w, 100vw) - 2px);
             --icon-size: 1.3em;
@@ -190,7 +190,7 @@
             50% { opacity: 1; }
             100% { opacity: 0.6; }
         }
-        
+
         /* Mantenemos algunos estilos originales para compatibilidad */
         body.controles-deshabilitados .container {
             opacity: 0.7;
@@ -315,7 +315,7 @@
             background-color: #d4edda;
             color: #155724;
         }
-        
+
         .gps-inactivo {
             background-color: #f8d7da;
             color: #721c24;
@@ -484,7 +484,7 @@
         // El array vacío sirve como fallback de emergencia
         // Los datos reales se almacenan en globalThis.__vv_coordenadasAventura (igual que audios/retos)
         // ============================================================
-        
+
         // Getter para obtener coordenadas (usa datos centralizados con fallback)
         function obtenerCoordenadasParadas() {
             // Prioridad: datos centralizados del padre (igual que audios y retos)
@@ -494,16 +494,16 @@
             // Fallback: array vacío
             return [];
         }
-        
+
         // Exponer getter globalmente
         globalThis.obtenerCoordenadasParadas = obtenerCoordenadasParadas;
-        
+
         /* ============================================================
          * 📦 ARRAY DE BACKUP (COMENTADO) - NO ELIMINAR
          * Mantener como referencia en caso de necesitar revertir cambios
          * Los datos ahora están en: js/coordenadas-aventuras.js
          * ============================================================
-         
+
         const CoordenadasParadas_BACKUP = [
          * FIN DEL ARRAY DE BACKUP COMENTADO
          * ============================================================
@@ -570,7 +570,7 @@ const enviarMensajeConConfirmacion = async (...args) => {
             const idMensaje = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
             const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmación')),
                 ajustarTimeoutPorConexion(5000));
-            
+
             const confirmListener = (event) => {
                 if (event.source === globalThis.parent && event.data && event.data.tipo === 'SISTEMA.CONFIRMACION' && event.data.idOriginal === idMensaje) {
                     clearTimeout(timeout);
@@ -578,9 +578,9 @@ const enviarMensajeConConfirmacion = async (...args) => {
                     resolve();
                 }
             };
-            
+
             globalThis.addEventListener('message', confirmListener);
-            
+
             try {
                 globalThis.parent.postMessage({
                     tipo: mensaje.tipo,
@@ -628,14 +628,14 @@ if (globalThis !== undefined && globalThis.messagingAdapter === undefined) {
                 (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[messagingAdapter] Listener ya registrado para ${tipo}, omitiendo`);
                 return false;
             }
-            
+
             // Registrar listener local para este tipo de mensaje
             const adapterListener = async function(event) {
                 if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
                     try {
                         // Ejecutar handler y capturar resultado (soporta async)
                         const resultado = await Promise.resolve(handler(event.data));
-                        
+
                         // Enviar confirmación automática si el mensaje lo requiere
                         if (event.data.requiereConfirmacion && event.data.id) {
                             globalThis.parent.postMessage({
@@ -648,7 +648,7 @@ if (globalThis !== undefined && globalThis.messagingAdapter === undefined) {
                         }
                     } catch (e) {
                         (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error en handler ${tipo}:`, e && e.message);
-                        
+
                         // Enviar confirmación de error si el mensaje lo requiere
                         if (event.data.requiereConfirmacion && event.data.id) {
                             globalThis.parent.postMessage({
@@ -664,11 +664,11 @@ if (globalThis !== undefined && globalThis.messagingAdapter === undefined) {
             };
             globalThis.addEventListener('message', adapterListener);
             this._listenerRegistry.set(tipo, adapterListener);
-            
+
             (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Handler registrado para ${tipo} en ${iframeId}`);
             return true;
         },
-        
+
         /**
          * Envía mensaje al padre para que lo procese centralmente
          */
@@ -717,8 +717,8 @@ if (globalThis !== undefined && globalThis.registrarControladorSeguro === undefi
     async function _intentarRegistroMensajeria(tipo, handler, opciones) {
         if (typeof registrarControlador === 'function') {
             try {
-                const res = await safeRegistrar(tipo, handler, opciones);
-                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
+                const res = await registrarControlador(tipo, handler);
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated for ${tipo}`);
                 return res;
             } catch (error) {
                 (globalThis.logger || console).error && (globalThis.logger || console).error(`[HIJO] Error registrando controlador ${tipo}:`, error);
@@ -1127,16 +1127,16 @@ function actualizarEstadoBotones() {
  */
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371000; // Radio de la Tierra en metros
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-    
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const lat1Rad = lat1 * Math.PI / 180;
+    const lat2Rad = lat2 * Math.PI / 180;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    
+
     return R * c; // Distancia en metros
 }
 
@@ -1320,7 +1320,7 @@ async function _reproducirVideoParada(idParadaActual) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     actualizarEstadoBotones();
-    
+
     // Event listeners para los botones
     elementosDOM.btnGps?.addEventListener('click', async () => {
     try {
@@ -1457,11 +1457,11 @@ elementosDOM.btnUbicacion?.addEventListener('click', async () => {
         ocultarOverlayFueraRango();
 
         logger.info(`${logPrefix} 📍 Usuario solicita volver a la ruta`);
-        
+
         // Obtener elemento actual/próximo del padre
         let elementoDestino = null;
         let elementoId = null;
-        
+
         try {
             // Intentar obtener elemento actual del estado del padre
             if (globalThis.parent && globalThis.parent.estadoPadre && globalThis.parent.estadoPadre.elementoActual) {
@@ -1479,7 +1479,7 @@ elementosDOM.btnUbicacion?.addEventListener('click', async () => {
             logger.warn(`${logPrefix} Error obteniendo elemento destino:`, e);
             elementoId = 'P-0'; // Default a inicio
         }
-        
+
         // Solicitar al padre que muestre polyline desde ubicación actual hasta destino
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
@@ -1493,10 +1493,10 @@ elementosDOM.btnUbicacion?.addEventListener('click', async () => {
                 zoom: 16
             }
         });
-        
+
         actualizarEstado(`Mostrando ruta hacia ${elementoId}`, 'success');
         logger.info(`${logPrefix} ✅ Polyline solicitada hacia ${elementoId}`);
-        
+
     } catch (error) {
         logger.error(`${logPrefix} Error al mostrar ruta:`, error);
         actualizarEstado('Error al mostrar ruta', 'error');
@@ -1640,7 +1640,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
  */
 registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
     const logPrefix = '[hijo2][CONTROL.HABILITAR]';
-    
+
     try {
         const { motivo } = mensaje.datos || {};
         logger.info(`${logPrefix} Recibido - motivo: ${motivo}`);
@@ -1655,7 +1655,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
 
         // Recalcular estados de todos los botones según reglas GPS
         actualizarEstadoBotones();
-        
+
         logger.debug(`${logPrefix} Botones actualizados según reglas GPS`);
     } catch (error) {
         logger.error(`${logPrefix} Error habilitando controles:`, error);
@@ -1668,19 +1668,19 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
  */
 registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) => {
     const logPrefix = '[hijo2][CONTROL.DESHABILITAR]';
-    
+
     try {
         const { motivo } = mensaje.datos || {};
         logger.info(`${logPrefix} Recibido - motivo: ${motivo}`);
-        
+
         // Actualizar estado interno
         if (motivo === 'reto_abierto') {
             estadoComponente.retoActivo = true;
         }
-        
+
         // Recalcular estados de todos los botones
         actualizarEstadoBotones();
-        
+
         logger.debug(`${logPrefix} Botones deshabilitados`);
     } catch (error) {
         logger.error(`${logPrefix} Error deshabilitando controles:`, error);
@@ -1714,7 +1714,7 @@ try {
     // Ver: "// Enviar HIJO_PREPARADO para indicar que estamos listos para recibir datos del padre"
 
     // ==================== CONTROLADORES DE DATOS (hijo2 es el experto en coordenadas) ====================
-    
+
     logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} registrado el controlador PADRE_DATOS`);
     // ============================================================
     // CONTROLADOR 1: SISTEMA.PADRE_DATOS
@@ -1924,12 +1924,12 @@ try {
 
             // Paso 3: Enviar ENTENDIDO
             logger.info(`${logPrefix} Cambio de modo a "${modo}" entendido`);
-            
+
             // Validación explícita antes de enviar
             const destinoEntendido = mensaje.origen;
             const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
             const origenEntendido = CONFIG_HIJO?.IFRAME_ID || 'hijo2';
-            
+
             // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
             if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
                 const debugInfo = {
@@ -1945,13 +1945,13 @@ try {
                 logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                 throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
             }
-            
+
             await enviarMensaje({
                 destino: destinoEntendido,
                 tipo: tipoEntendido,
                 origen: origenEntendido,
-                datos: { 
-                    modo, 
+                datos: {
+                    modo,
                     timestamp: Date.now(),
                     mensajeId: mensaje.datos?.mensajeId || mensaje.id
                 }
@@ -1967,9 +1967,9 @@ try {
                 destino: mensaje.origen,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
                 origen: CONFIG_HIJO?.IFRAME_ID || 'hijo2',
-                datos: { 
-                    modo, 
-                    exito: true, 
+                datos: {
+                    modo,
+                    exito: true,
                     timestamp: Date.now(),
                     mensajeId: mensaje.datos?.mensajeId || mensaje.id
                 }
@@ -2008,7 +2008,7 @@ try {
     // CONTROLADOR: DATOS.CARGAR_COORDENADAS
     // Recibe coordenadas centralizadas del padre al iniciar aventura
     // ============================================================
-    
+
     /**
      * Controlador: DATOS.CARGAR_COORDENADAS
      * Descripción: Recibe y almacena las coordenadas de la aventura seleccionada
@@ -2017,23 +2017,23 @@ try {
      */
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, async (mensaje) => {
         const logPrefix = `[hijo2][CARGAR_COORDENADAS]`;
-        
+
         try {
             const { aventura, idioma, coordenadas, total } = mensaje.datos || {};
-            
+
             logger.info(`${logPrefix} 📥 Recibiendo coordenadas de ${aventura} (${idioma}): ${total} elementos`);
-            
+
             if (!coordenadas || !Array.isArray(coordenadas)) {
                 throw new Error('Datos de coordenadas inválidos o no son un array');
             }
-            
+
             // Almacenar en estado global (igual que audios y retos)
             globalThis.__vv_coordenadasAventura = coordenadas;
             globalThis.__vv_aventuraActual = aventura;
             globalThis.__vv_idiomaActual = idioma;
-            
+
             logger.info(`${logPrefix} ✅ ${coordenadas.length} coordenadas almacenadas en globalThis.__vv_coordenadasAventura`);
-            
+
             // Enviar confirmación al padre
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS,
@@ -2047,12 +2047,12 @@ try {
                     timestamp: Date.now()
                 }
             });
-            
+
             logger.success(`${logPrefix} ✅ Confirmación COORDENADAS_CARGADAS enviada al padre`);
-            
+
         } catch (error) {
             logger.error(`${logPrefix} Error cargando coordenadas:`, error);
-            
+
             // Enviar error al padre
             try {
                 await enviarMensaje({
@@ -2076,21 +2076,21 @@ try {
     // ============================================================
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_TEXTOS, async (mensaje) => {
         const logPrefix = `[hijo2][CARGAR_TEXTOS]`;
-        
+
         try {
             const { aventura, idioma, textos, total } = mensaje.datos || {};
-            
+
             logger.info(`${logPrefix} Recibiendo textos de ${aventura} (${idioma}): ${total} elementos`);
-            
+
             if (!textos || !Array.isArray(textos)) {
                 throw new Error('Datos de textos inválidos o no son un array');
             }
-            
+
             // Almacenar en estado global
             globalThis.__vv_textosAventura = textos;
-            
+
             logger.info(`${logPrefix} ${textos.length} textos almacenados en globalThis.__vv_textosAventura`);
-            
+
             // Enviar confirmación al padre
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS,
@@ -2104,10 +2104,10 @@ try {
                     timestamp: Date.now()
                 }
             });
-            
+
         } catch (error) {
             logger.error(`${logPrefix} Error cargando textos:`, error);
-            
+
             try {
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS,
@@ -2142,15 +2142,15 @@ try {
      */
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_REQUEST, async (mensaje) => {
         const logPrefix = `[hijo2][COORDENADAS_PARADAS_REQUEST]`;
-        
+
         try {
             const { paradaId, incluirRutas, incluirMarcadores, actualizarMapa, contexto, pedidoId } = mensaje.datos || {};
-            
+
             logger.info(`${logPrefix} 📥 Solicitud recibida - paradaId: ${paradaId || 'TODAS'}, contexto: ${contexto}`);
-            
+
             // Obtener coordenadas almacenadas
             const todasCoordenadas = obtenerCoordenadasParadas();
-            
+
             if (!todasCoordenadas || todasCoordenadas.length === 0) {
                 logger.warn(`${logPrefix} No hay coordenadas cargadas todavía`);
                 // Return para confirmación automática
@@ -2163,7 +2163,7 @@ try {
                     contexto: contexto
                 };
             }
-            
+
             // Filtrar por paradaId si se especifica
             let coordenadasFiltradas;
             if (paradaId) {
@@ -2184,7 +2184,7 @@ try {
                 coordenadasFiltradas = todasCoordenadas;
                 logger.debug(`${logPrefix} Enviando TODAS las coordenadas: ${coordenadasFiltradas.length}`);
             }
-            
+
             const respuesta = {
                 coordenadas: coordenadasFiltradas,
                 total: coordenadasFiltradas.length,
@@ -2196,7 +2196,7 @@ try {
                 actualizarMapa: actualizarMapa !== false,
                 contexto: contexto
             };
-            
+
             // También enviar respuesta por mensaje normal para compatibilidad
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_RESPONSE,
@@ -2204,15 +2204,15 @@ try {
                 destino: mensaje.origen,
                 datos: respuesta
             });
-            
+
             logger.success(`${logPrefix} ✅ Enviadas ${coordenadasFiltradas.length} coordenadas`);
-            
+
             // Return para confirmación automática
             return respuesta;
-            
+
         } catch (error) {
             logger.error(`${logPrefix} Error procesando solicitud:`, error);
-            
+
             const errorResponse = {
                 coordenadas: [],
                 total: 0,
@@ -2221,7 +2221,7 @@ try {
                 pedidoId: mensaje.datos?.pedidoId,
                 contexto: mensaje.datos?.contexto
             };
-            
+
             try {
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.DATOS.COORDENADAS_PARADAS_RESPONSE,
@@ -2232,7 +2232,7 @@ try {
             } catch (sendError) {
                 logger.error(`${logPrefix} Error enviando respuesta de error:`, sendError);
             }
-            
+
             // Return para confirmación automática
             return errorResponse;
         }
@@ -2243,22 +2243,22 @@ try {
      * Descripción: Responde a pings de monitoreo del padre para verificar que el componente está activo
      * Origen esperado: padre (monitoreo.js)
      * Respuesta: SISTEMA.HEARTBEAT_RESPONSE
-     * 
+     *
      * Datos recibidos: { timestamp: number }
      * Datos enviados: { timestamp: number, estado: string, gpsActivo: boolean, paradaActual: any }
-     * 
+     *
      * Nota: Incluye información del estado interno para diagnóstico
      */
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, async (mensaje) => {
         const logPrefix = `[hijo2][HEARTBEAT][${mensaje?.origen || 'desconocido'}]`;
-        
+
         try {
             // Responder inmediatamente con estado actual
             await enviarMensaje({
                 destino: mensaje.origen,
                 tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                datos: { 
+                datos: {
                     timestamp: Date.now(),
                     estado: estadoComponente.inicializado ? 'activo' : 'inicializando',
                     gpsActivo: estadoComponente.gpsActivo,
@@ -2266,7 +2266,7 @@ try {
                     coordenadasCargadas: obtenerCoordenadasParadas().length
                 }
             });
-            
+
             logger.debug(`${logPrefix} Heartbeat respondido - Estado: ${estadoComponente.inicializado ? 'activo' : 'inicializando'}`);
         } catch (error) {
             logger.error(`${logPrefix} Error respondiendo heartbeat:`, error);
@@ -2302,7 +2302,7 @@ try {
     // Controlador para respuesta de datos de paradas del padre
     registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS, async (mensaje) => {
         const logPrefix = `[hijo2][NAVEGACION.RESPUESTA_DATOS_PARADAS][${mensaje?.origen || 'desconocido'}]`;
-        
+
         try {
             // Solo bloquear el primer envío masivo de datos (carga inicial).
             // Actualizaciones posteriores (cambio de parada) deben procesarse.
@@ -2312,15 +2312,15 @@ try {
                 logger.debug(`${logPrefix} Datos iniciales ya recibidos, ignorando envío masivo duplicado`);
                 return;
             }
-            
+
             logger.debug(`${logPrefix} Respuesta de paradas recibida`);
-            
+
             // Validación de datos
             if (!mensaje.datos || !mensaje.datos.paradas || !Array.isArray(mensaje.datos.paradas)) {
                 logger.error(`${logPrefix} Datos de paradas inválidos`, mensaje.datos);
                 return;
             }
-            
+
             // Almacenar datos localmente — usar helper central de normalización
             try {
                 estadoComponente.arrayParadasLocal = normalizarParadas(mensaje.datos.paradas || []);
@@ -2329,15 +2329,15 @@ try {
                 logger.error(`${logPrefix} Error normalizando/parando datos de paradas:`, err);
                 return;
             }
-            
+
             // ✅ Si se especifica paradaActual, actualizar el estado
             if (mensaje.datos.paradaActual) {
                 estadoComponente.idParadaActual = mensaje.datos.paradaActual;
                 estadoComponente.tipoParadaActual = mensaje.datos.paradaActual.startsWith('TR-') ? 'tramo' : 'parada';
-                
+
                 logger.debug(`${logPrefix} Parada actual actualizada: ${mensaje.datos.paradaActual}`);
             }
-            
+
             // ✅ Refrescar botones tras actualizar estado de parada
             actualizarEstadoBotones();
 
@@ -2352,7 +2352,7 @@ try {
                     tieneVideo: !!p.video
                 }))
             });
-            
+
             // Confirmar recepción al padre
             await enviarMensaje({
                 destino: getPadreId(),
@@ -2364,7 +2364,7 @@ try {
                     totalParadas: estadoComponente.arrayParadasLocal.length
                 }
             });
-            
+
         } catch (error) {
             logger.error(`${logPrefix} Error al procesar respuesta de datos de paradas:`, error);
         }
@@ -2373,10 +2373,10 @@ try {
     // Controlador para solicitud de coordenadas del padre
     registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.SOLICITAR_COORDENADAS, async (mensaje) => {
         const logPrefix = `[hijo2][NAVEGACION.SOLICITAR_COORDENADAS][${mensaje?.origen || 'desconocido'}]`;
-        
+
         try {
             const { paradaId, tipoConsulta } = mensaje.datos;
-            
+
             // Validar datos requeridos
             if (!paradaId) {
                 logger.error(`${logPrefix} paradaId requerido faltante`);
@@ -2390,26 +2390,26 @@ try {
                 logger.error(`${logPrefix} tipoConsulta inválido: ${tipoConsulta}, esperado: COORDENADAS`);
                 return;
             }
-            
+
             logger.info(`${logPrefix} Solicitud de información COMPLETA para ${paradaId}`);
-            
+
             // Buscar parada en datos centralizados (prioriza datos del padre)
             const parada = obtenerCoordenadasParadas().find(p => p.id === paradaId);
-            
+
             if (!parada) {
                 logger.warn(`${logPrefix} Parada no encontrada en datos centralizados para ${paradaId}`);
                 return;
             }
-            
+
             // Obtener coordenadas según tipo de parada
             const coordenadas = parada.coordenadas || parada.inicio;
-            
+
             // Validar que las coordenadas sean válidas
             if (!coordenadas || !coordenadas.lat || !coordenadas.lng) {
                 logger.error(`${logPrefix} Coordenadas inválidas para ${paradaId}:`, coordenadas);
                 return;
             }
-            
+
             // ✅ INFORMACIÓN COMPLETA con multimedia
             const informacionCompleta = {
                 paradaId,
@@ -2425,7 +2425,7 @@ try {
                 imagen: parada.imagen || null,
                 video: parada.video || null
             };
-            
+
             // Responder al padre con información completa
             await enviarMensaje({
                 destino: getPadreId(),
@@ -2433,12 +2433,12 @@ try {
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: informacionCompleta
             });
-            
+
             logger.info(`${logPrefix} Información completa enviada para ${paradaId}:`, {
                 tieneImagen: !!informacionCompleta.imagen,
                 tieneVideo: !!informacionCompleta.video
             });
-            
+
         } catch (error) {
             logger.error(`${logPrefix} Error respondiendo coordenadas:`, error);
         }
@@ -2447,10 +2447,10 @@ try {
     // Controlador para ACK del sistema
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
         const logPrefix = `[hijo2][SISTEMA.ACK][${mensaje?.origen || 'desconocido'}]`;
-        
+
         try {
             logger.debug(`${logPrefix} ACK recibido, respondiendo...`);
-            
+
             // Responder al ACK
             await enviarMensaje({
                 destino: getPadreId(),
@@ -2462,9 +2462,9 @@ try {
                     estado: 'activo'
                 }
             });
-            
+
             logger.debug(`${logPrefix} ACK respondido`);
-            
+
         } catch (error) {
             logger.error(`${logPrefix} Error respondiendo ACK:`, error);
         }
@@ -2539,16 +2539,16 @@ try {
         try {
             const datos = mensaje?.datos || {};
             logger.debug(`${logPrefix} Estado GPS recibido:`, datos);
-            
+
             // BUG CORREGIDO: localStorage.getItem('modoActual') nunca se escribía → siempre 'casa'
             const modoActual = (estadoComponente && estadoComponente.modo) || 'casa';
             const btn = elementosDOM.btnUbicacion;
-            
+
             if (!btn) {
                 logger.warn(`${logPrefix} Botón ubicación no encontrado`);
                 return { exito: true };
             }
-            
+
             // MODO CASA: Siempre rojo deshabilitado (ignorar estado GPS)
             if (modoActual === 'casa') {
                 btn.disabled = true;
@@ -2558,11 +2558,11 @@ try {
                 logger.debug(`${logPrefix} Modo casa: botón forzado a rojo deshabilitado`);
                 return { exito: true };
             }
-            
+
             // MODO AVENTURA: Depende de verificación de distancias
             // No modificar aquí - la lógica la maneja verificarDistanciaYActualizarBotones()
             logger.debug(`${logPrefix} Modo aventura: estado controlado por distancias`);
-            
+
             return { exito: true };
         } catch (e) {
             logger.error(`${logPrefix} Error en handler:`, e);

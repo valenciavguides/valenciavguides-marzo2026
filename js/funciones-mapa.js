@@ -3920,8 +3920,9 @@ async function manejarRespuestaDatosParadas(mensaje) {
 
         logger.info(`${logPrefix} Datos de paradas actualizados: ${arrayParadasLocal.length} paradas cargadas (recibidas: ${antes})`);
 
-        // Opcional: Mostrar paradas en el mapa si está inicializado
-        if (_mapaInstance) {
+        // Solo mostrar todos los marcadores en modo AVENTURA; en CASA el mapa muestra
+        // únicamente la parada activa cuando hijo5 la solicita (evita el clutter visual)
+        if (_mapaInstance && estadoMapa.modo === MODOS.AVENTURA) {
             await mostrarTodasLasParadas(arrayParadasLocal);
         }
         
@@ -4120,7 +4121,7 @@ if (globalThis.window !== undefined) {
         const paradas = e.detail;
         if (Array.isArray(paradas) && paradas.length > 0) {
             arrayParadasLocal = normalizarParadas(paradas);
-            if (_mapaInstance) mostrarTodasLasParadas(arrayParadasLocal);
+            if (_mapaInstance && estadoMapa.modo === MODOS.AVENTURA) mostrarTodasLasParadas(arrayParadasLocal);
         }
     }, { passive: true });
 }

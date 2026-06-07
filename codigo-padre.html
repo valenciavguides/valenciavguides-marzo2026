@@ -2030,12 +2030,13 @@
             }
 
             overlay.classList.add('visible');
+            // Send at 800ms to give the iframe module time to load before listening
             setTimeout(() => {
                 const iframeEl = overlay.querySelector('iframe');
                 if (iframeEl && iframeEl.contentWindow) {
                     iframeEl.contentWindow.postMessage({ tipo: 'mapa-visible' }, globalThis.location.origin);
                 }
-            }, 200);
+            }, 800);
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                 globalThis.actualizarVisibilidadSelectorMapa();
             }

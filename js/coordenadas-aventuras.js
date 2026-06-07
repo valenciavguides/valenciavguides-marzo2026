@@ -2027,7 +2027,8 @@ export const DATOS_AVENTURAS = {
                     ],
                     fin: { lat: Number('39.476680'), lng: Number('-0.376780') },
                     imagen: "imagenes/imagenes-aventuras/mercado_de_tapineria.jpg",
-                    video: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg"
+                    imagen2: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
+                     video: ""
                 },
 
                 // Tramo 19 - Palau de la Generalitat → Torres de Serranos - Final (Párrafos: 2-B)               // Parada 29 - FINAL: Torres de Serranos - Final (Reto24Puzzle PZ-05) (Párrafos: 475, 503, 507, 526)
@@ -2049,6 +2050,7 @@ export const DATOS_AVENTURAS = {
                     imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
                     imagen2: "imagenes/imagenes-aventuras/Calle_serranos.jpg",
                     imagen3: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+                    video: ""
                 },
 
                 // Parada 30 - FINAL: Torres de Serranos - Final (Reto25Puzzle PZ-05) (Párrafos: 475, 503, 507, 526)
@@ -6883,9 +6885,9 @@ export const DATOS_AVENTURAS = {
     },
     // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
     {
-        id: "AvFallas-TR-14",
+        id: "AvFallas-TR-11",
         tipo: "tramo",
-        tramo: 14, // De mapa número 14 a mapa número 15
+        tramo: 11, // De mapa número 14 a mapa número 15
         mapa_numero: "14→15",
         nombre: "Palacio de Comunicaciones → Banco de València",
         inicio: { lat: Number('39.469610'), lng: Number('-0.375680') },

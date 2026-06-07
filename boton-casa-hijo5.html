@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <script>
-    /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÍMITES */
+    /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÃMITES */
     (function(){
         function escalar(){
             var w, h;
@@ -18,7 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
-    <meta name="description" content="Panel de control de GPS para la ruta turística">
+    <meta name="description" content="Panel de control de GPS para la ruta turÃ­stica">
     <title>Boton-casa (hijo5)</title>
     <script src="js/proteccion.js"></script>
     <script src="js/suppress-warnings.js"></script>
@@ -45,15 +45,15 @@
             border-radius: 0.625rem;
             box-shadow: 0 0.125rem 0.3125rem rgba(0,0,0,0.1);
         }
-        
+
         .tramo-btn {
             background-color: #7B1FA2;
             background-image: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
             color: rgb(252, 251, 251);
             border: none !important;
         }
-        
-        /* Agrega aquí el resto de tus estilos */
+
+        /* Agrega aquÃ­ el resto de tus estilos */
     </style>
             <!-- Make the iframe page background transparent so the parent map shows through,
                  while keeping the paradas window translucent and fully interactive. -->
@@ -99,8 +99,8 @@
         gap: 0.625rem;
         width: 99% !important;
     }
-    
-    /* Botón GPS: estilo actualizado with emoji de satélite y etiqueta ON/OFF */
+
+    /* BotÃ³n GPS: estilo actualizado with emoji de satÃ©lite y etiqueta ON/OFF */
     .boton-parada, .boton-tramo, .parada-tramo-btn {
         width: 3.75rem;
         height: 3.75rem;
@@ -118,7 +118,7 @@
         box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.2);
         position: relative;
     }
-    
+
     #gps-casa-btn.on {
         /* Ensure ON state uses explicit green gradient even if other styles try to override */
         background: linear-gradient(to right, #27ae60, #2ecc71) !important; /* Green gradient */
@@ -130,23 +130,23 @@
         background: linear-gradient(to right, #e74c3c, #c0392b) !important; /* Red gradient */
         opacity: 0.95 !important;
     }
-    
+
     #gps-casa-btn:hover {
         transform: scale(1.1);
         box-shadow: 0 0.375rem 0.75rem rgba(0,0,0,0.3);
     }
-    
+
     #gps-casa-btn:hover .satellite-emoji {
         animation: pulse 1s infinite;
     }
-    
+
     #gps-casa-btn:active {
         transform: scale(0.95);
     }
 
     /* Updated GPS casa button dimensions and alignment per design request */
     #gps-casa-btn {
-        width: 2.65rem !important;   /* mitad del ancho anterior para dar más espacio a paradas */
+        width: 2.65rem !important;   /* mitad del ancho anterior para dar mÃ¡s espacio a paradas */
         height: 5.3125rem !important;
         min-width: 2.25rem !important;
         min-height: 4.75rem !important;
@@ -154,7 +154,7 @@
         border-radius: 10% !important; /* not a perfect circle */
         display: inline-flex !important;
         align-items: center !important;
-        justify-content: center !important; /* centrado al ser más estrecho */
+        justify-content: center !important; /* centrado al ser mÃ¡s estrecho */
         box-sizing: border-box !important;
         /* Force a default background in case other rules remove it */
         background-color: #0056b3 !important;
@@ -162,7 +162,7 @@
         color: white !important;
     }
 
-    /* Contenido del botón GPS centrado (botón más estrecho) */
+    /* Contenido del botÃ³n GPS centrado (botÃ³n mÃ¡s estrecho) */
     #gps-casa-btn .button-content {
         margin-left: 0;
         display: flex;
@@ -171,24 +171,24 @@
         align-items: center;
         gap: 0.125rem;
     }
-    
+
     .button-content {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 0.125rem;
     }
-    
+
     .satellite-emoji {
         font-size: 1.5em;
     }
-    
+
     .gps-label {
         font-size: 0.7em;
         font-weight: bold;
         text-transform: uppercase;
     }
-    
+
     /* Ventana de paradas compacta y horizontal */
     #paradas-window {
         background: #fff8e7;
@@ -205,7 +205,7 @@
         left: 0;
         z-index: 1000001;
     }
-    
+
     /* Scroll horizontal dedicado a los botones */
     #lista-paradas {
         display: flex;
@@ -225,11 +225,11 @@
     #lista-paradas::-webkit-scrollbar-track {
         background: #f0f0f0;
     }
-    
+
     /* Botones de parada y tramo */
     .parada-tramo-btn {
         min-width: 5rem;
-        max-width: 10rem;        /* límite para que no ocupen demasiado */
+        max-width: 10rem;        /* lÃ­mite para que no ocupen demasiado */
         height: 2.5rem;
         border-radius: 1.25rem;
         border: none;
@@ -247,27 +247,27 @@
         padding: 0 0.5rem;
         overflow: hidden;         /* corta el nombre si desborda */
     }
-    
+
     .parada-btn {
         background: linear-gradient(135deg, #28a745, #1e7e34);
     }
-    
+
     .tramo-btn {
         background-color: #e0a800;
         background-image: linear-gradient(135deg, #ffc107, #e0a800);
         color: #333;
     }
-    
+
     .inicio-btn {
         background: linear-gradient(135deg, #dc3545, #bd2130);
     }
-    
+
     .parada-tramo-btn.actual {
         background: linear-gradient(135deg, #007bff, #0056b3);
         transform: scale(1.05);
         box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.2);
     }
-    
+
     .btn-row {
         display: flex;
         align-items: center;
@@ -284,7 +284,7 @@
         flex-shrink: 0;
     }
 
-    /* Nombre de la parada/tramo con scroll automático si no cabe */
+    /* Nombre de la parada/tramo con scroll automÃ¡tico si no cabe */
     .btn-nombre-wrap {
         width: 100%;
         overflow: hidden;
@@ -312,11 +312,11 @@
     // Validar que estamos dentro de un iframe con padre accesible
     if (!globalThis.parent || globalThis.parent === globalThis) {
         console.error('[hijo5] Este componente debe ejecutarse dentro de un iframe');
-        document.body.innerHTML = '<div style="padding: 20px; color: red;">Error: Este componente debe cargarse desde la página principal.</div>';
+        document.body.innerHTML = '<div style="padding: 20px; color: red;">Error: Este componente debe cargarse desde la pÃ¡gina principal.</div>';
         throw new Error('Componente debe ejecutarse dentro de un iframe');
     }
 
-    // Fallbacks que esperan a que globalThis.mensajeria esté disponible
+    // Fallbacks que esperan a que globalThis.mensajeria estÃ© disponible
     const enviarMensaje = async (...args) => {
         // En hijos, usar postMessage directamente al padre
         if (globalThis.parent && globalThis.parent !== globalThis) {
@@ -335,7 +335,7 @@
                 throw e;
             }
         } else {
-            // Fallback al método anterior si no estamos en iframe
+            // Fallback al mÃ©todo anterior si no estamos en iframe
             return await retryUntilAvailable(
                 () => globalThis.mensajeria.enviarMensaje(...args),
                 () => globalThis.mensajeria && globalThis.mensajeria.enviarMensaje,
@@ -356,7 +356,7 @@
             globalThis.addEventListener('message', listener);
             return () => globalThis.removeEventListener('message', listener);
         } else {
-            // Fallback al método anterior
+            // Fallback al mÃ©todo anterior
             return await retryUntilAvailable(
                 () => globalThis.mensajeria.registrarControlador(tipo, callback),
                 () => globalThis.mensajeria && globalThis.mensajeria.registrarControlador,
@@ -366,7 +366,7 @@
     };
 
 
-    // ==================== MESSAGING ADAPTER PARA COMUNICACIÓN CON PADRE ====================
+    // ==================== MESSAGING ADAPTER PARA COMUNICACIÃ“N CON PADRE ====================
     // Este adapter permite a los hijos registrar controladores centralmente en el state-manager del padre
     if (globalThis.messagingAdapter === undefined) {
         globalThis.messagingAdapter = {
@@ -385,7 +385,7 @@
                     if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
                         try {
                             const resultado = await handler(event.data);
-                            
+
                             if (event.data.requiereConfirmacion && event.data.id && resultado !== undefined) {
                                 try {
                                     const confirmacion = {
@@ -398,10 +398,10 @@
                                     };
                                     if (globalThis.parent && globalThis.parent !== globalThis) {
                                         globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
-                                        logger.info(`[messagingAdapter] Auto-confirmación enviada para ${event.data.id}`);
+                                        logger.info(`[messagingAdapter] Auto-confirmaciÃ³n enviada para ${event.data.id}`);
                                     }
                                 } catch (confError) {
-                                    logger.error(`[messagingAdapter] Error enviando confirmación:`, confError);
+                                    logger.error(`[messagingAdapter] Error enviando confirmaciÃ³n:`, confError);
                                 }
                             }
                         } catch (e) {
@@ -411,11 +411,11 @@
                 };
                 globalThis.addEventListener('message', adapterListener);
                 this._listenerRegistry.set(tipo, adapterListener);
-                
+
                 logger.info(`[messagingAdapter] Handler registrado para ${tipo} en ${iframeId}`);
                 return true;
             },
-            
+
             enviarMensajeCentral: async function(mensaje) {
                 if (globalThis.parent && globalThis.parent !== globalThis) {
                     globalThis.parent.postMessage(mensaje, globalThis.location.origin);
@@ -424,7 +424,7 @@
                 return { exito: false, error: 'No hay padre disponible' };
             }
         };
-        logger.info('[HIJO] messagingAdapter creado para comunicación con padre');
+        logger.info('[HIJO] messagingAdapter creado para comunicaciÃ³n con padre');
 
         globalThis.addEventListener('pagehide', function() {
             if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
@@ -470,7 +470,7 @@
             try {
                 logger.info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
                 if (!tipo || typeof handler !== 'function') {
-                    logger.warn(`[HIJO] registrarControladorSeguro parámetros inválidos: tipo=${tipo}`);
+                    logger.warn(`[HIJO] registrarControladorSeguro parÃ¡metros invÃ¡lidos: tipo=${tipo}`);
                     return;
                 }
                 if (globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) {
@@ -503,9 +503,9 @@
         }
     }
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
-    // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
+    // El sistema actual usa state-manager centralizado sin necesidad de migraciÃ³n manual.
 
-    // ── Helpers para generarBotonesParadas ───────────────────────────────────────
+    // â”€â”€ Helpers para generarBotonesParadas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     const _TIPO_BTN = {
         parada: { clase: 'parada-btn', emoji: '🎯', tituloFn: n => `P${n ?? '?'}` },
@@ -532,7 +532,7 @@
             const wrap = btn.querySelector('.btn-nombre-wrap');
             const span = btn.querySelector('.btn-nombre');
             if (wrap && span && span.scrollWidth > wrap.clientWidth) {
-                span.textContent = nombre + '     ' + nombre;
+                span.textContent = nombre + '     ' + nombre;
                 wrap.classList.add('marquee');
             }
         });
@@ -543,11 +543,11 @@
             const clickPrefix = `${logPrefix}[click-${titulo}]`;
             const idPadre = punto.padreid || `padre-${punto.parada_id || punto.id}`;
             try {
-                logger.info(`${clickPrefix} Click en botón de parada/tramo`);
+                logger.info(`${clickPrefix} Click en botÃ³n de parada/tramo`);
                 document.querySelectorAll('.parada-tramo-btn').forEach(b => b.classList.remove('actual'));
                 btn.classList.add('actual');
                 estado.paradaActualIndex = index;
-                logger.info(`${clickPrefix} Botón marcado como activo visualmente`);
+                logger.info(`${clickPrefix} BotÃ³n marcado como activo visualmente`);
                 const idSinPrefijo = typeof idPadre === 'string' && idPadre.startsWith('padre-')
                     ? idPadre.substring(6)
                     : (punto.parada_id || punto.id || null);
@@ -579,7 +579,7 @@
     function _crearBotonParada(punto, index, lista, logPrefix) {
         try {
             if (!punto || typeof punto !== 'object') {
-                logger.warn(`${logPrefix} Punto ${index} inválido, omitiendo`);
+                logger.warn(`${logPrefix} Punto ${index} invÃ¡lido, omitiendo`);
                 return false;
             }
             if (!punto.tipo) {
@@ -587,10 +587,10 @@
                 return false;
             }
             if (!['inicio', 'parada', 'tramo'].includes(punto.tipo)) {
-                logger.debug(`${logPrefix} Punto ${index} tipo "${punto.tipo}" sin ubicación en mapa, omitiendo`);
+                logger.debug(`${logPrefix} Punto ${index} tipo "${punto.tipo}" sin ubicaciÃ³n en mapa, omitiendo`);
                 return false;
             }
-            const cfg = _TIPO_BTN[punto.tipo] || { clase: 'default-btn', emoji: '❓', tituloFn: () => 'N/A' };
+            const cfg = _TIPO_BTN[punto.tipo] || { clase: 'default-btn', emoji: '?', tituloFn: () => 'N/A' };
             const num = _extraerNumeroPunto(punto);
             const titulo = cfg.tituloFn(num);
             const nombre = punto.nombre || '';
@@ -613,12 +613,12 @@
             lista.appendChild(btn);
             return true;
         } catch (e) {
-            logger.error(`${logPrefix} Error al generar botón para punto ${index}:`, e);
+            logger.error(`${logPrefix} Error al generar botÃ³n para punto ${index}:`, e);
             return false;
         }
     }
 
-    // ── Helpers para handlers de mensajes ────────────────────────────────────────
+    // â”€â”€ Helpers para handlers de mensajes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     function _sincronizarBotonConModo(modoInicial, logPrefix) {
         if (!modoInicial) return;
@@ -630,7 +630,7 @@
         btn.classList.toggle('off', !isOn);
         const label = btn.querySelector('.gps-label');
         if (label) label.textContent = isOn ? 'ON' : 'OFF';
-        logger.debug(`${logPrefix} Botón sincronizado con modo inicial: ${isOn ? 'ON' : 'OFF'}`);
+        logger.debug(`${logPrefix} BotÃ³n sincronizado con modo inicial: ${isOn ? 'ON' : 'OFF'}`);
     }
 
     function _actualizarUIParaModo(modo, logPrefix) {
@@ -647,14 +647,14 @@
             btn.classList.toggle('off', !isOn);
             const label = btn.querySelector('.gps-label');
             if (label) label.textContent = isOn ? 'ON' : 'OFF';
-            logger.debug(`${logPrefix} Botón actualizado: ${isOn ? 'ON' : 'OFF'}`);
+            logger.debug(`${logPrefix} BotÃ³n actualizado: ${isOn ? 'ON' : 'OFF'}`);
         }
     }
 
     function _transformarParadaPadre(paradaPadre, logPrefix) {
         try {
             if (!paradaPadre || typeof paradaPadre !== 'object') {
-                logger.warn(`${logPrefix} Parada inválida encontrada, omitiendo`);
+                logger.warn(`${logPrefix} Parada invÃ¡lida encontrada, omitiendo`);
                 return null;
             }
             return {
@@ -681,7 +681,7 @@
         if (!p.id && !p.parada_id) return false;
         if (!p.nombre) return false;
         if (!p.ubicacion || typeof p.ubicacion.lat !== 'number' || typeof p.ubicacion.lng !== 'number') {
-            logger.debug(`${logPrefix} Parada ${p.id} sin coordenadas válidas, solicitando a hijo2`);
+            logger.debug(`${logPrefix} Parada ${p.id} sin coordenadas vÃ¡lidas, solicitando a hijo2`);
             return true;
         }
         return true;
@@ -704,14 +704,14 @@
             return 'ignore';
         }
         if (!mensaje.datos || typeof mensaje.datos !== 'object') {
-            logger.error(`${logPrefix} Datos inválidos`, mensaje);
-            await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: 'Datos de mensaje inválidos' } });
+            logger.error(`${logPrefix} Datos invÃ¡lidos`, mensaje);
+            await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: 'Datos de mensaje invÃ¡lidos' } });
             return 'error';
         }
         const { modo } = mensaje.datos;
         if (!modo || (modo !== 'casa' && modo !== 'aventura')) {
-            logger.error(`${logPrefix} Modo inválido: ${modo}`);
-            await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.NACK, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: `Modo inválido: ${modo}`, valoresValidos: ['casa', 'aventura'] } });
+            logger.error(`${logPrefix} Modo invÃ¡lido: ${modo}`);
+            await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.NACK, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: `Modo invÃ¡lido: ${modo}`, valoresValidos: ['casa', 'aventura'] } });
             return 'nack';
         }
         return null;
@@ -727,7 +727,7 @@
             const botonActual = botones[idx];
             if (botonActual) {
                 botonActual.classList.add('activa');
-                logger.debug(`${logPrefix} Botón de parada ${paradaId} resaltado (index: ${idx})`);
+                logger.debug(`${logPrefix} BotÃ³n de parada ${paradaId} resaltado (index: ${idx})`);
             }
         }
     }
@@ -735,10 +735,10 @@
     function _validarMensajeParadas(mensaje, logPrefix) {
         if (!mensaje?.origen) { logger.warn(`${logPrefix} Mensaje sin origen, ignorando`); return 'ignore'; }
         if (estado.datosRecibidos) { logger.debug(`${logPrefix} Datos ya recibidos anteriormente, ignorando mensaje duplicado`); return 'dup'; }
-        if (!mensaje.datos || typeof mensaje.datos !== 'object') { logger.error(`${logPrefix} Mensaje sin datos o datos inválidos`, mensaje); return 'error'; }
+        if (!mensaje.datos || typeof mensaje.datos !== 'object') { logger.error(`${logPrefix} Mensaje sin datos o datos invÃ¡lidos`, mensaje); return 'error'; }
         const { paradas } = mensaje.datos;
-        if (!paradas || !Array.isArray(paradas)) { logger.error(`${logPrefix} Paradas no es un array válido`, typeof paradas); return 'error'; }
-        if (paradas.length === 0) { logger.warn(`${logPrefix} Array de paradas vacío`); return 'empty'; }
+        if (!paradas || !Array.isArray(paradas)) { logger.error(`${logPrefix} Paradas no es un array vÃ¡lido`, typeof paradas); return 'error'; }
+        if (paradas.length === 0) { logger.warn(`${logPrefix} Array de paradas vacÃ­o`); return 'empty'; }
         return null;
     }
 
@@ -753,23 +753,23 @@
         inicializado: false,
         gpsActivo: false,
         gpsPermisos: null, // null = desconocido, true = concedidos, false = denegados
-        gpsPrecision: null, // Precisión actual del GPS en metros
-        gpsError: null, // Último error GPS
+        gpsPrecision: null, // PrecisiÃ³n actual del GPS en metros
+        gpsError: null, // Ãšltimo error GPS
         ultimaUbicacion: null,
         modo: 'casa',
         aventuraParadas: [], // Array de paradas recibidas del padre
         paradasMapeadas: {}, // Mapeo de IDs locales a IDs del padre
         datosRecibidos: false, // Flag para evitar procesamiento duplicado
-        hijoListoEnviado: false,  // Flag para evitar envío duplicado de HIJO_LISTO
-        paradaActualIndex: null  // Índice del botón activo (para restaurar al regenerar)
+        hijoListoEnviado: false,  // Flag para evitar envÃ­o duplicado de HIJO_LISTO
+        paradaActualIndex: null  // Ãndice del botÃ³n activo (para restaurar al regenerar)
     };
 
-    // Controladores se registrarán después de la confirmación del padre
-    // para evitar duplicados y asegurar inicialización completa
+    // Controladores se registrarÃ¡n despuÃ©s de la confirmaciÃ³n del padre
+    // para evitar duplicados y asegurar inicializaciÃ³n completa
 
-    // Array de paradas y tramos — ahora se recibe dinámicamente del padre
+    // Array de paradas y tramos â€” ahora se recibe dinÃ¡micamente del padre
     // (fuente: coordenadas-aventuras.js centralizado)
-    // Ya NO se usa un array local estático
+    // Ya NO se usa un array local estÃ¡tico
 
     function generarBotonesParadas() {
         const logPrefix = '[hijo5][generarBotonesParadas]';
@@ -783,12 +783,12 @@
         lista.innerHTML = '';
 
         if (!estado.aventuraParadas || !Array.isArray(estado.aventuraParadas) || estado.aventuraParadas.length === 0) {
-            logger.warn(`${logPrefix} ⏳ Esperando datos del padre... (estado.aventuraParadas vacío)`);
+            logger.warn(`${logPrefix} â³ Esperando datos del padre... (estado.aventuraParadas vacÃ­o)`);
             lista.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">Esperando datos de la aventura...</div>';
             return;
         }
 
-        logger.info(`${logPrefix} ✅ Usando ${estado.aventuraParadas.length} paradas dinámicas del padre`);
+        logger.info(`${logPrefix} âœ… Usando ${estado.aventuraParadas.length} paradas dinÃ¡micas del padre`);
         let botonesGenerados = 0;
 
         estado.aventuraParadas.forEach((punto, index) => {
@@ -812,14 +812,14 @@
     async function manejarClickGPS() {
         const logPrefix = '[hijo5][manejarClickGPS]';
         try {
-            logger.debug(`${logPrefix} Click en botón GPS detectado`);
+            logger.debug(`${logPrefix} Click en botÃ³n GPS detectado`);
             const btn = document.getElementById('gps-casa-btn');
             if (!btn) {
-                logger.error(`${logPrefix} Botón GPS no encontrado en el DOM`);
+                logger.error(`${logPrefix} BotÃ³n GPS no encontrado en el DOM`);
                 return;
             }
             const modoNuevo = estado.modo === 'casa' ? 'aventura' : 'casa';
-            logger.info(`${logPrefix} Cambiando modo: ${estado.modo} → ${modoNuevo}`);
+            logger.info(`${logPrefix} Cambiando modo: ${estado.modo} â†’ ${modoNuevo}`);
             estado.modo = modoNuevo;
             _actualizarUIParaModo(modoNuevo, logPrefix);
             logger.info(`${logPrefix} Notificando cambio de modo al padre: ${modoNuevo}`);
@@ -842,8 +842,8 @@
     }
 
     /**
-     * Función para solicitar paradas del padre
-     * Envía solicitud REQUEST-RESPONSE al padre para obtener lista completa de paradas
+     * FunciÃ³n para solicitar paradas del padre
+     * EnvÃ­a solicitud REQUEST-RESPONSE al padre para obtener lista completa de paradas
      * Valida exhaustivamente la respuesta y actualiza el estado local
      * @returns {Promise<void>}
      */
@@ -853,10 +853,10 @@
         try {
             logger.info(`${logPrefix} Solicitando paradas del padre...`);
 
-            // La ubicación GPS es contexto opcional; sólo omitir si estamos en aventura sin GPS
+            // La ubicaciÃ³n GPS es contexto opcional; sÃ³lo omitir si estamos en aventura sin GPS
             // y la solicitud no es forzada (ej. tras CAMBIO_MODO donde los datos son necesarios siempre)
             if (!forzar && estado.modo === 'aventura' && !estado.ubicacionUsuario) {
-                logger.warn(`${logPrefix} No hay ubicación de usuario disponible en modo aventura, omitiendo solicitud`);
+                logger.warn(`${logPrefix} No hay ubicaciÃ³n de usuario disponible en modo aventura, omitiendo solicitud`);
                 return;
             }
 
@@ -873,10 +873,10 @@
                 }
             });
 
-            logger.debug(`${logPrefix} Solicitud enviada al padre - esperando respuesta asíncrona`);
+            logger.debug(`${logPrefix} Solicitud enviada al padre - esperando respuesta asÃ­ncrona`);
 
-            // La respuesta será procesada por el controlador DATOS.RESPUESTA_PARADAS
-            // No esperamos respuesta aquí porque el procesamiento es asíncrono
+            // La respuesta serÃ¡ procesada por el controlador DATOS.RESPUESTA_PARADAS
+            // No esperamos respuesta aquÃ­ porque el procesamiento es asÃ­ncrono
 
         } catch (error) {
             logger.error(`${logPrefix} Error al solicitar paradas del padre:`, {
@@ -903,8 +903,8 @@
     }
 
     /**
-     * Función auxiliar para activar la UI según el modo inicial
-     * Esta función replica la lógica del controlador CAMBIO_MODO pero de manera síncrona
+     * FunciÃ³n auxiliar para activar la UI segÃºn el modo inicial
+     * Esta funciÃ³n replica la lÃ³gica del controlador CAMBIO_MODO pero de manera sÃ­ncrona
      * @param {string} modo - El modo a activar ('casa' o 'aventura')
      */
     function activarModoInicial(modo) {
@@ -930,14 +930,20 @@
             if (document.body) { document.body.style.display = _originalDisplay || 'block'; console.log('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); }
         }
 
-        // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
+        // Sistema de reintentos activos para HIJO_LISTO (soluciÃ³n permanente C2)
+        let _reintentosHijoListo = 0;
+        const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 segundos mÃ¡ximo
+        const INTERVALO_REINTENTO = 1000; // 1 segundo
+        let _intervaloReintento = null;
 
-        // NOTA: HIJO_PREPARADO se envía MÁS ABAJO, DESPUÉS de registrar todos los controladores críticos.
-        // Esto garantiza que el padre no envíe PADRE_DATOS antes de que los controladores estén listos.
+        // No necesitamos inicializarMensajeria aquÃ­, los fallbacks esperan automÃ¡ticamente
+
+        // NOTA: HIJO_PREPARADO se envÃ­a MÃS ABAJO, DESPUÃ‰S de registrar todos los controladores crÃ­ticos.
+        // Esto garantiza que el padre no envÃ­e PADRE_DATOS antes de que los controladores estÃ©n listos.
         // Ver: "// Enviar HIJO_PREPARADO y esperar PADRE_DATOS antes de enviar HIJO_LISTO"
 
-        // INICIALIZACIÓN ASÍNCRONA: Esperar datos del padre antes de activar UI
-        console.log(`🏠 [hijo5] REGISTRANDO CONTROLADORES ANTES DE ENVIAR HIJO_PREPARADO`);
+        // INICIALIZACIÃ“N ASÃNCRONA: Esperar datos del padre antes de activar UI
+        console.log(`ðŸ  [hijo5] REGISTRANDO CONTROLADORES ANTES DE ENVIAR HIJO_PREPARADO`);
         // No activar modo ni generar botones hasta recibir RESPUESTA_DATOS_PARADAS
 
         // ============================================
@@ -946,19 +952,19 @@
         logger.info(`Hijo hijo5 registrado el controlador PADRE_DATOS`);
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {
             const logPrefix = `[hijo5][PADRE_DATOS]`;
-            
-            console.log(`🔥 [hijo5] CONTROLADOR PADRE_DATOS EJECUTADO!`, mensaje);
-            
+
+            console.log(`ðŸ”¥ [hijo5] CONTROLADOR PADRE_DATOS EJECUTADO!`, mensaje);
+
             try {
                 if (!mensaje || !mensaje.origen) {
-                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
+                    logger.error(`${logPrefix} Mensaje sin origen vÃ¡lido`, mensaje);
                     return;
                 }
 
                 logger.info(`${logPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
-                logger.info(`Hijo hijo5 recibió PADRE_DATOS`);
+                logger.info(`Hijo hijo5 recibiÃ³ PADRE_DATOS`);
 
-                // ✅ PROCESAR DATOS INICIALES DEL PADRE
+                // âœ… PROCESAR DATOS INICIALES DEL PADRE
                 if (mensaje.datos) {
                     const { modo, paradas, paradaActual } = mensaje.datos;
 
@@ -980,46 +986,67 @@
                 logger.error(`${logPrefix} Error procesando PADRE_DATOS:`, error);
             }
 
-            // Enviar HIJO_LISTO para completar handshake
+            // Enviar HIJO_LISTO para completar handshake con sistema de reintentos
             if (!estado.hijoListoEnviado) {
-                try {
-                    await enviarMensaje({
-                        destino: getPadreId(),
-                        tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        datos: {
-                            componenteId: CONFIG_HIJO.COMPONENTE_ID,
-                            iframeId: CONFIG_HIJO.IFRAME_ID,
-                            timestamp: Date.now()
+                async function enviarHijoListoConReintento() {
+                    try {
+                        await enviarMensaje({
+                            destino: getPadreId(),
+                            tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            datos: {
+                                componenteId: CONFIG_HIJO.COMPONENTE_ID,
+                                iframeId: CONFIG_HIJO.IFRAME_ID,
+                                timestamp: Date.now()
+                            }
+                        });
+                        _reintentosHijoListo++;
+                        logger.info(`[hijo5] HIJO_LISTO enviado al padre (reintento ${_reintentosHijoListo}/${MAX_REINTENTOS_HIJO_LISTO})`);
+
+                        if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
+                            _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+                        } else {
+                            // Fallback: mostrar UI despuÃ©s de 30 segundos sin confirmaciÃ³n
+                            logger.warn('[hijo5] MÃ¡ximo de reintentos alcanzado, mostrando UI como fallback');
+                            _uiConfirmado = true;
+                            mostrarUI();
                         }
-                    });
-                    estado.hijoListoEnviado = true;
-                    logger.info('[hijo5] HIJO_LISTO enviado al padre');
-                } catch (error) {
-                    logger.error('[hijo5] Error enviando HIJO_LISTO:', error);
+                    } catch (error) {
+                        logger.error('[hijo5] Error enviando HIJO_LISTO:', error);
+                    }
                 }
+                estado.hijoListoEnviado = true;
+                enviarHijoListoConReintento();
             }
         });
 
         // ============================================================
         // CONTROLADOR: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
         // ============================================================
-        // Propósito: Recibir confirmación del padre de que los controladores están listos
+        // PropÃ³sito: Recibir confirmaciÃ³n del padre de que los controladores estÃ¡n listos
         // Origen esperado: padre
         // Respuesta: Solicitar datos iniciales
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
             const logPrefix = `[hijo5][PADRE_CONFIRMA_HIJO_LISTO][${mensaje?.origen || 'desconocido'}]`;
             try {
                 console.log('[hijo5] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
-                logger.info(`${logPrefix} Confirmación recibida del padre - controladores listos`);
+                logger.info(`${logPrefix} ConfirmaciÃ³n recibida del padre - controladores listos`);
+
+                // Limpiar intervalo de reintento si existe
+                if (_intervaloReintento) {
+                    clearTimeout(_intervaloReintento);
+                    _intervaloReintento = null;
+                    logger.info(`[hijo5] Intervalo de reintento limpiado tras recibir PADRE_CONFIRMA_HIJO_LISTO`);
+                }
+
                 const { modoInicial } = mensaje.datos || {};
                 _sincronizarBotonConModo(modoInicial, logPrefix);
                 _uiConfirmado = true;
                 mostrarUI();
                 await solicitarParadasDelPadre();
-                logger.info(`${logPrefix} Solicitud de datos iniciales enviada tras confirmación`);
+                logger.info(`${logPrefix} Solicitud de datos iniciales enviada tras confirmaciÃ³n`);
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
+                logger.error(`${logPrefix} Error procesando confirmaciÃ³n del padre:`, error);
             }
             try {
                 if (estado.pendingCambioModo?.modo) {
@@ -1040,19 +1067,32 @@
                 _uiConfirmado = true;
                 mostrarUI();
                 await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } });
-            } catch (e) { logger.debug('[hijo5] mostrarUI/confirmación UI error:', e); }
+            } catch (e) { logger.debug('[hijo5] mostrarUI/confirmaciÃ³n UI error:', e); }
         });
 
         // ============================================
         // CONTROLADOR 2: SISTEMA.CAMBIO_MODO
         // ============================================
-        // Propósito: Actualizar el modo de la aplicación (casa/aventura) y adaptar la UI
+        // PropÃ³sito: Actualizar el modo de la aplicaciÃ³n (casa/aventura) y adaptar la UI
         // Origen esperado: padre, modo-handler
         // Datos requeridos: { modo: 'casa'|'aventura' }
-        // Respuesta: Ninguna (actualización de estado local)
+        // Respuesta: Ninguna (actualizaciÃ³n de estado local)
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
             const logPrefix = `[hijo5][CAMBIO_MODO]`;
             try {
+                // ðŸ”§ Cleanup de listeners antiguos al cambiar de modo
+                try {
+                    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
+                        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
+                            globalThis.removeEventListener('message', listener);
+                        }
+                        globalThis.messagingAdapter._listenerRegistry.clear();
+                        logger.info(`${logPrefix} ðŸ§¹ Limpiados listeners de messagingAdapter al cambiar de modo`);
+                    }
+                } catch (cleanupError) {
+                    logger.warn(`${logPrefix} Error limpiando listeners de messagingAdapter:`, cleanupError);
+                }
+
                 const validErr = await _validarCambioModo(mensaje, logPrefix);
                 if (validErr) return;
 
@@ -1063,8 +1103,8 @@
 
                 if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
                     const debugInfo = { destino: destinoEntendido, tipo: tipoEntendido, origen: origenEntendido, TIPOS_MENSAJE_exists: TIPOS_MENSAJE !== undefined, CONFIG_HIJO_exists: CONFIG_HIJO !== undefined };
-                    console.error('[hijo5][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
-                    logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
+                    console.error('[hijo5][CAMBIO_MODO] ðŸ”´ DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
+                    logger.error(`${logPrefix} âŒ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                     throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
                 }
 
@@ -1074,7 +1114,7 @@
                 const modoAnterior = estado.modo;
                 estado.modo = modo;
                 _actualizarUIParaModo(modo, logPrefix);
-                logger.info(`${logPrefix} Modo cambiado exitosamente: ${modoAnterior} → ${modo}`);
+                logger.info(`${logPrefix} Modo cambiado exitosamente: ${modoAnterior} â†’ ${modo}`);
 
                 if (modo === 'aventura') {
                     solicitarParadasDelPadre(true).catch(e => logger.warn(`${logPrefix} Error solicitando paradas tras CAMBIO_MODO:`, e));
@@ -1097,7 +1137,7 @@
             const logPrefix = `[hijo5][CAMBIO_MODO_APLICADO]`;
             try {
                 const { modo } = mensaje.datos || {};
-                logger.success(`${logPrefix} ✅ Cambio de modo a "${modo}" aplicado globalmente`);
+                logger.success(`${logPrefix} âœ… Cambio de modo a "${modo}" aplicado globalmente`);
             } catch (error) {
                 logger.error(`${logPrefix} Error:`, error);
             }
@@ -1106,28 +1146,28 @@
         // ============================================
         // CONTROLADOR: SISTEMA.HEARTBEAT
         // ============================================
-        // Propósito: Responder a heartbeats de conectividad del padre
+        // PropÃ³sito: Responder a heartbeats de conectividad del padre
         // Origen esperado: padre, mensajeria
         // Datos requeridos: Ninguno (opcional timestamp)
         // Respuesta: SISTEMA.HEARTBEAT_RESPONSE con timestamp
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, async (mensaje) => {
             const logPrefix = `[hijo5][SISTEMA.HEARTBEAT][${mensaje?.origen || 'desconocido'}]`;
-            
+
             try {
-                // Validación de origen
+                // ValidaciÃ³n de origen
                 if (!mensaje?.origen) {
                     logger.warn(`${logPrefix} Mensaje HEARTBEAT sin origen, ignorando`);
                     return;
                 }
-                
+
                 logger.debug(`${logPrefix} HEARTBEAT recibido, enviando respuesta`);
-                
+
                 // Enviar respuesta con timestamp actual
                 await enviarMensaje({
                     destino: mensaje.origen,
                     tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
                     origen: CONFIG_HIJO.IFRAME_ID,
-                    datos: { 
+                    datos: {
                         timestamp: Date.now(),
                         componenteId: CONFIG_HIJO.COMPONENTE_ID,
                         estado: {
@@ -1137,19 +1177,19 @@
                         }
                     }
                 });
-                
+
                 logger.debug(`${logPrefix} HEARTBEAT_RESPONSE enviado exitosamente`);
-                
+
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar HEARTBEAT:`, error);
-                
+
                 // Intentar enviar respuesta de error
                 try {
                     await enviarMensaje({
                         destino: mensaje.origen,
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                         origen: CONFIG_HIJO.IFRAME_ID,
-                        datos: { 
+                        datos: {
                             error: error.message,
                             contexto: 'SISTEMA.HEARTBEAT',
                             mensajeOriginal: mensaje.tipo
@@ -1190,7 +1230,7 @@
         // ============================================
         // CONTROLADOR: DATOS.RESPUESTA_PARADAS
         // ============================================
-        // Propósito: Recibir respuesta con datos de paradas del padre
+        // PropÃ³sito: Recibir respuesta con datos de paradas del padre
         // Origen esperado: padre, funciones-mapa
         // Datos requeridos: { paradas: Array, total: number }
         // Respuesta: Ninguna (procesamiento de datos)
@@ -1207,18 +1247,18 @@
                 const validas = transformadas.filter(p => _esParadaValida(p, logPrefix));
 
                 if (transformadas.length !== validas.length) {
-                    logger.warn(`${logPrefix} ${transformadas.length - validas.length} paradas inválidas después de transformación`);
+                    logger.warn(`${logPrefix} ${transformadas.length - validas.length} paradas invÃ¡lidas despuÃ©s de transformaciÃ³n`);
                 }
 
                 estado.aventuraParadas = validas;
-                logger.info(`${logPrefix} ${validas.length} paradas válidas almacenadas`);
+                logger.info(`${logPrefix} ${validas.length} paradas vÃ¡lidas almacenadas`);
                 console.log('[hijo5] Paradas del padre almacenadas:', validas.slice(0, 3), '...');
 
                 estado.modo = 'casa';
                 await activarModoInicial('casa');
 
                 if (estadisticas) {
-                    logger.debug(`${logPrefix} Estadísticas: paradas=${estadisticas.paradas || 0}, tramos=${estadisticas.tramos || 0}`);
+                    logger.debug(`${logPrefix} EstadÃ­sticas: paradas=${estadisticas.paradas || 0}, tramos=${estadisticas.tramos || 0}`);
                 }
 
                 logger.info(`${logPrefix} Paradas procesadas y UI actualizada exitosamente`);
@@ -1245,10 +1285,10 @@
         // ============================================
         // CONTROLADOR: NAVEGACION.CAMBIO_PARADA (Respuesta)
         // ============================================
-        // Propósito: Recibir confirmación de cambio de parada desde el padre
+        // PropÃ³sito: Recibir confirmaciÃ³n de cambio de parada desde el padre
         // Origen esperado: padre, funciones-mapa
         // Datos requeridos: { paradaId: string, exito: boolean }
-        // Respuesta: Ninguna (actualización de UI)
+        // Respuesta: Ninguna (actualizaciÃ³n de UI)
         registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, async (mensaje) => {
             const logPrefix = `[hijo5][NAVEGACION.CAMBIO_PARADA][${mensaje?.origen || 'desconocido'}]`;
             try {
@@ -1274,91 +1314,91 @@
         // ============================================
         // CONTROLADOR: SISTEMA.ERROR
         // ============================================
-        // Propósito: Recibir notificaciones de errores de otros componentes
+        // PropÃ³sito: Recibir notificaciones de errores de otros componentes
         // Origen esperado: padre, cualquier hijo
         // Datos requeridos: { error: string, contexto: string }
         // Respuesta: Ninguna (log del error)
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ERROR, async (mensaje) => {
             const logPrefix = `[hijo5][SISTEMA.ERROR][${mensaje?.origen || 'desconocido'}]`;
-            
+
             try {
-                // Validación de origen
+                // ValidaciÃ³n de origen
                 if (!mensaje?.origen) {
-                    logger.warn(`${logPrefix} Notificación de error sin origen`);
+                    logger.warn(`${logPrefix} NotificaciÃ³n de error sin origen`);
                     return;
                 }
-                
-                // Validación de datos
+
+                // ValidaciÃ³n de datos
                 if (!mensaje.datos || typeof mensaje.datos !== 'object') {
-                    logger.warn(`${logPrefix} Notificación de error sin datos`);
+                    logger.warn(`${logPrefix} NotificaciÃ³n de error sin datos`);
                     return;
                 }
-                
+
                 const { error, contexto, mensajeOriginal } = mensaje.datos;
-                
+
                 logger.error(`${logPrefix} Error recibido del origen:`, {
                     error,
                     contexto: contexto || 'desconocido',
                     mensajeOriginal: mensajeOriginal || 'N/A'
                 });
-                
+
                 // Si el error es relacionado con solicitudes de hijo5, intentar reintentar
                 if (mensajeOriginal === TIPOS_MENSAJE.DATOS.SOLICITAR_PARADAS) {
-                    logger.warn(`${logPrefix} Error en solicitud de paradas, intentando recargar después de 5s`);
+                    logger.warn(`${logPrefix} Error en solicitud de paradas, intentando recargar despuÃ©s de 5s`);
                     setTimeout(() => {
                         solicitarParadasDelPadre();
                     }, 5000);
                 }
-                
+
             } catch (error) {
-                logger.error(`${logPrefix} Error al procesar notificación de error:`, error);
+                logger.error(`${logPrefix} Error al procesar notificaciÃ³n de error:`, error);
             }
         });
 
         // ============================================
         // CONTROLADOR: SISTEMA.CONFIRMACION
         // ============================================
-        // Propósito: Confirmar recepción de mensajes enviados
+        // PropÃ³sito: Confirmar recepciÃ³n de mensajes enviados
         // Origen esperado: manejador-errores, otros componentes
         // Datos requeridos: { mensajeOriginalId: string }
         // Respuesta: Ninguna (logging)
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CONFIRMACION, async (mensaje) => {
             const logPrefix = `[hijo5][SISTEMA.CONFIRMACION][${mensaje?.origen || 'desconocido'}]`;
-            
+
             try {
-                logger.debug(`${logPrefix} Confirmación recibida`, {
+                logger.debug(`${logPrefix} ConfirmaciÃ³n recibida`, {
                     mensajeOriginalId: mensaje.datos?.mensajeOriginalId,
                     timestamp: mensaje.timestamp
                 });
-                
-                // Aquí se podría implementar lógica adicional si es necesario
+
+                // AquÃ­ se podrÃ­a implementar lÃ³gica adicional si es necesario
                 // Por ahora solo logging
-                
+
             } catch (error) {
-                logger.error(`${logPrefix} Error al procesar confirmación:`, error);
+                logger.error(`${logPrefix} Error al procesar confirmaciÃ³n:`, error);
             }
         });
 
-        // Controlador para confirmación de cambio de parada
+        // Controlador para confirmaciÃ³n de cambio de parada
         registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO, async (mensaje) => {
             const logPrefix = `[hijo5][CAMBIO_PARADA_CONFIRMADO][${mensaje?.origen || 'desconocido'}]`;
-            
+
             try {
-                // Validación de datos
+                // ValidaciÃ³n de datos
                 if (!mensaje.datos || typeof mensaje.datos !== 'object') {
-                    logger.warn(`${logPrefix} Mensaje sin datos válidos`);
+                    logger.warn(`${logPrefix} Mensaje sin datos vÃ¡lidos`);
                     return;
                 }
-                
+
                 const resolved = resolverIdsParada(mensaje.datos || {});
                 const paradaId = resolved.paradaId || mensaje.datos?.paradaId || mensaje.datos?.parada_id || mensaje.datos?.padreid || null;
                 const audio = mensaje.datos?.audio || null;
                 const reto = mensaje.datos?.reto || null;
-                
+
                 logger.info(`${logPrefix} Cambio de parada confirmado: ${paradaId}`);
-                
-                // Aquí se podría actualizar UI: resaltar botón, mostrar indicadores de audio/reto disponibles
-                // Por ejemplo, agregar clase 'activo' al botón correspondiente
+
+                // AquÃ­ se podrÃ­a actualizar UI: resaltar botÃ³n, mostrar indicadores de audio/reto disponibles
+                // Por ejemplo, agregar clase 'activo' al botÃ³n correspondiente
                 const botones = document.querySelectorAll('.parada-tramo-btn');
                 botones.forEach(btn => {
                     if (btn.dataset.padreid === paradaId) {
@@ -1367,16 +1407,16 @@
                         btn.classList.remove('actual');
                     }
                 });
-                
+
                 if (audio) {
                     logger.debug(`${logPrefix} Audio disponible para ${paradaId}`);
                 }
                 if (reto) {
                     logger.debug(`${logPrefix} Reto disponible para ${paradaId}`);
                 }
-                
+
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando confirmación:`, error);
+                logger.error(`${logPrefix} Error procesando confirmaciÃ³n:`, error);
             }
         });
 
@@ -1384,7 +1424,7 @@
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
             const logPrefix = `[hijo5][SISTEMA.ACK][${mensaje?.origen || 'desconocido'}]`;
             try {
-                // Responder automáticamente con ACK para mantener bidireccionalidad
+                // Responder automÃ¡ticamente con ACK para mantener bidireccionalidad
                 await enviarMensaje({
                     destino: getPadreId(),
                     tipo: TIPOS_MENSAJE.SISTEMA.ACK,
@@ -1397,7 +1437,7 @@
             }
         });
 
-        // Instrumentación: confirmar que los controladores GPS fueron registrados
+        // InstrumentaciÃ³n: confirmar que los controladores GPS fueron registrados
         logger.debug('[hijo5] Controladores GPS registrados y listos para recibir mensajes');
 
         // Enviar HIJO_PREPARADO y esperar PADRE_DATOS antes de enviar HIJO_LISTO
@@ -1419,35 +1459,35 @@
         }
 
         // ============================================
-        // INICIALIZACIÓN DE EVENTOS Y DATOS
+        // INICIALIZACIÃ“N DE EVENTOS Y DATOS
         // ============================================
         logger.info('[hijo5] Inicializando eventos y solicitando datos del padre...');
-        
-        // Vincular evento de click al botón GPS
+
+        // Vincular evento de click al botÃ³n GPS
         const btnGPS = document.getElementById('gps-casa-btn');
         if (btnGPS) {
             btnGPS.onclick = manejarClickGPS;
-            logger.debug('[hijo5] Evento click vinculado al botón GPS');
+            logger.debug('[hijo5] Evento click vinculado al botÃ³n GPS');
         } else {
-            logger.error('[hijo5] Botón GPS no encontrado en el DOM');
+            logger.error('[hijo5] BotÃ³n GPS no encontrado en el DOM');
         }
-        
+
         // Marcar como inicializado
         estado.inicializado = true;
-        
-        logger.info('[hijo5] Inicialización completada exitosamente', {
+
+        logger.info('[hijo5] InicializaciÃ³n completada exitosamente', {
             modo: estado.modo,
             paradasCargadas: estado.aventuraParadas?.length || 0,
             idsMapeados: Object.keys(estado.paradasMapeadas).length
         });
-        
+
     } catch (error) {
-        logger.error('[hijo5] Error crítico durante la inicialización:', {
+        logger.error('[hijo5] Error crÃ­tico durante la inicializaciÃ³n:', {
             message: error.message,
             stack: error.stack
         });
-        
-        // Intentar notificar al padre del error crítico
+
+        // Intentar notificar al padre del error crÃ­tico
             try {
             await enviarMensaje({
                 destino: getPadreId(),
@@ -1461,29 +1501,29 @@
                 }
             });
         } catch (notifError) {
-            logger.error('[hijo5] Error al notificar error crítico al padre:', notifError);
+            logger.error('[hijo5] Error al notificar error crÃ­tico al padre:', notifError);
         }
     }
 
     // ============================================
-    // HANDLER: visibilitychange — reconectar tras cambio de pestaña
+    // HANDLER: visibilitychange â€” reconectar tras cambio de pestaÃ±a
     // ============================================
-    // Cuando el usuario abre otra pestaña y vuelve, la mensajería puede
+    // Cuando el usuario abre otra pestaÃ±a y vuelve, la mensajerÃ­a puede
     // haberse interrumpido (timeouts expirados, correlaciones perdidas).
-    // Al volver, reenviamos un ping al padre y, si teníamos botones,
+    // Al volver, reenviamos un ping al padre y, si tenÃ­amos botones,
     // nos aseguramos de que sigan funcionales.
     document.addEventListener('visibilitychange', async () => {
         if (document.hidden) return; // Solo actuar al VOLVER a ser visible
 
         const logPrefix = '[hijo5][visibilitychange]';
-        logger.info(`${logPrefix} Pestaña visible de nuevo, verificando conexión con padre...`);
+        logger.info(`${logPrefix} PestaÃ±a visible de nuevo, verificando conexiÃ³n con padre...`);
 
         try {
-            // 1. Resetear flag de datos para permitir recepción fresca si es necesario
+            // 1. Resetear flag de datos para permitir recepciÃ³n fresca si es necesario
             //    (no borramos aventuraParadas para no perder la UI)
             estado.datosRecibidos = false;
 
-            // 2. Enviar ping/heartbeat al padre para verificar conexión
+            // 2. Enviar ping/heartbeat al padre para verificar conexiÃ³n
             await enviarMensaje({
                 destino: getPadreId(),
                 tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
@@ -1505,14 +1545,14 @@
                 logger.debug(`${logPrefix} Botones existentes (${estado.aventuraParadas.length}), regenerando UI`);
                 generarBotonesParadas();
             } else {
-                // Sin datos previos — pedir paradas al padre nuevamente
+                // Sin datos previos â€” pedir paradas al padre nuevamente
                 logger.info(`${logPrefix} Sin datos previos, solicitando paradas al padre`);
                 await solicitarParadasDelPadre();
             }
 
-            logger.info(`${logPrefix} Reconexión tras cambio de pestaña completada`);
+            logger.info(`${logPrefix} ReconexiÃ³n tras cambio de pestaÃ±a completada`);
         } catch (err) {
-            logger.warn(`${logPrefix} Error durante reconexión:`, err);
+            logger.warn(`${logPrefix} Error durante reconexiÃ³n:`, err);
         }
     });
     </script>
@@ -1522,13 +1562,13 @@
     <div id="zona-boton-casa">
         <button id="gps-casa-btn" class="off">
             <div class="button-content">
-                <span class="satellite-emoji">🛰️</span>
+                <span class="satellite-emoji">ðŸ›°ï¸</span>
                 <span class="gps-label">OFF</span>
             </div>
         </button>
         <div id="paradas-window" class="visible">
             <div id="lista-paradas">
-                <!-- Los botones de paradas se generan dinámicamente -->
+                <!-- Los botones de paradas se generan dinÃ¡micamente -->
             </div>
         </div>
     </div>

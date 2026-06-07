@@ -16,7 +16,7 @@
  */
 
 // ─── Build timestamp (metadato opcional; no controla el versionado) ─────────
-// @build-ts: 2026-05-21T08:23:09.000Z
+// @build-ts: 2026-06-07T00:00:00.000Z
 
 // ─── App Shell ────────────────────────────────────────────────────────────────
 // Estos ficheros se precargan al instalar el SW.
@@ -25,6 +25,7 @@ const APP_SHELL = [
   '/index.html',
   '/codigo-padre.html',
   '/En-busca-del-tesoro.html',
+  '/mapa-completo.html',
   '/coordenadas-hijo2.html',
   '/audio-hijo3.html',
   '/retos-hijo4.html',
@@ -80,7 +81,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-7d9896fe7698';
+const CACHE_VERSION = 'v-7d3ffca';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
 const MEDIA_CACHE_MAX_ENTRIES = 100; // Máximo 100 archivos media en caché

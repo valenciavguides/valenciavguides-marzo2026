@@ -262,11 +262,6 @@
       map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
     }
 
-    // El overlay tiene transición CSS — forzar recálculo de tamaño una vez pintado
-    globalThis.addEventListener('resize', () => map.invalidateSize());
-    setTimeout(() => map.invalidateSize(), 50);
-    setTimeout(() => map.invalidateSize(), 400);
-
     // ── Popup de monumento ──────────────────────────────────────────────────
     const overlay   = document.getElementById('monumento-overlay');
     const imgWrap   = document.getElementById('monumento-imagen-wrap');
@@ -274,7 +269,8 @@
     const btnCerrar = document.getElementById('monumento-cerrar');
 
     function mostrarMonumento(ref) {
-      numEl.textContent = `Nº ${ref.mapa_numero} · ${ref.nombre || ''}`;
+      const numStr = ref.mapa_numero != null ? `Nº ${ref.mapa_numero} · ` : '';
+      numEl.textContent = `${numStr}${ref.nombre || ''}`;
       document.getElementById('monumento-nombre').style.display = 'none';
       imgWrap.innerHTML = ref.imagen
         ? `<img src="${ref.imagen}" alt="${ref.nombre || ''}">`
@@ -286,7 +282,7 @@
     btnCerrar.addEventListener('click', cerrarOverlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) cerrarOverlay(); });
 
-    // ── Marcadores de monumentos ────────────────────────────────────────────
+    // ── Marcadores de monumentos (referencias) ──────────────────────────────
     coordenadas.filter(c => c.tipo === 'referencia').forEach(ref => {
       if (!ref.coordenadas || ref.coordenadas.lat == null) return;
       const icono = L.divIcon({
@@ -296,6 +292,22 @@
       L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
         icon: icono, title: ref.nombre || `Monumento ${ref.mapa_numero}`, zIndexOffset: 400
       }).addTo(map).on('click', () => mostrarMonumento(ref));
+    });
+
+    // ── Marcadores de paradas e inicio (clickables con imagen) ──────────────
+    coordenadas.filter(c => c.tipo === 'parada' || c.tipo === 'inicio').forEach(punto => {
+      const lat = punto.coordenadas?.lat;
+      const lng = punto.coordenadas?.lng;
+      if (lat == null || lng == null) return;
+      const num = punto.parada != null ? punto.parada : (punto.tipo === 'inicio' ? '0' : '?');
+      const emoji = punto.tipo === 'inicio' ? '📌' : '🎯';
+      const icono = L.divIcon({
+        html: `<div class="monumento-marker" style="border-color:#2255cc;color:#2255cc;">${emoji} P${num}</div>`,
+        className: '', iconSize: null, iconAnchor: [0, 0]
+      });
+      L.marker([lat, lng], {
+        icon: icono, title: punto.nombre || `Parada ${num}`, zIndexOffset: 500
+      }).addTo(map).on('click', () => mostrarMonumento(punto));
     });
 
     // ── Comunicación con ventana padre ──────────────────────────────────────
@@ -321,6 +333,16 @@
         }, globalThis.location.origin);
       }
     });
-  </script>
+  // Ensure Leaflet tiles render correctly after the iframe becomes visible.
+  // Multiple staggered calls cover cases where the overlay wasn't visible on first load.
+  [300, 700, 1500].forEach(ms => setTimeout(() => map.invalidateSize(), ms));
+  globalThis.addEventListener('resize', () => map.invalidateSize());
+  globalThis.addEventListener('message', (event) => {
+    if (event.origin !== globalThis.location.origin) return;
+    if (event.data?.tipo === 'mapa-visible') {
+      [50, 300, 700].forEach(ms => setTimeout(() => map.invalidateSize(), ms));
+    }
+  });
+</script>
 </body>
 </html>

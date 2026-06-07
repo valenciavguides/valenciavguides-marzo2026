@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <script>
-    /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÍMITES */
+    /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÃMITES */
     (function(){
         function escalar(){
             var w, h;
@@ -28,7 +28,7 @@
 
         /* Fuente global Verdana */
         * { font-family: Verdana, sans-serif !important; }
-        
+
         :root {
             --btn-size: calc(50vh - 4px);
             --icon-size: 1.5em;
@@ -87,7 +87,7 @@
             background-color: transparent !important;
         }
 
-        /* Arriba: barra de progreso, recortada por la derecha en un ancho de botón */
+        /* Arriba: barra de progreso, recortada por la derecha en un ancho de botÃ³n */
         .progress-top-row {
             width: calc(100% - var(--btn-size) - 5px);
             height: calc(50vh - 7px);
@@ -97,7 +97,7 @@
             padding: 0;
         }
 
-        /* Abajo: título izquierda + botones derecha */
+        /* Abajo: tÃ­tulo izquierda + botones derecha */
         .bottom-row {
             flex: 1;
             width: 100%;
@@ -123,10 +123,10 @@
             box-shadow: inset 0 0.0625rem 0.1875rem rgba(0,0,0,0.1);
         }
 
-        /* Título con efecto marquee si no cabe */
+        /* TÃ­tulo con efecto marquee si no cabe */
         .titulo-parada {
             height: 100%;
-            font-size: calc(50vh - 10px);  /* fila inferior ≈ 50vh, letras grandes */
+            font-size: calc(50vh - 10px);  /* fila inferior â‰ˆ 50vh, letras grandes */
             font-weight: bold;
             color: #333;
             white-space: nowrap;
@@ -210,7 +210,7 @@
             box-shadow: none;
         }
 
-        /* Imagen dentro del botón retos: cubrir todo el botón */
+        /* Imagen dentro del botÃ³n retos: cubrir todo el botÃ³n */
         #retosBtn img {
             position: absolute;
             top: -1.5%;
@@ -315,13 +315,13 @@
             background: none; /* Se asegura que no haya colores adicionales */
         }
 
-        /* Botón habilitado: degradado verde */
+        /* BotÃ³n habilitado: degradado verde */
         #hijo3 .boton.habilitado {
             background: linear-gradient(to right, #1e7e34, #155c27);
             color: white;
         }
 
-        /* Botón deshabilitado: degradado rojo */
+        /* BotÃ³n deshabilitado: degradado rojo */
         #hijo3 .boton.deshabilitado {
             background: linear-gradient(to right, #dc3545, #c82333);
             color: white;
@@ -333,7 +333,7 @@
             opacity: 1;
         }
 
-        /* Estilos de modo casa eliminados - los botones siguen el estado habilitado/deshabilitado estándar */
+        /* Estilos de modo casa eliminados - los botones siguen el estado habilitado/deshabilitado estÃ¡ndar */
 
         /* Estilos para el modo aventura (controles normales) */
         body.modo-aventura .audio-player-controls {
@@ -343,44 +343,44 @@
     </style>
 </head>
 <body class="modo-aventura hijo3-container">
-    <!-- ARRAY DE AUDIOS - NO ELIMINAR NI MODIFICAR SIN REVISIÓN: Este array es esencial para mapear audioId a archivos MP3. Cualquier cambio debe coordinarse con el padre. -->
+    <!-- ARRAY DE AUDIOS - NO ELIMINAR NI MODIFICAR SIN REVISIÃ“N: Este array es esencial para mapear audioId a archivos MP3. Cualquier cambio debe coordinarse con el padre. -->
     <script type="module">
-        // ╔════════════════════════════════════════════════════════════════════════════╗
-        // ║ ARRAY VACÍO - Los audios se cargan desde el PADRE via mensaje CARGAR_AUDIOS ║
-        // ║ El array de backup está comentado abajo por si necesitamos restaurar        ║
-        // ╚════════════════════════════════════════════════════════════════════════════╝
+        // â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+        // â•‘ ARRAY VACÃO - Los audios se cargan desde el PADRE via mensaje CARGAR_AUDIOS â•‘
+        // â•‘ El array de backup estÃ¡ comentado abajo por si necesitamos restaurar        â•‘
+        // â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         const audioFiles = [];
-        
-        // Función getter que prioriza datos del padre sobre datos locales
+
+        // FunciÃ³n getter que prioriza datos del padre sobre datos locales
         function obtenerAudioFiles() {
             // Prioridad 1: Datos recibidos del padre
             if (globalThis.__vv_audioFiles && Array.isArray(globalThis.__vv_audioFiles) && globalThis.__vv_audioFiles.length > 0) {
                 return globalThis.__vv_audioFiles;
             }
             // Prioridad 2: Array local como fallback de emergencia
-            console.warn('[hijo3] ⚠️ Usando audioFiles local vacío - ¿Se cargaron los audios desde el padre?');
+            console.warn('[hijo3] âš ï¸ Usando audioFiles local vacÃ­o - Â¿Se cargaron los audios desde el padre?');
             return audioFiles;
         }
-        
-        // Exponer función globalmente
+
+        // Exponer funciÃ³n globalmente
         globalThis.obtenerAudioFiles = obtenerAudioFiles;
-        
-        /* ═══════════════════════════════════════════════════════════════════════════════
-         * ██ BACKUP: Array de audios original - COMENTADO PARA USAR DATOS CENTRALIZADOS
-         * ██ Descomentar solo si falla el flujo centralizado y necesitamos fallback
-         * ═══════════════════════════════════════════════════════════════════════════════
-        
+
+        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+         * â–ˆâ–ˆ BACKUP: Array de audios original - COMENTADO PARA USAR DATOS CENTRALIZADOS
+         * â–ˆâ–ˆ Descomentar solo si falla el flujo centralizado y necesitamos fallback
+         * â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
         // Array de audios correspondientes a las paradas y tramos del recorrido
         // Usando P- para paradas y TR- para tramos, coincidiendo con los IDs del hijo 2
         /*
         const audioFiles_BACKUP = [
-        ═══════════════════════════════════════════════════════════════════════════════ */
-        
-        // ✅ Exponer función getter globalmente (sustituye la exposición directa del array)
-        // La línea original era: try { globalThis.__vv_audioFiles = audioFiles; } catch (e) { /* ignore */ }
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+        // âœ… Exponer funciÃ³n getter globalmente (sustituye la exposiciÃ³n directa del array)
+        // La lÃ­nea original era: try { globalThis.__vv_audioFiles = audioFiles; } catch (e) { /* ignore */ }
         // Ahora los audios llegan desde el padre via CARGAR_AUDIOS
     </script>
-    
+
     <div class="audio-player-controls">
         <!-- Arriba: barra de progreso (ancho completo) -->
         <div class="progress-top-row">
@@ -402,7 +402,7 @@
             </div>
             <div class="buttons-right">
                 <button id="retosBtn" aria-label="Retos" disabled>
-                    <img src="imagenes/imagenes-aplicación/H4-fotoretos.png" alt="Retos">
+                    <img src="imagenes/imagenes-aplicaciÃ³n/H4-fotoretos.png" alt="Retos">
                 </button>
             </div>
         </div>
@@ -418,9 +418,9 @@
     import logger from './js/logger.js';
 
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
-    // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
+    // El sistema actual usa state-manager centralizado sin necesidad de migraciÃ³n manual.
 
-    // Fallbacks que esperan a que globalThis.mensajeria esté disponible
+    // Fallbacks que esperan a que globalThis.mensajeria estÃ© disponible
     const enviarMensaje = async (...args) => {
         // En hijos, usar postMessage directamente al padre
         if (globalThis.parent && globalThis.parent !== globalThis) {
@@ -439,7 +439,7 @@
                 throw e;
             }
         } else {
-            // Fallback al método anterior si no estamos en iframe
+            // Fallback al mÃ©todo anterior si no estamos en iframe
             return await retryUntilAvailable(
                 () => globalThis.mensajeria.enviarMensaje(...args),
                 () => globalThis.mensajeria && globalThis.mensajeria.enviarMensaje,
@@ -460,7 +460,7 @@
             globalThis.addEventListener('message', listener);
             return () => globalThis.removeEventListener('message', listener);
         } else {
-            // Fallback al método anterior
+            // Fallback al mÃ©todo anterior
             return await retryUntilAvailable(
                 () => globalThis.mensajeria.registrarControlador(tipo, callback),
                 () => globalThis.mensajeria && globalThis.mensajeria.registrarControlador,
@@ -470,14 +470,14 @@
     };
 
     const enviarMensajeConConfirmacion = async (...args) => {
-        // Similar a enviarMensaje pero esperando confirmación
+        // Similar a enviarMensaje pero esperando confirmaciÃ³n
         if (globalThis.parent && globalThis.parent !== globalThis) {
             const mensaje = args[0];
             return new Promise((resolve, reject) => {
                 const idMensaje = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-                const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmación')),
+                const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmaciÃ³n')),
                     ajustarTimeoutPorConexion(5000));
-                
+
                 const confirmListener = (event) => {
                     if (event.source === globalThis.parent && event.data && event.data.tipo === 'SISTEMA.CONFIRMACION' && event.data.idOriginal === idMensaje) {
                         clearTimeout(timeout);
@@ -485,9 +485,9 @@
                         resolve();
                     }
                 };
-                
+
                 globalThis.addEventListener('message', confirmListener);
-                
+
                 try {
                     globalThis.parent.postMessage({
                         tipo: mensaje.tipo,
@@ -520,14 +520,14 @@
             const confirmacion = { tipo: tipoConf, idOriginal: event.data.id, origen: iframeId, destino: event.data.origen || 'padre', timestamp: Date.now(), datos: resultado };
             if (globalThis.parent && globalThis.parent !== globalThis) {
                 globalThis.parent.postMessage(confirmacion, globalThis.location.origin);
-                (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Auto-confirmación enviada para ${event.data.id}`);
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Auto-confirmaciÃ³n enviada para ${event.data.id}`);
             }
         } catch (confError) {
-            (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error enviando confirmación:`, confError);
+            (globalThis.logger || console).error && (globalThis.logger || console).error(`[messagingAdapter] Error enviando confirmaciÃ³n:`, confError);
         }
     }
 
-    // ==================== MESSAGING ADAPTER PARA COMUNICACIÓN CON PADRE ====================
+    // ==================== MESSAGING ADAPTER PARA COMUNICACIÃ“N CON PADRE ====================
     // Este adapter permite a los hijos registrar controladores centralmente en el state-manager del padre
     if (globalThis.messagingAdapter === undefined) {
         globalThis.messagingAdapter = {
@@ -555,11 +555,11 @@
                 };
                 globalThis.addEventListener('message', adapterListener);
                 this._listenerRegistry.set(tipo, adapterListener);
-                
+
                 (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Handler registrado para ${tipo} en ${iframeId}`);
                 return true;
             },
-            
+
             enviarMensajeCentral: async function(mensaje) {
                 if (globalThis.parent && globalThis.parent !== globalThis) {
                     globalThis.parent.postMessage(mensaje, globalThis.location.origin);
@@ -568,7 +568,7 @@
                 return { exito: false, error: 'No hay padre disponible' };
             }
         };
-        (globalThis.logger || console).info && (globalThis.logger || console).info('[HIJO] messagingAdapter creado para comunicación con padre');
+        (globalThis.logger || console).info && (globalThis.logger || console).info('[HIJO] messagingAdapter creado para comunicaciÃ³n con padre');
 
         globalThis.addEventListener('pagehide', function() {
             if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
@@ -595,8 +595,8 @@
         }
         if (typeof registrarControlador === 'function') {
             try {
-                const res = await safeRegistrar(tipo, handler, opciones);
-                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
+                const res = await registrarControlador(tipo, handler);
+                (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated for ${tipo}`);
                 return res;
             } catch (err) {
                 (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControlador failed for ${tipo}: ${err && err.message}`);
@@ -612,7 +612,7 @@
             try {
                 (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
                 if (!tipo || typeof handler !== 'function') {
-                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControladorSeguro parámetros inválidos: tipo=${tipo}`);
+                    (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControladorSeguro parÃ¡metros invÃ¡lidos: tipo=${tipo}`);
                     return;
                 }
                 if (globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) {
@@ -664,27 +664,27 @@
 
     let currentAudioId = null;
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // 🔧 UTILIDADES - AJUSTE DINÁMICO DE TIMEOUTS
-    // ═══════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ðŸ”§ UTILIDADES - AJUSTE DINÃMICO DE TIMEOUTS
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     /**
-     * Calcula multiplicador de timeout según tipo de conexión
-     * Metodología consistente con codigo-padre.html (utils.js)
+     * Calcula multiplicador de timeout segÃºn tipo de conexiÃ³n
+     * MetodologÃ­a consistente con codigo-padre.html (utils.js)
      * @returns {number} Multiplicador (1.0-3.0)
      */
     function calcularMultiplicadorTimeoutConexion() {
         try {
             if (!navigator.connection) {
-                return 1.5; // Valor moderado si no hay info de conexión
+                return 1.5; // Valor moderado si no hay info de conexiÃ³n
             }
 
             const effectiveType = navigator.connection.effectiveType || 'unknown';
             const multiplicadores = {
-                '4g': 1,        // Conexión rápida
-                '3g': 1.5,      // Conexión media - 50% más tiempo
-                '2g': 2,        // Conexión lenta - doble tiempo
-                'slow-2g': 3,   // Conexión muy lenta - triple tiempo
+                '4g': 1,        // ConexiÃ³n rÃ¡pida
+                '3g': 1.5,      // ConexiÃ³n media - 50% mÃ¡s tiempo
+                '2g': 2,        // ConexiÃ³n lenta - doble tiempo
+                'slow-2g': 3,   // ConexiÃ³n muy lenta - triple tiempo
                 'unknown': 1.5  // Desconocido - moderado
             };
 
@@ -696,7 +696,7 @@
     }
 
     /**
-     * Ajusta timeout según conexión de red actual
+     * Ajusta timeout segÃºn conexiÃ³n de red actual
      * @param {number} timeoutBase - Timeout base en ms
      * @returns {number} Timeout ajustado
      */
@@ -712,7 +712,7 @@
         inicializado: false,
         modo: { actual: 'aventura' },
         pendingCambioModo: null,
-        hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
+        hijoListoEnviado: false  // Flag para evitar envÃ­o duplicado de HIJO_LISTO
     };
 
     // Funciones de reproductor (fusionadas y adaptadas)
@@ -723,12 +723,12 @@
     }
 
     // Prepara el audio en el reproductor y opcionalmente lo reproduce.
-    // autoplay: boolean (por defecto false) — si es true intentará iniciar reproducción inmediatamente.
+    // autoplay: boolean (por defecto false) â€” si es true intentarÃ¡ iniciar reproducciÃ³n inmediatamente.
     async function cargarYReproducirAudio(audioId, autoplay = false) {
-        // ✅ Usar función centralizada que prioriza datos del padre
+        // âœ… Usar funciÃ³n centralizada que prioriza datos del padre
         const files = obtenerAudioFiles();
         if (!files || !Array.isArray(files) || files.length === 0) {
-            logger.error(`Audio array no disponible o vacío. Imposible preparar ${audioId}. ¿Se cargaron los audios desde el padre?`);
+            logger.error(`Audio array no disponible o vacÃ­o. Imposible preparar ${audioId}. Â¿Se cargaron los audios desde el padre?`);
             return { exito: false, error: 'audioFiles_missing' };
         }
         const audioData = files.find(audio => audio.id === audioId || audio.id === `audio-${audioId}`);
@@ -737,24 +737,24 @@
             return { exito: false, error: 'audio_not_found' };
         }
 
-        // Guard: si el archivo de audio no está configurado aún (file vacío), devolver
-        // error controlado en lugar de asignar src vacío y disparar MEDIA_ELEMENT_ERROR
+        // Guard: si el archivo de audio no estÃ¡ configurado aÃºn (file vacÃ­o), devolver
+        // error controlado en lugar de asignar src vacÃ­o y disparar MEDIA_ELEMENT_ERROR
         if (!audioData.file) {
-            logger.warn(`[hijo3] Audio ${audioId} no tiene archivo configurado (pendiente de producción)`);
+            logger.warn(`[hijo3] Audio ${audioId} no tiene archivo configurado (pendiente de producciÃ³n)`);
             return { exito: false, error: 'audio_file_not_configured' };
         }
 
-        // Preparar la fuente siempre (permite que el usuario pulse Play más tarde)
+        // Preparar la fuente siempre (permite que el usuario pulse Play mÃ¡s tarde)
         audioPlayer.src = audioData.file;
         currentAudioId = audioId;
 
-        // Actualizar título de la parada con efecto marquee si no cabe
+        // Actualizar tÃ­tulo de la parada con efecto marquee si no cabe
         const tituloEl = document.getElementById('titulo-parada');
         const tituloSpan = document.getElementById('titulo-parada-text');
         if (tituloEl && tituloSpan && audioData.title) {
             tituloSpan.textContent = audioData.title;
             tituloEl.classList.remove('marquee');
-            // Activar marquee si el texto es más ancho que el contenedor
+            // Activar marquee si el texto es mÃ¡s ancho que el contenedor
             requestAnimationFrame(() => {
                 if (tituloSpan.scrollWidth > tituloEl.clientWidth) {
                     // Duplicar texto para efecto continuo
@@ -769,13 +769,13 @@
                 await audioPlayer.play();
                 return { exito: true, reproducido: true };
             } catch (playError) {
-                // Es posible que el intento de autoplay sea bloqueado por la política del navegador.
+                // Es posible que el intento de autoplay sea bloqueado por la polÃ­tica del navegador.
                 logger.warn(`[hijo3] Intento de autoplay bloqueado o fallido para ${audioId}:`, playError && playError.message ? playError.message : playError);
                 return { exito: true, reproducido: false, autoplayBlocked: true };
             }
         }
 
-        // Si no se debe reproducir automáticamente, indicamos que la carga fue correcta
+        // Si no se debe reproducir automÃ¡ticamente, indicamos que la carga fue correcta
         return { exito: true, reproducido: false };
     }
 
@@ -786,23 +786,23 @@
     const durationElement = document.getElementById('duration');
     const retosBtn = document.getElementById('retosBtn');
 
-    // Event listener para botón de Retos
+    // Event listener para botÃ³n de Retos
     retosBtn.addEventListener('click', async () => {
         try {
             retosBtn.classList.add('activo');
-            logger.info(`[hijo3] Botón de retos clickeado, solicitando reto al padre`);
-            
+            logger.info(`[hijo3] BotÃ³n de retos clickeado, solicitando reto al padre`);
+
             // Enviar solicitud al padre para mostrar un reto
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.SOLICITAR_RETO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 destino: getPadreId(),
-                datos: { 
+                datos: {
                     contexto: 'manual',
-                    audioId: currentAudioId 
+                    audioId: currentAudioId
                 }
             });
-            
+
             logger.debug(`[hijo3] Solicitud de reto enviada exitosamente`);
         } catch (error) {
             logger.error(`[hijo3] Error al solicitar reto:`, error);
@@ -847,21 +847,21 @@
 
     progressContainer.addEventListener('click', (e) => {
         try {
-            // Calcular posición del click relativa a la barra
+            // Calcular posiciÃ³n del click relativa a la barra
             const percent = updateProgressFromClientX(e.clientX);
-            
+
             // Validar rango (0-100%)
             const validPercent = Math.max(0, Math.min(1, percent));
-            
-            // Validar que el audio esté cargado y duration sea finito
+
+            // Validar que el audio estÃ© cargado y duration sea finito
             if (!audioPlayer || !Number.isFinite(audioPlayer.duration) || audioPlayer.duration === 0) {
-                logger.warn(`[hijo3] Audio no cargado o duration inválido, ignorando seek`);
+                logger.warn(`[hijo3] Audio no cargado o duration invÃ¡lido, ignorando seek`);
                 return;
             }
-            
-            // Saltar a la posición clickeada
+
+            // Saltar a la posiciÃ³n clickeada
             audioPlayer.currentTime = validPercent * audioPlayer.duration;
-            
+
             logger.debug(`[hijo3] Seek en barra de progreso: ${(validPercent * 100).toFixed(1)}%`);
         } catch (error) {
             logger.error(`[hijo3] Error al hacer seek en barra de progreso:`, error);
@@ -1101,7 +1101,7 @@
                 modo = String(modo);
             }
             modo = String(modo || '').trim().toLowerCase();
-            // Dejar sólo caracteres seguros para clases: a-z0-9_- (reemplazar otros con guión)
+            // Dejar sÃ³lo caracteres seguros para clases: a-z0-9_- (reemplazar otros con guiÃ³n)
             modo = modo.replace(/[^a-z0-9_-]/g, '-').replace(/^-+|-+$/g, '');
             return modo;
         } catch (error_) {
@@ -1110,22 +1110,22 @@
         }
     }
 
-    // Función para actualizar la interfaz según el modo
+    // FunciÃ³n para actualizar la interfaz segÃºn el modo
     function actualizarInterfazModo(modo) {
         const modoSeguro = normalizarModo(modo);
         console.log(`[AUDIO] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
         const body = document.body;
 
-        // Actualizar clases CSS (sólo si hay un modo válido)
+        // Actualizar clases CSS (sÃ³lo si hay un modo vÃ¡lido)
         body.classList.remove('modo-casa', 'modo-aventura');
         if (modoSeguro) body.classList.add(`modo-${modoSeguro}`);
 
         logger.info(`[hijo3] Interfaz actualizada para modo: ${modoSeguro}`);
     }
 
-    // Inicialización y controladores (adaptados a mensajería actual)
+    // InicializaciÃ³n y controladores (adaptados a mensajerÃ­a actual)
     try {
-        // Ocultar la UI hasta que el padre confirme que los controladores están listos
+        // Ocultar la UI hasta que el padre confirme que los controladores estÃ¡n listos
         let _uiConfirmado = false;
         const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
         try { if (document.body) document.body.style.display = 'none'; } catch (e) { logger.debug('[hijo3] no se pudo ocultar UI inicial', e && e.message); }
@@ -1141,10 +1141,16 @@
             }
         }
 
-        // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
+        // Sistema de reintentos activos para HIJO_LISTO (soluciÃ³n permanente C2)
+        let _reintentosHijoListo = 0;
+        const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 segundos mÃ¡ximo
+        const INTERVALO_REINTENTO = 1000; // 1 segundo
+        let _intervaloReintento = null;
 
-        // NOTA: HIJO_PREPARADO se envía MÁS ABAJO, DESPUÉS de registrar todos los controladores críticos.
-        // Esto garantiza que el padre no envíe PADRE_DATOS antes de que los controladores estén listos.
+        // No necesitamos inicializarMensajeria aquÃ­, los fallbacks esperan automÃ¡ticamente
+
+        // NOTA: HIJO_PREPARADO se envÃ­a MÃS ABAJO, DESPUÃ‰S de registrar todos los controladores crÃ­ticos.
+        // Esto garantiza que el padre no envÃ­e PADRE_DATOS antes de que los controladores estÃ©n listos.
 
         // ============================================================
         // CONTROLADOR 1: SISTEMA.PADRE_DATOS
@@ -1155,14 +1161,14 @@
 
             try {
                 if (!mensaje || !mensaje.origen) {
-                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
+                    logger.error(`${logPrefix} Mensaje sin origen vÃ¡lido`, mensaje);
                     return;
                 }
 
                 logger.info(`${logPrefix} Datos del padre recibidos desde ${mensaje.origen}`);
-                logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} recibió PADRE_DATOS`);
+                logger.info(`Hijo ${CONFIG_HIJO.IFRAME_ID} recibiÃ³ PADRE_DATOS`);
 
-                // ✅ PROCESAR DATOS INICIALES DEL PADRE
+                // âœ… PROCESAR DATOS INICIALES DEL PADRE
                 if (mensaje.datos) {
                     const { modo, paradas, paradaActual } = mensaje.datos;
 
@@ -1186,30 +1192,43 @@
                 logger.error(`${logPrefix} Error procesando PADRE_DATOS:`, error);
             }
 
-            // Enviar HIJO_LISTO para completar handshake
+            // Enviar HIJO_LISTO para completar handshake con sistema de reintentos
             if (!estado.hijoListoEnviado) {
-                try {
-                    await enviarMensaje({
-                        destino: getPadreId(),
-                        tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        datos: {
-                            componenteId: CONFIG_HIJO.COMPONENTE_ID,
-                            iframeId: CONFIG_HIJO.IFRAME_ID,
-                            timestamp: Date.now()
+                async function enviarHijoListoConReintento() {
+                    try {
+                        await enviarMensaje({
+                            destino: getPadreId(),
+                            tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            datos: {
+                                componenteId: CONFIG_HIJO.COMPONENTE_ID,
+                                iframeId: CONFIG_HIJO.IFRAME_ID,
+                                timestamp: Date.now()
+                            }
+                        });
+                        _reintentosHijoListo++;
+                        logger.info(`[hijo3] HIJO_LISTO enviado al padre (reintento ${_reintentosHijoListo}/${MAX_REINTENTOS_HIJO_LISTO})`);
+
+                        if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
+                            _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+                        } else {
+                            // Fallback: mostrar UI despuÃ©s de 30 segundos sin confirmaciÃ³n
+                            logger.warn('[hijo3] MÃ¡ximo de reintentos alcanzado, mostrando UI como fallback');
+                            _uiConfirmado = true;
+                            mostrarUI();
                         }
-                    });
-                    estado.hijoListoEnviado = true;
-                    logger.info('[hijo3] HIJO_LISTO enviado al padre');
-                } catch (error) {
-                    logger.error('[hijo3] Error enviando HIJO_LISTO:', error);
+                    } catch (error) {
+                        logger.error('[hijo3] Error enviando HIJO_LISTO:', error);
+                    }
                 }
+                estado.hijoListoEnviado = true;
+                enviarHijoListoConReintento();
             }
         });
 
         /**
          * Controlador: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
-         * Descripción: Recibe confirmación del padre de que los controladores están listos
+         * DescripciÃ³n: Recibe confirmaciÃ³n del padre de que los controladores estÃ¡n listos
          * Origen esperado: padre
          * Respuesta: Ninguna (preparado para futuras solicitudes de datos)
          */
@@ -1219,13 +1238,20 @@
             try {
                 console.log('[hijo3] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
                 if (!mensaje?.origen) {
-                    logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
+                    logger.error(`${logPrefix} Mensaje sin origen vÃ¡lido`, mensaje);
                     return;
                 }
 
-                logger.info(`${logPrefix} Confirmación recibida del padre - controladores listos`);
+                logger.info(`${logPrefix} ConfirmaciÃ³n recibida del padre - controladores listos`);
 
-                // Aplicar cambio de modo encolado si existía
+                // Limpiar intervalo de reintento si existe
+                if (_intervaloReintento) {
+                    clearTimeout(_intervaloReintento);
+                    _intervaloReintento = null;
+                    logger.info(`[hijo3] Intervalo de reintento limpiado tras recibir PADRE_CONFIRMA_HIJO_LISTO`);
+                }
+
+                // Aplicar cambio de modo encolado si existÃ­a
                 try {
                     if (estado && estado.pendingCambioModo && estado.pendingCambioModo.modo) {
                         const modoPendiente = estado.pendingCambioModo.modo;
@@ -1239,7 +1265,7 @@
                         });
                         if (estado) delete estado.pendingCambioModo;
                     }
-                    // Mostrar UI ahora que el padre confirmó
+                    // Mostrar UI ahora que el padre confirmÃ³
                     try {
                         _uiConfirmado = true;
                         mostrarUI();
@@ -1255,21 +1281,21 @@
                     logger.error(`${logPrefix} Error aplicando modo pendiente:`, err);
                 }
 
-                // 🔥 NUEVO: Procesar modo inicial si viene en datos
+                // ðŸ”¥ NUEVO: Procesar modo inicial si viene en datos
                 const { modoInicial } = mensaje.datos || {};
                 if (modoInicial) {
                     logger.info(`${logPrefix} Modo inicial recibido: ${modoInicial}`);
                     actualizarInterfazModo(modoInicial);
-                    logger.debug(`${logPrefix} Interfaz actualizada según modo inicial`);
+                    logger.debug(`${logPrefix} Interfaz actualizada segÃºn modo inicial`);
                 }
 
                 // Preparado para futuras solicitudes de datos adicionales del padre
                 logger.debug(`${logPrefix} Componente listo para recibir datos adicionales si es necesario`);
 
-                // Verificación diferida: si CARGAR_AUDIOS no llegó en 3s, solicitarlo al padre
+                // VerificaciÃ³n diferida: si CARGAR_AUDIOS no llegÃ³ en 3s, solicitarlo al padre
                 setTimeout(() => {
                     if (!globalThis.__vv_audioFiles || !Array.isArray(globalThis.__vv_audioFiles) || globalThis.__vv_audioFiles.length === 0) {
-                        logger.debug('[hijo3] Audios no recibidos tras 3s — solicitando al padre');
+                        logger.debug('[hijo3] Audios no recibidos tras 3s â€” solicitando al padre');
                         enviarMensaje({
                             tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS,
                             origen: CONFIG_HIJO.IFRAME_ID,
@@ -1280,7 +1306,7 @@
                 }, 3000);
 
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
+                logger.error(`${logPrefix} Error procesando confirmaciÃ³n del padre:`, error);
             }
         });
 
@@ -1288,38 +1314,38 @@
         // CONTROLADOR: DATOS.CARGAR_AUDIOS
         // Recibe audios centralizados del padre al iniciar aventura
         // ============================================================
-        
+
         /**
          * Controlador: DATOS.CARGAR_AUDIOS
-         * Descripción: Recibe y almacena los audios de la aventura seleccionada
+         * DescripciÃ³n: Recibe y almacena los audios de la aventura seleccionada
          * Origen: padre (codigo-padre.html)
          * Datos recibidos: { aventura, idioma, audios: Array, total, timestamp }
          */
         registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS, async (mensaje) => {
             const logPrefix = `[hijo3][CARGAR_AUDIOS]`;
-            
+
             try {
                 const { aventura, idioma, audios, total } = mensaje.datos || {};
-                
-                logger.info(`${logPrefix} 📥 Recibiendo audios de ${aventura} (${idioma}): ${total} pistas`);
-                
+
+                logger.info(`${logPrefix} ðŸ“¥ Recibiendo audios de ${aventura} (${idioma}): ${total} pistas`);
+
                 if (!audios || !Array.isArray(audios)) {
-                    throw new Error('Datos de audios inválidos o no son un array');
+                    throw new Error('Datos de audios invÃ¡lidos o no son un array');
                 }
-                
-                // Almacenar en estado global para uso en funciones de reproducción
+
+                // Almacenar en estado global para uso en funciones de reproducciÃ³n
                 globalThis.__vv_audioFiles = audios;
                 globalThis.__vv_aventuraActual = aventura;
                 globalThis.__vv_idiomaActual = idioma;
-                
-                // También exponer como variable local si audioFiles estaba definida
+
+                // TambiÃ©n exponer como variable local si audioFiles estaba definida
                 if (typeof audioFiles !== 'undefined') {
                     // audioFiles ya existe como const, no se puede reasignar
-                    // Los audios están disponibles en globalThis.__vv_audioFiles
+                    // Los audios estÃ¡n disponibles en globalThis.__vv_audioFiles
                 }
-                
-                logger.info(`${logPrefix} ✅ ${audios.length} audios almacenados en globalThis.__vv_audioFiles`);
-                
+
+                logger.info(`${logPrefix} âœ… ${audios.length} audios almacenados en globalThis.__vv_audioFiles`);
+
                 await enviarMensajeConConfirmacion({
                     tipo: TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS,
                     origen: CONFIG_HIJO.IFRAME_ID,
@@ -1332,12 +1358,12 @@
                         timestamp: Date.now()
                     }
                 });
-                
-                logger.success(`${logPrefix} ✅ Confirmación AUDIOS_CARGADOS enviada al padre`);
-                
+
+                logger.success(`${logPrefix} âœ… ConfirmaciÃ³n AUDIOS_CARGADOS enviada al padre`);
+
             } catch (error) {
                 logger.error(`${logPrefix} Error cargando audios:`, error);
-                
+
                 // Enviar error al padre
                 try {
                     await enviarMensaje({
@@ -1351,7 +1377,7 @@
                         }
                     });
                 } catch (sendError) {
-                    logger.error(`${logPrefix} Error enviando confirmación de error:`, sendError);
+                    logger.error(`${logPrefix} Error enviando confirmaciÃ³n de error:`, sendError);
                 }
             }
         });
@@ -1368,7 +1394,7 @@
 
                 const resultado = await cargarYReproducirAudio(audioId, !!autoplay);
 
-                // Enviar RESPONSE confirmando (indicar si la reproducción realmente comenzó)
+                // Enviar RESPONSE confirmando (indicar si la reproducciÃ³n realmente comenzÃ³)
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE,
                     origen: CONFIG_HIJO.IFRAME_ID,
@@ -1386,10 +1412,10 @@
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     destino: mensaje.origen,
-                    datos: { 
+                    datos: {
                         exito: false,
                         error: error.message,
-                        mensajeOriginal: mensaje.id 
+                        mensajeOriginal: mensaje.id
                     }
                 });
             }
@@ -1397,12 +1423,25 @@
 
         /**
          * Controlador: SISTEMA.CAMBIO_MODO
-         * Descripción: Actualiza la interfaz según el modo (casa/aventura)
+         * DescripciÃ³n: Actualiza la interfaz segÃºn el modo (casa/aventura)
          */
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
             const logPrefix = `[hijo3][CAMBIO_MODO]`;
 
             try {
+                // ðŸ”§ Cleanup de listeners antiguos al cambiar de modo
+                try {
+                    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
+                        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
+                            globalThis.removeEventListener('message', listener);
+                        }
+                        globalThis.messagingAdapter._listenerRegistry.clear();
+                        logger.info(`${logPrefix} ðŸ§¹ Limpiados listeners de messagingAdapter al cambiar de modo`);
+                    }
+                } catch (cleanupError) {
+                    logger.warn(`${logPrefix} Error limpiando listeners de messagingAdapter:`, cleanupError);
+                }
+
                 // Validar carga secuencial
                 if (!mensaje.datos?.secuenciaCompleta) {
                     logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
@@ -1424,25 +1463,25 @@
                 // Extraer y validar datos
                 const { modo } = mensaje.datos || {};
                 if (!modo || !['casa', 'aventura'].includes(modo)) {
-                    logger.error(`${logPrefix} Modo inválido: ${modo}`);
+                    logger.error(`${logPrefix} Modo invÃ¡lido: ${modo}`);
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.SISTEMA.NACK,
                         origen: CONFIG_HIJO.IFRAME_ID,
                         destino: mensaje.origen,
-                        datos: { error: 'Modo inválido', modoRecibido: modo }
+                        datos: { error: 'Modo invÃ¡lido', modoRecibido: modo }
                     });
                     return;
                 }
 
                 // Enviar ENTENDIDO
                 logger.info(`${logPrefix} Cambio de modo a "${modo}" entendido`);
-                
-                // Validación explícita antes de enviar
+
+                // ValidaciÃ³n explÃ­cita antes de enviar
                 const destinoEntendido = mensaje.origen;
                 const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
                 const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
-                
-                // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
+
+                // DEBUG: Console.log directo para diagnÃ³stico (bypass suppress-warnings)
                 if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
                     const debugInfo = {
                         destino: destinoEntendido,
@@ -1453,22 +1492,22 @@
                         CONFIG_HIJO_exists: globalThis.CONFIG_HIJO !== undefined,
                         mensaje_origen: mensaje?.origen
                     };
-                    console.error('[hijo3][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
-                    logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
+                    console.error('[hijo3][CAMBIO_MODO] ðŸ”´ DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
+                    logger.error(`${logPrefix} âŒ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                     throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
                 }
-                
+
                 await enviarMensaje({
                     destino: destinoEntendido,
                     tipo: tipoEntendido,
                     origen: origenEntendido,
-                    datos: { 
-                        modo, 
+                    datos: {
+                        modo,
                         timestamp: Date.now(),
                         mensajeId: mensaje.datos?.mensajeId || mensaje.id
                     }
                 });
-                
+
                 // Procesar cambio
                 logger.info(`${logPrefix} Procesando cambio a modo: ${modo}`);
                 const audioPlayer = document.getElementById('audioPlayer');
@@ -1493,9 +1532,9 @@
                     destino: mensaje.origen,
                     tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
                     origen: CONFIG_HIJO?.IFRAME_ID || 'hijo3',
-                    datos: { 
-                        modo, 
-                        exito: true, 
+                    datos: {
+                        modo,
+                        exito: true,
                         timestamp: Date.now(),
                         mensajeId: mensaje.datos?.mensajeId || mensaje.id
                     }
@@ -1521,7 +1560,7 @@
             const logPrefix = `[hijo3][CAMBIO_MODO_APLICADO]`;
             try {
                 const { modo } = mensaje.datos || {};
-                logger.success(`${logPrefix} ✅ Cambio de modo a "${modo}" aplicado globalmente`);
+                logger.success(`${logPrefix} âœ… Cambio de modo a "${modo}" aplicado globalmente`);
             } catch (error) {
                 logger.error(`${logPrefix} Error:`, error);
             }
@@ -1529,7 +1568,7 @@
 
         /**
          * Controlador: CONTROL.HABILITAR
-         * Descripción: Habilita controles específicos según el mensaje del padre
+         * DescripciÃ³n: Habilita controles especÃ­ficos segÃºn el mensaje del padre
          */
         registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
             try {
@@ -1542,7 +1581,7 @@
                     retosBtn.style.opacity = '1';
                     retosBtn.style.pointerEvents = 'auto';
                     retosBtn.classList.remove('activo');
-                    logger.debug(`[hijo3] Botón de retos habilitado`);
+                    logger.debug(`[hijo3] BotÃ³n de retos habilitado`);
                 } else if (document.body.classList.contains('modo-aventura')) {
                     // Otros controles solo en modo aventura
                     logger.debug(`[hijo3] CONTROL.HABILITAR aplicado en modo aventura para: ${control}`);
@@ -1554,7 +1593,7 @@
 
         /**
          * Controlador: CONTROL.DESHABILITAR
-         * Descripción: Deshabilita controles específicos según el mensaje del padre
+         * DescripciÃ³n: Deshabilita controles especÃ­ficos segÃºn el mensaje del padre
          */
         registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) => {
             try {
@@ -1566,7 +1605,7 @@
                     retosBtn.disabled = true;
                     retosBtn.style.opacity = '0.5';
                     retosBtn.style.pointerEvents = 'none';
-                    logger.debug(`[hijo3] Botón de retos deshabilitado`);
+                    logger.debug(`[hijo3] BotÃ³n de retos deshabilitado`);
                 } else if (document.body.classList.contains('modo-aventura')) {
                     // Otros controles solo en modo aventura
                     logger.debug(`[hijo3] CONTROL.DESHABILITAR aplicado en modo aventura para: ${control}`);
@@ -1622,9 +1661,9 @@
                     logger.info(`${logPrefix} Cambio de parada recibido: ${padreId || paradaId}`);
                 // Actualizar estado local para audio si corresponde
                 if (paradaId) globalThis.__hijo3_paradaActual = paradaId;
-                // Resetear botón retos al cambiar de parada
+                // Resetear botÃ³n retos al cambiar de parada
                 if (retosBtn) retosBtn.classList.remove('activo');
-                // Enviar confirmación al padre
+                // Enviar confirmaciÃ³n al padre
                 try {
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
@@ -1632,8 +1671,8 @@
                         destino: mensaje.origen || getPadreId(),
                             datos: { paradaId: paradaId || null, parada_id: paradaId || null, padreId: padreId || null, padreid: padreId || null, timestamp: Date.now() }
                     });
-                    logger.info(`${logPrefix} Confirmación enviada`);
-                } catch (err) { logger.warn(`${logPrefix} No se pudo enviar confirmación:`, err); }
+                    logger.info(`${logPrefix} ConfirmaciÃ³n enviada`);
+                } catch (err) { logger.warn(`${logPrefix} No se pudo enviar confirmaciÃ³n:`, err); }
             } catch (error) {
                 logger.warn(`${logPrefix} Error procesando CAMBIO_PARADA:`, error);
             }
@@ -1642,10 +1681,10 @@
         // Controlador para solicitud de audio del padre
         registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.SOLICITAR_AUDIO, async (mensaje) => {
             const logPrefix = `[hijo3][AUDIO.SOLICITAR_AUDIO][${mensaje?.origen || 'desconocido'}]`;
-            
+
             try {
                 const { paradaId, tipoConsulta, audioIdEsperado } = mensaje.datos;
-                
+
                 // Validar datos requeridos
                 if (!paradaId) {
                     logger.error(`${logPrefix} paradaId requerido faltante`);
@@ -1656,10 +1695,10 @@
                     return { exito: false, error: 'tipoConsulta requerido faltante' };
                 }
                 if (tipoConsulta !== 'AUDIO') {
-                    logger.error(`${logPrefix} tipoConsulta inválido: ${tipoConsulta}, esperado: AUDIO`);
-                    return { exito: false, error: `tipoConsulta inválido: ${tipoConsulta}` };
+                    logger.error(`${logPrefix} tipoConsulta invÃ¡lido: ${tipoConsulta}, esperado: AUDIO`);
+                    return { exito: false, error: `tipoConsulta invÃ¡lido: ${tipoConsulta}` };
                 }
-                
+
                 logger.debug(`${logPrefix} Solicitud de audio para ${paradaId}`);
 
                 const files = obtenerAudioFiles();
@@ -1680,12 +1719,12 @@
                 const paradaCompacta = paradaNorm.replaceAll('-', '');
                 let audioEncontrado = null;
 
-                // Prioridad 1: ID explícito esperado desde el padre (fuente de verdad)
+                // Prioridad 1: ID explÃ­cito esperado desde el padre (fuente de verdad)
                 if (audioIdEsperado) {
                     audioEncontrado = files.find(a => a && a.id === audioIdEsperado) || null;
                 }
 
-                // Prioridad 2: fallback dinámico por parada/tramo compatible con todos los idiomas
+                // Prioridad 2: fallback dinÃ¡mico por parada/tramo compatible con todos los idiomas
                 if (!audioEncontrado) {
                     audioEncontrado = files.find(a => {
                         const id = String(a?.id || '').toUpperCase();
@@ -1725,8 +1764,8 @@
                     title: audioEncontrado.title || null,
                     exito: true
                 };
-                
-                // Enviar confirmación con formato correcto para que enviarMensajeConConfirmacion resuelva
+
+                // Enviar confirmaciÃ³n con formato correcto para que enviarMensajeConConfirmacion resuelva
                 // Debe tener: tipo=SISTEMA.CONFIRMACION, idOriginal=mensaje.id, datos=resultado
                 await enviarMensaje({
                     destino: mensaje.origen || getPadreId(),
@@ -1736,12 +1775,12 @@
                     timestamp: Date.now(),
                     datos: audioData
                 });
-                
-                logger.info(`${logPrefix} Confirmación de audio enviada para ${paradaId}`);
-                
-                // Return para auto-confirmación del messagingAdapter
+
+                logger.info(`${logPrefix} ConfirmaciÃ³n de audio enviada para ${paradaId}`);
+
+                // Return para auto-confirmaciÃ³n del messagingAdapter
                 return audioData;
-                
+
             } catch (error) {
                 logger.error(`${logPrefix} Error respondiendo audio:`, error);
                 return { exito: false, error: error.message };
@@ -1757,11 +1796,11 @@
         async function _manejarSimularClick(elemento, msg, logPrefix) {
             const boton = document.getElementById(elemento);
             if (boton) {
-                logger.info(`${logPrefix} ✅ Elemento ${elemento} encontrado, ejecutando click`);
+                logger.info(`${logPrefix} âœ… Elemento ${elemento} encontrado, ejecutando click`);
                 boton.click();
                 await enviarMensaje({ destino: msg.origen, tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { accion: 'click_ejecutado', elemento, exito: true, timestamp: Date.now() } });
             } else {
-                logger.warn(`${logPrefix} ⚠️ Elemento ${elemento} no encontrado`);
+                logger.warn(`${logPrefix} âš ï¸ Elemento ${elemento} no encontrado`);
                 await enviarMensaje({ destino: msg.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: `Elemento ${elemento} no existe`, elemento, timestamp: Date.now() } });
             }
         }
@@ -1794,20 +1833,20 @@
                 } else if (accion === 'audio_control') {
                     await _manejarAudioControl(comando, audioId, mensaje, logPrefix);
                 } else {
-                    logger.warn(`${logPrefix} Acción no reconocida:`, { accion, elemento, contexto });
+                    logger.warn(`${logPrefix} AcciÃ³n no reconocida:`, { accion, elemento, contexto });
                 }
             } catch (error) {
-                logger.error(`${logPrefix} Error procesando acción UI:`, error);
+                logger.error(`${logPrefix} Error procesando acciÃ³n UI:`, error);
             }
         });
 
         // Controlador para ACK del sistema
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ACK, async (mensaje) => {
             const logPrefix = `[hijo3][SISTEMA.ACK][${mensaje?.origen || 'desconocido'}]`;
-            
+
             try {
                 logger.debug(`${logPrefix} ACK recibido, respondiendo...`);
-                
+
                 // Responder al ACK
                 await enviarMensaje({
                     destino: getPadreId(),
@@ -1819,9 +1858,9 @@
                         estado: 'activo'
                     }
                 });
-                
+
                 logger.debug(`${logPrefix} ACK respondido`);
-                
+
             } catch (error) {
                 logger.error(`${logPrefix} Error respondiendo ACK:`, error);
             }
@@ -1832,7 +1871,7 @@
         // ============================================================
         registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA, async (_mensaje) => {
             try {
-                console.debug(`[hijo3][GPS.UBICACION_ACTUALIZADA] Ubicación recibida (no-op)`);
+                console.debug(`[hijo3][GPS.UBICACION_ACTUALIZADA] UbicaciÃ³n recibida (no-op)`);
                 return { exito: true };
             } catch (e) {
                 console.error('[hijo3][GPS.UBICACION_ACTUALIZADA] Error en handler no-op:', e);
@@ -1861,9 +1900,9 @@
                 let details;
                 try { details = JSON.stringify({ codigo, codeDesc, mensaje: errorMensaje, contexto }, null, 2); } catch { details = `codigo=${codigo} mensaje=${String(errorMensaje)} contexto=${String(contexto)}`; }
                 logger.error(`[hijo3][GPS.ERROR] Error GPS recibido: ${details}`);
-                // Telemetría: incrementar contador por código de error GPS en hijo3
+                // TelemetrÃ­a: incrementar contador por cÃ³digo de error GPS en hijo3
                 try { if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { logger.debug('[hijo3][GPS.ERROR] no se pudo incrementar contador', err && err.message); }
-                // Enviar métrica a monitoreo (si mensajería disponible)
+                // Enviar mÃ©trica a monitoreo (si mensajerÃ­a disponible)
                 try {
                     if (typeof enviarMensaje === 'function') {
                         enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo3', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {});
@@ -1877,7 +1916,7 @@
         });
 
         // ============================================================
-        // ENVIAR HIJO_PREPARADO AHORA QUE TODOS LOS CONTROLADORES ESTÁN REGISTRADOS
+        // ENVIAR HIJO_PREPARADO AHORA QUE TODOS LOS CONTROLADORES ESTÃN REGISTRADOS
         // ============================================================
         try {
             logger.debug('[hijo3] Todos los controladores registrados; enviando HIJO_PREPARADO ahora');
@@ -1897,9 +1936,9 @@
             logger.warn('[hijo3] Error enviando HIJO_PREPARADO:', e);
         }
 
-        logger.info(`[hijo3] Inicialización completada exitosamente`);
+        logger.info(`[hijo3] InicializaciÃ³n completada exitosamente`);
     } catch (error) {
-        logger.error(`[hijo3] Error durante la inicialización:`, error);
+        logger.error(`[hijo3] Error durante la inicializaciÃ³n:`, error);
     }
 
     // Implementar pagehide para limpiar recursos
