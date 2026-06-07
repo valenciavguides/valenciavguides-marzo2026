@@ -413,6 +413,14 @@
     logger.debug(`[hijo6] CAMBIO_MODO recibido: ${mensaje?.datos?.modo}`);
   });
 
+  registrarControladorSeguro(TIPOS_MENSAJE.CHAT.ESTADO_PADRE, async (mensaje) => {
+    logger.debug('[hijo6] CHAT.ESTADO_PADRE recibido — actualizando estado');
+    if (mensaje.datos) {
+      estadoPadre = { ...estadoPadre, ...mensaje.datos };
+      if (mensaje.datos.idioma) actualizarIdioma(mensaje.datos.idioma);
+    }
+  });
+
   // ── HIJO_PREPARADO — después de registrar todos los controladores ─────────
   try {
     await enviarMensaje({

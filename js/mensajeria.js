@@ -11,6 +11,16 @@ import logger from './logger.js';
 import { generarIdUnico } from './utils.js';
 import { esMovil } from './device-detection.js';
 
+// Importar configuración
+let CONFIG = {};
+try {
+  if (globalThis.Config) {
+    CONFIG = globalThis.Config;
+  }
+} catch (e) {
+  // Config no disponible aún
+}
+
 // =====================================================
 // ESTADO LOCAL (mínimo, delegamos al state-manager)
 // =====================================================
@@ -62,6 +72,9 @@ const confirmacionesPendientes = new Map();
  * @type {boolean}
  */
 let script2Listo = false;
+
+/** Guard síncrono para evitar doble inicio de heartbeat */
+let _heartbeatIniciando = false;
 
 /**
  * Cola de mensajes pendientes mientras no hay conexión
@@ -156,26 +169,31 @@ function exponerAPIGlobal() {
         hijosConCapability,
         marcarScript2Listo,
         migrarManejadoresTempranos,
-        
+
+        // Funciones de heartbeat
+        iniciarHeartbeat,
+        pausarHeartbeat,
+        procesarHeartbeatResponse,
+
         // Funciones de consulta
         getControladoresRegistrados,
         getControladoresPorTipo,
         estaInicializado: () => inicializado,
         getComponenteId: () => componenteId,
         getTipoComponente: () => tipoComponente,
-        
+
         // Funciones de iframe (solo padre)
         registrarIframe,
         obtenerIframe,
         getIframesRegistrados: () => new Map(iframesRegistrados),
-        
+
         // Funciones centralizadas (delegan a state-manager)
         registrarControladorCentral,
         enviarMensajeCentral,
-        
+
         // Utilidades
         generarIdMensaje: () => generarIdUnico('msg'),
-        
+
         // Diagnóstico
         getDiagnostico
     };
@@ -349,8 +367,8 @@ export function enviarMensaje(tipoOrMensaje, datos, destino) {
  */
 export function enviarMensajeCentral(tipo, datos, destino) {
     const sm = obtenerStateManager();
-    if (sm && typeof sm.enviarMensaje === 'function') {
-        return sm.enviarMensaje(tipo, datos, destino);
+    if (sm && typeof sm.enviarMensajeCentral === 'function') {
+        return sm.enviarMensajeCentral(tipo, datos, destino);
     }
     return enviarMensaje(tipo, datos, destino);
 }
@@ -752,23 +770,14 @@ export function migrarManejadoresTempranos() {
 }
 
 /**
- * Marca script2 como listo
+ * Marca script2 como listo y sincroniza con el state-manager centralizado
  */
 export function marcarScript2Listo() {
     script2Listo = true;
     logger.info('[mensajeria] Script2 marcado como listo');
-    
-    // Procesar cola de mensajes pendientes
-    procesarColaMensajes();
-}
-
-/**
- * Procesa la cola de mensajes pendientes
- */
-function procesarColaMensajes() {
-    while (colaMensajes.length > 0) {
-        const { tipo, datos, destino } = colaMensajes.shift();
-        enviarMensaje(tipo, datos, destino);
+    const sm = obtenerStateManager();
+    if (sm && typeof sm.setFlag === 'function') {
+        sm.setFlag('script2Listo', true).catch(e => logger.debug('[mensajeria] Error sincronizando script2Listo:', e?.message));
     }
 }
 
@@ -791,6 +800,271 @@ export function getDiagnostico() {
         ),
         stateManagerDisponible: !!stateManager
     };
+}
+
+// =====================================================
+// HEARTBEAT - DETECCIÓN DE HIJOS CAÍDOS
+// =====================================================
+
+/**
+ * Inicia el heartbeat para detectar hijos caídos
+ * @param {number} intervalo - Intervalo en ms (default: 5000)
+ * @returns {Promise<boolean>} True si se inició correctamente
+ */
+export async function iniciarHeartbeat(intervalo = 5000) {
+    if (_heartbeatIniciando) {
+        logger.debug('[mensajeria] Heartbeat ya está iniciando');
+        return true;
+    }
+    _heartbeatIniciando = true;
+
+    const sm = obtenerStateManager();
+    if (!sm) {
+        _heartbeatIniciando = false;
+        logger.warn('[mensajeria] State-manager no disponible para iniciar heartbeat');
+        return false;
+    }
+
+    try {
+        const estado = await sm.getHeartbeat();
+        if (estado?.activo) {
+            logger.debug('[mensajeria] Heartbeat ya está activo');
+            return true;
+        }
+
+        await sm.updateHeartbeat({ activo: true });
+
+        const intervalId = setInterval(async () => {
+            await enviarHeartbeatAHijos();
+        }, intervalo);
+
+        await sm.updateHeartbeat({ intervalo: intervalId });
+        logger.info('[mensajeria] Heartbeat iniciado');
+        return true;
+    } catch (error) {
+        logger.error('[mensajeria] Error iniciando heartbeat:', error);
+        return false;
+    } finally {
+        _heartbeatIniciando = false;
+    }
+}
+
+/**
+ * Pausa el heartbeat
+ * @returns {Promise<boolean>} True si se pausó correctamente
+ */
+export async function pausarHeartbeat() {
+    const sm = obtenerStateManager();
+    if (!sm) {
+        logger.warn('[mensajeria] State-manager no disponible para pausar heartbeat');
+        return false;
+    }
+
+    try {
+        const estado = await sm.getHeartbeat();
+        if (!estado?.activo) {
+            logger.debug('[mensajeria] Heartbeat ya está pausado');
+            return true;
+        }
+
+        // Limpiar intervalo
+        if (estado?.intervalo) {
+            clearInterval(estado.intervalo);
+        }
+
+        // Marcar como inactivo
+        await sm.updateHeartbeat({ activo: false, intervalo: null });
+        logger.info('[mensajeria] Heartbeat pausado');
+        return true;
+    } catch (error) {
+        logger.error('[mensajeria] Error pausando heartbeat:', error);
+        return false;
+    }
+}
+
+/**
+ * Envía heartbeat a los hijos críticos
+ */
+async function enviarHeartbeatAHijos() {
+    const sm = obtenerStateManager();
+    if (!sm) return;
+
+    try {
+        const estado = await sm.getHeartbeat();
+        if (!estado?.activo) return;
+
+        // Obtener configuración
+        const maxFallidos = CONFIG?.HEARTBEAT?.MAX_HEARTBEATS_FALLIDOS || 3;
+        const autoReconectar = CONFIG?.HEARTBEAT?.AUTO_RECONECTAR !== false;
+
+        // Obtener hijos críticos
+        const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'];
+
+        for (const hijoId of hijosCriticos) {
+            try {
+                enviarMensaje({
+                    tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
+                    destino: hijoId,
+                    datos: { timestamp: Date.now() }
+                });
+
+                // Incrementar contador de fallidos (se resetea al recibir respuesta)
+                const fallidos = estado.heartbeatsFallidos?.get(hijoId) || 0;
+                const nuevosFallidos = new Map(estado.heartbeatsFallidos || []);
+                nuevosFallidos.set(hijoId, fallidos + 1);
+                await sm.updateHeartbeat({ heartbeatsFallidos: nuevosFallidos });
+
+                // Verificar si excede MAX_HEARTBEATS_FALLIDOS
+                if (fallidos + 1 >= maxFallidos) {
+                    await marcarHijoDesconectado(hijoId, autoReconectar);
+                }
+            } catch (error) {
+                logger.warn(`[mensajeria] Error enviando heartbeat a ${hijoId}:`, error);
+            }
+        }
+    } catch (error) {
+        logger.error('[mensajeria] Error en enviarHeartbeatAHijos:', error);
+    }
+}
+
+/**
+ * Marca un hijo como desconectado
+ * @param {string} hijoId - ID del hijo
+ * @param {boolean} autoReconectar - Si debe intentar reconectar automáticamente
+ */
+async function marcarHijoDesconectado(hijoId, autoReconectar = true) {
+    const sm = obtenerStateManager();
+    if (!sm) return;
+
+    try {
+        const estado = await sm.getHeartbeat();
+        const desconectados = new Set(estado?.hijosDesconectados || []);
+        desconectados.add(hijoId);
+
+        await sm.updateHeartbeat({ hijosDesconectados: Array.from(desconectados) });
+        logger.warn(`[mensajeria] Hijo ${hijoId} marcado como desconectado`);
+
+        // Intentar reconectar si AUTO_RECONECTAR está activo
+        if (autoReconectar) {
+            await intentarReconectarHijo(hijoId);
+        }
+    } catch (error) {
+        logger.error('[mensajeria] Error marcando hijo como desconectado:', error);
+    }
+}
+
+/**
+ * Intenta reconectar un hijo recargando su iframe
+ * @param {string} hijoId - ID del hijo
+ */
+async function intentarReconectarHijo(hijoId) {
+    try {
+        logger.info(`[mensajeria] Intentando reconectar ${hijoId}`);
+
+        const iframe = iframesRegistrados.get(hijoId);
+        if (iframe?.elemento) {
+            iframe.elemento.src = iframe.elemento.src; // NOSONAR — self-assign fuerza reload del iframe
+            logger.info(`[mensajeria] Iframe ${hijoId} recargado`);
+        } else {
+            logger.warn(`[mensajeria] Iframe ${hijoId} no encontrado para reconectar`);
+        }
+    } catch (error) {
+        logger.error(`[mensajeria] Error reconectando ${hijoId}:`, error);
+    }
+}
+
+/**
+ * Procesa una respuesta de heartbeat de un hijo
+ * @param {Object} mensaje - Mensaje HEARTBEAT_RESPONSE
+ */
+export async function procesarHeartbeatResponse(mensaje) {
+    const sm = obtenerStateManager();
+    if (!sm) return;
+
+    try {
+        const hijoId = mensaje.origen;
+
+        // Resetear contador de fallidos
+        const estado = await sm.getHeartbeat();
+        const nuevosFallidos = new Map(estado?.heartbeatsFallidos || []);
+        nuevosFallidos.set(hijoId, 0);
+        await sm.updateHeartbeat({ heartbeatsFallidos: nuevosFallidos });
+
+        // Actualizar último heartbeat
+        const nuevosUltimos = new Map(estado?.ultimoHeartbeat || []);
+        nuevosUltimos.set(hijoId, Date.now());
+        await sm.updateHeartbeat({ ultimoHeartbeat: nuevosUltimos });
+
+        // Si estaba desconectado, marcar como reconectado
+        const desconectados = new Set(estado?.hijosDesconectados || []);
+        if (desconectados.has(hijoId)) {
+            desconectados.delete(hijoId);
+            await sm.updateHeartbeat({ hijosDesconectados: Array.from(desconectados) });
+            logger.info(`[mensajeria] Hijo ${hijoId} reconectado`);
+
+            // Reenviar mensajes pendientes (si hay cola)
+            await reenviarMensajesPendientes(hijoId);
+
+            // Reenviar mensajes GPS pendientes específicamente para hijo2
+            if (hijoId === 'hijo2') {
+                await reenviarMensajesGPSAPendientes(hijoId);
+            }
+        }
+    } catch (error) {
+        logger.error('[mensajeria] Error procesando heartbeat response:', error);
+    }
+}
+
+/**
+ * Reenvía mensajes pendientes a un hijo reconectado
+ * @param {string} hijoId - ID del hijo
+ */
+async function reenviarMensajesPendientes(hijoId) {
+    try {
+        logger.info(`[mensajeria] Reenviando mensajes pendientes a ${hijoId}`);
+        // Implementación futura: reenviar mensajes que fallaron mientras el hijo estaba desconectado
+    } catch (error) {
+        logger.error(`[mensajeria] Error reenviando mensajes pendientes a ${hijoId}:`, error);
+    }
+}
+
+/**
+ * Reenvía mensajes GPS pendientes a un hijo reconectado
+ * @param {string} hijoId - ID del hijo
+ */
+export async function reenviarMensajesGPSAPendientes(hijoId) {
+    const sm = obtenerStateManager();
+    if (!sm) return;
+
+    try {
+        const pendientes = await sm.getGpsPendientes();
+        if (pendientes.length === 0) {
+            logger.debug(`[mensajeria] No hay mensajes GPS pendientes para ${hijoId}`);
+            return;
+        }
+
+        logger.info(`[mensajeria] Reenviando ${pendientes.length} mensajes GPS pendientes a ${hijoId}`);
+
+        let reenviados = 0;
+        for (const mensaje of pendientes) {
+            try {
+                await enviarMensaje({
+                    tipo: mensaje.tipo || TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA,
+                    destino: hijoId,
+                    datos: mensaje.datos
+                });
+                reenviados++;
+            } catch (error) {
+                logger.warn(`[mensajeria] Error reenviando mensaje GPS pendiente a ${hijoId}:`, error);
+            }
+        }
+
+        // Limpiar cola después de reenviar
+        await sm.limpiarGpsPendientes();
+        logger.info(`[mensajeria] Reenviados ${reenviados}/${pendientes.length} mensajes GPS pendientes a ${hijoId}`);
+    } catch (error) {
+        logger.error(`[mensajeria] Error reenviando mensajes GPS pendientes a ${hijoId}:`, error);
+    }
 }
 
 // =====================================================

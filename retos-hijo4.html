@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <script>
@@ -372,7 +372,7 @@
 
     <script type="module">
     /* --- Integración con Sistema de Mensajería --- */
-    
+
     import { retryUntilAvailable, getPadreId } from './js/utils.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
@@ -430,9 +430,9 @@
             const mensaje = args[0];
             return new Promise((resolve, reject) => {
                 const idMensaje = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-                const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmación')), 
+                const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmación')),
                     globalThis.ajustarTimeoutPorConexion ? globalThis.ajustarTimeoutPorConexion(5000) : 5000);
-                
+
                 const confirmListener = (event) => {
                     if (event.source === globalThis.parent && event.data && event.data.tipo === 'SISTEMA.CONFIRMACION' && event.data.idOriginal === idMensaje) {
                         clearTimeout(timeout);
@@ -440,9 +440,9 @@
                         resolve();
                     }
                 };
-                
+
                 globalThis.addEventListener('message', confirmListener);
-                
+
                 try {
                     globalThis.parent.postMessage({
                         tipo: mensaje.tipo,
@@ -487,7 +487,7 @@
                     if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
                         try {
                             const resultado = await handler(event.data);
-                            
+
                             if (event.data.requiereConfirmacion && event.data.id && resultado !== undefined) {
                                 try {
                                     const confirmacion = {
@@ -513,11 +513,11 @@
                 };
                 globalThis.addEventListener('message', adapterListener);
                 this._listenerRegistry.set(tipo, adapterListener);
-                
+
                 (globalThis.logger || console).info && (globalThis.logger || console).info(`[messagingAdapter] Handler registrado para ${tipo} en ${iframeId}`);
                 return true;
             },
-            
+
             enviarMensajeCentral: async function(mensaje) {
                 if (globalThis.parent && globalThis.parent !== globalThis.window) {
                     globalThis.parent.postMessage(mensaje, globalThis.location.origin);
@@ -575,8 +575,8 @@
                     }
                     if (typeof registrarControlador === 'function') {
                         try {
-                            const res = await safeRegistrar(tipo, handler, opciones);
-                            (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated to mensajeria for ${tipo}`);
+                            const res = await registrarControlador(tipo, handler);
+                            (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControlador delegated for ${tipo}`);
                             return res;
                         } catch (err) {
                             (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControlador failed for ${tipo}: ${err && err.message}`);
@@ -643,7 +643,7 @@
     // ║ El array de backup está comentado abajo por si necesitamos restaurar        ║
     // ╚════════════════════════════════════════════════════════════════════════════╝
     const retosFallbackLocal = [];
-    
+
     // Función getter que prioriza datos del padre sobre datos locales
     function obtenerRetos() {
         // Prioridad 1: Datos recibidos del padre
@@ -653,15 +653,15 @@
         // Prioridad 2: Fallback local vacío (silencioso cuando aún no hay retos implementados)
         return retosFallbackLocal;
     }
-    
+
     // Exponer función globalmente
     globalThis.obtenerRetos = obtenerRetos;
-    
+
     /* ═══════════════════════════════════════════════════════════════════════════════
      * ██ BACKUP: Array de retos original - COMENTADO PARA USAR DATOS CENTRALIZADOS
      * ██ Descomentar solo si falla el flujo centralizado y necesitamos fallback
      * ═══════════════════════════════════════════════════════════════════════════════ */
-    
+
     // Array de retos - NO ELIMINAR NI MODIFICAR SIN REVISIÓN: Este array es esencial para mapear retos/puzzles. Cualquier cambio debe coordinarse con el padre.
     // NOTE: El array backup está deliberadamente comentado para evitar declaraciones duplicadas y errores de parseo si se carga la versión centralizada desde el padre.
     //       Si necesitas reactivar el fallback, descomenta y asegúrate de que su formato coincide con la API esperada y añade pruebas (TODO: añadir test al repositorio). // NOSONAR
@@ -706,29 +706,29 @@
                 btnEnviar.style.display = 'none';
                 btnEnviar.disabled = true;
             }
-            
+
             // Deshabilitar botón Mostrar Respuesta
             if (btnMostrarRespuesta) {
                 btnMostrarRespuesta.disabled = true;
             }
-            
+
             // Ocultar div de respuesta correcta
             if (divRespuestaCorrecta) {
                 divRespuestaCorrecta.style.display = 'none';
             }
-            
+
             // Ocultar campos de entrada del reto (si existen)
             const inputRespuesta = document.getElementById('inputRespuesta');
             if (inputRespuesta) {
                 inputRespuesta.style.display = 'none';
             }
-            
+
             // Ocultar contenedores de respuestas de opción múltiple
             const respuestasContainer = document.getElementById('respuestas-container');
             if (respuestasContainer) {
                 respuestasContainer.style.display = 'none';
             }
-            
+
             // Limpiar fuegos artificiales si están activos
             if (fuegosDiv) {
                 fuegosDiv.innerHTML = '';
@@ -852,7 +852,7 @@
                 return;
             }
             logger.debug(`[hijo4] Reto encontrado:`, reto);
-            
+
             // ✅ CRÍTICO: Asignar retoActual para que verificar() funcione
             retoActual = reto;
             estado.retoActualId = retoId;
@@ -1046,7 +1046,7 @@
                 estadoRetos.progreso.completados = estadoRetos.retosCompletados.size;
                 estadoRetos.ultimoReto = reto.id;
                 estadoRetos.estadisticas.aciertosConsecutivos++;
-                
+
                 logger.info(`[hijo4] Reto completado: ${reto.id}. Progreso: ${estadoRetos.progreso.completados}/${estadoRetos.progreso.total}`);
                 console.log(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${reto.id}. Enviando al padre...`);
 
@@ -1164,8 +1164,8 @@
 
             // Soporte para mensajes tipados (nuevo formato objeto) y legacy (string)
             const tipoPuzzle = event.data?.tipo;
-            const esCompletado = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.COMPLETADO || event.data === "puzzle-state-completed";
-            const esTimeout    = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.TIMEOUT   || event.data === "puzzle-state-timeout";
+            const esCompletado = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.COMPLETADO || event.data === TIPOS_MENSAJE.PUZZLE.LEGACY_COMPLETADO;
+            const esTimeout    = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.TIMEOUT   || event.data === TIPOS_MENSAJE.PUZZLE.LEGACY_TIMEOUT;
 
             if (esCompletado) {
                 retoDiv.classList.add("correct");
@@ -1276,6 +1276,12 @@
                 try { if (document.body) { document.body.style.display = _originalDisplay || 'flex'; console.log(`[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO — body.display=${document.body.style.display}`); } } catch (_e) {} // NOSONAR
             }
 
+            // Sistema de reintentos activos para HIJO_LISTO (solución permanente C2)
+            let _reintentosHijoListo = 0;
+            const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 segundos máximo
+            const INTERVALO_REINTENTO = 1000; // 1 segundo
+            let _intervaloReintento = null;
+
             // No necesitamos inicializarMensajeria aquí, los fallbacks esperan automáticamente
 
             // NOTA: HIJO_PREPARADO se envía MÁS ABAJO, DESPUÉS de registrar todos los controladores críticos.
@@ -1306,24 +1312,37 @@
                     }
                 }
 
-                // Enviar HIJO_LISTO para completar handshake
+                // Enviar HIJO_LISTO para completar handshake con sistema de reintentos
                 if (!estado.hijoListoEnviado) {
-                    try {
-                        await enviarMensaje({
-                            destino: getPadreId(),
-                            tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            datos: {
-                                componenteId: CONFIG_HIJO.COMPONENTE_ID,
-                                iframeId: CONFIG_HIJO.IFRAME_ID,
-                                timestamp: Date.now()
+                    async function enviarHijoListoConReintento() {
+                        try {
+                            await enviarMensaje({
+                                destino: getPadreId(),
+                                tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+                                origen: CONFIG_HIJO.IFRAME_ID,
+                                datos: {
+                                    componenteId: CONFIG_HIJO.COMPONENTE_ID,
+                                    iframeId: CONFIG_HIJO.IFRAME_ID,
+                                    timestamp: Date.now()
+                                }
+                            });
+                            _reintentosHijoListo++;
+                            logger.info(`[hijo4] HIJO_LISTO enviado al padre (reintento ${_reintentosHijoListo}/${MAX_REINTENTOS_HIJO_LISTO})`);
+
+                            if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
+                                _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+                            } else {
+                                // Fallback: mostrar UI después de 30 segundos sin confirmación
+                                logger.warn('[hijo4] Máximo de reintentos alcanzado, mostrando UI como fallback');
+                                _uiConfirmado = true;
+                                mostrarUI();
                             }
-                        });
-                        estado.hijoListoEnviado = true;
-                        logger.info('[hijo4] HIJO_LISTO enviado al padre');
-                    } catch (error) {
-                        logger.error('[hijo4] Error enviando HIJO_LISTO:', error);
+                        } catch (error) {
+                            logger.error('[hijo4] Error enviando HIJO_LISTO:', error);
+                        }
                     }
+                    estado.hijoListoEnviado = true;
+                    enviarHijoListoConReintento();
                 }
             });
 
@@ -1331,6 +1350,13 @@
             registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
                 console.log('[hijo4] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
                 logger.info(`[hijo4] PADRE_CONFIRMA_HIJO_LISTO recibido desde ${mensaje.origen}`);
+
+                // Limpiar intervalo de reintento si existe
+                if (_intervaloReintento) {
+                    clearTimeout(_intervaloReintento);
+                    _intervaloReintento = null;
+                    logger.info(`[hijo4] Intervalo de reintento limpiado tras recibir PADRE_CONFIRMA_HIJO_LISTO`);
+                }
 
                 // Aplicar modo pendiente si estaba encolado
                 try {
@@ -1416,6 +1442,19 @@
                 const logPrefix = `[hijo4][CAMBIO_MODO]`;
 
                 try {
+                    // 🔧 Cleanup de listeners antiguos al cambiar de modo
+                    try {
+                        if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
+                            for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
+                                globalThis.removeEventListener('message', listener);
+                            }
+                            globalThis.messagingAdapter._listenerRegistry.clear();
+                            logger.info(`${logPrefix} 🧹 Limpiados listeners de messagingAdapter al cambiar de modo`);
+                        }
+                    } catch (cleanupError) {
+                        logger.warn(`${logPrefix} Error limpiando listeners de messagingAdapter:`, cleanupError);
+                    }
+
                     // Validar carga secuencial
                     if (!mensaje.datos?.secuenciaCompleta) {
                         logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
@@ -1449,12 +1488,12 @@
 
                     // Enviar ENTENDIDO
                     logger.info(`${logPrefix} Cambio de modo a "${modo}" entendido`);
-                    
+
                     // Validación explícita antes de enviar
                     const destinoEntendido = mensaje.origen;
                     const tipoEntendido = TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO;
                     const origenEntendido = CONFIG_HIJO?.IFRAME_ID;
-                    
+
                     // DEBUG: Console.log directo para diagnóstico (bypass suppress-warnings)
                     if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
                         const debugInfo = {
@@ -1470,13 +1509,13 @@
                         logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                         throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
                     }
-                    
+
                     await enviarMensaje({
                         destino: destinoEntendido,
                         tipo: tipoEntendido,
                         origen: origenEntendido,
-                        datos: { 
-                            modo, 
+                        datos: {
+                            modo,
                             timestamp: Date.now(),
                             mensajeId: mensaje.datos?.mensajeId || mensaje.id
                         }
@@ -1500,9 +1539,9 @@
                         destino: mensaje.origen,
                         tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
                         origen: CONFIG_HIJO?.IFRAME_ID || 'hijo4',
-                        datos: { 
-                            modo, 
-                            exito: true, 
+                        datos: {
+                            modo,
+                            exito: true,
                             timestamp: Date.now(),
                             mensajeId: mensaje.datos?.mensajeId || mensaje.id
                         }
@@ -1543,7 +1582,7 @@
             // CONTROLADOR: DATOS.CARGAR_RETOS
             // Recibe retos centralizados del padre al iniciar aventura
             // ============================================================
-            
+
             /**
              * Controlador: DATOS.CARGAR_RETOS
              * Descripción: Recibe y almacena los retos de la aventura seleccionada
@@ -1552,26 +1591,26 @@
              */
             registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_RETOS, async (mensaje) => {
                 const logPrefix = `[hijo4][CARGAR_RETOS]`;
-                
+
                 try {
                     const { aventura, idioma, retos, total } = mensaje.datos || {};
-                    
+
                     logger.info(`${logPrefix} 📥 Recibiendo retos de ${aventura} (${idioma}): ${total} retos`);
-                    
+
                     if (!retos || !Array.isArray(retos)) {
                         throw new Error('Datos de retos inválidos o no son un array');
                     }
-                    
+
                     // Almacenar en estado global para uso en funciones de retos
                     globalThis.__vv_retosAventura = retos;
                     globalThis.__vv_aventuraActual = aventura;
                     globalThis.__vv_idiomaActual = idioma;
-                    
+
                     // Actualizar el progreso
                     estadoRetos.progreso.total = retos.length;
-                    
+
                     logger.info(`${logPrefix} ✅ ${retos.length} retos almacenados en globalThis.__vv_retosAventura`);
-                    
+
                     // Enviar confirmación al padre
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.DATOS.RETOS_CARGADOS,
@@ -1585,12 +1624,12 @@
                             timestamp: Date.now()
                         }
                     });
-                    
+
                     logger.success(`${logPrefix} ✅ Confirmación RETOS_CARGADOS enviada al padre`);
-                    
+
                 } catch (error) {
                     logger.error(`${logPrefix} Error cargando retos:`, error);
-                    
+
                     // Enviar error al padre
                     try {
                         await enviarMensaje({
@@ -1667,7 +1706,7 @@
                     }
 
                     logger.info(`${logPrefix} Datos del reto enviados: ${retoId}`);
-                    
+
                     // Return para auto-confirmación
                     return payload;
                 } catch (error) {
@@ -1688,27 +1727,75 @@
             // Controlador para ocultar el reto
             registrarControladorSeguro(TIPOS_MENSAJE.RETO.OCULTAR, async (_mensaje) => {
                 logger.info(`[hijo4] RETO.OCULTAR recibido - ocultando reto`);
-                
+
                 // Limpiar estado local del reto
                 estado.retoActualId = null;
                 retoActual = null;
-                
+
                 // Limpiar interfaz de reto
                 if (retoDiv) {
                     retoDiv.innerHTML = "";
                     retoDiv.classList.remove("correct", "incorrect");
                 }
-                
+
                 // Ocultar todos los botones
                 ocultarControles();
-                
+
                 // Limpiar fuegos artificiales
                 if (fuegosDiv) {
                     fuegosDiv.innerHTML = "";
                     fuegosDiv.style.display = "none";
                 }
-                
+
                 logger.info(`[hijo4] Estado y interfaz limpiados tras RETO.OCULTAR`);
+            });
+
+            // Controlador para habilitar retos en modo AVENTURA (después de audio 1 vez)
+            registrarControladorSeguro(TIPOS_MENSAJE.RETO.HABILITAR, async (mensaje) => {
+                const logPrefix = `[hijo4][RETO.HABILITAR]`;
+                logger.info(`${logPrefix} recibido de ${mensaje?.origen}`, mensaje?.datos);
+
+                try {
+                    const { paradaId, razon } = mensaje?.datos || {};
+
+                    if (razon === 'audio_escuchado_1vez') {
+                        logger.info(`${logPrefix} Habilitando retos tras audio escuchado 1 vez para parada ${paradaId}`);
+                        // Habilitar botón de retos
+                        if (botonRetos) {
+                            botonRetos.disabled = false;
+                            botonRetos.classList.remove('deshabilitado');
+                            logger.info(`${logPrefix} Botón retos habilitado`);
+                        }
+                    }
+                } catch (error) {
+                    logger.error(`${logPrefix} Error procesando RETO.HABILITAR:`, error);
+                }
+            });
+
+            // Controlador para estado de retos en modo CASA
+            registrarControladorSeguro(TIPOS_MENSAJE.RETO.ESTADO_CASA, async (mensaje) => {
+                const logPrefix = `[hijo4][RETO.ESTADO_CASA]`;
+                logger.info(`${logPrefix} recibido de ${mensaje?.origen}`, mensaje?.datos);
+
+                try {
+                    const { tipo, habilitado } = mensaje?.datos || {};
+
+                    if (tipo === 'parada' && habilitado) {
+                        logger.info(`${logPrefix} Habilitando retos en parada (modo CASA)`);
+                        if (botonRetos) {
+                            botonRetos.disabled = false;
+                            botonRetos.classList.remove('deshabilitado');
+                        }
+                    } else if (tipo === 'tramo' && !habilitado) {
+                        logger.info(`${logPrefix} Deshabilitando retos en tramo (modo CASA)`);
+                        if (botonRetos) {
+                            botonRetos.disabled = true;
+                            botonRetos.classList.add('deshabilitado');
+                        }
+                    }
+                } catch (error) {
+                    logger.error(`${logPrefix} Error procesando RETO.ESTADO_CASA:`, error);
+                }
             });
 
             // Controlador para habilitar controles

@@ -89,13 +89,13 @@ export const CONFIG = {
         ALTA_PRECISION: true,
         
         /** Timeout para obtener posición (ms) */
-        TIMEOUT: 15000,
+        TIMEOUT: 30000,
         
         /** Edad máxima de posición en caché (ms) */
         MAX_EDAD_CACHE: 5000,
         
         /** Intervalo de actualización de posición (ms) */
-        INTERVALO_ACTUALIZACION: 3000,
+        INTERVALO_ACTUALIZACION: 7000,
         
         /** Distancia mínima para considerar movimiento (metros) */
         DISTANCIA_MINIMA: 5,
@@ -107,7 +107,7 @@ export const CONFIG = {
         RADIO_EXTENDIDO: 50,
         
         /** Precisión mínima aceptable (metros) */
-        PRECISION_MINIMA: 30,
+        PRECISION_MINIMA: 25,
         
         /** Número de muestras para promediar posición */
         MUESTRAS_PROMEDIO: 3
@@ -195,7 +195,7 @@ export const CONFIG = {
      */
     AVENTURAS: {
         /** Modo por defecto */
-        MODO_DEFECTO: MODOS.MANUAL,
+        MODO_DEFECTO: MODOS.CASA,
         
         /** Tiempo máximo de aventura (ms) */
         TIEMPO_MAXIMO: 3600000, // 1 hora

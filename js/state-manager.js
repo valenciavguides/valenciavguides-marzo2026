@@ -35,6 +35,8 @@ const mutexes = {
   estadoMenuAbierto: new SimpleMutex(),
   controladores: new SimpleMutex(),
   mensajesEnviados: new SimpleMutex(),
+  heartbeat: new SimpleMutex(),
+  hijosListosPromises: new SimpleMutex(),
 };
 
 // Centralized state
@@ -109,6 +111,15 @@ const state = {
   estadoMenuAbierto: false,
   controladores: new Map(),
   mensajesEnviados: new Set(),
+  heartbeat: {
+    activo: false,
+    intervalo: null,
+    heartbeatsFallidos: new Map(),
+    ultimoHeartbeat: new Map(),
+    hijosDesconectados: []
+  },
+  gpsPendientes: [],
+  hijosListosPromises: new Map(),
 };
 
 // Getters and setters with synchronization
@@ -175,6 +186,98 @@ export async function getRetosCargados() {
 
 export async function setRetosCargados(value) {
   await mutexes.retosCargados.runExclusive(() => { state.retosCargados = value; });
+}
+
+export async function getHeartbeat() {
+  return await mutexes.heartbeat.runExclusive(() => _deepCopy(state.heartbeat));
+}
+
+export async function setHeartbeat(value) {
+  await mutexes.heartbeat.runExclusive(() => { state.heartbeat = _deepCopy(value); });
+}
+
+export async function updateHeartbeat(updates) {
+  await mutexes.heartbeat.runExclusive(() => {
+    const deepMerge = (target, source) => {
+      for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Set) && !(source[key] instanceof Map)) {
+          if (!target[key]) target[key] = {};
+          deepMerge(target[key], source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      }
+    }
+    deepMerge(state.heartbeat, updates);
+  });
+}
+
+export async function getGpsPendientes() {
+  return await mutexes.heartbeat.runExclusive(() => _deepCopy(state.gpsPendientes));
+}
+
+export async function setGpsPendientes(value) {
+  await mutexes.heartbeat.runExclusive(() => { state.gpsPendientes = _deepCopy(value); });
+}
+
+export async function agregarMensajeGPSAPendientes(datos) {
+  return await mutexes.heartbeat.runExclusive(() => {
+    state.gpsPendientes.push({
+      datos: _deepCopy(datos),
+      timestamp: Date.now()
+    });
+    // Limitar a 50 mensajes para evitar memory leak
+    if (state.gpsPendientes.length > 50) {
+      state.gpsPendientes = state.gpsPendientes.slice(-50);
+    }
+  });
+}
+
+export async function limpiarGpsPendientes() {
+  return await mutexes.heartbeat.runExclusive(() => { state.gpsPendientes = []; });
+}
+
+// Sistema de eventos para HIJO_LISTO
+// Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto.
+export function crearPromiseHijoListo(hijoId) {
+  if (state.estadoPadre.hijosInicializados && state.estadoPadre.hijosInicializados.has(hijoId)) {
+    return Promise.resolve();
+  }
+  if (state.hijosListosPromises.has(hijoId)) {
+    return state.hijosListosPromises.get(hijoId).promise;
+  }
+  const entry = {};
+  entry.promise = new Promise((resolve, reject) => {
+    entry.resolve = resolve;
+    entry.timeout = setTimeout(() => {
+      state.hijosListosPromises.delete(hijoId);
+      reject(new Error(`Timeout esperando HIJO_LISTO de ${hijoId}`));
+    }, 30000);
+  });
+  state.hijosListosPromises.set(hijoId, entry);
+  return entry.promise;
+}
+
+export function marcarHijoListo(hijoId) {
+  if (!state.estadoPadre.hijosInicializados) {
+    state.estadoPadre.hijosInicializados = new Set();
+  }
+  state.estadoPadre.hijosInicializados.add(hijoId);
+  const entry = state.hijosListosPromises.get(hijoId);
+  if (entry) {
+    clearTimeout(entry.timeout);
+    state.hijosListosPromises.delete(hijoId);
+    entry.resolve();
+  }
+}
+
+export function cancelarPromiseHijoListo(hijoId) {
+  const entry = state.hijosListosPromises.get(hijoId);
+  if (entry) {
+    clearTimeout(entry.timeout);
+    state.hijosListosPromises.delete(hijoId);
+    entry.reject(new Error(`Promise cancelada para ${hijoId}`));
+  }
 }
 
 function _deepCopy(obj) {
@@ -426,7 +529,10 @@ export async function registrarControladorCentral(controladorId, handler, opcion
  * @returns {Promise<Object>} - Result of sending
  */
 async function _enviarAControladores(mensaje, resultados) {
-  await mutexes.controladores.runExclusive(async () => {
+  // Recopilar handlers dentro del lock (solo lectura, sin await) para evitar deadlock:
+  // si el handler despacha otro mensaje que intenta adquirir este mismo mutex, deadlock.
+  const handlersToRun = await mutexes.controladores.runExclusive(() => {
+    const matching = [];
     for (const [id, controlador] of state.controladores) {
       if (!controlador.activo) continue;
       const { opciones } = controlador;
@@ -434,16 +540,22 @@ async function _enviarAControladores(mensaje, resultados) {
       const matchesOrigen = !opciones.origen || mensaje.origen === opciones.origen;
       const matchesDestino = mensaje.destino === 'broadcast' || mensaje.destino === opciones.destino || !opciones.destino;
       if (matchesTipo && matchesOrigen && matchesDestino) {
-        try {
-          const resultado = await controlador.handler(mensaje);
-          resultados.push({ controladorId: id, exito: true, resultado });
-        } catch (error) {
-          console.error(`Error en controlador '${id}':`, error);
-          resultados.push({ controladorId: id, exito: false, error: error.message });
-        }
+        matching.push({ id, handler: controlador.handler });
       }
     }
+    return matching;
   });
+
+  // Ejecutar handlers fuera del lock
+  for (const { id, handler } of handlersToRun) {
+    try {
+      const resultado = await handler(mensaje);
+      resultados.push({ controladorId: id, exito: true, resultado });
+    } catch (error) {
+      console.error(`Error en controlador '${id}':`, error);
+      resultados.push({ controladorId: id, exito: false, error: error.message });
+    }
+  }
 }
 
 function _broadcastAIframes(mensaje, resultados) {
@@ -632,9 +744,22 @@ export async function inicializarStateManager() {
       // Funciones de estado
       getEstadoPadre,
       setEstadoPadre,
+      updateEstadoPadre,
       getFlag,
       setFlag,
-      
+      getHeartbeat,
+      setHeartbeat,
+      updateHeartbeat,
+      getGpsPendientes,
+      setGpsPendientes,
+      agregarMensajeGPSAPendientes,
+      limpiarGpsPendientes,
+
+      // Sistema de eventos para HIJO_LISTO
+      crearPromiseHijoListo,
+      marcarHijoListo,
+      cancelarPromiseHijoListo,
+
       // Diagnóstico
       diagnosticar: diagnosticarStateManager,
       diagnosticarStateManager,
@@ -660,6 +785,8 @@ export async function inicializarStateManager() {
     
     console.log('[STATE-MANAGER] API expuesta en globalThis.__stateManager y globalThis.__vv_stateManager');
   }
+
+  setInterval(() => limpiarMensajesAntiguos(500), 60000);
 }
 
 /**

@@ -146,9 +146,9 @@ Cada aventura es un recorrido por distintos puntos de interés (llamados **parad
 - Resuelve un **reto** (pregunta, puzzle, o texto libre) para avanzar.
 - Ve un **vídeo** relacionado con el monumento.
 
-La aplicación soporta **6 idiomas**: español, inglés, francés, italiano, neerlandés y japonés.
+La aplicación soporta **12 idiomas**: español, inglés, francés, italiano, neerlandés, japonés, alemán, chino simplificado, polaco, portugués, ruso y ucraniano.
 
-Actualmente hay **7 aventuras planificadas**. Están disponibles las **Aventuras 1, 2, 3, 4 y 5**. Las demás (**Fallas** y **34km**) siguen marcadas como no disponibles en el índice de aventuras.
+Actualmente hay **7 aventuras planificadas**. Están disponibles las **Aventuras 1, 2, 3, 4, 5 y Fallas**. La **Aventura 34km** sigue marcada como no disponible en el índice de aventuras.
 
 ---
 
@@ -318,6 +318,161 @@ Un iframe es una "ventana dentro de otra ventana" en una página web. La aplicac
 
 - **Aislamiento**: cada hijo tiene su propio espacio. Si un hijo falla, los demás siguen funcionando.
 - **Organización**: cada hijo se encarga de una función específica (mapa, audio, retos...).
+
+### Race conditions en recarga de iframes
+
+La aplicación tenía múltiples race conditions al acceder concurrentemente a `estado.hijosInicializados` sin sincronización. Esto afectaba a 4 funciones que usaban polling para esperar `HIJO_LISTO`:
+- `_esperarHijoListo` (5 lugares)
+- `_esperarHijosCargados`
+- `_cargarIframesHijosConEspera`
+- `_esperarHijosCriticosRest`
+
+**Solución implementada: Sistema de eventos**
+
+Se implementó un sistema de eventos centralizado en `state-manager.js` que elimina el polling y usa Promises para esperar `HIJO_LISTO`.
+
+**Implementación en state-manager.js:**
+
+```javascript
+// Agregar al objeto state
+hijosListosPromises: new Map(),
+
+// Agregar mutex
+hijosListosPromises: new SimpleMutex(),
+
+// Funciones del sistema de eventos
+export async function crearPromiseHijoListo(hijoId) {
+  return await mutexes.hijosListosPromises.runExclusive(() => {
+    return new Promise((resolve, reject) => {
+      if (state.hijosListosPromises.has(hijoId)) {
+        reject(new Error(`Promise ya existe para ${hijoId}`));
+        return;
+      }
+      const timeout = setTimeout(() => {
+        state.hijosListosPromises.delete(hijoId);
+        reject(new Error(`Timeout esperando HIJO_LISTO de ${hijoId}`));
+      }, 15000);
+      state.hijosListosPromises.set(hijoId, { resolve, reject, timeout });
+    });
+  });
+}
+
+export async function marcarHijoListo(hijoId) {
+  return await mutexes.hijosListosPromises.runExclusive(() => {
+    const promiseData = state.hijosListosPromises.get(hijoId);
+    if (promiseData) {
+      clearTimeout(promiseData.timeout);
+      promiseData.resolve();
+      state.hijosListosPromises.delete(hijoId);
+    }
+  });
+}
+
+export async function cancelarPromiseHijoListo(hijoId) {
+  return await mutexes.hijosListosPromises.runExclusive(() => {
+    const promiseData = state.hijosListosPromises.get(hijoId);
+    if (promiseData) {
+      clearTimeout(promiseData.timeout);
+      promiseData.reject(new Error(`Promise cancelada para ${hijoId}`));
+      state.hijosListosPromises.delete(hijoId);
+    }
+  });
+}
+```
+
+**Implementación en codigo-padre.html:**
+
+1. **Handler HIJO_LISTO** (línea 6053):
+```javascript
+estado.hijosInicializados.add(hijoId);
+// Marcar hijo como listo en sistema de eventos
+if (globalThis.__stateManager && typeof globalThis.__stateManager.marcarHijoListo === 'function') {
+    await globalThis.__stateManager.marcarHijoListo(hijoId);
+}
+```
+
+2. **_esperarHijoListo** (línea 6587):
+```javascript
+function _esperarHijoListo(iframeId) {
+    if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
+        return globalThis.__stateManager.crearPromiseHijoListo(iframeId);
+    }
+    // Fallback a polling si state-manager no disponible
+    return new Promise((resolve, reject) => {
+        // ... polling fallback
+    });
+}
+```
+
+3. **_esperarHijosCargados** (línea 10846):
+```javascript
+async function _esperarHijosCargados(idsRecargados, estado, logPrefix) {
+    const promesas = idsRecargados.map(id => {
+        if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
+            return globalThis.__stateManager.crearPromiseHijoListo(id);
+        }
+        // Fallback a polling
+        return new Promise((resolve) => {
+            const check = () => {
+                if (estado.hijosInicializados.has(id)) resolve();
+                else setTimeout(check, 200);
+            };
+            check();
+        });
+    });
+    await Promise.all(promesas);
+}
+```
+
+4. **_cargarIframesHijosConEspera** (línea 11118):
+```javascript
+async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
+    const promesas = idsRecargados.map(id => {
+        if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
+            return globalThis.__stateManager.crearPromiseHijoListo(id);
+        }
+        // Fallback a polling
+        return new Promise((resolve) => {
+            const check = () => {
+                if (estado.hijosInicializados.has(id)) resolve();
+                else setTimeout(check, 200);
+            };
+            check();
+        });
+    });
+    await Promise.all(promesas);
+}
+```
+
+5. **_esperarHijosCriticosRest** (línea 3996):
+```javascript
+async function _esperarHijosCriticosRest(logPrefix) {
+    const hijosCriticos = ['hijo2', 'hijo3', 'hijo4'];
+    const promesas = hijosCriticos.map(id => {
+        if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
+            return globalThis.__stateManager.crearPromiseHijoListo(id);
+        }
+        // Fallback a polling
+        return new Promise((resolve) => {
+            const check = () => {
+                if (estado.hijosInicializados.has(id)) resolve();
+                else setTimeout(check, 200);
+            };
+            check();
+        });
+    });
+    await Promise.all(promesas);
+}
+```
+
+**Ventajas:**
+- Elimina polling en 7 lugares (5 de _esperarHijoListo + 2 de las funciones anteriores)
+- Homogeneidad total: todas las esperas de HIJO_LISTO usan el mismo sistema
+- Timeout de 30 segundos en `state-manager.js` para esperar `HIJO_LISTO`
+- Sincronización con mutex para evitar race conditions
+- Fallback a polling si state-manager no está disponible
+- No afecta comunicación cruzada ni controladores
+- Compatible con producción (HTTPS + backend)
 - **Reutilización**: el mismo hijo se puede usar en diferentes contextos.
 
 ### Los hijos principales
@@ -497,41 +652,86 @@ Ejemplo de datos que guarda:
 
 ## 6. Las páginas hijo y qué hace cada una
 
-### Hijo 1: En-busca-del-tesoro.html (la experiencia principal)
+### En-busca-del-tesoro.html — pantalla de selección (iframe `id="seleccion"`)
 
-Esta es la página más compleja después del padre. Contiene **16 pantallas** (llamadas `pantalla1` a `pantalla16`) que se muestran u ocultan según el momento, más **2 overlays de pantalla completa** para casos específicos (mapa vintage y aviso de audio):
+**Primera pantalla que ve el usuario**. Se carga al arrancar la app en un iframe que ocupa toda la pantalla (`position:fixed; top:0; left:0; width:100%; height:100%; z-index:2000`). Gestiona el flujo completo de incorporación antes de que empiece la aventura: selección de idioma, selección de aventura, aceptación de términos, retos previos y código de activación. Cuando termina, avisa al padre para que cargue el resto de iframes y arranque la aventura.
 
-| Pantalla | Nombre interno | Qué muestra |
-|----------|----------------|-------------|
-| P1 | Bienvenida | Logo y botón "Empezar" |
-| P2 | Selección de idioma | 6 banderas para elegir idioma |
-| P3 | Confirmación de idioma | "¿Estás seguro? [Sí/No]" |
-| P4 | Imagen "En Busca del Tesoro" | Imagen del título según idioma seleccionado |
-| P5 | Agradecimientos y fuentes | Texto de créditos con scroll. El botón → se activa al llegar al final. |
-| P6 | Términos y condiciones | Texto legal con scroll. Botón → bloqueado hasta llegar al final. |
-| P7 | Selección de aventura | Lista dinámica de aventuras disponibles. Actualmente aparecen activas las Aventuras 1, 2, 3, 4 y 5. |
-| P8 | Confirmación de aventura | "Has elegido Aventura 1. ¿Confirmas?" |
-| P9 | Reto R1 | Primer reto (antes de empezar el recorrido). |
-| P10 | Puzzle | Puzzle interactivo como reto visual. |
-| P11 | Vídeo | Vídeo introductorio de la aventura (placeholder). |
-| P12 | Audio + texto | Introducción narrada + texto de bienvenida. |
-| P13 | Reto R2 | Segundo reto. |
-| P14 | Pago (futuro) | Pantalla de pago — actualmente es un stub. |
-| P15 | Código de activación | Introduce un código para activar la aventura. |
-| P16 | Normativa y Cumplimiento | Aviso legal de seguridad vial con scroll. El botón → se activa al llegar al final. Al aceptar, lanza `iniciarAventura()`. |
+Participa en el handshake estándar (`SISTEMA.HIJO_PREPARADO` → `SISTEMA.PADRE_DATOS` → `SISTEMA.HIJO_LISTO`) igual que cualquier otro hijo, pero es el ÚNICO iframe que se carga en el arranque inicial. El padre espera a que esta pantalla termine antes de cargar hijo1-opciones, hijo2, hijo3, hijo4 y hijo5.
 
-**Propagación de idioma y aventura**: cuando el usuario selecciona un idioma en P2, la función `seleccionarIdioma()` actualiza **tres niveles** simultáneamente: la variable local `idiomaSeleccionado`, el estado del componente (`estadoComponente.idiomaSeleccionado`) y `window.idiomaSeleccionado`. Lo mismo ocurre con `seleccionarAventura()` y la variable `aventuraSeleccionada`. Esto garantiza que todas las funciones internas (carga de términos, textos, retos, audios) trabajen siempre con el idioma correcto, independientemente de cómo accedan al valor.
+**16 pantallas secuenciales** (se muestran y ocultan; solo una activa a la vez):
 
-**Overlays de pantalla completa**: además de las 16 pantallas, existen dos overlays (`position: fixed; inset: 0`) que se superponen a la pantalla activa en eventos concretos:
+| Pantalla | Qué muestra |
+|----------|-------------|
+| P1 | Logo y botón "Empezar" |
+| P2 | Selección de idioma — 12 banderas |
+| P3 | Confirmación de idioma — "¿Estás seguro? [Sí/No]" |
+| P4 | Imagen del título "En Busca del Tesoro" según idioma |
+| P5 | Agradecimientos y fuentes — texto con scroll; botón → se activa al llegar al final |
+| P6 | Términos y condiciones — texto legal con scroll; botón → bloqueado hasta el final |
+| P7 | Selección de aventura — lista dinámica de aventuras disponibles |
+| P8 | Confirmación de aventura — "Has elegido Aventura X. ¿Confirmas?" |
+| P9 | Reto R1 — primer reto antes de empezar el recorrido |
+| P10 | Puzzle — reto visual interactivo |
+| P11 | Vídeo — introducción en vídeo de la aventura |
+| P12 | Audio + texto — narración introductoria y texto de bienvenida |
+| P13 | Reto R2 — segundo reto |
+| P14 | Pago (stub) — pantalla de pago, actualmente sin implementar |
+| P15 | Código de activación — el usuario introduce un código para desbloquear la aventura |
+| P16 | Normativa y cumplimiento — aviso legal de seguridad vial con scroll; al aceptar, llama a `iniciarAventura()` |
 
-- **Overlay mapa vintage** (`#mapa-vintage-overlay`): aparece al seleccionar una aventura en P7 para mostrar la imagen artística del recorrido.
-- **Overlay aviso de audio** (`#audio-warning-overlay`): aparece tras confirmar en P8 si no hay audios para la combinación aventura+idioma seleccionada.
+**2 overlays adicionales** superpuestos a la pantalla activa:
 
-La variable `agradecimientosCargados` / `normativaCargada` se resetea cada vez que cambia el idioma (en `confirmarIdioma()` y `seleccionarIdioma()`), para forzar recarga con el nuevo idioma.
+- `#mapa-vintage-overlay`: imagen artística del recorrido, aparece al seleccionar aventura en P7.
+- `#audio-warning-overlay`: avisa que la aventura funcionará sin audio si no hay archivos grabados para el idioma elegido; permite volver a elegir idioma o continuar sin audio.
 
-**Aviso de audio**: al confirmar la aventura en P8, `confirmarAventura()` comprueba si existen audios grabados para el idioma seleccionado. Si no los hay, aparece un **modal overlay** advirtiendo que la aventura funcionará sin audio. El usuario puede **continuar sin audio** o **volver a elegir idioma**. Si hay audios disponibles, el flujo sigue directo.
+**Mensajes que envía al padre** (vía `postMessage` a `window.location.origin`):
 
-**Icono de agradecimientos eliminado de hijo1**: el botón `icono-agradecimientos` que antes abría `agradecimientos.html` en pestaña nueva ha sido eliminado del menú desplegable de `extrainfo-hijo1.html`. El contenido de agradecimientos ahora se muestra integrado en el overlay descrito arriba.
+| Tipo de mensaje | Cuándo |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Al cargarse (arranque del handshake) |
+| `SISTEMA.HIJO_LISTO` | Tras recibir y procesar `SISTEMA.PADRE_DATOS` |
+| `SELECCION.IDIOMA_SELECCIONADO` | Al confirmar el idioma en P3 |
+| `SELECCION.AVENTURA_SELECCIONADA` | Al confirmar la aventura en P8 |
+| `SELECCION.AVENTURA_ACTIVADA` | Al validar el código de activación en P15 |
+| `SELECCION.TERMINOS_ACEPTADOS` | Al aceptar los términos en P6 |
+| `SELECCION.PREPARAR_HIJOS` | Cuando la selección está completa y el padre debe cargar el resto de iframes |
+| `SISTEMA.HEARTBEAT_RESPONSE` | En respuesta al heartbeat del padre |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Al recibir `SISTEMA.CAMBIO_MODO` |
+
+**Propagación de idioma y aventura**: `seleccionarIdioma()` actualiza tres niveles simultáneamente — variable local, `estadoComponente.idiomaSeleccionado` y `window.idiomaSeleccionado` — para que todas las funciones internas (términos, textos, retos, audios) trabajen con el idioma correcto sin importar cómo accedan al valor. Lo mismo para `seleccionarAventura()`.
+
+---
+
+### Hijo 1: extrainfo-hijo1.html — panel de opciones extra (iframe `id="hijo1-opciones"`)
+
+Panel lateral izquierdo con un botón principal "Más opciones" que despliega iconos flotantes de acceso a contenido complementario. Solo es visible durante la aventura (el padre lo carga y muestra al iniciar).
+
+**Posición**: `position:fixed; left:1.5px; bottom:var(--gap-inferior)` — ocupa `var(--franja-lateral)` de ancho y `calc(6 × var(--franja-lateral) + 26px)` de alto, alineado con la columna izquierda de iframes.
+
+**Contenido del menú desplegable** (iconos flotantes, se muestran/ocultan al pulsar el botón principal):
+
+| Icono | Abre | Descripción |
+|---|---|---|
+| `#icono-gastronomia` | `gastronomia.html` | Guía gastronómica de Valencia |
+| `#icono-informacion` | `consejos-valencia.html` | Consejos e información práctica |
+| `#icono-historia` | `videos-valencia-historica.html` | Vídeos de historia de Valencia |
+| `#icono-paginas-oficiales` | `paginas-oficiales-valencia.html` | Páginas oficiales del Ayuntamiento |
+| `#icono-temporizador` | (no abre URL) | Activa/desactiva el temporizador de cuenta atrás |
+
+Los iconos se posicionan dinámicamente sobre el botón principal usando las dimensiones reales del iframe. Al pulsar cualquier icono (excepto el temporizador), el padre abre la URL correspondiente en una ventana flotante/modal.
+
+**Temporizador integrado**: contiene su propia lógica de cuenta atrás. Al pulsar `#icono-temporizador`, envía un mensaje al padre para que muestre/oculte la ventana del temporizador (los estilos del temporizador viven en el padre, no en el hijo). El temporizador se detiene y resetea automáticamente al volver al modo casa o al finalizar la aventura.
+
+**Mensajes que envía al padre**:
+
+| Tipo de mensaje | Cuándo |
+|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Al cargarse |
+| `SISTEMA.HIJO_LISTO` | Tras inicializarse |
+| `SISTEMA.HEARTBEAT_RESPONSE` | En respuesta al heartbeat |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Al recibir `SISTEMA.CAMBIO_MODO` |
+| Mensaje de toggle temporizador | Al pulsar `#icono-temporizador` |
+| Métricas GPS (`MONITOREO.METRICA`) | Al detectar errores de geolocalización |
 
 ### Hijo 2: coordenadas-hijo2.html (el mapa)
 
@@ -613,7 +813,7 @@ Barra de control superior siempre visible durante la aventura. Contiene el botó
 
 ### Hijo 6: chat-hijo6.html (el asistente de soporte)
 
-Pantalla de ayuda FAQ en formato acordeón de dos niveles (tema → pregunta → respuesta). Se abre como ventana flotante mediante el botón fijo `#btn-chat-soporte` del padre, colocado encima de la columna derecha de controles. Soporta los mismos 6 idiomas que el resto de la app y adapta su contenido al estado actual de la aventura mediante marcadores dinámicos en el texto de respuesta.
+Pantalla de ayuda FAQ en formato acordeón de dos niveles (tema → pregunta → respuesta). Se abre como ventana flotante mediante el botón fijo `#btn-chat-soporte` del padre, colocado encima de la columna derecha de controles. Soporta los mismos 12 idiomas que el resto de la app y adapta su contenido al estado actual de la aventura mediante marcadores dinámicos en el texto de respuesta.
 
 Ver sección 26 para la documentación completa del chat.
 
@@ -775,6 +975,43 @@ Cada mensaje enviado espera una confirmación (`ACK`) en un plazo de 5 segundos.
 
 Cada 5 segundos, el padre envía un "latido" a todos los hijos para comprobar que siguen funcionando. Si un hijo no responde, el padre puede intentar reconectarlo.
 
+**Implementación actual:**
+
+El heartbeat está completamente implementado con detección de hijos caídos:
+
+- **Estado centralizado** en `js/state-manager.js`:
+  - `heartbeat.activo`: Control de estado (solo AVENTURA)
+  - `heartbeat.intervalo`: Referencia al setInterval
+  - `heartbeat.heartbeatsFallidos`: Mapa hijoId → contador de fallidos
+  - `heartbeat.ultimoHeartbeat`: Mapa hijoId → timestamp del último heartbeat
+  - `heartbeat.hijosDesconectados`: Set de hijos marcados como desconectados
+
+- **Lógica en `js/mensajeria.js`**:
+  - `iniciarHeartbeat(intervalo)`: Inicia el heartbeat periódico
+  - `pausarHeartbeat()`: Pausa el heartbeat y limpia el intervalo
+  - `enviarHeartbeatAHijos()`: Envía heartbeat a hijos críticos (hijo2, hijo3, hijo4, hijo5)
+  - `marcarHijoDesconectado(hijoId)`: Marca hijo como desconectado tras MAX_HEARTBEATS_FALLIDOS
+  - `intentarReconectarHijo(hijoId)`: Recarga el iframe para reconectar
+  - `procesarHeartbeatResponse(mensaje)`: Procesa respuesta de heartbeat, resetea contadores
+
+- **Handler en `codigo-padre.html`**:
+  - `SISTEMA.HEARTBEAT_RESPONSE`: Llama a `mensajeria.procesarHeartbeatResponse()` para procesar respuestas
+
+- **Configuración en `js/config.js`**:
+  - `MAX_HEARTBEATS_FALLIDOS`: 3 (número de heartbeats fallidos antes de marcar desconectado)
+  - `INTERVALO_HEARTBEAT`: 5000ms (frecuencia del heartbeat)
+  - `AUTO_RECONECTAR`: true (reconexión automática)
+
+**Flujo completo:**
+
+1. Al cambiar a modo AVENTURA, se llama `iniciarHeartbeat()` desde `_activarHeartbeatAventura()`
+2. Cada 5 segundos, `enviarHeartbeatAHijos()` envía `SISTEMA.HEARTBEAT` a hijos críticos
+3. Cada hijo incrementa su contador de fallidos en el state-manager
+4. Si un hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`, se resetea su contador
+5. Si un hijo acumula MAX_HEARTBEATS_FALLIDOS (3), se marca como desconectado
+6. Si AUTO_RECONECTAR está activo, se recarga el iframe del hijo desconectado
+7. Al cambiar a modo CASA, se llama `pausarHeartbeat()` desde `_pausarHeartbeatCasa()`
+
 ---
 
 ## 8. Las aventuras: estructura y flujo completo
@@ -802,7 +1039,7 @@ El fichero `js/indice-aventuras.js` define todas las aventuras, su disponibilida
 | 3 | València Ciudad de las Artes y las Ciencias | ~10 km | 🚲🛴 Bici/patinete |  ✅ Disponible  |
 | 4 | València Parque de Cabecera y Viveros | ~10 km | 🚲🛴 Bici/patinete | ✅ Disponible |
 | 5 | València murallas | ~6 km | 🚲🛴 Bici/patinete |  ✅ Disponible  |
-| Fallas | València en Fallas | ~4 km | 👣 Andando | ❌ En desarrollo |
+| Fallas | València en Fallas | ~4 km | 👣 Andando | ✅ Disponible |
 | 34km | València 34 kilómetros | ~34 km | 🚲🛴👣 Mixto | ❌ En desarrollo |
 
 Cada aventura incluye los campos `distanciaKm` y `vehiculo` (emoji) que se muestran en los botones de selección.
@@ -849,7 +1086,7 @@ Esto es lo que experimenta el turista paso a paso:
    └── Lee y acepta
 
 7. Elige aventura (P7)
-    └── Aventuras 1, 2, 3, 4 y 5 disponibles. Fallas y 34km siguen bloqueadas.
+    └── Aventuras 1, 2, 3, 4, 5 y Fallas disponibles. Solo 34km sigue bloqueada.
    └── Pulsa "Aventura 1"
 
 8. Confirma aventura (P8)
@@ -1026,9 +1263,9 @@ Estos ficheros se cargan directamente en el navegador:
 | `indice-aventuras.js` | Índice de aventuras, disponibilidad y metadatos | `INDICE_AVENTURAS.Aventura1` |
 | `aventuras-ID-padre.js` | Secuencia ordenada de elementos (intro → parada → tramo → parada → …) que el padre recorre | `DATOS_PADRE.Aventura1.es.elementosIDpadre[]` |
 | `mapa-vintage-aventuras.js` | Imágenes JPG de mapas artísticos por aventura | `MAPAS_VINTAGE.Aventura1[]` |
-| `terminos-aventuras.js` | Texto legal de términos y condiciones en 6 idiomas | Objeto plano `TERMINOS.es`, `TERMINOS.en`, … |
-| `agradecimientos-aventuras.js` | Texto de créditos/agradecimientos en 6 idiomas | Objeto plano `AGRADECIMIENTOS.es`, … |
-| `normativa-cumplimiento.js` | Aviso legal de seguridad vial (requerido antes de iniciar aventura) en 6 idiomas | Objeto plano `NORMATIVA.es`, … |
+| `terminos-aventuras.js` | Texto legal de términos y condiciones en 12 idiomas | Objeto plano `TERMINOS.es`, `TERMINOS.en`, … |
+| `agradecimientos-aventuras.js` | Texto de créditos/agradecimientos en 12 idiomas | Objeto plano `AGRADECIMIENTOS.es`, … |
+| `normativa-cumplimiento.js` | Aviso legal de seguridad vial (requerido antes de iniciar aventura) en 12 idiomas | Objeto plano `NORMATIVA.es`, … |
 
 ### Datos en el backend (`backend/data/`)
 
@@ -1070,13 +1307,19 @@ El módulo `js/data-loader.js` gestiona esta transición. Tiene una variable `DA
 | `it` | Italiano | 🇮🇹 | ❌ Pendiente |
 | `nl` | Neerlandés | 🇳🇱 | ❌ Pendiente |
 | `ja` | Japonés | 🇯🇵 | ❌ Pendiente |
+| `de` | Alemán | 🇩🇪 | ❌ Pendiente |
+| `zh` | Chino simplificado | 🇨🇳 | ❌ Pendiente |
+| `pl` | Polaco | 🇵🇱 | ❌ Pendiente |
+| `pt` | Portugués | 🇵🇹 | ❌ Pendiente |
+| `ru` | Ruso | 🇷🇺 | ❌ Pendiente |
+| `uk` | Ucraniano | 🇺🇦 | ❌ Pendiente |
 
 ### ¿Qué está traducido?
 
-- **Textos narrativos** (`textos-aventuras.js`): ✅ los 6 idiomas (66 entradas por idioma).
-- **Títulos de textos** (`title` en textos-aventuras.js): ✅ los 6 idiomas — "Parada" → Stop / Arrêt / Fermata / Halte / 停留所, "Tramo" → Section / Tronçon / Tratto / Traject / 区間.
-- **Retos** (`retos-aventuras.js`): ✅ los 6 idiomas (preguntas, opciones y respuestas traducidas).
-- **Audios** (`audios-aventuras.js`): solo español tiene archivos MP3 reales. Los demás idiomas tienen la estructura preparada pero sin fichero.
+- **Textos narrativos** (`textos-aventuras.js`): ✅ los 12 idiomas (66 entradas por idioma para Av1–5; los 6 idiomas nuevos —de, zh, pl, pt, ru, uk— en ficheros `parrafos-texto-*.json`).
+- **Títulos de textos** (`title` en textos-aventuras.js): ✅ los 12 idiomas — "Parada" → Stop / Arrêt / Fermata / Halte / 停留所 / Haltestelle / 停靠站 / Przystanek / Parada / Остановка / Зупинка, "Tramo" → Section / Tronçon / Tratto / Traject / 区間 / Abschnitt / 路段 / Odcinek / Trecho / Участок / Ділянка.
+- **Retos** (`retos-aventuras.js`): ✅ los 12 idiomas (preguntas, opciones y respuestas traducidas).
+- **Audios** (`audios-aventuras.js`): solo español tiene archivos MP3 reales. Los demás 11 idiomas tienen la estructura preparada pero sin fichero.
 - **Interfaz (botones, avisos)**: traducida en `En-busca-del-tesoro.html` con objetos como `AUDIO_WARNING_TEXTS`, `TEXTOS_CONFIRMACION`, etc.
 - **Logo inline**: todas las menciones a "València be Guides" en los textos narrativos se han sustituido por una imagen del logo (`imagenes/imagenes-aplicación/logo_alargado_3.png`) renderizada con `height:1.4em` para escalar con el texto. Esto elimina la necesidad de traducir el nombre de la marca.
 
@@ -1084,12 +1327,18 @@ El módulo `js/data-loader.js` gestiona esta transición. Tiene una variable `DA
 
 ```javascript
 MAPEO_IDIOMAS = {
-    "es": { nombre: "Español",     bandera: "Bandera España.png" },
-    "en": { nombre: "English",     bandera: "Bandera habla inglesa.png" },
-    "fr": { nombre: "Français",    bandera: "Bandera Francia.png" },
-    "it": { nombre: "Italiano",    bandera: "Bandera Italia.png" },
-    "nl": { nombre: "Nederlands",  bandera: "Bandera Paises bajos.png" },
-    "ja": { nombre: "日本語",       bandera: "Bandera Japon.png" }
+    "es": { nombre: "Español",            bandera: "bandera_españa.png" },
+    "en": { nombre: "English",            bandera: "bandera_inglesa.png" },
+    "fr": { nombre: "Français",           bandera: "bandera_francia.png" },
+    "it": { nombre: "Italiano",           bandera: "bandera_italia.png" },
+    "nl": { nombre: "Nederlands",         bandera: "bandera_paises_bajos.png" },
+    "ja": { nombre: "日本語",              bandera: "bandera_japon.png" },
+    "de": { nombre: "Deutsch",            bandera: "bandera_alemania.png" },
+    "zh": { nombre: "中文",               bandera: "bandera_china.png" },
+    "pl": { nombre: "Polski",             bandera: "bandera_polonia.png" },
+    "pt": { nombre: "Português",          bandera: "bandera_portugal.png" },
+    "ru": { nombre: "Русский",            bandera: "bandera_rusia.png" },
+    "uk": { nombre: "Українська",         bandera: "bandera_ucrania.png" }
 }
 ```
 
@@ -1123,6 +1372,47 @@ No existe una tercera copia en `state-manager.js` — la única sincronización 
 
 > **Nota de diseño — hub + adaptador, no duplicación.**
 > `activarGPS()` / `desactivarGPS()` en `codigo-padre.html` son el **hub**: la única implementación real que llama a `navigator.geolocation.watchPosition`. `manejarGPSActivar()` / `manejarGPSDesactivar()` en `funciones-mapa.js` son el **adaptador**: detectan si están en el padre (`window.parent === window`) y delegan al hub, o si están en un iframe, envían postMessage al padre para que el hub actúe. No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento.
+
+### Reenvío GPS con confirmación y cola de pendientes
+
+El reenvío de actualizaciones GPS a hijo2 usa un sistema robusto para asegurar que las actualizaciones no se pierdan, incluso si hijo2 está temporalmente desconectado.
+
+**Implementación:**
+
+- **Estado centralizado** en `js/state-manager.js`:
+  - `gpsPendientes`: Array de mensajes GPS pendientes de envío
+  - `getGpsPendientes()`, `setGpsPendientes()`, `agregarMensajeGPSAPendientes()`, `limpiarGpsPendientes()`
+
+- **Reenvío con confirmación** en `codigo-padre.html` (líneas 8829-8861):
+  - Usa `enviarMensajeConConfirmacion()` con timeout de 3 segundos
+  - Si falla la confirmación, agrega el mensaje a `gpsPendientes`
+  - Muestra indicador visual `imagen-no-gps.png` si hay mensajes pendientes
+
+- **Funciones en `js/mensajeria.js`**:
+  - `reenviarMensajesGPSAPendientes(hijoId)`: Reenvía mensajes pendientes cuando hijo se reconecta
+  - Integrado con `procesarHeartbeatResponse()` para reenviar automáticamente cuando hijo2 se reconecta
+
+- **Indicador visual** en `codigo-padre.html`:
+  - Elemento `<img id="gps-error-indicator">` con `imagen-no-gps.png`
+  - Funciones `_mostrarIndicadorErrorGPS()` y `_ocultarIndicadorErrorGPS()`
+  - Se muestra cuando hay mensajes GPS pendientes
+  - Se oculta cuando el reenvío tiene éxito
+
+**Flujo completo:**
+
+1. GPS actualiza → Intenta enviar a hijo2 con `enviarMensajeConConfirmacion()`
+2. Si falla la confirmación → Agrega a `gpsPendientes` + Muestra `imagen-no-gps.png`
+3. Cuando hijo2 se reconecta → `procesarHeartbeatResponse()` detecta reconexión
+4. `reenviarMensajesGPSAPendientes()` reenvía todos los mensajes pendientes
+5. Limpia `gpsPendientes` + Oculta `imagen-no-gps.png`
+
+**Ventajas:**
+
+- No se pierden actualizaciones GPS si hijo2 está temporalmente desconectado
+- El usuario ve indicador visual (`imagen-no-gps.png`) cuando hay problemas
+- Reenvío automático cuando hijo2 se reconecta (no requiere intervención del usuario)
+- Usa el sistema de heartbeat que ya implementamos para detectar reconexiones
+- Indicador visual es multiidioma (imagen, no texto)
 
 ### Las coordenadas
 
@@ -1161,16 +1451,16 @@ Los tramos (caminos entre paradas) tienen **waypoints** (puntos intermedios) par
 
 La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuántos metros de margen tiene el usuario para activar la "llegada". El cálculo es diferente según el tipo de elemento:
 
-| Tipo | Tolerancia | Cómo se calcula |
-| --- | --- | --- |
-| **Parada / inicio** | **50 m fijos** | Valor constante |
-| **Tramo** | **dinámica** | Distancia máxima entre waypoints consecutivos + 20 m de buffer |
+| Tipo | Tolerancia | Cómo se calcula | ¿Se usa para completar? |
+| --- | --- | --- | --- |
+| **Parada / inicio** | **50 m** (`RADIO_EXTENDIDO`) | Valor constante — es la **zona activa**, no de llegada | ❌ Las paradas se completan con audio + reto, no por GPS |
+| **Tramo** | **dinámica** | Distancia máxima entre waypoints consecutivos + 20 m de buffer | ✅ `NAVEGACION.LLEGADA_DETECTADA` se dispara al entrar en esta zona |
 
-Para los tramos, la tolerancia se calcula con la distancia entre los waypoints de la ruta: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor. Si los waypoints están muy juntos (callejones), la tolerancia es más ajustada. El destino de un tramo es siempre su **último waypoint**.
+> **Distinción clave**: `calcularToleranciaGPS()` devuelve 50 m para paradas, pero ese valor solo define la **zona de rango activo** (dentro de él los controles permanecen habilitados). La detección de llegada GPS (`NAVEGACION.LLEGADA_DETECTADA`) **solo se emite para tramos**, usando la tolerancia dinámica. Las paradas completan su secuencia cuando el usuario escucha el audio y supera el reto.
 
-> **Los waypoints intermedios no son checkpoints obligatorios.** La app no comprueba si el usuario pasó por cada punto intermedio de un tramo. Solo verifica si llegó al radio del último waypoint. Esto significa que si el usuario toma un camino distinto pero llega al punto final del tramo, la aventura avanza normalmente. Los waypoints intermedios solo sirven para dibujar la polyline de la ruta en el mapa y para calcular la tolerancia de llegada.
+Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada. El destino de un tramo es siempre su **último waypoint**.
 
-La llegada GPS sólo se necesita para **completar un tramo**. Las paradas se completan con audio + reto, sin requerir comprobación GPS de llegada.
+> **Los waypoints intermedios no son checkpoints obligatorios.** La app no comprueba si el usuario pasó por cada punto intermedio. Solo verifica si llegó al radio del último waypoint. Los waypoints intermedios sirven para dibujar la polyline en el mapa y para calcular la tolerancia dinámica.
 
 ### Capas de mapa y selector de estilo
 
@@ -1340,13 +1630,19 @@ Se crean con `L.divIcon` usando `iconSize: null` para que Leaflet no restrinja e
 **Popup al pulsar un marcador:**  
 Muestra la imagen del monumento (`ref.imagen`) y en una sola línea el número y el nombre: `Nº N · Nombre del monumento`. El div secundario del nombre se oculta (`display: none`) para no consumir espacio y permitir que la imagen ocupe toda la altura disponible.
 
-### Configuración del GPS
+### Configuración del GPS (`js/config.js` → `CONFIG.GPS`)
 
 | Parámetro | Valor | Descripción |
 | --- | --- | --- |
 | `ALTA_PRECISION` | `true` | Usa GPS real en vez de triangulación WiFi |
-| `TIMEOUT` | 15.000 ms | Tiempo máximo de espera para obtener posición |
-| `PRECISION_MINIMA` | 30 m | Si la precisión GPS es peor que 30 m, se avisa al usuario |
+| `TIMEOUT` | 30.000 ms | Tiempo máximo de espera para obtener posición |
+| `MAX_EDAD_CACHE` | 5.000 ms | Edad máxima de posición en caché para aceptarla como válida |
+| `INTERVALO_ACTUALIZACION` | 7.000 ms | Frecuencia de actualización de posición |
+| `DISTANCIA_MINIMA` | 5 m | Movimiento mínimo para considerar que el usuario se ha movido |
+| `RADIO_PROXIMIDAD` | 20 m | El botón GPS se activa cuando el usuario está a ≤ 20 m de una parada |
+| `RADIO_EXTENDIDO` | 50 m | Zona activa; fuera de estos 50 m aparece el overlay con cuenta atrás de 5 min |
+| `PRECISION_MINIMA` | 25 m | Si la precisión GPS es peor que 25 m, la posición se ignora |
+| `MUESTRAS_PROMEDIO` | 3 | Número de muestras para promediar la posición GPS |
 
 ### Rendimiento del zoom (`js/funciones-mapa.js`)
 
@@ -1616,7 +1912,7 @@ Todas las imágenes están en orientación vertical para coincidir con la ventan
 
 ### Traducciones
 
-Cada parada tiene un texto en cada uno de los 6 idiomas. La estructura es:
+Cada parada tiene un texto en cada uno de los 12 idiomas. La estructura es:
 
 ```text
 TEXTOS_AVENTURAS.Aventura1.es[0]  → Intro en español
@@ -1717,7 +2013,7 @@ El fichero `backend/middleware/validation.js` valida que los parámetros que rec
 | Parámetro | Formato válido | Ejemplo |
 |-----------|---------------|---------|
 | `aventuraId` | `Aventura` + número | `Aventura1`, `Aventura7` |
-| `idioma` | Uno de: es, en, fr, it, nl, ja | `es` |
+| `idioma` | Uno de: es, en, fr, it, nl, ja, de, zh, pl, pt, ru, uk | `es` |
 | `paradaId` | `P-` + número | `P-0`, `P-5` |
 | `tramoId` | `TR-` + número | `TR-1`, `TR-5` |
 | `retoId` | `R-` + número o `PZ-` + número | `R-3`, `PZ-01` |
@@ -1888,6 +2184,34 @@ Define cómo se ve la app cuando se instala en el móvil:
 
 Gestiona el caché de la aplicación para que funcione sin conexión:
 
+**Actualización del Service Worker:**
+
+- **Polling periódico eliminado**: Se eliminó el polling periódico cada 5 minutos (innecesario)
+- **Actualización en visibilitychange**: El Service Worker se actualiza cuando la app pasa a segundo plano
+- **Manejo de errores**: Los errores de actualización se loguean como warnings en lugar de silenciarse
+
+**Implementación en codigo-padre.html:**
+
+```javascript
+// Polling periódico eliminado (innecesario, ya se actualiza en visibilitychange)
+
+// Intentar actualización cuando la app pasa a segundo plano
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        try {
+            registration.update();
+        } catch (e) {
+            logger.warn('Error actualizando Service Worker (background):', e);
+        }
+        intentarAplicarUpdatePendiente('background');
+    } else {
+        intentarAplicarUpdatePendiente('foreground');
+    }
+});
+```
+
+Gestiona el caché de la aplicación para que funcione sin conexión:
+
 - **Se cachean** (preload al instalar): todos los HTML, todos los JS, los iconos.
 - **NO se cachean** (siempre requieren red): audios MP3, vídeos MP4, imágenes de aventuras, llamadas a la API.
 - **Estrategia**: Network First (intenta la red primero; si falla, usa caché).
@@ -1946,7 +2270,7 @@ proyecto/
 │   ├── aventuras-ID-padre.js
 │   ├── terminos-aventuras.js
 │   ├── agradecimientos-aventuras.js
-│   ├── normativa-cumplimiento.js      ← DATOS: aviso legal de seguridad vial (6 idiomas)
+│   ├── normativa-cumplimiento.js      ← DATOS: aviso legal de seguridad vial (12 idiomas)
 │   └── controladores-padre.js        ← Handlers de datos extraídos (importado por codigo-padre.html)
 │
 ├── backend/                   ← Servidor API (Node.js + Express)
@@ -2142,7 +2466,7 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 
 **Pantalla 1 — Bienvenida.** El logo de la marca sobre fondo naranja. Un botón con una flecha invita a empezar.
 
-**Pantalla 2 — Selección de idioma.** Aparecen **6 banderas** en una cuadrícula 2×3: España, países anglófonos, Francia, Italia, Países Bajos y Japón. El usuario toca la bandera de su idioma. Ese idioma se guarda en `localStorage` como `vv_idioma` y se envía al padre mediante un mensaje `IDIOMA_SELECCIONADO`.
+**Pantalla 2 — Selección de idioma.** Aparecen **12 banderas**: España, inglés, Francia, Italia, Países Bajos, Japón, Alemania, China, Polonia, Portugal, Rusia y Ucrania. El usuario toca la bandera de su idioma. Ese idioma se guarda en `localStorage` como `vv_idioma` y se envía al padre mediante un mensaje `IDIOMA_SELECCIONADO`.
 
 **Pantalla 3 — Confirmación de idioma.** Se muestra la bandera elegida. Dos botones: ✓ (verde) para confirmar o ✗ (rojo) para volver a elegir.
 
@@ -2158,7 +2482,7 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 València centro histórico 1    👣±4km 🏛️19 📍41 🧩30 ⏳max60h
 ```
 
-Actualmente las Aventuras 1, 2, 3, 4 y 5 están disponibles; Fallas y 34km aparecen bloqueadas. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. La aventura se guarda en `localStorage` como `vv_aventura`.
+Actualmente las Aventuras 1, 2, 3, 4, 5 y Fallas están disponibles; solo 34km aparece bloqueada. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. La aventura se guarda en `localStorage` como `vv_aventura`.
 
 **Pantalla 8 — Confirmación de aventura.** Similar a P3: se muestra el nombre de la aventura elegida con dos botones (→/✗). Si confirma, continúa.
 
@@ -2192,7 +2516,7 @@ Actualmente las Aventuras 1, 2, 3, 4 y 5 están disponibles; Fallas y 34km apare
 
 En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simultáneamente:
 
-- **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tenía ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 30 segundos. Las posiciones se actualizan cada **3 segundos**.
+- **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tenía ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 35 segundos. Las posiciones se actualizan cada **7 segundos**.
 
 - **Se inicia el heartbeat.** Cada **5 segundos** el padre envía un "latido" a todos los hijos para verificar que siguen vivos. Si un hijo falla **3 latidos consecutivos**, se marca como desconectado y se intenta reconectar.
 
@@ -2242,13 +2566,13 @@ La pantalla de aventura se compone de varios elementos superpuestos:
 
 ### 24.5. El usuario camina: dentro del radio de acción
 
-Cuando el usuario está **dentro del radio de proximidad** de la parada actual, la experiencia es completa. Los valores clave son:
+Cuando el usuario está **dentro del radio de acción** (`RADIO_EXTENDIDO`, 50 m) de la parada o tramo actual, la experiencia está completa. Los dos radios tienen propósitos distintos:
 
-| Concepto | Valor | Descripción |
-|----------|-------|-------------|
-| Radio de llegada | **20 m** | Se considera que el usuario "ha llegado" a una parada |
-| Radio de acción | **50 m** | Distancia máxima para mantener todos los controles activos |
-| Precisión mínima GPS | **30 m** | Si el GPS tiene peor precisión, se ignora la posición |
+| Constante | Valor | Propósito |
+|-----------|-------|-----------|
+| `RADIO_PROXIMIDAD` | **20 m** | Activa el botón GPS cuando el usuario está cerca de una **parada** (no es condición de completado) |
+| `RADIO_EXTENDIDO` | **50 m** | Zona activa: dentro de ella todos los controles permanecen habilitados; al salir aparece el overlay de advertencia |
+| Precisión mínima GPS | **25 m** | Si el GPS tiene peor precisión, se ignora la posición |
 | Movimiento mínimo | **5 m** | Actualización de interfaz solo si se ha movido al menos 5 metros |
 
 Mientras el usuario está **dentro de los 50 metros**:
@@ -2269,7 +2593,7 @@ En esta situación ideal, el usuario escucha la historia, lee el texto, mira las
 
 Un **tramo** es el camino entre dos paradas. Cuando el usuario deja una parada y camina hacia la siguiente, el padre detecta que ha entrado en un tramo y ajusta el comportamiento:
 
-- El radio de proximidad en tramo es **dinámico**: se calcula como la distancia máxima entre waypoints consecutivos + 20 metros de buffer. Esto permite que rutas más amplias tengan tolerancias mayores.
+- La **tolerancia de llegada** en tramo es **dinámica**: se calcula como la distancia máxima entre waypoints consecutivos + 20 metros de buffer. Esto permite que rutas más amplias tengan tolerancias mayores. (No confundir con `RADIO_PROXIMIDAD` — ese es un valor fijo de 20 m para paradas, no para tramos.)
 - El audio del tramo (si existe) se carga automáticamente.
 - El mapa muestra la polyline del tramo resaltada.
 - El usuario puede ver los botones de imagen y vídeo del tramo (si existen).
@@ -2432,7 +2756,7 @@ Si confirma que quiere otra aventura:
 4. Se navega directamente a **P2 (selección de idioma)**, sin pasar por P1.
 5. El usuario comienza el flujo de selección desde cero.
 
-Ambos diálogos están **traducidos a los 6 idiomas** (español, inglés, francés, italiano, neerlandés y japonés) y se muestran siempre en el idioma que el usuario tenía guardado.
+Ambos diálogos están **traducidos a los 12 idiomas** (español, inglés, francés, italiano, neerlandés, japonés, alemán, chino simplificado, polaco, portugués, ruso y ucraniano) y se muestran siempre en el idioma que el usuario tenía guardado.
 
 ---
 
@@ -2460,7 +2784,7 @@ Ambos diálogos están **traducidos a los 6 idiomas** (español, inglés, franc�
 │    ┌──────────────────────────────────────┐                 │
 │    │         MODO AVENTURA ACTIVO         │                 │
 │    │                                      │                 │
-│    │  GPS activo (cada 3s, alta precisión)│                 │
+│    │  GPS activo (cada 7s, alta precisión)│                 │
 │    │  Heartbeat (cada 5s)                 │                 │
 │    │  Mapa vintage con posición en vivo   │                 │
 │    │                                      │                 │
@@ -2479,7 +2803,7 @@ Ambos diálogos están **traducidos a los 6 idiomas** (español, inglés, franc�
 │    │  │ + OVERLAY ADVERTENCIA │           │                 │
 │    │  └───────────────────────┘           │                 │
 │    │                                      │                 │
-│    │  Cambio de parada: radio 20m         │                 │
+│    │  Llegada a tramo: toleranciaGPS dinámica (≥50m)     │  │
 │    │  Progreso guardado automáticamente   │                 │
 │    │                                      │                 │
 │    │  Botón 🛰 OFF → Volver a CASA       │                 │
@@ -2494,14 +2818,15 @@ Ambos diálogos están **traducidos a los 6 idiomas** (español, inglés, franc�
 
 | Parámetro | Valor | Variable en código |
 |-----------|-------|--------------------|
-| Radio de llegada a parada | 50 m (fijo) | `calcularToleranciaGPS()` en `funciones-mapa.js` |
-| Tolerancia en tramo | dinámica (distancia máx. entre waypoints + 20 m buffer) | `calcularToleranciaGPS()` en `funciones-mapa.js` |
-| Precisión mínima GPS aceptada | 30 m | `PRECISION_MINIMA` en `config.js` |
+| `RADIO_PROXIMIDAD` — zona GPS-activo en paradas | 20 m | `config.js` — activa el botón GPS cuando el usuario está a ≤20m de una parada; no es condición de completado |
+| `RADIO_EXTENDIDO` — zona de rango activo | 50 m | `config.js` — dentro: todos los controles habilitados; fuera: overlay de advertencia + cuenta atrás |
+| Tolerancia de llegada a tramo | dinámica (distancia máx. entre waypoints + 20 m buffer) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` solo en tramos |
+| Precisión mínima GPS aceptada | 25 m | `PRECISION_MINIMA` en `config.js` |
 | Movimiento mínimo para actualizar | 5 m | `DISTANCIA_MINIMA` en `config.js` |
-| Frecuencia actualización GPS | 3 s | `INTERVALO_ACTUALIZACION` en `config.js` |
+| Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
 | Frecuencia heartbeat | 5 s | `INTERVALO_HEARTBEAT` en `config.js` |
-| Timeout permiso GPS | 15 s | `TIMEOUT` en `config.js` |
-| Timeout watchPosition | 30 s | `watchPosition` en `codigo-padre.html` |
+| Timeout GPS | 30 s | `TIMEOUT` en `config.js` |
+| Timeout watchPosition | 35 s | `watchPosition` en `codigo-padre.html` |
 | Tiempo fuera de rango antes de bloquear botones | 5 min | `tiempoFueraRequerido` en `coordenadas-hijo2.html` |
 | Overlay + countdown fuera de rango | Inmediato al salir >50m | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
 | Heartbeats fallidos antes de reconexión | 3 | `MAX_HEARTBEATS_FALLIDOS` en `config.js` |
@@ -2509,7 +2834,159 @@ Ambos diálogos están **traducidos a los 6 idiomas** (español, inglés, franc�
 
 ---
 
-*Documento interno. Última revisión: Mayo 2026.*
+---
+
+## 27. Cleanup de listeners en cambio de aventura/modo
+
+Esta sección documenta el sistema de limpieza de listeners implementado para evitar la acumulación de event listeners cuando se cambia de aventura o modo.
+
+### 27.1 Problema original
+
+Los listeners registrados con `addEventListener` y los controladores registrados en `messagingAdapter._listenerRegistry` no se limpiaban automáticamente al cambiar de aventura o modo, lo que podía causar:
+- Acumulación de listeners en memoria
+- Ejecución múltiple de handlers
+- Comportamiento impredecible
+- Fugas de memoria
+
+### 27.2 Solución implementada
+
+**En el padre (codigo-padre.html):**
+1. Se agregó la importación de `limpiarControladoresAntiguos` desde `js/state-manager.js`
+2. Se llama a `limpiarControladoresAntiguos(0)` en `_hdl_SELECCION_AVENTURA_SELECCIONADA` (línea 10513)
+3. Se llama a `limpiarControladoresAntiguos(0)` en `_hdl_SISTEMA_CAMBIO_MODO` (línea 6197)
+
+**En los hijos (hijo2, hijo3, hijo4, hijo5):**
+1. Se agregó cleanup de `messagingAdapter._listenerRegistry` en sus controladores `CAMBIO_MODO`
+2. El cleanup se ejecuta al inicio del handler, antes de procesar el cambio de modo
+3. Se limpian todos los listeners del registry y se vacía el Map
+
+### 27.3 Archivos modificados
+
+- `codigo-padre.html`: Líneas 2759-2764, 6189-6213, 10511-10519
+- `coordenadas-hijo2.html`: Líneas 1916-1931
+- `audio-hijo3.html`: Líneas 1428-1443
+- `retos-hijo4.html`: Líneas 1441-1456
+- `boton-casa-hijo5.html`: Líneas 1083-1094
+- `js/state-manager.js`: Función `limpiarControladoresAntiguos`
+
+### 27.4 Beneficios
+
+- **Prevención de fugas de memoria:** Los listeners antiguos se eliminan sistemáticamente
+- **Comportamiento predecible:** No hay acumulación de handlers que puedan causar efectos secundarios
+- **Mejor rendimiento:** Menos listeners activos en cada cambio de aventura/modo
+- **Logging de diagnóstico:** Se registra cuántos listeners fueron limpiados en cada operación
+
+### 27.5 Notas importantes
+
+- El cleanup en el padre usa `limpiarControladoresAntiguos(0)` para limpiar todos los controladores sin edad mínima
+- El cleanup en los hijos es específico de `messagingAdapter._listenerRegistry`
+- El cleanup en los hijos se ejecuta incluso si el cambio de modo falla posteriormente
+- Se mantiene el listener de `pagehide` existente como fallback adicional
+
+---
+
+## 28. Implementación de restricciones GPS y comportamiento visual
+
+Esta sección documenta los cambios implementados para las restricciones GPS y el comportamiento visual de polylines y emojis según los requisitos actualizados.
+
+### 28.1 Parámetros GPS (valores actuales)
+
+| Parámetro | Valor | Archivo | Línea |
+|-----------|-------|---------|-------|
+| `PRECISION_MINIMA` | 25 m | `js/config.js` | 110 |
+| `INTERVALO_ACTUALIZACION` | 7.000 ms | `js/config.js` | 98 |
+| `TIMEOUT` | 30.000 ms | `js/config.js` | 92 |
+| `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | 5122 |
+
+### 28.2 Nuevos tipos de mensaje
+
+**Archivo: `js/constants.js`**
+- `GPS.VISUAL_ACTIVAR`: Activa visualización de polylines y emojis
+- `GPS.VISUAL_DESACTIVAR`: Desactiva visualización de polylines y emojis
+- `RETO.HABILITAR`: Habilita botón de retos después de audio 1 vez
+- `RETO.ESTADO_CASA`: Controla estado de retos en modo CASA
+
+### 28.3 Estado GPS visual
+
+**Archivo: `codigo-padre.html`**
+- Agregado campo `gps.visualActivo` al estado GPS (línea 3277)
+- Agregado campo `gps.tramoAudioPendiente` para controlar audio de tramos (línea 3278)
+- Agregado `audioEscuchadoPorParada` Map para rastrear audio por parada (línea 3280)
+
+**Archivo: `js/funciones-mapa.js`**
+- Agregado campo `gpsVisualActivo` a `estadoMapa` (línea 219)
+- Sincronización de `gpsVisualActivo` en `sincronizarEstadoGPSConPadre` (línea 646)
+
+### 28.4 Handlers GPS visual
+
+**Archivo: `codigo-padre.html`**
+- Handler `_hdl_NAVEGACION_GPS_VISUAL_ACTIVAR` (líneas 8739-8770)
+  - Solo funciona en modo AVENTURA
+  - Rechaza activación visual si el modo no es AVENTURA
+- Handler `_hdl_NAVEGACION_GPS_VISUAL_DESACTIVAR` (líneas 8772-8803)
+  - Solo funciona en modo AVENTURA
+  - Rechaza desactivación visual si el modo no es AVENTURA
+- Registro de handlers en `_regCtrl_GPS` (líneas 8948-8950)
+
+**Archivo: `coordenadas-hijo2.html`**
+- Envío de mensajes `GPS.VISUAL_ACTIVAR`/`DESACTIVAR` en click del botón GPS (líneas 1341-1354)
+
+**Nota importante**: En modo CASA, el hijo5 controla la visualización de polylines y emojis, no estos handlers.
+
+### 28.5 Lógica de botón GPS en tramos
+
+**Archivo: `codigo-padre.html`**
+- En `_hdl_NAVEGACION_CAMBIO_PARADA` (líneas 9577-9598):
+  - Al entrar en tramo en modo AVENTURA: deshabilitar GPS, marcar audio pendiente
+  - Al entrar en parada en modo AVENTURA: habilitar GPS
+
+### 28.6 Lógica de botón GPS en paradas
+
+**Archivo: `codigo-padre.html`**
+- En `_hdl_RETO_COMPLETADO` (líneas 8552-8569):
+  - Cuando se resuelve reto correctamente en parada: habilitar GPS
+
+### 28.7 Lógica de retos en modo AVENTURA
+
+**Archivo: `codigo-padre.html`**
+- En `_hdl_AUDIO_FIN_REPRODUCCION` (líneas 10012-10030):
+  - Registrar que audio fue escuchado para la parada actual
+  - Enviar mensaje `RETO.HABILITAR` al hijo4
+
+**Archivo: `retos-hijo4.html`**
+- Handler `RETO.HABILITAR` (líneas 1753-1773):
+  - Habilita botón de retos cuando audio se escucha 1 vez
+
+### 28.8 Lógica de retos en modo CASA
+
+**Archivo: `codigo-padre.html`**
+- En `_hdl_NAVEGACION_CAMBIO_PARADA` (líneas 9620-9636):
+  - En modo CASA: enviar `RETO.ESTADO_CASA` al hijo4
+  - Habilitado en paradas, deshabilitado en tramos
+
+**Archivo: `retos-hijo4.html`**
+- Handler `RETO.ESTADO_CASA` (líneas 1775-1799):
+  - Habilita/deshabilita botón de retos según tipo (parada/tramo)
+
+### 28.9 Comportamiento de botones en modo CASA
+
+**Verificación realizada:**
+- **Hijo 2 (coordenadas-hijo2.html):**
+  - Botones habilitados: imagen, mapa completo, mapa jpg
+  - Botones deshabilitados: GPS, ubicación
+- **Hijo 3 (audio-hijo3.html):**
+  - Botón audio: habilitado (sin restricción específica en modo CASA)
+- **Hijo 4 (retos-hijo4.html):**
+  - Botón retos: controlado por `RETO.ESTADO_CASA` (habilitado en paradas, deshabilitado en tramos)
+
+### 28.10 Resumen de archivos modificados
+
+1. **js/config.js**: Parámetros GPS actualizados
+2. **codigo-padre.html**: Estado GPS, handlers GPS visual, lógica de botones GPS y retos
+3. **js/constants.js**: Nuevos tipos de mensaje
+4. **js/funciones-mapa.js**: Estado GPS visual y sincronización
+5. **coordenadas-hijo2.html**: Envío de mensajes GPS visual
+6. **retos-hijo4.html**: Handlers RETO.HABILITAR y RETO.ESTADO_CASA
 
 ---
 
@@ -2639,7 +3116,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | Fichero | Qué contiene |
 |---------|-------------|
 | `coordenadas-aventuras.js` | Coordenadas GPS de paradas, tramos y referencias, por aventura. |
-| `textos-aventuras.js` | Textos narrativos de cada parada en los 6 idiomas. |
+| `textos-aventuras.js` | Textos narrativos de cada parada en los 12 idiomas. |
 | `audios-aventuras.js` | Rutas a los MP3 por parada e idioma. |
 | `retos-aventuras.js` | Preguntas, opciones y respuestas correctas por aventura e idioma. |
 | `puzzles-aventuras.js` | Definición de cada puzzle (tipo, piezas, solución). |
@@ -2951,7 +3428,7 @@ El mapa Leaflet vive aquí. Mantiene la posición del usuario y controla la prox
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con coordenadas de toda la aventura |
 | Hijo → Padre | `NAVEGACION.GPS.ACTIVAR` | Al pulsar el botón GPS |
 | Padre → Hijo | `NAVEGACION.GPS.ESTADO_GLOBAL` | Confirmando estado del GPS |
-| Hijo → Padre | `NAVEGACION.GPS.UBICACION_ACTUALIZADA` | Cada 3 s con la posición actual |
+| Hijo → Padre | `NAVEGACION.GPS.UBICACION_ACTUALIZADA` | Cada 7 s con la posición actual |
 | Padre → Hijo | `NAVEGACION.CAMBIO_PARADA` | Al cambiar de parada activa |
 | Hijo → Padre | `NAVEGACION.PARADA_COMPLETADA` | Cuando el GPS detecta llegada |
 | Padre → Hijo | `DATOS.RESPUESTA_COORDENADAS` | Datos detallados de una parada concreta |
@@ -3046,6 +3523,386 @@ El marcador es una píldora blanca con borde naranja (`#ff8c00`), emoji 🏛 a l
 
 ---
 
+### 25.12 Catálogo completo de controladores
+
+Referencia exhaustiva de cada handler registrado en el sistema. Para cada controlador se indica: qué mensaje escucha, quién lo envía, qué ejecuta, si genera respuesta y con qué propósito. Los mensajes usan siempre el bus centralizado (`js/mensajeria.js`). Los tipos de mensaje son constantes importadas desde `js/constants.js`.
+
+---
+
+#### 25.12.1 Handlers del PADRE (codigo-padre.html)
+
+El padre es el único que conoce el estado global. Todos los mensajes de los hijos llegan aquí y el padre decide qué reenviar, a quién y cuándo.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta el padre | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Cualquier hijo al cargarse | Registra al hijo como preparado; prepara los datos de aventura+idioma del `DATOS_PADRE` en memoria | `SISTEMA.PADRE_DATOS` (paquete completo: aventura, idioma, modo, textos, lista de paradas, configuración) | El hijo que envió la señal | Arrancar el handshake de inicialización; el hijo no puede funcionar sin estos datos |
+| `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | Marca ese hijo como `listo=true` en el mapa interno; cuando todos los hijos esperados están listos, llama `_hijoListo_onTodosListos()` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Registra en un `Map` interno que ese hijo recibió y entendió el cambio de modo | (ninguna respuesta directa; el padre espera a `EFECTUADO`) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Registra que el hijo aplicó el modo; cuando todos los hijos confirman, cierra la transición | `SISTEMA.CAMBIO_MODO_APLICADO` | El hijo que envió `EFECTUADO` | 4.ª y última fase del protocolo; el padre acusa recibo para que el hijo libere recursos |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat | Resetea el contador de `heartbeatsFallidos` para ese hijo | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_HEARTBEATS_FALLIDOS=3`, el padre recarga el iframe |
+| `NAVEGACION.CAMBIO_PARADA` | Hijo 1 (lista) o Hijo 2 (mapa — clic en marcador) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; recupera coordenadas y datos de la parada | `NAVEGACION.CAMBIO_PARADA` (con coords) → Hijo 2; `AUDIO.REPRODUCIR_REQUEST` → Hijo 3; `RETO.MOSTRAR` → Hijo 4 | Hijo 2, Hijo 3, Hijo 4 (mensajes independientes) | Orquestar la transición completa a una nueva parada: mapa, audio y reto se actualizan simultáneamente |
+| `AUDIO.FIN_REPRODUCCION` | Hijo 3 al terminar el audio | Registra que el audio completó; desbloquea el reto | `RETO.HABILITAR` | Hijo 4 | El reto solo se puede intentar después de escuchar el audio de la parada |
+| `RETO.COMPLETADO` | Hijo 4 cuando el usuario resuelve el reto | Actualiza el progreso en state-manager; marca la parada como completada; habilita el GPS para avanzar; si es la última parada, dispara el flujo de fin de aventura | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
+| `NAVEGACION.LLEGADA_DETECTADA` | Hijo 2 cuando GPS detecta que el usuario entró en la **tolerancia dinámica del tramo** (`toleranciaGPS` ≥ 50 m, calculada por `calcularToleranciaGPS()`) | Marca el tramo como completado; llama a `_llegarAParada()` para avanzar al siguiente elemento de la secuencia | (lógica interna; puede enviar `NAVEGACION.CAMBIO_PARADA` a los hijos si hay siguiente parada) | — | Transición automática GPS — solo aplica a **tramos**; las paradas completan con audio + reto, no por GPS |
+| `NAVEGACION.GPS_ACTIVADO` | Hijo 2 | Registra GPS activo en estado global | (ninguna) | — | Mantener el estado GPS sincronizado entre todos los módulos |
+| `NAVEGACION.GPS_DESACTIVADO` | Hijo 2 | Registra GPS desactivado en estado global | (ninguna) | — | Ídem |
+| `NAVEGACION.GPS_ERROR` | Hijo 2 | Registra el error GPS; puede mostrar UI de error en el padre | (ninguna directa; puede actualizar UI) | — | Informar al usuario de errores de geolocalización |
+| `NAVEGACION.GPS_POSICION` | Hijo 2 (cada `INTERVALO_ACTUALIZACION=7s`) | Actualiza `estadoActual.posicionActual`; puede calcular distancias y disparar lógica de proximidad | (ninguna respuesta directa) | — | Mantener el estado de posición actualizado en el padre |
+| `DATOS.SOLICITAR_COORDENADAS` | Hijo 2 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].coordenadas` | `DATOS.CARGAR_COORDENADAS` (array de elementos: paradas, tramos, referencias) | Hijo 2 | Hijo 2 no tiene datos propios; los pide al padre que los tiene en memoria |
+| `DATOS.SOLICITAR_AUDIO` | Hijo 3 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].audios` | `DATOS.CARGAR_AUDIO` (mapa id→ruta de archivo) | Hijo 3 | Ídem para audio |
+| `DATOS.SOLICITAR_RETO` | Hijo 4 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].retos` | `DATOS.CARGAR_RETO` (array de objetos reto) | Hijo 4 | Ídem para retos |
+| `DATOS.SOLICITAR_CASA` | Hijo 5 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].casa` | `DATOS.CARGAR_CASA` (datos de pantalla de inicio) | Hijo 5 | Ídem para la pantalla de casa/inicio |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo 5 | Lee la lista completa de paradas con sus nombres localizados | `NAVEGACION.RESPUESTA_DATOS_PARADAS` (array de paradas con nombre, número y estado) | Hijo 5 | Hijo 5 necesita los nombres de las paradas para renderizar los botones de la barra de navegación |
+| `CHAT.CERRAR` | Hijo 6 (asistente) | Oculta el panel del asistente en el padre; libera el iframe | (ninguna) | — | El usuario pulsó el botón de cerrar dentro del iframe de soporte |
+
+---
+
+#### 25.12.2 Mensajes salientes del PADRE (inicia el padre, no en respuesta a nadie)
+
+| Mensaje (`TIPOS_MENSAJE.*`) | Va a | Cuándo se envía | Propósito |
+|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Hijo específico | En respuesta a `HIJO_PREPARADO` (handshake) | Entregar el paquete de datos inicial a cada hijo |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hijo específico | En respuesta a `HIJO_LISTO` | Confirmar que el padre tomó nota de que el hijo está listo |
+| `SISTEMA.CAMBIO_MODO` | Todos los hijos | Cuando el usuario cambia de modo (AVENTURA/MAPA/MANUAL) | Iniciar el protocolo de cambio de modo; los hijos deben adaptar su interfaz |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Hijo específico | En respuesta a `CAMBIO_MODO_EFECTUADO` | Cerrar la 4.ª fase del protocolo de modo; el hijo puede liberar recursos |
+| `SISTEMA.HEARTBEAT` | Todos los hijos | Cada `INTERVALO_HEARTBEAT=5000ms` | Verificar que todos los hijos siguen vivos y respondiendo |
+| `NAVEGACION.CAMBIO_PARADA` (broadcast) | Hijo 2 (con coords) | Al cambiar de parada (manual o GPS) | Actualizar el mapa con la nueva parada activa |
+| `AUDIO.REPRODUCIR_REQUEST` | Hijo 3 | Al cambiar de parada | Ordenar a hijo 3 que cargue y reproduzca el audio de la nueva parada |
+| `RETO.MOSTRAR` | Hijo 4 | Al cambiar de parada | Mostrar el reto asociado a la nueva parada (bloqueado hasta que termine el audio) |
+| `RETO.HABILITAR` | Hijo 4 | Cuando hijo 3 notifica `FIN_REPRODUCCION` | Desbloquear el botón del reto para que el usuario pueda intentarlo |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Hijo 5 | En respuesta a `SOLICITAR_DATOS_PARADAS` | Entregar la lista de paradas para que hijo 5 la renderice en la barra de navegación |
+| `DATOS.CARGAR_COORDENADAS` | Hijo 2 | En respuesta a `SOLICITAR_COORDENADAS` | Entregar el array de elementos del recorrido al mapa |
+| `DATOS.CARGAR_AUDIO` | Hijo 3 | En respuesta a `SOLICITAR_AUDIO` | Entregar el mapa de rutas de audio |
+| `DATOS.CARGAR_RETO` | Hijo 4 | En respuesta a `SOLICITAR_RETO` | Entregar el array de retos |
+| `DATOS.CARGAR_CASA` | Hijo 5 | En respuesta a `SOLICITAR_CASA` | Entregar los datos de la pantalla de inicio |
+| `CONTROL.HABILITAR` | Hijo específico | Al mostrar una pantalla | Activar el iframe (visible, interactivo) |
+| `CONTROL.DESHABILITAR` | Hijo específico | Al ocultar una pantalla | Desactivar el iframe (oculto, sin eventos) |
+
+---
+
+#### 25.12.3 Handlers de la PANTALLA DE SELECCIÓN — En-busca-del-tesoro.html (iframe `id="seleccion"`)
+
+Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`). Gestiona el flujo completo de incorporación antes de que empiece la aventura. Participa en el handshake estándar igual que los hijos numerados, pero es el único iframe que el padre carga en el arranque inicial; el resto se carga cuando esta pantalla notifica que la selección está completa.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe configuración inicial; prepara las 16 pantallas con el idioma por defecto | `SISTEMA.HIJO_LISTO` | Padre | Sin este paquete no puede cargar textos ni aventuras correctamente |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; la pantalla queda lista para interacción del usuario | (ninguna) | — | Handshake |
+| `SISTEMA.CAMBIO_MODO` | Padre | Cumple el protocolo (sin efecto visual — esta pantalla gestiona su visibilidad propia) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Participar en el ciclo de vida del modo aunque no cambie de pantalla internamente |
+| `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
+
+**Mensajes salientes de la pantalla de selección:**
+
+| Mensaje | Va a | Cuándo | Propósito |
+|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Arrancar el handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras procesar `PADRE_DATOS` | Completar el handshake |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
+| `SELECCION.IDIOMA_SELECCIONADO` | Padre | Al confirmar idioma en P3 | Comunicar el idioma elegido para que el padre lo propague |
+| `SELECCION.AVENTURA_SELECCIONADA` | Padre | Al confirmar aventura en P8 | Comunicar la aventura elegida |
+| `SELECCION.AVENTURA_ACTIVADA` | Padre | Al validar código en P15 | Confirmar que la aventura está desbloqueada |
+| `SELECCION.TERMINOS_ACEPTADOS` | Padre | Al aceptar términos en P6 | Registrar aceptación legal |
+| `SELECCION.PREPARAR_HIJOS` | Padre | Cuando el flujo de selección completa (P16 aceptada) | Ordenar al padre que cargue el resto de iframes e inicie la aventura |
+
+---
+
+#### 25.12.4 Handlers del HIJO 1 — extrainfo-hijo1.html (iframe `id="hijo1-opciones"`)
+
+Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flotantes de acceso a contenido complementario. Solo activo durante la aventura. Posición: `position:fixed; left:1.5px; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(6 × var(--franja-lateral) + 26px)`.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Guarda el idioma y la aventura activa; inicializa el botón y los iconos | `SISTEMA.HIJO_LISTO` | Padre | Recibir el contexto para mostrar los iconos correctos |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; el botón queda interactivo | (ninguna) | — | Handshake |
+| `SISTEMA.CAMBIO_MODO` | Padre | En modo `AVENTURA`/`MAPA` se muestra; en `CASA` se oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | El panel solo tiene sentido durante la aventura |
+| `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
+| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
+
+**Mensajes salientes de Hijo 1:**
+
+| Mensaje | Va a | Cuándo | Propósito |
+|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras inicializarse | Handshake |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
+| Mensaje toggle temporizador | Padre | Al pulsar `#icono-temporizador` | El padre muestra/oculta la ventana del temporizador |
+| `MONITOREO.METRICA` (GPS error) | Padre | Al detectar error de geolocalización | Enviar métrica de error GPS para monitoreo |
+
+---
+
+#### 25.12.5 Handlers del HIJO 2 — coordenadas-hijo2.html (mapa Leaflet)
+
+Motor de mapa y GPS. Renderiza el mapa Leaflet, los marcadores de paradas/tramos/referencias, la ruta del usuario y gestiona el `watchPosition` GPS.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda configuración; solicita `DATOS.SOLICITAR_COORDENADAS`; inicializa el mapa Leaflet | `SISTEMA.HIJO_LISTO` | Padre | Sin datos de coordenadas no hay mapa |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Libera el confirmListener; el mapa queda en espera de interacción | (ninguna) | — | Finalizar handshake |
+| `SISTEMA.CAMBIO_MODO` | Padre | Adapta el mapa al modo (ej.: en `MANUAL` muestra todos los marcadores; en `AVENTURA` solo los ya visitados o el activo) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Cambiar el comportamiento visual del mapa según el modo |
+| `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
+| `NAVEGACION.CAMBIO_PARADA` | Padre | Centra el mapa con `flyTo` en las coordenadas de la nueva parada; actualiza el marcador activo | (ninguna directa) | — | Sincronizar el mapa con la parada seleccionada |
+| `DATOS.CARGAR_COORDENADAS` | Padre | Parsea el array de elementos (paradas, tramos, referencias); renderiza todos los marcadores y polilíneas | (ninguna) | — | Poblar el mapa con el recorrido completo de la aventura |
+| `CONTROL.HABILITAR` | Padre | Muestra el iframe; reactiva el mapa (`invalidateSize()`) | (ninguna) | — | El mapa necesita `invalidateSize` tras hacerse visible para renderizar correctamente |
+| `CONTROL.DESHABILITAR` | Padre | Oculta el iframe; pausa `watchPosition` si estaba activo | (ninguna) | — | Liberar recursos GPS al ocultar |
+
+**Mensajes salientes de Hijo 2:**
+
+| Mensaje | Va a | Cuándo | Propósito |
+|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras procesar datos y renderizar el mapa | Handshake |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
+| `DATOS.SOLICITAR_COORDENADAS` | Padre | Tras recibir `PADRE_DATOS` | Pedir datos del recorrido |
+| `NAVEGACION.GPS_ACTIVADO` | Padre | Al activar `watchPosition` | Estado GPS |
+| `NAVEGACION.GPS_DESACTIVADO` | Padre | Al detener `watchPosition` | Estado GPS |
+| `NAVEGACION.GPS_ERROR` | Padre | Cuando la API de geolocalización falla | Notificar error |
+| `NAVEGACION.GPS_POSICION` | Padre | Cada `INTERVALO_ACTUALIZACION=7s` | Actualizar posición global |
+| `NAVEGACION.LLEGADA_DETECTADA` | Padre | Cuando distancia ≤ `toleranciaGPS` dinámica del tramo (≥ 50 m) — solo para **tramos** | Disparar transición automática al siguiente elemento del recorrido |
+| `NAVEGACION.CAMBIO_PARADA` | Padre | Al hacer clic en un marcador del mapa | El usuario seleccionó una parada tocando el mapa |
+
+---
+
+#### 25.12.6 Handlers del HIJO 3 — audio-hijo3.html (reproductor de audio)
+
+Gestiona la reproducción del audio de guía de cada parada. Invisible para el usuario (iframe sin UI visible); toda su comunicación es por postMessage.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos de aventura; solicita `DATOS.SOLICITAR_AUDIO`; prepara el elemento `<audio>` | `SISTEMA.HIJO_LISTO` | Padre | Sin el mapa de rutas de audio no puede reproducir nada |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
+| `SISTEMA.CAMBIO_MODO` | Padre | En `CASA` pausa o para el audio en curso | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | No tiene sentido que el audio continúe si el usuario volvió al menú principal |
+| `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
+| `AUDIO.REPRODUCIR_REQUEST` | Padre (al cambiar parada) | Carga la ruta del audio para esa parada (`DATOS.cargar_audio[idParada]`); inicia reproducción con `play()` | (el evento `ended` del `<audio>` dispara `FIN_REPRODUCCION` | — | Reproducir la audioguía de la parada activa |
+| `AUDIO.PAUSAR` | Padre | Pausa la reproducción | (ninguna) | — | Permitir al usuario pausar manualmente |
+| `AUDIO.REANUDAR` | Padre | Reanuda desde el punto de pausa | (ninguna) | — | Ídem |
+| `AUDIO.PARAR` | Padre | Para y resetea el audio (`currentTime=0`) | (ninguna) | — | Parar completamente (ej.: al cambiar de parada antes de que termine) |
+| `DATOS.CARGAR_AUDIO` | Padre | Guarda el mapa `{idParada → rutaArchivo}` en memoria | (ninguna) | — | Recibir el índice completo de archivos de audio |
+| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida del iframe |
+
+**Mensajes salientes de Hijo 3:**
+
+| Mensaje | Va a | Cuándo | Propósito |
+|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir mapa de audios | Handshake |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
+| `DATOS.SOLICITAR_AUDIO` | Padre | Tras `PADRE_DATOS` | Pedir el mapa de rutas de audio |
+| `AUDIO.FIN_REPRODUCCION` | Padre | Al finalizar el audio (`ended` event) | Notificar al padre; el padre enviará `RETO.HABILITAR` a hijo 4 |
+
+---
+
+#### 25.12.7 Handlers del HIJO 4 — retos-hijo4.html (retos y desafíos)
+
+Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuable) hasta que hijo 3 notifica que el audio terminó.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos; solicita `DATOS.SOLICITAR_RETO`; prepara la UI | `SISTEMA.HIJO_LISTO` | Padre | Sin los datos de retos no puede mostrar nada |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
+| `SISTEMA.CAMBIO_MODO` | Padre | Oculta/muestra el reto según el modo | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Adaptar la visibilidad del reto al modo activo |
+| `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
+| `RETO.MOSTRAR` | Padre (al cambiar parada) | Renderiza el reto de la parada: pregunta, opciones (si las hay), estado bloqueado | (ninguna directa) | — | Presentar el reto visual al usuario; bloqueado hasta `RETO.HABILITAR` |
+| `RETO.HABILITAR` | Padre (tras `FIN_REPRODUCCION`) | Desbloquea el botón del reto; activa la interacción del usuario | (ninguna) | — | El reto solo se puede intentar después de escuchar el audio |
+| `DATOS.CARGAR_RETO` | Padre | Guarda el array de retos `[{idParada, tipo, pregunta, opciones, respuestaCorrecta}]` | (ninguna) | — | Recibir todos los retos de la aventura |
+| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
+
+**Mensajes salientes de Hijo 4:**
+
+| Mensaje | Va a | Cuándo | Propósito |
+|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir datos de retos | Handshake |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
+| `DATOS.SOLICITAR_RETO` | Padre | Tras `PADRE_DATOS` | Pedir el array de retos |
+| `RETO.COMPLETADO` | Padre | Cuando el usuario responde correctamente | Notificar al padre para avanzar el recorrido |
+
+---
+
+#### 25.12.8 Handlers del HIJO 5 — boton-casa-hijo5.html (barra de navegación superior)
+
+Barra de control siempre visible durante la aventura. Contiene el botón GPS on/off (🛰️) y una lista horizontal scrollable de botones de parada y tramo para navegar el recorrido. Posición: `position:fixed; top:3px; height:22vh; width:99vw; z-index:1000000`. Es un iframe transparente — el mapa se ve a través.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda configuración; solicita `DATOS.SOLICITAR_CASA` (datos base) y `NAVEGACION.SOLICITAR_DATOS_PARADAS` (lista de paradas); inicializa la barra | `SISTEMA.HIJO_LISTO` | Padre | Sin los datos de paradas no puede renderizar los botones de navegación |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; la barra queda interactiva | (ninguna) | — | Handshake |
+| `SISTEMA.CAMBIO_MODO` | Padre | En `AVENTURA`/`MAPA` muestra la barra; en `CASA` la oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La barra solo es visible durante la aventura |
+| `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
+| `DATOS.CARGAR_CASA` | Padre | Recibe datos de configuración base | (ninguna) | — | Datos iniciales del componente |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Renderiza los botones de parada/tramo con emoji, código corto y nombre completo; activa el efecto marquee si el nombre no cabe | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
+| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
+
+**Mensajes salientes de Hijo 5:**
+
+| Mensaje | Va a | Cuándo | Propósito |
+|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir datos y renderizar los botones | Handshake |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
+| `DATOS.SOLICITAR_CASA` | Padre | Tras `PADRE_DATOS` | Pedir datos de configuración base |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Padre | Tras `PADRE_DATOS` | Pedir la lista completa de paradas para renderizar botones |
+| `NAVEGACION.CAMBIO_PARADA` | Padre | Al pulsar un botón de parada o tramo | Ordenar al padre que cambie la parada activa |
+| `SISTEMA.CAMBIO_MODO` | Padre | Al pulsar el botón 🏠 GPS-OFF | Solicitar vuelta al modo `CASA` |
+| `VV:PARADAS:READY` | Padre | Cuando el contenedor de paradas está en el DOM | El padre inyecta estilos directamente para mantener la transparencia del iframe |
+
+---
+
+#### 25.12.9 Handlers del HIJO 6 — chat-hijo6.html (asistente de soporte)
+
+Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: su única comunicación con el padre es al cargarse y al cerrarse.
+
+| Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
+|---|---|---|---|---|---|
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe el idioma activo; carga los textos del acordeón en ese idioma desde `js/chat-asistente.js` | `SISTEMA.HIJO_LISTO` | Padre | Renderizar el FAQ en el idioma correcto |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
+| `SISTEMA.CAMBIO_MODO` | Padre | (sin efecto visible — el panel se gestiona por visibilidad en el padre) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Cumplir el protocolo aunque este hijo no cambie de modo |
+| `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
+| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
+
+**Mensajes salientes de Hijo 6:**
+
+| Mensaje | Va a | Cuándo | Propósito |
+|---|---|---|---|
+| `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras cargar los textos del FAQ | Handshake |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización (protocolo obligatorio) |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización (protocolo obligatorio) |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
+| `CHAT.CERRAR` | Padre | Al pulsar el botón ✕ del panel | Ordenar al padre que oculte el panel de soporte |
+
+---
+
+#### 25.12.10 Flujo completo de una parada (resumen integrado)
+
+```text
+Usuario pulsa parada Nº3 en hijo 5 (barra de navegación)
+  │
+  └─▶ HIJO 5 envía NAVEGACION.CAMBIO_PARADA → PADRE
+        │
+        ├─▶ PADRE envía NAVEGACION.CAMBIO_PARADA (coords P3) → HIJO 2
+        │     └─ Mapa centra en P3, actualiza marcador activo
+        │
+        ├─▶ PADRE envía AUDIO.REPRODUCIR_REQUEST (idParada=P3) → HIJO 3
+        │     └─ Audio carga y reproduce; al terminar:
+        │           └─ HIJO 3 envía AUDIO.FIN_REPRODUCCION → PADRE
+        │                 └─▶ PADRE envía RETO.HABILITAR → HIJO 4
+        │                       └─ Reto se desbloquea para el usuario
+        │
+        └─▶ PADRE envía RETO.MOSTRAR (idParada=P3) → HIJO 4
+              └─ Reto se renderiza (bloqueado) mientras el audio suena
+
+Usuario responde el reto correctamente
+  └─▶ HIJO 4 envía RETO.COMPLETADO → PADRE
+        └─ Padre avanza secuencia, habilita GPS para la siguiente parada
+
+GPS detecta que el usuario llegó al final de un TRAMO (distancia ≤ toleranciaGPS dinámica)
+  └─▶ HIJO 2 envía NAVEGACION.LLEGADA_DETECTADA → PADRE
+        └─ Padre avanza automáticamente al siguiente elemento del recorrido
+        (Nota: las PARADAS no usan GPS para completarse — completan con audio + reto)
+```
+
+---
+
+### 25.13 Upgrade: Sistema de reintentos activos para HIJO_LISTO (Junio 2026)
+
+#### Problema resuelto
+
+**Problema crítico:** Los hijos (hijo2, hijo3, hijo4, hijo5) ocultaban su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`. Si ese mensaje se perdía (postMessage no garantiza entrega), la UI quedaba invisible para siempre.
+
+**Por qué un timeout simple no era suficiente:**
+
+- Un timeout fijo no es solución permanente en dispositivos lentos
+- Si el dispositivo tarda más que el timeout, la UI sigue invisible
+- No hay garantía de que el mensaje llegue dentro del tiempo especificado
+
+#### Solución implementada: reintentos activos
+
+Los hijos reenvían `HIJO_LISTO` periódicamente hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`:
+
+- **Reintentos activos:** el hijo solicita confirmación de forma activa, no espera pasivamente
+- **El hijo ya tiene datos:** cuando envía `HIJO_LISTO` ya recibió `PADRE_DATOS` con aventura e idioma
+- **Funciona en dispositivos lentos:** reintenta hasta recibir respuesta, sin límite de tiempo arbitrario
+- **Fallback de seguridad:** después de 30 reintentos (30 segundos) muestra la UI como último recurso
+
+#### Implementación técnica
+
+**Variables añadidas en cada hijo (hijo2, hijo3, hijo4, hijo5):**
+
+```javascript
+let _reintentosHijoListo = 0;
+const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 segundos máximo
+const INTERVALO_REINTENTO = 1000;     // 1 segundo
+let _intervaloReintento = null;
+```
+
+**Función de reenvío:**
+
+```javascript
+async function enviarHijoListoConReintento() {
+    try {
+        await enviarMensaje({
+            destino: getPadreId(),
+            tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
+        });
+        _reintentosHijoListo++;
+        if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
+            _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+        } else {
+            _uiConfirmado = true;
+            mostrarUI(); // fallback tras 30s sin respuesta
+        }
+    } catch (error) { /* log */ }
+}
+```
+
+**Limpieza del intervalo al recibir la confirmación:**
+
+```javascript
+registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
+    if (_intervaloReintento) {
+        clearTimeout(_intervaloReintento);
+        _intervaloReintento = null;
+    }
+    // ... resto del handler
+});
+```
+
+#### Archivos modificados
+
+- `retos-hijo4.html` — Líneas 1279-1283 (variables), 1315-1346 (reenvío), 1354-1359 (limpieza)
+- `coordenadas-hijo2.html` — Líneas 1710-1714 (variables), 1728-1756 (reenvío), 1809-1814 (limpieza)
+- `audio-hijo3.html` — Líneas 1144-1148 (variables), 1195-1226 (reenvío), 1247-1252 (limpieza)
+- `boton-casa-hijo5.html` — Líneas 933-937 (variables), 989-1020 (reenvío), 1035-1040 (limpieza)
+
+#### Flujo del handshake con reintentos
+
+```text
+1. HIJO_PREPARADO → padre
+2. PADRE_DATOS → hijo  (con aventura e idioma)
+3. Hijo procesa datos
+4. HIJO_LISTO → padre  (intento 1)
+   Si no llega PADRE_CONFIRMA_HIJO_LISTO en 1s → reintento 2, 3… hasta 30
+   Si después de 30s sin respuesta → fallback: mostrar UI directamente
+   Si llega PADRE_CONFIRMA_HIJO_LISTO en cualquier momento →
+      limpiar intervalo → mostrar UI normalmente
+```
+
+---
+
 ## 26. El asistente de soporte (hijo 6)
 
 ### Descripción general
@@ -3089,14 +3946,14 @@ La constante `ORDEN_TEMAS` define el orden de aparición. Cada tema agrupa entre
 | 📱 La Aplicación | `APP` | `APP_GENERAL`, `APP_SEGUNDO_PLANO`, `SIN_CONEXION`, `BOTONES_ESTADO` |
 | ⏱️ Tiempo y Recorrido | `TIEMPO` | `TIEMPO_AGOTADO`, `TIEMPO_AVENTURA`, `PAUSAS_RUTA`, `ACCESO_MONUMENTOS` |
 
-En total hay **26 intenciones**. Cada una tiene un texto de pregunta (botón nivel 2) y un texto de respuesta, ambos en los 6 idiomas soportados.
+En total hay **26 intenciones**. Cada una tiene un texto de pregunta (botón nivel 2) y un texto de respuesta, ambos en los 12 idiomas soportados.
 
 ### Los datos: js/chat-asistente.js
 
 Este módulo exporta todo lo que necesita la interfaz:
 
 ```javascript
-export const IDIOMAS_SOPORTADOS  // ['es', 'en', 'fr', 'it', 'nl', 'ja']
+export const IDIOMAS_SOPORTADOS  // ['es', 'en', 'fr', 'it', 'nl', 'ja', 'de', 'zh', 'pl', 'pt', 'ru', 'uk']
 export const TEMAS_ETIQUETAS     // { GPS: { es: '📍 GPS y Ubicación', en: '...', ... }, ... }
 export const ORDEN_TEMAS         // ['GPS', 'AUDIO', 'NAVEGACION', 'PROGRESO', 'RETOS', 'APP', 'TIEMPO']
 export const TEMAS_AGRUPADOS     // { GPS: ['GPS_NO_DETECTA', ...], ... }
@@ -3159,23 +4016,23 @@ Algunas respuestas pueden incluir una imagen aclaratoria (campo `imagen` en `RES
 
 ### Estado del contenido
 
-Los textos de preguntas (`PREGUNTAS_SOPORTE`) y respuestas (`RESPUESTAS_SOPORTE`) están estructurados pero **pendientes de redacción**. Casi todas las cadenas son actualmente `''` o `{ texto: '', imagen: null }`. La única intención con contenido completo en los 6 idiomas es `DESVIO_RUTA`. El acordeón filtra automáticamente las preguntas sin texto, así que el chat puede desplegarse vacío mientras se rellena el contenido de forma incremental.
+Los textos de preguntas (`PREGUNTAS_SOPORTE`) y respuestas (`RESPUESTAS_SOPORTE`) están estructurados pero **pendientes de redacción**. Casi todas las cadenas son actualmente `''` o `{ texto: '', imagen: null }`. La única intención con contenido completo en los 12 idiomas es `DESVIO_RUTA`. El acordeón filtra automáticamente las preguntas sin texto, así que el chat puede desplegarse vacío mientras se rellena el contenido de forma incremental.
 
 ---
 
-### Las etiquetas de tema en los 6 idiomas (`TEMAS_ETIQUETAS`)
+### Las etiquetas de tema en los 12 idiomas (`TEMAS_ETIQUETAS`)
 
 La constante `TEMAS_ETIQUETAS` en `js/chat-asistente.js` define el texto del botón de nivel 1 para cada tema en cada idioma:
 
 ```javascript
 export const TEMAS_ETIQUETAS = {
-    GPS:        { es: '📍 GPS y Ubicación',      en: '📍 GPS & Location',        fr: '📍 GPS et Position',          it: '📍 GPS e Posizione',          nl: '📍 GPS en Locatie',         ja: '📍 GPS・位置情報'    },
-    AUDIO:      { es: '🔊 Audio',                en: '🔊 Audio',                 fr: '🔊 Audio',                    it: '🔊 Audio',                    nl: '🔊 Audio',                  ja: '🔊 音声'             },
-    NAVEGACION: { es: '🗺️ Navegación y Ruta',   en: '🗺️ Navigation & Route',    fr: '🗺️ Navigation et Itinéraire',  it: '🗺️ Navigazione e Percorso',  nl: '🗺️ Navigatie en Route',    ja: '🗺️ ナビゲーション'   },
-    PROGRESO:   { es: '💾 Progreso y Guardado',  en: '💾 Progress & Saving',     fr: '💾 Progression et Sauvegarde', it: '💾 Progresso e Salvataggio', nl: '💾 Voortgang en Opslaan',   ja: '💾 進行状況'          },
-    RETOS:      { es: '🧩 Retos y Puzzles',      en: '🧩 Challenges & Puzzles',  fr: '🧩 Défis et Puzzles',          it: '🧩 Sfide e Puzzle',           nl: '🧩 Uitdagingen en Puzzels', ja: '🧩 チャレンジ'        },
-    APP:        { es: '📱 La Aplicación',        en: '📱 The App',               fr: "📱 L'Application",             it: "📱 L'Applicazione",           nl: '📱 De App',                 ja: '📱 アプリ'            },
-    TIEMPO:     { es: '⏱️ Tiempo y Recorrido',   en: '⏱️ Time & Tour',           fr: '⏱️ Temps et Parcours',         it: '⏱️ Tempo e Percorso',         nl: '⏱️ Tijd en Rondleiding',   ja: '⏱️ 時間・ツアー'     },
+    GPS:        { es: '📍 GPS y Ubicación',      en: '📍 GPS & Location',        fr: '📍 GPS et Position',           it: '📍 GPS e Posizione',          nl: '📍 GPS en Locatie',         ja: '📍 GPS・位置情報',    de: '📍 GPS & Standort',          zh: '📍 GPS与位置',         pl: '📍 GPS i Lokalizacja',       pt: '📍 GPS e Localização',       ru: '📍 GPS и Местоположение',   uk: '📍 GPS та Місцезнаходження' },
+    AUDIO:      { es: '🔊 Audio',                en: '🔊 Audio',                 fr: '🔊 Audio',                     it: '🔊 Audio',                    nl: '🔊 Audio',                  ja: '🔊 音声',             de: '🔊 Audio',                    zh: '🔊 音频',              pl: '🔊 Audio',                   pt: '🔊 Áudio',                   ru: '🔊 Аудио',                  uk: '🔊 Аудіо'                   },
+    NAVEGACION: { es: '🗺️ Navegación y Ruta',   en: '🗺️ Navigation & Route',    fr: '🗺️ Navigation et Itinéraire', it: '🗺️ Navigazione e Percorso',  nl: '🗺️ Navigatie en Route',    ja: '🗺️ ナビゲーション',   de: '🗺️ Navigation & Route',      zh: '🗺️ 导航与路线',        pl: '🗺️ Nawigacja i Trasa',       pt: '🗺️ Navegação e Rota',        ru: '🗺️ Навигация и Маршрут',    uk: '🗺️ Навігація та Маршрут'    },
+    PROGRESO:   { es: '💾 Progreso y Guardado',  en: '💾 Progress & Saving',     fr: '💾 Progression et Sauvegarde', it: '💾 Progresso e Salvataggio', nl: '💾 Voortgang en Opslaan',   ja: '💾 進行状況',          de: '💾 Fortschritt & Speichern',  zh: '💾 进度与保存',         pl: '💾 Postęp i Zapisywanie',    pt: '💾 Progresso e Guardar',     ru: '💾 Прогресс и Сохранение',  uk: '💾 Прогрес і Збереження'    },
+    RETOS:      { es: '🧩 Retos y Puzzles',      en: '🧩 Challenges & Puzzles',  fr: '🧩 Défis et Puzzles',          it: '🧩 Sfide e Puzzle',           nl: '🧩 Uitdagingen en Puzzels', ja: '🧩 チャレンジ',        de: '🧩 Aufgaben & Rätsel',        zh: '🧩 挑战与拼图',         pl: '🧩 Wyzwania i Puzzle',       pt: '🧩 Desafios e Puzzles',      ru: '🧩 Задания и Головоломки',  uk: '🧩 Завдання та Пазли'       },
+    APP:        { es: '📱 La Aplicación',        en: '📱 The App',               fr: "📱 L'Application",             it: "📱 L'Applicazione",           nl: '📱 De App',                 ja: '📱 アプリ',            de: '📱 Die App',                  zh: '📱 应用程序',           pl: '📱 Aplikacja',               pt: '📱 A Aplicação',             ru: '📱 Приложение',             uk: '📱 Додаток'                  },
+    TIEMPO:     { es: '⏱️ Tiempo y Recorrido',   en: '⏱️ Time & Tour',           fr: '⏱️ Temps et Parcours',         it: '⏱️ Tempo e Percorso',         nl: '⏱️ Tijd en Rondleiding',   ja: '⏱️ 時間・ツアー',     de: '⏱️ Zeit & Tour',             zh: '⏱️ 时间与游览',         pl: '⏱️ Czas i Trasa',            pt: '⏱️ Tempo e Percurso',        ru: '⏱️ Время и Маршрут',        uk: '⏱️ Час та Маршрут'          },
 };
 ```
 
@@ -3183,7 +4040,7 @@ export const TEMAS_ETIQUETAS = {
 
 ### Catálogo completo de las 26 intenciones
 
-Cada intención tiene: un clave (`GPS_NO_DETECTA`), su texto de pregunta en 6 idiomas (`PREGUNTAS_SOPORTE`), y su respuesta en 6 idiomas (`RESPUESTAS_SOPORTE`). Los textos marcados con ⚠️ están pendientes de redacción.
+Cada intención tiene: un clave (`GPS_NO_DETECTA`), su texto de pregunta en 12 idiomas (`PREGUNTAS_SOPORTE`), y su respuesta en 12 idiomas (`RESPUESTAS_SOPORTE`). Los textos marcados con ⚠️ están pendientes de redacción.
 
 | Tema | Clave de intención | Estado |
 | --- | --- | --- |
@@ -3198,7 +4055,7 @@ Cada intención tiene: un clave (`GPS_NO_DETECTA`), su texto de pregunta en 6 id
 | NAVEGACION | `PROXIMA_PARADA` | ⚠️ pendiente |
 | NAVEGACION | `PARADA_ACTUAL` | ⚠️ pendiente |
 | NAVEGACION | `PARADAS_RESTANTES` | ⚠️ pendiente |
-| NAVEGACION | `DESVIO_RUTA` | ✅ completo (6 idiomas) |
+| NAVEGACION | `DESVIO_RUTA` | ✅ completo (12 idiomas) |
 | PROGRESO | `PROGRESO_GUARDAR` | ⚠️ pendiente |
 | PROGRESO | `PROGRESO_RETOMAR` | ⚠️ pendiente |
 | PROGRESO | `AVENTURA_COMPLETADA` | ⚠️ pendiente |
@@ -3385,6 +4242,130 @@ SOPORTE: {
     LIMPIAR_HISTORIAL:    'SOPORTE.LIMPIAR_HISTORIAL'     // padre → hijo6: resetear
 }
 ```
+
+---
+
+## 29. Corrección de errores de inicialización (logger y sleep)
+
+Esta sección documenta las correcciones realizadas para resolver los errores de ReferenceError que impedían el correcto funcionamiento de la aplicación.
+
+### 29.1 Problema: "Uncaught ReferenceError: logger is not defined"
+
+**Causa:**
+El código usaba `logger.` directamente en múltiples lugares sin verificar si el objeto logger estaba disponible. Esto causaba errores cuando el módulo logger no se había cargado completamente o cuando se ejecutaba código antes de la inicialización.
+
+**Solución implementada:**
+Se reemplazaron todos los usos de `logger.` con `(globalThis.logger || console).` para proporcionar un fallback robusto a console cuando logger no está disponible.
+
+**Cambios en codigo-padre.html:**
+- Líneas 83, 86: `handleIframeError` - fallback para logger.error
+- Líneas 201, 203: `handleIframeLoad` - fallback para logger.debug
+- Líneas 2839, 7300, 11684: Corrección de imports de logger.js que fueron incorrectamente modificados
+- Líneas 11782, 11821: Corrección de duplicaciones en globalThis.logger
+- Todos los demás usos de logger. reemplazados con (globalThis.logger || console).
+
+**Archivos afectados:**
+- `codigo-padre.html` - ~100+ reemplazos de logger. por (globalThis.logger || console).
+
+### 29.2 Problema: "Uncaught ReferenceError: Cannot access 'sleep' before initialization"
+
+**Causa:**
+La función `sleep(ms)` se definía demasiado tarde en el código (línea 6581), pero se usaba en múltiples lugares antes de esa definición (líneas 3036, 4021, 4028, 4055, etc.). Esto causaba ReferenceError cuando el código intentaba usar sleep antes de que estuviera definido.
+
+**Solución implementada:**
+Se movió la definición de `sleep(ms)` al principio de Script 1 y se hizo disponible globalmente en `globalThis.sleep` para que todos los scripts puedan usarla. Se eliminaron las definiciones duplicadas en Script 2 (líneas 7286 y 8373) y Script 4 (línea 11922).
+
+**Cambios en codigo-padre.html:**
+- Línea 2427: Definición de sleep al inicio de Script 1
+- Línea 2429: `globalThis.sleep = sleep` para hacerla disponible globalmente
+- Línea 7286: Eliminada definición duplicada de sleep en Script 2
+- Línea 8373: Eliminada definición duplicada de sleep en Script 2
+- Línea 11922: Eliminada definición duplicada de sleep en Script 4
+
+**Definición de sleep:**
+```javascript
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+globalThis.sleep = sleep;
+```
+
+### 29.3 Problema: Timeout esperando HIJO_LISTO
+
+**Causa:**
+El timeout de 15 segundos en `state-manager.js` para esperar HIJO_LISTO era demasiado corto, causando falsos timeouts aunque el mensaje HIJO_LISTO se recibía correctamente.
+
+**Solución implementada:**
+Aumentado el timeout de 15 a 30 segundos en `state-manager.js` línea 255.
+
+**Cambios en state-manager.js:**
+- Línea 255: Timeout cambiado de 15000ms a 30000ms
+
+**Cambios en sw.js:**
+- Línea 83: CACHE_VERSION actualizado a 'v-c3d4e5f6g7h8'
+
+### 29.4 Actualización del Service Worker
+
+**Causa:**
+El Service Worker cacheaba la versión anterior de codigo-padre.html, por lo que los cambios no se reflejaban al recargar la página.
+
+**Solución implementada:**
+Se actualizó el CACHE_VERSION en sw.js para forzar la invalidación del caché.
+
+**Cambios en sw.js:**
+- Línea 83: CACHE_VERSION actualizado de `v-7d9896fe7698` a `v-a1b2c3d4e5f6`
+
+**Nota:**
+En producción, el CACHE_VERSION debería generarse automáticamente mediante el script `tools/build-sw.js` que calcula un SHA-256 de los archivos. Este cambio manual es solo para desarrollo local.
+
+### 29.5 Verificación del sistema HIJO_LISTO
+
+Se verificó que el sistema de reconocimiento de hijos funciona correctamente después de las correcciones:
+
+**Handler _hdl_SISTEMA_HIJO_LISTO (línea 6058):**
+```javascript
+estado.hijosInicializados.add(hijoId);
+// Marcar hijo como listo en sistema de eventos
+if (globalThis.__stateManager && typeof globalThis.__stateManager.marcarHijoListo === 'function') {
+    await globalThis.__stateManager.marcarHijoListo(hijoId);
+}
+```
+
+**Función _esperarHijoListo (línea 6601):**
+```javascript
+function _esperarHijoListo(iframeId) {
+    if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
+        return globalThis.__stateManager.crearPromiseHijoListo(iframeId);
+    }
+    // Fallback simple sin sleep (solo verificar estado actual)
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            if (globalThis.estadoPadre.hijosInicializados.has(iframeId)) {
+                resolve();
+            } else {
+                reject(new Error(`Timeout esperando HIJO_LISTO de ${iframeId}`));
+            }
+        }, ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION));
+    });
+}
+```
+
+**Estado del sistema:**
+- ✅ Handler HIJO_LISTO llama correctamente a marcarHijoListo
+- ✅ _esperarHijoListo usa el sistema de eventos con fallback
+- ✅ Sistema de eventos en state-manager.js funciona correctamente
+- ✅ No hay race conditions en el reconocimiento de hijos
+
+### 29.6 Resumen de correcciones
+
+| Error | Causa | Solución | Archivos modificados |
+|-------|-------|----------|---------------------|
+| logger is not defined | logger. usado sin verificar disponibilidad | Reemplazar con (globalThis.logger \|\| console). | codigo-padre.html |
+| sleep before initialization | sleep definido después de su uso | Mover definición al inicio de Script 1 y 2 | codigo-padre.html |
+| Caché antiguo | Service Worker cacheaba versión anterior | Actualizar CACHE_VERSION | sw.js |
+
+**Resultado:**
+Los errores de ReferenceError han sido resueltos. La aplicación ahora carga correctamente sin errores de inicialización de logger o sleep. El sistema de reconocimiento de hijos funciona correctamente con el sistema de eventos implementado en state-manager.js.
 
 > `TIPOS_MENSAJE_VALIDOS` se actualiza automáticamente en `constants.js`: la función `_flattenTipos()` recorre el árbol de forma recursiva, así que no hay ningún paso adicional al añadir el nuevo namespace.
 

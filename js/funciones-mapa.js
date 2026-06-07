@@ -216,6 +216,7 @@ const estadoMapa = {
     gpsError: null, // Último error GPS
     watchId: null, // ID del watcher de navigator.geolocation
     ultimaUbicacion: null, // { lat, lng } - última ubicación GPS recibida
+    gpsVisualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
     siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
@@ -639,9 +640,10 @@ function sincronizarEstadoGPSConPadre() {
         globalThis.estadoPadre.gps.permisos = estadoMapa.gpsPermisos;
         globalThis.estadoPadre.gps.precision = estadoMapa.gpsPrecision;
         globalThis.estadoPadre.gps.error = estadoMapa.gpsError;
-        globalThis.estadoPadre.gps.watchId = estadoMapa.watchId || gpsWatchId;
+        globalThis.estadoPadre.gps.watchId = estadoMapa.watchId;
         globalThis.estadoPadre.gps.posicionUsuario = estadoMapa.posicionUsuario;
         globalThis.estadoPadre.gps.ultimaUbicacion = estadoMapa.ultimaUbicacion;
+        globalThis.estadoPadre.gps.visualActivo = estadoMapa.gpsVisualActivo;
     }
 }
 
@@ -1232,6 +1234,20 @@ export function limpiarRecursos() {
             clearInterval(intervaloLimpiezaAutomatica);
             intervaloLimpiezaAutomatica = null;
         }
+
+        // Limpiar GPS watch si está activo (por si se inició en este contexto)
+        if (gpsWatchId !== null) {
+            try { navigator.geolocation.clearWatch(gpsWatchId); } catch (_e) {} // NOSONAR
+            gpsWatchId = null;
+        }
+
+        // Resetear estado GPS de estadoMapa
+        estadoMapa.gpsActivo = false;
+        estadoMapa.watchId = null;
+        estadoMapa.gpsError = null;
+        estadoMapa.gpsVisualActivo = false;
+        estadoMapa.posicionUsuario = null;
+        sincronizarEstadoGPSConPadre();
 
         logger.info('[funciones-mapa] Limpieza completa de recursos finalizada');
         return true;
@@ -2024,7 +2040,16 @@ async function manejarCambiarParada(mensaje) {
         // Validar que la parada existe en AVENTURA_PARADAS (soporta both padreId and paradaId)
         const idToMatch = padreId || paradaId;
         const idSinPrefijo = idToMatch?.startsWith('padre-') ? idToMatch.substring(6) : idToMatch;
-        
+
+        // Lazy-init: si AVENTURA_PARADAS está vacío pero los datos ya están cargados, poblarlo ahora
+        if (!globalThis.AVENTURA_PARADAS?.length && globalThis.__vv_DATOS_AVENTURAS && globalThis.aventuraSeleccionada) {
+            const _lazyCoords = globalThis.__vv_DATOS_AVENTURAS?.[globalThis.aventuraSeleccionada]?.['coordenadas-hijo2.html']?.coordenadas;
+            if (_lazyCoords?.length) {
+                globalThis.AVENTURA_PARADAS = _lazyCoords;
+                logger.warn(`${logPrefix} AVENTURA_PARADAS lazy-init: ${_lazyCoords.length} elementos para ${globalThis.aventuraSeleccionada}`);
+            }
+        }
+
         // DEBUG: Verificar estructura del array
         logger.debug(`${logPrefix} 🔍 Buscando parada con idToMatch=${idToMatch}, idSinPrefijo=${idSinPrefijo}`);
         logger.debug(`${logPrefix} 🔍 AVENTURA_PARADAS tiene ${globalThis.AVENTURA_PARADAS?.length || 0} elementos`);
@@ -3028,8 +3053,8 @@ export async function diagnosticarGPS() {
             esLocalhost: location.hostname === 'localhost' || location.hostname === '127.0.0.1'
         },
         gpsEstado: {
-            activo: gpsWatchId !== null,
-            watchId: estadoMapa.watchId || gpsWatchId,
+            activo: estadoMapa.gpsActivo,
+            watchId: estadoMapa.watchId,
             posicionUsuario: estadoMapa.posicionUsuario,
             gpsActivo: estadoMapa.gpsActivo,
             gpsPermisos: estadoMapa.gpsPermisos,
