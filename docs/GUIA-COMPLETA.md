@@ -4622,8 +4622,9 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
-| Handler en hijo1 | L1474 |
-| Acción | hijo1 detiene temporizador, muestra tiempo total |
+| Emitido por | `_handleFinDeAventura` L7665 vía raw postMessage (L7671) — se activa cuando `progresarSiguienteElemento` no encuentra siguiente elemento |
+| Handler en hijo1 | L1474 — detiene temporizador, responde con `AVENTURA.ESTADISTICAS_TIEMPO` |
+| Acción completa | Padre para timer → hijo1 envía estadísticas → padre llama `mostrarModalFinalizacion()` (**⚠️ función no implementada** — ver §10.15) → modal mostraría celebración con ID `modal-finalizacion-exitosa` → botón OK activaría `_hdl_AVENTURA_FINALIZADA` en padre para cleanup |
 
 **AVENTURA.DETENER** (padre → hijo1)
 
@@ -5094,7 +5095,7 @@ Estos tipos existen en `constants.js` como constantes pero no hay ninguna llamad
 | `SISTEMA.APLICACION_INICIALIZADA` | Disparo inicial de aventura | **Handler huérfano** — handler registrado en padre L6481 pero ningún archivo emite este mensaje |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` (en funciones-mapa) | Actualizar `estadoMapa.gpsActivo/gpsPermisos` + eliminar marcador usuario si GPS off | **Handler muerto en funciones-mapa** — registrado en `manejarEstadoGPSActualizado` L2471, pero padre emite este tipo solo via `broadcastToCapability` (rutea a iframes, no al bus interno). Nunca se activa. |
 | `NAVEGACION.ACTUALIZAR_ESTADO` (en funciones-mapa) | Actualizar `estadoMapa` + mover/crear marcador de posición (`user-position.png`) | **Handler muerto en funciones-mapa** — `manejarActualizarEstadoNavegacion` L2378, esqueleto de turn-by-turn nav (M1). Nadie envía `ACTUALIZAR_ESTADO` a funciones-mapa; los únicos emisores son funciones-mapa mismo (hacia hijo2, con payload incompatible). |
-| `AVENTURA.FINALIZADA` (en padre) | Limpieza completa de la aventura: llama `limpiarDatosAventura(motivo)` | **Handler muerto en padre** — `_hdl_AVENTURA_FINALIZADA` L11009, registrado en L11136 vía `registrarControladorSeguro`. Nadie envía este mensaje al padre: padre solo lo emite hacia hijo1 vía raw postMessage (L7671); hijo1 al recibirlo responde con `AVENTURA.ESTADISTICAS_TIEMPO`, no reenviando FINALIZADA al padre. |
+| `AVENTURA.FINALIZADA` (en padre) | Limpieza completa: `limpiarDatosAventura(motivo)` | **Handler sin activador — flujo incompleto.** `_hdl_AVENTURA_FINALIZADA` L11009, registrado en L11136. El activador previsto es `globalThis.mostrarModalFinalizacion()` llamada en `_handleFinDeAventura` L7674: debería mostrar modal de celebración con ID `modal-finalizacion-exitosa` (el SW ya tiene guard para ese ID en L11663); el botón OK del modal enviaría `AVENTURA.FINALIZADA` al padre por bus → handler dispara cleanup. **La función `mostrarModalFinalizacion` nunca se implementó** → el handler nunca se activa. El path de timeout (`_hdl_AVENTURA_TIEMPO_AGOTADO` L10911) sí tiene su modal inline completo. |
 
 ---
 
@@ -6294,6 +6295,8 @@ Ver §3 de "Pendiente antes del despliegue" para la lista completa de tareas que
 
 ## 24. La experiencia del usuario: narrativa completa del modo AVENTURA
 
+
+acordarse de implementar 
 > Esta sección describe paso a paso qué vive el usuario desde que abre la aplicación hasta que completa una aventura, explicado de forma narrativa para que sea fácil de entender.
 
 ---
