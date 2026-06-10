@@ -4772,7 +4772,7 @@ Dos patrones arquitectónicamente incorrectos pero funcionalmente neutros hoy. D
 | HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ |
 | GPS.UBICACION_ACTUALIZADA | ✅ | ✅ | ✅ | ✅ | ❌ |
 | GPS.ESTADO_ACTUALIZADO | ✅ | ✅ | ✅ | ✅ | ❌ |
-| GPS.ERROR | ❌ | ❌ | ✅ | ✅ | ❌ |
+| GPS.ERROR | ❌ | ❌ | ❌ | ❌ | ❌ |
 | CARGAR_COORDENADAS | — | ✅ | — | — | — |
 | CARGAR_AUDIOS | — | — | ✅ | — | — |
 | CARGAR_RETOS | — | — | — | ✅ | — |
@@ -4786,6 +4786,8 @@ Dos patrones arquitectónicamente incorrectos pero funcionalmente neutros hoy. D
 | CHAT.ESTADO_PADRE | — | — | — | — | ✅ |
 
 **Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
+
+> ⚠️ **GPS.ERROR gap total**: padre emite `GPS.ERROR` vía `broadcastToCapability` (L4986) pero ningún iframe hijo tiene handler registrado para este tipo. El broadcast se envía, llega al bus, y nadie lo consume. Gap de cobertura — ningún hijo reacciona a errores GPS del sistema nativo.
 
 ---
 
@@ -4933,9 +4935,9 @@ setInterval app.js L1633 (background retry loop)
   → elimina entrada si éxito o max reintentos alcanzado
 ```
 
-**Quién envía NACK**: hijo1 L726/743, hijo2 L2005/2023, hijo3 L1490/1508, hijo4 L1495/1513/1594, seleccion L2414/2420, padre L8161/8196 (a otros componentes).
+**Quién envía NACK**: hijo1 L726/743, hijo2 L2005/2023, hijo3 L1490/1508, hijo4 L1495/1513/1594, `En-busca-del-tesoro.html` (seleccion) L2414/2420, `boton-casa-hijo5.html` (dev-only) L696/714, padre L8153/8188 (a otros componentes).
 
-**SISTEMA.CAMBIO_MODO_RESPONSE** (hijo → padre): algunos hijos envían este mensaje como confirmación alternativa. Padre L6280 lo maneja: actualiza `estado.estadoHijos.get(origen).modo.actual`. Es informativo — no bloquea ningún flujo crítico.
+**SISTEMA.CAMBIO_MODO_RESPONSE** (hijo → padre): algunos hijos envían este mensaje como confirmación alternativa. Padre L6281 lo maneja (registrarControladorSeguro inline): actualiza `estado.estadoHijos.get(origen).modo.actual`. Es informativo — no bloquea ningún flujo crítico.
 
 ---
 
@@ -5198,12 +5200,14 @@ Devuelve el número de mensajes enviados. Internamente itera `hijosConCapability
 
 | Línea | Contexto | Tipo enviado |
 |-------|----------|--------------|
-| L4588 | GPS activado — broadcast estado inicial | `GPS.ESTADO_ACTUALIZADO` |
-| L4823 | Actualización de posición GPS | `GPS.UBICACION_ACTUALIZADA` |
-| L4986 | Error de geolocalización | `GPS.ERROR` |
-| L5098 | Timeout/reinicio GPS | `GPS.ESTADO_ACTUALIZADO` |
-| L8693 | GPS restringido (fuera de rango) | `GPS.RESTRINGIDO` |
-| L8801 | GPS desactivado manualmente | `GPS.ESTADO_ACTUALIZADO` |
+| L4588 | GPS activado — broadcast estado inicial (activo:true) | `GPS.ESTADO_ACTUALIZADO` |
+| L4823 | Helper `_gpsBroadcastPayload` — usado exclusivamente por `_gpsBroadcastUbicacion` para updates de posición | `GPS.UBICACION_ACTUALIZADA` |
+| L4986 | Error de geolocalización en watchPosition | `GPS.ERROR` |
+| L5098 | Función centralizada `desactivarGPS()` — activo:false, permisos:false | `GPS.ESTADO_ACTUALIZADO` |
+| L8685 | `_hdl_NAVEGACION_GPS_DESACTIVAR` — re-broadcast tras llamar a `desactivarGPS()` ⚠️ doble-envío | `GPS.ESTADO_ACTUALIZADO` |
+| L8793 | `_hdl_NAVEGACION_GPS_UBICACION_ACTUALIZADA` — relay de actualización recibida desde funciones-mapa hacia hijos con capability gps | `GPS.UBICACION_ACTUALIZADA` |
+
+> ⚠️ **Bug — doble-broadcast al desactivar GPS**: cuando llega `GPS.DESACTIVAR` al bus, el handler `_hdl_NAVEGACION_GPS_DESACTIVAR` (L8671) llama a `desactivarGPS()` (que broadcast en L5098 con `permisos:false`) y después vuelve a broadcast en L8685 con `permisos: state.gps.permisos || null`. Hijo2 recibe **dos** `GPS.ESTADO_ACTUALIZADO` con payloads ligeramente distintos. GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre recibe desde hijo2 (`_hdl_NAVEGACION_GPS_RESTRINGIDO` L8846).
 
 #### Patrón diferido: argumentos incorrectos (ver §10.15)
 
