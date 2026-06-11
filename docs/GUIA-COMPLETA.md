@@ -4558,7 +4558,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Emitido por | hijo3 L837 (botón reto en reproductor), hijo4 L853 (botón reto en retos) |
 | Destino | `padre` |
 | Payload | `{ contexto }` |
-| Handler en padre | `_hdl_RETO_SOLICITAR` — registrado en L8268 vía `registrarControladorScript2Seguro` |
+| Handler en padre | `_hdl_RETO_SOLICITAR` L8142 — registrado en L8260 vía `registrarControladorScript2Seguro` |
 | Acción | Busca `estado.retoActual`, envía `RETO.MOSTRAR` a hijo4 si el reto está disponible |
 
 **DATOS.RESPUESTA_RETO** (tipo fantasma)
@@ -4705,7 +4705,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 #### ℹ️ INFO — `RETO.SOLICITAR_RETO` — handler confirmado (falsa alarma)
 
 - **Dónde**: hijo3 L837 y hijo4 L853 envían `RETO.SOLICITAR_RETO` → `padre`
-- **Estado**: Handler `_hdl_RETO_SOLICITAR` existe en padre L8150 y está registrado en L8268 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. **No es un bug.** La búsqueda inicial no lo encontró porque está en Script 2, separado del resto de handlers.
+- **Estado**: Handler `_hdl_RETO_SOLICITAR` existe en padre L8142 y está registrado en L8260 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. **No es un bug.** La búsqueda inicial no lo encontró porque está en Script 2, separado del resto de handlers.
 
 #### ✅ CORREGIDO — `DATOS.SOLICITAR_COORDENADAS` no existía en `constants.js`
 
