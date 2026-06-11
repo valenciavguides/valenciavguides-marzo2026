@@ -3915,7 +3915,8 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P7 se c
 > **Qué se busca**: cualquier llamada a `enviarMensaje`, `postMessage`, `registrarControladorSeguro`, `addEventListener('message')` o `dispatchEvent(CustomEvent)` que exista en el código pero **no esté documentada en §10** — eso es un gap y hay que añadirlo.
 >
 > **Cómo se busca**: inventariar sistemáticamente todos los archivos con comunicación real de la aplicación y cruzar cada mensaje encontrado contra lo documentado en §10. Si no está → se documenta.
-> **Archivos a revisar**: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`,
+> **Archivos a revisar (con comunicación entre componentes)**: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`, `sw.js`, `index.html`.
+> **Archivos verificados sin comunicación entre componentes** (solo eventos DOM internos, no relevantes para §10): `js/device-detection.js` (orientationchange), `js/error-handler-ui.js` (keydown), `js/proteccion.js` (contextmenu/dragstart), `agradecimientos.html` (DOMContentLoaded).
 
 ---
 
@@ -4000,13 +4001,15 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 
 #### FASE 0 — Service Worker (sw.js)
 
-El SW no interviene en la comunicación postMessage. Gestiona:
+El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
 - `CACHE_VERSION` auto-generada por SHA-256 en cada commit
 
-No emite ni recibe mensajes postMessage. No tiene handlers de mensajería.
+No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
+
+**Canal SW → página (fuera del bus):** `sw.js` llama `clients.claim()` + `skipWaiting()` al activarse. Esto dispara el evento `controllerchange` en `index.html` (L81), que ejecuta `location.reload()` para garantizar que la página corre con el SW y caché nuevos. Solo ocurre en actualizaciones reales (hay `previousController`); la primera instalación no recarga.
 
 ---
 
