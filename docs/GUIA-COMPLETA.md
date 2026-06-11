@@ -4802,9 +4802,9 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `boton-casa-hijo5.html` L807 — tras generar botones de parada |
-| Tipo | `'VV:PARADAS:READY'` / `'VV:PARADAS:SHOWN'` (string literal, no via `TIPOS_MENSAJE`) |
-| Listener en padre | L129-133 `_handlePreModuleMessage` (pre-module) |
+| Emitido por | `boton-casa-hijo5.html` L807 — `TIPOS_MENSAJE.PARADAS.READY` = `'VV:PARADAS:READY'` |
+| Tipo | `'VV:PARADAS:READY'` / `'VV:PARADAS:SHOWN'` — hijo5 usa la constante; padre compara string literal en el raw listener pre-módulo |
+| Listener en padre | `_handlePreModuleMessage` L124 (función) / L140 (registrado); el check de PARADAS está en L130 |
 | Acción | Padre llama `_injectParadasStyle(iframe)` — inyecta CSS de fondo transparente en hijo5 |
 | Canal | Raw `window.postMessage` a `parent`, no pasa por `mensajeria.js` |
 | Nota | `SISTEMA.HIJO_MANEJADORES` fue eliminado de este listener (L135 comentario en padre) — gestionado ahora solo via `registrarControladorSeguro` |
@@ -4819,26 +4819,17 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 | Acción | Activa/desactiva la supresión de rotación del mapa en la UI padre |
 | Canal | Raw `parent.postMessage` — aunque usa el mismo string que `TIPOS_MENSAJE.NAVEGACION.SUPRIMIR_ROTACION`, el listener no pasa por el bus |
 
-#### CHAT.CERRAR (bidireccional — padre ↔ hijo6, ambos raw)
+#### CHAT.CERRAR (unidireccional — hijo6 → padre, raw)
 
-**padre → hijo6** (cerrar chat desde padre):
-
-| Campo | Valor |
-|-------|-------|
-| Emitido por | Padre L1498 — al detectar que usuario pulsa cerrar chat |
-| Tipo | `'CHAT.CERRAR'` (string literal con fallback `globalThis.TIPOS_MENSAJE?.CHAT?.CERRAR`) |
-| Listener en hijo6 | `chat-hijo6.html` L220 — raw `window.addEventListener('message')` pre-módulo |
-| Acción | hijo6 cierra el panel del chat |
-| Canal | Raw `contentWindow.postMessage` directo — bypassa el bus |
-
-**hijo6 → padre** (hijo6 pide cerrarse a sí mismo):
+> ⚠️ **Corrección**: este mensaje es unidireccional hijo6 → padre. Padre **nunca** envía `CHAT.CERRAR` a hijo6. Padre L1498 envía `CHAT.ESTADO_PADRE`, no `CHAT.CERRAR`. `cerrarChat()` (L1517) solo oculta el iframe — no envía ningún mensaje.
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `chat-hijo6.html` L221 — raw `globalThis.parent.postMessage({ tipo:'CHAT.CERRAR' })` |
-| Listener en padre | L1530 — raw `globalThis.addEventListener('message')` que llama `cerrarChat()` |
-| Acción | Padre cierra el overlay del chat y el iframe hijo6 |
-| Nota | §10.13 debe listar `CHAT.CERRAR` entre los mensajes que hijo6 envía |
+| Emitido por | `cerrarChatVentana()` hijo6 L197: primero intenta `globalThis.parent.cerrarChatSoporte()` (L200, función expuesta por padre en L1526); si falla, cae a `parent.postMessage` en L221 con `tipo:'CHAT.CERRAR'` |
+| Tipo | `TIPOS_MENSAJE.CHAT.CERRAR` = `'CHAT.CERRAR'` (con fallback string literal) |
+| Listener en padre | L1530 — raw `globalThis.addEventListener('message')` → llama `cerrarChat()` (L1517, que solo oculta el iframe) |
+| Acción | Padre oculta el iframe hijo6 |
+| Canal | Raw `parent.postMessage` desde hijo6; padre escucha con raw `addEventListener` |
 
 #### NAVEGACION_PANTALLA (padre → seleccion)
 
@@ -5119,7 +5110,7 @@ Estos tipos existen en `constants.js` como constantes pero no hay ninguna llamad
 **PENDING_INICIADO** (padre → hijo2, hijo3, hijo4)
 
 ```text
-padre initPending(key) L7527
+padre ensurePending(key) L7521
   → estado.pendingCompleciones[key] = { llegada:false, audio:false, reto:false, ttlMs, outOfRangeM, arrivalRequired }
   → populatePendingCoords(key) — obtiene coords del destino async (via solicitarCoordenadasHijo)
 padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, ttlMs, outOfRangeM, arrivalRequired }
@@ -5128,7 +5119,7 @@ padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId,
 **PENDING_CANCELADO** (padre → hijo2, hijo3, hijo4)
 
 ```text
-padre cancelarPending(clave) L7585
+padre cancelarPending(clave, motivo) L7586
   → delete estado.pendingCompleciones[clave]
 padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_CANCELADO', padreId:clave, motivo }
 ↓
