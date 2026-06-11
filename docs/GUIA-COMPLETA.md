@@ -4341,7 +4341,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre L4846, L8802/L8816 (al recibir posición del navegador) |
+| Emitido por | Padre L4846, L8794/L8808 (al recibir posición del navegador) |
 | Destino | Broadcast a todos |
 | Payload | `{ lat, lng, accuracy, timestamp }` |
 | Handler en hijos | hijo1 L681, hijo2 L2610, hijo3 L1913, hijo4 L1889 |
@@ -4351,7 +4351,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre L4589/L4601, L8694/L8706 (al activar/desactivar GPS) |
+| Emitido por | Padre L4589/L4601, L8686/L8698 (al activar/desactivar GPS) |
 | Payload | `{ activo: bool, modo, timestamp }` |
 | Handler en hijos | hijo1 L692, hijo2 L2643, hijo3 L1923, hijo4 L1899 |
 
@@ -4359,10 +4359,10 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre L4976 |
+| Emitido por | Padre L4975 |
 | Payload | `{ codigo, mensaje, timestamp }` |
-| Handler en hijos | hijo3 L1933, hijo4 L1909 |
-| Nota | hijo1 no tiene handler para GPS.ERROR |
+| Handler en hijos | hijo1 L703, hijo2 L2679, hijo3 L1933, hijo4 L1909 |
+| Nota | hijo6 no tiene handler para GPS.ERROR |
 
 **NAVEGACION.GPS.ACTIVAR** (hijo2/hijo5 → padre)
 
@@ -4405,7 +4405,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
-| Emisor real | `js/funciones-mapa.js` L3745/L3769 (`procesarPosicionGPSParaAventura`) — no padre directamente |
+| Emisor real | `js/funciones-mapa.js` L3748/L3769 (`procesarPosicionGPSParaAventura`) — no padre directamente |
 | Payload | `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada, ubicacionActiva }` |
 | Handler en hijo2 | L1709 — actualiza distancia, modo, flags de proximidad |
 | Handler en funciones-mapa | `manejarActualizarEstadoNavegacion` L2378 — handler muerto: espera payload diferente (`{ estado, paradaActual, tramoActual, posicionActual }`), nunca recibe mensajes; esqueleto de turn-by-turn nav (ver §10.15) |
@@ -4775,7 +4775,7 @@ Dos patrones arquitectónicamente incorrectos pero funcionalmente neutros hoy. D
 | HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ |
 | GPS.UBICACION_ACTUALIZADA | ✅ | ✅ | ✅ | ✅ | ❌ |
 | GPS.ESTADO_ACTUALIZADO | ✅ | ✅ | ✅ | ✅ | ❌ |
-| GPS.ERROR | ❌ | ❌ | ❌ | ❌ | ❌ |
+| GPS.ERROR | ✅ | ✅ | ✅ | ✅ | ❌ |
 | CARGAR_COORDENADAS | — | ✅ | — | — | — |
 | CARGAR_AUDIOS | — | — | ✅ | — | — |
 | CARGAR_RETOS | — | — | — | ✅ | — |
@@ -4790,7 +4790,7 @@ Dos patrones arquitectónicamente incorrectos pero funcionalmente neutros hoy. D
 
 **Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
 
-> ⚠️ **GPS.ERROR gap total**: padre emite `GPS.ERROR` vía `broadcastToCapability` (L4986) pero ningún iframe hijo tiene handler registrado para este tipo. El broadcast se envía, llega al bus, y nadie lo consume. Gap de cobertura — ningún hijo reacciona a errores GPS del sistema nativo.
+> ℹ️ **GPS.ERROR**: hijo1 L703, hijo2 L2679, hijo3 L1933, hijo4 L1909 tienen handlers registrados. hijo6 no tiene handler para GPS.ERROR.
 
 ---
 
@@ -4845,7 +4845,7 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre L1644 (cierre overlay imagen) y L1920 (cierre overlay vídeo) |
+| Emitido por | Padre L1645 (cierre overlay imagen) y L1921 (cierre overlay vídeo) |
 | Tipo | `TIPOS_MENSAJE.CONTROL.HABILITAR` |
 | Canal | Raw `hijo2.contentWindow.postMessage(...)` — bypassa el bus |
 | Payload | `{ motivo: 'vista_cerrada' }` |
@@ -5196,7 +5196,7 @@ Devuelve el número de mensajes enviados. Internamente itera `hijosConCapability
 |-------|----------|--------------|
 | L4588 | GPS activado — broadcast estado inicial (activo:true) | `GPS.ESTADO_ACTUALIZADO` |
 | L4823 | Helper `_gpsBroadcastPayload` — usado exclusivamente por `_gpsBroadcastUbicacion` para updates de posición | `GPS.UBICACION_ACTUALIZADA` |
-| L4986 | Error de geolocalización en watchPosition | `GPS.ERROR` |
+| L4985 | Error de geolocalización en watchPosition | `GPS.ERROR` |
 | L5098 | Función centralizada `desactivarGPS()` — activo:false, permisos:false | `GPS.ESTADO_ACTUALIZADO` |
 | L8685 | `_hdl_NAVEGACION_GPS_DESACTIVAR` — re-broadcast tras llamar a `desactivarGPS()` ⚠️ doble-envío | `GPS.ESTADO_ACTUALIZADO` |
 | L8793 | `_hdl_NAVEGACION_GPS_UBICACION_ACTUALIZADA` — relay de actualización recibida desde funciones-mapa hacia hijos con capability gps | `GPS.UBICACION_ACTUALIZADA` |
