@@ -3910,13 +3910,20 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P7 se c
 
 ## 10. Los datos y la comunicación de la aplicación
 
-> **Para qué sirve §10.4 en adelante**: registrar absolutamente todos los canales de comunicación de la aplicación en un único lugar de referencia — mensajes del bus (`enviarMensaje` / `registrarControladorSeguro` / `registrarControlador`), `postMessage` directo, `addEventListener('message')` raw y `CustomEvent`.
+> **Para qué sirve §10.4 en adelante**: registrar absolutamente toda la comunicación de la aplicación — cualquier mecanismo por el que un archivo interactúa con otro componente: bus de mensajería, postMessage, HTTP/fetch al backend, localStorage/sessionStorage compartido, Service Worker lifecycle, CustomEvent. Si habla con algo, va aquí.
 >
-> **Qué se busca**: cualquier llamada a `enviarMensaje`, `postMessage`, `registrarControladorSeguro`, `addEventListener('message')` o `dispatchEvent(CustomEvent)` que exista en el código pero **no esté documentada en §10** — eso es un gap y hay que añadirlo.
+> **Qué se busca**: cualquier interacción entre componentes que exista en el código pero no esté documentada en §10. No importa el canal — si un archivo se comunica con otro, con el servidor, con el SW, o comparte estado persistente, y §10 no lo menciona, eso es un gap.
 >
-> **Cómo se busca**: inventariar sistemáticamente todos los archivos con comunicación real de la aplicación y cruzar cada mensaje encontrado contra lo documentado en §10. Si no está → se documenta.
-> **Archivos a revisar (con comunicación entre componentes)**: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`, `sw.js`, `index.html`.
-> **Archivos verificados sin comunicación entre componentes** (solo eventos DOM internos, no relevantes para §10): `js/device-detection.js` (orientationchange), `js/error-handler-ui.js` (keydown), `js/proteccion.js` (contextmenu/dragstart), `agradecimientos.html` (DOMContentLoaded).
+> **Cómo se busca**: revisar todos los archivos con comunicación listados abajo, cruzar cada canal contra §10. Si no está → se documenta.
+>
+> **Archivos con comunicación (verificados):**
+>
+> - *Bus / postMessage entre componentes*: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`
+> - *SW lifecycle*: `sw.js`, `index.html`
+> - *HTTP fetch / API backend*: `js/api-client.js`, `js/data-loader.js`
+> - *localStorage / sessionStorage*: `js/api-client.js` (token sesión), `agradecimientos.html` (lee idioma), `js/suppress-warnings.js` (flag debug), `js/reciclaje-digital.js` (clear total + caché SW)
+>
+> **Sin comunicación entre componentes** (solo eventos DOM internos propios): `js/device-detection.js`, `js/error-handler-ui.js`, `js/proteccion.js`, `js/config.js`, `consejos-valencia.html`, `gastronomia.html`, `paginas-oficiales-valencia.html`, `videos-valencia-historica.html`, `verify-all.js`.
 
 ---
 
