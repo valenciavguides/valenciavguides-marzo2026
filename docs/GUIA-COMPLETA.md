@@ -3915,7 +3915,7 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P7 se c
 > **Qué se busca**: cualquier llamada a `enviarMensaje`, `postMessage`, `registrarControladorSeguro`, `addEventListener('message')` o `dispatchEvent(CustomEvent)` que exista en el código pero **no esté documentada en §10** — eso es un gap y hay que añadirlo.
 >
 > **Cómo se busca**: inventariar sistemáticamente todos los archivos con comunicación real de la aplicación y cruzar cada mensaje encontrado contra lo documentado en §10. Si no está → se documenta.
-> **Archivos a revisar**: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`.
+> **Archivos a revisar**: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`,
 
 ---
 
@@ -4109,6 +4109,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 | Acción hijo | Actualiza `_ultimoHeartbeat`, responde HEARTBEAT_RESPONSE |
 | Handler en padre | Inline L6165 — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }`, actualiza `ultimoPing` y resetea `fallosConsecutivos` en `estadoHijos` |
 | Emitido raw en visibilitychange | L11410 — al restaurar visibilidad de la pestaña, padre envía `{ tipo:'SISTEMA.HEARTBEAT', razon:'visibilitychange' }` raw a todos los iframes con atributo `name`, fuera del bus |
+| Emitido por monitoreo.js | `js/monitoreo.js` L82-84 — tercer emisor: `setInterval(() => enviarHeartbeat(), intervaloHeartbeat)` (default 5000 ms) envía `{ tipo: SISTEMA.HEARTBEAT, origen:'monitoreo', destino:'broadcast', datos:{ timestamp, fuente:'monitoreo' } }` vía bus. Completamente independiente del ciclo del padre. |
 
 **SISTEMA.HEARTBEAT_START / HEARTBEAT_PAUSE** (padre → hijo)
 
@@ -4872,6 +4873,17 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 | Acción | Informa al iframe del mapa completo que ya es visible y puede inicializar Leaflet |
 | Nota | El delay de 800 ms da tiempo al módulo del iframe a cargar antes de escuchar el mensaje |
 
+#### `solicitar-ruta` / `ruta-completa` (padre → mapa-completo.html, raw — sin emisor activo)
+
+| Campo | Valor |
+|-------|-------|
+| Tipo solicitud | `'solicitar-ruta'` (string literal, fuera de `TIPOS_MENSAJE`) |
+| Tipo respuesta | `'ruta-completa'` (string literal) |
+| Canal | Raw `addEventListener('message')` en `mapa-completo.html` L325; responde con `globalThis.parent.postMessage` L328 |
+| Listener | `mapa-completo.html` L325 — escucha `tipo: 'solicitar-ruta'`, responde con `{ tipo:'ruta-completa', paradas:[], waypoints:[], ruta:[] }` |
+| Emisor activo | **Ninguno** — no existe ningún archivo en el proyecto que envíe `tipo:'solicitar-ruta'`. Handler preparado, sin implementar. |
+| Nota | Protocolo separado de `mapa-visible`. La ruta completa (`rutaCompleta`) se construye en el init de `mapa-completo.html` a partir de `DATOS_AVENTURAS`; queda en memoria y está disponible para quien envíe `solicitar-ruta`. |
+
 ---
 
 ### 10.9 Categoría MAPA — control interno del mapa padre
@@ -5142,6 +5154,16 @@ hijo2 L2790 maneja PENDING_CANCELADO
 _hdl_SELECCION_AVENTURA_ACTIVADA L10642 → _broadcastActivacion() L10695 (tras distribuir datos con éxito)
 padre → todos   SISTEMA.NOTIFICACION { evento:'AVENTURA_ACTIVADA', aventura, idioma, timestamp }
 ```
+
+**Eventos del ciclo de cambio de modo** (app.js → broadcast, fire-and-forget)
+
+Tres eventos adicionales enviados por `js/app.js` durante el pipeline de `SISTEMA.CAMBIO_MODO`. Ningún hijo actual tiene handler para ellos — son informativos.
+
+| Evento (`datos.tipo`) | Función emisora | Cuándo |
+|----------------------|----------------|--------|
+| `cambio_modo_iniciado` | `notificarCambioModoInminente()` | Antes de enviar CAMBIO_MODO; incluye `modoAnterior`, `modoNuevo`, `motivo` |
+| `cambio_modo_completado` | `notificarCambioModoCompletado()` | Tras completar el ciclo EFECTUADO; incluye `modoAnterior`, `modoActual`, `motivo` |
+| `restauracion_modo` | `restaurarEstadoModoAnterior()` | Si el cambio de modo falla y se hace rollback; incluye `modoRestaurado`, `modoFallido`, `motivo` |
 
 **Nota de diseño**: todos los envíos tienen `.catch(_e => {})` — son fire-and-forget. Los hijos no responden a NOTIFICACION.
 
