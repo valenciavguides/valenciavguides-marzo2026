@@ -5321,6 +5321,47 @@ En modo `'api'` (pendiente de activar), usaría `fetchFromAPI()` hacia el backen
 
 ---
 
+### 10.22 Parámetros URL como canal de configuración
+
+Los parámetros URL son un canal de comunicación de un solo sentido: el componente que abre/embebe un `iframe` (o navega a una URL) pasa configuración inicial que el destinatario lee al arrancar. No hay respuesta directa por este canal — la respuesta usa el bus postMessage.
+
+| Parámetro | Archivo que lo lee | Línea | Cadena de prioridad / default |
+|-----------|-------------------|-------|-------------------------------|
+| `?id=` | `puzzle.html` | 135 | Obligatorio — sin él no hay puzzle |
+| `?aventura=` | `puzzle.html` | 139 | URL → `parent.__vv_aventuraActual` → `parent.aventuraSeleccionada` → `'Aventura1'` |
+| `?aventura=` | `mapa-completo.html` | 92 | URL → `'Aventura1'` (default) |
+| `?padreId=` | `js/utils.js` `getPadreId()` | 38 | URL → `sessionStorage('vvguides_padreId')` → UUID nuevo |
+| `?idioma=` / `?lang=` | `agradecimientos.html` | 91 | URL → `localStorage('vv_idioma')` → `'es'` |
+| `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — desactiva bloqueos de seguridad |
+| `?vv_hard_protect=1` | `js/proteccion.js` | 29 | Flag booleano — fuerza protección estricta en local |
+| `?debug=1` | `js/suppress-warnings.js` | 88 | Flag booleano — activa logging verboso en consola |
+
+**Emisores internos** (quién construye estas URLs):
+
+- `coordenadas-hijo2.html:1587` construye `mapa-completo.html?aventura=…` al abrir el mapa completo.
+- `En-busca-del-tesoro.html:1276` construye `puzzle.html?aventura=INTRO&id=…` al lanzar el puzzle de introducción.
+- El padre construye las URLs de los iframes hijos al cargarlos (sin parámetros — los hijos leen `padreId` de `sessionStorage`).
+
+---
+
+### 10.23 Acceso directo a propiedades del padre (fuera del bus)
+
+Hay cinco puntos donde un hijo accede directamente a propiedades o métodos del objeto `globalThis.parent` **sin pasar por el bus de mensajería**. Todos están protegidos con `try/catch` o guard `if (globalThis.parent && ...)` para tolerar contextos cross-origin, pero representan acoplamiento directo padre↔hijo.
+
+| Archivo | Línea(s) | Propiedad / método accedido | Propósito y contexto |
+|---------|----------|----------------------------|----------------------|
+| `puzzle.html` | 142 | `parent.__vv_aventuraActual` | Fallback 1: aventura activa si no hay `?aventura=` en URL |
+| `puzzle.html` | 153 | `parent.aventuraSeleccionada` | Fallback 2: si fallback 1 falla → último recurso antes de usar `'Aventura1'` |
+| `coordenadas-hijo2.html` | 1539 | `parent.estadoPadre.elementoActual` | Obtener parada/tramo actual al pulsar "volver a ruta" |
+| `coordenadas-hijo2.html` | 1585, 1615 | `parent.aventuraSeleccionada` | Fallback de aventura al abrir mapa completo o mapa vintage (si `globalThis.__vv_aventuraActual` no está en hijo2) |
+| `chat-hijo6.html` | 200 | `parent.cerrarChatSoporte()` | Llamada directa a función expuesta por padre (documentado en §10.8) |
+
+**Por qué existen estos accesos directos**: los datos `__vv_aventuraActual` y `estadoPadre.elementoActual` se publican en `window` del padre como propiedades globales. Los iframes los leen directamente como optimización de arranque (disponibles síncronamente sin esperar un mensaje). El bus es el canal principal; estos accesos directos son fallbacks de último recurso cuando el bus aún no ha transmitido el dato.
+
+**Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html:1526` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
+
+---
+
 | Código | Idioma | Bandera | Estado de audios |
 |--------|--------|---------|-----------------|
 | `es` | Español | 🇪🇸 | ✅ Grabados |
