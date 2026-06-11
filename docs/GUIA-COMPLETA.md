@@ -5057,7 +5057,7 @@ Estos tipos existen en `constants.js` como constantes pero no hay ninguna llamad
 
 **`broadcastToCapability` con 2 argumentos en lugar de 3**
 
-- **Dónde**: `codigo-padre.html` 6 call sites (L4588, L4823, L4986, L5098, L8693, L8801)
+- **Dónde**: `codigo-padre.html` 6 call sites (L4588, L4823, L4985, L5098, L8685, L8793)
 - **Firma real** (`js/mensajeria.js` L733): `broadcastToCapability(capacidad, tipo, datos)` — 3 params.
 - **Cómo se llama**: `broadcastToCapability('gps', { tipo: ..., origen: ..., datos: ... })` — solo 2 args, el objeto completo como segundo param.
 - **Efecto**: `enviarMensaje` recibe el objeto y lo trata como mensaje completo, ignorando `hijoId`. El mensaje va a **todos** los iframes, no solo a los con capacidad `gps`. Hoy solo hijo2 tiene esa capacidad, así que el efecto práctico es correcto pero ineficiente.
@@ -5162,7 +5162,7 @@ El campo `idOriginal` es **crítico para `enviarMensajeConConfirmacion`**: mensa
 | hijo3 L1587 | Error en playback/operaciones audio | padre |
 | hijo1 L474/789/1092/1153 | Error en temporizador/opciones/init | padre |
 | funciones-mapa.js | Error en `MAPA.*` | emisor original |
-| padre L8587/8621/8664/10323 | Error interno (datos, GPS, selección) | destino específico |
+| padre L8579/8613/8656/10315 | Error interno (datos, GPS, selección) | destino específico |
 
 **Diferencias entre los tres tipos de respuesta negativa**:
 
