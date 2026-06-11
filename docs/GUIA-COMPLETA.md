@@ -5250,6 +5250,77 @@ Todos los call sites pasan 2 argumentos en lugar de 3 — el objeto completo com
 
 ---
 
+### 10.19 localStorage — estado persistido entre sesiones
+
+`codigo-padre.html` usa `localStorage` como canal de persistencia para restaurar el estado completo de la aventura entre recargas o reinicios de la app. Todas las escrituras ocurren en `codigo-padre.html`; las lecturas en el propio padre al arrancar y en otros archivos indicados.
+
+| Clave | Escritor | Lector adicional | Contenido | Cuándo se borra |
+|-------|---------|-----------------|-----------|-----------------|
+| `vv_aventura_iniciada` | padre L10687 | `reciclaje-digital.js` (lee para log antes de borrar) | `{ aventura, idioma, modo, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()` | `limpiarDatosAventura()` (fin/reset) |
+| `vv_progreso` | padre (en cada `_persistirProgreso`) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActual, timestamp }` | `limpiarDatosAventura()` |
+| `vv_idioma` | padre L10384/L10460 | `agradecimientos.html` (prioridad 2 de 3) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
+| `vv_aventura` | padre | — | ID de aventura: `'Aventura1'`, etc. | `limpiarDatosAventura()` |
+| `vv_paradas_completadas` | padre | padre al restaurar | JSON con paradas completadas de la sesión | `limpiarDatosAventura()` |
+| `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo (desactiva algunas protecciones) | Manual |
+| `vv_hard_protect` | Manual (DevTools) | `js/proteccion.js` | `'1'` = protección fuerte de contenido activa | Manual |
+| `vv_debug_verbose` | `js/suppress-warnings.js` | `js/suppress-warnings.js` | `'1'` o `'true'` = conservar trazas completas de `console.debug` | — |
+
+**Flujo de restauración de sesión:**
+
+```text
+codigo-padre.html arranca
+  → lee localStorage('vv_aventura_iniciada')
+  → si existe: ejecutarRestauracionAventura()
+      → lee vv_progreso, vv_idioma, vv_paradas_completadas
+      → restaura estado, envía CAMBIO_PARADA con restaurado:true
+  → si no existe: modo CASA normal
+```
+
+**Flujo de limpieza:** `limpiarDatosAventura(motivo)` borra las 5 claves de sesión (`vv_aventura_iniciada`, `vv_progreso`, `vv_idioma`, `vv_aventura`, `vv_paradas_completadas`). También lo hace `js/reciclaje-digital.js` con `localStorage.clear()` total.
+
+---
+
+### 10.20 sessionStorage — estado de pestaña
+
+| Clave | Escritor | Lector | Contenido |
+|-------|---------|--------|-----------|
+| `vvguides_padreId` | `js/utils.js` `getPadreId()` L52 | `js/utils.js` `getPadreId()` L45 | ID único del padre generado una vez por sesión de pestaña (`padre-XXXXXXXX`). Persiste mientras la pestaña esté abierta. |
+| `vbg_session_token` | `js/api-client.js` `TokenManager.setToken()` | `js/api-client.js`, `js/data-loader.js` (en modo API) | JWT de autenticación con el backend. Se incluye como `Authorization: Bearer` en cada petición. Se borra al cerrar sesión o al recibir 401. |
+
+---
+
+### 10.21 HTTP / fetch — capa de datos
+
+Dos módulos gestionan la comunicación con servidores externos. **Actualmente `DATA_MODE = 'local'`** — todas las peticiones al backend están desactivadas.
+
+#### js/data-loader.js — cargador de datos (activo ahora)
+
+En modo `'local'`, `data-loader.js` hace dos tipos de fetch:
+
+| Recurso | Mecanismo | Destino |
+|---------|-----------|---------|
+| Módulos JS de datos (`coordenadas-aventuras.js`, `textos-aventuras.js`, etc.) | `import()` dinámico | Mismo origen |
+| Archivos JSON de párrafos (`parrafos-texto-{idioma}.json`) | `fetch(url)` | Mismo origen (`/js/parrafos-textos/`) |
+
+En modo `'api'` (pendiente de activar), usaría `fetchFromAPI()` hacia el backend Express.
+
+#### js/api-client.js — cliente REST (preparado, no activo)
+
+`ApiClient` expone todos los endpoints del backend futuro. El backend (`backend/`) **no está implementado**. `ApiClient` no se llama actualmente desde ningún componente activo — es la API preparada para cuando exista el backend.
+
+| Grupo | Endpoints | Descripción |
+|-------|-----------|-------------|
+| Auth | `POST /api/auth/activar`, `GET /api/auth/verificar` | Activar con código → JWT; verificar sesión |
+| Aventuras | `GET /api/aventuras`, `GET /api/aventuras/:id/completa` | Índice y datos completos |
+| Coordenadas | `GET /api/coordenadas/:id`, `/parada/:pid`, `/tramo/:tid`, `/ruta/:a/:b` | Coordenadas de paradas y tramos |
+| Audios | `GET /api/audios/:id/:idioma`, `/parada/:pid` | Metadatos de audio |
+| Retos | `GET /api/retos/:id/:idioma`, `POST .../validar` | Retos sin respuestas; validación server-side |
+| Puzzles | `GET /api/puzzles/:id`, `/puzzles/:id/:pid` | Definición de puzzles |
+
+**Token flow:** `TokenManager` (en `api-client.js`) guarda el JWT en memoria + `sessionStorage('vbg_session_token')`. `fetchWithRetry` lo añade como `Authorization: Bearer` en cada petición. Reintentos con backoff exponencial: 1s → 2s → 4s → 8s (4 intentos).
+
+---
+
 | Código | Idioma | Bandera | Estado de audios |
 |--------|--------|---------|-----------------|
 | `es` | Español | 🇪🇸 | ✅ Grabados |
