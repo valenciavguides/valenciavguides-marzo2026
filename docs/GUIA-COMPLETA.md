@@ -3914,7 +3914,8 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P7 se c
 >
 > **Qué se busca**: cualquier llamada a `enviarMensaje`, `postMessage`, `registrarControladorSeguro`, `addEventListener('message')` o `dispatchEvent(CustomEvent)` que exista en el código pero **no esté documentada en §10** — eso es un gap y hay que añadirlo.
 >
-> **Cómo se busca**: inventariar sistemáticamente todos los archivos de la aplicación (`codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`) y cruzar cada mensaje encontrado contra lo documentado en §10. Si no está → se documenta.
+> **Cómo se busca**: inventariar sistemáticamente todos los archivos con comunicación real de la aplicación y cruzar cada mensaje encontrado contra lo documentado en §10. Si no está → se documenta.
+> **Archivos a revisar**: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`.
 
 ---
 
