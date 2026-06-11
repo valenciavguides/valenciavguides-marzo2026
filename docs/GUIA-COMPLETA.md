@@ -4036,7 +4036,7 @@ Al cargar el padre, por orden de ejecución:
 | Evento | Quién lo dispara | Quién lo escucha | Payload |
 |--------|-----------------|-----------------|---------|
 | `mensajeriaReady` | `mensajeria.js` (tras `inicializarMensajeria`) | `js/app.js` (`addEventListener once`) | — |
-| `vv:paradas-disponibles` | padre (en distribuirDatosAventura) | — | `{ paradas[], aventura }` |
+| `vv:paradas-disponibles` | padre (en distribuirDatosAventura) | `js/funciones-mapa.js:3518` (`addEventListener passive`) — actualiza `arrayParadasLocal` y repinta marcadores si el mapa está en modo AVENTURA | `{ paradas[], aventura }` |
 | `vv-parada-cambiada` | padre (`_hdl_NAVEGACION_CAMBIO_PARADA`) | `js/funciones-mapa.js` | mensaje CAMBIO_PARADA enriquecido con `coordenadasYaResueltas` |
 
 ---
@@ -4115,10 +4115,11 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 |-------|-------|
 | Emitido por (normal) | Padre (intervalo periódico) → todos (broadcast) |
 | Payload | `{ timestamp, secuencia }` |
-| Handler en hijos | hijo1 L569, hijo2 L2358, hijo3 L1658, hijo4 L1779, hijo6 L396 |
+| Handler en hijos | hijo1 L569, hijo2 L2358, hijo3 L1658, hijo4 L1779, **hijo5 L1153**, hijo6 L396 |
 | Acción hijo | Actualiza `_ultimoHeartbeat`, responde HEARTBEAT_RESPONSE |
 | Handler en padre | Inline L6165 — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }`, actualiza `ultimoPing` y resetea `fallosConsecutivos` en `estadoHijos` |
 | Emitido raw en visibilitychange | L11410 — al restaurar visibilidad de la pestaña, padre envía `{ tipo:'SISTEMA.HEARTBEAT', razon:'visibilitychange' }` raw a todos los iframes con atributo `name`, fuera del bus |
+| hijo5 en visibilitychange | `boton-casa-hijo5.html:1527` — además del handler normal, hijo5 envía proactivamente `SISTEMA.HEARTBEAT_RESPONSE` al padre cuando la pestaña vuelve a ser visible (`razon:'visibilitychange'`), sin esperar un HEARTBEAT entrante |
 | Emitido por monitoreo.js | `js/monitoreo.js` L82-84 — tercer emisor: `setInterval(() => enviarHeartbeat(), intervaloHeartbeat)` (default 5000 ms) envía `{ tipo: SISTEMA.HEARTBEAT, origen:'monitoreo', destino:'broadcast', datos:{ timestamp, fuente:'monitoreo' } }` vía bus. Completamente independiente del ciclo del padre. |
 
 **SISTEMA.HEARTBEAT_START / HEARTBEAT_PAUSE** (padre → hijo)
@@ -4127,7 +4128,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 |-------|-------|
 | Emitido por | Padre (al activar/pausar aventura) |
 | Destino | `todos` |
-| Handler en hijos | hijo2 L2383/L2396, hijo3 L1669/L1682, hijo4 L1790/L1828, hijo6 L406/L410 |
+| Handler en hijos | hijo2 L2383/L2396, hijo3 L1669/L1682, hijo4 L1790/L1828, **hijo5 L1205/L1218**, hijo6 L406/L410 |
 | Nota | hijo1 **no tiene handlers** para START/PAUSE — solo HEARTBEAT base |
 
 **SISTEMA.HEARTBEAT_RESPONSE** (hijo → padre)
@@ -4894,6 +4895,17 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 | Emisor activo | **Ninguno** — no existe ningún archivo en el proyecto que envíe `tipo:'solicitar-ruta'`. Handler preparado, sin implementar. |
 | Nota | Protocolo separado de `mapa-visible`. La ruta completa (`rutaCompleta`) se construye en el init de `mapa-completo.html` a partir de `DATOS_AVENTURAS`; queda en memoria y está disponible para quien envíe `solicitar-ruta`. |
 
+#### `ERROR_HIJO` (cualquier hijo → padre, raw — sin handler activo)
+
+| Campo | Valor |
+|-------|-------|
+| Tipo | `'ERROR_HIJO'` (string literal, fuera de `TIPOS_MENSAJE`) |
+| Canal | Raw `globalThis.parent.postMessage` en `js/utils.js:679` |
+| Emisor | `js/utils.js` — función de error global; se dispara cuando un hijo captura un error no manejado y `globalThis.parent !== globalThis.window` |
+| Payload | `{ tipo:'ERROR_HIJO', datos:errorInfo, origen:globalThis.name\|'hijo-desconocido', timestamp }` |
+| Receptor activo | **Ninguno** — no existe ningún handler en padre ni en ningún archivo que procese `tipo:'ERROR_HIJO'`. El mensaje llega al bus del padre y se descarta silenciosamente. |
+| Nota | Mecanismo de reporte de errores preparado pero sin receptor. Podría implementarse un handler en padre para logging centralizado de errores de hijos. |
+
 ---
 
 ### 10.9 Categoría MAPA — control interno del mapa padre
@@ -5258,7 +5270,9 @@ Todos los call sites pasan 2 argumentos en lugar de 3 — el objeto completo com
 |-------|---------|-----------------|-----------|-----------------|
 | `vv_aventura_iniciada` | padre L10687 | `reciclaje-digital.js` (lee para log antes de borrar) | `{ aventura, idioma, modo, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()` | `limpiarDatosAventura()` (fin/reset) |
 | `vv_progreso` | padre (en cada `_persistirProgreso`) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActual, timestamp }` | `limpiarDatosAventura()` |
-| `vv_idioma` | padre L10384/L10460 | `agradecimientos.html` (prioridad 2 de 3) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
+| `vv_idioma` | padre L10384/L10460 | `agradecimientos.html` (prioridad 2 de 3, tras `idioma_seleccionado`) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
+| `idioma_seleccionado` | — (legado, no se escribe) | `agradecimientos.html` (prioridad 1 de 3) | Clave legada de versiones anteriores; se lee por compatibilidad retroactiva | — |
+| `idioma` | — (legado, no se escribe) | `agradecimientos.html` (prioridad 3 de 3, último fallback) | Clave legada de versiones anteriores; se lee por compatibilidad retroactiva | — |
 | `vv_aventura` | padre | — | ID de aventura: `'Aventura1'`, etc. | `limpiarDatosAventura()` |
 | `vv_paradas_completadas` | padre | padre al restaurar | JSON con paradas completadas de la sesión | `limpiarDatosAventura()` |
 | `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo (desactiva algunas protecciones) | Manual |
@@ -5286,6 +5300,8 @@ codigo-padre.html arranca
 |-------|---------|--------|-----------|
 | `vvguides_padreId` | `js/utils.js` `getPadreId()` L52 | `js/utils.js` `getPadreId()` L45 | ID único del padre generado una vez por sesión de pestaña (`padre-XXXXXXXX`). Persiste mientras la pestaña esté abierta. |
 | `vbg_session_token` | `js/api-client.js` `TokenManager.setToken()` | `js/api-client.js`, `js/data-loader.js` (en modo API) | JWT de autenticación con el backend. Se incluye como `Authorization: Bearer` en cada petición. Se borra al cerrar sesión o al recibir 401. |
+
+**Limpieza total:** `js/reciclaje-digital.js:54` llama `sessionStorage.clear()` — borra todas las claves de sessionStorage de golpe (no selectivamente). Se invoca desde la pantalla de "reciclaje digital" / reset total de la app.
 
 ---
 
@@ -5359,6 +5375,8 @@ Hay cinco puntos donde un hijo accede directamente a propiedades o métodos del 
 **Por qué existen estos accesos directos**: los datos `__vv_aventuraActual` y `estadoPadre.elementoActual` se publican en `window` del padre como propiedades globales. Los iframes los leen directamente como optimización de arranque (disponibles síncronamente sin esperar un mensaje). El bus es el canal principal; estos accesos directos son fallbacks de último recurso cuando el bus aún no ha transmitido el dato.
 
 **Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html:1526` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
+
+**Acceso inverso (padre → hijo, contentWindow):** `codigo-padre.html:99-100` intenta llamar `iframe.contentWindow.reapplyParadasStyle()` sobre hijo5. La función no está definida en ningún archivo de la app — el guard `typeof ... === 'function'` siempre falla y la ejecución cae al fallback de inyección CSS directa (`iframe.contentDocument` → inserción de `<style>`). Este patrón padre→hijo via `contentDocument` es el único caso de manipulación DOM directa entre ventanas en la app.
 
 ---
 
