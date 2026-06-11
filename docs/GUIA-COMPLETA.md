@@ -4016,7 +4016,14 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
-**Canal SW → página (fuera del bus):** `sw.js` llama `clients.claim()` + `skipWaiting()` al activarse. Esto dispara el evento `controllerchange` en `index.html` (L81), que ejecuta `location.reload()` para garantizar que la página corre con el SW y caché nuevos. Solo ocurre en actualizaciones reales (hay `previousController`); la primera instalación no recarga.
+**Canal SW → página (fuera del bus):** `sw.js` llama `clients.claim()` + `skipWaiting()` al activarse. Esto dispara el evento `controllerchange` en dos handlers:
+
+| Archivo | Línea | Comportamiento |
+|---------|-------|----------------|
+| `index.html` | 81 | Recarga inmediata: `_swReloading = true; location.reload()`. Solo opera durante el breve instante antes de redirigir a `codigo-padre.html`. |
+| `codigo-padre.html` | 11716 | Recarga diferida: `_swPendingReload = true; intentarAplicarUpdatePendiente('controllerchange')` — busca un punto seguro para recargar (e.g. cuando la app está en segundo plano o en estado de reposo). Solo ocurre en actualizaciones reales (`previousController` existe). |
+
+Ambos ignoran la primera instalación (`!previousController → return`); la recarga solo ocurre en actualizaciones de SW existente.
 
 ---
 
@@ -4905,6 +4912,17 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 | Payload | `{ tipo:'ERROR_HIJO', datos:errorInfo, origen:globalThis.name\|'hijo-desconocido', timestamp }` |
 | Receptor activo | **Ninguno** — no existe ningún handler en padre ni en ningún archivo que procese `tipo:'ERROR_HIJO'`. El mensaje llega al bus del padre y se descarta silenciosamente. |
 | Nota | Mecanismo de reporte de errores preparado pero sin receptor. Podría implementarse un handler en padre para logging centralizado de errores de hijos. |
+
+#### `globalThis.postMessage` self-send (js/app.js → mismo ventana, fallback bootstrap)
+
+| Campo | Valor |
+|-------|-------|
+| Tipo | `TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA` |
+| Canal | `globalThis.postMessage(payload, targetOrigin)` — envío a la propia ventana; recibido por el bus del padre (`manejarMensajeEntrante`) |
+| Emisor | `js/app.js:470` — fallback cuando `globalThis.__vv_stateManager` no está disponible durante el arranque del modo AVENTURA |
+| Payload | CAMBIO_PARADA estándar con `origen:'app-bootstrap'`, `destino: getPadreId()`, `contexto:'arranque_aventura'` |
+| Receptor | El propio bus del padre — procesa el CAMBIO_PARADA como si viniera de cualquier otro emisor |
+| Nota | Path de emergencia. El path normal es `globalThis.__vv_stateManager.enviarMensajeCentral(payload)`. Solo ocurre si el state manager no estaba listo en el momento del bootstrap de modo. |
 
 ---
 
