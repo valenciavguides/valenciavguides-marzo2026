@@ -4636,6 +4636,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
+| Emitido en hijo1 | `enviarMensaje` L1325, tipo L1327 — dentro del `setInterval` de 1s de `iniciarCuentaAtras` |
 | Handler en padre | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` L11033 |
 | Acción | Actualiza display de tiempo en la UI del padre |
 
@@ -4643,6 +4644,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
+| Emitido en hijo1 | `tiempoAgotado()` L1413 → `enviarMensaje` L1430, tipo L1432 — cuando `tiempoRestante <= 0` |
 | Handler en padre | `_hdl_AVENTURA_TIEMPO_AGOTADO` L10911 |
 | Acción | Termina la aventura por tiempo |
 
@@ -4650,6 +4652,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
+| Emitido en hijo1 | `enviarMensaje` L1483, tipo L1485 — dentro del handler `AVENTURA.FINALIZADA` L1474 |
 | Disparador | hijo1 lo envía tras recibir `AVENTURA.FINALIZADA` y detener el temporizador |
 | Payload | `{ tiempoTotal, tiempoRestante, tiempoUsado, completado }` |
 | Handler en padre | `_hdl_AVENTURA_ESTADISTICAS_TIEMPO` L10897 |
@@ -4880,11 +4883,11 @@ Los mensajes `MAPA.*` son del contexto interno del padre. Los handlers están en
 | Mensaje | Handler | Acción |
 |---------|---------|--------|
 | `MAPA.INVALIDAR_TAMAÑO` | `manejarInvalidarTamanio` L2804 | Llama `invalidarTamañoMapa()` — recalcula dimensiones Leaflet al cambiar contenedor |
-| `MAPA.SET_VIEW` | `manejarSetView` L2864 | Centra y hace zoom a coordenadas dadas |
-| `MAPA.GET_CENTER` | `manejarGetCenter` L2930 | Devuelve centro actual del mapa en la respuesta |
-| `MAPA.ADD_MARKER` | `manejarAddMarker` L2999 | Añade marcador con popup al mapa |
-| `MAPA.REMOVE_MARKER` | `manejarRemoveMarker` L3100 | Elimina marcador por ID |
-| `MAPA.CLEAR_LAYERS` | `manejarClearLayers` L3172 | Limpia capas del mapa (polylines, marcadores) |
+| `MAPA.SET_VIEW` | `manejarSetView` L2863 | Centra y hace zoom a coordenadas dadas |
+| `MAPA.GET_CENTER` | `manejarGetCenter` L2929 | Devuelve centro actual del mapa en la respuesta |
+| `MAPA.ADD_MARKER` | `manejarAddMarker` L2998 | Añade marcador con popup al mapa |
+| `MAPA.REMOVE_MARKER` | `manejarRemoveMarker` L3099 | Elimina marcador por ID |
+| `MAPA.CLEAR_LAYERS` | `manejarClearLayers` L3171 | Limpia capas del mapa (polylines, marcadores) |
 
 **Refactor 2026-06-10**: el único call site existente (`_onNextEntityShowMapClick` ~L5527, overlay GPS "mostrar en mapa") enviaba `MAPA.ADD_MARKER` + `MAPA.SET_VIEW` via self-send — descartados silenciosamente. Reemplazado por `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })` directo. Todos los tipos `MAPA.*` quedan sin emisores — API preparada para uso externo futuro.
 
@@ -5049,7 +5052,7 @@ La respuesta es del **mismo tipo** que la solicitud (`GPS.ESTADO_GLOBAL`). El so
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre script 4 L11584 |
+| Emitido por | Padre script 4 L11583 (tipo en `enviarMensaje`) |
 | Destino | Todos |
 | Acción | Broadcast periódico del estado global del sistema (versión, modos activos, errores). Complementa HEARTBEAT que solo verifica vida. |
 
@@ -6300,14 +6303,15 @@ Ver §3 de "Pendiente antes del despliegue" para la lista completa de tareas que
 ## 24. La experiencia del usuario: narrativa completa del modo AVENTURA
 
 
-acordarse de implementar 
+acordarse de implementar quepasacuando se acaba a VENTURA EN MODO  AVENTURA mirar seccion 10.15 de la guia
+preguntar qué pasa cuando gps error (sale la imagen) pero y luego' cómo se llama el gps de vuelta? quizá un botón de retry encima de la imagen?
 > Esta sección describe paso a paso qué vive el usuario desde que abre la aplicación hasta que completa una aventura, explicado de forma narrativa para que sea fácil de entender.
 
 ---
 
 ### 24.1. Abriendo la aplicación por primera vez
 
-El turista abre el navegador de su móvil y entra en **valenciavguides.es**. La aplicación carga `codigo-padre.html`, que es el cerebro de todo. Lo primero que ve es una **animación de carga** (un Pac-Man animado) mientras se inicializan los sistemas internos.
+El turista abre el navegador de su móvil y entra en **valenciavguides.es**. La aplicación carga `codigo-padre.html`, que es el cerebro de todo. Lo primero que ve es una **animación de carga** (logo redondo animado) mientras se inicializan los sistemas internos.
 
 En segundo plano, el padre:
 
@@ -6387,7 +6391,7 @@ En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simu
 - **Se establece la parada por defecto.** Si hay progreso guardado de una sesión anterior, se restaura. Si no, se posiciona en la primera parada (P-0, que suele ser Torres de Serranos en la Aventura 1).
 
 - **Se muestran los controles de juego.** El usuario ve:
-  - Un **mapa interactivo** con su posición GPS en tiempo real (icono azul pulsante). El modo por defecto es satélite; el usuario puede cambiarlo con el botón selector naranja de la esquina superior derecha.
+  - Un **mapa interactivo** con su posición GPS en tiempo real (icono azul pulsante). El modo por defecto es satélite; el usuario puede cambiarlo con el botón selector naranja de la esquina superior izquierda.
   - Las **paradas** como marcadores en el mapa.
   - La **polyline** (línea de ruta) conectando las paradas.
   - Los **iframes hijos** posicionados en los bordes de la pantalla.
@@ -6400,31 +6404,31 @@ La pantalla de aventura se compone de varios elementos superpuestos:
 
 **El mapa** (fondo completo): Ocupa toda la pantalla. Muestra la posición del usuario, las paradas y la ruta. Por defecto en modo satélite (ESRI); el botón selector naranja en la esquina superior derecha permite cambiar a Mapa Voyager, Callejero claro o Nocturno.
 
-**Hijo 2 — Coordenadas** (esquina inferior-izquierda): Contiene **6 botones** organizados en 2 filas de 3:
+**Hijo 2 — Coordenadas** (esquina inferior-izquierda): Contiene **6 botones** organizados en 1 fila de 6:
 
 | Botón | Icono | Función |
 |-------|-------|---------|
-| GPS | Ruta A→B | Abre la navegación GPS nativa (Google Maps / Apple Maps) hasta la parada actual |
-| Imagen | Foto monumento | Muestra una foto de la parada actual en un overlay |
-| Vídeo | Fotograma dron | Reproduce un vídeo aéreo del monumento |
-| Ubicación | Foto distancia | Muestra una foto indicando dónde estás respecto a la parada |
-| Mapa completo | Mapa moderno | Abre un mapa moderno a pantalla completa |
+| avanzar | Ruta A→B | Abre la navegación GPS nativa (Google Maps / Apple Maps) hasta la parada actual |
+| Imagen | Foto monumento | Muestra una foto de la parada actual en un overlay y el texto relacionado con ella |
+| Vídeo | Fotograma dron | Reproduce un vídeo aéreo del tramo de A a B |
+| Ubicación | Foto distancia | cuando el usuario sale fuera del radio de la aventura |
+| Mapa completo | Mapa moderno | Abre un mapa moderno a pantalla completa con las paradas y la polyline en coordenadas-aventuras son las referencias |
 | Mapa vintage | Mapa antiguo | Abre el mapa artístico a pantalla completa |
 
 **Hijo 3 — Audio** (borde inferior): Muestra un reproductor de audio con:
 
 - Barra de progreso del audio con tiempo transcurrido.
 - Título de pista.
-- Botón **Retos** (abre el reto de la parada actual).
+- Botón **Retos** (abre el reto de la parada actual si existe reto).
 - El control de reproducción play/pause/stop/replay está en el padre, en un botón central desplegable que envía comandos al hijo3.
 
-**Hijo 5 — Botón Casa** (franja superior, `top: 3px`): El iframe más estrecho, fijo en la parte superior de la pantalla:
+**Hijo 5 — Botón Casa** (franja superior, `top: 3px`): El iframe más estrecho, fijo en la parte superior de la pantalla: este hijo es temporal, cuando se lance la aplicación en pwa real este hijo no estará en pantalla, sirve solamente para trabajar en local desde casa
 
 - En modo AVENTURA muestra solo el botón GPS 🛰️ con texto **"ON"** y fondo verde. La lista de paradas (`#paradas-window`) está **oculta** en modo AVENTURA.
 - Al pulsarlo envía `SISTEMA.CAMBIO_MODO{modo:'casa'}` al padre, volviendo a la pantalla de selección.
 - La lista de paradas (botones verdes/amarillos) solo es visible en **modo CASA**, donde permite consultar el recorrido.
 
-**Hijo 1 — Opciones** (columna derecha, borde inferior izquierdo de hijo2): Temporizador y ajustes de la aventura.
+**Hijo 1 — Opciones** (columna izquierda, borde inferior): Temporizador e información extra de valencia.
 
 ---
 
@@ -6441,7 +6445,7 @@ Cuando el usuario está **dentro del radio de acción** (`RADIO_EXTENDIDO`, 50 m
 
 Mientras el usuario está **dentro de los 50 metros**:
 
-- ✅ **Botón GPS**: deshabilitado (rojo) — no necesita navegación, ya está en el sitio.
+- ✅ **Botón avanzar**: deshabilitado (rojo) — no necesita navegación, ya está en el sitio.
 - ✅ **Botón Imagen**: habilitado — puede ver la foto del monumento.
 - ✅ **Botón Vídeo**: habilitado — puede ver el vídeo aéreo.
 - ✅ **Botón Ubicación**: deshabilitado (rojo) — no necesita ver dónde ir.
