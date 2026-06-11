@@ -4728,100 +4728,6 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 ---
 
-### 10.6 Issues detectados en la auditoría
-
-#### ℹ️ INFO — `RETO.SOLICITAR_RETO` — handler confirmado (falsa alarma)
-
-- **Dónde**: hijo3 L837 y hijo4 L853 envían `RETO.SOLICITAR_RETO` → `padre`
-- **Estado**: Handler `_hdl_RETO_SOLICITAR` existe en padre L8142 y está registrado en L8260 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. **No es un bug.** La búsqueda inicial no lo encontró porque está en Script 2, separado del resto de handlers.
-
-#### ✅ CORREGIDO — `DATOS.SOLICITAR_COORDENADAS` no existía en `constants.js`
-
-- **Dónde**: `constants.js` sección DATOS — la clave `SOLICITAR_COORDENADAS` no estaba definida.
-- **Problema**: Hijo2 reintentaba CARGAR_COORDENADAS con `tipo: undefined` → mensajería lo descartaba. El handler en padre también registrado bajo `undefined` → nunca activado.
-- **Fix aplicado**: Añadida `SOLICITAR_COORDENADAS: 'DATOS.SOLICITAR_COORDENADAS'` en `constants.js` L146.
-- **Nota**: `NAVEGACION.SOLICITAR_COORDENADAS` (L123) es un flujo diferente — padre pide coords de una parada concreta a hijo2.
-
-#### ℹ️ INFO — `SISTEMA.HIJO_FALLIDO` — handler confirmado (corrección)
-
-- **Dónde**: hijo1 envía `SISTEMA.HIJO_FALLIDO` si su inicialización falla
-- **Estado**: Padre SÍ tiene handler — inline L6259 registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. Log del error. No hay reintento automático ni alerta al usuario, pero el fallo queda registrado.
-
-#### ✅ CORREGIDO — `ensureDefaultParada` broken self-send
-
-- **Dónde**: `codigo-padre.html` función `ensureDefaultParada` (~L3585)
-- **Problema**: `enviarMensajePadre({destino: getPadreId()})` fallaba silenciosamente — padre no está en `iframesRegistrados`. El pipeline de CAMBIO_PARADA no arrancaba y la app arrancaba en blanco (sin audio, coords ni reto en P-0).
-- **Fix aplicado**: Reemplazado por `await globalThis.__triggerCambioParadaInterno(datosDefault)` con guard `typeof ... === 'function'`, igual que `_restoreBroadcast`.
-
-#### ✅ CORREGIDO — `progresarSiguienteElemento` broken self-send (progresión de aventura)
-
-- **Dónde**: `codigo-padre.html` función `progresarSiguienteElemento` (~L7731)
-- **Problema**: Mismo patrón roto: `enviarMensajePadre({destino: getPadreId()})` descartado silenciosamente. El estado interno avanzaba (`indiceProgreso++`) pero ningún hijo recibía los datos de la nueva parada — aventura bloqueada desde el primer avance.
-- **Fix aplicado**: Reemplazado por `await globalThis.__triggerCambioParadaInterno(datosCambio)` con guard `typeof ... === 'function'`.
-
-#### ✅ CORREGIDO — GPS overlay "show on map" (patrón self-send roto)
-
-- **Dónde**: `codigo-padre.html` función `_onNextEntityShowMapClick` (~L5527)
-- **Problema**: Los 3 self-sends (`MAPA.ADD_MARKER`, `CENTRAR_EN_UBICACION` ×2) eran descartados silenciosamente. El botón "mostrar en mapa" del overlay GPS nunca centraba el mapa ni añadía marcador.
-- **Fix aplicado**: Reemplazados por `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })`. Las coordenadas se resuelven directamente desde `el._entityData` o desde `DATOS_PADRE` si solo hay `datos.id`.
-
-#### ℹ️ PATRÓN — `enviarMensajePadre({destino: padreId})` siempre falla
-
-Regla general: `_enviarDesdePadre(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está ahí — el mensaje se descarta sin error. Todas las instancias conocidas han sido corregidas:
-
-| Línea orig. | Función | Fix |
-|------------|---------|-----|
-| ~L3590 | `ensureDefaultParada` | `__triggerCambioParadaInterno` ✅ |
-| ~L7741 | `progresarSiguienteElemento` | `__triggerCambioParadaInterno` ✅ |
-| ~L5533/5537/5539 | GPS overlay "show on map" | `funcionesMapa.setMapView` ✅ |
-
-#### ⚠️ DEFERRED — `broadcastToCapability` y conflicto de registro GPS
-
-Dos patrones arquitectónicamente incorrectos pero funcionalmente neutros hoy. Documentados en §10.15 "Patrones diferidos".
-
-#### ℹ️ INFO — `NAVEGACION.RESPUESTA_COORDENADAS` — sí tiene handler (corrección)
-
-- `funciones-mapa.js` L3481 registra handler para `RESPUESTA_COORDENADAS` mediante `procesarRespuestaConsulta`. Resuelve la promesa pendiente de `enviarMensajeConConfirmacion`. **No es un bug.** El handler está en funciones-mapa.js, no en un bloque `<script>` de codigo-padre.html, lo que puede confundir una búsqueda superficial.
-
-#### ℹ️ INFO — `UI.CLOSE_MENUS` hijo1→padre sin handler
-
-- Hijo1 notifica al padre tras cerrar sus menús (L989). Es informativo — padre no necesita actuar. No es un bug.
-
----
-
-### 10.7 Tabla resumen de cobertura por hijo
-
-| Mensaje | hijo1 | hijo2 | hijo3 | hijo4 | hijo6 |
-|---------|-------|-------|-------|-------|-------|
-| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ❌ |
-| CAMBIO_PARADA | ✅ | ✅ | ✅ | ✅ | ❌ |
-| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ |
-| HEARTBEAT_START | ❌ | ✅ | ✅ | ✅ | ✅ |
-| HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ |
-| GPS.UBICACION_ACTUALIZADA | ✅ | ✅ | ✅ | ✅ | ❌ |
-| GPS.ESTADO_ACTUALIZADO | ✅ | ✅ | ✅ | ✅ | ❌ |
-| GPS.ERROR | ✅ | ✅ | ✅ | ✅ | ❌ |
-| CARGAR_COORDENADAS | — | ✅ | — | — | — |
-| CARGAR_AUDIOS | — | — | ✅ | — | — |
-| CARGAR_RETOS | — | — | — | ✅ | — |
-| CARGAR_TEXTOS | — | — | — | ✅ | — |
-| AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — |
-| RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — |
-| RETO.HABILITAR | — | — | — | ✅ | — |
-| RETO.ESTADO_CASA | — | — | — | ✅ | — |
-| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | ✅ | — |
-| AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — |
-| CHAT.ESTADO_PADRE | — | — | — | — | ✅ |
-
-**Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
-
-> ℹ️ **GPS.ERROR**: hijo1 L703, hijo2 L2679, hijo3 L1933, hijo4 L1909 tienen handlers registrados. hijo6 no tiene handler para GPS.ERROR.
-
----
-
 ### 10.8 Listeners pre-módulo (fuera del bus de mensajería)
 
 Algunos mensajes son procesados por listeners raw `window.addEventListener('message')` que se registran **antes** de que los módulos JS carguen. Estos mensajes NO pasan por `mensajeria.js` ni `registrarControladorSeguro`. No tienen garantías de dedup, logging ni routing estándar.
@@ -5395,6 +5301,100 @@ Hay cinco puntos donde un hijo accede directamente a propiedades o métodos del 
 **Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html:1526` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
 
 **Acceso inverso (padre → hijo, contentWindow):** `codigo-padre.html:99-100` intenta llamar `iframe.contentWindow.reapplyParadasStyle()` sobre hijo5. La función no está definida en ningún archivo de la app — el guard `typeof ... === 'function'` siempre falla y la ejecución cae al fallback de inyección CSS directa (`iframe.contentDocument` → inserción de `<style>`). Este patrón padre→hijo via `contentDocument` es el único caso de manipulación DOM directa entre ventanas en la app.
+
+---
+
+### 10.6 Issues detectados en la auditoría
+
+#### ℹ️ INFO — `RETO.SOLICITAR_RETO` — handler confirmado (falsa alarma)
+
+- **Dónde**: hijo3 L837 y hijo4 L853 envían `RETO.SOLICITAR_RETO` → `padre`
+- **Estado**: Handler `_hdl_RETO_SOLICITAR` existe en padre L8142 y está registrado en L8260 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. **No es un bug.** La búsqueda inicial no lo encontró porque está en Script 2, separado del resto de handlers.
+
+#### ✅ CORREGIDO — `DATOS.SOLICITAR_COORDENADAS` no existía en `constants.js`
+
+- **Dónde**: `constants.js` sección DATOS — la clave `SOLICITAR_COORDENADAS` no estaba definida.
+- **Problema**: Hijo2 reintentaba CARGAR_COORDENADAS con `tipo: undefined` → mensajería lo descartaba. El handler en padre también registrado bajo `undefined` → nunca activado.
+- **Fix aplicado**: Añadida `SOLICITAR_COORDENADAS: 'DATOS.SOLICITAR_COORDENADAS'` en `constants.js` L146.
+- **Nota**: `NAVEGACION.SOLICITAR_COORDENADAS` (L123) es un flujo diferente — padre pide coords de una parada concreta a hijo2.
+
+#### ℹ️ INFO — `SISTEMA.HIJO_FALLIDO` — handler confirmado (corrección)
+
+- **Dónde**: hijo1 envía `SISTEMA.HIJO_FALLIDO` si su inicialización falla
+- **Estado**: Padre SÍ tiene handler — inline L6259 registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. Log del error. No hay reintento automático ni alerta al usuario, pero el fallo queda registrado.
+
+#### ✅ CORREGIDO — `ensureDefaultParada` broken self-send
+
+- **Dónde**: `codigo-padre.html` función `ensureDefaultParada` (~L3585)
+- **Problema**: `enviarMensajePadre({destino: getPadreId()})` fallaba silenciosamente — padre no está en `iframesRegistrados`. El pipeline de CAMBIO_PARADA no arrancaba y la app arrancaba en blanco (sin audio, coords ni reto en P-0).
+- **Fix aplicado**: Reemplazado por `await globalThis.__triggerCambioParadaInterno(datosDefault)` con guard `typeof ... === 'function'`, igual que `_restoreBroadcast`.
+
+#### ✅ CORREGIDO — `progresarSiguienteElemento` broken self-send (progresión de aventura)
+
+- **Dónde**: `codigo-padre.html` función `progresarSiguienteElemento` (~L7731)
+- **Problema**: Mismo patrón roto: `enviarMensajePadre({destino: getPadreId()})` descartado silenciosamente. El estado interno avanzaba (`indiceProgreso++`) pero ningún hijo recibía los datos de la nueva parada — aventura bloqueada desde el primer avance.
+- **Fix aplicado**: Reemplazado por `await globalThis.__triggerCambioParadaInterno(datosCambio)` con guard `typeof ... === 'function'`.
+
+#### ✅ CORREGIDO — GPS overlay "show on map" (patrón self-send roto)
+
+- **Dónde**: `codigo-padre.html` función `_onNextEntityShowMapClick` (~L5527)
+- **Problema**: Los 3 self-sends (`MAPA.ADD_MARKER`, `CENTRAR_EN_UBICACION` ×2) eran descartados silenciosamente. El botón "mostrar en mapa" del overlay GPS nunca centraba el mapa ni añadía marcador.
+- **Fix aplicado**: Reemplazados por `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })`. Las coordenadas se resuelven directamente desde `el._entityData` o desde `DATOS_PADRE` si solo hay `datos.id`.
+
+#### ℹ️ PATRÓN — `enviarMensajePadre({destino: padreId})` siempre falla
+
+Regla general: `_enviarDesdePadre(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está ahí — el mensaje se descarta sin error. Todas las instancias conocidas han sido corregidas:
+
+| Línea orig. | Función | Fix |
+|------------|---------|-----|
+| ~L3590 | `ensureDefaultParada` | `__triggerCambioParadaInterno` ✅ |
+| ~L7741 | `progresarSiguienteElemento` | `__triggerCambioParadaInterno` ✅ |
+| ~L5533/5537/5539 | GPS overlay "show on map" | `funcionesMapa.setMapView` ✅ |
+
+#### ⚠️ DEFERRED — `broadcastToCapability` y conflicto de registro GPS
+
+Dos patrones arquitectónicamente incorrectos pero funcionalmente neutros hoy. Documentados en §10.15 "Patrones diferidos".
+
+#### ℹ️ INFO — `NAVEGACION.RESPUESTA_COORDENADAS` — sí tiene handler (corrección)
+
+- `funciones-mapa.js` L3481 registra handler para `RESPUESTA_COORDENADAS` mediante `procesarRespuestaConsulta`. Resuelve la promesa pendiente de `enviarMensajeConConfirmacion`. **No es un bug.** El handler está en funciones-mapa.js, no en un bloque `<script>` de codigo-padre.html, lo que puede confundir una búsqueda superficial.
+
+#### ℹ️ INFO — `UI.CLOSE_MENUS` hijo1→padre sin handler
+
+- Hijo1 notifica al padre tras cerrar sus menús (L989). Es informativo — padre no necesita actuar. No es un bug.
+
+---
+
+### 10.7 Tabla resumen de cobertura por hijo
+
+| Mensaje | hijo1 | hijo2 | hijo3 | hijo4 | hijo6 |
+|---------|-------|-------|-------|-------|-------|
+| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ❌ |
+| CAMBIO_PARADA | ✅ | ✅ | ✅ | ✅ | ❌ |
+| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ |
+| HEARTBEAT_START | ❌ | ✅ | ✅ | ✅ | ✅ |
+| HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ |
+| GPS.UBICACION_ACTUALIZADA | ✅ | ✅ | ✅ | ✅ | ❌ |
+| GPS.ESTADO_ACTUALIZADO | ✅ | ✅ | ✅ | ✅ | ❌ |
+| GPS.ERROR | ✅ | ✅ | ✅ | ✅ | ❌ |
+| CARGAR_COORDENADAS | — | ✅ | — | — | — |
+| CARGAR_AUDIOS | — | — | ✅ | — | — |
+| CARGAR_RETOS | — | — | — | ✅ | — |
+| CARGAR_TEXTOS | — | — | — | ✅ | — |
+| AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — |
+| RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — |
+| RETO.HABILITAR | — | — | — | ✅ | — |
+| RETO.ESTADO_CASA | — | — | — | ✅ | — |
+| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | ✅ | — |
+| AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — |
+| CHAT.ESTADO_PADRE | — | — | — | — | ✅ |
+
+**Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
+
+> ℹ️ **GPS.ERROR**: hijo1 L703, hijo2 L2679, hijo3 L1933, hijo4 L1909 tienen handlers registrados. hijo6 no tiene handler para GPS.ERROR.
 
 ---
 
