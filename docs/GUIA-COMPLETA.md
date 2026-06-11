@@ -3910,6 +3910,14 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P7 se c
 
 ## 10. Los datos y la comunicación de la aplicación
 
+> **Para qué sirve §10.4 en adelante**: registrar absolutamente todos los canales de comunicación de la aplicación en un único lugar de referencia — mensajes del bus (`enviarMensaje` / `registrarControladorSeguro` / `registrarControlador`), `postMessage` directo, `addEventListener('message')` raw y `CustomEvent`.
+>
+> **Qué se busca**: cualquier llamada a `enviarMensaje`, `postMessage`, `registrarControladorSeguro`, `addEventListener('message')` o `dispatchEvent(CustomEvent)` que exista en el código pero **no esté documentada en §10** — eso es un gap y hay que añadirlo.
+>
+> **Cómo se busca**: inventariar sistemáticamente todos los archivos de la aplicación (`codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`) y cruzar cada mensaje encontrado contra lo documentado en §10. Si no está → se documenta.
+
+---
+
 Toda la información de las aventuras (coordenadas GPS, textos, audios, retos, puzzles) se almacena en ficheros JavaScript en la carpeta `js/` y en ficheros JSON en `backend/data/`.
 
 ### Datos en el frontend (`js/`)
