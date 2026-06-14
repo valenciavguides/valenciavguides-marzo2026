@@ -1975,8 +1975,8 @@ graph TD
 | Pant. | ID | Botones principales (IDs / clases) | Condición para avanzar | Mensaje al padre |
 |-------|----|------------------------------------|------------------------|-----------------|
 | P1 | `#pantalla1` | `.btn-mundo-verde` (Empezar) | Ninguna | — |
-| P2 | `#pantalla2` | `.bandera-btn` × 12 (idiomas) | Click en bandera | — |
-| P3 | `#pantalla3` | `#btn-mundo-verde` (Sí) / `#btn-mundo-rojo` (No) | Click en Sí/No | `SELECCION.IDIOMA_SELECCIONADO` (al confirmar Sí) |
+| P2 | `#pantalla2` | `.bandera-btn` × 12 (idiomas) | Click en bandera → `seleccionarIdioma(codigo)` → avanza a P3 | `SELECCION.IDIOMA_SELECCIONADO { idioma }` (enviado al hacer click en la bandera, antes de confirmar en P3) |
+| P3 | `#pantalla3` | `#btn-mundo-verde` (Sí) / `#btn-mundo-rojo` (No) | Click Sí → P4; No → P2 (nueva selección) | — |
 | P4 | `#pantalla4` | `.btn-mundo-verde` (→) | Ninguna | — |
 | P5 | `#pantalla5` | `#btn-siguiente-agradecimientos` | Scroll hasta el final del texto (se habilita con `disabled = false`) | — |
 | P6 | `#pantalla6` | `#btn-aceptar-terminos` | Scroll hasta el final (`disabled = false`) | `SELECCION.TERMINOS_ACEPTADOS` |
@@ -1987,9 +1987,9 @@ graph TD
 | P11 | `#pantalla11` | `.btn-mundo-verde` (→) | Ninguna (audio opcional) | — |
 | P12 | `#pantalla12` | Opciones del reto R-1 (radio/checkbox) + botón verificar | Respuesta correcta al reto | — |
 | P13 | `#pantalla13` | `.btn-mundo-verde` (stub pago) | Ninguna (pago no implementado) | — |
-| P14 | `#pantalla14` | `#btn-iniciar-aventura` (deshabilitado hasta código correcto) | Código = `'0000'` → `disabled = false` | `SELECCION.AVENTURA_ACTIVADA` |
-| P15 | `#pantalla15` | `#btn-siguiente-normativa` | Scroll hasta el final (`disabled = false`) | — |
-| P16 | `#pantalla16` | Opciones del reto R-2 | SÍ → aventura; NO → vuelve a P1 | `SELECCION.AVENTURA_ACTIVADA` (al SÍ) |
+| P14 | `#pantalla14` | `#btn-iniciar-aventura` (deshabilitado hasta código correcto) | Código = `'0000'` → `disabled = false` → `mostrar(15)` | — |
+| P15 | `#pantalla15` | `#btn-siguiente-normativa` | Scroll hasta el final (`disabled = false`) → `mostrar(16)` | — |
+| P16 | `#pantalla16` | Opciones del reto R-2 | SÍ (verificarRetoR2) → aventura; NO → vuelve a P1 | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` (solo al SÍ) |
 
 **Botones con scroll-gate**: `#btn-siguiente-agradecimientos` (P5), `#btn-aceptar-terminos` (P6), `#btn-siguiente-normativa` (P15) nacen con `disabled = true`. Se habilitan cuando el evento `scroll` del contenedor detecta `scrollTop + clientHeight ≥ scrollHeight - 5px`. No hay timeout: el usuario debe leer o hacer scroll manual.
 
@@ -2060,7 +2060,7 @@ flowchart TD
 | `SELECCION.TERMINOS_ACEPTADOS` | Acepta términos en P6 | `{ timestamp }` |
 | `SELECCION.AVENTURA_SELECCIONADA` | Confirma aventura en P8 | `{ aventura, idioma }` |
 | `SELECCION.PREPARAR_HIJOS` | Al entrar en P10 | `{ idioma, aventura, timestamp }` |
-| `SELECCION.AVENTURA_ACTIVADA` | Al validar código en P14 / SÍ en P16 | `{ aventura, idioma, terminosAceptados, timestamp }` |
+| `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P16 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Al recibir `CAMBIO_MODO` | — |
 
@@ -2172,9 +2172,9 @@ sequenceDiagram
 
 ### 7.3 coordenadas-hijo2.html — mapa interactivo (iframe `id="hijo2"`)
 
-**Propósito**: renderiza el mapa Leaflet con marcadores de paradas/tramos, posición del usuario y ruta. También calcula la proximidad del usuario a la parada/tramo activo y dispara `LLEGADA_DETECTADA` cuando entra en rango. Es la **única fuente de verdad sobre la posición del usuario** en el sistema.
+**Propósito**: gestiona la lógica GPS de proximidad (cálculo Haversine, `LLEGADA_DETECTADA`, overlay fuera-de-rango) y los 6 botones de navegación. **No contiene código Leaflet** — el mapa con tiles y marcadores vive exclusivamente en `codigo-padre.html` (gestionado por `funciones-mapa.js`). Es la **única fuente de verdad sobre la distancia del usuario al objetivo** en el sistema.
 
-**Importante**: hijo2 **no tiene `watchPosition` propio**. El único `navigator.geolocation.watchPosition()` de la app está en `activarGPS()` dentro de `codigo-padre.html` (línea 4954). El padre envía las posiciones GPS a hijo2 via `NAVEGACION.ACTUALIZAR_ESTADO`; hijo2 las recibe, actualiza el marcador y ejecuta la lógica de proximidad.
+**Importante**: hijo2 **no tiene `watchPosition` propio**. El único `navigator.geolocation.watchPosition()` de la app está en `activarGPS()` dentro de `codigo-padre.html`. El padre envía las posiciones GPS a hijo2 via `NAVEGACION.ACTUALIZAR_ESTADO`; hijo2 las recibe, ejecuta la lógica de proximidad y envía `LLEGADA_DETECTADA` si corresponde.
 
 **Inicialización**: pre-cargado por `_cargarIframesHijos()`, oculto. Body arranca con clase `modo-casa hijo2-container`.
 
@@ -2186,22 +2186,24 @@ sequenceDiagram
 | Mapa JPG | `#btn-mapa-jpg` | Muestra imagen vintage del recorrido | Siempre | Si `fueraDeRango5min = true` |
 | Vídeo | `#btn-video` | Reproduce vídeo del tramo activo | Cuando elemento activo es tramo Y reto no está activo (CASA y AVENTURA) | Si es parada / reto activo / `fueraDeRango5min` |
 | Imagen | `#btn-imagen` | Muestra imagen de la parada activa | Siempre (incluso con reto activo o `fueraDeRango5min` — el usuario necesita ver qué busca) | Solo si el padre envía `CONTROL.DESHABILITAR { control: 'btnImagen' }` |
-| Avanzar / GPS | `#btn-avanzar` | En AVENTURA: detecta llegada. En CASA: sin función GPS | AVENTURA: distancia ≤ umbral. CASA: nunca relevante | AVENTURA: distancia > umbral o parada pendiente de completar |
-| Ubicación | `#btn-ubicacion` | Centra el mapa en la posición del usuario | Siempre en CASA. AVENTURA: si el usuario está >50 m durante >5 min | — |
+| Avanzar / GPS | `#btn-avanzar` | Toggle GPS: envía `NAVEGACION.GPS.ACTIVAR { activar, idParada, distancia }` al padre | Siempre | — |
+| Ubicación | `#btn-ubicacion` | Solicita al padre polyline de retorno al destino (`MOSTRAR_UBICACION_POLYLINE`); cierra overlay fuera-de-rango si visible | Siempre en CASA. AVENTURA: si el usuario está >50 m durante >5 min | — |
 
 **Reglas de habilitación/deshabilitación** — se aplican en `_actualizarEstadoBotones()`:
 - `fueraDeRango5min = true` → deshabilita `#btn-mapa-jpg`, `#btn-video`, `#btn-mapa-completo`. Solo `#btn-ubicacion` permanece activo.
 - Reto activo → deshabilita `#btn-video` e `#btn-imagen`.
 - No hay tramo activo → deshabilita `#btn-video`.
 
-#### 4 modos de mapa (selector esquina superior derecha, borde naranja)
+#### 4 modos de mapa — selector en el PADRE (`#selector-tipo-mapa`)
 
-| Modo | ID capa | Proveedor | URL de tiles |
-|------|---------|-----------|--------------|
-| OSM (por defecto) | `'osm'` | OpenStreetMap | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` |
-| Satélite | `'satellite'` | ESRI World Imagery | `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}` |
-| Claro | `'vintage'` | CartoDB Positron | `https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png` |
-| Nocturno | `'dark'` | CartoDB Dark Matter | `https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png` |
+> El selector de capa de mapa **no pertenece a hijo2** — está creado dinámicamente en `codigo-padre.html` (línea ~2651) y posicionado encima del mapa Leaflet del padre (`position:fixed; top; left`). hijo2 no lo controla.
+
+| Modo | ID capa | Nombre UI | Proveedor tiles |
+|------|---------|-----------|-----------------|
+| Satélite (por defecto) | `'satelite'` | "Satélite" | ArcGIS World Imagery |
+| Mapa | `'voyager'` | "Mapa" | CartoDB Voyager (sin etiquetas) + capa etiquetas superpuesta |
+| Callejero | `'osm'` | "Callejero" | CartoDB Light All (`basemaps.cartocdn.com/light_all`) |
+| Nocturno | `'nocturno'` | "Nocturno" | CartoDB Dark Matter + capa etiquetas noche superpuesta |
 
 #### Lógica de proximidad y LLEGADA_DETECTADA
 
@@ -2233,7 +2235,7 @@ El overlay se cierra al pulsar el botón cerrar (`ocultarOverlayFueraRango()`) o
 
 | Controlador | Qué hace |
 |---|---|
-| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe posición GPS + `toleranciaGPS`; actualiza marcador usuario; calcula proximidad; envía `LLEGADA_DETECTADA` si en rango |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe posición GPS + `toleranciaGPS`; actualiza `estadoComponente.posicionActualUsuario`; calcula distancia Haversine al objetivo; habilita `#btn-avanzar` y envía `LLEGADA_DETECTADA` si en rango |
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza clase CSS del body; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `SISTEMA.CAMBIO_MODO` | Cambia clase CSS del body (`modo-casa`/`modo-aventura`); en CASA desactiva detección de proximidad |
@@ -2241,7 +2243,7 @@ El overlay se cierra al pulsar el botón cerrar (`ocultarOverlayFueraRango()`) o
 | `DATOS.CARGAR_TEXTOS` | Carga descripciones de paradas |
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | Responde con datos de coordenadas |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Recibe lista completa de paradas y tramos |
-| `NAVEGACION.CAMBIO_PARADA` | Actualiza el marcador activo; re-centra el mapa |
+| `NAVEGACION.CAMBIO_PARADA` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada`; llama `actualizarEstadoBotones()` y `_resetSpinsAventura()` |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Muestra/oculta el iframe |
 | `SISTEMA.HEARTBEAT` / `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | Gestión del latido |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Confirma que el modo ha sido completamente aplicado |
@@ -2255,9 +2257,9 @@ El overlay se cierra al pulsar el botón cerrar (`ocultarOverlayFueraRango()`) o
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
 | `NAVEGACION.LLEGADA_DETECTADA` | Distancia ≤ umbral | `{ paradaId, distancia, timestamp }` |
-| `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-ubicacion` (solicita encender GPS) | `{ razon: 'boton_ubicacion' }` |
+| `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-avanzar` (toggle GPS on/off) | `{ activar: bool, idParada, distancia }` |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | >50 m tras haber estado en rango | `{ paradaId, distancia }` |
-| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Solicita al padre dibujar polyline hasta el usuario | `{ lat, lng }` |
+| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Click en `#btn-ubicacion`; solicita al padre (funciones-mapa.js) dibujar polyline desde posición actual hasta el destino activo | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` |
 | `NAVEGACION.MOSTRAR_MAPA_JPG` | Click en `#btn-mapa-jpg` | `{ aventura, paradaId }` |
 | `UI.ACCION_USUARIO` | Click en `#btn-video` o `#btn-imagen` | `{ accion: 'video'/'imagen', paradaId }` |
 | `DATOS.COORDENADAS_CARGADAS` | Tras cargar coordenadas de `DATOS.CARGAR_COORDENADAS` (éxito o error) | `{ exito, aventura, idioma, totalCargadas, timestamp }` |
@@ -2282,8 +2284,8 @@ sequenceDiagram
     end
 ```
 
-**Modo AVENTURA**: GPS activo, marcador usuario visible, detección de proximidad en marcha, `#btn-avanzar` activo cuando en rango.  
-**Modo CASA**: detección de proximidad desactivada; el mapa muestra marcadores de todas las paradas; `#btn-avanzar` sin función GPS.
+**Modo AVENTURA**: GPS activo (toggle via `#btn-avanzar`), detección de proximidad en marcha, `#btn-avanzar` resaltado cuando GPS está activado.  
+**Modo CASA**: detección de proximidad desactivada (clase CSS `modo-casa`); botones siguen visibles pero GPS no está activo; `#btn-avanzar` no lanza watchPosition.
 
 ---
 
@@ -2540,6 +2542,9 @@ window.addEventListener('message', (e) => {
 |------|--------|-------------------|
 | `RETO.MOSTRADO` | Tras renderizar correctamente el reto | `{ retoId }` |
 | `RETO.COMPLETADO` | Usuario envía respuesta | `{ reto_id, tipo_reto, correcto, respuesta_usuario, tiempo_resolucion, intentos }` |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Tras procesar `CAMBIO_PARADA` — pre-carga reto de la nueva parada | `{ paradaId }` |
+| `DATOS.SOLICITAR_RETOS` | Si `RETO.MOSTRAR` llega pero `__vv_retosAventura` no está cargado | `{ aventura }` |
+| `RETO.SOLICITAR_RETO` | Click en `#botonRetos` (botón secundario "Iniciar reto") | `{ contexto: 'hijo4-botonRetos' }` |
 | Estándar | Handshake + heartbeat + modo | — |
 
 ```mermaid
@@ -2672,9 +2677,13 @@ wrap.classList.add('marquee');
 | Controlador | Qué hace |
 |---|---|
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); sincroniza estado visual del `#gps-casa-btn`; las paradas se solicitan por separado vía `NAVEGACION.SOLICITAR_DATOS_PARADAS` |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `SISTEMA.CAMBIO_MODO` | Sincroniza el estado visual del `#gps-casa-btn` (ON/OFF); muestra/oculta `#paradas-window` |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Confirmación de modo completamente aplicado |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Recibe la lista de paradas del padre → `generarBotonesParadas()` |
 | `NAVEGACION.CAMBIO_PARADA` | Marca el botón correspondiente con clase `.activo` |
+| `SISTEMA.HEARTBEAT` / `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | Gestión del latido |
+| `SISTEMA.ERROR` | Recibe errores del sistema del padre |
 
 #### Mensajes que envía al padre
 
@@ -3119,6 +3128,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.HEARTBEAT` | Padre → Hijos | Latido "¿sigues vivo?" (solo AVENTURA) |
 | | `SISTEMA.HEARTBEAT_START` | Padre → Hijos | Iniciar ciclo de heartbeat |
 | | `SISTEMA.HEARTBEAT_PAUSE` | Padre → Hijos | Pausar ciclo de heartbeat |
+| | `SISTEMA.HEARTBEAT_ESTADO` | Padre (auto-mensaje) | Consulta interna del estado del heartbeat via `globalThis.consultarHeartbeat()` |
 | | `SISTEMA.HEARTBEAT_RESPONSE` | Hijo → Padre | "Sigo activo" |
 | | `SISTEMA.ACK` | Cualquiera | Acuse de recibo genérico |
 | | `SISTEMA.NACK` | Cualquiera | Rechazo de mensaje |
@@ -3144,8 +3154,8 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `NAVEGACION.LLEGADA_DETECTADA` | Hijo2 → Padre | Usuario ha llegado a la parada (solo AVENTURA) |
 | | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo2 → Padre | Usuario fuera del radio de la parada |
 | | `NAVEGACION.ACTUALIZAR_ESTADO` | Padre → Hijo2 | Actualización de estado de navegación |
-| | `NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO` | Hijo2 → Padre | Nueva posición del marcador del usuario |
-| | `NAVEGACION.CENTRAR_EN_UBICACION` | Padre → Hijo2 | Centrar mapa en coordenadas |
+| | `NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO` | Sin emisor activo | Handler en padre; ningún hijo lo envía actualmente — handler de `funciones-mapa.js` "MOVIDO A PADRE" pero sin callers en prod |
+| | `NAVEGACION.CENTRAR_EN_UBICACION` | Sin emisor activo → Padre | Handler en padre (`_hdl_NAVEGACION_CENTRAR_EN_UBICACION`); nadie lo envía actualmente — fue movido de `funciones-mapa.js` al padre pero sin callers activos |
 | | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo2 → Padre | Dibujar polyline hasta el usuario |
 | | `NAVEGACION.MOSTRAR_MAPA_JPG` | Hijo2/Padre → Padre | Mostrar imagen de mapa vintage |
 | | `NAVEGACION.SOLICITAR_COORDENADAS` | Padre → Hijo2 | Pedir coordenadas de una parada |
@@ -3166,6 +3176,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `DATOS.RESPUESTA_PARADAS` | Padre → Hijo | Respuesta a `SOLICITAR_PARADAS` con array de paradas |
 | | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas) |
 | | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Hijo2 → Padre | Devuelve `{ coordenadas[], total, exito, paradaId? }` — padre lo procesa y dibuja en mapa |
+| | `DATOS.SOLICITAR_COORDENADAS` | Hijo2 → Padre | Fallback: hijo2 solicita sus coordenadas si no las recibió en handshake; padre responde con `DATOS.CARGAR_COORDENADAS` |
 | **AUDIO** | `AUDIO.REPRODUCIR_REQUEST` | Padre → Hijo3 | Reproduce este audio (`{ audioId, autoplay }`) |
 | | `AUDIO.REPRODUCIR_RESPONSE` | Hijo3 → Padre | Confirmación de carga/inicio de audio |
 | | `AUDIO.FIN_REPRODUCCION` | Hijo3 → Padre | Audio terminó de forma natural |
@@ -3297,9 +3308,9 @@ Panel lateral derecho con opciones extra (gastronomía, información, historia) 
 
 ---
 
-### 8.6 hijo2 — coordenadas-hijo2.html (mapa + GPS)
+### 8.6 hijo2 — coordenadas-hijo2.html (GPS + botones)
 
-El componente más activo. Gestiona el mapa Leaflet, los marcadores, las polylines, la posición GPS y la detección de llegada a paradas.
+Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay fuera-de-rango) y los 6 botones de navegación. **No tiene código Leaflet** — el mapa vive en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
 
 #### Mensajes que hijo2 envía al padre
 
@@ -3310,16 +3321,16 @@ El componente más activo. Gestiona el mapa Leaflet, los marcadores, las polylin
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir CAMBIO_MODO |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo en UI |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
-| `NAVEGACION.GPS.ACTIVAR` | `{ }` | Solicitud de iniciar GPS (solo desarrollo) |
+| `NAVEGACION.GPS.ACTIVAR` | `{ activar:bool, idParada, distancia }` | Toggle GPS — click en `#btn-avanzar` |
 | `NAVEGACION.GPS.RESTRINGIDO` | `{ zona }` | Usuario en zona GPS restringida |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, umbral }` | Usuario salió del radio de la parada activa |
-| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ lat, lng }` | Solicitud de polyline hasta el usuario |
-| `NAVEGACION.MOSTRAR_MAPA_JPG` | `{ url }` | Usuario pulsa `#btn-mapa-jpg` |
-| `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId }` | **Solo AVENTURA** — GPS detecta entrada en radio ≤ 20 m |
+| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` | Click en `#btn-ubicacion` — solicita polyline de retorno al destino |
+| `NAVEGACION.MOSTRAR_MAPA_JPG` | `{ accion:'mostrar-mapa-jpg', url, aventura, paradaId }` | Usuario pulsa `#btn-mapa-jpg` o `#btn-mapa-completo` |
+| `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId, distancia, timestamp }` | **Solo AVENTURA** — GPS detecta entrada en radio ≤ 20 m |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | `{ coordenadas, paradaId }` | Respuesta a `SOLICITAR_COORDENADAS` |
-| `NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO` | `{ ubicacion:{lat,lng} }` | Cada actualización GPS |
 | `DATOS.COORDENADAS_PARADAS_RESPONSE` | `{ coordenadas[], total, exito, paradaId? }` | Respuesta a `COORDENADAS_PARADAS_REQUEST` del padre |
 | `DATOS.SOLICITAR_TEXTOS` | `{ motivo:'datos_no_recibidos', timestamp }` | Si no recibió `DATOS.CARGAR_TEXTOS` en 3 s — solicita fallback al padre |
+| `DATOS.SOLICITAR_COORDENADAS` | `{ aventura }` | Si no recibió `DATOS.CARGAR_COORDENADAS` — padre responde reenviando `DATOS.CARGAR_COORDENADAS` |
 | `DATOS.COORDENADAS_CARGADAS` | `{ exito, aventura, idioma, totalCargadas }` | Tras procesar `DATOS.CARGAR_COORDENADAS` — fase 2 del protocolo 3 fases |
 | `DATOS.TEXTOS_CARGADOS` | `{ exito, aventura, idioma, totalCargados }` | Tras procesar `DATOS.CARGAR_TEXTOS` — fase 2 del protocolo 3 fases |
 | `UI.ACCION_USUARIO` | `{ accion:'video'/'imagen', paradaId }` | Usuario pulsa `#btn-video` o `#btn-imagen` |
@@ -3331,13 +3342,13 @@ El componente más activo. Gestiona el mapa Leaflet, los marcadores, las polylin
 |---------|---------------|----------------|------|----------|
 | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Init estado y UI | ✓ | ✓ |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Muestra UI | ✓ | ✓ |
-| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Cambia comportamiento mapa (GPS, snap-to-route, overlays) | ✓ | ✓ |
+| `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Cambia clase CSS body (`modo-casa`/`modo-aventura`); en CASA desactiva detección de proximidad | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
-| `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total }` | Almacena coords, dibuja paradas en mapa | ✓ | ✓ |
+| `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total }` | Almacena en `globalThis.__vv_coordenadasAventura`; envía `COORDENADAS_CARGADAS` | ✓ | ✓ |
 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total }` | Almacena descripciones de paradas | ✓ | ✓ |
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | `{ paradaId?, incluirRutas?, actualizarMapa?, contexto?, pedidoId }` | Devuelve coordenadas filtradas (o todas si no hay `paradaId`) vía `COORDENADAS_PARADAS_RESPONSE` | ✓ | ✓ |
-| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, audio_id, reto_id, coordenadas }` | Actualiza parada activa, zoom, marcadores, polylines | ✓ | ✓ |
+| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, nombre, tipo, imagen, video, coordenadas, timestamp }` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado GPS/llegada; llama `actualizarEstadoBotones()` | ✓ | ✓ |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], estadisticas }` | Actualiza lista interna de paradas | ✓ | ✓ |
 | `NAVEGACION.SOLICITAR_COORDENADAS` | `{ paradaId }` | Devuelve coordenadas de esa parada | ✓ | ✓ |
 | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | `{ activo, permisos, precision }` | Actualiza overlay GPS | ✓ | ✓ |
@@ -3857,7 +3868,7 @@ Una vez activo el modo AVENTURA, el ciclo se repite por cada elemento del array 
 ```mermaid
 sequenceDiagram
     participant P as padre
-    participant H2 as hijo2 (mapa)
+    participant H2 as hijo2 (GPS/botones)
     participant H3 as hijo3 (audio)
     participant H4 as hijo4 (retos)
     participant H5 as hijo5 (GPS btn)
