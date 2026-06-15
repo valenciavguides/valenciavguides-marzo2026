@@ -7257,7 +7257,7 @@ El usuario elige idioma (P2), confirma (P3), pasa por el flujo normal (P5→P6�
 
 **Botón "Terminar esta experiencia"** → `window.location.href = 'En-busca-del-tesoro.html?despedida=1'`:
 
-La página carga en modo standalone (no como iframe). `_checkUrlParams()` detecta `?despedida=1`, activa `modoDespedida = true` y muestra P5 (agradecimientos en el idioma del localStorage). Cuando el usuario pulsa el botón verde ➣, `_ejecutarDespedida()` ejecuta:
+La página carga en modo standalone (no como iframe). El guard de redirección al inicio del HTML detecta el parámetro y **no redirige** a `codigo-padre.html` cuando `?despedida=1` está presente. `_checkUrlParams()` activa `modoDespedida = true`, recupera el idioma de `localStorage('vv_idioma')` en `idiomaSeleccionado` (para que P5 cargue en la lengua correcta) y llama `mostrar(5)`. Cuando el usuario pulsa el botón verde ➣, `_ejecutarDespedida()` ejecuta:
 
 | Paso | Detalle |
 |------|---------|

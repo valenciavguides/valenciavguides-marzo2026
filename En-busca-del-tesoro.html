@@ -10,9 +10,13 @@
   <!-- 🚨 REDIRECCIÓN: Este archivo debe cargarse como iframe desde codigo-padre.html -->
   <script>
     // Detectar si estamos siendo cargados directamente (no como iframe)
+    // Excepción: ?despedida=1 se carga intencionalmente como top-level (flujo fin de aventura)
     if (globalThis.parent === globalThis && globalThis.top === globalThis) {
-      console.warn('[SELECCION] ⚠️ Archivo abierto directamente. Redirigiendo a codigo-padre.html...'); // NOSONAR
-      globalThis.location.href = 'codigo-padre.html';
+      const _params = new URLSearchParams(globalThis.location.search);
+      if (!_params.get('despedida')) {
+        console.warn('[SELECCION] ⚠️ Archivo abierto directamente. Redirigiendo a codigo-padre.html...'); // NOSONAR
+        globalThis.location.href = 'codigo-padre.html';
+      }
     }
   </script>
   
@@ -2329,7 +2333,12 @@
         const params = new URLSearchParams(globalThis.location.search);
         if (params.get('despedida') === '1') {
             modoDespedida = true;
-            logger.info(`${logPrefix} Modo despedida activo → mostrando P5 agradecimientos`);
+            // Recuperar idioma de localStorage ANTES de mostrar P5, para que
+            // cargarAgradecimientosOverlay() lo use en vez de caer al fallback 'es'
+            if (!idiomaSeleccionado) {
+                idiomaSeleccionado = localStorage.getItem('vv_idioma') || 'es';
+            }
+            logger.info(`${logPrefix} Modo despedida activo → mostrando P5 agradecimientos (idioma: ${idiomaSeleccionado})`);
             void mostrar(5);
         } else if (params.get('desde') === 'aventura') {
             logger.info(`${logPrefix} Entrada desde aventura → mostrando P2 selección de idioma`);
