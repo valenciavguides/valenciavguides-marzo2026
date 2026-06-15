@@ -1980,8 +1980,8 @@ graph TD
 | P4 | `#pantalla4` | `.btn-mundo-verde` (→) | Ninguna | — |
 | P5 | `#pantalla5` | `#btn-siguiente-agradecimientos` | Scroll hasta el final del texto (se habilita con `disabled = false`) | — |
 | P6 | `#pantalla6` | `#btn-aceptar-terminos` | Scroll hasta el final (`disabled = false`) | `SELECCION.TERMINOS_ACEPTADOS` |
-| P7 | `#pantalla7` | `.btn` aventura (dinámico, 1 por aventura) | Click en aventura → overlay mapa vintage | — |
-| P8 | `#pantalla8` | `#btn-mundo-verde` (Confirmar) / `#btn-mundo-rojo` (No) | Click en Confirmar | `SELECCION.AVENTURA_SELECCIONADA` |
+| P7 | `#pantalla7` | `.btn` aventura (dinámico, 1 por aventura) | Click en tarjeta → `seleccionarAventura(id)` → overlay mapa vintage | `SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }` (enviado al hacer clic, via `seleccionarAventura()`) |
+| P8 | `#pantalla8` | `#btn-mundo-verde` (Confirmar) / `#btn-mundo-rojo` (No) | Click en Confirmar → `confirmarAventura()` → `mostrar(9)` | — |
 | P9 | `#pantalla9` | `.btn-mundo-verde` (→) | Ninguna (vídeo es placeholder) | — |
 | P10 | `#pantalla10` | `#btn-continuar-puzzle` (aparece tras completar puzzle) | `puzzle-state-completed` recibido del sub-iframe | `SELECCION.PREPARAR_HIJOS { idioma, aventura, timestamp }` |
 | P11 | `#pantalla11` | `.btn-mundo-verde` (→) | Ninguna (audio opcional) | — |
@@ -2022,8 +2022,8 @@ flowchart TD
     P4 --> P5[P5\nAgradecimientos\nscroll hasta final]
     P5 --> P6[P6\nTérminos\nscroll hasta final\nTERMINOS_ACEPTADOS]
     P6 --> P7[P7\nSelección aventura\noverlay mapa vintage]
-    P7 --> P8{P8\nConfirmar\naventura}
-    P8 -- Sí\nAVENTURA_SELECCIONADA --> P9[P9\nVídeo placeholder]
+    P7 -- AVENTURA_SELECCIONADA --> P8{P8\nConfirmar\naventura}
+    P8 -- Sí --> P9[P9\nVídeo placeholder]
     P8 -- No --> P7
     P9 --> P10[P10\nPuzzle intro\nPREPARAR_HIJOS]
     P10 -- puzzle completado --> P11[P11\nAudio + texto intro]
@@ -2058,7 +2058,7 @@ flowchart TD
 | `SISTEMA.HIJO_FALLIDO` | Si la inicialización falla | `{ error, stack, timestamp }` |
 | `SELECCION.IDIOMA_SELECCIONADO` | Confirma idioma en P3 | `{ idioma }` |
 | `SELECCION.TERMINOS_ACEPTADOS` | Acepta términos en P6 | `{ timestamp }` |
-| `SELECCION.AVENTURA_SELECCIONADA` | Confirma aventura en P8 | `{ aventura, idioma }` |
+| `SELECCION.AVENTURA_SELECCIONADA` | Click en tarjeta de aventura en P7 (via `seleccionarAventura()`) | `{ aventura, idioma }` |
 | `SELECCION.PREPARAR_HIJOS` | Al entrar en P10 | `{ idioma, aventura, timestamp }` |
 | `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P16 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
@@ -2074,7 +2074,7 @@ flowchart TD
 
 **Inicialización**: pre-cargado en el arranque por `_cargarIframesHijos()`, oculto (`display:none`). Hace su UI visible tras `PADRE_CONFIRMA_HIJO_LISTO`. Calcula la posición de los iconos con JS en cada resize del viewport.
 
-**Posición**: `position:fixed; right:calc(var(--franja-lateral) + 4.5px); bottom:var(--gap-inferior)` — `var(--franja-lateral)` de ancho, `calc(6 × var(--franja-lateral) + 26px)` de alto.
+**Posición**: `position:fixed; left:1.5px; bottom:var(--gap-inferior)` — `var(--franja-lateral)` de ancho, `calc(6 × var(--franja-lateral) + 26px)` de alto. Está anclado a la **izquierda** de la pantalla.
 
 #### Botones y estados
 
@@ -2202,7 +2202,7 @@ sequenceDiagram
 |------|---------|-----------|-----------------|
 | Satélite (por defecto) | `'satelite'` | "Satélite" | ArcGIS World Imagery |
 | Mapa | `'voyager'` | "Mapa" | CartoDB Voyager (sin etiquetas) + capa etiquetas superpuesta |
-| Callejero | `'osm'` | "Callejero" | CartoDB Light All (`basemaps.cartocdn.com/light_all`) |
+| Callejero | `'osm'` | "Callejero" | CartoDB Light No Labels (`basemaps.cartocdn.com/light_nolabels`) |
 | Nocturno | `'nocturno'` | "Nocturno" | CartoDB Dark Matter + capa etiquetas noche superpuesta |
 
 #### Lógica de proximidad y LLEGADA_DETECTADA
@@ -2256,7 +2256,7 @@ El overlay se cierra al pulsar el botón cerrar (`ocultarOverlayFueraRango()`) o
 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
-| `NAVEGACION.LLEGADA_DETECTADA` | Distancia ≤ umbral | `{ paradaId, distancia, timestamp }` |
+| `NAVEGACION.LLEGADA_DETECTADA` | Distancia ≤ umbral | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` |
 | `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-avanzar` (toggle GPS on/off) | `{ activar: bool, idParada, distancia }` |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | >50 m tras haber estado en rango | `{ paradaId, distancia }` |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Click en `#btn-ubicacion`; solicita al padre (funciones-mapa.js) dibujar polyline desde posición actual hasta el destino activo | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` |
@@ -2314,7 +2314,7 @@ sequenceDiagram
 
 | Elemento | ID / clase | Estado inicial | Cuándo se habilita / qué cambia |
 |----------|-----------|-----------|----|
-| Elemento audio | (interno, sin ID público) | `src = ""`, sin reproducir | Al recibir `AUDIO.REPRODUCIR_REQUEST` → se asigna `src` y se llama `.play()` |
+| Elemento audio | (interno, sin ID público) | `src = ""`, sin reproducir | Al recibir `AUDIO.REPRODUCIR_REQUEST` → se asigna `src`, se actualiza el título; `.play()` solo si `autoplay===true` (el padre siempre envía `autoplay:false`) |
 | Barra de progreso | `.progress-top-row input[type=range]` | Valor 0 | Se actualiza con evento `timeupdate` del audio cada ~250 ms |
 | Título de pista | `#track-title-display` / `.content-left` | Texto vacío | Muestra nombre de la parada/tramo cuando se asigna el audio |
 | Botón retos | `#retosBtn` | `disabled = true`, `opacity: 0.5`, `pointer-events: none` | Ver tabla de habilitación ↓ |
@@ -2371,7 +2371,7 @@ hijo3 responde con `SISTEMA.CONFIRMACION { accion:'audio_control', comando, exit
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza clase CSS del body; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `DATOS.CARGAR_AUDIOS` | Carga catálogo de audios de la aventura/idioma |
-| `AUDIO.REPRODUCIR_REQUEST` | Asigna `src`, llama `.play()`, actualiza título |
+| `AUDIO.REPRODUCIR_REQUEST` | Asigna `src`, actualiza título; `.play()` solo si `autoplay===true` (padre siempre envía `autoplay:false`) |
 | `CONTROL.HABILITAR` | Si `datos.control === 'retosBtn'`: `disabled = false` |
 | `CONTROL.DESHABILITAR` | Si `datos.control === 'retosBtn'`: `disabled = true` |
 | `NAVEGACION.CAMBIO_PARADA` | Quita clase `.activo` del `#retosBtn` y resetea spin si hay animación activa |
@@ -2399,8 +2399,8 @@ sequenceDiagram
     Note over P,H3: Al cambiar de parada (modo AVENTURA)
     P->>H3: CONTROL.DESHABILITAR { control: 'retosBtn' }
     P->>H3: AUDIO.REPRODUCIR_REQUEST { urlAudio, parada_id }
-    H3->>H3: audio.src = url; audio.play()
-    Note over H3: usuario escucha audio...
+    H3->>H3: audio.src = url (no auto-play — padre envía autoplay:false)
+    Note over H3: usuario pulsa play en overlay del padre para reproducir...
     H3-->>P: AUDIO.FIN_REPRODUCCION { parada_id, completado: true }
     P->>H3: CONTROL.HABILITAR { control: 'retosBtn' }
     Note over H3: retosBtn.disabled = false
@@ -2413,7 +2413,7 @@ sequenceDiagram
     Note over H3: retosBtn habilitado inmediatamente (sin esperar audio)
 ```
 
-**Modo AVENTURA**: `#retosBtn` bloqueado al entrar en parada; audio se reproduce automáticamente; botón se habilita solo tras `FIN_REPRODUCCION`.  
+**Modo AVENTURA**: `#retosBtn` bloqueado al entrar en parada; se asigna `audio.src` pero el audio **no se reproduce automáticamente** — el usuario pulsa play en el overlay del padre; botón se habilita solo tras `FIN_REPRODUCCION`.  
 **Modo CASA**: `#retosBtn` habilitado inmediatamente si la parada tiene `reto_id`; audio no se reproduce automáticamente pero puede solicitarse.
 
 ---
@@ -2590,7 +2590,7 @@ sequenceDiagram
 
 **Inicialización**: pre-cargado por `_cargarIframesHijos()`, oculto. Solicita la lista de paradas al padre via `NAVEGACION.SOLICITAR_DATOS_PARADAS`; genera los botones al recibir `NAVEGACION.RESPUESTA_DATOS_PARADAS`. Envía `PARADAS.READY { count }` al terminar.
 
-**Posición**: `position:fixed; top:3px; left:2px; width:99vw; height:22vh` (style inline, precedencia sobre CSS).
+**Posición**: `position:fixed; top:3px; left:50%; transform:translateX(-50%); width:99vw; height:22vh` (style inline, precedencia sobre CSS).
 
 #### Layout interno
 
@@ -2934,23 +2934,24 @@ Estas cuatro páginas son **HTML estático** — no tienen `postMessage`, no reg
 
 ```css
 :root {
-    --franja-lateral:  clamp(62px, 7.2vh, 80px);  /* ancho de hijo1 y hijo2 */
-    --franja-inferior: clamp(62px, 7.2vh, 80px);  /* unidad base de alto de hijo3 */
-    --gap-inferior:    env(safe-area-inset-bottom, 0px); /* safe-area en iPhones con notch */
+    --franja-lateral:         clamp(62px, 7.2vh, 80px);  /* ancho de hijo1 y hijo2 */
+    --franja-inferior:        clamp(62px, 7.2vh, 80px);  /* unidad base de alto de hijo3 */
+    --audio-btn-central-size: calc((var(--franja-inferior) - 4px) * 1.03); /* botón central audio overlay */
+    --gap-inferior:           calc(1.5rem + env(safe-area-inset-bottom, 0px)); /* margen base + safe-area notch */
 }
 ```
 
-`clamp(mín, preferido, máx)` — la variable toma el valor `6.5vh` siempre que quede dentro del rango `[59 px, 75 px]`. En móviles típicos (altura ≈ 800–900 px) el valor resulta en ~59–65 px.
+`clamp(mín, preferido, máx)` — la variable toma el valor `7.2vh` siempre que quede dentro del rango `[62 px, 80 px]`. En móviles típicos (altura ≈ 800–900 px) el valor resulta en ~62–72 px.
 
 #### Posición y dimensiones de cada iframe en el padre
 
 | iframe | Posición | Ancho | Alto | Fondo |
 |--------|----------|-------|------|-------|
-| **hijo1** (`hijo1-opciones`) | `right: calc(franja-lateral + 4.5px)`, `bottom: gap-inferior` | `--franja-lateral` | `6×F + 26 px` | `transparent` |
-| **hijo2** | `right: 1.5px`, `bottom: gap-inferior` | `--franja-lateral` | `6×F + 26 px` | `transparent` |
-| **hijo3** | `left: 0`, `bottom: gap-inferior` | `100vw - 2×franja-lateral - 5px` | `2×--franja-inferior` | `transparent` |
-| **hijo4** | pantalla completa superpuesta | `100%` | `100%` | — |
-| **hijo5** | `top: 3px`, `left: 2px` | `99vw` | `22vh` | `transparent` |
+| **hijo1** (`hijo1-opciones`) | `left: 1.5px`, `bottom: var(--gap-inferior)` | `--franja-lateral` | `6×F + 26 px` | `transparent` |
+| **hijo2** | `right: 1.5px`, `bottom: var(--gap-inferior)` | `--franja-lateral` | `6×F + 26 px` | `transparent` |
+| **hijo3** | `left: calc(var(--franja-lateral) + 3.5px)`, `bottom: var(--gap-inferior)` | `100vw - 2×franja-lateral - 5px - var(--audio-btn-central-size)` | `2×--franja-inferior` | `transparent` |
+| **hijo4** | modal centrado `position:fixed; top:50%; left:50%; transform:translate(-50%,-50%)` | `min(90vw, 85vmin)` | `90dvh` | blanco, borde azul |
+| **hijo5** | `top: 3px; left: 50%; transform: translateX(-50%)` | `99vw` | `22vh` | `transparent` |
 
 > **F** = valor de `--franja-lateral` en ese dispositivo (entre 59 y 75 px).
 
@@ -3147,7 +3148,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo5 → Padre | Solicita lista completa de paradas |
 | | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre → Hijo5 | Lista de paradas con metadatos |
 | | `NAVEGACION.GPS.ACTIVAR` | Hijo2 → Padre | `#btnAvanzar` en hijo2 — solicita progresión al siguiente elemento + asegura GPS activo. hijo5 **no** envía este mensaje |
-| | `NAVEGACION.GPS.DESACTIVAR` | funciones-mapa → Padre *(modo iframe)* | Deshabilitar el procesamiento GPS de la aplicación (detección de proximidad/llegadas); el `watchPosition` del dispositivo **nunca se detiene** |
+| | `NAVEGACION.GPS.DESACTIVAR` | funciones-mapa → Padre *(modo iframe)* | Deshabilitar el procesamiento GPS de la aplicación (detección de proximidad/llegadas); `desactivarGPS()` en padre llama a `clearWatch()` para detener el `watchPosition` |
 | | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Padre → hijo2 (directo vía `enviarMensaje_S1`) | Estado del GPS (activo/error/permisos); hijo1/hijo3/hijo4 no tienen handler |
 | | `NAVEGACION.GPS.ERROR` | Padre → hijo2 (directo vía `enviarMensaje_S1`) | Error de GPS; hijo1/hijo3/hijo4 no tienen handler |
 | | `NAVEGACION.GPS.RESTRINGIDO` | Hijo2 → Padre | Zona GPS restringida |
@@ -3326,7 +3327,7 @@ Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay f
 | `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, umbral }` | Usuario salió del radio de la parada activa |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` | Click en `#btn-ubicacion` — solicita polyline de retorno al destino |
 | `NAVEGACION.MOSTRAR_MAPA_JPG` | `{ accion:'mostrar-mapa-jpg', url, aventura, paradaId }` | Usuario pulsa `#btn-mapa-jpg` o `#btn-mapa-completo` |
-| `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId, distancia, timestamp }` | **Solo AVENTURA** — GPS detecta entrada en radio ≤ 20 m |
+| `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` | **Solo AVENTURA** — GPS detecta entrada en radio ≤ 20 m |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | `{ coordenadas, paradaId }` | Respuesta a `SOLICITAR_COORDENADAS` |
 | `DATOS.COORDENADAS_PARADAS_RESPONSE` | `{ coordenadas[], total, exito, paradaId? }` | Respuesta a `COORDENADAS_PARADAS_REQUEST` del padre |
 | `DATOS.SOLICITAR_TEXTOS` | `{ motivo:'datos_no_recibidos', timestamp }` | Si no recibió `DATOS.CARGAR_TEXTOS` en 3 s — solicita fallback al padre |
@@ -3805,7 +3806,7 @@ El comportamiento externo es idéntico al anterior — la extracción es puramen
 
 | Paso | Destino | Mensaje | Datos enviados |
 |------|---------|---------|----------------|
-| 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ coordenadas }` — array de paradas/tramos con coords GPS |
+| 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` — array de paradas/tramos con coords GPS |
 | 2 | hijo3 | `DATOS.CARGAR_AUDIOS` | `{ audios }` — mapa audio_id → URL |
 | 3 | hijo4 | `DATOS.CARGAR_RETOS` | `{ retos }` — array de retos con respuestas |
 | 4 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ textos }` — mapa texto_id → HTML/string |
@@ -4049,6 +4050,8 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P7 se c
 
 ## 10. Los datos y la comunicación de la aplicación
 
+> **⚠️ Nota sobre números de línea:** los números de línea indicados en §10 son aproximados y pueden estar desfasados 100–300 líneas respecto al código actual (el documento se escribió antes de varias refactorizaciones). Para localizar un handler o función, usa `grep` o la búsqueda del editor con el nombre exacto de la función/tipo de mensaje en lugar de ir directamente al número de línea.
+
 > **Para qué sirve §10.4 en adelante**: registrar absolutamente toda la comunicación de la aplicación — cualquier mecanismo por el que un archivo interactúa con otro componente: bus de mensajería, postMessage, HTTP/fetch al backend, localStorage/sessionStorage compartido, Service Worker lifecycle, CustomEvent. Si habla con algo, va aquí.
 >
 > **Qué se busca**: cualquier interacción entre componentes que exista en el código pero no esté documentada en §10. No importa el canal — si un archivo se comunica con otro, con el servidor, con el SW, o comparte estado persistente, y §10 no lo menciona, eso es un gap.
@@ -4204,7 +4207,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 |-------|-------|
 | Emitido por | Todos los hijos (hijo1, hijo2, hijo3, hijo4, hijo6) |
 | Destino | `padre` |
-| Payload | `{ hijoId, capabilities[], version, timestamp }` |
+| Payload | `{ componenteId, version, capacidades[], timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_PREPARADO` (L5790 codigo-padre.html) |
 | Acción | Registra al hijo en `estado.hijosPreparados` (Set), envía ACK, y envía `PADRE_DATOS` inmediatamente (no espera a los demás hijos) |
 | Responde con | `SISTEMA.ACK` + `SISTEMA.PADRE_DATOS` |
@@ -4225,7 +4228,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 |-------|-------|
 | Emitido por | Todos los hijos (tras recibir PADRE_DATOS) |
 | Destino | `padre` |
-| Payload | `{ hijoId, capabilities[], timestamp }` |
+| Payload | `{ componenteId, iframeId, timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_LISTO` (L5975 codigo-padre.html) |
 | Acción | Añade hijo a `estado.hijosInicializados`, desbloquea flujos pendientes, reenvía CAMBIO_MODO si ya activo, envía PADRE_CONFIRMA_HIJO_LISTO |
 
@@ -4235,7 +4238,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 |-------|-------|
 | Emitido por | Padre (tras HIJO_LISTO) |
 | Destino | El hijo confirmado |
-| Payload | `{ hijoId, timestamp }` |
+| Payload | `{ timestamp, mensaje: 'Hijo confirmado como listo' }` |
 | Handler en hijos | L1884 hijo2, L1275 hijo3, L1382 hijo4, L433 hijo1, L392 hijo6 |
 | Acción | Hijo cancela reintentos, muestra UI definitiva |
 
@@ -4263,7 +4266,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 | Payload | `{ timestamp, secuencia }` |
 | Handler en hijos | hijo1 L569, hijo2 L2358, hijo3 L1658, hijo4 L1779, **hijo5 L1153**, hijo6 L396 |
 | Acción hijo | Actualiza `_ultimoHeartbeat`, responde HEARTBEAT_RESPONSE |
-| Handler en padre | Inline L6165 — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }`, actualiza `ultimoPing` y resetea `fallosConsecutivos` en `estadoHijos` |
+| Handler en padre | Inline L6165 — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }`, actualiza `ultimoPing` y resetea `heartbeatsFallidos` en `estadoHijos` |
 | Emitido raw en visibilitychange | L11410 — al restaurar visibilidad de la pestaña, padre envía `{ tipo:'SISTEMA.HEARTBEAT', razon:'visibilitychange' }` raw a todos los iframes con atributo `name`, fuera del bus |
 | hijo5 en visibilitychange | `boton-casa-hijo5.html:1527` — además del handler normal, hijo5 envía proactivamente `SISTEMA.HEARTBEAT_RESPONSE` al padre cuando la pestaña vuelve a ser visible (`razon:'visibilitychange'`), sin esperar un HEARTBEAT entrante |
 | Emitido por monitoreo.js | `js/monitoreo.js` L82-84 — tercer emisor: `setInterval(() => enviarHeartbeat(), intervaloHeartbeat)` (default 5000 ms) envía `{ tipo: SISTEMA.HEARTBEAT, origen:'monitoreo', destino:'broadcast', datos:{ timestamp, fuente:'monitoreo' } }` vía bus. Completamente independiente del ciclo del padre. |
@@ -5532,7 +5535,7 @@ export const MAPEO_IDIOMAS = {
 
 Los pasos 1-3 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 4-5 solo ocurren en **modo AVENTURA** — en CASA el GPS no fuerza ningún avance automático.
 
-1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` permanece activo en ambos modos — nunca se detiene.
+1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` puede detenerse: `desactivarGPS()` llama a `clearWatch()` para cancelarlo.
 2. Cada nueva posición GPS llega al handler `procesarPosicionGPSParaAventura()` en `funciones-mapa.js` (cargado en padre). El mapa Leaflet (`<div id="mapa">`) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage.
 3. `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`.
 4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`.
@@ -5843,7 +5846,7 @@ audios-aventuras/
     └── 02-Intro ESPAÑOL-2.mp3
 ```
 
-Actualmente solo existe la carpeta `español/` con 2 archivos de intro. Cuando se graben los audios de un idioma, se crea la carpeta correspondiente (`english/`, `deutsch/`, `français/`…) y se añaden los MP3 allí. No se crean carpetas vacías — la carpeta se crea al añadir el primer fichero real.
+Actualmente existen carpetas para varios idiomas: `español/` (con intro MP3 + subcarpetas Av1, Av2, Av3), `english/`, `frances/`, `holandes/`, `italiano/`, `japones/`. Solo `español/` contiene audios reales; las demás carpetas existen pero están vacías. Cuando se graben los audios de un idioma, se añaden los MP3 a la subcarpeta correspondiente.
 
 ### El fichero de metadatos
 
@@ -6807,9 +6810,9 @@ Tras la activación (P16), el sistema está en **modo CASA** con todos los ifram
 
 En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simultáneamente:
 
-- **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tenía ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 35 segundos. Las posiciones se actualizan cada **7 segundos**.
+- **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tenía ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 35 segundos. Las posiciones llegan con cada actualización del dispositivo — no hay intervalo fijo (`INTERVALO_ACTUALIZACION` está definido en `config.js` pero `watchPosition` no acepta parámetro de intervalo).
 
-- **Se inicia el heartbeat.** Cada **5 segundos** el padre envía un "latido" a todos los hijos para verificar que siguen vivos. El padre rastrea `fallosConsecutivos` por hijo; si un hijo falla, se marca como desconectado y se intenta reconectar (hasta 3 reintentos con backoff exponencial).
+- **Se inicia el heartbeat.** Cada **5 segundos** el padre envía un "latido" a los hijos críticos (`hijo2`, `hijo3`, `hijo4`, `hijo5`) para verificar que siguen vivos. El padre rastrea `heartbeatsFallidos` (Map) por hijo; si un hijo falla, se marca como desconectado y se intenta reconectar (hasta 3 reintentos con backoff exponencial).
 
 - **Se establece la parada por defecto.** Si hay progreso guardado de una sesión anterior, se restaura. Si no, se posiciona en la primera parada (P-0 — Torres de Serranos en la Aventura 1).
 
@@ -6825,7 +6828,7 @@ En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simu
 
 La pantalla de aventura se compone de varios elementos superpuestos:
 
-**El mapa** (fondo completo): Ocupa toda la pantalla. Muestra la posición del usuario, las paradas y la ruta. Por defecto en modo satélite (ESRI); el botón selector naranja en la esquina superior derecha permite cambiar a Mapa Voyager, Callejero claro o Nocturno.
+**El mapa** (fondo completo): Ocupa toda la pantalla. Muestra la posición del usuario, las paradas y la ruta. Por defecto en modo satélite (ESRI); el botón selector naranja en la esquina superior **izquierda** permite cambiar a Mapa Voyager, Callejero claro o Nocturno.
 
 **Hijo 2 — Coordenadas** (esquina inferior-izquierda): Contiene **6 botones** organizados en 1 fila de 6:
 
@@ -6862,7 +6865,7 @@ Cuando el usuario está **dentro del radio de acción** de la parada o tramo act
 | Umbral | Valor | Origen | Propósito |
 |--------|-------|--------|-----------|
 | `RADIO_PARADA` (hardcoded en hijo2) | **20 m** | `_detectarLlegadaParada()` en hijo2 | Radio de llegada para paradas: hijo2 envía `LLEGADA_DETECTADA` cuando el usuario entra en este radio. Condición necesaria para completar una parada. |
-| `rangoMaximo` parada (hardcoded en hijo2) | **20 m** | `_actualizarEstadoBtnUbicacion()` en hijo2 | Controla el botón GPS y el overlay fuera de rango (`#fuera-rango-overlay` + countdown 5 min). Sale del rango → overlay + countdown. Entra → se oculta. |
+| `rangoMaximo` parada (hardcoded en hijo2) | **20 m** | `_actualizarGpsEnModoAventura()` en hijo2 | Controla el botón GPS y el overlay fuera de rango (`#fuera-rango-overlay` + countdown 5 min). Sale del rango → overlay + countdown. Entra → se oculta. |
 | `rangoMaximo` tramo (hijo2, recibido de padre) | **~50 m** | `toleranciaGPS` de `calcularToleranciaGPS()` en funciones-mapa.js | Mismo comportamiento para tramos; valor dinámico según distancia entre waypoints. |
 | Precisión mínima GPS | **50 m** | Hardcoded (`accuracy > 50`) en padre + `CONFIG.GPS.PRECISION_MINIMA` en funciones-mapa.js | Si la precisión GPS es peor que 50 m, la posición se descarta y el padre muestra `#gps-out-of-range-overlay` (diferente del overlay de hijo2). |
 | `RADIO_EXTENDIDO` (config.js) | **50 m** | Solo definición — **no leído por el runtime** | Coincide numéricamente con umbrales hardcoded pero no controla ninguna lógica de la aplicación. |
@@ -7167,10 +7170,10 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | Parámetro | Valor | Variable en código |
 |-----------|-------|--------------------|
 | `RADIO_PARADA` — llegada física a parada | 20 m | Hardcodeado en `_detectarLlegadaParada()` en hijo2 — dispara `LLEGADA_DETECTADA`; condición necesaria para completar la parada |
-| `rangoMaximo` parada (hijo2) | 20 m | Hardcoded en `_actualizarEstadoBtnUbicacion()` — controla overlay fuera de rango + countdown |
+| `rangoMaximo` parada (hijo2) | 20 m | Hardcoded en `_actualizarGpsEnModoAventura()` — controla overlay fuera de rango + countdown |
 | `rangoMaximo` tramo (hijo2) | ~50 m dinámico | `toleranciaGPS` recibida de `calcularToleranciaGPS()` en funciones-mapa.js |
 | Tolerancia de llegada a tramo | dinámica (distancia máx. entre waypoints + 20 m buffer) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo |
-| Precisión mínima GPS aceptada | 50 m | `CONFIG.GPS.PRECISION_MINIMA` en funciones-mapa.js L3692; hardcoded `accuracy > 50` en padre L4849 |
+| Precisión mínima GPS aceptada | 50 m | `CONFIG.GPS.PRECISION_MINIMA` en funciones-mapa.js L3487; hardcoded `accuracy > 50` en padre L4834 |
 | `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas) |
 | Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
 | Frecuencia heartbeat | 5 s | `INTERVALO_HEARTBEAT` en `config.js` |
@@ -7343,7 +7346,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 | Alerta | Qué mide | Umbral | Fuente |
 |--------|----------|--------|--------|
-| `MEMORIA_ALTA` | `performance.memory.usedJSHeapSize` (heap JS del proceso) | **150 MB** | Chrome-only; no disponible en Safari/Firefox |
+| `MEMORIA_ALTA` | `performance.memory.usedJSHeapSize` (heap JS del proceso) | **50 MB** (`UMBRAL_MEMORIA: 52428800` en `config.js`) | Chrome-only; no disponible en Safari/Firefox |
 | `TIEMPO_RESPUESTA_ALTO` | Tiempo de respuesta promedio de mensajes entre padre e hijos | **1 000 ms** | Calculado sobre el historial de ACKs en `mensajeria.js` |
 | `ERRORES_FRECUENTES` | Número de errores registrados en el último minuto | **10 errores/min** | Historial interno de `monitoreo.js` |
 
@@ -7351,7 +7354,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 La API `performance.memory` solo existe en Chrome/Chromium. En Safari y Firefox la métrica no se recoge y la alerta nunca se dispara.
 
-El heap JS de esta app en uso normal se sitúa entre **60–120 MB** (Leaflet + tiles en caché + módulos de las 6 aventuras + 5 iframes activos). El umbral está fijado en 150 MB para que la alerta solo aparezca ante un leak real: acumulación de listeners no eliminados, módulos cargados múltiples veces, o crecimiento progresivo del historial interno.
+El umbral está fijado en **50 MB** (`UMBRAL_MEMORIA: 52428800` bytes en `config.js`). En una sesión normal el heap de la app puede superar este valor con facilidad (Leaflet + tiles en caché + iframes activos); la alerta es indicativa, no crítica. Si aparece de forma sostenida (varias mediciones consecutivas), los focos habituales son listeners acumulados o historial interno sin límite de tamaño.
 
 Si aparece `MEMORIA_ALTA` de forma sostenida (varias mediciones consecutivas, no solo una), los focos habituales son:
 
@@ -7478,7 +7481,7 @@ if (handler) {
 
 #### El heartbeat
 
-Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a todos los hijos. Cada hijo responde con `ACK`. Si un hijo no responde en 3 heartbeats consecutivos (`MAX_HEARTBEATS_FALLIDOS` en `config.js`), el padre registra el fallo e intenta reconectar recargando el iframe.
+Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a los hijos críticos (`hijo2`, `hijo3`, `hijo4`, `hijo5`). Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si un hijo no responde en 3 heartbeats consecutivos (`MAX_HEARTBEATS_FALLIDOS: 3` en `config.js`), el padre registra el fallo en `heartbeatsFallidos` (Map) e intenta reconectar recargando el iframe.
 
 ---
 
@@ -7770,9 +7773,8 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.GPS.DESACTIVAR` | Hijo 2 (al pulsar botón GPS off) | Detiene `watchPosition` en el padre (`_hdl_NAVEGACION_GPS_DESACTIVAR`); limpia watchId | (ninguna) | — | Ídem — el padre gestiona el ciclo completo de GPS |
 | `NAVEGACION.GPS.RESTRINGIDO` | Hijo 2 (cuando el usuario deniega el permiso de geolocalización) | Registra GPS restringido; puede notificar al usuario (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) | (ninguna) | — | Caso de permiso denegado; el padre maneja la UI de error |
 | `DATOS.SOLICITAR_COORDENADAS` | Hijo 2 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].coordenadas` | `DATOS.CARGAR_COORDENADAS` (array de elementos: paradas, tramos, referencias) | Hijo 2 | Hijo 2 no tiene datos propios; los pide al padre que los tiene en memoria |
-| `DATOS.SOLICITAR_AUDIO` | Hijo 3 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].audios` | `DATOS.CARGAR_AUDIO` (mapa id→ruta de archivo) | Hijo 3 | Ídem para audio |
+| `DATOS.SOLICITAR_AUDIOS` | Hijo 3 como fallback diferido (3 s tras `PADRE_CONFIRMA_HIJO_LISTO` si `CARGAR_AUDIOS` no llegó) | Lee `DATOS_PADRE[aventura][idioma].audios` | `DATOS.CARGAR_AUDIOS` (mapa id→ruta de archivo) | Hijo 3 | Ídem para audio |
 | `DATOS.SOLICITAR_RETOS` | Hijo 4 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].retos` | `DATOS.CARGAR_RETOS` (array de objetos reto) | Hijo 4 | Ídem para retos |
-| `DATOS.SOLICITAR_CASA` | Hijo 5 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].casa` | `DATOS.CARGAR_CASA` (datos de pantalla de inicio) | Hijo 5 | Ídem para la pantalla de casa/inicio |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo 5 | Lee la lista completa de paradas con sus nombres localizados | `NAVEGACION.RESPUESTA_DATOS_PARADAS` (array de paradas con nombre, número y estado) | Hijo 5 | Hijo 5 necesita los nombres de las paradas para renderizar los botones de la barra de navegación |
 | `CHAT.CERRAR` | Hijo 6 (asistente) | Oculta el panel del asistente en el padre; libera el iframe | (ninguna) | — | El usuario pulsó el botón de cerrar dentro del iframe de soporte |
 | `UI.NAVEGACION_EXTERNA` | Cualquier hijo | Registra en log la URL que el hijo abrió en una pestaña externa; no bloquea ni modifica nada | (ninguna) | — | Trazabilidad de navegación externa; el hijo avisa al padre antes de hacer `window.open()` |
@@ -7798,9 +7800,8 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `RETO.ESTADO_CASA` | Hijo 4 | Al cambiar de parada en modo CASA | Mostrar y habilitar el botón de retos solo en paradas que tienen reto; ocultar en tramos y en paradas sin reto |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Hijo 5 | En respuesta a `SOLICITAR_DATOS_PARADAS` | Entregar la lista de paradas para que hijo 5 la renderice en la barra de navegación |
 | `DATOS.CARGAR_COORDENADAS` | Hijo 2 | En respuesta a `SOLICITAR_COORDENADAS` | Entregar el array de elementos del recorrido al mapa |
-| `DATOS.CARGAR_AUDIO` | Hijo 3 | En respuesta a `SOLICITAR_AUDIO` | Entregar el mapa de rutas de audio |
+| `DATOS.CARGAR_AUDIOS` | Hijo 3 | En respuesta a `SOLICITAR_AUDIOS` (o enviado proactivamente en el paquete de inicialización) | Entregar el mapa id→ruta de archivo de audio |
 | `DATOS.CARGAR_RETOS` | Hijo 4 | En respuesta a `SOLICITAR_RETOS` | Entregar el array de retos |
-| `DATOS.CARGAR_CASA` | Hijo 5 | En respuesta a `SOLICITAR_CASA` | Entregar los datos de la pantalla de inicio |
 | `CONTROL.HABILITAR` | Hijo específico | Al mostrar una pantalla | Activar el iframe (visible, interactivo) |
 | `CONTROL.DESHABILITAR` | Hijo específico | Al ocultar una pantalla | Desactivar el iframe (oculto, sin eventos) |
 
@@ -7856,7 +7857,6 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
 | Mensaje toggle temporizador | Padre | Al pulsar `#icono-temporizador` | El padre muestra/oculta la ventana del temporizador |
-| `MONITOREO.METRICA` (GPS error) | Padre | Al detectar error de geolocalización | Enviar métrica de error GPS para monitoreo |
 
 ---
 
@@ -7902,15 +7902,13 @@ Gestiona la reproducción del audio de guía de cada parada. Invisible para el u
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos de aventura; solicita `DATOS.SOLICITAR_AUDIO`; prepara el elemento `<audio>` | `SISTEMA.HIJO_LISTO` | Padre | Sin el mapa de rutas de audio no puede reproducir nada |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos de aventura; prepara el elemento `<audio>`; si `DATOS.CARGAR_AUDIOS` no llega en 3 s tras `PADRE_CONFIRMA_HIJO_LISTO`, envía `DATOS.SOLICITAR_AUDIOS` como fallback | `SISTEMA.HIJO_LISTO` | Padre | Sin el mapa de rutas de audio no puede reproducir nada |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; activa fallback diferido para `DATOS.SOLICITAR_AUDIOS` si aún no llegaron los audios | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | En `CASA` pausa o para el audio en curso | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | No tiene sentido que el audio continúe si el usuario volvió al menú principal |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `AUDIO.REPRODUCIR_REQUEST` | Padre (al cambiar parada) | Recibe `{ audioId, autoplay: false }`; localiza la ruta del audio para esa parada (`DATOS.cargar_audio[audioId]`); carga el audio pero NO inicia reproducción automáticamente — el usuario arranca el audio con los controles del desplegable del padre | (el evento `ended` del `<audio>` dispara `FIN_REPRODUCCION`) | — | Preparar la audioguía de la parada activa lista para reproducción |
-| `AUDIO.PAUSAR` | Padre | Pausa la reproducción | (ninguna) | — | Permitir al usuario pausar manualmente |
-| `AUDIO.REANUDAR` | Padre | Reanuda desde el punto de pausa | (ninguna) | — | Ídem |
-| `AUDIO.PARAR` | Padre | Para y resetea el audio (`currentTime=0`) | (ninguna) | — | Parar completamente (ej.: al cambiar de parada antes de que termine) |
-| `DATOS.CARGAR_AUDIO` | Padre | Guarda el mapa `{idParada → rutaArchivo}` en memoria | (ninguna) | — | Recibir el índice completo de archivos de audio |
+| `AUDIO.REPRODUCIR_REQUEST` | Padre (al cambiar parada) | Recibe `{ audioId, autoplay: false }`; localiza la ruta del audio para esa parada; carga el audio pero NO inicia reproducción automáticamente — el usuario arranca el audio con los controles del desplegable del padre | (el evento `ended` del `<audio>` dispara `FIN_REPRODUCCION`) | — | Preparar la audioguía de la parada activa lista para reproducción |
+| `UI.ACCION_USUARIO` `{ accion:'audio_control', comando:'play'\|'pause'\|'stop'\|'replay' }` | Padre (botones del desplegable overlay) | Ejecuta el comando sobre el `<audio>`: play inicia reproducción, pause la pausa, stop para y resetea `currentTime=0`, replay vuelve al inicio y reproduce | `AUDIO.ESTADO_ACTUALIZADO` (implícito via evento `pause`/`ended`) | — | El padre centraliza el control de audio; hijo3 expone únicamente el elemento `<audio>` |
+| `DATOS.CARGAR_AUDIOS` | Padre | Guarda el mapa `{idParada → rutaArchivo}` en memoria | (ninguna) | — | Recibir el índice completo de archivos de audio |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida del iframe |
 
 **Mensajes salientes de Hijo 3:**
@@ -7922,7 +7920,7 @@ Gestiona la reproducción del audio de guía de cada parada. Invisible para el u
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
-| `DATOS.SOLICITAR_AUDIO` | Padre | Tras `PADRE_DATOS` | Pedir el mapa de rutas de audio |
+| `DATOS.SOLICITAR_AUDIOS` | Padre | Fallback diferido: 3 s tras `PADRE_CONFIRMA_HIJO_LISTO` si `CARGAR_AUDIOS` aún no llegó | Pedir el mapa de rutas de audio |
 | `AUDIO.FIN_REPRODUCCION` | Padre | Al finalizar el audio (`ended` event) | Notificar al padre; si la parada tiene retos y el modo es AVENTURA, el padre enviará `RETO.HABILITAR` a hijo 4 vía `_procesarFinAudioElemento` |
 
 ---
@@ -7940,7 +7938,7 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | `RETO.MOSTRAR` | Padre (cuando el usuario solicita el reto pulsando el botón, en respuesta a `RETO.SOLICITAR_RETO`; también al avanzar al siguiente reto de una cola) | Renderiza el reto de la parada: pregunta, opciones (si las hay); el reto queda interactivo en este punto | `RETO.MOSTRADO` | Padre | El usuario solicitó resolver el reto; el padre recupera el objeto reto y lo envía para que hijo 4 lo muestre |
 | `RETO.HABILITAR` | Padre (tras `FIN_REPRODUCCION` en modo AVENTURA, solo si la parada tiene retos) | Habilita el botón `#botonRetos`; activa la interacción del usuario | (ninguna) | — | El botón de retos solo se activa después de escuchar el audio completo y solo en paradas con reto |
 | `RETO.ESTADO_CASA` | Padre (en `_hdl_NAVEGACION_CAMBIO_PARADA`) | Muestra y habilita `#botonRetos` si `habilitado: true` (parada con reto); lo oculta si `habilitado: false` (tramo o parada sin reto) | (ninguna) | — | Controla la visibilidad del botón de retos en modo CASA según si el elemento actual tiene reto o no |
-| `DATOS.CARGAR_RETO` | Padre | Guarda el array de retos `[{idParada, tipo, pregunta, opciones, respuestaCorrecta}]` | (ninguna) | — | Recibir todos los retos de la aventura |
+| `DATOS.CARGAR_RETOS` | Padre | Guarda el array de retos `[{idParada, tipo, pregunta, opciones, respuestaCorrecta}]` | (ninguna) | — | Recibir todos los retos de la aventura |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
 **Mensajes salientes de Hijo 4:**
@@ -7963,11 +7961,10 @@ Barra de control siempre visible durante la aventura. Contiene el botón GPS on/
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda configuración; solicita `DATOS.SOLICITAR_CASA` (datos base) y `NAVEGACION.SOLICITAR_DATOS_PARADAS` (lista de paradas); inicializa la barra | `SISTEMA.HIJO_LISTO` | Padre | Sin los datos de paradas no puede renderizar los botones de navegación |
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda configuración; envía `NAVEGACION.SOLICITAR_DATOS_PARADAS` al padre para obtener la lista de paradas; inicializa la barra | `SISTEMA.HIJO_LISTO` | Padre | Sin los datos de paradas no puede renderizar los botones de navegación |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; la barra queda interactiva | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | En `AVENTURA`/`MAPA` muestra la barra; en `CASA` la oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La barra solo es visible durante la aventura |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `DATOS.CARGAR_CASA` | Padre | Recibe datos de configuración base | (ninguna) | — | Datos iniciales del componente |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Renderiza los botones de parada/tramo con emoji, código corto y nombre completo; activa el efecto marquee si el nombre no cabe | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
@@ -7980,7 +7977,6 @@ Barra de control siempre visible durante la aventura. Contiene el botón GPS on/
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
-| `DATOS.SOLICITAR_CASA` | Padre | Tras `PADRE_DATOS` | Pedir datos de configuración base |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Padre | Tras `PADRE_DATOS` | Pedir la lista completa de paradas para renderizar botones |
 | `NAVEGACION.CAMBIO_PARADA` | Padre | Al pulsar un botón de parada o tramo | Ordenar al padre que cambie la parada activa |
 | `SISTEMA.CAMBIO_MODO` | Padre | Al pulsar el botón 🏠 GPS-OFF | Solicitar vuelta al modo `CASA` |
@@ -7996,9 +7992,9 @@ Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: su única c
 |---|---|---|---|---|---|
 | `SISTEMA.PADRE_DATOS` | Padre | Recibe el idioma activo; carga los textos del acordeón en ese idioma desde `js/chat-asistente.js` | `SISTEMA.HIJO_LISTO` | Padre | Renderizar el FAQ en el idioma correcto |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
-| `SISTEMA.CAMBIO_MODO` | Padre | (sin efecto visible — el panel se gestiona por visibilidad en el padre) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Cumplir el protocolo aunque este hijo no cambie de modo |
+| `SISTEMA.CAMBIO_MODO` | Padre | Solo registra un `logger.debug` — **no envía `CAMBIO_MODO_ENTENDIDO` ni `CAMBIO_MODO_EFECTUADO`**; hijo6 no participa en el protocolo de modo porque el padre gestiona su visibilidad directamente via `display:none/block` | (ninguna) | — | Log de diagnóstico |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
+| `CHAT.ESTADO_PADRE` | Padre (al reabrir el chat ya cargado) | Actualiza `estadoPadre` y reconstruye el acordeón si cambió el idioma | (ninguna) | — | Refrescar idioma y parada activa sin recargar el iframe |
 
 **Mensajes salientes de Hijo 6:**
 
@@ -8006,8 +8002,6 @@ Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: su única c
 |---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
 | `SISTEMA.HIJO_LISTO` | Padre | Tras cargar los textos del FAQ | Handshake |
-| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización (protocolo obligatorio) |
-| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización (protocolo obligatorio) |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
 | `CHAT.CERRAR` | Padre | Al pulsar el botón ✕ del panel | Ordenar al padre que oculte el panel de soporte |
 
@@ -8062,7 +8056,7 @@ GPS detecta que el usuario llegó al final de un TRAMO (distancia ≤ tolerancia
 
 #### Problema resuelto
 
-**Problema crítico:** Los hijos (hijo2, hijo3, hijo4, hijo5) ocultaban su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`. Si ese mensaje se perdía (postMessage no garantiza entrega), la UI quedaba invisible para siempre.
+**Problema crítico:** Los hijos (hijo3, hijo4, hijo5) ocultaban su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`. Si ese mensaje se perdía (postMessage no garantiza entrega), la UI quedaba invisible para siempre. (`hijo2` gestiona su visibilidad de forma diferente y no implementa este mecanismo.)
 
 **Por qué un timeout simple no era suficiente:**
 
@@ -8081,7 +8075,7 @@ Los hijos reenvían `HIJO_LISTO` periódicamente hasta recibir `PADRE_CONFIRMA_H
 
 #### Implementación técnica
 
-**Variables añadidas en cada hijo (hijo2, hijo3, hijo4, hijo5):**
+**Variables añadidas en cada hijo (hijo3, hijo4, hijo5) — hijo2 NO implementa este sistema:**
 
 ```javascript
 let _reintentosHijoListo = 0;
@@ -8126,10 +8120,10 @@ registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, asyn
 
 #### Archivos modificados
 
-- `retos-hijo4.html` — Líneas 1279-1283 (variables), 1315-1346 (reenvío), 1354-1359 (limpieza)
-- `coordenadas-hijo2.html` — Líneas 1710-1714 (variables), 1728-1756 (reenvío), 1809-1814 (limpieza)
-- `audio-hijo3.html` — Líneas 1144-1148 (variables), 1195-1226 (reenvío), 1247-1252 (limpieza)
+- `retos-hijo4.html` — Líneas 1311-1315 (variables), 1315-1346 (reenvío), 1354-1359 (limpieza)
+- `audio-hijo3.html` — Líneas 1184-1188 (variables), 1195-1226 (reenvío), 1247-1252 (limpieza)
 - `boton-casa-hijo5.html` — Líneas 933-937 (variables), 989-1020 (reenvío), 1035-1040 (limpieza)
+- `coordenadas-hijo2.html` — **NO implementa el sistema de reintentos** (sin `enviarHijoListoConReintento`)
 
 #### Flujo del handshake con reintentos
 
@@ -8439,11 +8433,7 @@ El iframe `#hijo6-chat` existe en el DOM del padre con `src=""` y `display:none`
 
 ```javascript
 function abrirChat() {
-    if (!chatCargado) {
-        chatCargado = true;
-        iframeChat.src = 'chat-hijo6.html'; // primera apertura: carga el iframe
-        // Estado inicial se transmite vía handshake HIJO_PREPARADO → PADRE_DATOS
-    } else {
+    if (chatCargado) {
         // Ya cargado: refrescar estado antes de mostrar (solo si hijo6 completó handshake)
         if (globalThis.estadoPadre?.hijosInicializados?.has('hijo6-chat')) {
             iframeChat.contentWindow.postMessage(
@@ -8451,6 +8441,11 @@ function abrirChat() {
                 globalThis.location.origin
             );
         }
+        // Si aún no está listo, el handshake HIJO_PREPARADO→PADRE_DATOS entregará el estado
+    } else {
+        chatCargado = true;
+        iframeChat.src = 'chat-hijo6.html'; // primera apertura: carga el iframe
+        // Estado inicial se transmite vía handshake HIJO_PREPARADO → PADRE_DATOS
     }
     iframeChat.style.display    = 'block';
     iframeChat.style.visibility = 'visible';
