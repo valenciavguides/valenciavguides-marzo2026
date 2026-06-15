@@ -3801,6 +3801,11 @@ flowchart TD
     K --> M{¿último elemento?}
     M -- No --> A
     M -- Sí --> N[_handleFinDeAventura\n→ AVENTURA.FINALIZADA → hijo1-opciones]
+    N --> O[hijo1: detiene timer\n→ ESTADISTICAS_TIEMPO → padre]
+    O --> P[_hdl_AVENTURA_ESTADISTICAS_TIEMPO\n→ mostrarModalFinalizacion\nsolo en modo AVENTURA]
+    P --> Q{Modal fin de aventura}
+    Q -- Otra aventura --> R[_iniciarNuevaAventura\nborra localStorage aventura\nNAVEGAR_PANTALLA P2 → seleccion\nSW intacto]
+    Q -- Terminar --> S[En-busca-del-tesoro.html?despedida=1\nP5 → botón verde → _ejecutarDespedida\n→ limpiarDatosAventura\nHuella digital = 0 bytes]
 ```
 
 #### Detalles de progresarSiguienteElemento
@@ -4653,7 +4658,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 |-------|-------|
 | Emitido por | `_handleFinDeAventura` L7665 vía raw postMessage (L7671) — se activa cuando `progresarSiguienteElemento` no encuentra siguiente elemento |
 | Handler en hijo1 | L1474 — detiene temporizador, responde con `AVENTURA.ESTADISTICAS_TIEMPO` |
-| Acción completa | Padre para timer → hijo1 envía estadísticas → padre llama `mostrarModalFinalizacion()` (**⚠️ función no implementada** — ver §10.15) → modal mostraría celebración con ID `modal-finalizacion-exitosa` → botón OK activaría `_hdl_AVENTURA_FINALIZADA` en padre para cleanup |
+| Acción completa | Padre para timer → hijo1 detiene temporizador y envía `AVENTURA.ESTADISTICAS_TIEMPO` → padre lo recibe en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` → llama `mostrarModalFinalizacion()` (solo en modo AVENTURA) → modal `#modal-finalizacion-aventura` con 2 botones: "Hacer otra aventura" (`_iniciarNuevaAventura`) / "Terminar esta experiencia" (→ `En-busca-del-tesoro.html?despedida=1`) |
 
 **AVENTURA.DETENER** (padre → hijo1)
 
@@ -4685,7 +4690,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Disparador | hijo1 lo envía tras recibir `AVENTURA.FINALIZADA` y detener el temporizador |
 | Payload | `{ tiempoTotal, tiempoRestante, tiempoUsado, completado }` |
 | Handler en padre | `_hdl_AVENTURA_ESTADISTICAS_TIEMPO` L10897 |
-| Acción | Registra estadísticas de tiempo de la aventura completada |
+| Acción | Guarda stats en `estado.seleccion.estadisticasTiempo` y, si el modo es AVENTURA, llama `mostrarModalFinalizacion()` — dispara el modal de fin de aventura (ver §24.11) |
 
 **TEMPORIZADOR.TOGGLE** (hijo1 → padre)
 
@@ -4984,7 +4989,7 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 | `RETO.MOSTRADO` + `RETO.CONFIRMADO` | **✅ Implementado** — hijo4 emite `MOSTRADO` tras `mostrarReto()`; padre actualiza `estado.retoActual.disponible=true` y responde con `CONFIRMADO` |
 | `SISTEMA.APLICACION_INICIALIZADA` | **✅ Implementado** — `_hijoListo_onTodosListos` lo dispara cuando hijo2+hijo3+hijo4 completan el handshake; ver §10.14 para detalle |
 | `SISTEMA.NACK` | **Activo con filtro** — `app.js` L1607 solo lo procesa si `esperarPermiso === true`; los NACK de cambio de modo sin espera se descartan silenciosamente |
-| `AVENTURA.FINALIZADA` | **PENDIENTE FUTURO.** Handler `_hdl_AVENTURA_FINALIZADA` registrado (padre). Activador previsto: `mostrarModalFinalizacion()` en `_handleFinDeAventura` → modal `id='modal-finalizacion-exitosa'` (SW tiene guard para ese ID) → botón OK envía `AVENTURA.FINALIZADA` → `limpiarDatosAventura()`. Necesita: `TRADUCCIONES_FINALIZACION` (12 idiomas), modal HTML, botón cleanup+reload. `TRADUCCIONES_TIEMPO_AGOTADO` también falta (path de timeout → crash silencioso). |
+| `AVENTURA.FINALIZADA` | **✅ Implementado.** Flujo: `_handleFinDeAventura()` → envía `AVENTURA.FINALIZADA` a hijo1 → hijo1 detiene timer y responde con `AVENTURA.ESTADISTICAS_TIEMPO` → `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` llama `mostrarModalFinalizacion()`. `_hdl_AVENTURA_FINALIZADA()` neutralizado (era limpieza prematura). Ver §24.11. |
 
 ---
 
@@ -7353,6 +7358,32 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │                                      │                 │
 │    │  Botón 🛰 OFF → Volver a CASA       │                 │
 │    │     (⚠️ borra progreso)              │                 │
+│    │                                      │                 │
+│    │  ┌──── ÚLTIMA PARADA COMPLETADA ───┐ │                 │
+│    │  │ _handleFinDeAventura()          │ │                 │
+│    │  │  → AVENTURA.FINALIZADA → hijo1 │ │                 │
+│    │  │  → hijo1 para timer            │ │                 │
+│    │  │  → ESTADISTICAS_TIEMPO → padre │ │                 │
+│    │  │  → mostrarModalFinalizacion()  │ │                 │
+│    │  └────────────┬────────────────────┘ │                 │
+│    │               │                      │                 │
+│    │     ┌─────────┴──────────┐           │                 │
+│    │     ▼                    ▼           │                 │
+│    │  [Otra aventura]   [Terminar]        │                 │
+│    │  _iniciarNuevaAventura()  │          │                 │
+│    │  - borra localStorage     │          │                 │
+│    │    de aventura            │          │                 │
+│    │  - NAVEGAR_PANTALLA P2    │          │                 │
+│    │    → iframe 'seleccion'   │          │                 │
+│    │  - SW intacto             │          │                 │
+│    │  → Nuevo ciclo aventura   │          │                 │
+│    │                    En-busca-del-tesoro.html?despedida=1│
+│    │                    → P5 (agradecimientos en idioma)    │
+│    │                    → botón verde ➣                     │
+│    │                    → _ejecutarDespedida()              │
+│    │                    → limpiarDatosAventura('completada')│
+│    │                    → mensaje despedida 12 idiomas      │
+│    │                    Huella digital = 0 bytes            │
 │    └──────────────────────────────────────┘                 │
 └─────────────────────────────────────────────────────────────┘
 ```
