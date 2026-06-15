@@ -5,201 +5,9 @@
 
 ---
 
-## Pendiente antes del despliegue en producción
+## ⚠️ Pendiente antes del despliegue en producción
 
-Las tareas de esta sección **no tienen urgencia en desarrollo local** pero deben estar resueltas antes de publicar en el servidor real:
-
-### 1. CSP: eliminar `unsafe-inline`
-
-**Qué es:** `codigo-padre.html` lleva un `<meta>` CSP con `script-src 'self' 'unsafe-inline'`. El `unsafe-inline` anula la protección real del CSP — si alguien inyectara un script en la página, el navegador lo ejecutaría igualmente.
-
-**Por qué no se toca ahora:** Con ficheros estáticos no hay forma de generar nonces dinámicos. La solución correcta es mover la CSP a cabeceras HTTP del servidor Express (no al meta tag), donde cada petición puede incluir un nonce único por script inline.
-
-**Qué hacer al desplegar:**
-
-1. Eliminar el `<meta http-equiv="Content-Security-Policy">` de `codigo-padre.html`.
-2. En `backend/server.js`, añadir la CSP como cabecera HTTP con `helmet.contentSecurityPolicy()` y nonces generados por petición.
-3. Pasar el nonce a cada `<script>` inline del padre mediante un paso de templating (o mover los scripts inline a ficheros externos `.js`).
-
-### 2. Console.log: usar `logger.js` en producción
-
-**Qué es:** 12+ archivos (`app.js`, `api-client.js`, `funciones-mapa.js`, `mensajeria.js`, `state-manager.js`, etc.) usan `console.log/warn/error` directos en lugar de pasar por `js/logger.js`. En producción, cualquier usuario con DevTools ve estados internos, rutas de datos e IDs de mensajes.
-
-**Por qué no se toca ahora:** En desarrollo los logs son útiles.
-
-**Qué hacer al desplegar:** Dos opciones (elegir una):
-
-- **Opción A (rápida):** Añadir al inicio de `backend/server.js` o del HTML de producción un override global que silencie console en `NODE_ENV=production`: `if (process.env.NODE_ENV === 'production') { console.log = console.debug = () => {}; }`.
-- **Opción B (limpia):** Reemplazar los `console.*` directos por llamadas a `logger.*` en cada archivo. `logger.js` ya tiene niveles configurables — en producción basta con `logger.setLevel('WARN')`.
-
-### 3. El servidor de desarrollo: `js/server.js`
-
-**Qué es:** Un servidor HTTP estático minimalista escrito en Node.js puro (sin Express ni dependencias externas), que sirve todos los ficheros del proyecto desde el directorio raíz en el puerto 8080. Es el único servidor que existe actualmente — no hay ningún backend con autenticación implementado todavía.
-
-**Archivo de referencia de variables de entorno:** `.env.static.example` en la raíz del proyecto.
-
-#### Cómo arrancarlo en desarrollo
-
-```bash
-node js/server.js
-# Sirve en http://localhost:8080
-# PROTECT_DATA=false por defecto (todos los ficheros accesibles)
-```
-
-#### Protección de datos en producción: `PROTECT_DATA=true`
-
-Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier petición GET directa a los ficheros que contienen datos sensibles de las aventuras. El frontend debe obtener esos datos a través de una API autenticada (pendiente de implementar).
-
-**Ficheros protegidos** (definidos en `js/server.js` líneas 15-23):
-
-```text
-/js/coordenadas-aventuras.js    ← coordenadas GPS de paradas y tramos
-/js/textos-aventuras.js         ← textos de la audioguía
-/js/retos-aventuras.js          ← enunciados y respuestas de retos
-/js/puzzles-aventuras.js        ← datos de puzzles
-/js/audios-aventuras.js         ← índice de archivos de audio
-/js/parrafos-textos/            ← directorio completo (JSON por idioma)
-/audios-aventuras/              ← MP3 del contenido de pago (directorio completo)
-/backend/                       ← directorio completo (reservado)
-```
-
-**Arrancar con protección activa:**
-
-```bash
-PROTECT_DATA=true node js/server.js
-
-# Con PM2:
-pm2 start js/server.js --name vv-static --env PROTECT_DATA=true
-```
-
-**Verificar que la protección funciona:**
-
-```bash
-curl -I http://localhost:8080/js/coordenadas-aventuras.js
-# Respuesta esperada: HTTP/1.1 403 Forbidden
-# Body: {"error":true,"codigo":"ACCESO_DENEGADO","mensaje":"Este recurso no está disponible directamente. Use la API autenticada."}
-```
-
-#### Otras características del servidor
-
-- **Path traversal:** Cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) recibe `403 Forbidden` antes de que el sistema de ficheros sea consultado.
-- **CORS:** Las cabeceras CORS están abiertas para todos los orígenes (`Access-Control-Allow-Origin: *`). Esto es correcto para desarrollo local, pero deberá restringirse al dominio `valenciavguides.es` en producción.
-- **MIME types:** Soporta `.html`, `.js`, `.css`, `.json`, `.png`, `.jpg`, `.gif`, `.svg`, `.mp3`, `.wav`, `.mp4`, `.woff`, `.ttf`, `.eot`, `.otf`, `.wasm`.
-- **Página por defecto:** `GET /` sirve `index.html`.
-- **Sin SSL:** En desarrollo se usa HTTP. En producción el SSL debe gestionarse mediante un proxy inverso (Nginx, Caddy, etc.) delante del servidor Node.
-
-#### Pendiente para producción: backend con autenticación
-
-El servidor actual **no tiene autenticación**. Para la PWA en producción habrá que implementar un backend separado (Express o similar) con:
-
-- **JWT** para proteger el acceso a los datos de aventuras.
-- **Endpoints autenticados** que sirvan los ficheros actualmente protegidos por `PROTECT_DATA` (coordenadas, retos, textos, audios).
-- **CSP via cabeceras HTTP** en lugar del `<meta>` actual (ver §1 de esta sección).
-- **CORS restringido** al dominio de producción.
-
-Este trabajo se realizará cuando se prepare el despliegue real en `valenciavguides.es`. Hasta entonces, `PROTECT_DATA=false` (valor por defecto) es suficiente para desarrollo local.
-
-### 4. Sandboxing de iframes
-
-**Qué es:** El atributo `sandbox` del elemento `<iframe>` limita lo que puede hacer un iframe aunque sea del mismo origen. Sin él, un iframe tiene acceso completo al contexto del padre — puede navegar la ventana principal, abrir popups, enviar formularios. Con `sandbox`, esas capacidades se desactivan por defecto y solo se habilitan las que se listen explícitamente.
-
-**Por qué no se activa ahora:** Los iframes hijo usan `postMessage` con `allow-same-origin` para comunicarse con el padre. Hay que verificar que cada handler sigue funcionando correctamente antes de añadirlo en producción.
-
-**Qué hacer al desplegar:**
-
-Añadir a cada `<iframe>` en `codigo-padre.html`:
-
-```html
-<!-- Antes: -->
-<iframe id="hijo2-coordenadas" src="coordenadas-hijo2.html" ...></iframe>
-
-<!-- Después: -->
-<iframe id="hijo2-coordenadas" src="coordenadas-hijo2.html"
-  sandbox="allow-scripts allow-same-origin allow-forms"
-  ...></iframe>
-```
-
-| Permiso | Por qué incluirlo |
-|---------|------------------|
-| `allow-scripts` | Necesario — los hijos ejecutan JavaScript |
-| `allow-same-origin` | Necesario — permite `postMessage` con el padre |
-| `allow-forms` | Solo si el iframe tiene formularios (hijo6 chat) |
-
-**Sin incluir:** `allow-top-navigation`, `allow-popups`, `allow-downloads` — innecesarios y añaden superficie de ataque.
-
-**Afecta a:** `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `puzzle.html`.
-
-### 5. HSTS (HTTP Strict Transport Security)
-
-**Qué es:** Una cabecera HTTP que le dice al navegador "esta web solo existe en HTTPS; nunca vuelvas a intentar HTTP". Tras recibirla una vez, el navegador ignora cualquier enlace `http://` al dominio y siempre usa `https://` automáticamente. Previene ataques de downgrade y de interposición de conexión.
-
-**Por qué NO se activa en desarrollo local:** `js/server.js` sirve en HTTP (`http://localhost:8080`), sin SSL. Si el navegador recibe una cabecera HSTS desde HTTP local, puede quedar "bloqueado" en modo HTTPS para localhost aunque no haya ningún servidor HTTPS, rompiendo el desarrollo. **No añadir HSTS al servidor de desarrollo.**
-
-**Qué hacer al desplegar:**
-
-En el proxy inverso de producción (Nginx, Caddy, etc.) añadir:
-
-```nginx
-# Nginx
-add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-```
-
-```caddy
-# Caddyfile (Caddy lo activa automáticamente con HTTPS)
-header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-```
-
-- `max-age=31536000` — el navegador recuerda la política durante 1 año.
-- `includeSubDomains` — cubre también `www.valenciavguides.es` y cualquier subdominio.
-- `preload` — permite solicitar inclusión en la lista HSTS preload de los navegadores (Chrome, Firefox, Safari). Requiere un trámite en [hstspreload.org](https://hstspreload.org) — hacerlo solo cuando el dominio sea definitivo.
-
-**⚠️ Importante:** Una vez activado `preload` y aceptado en la lista, deshacerlo es muy lento (meses). No activar hasta que el dominio sea definitivo y estable.
-
-### 6. Legal y privacidad (RGPD) — completar antes del lanzamiento
-
-La app recoge datos personales (correo electrónico, ubicación GPS) y procesa pagos a través de terceros. El RGPD exige que el usuario esté informado de todo esto **en el momento de la recogida**, no solo en los términos generales.
-
-#### 6.1 Correcciones en `js/terminos-aventuras.js` (ya existe, 12 idiomas)
-
-Las condiciones actuales son una buena base pero necesitan los siguientes ajustes **en los 12 idiomas** antes del lanzamiento:
-
-| # | Qué cambiar | Por qué |
-|---|-------------|---------|
-| 1 | **Eliminar** la frase "La aplicación puede incorporar publicidad gestionada por terceros" | No habrá publicidad en el modelo de negocio — dejar esa frase puede ser engañoso para el usuario |
-| 2 | **Añadir Stripe** como encargado del tratamiento de datos de pago (nombrar explícitamente) | El RGPD exige identificar a los subencargados; "plataforma de pago" sin nombre no es suficiente |
-| 3 | **Añadir** que los datos GPS se procesan únicamente en el dispositivo del usuario y no se transmiten a ningún servidor | Requisito de transparencia y ventaja competitiva que debe comunicarse |
-| 4 | **Añadir** el derecho a presentar reclamación ante la **AEPD** (Agencia Española de Protección de Datos, `aepd.es`) | Obligatorio en España — los términos actuales no lo mencionan |
-| 5 | **Añadir** el plazo de conservación del correo electrónico | El RGPD exige especificarlo — p.ej. "hasta 12 meses tras la compra, o hasta que el usuario solicite la supresión" |
-
-#### 6.2 Aviso de privacidad en la pantalla de pago P13
-
-Cuando se implemente P13 (pantalla de pago, actualmente placeholder), **justo debajo del campo de email** y antes del botón de pago, añadir un texto breve visible:
-
-```text
-Tu correo electrónico se usa únicamente para enviarte el código de activación 
-de tu compra. No lo usaremos para publicidad ni lo cederemos a terceros.
-El pago es gestionado por Stripe, Inc. Valencia VGuides no almacena 
-datos de tarjeta. [Ver condiciones completas →]
-```
-
-Este aviso es obligatorio por el RGPD: hay que informar **en el momento de la recogida** del dato, no solo en los términos que el usuario leyó varias pantallas antes.
-
-El enlace "Ver condiciones completas" debe navegar a P6 (pantalla de términos) o abrir un overlay con las condiciones.
-
-#### 6.3 Política de privacidad accesible desde fuera de la aventura
-
-Las condiciones actuales (P6) solo son accesibles dentro del flujo de selección de aventura. Antes del lanzamiento, la política de privacidad debe estar disponible también desde fuera de la app (p.ej. en una página `privacidad.html` enlazada desde el `manifest.json` y desde el footer de `index.html`), ya que los motores de búsqueda y las tiendas de apps la exigen en URL pública fija.
-
-#### 6.4 Referencia legal aplicable
-
-| Marco | Descripción |
-|-------|-------------|
-| Reglamento (UE) 2016/679 — RGPD | Base principal de protección de datos en la UE |
-| Ley Orgánica 3/2018 (LOPDGDD) | Adaptación española del RGPD |
-| Ley 34/2002 (LSSI) | Servicios de la sociedad de la información — aplica a cookies y comunicaciones electrónicas |
-| AEPD | Autoridad de control española: `aepd.es` — ante ella se pueden presentar reclamaciones |
-
-> **Contacto de privacidad actual:** `valenciadtours@gmail.com` (ya en las condiciones). Antes del lanzamiento, considerar usar un correo de dominio propio (`privacidad@valenciavguides.es`) para dar más imagen profesional y confianza al usuario.
+Hay tareas críticas sin resolver antes de publicar en `valenciavguides.es`. Ver **§22 — Preparación para producción** para la lista completa con detalle técnico y pasos de implementación.
 
 ---
 
@@ -6662,41 +6470,342 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 
 ## 22. Preparación para producción
 
-### Checklist para el despliegue
+Esta sección es la referencia única para todo lo relacionado con el despliegue en el servidor real. Las tareas descritas **no tienen urgencia en desarrollo local** pero deben estar resueltas antes de publicar en `valenciavguides.es`.
 
-1. **HTTPS obligatorio**: la app usa GPS y Service Worker, que requieren HTTPS. Cloudflare lo ofrece gratis como proxy.
+### 22.0 Checklist rápida de despliegue
 
-2. **Activar protección de datos**:
+| # | Tarea | Subsección | Estado |
+|---|-------|-----------|--------|
+| 1 | HTTPS + DNS/hosting | §22.1 | ⏳ pendiente |
+| 2 | CSP sin `unsafe-inline` | §22.2 | ⏳ pendiente |
+| 3 | `console.log` → `logger.js` | §22.3 | ⏳ pendiente |
+| 4 | `PROTECT_DATA=true` + backend autenticado + CORS restringido | §22.4 | ⏳ pendiente |
+| 5 | Sandboxing de iframes | §22.5 | ⏳ pendiente |
+| 6 | HSTS | §22.6 | ⏳ pendiente |
+| 7 | Legal y privacidad (RGPD) | §22.7 | ⏳ pendiente |
+| 8 | Protección del código JavaScript (minificación/obfuscación) | §22.8 | ⏳ pendiente |
+| 9 | Eliminar archivos sensibles del `APP_SHELL` del SW | §22.9 | ⏳ pendiente |
+| 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
+| 11 | `DATA_MODE = 'api'` en `js/data-loader.js` | §22.11 | ⏳ pendiente |
 
-   ```bash
-   PROTECT_DATA=true node js/server.js
-   ```
+---
 
-   Esto bloquea el acceso directo GET a los ficheros JS sensibles (coordenadas, retos, textos, audios). Ver §3 de "Pendiente antes del despliegue".
+### 22.1 HTTPS obligatorio y configuración DNS/hosting
 
-3. **Actualizar CORS** en `js/server.js`: cambiar `Access-Control-Allow-Origin: *` al dominio `https://valenciavguides.es`.
+La app usa GPS (`navigator.geolocation`) y Service Worker, que el navegador solo permite en contextos seguros (HTTPS). Sin HTTPS, la app no funciona en producción.
 
-4. **Actualizar `CACHE_VERSION`** en `sw.js` (línea 84) para que el Service Worker fuerce la recarga de todos los recursos cacheados. El valor actual es `'v-fixes-jun09'`; cámbialo a un identificador de la versión que se despliega (p.ej. `'v-1.0.0'`). **Nota:** el comentario de `sw.js` menciona que esta operación es automática vía `tools/build-sw.js`, pero ese script aún no existe — la actualización es manual.
+**Opción A — GitHub Pages (solo archivos estáticos):**
 
-5. **Configurar DNS y hosting** — dos opciones excluyentes:
+El fichero `CNAME` en la raíz ya contiene `valenciavguides.es`. Basta con activar GitHub Pages en el repositorio (rama `main`, carpeta raíz) y apuntar el DNS al servidor de GitHub. HTTPS lo gestiona GitHub automáticamente.
 
-   **Opción A — GitHub Pages (solo archivos estáticos):**
-   El fichero `CNAME` en la raíz ya contiene `valenciavguides.es`. Basta con activar GitHub Pages en el repositorio (rama `main`, carpeta raíz) y apuntar el DNS de `valenciavguides.es` a los servidores de GitHub Pages. HTTPS lo gestiona GitHub automáticamente.
-   - Limitación: sin `js/server.js` en ejecución, `PROTECT_DATA` no funciona — todos los archivos JS son públicos.
-   - Solo viable si se acepta que los datos de aventuras sean accesibles sin autenticación.
+- **Limitación crítica:** sin `js/server.js` en ejecución, `PROTECT_DATA` no funciona — todos los archivos JS son públicos y accesibles directamente.
+- Solo viable si se acepta que los datos de aventuras sean accesibles sin autenticación.
 
-   **Opción B — VPS propio con Node.js:**
-   Eliminar o ignorar el fichero `CNAME`. Desplegar el proyecto en un VPS, arrancar `node js/server.js` (o con PM2) y apuntar el DNS de `valenciavguides.es` a la IP del servidor. HTTPS mediante proxy inverso (Nginx, Caddy o Cloudflare).
-   - Permite `PROTECT_DATA=true` y, cuando esté implementado, el backend autenticado con JWT.
-   - Es la opción correcta para proteger los datos de pago.
+**Opción B — VPS propio con Node.js (recomendada):**
 
-6. **SSL** — depende de la opción elegida en el punto 5:
-   - GitHub Pages: gestionado automáticamente.
-   - VPS propio: proxy inverso (Nginx, Caddy) delante del servidor Node, o Cloudflare como proxy externo.
+Eliminar o ignorar el fichero `CNAME`. Desplegar el proyecto en un VPS, arrancar `node js/server.js` (o con PM2) y apuntar el DNS de `valenciavguides.es` a la IP del servidor. HTTPS mediante proxy inverso (Nginx, Caddy o Cloudflare).
 
-### Pendiente para producción real
+- Permite `PROTECT_DATA=true` y, cuando esté implementado, el backend autenticado con JWT.
+- Es la opción correcta para proteger los datos de pago.
 
-Ver "Pendiente antes del despliegue" §§1-3 para la lista completa de tareas que aún no están implementadas: §1 (CSP sin unsafe-inline), §2 (console.log → logger), §3 (backend autenticado, JWT, CORS restringido).
+**SSL:**
+- GitHub Pages: gestionado automáticamente.
+- VPS propio: proxy inverso (Nginx o Caddy) delante del servidor Node, o Cloudflare como proxy externo.
+
+---
+
+### 22.2 CSP: eliminar `unsafe-inline`
+
+**Qué es:** `codigo-padre.html` lleva un `<meta>` CSP con `script-src 'self' 'unsafe-inline'`. El `unsafe-inline` anula la protección real del CSP — si alguien inyectara un script en la página, el navegador lo ejecutaría igualmente.
+
+**Por qué no se toca ahora:** Con ficheros estáticos no hay forma de generar nonces dinámicos. La solución correcta es mover la CSP a cabeceras HTTP del servidor (no al meta tag), donde cada petición puede incluir un nonce único por script inline.
+
+**Qué hacer al desplegar:**
+
+1. Eliminar el `<meta http-equiv="Content-Security-Policy">` de `codigo-padre.html`.
+2. En `backend/server.js`, añadir la CSP como cabecera HTTP con `helmet.contentSecurityPolicy()` y nonces generados por petición.
+3. Pasar el nonce a cada `<script>` inline del padre mediante un paso de templating (o mover los scripts inline a ficheros externos `.js`).
+
+---
+
+### 22.3 `console.log` → `logger.js` en producción
+
+**Qué es:** Múltiples archivos (`app.js`, `api-client.js`, `funciones-mapa.js`, `mensajeria.js`, `state-manager.js`, etc.) usan `console.log/warn/error` directos en lugar de pasar por `js/logger.js`. En producción, cualquier usuario con DevTools ve estados internos, rutas de datos e IDs de mensajes.
+
+**Por qué no se toca ahora:** En desarrollo los logs son útiles.
+
+**Qué hacer al desplegar** — dos opciones (elegir una):
+
+- **Opción A (rápida):** Override global en `backend/server.js` o en el HTML de producción:
+  ```javascript
+  if (process.env.NODE_ENV === 'production') { console.log = console.debug = () => {}; }
+  ```
+- **Opción B (limpia):** Reemplazar los `console.*` directos por llamadas a `logger.*` en cada archivo. `logger.js` ya tiene niveles configurables — en producción basta con `logger.setLevel('WARN')`.
+
+---
+
+### 22.4 El servidor: `PROTECT_DATA`, CORS y backend autenticado
+
+#### El servidor de desarrollo: `js/server.js`
+
+Servidor HTTP estático en Node.js puro (sin Express ni dependencias externas) que sirve todos los ficheros del proyecto desde el directorio raíz en el puerto 8080. No hay backend con autenticación implementado todavía.
+
+**Archivo de referencia de variables de entorno:** `.env.static.example` en la raíz del proyecto.
+
+**Cómo arrancarlo en desarrollo:**
+
+```bash
+node js/server.js
+# Sirve en http://localhost:8080
+# PROTECT_DATA=false por defecto (todos los ficheros accesibles)
+```
+
+#### Protección de datos en producción: `PROTECT_DATA=true`
+
+Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier petición GET directa a los ficheros sensibles. El frontend debe obtener esos datos a través de una API autenticada (pendiente de implementar).
+
+**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 15–23):
+
+```text
+/js/coordenadas-aventuras.js    ← coordenadas GPS de paradas y tramos
+/js/textos-aventuras.js         ← textos de la audioguía
+/js/retos-aventuras.js          ← enunciados y respuestas de retos
+/js/puzzles-aventuras.js        ← datos de puzzles
+/js/audios-aventuras.js         ← índice de archivos de audio
+/js/parrafos-textos/            ← directorio completo (JSON por idioma)
+/audios-aventuras/              ← MP3 del contenido de pago (directorio completo)
+/backend/                       ← directorio completo (reservado)
+```
+
+**Pendiente añadir a `PROTECTED_FILES` antes de producción:**
+
+```text
+/js/aventuras-ID-padre.js       ← estructura de IDs de aventura (IP del producto)
+```
+
+**Arrancar con protección activa:**
+
+```bash
+PROTECT_DATA=true node js/server.js
+
+# Con PM2:
+pm2 start js/server.js --name vv-static --env PROTECT_DATA=true
+```
+
+**Verificar que la protección funciona:**
+
+```bash
+curl -I http://localhost:8080/js/coordenadas-aventuras.js
+# Respuesta esperada: HTTP/1.1 403 Forbidden
+# Body: {"error":true,"codigo":"ACCESO_DENEGADO","mensaje":"Este recurso no está disponible directamente. Use la API autenticada."}
+```
+
+#### Actualizar CORS en producción
+
+Las cabeceras CORS están abiertas para todos los orígenes (`Access-Control-Allow-Origin: *`). En producción **deben restringirse** al dominio `valenciavguides.es`:
+
+```javascript
+// js/server.js — cambiar en producción:
+res.setHeader('Access-Control-Allow-Origin', 'https://valenciavguides.es');
+```
+
+#### Otras características del servidor
+
+- **Path traversal:** Cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) recibe `403 Forbidden`.
+- **MIME types:** Soporta `.html`, `.js`, `.css`, `.json`, `.png`, `.jpg`, `.gif`, `.svg`, `.mp3`, `.wav`, `.mp4`, `.woff`, `.ttf`, `.eot`, `.otf`, `.wasm`.
+- **Página por defecto:** `GET /` sirve `index.html`.
+- **Sin SSL:** En desarrollo se usa HTTP. En producción el SSL debe gestionarse mediante un proxy inverso (Nginx, Caddy, etc.) delante del servidor Node.
+
+#### Pendiente: backend con autenticación
+
+El servidor actual **no tiene autenticación**. Para producción habrá que implementar un backend separado (Express o similar) con:
+
+- **JWT** para proteger el acceso a los datos de aventuras.
+- **Endpoints autenticados** que sirvan los ficheros protegidos por `PROTECT_DATA`.
+- **CSP via cabeceras HTTP** en lugar del `<meta>` actual (ver §22.2).
+- **CORS restringido** al dominio de producción.
+- **`DATA_MODE = 'api'`** en `js/data-loader.js` (ver §22.11).
+
+---
+
+### 22.5 Sandboxing de iframes
+
+**Qué es:** El atributo `sandbox` del elemento `<iframe>` limita lo que puede hacer un iframe aunque sea del mismo origen. Sin él, un iframe tiene acceso completo al contexto del padre.
+
+**Por qué no se activa ahora:** Los iframes hijo usan `postMessage` con `allow-same-origin` para comunicarse con el padre. Hay que verificar que cada handler sigue funcionando correctamente antes de activarlo en producción.
+
+**Qué hacer al desplegar** — añadir a cada `<iframe>` en `codigo-padre.html`:
+
+```html
+<iframe id="hijo2-coordenadas" src="coordenadas-hijo2.html"
+  sandbox="allow-scripts allow-same-origin allow-forms"
+  ...></iframe>
+```
+
+| Permiso | Por qué incluirlo |
+|---------|------------------|
+| `allow-scripts` | Necesario — los hijos ejecutan JavaScript |
+| `allow-same-origin` | Necesario — permite `postMessage` con el padre |
+| `allow-forms` | Solo si el iframe tiene formularios (`chat-hijo6.html`) |
+
+**Sin incluir:** `allow-top-navigation`, `allow-popups`, `allow-downloads` — innecesarios y añaden superficie de ataque.
+
+**Afecta a:** `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `puzzle.html`.
+
+---
+
+### 22.6 HSTS (HTTP Strict Transport Security)
+
+**Qué es:** Cabecera HTTP que le dice al navegador "esta web solo existe en HTTPS; nunca vuelvas a intentar HTTP". Previene ataques de downgrade e interposición de conexión.
+
+**Por qué NO se activa en desarrollo:** `js/server.js` sirve en HTTP (`http://localhost:8080`). Si el navegador recibe HSTS desde HTTP local, puede quedar bloqueado para localhost.
+
+**Qué hacer al desplegar** — en el proxy inverso de producción:
+
+```nginx
+# Nginx
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+```
+
+```caddy
+# Caddyfile (Caddy lo activa automáticamente con HTTPS)
+header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+```
+
+- `max-age=31536000` — el navegador recuerda la política durante 1 año.
+- `includeSubDomains` — cubre también `www.valenciavguides.es` y cualquier subdominio.
+- `preload` — permite solicitar inclusión en la lista HSTS preload de Chrome, Firefox y Safari.
+
+**⚠️ Importante:** Una vez activado `preload` y aceptado en la lista, deshacerlo tarda meses. No activar hasta que el dominio sea definitivo y estable.
+
+---
+
+### 22.7 Legal y privacidad (RGPD)
+
+La app recoge datos personales (correo electrónico, ubicación GPS) y procesa pagos a través de terceros. El RGPD exige que el usuario esté informado **en el momento de la recogida**, no solo en los términos generales.
+
+#### 22.7.1 Correcciones en `js/terminos-aventuras.js` (ya existe, 12 idiomas)
+
+| # | Qué cambiar | Por qué |
+|---|-------------|---------|
+| 1 | **Eliminar** la frase "La aplicación puede incorporar publicidad gestionada por terceros" | No habrá publicidad en el modelo de negocio — la frase es engañosa |
+| 2 | **Añadir Stripe** como encargado del tratamiento de datos de pago (nombrar explícitamente) | El RGPD exige identificar a los subencargados por nombre |
+| 3 | **Añadir** que los datos GPS se procesan únicamente en el dispositivo del usuario y no se transmiten a ningún servidor | Requisito de transparencia y ventaja competitiva |
+| 4 | **Añadir** el derecho a presentar reclamación ante la **AEPD** (Agencia Española de Protección de Datos, `aepd.es`) | Obligatorio en España |
+| 5 | **Añadir** el plazo de conservación del correo electrónico | El RGPD exige especificarlo — p.ej. "hasta 12 meses tras la compra, o hasta que el usuario solicite la supresión" |
+
+#### 22.7.2 Aviso de privacidad en la pantalla de pago P13
+
+Cuando se implemente P13 (pantalla de pago, actualmente placeholder), añadir **justo debajo del campo de email** y antes del botón de pago:
+
+```text
+Tu correo electrónico se usa únicamente para enviarte el código de activación
+de tu compra. No lo usaremos para publicidad ni lo cederemos a terceros.
+El pago es gestionado por Stripe, Inc. Valencia VGuides no almacena
+datos de tarjeta. [Ver condiciones completas →]
+```
+
+El enlace "Ver condiciones completas" debe navegar a P6 (pantalla de términos) o abrir un overlay con las condiciones.
+
+#### 22.7.3 Política de privacidad accesible desde fuera de la aventura
+
+Las condiciones actuales (P6) solo son accesibles dentro del flujo de selección. Antes del lanzamiento, crear una página `privacidad.html` enlazada desde el `manifest.json` y desde el footer de `index.html`. Los motores de búsqueda y tiendas de apps exigen URL pública fija.
+
+#### 22.7.4 Referencia legal aplicable
+
+| Marco | Descripción |
+|-------|-------------|
+| Reglamento (UE) 2016/679 — RGPD | Base principal de protección de datos en la UE |
+| Ley Orgánica 3/2018 (LOPDGDD) | Adaptación española del RGPD |
+| Ley 34/2002 (LSSI) | Servicios de la sociedad de la información — aplica a cookies y comunicaciones electrónicas |
+| AEPD | Autoridad de control española: `aepd.es` — ante ella se pueden presentar reclamaciones |
+
+> **Contacto de privacidad actual:** `valenciadtours@gmail.com` (ya en las condiciones). Antes del lanzamiento, considerar usar un correo de dominio propio (`privacidad@valenciavguides.es`) para dar más imagen profesional y confianza al usuario.
+
+---
+
+### 22.8 Protección del código JavaScript
+
+El JavaScript que ejecuta el navegador es **siempre visible** para cualquier usuario con DevTools. No hay forma de ocultarlo completamente: el navegador necesita leer el código para ejecutarlo.
+
+**Lo que sí puedes hacer:**
+
+| Medida | Lo que consigue | Cuándo aplicar |
+|--------|----------------|----------------|
+| **Minificación + bundling** (esbuild, webpack, rollup) | Variables de 1 letra, sin espacios ni comentarios — difícil de leer | Build step antes de desplegar |
+| **Obfuscación** (`javascript-obfuscator`) | Strings cifrados, flujo de control alterado — muy difícil de seguir | Opcional, sobre el output minificado |
+| **Mover lógica crítica al servidor** | El código más valioso nunca llega al cliente | Requiere backend autenticado (§22.4) |
+| **`PROTECT_DATA=true`** (ya implementado) | Los datos valiosos solo vía API autenticada | Activar en producción |
+
+**Perspectiva realista:** La IP más valiosa — rutas GPS, audios, textos narrativos de las aventuras — ya está protegida por `PROTECT_DATA`. El código de la PWA (iframes, mensajería, GPS) es complejo pero no es el producto en sí: sin los datos de aventura, el código no tiene valor comercial.
+
+**Pendiente antes de desplegar:**
+- Añadir un paso de build con esbuild o rollup para minificar y bundlear los módulos JS principales.
+- Opcionalmente, pasar el output por `javascript-obfuscator` con configuración agresiva sobre los archivos más sensibles.
+
+---
+
+### 22.9 Gap de seguridad: archivos sensibles en `APP_SHELL`
+
+⚠️ **Este es el gap de seguridad más importante actualmente.**
+
+El archivo `sw.js` incluye en `APP_SHELL` ficheros sensibles que el Service Worker cachea en el dispositivo del cliente al instalar la app:
+
+```text
+Actualmente en APP_SHELL (sw.js):
+/js/coordenadas-aventuras.js    ← datos de rutas GPS
+/js/textos-aventuras.js         ← textos completos de la audioguía
+/js/retos-aventuras.js          ← preguntas Y respuestas de todos los retos
+/js/puzzles-aventuras.js        ← datos de puzzles
+/js/audios-aventuras.js         ← índice de audios
+/js/aventuras-ID-padre.js       ← estructura completa de IDs de aventura
+```
+
+**El problema:** Aunque `PROTECT_DATA=true` bloquea el acceso HTTP directo a estos ficheros, la copia que el SW ha guardado en caché **bypasa completamente el servidor**. Un usuario que haya instalado la app puede acceder a estos archivos desde la caché del navegador sin necesidad de conexión ni autenticación.
+
+**La solución (requiere §22.4 y §22.11 completados):**
+
+1. Eliminar los archivos sensibles del array `APP_SHELL` en `sw.js`.
+2. Implementar el backend autenticado con JWT (§22.4).
+3. Cambiar `DATA_MODE` a `'api'` en `js/data-loader.js` (§22.11).
+4. Los datos sensibles se cargarán exclusivamente vía API autenticada en runtime — nunca pre-cacheados.
+
+**Mientras tanto:** No es un problema en desarrollo local. Pero esta tarea es **bloqueante para producción con protección real de datos**.
+
+---
+
+### 22.10 `CACHE_VERSION` al desplegar
+
+Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.js` (línea 84) para que el Service Worker invalide la caché antigua y fuerce la recarga de todos los recursos:
+
+```javascript
+// sw.js línea 84 — actualizar en cada despliegue
+const CACHE_VERSION = 'v-overlays-jun15'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
+```
+
+**⚠️ Nota:** El comentario de `sw.js` menciona generación automática vía `tools/build-sw.js`, pero ese script **no existe todavía** — la actualización es manual hasta que se implemente.
+
+---
+
+### 22.11 `DATA_MODE`: cambiar de `'local'` a `'api'`
+
+En `js/data-loader.js` el modo de carga de datos está hardcodeado como `'local'` (línea 27):
+
+```javascript
+// js/data-loader.js — estado actual
+const DATA_MODE = 'local'; // ← forzado a modo local para producción estática
+
+// Versión correcta para producción (ya preparada, comentada en líneas 32–35):
+// const DATA_MODE = (_host === 'localhost' || _host === '127.0.0.1') ? 'local' : 'api';
+// const API_BASE = DATA_MODE === 'local'
+//     ? 'http://localhost:3001/api'
+//     : `${globalThis.location.origin}/api`;
+```
+
+En modo `'local'`, los datos de aventura se importan como módulos JS — el navegador los descarga y el SW los cachea. En modo `'api'`, los datos se obtienen mediante llamadas autenticadas al backend y nunca se almacenan en caché del SW.
+
+**Este cambio es bloqueante** junto con §22.4 (backend con JWT) y §22.9 (revisión de `APP_SHELL`). Los tres deben implementarse conjuntamente.
 
 ---
 
