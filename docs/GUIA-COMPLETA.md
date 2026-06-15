@@ -1443,7 +1443,7 @@ Padre                                Hijo
   │                                    │
   │──── asigna src al iframe ─────────>│  navegador carga el HTML
   │                                    │
-  │<─── HIJO_PREPARADO ───────────────│  { version, capacidades[] }
+  │<─── HIJO_PREPARADO ───────────────│  { componenteId, version, capacidades[], timestamp }
   │                                    │  "mi HTML está cargado"
   │                                    │
   │──── ACK (best-effort) ────────────>│  { tipoMensajeOriginal: 'SISTEMA.HIJO_PREPARADO' }
@@ -1497,7 +1497,7 @@ sequenceDiagram
     Note over S1: FASE 1: registra handlers, carga infra<br/>FASE 2: __cargarDatosAventuraDiferidos()
 
     S1->>SEL: asigna src (En-busca-del-tesoro.html)
-    SEL-->>S1: HIJO_PREPARADO { version, capacidades }
+    SEL-->>S1: HIJO_PREPARADO { componenteId, version, capacidades[] }
     S1->>SEL: PADRE_DATOS { modo, timestamp }
     SEL-->>S1: HIJO_LISTO { componenteId, iframeId, timestamp }
     S1->>SEL: PADRE_CONFIRMA_HIJO_LISTO
@@ -2053,8 +2053,8 @@ flowchart TD
 
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
-| `SISTEMA.HIJO_PREPARADO` | Al cargarse | `{ version, capacidades, timestamp }` |
-| `SISTEMA.HIJO_LISTO` | Tras recibir `PADRE_DATOS` | `{ version, capacidades, tiempoInicializacion }` |
+| `SISTEMA.HIJO_PREPARADO` | Al cargarse | `{ componenteId, version, capacidades[], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | Tras recibir `PADRE_DATOS` | `{ componenteId, iframeId, timestamp }` |
 | `SISTEMA.HIJO_FALLIDO` | Si la inicialización falla | `{ error, stack, timestamp }` |
 | `SELECCION.IDIOMA_SELECCIONADO` | Confirma idioma en P3 | `{ idioma }` |
 | `SELECCION.TERMINOS_ACEPTADOS` | Acepta términos en P6 | `{ timestamp }` |
@@ -2797,8 +2797,8 @@ Payload de `CHAT.ESTADO_PADRE` (recibido del padre), construido por `construirEs
 
 | Tipo | Cuándo | Payload |
 |------|--------|---------|
-| `SISTEMA.HIJO_PREPARADO` | Al cargarse | `{ version, capacidades }` |
-| `SISTEMA.HIJO_LISTO` | Tras procesar `PADRE_DATOS` | `{ version, tiempoInicializacion }` |
+| `SISTEMA.HIJO_PREPARADO` | Al cargarse | `{ componenteId, version, capacidades[], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | Tras procesar `PADRE_DATOS` | `{ componenteId, iframeId, timestamp }` |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
 
 ```mermaid
@@ -3121,7 +3121,7 @@ sequenceDiagram
     participant H as Hijo (hijo1..hijo6)
 
     Note over H: iframe carga, JS inicializa
-    H->>P: SISTEMA.HIJO_PREPARADO { version, capacidades:[], timestamp }
+    H->>P: SISTEMA.HIJO_PREPARADO { componenteId, version, capacidades:[], timestamp }
     P->>H: SISTEMA.PADRE_DATOS { modo, timestamp }
     Note over H: hijo procesa datos, prepara su UI
     H->>P: SISTEMA.HIJO_LISTO { componenteId, iframeId, timestamp }
@@ -3299,7 +3299,7 @@ sequenceDiagram
 | `SELECCION.PREPARAR_HIJOS` | P10 | `{ idioma, aventura, timestamp }` | Warmup de iframes durante el puzzle |
 | `SELECCION.AVENTURA_ACTIVADA` | P16 | `{ aventura, idioma, terminosAceptados, timestamp }` | Inicialización completa: normaliza hijos, carga iframes, espera HIJO_LISTO, distribuye datos |
 | `NAVEGACION.SUPRIMIR_ROTACION` | Mapa vintage | `{ value: true/false }` | Suprime/restaura rotación de hijo2 |
-| `SISTEMA.HIJO_PREPARADO` | Arranque | `{ version, capacidades:[] }` | Handshake estándar (la pantalla también hace handshake) |
+| `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
 | `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, iframeId }` | Handshake estándar |
 
 **Mensajes recibidos por En-busca-del-tesoro.html**:
@@ -3322,7 +3322,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 
 | Dirección | Mensaje | Payload clave | Cuándo |
 |-----------|---------|---------------|--------|
-| **→ padre** | `SISTEMA.HIJO_PREPARADO` | `{ version, capacidades:['opciones','configuracion'] }` | Al arrancar |
+| **→ padre** | `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['opciones','configuracion'], timestamp }` | Al arrancar |
 | **→ padre** | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | **→ padre** | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir SISTEMA.CAMBIO_MODO |
 | **→ padre** | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar cambio de modo en UI |
@@ -3357,7 +3357,7 @@ Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay f
 
 | Mensaje | Payload clave | Cuándo |
 |---------|---------------|--------|
-| `SISTEMA.HIJO_PREPARADO` | `{ version, capacidades:['navegacion','coordenadas'] }` | Al arrancar |
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['navegacion','coordenadas'], timestamp }` | Al arrancar |
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir CAMBIO_MODO |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo en UI |
@@ -3387,7 +3387,7 @@ Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay f
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` | Almacena en `globalThis.__vv_coordenadasAventura`; envía `COORDENADAS_CARGADAS` | ✓ | ✓ |
-| `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total }` | Almacena descripciones de paradas | ✓ | ✓ |
+| `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` | Almacena descripciones de paradas | ✓ | ✓ |
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | `{ paradaId?, incluirRutas?, actualizarMapa?, contexto?, pedidoId }` | Devuelve coordenadas filtradas (o todas si no hay `paradaId`) vía `COORDENADAS_PARADAS_RESPONSE` | ✓ | ✓ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, nombre, tipo, imagen, video, coordenadas, timestamp }` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado GPS/llegada; llama `actualizarEstadoBotones()` | ✓ | ✓ |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], estadisticas }` | Actualiza lista interna de paradas | ✓ | ✓ |
@@ -3413,7 +3413,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 
 | Mensaje | Payload clave | Cuándo |
 |---------|---------------|--------|
-| `SISTEMA.HIJO_PREPARADO` | `{ version, capacidades:['audio','reproduccion','controles'] }` | Al arrancar |
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['audio','reproduccion','controles'], timestamp }` | Al arrancar |
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir CAMBIO_MODO |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo |
@@ -3437,7 +3437,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza clase CSS `modo-casa`/`modo-aventura` en body | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
-| `DATOS.CARGAR_AUDIOS` | `{ aventura, idioma, audios[], total }` | Almacena mapa audioId → URL | ✓ | ✓ |
+| `DATOS.CARGAR_AUDIOS` | `{ aventura, idioma, audios[], total, timestamp }` | Almacena mapa audioId → URL | ✓ | ✓ |
 | `AUDIO.REPRODUCIR_REQUEST` | `{ audioId, autoplay:false }` | Asigna `audio.src`; el padre siempre envía `autoplay:false` — el usuario reproduce desde los controles del padre | ✓ (manual) | ✓ (automático al entrar en parada) |
 | `CONTROL.HABILITAR` | `{ control:'retosBtn' }` | `retosBtn.disabled=false`, opacity 1 | ✓ inmediato si reto_id | ✓ tras FIN_REPRODUCCION |
 | `CONTROL.DESHABILITAR` | `{ control:'retosBtn', razon }` | `retosBtn.disabled=true`, opacity 0.5 | ✓ tramos/sin reto | ✓ al entrar en parada |
@@ -3460,7 +3460,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 
 | Mensaje | Payload clave | Cuándo |
 |---------|---------------|--------|
-| `SISTEMA.HIJO_PREPARADO` | `{ version, capacidades:['retos','preguntas','validacion'] }` | Al arrancar |
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['retos','preguntas','validacion'], timestamp }` | Al arrancar |
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO/EFECTUADO` | `{ modo, mensajeId }` | Gestión de cambio de modo |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
@@ -3482,7 +3482,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza modo interno | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
-| `DATOS.CARGAR_RETOS` | `{ aventura, idioma, retos[], total }` | Almacena retos por ID para acceso rápido | ✓ | ✓ |
+| `DATOS.CARGAR_RETOS` | `{ aventura, idioma, retos[], total, timestamp }` | Almacena retos por ID para acceso rápido | ✓ | ✓ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, retoId }` | Actualiza estado interno de parada activa; responde con `CAMBIO_PARADA_CONFIRMADO` | ✓ | ✓ |
 | `RETO.MOSTRAR` | `{ retoId, retosArray[] }` | Renderiza el reto, muestra overlay; responde con `RETO.MOSTRADO` | ✓ | ✓ |
 | `RETO.CONFIRMADO` | `{ retoId }` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO | ✓ | ✓ |
@@ -3517,7 +3517,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 
 | Mensaje | Payload clave | Cuándo |
 |---------|---------------|--------|
-| `SISTEMA.HIJO_PREPARADO` | `{ version, capacidades:['modo-selector','paradas-list'] }` | Al arrancar |
+| `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['modo-selector','paradas-list'], timestamp }` | Al arrancar |
 | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO/EFECTUADO` | `{ modo, mensajeId }` | Gestión de cambio de modo |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
@@ -3554,7 +3554,7 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 
 | Dirección | Mensaje | Payload clave | Cuándo |
 |-----------|---------|---------------|--------|
-| **→ padre** | `SISTEMA.HIJO_PREPARADO` | `{ version, capacidades:['chat','faq'] }` | Al arrancar |
+| **→ padre** | `SISTEMA.HIJO_PREPARADO` | `{ componenteId, version, capacidades:['chat','faq'], timestamp }` | Al arrancar |
 | **→ padre** | `SISTEMA.HIJO_LISTO` | `{ componenteId, iframeId }` | Tras recibir PADRE_DATOS |
 | **→ padre** | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, estado:'activo'/'inicializando' }` | Al recibir HEARTBEAT |
 | **→ padre** | `CHAT.CERRAR` | `{ }` | Usuario pulsa el botón de cerrar |
@@ -4373,9 +4373,9 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ aventura, idioma, modo:'casa' }` |
+| Payload | `{ aventura, idioma, terminosAceptados, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_AVENTURA_ACTIVADA` |
-| Acción | Llama `distribuirDatosAventura`, activa modo CASA. `ensureDefaultParada` se llama más tarde desde `_activarHeartbeatAventura` cuando el usuario pasa a modo AVENTURA (botón GPS en hijo5) |
+| Acción | Recarga hijo1/hijo2/hijo3/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`, llama `distribuirDatosAventura`, activa modo CASA. hijo4 **no se recarga** aquí (ya fue cargado en `PREPARAR_HIJOS`). `ensureDefaultParada` se llama más tarde desde `_activarHeartbeatAventura` cuando el usuario pasa a modo AVENTURA (botón GPS en hijo5) |
 
 ---
 
@@ -4387,7 +4387,7 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ aventura, coordenadas[], timestamp }` |
+| Payload | `{ aventura, idioma, coordenadas[], total, timestamp }` |
 | Handler en hijo2 | L2124 |
 | Acción | Almacena coordenadas, responde DATOS.COORDENADAS_CARGADAS |
 | Respuesta | `DATOS.COORDENADAS_CARGADAS` → padre `_hdl_DATOS_COORDENADAS_CARGADAS` L10112 |
@@ -4405,7 +4405,7 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ aventura, idioma, retos[], timestamp }` |
+| Payload | `{ aventura, idioma, retos[], total, timestamp }` |
 | Handler en hijo4 | L1624 |
 | Acción | Almacena retos, responde DATOS.RETOS_CARGADOS |
 | Respuesta | `DATOS.RETOS_CARGADOS` → padre `_hdl_DATOS_RETOS_CARGADOS` L10162 |
@@ -4414,8 +4414,9 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 
 | Campo | Valor |
 |-------|-------|
-| Nota | hijo2 almacena los textos en `globalThis.__vv_textosAventura` para acceso durante la navegación GPS |
+| Payload | `{ aventura, idioma, textos[], total, timestamp }` |
 | Handler en hijo2 | L2183 |
+| Acción | hijo2 almacena los textos en `globalThis.__vv_textosAventura` para acceso durante la navegación GPS |
 | Respuesta | `DATOS.TEXTOS_CARGADOS` → padre `_hdl_DATOS_TEXTOS_CARGADOS` L10182 |
 
 **DATOS.CARGADOS_RECIBIDO** (padre → hijo2 / hijo3 / hijo4) — fase 3 del protocolo de datos
@@ -4521,7 +4522,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Campo | Valor |
 |-------|-------|
 | Payload emitido | `{ paradaId, parada_id, padreId, padreid, indiceProgreso, contexto, timestamp, restaurado? }` |
-| Handler en hijo1 | L667 — actualiza texto visible de parada |
+| Handler en hijo1 | **Ninguno** — hijo1 no tiene handler de CAMBIO_PARADA (L667 es el handler de CAMBIO_MODO) |
 | Handler en hijo2 | L2671 — actualiza `idParadaActual`, `tipoParadaActual`; resetea `distanciaAlDestino` y `_llegadaNotificada`; reinicia spin de botones |
 | Handler en hijo3 | L1695 — actualiza UI del reproductor |
 | Handler en hijo4 | L1802 — prepara estado del reto para la parada |
@@ -5921,7 +5922,7 @@ export const AUDIOS_AVENTURAS = {
 
 **Inicialización** — al cargar la aventura:
 
-1. Padre carga `AUDIOS_AVENTURAS[aventura][idioma]` y empuja el array completo a hijo3 vía `DATOS.CARGAR_AUDIOS` con `{ aventura, idioma, audios[] }`.
+1. Padre carga `AUDIOS_AVENTURAS[aventura][idioma]` y empuja el array completo a hijo3 vía `DATOS.CARGAR_AUDIOS` con `{ aventura, idioma, audios[], total, timestamp }`.
 2. hijo3 almacena el array en `globalThis.__vv_audioFiles` y confirma con `DATOS.AUDIOS_CARGADOS`.
 3. Si hijo3 no recibe los datos en 3 s, los solicita él mismo vía `DATOS.SOLICITAR_AUDIOS`.
 
@@ -6005,7 +6006,7 @@ RETOS_AVENTURAS.Aventura1.en[...]   // Retos de Aventura1 en inglés
 
 #### Inicialización
 
-Al activar una aventura, padre envía `DATOS.CARGAR_RETOS` a hijo4 con `{ aventura, idioma, retos[], total }`. hijo4 almacena los retos en `globalThis.__vv_retosAventura` y confirma con `DATOS.RETOS_CARGADOS`. Si tras 3 segundos hijo4 no ha recibido los retos, los solicita con `DATOS.SOLICITAR_RETOS`.
+Al activar una aventura, padre envía `DATOS.CARGAR_RETOS` a hijo4 con `{ aventura, idioma, retos[], total, timestamp }`. hijo4 almacena los retos en `globalThis.__vv_retosAventura` y confirma con `DATOS.RETOS_CARGADOS`. Si tras 3 segundos hijo4 no ha recibido los retos, los solicita con `DATOS.SOLICITAR_RETOS`.
 
 #### MODO AVENTURA
 
