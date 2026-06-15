@@ -7432,6 +7432,133 @@
             enviarMensaje: enviarMensaje_S1,
             getPadreId: getPadreId_S1
         });
+
+        // ============================================================
+        // MODAL DE FINALIZACIÓN DE AVENTURA
+        // Solo se muestra en modo AVENTURA. Dos botones:
+        //   1. Otra aventura  → limpia estado, navega a selección P2 (sin salir del padre)
+        //   2. Terminar       → navega a En-busca-del-tesoro.html?despedida=1
+        //                       (limpieza completa ocurre allí, al pulsar el botón verde de P5)
+        // ============================================================
+        const TRADUCCIONES_FINALIZACION = {
+            es: { titulo: '¡Felicidades!',             completado: 'Has completado',                    pregunta: '¿Qué deseas hacer ahora?',           btn_otra: 'Hacer otra aventura',          btn_terminar: 'Terminar esta experiencia' },
+            en: { titulo: 'Congratulations!',          completado: 'You have completed',                pregunta: 'What would you like to do now?',     btn_otra: 'Start another adventure',      btn_terminar: 'End this experience' },
+            fr: { titulo: 'Félicitations !',      completado: 'Vous avez terminé',                 pregunta: 'Que souhaitez-vous faire maintenant ?', btn_otra: 'Faire une autre aventure', btn_terminar: 'Terminer cette expérience' },
+            it: { titulo: 'Congratulazioni!',          completado: 'Hai completato',                    pregunta: 'Cosa desideri fare adesso?',         btn_otra: "Fare un'altra avventura",      btn_terminar: 'Terminare questa esperienza' },
+            nl: { titulo: 'Gefeliciteerd!',            completado: 'Je hebt voltooid',                  pregunta: 'Wat wil je nu doen?',                btn_otra: 'Een ander avontuur beginnen',  btn_terminar: 'Deze ervaring beëindigen' },
+            de: { titulo: 'Herzlichen Glückwunsch!',   completado: 'Sie haben abgeschlossen',           pregunta: 'Was möchten Sie jetzt tun?',         btn_otra: 'Ein anderes Abenteuer beginnen', btn_terminar: 'Dieses Erlebnis beenden' },
+            ja: { titulo: 'おめでとうございます！',    completado: '完了しました',                      pregunta: '次に何をしますか？',                 btn_otra: '別のアドベンチャーを始める',   btn_terminar: 'この体験を終了する' },
+            zh: { titulo: '恭喜！',                    completado: '您已完成',                          pregunta: '您现在想做什么？',                   btn_otra: '开始另一个冒险',               btn_terminar: '结束此体验' },
+            pl: { titulo: 'Gratulacje!',               completado: 'Ukończyłeś',                        pregunta: 'Co chcesz teraz zrobić?',            btn_otra: 'Rozpocząć inną przygodę',      btn_terminar: 'Zakończyć to doświadczenie' },
+            pt: { titulo: 'Parabéns!',                 completado: 'Você completou',                    pregunta: 'O que deseja fazer agora?',          btn_otra: 'Fazer outra aventura',         btn_terminar: 'Terminar esta experiência' },
+            ru: { titulo: 'Поздравляем!',              completado: 'Вы завершили',                      pregunta: 'Что вы хотите сделать сейчас?',      btn_otra: 'Начать другое приключение',    btn_terminar: 'Завершить этот опыт' },
+            uk: { titulo: 'Вітаємо!',                  completado: 'Ви завершили',                      pregunta: 'Що ви хочете зробити тепер?',        btn_otra: 'Розпочати іншу пригоду',       btn_terminar: 'Завершити цей досвід' },
+        };
+
+        function mostrarModalFinalizacion() {
+            const modoActual = estado?.modo?.actual || MODOS.CASA;
+            if (modoActual !== MODOS.AVENTURA) {
+                (globalThis.logger || console).warn('[PADRE][MODAL_FIN] Ignorado: no estamos en modo AVENTURA');
+                return;
+            }
+
+            const idioma = globalThis.__vv_idiomaSeleccionado || globalThis.idiomaSeleccionado || 'es';
+            const t = TRADUCCIONES_FINALIZACION[idioma] || TRADUCCIONES_FINALIZACION['es'];
+            const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre
+                                || globalThis.aventuraSeleccionada || '';
+
+            // Evitar doble instancia
+            document.getElementById('modal-finalizacion-aventura')?.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'modal-finalizacion-aventura';
+            modal.style.cssText = [
+                'position:fixed', 'top:0', 'left:0',
+                'width:100vw', 'height:100vh',
+                'background:rgba(0,0,0,0.75)',
+                'display:flex', 'flex-direction:column',
+                'align-items:center', 'justify-content:center',
+                'z-index:10000',
+                'font-family:Verdana,sans-serif',
+                'padding:var(--gap-superior,0) 2vw env(safe-area-inset-bottom,0px) 2vw',
+                'box-sizing:border-box',
+            ].join(';');
+
+            modal.innerHTML = `
+                <div style="background:#c8e6f7;border-radius:1rem;padding:clamp(1.5rem,5vmin,2.5rem);max-width:95vw;width:95vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.4);">
+                    <div style="font-size:clamp(2rem,8vmin,4rem);margin-bottom:0.5rem;">🎉</div>
+                    <h2 style="font-size:clamp(1.2rem,5vmin,1.8rem);color:#1a5276;margin:0 0 0.5rem 0;">${t.titulo}</h2>
+                    <p style="font-size:clamp(0.9rem,3.5vmin,1.1rem);color:#333;margin:0 0 0.25rem 0;">${t.completado}</p>
+                    <p style="font-size:clamp(1rem,4vmin,1.25rem);font-weight:bold;color:#1a5276;margin:0 0 1rem 0;">${nombreAventura}</p>
+                    <p style="font-size:clamp(0.85rem,3vmin,1rem);color:#555;margin:0 0 1.5rem 0;">${t.pregunta}</p>
+                    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                        <button id="btn-fin-otra-aventura" type="button" style="background:#1a5276;color:#fff;border:none;border-radius:0.5rem;padding:clamp(0.75rem,3vmin,1rem) 1.5rem;font-size:clamp(0.9rem,3.5vmin,1rem);font-family:Verdana,sans-serif;cursor:pointer;">${t.btn_otra}</button>
+                        <button id="btn-fin-terminar"      type="button" style="background:#7f8c8d;color:#fff;border:none;border-radius:0.5rem;padding:clamp(0.75rem,3vmin,1rem) 1.5rem;font-size:clamp(0.9rem,3.5vmin,1rem);font-family:Verdana,sans-serif;cursor:pointer;">${t.btn_terminar}</button>
+                    </div>
+                </div>`;
+
+            document.body.appendChild(modal);
+
+            document.getElementById('btn-fin-otra-aventura').onclick = () => {
+                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió OTRA AVENTURA');
+                modal.remove();
+                _iniciarNuevaAventura();
+            };
+
+            document.getElementById('btn-fin-terminar').onclick = () => {
+                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió TERMINAR experiencia');
+                modal.remove();
+                globalThis.location.href = 'En-busca-del-tesoro.html?despedida=1';
+            };
+
+            (globalThis.logger || console).info('[PADRE][MODAL_FIN] Modal de finalización mostrado. Aventura:', nombreAventura, '| Idioma:', idioma);
+        }
+
+        function _iniciarNuevaAventura() {
+            try {
+                // Limpiar estado de aventura sin tocar SW ni caches
+                ['vv_aventura_iniciada', 'vv_progreso', 'vv_paradas_completadas', 'vv_idioma', 'vv_aventura'].forEach(k => {
+                    try { localStorage.removeItem(k); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                });
+
+                // Resetear globals de aventura
+                globalThis.aventuraSeleccionada = null;
+                globalThis.idiomaSeleccionado = null;
+                if (estado.seleccion) {
+                    estado.seleccion.aventura  = null;
+                    estado.seleccion.idioma    = null;
+                    estado.seleccion.iniciada  = false;
+                    estado.seleccion.activada  = false;
+                }
+                estado.indiceProgreso  = 0;
+                estado.elementoActual  = null;
+
+                // Enviar P2 al iframe de selección (En-busca-del-tesoro.html)
+                const iframeSeleccion = document.getElementById('seleccion');
+                if (iframeSeleccion) {
+                    iframeSeleccion.style.display    = 'block';
+                    iframeSeleccion.style.visibility = 'visible';
+                    try {
+                        iframeSeleccion.contentWindow.postMessage(
+                            { tipo: TIPOS_MENSAJE_S1.NAVEGACION_PANTALLA, datos: { pantalla: 2 } },
+                            globalThis.location.origin
+                        );
+                    } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                }
+
+                // Ocultar iframes de aventura
+                ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+
+                (globalThis.logger || console).info('[PADRE][NUEVA_AVENTURA] Estado limpiado — selección P2 activa');
+            } catch (e) {
+                (globalThis.logger || console).error('[PADRE][NUEVA_AVENTURA] Error inesperado:', e);
+            }
+        }
+
+        globalThis.mostrarModalFinalizacion = mostrarModalFinalizacion;
     </script>
 
     <script>
@@ -7960,10 +8087,8 @@
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones?.contentWindow) {
                     iframeOpciones.contentWindow.postMessage({ tipo: TIPOS_MENSAJE.AVENTURA.FINALIZADA, origen: getPadreId(), destino: 'hijo1-opciones', datos: { aventuraId: globalThis.aventuraSeleccionada, idioma: globalThis.idiomaSeleccionado, motivo: 'completada', timestamp: Date.now() } }, globalThis.location.origin);
-                    (globalThis.logger || console).info(`${logPrefix} Mensaje AVENTURA.FINALIZADA enviado al temporizador`);
+                    (globalThis.logger || console).info(`${logPrefix} Mensaje AVENTURA.FINALIZADA enviado al temporizador — modal se mostrará tras recibir ESTADISTICAS_TIEMPO`);
                 }
-                if (typeof globalThis.mostrarModalFinalizacion === 'function') globalThis.mostrarModalFinalizacion();
-                else (globalThis.logger || console).error(`${logPrefix} mostrarModalFinalizacion no disponible`);
             } else {
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Fin de elementos alcanzado en MODO CASA (desarrollo) - sin modal de finalización`);
                 (globalThis.logger || console).debug(`${logPrefix} En modo CASA no hay GPS real, timer ni reciclaje. Modal solo para producción (AVENTURA).`);
@@ -11033,6 +11158,18 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.estadisticasTiempo = mensaje.datos;
+
+                // Mostrar modal de finalización solo en modo AVENTURA
+                const modoActual = estado?.modo?.actual || MODOS.CASA;
+                if (modoActual === MODOS.AVENTURA) {
+                    if (typeof globalThis.mostrarModalFinalizacion === 'function') {
+                        globalThis.mostrarModalFinalizacion();
+                    } else {
+                        (globalThis.logger || console).error(`${logPrefix} mostrarModalFinalizacion no disponible — verificar Script 1`);
+                    }
+                } else {
+                    (globalThis.logger || console).info(`${logPrefix} Modo CASA — estadísticas guardadas, sin modal de finalización`);
+                }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando estadísticas:`, error);
             }
@@ -11138,26 +11275,10 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
         async function _hdl_AVENTURA_FINALIZADA(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AVENTURA_FINALIZADA]`;
-
-            try {
-                const motivo = mensaje?.datos?.motivo || 'completada';
-                (globalThis.logger || console).info(`${logPrefix} 🎯 Aventura finalizada. Motivo: ${motivo}`);
-                (globalThis.logger || console).info(`${logPrefix} Ejecutando limpieza digital completa...`);
-
-                // Ejecutar limpieza completa del dispositivo
-                if (typeof limpiarDatosAventura === 'function') {
-                    await limpiarDatosAventura(motivo);
-                    (globalThis.logger || console).info(`${logPrefix} ✅ Limpieza digital completada`);
-                } else {
-                    (globalThis.logger || console).error(`${logPrefix} ⚠️ Función limpiarDatosAventura no disponible`);
-                }
-
-                // Opcional: mostrar mensaje de despedida antes de la limpieza total
-                // (el usuario puede decidir implementar un modal aquí)
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error ejecutando limpieza de aventura:`, error);
-            }
+            const motivo = mensaje?.datos?.motivo || 'completada';
+            // La limpieza se gestiona desde el modal de finalización (btn Terminar) o desde
+            // En-busca-del-tesoro.html?despedida=1 (botón verde P5). No limpiar aquí.
+            (globalThis.logger || console).info(`${logPrefix} AVENTURA.FINALIZADA recibido (motivo: ${motivo}) — esperando acción del usuario en modal`);
         }
 
         async function _hdl_AVENTURA_TIEMPO_ACTUALIZADO(mensaje) {

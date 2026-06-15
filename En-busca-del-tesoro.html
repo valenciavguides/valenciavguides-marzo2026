@@ -956,6 +956,22 @@
     let retoActualR2 = null;
     let terminosCargados = false;
     let agradecimientosCargados = false;
+    let modoDespedida = false; // true cuando la página se carga con ?despedida=1
+
+    const TRADUCCIONES_DESPEDIDA = {
+        es: '¡Hasta pronto! Gracias por explorar Valencia con nosotros.',
+        en: 'Goodbye! Thank you for exploring Valencia with us.',
+        fr: 'Au revoir ! Merci d\'avoir exploré Valence avec nous.',
+        it: 'Arrivederci! Grazie per aver esplorato Valencia con noi.',
+        nl: 'Tot ziens! Bedankt voor het verkennen van Valencia met ons.',
+        de: 'Auf Wiedersehen! Danke, dass Sie Valencia mit uns erkundet haben.',
+        ja: 'またね！バレンシアを一緒に探検してくれてありがとう。',
+        zh: '再见！感谢您与我们一起探索瓦伦西亚。',
+        pl: 'Do widzenia! Dziękujemy za eksplorację Walencji z nami.',
+        pt: 'Até logo! Obrigado por explorar Valência connosco.',
+        ru: 'До свидания! Спасибо, что исследовали Валенсию вместе с нами.',
+        uk: 'До побачення! Дякуємо, що досліджували Валенсію разом з нами.',
+    };
     let normativaCargada = false;
     let audioCargado = false;
     let textoCargado = false;
@@ -1414,7 +1430,39 @@
     }
 
     function aceptarAgradecimientos() {
-      void mostrar(6);
+      if (modoDespedida) {
+        void _ejecutarDespedida();
+      } else {
+        void mostrar(6);
+      }
+    }
+
+    async function _ejecutarDespedida() {
+      // Capturar idioma ANTES de limpiar localStorage
+      const idioma = idiomaSeleccionado || localStorage.getItem('vv_idioma') || 'es';
+      const txt = TRADUCCIONES_DESPEDIDA[idioma] || TRADUCCIONES_DESPEDIDA['es'];
+
+      // Ocultar botón
+      const btn = document.getElementById('btn-siguiente-agradecimientos');
+      if (btn) btn.style.display = 'none';
+
+      // Mostrar mensaje de despedida dentro del mismo contenedor
+      const contenedor = document.getElementById('agradecimientos-contenido');
+      if (contenedor) {
+        const div = document.createElement('p');
+        div.style.cssText = 'text-align:center;margin-top:2rem;font-size:clamp(1rem,4vmin,1.25rem);color:#1a5276;font-weight:bold;';
+        div.textContent = txt;
+        contenedor.appendChild(div);
+      }
+
+      // Ejecutar limpieza completa
+      try {
+        const { limpiarDatosAventura } = await import('./js/reciclaje-digital.js');
+        await limpiarDatosAventura('completada');
+        _log.info('[SELECCION][DESPEDIDA] Limpieza completa ejecutada');
+      } catch (e) {
+        _log.error('[SELECCION][DESPEDIDA] Error en limpieza:', e);
+      }
     }
 
 
@@ -2270,9 +2318,22 @@
             estadoComponente.inicializado = true;
             logger.info(`${logPrefix} Componente inicializado correctamente`);
             await _enviarHijoPreparado(logPrefix);
+            _checkUrlParams(logPrefix);
         } catch (error) {
             logger.error(`${logPrefix} Error crítico durante inicialización:`, error);
             await _enviarHijoFallido(logPrefix, error);
+        }
+    }
+
+    function _checkUrlParams(logPrefix) {
+        const params = new URLSearchParams(globalThis.location.search);
+        if (params.get('despedida') === '1') {
+            modoDespedida = true;
+            logger.info(`${logPrefix} Modo despedida activo → mostrando P5 agradecimientos`);
+            void mostrar(5);
+        } else if (params.get('desde') === 'aventura') {
+            logger.info(`${logPrefix} Entrada desde aventura → mostrando P2 selección de idioma`);
+            void mostrar(2);
         }
     }
 

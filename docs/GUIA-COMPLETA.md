@@ -1235,7 +1235,6 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 
 | Archivo | Función |
 |---------|---------|
-| `agradecimientos.html` | Créditos y agradecimientos. |
 | `videos-valencia-historica.html` | Galería de vídeos sobre Valencia. |
 | `consejos-valencia.html` | Consejos prácticos para el turista. |
 | `gastronomia.html` | Información gastronómica valenciana. |
@@ -3912,7 +3911,7 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P7 se c
 > - *Bus / postMessage entre componentes*: `codigo-padre.html`, `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `boton-casa-hijo5.html`, `chat-hijo6.html`, `En-busca-del-tesoro.html`, `mapa-completo.html`, `puzzle.html`, `js/app.js`, `js/mensajeria.js`, `js/funciones-mapa.js`, `js/controladores-padre.js`, `js/state-manager.js`, `js/monitoreo.js`, `js/utils.js`
 > - *SW lifecycle*: `sw.js`, `index.html`
 > - *HTTP fetch / API backend*: `js/api-client.js`, `js/data-loader.js`
-> - *localStorage / sessionStorage*: `js/api-client.js` (token sesión), `agradecimientos.html` (lee idioma), `js/suppress-warnings.js` (flag debug), `js/reciclaje-digital.js` (clear total + caché SW)
+> - *localStorage / sessionStorage*: `js/api-client.js` (token sesión), `En-busca-del-tesoro.html` (lee `vv_idioma` en modo despedida), `js/suppress-warnings.js` (flag debug), `js/reciclaje-digital.js` (clear total + caché SW)
 >
 > **Sin comunicación entre componentes** (solo eventos DOM internos propios): `js/device-detection.js`, `js/error-handler-ui.js`, `js/proteccion.js`, `js/config.js`, `consejos-valencia.html`, `gastronomia.html`, `paginas-oficiales-valencia.html`, `videos-valencia-historica.html`, `verify-all.js`.
 
@@ -5116,9 +5115,9 @@ El doble-broadcast al desactivar GPS (que existía en `_hdl_NAVEGACION_GPS_DESAC
 |-------|---------|-----------------|-----------|-----------------|
 | `vv_aventura_iniciada` | padre L10687 | `reciclaje-digital.js` (lee para log antes de borrar) | `{ aventura, idioma, modo, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()` | `limpiarDatosAventura()` (fin/reset) |
 | `vv_progreso` | padre (en cada `_persistirProgreso`) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActual, timestamp }` | `limpiarDatosAventura()` |
-| `vv_idioma` | padre L10384/L10460 | `agradecimientos.html` (prioridad 2 de 3, tras `idioma_seleccionado`) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
-| `idioma_seleccionado` | — (legado, no se escribe) | `agradecimientos.html` (prioridad 1 de 3) | Clave legada de versiones anteriores; se lee por compatibilidad retroactiva | — |
-| `idioma` | — (legado, no se escribe) | `agradecimientos.html` (prioridad 3 de 3, último fallback) | Clave legada de versiones anteriores; se lee por compatibilidad retroactiva | — |
+| `vv_idioma` | padre L10384/L10460 | `En-busca-del-tesoro.html` `_ejecutarDespedida()` (lee idioma antes de limpiar) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
+| `idioma_seleccionado` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
+| `idioma` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
 | `vv_aventura` | padre | — | ID de aventura: `'Aventura1'`, etc. | `limpiarDatosAventura()` |
 | `vv_paradas_completadas` | padre | padre al restaurar | JSON con paradas completadas de la sesión | `limpiarDatosAventura()` |
 | `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo (desactiva algunas protecciones) | Manual |
@@ -5193,7 +5192,8 @@ Los parámetros URL son un canal de comunicación de un solo sentido: el compone
 | `?aventura=` | `puzzle.html` | 139 | URL → `parent.__vv_aventuraActual` → `parent.aventuraSeleccionada` → `'Aventura1'` |
 | `?aventura=` | `mapa-completo.html` | 92 | URL → `'Aventura1'` (default) |
 | `?padreId=` | `js/utils.js` `getPadreId()` | 38 | URL → `sessionStorage('vvguides_padreId')` → UUID nuevo |
-| `?idioma=` / `?lang=` | `agradecimientos.html` | 91 | URL → `localStorage('vv_idioma')` → `'es'` |
+| `?despedida=1` | `En-busca-del-tesoro.html` | — | Activa `modoDespedida`, salta a P5, ejecuta `limpiarDatosAventura` al pulsar botón verde |
+| `?desde=aventura` | `En-busca-del-tesoro.html` | — | Salta a P2 (selección de idioma) directamente — entrada desde modal fin de aventura |
 | `?vv_debug=1` | `js/proteccion.js` | 25 | Flag booleano — desactiva bloqueos de seguridad |
 | `?vv_hard_protect=1` | `js/proteccion.js` | 29 | Flag booleano — fuerza protección estricta en local |
 | `?debug=1` | `js/suppress-warnings.js` | 88 | Flag booleano — activa logging verboso en consola |
@@ -6317,7 +6317,6 @@ proyecto/
 ├── chat-hijo6.html                   ← Hijo 6: asistente de chat con intenciones predefinidas
 ├── puzzle.html                       ← Puzzle interactivo (iframe interno del Selector)
 ├── mapa-completo.html                ← Mapa moderno a pantalla completa con todas las paradas
-├── agradecimientos.html              ← Créditos y fuentes
 ├── videos-valencia-historica.html
 ├── consejos-valencia.html
 ├── gastronomia.html
@@ -7214,28 +7213,64 @@ Ambos diálogos están **traducidos a los 12 idiomas** (español, inglés, franc
 
 ---
 
-### 24.11. Fin de la aventura: el reciclaje digital
+### 24.11. Fin de la aventura: modal de finalización y reciclaje digital
 
 Cuando el usuario completa la última parada, `progresarSiguienteElemento()` intenta obtener el siguiente elemento y no lo encuentra. Esto dispara `_handleFinDeAventura()`.
 
-**Lo que ocurre, en orden:**
+**Flujo completo, en orden:**
 
-1. **Se envía `AVENTURA.FINALIZADA` a hijo1-opciones.** El hijo 1 detiene el temporizador y devuelve al padre las estadísticas de tiempo (`AVENTURA.ESTADISTICAS_TIEMPO`): tiempo total, tiempo restante, si se completó en plazo.
+```text
+progresarSiguienteElemento()  ← no hay siguiente elemento
+  → _handleFinDeAventura()
+      → postMessage AVENTURA.FINALIZADA → hijo1-opciones (extrainfo-hijo1.html)
+          → detiene el temporizador
+          → postMessage AVENTURA.ESTADISTICAS_TIEMPO → padre
+              → _hdl_AVENTURA_ESTADISTICAS_TIEMPO()
+                  → guarda stats en estado.seleccion.estadisticasTiempo
+                  → mostrarModalFinalizacion()   ← solo en modo AVENTURA
+```
 
-2. **Se muestra el modal de finalización** (`mostrarModalFinalizacion()`). Muestra un mensaje de felicitación al usuario. ⚠️ *La función está referenciada en el código pero el modal (`modal-finalizacion-exitosa`) aún no está implementado en el HTML — pendiente de desarrollo.*
+**El modal de finalización (`id="modal-finalizacion-aventura"`):**
 
-3. **Reciclaje digital total** (`limpiarDatosAventura('completada')` en `js/reciclaje-digital.js`). Es la medida anti-piratería: borra toda huella digital de la aventura del dispositivo para que no pueda compartirse ni reutilizarse sin comprar de nuevo:
+- Overlay fijo sobre toda la pantalla, fondo celeste `#c8e6f7`, diseño responsivo.
+- Título de felicitación + nombre de la aventura + dos botones.
+- Multilingüe: 12 idiomas (`es`, `en`, `fr`, `it`, `nl`, `de`, `ja`, `zh`, `pl`, `pt`, `ru`, `uk`).
+- Definido en `mostrarModalFinalizacion()` al final de Script 1 de `codigo-padre.html` y expuesto como `globalThis.mostrarModalFinalizacion`.
 
-   | Qué se borra | Cómo |
-   |---|---|
-   | Todo el `localStorage` | `localStorage.clear()` |
-   | Todo el `sessionStorage` | `sessionStorage.clear()` |
-   | Todas las cachés del Service Worker | `caches.delete()` para cada caché |
-   | El propio Service Worker | `registration.unregister()` |
+**Botón "Hacer otra aventura"** → `_iniciarNuevaAventura()`:
 
-   Tras el reciclaje, la app queda como si nunca se hubiera instalado — huella digital = 0 bytes.
+| Acción | Detalle |
+|--------|---------|
+| Limpia localStorage de aventura | Borra `vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`, `vv_idioma`, `vv_aventura` |
+| Resetea globals | `globalThis.aventuraSeleccionada = null`, `globalThis.idiomaSeleccionado = null`, `estado.indiceProgreso = 0` |
+| Muestra el iframe de selección | `document.getElementById('seleccion')` → visible |
+| Navega a P2 | `postMessage NAVEGAR_PANTALLA { pantalla: 2 }` → `En-busca-del-tesoro.html` muestra la selección de idioma |
+| Oculta iframes de aventura | `hijo1-opciones`, `hijo2`, `hijo3`, `hijo4`, `hijo5` → `display:none` |
+| **Sin limpieza del SW** | El Service Worker y los caches permanecen → la app sigue funcionando offline |
 
-**En modo CASA (desarrollo):** `_handleFinDeAventura()` solo escribe logs. Sin modal, sin reciclaje — para que el desarrollador pueda recorrer el flujo completo sin destruir la sesión.
+El usuario elige idioma (P2), confirma (P3), pasa por el flujo normal (P5→P6→P7…) y al activar la nueva aventura, `_hdl_SELECCION_AVENTURA_ACTIVADA()` arranca el ciclo completo.
+
+**Botón "Terminar esta experiencia"** → `window.location.href = 'En-busca-del-tesoro.html?despedida=1'`:
+
+La página carga en modo standalone (no como iframe). `_checkUrlParams()` detecta `?despedida=1`, activa `modoDespedida = true` y muestra P5 (agradecimientos en el idioma del localStorage). Cuando el usuario pulsa el botón verde ➣, `_ejecutarDespedida()` ejecuta:
+
+| Paso | Detalle |
+|------|---------|
+| 1. Captura el idioma | Lee `idiomaSeleccionado` o `localStorage('vv_idioma')` **antes** de limpiar |
+| 2. Oculta el botón | `btn-siguiente-agradecimientos` → `display:none` |
+| 3. Muestra mensaje de despedida | Texto `TRADUCCIONES_DESPEDIDA[idioma]` añadido al contenedor |
+| 4. Limpieza completa | `limpiarDatosAventura('completada')` — borra `localStorage`, `sessionStorage`, cachés SW, desregistra SW |
+
+Tras el reciclaje, la app queda como si nunca se hubiera instalado — huella digital = 0 bytes.
+
+| Qué se borra | Cómo |
+|---|---|
+| Todo el `localStorage` | `localStorage.clear()` |
+| Todo el `sessionStorage` | `sessionStorage.clear()` |
+| Todas las cachés del Service Worker | `caches.delete()` para cada caché |
+| El propio Service Worker | `registration.unregister()` |
+
+**En modo CASA (desarrollo):** `_handleFinDeAventura()` y `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` comprueban el modo antes de llamar al modal. Si no es AVENTURA, solo escriben logs — sin modal, sin reciclaje, para que el desarrollador pueda recorrer el flujo completo sin destruir la sesión.
 
 ---
 

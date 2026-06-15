@@ -30,7 +30,6 @@ const APP_SHELL = [
   '/audio-hijo3.html',
   '/retos-hijo4.html',
   '/boton-casa-hijo5.html',
-  '/agradecimientos.html',
   '/consejos-valencia.html',
   '/gastronomia.html',
   '/paginas-oficiales-valencia.html',
