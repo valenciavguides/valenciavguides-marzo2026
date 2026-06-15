@@ -1420,7 +1420,7 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 | Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | Arranque: `_cargarIframesHijos()`. Re-verificación: `AVENTURA_SELECCIONADA` → `cargarHijoCasa()` (si ya está cargado, solo espera `HIJO_LISTO`) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre. En la PWA real el usuario arranca siempre en modo AVENTURA directamente. |
 | Hijo 6 | `hijo6-chat` | `chat-hijo6.html` | No | **Lazy** — `src=""` en HTML; se asigna al primer click en `#btn-chat-soporte` | Asistente de soporte FAQ en acordeón. Accesible desde un botón flotante propio del padre. |
 
-> **Hijos críticos** (`hijo2`, `hijo3`, `hijo4`): reciben `SISTEMA.HEARTBEAT` cada 5 s en MODO AVENTURA. Si un hijo crítico falla 3 heartbeats consecutivos, el padre lo recarga automáticamente (`AUTO_RECONECTAR: true`). Los hijos no críticos (hijo1, hijo5, hijo6) no están en este ciclo de supervisión.
+> **Hijos críticos para heartbeat** (`hijo2`, `hijo3`, `hijo4`, `hijo5`): reciben `SISTEMA.HEARTBEAT` cada 5 s en MODO AVENTURA (array `hijosCriticos` en `mensajeria.js`). Si cualquiera no responde 3 heartbeats consecutivos, el padre lo recarga automáticamente (`AUTO_RECONECTAR: true`). Los hijos sin supervisión de heartbeat son hijo1 e hijo6. Nota: `hijo5` está en el ciclo de heartbeat aunque no sea "crítico" en el sentido de que no bloquea `_esperarHijosCargados` — su función en aventura es secundaria (tool de desarrollo).
 
 ### Otros hijos (pantallas secundarias)
 
@@ -1450,10 +1450,10 @@ Padre                                Hijo
   │──── PADRE_DATOS ──────────────────>│  { modo, timestamp }
   │                                    │  "aquí tienes el modo actual"
   │                                    │
-  │<─── HIJO_LISTO ───────────────────│  { version, capacidades[], tiempoInicializacion }
+  │<─── HIJO_LISTO ───────────────────│  { componenteId, iframeId, timestamp }
   │                                    │  "procesé los datos, estoy listo"
   │                                    │
-  │──── PADRE_CONFIRMA_HIJO_LISTO ────>│  { timestamp }
+  │──── PADRE_CONFIRMA_HIJO_LISTO ────>│  { timestamp, mensaje }
   │                                    │  "confirmado — puedes hacer tu UI visible"
   │                                    │
   ▼                                    ▼
@@ -1499,7 +1499,7 @@ sequenceDiagram
     S1->>SEL: asigna src (En-busca-del-tesoro.html)
     SEL-->>S1: HIJO_PREPARADO { version, capacidades }
     S1->>SEL: PADRE_DATOS { modo, timestamp }
-    SEL-->>S1: HIJO_LISTO { version, capacidades, tiempoInicializacion }
+    SEL-->>S1: HIJO_LISTO { componenteId, iframeId, timestamp }
     S1->>SEL: PADRE_CONFIRMA_HIJO_LISTO
 
     Note over S1: FASE 3.2: _cargarIframesHijos()<br/>— secuencial, todos ocultos (display:none) —
@@ -1904,10 +1904,10 @@ sequenceDiagram
     participant P as Padre
     participant H as Hijo (cualquiera)
     P->>H: asigna src (iframe carga)
-    H-->>P: SISTEMA.HIJO_PREPARADO { version, capacidades }
+    H-->>P: SISTEMA.HIJO_PREPARADO { componenteId, version, capacidades[] }
     P->>H: SISTEMA.PADRE_DATOS { modo, timestamp }
-    H-->>P: SISTEMA.HIJO_LISTO { version, capacidades, tiempoInicializacion }
-    P->>H: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO { timestamp }
+    H-->>P: SISTEMA.HIJO_LISTO { componenteId, iframeId, timestamp }
+    P->>H: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO { timestamp, mensaje }
     Note over H: UI visible — comunicación normal
 ```
 
@@ -1930,8 +1930,8 @@ graph TD
     H6["💬 hijo6-chat\nchat-hijo6.html\nFAQ soporte (carga lazy)"]
     PZ["🧩 puzzle.html\n(sub-iframe de H4 y seleccion)"]
 
-    P <-->|"handshake · CAMBIO_MODO\nDATOS.CARGAR_* · HEARTBEAT"| SEL
-    P <-->|"UI.NAVEGACION_EXTERNA\nTEMPORIZADOR.TOGGLE\nHEARTBEAT"| H1
+    P <-->|"handshake · CAMBIO_MODO\nDATOS.CARGAR_*"| SEL
+    P <-->|"UI.NAVEGACION_EXTERNA\nTEMPORIZADOR.TOGGLE\nAVENTURA.INICIADA/FINALIZADA"| H1
     P <-->|"CAMBIO_PARADA · GPS.ACTUALIZAR\nCONTROL btnAvanzar\nLLEGADA_DETECTADA"| H2
     P <-->|"CAMBIO_PARADA\nAUDIO.REPRODUCIR_REQUEST\nFIN_REPRODUCCION\nCONTROL retosBtn"| H3
     P <-->|"CAMBIO_PARADA\nRETO.MOSTRAR · RETO.COMPLETADO\nRETO.ESTADO_CASA\nDATA.CARGAR_RETOS"| H4
@@ -3827,7 +3827,7 @@ sequenceDiagram
 
 **`_esperarHijosCargados`** usa `globalThis.__stateManager.crearPromiseHijoListo(id)` (event-driven) con fallback a polling de 200 ms. No tiene timeout explícito.
 
-**Guard `_aventuraEnProceso`**: variable de módulo booleana. Si llega un segundo `AVENTURA_ACTIVADA` concurrente, el handler aborta inmediatamente sin lanzar error. Se resetea en el bloque `finally`.
+**Guard `_aventuraEnProceso`**: variable de módulo booleana compartida entre `_hdl_SELECCION_AVENTURA_SELECCIONADA` y `_hdl_SELECCION_AVENTURA_ACTIVADA` (comentario en L10146: "guard contra double-fire de AVENTURA_SELECCIONADA/ACTIVADA"). Si llega cualquiera de los dos mientras el otro está en curso, el segundo handler aborta inmediatamente. Se resetea en el bloque `finally` de cada uno.
 
 **Helpers extraídos** (refactor S3776 — complejidad cognitiva): `_hdl_SELECCION_AVENTURA_ACTIVADA` delegó dos bloques internos a funciones específicas para reducir su complejidad cognitiva de ~19 a ~10 (umbral SonarQube: 15). Ambos helpers están definidos inmediatamente antes del handler, sin registro en el bus — son llamadas directas internas, no controladores de mensajes:
 
@@ -3847,9 +3847,9 @@ El comportamiento externo es idéntico al anterior — la extracción es puramen
 | Paso | Destino | Mensaje | Datos enviados |
 |------|---------|---------|----------------|
 | 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` — array de paradas/tramos con coords GPS |
-| 2 | hijo3 | `DATOS.CARGAR_AUDIOS` | `{ audios }` — mapa audio_id → URL |
-| 3 | hijo4 | `DATOS.CARGAR_RETOS` | `{ retos }` — array de retos con respuestas |
-| 4 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ textos }` — mapa texto_id → HTML/string |
+| 2 | hijo3 | `DATOS.CARGAR_AUDIOS` | `{ aventura, idioma, audios[], total, timestamp }` — array de metadatos de audio desde `__vv_AUDIOS_AVENTURAS[aventura][idioma]` |
+| 3 | hijo4 | `DATOS.CARGAR_RETOS` | `{ aventura, idioma, retos[], total, timestamp }` — array de retos desde `__vv_RETOS_AVENTURAS[aventura][idioma]` |
+| 4 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` — array de textos desde `__vv_TEXTOS_AVENTURAS[aventura][idioma]` |
 
 Además, el padre asigna `globalThis.AVENTURA_PARADAS` con el array de paradas para uso de `js/funciones-mapa.js`.
 
@@ -4225,7 +4225,7 @@ Al cargar el padre, por orden de ejecución:
 | Evento | Quién lo dispara | Quién lo escucha | Payload |
 |--------|-----------------|-----------------|---------|
 | `mensajeriaReady` | `mensajeria.js` (tras `inicializarMensajeria`) | `js/app.js` (`addEventListener once`) | — |
-| `vv:paradas-disponibles` | padre (en distribuirDatosAventura) | `js/funciones-mapa.js:3518` (`addEventListener passive`) — actualiza `arrayParadasLocal` y repinta marcadores si el mapa está en modo AVENTURA | `{ paradas[], aventura }` |
+| `vv:paradas-disponibles` | padre (en distribuirDatosAventura, L7162) | `js/funciones-mapa.js:3518` (`addEventListener passive`) — actualiza `arrayParadasLocal` y repinta marcadores si el mapa está en modo AVENTURA | `coords[]` (array directo — `event.detail` es el array de coordenadas, no un objeto `{ paradas, aventura }`) |
 | `vv-parada-cambiada` | padre (`_hdl_NAVEGACION_CAMBIO_PARADA`) | `js/funciones-mapa.js` | mensaje CAMBIO_PARADA enriquecido con `coordenadasYaResueltas` |
 
 ---
