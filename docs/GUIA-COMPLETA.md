@@ -8854,3 +8854,203 @@ Los errores de ReferenceError han sido resueltos. La aplicación ahora carga cor
 > `TIPOS_MENSAJE_VALIDOS` se actualiza automáticamente en `constants.js`: la función `_flattenTipos()` recorre el árbol de forma recursiva, así que no hay ningún paso adicional al añadir el nuevo namespace.
 
 ---
+
+## 30. Posibles problemas en modo aventura
+
+Esta sección documenta el comportamiento de la aplicación ante fallos que pueden ocurrir durante una aventura activa. Para cada caso se describe: qué detecta la app, qué ve el usuario, qué mensajes se intercambian, cómo se resuelve y cuál es el estado de implementación.
+
+> **Alcance:** todos los casos de esta sección aplican **únicamente en modo AVENTURA**. En modo CASA no existe GPS ni dependencia de audio en tiempo real, por lo que estos problemas no se dan. El modo CASA es exclusivo del entorno de desarrollo y no es visible para el usuario final en la PWA.
+
+---
+
+### 30.1 Sin internet
+
+**Qué ocurre:** el dispositivo pierde la conexión a internet durante la aventura. Se detecta de forma reactiva — solo cuando una petición real falla (no con el evento `offline` del browser, que puede dar falsos positivos porque el SW cachea los recursos principales).
+
+**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png`. En la parte inferior centrada, botón único sin texto: 🌐🔄. El overlay **no tiene botón de cierre** — el usuario debe resolver el problema o esperar.
+
+**Comportamiento del botón:**
+
+1. El usuario pulsa 🌐🔄
+2. El botón se deshabilita inmediatamente
+3. Aparece un contador descendente de 15 segundos (cifra pura, sin texto)
+4. Durante esos 15 segundos la app reintenta la petición que había fallado
+5. Si la conexión vuelve → el overlay desaparece solo, el botón no importa
+6. Si los 15 segundos expiran sin conexión → el botón se habilita de nuevo para que el usuario pueda reintentar manualmente
+
+**Qué sigue funcionando:**
+
+- `postMessage` entre iframes (es local al browser, no necesita internet)
+- Audio ya en reproducción (si el MP3 estaba buffereado)
+- Retos ya cargados en memoria (los datos vienen de `retos-aventuras.js`, cacheado por SW)
+- GPS y cálculo de posición (independiente de internet)
+
+**Qué queda bloqueado:**
+
+- Carga de nuevos MP3 si no están en caché del SW → `FIN_REPRODUCCION` nunca llega → la parada queda bloqueada (ver §30.7)
+- Cualquier llamada a la API del backend
+
+**Estado de implementación:** ❌ pendiente — el overlay, la detección y el mecanismo de reintento deben implementarse.
+
+---
+
+### 30.2 GPS sin señal (pérdida de señal en tiempo real)
+
+**Qué ocurre:** el GPS del dispositivo deja de emitir posiciones mientras la aventura está activa. Causas habituales: modo ahorro de batería del OS, otra app que roba el GPS, paso por zona sin cobertura satelital. El browser dispara el callback de error de `watchPosition` con código **2 (POSITION_UNAVAILABLE)** o **3 (TIMEOUT)**.
+
+**Flujo técnico:**
+
+1. `_watchPositionError()` en `codigo-padre.html` recibe el error
+2. Marca `est.gps.activo = false`
+3. Envía `NAVEGACION.GPS.ERROR` a hijo2 con `{ codigo, mensaje, contexto: 'watchPosition' }`
+4. hijo2 recibe el mensaje → **solo loguea y envía telemetría, sin cambio de UI**
+5. `procesarPosicionGPSParaAventura()` deja de llamarse → marcador del usuario en el mapa se congela
+6. Hijo2 deja de recibir `NAVEGACION.ACTUALIZAR_ESTADO` → sus botones quedan en el último estado conocido
+
+**Diferencia entre código 2 y código 3:**
+
+- Código 2 (GPS apagado): sin reintento automático. El `watchPosition` queda registrado y el browser lo retomará cuando el GPS vuelva.
+- Código 3 (TIMEOUT): reintento automático existente en `_gpsRetryOnTimeout()` — hasta 3 intentos con `enableHighAccuracy: false` y backoff exponencial (15s, 30s, 60s).
+
+**Qué ve el usuario actualmente:** **nada** — la app se congela en silencio. No hay overlay, no hay mensaje.
+
+**Qué debería ver (a implementar):** overlay con `imagen-no-gps.png` y botón 🛰️🔄 centrado abajo.
+
+**Comportamiento del botón 🛰️🔄:**
+
+1. Pulsar → botón se deshabilita
+2. Contador descendente de 15 segundos
+3. La app llama a `getCurrentPosition` una vez (reintento manual)
+4. Si GPS vuelve → overlay desaparece, la posición se procesa normalmente con `procesarPosicionGPSParaAventura()`
+5. Si no → botón se habilita de nuevo al llegar a 0
+
+**Recuperación automática:** cuando el GPS del dispositivo vuelve, el `watchPosition` registrado (que nunca se eliminó) recibe la nueva posición, `_watchPositionSuccess()` se ejecuta y el overlay desaparece solo.
+
+**Qué parada muestra el padre durante la pérdida:** la última parada activa antes de la pérdida — el padre no cambia de parada sin confirmación GPS de llegada. No hay reinicio.
+
+**Estado de implementación:** ❌ overlay pendiente. El mecanismo de reintento para código 3 ya existe (`_gpsRetryOnTimeout`); el overlay y el botón manual deben implementarse.
+
+---
+
+### 30.3 GPS sin permiso (permiso denegado)
+
+**Qué ocurre:** el usuario no ha concedido permiso de geolocalización al browser, o lo ha revocado. `watchPosition` dispara el callback de error con código **1 (PERMISSION_DENIED)**.
+
+**Diferencia con código 2/3:** el `watchPosition` **no reintenta** — el browser bloquea directamente sin llamar al callback de éxito.
+
+**Qué ve el usuario (a implementar):** mismo overlay `imagen-no-gps.png` pero con botón distinto: **🛰️→🌐→⚙️** (secuencia visual que indica el camino: GPS de la app → permisos del browser → ajustes del sistema).
+
+**Comportamiento del botón:**
+
+- Al pulsar → la app llama a `getCurrentPosition`, que en algunos browsers (estado `prompt`) puede disparar el diálogo nativo de permisos
+- Si el permiso ya estaba en `denied` permanente → el browser ignora la llamada silenciosamente; no hay diálogo
+- No hay countdown ni reintento automático — es una decisión del usuario
+
+**Sin el permiso la aventura no puede continuar** — el GPS es imprescindible para validar llegadas a paradas y tramos. El overlay permanece hasta que el usuario concede el permiso.
+
+**Limitación técnica:** desde JavaScript no es posible abrir directamente la pantalla de ajustes del OS. El botón hace lo máximo posible (llamar a la API de geolocalización) y la secuencia de emojis orienta al usuario sobre dónde ir.
+
+**Estado de implementación:** ❌ pendiente.
+
+---
+
+### 30.4 Usuario fuera del rango de su parada o tramo actual (>5 minutos)
+
+**Qué ocurre:** el usuario se aleja de su posición esperada (por ejemplo, se va a tomar un café) y permanece fuera del rango de tolerancia durante más de 5 minutos.
+
+**Umbrales confirmados en código:**
+
+- Tiempo fuera: `tiempoFueraRequerido = 5 * 60 * 1000` (5 minutos) — `coordenadas-hijo2.html`
+- Distancia: el usuario supera la `toleranciaGPS` respecto a **todos** los puntos definidos del elemento actual (inicio, fin y waypoints del tramo o parada). Si está dentro de `toleranciaGPS` de **cualquiera** de esos puntos, se considera "en rango". La tolerancia es dinámica: 20m fija para paradas, variable para tramos.
+
+**Flujo en hijo2:**
+
+1. `verificarDistanciaYActualizarBotones()` detecta que el usuario lleva >5min fuera de tolerancia respecto a todos los puntos del elemento actual
+2. `_procesarFueraDeRango5min()` activa `estadoComponente.fueraDeRango5min = true`
+3. `_desactivarBotonesRangoExcedido()` deshabilita `btn-avanzar` y `btn-video`, deja `btn-ubicacion` habilitado
+4. `mostrarOverlayFueraRango()` muestra el overlay `#fuera-rango-overlay` con `foto-fuera-rango.png` en hijo2
+
+**Qué ve el usuario:** overlay en hijo2 (no en el padre) con `foto-fuera-rango.png`. Botón de cierre ✖ para cerrar el overlay. El botón `btn-ubicacion` queda habilitado para que el usuario pueda ver su posición en el mapa y orientarse.
+
+**Recuperación:** cuando el usuario vuelve a estar dentro de tolerancia de algún punto del elemento actual, `fueraDeRango5min` se desactiva y los botones se restauran.
+
+**Nota:** este overlay vive en hijo2, no en el padre. Es el único de los 5 casos que reside en un hijo.
+
+**Estado de implementación:** ⚠️ parcialmente implementado — el overlay `#fuera-rango-overlay`, la lógica de 5 minutos y `_desactivarBotonesRangoExcedido` existen. Pendiente de verificar que el cálculo use todos los puntos (inicio, fin, waypoints) y no solo el destino final.
+
+---
+
+### 30.5 Usuario a más de 5 km de la ruta (bloqueo anti-piratería)
+
+**Qué ocurre:** el GPS del usuario devuelve una posición a más de 5 km de cualquier punto de la ruta. Esto indica que el usuario no está en Valencia y no puede realizar la aventura de forma legítima.
+
+**Cuándo se chequea:** en cada posición recibida por `_watchPositionSuccess()`, con throttling de 3 minutos (se usa la última posición conocida; si han pasado más de 3 minutos desde el último chequeo, se realiza la comprobación). No requiere timer independiente — usa el GPS que ya está corriendo.
+
+**Qué ve el usuario:** overlay en el padre con `fotogpserror.png` y botón de cierre ✖. El botón de avanzar en hijo2 queda deshabilitado. El usuario puede cerrar el overlay pero no puede progresar en la aventura.
+
+**Relación con el overlay de baja precisión (accuracy >50m):** el overlay actual `#gps-out-of-range-overlay` que usa `fotogpserror.png` se activa cuando GPS accuracy > 50m. Este caso (>5km) es distinto: la precisión puede ser buena pero el usuario simplemente no está en Valencia. Ambos casos quedan integrados bajo la misma imagen visual pero con lógica de disparo diferente.
+
+**Estado de implementación:** ❌ pendiente — el chequeo de distancia periódico y el overlay de bloqueo deben implementarse.
+
+---
+
+### 30.6 Integración del overlay de baja precisión GPS (accuracy >50m)
+
+El overlay actual `#gps-out-of-range-overlay` (imagen `fotogpserror.png`) se dispara cuando `watchPosition` devuelve posiciones con accuracy > 50m. Esto ocurre típicamente cuando:
+
+- El usuario está bajo techo o en zona con mala señal satelital
+- El dispositivo usa Cell/WiFi en vez de GPS real
+
+**Comportamiento actual:**
+
+- Se muestra cuando `accuracy > 50m` en `_watchPositionSuccess()` ([codigo-padre.html:4836](codigo-padre.html#L4836))
+- Contiene botón 🛰️🔄 en esquina inferior derecha que intenta `getCurrentPosition` manual
+- Si el reintento devuelve una posición de buena calidad → overlay desaparece
+
+**Integración en la nueva taxonomía:** este overlay se mantiene pero su botón se reposiciona (centrado abajo) y su comportamiento se alinea con los casos 30.2 y 30.5 — usando el mismo patrón de countdown de 15 segundos antes de rehabilitar el botón.
+
+**Estado de implementación:** ⚠️ parcialmente implementado — el overlay existe y funciona; pendiente de ajustar posición del botón y añadir countdown.
+
+---
+
+### 30.7 Audio no carga por internet caído — parada bloqueada indefinidamente
+
+**Qué ocurre:** internet cae justo antes de que hijo3 empiece a cargar un MP3. El audio nunca se carga, `FIN_REPRODUCCION` nunca llega al padre, y la parada queda bloqueada.
+
+**Sistema de pending:** el padre rastrea la compleción de cada parada/tramo con un objeto `pending` en `estado.pendingCompleciones`. Una parada se completa cuando:
+- `pending.llegada = true` (GPS confirma llegada)
+- `pending.audio = true` (llega `FIN_REPRODUCCION`)
+- `pending.reto = true` (si la parada tiene reto)
+
+Si `FIN_REPRODUCCION` nunca llega, `pending.audio` se queda `false` para siempre y `intentarCompletarElemento()` nunca avanza al siguiente elemento.
+
+**Bug 1 — `AUDIO.ERROR` no desbloquea el pending:**
+El handler `_hdl_AUDIO_ERROR()` ([codigo-padre.html:9713](codigo-padre.html#L9713)) solo loguea el error e incrementa métricas. No llama a `intentarCompletarElemento()` ni marca `pending.audio = true`. Si el audio da error por internet caído, la parada queda bloqueada igual que si no hubiera llegado `FIN_REPRODUCCION`.
+
+**Bug 2 — TTL configurado pero nunca ejecutado:**
+Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, configurable por elemento en `_buildPendingConfig()`). Sin embargo, no existe ningún `setInterval` ni timer que compruebe si `Date.now() - pending.timestamp > pending.ttlMs` y fuerce la compleción. El TTL es letra muerta.
+
+**Solución a implementar (dos partes):**
+1. En `_hdl_AUDIO_ERROR()`: marcar `pending.audio = true` y llamar a `intentarCompletarElemento()` — tratar el error de audio como fin de audio para no bloquear la progresión.
+2. Activar el TTL: un `setInterval` (cada 60 segundos es suficiente) que recorra `estado.pendingCompleciones`, detecte los que llevan más de `ttlMs` activos, y los force-complete.
+
+**Nota sobre tramos:** los tramos requieren `pending.audio && pending.llegada`. Si el audio no carga pero el GPS sí confirma llegada, el tramo sigue bloqueado hasta que se resuelva el audio. La solución del punto 1 (AUDIO.ERROR → pending.audio = true) también desbloquea este caso.
+
+**Estado de implementación:** ❌ ambos bugs pendientes de corrección.
+
+---
+
+### 30.8 Resumen de estado de implementación
+
+| # | Problema | Imagen | Detectado por | Estado |
+|---|---|---|---|---|
+| 30.1 | Sin internet | `imagen-no-internet.png` | Petición fallida | ❌ pendiente |
+| 30.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` | ❌ overlay pendiente |
+| 30.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` | ❌ pendiente |
+| 30.4 | Fuera de rango >5min | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 | ⚠️ parcial |
+| 30.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` (throttle 3min) | ❌ pendiente |
+| 30.6 | GPS accuracy >50m | `fotogpserror.png` | `_watchPositionSuccess` | ⚠️ parcial (botón sin countdown) |
+| 30.7a | AUDIO.ERROR no desbloquea pending | — | — | ❌ bug pendiente |
+| 30.7b | TTL pending nunca ejecutado | — | — | ❌ bug pendiente |
+
+---
