@@ -234,6 +234,7 @@ Las condiciones actuales (P6) solo son accesibles dentro del flujo de selección
 27. [Cleanup de listeners en cambio de aventura o modo](#27-cleanup-de-listeners-en-cambio-de-aventura-o-modo)
 28. [Implementación de restricciones GPS y comportamiento visual](#28-implementación-de-restricciones-gps-y-comportamiento-visual)
 29. [Corrección de errores de inicialización (logger y sleep)](#29-corrección-de-errores-de-inicialización-logger-y-sleep)
+30. [Posibles problemas en modo aventura](#30-posibles-problemas-en-modo-aventura)
 
 ---
 
