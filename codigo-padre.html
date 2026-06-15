@@ -96,13 +96,6 @@
 
         function _injectParadasStyle(iframe) {
             try {
-                if (iframe.contentWindow && typeof iframe.contentWindow.reapplyParadasStyle === 'function') {
-                    iframe.contentWindow.reapplyParadasStyle();
-                    return;
-                }
-            } catch (e) { (globalThis.logger || console).debug('[PADRE] reapplyParadasStyle no disponible', e && e.message); }
-            // Fallback: directly inject styles into the iframe document
-            try {
                 const doc = iframe.contentDocument;
                 if (!doc) return;
                 const styleId = 'vv-hijo5-paradas-fix-style';
@@ -132,9 +125,6 @@
                     if (!iframe) return;
                     _injectParadasStyle(iframe);
                 }
-                // NOTA: HIJO_MANEJADORES se eliminó de este listener pre-module.
-                // Se gestiona exclusivamente en Script 1 vía registrarControladorSeguro
-                // para evitar doble ejecución (pre-script + mensajería coincidían).
             } catch (e) { (globalThis.logger || console).debug('[PADRE] Listener pre-modulo ignora error no critico', e && e.message); }
         }
         globalThis.addEventListener('message', _handlePreModuleMessage);
@@ -495,24 +485,148 @@
             }
 
         #gps-error-action {
-            /* Larger action button, positioned bottom-right inside the inner box (slightly bigger) */
+            /* Action button centrado en la parte inferior del inner box */
             position: absolute !important;
-            right: 1rem;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             bottom: 1rem;
             background: rgba(0,0,0,0.95) !important;
             color: #fff !important;
             border: none !important;
-            padding: 1.625rem 1.875rem !important; /* increased for larger clickable area */
+            padding: 1.625rem 1.875rem !important;
             border-radius: 0.875rem !important;
             font-size: 1.25rem !important;
             cursor: pointer !important;
             box-shadow: 0 0.75rem 2.25rem rgba(0,0,0,0.5) !important;
-            display: inline-block !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
             text-align: center !important;
-            z-index: 1020 !important; /* above the image */
+            z-index: 1020 !important;
         }
 
-        #gps-error-action:active { transform: scale(0.98); }
+        #gps-error-action:active { transform: translateX(-50%) scale(0.98); }
+
+        /* Contador descendente dentro de los overlays GPS e internet */
+        .vv-overlay-countdown {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 4.5rem;
+            font-size: clamp(2rem, 8vmin, 3.5rem);
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+            z-index: 1021;
+            pointer-events: none;
+            min-width: 2.5rem;
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* ── Overlay GPS sin señal / sin permiso (§30.2 y §30.3) ── */
+        #gps-signal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh; height: 100dvh;
+            z-index: 1000041;
+            background: transparent;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding-top: var(--gap-superior);
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.24s ease-in-out;
+        }
+        #gps-signal-overlay.show { display: flex; opacity: 1; animation: fadeInMedia 0.4s ease-out; }
+        #gps-signal-overlay .gps-inner {
+            position: relative;
+            width: 80vw; height: 80vh;
+            max-width: 96vw; max-height: 96vh;
+            background: #fff8e7;
+            border-radius: 0.75rem;
+            box-shadow: 0 1.125rem 3.75rem rgba(0,0,0,0.45);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 0.75rem; box-sizing: border-box;
+        }
+        @media (max-width: 600px) {
+            #gps-signal-overlay .gps-inner { width: 90vw; height: 55vh; padding: 0.625rem; border-radius: 0.625rem; }
+        }
+        #gps-signal-overlay img {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: contain; background-color: #222;
+            border-radius: 0.5rem; z-index: 1000;
+        }
+        #gps-signal-action {
+            position: absolute !important;
+            left: 50% !important; transform: translateX(-50%) !important;
+            bottom: 1rem;
+            background: rgba(0,0,0,0.95) !important; color: #fff !important;
+            border: none !important;
+            padding: 1.625rem 1.875rem !important;
+            border-radius: 0.875rem !important; font-size: 1.25rem !important;
+            cursor: pointer !important;
+            box-shadow: 0 0.75rem 2.25rem rgba(0,0,0,0.5) !important;
+            display: inline-flex !important; align-items: center !important; gap: 0.5rem !important;
+            z-index: 1020 !important;
+        }
+        #gps-signal-action:active { transform: translateX(-50%) scale(0.98); }
+
+        /* ── Overlay sin internet (§30.1) ── */
+        #internet-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh; height: 100dvh;
+            z-index: 1000042;
+            background: transparent;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding-top: var(--gap-superior);
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.24s ease-in-out;
+        }
+        #internet-overlay.show { display: flex; opacity: 1; animation: fadeInMedia 0.4s ease-out; }
+        #internet-overlay .inet-inner {
+            position: relative;
+            width: 80vw; height: 80vh;
+            max-width: 96vw; max-height: 96vh;
+            background: #fff8e7;
+            border-radius: 0.75rem;
+            box-shadow: 0 1.125rem 3.75rem rgba(0,0,0,0.45);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 0.75rem; box-sizing: border-box;
+        }
+        @media (max-width: 600px) {
+            #internet-overlay .inet-inner { width: 90vw; height: 55vh; padding: 0.625rem; border-radius: 0.625rem; }
+        }
+        #internet-overlay img {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: contain; background-color: #222;
+            border-radius: 0.5rem; z-index: 1000;
+        }
+        #internet-action {
+            position: absolute !important;
+            left: 50% !important; transform: translateX(-50%) !important;
+            bottom: 1rem;
+            background: rgba(0,0,0,0.95) !important; color: #fff !important;
+            border: none !important;
+            padding: 1.625rem 1.875rem !important;
+            border-radius: 0.875rem !important; font-size: 1.25rem !important;
+            cursor: pointer !important;
+            box-shadow: 0 0.75rem 2.25rem rgba(0,0,0,0.5) !important;
+            display: inline-flex !important; align-items: center !important; gap: 0.5rem !important;
+            z-index: 1020 !important;
+        }
+        #internet-action:active { transform: translateX(-50%) scale(0.98); }
 
         /* Overlay para GPS restringido por distancia - Visual sin texto */
         #gps-restricted-overlay {
@@ -1335,6 +1449,31 @@
             opacity: 0.4;
         }
 
+        /* Glow + spin para controles de audio (AVENTURA) */
+        @keyframes glow-activo-audio {
+            0%, 100% { box-shadow: inset 0 0 10px rgba(255,255,255,0.2); }
+            50%       { box-shadow: inset 0 0 26px rgba(255,255,255,0.55); }
+        }
+        @keyframes glow-suave-audio {
+            0%, 100% { box-shadow: inset 0 0 8px rgba(255,255,255,0.15); }
+            50%       { box-shadow: inset 0 0 18px rgba(255,255,255,0.38); }
+        }
+        @keyframes spin-audio-main {
+            0%   { transform: rotate(0deg); }
+            60%  { transform: rotate(1080deg); }
+            85%  { transform: rotate(1350deg); }
+            100% { transform: rotate(1440deg); }
+        }
+        #audio-main-toggle-btn:not(:disabled):not(.spinning) {
+            animation: glow-activo-audio 3s ease-in-out infinite;
+        }
+        .audio-action-btn:not(:disabled) {
+            animation: glow-suave-audio 3s ease-in-out infinite;
+        }
+        #audio-main-toggle-btn.spinning {
+            animation: spin-audio-main 0.9s cubic-bezier(0.2,0.8,0.4,1) forwards !important;
+        }
+
         #audio-control-dropdown {
             position: absolute;
             bottom: calc(100% + var(--audio-btn-gap));
@@ -1392,28 +1531,6 @@
                 } catch (e) {
                     (globalThis.logger || console).warn('[PADRE] Error ejecutando toggleRotationMessage:', e);
                 }
-            }
-
-            // 3. Registrar backdrop click handler (antes duplicado en línea 9324)
-            const backdrop = document.getElementById('backdrop');
-            if (backdrop) {
-                backdrop.addEventListener('click', async function() {
-                    // Usar sistema de coordinación para manejar click en backdrop
-                    try {
-                        if (typeof coordinarAccion === 'function' && globalThis.TIPOS_MENSAJE) {
-                            await coordinarAccion('backdrop_click', [{
-                                componente: 'hijo4',
-                                tipo: globalThis.TIPOS_MENSAJE.UI.ACCION_USUARIO,
-                                datos: {
-                                    accion: 'backdrop_click',
-                                    timestamp: Date.now()
-                                }
-                            }]);
-                        }
-                    } catch (e) {
-                        (globalThis.logger || console).error('[PADRE] Error manejando backdrop click:', e);
-                    }
-                });
             }
 
             // 4. Registrar evento de inicialización app (desde js/app.js)
@@ -2280,11 +2397,6 @@
         <div id="loading-details" style="display:none;"></div>
     </div>
 
-    <!-- Indicador de error GPS -->
-    <div id="gps-error-indicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; text-align: center;">
-        <img src="imagenes/imagenes-aplicación/imagen-no-gps.png" alt="GPS no disponible" style="width: 200px; height: 200px; opacity: 0.8;" />
-    </div>
-
     <!-- Mensaje de rotación para teléfonos móviles -->
     <div id="rotation-message" class="rotation-message">
         <img src="imagenes/imagenes-aplicación/movil-vertical.png" alt="Rotar dispositivo a vertical" class="rotation-icon">
@@ -2422,7 +2534,7 @@
         // GPS.*, AUDIO.*, DATOS.*, SELECCION.*, AVENTURA.*…
         //
         // Las funciones de orquestación que estos handlers llaman
-        // (actualizarInterfazModo, manejarCambioModo, solicitarDatosAHijo…)
+        // (actualizarInterfazModo, manejarCambioModo…)
         // están definidas en js/app.js.
         //
         // Ver deuda técnica DT-1 en docs/DEUDA-TECNICA-PRODUCCION.md.
@@ -3048,14 +3160,14 @@
                 if (typeof globalThis.distribuirDatosAventura !== 'function') {
                     (globalThis.logger || console).error('[PADRE] ❌ distribuirDatosAventura no disponible tras 10s — distribución pendiente cancelada');
                     globalThis.__pendingDistribucion = undefined;
-                    return;
-                }
-                const resultados = await globalThis.distribuirDatosAventura(aventura, idioma);
-                if (resultados.pospuesto) {
-                    (globalThis.logger || console).warn('[PADRE] ⚠️ Distribución pendiente aún pospuesta:', resultados.mensaje);
                 } else {
-                    (globalThis.logger || console).success('[PADRE] ✅ Distribución pendiente completada:', resultados);
-                    globalThis.__pendingDistribucion = undefined;
+                    const resultados = await globalThis.distribuirDatosAventura(aventura, idioma);
+                    if (resultados.pospuesto) {
+                        (globalThis.logger || console).warn('[PADRE] ⚠️ Distribución pendiente aún pospuesta:', resultados.mensaje);
+                    } else {
+                        (globalThis.logger || console).success('[PADRE] ✅ Distribución pendiente completada:', resultados);
+                        globalThis.__pendingDistribucion = undefined;
+                    }
                 }
             } catch (error) {
                 (globalThis.logger || console).error('[PADRE] ❌ Error en distribución pendiente:', error);
@@ -3354,10 +3466,14 @@
                 indiceCola: 0,      // índice actual dentro de cola
                 colaCompletados: new Set()  // IDs completados correctamente
             },
-            retosCompletados: new Map()
-            ,
+            retosCompletados: new Map(),
             // Pendientes por elemento (padreId): { llegada: bool, audio: bool, reto: bool, timestamp }
-            pendingCompleciones: {}
+            pendingCompleciones: {},
+            // true cuando una parada de aventura está completada (audio+reto) y espera
+            // que el usuario pulse el botón GPS verde para avanzar al siguiente elemento.
+            paradaListaParaAvanzar: false,
+            // true cuando btn-avanzar pulsado desde parada: el siguiente CAMBIO_PARADA revelará navegación inmediatamente
+            pendingRevealNavegacion: false
         };
 
         // Sincronizar estadoPadre con state-manager (ya inicializado en Script 1)
@@ -3379,9 +3495,23 @@
         });
         var estado = globalThis.estadoScript1;
 
-        // Helper runtime-safe para obtener el estado del padre sin lanzar si aún no existe
+        // Helper runtime-safe para obtener el estado del padre sin lanzar si aún no existe.
+        // Solución permanente pendiente: mover inicialización de estadoPadre al principio de Script 1 (Opción C).
         function getEstadoSafe() {
-            return globalThis.estadoPadre || {};
+            if (!globalThis.estadoPadre) {
+                // Devuelve un Proxy que convierte bugs silenciosos en errores inmediatos y visibles.
+                // Lecturas devuelven undefined (seguro). Escrituras lanzan excepción con nombre del campo.
+                return new Proxy({}, {
+                    get(_, key) {
+                        (globalThis.logger || console).error(`[CRÍTICO] getEstadoSafe(): lectura de .${String(key)} antes de inicializar estadoPadre`);
+                        return undefined;
+                    },
+                    set(_, key) {
+                        throw new Error(`[CRÍTICO] getEstadoSafe(): escritura en .${String(key)} antes de inicializar estadoPadre`);
+                    }
+                });
+            }
+            return globalThis.estadoPadre;
         }
 
         // Expose `getEstadoSafe` to other scripts that may run in different scopes
@@ -3491,24 +3621,18 @@
         }
 
         function _restoreBroadcast() {
-            // NOTE: 'hijo1-opciones' is purposefully excluded from the critical set.
-            const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'].filter(
-                h => globalThis.estadoPadre?.hijosInicializados?.has(h)
-            );
-            for (const h of hijosCriticos) {
-                try {
-                    const padreIdRest = estado.elementoActual?.padreid || (estado.paradaActual ? `padre-${estado.paradaActual}` : null);
-                    globalThis._lastCambioParada = { paradaId: estado.paradaActual || null, parada_id: estado.paradaActual || null, padreId: padreIdRest, padreid: padreIdRest, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), restaurado: true };
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        enviarMensaje_S1({
-                            tipo: TIPOS_MENSAJE_S1.NAVEGACION.CAMBIO_PARADA,
-                            origen: CONFIG_PADRE.ID,
-                            destino: h,
-                            datos: { paradaId: estado.paradaActual || null, parada_id: estado.paradaActual || null, padreId: padreIdRest, padreid: padreIdRest, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), restaurado: true }
-                        });
-                    }
-                } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
-            }
+            try {
+                const padreIdRest = estado.elementoActual?.padreid || (estado.paradaActual ? `padre-${estado.paradaActual}` : null);
+                const datos = { paradaId: estado.paradaActual || null, parada_id: estado.paradaActual || null, padreId: padreIdRest, padreid: padreIdRest, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), restaurado: true };
+                globalThis._lastCambioParada = datos;
+                // Llamar al handler directamente vía globalThis: postMessage self-send no funciona
+                // porque mensajeria.js descarta mensajes con origen===componenteId
+                if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
+                    globalThis.__triggerCambioParadaInterno(datos).catch(err => (globalThis.logger || console).debug('[VV]:', err?.message)); // NOSONAR
+                } else {
+                    (globalThis.logger || console).warn('[PADRE][RESTORE] __triggerCambioParadaInterno no disponible — restauración parcial');
+                }
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
         function restoreProgressFromStorage() {
@@ -3565,28 +3689,17 @@
                 const padreIdDefault = ped.padreid || (estado.paradaActual ? `padre-${estado.paradaActual}` : null);
                 estado.elementoActual = ped;
 
-                // Persist and notify children
+                // Persist and notify children via full padre pipeline (enriquece datos, solicita audio)
                 persistProgressState();
                 try {
-                    // NOTE: Minimal set of critical children; UI helper frames (hijo1-*) are not required for readiness.
-                    const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'].filter(
-                        h => globalThis.estadoPadre?.hijosInicializados?.has(h)
-                    );
-                    for (const h of hijosCriticos) {
-                            try {
-                                // Debug: store last Cambio Parada payload for diagnostics
-                                globalThis._lastCambioParada = { paradaId: estado.paradaActual, parada_id: estado.paradaActual, padreId: padreIdDefault, padreid: padreIdDefault, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), razon: 'default_parada' };
-                                if (typeof enviarMensaje_S1 === 'function') {
-                                    await enviarMensaje_S1({
-                                        tipo: TIPOS_MENSAJE_S1.NAVEGACION.CAMBIO_PARADA,
-                                        origen: CONFIG_PADRE.ID,
-                                        destino: h,
-                                        datos: { paradaId: estado.paradaActual, padreId: padreIdDefault, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), razon: 'default_parada' }
-                                    });
-                                }
-                        } catch (err) { (globalThis.logger || console).debug(`${logPrefix} no se pudo notificar a ${h}`, err); }
+                    const datosDefault = { paradaId: estado.paradaActual, parada_id: estado.paradaActual, padreId: padreIdDefault, padreid: padreIdDefault, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), razon: 'default_parada' };
+                    globalThis._lastCambioParada = datosDefault;
+                    if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
+                        await globalThis.__triggerCambioParadaInterno(datosDefault);
+                    } else {
+                        (globalThis.logger || console).warn(`${logPrefix} __triggerCambioParadaInterno no disponible — parada por defecto sin pipeline`);
                     }
-                } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error notificando a hijos`, e); }
+                } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error notificando parada por defecto`, e); }
                 (globalThis.logger || console).info(`${logPrefix} Parada por defecto establecida: ${estado.paradaActual} (indice ${estado.indiceProgreso})`);
 
             } catch (e) {
@@ -4150,11 +4263,13 @@
             } else {
                 (globalThis.logger || console).warn(`${logPrefix} ⚠️ Reanudación sin parada/tramo válido; se omite solicitud de coordenadas`, { parada_id: estado.elementoActual.parada_id, tramo_id: estado.elementoActual.tramo_id });
             }
-            const audioId = _normalizarIdRest(estado.elementoActual.audio_id);
-            if (audioId) {
-                await _solicitarAudioRest(audioId, logPrefix);
-            } else {
-                (globalThis.logger || console).info(`${logPrefix} Reanudación sin audio válido para restaurar`, { audio_id: estado.elementoActual.audio_id });
+            // Audio gestionado por _restoreBroadcast → __triggerCambioParadaInterno → pipeline CAMBIO_PARADA
+            // Fallback: si el disparador no estuviera disponible (timing muy temprano), solicitar audio directamente
+            if (typeof globalThis.__triggerCambioParadaInterno !== 'function') {
+                const audioId = _normalizarIdRest(estado.elementoActual.audio_id);
+                if (audioId) {
+                    await _solicitarAudioRest(audioId, logPrefix);
+                }
             }
         }
 
@@ -4198,9 +4313,6 @@
 
         // === INICIALIZACIONES ADICIONALES DE SEGURIDAD Y CORRELACIÓN ===
         // Garantizar mapas/sets compartidos antes de que otros scripts los usen
-        if (!globalThis.estadoPadre.correlacionesMensajes) {
-            globalThis.estadoPadre.correlacionesMensajes = new Map();
-        }
         if (!globalThis.estadoPadre.hijosFallidos) {
             globalThis.estadoPadre.hijosFallidos = new Set();
         }
@@ -4209,25 +4321,6 @@
         globalThis.__MENSAJERIA_INICIADA = globalThis.__MENSAJERIA_INICIADA || false;
         globalThis.__HEARTBEAT_INICIADO = globalThis.__HEARTBEAT_INICIADO || false;
         globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
-
-        // Limpieza periódica de correlaciones (TTL: 30s)
-        if (!globalThis.__vv_correlacion_cleanup) {
-            globalThis.__vv_correlacion_cleanup = setInterval(() => {
-                try {
-                    const TTL = 30000;
-                    const now = Date.now();
-                    for (const [id, meta] of globalThis.estadoPadre.correlacionesMensajes) {
-                        if (!meta || !meta.timestamp || (now - (meta.timestamp || now) > TTL)) {
-                            try { meta.reject && meta.reject(new Error('Correlation timeout')); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                            globalThis.estadoPadre.correlacionesMensajes.delete(id);
-                        }
-                    }
-                } catch (e) {
-                    // proteger la rutina de limpieza contra fallos
-                    (globalThis.logger || console).warn('[PADRE] Error en limpieza de correlaciones:', e && e.message);
-                }
-            }, 30000);
-        }
 
         // Wrapper seguro para evitar doble registro de controladores críticos.
         // DISEÑO INTENCIONAL — comportamiento "first wins": el primer módulo que registra
@@ -4333,96 +4426,6 @@
 
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} Script 1: Configuración y estado inicializados`);
 
-        // ===== HANDLER GLOBAL: Recibir manifest de manejadores desde hijos (migration) =====
-        function _sanitizarManejadores(manejadores, logPrefix2) {
-            const sane = [];
-            for (const m of manejadores) {
-                if (m && typeof m.tipo === 'string') sane.push(m);
-                else (globalThis.logger || console).warn(`${logPrefix2} Manifest entry inválido, omitiendo: ${JSON.stringify(m)}`);
-            }
-            return sane;
-        }
-
-        function _crearProxyManejador(hijoOrigen, tipo, logPrefix2) {
-            return async (msg) => {
-                try {
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ destino: hijoOrigen, tipo: tipo, origen: getPadreId(), datos: msg.datos || {} });
-                    }
-                } catch (err) { (globalThis.logger || console).warn(`${logPrefix2} Error proxy reenviando ${tipo} a ${hijoOrigen}:`, err && err.message); }
-            };
-        }
-
-        function _aplicarManejadoresProxy(saneManejadores, hijoOrigen, logPrefix2) {
-            const aplicados = [];
-            for (const m of saneManejadores) {
-                const tipo = m.tipo;
-                if (globalThis.estadoPadre.manejadoresRegistrados.has(tipo)) {
-                    (globalThis.logger || console).debug(`${logPrefix2} Tipo ${tipo} ya registrado, omitiendo`);
-                } else {
-                    try {
-                        registrarControladorSeguro(tipo, _crearProxyManejador(hijoOrigen, tipo, logPrefix2));
-                        globalThis.estadoPadre.manejadoresRegistrados.set(tipo, hijoOrigen);
-                        aplicados.push(tipo);
-                        (globalThis.logger || console).info(`${logPrefix2} Proxy creado para ${tipo} -> ${hijoOrigen}`);
-                    } catch (err) { (globalThis.logger || console).warn(`${logPrefix2} Error registrando proxy para ${tipo}:`, err && err.message); }
-                }
-            }
-            return aplicados;
-        }
-
-        function _resolverPendingMigracion(pedidoId, hijoOrigen, manejadores, aplicados, logPrefix2) {
-            if (!pedidoId || !globalThis.estadoPadre?.pendingMigraciones?.has(pedidoId)) return;
-            const pending = globalThis.estadoPadre.pendingMigraciones.get(pedidoId);
-            if (pending && pending.hijoId === hijoOrigen && typeof pending.resolve === 'function') {
-                pending.resolved = true;
-                try { pending.resolve({ pedidoId, manejadores, aplicados, timestamp: Date.now() }); } catch (e) { (globalThis.logger || console).warn(`${logPrefix2} Error al invocar resolve de pending:`, e && e.message); }
-                (globalThis.logger || console).info(`${logPrefix2} Pending migracion resuelta pedidoId=${pedidoId}`);
-            } else if (pending) {
-                (globalThis.logger || console).warn(`${logPrefix2} Pending migracion pedidoId=${pedidoId} no coincide con hijoOrigen esperado: ${pending.hijoId}`);
-            }
-        }
-
-        async function _hdl_SISTEMA_HIJO_MANEJADORES(mensaje) {
-            const logPrefix2 = `${CONFIG_PADRE.LOG_PREFIX}[HIJO_MANEJADORES]`;
-            try {
-                const hijoOrigen = mensaje?.origen;
-                const manejadores = mensaje?.datos?.manejadores || [];
-                const pedidoId = mensaje?.datos?.pedidoId || null;
-
-                if (!hijoOrigen) {
-                    (globalThis.logger || console).warn(`${logPrefix2} Mensaje HIJO_MANEJADORES sin campo origen, omitiendo`);
-                    return;
-                }
-
-                // Nunca crear objeto vacío - debe existir desde Script 1
-                if (!globalThis.estadoPadre) {
-                    (globalThis.logger || console).error(`${logPrefix2} ❌ globalThis.estadoPadre no existe al procesar HIJO_MANEJADORES`);
-                    return;
-                }
-                if (!globalThis.estadoPadre.estadoHijos?.has(hijoOrigen)) {
-                    (globalThis.logger || console).warn(`${logPrefix2} Origen ${hijoOrigen} no registrado como hijo preparado; revisar seguridad`);
-                    // continue processing but mark with a flag
-                }
-
-                const saneManejadores = _sanitizarManejadores(manejadores, logPrefix2);
-                globalThis.estadoPadre.manejadoresRegistrados = globalThis.estadoPadre.manejadoresRegistrados || new Map();
-                const aplicados = _aplicarManejadoresProxy(saneManejadores, hijoOrigen, logPrefix2);
-
-                try {
-                    _resolverPendingMigracion(pedidoId, hijoOrigen, manejadores, aplicados, logPrefix2);
-                } catch (err) { (globalThis.logger || console).warn(`${logPrefix2} Error resolviendo pending migracion pedidoId=${pedidoId}:`, err && err.message); }
-
-            } catch (err) { (globalThis.logger || console).error('[PADRE][HIJO_MANEJADORES] Error procesando manifest:', err && err.message); }
-        }
-
-        try {
-            registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HIJO_MANEJADORES, _hdl_SISTEMA_HIJO_MANEJADORES);
-        } catch (err) { (globalThis.logger || console).warn('[PADRE] No se pudo registrar handler HIJO_MANEJADORES:', err && err.message); }
-
-        // NOTA: solicitarManejadoresConRetry y PADRE_PIDE_MANEJADORES eliminados (obsoletos)
-        // El sistema actual usa state-manager centralizado sin necesidad de migración manual
-
         // ============================================================
         // FUNCIONES GPS CENTRALIZADAS EN EL PADRE
         // ============================================================
@@ -4522,15 +4525,25 @@
         async function _gpsEsperarHijosListos(logPrefix) {
             try {
                 const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
+                const dynamicTimeout = globalThis.ajustarTimeoutPorConexion ? globalThis.ajustarTimeoutPorConexion(5000) : 5000;
+                let waitPromise;
                 if (sm && typeof sm.crearPromiseHijoListo === 'function') {
-                    const dynamicTimeout = globalThis.ajustarTimeoutPorConexion ? globalThis.ajustarTimeoutPorConexion(5000) : 5000;
-                    const waitPromise = sm.crearPromiseHijoListo('hijo2');
-                    const race = await Promise.race([waitPromise, new Promise(r => setTimeout(() => r({ timeout: true }), dynamicTimeout))]);
-                    if (race && race.timeout) {
-                        (globalThis.logger || console).warn(`${logPrefix} Espera de hijo2 expiró (${dynamicTimeout}ms); iniciando GPS de todos modos`);
-                    } else {
-                        (globalThis.logger || console).debug(`${logPrefix} hijo2 confirmado listo antes de iniciar GPS`);
-                    }
+                    waitPromise = sm.crearPromiseHijoListo('hijo2');
+                } else {
+                    // Fallback: polling hijosInicializados (mismo patrón que _esperarHijosCriticosRest)
+                    waitPromise = new Promise(resolve => {
+                        const check = () => {
+                            if (globalThis.estadoPadre?.hijosInicializados?.has('hijo2')) resolve();
+                            else setTimeout(check, 200);
+                        };
+                        check();
+                    });
+                }
+                const race = await Promise.race([waitPromise, new Promise(r => setTimeout(() => r({ timeout: true }), dynamicTimeout))]);
+                if (race && race.timeout) {
+                    (globalThis.logger || console).warn(`${logPrefix} Espera de hijo2 expiró (${dynamicTimeout}ms); iniciando GPS de todos modos`);
+                } else {
+                    (globalThis.logger || console).debug(`${logPrefix} hijo2 confirmado listo antes de iniciar GPS`);
                 }
             } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error esperando hijo2 listo:`, e); }
         }
@@ -4678,34 +4691,8 @@
             // Resolución exitosa de la promesa de activación
             resolveActivacion(true);
 
-            // Notificar estado actualizado SOLO a hijos con capability 'gps'
             try {
-                if (typeof broadcastToCapability === 'function') {
-                    const r = broadcastToCapability('gps', {
-                        tipo: TIPOS_MENSAJE_S1.NAVEGACION.GPS.ESTADO_ACTUALIZADO,
-                        origen: getPadreId(),
-                        datos: {
-                            activo: true,
-                            permisos: true,
-                            precision: null,
-                            error: null
-                        }
-                    });
-                    (globalThis.logger || console).debug(`${logPrefix} BroadcastToCapability(estado) enviados:`, r);
-                } else if (typeof enviarMensaje_S1 === 'function') {
-                    const r = enviarMensaje_S1({
-                        tipo: TIPOS_MENSAJE_S1.NAVEGACION.GPS.ESTADO_ACTUALIZADO,
-                        origen: getPadreId(),
-                        destino: 'todos',
-                        datos: {
-                            activo: true,
-                            permisos: true,
-                            precision: null,
-                            error: null
-                        }
-                    });
-                    if (r && typeof r.then === 'function') r.catch(error => (globalThis.logger || console).error(`${logPrefix} Error notificando estado GPS:`, error));
-                }
+                enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.NAVEGACION.GPS.ESTADO_ACTUALIZADO, origen: getPadreId(), destino: 'hijo2', datos: { activo: true, permisos: true, precision: null, error: null } });
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error notificando estado GPS:`, error);
             }
@@ -4900,59 +4887,6 @@
             return false;
         }
 
-        function _gpsHandleHighInaccuracy(gpsCfg, precision, position, logPrefix) {
-            (globalThis.logger || console).warn(`${logPrefix} Posición descartada por precisión (±${Math.round(precision)}m >= REJECT ${gpsCfg.REJECT_ACCURACY_M}m)`);
-            try {
-                registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_DESCARTADO', {
-                    accuracy: precision,
-                    lat: position?.coords?.latitude,
-                    lng: position?.coords?.longitude,
-                    contexto: 'watchPosition_broadcast',
-                    timestamp: Date.now()
-                });
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(precision); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-        }
-
-        function _gpsBroadcastPayload(payload, logPrefix) {
-            if (typeof broadcastToCapability === 'function') {
-                const r = broadcastToCapability('gps', payload);
-                (globalThis.logger || console).debug(`${logPrefix} BroadcastToCapability result:`, r);
-            } else if (typeof enviarMensaje_S1 === 'function') {
-                const r = enviarMensaje_S1({ destino: 'todos', ...payload });
-                if (r && typeof r.then === 'function') r.catch(error => (globalThis.logger || console).error(`${logPrefix} Error notificando ubicación:`, error));
-            }
-        }
-
-        function _gpsBroadcastUbicacion(position, accuracy, est, logPrefix) {
-            const { latitude: lat, longitude: lng } = position.coords;
-            try {
-                try {
-                    const targets = typeof hijosConCapability === 'function' ? hijosConCapability('gps') : [];
-                    (globalThis.logger || console).debug(`${logPrefix} Broadcast targets for 'gps':`, targets);
-                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-
-                const gpsCfg = (globalThis.Config && globalThis.Config.GPS) ? globalThis.Config.GPS : null;
-                const precision = accuracy;
-
-                if (gpsCfg && typeof precision === 'number' && precision >= gpsCfg.REJECT_ACCURACY_M) {
-                    _gpsHandleHighInaccuracy(gpsCfg, precision, position, logPrefix);
-                } else {
-                    const payload = {
-                        tipo: TIPOS_MENSAJE_S1.NAVEGACION.GPS.UBICACION_ACTUALIZADA,
-                        origen: getPadreId(),
-                        datos: {
-                            lat, lng, accuracy, precision, timestamp: position.timestamp,
-                            weak: gpsCfg && typeof precision === 'number' && precision > gpsCfg.SOFT_ACCURACY_M
-                        }
-                    };
-                    _gpsBroadcastPayload(payload, logPrefix);
-                }
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error notificando ubicación:`, error);
-            }
-        }
-
         function _gpsRetrySuccess(position, est, logPrefix) {
             const { latitude: lat, longitude: lng, accuracy } = position.coords;
             est.gps.posicionUsuario = { lat, lng, accuracy, timestamp: position.timestamp };
@@ -5021,6 +4955,9 @@
             globalThis._gpsHistorial.push({ lat, lng, accuracy, timestamp: position.timestamp, recibidoEn: Date.now(), heading: position.coords.heading, speed: position.coords.speed });
             if (globalThis._gpsHistorial.length > 20) globalThis._gpsHistorial.shift();
 
+            // GPS ha vuelto: ocultar overlay de señal perdida (§30.2/§30.3)
+            try { if (typeof hideGpsSignalOverlay === 'function') hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
             if (accuracy > 50) {
                 (globalThis.logger || console).warn(`${logPrefix} Precisión GPS insuficiente (${Math.round(accuracy)}m > 50m), ignorando actualización`);
                 try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(accuracy); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
@@ -5037,10 +4974,79 @@
 
             (globalThis.logger || console).debug(`${logPrefix} 📍 Ubicación GPS: [${lat.toFixed(6)}, ${lng.toFixed(6)}] (±${Math.round(accuracy)}m)`);
 
+            // Chequeo anti-piratería: usuario a >5km de la ruta (§30.5) — throttle 3 minutos
+            _check5kmFromRoute(lat, lng);
+
             if (_gpsHandleLowAccuracy(position, accuracy, est, logPrefix)) return;
 
             _gpsProcesarPosicion(position, logPrefix);
-            _gpsBroadcastUbicacion(position, accuracy, est, logPrefix);
+        }
+
+        function _haversineDistM(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180, Δλ = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function _check5kmFromRoute(lat, lng) {
+            try {
+                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
+                if (modoActual !== MODOS.AVENTURA) return;
+
+                const now = Date.now();
+                const THROTTLE_MS = 3 * 60 * 1000;
+                if (globalThis.__VV_5KM_LAST_CHECK && (now - globalThis.__VV_5KM_LAST_CHECK) < THROTTLE_MS) return;
+                globalThis.__VV_5KM_LAST_CHECK = now;
+
+                const av = DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado];
+                const elementos = av?.elementosIDpadre;
+                if (!elementos || elementos.length === 0) return;
+
+                const LIMIT_M = 5000;
+                let minDistM = Infinity;
+                for (const el of elementos) {
+                    const checkPoints = [];
+                    if (el.coordenadas?.lat) checkPoints.push(el.coordenadas);
+                    if (el.inicio?.lat) checkPoints.push(el.inicio);
+                    if (el.fin?.lat) checkPoints.push(el.fin);
+                    if (Array.isArray(el.waypoints)) checkPoints.push(...el.waypoints.filter(p => p?.lat));
+                    for (const p of checkPoints) {
+                        const d = _haversineDistM(lat, lng, p.lat, p.lng);
+                        if (d < minDistM) minDistM = d;
+                        if (minDistM < LIMIT_M) break;
+                    }
+                    if (minDistM < LIMIT_M) break;
+                }
+
+                const wasBlocked = globalThis.__VV_5KM_BLOCKED === true;
+                if (minDistM > LIMIT_M) {
+                    if (!wasBlocked) {
+                        (globalThis.logger || console).warn(`[PADRE][GPS][5KM] Usuario a ${Math.round(minDistM / 1000)}km de la ruta — bloqueando aventura`);
+                        globalThis.__VV_5KM_BLOCKED = true;
+                        // Ocultar botón de retry y mostrar solo X (overlay de baja precisión reaprovechado)
+                        const actionBtn = document.getElementById('gps-error-action');
+                        if (actionBtn) actionBtn.style.display = 'none';
+                        try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(0); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        // Deshabilitar botón de avanzar en hijo2
+                        try {
+                            enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.DESHABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'usuario_fuera_zona' } });
+                        } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    }
+                } else if (wasBlocked) {
+                    (globalThis.logger || console).info(`[PADRE][GPS][5KM] Usuario volvió dentro de la ruta — desbloqueando`);
+                    globalThis.__VV_5KM_BLOCKED = false;
+                    const actionBtn = document.getElementById('gps-error-action');
+                    if (actionBtn) actionBtn.style.display = '';
+                    try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    try {
+                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'usuario_en_zona' } });
+                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                }
+            } catch (e) {
+                (globalThis.logger || console).debug('[PADRE][GPS][5KM] Error en chequeo 5km:', e?.message);
+            }
         }
 
         function _watchPositionError(error, est, logPrefix) {
@@ -5066,6 +5072,9 @@
             // Retry strategy for TIMEOUT (code 3): try again with degraded options up to N attempts
             _gpsRetryOnTimeout(error, est, logPrefix);
 
+            // Mostrar overlay de GPS sin señal / sin permiso (solo en modo AVENTURA) (§30.2/§30.3)
+            try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(error.code); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
             // Notificar error a hijos con capability 'gps' (si existen)
             try {
                 const payload = {
@@ -5077,16 +5086,7 @@
                         contexto: 'watchPosition'
                     }
                 };
-                if (typeof broadcastToCapability === 'function') {
-                    (globalThis.logger || console).debug(`${logPrefix} Preparando broadcast GPS.ERROR payload:`, payload);
-                    const r = broadcastToCapability('gps', payload);
-                    (globalThis.logger || console).debug(`${logPrefix} BroadcastToCapability(error) enviados:`, r);
-                } else if (typeof enviarMensaje_S1 === 'function') {
-                    const payload2 = { ...payload, destino: 'todos' };
-                    (globalThis.logger || console).debug(`${logPrefix} Preparando enviarMensaje_S1 GPS.ERROR payload:`, payload2);
-                    const r = enviarMensaje_S1(payload2);
-                    if (r && typeof r.then === 'function') r.catch(error => (globalThis.logger || console).error(`${logPrefix} Error notificando error GPS:`, error));
-                }
+                enviarMensaje_S1({ ...payload, destino: 'hijo2' });
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error notificando error GPS:`, error);
             }
@@ -5190,13 +5190,7 @@
                 (globalThis.logger || console).info(`${logPrefix} GPS desactivado`);
                 // Notificar a hijos que GPS se desactivó
                 try {
-                    if (typeof broadcastToCapability === 'function') {
-                        broadcastToCapability('gps', {
-                            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO,
-                            origen: getPadreId(),
-                            datos: { activo: false, permisos: false, precision: null, error: null }
-                        });
-                    }
+                    enviarMensaje_S1({ tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, origen: getPadreId(), destino: 'hijo2', datos: { activo: false, permisos: false, precision: null, error: null } });
                 } catch (e) {
                     (globalThis.logger || console).warn(`${logPrefix} Error notificando desactivación GPS a hijos:`, e);
                 }
@@ -5402,7 +5396,9 @@
                 try {
                     (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] Botón pulsado por el usuario');
                     registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_OVERLAY_BUTTON_CLICK', { timestamp: Date.now() });
-                    // Default action: attempt a single getCurrentPosition diagnostic
+                    const cd = document.getElementById('gps-overlay-countdown');
+                    if (globalThis.__VV_GPS_OVERLAY_TIMER) clearInterval(globalThis.__VV_GPS_OVERLAY_TIMER);
+                    globalThis.__VV_GPS_OVERLAY_TIMER = _startOverlayCountdown(cd, btn, 15);
                     try {
                         navigator.geolocation.getCurrentPosition((pos) => {
                             (globalThis.logger || console).info('[PADRE][GPS][OVERLAY] getCurrentPosition desde overlay OK (intento manual)');
@@ -5415,12 +5411,15 @@
                         }, { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 0 });
                     } catch (gerr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error invocando getCurrentPosition:', gerr); }
 
-                    // If a custom callback was registered, call it too
                     try { if (typeof globalThis._gpsOverlayButtonCallback === 'function') globalThis._gpsOverlayButtonCallback(ev); } catch (cbErr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error en callback del botón:', cbErr); }
                 } catch (e) {
                     (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error manejando click:', e && e.message);
                 }
             });
+
+            const countdown = document.createElement('div');
+            countdown.className = 'vv-overlay-countdown';
+            countdown.id = 'gps-overlay-countdown';
 
             // Close (X) button for overlay principal (use shared media style)
             const closeBtnMain = document.createElement('button');
@@ -5434,6 +5433,7 @@
             });
 
             inner.appendChild(img);
+            inner.appendChild(countdown);
             inner.appendChild(btn);
             inner.appendChild(closeBtnMain);
             el.appendChild(inner);
@@ -5464,14 +5464,206 @@
 
         function hideGpsOutOfRangeOverlay() {
             try {
+                if (globalThis.__VV_GPS_OVERLAY_TIMER) { clearInterval(globalThis.__VV_GPS_OVERLAY_TIMER); globalThis.__VV_GPS_OVERLAY_TIMER = undefined; }
+                const cd = document.getElementById('gps-overlay-countdown');
+                if (cd) cd.textContent = '';
+                const actionBtn = document.getElementById('gps-error-action');
+                if (actionBtn) actionBtn.disabled = false;
                 const el = document.getElementById('gps-out-of-range-overlay');
                 if (!el) return;
                 el.classList.remove('show');
-                // Also ensure the next-entity overlay is hidden to avoid orphaned dialogs
                 try {
                     const next = document.getElementById('gps-next-entity-overlay');
                     if (next) next.style.display = 'none';
                 } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Utilidad compartida: countdown descendente para overlays
+        // ──────────────────────────────────────────────────────────────
+        function _startOverlayCountdown(countdownEl, btnEl, seconds) {
+            seconds = seconds || 15;
+            if (btnEl) btnEl.disabled = true;
+            let remaining = seconds;
+            if (countdownEl) countdownEl.textContent = String(remaining);
+            const tid = setInterval(() => {
+                remaining--;
+                if (countdownEl) countdownEl.textContent = remaining > 0 ? String(remaining) : '';
+                if (remaining <= 0) {
+                    clearInterval(tid);
+                    if (btnEl) btnEl.disabled = false;
+                }
+            }, 1000);
+            return tid;
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Overlay GPS sin señal / sin permiso (§30.2 y §30.3)
+        // imagen-no-gps.png · sin botón de cierre
+        // ──────────────────────────────────────────────────────────────
+        function _ensureGpsSignalOverlay() {
+            if (document.getElementById('gps-signal-overlay')) return;
+            const el = document.createElement('div');
+            el.id = 'gps-signal-overlay';
+            el.setAttribute('role', 'alert');
+            el.setAttribute('aria-live', 'assertive');
+
+            const inner = document.createElement('div');
+            inner.className = 'gps-inner';
+
+            const img = document.createElement('img');
+            img.id = 'gps-signal-img';
+            img.src = 'imagenes/imagenes-aplicación/imagen-no-gps.png';
+            img.alt = 'GPS sin señal';
+
+            const countdown = document.createElement('div');
+            countdown.className = 'vv-overlay-countdown';
+            countdown.id = 'gps-signal-countdown';
+
+            const btn = document.createElement('button');
+            btn.id = 'gps-signal-action';
+            btn.type = 'button';
+            btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
+            btn.addEventListener('click', () => {
+                try {
+                    (globalThis.logger || console).info('[PADRE][GPS][SIGNAL] Reintento manual desde overlay GPS signal');
+                    const cd = document.getElementById('gps-signal-countdown');
+                    const b = document.getElementById('gps-signal-action');
+                    if (globalThis.__VV_GPS_SIGNAL_TIMER) clearInterval(globalThis.__VV_GPS_SIGNAL_TIMER);
+                    globalThis.__VV_GPS_SIGNAL_TIMER = _startOverlayCountdown(cd, b, 15);
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
+                            globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
+                        }
+                        hideGpsSignalOverlay();
+                    }, (err) => {
+                        (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] getCurrentPosition falló:', err && err.message);
+                    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+                } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] Error en reintento:', e?.message); }
+            });
+
+            inner.appendChild(img);
+            inner.appendChild(countdown);
+            inner.appendChild(btn);
+            el.appendChild(inner);
+            document.body.appendChild(el);
+        }
+
+        function showGpsSignalOverlay(errorCode) {
+            try {
+                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
+                if (modoActual !== MODOS.AVENTURA) return;
+                _ensureGpsSignalOverlay();
+                const el = document.getElementById('gps-signal-overlay');
+                if (!el) return;
+                const btn = document.getElementById('gps-signal-action');
+                // code 1 = permiso denegado: botón abre diálogo nativo si está en estado 'prompt'
+                if (btn) {
+                    if (errorCode === 1) {
+                        btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️→🌐→⚙️</span>';
+                        btn.setAttribute('aria-label', 'Activar permisos GPS');
+                        btn.title = 'Activar permisos GPS';
+                    } else {
+                        btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
+                        btn.setAttribute('aria-label', 'Reintentar GPS');
+                        btn.title = 'Reintentar GPS';
+                    }
+                }
+                el.classList.add('show');
+                (globalThis.logger || console).info('[PADRE][GPS][SIGNAL] Overlay GPS sin señal mostrado (code:', errorCode, ')');
+            } catch (e) {
+                (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] Error mostrando overlay:', e?.message);
+            }
+        }
+
+        function hideGpsSignalOverlay() {
+            try {
+                if (globalThis.__VV_GPS_SIGNAL_TIMER) { clearInterval(globalThis.__VV_GPS_SIGNAL_TIMER); globalThis.__VV_GPS_SIGNAL_TIMER = undefined; }
+                const cd = document.getElementById('gps-signal-countdown');
+                if (cd) cd.textContent = '';
+                const btn = document.getElementById('gps-signal-action');
+                if (btn) btn.disabled = false;
+                const el = document.getElementById('gps-signal-overlay');
+                if (el) el.classList.remove('show');
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Overlay sin internet (§30.1)
+        // imagen-no-internet.png · sin botón de cierre
+        // Se oculta automáticamente con el evento online del browser
+        // ──────────────────────────────────────────────────────────────
+        function _ensureInternetOverlay() {
+            if (document.getElementById('internet-overlay')) return;
+            const el = document.createElement('div');
+            el.id = 'internet-overlay';
+            el.setAttribute('role', 'alert');
+            el.setAttribute('aria-live', 'assertive');
+
+            const inner = document.createElement('div');
+            inner.className = 'inet-inner';
+
+            const img = document.createElement('img');
+            img.id = 'internet-overlay-img';
+            img.src = 'imagenes/imagenes-aplicación/imagen-no-internet.png';
+            img.alt = 'Sin conexión a internet';
+
+            const countdown = document.createElement('div');
+            countdown.className = 'vv-overlay-countdown';
+            countdown.id = 'internet-overlay-countdown';
+
+            const btn = document.createElement('button');
+            btn.id = 'internet-action';
+            btn.type = 'button';
+            btn.setAttribute('aria-label', 'Reintentar conexión');
+            btn.title = 'Reintentar conexión';
+            btn.innerHTML = '<span style="font-size:20px;line-height:1">🌐🔄</span>';
+            btn.addEventListener('click', () => {
+                try {
+                    const cd = document.getElementById('internet-overlay-countdown');
+                    const b = document.getElementById('internet-action');
+                    if (globalThis.__VV_INET_OVERLAY_TIMER) clearInterval(globalThis.__VV_INET_OVERLAY_TIMER);
+                    globalThis.__VV_INET_OVERLAY_TIMER = _startOverlayCountdown(cd, b, 15);
+                    if (navigator.onLine) hideInternetOverlay();
+                } catch (e) { (globalThis.logger || console).warn('[PADRE][INET] Error en click:', e?.message); }
+            });
+
+            inner.appendChild(img);
+            inner.appendChild(countdown);
+            inner.appendChild(btn);
+            el.appendChild(inner);
+            document.body.appendChild(el);
+
+            // Auto-dismiss cuando el navegador recupera conexión
+            globalThis.addEventListener('online', () => {
+                try { hideInternetOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            }, { once: false });
+        }
+
+        function showInternetOverlay() {
+            try {
+                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
+                if (modoActual !== MODOS.AVENTURA) return;
+                _ensureInternetOverlay();
+                const el = document.getElementById('internet-overlay');
+                if (!el) return;
+                el.classList.add('show');
+                (globalThis.logger || console).info('[PADRE][INET] Overlay sin internet mostrado');
+            } catch (e) {
+                (globalThis.logger || console).warn('[PADRE][INET] Error mostrando overlay:', e?.message);
+            }
+        }
+
+        function hideInternetOverlay() {
+            try {
+                if (globalThis.__VV_INET_OVERLAY_TIMER) { clearInterval(globalThis.__VV_INET_OVERLAY_TIMER); globalThis.__VV_INET_OVERLAY_TIMER = undefined; }
+                const cd = document.getElementById('internet-overlay-countdown');
+                if (cd) cd.textContent = '';
+                const btn = document.getElementById('internet-action');
+                if (btn) btn.disabled = false;
+                const el = document.getElementById('internet-overlay');
+                if (el) el.classList.remove('show');
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
@@ -5592,6 +5784,9 @@
 
         // Exponer API en window
         try { globalThis.setGpsErrorImage = setGpsErrorImage; globalThis.setGpsErrorButton = setGpsErrorButton; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        // Exponer overlays de problemas (§30) para que Script 2 pueda llamarlos desde sus handlers
+        try { globalThis.showInternetOverlay = showInternetOverlay; globalThis.hideInternetOverlay = hideInternetOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        try { globalThis.showGpsSignalOverlay = showGpsSignalOverlay; globalThis.hideGpsSignalOverlay = hideGpsSignalOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
                 // ============================================================
                 // Overlay secundario: Mostrar próxima parada/tramo cuando el usuario pulsa el botón
@@ -5624,15 +5819,16 @@
                     try {
                         const datos = el._entityData;
                         if (!datos) return;
-                        if (typeof datos.lat === 'number' && typeof datos.lng === 'number') {
-                            try {
-                                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.MAPA.ADD_MARKER, origen: getPadreIdLocal(), destino: getPadreIdLocal(), datos: { id: `gps_next_${datos.id || Date.now()}`, lat: datos.lat, lng: datos.lng, popup: datos.nombre || 'Objetivo', center: true } });
-                            } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error añadiendo marcador al mapa:', e); }
+                        let lat = datos.lat, lng = datos.lng;
+                        if (!(typeof lat === 'number' && typeof lng === 'number') && datos.id) {
+                            const av = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado];
+                            const parada = av?.elementosIDpadre?.find(item => item.parada_id === datos.id || item.padreid === datos.id);
+                            if (parada?.lat && parada?.lng) { lat = parada.lat; lng = parada.lng; }
                         }
-                        if (datos.id) {
-                            await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.CENTRAR_EN_UBICACION, origen: getPadreIdLocal(), destino: getPadreIdLocal(), datos: { paradaActual: datos.id, zoom: 16 } });
-                        } else if (datos.lat && datos.lng) {
-                            await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.CENTRAR_EN_UBICACION, origen: getPadreIdLocal(), destino: getPadreIdLocal(), datos: { posicion: { lat: datos.lat, lng: datos.lng }, zoom: 16 } });
+                        if (typeof lat === 'number' && typeof lng === 'number') {
+                            try {
+                                await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true });
+                            } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error centrando mapa en objetivo:', e); }
                         }
                         registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_NEXT_SHOWMAP', { timestamp: Date.now(), parada: datos.id || null });
                         hideNextEntityOverlay();
@@ -6041,6 +6237,15 @@
                     (globalThis.logger || console).info(`${logPrefix} Modo casa: no se dibujan coordenadas iniciales`);
                 }
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error solicitando coordenadas iniciales:`, error); }
+            // Disparar APLICACION_INICIALIZADA formalmente ahora que todos los hijos críticos están listos
+            try {
+                await _hdl_APLICACION_INICIALIZADA({
+                    tipo: TIPOS_MENSAJE_S1.SISTEMA.APLICACION_INICIALIZADA,
+                    origen: 'handshake-interno',
+                    destino: getPadreId(),
+                    datos: { totalComponentes: hijosCriticos.length, tiempoInicializacion: Date.now() - (estado.tiempoInicio || timestamp), version: '1.0.0' }
+                });
+            } catch (err) { (globalThis.logger || console).warn(`${logPrefix} Error disparando APLICACION_INICIALIZADA:`, err); }
         }
 
         function _actualizarPendingModeFail(hijoId, pending, intentos) {
@@ -6208,22 +6413,8 @@
             }
         }
 
-        async function _gestionarGpsSegunModo(modo, origen, mensaje, logPrefix) {
+        function _gestionarGpsSegunModo(modo, origen, mensaje, logPrefix) {
             _gestionarGpsOverlays(modo, logPrefix);
-            if (origen === 'boton-gps' && mensaje.origen === 'hijo5') {
-                const debeSincronizarActivacion = modo === 'aventura';
-                (globalThis.logger || console).info(`${logPrefix} Coordinando GPS por cambio de modo: ${modo}`);
-                try {
-                    if (debeSincronizarActivacion) {
-                        await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, origen: CONFIG_PADRE.ID, destino: 'hijo2', datos: { razon: `modo_cambiado_a_${modo}`, solicitadoPor: 'hijo5', timestamp: Date.now() } });
-                        (globalThis.logger || console).debug(`${logPrefix} Comando GPS.ACTIVAR enviado a hijo2`);
-                    } else {
-                        (globalThis.logger || console).info(`${logPrefix} En modo CASA no se envía GPS.DESACTIVAR global; GPS permanece activo.`);
-                    }
-                } catch (gpsError) {
-                    (globalThis.logger || console).error(`${logPrefix} Error coordinando GPS:`, gpsError);
-                }
-            }
         }
 
         async function _hdl_SISTEMA_CAMBIO_MODO(mensaje) {
@@ -6562,10 +6753,15 @@
 
                 (globalThis.logger || console).success(`${logPrefix} ✅ Sistema completamente operativo`);
 
-                try {
-                    await _inicializarAventuraAlIniciar(estado, logPrefix);
-                } catch (error) {
-                    (globalThis.logger || console).error(`${logPrefix} Error inicializando aventura:`, error);
+                // No inicializar si ya hay aventura activa (activada via SELECCION.AVENTURA_ACTIVADA)
+                if (estado.seleccion?.activada) {
+                    (globalThis.logger || console).info(`${logPrefix} Aventura ya activa (${estado.seleccion.aventura}), omitiendo _inicializarAventuraAlIniciar`);
+                } else {
+                    try {
+                        await _inicializarAventuraAlIniciar(estado, logPrefix);
+                    } catch (error) {
+                        (globalThis.logger || console).error(`${logPrefix} Error inicializando aventura:`, error);
+                    }
                 }
 
             } catch (error) {
@@ -7003,29 +7199,6 @@
                 // 2. Cargar el resto de iframes hijos en secuencia
                 await _cargarIframesHijos(logPrefix);
 
-                // 4.5. 🗺️ ENVIAR CAMBIO_PARADA INICIAL para dibujar ruta/polylines en el mapa
-                (globalThis.logger || console).info(`${logPrefix} 📍 Configurando parada inicial P-0...`);
-                try {
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({
-                            tipo: TIPOS_MENSAJE_S1.NAVEGACION.CAMBIO_PARADA,
-                            origen: CONFIG_PADRE.ID,
-                            destino: 'todos',
-                            datos: {
-                                paradaId: 'P-0',
-                                padreid: 'padre-P-0',
-                                timestamp: Date.now(),
-                                origen: 'inicializacion_sistema'
-                            }
-                        });
-                        (globalThis.logger || console).success(`${logPrefix} ✅ Parada inicial configurada`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para cambio de parada inicial`);
-                    }
-                } catch (paradaError) {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error configurando parada inicial:`, paradaError);
-                }
-
                 // 5. Marcar sistema como inicializado
                 globalThis.estadoPadre.sistemaInicializado = true;
                 globalThis.sistemaInicializado = true;
@@ -7302,8 +7475,11 @@
         await import('./js/config.js');
 
 
+        const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
-        while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
+        // También esperamos estadoPadre: se asigna ~486 líneas después de mensajeria en Script 1,
+        // por lo que sin esta condición Script 2 podría leerlo como undefined.
+        while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function' || !globalThis.estadoPadre) {
             await sleep(50);
         }
         const { registrarControlador: registrarControlador_S2, enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
@@ -7470,29 +7646,29 @@
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay retos para ${aventura}/${idioma}`);
                 }
 
-                // 4. Enviar textos a hijo1 (extrainfo)
+                // 4. Enviar textos a hijo2 (mapa)
                 const textos = globalThis.__vv_TEXTOS_AVENTURAS?.[aventura]?.[idioma] || [];
                 (globalThis.logger || console).info(`${logPrefix} 📝 Textos disponibles: ${textos.length} para ${aventura}/${idioma}`);
                 if (textos.length > 0) {
-                    if (!hijosInicializados.has('hijo1-opciones')) {
-                        (globalThis.logger || console).info(`${logPrefix} 📝 hijo1-opciones no listo, esperando hasta 5s...`);
+                    if (!hijosInicializados.has('hijo2')) {
+                        (globalThis.logger || console).info(`${logPrefix} 📝 hijo2 no listo, esperando hasta 5s...`);
                         const t1 = Date.now();
-                        while (!hijosInicializados.has('hijo1-opciones') && Date.now() - t1 < 5000) { await sleep(200); }
+                        while (!hijosInicializados.has('hijo2') && Date.now() - t1 < 5000) { await sleep(200); }
                     }
-                    const hijo1Listo = hijosInicializados.has('hijo1-opciones');
-                    (globalThis.logger || console).info(`${logPrefix} 📝 hijo1-opciones listo: ${hijo1Listo}`);
-                    if (hijo1Listo) {
+                    const hijo2TextosListo = hijosInicializados.has('hijo2');
+                    (globalThis.logger || console).info(`${logPrefix} 📝 hijo2 listo: ${hijo2TextosListo}`);
+                    if (hijo2TextosListo) {
                         await enviarMensaje_S2({
                             tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_TEXTOS,
                             origen: globalThis.CONFIG_PADRE?.ID || 'padre',
-                            destino: 'hijo1-opciones',
+                            destino: 'hijo2',
                             datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
                         });
                         resultados.textos.enviado = true;
-                        resultados.textos.destinos.push('hijo1-opciones');
-                        (globalThis.logger || console).info(`${logPrefix} ✅ ${textos.length} textos enviados a hijo1-opciones`);
+                        resultados.textos.destinos.push('hijo2');
+                        (globalThis.logger || console).info(`${logPrefix} ✅ ${textos.length} textos enviados a hijo2`);
                     } else {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo1-opciones NO listo tras espera, no se enviaron textos`);
+                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo2 NO listo tras espera, no se enviaron textos`);
                     }
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay textos para ${aventura}/${idioma}`);
@@ -7749,7 +7925,7 @@
         function _paradaConditionsMet(pending, elemento) {
             const retosIds = obtenerRetosIds(elemento);
             const retosOk = retosIds.length === 0 || pending.reto === true || (pending.retosTotal > 0 && pending.retosCompletadosCount >= pending.retosTotal);
-            return pending.audio && retosOk;
+            return pending.llegada && pending.audio && retosOk;
         }
 
         async function intentarCompletarElemento(padreId) {
@@ -7801,6 +7977,9 @@
             const logPrefix = '[PADRE][PROGRESION]';
 
             try {
+                // Reiniciar spin del botón de audio al cambiar de elemento
+                try { if (typeof globalThis._resetSpinAudioMainPadre === 'function') globalThis._resetSpinAudioMainPadre(); } catch(_e) {} // NOSONAR
+
                 // Limpieza: eliminar pendientes de elemento anterior si existían
                 const elementoAnterior = obtenerElementoActual();
                 if (elementoAnterior && estado.pendingCompleciones) {
@@ -7842,25 +8021,16 @@
                 const padreId = siguienteElemento.padreid || (paradaId ? `padre-${paradaId}` : undefined);
 
                 if (paradaId) {
-                    // DISEÑO INTENCIONAL — CAMBIO_PARADA es un broadcast de fan-out.
-                    // El padre envía este mensaje y todos los hijos (hijo1–hijo5 + funciones-mapa)
-                    // lo procesan de forma independiente y asíncrona. No se espera confirmación
-                    // de ningún hijo antes de continuar: CAMBIO_PARADA_CONFIRMADO es opcional
-                    // y solo se usa para logging/diagnóstico, nunca como condición de bloqueo.
-                    globalThis._lastCambioParada = { paradaId, parada_id: paradaId, padreId: padreId, padreid: padreId, contexto: 'progresion_aventura', timestamp: Date.now() };
-                    await enviarMensajePadre({
-                        tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                        origen: getPadreId(),
-                        destino: getPadreId(), // El padre se envía el mensaje a sí mismo para activar el controlador
-                            datos: {
-                            paradaId: paradaId,
-                            parada_id: paradaId,
-                            padreId: padreId,
-                            padreid: padreId,
-                            contexto: 'progresion_aventura',
-                            timestamp: Date.now()
-                        }
-                    });
+                    // CAMBIO_PARADA como fan-out: todos los hijos procesan de forma independiente.
+                    // Se invoca el handler directamente porque enviarMensajePadre con destino=padreId
+                    // falla silenciosamente (padre no está en iframesRegistrados).
+                    const datosCambio = { paradaId, parada_id: paradaId, padreId, padreid: padreId, contexto: 'progresion_aventura', timestamp: Date.now() };
+                    globalThis._lastCambioParada = datosCambio;
+                    if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
+                        await globalThis.__triggerCambioParadaInterno(datosCambio);
+                    } else {
+                        (globalThis.logger || console).warn(`${logPrefix} __triggerCambioParadaInterno no disponible — progresión sin pipeline`);
+                    }
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} No se pudo determinar paradaId para el elemento:`, siguienteElemento);
                 }
@@ -7870,7 +8040,7 @@
             }
         }
 
-        async function _notificarParadaCompletada(idLimpio, registro, causa, logPrefix) {
+        async function _notificarParadaCompletada(idLimpio, registro, logPrefix) {
             try {
                 const clavePend = `padre-${idLimpio}`;
                 if (estado.pendingCompleciones && estado.pendingCompleciones[clavePend]) {
@@ -7878,28 +8048,6 @@
                     (globalThis.logger || console).debug(`${logPrefix} Limpiado pendingCompleciones para ${clavePend}`);
                 }
             } catch (error_) { (globalThis.logger || console).debug('[VV]:', error_?.message); } // NOSONAR
-            try {
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.ENVIAR_PARADA_COMPLETADA,
-                    origen: getPadreId(),
-                    destino: 'mapa',
-                    datos: { paradaCompletada: idLimpio, padreId: `padre-${idLimpio}`, registro }
-                });
-                (globalThis.logger || console).debug(`${logPrefix} Notificado a 'mapa'`);
-            } catch (err) {
-                (globalThis.logger || console).warn(`${logPrefix} Error notificando a mapa:`, err);
-            }
-            try {
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-                    origen: getPadreId(),
-                    destino: 'hijo2',
-                    datos: { evento: 'PARADA_COMPLETADA', paradaId: idLimpio, padreId: `padre-${idLimpio}`, causa, timestamp: Date.now() }
-                });
-                (globalThis.logger || console).debug(`${logPrefix} Notificado a 'hijo2'`);
-            } catch (err) {
-                (globalThis.logger || console).debug(`${logPrefix} No se pudo notificar a hijo2:`, err);
-            }
         }
 
             // ============================================================
@@ -7952,11 +8100,13 @@
                     // Persistir además el índice de progreso si está definido
                     try { persistProgressState(); } catch (e) { (globalThis.logger || console).warn(`${logPrefix} No se pudo persistir vv_progreso`, e); }
 
-                    await _notificarParadaCompletada(idLimpio, registro, causa, logPrefix);
+                    await _notificarParadaCompletada(idLimpio, registro, logPrefix);
 
                     // Política de progresión:
-                    // - Si hay retos asociados y todavía quedan pendientes de resolución, NO proseguir.
-                    // - Si no hay reto pendiente, progresar inmediatamente.
+                    // - Si hay retos pendientes: esperar RETO.COMPLETADO antes de decidir qué hacer
+                    // - Tramo en aventura (causa='audio_llegada_tramo'): GPS detectó llegada → avance automático
+                    // - Parada en aventura: GPS button ya está verde → esperar que el usuario lo pulse
+                    // - Modo casa: limpiar estado del reto, el usuario elige siguiente via hijo5
                     const cola = estado.retoActual?.cola || [];
                     const completados = estado.retoActual?.colaCompletados || new Set();
                     const retoPendiente = cola.some(id => !completados.has(id)) && estado.retoActual.disponible;
@@ -7965,12 +8115,25 @@
                         return;
                     }
 
-                    // Si no hay restricción por reto, progresar
-                    try {
-                        (globalThis.logger || console).info(`${logPrefix} Sin reto pendiente -> progresando al siguiente elemento`);
-                        await progresarSiguienteElemento();
-                    } catch (progErr) {
-                        (globalThis.logger || console).error(`${logPrefix} Error progresando siguiente elemento:`, progErr);
+                    const modoActual = estado.modo?.actual;
+                    const esTramo = causa === 'audio_llegada_tramo';
+
+                    if (modoActual === MODOS.CASA) {
+                        // Modo casa: limpiar estado del reto, no avanzar — usuario elige via hijo5
+                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                        (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
+                    } else if (esTramo) {
+                        // Tramo en aventura: GPS detectó llegada al final — avance automático
+                        try {
+                            (globalThis.logger || console).info(`${logPrefix} Tramo completado en aventura -> progresando automáticamente`);
+                            await progresarSiguienteElemento();
+                        } catch (progErr) {
+                            (globalThis.logger || console).error(`${logPrefix} Error progresando tras tramo:`, progErr);
+                        }
+                    } else {
+                        estado.paradaListaParaAvanzar = true;
+                        (globalThis.logger || console).info(`${logPrefix} Parada completada en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
+                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
                     }
 
                 } catch (error) {
@@ -8113,6 +8276,23 @@
 
             const cerrarDropdown = () => overlay.classList.remove('open');
 
+            // ── Spin para audio-main-toggle-btn ──
+            let _audioMainSpinInterval = null;
+            let _audioMainSpinPressed = false;
+
+            function _iniciarSpinAudioMain() {
+                if (_audioMainSpinInterval) clearInterval(_audioMainSpinInterval);
+                _audioMainSpinPressed = false;
+                _audioMainSpinInterval = setInterval(() => {
+                    if (_audioMainSpinPressed || mainBtn.disabled) return;
+                    mainBtn.classList.remove('spinning');
+                    void mainBtn.offsetWidth;
+                    mainBtn.classList.add('spinning');
+                    mainBtn.addEventListener('animationend', () => mainBtn.classList.remove('spinning'), { once: true });
+                }, 5000);
+            }
+            globalThis._resetSpinAudioMainPadre = _iniciarSpinAudioMain;
+
             // touchstart vacío por botón: activa :active en iOS Safari (documento principal)
             const todosLosBotones = [mainBtn, ...dropdown.querySelectorAll('.audio-action-btn')];
             todosLosBotones.forEach((btn) => {
@@ -8120,6 +8300,8 @@
             });
 
             mainBtn.addEventListener('click', (event) => {
+                _audioMainSpinPressed = true;
+                if (_audioMainSpinInterval) { clearInterval(_audioMainSpinInterval); _audioMainSpinInterval = null; }
                 event.stopPropagation();
                 if (mainBtn.disabled) return;
                 overlay.classList.toggle('open');
@@ -8149,6 +8331,7 @@
 
             overlay.dataset.initOk = 'true';
             actualizarEstadoControlesAudioPadre();
+            _iniciarSpinAudioMain();
         }
 
         // Usar globalThis.CONFIG_PADRE ya que CONFIG_PADRE no está en scope local de Script 2
@@ -8375,22 +8558,6 @@
         // DOMContentLoaded has ALREADY fired - execute immediately
         // ============================================================
 
-        // Funciones para mostrar/ocultar indicador de error GPS
-        function _mostrarIndicadorErrorGPS() {
-            const indicator = document.getElementById('gps-error-indicator');
-            if (indicator) {
-                indicator.style.display = 'block';
-                (globalThis.logger || console).debug('[PADRE] Indicador de error GPS mostrado');
-            }
-        }
-
-        function _ocultarIndicadorErrorGPS() {
-            const indicator = document.getElementById('gps-error-indicator');
-            if (indicator) {
-                indicator.style.display = 'none';
-                (globalThis.logger || console).debug('[PADRE] Indicador de error GPS oculto');
-            }
-        }
 
         // Función para invalidar tamaño de mapa con reintentos
         async function invalidarTamañoMapaConRetry(maxIntentos = 10) {
@@ -8484,12 +8651,25 @@
                         datos: { motivo: 'reto_cerrado' }
                     });
 
-                    // Notificar a hijo3 que el reto se ocultó (rehabilita botón de retos)
+                    // Rehabilitar retosBtn en hijo3 solo si el reto cerrado pertenece al elemento actual
+                    // (evita sobreescribir el estado de retosBtn si la parada ya progresó)
+                    const _colaCurrent = estado.retoActual?.cola || [];
+                    const _retoSigueActivo = !retoId || retoId === estado.retoActual?.id || _colaCurrent.includes(retoId);
+                    if (_retoSigueActivo) {
+                        enviarMensajePadre({
+                            tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
+                            origen: getPadreId(),
+                            destino: 'hijo3',
+                            datos: { control: 'retosBtn', motivo: 'reto_cerrado' }
+                        });
+                    }
+
+                    // Notificar a hijo4 para limpiar estado interno y restaurar botonRetos en modo CASA
                     enviarMensajePadre({
-                        tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
+                        tipo: TIPOS_MENSAJE.RETO.OCULTAR,
                         origen: getPadreId(),
-                        destino: 'hijo3',
-                        datos: { control: 'retosBtn', motivo: 'reto_cerrado' }
+                        destino: 'hijo4',
+                        datos: { retoId }
                     });
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} No se encontraron elementos hijo4 o backdrop para ocultar`);
@@ -8503,6 +8683,7 @@
         async function _retoColaCompletada(retoId, completados, estado, logPrefix) {
             estado.retoActual.completado = true;
             (globalThis.logger || console).info(`${logPrefix} Todos los retos de la cola completados (${completados.size}/${(estado.retoActual.cola || []).length}) -> marcando pending.reto`);
+            const modoActual = estado.modo?.actual;
             try {
                 const elementoReto = findElementoPorReto(retoId) || findElementoPorPadreId(estado.elementoActual?.padreid);
                 const claveR = elementoReto?.padreid || (elementoReto?.parada_id ? `padre-${elementoReto.parada_id}` : null);
@@ -8511,13 +8692,21 @@
                     pendingR.reto = true;
                     pendingR.retosCompletadosCount = completados.size;
                     pendingR.timestamp = Date.now();
-                    intentarCompletarElemento(claveR);
+                    intentarCompletarElemento(claveR); // marcarParadaCompletada ya distingue por modo
                 } else {
-                    await progresarSiguienteElemento();
+                    // Sin clave: fallback — respetar modo
+                    if (modoActual === MODOS.CASA) {
+                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                        (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
+                    } else {
+                        estado.paradaListaParaAvanzar = true;
+                        (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
+                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                    }
                 }
             } catch (error_) {
                 (globalThis.logger || console).warn(`${logPrefix} Error marcando pending por cola completa:`, error_);
-                await progresarSiguienteElemento();
+                if (modoActual !== MODOS.CASA) await progresarSiguienteElemento();
             }
         }
 
@@ -8682,30 +8871,16 @@
             }
         }
 
+
         async function _hdl_RETO_MOSTRADO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[RETO.MOSTRADO]`;
-
             try {
-                const { retoId, tipo } = mensaje.datos || {};
-
-                (globalThis.logger || console).info(`${logPrefix} Reto mostrado confirmado de ${mensaje.origen}: ${retoId} (${tipo})`);
-
-                // Ahora que el reto está realmente mostrado, deshabilitar botón de retos en hijo3
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
-                    origen: getPadreId(),
-                    destino: 'hijo3',
-                    datos: {
-                        control: 'retosBtn',
-                        razon: 'reto_activo',
-                        retoId
-                    }
-                });
-
-                (globalThis.logger || console).debug(`${logPrefix} Botón de retos deshabilitado en hijo3`);
-
+                const { retoId } = mensaje.datos || {};
+                (globalThis.logger || console).info(`${logPrefix} hijo4 confirmó que mostró el reto: ${retoId}`);
+                // Fase 3: confirmar recepción a hijo4
+                await enviarMensajePadre({ tipo: TIPOS_MENSAJE.RETO.CONFIRMADO, origen: getPadreId(), destino: mensaje.origen, datos: { retoId } });
             } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando reto mostrado:`, error);
+                (globalThis.logger || console).error(`${logPrefix} Error procesando RETO.MOSTRADO:`, error);
             }
         }
 
@@ -8715,6 +8890,7 @@
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.COMPLETADO, _hdl_RETO_COMPLETADO);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.MOSTRADO, _hdl_RETO_MOSTRADO);
+
         }
 
         async function _hdl_NAVEGACION_GPS_ACTIVAR(mensaje) {
@@ -8737,6 +8913,27 @@
                         }
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.solicitudes_recibidas'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
+                // Si la parada está completada y esperando que el usuario confirme avance, progresar primero
+                if (estado.paradaListaParaAvanzar) {
+                    estado.paradaListaParaAvanzar = false;
+                    estado.pendingRevealNavegacion = true; // completarCambioParada revelará navegación del siguiente elemento
+                    (globalThis.logger || console).info(`${logPrefix} Parada completada confirmada — progresando al siguiente elemento antes de activar GPS`);
+                    try {
+                        await progresarSiguienteElemento();
+                    } catch (progErr) {
+                        (globalThis.logger || console).error(`${logPrefix} Error progresando al siguiente elemento:`, progErr);
+                    }
+                } else {
+                    // Tramo activo: revelar la navegación que ya está cargada pero oculta
+                    try {
+                        const { revelarNavegacion } = await import('./js/funciones-mapa.js');
+                        revelarNavegacion();
+                        (globalThis.logger || console).info(`${logPrefix} Navegación revelada en tramo activo`);
+                    } catch (revErr) {
+                        (globalThis.logger || console).warn(`${logPrefix} Error revelando navegación:`, revErr);
+                    }
+                }
 
                 // Usar la función GPS centralizada del padre
                 await activarGPS();
@@ -8776,249 +8973,9 @@
 
                 (globalThis.logger || console).info(`${logPrefix} GPS desactivado exitosamente`);
 
-                // Notificar estado actualizado SOLO a hijos con capability 'gps'
-                try {
-                    if (typeof broadcastToCapability === 'function') {
-                        const r = broadcastToCapability('gps', {
-                            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO,
-                            origen: getPadreId(),
-                            datos: {
-                                activo: false,
-                                permisos: (getEstadoSafe().gps && getEstadoSafe().gps.permisos) || null,
-                                precision: null,
-                                error: null
-                            }
-                        });
-                        (globalThis.logger || console).debug(`${logPrefix} BroadcastToCapability(estado=false) enviados:`, r);
-                    } else {
-                        await enviarMensajePadre({
-                            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO,
-                            origen: getPadreId(),
-                            destino: 'todos',
-                            datos: {
-                                activo: false,
-                                permisos: (getEstadoSafe().gps && getEstadoSafe().gps.permisos) || null,
-                                precision: null,
-                                error: null
-                            }
-                        });
-                    }
-                } catch (e) {
-                    (globalThis.logger || console).error(`${logPrefix} Error notificando estado GPS:`, e);
-                }
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando desactivación GPS:`, error);
-            }
-        }
-
-        async function _hdl_NAVEGACION_GPS_VISUAL_ACTIVAR(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.VISUAL_ACTIVAR][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                // Solo permitir activación visual en modo AVENTURA
-                const modoActual = estado.modo?.actual || MODOS.CASA;
-                if (modoActual !== MODOS.AVENTURA) {
-                    (globalThis.logger || console).warn(`${logPrefix} Rechazando activación visual: modo actual no es AVENTURA (${modoActual})`);
-                    return;
-                }
-
-                (globalThis.logger || console).info(`${logPrefix} Solicitud de activación visual GPS de ${mensaje.origen}`);
-
-                // Actualizar estado visualActivo
-                if (getEstadoSafe().gps) {
-                    getEstadoSafe().gps.visualActivo = true;
-                    (globalThis.logger || console).info(`${logPrefix} GPS visual activado (polyline y emojis visibles)`);
-                }
-
-                // Sincronizar con funciones-mapa.js si está disponible
-                try {
-                    if (globalThis.funcionesMapa && globalThis.funcionesMapa.estadoMapa) {
-                        globalThis.funcionesMapa.estadoMapa.gpsVisualActivo = true;
-                    }
-                } catch (e) {
-                    (globalThis.logger || console).debug(`${logPrefix} Error sincronizando con funciones-mapa.js:`, e);
-                }
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando activación visual GPS:`, error);
-            }
-        }
-
-        async function _hdl_NAVEGACION_GPS_VISUAL_DESACTIVAR(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.VISUAL_DESACTIVAR][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                // Solo permitir desactivación visual en modo AVENTURA
-                const modoActual = estado.modo?.actual || MODOS.CASA;
-                if (modoActual !== MODOS.AVENTURA) {
-                    (globalThis.logger || console).warn(`${logPrefix} Rechazando desactivación visual: modo actual no es AVENTURA (${modoActual})`);
-                    return;
-                }
-
-                (globalThis.logger || console).info(`${logPrefix} Solicitud de desactivación visual GPS de ${mensaje.origen}`);
-
-                // Actualizar estado visualActivo
-                if (getEstadoSafe().gps) {
-                    getEstadoSafe().gps.visualActivo = false;
-                    (globalThis.logger || console).info(`${logPrefix} GPS visual desactivado (polyline y emojis ocultos)`);
-                }
-
-                // Sincronizar con funciones-mapa.js si está disponible
-                try {
-                    if (globalThis.funcionesMapa && globalThis.funcionesMapa.estadoMapa) {
-                        globalThis.funcionesMapa.estadoMapa.gpsVisualActivo = false;
-                    }
-                } catch (e) {
-                    (globalThis.logger || console).debug(`${logPrefix} Error sincronizando con funciones-mapa.js:`, e);
-                }
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando desactivación visual GPS:`, error);
-            }
-        }
-
-        async function _hdl_NAVEGACION_GPS_UBICACION_ACTUALIZADA(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.UBICACION_ACTUALIZADA][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                (globalThis.logger || console).debug(`${logPrefix} Actualización de ubicación GPS recibida, reenviando a hijos`);
-
-                // Reenviar la actualización de ubicación SOLO a hijos que declararon capability 'gps'
-                try {
-                    if (typeof broadcastToCapability === 'function') {
-                        const r = broadcastToCapability('gps', {
-                            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA,
-                            origen: getPadreId(),
-                            datos: mensaje.datos
-                        });
-                        (globalThis.logger || console).debug(`${logPrefix} BroadcastToCapability(ubicacion) enviados:`, r);
-                    } else {
-                        // Fallback: reenviar manualmente a la lista conocida (compatibilidad)
-                        // Only broadcast frequent GPS updates to components that consume it.
-                        // Keep lightweight UI control children out of this list to reduce unnecessary churn.
-                        const hijosGPS = ['hijo2'];
-                        const promesasReenvio = hijosGPS.map(async (hijoId) => {
-                            try {
-                                // Usar confirmación para asegurar entrega
-                                await enviarMensajeConConfirmacion({
-                                    tipo: TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA,
-                                    origen: getPadreId(),
-                                    destino: hijoId,
-                                    datos: mensaje.datos
-                                }, { timeout: 3000 });
-                                (globalThis.logger || console).debug(`${logPrefix} Ubicación GPS reenviada a ${hijoId} con confirmación`);
-                                return { exito: true };
-                            } catch (error) {
-                                (globalThis.logger || console).warn(`${logPrefix} Error reenviando GPS a ${hijoId}, agregando a cola pendientes:`, error.message);
-                                // Agregar a cola de pendientes
-                                if (globalThis.__stateManager && typeof globalThis.__stateManager.agregarMensajeGPSAPendientes === 'function') {
-                                    await globalThis.__stateManager.agregarMensajeGPSAPendientes(mensaje.datos);
-                                }
-                                return { exito: false, error: error.message };
-                            }
-                        });
-                        Promise.allSettled(promesasReenvio).then((resultados) => {
-                            const exitosos = resultados.filter(r => r.status === 'fulfilled' && r.value?.exito).length;
-                            const fallidos = resultados.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value?.exito)).length;
-                            if (fallidos > 0) {
-                                (globalThis.logger || console).warn(`${logPrefix} Reenvío GPS: ${exitosos} exitosos, ${fallidos} fallidos (mensajes en cola)`);
-                                // Mostrar indicador de error GPS si hay muchos pendientes
-                                _mostrarIndicadorErrorGPS();
-                            } else {
-                                (globalThis.logger || console).debug(`${logPrefix} Reenvío GPS completado: ${exitosos} exitosos`);
-                                _ocultarIndicadorErrorGPS();
-                            }
-                        });
-                    }
-                } catch (e) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error reenviando actualizacion de ubicacion:`, e);
-                }
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando actualización GPS:`, error);
-            }
-        }
-
-        async function _hdl_NAVEGACION_GPS_ESTADO_ACTUALIZADO(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.ESTADO_ACTUALIZADO][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                const { correlationId } = mensaje.datos || {};
-
-                if (!correlationId) {
-                    (globalThis.logger || console).warn(`${logPrefix} Estado GPS sin correlationId, ignorando`);
-                    return;
-                }
-
-                // Buscar correlación
-                if (!estado.correlacionesMensajes || !estado.correlacionesMensajes.has(correlationId)) {
-                    (globalThis.logger || console).error(`${logPrefix} CorrelationId GPS no encontrado: ${correlationId}`);
-                    return;
-                }
-
-                const correlacion = estado.correlacionesMensajes.get(correlationId);
-                const { solicitanteOriginal, timestamp } = correlacion;
-
-                const tiempoProcesamiento = Date.now() - timestamp;
-
-                (globalThis.logger || console).info(`${logPrefix} Estado GPS correlacionado - reenviando a ${solicitanteOriginal} (${tiempoProcesamiento}ms)`);
-
-                // Reenviar estado al solicitante original
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO,
-                    origen: getPadreId(),
-                    destino: solicitanteOriginal,
-                    datos: mensaje.datos
-                });
-
-                // Limpiar correlación
-                estado.correlacionesMensajes.delete(correlationId);
-
-                (globalThis.logger || console).debug(`${logPrefix} Estado GPS reenviado y correlación limpiada`);
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando estado GPS:`, error);
-            }
-        }
-
-        async function _hdl_NAVEGACION_GPS_ERROR(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.ERROR][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                const { correlationId } = mensaje.datos || {};
-
-                if (!correlationId) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error GPS sin correlationId, ignorando`);
-                    return;
-                }
-
-                // Buscar correlación
-                if (!estado.correlacionesMensajes || !estado.correlacionesMensajes.has(correlationId)) {
-                    (globalThis.logger || console).error(`${logPrefix} CorrelationId de error GPS no encontrado: ${correlationId}`);
-                    return;
-                }
-
-                const correlacion = estado.correlacionesMensajes.get(correlationId);
-                const { solicitanteOriginal } = correlacion;
-
-                (globalThis.logger || console).warn(`${logPrefix} Error GPS - reenviando a ${solicitanteOriginal}`);
-                // Telemetría: incrementar contador por razón de error
-                try { if (mensaje?.datos?.codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${mensaje.datos.codigo}`); } } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
-
-                // Reenviar error al solicitante original
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ERROR,
-                    origen: getPadreId(),
-                    destino: solicitanteOriginal,
-                    datos: mensaje.datos
-                });
-
-                // Limpiar correlación
-                estado.correlacionesMensajes.delete(correlationId);
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando error GPS:`, error);
             }
         }
 
@@ -9044,16 +9001,6 @@
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, _hdl_NAVEGACION_GPS_ACTIVAR);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, _hdl_NAVEGACION_GPS_DESACTIVAR);
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.VISUAL_ACTIVAR, _hdl_NAVEGACION_GPS_VISUAL_ACTIVAR);
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.VISUAL_DESACTIVAR, _hdl_NAVEGACION_GPS_VISUAL_DESACTIVAR);
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA, _hdl_NAVEGACION_GPS_UBICACION_ACTUALIZADA);
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, _hdl_NAVEGACION_GPS_ESTADO_ACTUALIZADO);
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ERROR, _hdl_NAVEGACION_GPS_ERROR);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO, _hdl_NAVEGACION_GPS_RESTRINGIDO);
         }
@@ -9468,6 +9415,12 @@
                         destino: 'hijo3',
                         datos: { control: 'retosBtn', razon: 'parada_con_reto_sin_audio_aventura', retoId: retosDeParada[0] }
                     });
+                    await enviarMensajePadre({
+                        tipo: TIPOS_MENSAJE.RETO.HABILITAR,
+                        origen: getPadreId(),
+                        destino: 'hijo4',
+                        datos: { paradaId: parada?.parada_id || parada?.tramo_id, razon: 'sin_audio' }
+                    });
                 } else {
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
@@ -9574,6 +9527,24 @@
                     return null;
                 })
             );
+            notificaciones.push(
+                Promise.resolve(enviarMensajePadre({
+                    tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                    origen: getPadreId(),
+                    destino: 'hijo3',
+                    datos: {
+                        paradaId: datosNotificacion.paradaId,
+                        parada_id: paradaIdBase,
+                        padreId: padreIdNorm,
+                        padreid: padreIdNorm,
+                        timestamp: Date.now(),
+                        origenCambio: mensaje.origen
+                    }
+                })).catch(error => {
+                    (globalThis.logger || console).warn(`${logPrefix} Error notificando a hijo3:`, error);
+                    return null;
+                })
+            );
             if (estado.hijosInicializados?.has('hijo4')) {
                 notificaciones.push(
                     Promise.resolve(enviarMensajePadre({
@@ -9606,7 +9577,7 @@
             try {
                 const datos = mensaje.datos || {};
                 const resolved = resolverIdsParada(datos);
-                const paradaId = resolved.paradaId || datos.paradaId || datos.parada_id || null;
+                const paradaId = datos.paradaId || datos.parada_id || resolved.paradaId || null;
                 const { timestamp, origen: origenDatos } = datos;
 
                 (globalThis.logger || console).info(`${logPrefix} Cambio de parada solicitado por ${mensaje.origen}`);
@@ -9620,6 +9591,10 @@
                         error: 'paradaId es requerido'
                     };
                 }
+
+                // Al entrar en cualquier parada/tramo nuevo, limpiar el flag de confirmación
+                // de avance GPS (puede haber quedado activo si se cambió de parada manualmente)
+                estado.paradaListaParaAvanzar = false;
 
                 // Buscar la parada en DATOS_PADRE (padre coordina con IDs específicos)
                 // Soportar múltiples formatos de ID:
@@ -9704,28 +9679,27 @@
                 // Lógica de botón GPS en tramos y paradas
                 const esTramo = parada.tipo === 'tramo';
                 if (esTramo && estado.modo?.actual === MODOS.AVENTURA) {
-                    // En tramo: llegada a 20m → habilitar audio, deshabilitar GPS
+                    // En tramo: botón GPS controlado por distancia en hijo2 (rojo lejos, verde al acercarse al destino)
                     estado.gps.tramoAudioPendiente = true;
-                    (globalThis.logger || console).info(`${logPrefix} Tramo detectado, audio pendiente, GPS deshabilitado`);
-                    // Enviar mensaje para deshabilitar GPS en hijo2
+                    (globalThis.logger || console).info(`${logPrefix} Tramo detectado, audio pendiente de llegada`);
+                } else if (!esTramo && estado.modo?.actual === MODOS.AVENTURA) {
+                    estado.gps.tramoAudioPendiente = false;
+                    (globalThis.logger || console).info(`${logPrefix} Parada detectada, btnAvanzar deshabilitado hasta completar audio+reto`);
                     try {
                         await enviarMensajePadre({
-                            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR,
+                            tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                             origen: getPadreId(),
                             destino: 'hijo2',
-                            datos: { razon: 'tramo_audio_pendiente' }
+                            datos: { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }
                         });
                     } catch (e) {
-                        (globalThis.logger || console).warn(`${logPrefix} Error deshabilitando GPS en tramo:`, e);
+                        (globalThis.logger || console).warn(`${logPrefix} Error deshabilitando btnAvanzar en parada:`, e);
                     }
-                } else if (!esTramo && estado.modo?.actual === MODOS.AVENTURA) {
-                    // En parada: GPS habilitado por defecto
-                    estado.gps.tramoAudioPendiente = false;
-                    (globalThis.logger || console).info(`${logPrefix} Parada detectada, GPS habilitado`);
                 }
 
-                // Lógica de retos en modo CASA: habilitado en paradas, deshabilitado en tramos
+                // Lógica de retos en modo CASA: habilitado solo en paradas que tienen reto
                 if (estado.modo?.actual === MODOS.CASA) {
+                    const habilitadoCasa = !esTramo && retosDeParada.length > 0;
                     try {
                         await enviarMensajePadre({
                             tipo: TIPOS_MENSAJE.RETO.ESTADO_CASA,
@@ -9733,10 +9707,10 @@
                             destino: 'hijo4',
                             datos: {
                                 tipo: esTramo ? 'tramo' : 'parada',
-                                habilitado: !esTramo // Habilitado solo en paradas
+                                habilitado: habilitadoCasa
                             }
                         });
-                        (globalThis.logger || console).info(`${logPrefix} RETO.ESTADO_CASA enviado a hijo4 (tipo: ${esTramo ? 'tramo' : 'parada'}, habilitado: ${!esTramo})`);
+                        (globalThis.logger || console).info(`${logPrefix} RETO.ESTADO_CASA enviado a hijo4 (tipo: ${esTramo ? 'tramo' : 'parada'}, habilitado: ${habilitadoCasa})`);
                     } catch (e) {
                         (globalThis.logger || console).warn(`${logPrefix} Error enviando RETO.ESTADO_CASA:`, e);
                     }
@@ -9854,18 +9828,9 @@
                     }
                 }
 
-                estado.audioActual.id = estado.elementoActual.audio_id;
-                estado.audioActual.estado = 'solicitado';
-                estado.audioActual.timestamp = timestamp || Date.now();
-
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
-                    origen: getPadreId(),
-                    destino: 'hijo3',
-                    datos: { audioId: estado.elementoActual.audio_id, autoplay: false, contexto: 'llegada_parada', coordenadas }
-                });
-
-                (globalThis.logger || console).success(`${logPrefix} Audio solicitado para llegada a ${paradaId}`);
+                // Audio ya cargado en CAMBIO_PARADA para paradas y tramos (ambos modos, autoplay: false)
+                // Aquí solo se marca la llegada GPS para la lógica de pending
+                (globalThis.logger || console).info(`${logPrefix} Llegada GPS a ${estado.elementoActual?.tipo} ${paradaId} — marcando pending.llegada`);
                 _marcarPendingPorLlegada(paradaId, coordenadas, logPrefix);
 
             } catch (error) {
@@ -9883,6 +9848,16 @@
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_JPG, _hdl_NAVEGACION_MOSTRAR_MAPA_JPG);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, _hdl_NAVEGACION_CAMBIO_PARADA);
+
+        // Disparador directo para restauración de sesión (cross-scope: bloque 2419 no puede llamar _hdl directamente)
+        globalThis.__triggerCambioParadaInterno = async function(datos) {
+            return _hdl_NAVEGACION_CAMBIO_PARADA({
+                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                origen: 'restauracion-interna',
+                destino: getPadreId(),
+                datos
+            });
+        };
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO, _hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO);
 
@@ -9923,71 +9898,6 @@
             }
         }
 
-        async function _hdl_NAVEGACION_PARADA_COMPLETADA(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[NAVEGACION.PARADA_COMPLETADA][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                const { idParada, paradaId, paradaCompletada, distancia, coordenadas } = mensaje.datos || {};
-                const pid = idParada || paradaId || paradaCompletada || mensaje.datos?.id || null;
-
-                if (!pid) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin paradaId`, mensaje.datos);
-                    // ACK/NACK según política
-                    await enviarMensajePadre({
-                        tipo: TIPOS_MENSAJE.SISTEMA.NACK,
-                        origen: getPadreId(),
-                        destino: mensaje.origen,
-                        datos: { error: 'paradaId requerido' }
-                    });
-                    return;
-                }
-
-                (globalThis.logger || console).info(`${logPrefix} Procesando parada completada: ${pid}`);
-
-                // Marcar pending de llegada desde hijo2; no completar inmediatamente si existe reto
-                try {
-                    const elemento = findElementoPorPadreId(pid) || findElementoPorPadreId(`padre-${pid}`) || findElementoPorPadreId(pid.replace(/^padre-/, ''));
-                    const key = elemento?.padreid || `padre-${pid}`;
-                    const pending = ensurePending(key, elemento?.tipo || 'parada');
-                    pending.llegada = true;
-                    if (coordenadas && coordenadas.lat && coordenadas.lng) pending.destinoCoords = coordenadas;
-                    pending.timestamp = Date.now();
-                    // Registrar coordenadas/distancia en pending para debug/registro
-                    pending.coordenadas = coordenadas || null;
-                    if (coordenadas && coordenadas.lat && coordenadas.lng) pending.destinoCoords = coordenadas;
-                    pending.distancia = distancia || null;
-                    // Solicitar audio si existe (cobertura para flows que vienen desde botón de hijo2)
-                    if (elemento?.audio_id) {
-                        try { await solicitarAudioAHijo3(elemento.audio_id); } catch (error_) { (globalThis.logger || console).warn(`${logPrefix} No se pudo solicitar audio para ${elemento.audio_id}:`, error_); }
-                    }
-                    intentarCompletarElemento(key);
-                } catch (err) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error marcando pending por PARADA_COMPLETADA:`, err);
-                }
-
-                // Confirmación al emisor
-                await enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                    origen: getPadreId(),
-                    destino: mensaje.origen,
-                    datos: { mensaje: 'Parada recibida y procesada', paradaId: pid, timestamp: Date.now() }
-                });
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando PARADA_COMPLETADA:`, error);
-                try {
-                    await enviarMensajePadre({
-                        tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-                        origen: getPadreId(),
-                        destino: mensaje.origen,
-                        datos: { error: error.message }
-                    });
-                } catch (err) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error enviando ERROR al origen:`, err);
-                }
-            }
-        }
-
         function _hdl_UI_NAVEGACION_EXTERNA(mensaje) {
             const { url, titulo } = mensaje.datos || {};
             (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[NAVEGACION_EXTERNA] URL abierta por ${mensaje.origen || 'desconocido'}: ${url || '(sin url)'}${titulo ? ` — ${titulo}` : ''}`);
@@ -10000,8 +9910,6 @@
 
         function _regCtrl_NavegacionEventos(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO, _hdl_NAVEGACION_USUARIO_FUERA_RANGO);
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.PARADA_COMPLETADA, _hdl_NAVEGACION_PARADA_COMPLETADA);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.NAVEGACION_EXTERNA, _hdl_UI_NAVEGACION_EXTERNA);
 
@@ -10051,20 +9959,33 @@
         }
 
         async function _audioFinalizadoSinReto(audioId, estado, logPrefix) {
-            (globalThis.logger || console).info(`${logPrefix} Audio finalizado, no hay reto disponible o no es modo aventura, intentando completar elemento`);
+            (globalThis.logger || console).info(`${logPrefix} Audio finalizado sin reto — intentando completar elemento`);
+            const modoActual = estado.modo?.actual;
             try {
                 const elementoAudio = findElementoPorAudio(audioId) || estado.elementoActual;
                 const claveA = elementoAudio?.padreid || (elementoAudio?.parada_id ? `padre-${elementoAudio.parada_id}` : null);
                 if (claveA) {
                     const p = ensurePending(claveA, elementoAudio?.tipo || 'parada');
                     p.audio = true;
+                    // marcarParadaCompletada (vía intentarCompletarElemento) ya distingue por modo y tipo
                     intentarCompletarElemento(claveA);
                 } else {
-                    await progresarSiguienteElemento();
+                    // Sin clave: fallback directo, respetar modo
+                    if (modoActual === MODOS.CASA) {
+                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                        (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
+                    } else if (elementoAudio?.tipo === 'tramo') {
+                        await progresarSiguienteElemento();
+                    } else {
+                        estado.paradaListaParaAvanzar = true;
+                        (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
+                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback2' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                    }
                 }
             } catch (error_) {
                 (globalThis.logger || console).warn(`${logPrefix} Error intentando completar tras fin de audio:`, error_);
-                await progresarSiguienteElemento();
+                // En aventura se puede intentar progresar; en casa no avanzar sin confirmación del usuario
+                if (modoActual !== MODOS.CASA) await progresarSiguienteElemento();
             }
         }
 
@@ -10087,6 +10008,12 @@
                     origen: getPadreId(),
                     destino: 'hijo3',
                     datos: { control: 'retosBtn', razon: 'audio_finalizado', retoId: retosDelElemento[0] }
+                });
+                await enviarMensajePadre({
+                    tipo: TIPOS_MENSAJE.RETO.HABILITAR,
+                    origen: getPadreId(),
+                    destino: 'hijo4',
+                    datos: { paradaId: estado.paradaActual, razon: 'audio_escuchado_1vez' }
                 });
             } else if (tieneRetos && modoAventura) {
                 (globalThis.logger || console).warn(`${logPrefix} Audio finalizado en modo aventura, ${retosDelElemento.length} reto(s) disponible(s) pero hijo4 no está listo - botón no habilitado`);
@@ -10133,39 +10060,13 @@
 
                 actualizarEstadoControlesAudioPadre();
 
-                // LÓGICA FUSIONADA DE SCRIPT 1: Habilitar retosBtn solo en modo aventura
+                // Registrar que el audio fue escuchado (estado de progresión; habilitar retos es responsabilidad de _procesarFinAudioElemento)
                 const modoActual = estado.modo?.actual || MODOS.CASA;
-                if (modoActual === MODOS.AVENTURA && estado.hijosInicializados && estado.hijosInicializados.has('hijo3')) {
-                    (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo aventura, habilitando retosBtn en hijo3`);
-                    try {
-                        await enviarMensajePadre({
-                            tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
-                            origen: getPadreId(),
-                            destino: 'hijo3',
-                            datos: { control: 'retosBtn', timestamp: Date.now(), razon: 'audio_fin_reproduccion_aventura' }
-                        });
-                    } catch (error_) {
-                        (globalThis.logger || console).error(`${logPrefix} Error habilitando retosBtn:`, error_);
-                    }
-
-                    // Registrar que el audio fue escuchado para esta parada
+                if (modoActual === MODOS.AVENTURA) {
                     const paradaActual = estado.paradaActual;
                     if (paradaActual) {
                         estado.audioEscuchadoPorParada.set(paradaActual, true);
                         (globalThis.logger || console).info(`${logPrefix} Audio escuchado registrado para parada ${paradaActual}`);
-
-                        // Enviar mensaje RETO.HABILITAR al hijo4
-                        try {
-                            await enviarMensajePadre({
-                                tipo: TIPOS_MENSAJE.RETO.HABILITAR,
-                                origen: getPadreId(),
-                                destino: 'hijo4',
-                                datos: { paradaId: paradaActual, razon: 'audio_escuchado_1vez' }
-                            });
-                            (globalThis.logger || console).info(`${logPrefix} RETO.HABILITAR enviado a hijo4 para parada ${paradaActual}`);
-                        } catch (error_) {
-                            (globalThis.logger || console).error(`${logPrefix} Error enviando RETO.HABILITAR:`, error_);
-                        }
                     }
                 }
 
@@ -10246,6 +10147,26 @@
                     estado.monitoreo.metricas.errores++;
                 }
 
+                // Desbloquear pending para que la parada no quede bloqueada por audio fallido (§30.7a)
+                try {
+                    const elementoAudio = findElementoPorAudio(audioId);
+                    if (elementoAudio) {
+                        const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
+                        const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
+                        if (!pendingAudio.audio) {
+                            pendingAudio.audio = true;
+                            intentarCompletarElemento(clave);
+                        }
+                    }
+                } catch (pendErr) {
+                    (globalThis.logger || console).debug(`${logPrefix} Error marcando pending por AUDIO.ERROR:`, pendErr?.message);
+                }
+
+                // Mostrar overlay de no-internet si el error coincide con pérdida de conexión
+                if (!navigator.onLine) {
+                    try { if (typeof globalThis.showInternetOverlay === 'function') globalThis.showInternetOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                }
+
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando error de audio:`, error);
             }
@@ -10302,97 +10223,6 @@
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE, _hdl_AUDIO_REPRODUCIR_RESPONSE);
         }
 
-        async function _hdl_DATOS_RESPUESTA_PARADAS(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[DATOS.RESPUESTA_PARADAS][PROXY]`;
-
-            try {
-                (globalThis.logger || console).debug(`${logPrefix} Respuesta de paradas recibida de ${mensaje.origen}`);
-
-                // Verificar que la respuesta tenga correlationId
-                const { correlationId } = mensaje.datos || {};
-                if (!correlationId) {
-                    (globalThis.logger || console).error(`${logPrefix} Respuesta sin correlationId - no se puede correlacionar`);
-                    return;
-                }
-
-                // Buscar la correlación
-                if (!estado.correlacionesMensajes || !estado.correlacionesMensajes.has(correlationId)) {
-                    (globalThis.logger || console).error(`${logPrefix} CorrelationId no encontrado: ${correlationId}`);
-                    return;
-                }
-
-                const correlacion = estado.correlacionesMensajes.get(correlationId);
-                const { solicitanteOriginal, mensajeOriginal, timestamp } = correlacion;
-
-                const tiempoProcesamiento = Date.now() - timestamp;
-
-                (globalThis.logger || console).info(`${logPrefix} Respuesta correlacionada - reenviando a ${solicitanteOriginal} (${tiempoProcesamiento}ms)`);
-
-                // Preparar respuesta para el solicitante original
-                const respuestaParaSolicitante = {
-                    ...mensaje.datos,
-                    metadatos: {
-                        ...mensaje.datos.metadatos,
-                        proxy: 'padre',
-                        experto: 'hijo2',
-                        tiempoProcesamiento,
-                        correlationId
-                    }
-                };
-
-                // Reenviar respuesta al solicitante original con el tipo esperado por enviarMensajeConConfirmacion
-                await enviarMensajePadre({
-                    tipo: `${TIPOS_MENSAJE.DATOS.SOLICITAR_PARADAS}_RESPONSE_${mensajeOriginal.id}`,
-                    origen: getPadreId(),
-                    destino: solicitanteOriginal,
-                    datos: respuestaParaSolicitante
-                });
-
-                // Limpiar correlación
-                estado.correlacionesMensajes.delete(correlationId);
-
-                (globalThis.logger || console).success(`${logPrefix} Respuesta reenviada exitosamente a ${solicitanteOriginal}`);
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando respuesta de paradas:`, error);
-            }
-        }
-
-        async function _hdl_DATOS_RESPUESTA_RETO(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[DATOS.RESPUESTA_RETO]`;
-
-            try {
-                if (!mensaje?.origen) {
-                    (globalThis.logger || console).warn(`${logPrefix} Mensaje sin origen`);
-                    return;
-                }
-
-                const { retoId, datos: datosReto, exito, error: errorMsg } = mensaje.datos || {};
-
-                (globalThis.logger || console).debug(`${logPrefix} Respuesta de reto recibida desde ${mensaje.origen}`, {
-                    retoId,
-                    exito,
-                    tieneDatos: !!datosReto
-                });
-
-                if (!exito) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error en respuesta de reto: ${errorMsg}`);
-                    return;
-                }
-
-                // Almacenar datos de reto para uso futuro
-                if (!estado.datosRetos) {
-                    estado.datosRetos = {};
-                }
-                estado.datosRetos[retoId] = datosReto;
-
-                (globalThis.logger || console).debug(`${logPrefix} Datos de reto almacenados: ${retoId}`);
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando respuesta de reto:`, error);
-            }
-        }
-
         async function _hdl_DATOS_COORDENADAS_CARGADAS(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[COORDENADAS_CARGADAS]`;
 
@@ -10418,6 +10248,10 @@
                     if (!estado.seleccion) estado.seleccion = {};
                     estado.seleccion.coordenadasCargadas = false;
                 }
+                // Fase 3: confirmar recepción al hijo
+                try {
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, origen: getPadreId(), destino: mensaje.origen, datos: { subtipo: 'COORDENADAS', exito: !!exito } });
+                } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
             }
@@ -10438,6 +10272,10 @@
                     if (!estado.seleccion) estado.seleccion = {};
                     estado.seleccion.audiosCargados = false;
                 }
+                // Fase 3: confirmar recepción al hijo
+                try {
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, origen: getPadreId(), destino: mensaje.origen, datos: { subtipo: 'AUDIOS', exito: !!exito } });
+                } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
             }
@@ -10458,6 +10296,10 @@
                     if (!estado.seleccion) estado.seleccion = {};
                     estado.seleccion.retosCargados = false;
                 }
+                // Fase 3: confirmar recepción al hijo
+                try {
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, origen: getPadreId(), destino: mensaje.origen, datos: { subtipo: 'RETOS', exito: !!exito } });
+                } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
             }
@@ -10476,16 +10318,16 @@
                     if (!estado.seleccion) estado.seleccion = {};
                     estado.seleccion.textosCargados = false;
                 }
+                // Fase 3: confirmar recepción al hijo
+                try {
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, origen: getPadreId(), destino: mensaje.origen, datos: { subtipo: 'TEXTOS', exito: !!exito } });
+                } catch (ackErr) { (globalThis.logger || console).warn(`${logPrefix} Error enviando CARGADOS_RECIBIDO:`, ackErr); }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando confirmación:`, error);
             }
         }
 
         function _regCtrl_DatosRespuestas(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.RESPUESTA_PARADAS, _hdl_DATOS_RESPUESTA_PARADAS);
-
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.RESPUESTA_RETO, _hdl_DATOS_RESPUESTA_RETO);
-
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS, _hdl_DATOS_COORDENADAS_CARGADAS);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS, _hdl_DATOS_AUDIOS_CARGADOS);
@@ -10622,53 +10464,6 @@
             await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, coordenadas: coords, total: coords.length, timestamp: Date.now() } });
         }
 
-        async function _hdl_DATOS_SOLICITAR_AUDIOS(mensaje) {
-            const av = globalThis.aventuraSeleccionada;
-            const id = globalThis.idiomaSeleccionado || 'es';
-            const audios = globalThis.__vv_AUDIOS_AVENTURAS?.[av]?.[id] || [];
-            if (!av || audios.length === 0) return;
-            (globalThis.logger || console).info(`[PADRE][SOLICITAR_AUDIOS] Reenviando ${audios.length} audios a ${mensaje.origen}`);
-            await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, audios, total: audios.length, timestamp: Date.now() } });
-        }
-
-        async function _hdl_DATOS_SOLICITAR_RETOS(mensaje) {
-            const av = globalThis.aventuraSeleccionada;
-            const id = globalThis.idiomaSeleccionado || 'es';
-            if (!av) {
-                (globalThis.logger || console).warn(`[PADRE][SOLICITAR_RETOS] ⚠️ No hay aventura seleccionada — ignorando solicitud de ${mensaje.origen}`);
-                return;
-            }
-            const { cargarRetos: _cRt } = await import('./js/data-loader.js');
-            const retos = await _cRt(av, id) || [];
-            if (retos.length === 0) {
-                (globalThis.logger || console).warn(`[PADRE][SOLICITAR_RETOS] ⚠️ Array de retos vacío para ${av}/${id} — verifique RETOS_AVENTURAS["${av}"]["${id}"]`);
-                // Enviar array vacío de todos modos para que hijo4 sepa que no hay retos
-                await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_RETOS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, retos: [], total: 0, timestamp: Date.now(), error: 'NO_RETOS_DISPONIBLES' } });
-                return;
-            }
-            (globalThis.logger || console).info(`[PADRE][SOLICITAR_RETOS] Reenviando ${retos.length} retos a ${mensaje.origen}`);
-            await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_RETOS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, retos, total: retos.length, timestamp: Date.now() } });
-        }
-
-        async function _hdl_DATOS_SOLICITAR_TEXTOS(mensaje) {
-            const av = globalThis.aventuraSeleccionada;
-            const id = globalThis.idiomaSeleccionado || 'es';
-            (globalThis.logger || console).debug(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] aventura=${av}, idioma=${id}`);
-            if (!av) {
-                (globalThis.logger || console).warn(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] ⚠️ No hay aventura seleccionada, omitiendo solicitud`);
-                return;
-            }
-            const { cargarTextos: _cTx } = await import('./js/data-loader.js');
-            const textos = await _cTx(av, id);
-            (globalThis.logger || console).debug(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] cargarTextos devolvió ${textos?.length ?? 0} textos`);
-            if (textos.length === 0) {
-                (globalThis.logger || console).warn(`[PADRE][SOLICITAR_TEXTOS][${mensaje.origen}] Sin textos disponibles para ${av}/${id}`);
-                return;
-            }
-            (globalThis.logger || console).info(`[PADRE][SOLICITAR_TEXTOS] Reenviando ${textos.length} textos a ${mensaje.origen}`);
-            await globalThis.enviarMensaje({ tipo: TIPOS_MENSAJE.DATOS.CARGAR_TEXTOS, origen: getPadreId(), destino: mensaje.origen, datos: { aventura: av, idioma: id, textos, total: textos.length, timestamp: Date.now() } });
-        }
-
         async function _hdl_MONITOREO_METRICA(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[METRICA]`;
 
@@ -10689,11 +10484,8 @@
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_COORDENADAS, _hdl_DATOS_SOLICITAR_COORDENADAS);
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, _hdl_DATOS_SOLICITAR_AUDIOS);
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS, _hdl_DATOS_SOLICITAR_RETOS);
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_TEXTOS, _hdl_DATOS_SOLICITAR_TEXTOS);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.MONITOREO.METRICA, _hdl_MONITOREO_METRICA);
         }
@@ -10871,8 +10663,8 @@
                 (globalThis.logger || console).warn(`${logPrefix} Iframe ${iframeConfig.id} no encontrado en DOM`);
                 return false;
             }
-            if (typeof registrarIframe_S1 === 'function') {
-                try { registrarIframe_S1(iframeConfig.id, iframeEl, { capacidades: [] }); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            if (typeof globalThis.mensajeria?.registrarIframe === 'function') {
+                try { globalThis.mensajeria.registrarIframe(iframeConfig.id, iframeEl, { capacidades: [] }); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             }
             return _cargarIframeConTimeout(iframeEl, iframeConfig, logPrefix);
         }
@@ -10930,6 +10722,8 @@
             for (const _idR of idsRecargados) {
                 estado.hijosInicializados.delete(_idR);
             }
+            // Resetear para que _hijoListo_onTodosListos pueda disparar de nuevo tras recarga de iframes
+            estado.todosHijosListos = false;
         }
 
         function _mostrarUIActivada(logPrefix) {
@@ -10952,6 +10746,27 @@
             if (fondoElement) fondoElement.style.display = 'block';
             if (fondoInferiorElement) fondoInferiorElement.style.display = 'block';
             (globalThis.logger || console).debug(`${logPrefix} UI de aventura activada`);
+        }
+
+        async function _distribuirDatosActivacion(aventura, idioma, logPrefix) {
+            try {
+                const resultadosDistribucion = await distribuirDatosAventura(aventura, idioma);
+                if (resultadosDistribucion.pospuesto) {
+                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Distribución pospuesta: ${resultadosDistribucion.mensaje}`);
+                } else {
+                    (globalThis.logger || console).success(`${logPrefix} ✅ Distribución completada:`, resultadosDistribucion);
+                }
+            } catch (distribucionError) {
+                (globalThis.logger || console).error(`${logPrefix} ❌ Error distribuyendo datos:`, distribucionError);
+            }
+        }
+
+        async function _broadcastActivacion(aventura, idioma, logPrefix) {
+            try {
+                await enviarMensaje_S2({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'broadcast', datos: { evento: 'AVENTURA_ACTIVADA', aventura, idioma: idioma || 'es', timestamp: Date.now() } });
+            } catch (broadcastError) {
+                (globalThis.logger || console).warn(`${logPrefix} Error en broadcast de activación:`, broadcastError);
+            }
         }
 
         async function _hdl_SELECCION_AVENTURA_ACTIVADA(mensaje) {
@@ -10986,13 +10801,15 @@
                     { id: 'hijo3', src: 'audio-hijo3.html' },
                     { id: 'hijo5', src: 'boton-casa-hijo5.html' }
                 ];
+                // Normalizar ANTES de asignar src: evita que HIJO_LISTO llegue durante la carga
+                // y sea borrado por _normalizarSetHijos, dejando _esperarHijosCargados sin resolver.
+                const _idsRecargados = iframesHijos.map(c => c.id);
+                _normalizarSetHijos(estado, _idsRecargados, logPrefix);
                 await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
                 (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
                 updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
                 estado.seleccion.timestampInicio = timestamp;
 
-                const _idsRecargados = iframesHijos.map(c => c.id);
-                _normalizarSetHijos(estado, _idsRecargados, logPrefix);
                 await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
                 updateLoadingStatus('Hijos sincronizados', 'Distribuyendo datos de aventura', 62);
 
@@ -11001,30 +10818,14 @@
                     (globalThis.logger || console).debug(`${logPrefix} Aventura persistida en localStorage (modo CASA)`);
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
 
-                try {
-                    const resultadosDistribucion = await distribuirDatosAventura(aventura, idioma);
-                    if (resultadosDistribucion.pospuesto) {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ Distribución pospuesta: ${resultadosDistribucion.mensaje}`);
-                    } else {
-                        (globalThis.logger || console).success(`${logPrefix} ✅ Distribución completada:`, resultadosDistribucion);
-                    }
-                } catch (distribucionError) {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error distribuyendo datos:`, distribucionError);
-                }
+                await _distribuirDatosActivacion(aventura, idioma, logPrefix);
                 updateLoadingStatus('Datos distribuidos', 'Aplicando interfaz final', 82);
 
                 _mostrarUIActivada(logPrefix);
-
-                try {
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'broadcast', datos: { evento: 'AVENTURA_ACTIVADA', aventura, idioma: idioma || 'es', timestamp: Date.now() } });
-                    }
-                } catch (broadcastError) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error en broadcast de activación:`, broadcastError);
-                }
+                await _broadcastActivacion(aventura, idioma, logPrefix);
 
                 updateLoadingStatus('Aventura lista', 'Entrando en modo CASA', 100);
-                setTimeout(() => { if (typeof globalThis.hideParentLoadingOverlay === 'function') { globalThis.hideParentLoadingOverlay(); } }, 250);
+                setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA activo → timer pendiente hasta que el usuario active GPS en hijo5`);
                 (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
 
@@ -11078,24 +10879,13 @@
         async function _broadcastAventuraIniciada(aventura, idioma, logPrefix) {
             const datosInicio = { aventura, idioma: idioma || 'es', timestamp: Date.now() };
             try {
-                if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({
-                        tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-                        origen: getPadreId(),
-                        destino: 'broadcast',
-                        datos: { evento: 'AVENTURA_INICIADA', ...datosInicio }
-                    });
-                    (globalThis.logger || console).debug(`${logPrefix} Notificación de inicio enviada a todos los hijos`);
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible aún. Esperando inicialización de mensajería...`);
-                    if (!globalThis.__pendingBroadcast) globalThis.__pendingBroadcast = [];
-                    globalThis.__pendingBroadcast.push({
-                        tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-                        origen: getPadreId(),
-                        destino: 'broadcast',
-                        datos: { evento: 'AVENTURA_INICIADA', ...datosInicio }
-                    });
-                }
+                await enviarMensaje_S2({
+                    tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
+                    origen: getPadreId(),
+                    destino: 'broadcast',
+                    datos: { evento: 'AVENTURA_INICIADA', ...datosInicio }
+                });
+                (globalThis.logger || console).debug(`${logPrefix} Notificación de inicio enviada a todos los hijos`);
             } catch (broadcastError) {
                 (globalThis.logger || console).warn(`${logPrefix} Error en broadcast de inicio:`, broadcastError);
             }
@@ -11199,106 +10989,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
             }
         }
 
-        async function _hdl_SELECCION_INICIAR_AVENTURA(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.INICIAR]`;
-
-            (globalThis.logger || console).info('🎯 [PADRE] INICIAR_AVENTURA RECIBIDO:', mensaje);
-
-            try {
-                const { aventura, idioma, terminosAceptados, timestamp } = mensaje.datos || {};
-
-                (globalThis.logger || console).info(`${logPrefix} 🚀 Iniciando aventura: ${aventura} (idioma: ${idioma})`);
-
-                // Validar que tengamos todos los datos necesarios
-                if (!aventura) {
-                    (globalThis.logger || console).error(`${logPrefix} No se especificó aventura`);
-                    return;
-                }
-
-                // Almacenar configuración final
-                if (!estado.seleccion) estado.seleccion = {};
-                estado.seleccion.aventura = aventura;
-                estado.seleccion.idioma = idioma || 'es';
-                estado.seleccion.terminosAceptados = terminosAceptados;
-                estado.seleccion.iniciada = true;
-
-                // Re-sincronizar globals por si se limpiaron entre AVENTURA_SELECCIONADA e INICIAR_AVENTURA
-                globalThis.aventuraSeleccionada = aventura;
-                globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
-
-                // =====================================================
-                // CARGAR IFRAMES HIJOS AHORA (diferido hasta selección)
-                // =====================================================
-                (globalThis.logger || console).info(`${logPrefix} 📦 Cargando iframes hijos...`);
-
-                const iframesHijos = [
-                    { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
-                    { id: 'hijo2', src: 'coordenadas-hijo2.html' },
-                    { id: 'hijo3', src: 'audio-hijo3.html' },
-                    { id: 'hijo5', src: 'boton-casa-hijo5.html' }
-                ];
-
-                // Cargar iframes en paralelo y esperar HIJO_LISTO
-                await _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix);
-                estado.seleccion.timestampInicio = timestamp;
-
-                // Persistir que la aventura ha sido iniciada (para reanudación tras recarga)
-                try {
-                    const modoActual = estado.modo?.actual || MODOS.CASA;
-                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({
-                        aventura: aventura,
-                        idioma: idioma || 'es',
-                        modo: modoActual,
-                        timestamp: Date.now()
-                    }));
-                    (globalThis.logger || console).debug(`${logPrefix} Aventura persistida con modo: ${modoActual}`);
-                } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
-
-                // =====================================================
-                // DISTRIBUIR DATOS DE AVENTURA A LOS HIJOS
-                // =====================================================
-                (globalThis.logger || console).info(`${logPrefix} Distribuyendo datos de aventura ${aventura} (${idioma}) a los hijos...`);
-                await _distribuirDatosConLog(aventura, idioma, logPrefix);
-
-                // =====================================================
-                // ESPERAR CONFIRMACIONES DE CARGA DE LOS HIJOS
-                // =====================================================
-                (globalThis.logger || console).info(`${logPrefix} Esperando confirmaciones de carga de datos...`);
-
-                // Resetear flags de confirmación
-                estado.seleccion.coordenadasCargadas = false;
-                estado.seleccion.audiosCargados = false;
-                estado.seleccion.retosCargados = false;
-
-                // Esperar confirmaciones (con timeout de 10 segundos)
-                const confirmacionesCompletas = await _esperarConfirmacionesCarga(estado.seleccion, logPrefix, 10000);
-
-                if (!confirmacionesCompletas) {
-                    (globalThis.logger || console).warn(`${logPrefix} Continuando sin todas las confirmaciones...`);
-                }
-
-                // Ocultar página de selección si está como iframe
-                const iframeSeleccion = document.getElementById('seleccion');
-                if (iframeSeleccion) {
-                    iframeSeleccion.style.display = 'none';
-                }
-
-                // Mostrar componentes de la aventura (mapa, hijos, controles)
-                (globalThis.logger || console).info(`${logPrefix} Mostrando componentes de la aventura...`);
-
-                _mostrarComponentesAventura(logPrefix);
-
-                await _broadcastAventuraIniciada(aventura, idioma, logPrefix);
-
-                await _iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix);
-
-                (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} iniciada correctamente`);
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error iniciando aventura:`, error);
-            }
-        }
-
         async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.TERMINOS]`;
 
@@ -11330,7 +11020,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA, _hdl_SELECCION_AVENTURA_ACTIVADA);
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.INICIAR_AVENTURA, _hdl_SELECCION_INICIAR_AVENTURA);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.TERMINOS_ACEPTADOS, _hdl_SELECCION_TERMINOS_ACEPTADOS);
         }
@@ -11581,6 +11270,9 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE, _hdl_TEMPORIZADOR_TOGGLE);
         }
 
+        function _regCtrl_UI(TIPOS_MENSAJE) {
+        }
+
         (async function registrarControladoresScript2() {
             await _setupRegistrarControladores();
             const TIPOS_MENSAJE = globalThis.TIPOS_MENSAJE || TIPOS_MENSAJE_S2;
@@ -11594,6 +11286,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
             _regCtrl_DatosSolicitudes(TIPOS_MENSAJE);
             _regCtrl_Seleccion(TIPOS_MENSAJE);
             _regCtrl_AventuraYTiempo(TIPOS_MENSAJE);
+            _regCtrl_UI(TIPOS_MENSAJE);
         })();
 
         (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} ✅ Controladores Script 2 registrados`);
@@ -11697,6 +11390,33 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 }, 2000);
             }
         })();
+
+        // ============================================================
+        // TTL de pending: fuerza compleción de elementos bloqueados (§30.7b)
+        // Corre cada 60s, solo en modo AVENTURA, y elimina los pending
+        // cuyo ttlMs ha expirado para que la aventura no quede congelada.
+        // ============================================================
+        if (!globalThis.__VV_PENDING_CLEANUP) {
+            globalThis.__VV_PENDING_CLEANUP = setInterval(() => {
+                try {
+                    const est = getEstadoSafe();
+                    if (est?.modo?.actual !== MODOS.AVENTURA) return;
+                    const pendings = est.pendingCompleciones;
+                    if (!pendings) return;
+                    const now = Date.now();
+                    for (const [key, p] of Object.entries(pendings)) {
+                        if (typeof p.ttlMs === 'number' && (now - p.timestamp) > p.ttlMs) {
+                            (globalThis.logger || console).warn(`[PADRE][PENDING][TTL] Pending expirado (${Math.round((now - p.timestamp) / 1000)}s): ${key} — forzando compleción`);
+                            p.audio = true;
+                            p.llegada = true;
+                            intentarCompletarElemento(key).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error:', e?.message));
+                        }
+                    }
+                } catch (e) {
+                    (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error en comprobación de TTL:', e?.message);
+                }
+            }, 60_000);
+        }
     </script>
 
     <!-- Verificar que el archivo exista en la ruta especificada -->
@@ -11712,7 +11432,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_IFRAME } = await import('./js/constants.js');
         await import('./js/config.js');
         const loggerIframe = (await import('./js/logger.js')).default;
-        const { coordinarAccion } = await import('./js/app.js');
+        const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
         while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
             await sleep(50);
@@ -11798,21 +11518,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                     hijo4.focus();
                 }, 100);
 
-                // Usar sistema de coordinación para mostrar retos
-                try {
-                    await coordinarAccion('mostrar_retos', [{
-                        componente: 'hijo4',
-                        tipo: TIPOS_MENSAJE_IFRAME.UI.NOTIFICACION,
-                        datos: {
-                            accion: 'mostrar_retos',
-                            elemento: 'hijo4',
-                            timestamp: Date.now()
-                        }
-                    }]);
-                } catch (error) {
-                    loggerIframe.error('Error coordinando mostrar retos:', error);
-                }
-
                 if (globalThis.logger?.info) {
                     globalThis.logger.info('Hijo4 (challenges) shown');
                 }
@@ -11836,21 +11541,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         globalThis.actualizarVisibilidadSelectorMapa();
                     }
                 }, 300);
-
-                // Usar sistema de coordinación para ocultar retos
-                try {
-                    await coordinarAccion('ocultar_retos', [{
-                        componente: 'hijo4',
-                        tipo: TIPOS_MENSAJE_IFRAME.UI.NOTIFICACION,
-                        datos: {
-                            accion: 'ocultar_retos',
-                            elemento: 'hijo4',
-                            timestamp: Date.now()
-                        }
-                    }]);
-                } catch (error) {
-                    loggerIframe.error('Error coordinando ocultar retos:', error);
-                }
 
                 if (globalThis.logger?.info) {
                     globalThis.logger.info('Hijo4 (challenges) hidden');
@@ -11895,19 +11585,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
     <!-- Cleanup on pagehide: removes iframes and global references to reduce memory -->
     <script>
     // Implementar pagehide para limpiar iframes y referencias globales
-    function _limpiarCorrelacionesPendientes() {
-        try {
-            if (globalThis.estadoPadre && globalThis.estadoPadre.correlacionesMensajes) {
-                for (const [, meta] of globalThis.estadoPadre.correlacionesMensajes) {
-                    try { meta.reject && meta.reject(new Error('Page hidden - correlation aborted')); } catch { }
-                }
-                globalThis.estadoPadre.correlacionesMensajes.clear();
-            }
-        } catch (e) {
-            (globalThis.logger || console).warn('[PADRE] Error limpiando correlaciones en pagehide:', e && e.message);
-        }
-    }
-
     function _detenerHeartbeatSeguro() {
         try {
             if (globalThis.__HEARTBEAT_INICIADO) {
@@ -11926,15 +11603,13 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         document.querySelectorAll('iframe').forEach(iframe => { iframe.src = 'about:blank'; iframe.remove(); });
         if (globalThis.modoActual) globalThis.modoActual = undefined;
         if (globalThis.intervaloMonitoreo) clearInterval(globalThis.intervaloMonitoreo);
-        if (globalThis.__vv_correlacion_cleanup) {
-            try { clearInterval(globalThis.__vv_correlacion_cleanup); } catch { }
-            globalThis.__vv_correlacion_cleanup = undefined;
-        }
         if (globalThis.__VV_PENDING_CLEANUP) {
             try { clearInterval(globalThis.__VV_PENDING_CLEANUP); } catch { }
             globalThis.__VV_PENDING_CLEANUP = undefined;
         }
-        _limpiarCorrelacionesPendientes();
+        for (const key of ['__VV_GPS_OVERLAY_TIMER', '__VV_GPS_SIGNAL_TIMER', '__VV_INET_OVERLAY_TIMER']) {
+            if (globalThis[key]) { try { clearInterval(globalThis[key]); } catch { } globalThis[key] = undefined; }
+        }
         _detenerHeartbeatSeguro();
         if (globalThis.__CONTROLADOR_REGISTRADOS && typeof globalThis.__CONTROLADOR_REGISTRADOS.clear === 'function') {
             try { globalThis.__CONTROLADOR_REGISTRADOS.clear(); } catch { }
@@ -11952,6 +11627,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         // NOTA: inicializarMensajeria ya fue llamada en Script 1
         // ============================================================
 
+        const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
         while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
             await sleep(50);

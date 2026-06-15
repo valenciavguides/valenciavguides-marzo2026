@@ -8799,7 +8799,7 @@ Se actualizó el CACHE_VERSION en `sw.js` para forzar la invalidación del cach�
 
 **Estado actual:**
 
-- Línea 84: `const CACHE_VERSION = 'v-fixes-jun09'` — el valor cambia en cada commit relevante
+- Línea 84: `const CACHE_VERSION = 'v-overlays-jun15'` — el valor cambia en cada commit relevante
 - El CACHE_VERSION debe actualizarse **manualmente** cada vez que se necesite invalidar la caché
 - El directorio `tools/` existe pero está vacío; `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no existe** — la nota es aspiracional
 
@@ -9051,13 +9051,13 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 
 | # | Problema | Imagen | Detectado por | Estado |
 |---|---|---|---|---|
-| 30.1 | Sin internet | `imagen-no-internet.png` | Petición fallida | ❌ pendiente |
-| 30.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` | ❌ overlay pendiente |
-| 30.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` | ❌ pendiente |
-| 30.4 | Fuera de rango >5min | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 | ⚠️ parcial |
-| 30.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` (throttle 3min) | ❌ pendiente |
-| 30.6 | GPS accuracy >50m | `fotogpserror.png` | `_watchPositionSuccess` | ⚠️ parcial (botón sin countdown) |
-| 30.7a | AUDIO.ERROR no desbloquea pending | — | — | ❌ bug pendiente |
-| 30.7b | TTL pending nunca ejecutado | — | — | ❌ bug pendiente |
+| 30.1 | Sin internet | `imagen-no-internet.png` | `AUDIO.ERROR` + `!navigator.onLine` → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
+| 30.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(code)` | ✅ implementado |
+| 30.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
+| 30.4 | Fuera de rango >5min | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 | ⚠️ parcial — pendiente verificar todos los puntos |
+| 30.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
+| 30.6 | GPS accuracy >50m | `fotogpserror.png` | `_watchPositionSuccess` | ✅ botón centrado + countdown 15s implementado |
+| 30.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` marca `pending.audio = true` + llama `intentarCompletarElemento` | ✅ corregido |
+| 30.7b | TTL pending nunca ejecutado | — | `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` | ✅ corregido |
 
 ---
