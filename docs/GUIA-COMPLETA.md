@@ -7157,6 +7157,8 @@ El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la 
 
 El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }`. En cada reintento por timeout, `enableHighAccuracy` se baja a `false` y el timeout se duplica (máximo 60 s).
 
+> Esta sección cubre el overlay de baja precisión. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§24.15**.
+
 ---
 
 ### 24.13. Resumen visual del flujo completo
@@ -7231,6 +7233,68 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | Overlay + countdown fuera de rango | Inmediato al salir >50m | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
 | Heartbeats fallidos antes de reconexión | 3 | `MAX_HEARTBEATS_FALLIDOS` en `config.js` |
 | Auto-continuación diálogo reanudación | 30 s | `mostrarDialogoReanudacion` en `codigo-padre.html` |
+
+---
+
+### 24.15. ¿Qué pasa si algo falla durante la aventura?
+
+La aplicación está diseñada para que ningún error externo deje al usuario bloqueado sin explicación. Cuando algo sale mal, aparece un overlay a pantalla completa con una imagen descriptiva, un botón de acción y, en la mayoría de casos, una cuenta atrás que reactiva el botón automáticamente.
+
+Estos overlays **solo aparecen en modo AVENTURA**. En modo CASA no se muestran aunque la señal sea mala o la conexión esté cortada.
+
+---
+
+#### ¿Y si el teléfono pierde la conexión a internet?
+
+Durante la aventura, los audios se descargan en el momento en que el usuario llega a cada parada. Si en ese instante el teléfono no tiene conexión, el audio no puede reproducirse.
+
+La aplicación detecta el fallo y muestra un overlay con la imagen de "sin internet" (`imagen-no-internet.png`) y un botón 🌐🔄 con una cuenta atrás de 15 segundos. Cuando el tiempo llega a cero, el botón se reactiva y el usuario puede volver a intentarlo. Si el teléfono recupera la conexión por sí solo, el overlay desaparece automáticamente sin que el usuario tenga que hacer nada.
+
+> El resto de la aventura —el mapa, el texto de las paradas, los retos— sigue funcionando porque el Service Worker ya los tiene en caché. Solo los audios requieren conexión en el momento de reproducirse.
+
+---
+
+#### ¿Y si el GPS pierde señal?
+
+Si el GPS deja de dar posiciones (por túnel, edificio, o simplemente porque el teléfono pierde señal), la aplicación muestra un overlay con la imagen de "sin GPS" (`imagen-no-gps.png`).
+
+El botón que aparece depende del motivo:
+
+- **El permiso GPS está denegado** — el botón muestra 🛰️→🌐→⚙️ y, al pulsarlo, abre el diálogo del sistema para que el usuario pueda reactivar el permiso desde los ajustes del dispositivo. No hay cuenta atrás porque la app no puede saber cuándo el usuario habrá cambiado el ajuste.
+- **Señal perdida o timeout** — el botón muestra 🛰️🔄 con una cuenta atrás de 15 segundos. Cuando el GPS vuelve a dar una posición válida, el overlay desaparece automáticamente.
+
+---
+
+#### ¿Y si el GPS tiene poca precisión?
+
+A veces el GPS funciona, pero la precisión que reporta es peor de 50 metros (por ejemplo, el teléfono está usando torres de telefonía en vez de satélites). En ese caso, la posición no es fiable y la aplicación la descarta para evitar falsos positivos.
+
+El usuario ve el overlay de baja precisión (`fotogpserror.png`) con el botón 🛰️🔄 y una cuenta atrás de 15 segundos. Si en la siguiente lectura la precisión mejora por debajo de 50 m, el overlay desaparece solo. Si el usuario pulsa el botón, se lanza una lectura inmediata.
+
+Este caso ya estaba documentado en §24.12 con más detalle técnico.
+
+---
+
+#### ¿Y si el usuario se aleja más de 5 km de la ruta?
+
+Esto no es un error técnico sino una comprobación de integridad: si el GPS sitúa al usuario a más de 5 kilómetros de cualquier punto de la aventura, la aplicación entiende que algo no encaja —puede que el teléfono esté dando coordenadas erróneas, o que alguien intente completar la aventura desde casa.
+
+En ese caso el **botón de avanzar se bloquea** silenciosamente (sin overlay llamativo). Cuando el GPS vuelva a situar al usuario dentro del área de la ruta, el botón se reactiva solo. Esta comprobación se hace con un margen de throttling de 3 minutos para no saturar el procesamiento.
+
+---
+
+#### ¿Y si una parada se queda bloqueada por un audio fallido?
+
+Si el audio de una parada falla y la aventura queda en un estado donde la parada nunca se completa, la aplicación tiene dos mecanismos de seguridad:
+
+1. **Inmediato:** cuando el audio falla, la aplicación lo marca como "reproducido" internamente y comprueba si ya se cumplen el resto de condiciones para completar la parada (llegada física + reto). Si es así, la completa directamente.
+2. **TTL de seguridad:** cada 60 segundos, la aplicación revisa todos los elementos pendientes. Si alguno lleva más tiempo del permitido sin completarse, se fuerza su compleción para que el usuario pueda seguir avanzando.
+
+El usuario no ve ningún aviso especial en estos casos — la aventura simplemente avanza con normalidad.
+
+---
+
+> Para la documentación técnica completa de estos mecanismos (funciones implicadas, flujos de código, tabla de estado de implementación), ver **§30 — Posibles problemas en modo AVENTURA**.
 
 ---
 
@@ -9054,7 +9118,7 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 | 30.1 | Sin internet | `imagen-no-internet.png` | `AUDIO.ERROR` + `!navigator.onLine` → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
 | 30.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(code)` | ✅ implementado |
 | 30.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
-| 30.4 | Fuera de rango >5min | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 | ⚠️ parcial — pendiente verificar todos los puntos |
+| 30.4 | Fuera de rango >5min | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 | ✅ verificado — `_obtenerPuntosTramo` comprueba `inicio` + `waypoints[]` + `fin`; paradas por `coordenadas` |
 | 30.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
 | 30.6 | GPS accuracy >50m | `fotogpserror.png` | `_watchPositionSuccess` | ✅ botón centrado + countdown 15s implementado |
 | 30.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` marca `pending.audio = true` + llama `intentarCompletarElemento` | ✅ corregido |
