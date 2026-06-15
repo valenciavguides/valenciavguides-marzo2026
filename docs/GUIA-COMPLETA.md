@@ -3042,16 +3042,19 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 
 | Función | Descripción |
 |---------|-------------|
-| `enviarMensaje(tipo, datos, destino)` | Envío estándar. Si `destino` es un ID de iframe, lo busca; si se omite, hace broadcast a todos los registrados |
-| `enviarMensajeConConfirmacion(tipo, datos, opciones)` | Envío con espera de `SISTEMA.ACK`; timeout configurable |
+| `enviarMensaje(tipoOrMensaje, datos?, destino?)` | Envío estándar — acepta formato objeto `({ tipo, datos, destino, origen })` o posicional `(tipo, datos, destino)`. Si `destino` es un ID de iframe, lo busca; si se omite, hace broadcast a todos los registrados |
+| `enviarMensajeConConfirmacion(tipoOrMensaje, datos?, opciones?)` | Envío con espera de `SISTEMA.ACK`; acepta el mismo formato dual que `enviarMensaje`; timeout configurable; añade campo `id` al mensaje para rastrear la confirmación |
 | `broadcastToCapability(capacidad, tipo, datos)` | Envía a todos los iframes que declararon una capacidad concreta en `HIJO_PREPARADO` — sin call sites activos en padre (ver §10.18) |
-| `registrarControlador(tipo, handler)` | Registra un handler para un tipo de mensaje entrante |
+| `registrarControlador(tipo, handler, opciones={})` | Registra un handler para un tipo de mensaje entrante; delega al state-manager si está disponible, o cae en `__vv_manejadoresLocales` |
 | `registrarIframe(id, elemento)` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva |
-| `iniciarHeartbeat(intervalo)` | Inicia el latido periódico (solo en AVENTURA) — ver §2.7 |
-| `pausarHeartbeat()` | Pausa el latido y limpia el `setInterval` — ver §2.7 |
+| `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` a `['hijo2','hijo3','hijo4','hijo5']` cada `intervalo` ms. El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `CONFIG.HEARTBEAT.MAX_HEARTBEATS_FALLIDOS` (3) fallos consecutivos sin `HEARTBEAT_RESPONSE`, recarga el iframe del hijo via self-assign (`iframe.src = iframe.src`) |
+| `pausarHeartbeat()` | Pausa el latido via state-manager (`sm.updateHeartbeat({ activo:false, intervalo:null })`); libera el `setInterval` |
+| `procesarHeartbeatResponse(mensaje)` | Resetea `heartbeatsFallidos` a 0 para el hijo que responde; si estaba marcado como desconectado, lo elimina de `hijosDesconectados` y reenvía mensajes GPS pendientes (`sm.getGpsPendientes()` → `NAVEGACION.ACTUALIZAR_ESTADO`) |
 
 **Los hijos** envían siempre con `window.parent.postMessage(mensaje, location.origin)`.
 **El padre** envía con `iframe.contentWindow.postMessage(mensaje, location.origin)` para destinos concretos. `broadcastToCapability` está disponible en mensajería pero sin call sites activos en padre — todos los envíos GPS se hacen via `enviarMensaje_S1({destino:'hijo2',...})` directo.
+
+> **Auto-exposición global**: `mensajeria.js` llama a `exponerAPIGlobal()` y dispara el evento `mensajeriaReady` inmediatamente al cargarse el módulo (antes de que nadie llame a `inicializarMensajeria()`). Esto garantiza que `globalThis.mensajeria` exista desde el primer frame. La validación de origen acepta tres condiciones: `event.origin === location.origin`, `event.origin === 'null'` (protocolo `file://`) y `event.source === globalThis.window` (auto-mensajes del propio padre).
 
 **Estructura de todo mensaje**:
 
@@ -3065,7 +3068,45 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
         paradaId: 'Av1-P-2',
         aventuraId: 'Aventura1'
     }
+    // id: 'msg_xxx'  — campo adicional solo en enviarMensajeConConfirmacion, para rastrear la confirmación
 }
+```
+
+**Ciclo de heartbeat y reconexión automática**:
+
+```mermaid
+sequenceDiagram
+    participant P as Padre (mensajeria.js)
+    participant SM as StateManager
+    participant H as Hijo crítico (hijo2/3/4/5)
+
+    Note over P: setInterval cada 5 s (AVENTURA)
+
+    P->>H: SISTEMA.HEARTBEAT { timestamp }
+    P->>SM: heartbeatsFallidos[hijoId]++
+
+    alt Hijo responde (camino feliz)
+        H->>P: SISTEMA.HEARTBEAT_RESPONSE { timestamp, componente, estado }
+        P->>SM: heartbeatsFallidos[hijoId] = 0
+        P->>SM: ultimoHeartbeat[hijoId] = Date.now()
+    else Hijo no responde (fallo × MAX_HEARTBEATS_FALLIDOS = 3)
+        Note over P: heartbeatsFallidos[hijoId] >= 3
+        P->>SM: hijosDesconectados.add(hijoId)
+        Note over P: intentarReconectarHijo(hijoId)
+        P->>H: iframe.src = iframe.src  (self-assign → reload)
+        Note over H: iframe recarga desde cero
+        H->>P: SISTEMA.HIJO_PREPARADO { componenteId, version, capacidades }
+        H->>P: SISTEMA.HIJO_LISTO { componenteId, iframeId }
+        Note over P: handshake completo; hijo reconectado
+        H->>P: SISTEMA.HEARTBEAT_RESPONSE (siguiente tick)
+        P->>SM: hijosDesconectados.delete(hijoId)
+        alt Hay mensajes GPS pendientes (solo hijo2)
+            P->>SM: getGpsPendientes()
+            SM-->>P: [ { tipo, datos }... ]
+            P->>H: NAVEGACION.ACTUALIZAR_ESTADO (× N)
+            P->>SM: limpiarGpsPendientes()
+        end
+    end
 ```
 
 ---
@@ -3267,18 +3308,17 @@ sequenceDiagram
 |---------|----------|
 | `SISTEMA.PADRE_DATOS` | Recibe `{ modo, timestamp }` — handshake estándar |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Completa el handshake |
-| `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` (mismo handler estándar que los otros hijos) |
 | `SISTEMA.ACK` | Acuse de recibo de mensajes enviados |
 | `SISTEMA.CAMBIO_MODO` | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Acuse de recibo de que el modo fue aplicado globalmente |
 
-> La pantalla de selección no recibe `CAMBIO_PARADA` pero sí recibe `SISTEMA.HEARTBEAT` — tiene el mismo handler de heartbeat estándar que los hijos de aventura. En la práctica el padre no le envía heartbeat cuando la pantalla está oculta.
+> La pantalla de selección no recibe `CAMBIO_PARADA` ni `SISTEMA.HEARTBEAT` — el padre solo envía el pulso de heartbeat a `['hijo2','hijo3','hijo4','hijo5']` (array `hijosCriticos` en `mensajeria.js:901`). Aunque la pantalla tenga un handler de heartbeat registrado, el padre nunca le envía el pulso.
 
 ---
 
 ### 8.5 hijo1 — extrainfo-hijo1.html (panel de opciones)
 
-Panel lateral derecho con opciones extra (gastronomía, información, historia) y temporizador de aventura.
+Panel lateral izquierdo con opciones extra (gastronomía, información, historia) y temporizador de aventura.
 
 | Dirección | Mensaje | Payload clave | Cuándo |
 |-----------|---------|---------------|--------|
@@ -3346,7 +3386,7 @@ Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay f
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Cambia clase CSS body (`modo-casa`/`modo-aventura`); en CASA desactiva detección de proximidad | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
-| `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total }` | Almacena en `globalThis.__vv_coordenadasAventura`; envía `COORDENADAS_CARGADAS` | ✓ | ✓ |
+| `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` | Almacena en `globalThis.__vv_coordenadasAventura`; envía `COORDENADAS_CARGADAS` | ✓ | ✓ |
 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total }` | Almacena descripciones de paradas | ✓ | ✓ |
 | `DATOS.COORDENADAS_PARADAS_REQUEST` | `{ paradaId?, incluirRutas?, actualizarMapa?, contexto?, pedidoId }` | Devuelve coordenadas filtradas (o todas si no hay `paradaId`) vía `COORDENADAS_PARADAS_RESPONSE` | ✓ | ✓ |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, nombre, tipo, imagen, video, coordenadas, timestamp }` | Actualiza `estadoComponente.idParadaActual` y `tipoParadaActual`; resetea estado GPS/llegada; llama `actualizarEstadoBotones()` | ✓ | ✓ |
@@ -3520,7 +3560,7 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 | **→ padre** | `CHAT.CERRAR` | `{ }` | Usuario pulsa el botón de cerrar |
 | **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Handshake init — idioma llega vía `CHAT.ESTADO_PADRE` |
 | **padre →** | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Handshake OK |
-| **padre →** | `SISTEMA.HEARTBEAT` / `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | hijo6 no es hijo crítico — solo si está cargado |
+| **padre →** | `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | hijo6 no es hijo crítico — no está en `hijosCriticos` y no recibe el pulso `SISTEMA.HEARTBEAT`; sí puede recibir `HEARTBEAT_START`/`PAUSE` si está cargado cuando el padre cambia de modo |
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Handler presente pero sin acción (no-op) |
 | **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Actualiza el FAQ con el contexto actual de la aventura |
 
@@ -3545,7 +3585,7 @@ flowchart LR
     P -->|"PADRE_DATOS\nCONFIRMA_HIJO_LISTO"| T
 
     H1 -->|"HIJO_PREPARADO/LISTO\nTEMPORIZADOR.TOGGLE\nAVENTURA.TIEMPO_*\nUI.CLOSE_MENUS"| P
-    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nAVENTURA.INICIADA/FINALIZADA/DETENER\nUI.CLOSE_MENUS"| H1
+    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nAVENTURA.INICIADA/FINALIZADA/DETENER\nUI.CLOSE_MENUS"| H1
 
     H2 -->|"HIJO_PREPARADO/LISTO\nLLEGADA_DETECTADA\nUSUARIO_FUERA_RANGO\nUI.ACCION_USUARIO\nCOORDS_PARADAS_RESPONSE\nDAT.COORDENADAS/TEXTOS_CARGADOS"| P
     P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nDATA.CARGAR_COORDS/TEXTOS\nNAVEG.CAMBIO_PARADA\nCONTROL.HAB/DESHAB\nGPS.ESTADO_ACTUALIZADO/ERROR\nDAT.CARGADOS_RECIBIDO"| H2
@@ -3560,7 +3600,7 @@ flowchart LR
     P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nRESPUESTA_DATOS_PARADAS\nCAMBIO_PARADA_CONFIRMADO\nCAMBIO_PARADA"| H5
 
     H6 -->|"HIJO_PREPARADO/LISTO\nCHAT.CERRAR"| P
-    P -->|"PADRE_DATOS/CONFIRMA\nHEARTBEAT\nCHAT.ESTADO_PADRE"| H6
+    P -->|"PADRE_DATOS/CONFIRMA\nCHAT.ESTADO_PADRE"| H6
 ```
 
 ---
