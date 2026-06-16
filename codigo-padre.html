@@ -2147,13 +2147,22 @@
             }
 
             overlay.classList.add('visible');
-            // Send at 800ms to give the iframe module time to load before listening
-            setTimeout(() => {
-                const iframeEl = overlay.querySelector('iframe');
-                if (iframeEl && iframeEl.contentWindow) {
-                    iframeEl.contentWindow.postMessage({ tipo: 'mapa-visible' }, globalThis.location.origin);
+            // Notify mapa-completo that it's visible so it can call invalidateSize.
+            // Use load event (reliable) + 1500ms fallback (in case load already fired).
+            const _iframeEl = overlay.querySelector('iframe');
+            if (_iframeEl) {
+                const _sendMapaVisible = () => {
+                    [50, 300, 700].forEach(ms => setTimeout(() => {
+                        _iframeEl.contentWindow?.postMessage({ tipo: 'mapa-visible' }, globalThis.location.origin);
+                    }, ms));
+                };
+                if (_iframeEl.contentDocument?.readyState === 'complete') {
+                    _sendMapaVisible();
+                } else {
+                    _iframeEl.addEventListener('load', _sendMapaVisible, { once: true });
+                    setTimeout(_sendMapaVisible, 1500); // fallback si load ya disparó
                 }
-            }, 800);
+            }
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                 globalThis.actualizarVisibilidadSelectorMapa();
             }
@@ -9725,8 +9734,14 @@
                 // - hijo5 envía "padre-P-5" (padre-{coord.id} donde coord.id="P-5")
                 // - DATOS_PADRE tiene padreid="padre-P5", parada_id="P-5", tramo_id="TR-5"
                 const idSinPrefijo = paradaId.startsWith('padre-') ? paradaId.substring(6) : paradaId;
-                const _av = globalThis.aventuraSeleccionada;
-                const _idioma = globalThis.idiomaSeleccionado || 'es';
+                const _avRaw = globalThis.aventuraSeleccionada
+                    || (() => { try { return localStorage.getItem('vv_aventura'); } catch (_e) { return null; } })()
+                    || 'Aventura1';
+                const _idiomaRaw = globalThis.idiomaSeleccionado
+                    || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_e) { return null; } })()
+                    || 'es';
+                const _av = _avRaw;
+                const _idioma = DATOS_PADRE?.[_av]?.[_idiomaRaw] ? _idiomaRaw : 'es';
                 const _elementosIDpadre = DATOS_PADRE?.[_av]?.[_idioma]?.elementosIDpadre;
                 if (!_elementosIDpadre) {
                     (globalThis.logger || console).warn(`${logPrefix} DATOS_PADRE no disponible para aventura="${_av}" idioma="${_idioma}"`);
