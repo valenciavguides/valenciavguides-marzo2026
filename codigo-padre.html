@@ -7596,6 +7596,7 @@
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S2, MODOS: MODOS_S2 } = await import('./js/constants.js');
         const { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S2, resolverIdsParada: resolverIdsParada_S2 } = await import('./js/utils.js');
         await import('./js/suppress-warnings.js');
+        const { DATOS_PADRE } = await import('./js/aventuras-ID-padre.js');
 
         const loggerScript2 = (await import('./js/logger.js')).default;
         // inicializarMonitoreo ya importado en Script 1 como inicializarMonitoreo_S1
