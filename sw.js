@@ -80,7 +80,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-sw-devbypass-jun16';
+const CACHE_VERSION = 'v-sw-no-broadcast-jun16';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
@@ -143,14 +143,9 @@ self.addEventListener('activate', event => {
       ))
       .then(() => {
         console.log(`[SW] Activado: ${CACHE_NAME} + ${MEDIA_CACHE_NAME}`);
-        // Tomar control de todas las pestañas abiertas inmediatamente
+        // Tomar control de todas las pestañas abiertas inmediatamente.
+        // La recarga la gestiona controllerchange en el cliente (con cooldown sessionStorage).
         return globalThis.clients.claim();
-      })
-      .then(() => {
-        // Notificar a todas las pestañas para que recarguen con el nuevo SW
-        return self.clients.matchAll({ type: 'window' }).then(clients =>
-          Promise.all(clients.map(c => c.postMessage({ tipo: 'SW_ACTUALIZADO' })))
-        );
       })
   );
 });

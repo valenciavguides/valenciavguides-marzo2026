@@ -11950,7 +11950,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 _hacerRecargaSW('Nuevo service worker activo');
             });
             navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data?.tipo === 'SW_ACTUALIZADO') {
+                if (event.data?.tipo === 'SW_ACTUALIZADO' && previousController) {
                     _hacerRecargaSW('SW_ACTUALIZADO recibido');
                 }
             });
