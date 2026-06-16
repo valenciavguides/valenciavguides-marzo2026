@@ -198,8 +198,41 @@
         }
 
         /* Estilos para el cambio de modo - Simplificados */
-        .modo-aventura #btn-gps.activo {
+        .modo-aventura #btn-avanzar.activo {
             animation: pulse 1.5s infinite;
+        }
+
+        /* ── Glow animations (AVENTURA) ── */
+        @keyframes glow-suave {
+            0%, 100% { box-shadow: inset 0 0 8px rgba(255,255,255,0.15); }
+            50%       { box-shadow: inset 0 0 18px rgba(255,255,255,0.38); }
+        }
+        @keyframes glow-activo {
+            0%, 100% { box-shadow: inset 0 0 10px rgba(255,255,255,0.2); }
+            50%       { box-shadow: inset 0 0 26px rgba(255,255,255,0.55); }
+        }
+        @keyframes spin-btn {
+            0%   { transform: rotate(0deg); }
+            60%  { transform: rotate(1080deg); }
+            85%  { transform: rotate(1350deg); }
+            100% { transform: rotate(1440deg); }
+        }
+
+        /* Glow suave: siempre activos cuando habilitados */
+        #btn-mapa-completo:not(.activo),
+        #btn-mapa-jpg:not(.activo),
+        #btn-imagen:not(.activo) {
+            animation: glow-suave 3s ease-in-out infinite;
+        }
+        /* Glow prominente: botones que requieren atención del usuario */
+        #btn-video:not([disabled]):not(.activo),
+        #btn-avanzar:not([disabled]):not(.activo),
+        #btn-ubicacion:not([disabled]):not(.activo) {
+            animation: glow-activo 3s ease-in-out infinite;
+        }
+        /* Spin: anula el glow mientras dura el giro */
+        .spinning {
+            animation: spin-btn 0.9s cubic-bezier(0.2,0.8,0.4,1) forwards !important;
         }
 
         /* Estilos del Modal para imagen/video */
@@ -454,8 +487,8 @@
         <button id="btn-imagen" class="boton" title="Mostrar Imagen">
             <img src="imagenes/imagenes-aplicación/H2-fotoproximo-monumento.png" alt="Parada">
         </button>
-        <button id="btn-gps" class="boton" title="Activar GPS">
-            <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="GPS">
+        <button id="btn-avanzar" class="boton" title="Avanzar">
+            <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="Avanzar">
         </button>
         <button id="btn-ubicacion" class="boton" title="Centrar en Ubicación">
             <img src="imagenes/imagenes-aplicación/H2-fotodistancia.png" alt="Ubicación">
@@ -837,6 +870,7 @@ const estadoComponente = {
     idParadaActual: null,  // 'P-X' o 'TR-X'
     toleranciaGPS: 50, // Tolerancia dinámica recibida de funciones-mapa (50m paradas, variable tramos)
     controlesHabilitados: true,
+    btnAvanzarDeshabilitadoExternamente: false,
     inicializado: false, // Estado de inicialización del componente
     elementosDOM: {}, // Referencias a botones
     botonesActivos: {
@@ -861,7 +895,7 @@ const estadoComponente = {
 
 // Referencias DOM
 const elementosDOM = {
-    btnGps: document.getElementById('btn-gps'),
+    btnAvanzar: document.getElementById('btn-avanzar'),
     btnImagen: document.getElementById('btn-imagen'),
     btnVideo: document.getElementById('btn-video'),
     btnUbicacion: document.getElementById('btn-ubicacion'),
@@ -1003,34 +1037,38 @@ function _actualizarBotonVideo(elementosDOM, retoActivo, tipoParadaActual, idPar
 }
 
 function _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, idParadaActual, distanciaAlDestino, toleranciaGPS) {
-    if (!elementosDOM.btnGps) return;
+    if (!elementosDOM.btnAvanzar) return;
+    if (estadoComponente.btnAvanzarDeshabilitadoExternamente) {
+        desactivarBoton(elementosDOM.btnAvanzar);
+        return;
+    }
     const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
     if (modo === 'casa') {
-        desactivarBoton(elementosDOM.btnGps);
+        desactivarBoton(elementosDOM.btnAvanzar);
         logger.debug('🛰️ Botón GPS DESACTIVADO: modo casa (forzado)');
         return;
     }
     if (retoActivo) {
-        desactivarBoton(elementosDOM.btnGps);
+        desactivarBoton(elementosDOM.btnAvanzar);
         logger.debug('🛰️ Botón GPS DESACTIVADO: reto activo');
         return;
     }
     if (modo === 'aventura') {
-        _actualizarGpsEnModoAventura(elementosDOM.btnGps, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS);
+        _actualizarGpsEnModoAventura(elementosDOM.btnAvanzar, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS);
     }
 }
 
-function _actualizarGpsEnModoAventura(btnGps, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS) {
+function _actualizarGpsEnModoAventura(btnAvanzar, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS) {
     const rangoMinimo = esTramo ? 5 : 0;
     const rangoMaximo = esTramo ? toleranciaGPS : 20;
     const distanciaEnRango = distanciaAlDestino !== null &&
                            distanciaAlDestino >= rangoMinimo &&
                            distanciaAlDestino <= rangoMaximo;
     if (distanciaEnRango) {
-        activarBoton(btnGps);
+        activarBoton(btnAvanzar);
         logger.debug(`🛰️ Botón GPS ACTIVADO (${esTramo ? 'TRAMO' : 'PARADA'}): distancia ${distanciaAlDestino.toFixed(1)}m en rango ${rangoMinimo}-${rangoMaximo}m`);
     } else {
-        desactivarBoton(btnGps);
+        desactivarBoton(btnAvanzar);
         logger.debug(`🛰️ Botón GPS DESACTIVADO: distancia ${distanciaAlDestino?.toFixed(1) || 'desconocida'}m fuera de rango ${rangoMinimo}-${rangoMaximo}m`);
         enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
@@ -1060,8 +1098,7 @@ function _actualizarBotonUbicacion(elementosDOM, modo, retoActivo) {
 
 function _desactivarBotonesRangoExcedido(elementosDOM) {
     if (elementosDOM.btnVideo) desactivarBoton(elementosDOM.btnVideo);
-    if (elementosDOM.btnImagen) desactivarBoton(elementosDOM.btnImagen);
-    if (elementosDOM.btnGps) desactivarBoton(elementosDOM.btnGps);
+    if (elementosDOM.btnAvanzar) desactivarBoton(elementosDOM.btnAvanzar);
     if (elementosDOM.btnMapaCompleto) desactivarBoton(elementosDOM.btnMapaCompleto);
     if (elementosDOM.btnMapaJpg) desactivarBoton(elementosDOM.btnMapaJpg);
     if (elementosDOM.btnUbicacion) activarBoton(elementosDOM.btnUbicacion);
@@ -1321,11 +1358,48 @@ async function _reproducirVideoParada(idParadaActual) {
 document.addEventListener('DOMContentLoaded', async () => {
     actualizarEstadoBotones();
 
+    // ── Spin behavior (AVENTURA) ──
+    // Botones glow-activo giran cada 5 s hasta ser pulsados; se reinicia en cada CAMBIO_PARADA.
+    const _spinState = new Map(); // id → { intervalId, pressed }
+
+    function _iniciarSpinBtn(btn) {
+        if (!btn) return;
+        _detenerSpinBtn(btn);
+        const state = { intervalId: null, pressed: false };
+        state.intervalId = setInterval(() => {
+            if (state.pressed || btn.disabled) return;
+            btn.classList.remove('spinning');
+            void btn.offsetWidth; // forzar reflow para reiniciar animación
+            btn.classList.add('spinning');
+            btn.addEventListener('animationend', () => btn.classList.remove('spinning'), { once: true });
+        }, 5000);
+        _spinState.set(btn.id, state);
+        btn.addEventListener('click', () => {
+            state.pressed = true;
+            clearInterval(state.intervalId);
+            _spinState.delete(btn.id);
+        }, { once: true });
+    }
+
+    function _detenerSpinBtn(btn) {
+        if (!btn) return;
+        const s = _spinState.get(btn.id);
+        if (s) { clearInterval(s.intervalId); _spinState.delete(btn.id); }
+        btn.classList.remove('spinning');
+    }
+
+    function _resetSpinsAventura() {
+        [
+            elementosDOM.btnVideo, elementosDOM.btnAvanzar, elementosDOM.btnUbicacion,
+            elementosDOM.btnMapaCompleto, elementosDOM.btnMapaJpg, elementosDOM.btnImagen
+        ].forEach(btn => _iniciarSpinBtn(btn));
+    }
+
     // Event listeners para los botones
-    elementosDOM.btnGps?.addEventListener('click', async () => {
+    elementosDOM.btnAvanzar?.addEventListener('click', async () => {
     try {
         estadoComponente.gpsActivo = !estadoComponente.gpsActivo;
-        setBotonActivo(estadoComponente.gpsActivo ? 'btnGps' : null);
+        setBotonActivo(estadoComponente.gpsActivo ? 'btnAvanzar' : null);
 
         await enviarMensajeConConfirmacion({
         tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR,
@@ -1615,6 +1689,24 @@ async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada
     }
 }
 
+async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
+    const RADIO_PARADA = 20;
+    if (distanciaAlDestino <= RADIO_PARADA) {
+        if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
+            estadoComponente._llegadaNotificada = idParada;
+            logger.info(`${logPrefix} 🎯 Llegada detectada a parada ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${RADIO_PARADA}m)`);
+            await enviarMensaje({
+                tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                destino: getPadreId(),
+                datos: { paradaId: idParada, parada_id: idParada, distancia: distanciaAlDestino, tipoParada: 'parada', timestamp: Date.now() }
+            }).catch(e => logger.warn(`${logPrefix} Error notificando llegada a parada:`, e.message));
+        }
+    } else if (estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > RADIO_PARADA * 1.5) {
+        estadoComponente._llegadaNotificada = null;
+    }
+}
+
 // 📡 Controlador para actualización de estado GPS (enviado por funciones-mapa.js)
 registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (mensaje) => {
     const logPrefix = '[hijo2][ACTUALIZAR_ESTADO]';
@@ -1623,8 +1715,12 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS } = datos;
         _aplicarDatosEstado(datos, logPrefix);
 
-        if (tipoParada === 'tramo' && typeof distanciaAlDestino === 'number' && typeof toleranciaGPS === 'number') {
-            await _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix);
+        if (typeof distanciaAlDestino === 'number' && idParada) {
+            if (tipoParada === 'tramo' && typeof toleranciaGPS === 'number') {
+                await _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix);
+            } else if (tipoParada !== 'tramo') {
+                await _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix);
+            }
         }
 
         actualizarEstadoBotones();
@@ -1642,8 +1738,14 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
     const logPrefix = '[hijo2][CONTROL.HABILITAR]';
 
     try {
-        const { motivo } = mensaje.datos || {};
-        logger.info(`${logPrefix} Recibido - motivo: ${motivo}`);
+        const { motivo, control } = mensaje.datos || {};
+        logger.info(`${logPrefix} Recibido - control: ${control}, motivo: ${motivo}`);
+
+        if (control === 'btnAvanzar') {
+            estadoComponente.btnAvanzarDeshabilitadoExternamente = false;
+            actualizarEstadoBotones();
+            return;
+        }
 
         // Actualizar estado interno
         if (motivo === 'reto_cerrado') {
@@ -1670,8 +1772,14 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) =
     const logPrefix = '[hijo2][CONTROL.DESHABILITAR]';
 
     try {
-        const { motivo } = mensaje.datos || {};
-        logger.info(`${logPrefix} Recibido - motivo: ${motivo}`);
+        const { motivo, control } = mensaje.datos || {};
+        logger.info(`${logPrefix} Recibido - control: ${control}, motivo: ${motivo}`);
+
+        if (control === 'btnAvanzar') {
+            estadoComponente.btnAvanzarDeshabilitadoExternamente = true;
+            if (elementosDOM.btnAvanzar) desactivarBoton(elementosDOM.btnAvanzar);
+            return;
+        }
 
         // Actualizar estado interno
         if (motivo === 'reto_abierto') {
@@ -2333,7 +2441,7 @@ try {
             // ✅ Si se especifica paradaActual, actualizar el estado
             if (mensaje.datos.paradaActual) {
                 estadoComponente.idParadaActual = mensaje.datos.paradaActual;
-                estadoComponente.tipoParadaActual = mensaje.datos.paradaActual.startsWith('TR-') ? 'tramo' : 'parada';
+                estadoComponente.tipoParadaActual = (mensaje.datos.paradaActual.startsWith('TR-') || mensaje.datos.paradaActual.includes('-TR-')) ? 'tramo' : 'parada';
 
                 logger.debug(`${logPrefix} Parada actual actualizada: ${mensaje.datos.paradaActual}`);
             }
@@ -2501,39 +2609,6 @@ try {
         }
     }
 
-    registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA, async (mensaje) => {
-        const logPrefix = '[hijo2][GPS.UBICACION_ACTUALIZADA]';
-        try {
-            const datos = mensaje.datos || {};
-            const { lat, lng, accuracy, cached, fresh, heading } = datos;
-            if (lat === undefined || lng === undefined) {
-                logger.warn(`${logPrefix} Datos GPS incompletos:`, datos);
-                return { exito: false, error: 'Coordenadas inválidas' };
-            }
-            if (heading !== undefined && heading !== null) estadoComponente.ultimoHeading = heading;
-            const posicionPrevia = estadoComponente.posicionActualUsuario;
-            estadoComponente.posicionActualUsuario = { lat, lng };
-            let estadoCache = '';
-            if (cached) { estadoCache = '(caché)'; } else if (fresh) { estadoCache = '(fresca)'; }
-            logger.info(`${logPrefix} 📍 Ubicación GPS recibida: [${lat}, ${lng}] ±${Math.round(accuracy || 0)}m ${estadoCache}`);
-            if (heading === undefined) _calcularHeadingMovimiento(lat, lng, posicionPrevia);
-            const modoActual = (estadoComponente && estadoComponente.modo) || 'casa';
-            await enviarMensaje({
-                tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO,
-                origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
-                datos: { lat, lng, heading: estadoComponente.ultimoHeading || 0, accuracy: accuracy || 0, modo: modoActual }
-            });
-            _actualizarBotonesSegunModo(modoActual, logPrefix);
-            actualizarEstado(`GPS ±${Math.round(accuracy || 0)}m`, 'success');
-            return { exito: true };
-        } catch (e) {
-            logger.error(`${logPrefix} Error procesando ubicación GPS:`, e);
-            actualizarEstado('Error procesando ubicación', 'error');
-            return { exito: false, error: e.message };
-        }
-    });
-
     registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, async (mensaje) => {
         const logPrefix = '[hijo2][GPS.ESTADO_ACTUALIZADO]';
         try {
@@ -2604,6 +2679,8 @@ try {
 
             if (parada_id) estadoComponente.idParadaActual = parada_id;
             estadoComponente.tipoParadaActual = tipoRecibido;
+            estadoComponente.distanciaAlDestino = null;
+            estadoComponente._llegadaNotificada = null;
 
             logger.debug(`[hijo2][CAMBIO_PARADA] parada=${parada_id} tipo=${tipoRecibido}`);
 
@@ -2612,9 +2689,18 @@ try {
 
             // Refrescar estado de botones con el nuevo tipo
             actualizarEstadoBotones();
+
+            // Reiniciar spin de botones glow-activo
+            _resetSpinsAventura();
         } catch (e) {
             logger.error('[hijo2][CAMBIO_PARADA] Error:', e);
         }
+    });
+
+    // Fase 3 del patrón bidireccional: padre confirma recepción de datos cargados
+    registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, async (mensaje) => {
+        const { subtipo } = mensaje.datos || {};
+        logger.info(`[hijo2][DATOS.CARGADOS_RECIBIDO] Padre confirmó recepción de ${subtipo}`);
     });
 
     // Notificar al padre que hijo2 está listo

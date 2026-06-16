@@ -262,6 +262,11 @@
       map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
     }
 
+    // El overlay tiene transición CSS — forzar recálculo de tamaño una vez pintado
+    globalThis.addEventListener('resize', () => map.invalidateSize());
+    setTimeout(() => map.invalidateSize(), 50);
+    setTimeout(() => map.invalidateSize(), 400);
+
     // ── Popup de monumento ──────────────────────────────────────────────────
     const overlay   = document.getElementById('monumento-overlay');
     const imgWrap   = document.getElementById('monumento-imagen-wrap');

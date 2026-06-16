@@ -6603,7 +6603,7 @@
         async function _buscarTextoParaParada(paradaActual, logPrefix) {
             try {
                 const aventuraActual = globalThis.__vv_aventuraSeleccionada || globalThis.aventuraSeleccionada;
-                const idiomaActual = globalThis.__vv_idiomaSeleccionado || globalThis.idiomaSeleccionado || 'es';
+                const idiomaActual = globalThis.idiomaSeleccionado || 'es';
                 if (!aventuraActual) return null;
                 const { cargarTextos: _cTx } = await import('./js/data-loader.js');
                 const textos = await _cTx(aventuraActual, idiomaActual);
@@ -7462,7 +7462,7 @@
                 return;
             }
 
-            const idioma = globalThis.__vv_idiomaSeleccionado || globalThis.idiomaSeleccionado || 'es';
+            const idioma = globalThis.idiomaSeleccionado || 'es';
             const t = TRADUCCIONES_FINALIZACION[idioma] || TRADUCCIONES_FINALIZACION['es'];
             const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre
                                 || globalThis.aventuraSeleccionada || '';
@@ -11182,7 +11182,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
             try {
                 (globalThis.logger || console).error(`${logPrefix} ⏰ ¡TIEMPO AGOTADO! La aventura ha terminado.`);
 
-                const idioma = globalThis.__vv_idiomaSeleccionado || globalThis.idiomaSeleccionado || 'es';
+                const idioma = globalThis.idiomaSeleccionado || 'es';
                 const t = TRADUCCIONES_TIEMPO_AGOTADO[idioma] || TRADUCCIONES_TIEMPO_AGOTADO['es'];
 
                 // 1. Bloquear todos los controles de la aventura
