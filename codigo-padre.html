@@ -11933,33 +11933,28 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
     <script>
         if ('serviceWorker' in navigator) {
-            (async () => {
-                const previousController = navigator.serviceWorker.controller;
-                let _swReloading = false;
+            // Listener ANTES del register: si el SW ya estaba en espera y se activa
+            // durante el await, el controllerchange no se pierde.
+            const previousController = navigator.serviceWorker.controller;
+            let _swReloading = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (_swReloading) return;
+                if (!previousController) return; // primera instalación, no recargar
+                _swReloading = true;
+                (globalThis.logger || console).info('[SW] Nuevo service worker activo — recargando');
+                globalThis.location.reload();
+            });
 
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
-
-                    // Forzar chequeo de actualización cuando la app pasa a segundo plano.
+            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+                .then(registration => {
+                    // Forzar chequeo al pasar a segundo plano
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'hidden') {
                             try { registration.update(); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                         }
                     });
-                } catch (e) {
-                    (globalThis.logger || console).error('[SW] Error registrando service worker:', e);
-                }
-
-                // Cuando el SW cambia de versión (skipWaiting + clients.claim), recargar siempre.
-                // La guarda previousController evita recargar en la primera instalación.
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (_swReloading) return;
-                    if (!previousController) return;
-                    _swReloading = true;
-                    (globalThis.logger || console).info('[SW] Nuevo service worker activo — recargando');
-                    globalThis.location.reload();
-                });
-            })();
+                })
+                .catch(e => (globalThis.logger || console).error('[SW] Error registrando service worker:', e));
         }
     </script>
 </body>
