@@ -210,6 +210,24 @@
             box-shadow: none;
         }
 
+        /* ── Glow + spin para retosBtn (AVENTURA) ── */
+        @keyframes glow-activo-retos {
+            0%, 100% { box-shadow: inset 0 0 10px rgba(255,255,255,0.2); }
+            50%       { box-shadow: inset 0 0 26px rgba(255,255,255,0.55); }
+        }
+        @keyframes spin-btn-retos {
+            0%   { transform: rotate(0deg); }
+            60%  { transform: rotate(1080deg); }
+            85%  { transform: rotate(1350deg); }
+            100% { transform: rotate(1440deg); }
+        }
+        #retosBtn:not(:disabled):not(.activo) {
+            animation: glow-activo-retos 3s ease-in-out infinite;
+        }
+        #retosBtn.spinning {
+            animation: spin-btn-retos 0.9s cubic-bezier(0.2,0.8,0.4,1) forwards !important;
+        }
+
         /* Imagen dentro del botÃ³n retos: cubrir todo el botÃ³n */
         #retosBtn img {
             position: absolute;
@@ -402,7 +420,7 @@
             </div>
             <div class="buttons-right">
                 <button id="retosBtn" aria-label="Retos" disabled>
-                    <img src="imagenes/imagenes-aplicaciÃ³n/H4-fotoretos.png" alt="Retos">
+                    <img src="imagenes/imagenes-aplicación/H4-fotoretos.png" alt="Retos">
                 </button>
             </div>
         </div>
@@ -426,13 +444,16 @@
         if (globalThis.parent && globalThis.parent !== globalThis) {
             const mensaje = args[0];
             try {
-                globalThis.parent.postMessage({
+                const payload = {
                     tipo: mensaje.tipo,
                     origen: mensaje.origen || 'hijo3',
                     destino: mensaje.destino,
                     datos: mensaje.datos,
                     timestamp: Date.now()
-                }, globalThis.location.origin);
+                };
+                if (mensaje.idOriginal !== undefined) payload.idOriginal = mensaje.idOriginal;
+                if (mensaje.id !== undefined) payload.id = mensaje.id;
+                globalThis.parent.postMessage(payload, globalThis.location.origin);
                 return;
             } catch (e) {
                 console.error('[hijo3] Error enviando mensaje via postMessage:', e);
@@ -786,9 +807,31 @@
     const durationElement = document.getElementById('duration');
     const retosBtn = document.getElementById('retosBtn');
 
+    // ── Spin behavior para retosBtn (AVENTURA) ──
+    let _retosBtnSpinInterval = null;
+    let _retosBtnSpinPressed = false;
+
+    function _iniciarSpinRetosBtn() {
+        if (_retosBtnSpinInterval) clearInterval(_retosBtnSpinInterval);
+        _retosBtnSpinPressed = false;
+        _retosBtnSpinInterval = setInterval(() => {
+            if (_retosBtnSpinPressed || retosBtn.disabled) return;
+            retosBtn.classList.remove('spinning');
+            void retosBtn.offsetWidth;
+            retosBtn.classList.add('spinning');
+            retosBtn.addEventListener('animationend', () => retosBtn.classList.remove('spinning'), { once: true });
+        }, 5000);
+    }
+
+    function _resetSpinRetosBtn() {
+        _iniciarSpinRetosBtn();
+    }
+
     // Event listener para botÃ³n de Retos
     retosBtn.addEventListener('click', async () => {
         try {
+            _retosBtnSpinPressed = true;
+            if (_retosBtnSpinInterval) { clearInterval(_retosBtnSpinInterval); _retosBtnSpinInterval = null; }
             retosBtn.classList.add('activo');
             logger.info(`[hijo3] BotÃ³n de retos clickeado, solicitando reto al padre`);
 
@@ -1663,6 +1706,7 @@
                 if (paradaId) globalThis.__hijo3_paradaActual = paradaId;
                 // Resetear botÃ³n retos al cambiar de parada
                 if (retosBtn) retosBtn.classList.remove('activo');
+                _resetSpinRetosBtn();
                 // Enviar confirmaciÃ³n al padre
                 try {
                     await enviarMensaje({
@@ -1866,53 +1910,10 @@
             }
         });
 
-        // ============================================================
-        // HANDLERS GPS
-        // ============================================================
-        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA, async (_mensaje) => {
-            try {
-                console.debug(`[hijo3][GPS.UBICACION_ACTUALIZADA] UbicaciÃ³n recibida (no-op)`);
-                return { exito: true };
-            } catch (e) {
-                console.error('[hijo3][GPS.UBICACION_ACTUALIZADA] Error en handler no-op:', e);
-                return { exito: false, error: e.message };
-            }
-        });
-
-        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, async (mensaje) => {
-            try {
-                console.debug(`[hijo3][GPS.ESTADO_ACTUALIZADO] Estado GPS recibido (no-op):`, mensaje?.datos || {});
-                return { exito: true };
-            } catch (e) {
-                console.error('[hijo3][GPS.ESTADO_ACTUALIZADO] Error en handler no-op:', e);
-                return { exito: false, error: e.message };
-            }
-        });
-
-        registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ERROR, async (mensaje) => {
-            try {
-                const datos = mensaje?.datos || {};
-                const { codigo } = datos;
-                const errorMensaje = datos.mensaje || datos.message || null;
-                const contexto = datos.contexto || datos.context || 'desconocido';
-                const codeMap = { 1: 'PERMISSION_DENIED', 2: 'POSITION_UNAVAILABLE', 3: 'TIMEOUT' };
-                const codeDesc = codeMap[codigo] || 'UNKNOWN_CODE';
-                let details;
-                try { details = JSON.stringify({ codigo, codeDesc, mensaje: errorMensaje, contexto }, null, 2); } catch { details = `codigo=${codigo} mensaje=${String(errorMensaje)} contexto=${String(contexto)}`; }
-                logger.error(`[hijo3][GPS.ERROR] Error GPS recibido: ${details}`);
-                // TelemetrÃ­a: incrementar contador por cÃ³digo de error GPS en hijo3
-                try { if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (err) { logger.debug('[hijo3][GPS.ERROR] no se pudo incrementar contador', err && err.message); }
-                // Enviar mÃ©trica a monitoreo (si mensajerÃ­a disponible)
-                try {
-                    if (typeof enviarMensaje === 'function') {
-                        enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo3', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {});
-                    }
-                } catch (error_) { logger.debug('[hijo3][GPS.ERROR] no se pudo enviar metrica', error_ && error_.message); }
-                return { exito: true };
-            } catch (e) {
-                logger.error('[hijo3][GPS.ERROR] Error en handler no-op:', e);
-                return { exito: false, error: e.message };
-            }
+        // Fase 3 del patrón bidireccional: padre confirma recepción de datos cargados
+        registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, async (mensaje) => {
+            const { subtipo } = mensaje.datos || {};
+            logger.info(`[hijo3][DATOS.CARGADOS_RECIBIDO] Padre confirmó recepción de ${subtipo}`);
         });
 
         // ============================================================

@@ -29,16 +29,6 @@ function handleGeolocationError(err) {
     logger.error('[GPS] Geolocation error:', err.code, err.message);
 }
 
-/**
- * Registra los controladores del módulo de mapa.
- * NOTA: Esta función ahora es un no-op ya que los controladores se registran
- * directamente desde otros módulos. Se mantiene por compatibilidad.
- */
-export async function registrarControladoresMapa() {
-    // Los controladores se registran directamente en otro lugar
-    // Esta función existe solo por compatibilidad legacy
-    logger.debug('[MAPA][registrarControladores] Registro de controladores ya no necesario (deprecado)');
-}
 
 /**
  * Calcula la distancia entre dos puntos geográficos usando la fórmula de Haversine
@@ -220,13 +210,12 @@ const estadoMapa = {
     siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
+    tramoWaypoints: null, // Puntos [inicio, ...waypoints, fin] del tramo activo para snap-to-route
     timestamp: Date.now(),
     // Estado para consultas de cambio de parada
     consultaParadaPendiente: null,
     esperandoCoordenadas: false,
-    esperandoAudio: false,
-    esperandoReto: false,
-    datosRecopilados: {}, // { coordenadas, audio, reto }
+    datosRecopilados: {},
     // Control de zoom: evitar múltiples operaciones y respetar interacción del usuario
     zoomEnCurso: false,       // true mientras una animación de zoom está en progreso
     usuarioMovioMapa: false,  // true si el usuario hizo pan/drag manualmente
@@ -623,9 +612,6 @@ function registrarListenerZoom() {
     logger.debug('[MAPA] Listener de zoom registrado para escalado dinámico');
 }
 
-// Variable de control para navigator.geolocation.watchPosition
-// (necesaria para clearWatch pero el estado real está en estadoMapa)
-let gpsWatchId = null;
 // NOTA: Implementación de precalentamiento GPS eliminada — el GPS principal se iniciará bajo demanda
 
 /**
@@ -712,6 +698,7 @@ function limpiarRecursosInactivos() {
         estadoMapa.posicionUsuario = null;
         estadoMapa.paradaActual = null;
         estadoMapa.tramoActual = null;
+        estadoMapa.tramoWaypoints = null;
 
         // Additional cleanup for mobile
         if (esMovil() && _mapaInstance) {
@@ -1235,12 +1222,6 @@ export function limpiarRecursos() {
             intervaloLimpiezaAutomatica = null;
         }
 
-        // Limpiar GPS watch si está activo (por si se inició en este contexto)
-        if (gpsWatchId !== null) {
-            try { navigator.geolocation.clearWatch(gpsWatchId); } catch (_e) {} // NOSONAR
-            gpsWatchId = null;
-        }
-
         // Resetear estado GPS de estadoMapa
         estadoMapa.gpsActivo = false;
         estadoMapa.watchId = null;
@@ -1536,178 +1517,6 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
     }
 }
 
-/**
- * Maneja el mensaje para mostrar una ruta entre dos puntos.
- * @param {Object} mensaje - Mensaje con origen, destino, color, grosor o datos de tramo.
- * @returns {Object} Resultado de la operación
- */
-function manejarMostrarRuta(mensaje) {
-    try {
-        // Validación de entrada
-        if (!mensaje?.datos) {
-            throw new Error('Mensaje no válido para mostrar ruta');
-        }
-
-        // Limpiar ruta anterior antes de dibujar la nueva
-        if (_mapaInstance) {
-            rutasActivas.forEach(ruta => { try { _mapaInstance.removeLayer(ruta); } catch (_e) { /* ignore */ } }); // NOSONAR
-            rutasActivas = [];
-            marcadoresParadas.forEach(m => { try { _mapaInstance.removeLayer(m); } catch (_e) { /* ignore */ } }); // NOSONAR
-            marcadoresParadas.clear();
-            if (marcadorDestino) { try { _mapaInstance.removeLayer(marcadorDestino); } catch (_e) { /* ignore */ } marcadorDestino = null; } // NOSONAR
-        }
-
-        const { tramo, origen, destino, color, grosor } = mensaje.datos || {};
-        
-        // Caso 1: Si tenemos datos de tramo
-        if (tramo?.inicio && tramo?.fin) {
-            if (!_mapaInstance) {
-                throw new Error('Mapa no inicializado');
-            }
-            
-            // Dibujar polyline del tramo
-            const polyline = dibujarTramo(tramo, true);
-            if (polyline) {
-                console.info('Polyline dibujada en el mapa:', tramo);
-                rutasActivas.push(polyline);
-            } else {
-                throw new Error('Error al dibujar la polyline en el mapa');
-            }
-            
-            // Agregar marcadores con emojis (sin dependencia de archivos PNG)
-            if (tramo.inicio) {
-                const iconosTramo = getIconoEscalado();
-                const markerInicio = L.marker([tramo.inicio.lat, tramo.inicio.lng], { 
-                    icon: L.divIcon({
-                        className: 'tramo-inicio-icon',
-                        html: `<div style="font-size:${iconosTramo.inicio}px;line-height:${iconosTramo.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`,
-                        iconSize: [iconosTramo.inicio, iconosTramo.inicio],
-                        iconAnchor: [Math.round(iconosTramo.inicio / 2), Math.round(iconosTramo.inicio / 2)]
-                    })
-                }).addTo(_mapaInstance);
-                markerInicio.setZIndexOffset(600);
-                marcadoresParadas.set('tramo-inicio-ruta', markerInicio);
-            }
-            
-            if (tramo.fin) {
-                const iconosTramo = getIconoEscalado();
-                const markerFin = L.marker([tramo.fin.lat, tramo.fin.lng], { 
-                    icon: L.divIcon({
-                        className: 'tramo-fin-icon',
-                        html: `<div style="font-size:${iconosTramo.parada}px;line-height:${iconosTramo.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
-                        iconSize: [iconosTramo.parada, iconosTramo.parada],
-                        iconAnchor: [Math.round(iconosTramo.parada / 2), Math.round(iconosTramo.parada / 2)]
-                    })
-                }).addTo(_mapaInstance);
-                markerFin.setZIndexOffset(600);
-                marcadoresParadas.set('tramo-fin-ruta', markerFin);
-            }
-            
-            return { 
-                exito: true, 
-                mensaje: 'Ruta de tramo mostrada correctamente',
-                tipo: 'tramo'
-            };
-        }
-        
-        // Caso 2: Si tenemos origen y destino como coordenadas
-        if (origen && destino) {
-            // Validar que origen y destino son coordenadas válidas
-            if (!origen.lat || !origen.lng || !destino.lat || !destino.lng) {
-                throw new Error('Coordenadas de origen o destino incompletas');
-            }
-
-            if (!_mapaInstance) {
-                throw new Error('Mapa no inicializado');
-            }
-
-            const polyline = L.polyline([origen, destino], {
-                color: color || '#0077ff',
-                weight: grosor || 7,
-                opacity: 0.8
-            }).addTo(_mapaInstance);
-
-            rutasActivas.push(polyline);
-            console.info('Ruta origen-destino mostrada en el mapa');
-            
-            return { 
-                exito: true, 
-                mensaje: 'Ruta origen-destino mostrada correctamente',
-                tipo: 'origen-destino'
-            };
-        } 
-        
-        // Caso 3: No hay datos suficientes
-        throw new Error('Datos insuficientes para mostrar ruta: se requiere tramo completo o par origen-destino');
-        
-    } catch (error) {
-        logger.error(`Error en MOSTRAR_RUTA:`, error);
-        manejarError(error, mensaje);
-        return { exito: false, error: error.message };
-    }
-}
-
-/**
- * Establece un destino en el mapa.
- * @param {Object} mensaje - Mensaje con datos de destino.
- * @returns {Object} Resultado de la operación.
- */
-function manejarEstablecerDestino(mensaje) {
-    try {
-        // Validación de entrada
-        if (!mensaje?.datos) {
-            throw new Error('Mensaje no válido para establecer destino');
-        }
-
-        const { destino, opciones } = mensaje.datos || {};
-        
-        // Validar que destino tiene coordenadas válidas
-        if (!destino?.lat || !destino?.lng) {
-            throw new Error('Destino inválido o sin coordenadas');
-        }
-        
-        // Validar que el mapa esté inicializado
-        if (!_mapaInstance) {
-            throw new Error('Mapa no inicializado');
-        }
-        
-        // Eliminar marcador anterior si existe
-        if (marcadorDestino) {
-            _mapaInstance.removeLayer(marcadorDestino);
-        }
-        
-        // Crear nuevo marcador
-        marcadorDestino = L.marker([destino.lat, destino.lng], {
-            icon: L.icon({
-                iconUrl: opciones?.iconUrl || 'destino-pin.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41]
-            }),
-            title: opciones?.titulo || 'Destino'
-        }).addTo(_mapaInstance);
-        
-        // Si se solicita centrar el mapa en el destino
-        if (opciones?.centrar) {
-            // Usar la API centralizada para setView (no llamar directamente a _mapaInstance)
-            ejecutarOperacionMapa(mapa => {
-                mapa.setView([destino.lat, destino.lng], opciones.zoom || mapa.getZoom());
-                return true;
-            }).catch(err => logger.warn('[funciones-mapa] Error centrando destino (async):', err));
-        }
-        
-        console.info(`Destino establecido en [${destino.lat}, ${destino.lng}]`);
-        return { 
-            exito: true, 
-            mensaje: 'Destino establecido correctamente'
-        };
-    } catch (error) {
-        console.error('Error al manejar establecer destino:', error);
-        return { 
-            exito: false,
-            error: error.message 
-        };
-    }
-}
 
 // manejarActualizarPosicion() ELIMINADA — era código muerto (nunca registrada, nunca llamada).
 // La posición del usuario se actualiza vía la cadena:
@@ -1766,17 +1575,12 @@ export function limpiarPorEstado(nuevoEstado) {
             // Resetear estadoMapa completamente
             estadoMapa.paradaActual = null;
             estadoMapa.tramoActual = null;
+            estadoMapa.tramoWaypoints = null;
             estadoMapa.posicionUsuario = null;
             estadoMapa.gpsActivo = false;
             estadoMapa.siguiendoRuta = false;
             estadoMapa.modo = modo;
             estadoMapa.timestamp = Date.now();
-
-            // Detener GPS si está activo
-            if (gpsWatchId) {
-                navigator.geolocation.clearWatch(gpsWatchId);
-                gpsWatchId = null;
-            }
 
             limpiado = true;
             logger.debug(`[funciones-mapa] Reset completo ejecutado para modo ${modo}`);
@@ -1940,13 +1744,13 @@ function desactivarBrujula() {
 function actualizarPosicionFlecha() {
     if (!flechaActiva || !estadoMapa.tramoActual || !estadoMapa.posicionUsuario || !_mapaInstance) return;
 
-    // Encontrar el tramo actual
-    const tramo = arrayParadasLocal.find(p => p.id === estadoMapa.tramoActual);
-    if (!tramo?.waypoints) return;
+    // Usar waypoints del estado (guardados al activar el tramo en completarCambioParada)
+    const waypointsRaw = estadoMapa.tramoWaypoints;
+    if (!waypointsRaw?.length) return;
 
     // Calcular punto más cercano en la polyline
     const userLatLng = L.latLng(estadoMapa.posicionUsuario.lat, estadoMapa.posicionUsuario.lng);
-    const waypointsLatLng = tramo.waypoints.map(wp => L.latLng(wp.lat, wp.lng));
+    const waypointsLatLng = waypointsRaw.map(wp => L.latLng(wp.lat, wp.lng));
     const polyline = L.polyline(waypointsLatLng);
     const closestPoint = L.GeometryUtil.closest(_mapaInstance, userLatLng, polyline);
 
@@ -2094,8 +1898,6 @@ async function manejarCambiarParada(mensaje) {
             mensajeId
         };
         estadoMapa.esperandoCoordenadas = true;
-        estadoMapa.esperandoAudio = false;
-        estadoMapa.esperandoReto = false;
         estadoMapa.datosRecopilados = {};
 
         logger.info(`${logPrefix} Iniciando consulta de coordenadas para parada ${paradaId}`);
@@ -2152,8 +1954,6 @@ async function manejarCambiarParada(mensaje) {
         // Limpiar estado en caso de error
         estadoMapa.consultaParadaPendiente = null;
         estadoMapa.esperandoCoordenadas = false;
-        estadoMapa.esperandoAudio = false;
-        estadoMapa.esperandoReto = false;
         estadoMapa.datosRecopilados = {};
         
         enviarMensaje({
@@ -2191,43 +1991,6 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
     });
 }
 
-/**
- * Envía consulta de audio a hijo3
- * @param {string} paradaId - ID de la parada
- */
-async function enviarConsultaAudio(paradaId, padreId) {
-    const mensajeId = generarIdUnico();
-    enviarMensaje({
-        destino: 'hijo3',
-        tipo: TIPOS_MENSAJE.AUDIO.SOLICITAR_AUDIO,
-        origen: getPadreId(),
-        mensajeId,
-        datos: { 
-            paradaId,
-            padreId,
-            tipoConsulta: MAPA_TIPOS_HIJO['hijo3']
-        }
-    });
-}
-
-/**
- * Envía consulta de reto a hijo4
- * @param {string} paradaId - ID de la parada
- */
-async function enviarConsultaReto(paradaId, padreId) {
-    const mensajeId = generarIdUnico();
-    enviarMensaje({
-        destino: 'hijo4',
-        tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETO,
-        origen: getPadreId(),
-        mensajeId,
-        datos: { 
-            paradaId,
-            padreId,
-            tipoConsulta: MAPA_TIPOS_HIJO['hijo4']
-        }
-    });
-}
 
 /**
  * Procesa respuestas de consultas y actualiza mapa cuando todas llegan
@@ -2251,52 +2014,39 @@ async function procesarRespuestaConsulta(tipo, datos) {
         }
         
         // Almacenar datos según tipo
-        switch (tipo) {
-            case 'coordenadas':
-                estadoMapa.datosRecopilados.coordenadas = datos;
-                estadoMapa.esperandoCoordenadas = false;
-                
-                // ✅ DISTRIBUIR INFORMACIÓN COMPLETA a hijo2 para que botones funcionen
-                if (datos?.imagen !== undefined && datos?.video !== undefined) {
-                    try {
-                        enviarMensaje({
-                            destino: 'hijo2',
-                            tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
-                            origen: 'funciones-mapa',
-                            datos: {
-                                paradas: [datos], // Enviar como array para compatibilidad
-                                paradaActual: datos.paradaId || datos.id,
-                                timestamp: Date.now()
-                            }
-                        });
-                        logger.info(`${logPrefix} Información completa distribuida a hijo2:`, {
-                            paradaId: datos.paradaId || datos.id,
-                            tieneImagen: !!datos.imagen,
-                            tieneVideo: !!datos.video
-                        });
-                    } catch (error) {
-                        logger.error(`${logPrefix} Error distribuyendo datos a hijo2:`, error);
-                    }
+        if (tipo === 'coordenadas') {
+            estadoMapa.datosRecopilados.coordenadas = datos;
+            estadoMapa.esperandoCoordenadas = false;
+
+            // Distribuir imagen/video a hijo2 si están presentes
+            if (datos?.imagen !== undefined && datos?.video !== undefined) {
+                try {
+                    enviarMensaje({
+                        destino: 'hijo2',
+                        tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
+                        origen: 'funciones-mapa',
+                        datos: {
+                            paradas: [datos],
+                            paradaActual: datos.paradaId || datos.id,
+                            timestamp: Date.now()
+                        }
+                    });
+                    logger.info(`${logPrefix} Información completa distribuida a hijo2:`, {
+                        paradaId: datos.paradaId || datos.id,
+                        tieneImagen: !!datos.imagen,
+                        tieneVideo: !!datos.video
+                    });
+                } catch (error) {
+                    logger.error(`${logPrefix} Error distribuyendo datos a hijo2:`, error);
                 }
-                break;
-            case 'audio':
-                estadoMapa.datosRecopilados.audio = datos;
-                estadoMapa.esperandoAudio = false;
-                break;
-            case 'reto':
-                estadoMapa.datosRecopilados.reto = datos;
-                estadoMapa.esperandoReto = false;
-                break;
+            }
         }
-        
+
         logger.info(`${logPrefix} Datos recopilados para ${paradaId}`);
-        
-        // Verificar si todas las respuestas llegaron
-        if (!estadoMapa.esperandoCoordenadas && !estadoMapa.esperandoAudio && !estadoMapa.esperandoReto) {
-            logger.info(`${logPrefix} ✅ Todas las respuestas recibidas - llamando a completarCambioParada`);
+
+        if (!estadoMapa.esperandoCoordenadas) {
+            logger.info(`${logPrefix} ✅ Respuesta de coordenadas recibida - llamando a completarCambioParada`);
             await completarCambioParada();
-        } else {
-            logger.debug(`${logPrefix} Aún esperando respuestas - coord:${estadoMapa.esperandoCoordenadas}, audio:${estadoMapa.esperandoAudio}, reto:${estadoMapa.esperandoReto}`);
         }
         
     } catch (error) {
@@ -2357,6 +2107,14 @@ async function completarCambioParada() {
                 rutasTramos = [];
                 return true;
             }).catch(() => {});
+
+            // Limpiar marcadores de tramo anteriores (siempre, no solo al dibujar tramo nuevo)
+            if (_mapaInstance) {
+                ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
+                    const old = marcadoresParadas.get(k);
+                    if (old) { try { _mapaInstance.removeLayer(old); } catch (_e) {} marcadoresParadas.delete(k); } // NOSONAR
+                });
+            }
 
             // Determinar si es tramo o parada
             const esTramo = coordenadas.tipo === 'tramo' || !!coordenadas.coordenadasFin;
@@ -2505,6 +2263,18 @@ async function completarCambioParada() {
             
             estadoMapa.ultimoZoomAuto = Date.now();
             logger.info(`${logPrefix} 🎯 Zoom único aplicado para ${paradaId}`);
+
+            // Ocultar navegación por defecto; revelar inmediatamente si btn-avanzar o modo CASA
+            if (globalThis.estadoPadre?.pendingRevealNavegacion) {
+                globalThis.estadoPadre.pendingRevealNavegacion = false;
+                logger.info(`${logPrefix} pendingRevealNavegacion=true — navegación visible inmediatamente`);
+            } else if (globalThis.estadoPadre?.modo?.actual !== 'aventura') {
+                // En modo CASA (y cualquier otro no-aventura), la navegación es visible al instante
+                logger.info(`${logPrefix} Modo ${globalThis.estadoPadre?.modo?.actual || 'casa'} — navegación visible inmediatamente`);
+            } else {
+                _ocultarNavegacion();
+                logger.info(`${logPrefix} Navegación oculta hasta que el usuario pulse btn-avanzar`);
+            }
         } else {
             logger.warn(`${logPrefix} ⚠️ NO SE HIZO ZOOM - coordenadas inválidas:`, { 
                 lat: coordenadas?.lat, 
@@ -2520,6 +2290,23 @@ async function completarCambioParada() {
             logger.info(`${logPrefix} Reto disponible: ${reto.pregunta || 'N/A'}`);
         }
         
+        // Snap-to-route: activar flecha sobre polyline en tramos, desactivar en paradas
+        const esTramo = coordenadas?.tipo === 'tramo';
+        if (esTramo) {
+            const tramoWaypts = [
+                { lat: coordenadas.lat, lng: coordenadas.lng },
+                ...(coordenadas.waypoints || []),
+                ...(coordenadas.coordenadasFin ? [coordenadas.coordenadasFin] : [])
+            ].filter(p => p?.lat && p?.lng);
+            estadoMapa.tramoActual = paradaId;
+            estadoMapa.tramoWaypoints = tramoWaypts;
+            activarFlechaUsuario();
+        } else {
+            estadoMapa.tramoActual = null;
+            estadoMapa.tramoWaypoints = null;
+            desactivarFlechaUsuario();
+        }
+
         // Actualizar estado
         estadoMapa.paradaActual = paradaId;
         estadoMapa.timestamp = Date.now();
@@ -2542,7 +2329,7 @@ async function completarCambioParada() {
         });
         
         logger.info(`${logPrefix} Cambio de parada completado exitosamente`);
-        
+
     } catch (error) {
         logger.error(`${logPrefix} Error completando cambio de parada:`, error);
     } finally {
@@ -2552,489 +2339,29 @@ async function completarCambioParada() {
     }
 }
 
-/**
- * Maneja la actualización del estado de navegación.
- * @param {Object} mensaje - Mensaje con el nuevo estado
- * @returns {Object} Resultado de la operación
- */
-async function manejarActualizarEstadoNavegacion(mensaje) {
-    const logPrefix = `[NAVEGACION.ACTUALIZAR_ESTADO][${mensaje?.origen || 'desconocido'}]`;
-    const mensajeId = mensaje?.mensajeId || generarIdUnico();
-    
-    try {
-        logger.info(`${logPrefix} Actualizando estado de navegación`, { mensajeId, datos: mensaje.datos });
-        
-        if (!mensaje?.datos) {
-            throw new Error('Datos de estado no especificados');
-        }
-
-        const { 
-            estado, 
-            paradaActual, 
-            tramoActual, 
-            distancia, 
-            tiempoEstimado,
-            posicionActual 
-        } = mensaje.datos;
-
-        // Actualizar estado interno del mapa
-        if (estado !== undefined) estadoMapa.estado = estado;
-        if (paradaActual !== undefined) estadoMapa.paradaActual = paradaActual;
-        if (tramoActual !== undefined) estadoMapa.tramoActual = tramoActual;
-        if (distancia !== undefined) estadoMapa.distancia = distancia;
-        if (tiempoEstimado !== undefined) estadoMapa.tiempoEstimado = tiempoEstimado;
-        estadoMapa.timestamp = Date.now();
-
-        // Actualizar marcador de posición si se proporciona
-        if (posicionActual && _mapaInstance) {
-            if (marcadorPosicionActual) {
-                marcadorPosicionActual.setLatLng([posicionActual.lat, posicionActual.lng]);
-            } else {
-                marcadorPosicionActual = L.marker([posicionActual.lat, posicionActual.lng], {
-                    icon: L.icon({
-                        iconUrl: 'user-position.png',
-                        iconSize: [20, 20],
-                        iconAnchor: [10, 10]
-                    })
-                }).addTo(_mapaInstance);
-            }
-        }
-
-        // Enviar confirmación
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-            origen: 'funciones-mapa',
-            idOriginal: mensaje.id || mensajeId, // CLAVE: permite resolver promesas pendientes
-            mensajeId: generarIdUnico(),
-            datos: {
-                estado: 'procesado',
-                estadoMapa: { ...estadoMapa }
-            }
-        });
-
-        logger.info(`${logPrefix} Estado de navegación actualizado`, { estadoMapa });
-        
-        return { exito: true, estadoMapa };
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error al actualizar estado: ${error.message}`, error);
-        
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: 'funciones-mapa',
-            mensajeId: generarIdUnico(),
-            datos: {
-                error: error.message,
-                mensajeOriginalId: mensajeId,
-                tipo: 'ERROR_ACTUALIZAR_ESTADO'
-            }
-        });
-        
-        return { exito: false, error: error.message };
-    }
+function _ocultarNavegacion() {
+    rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0 }); } catch(e) {} }); // NOSONAR
+    ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
+        const m = marcadoresParadas.get(k);
+        if (m) { try { m.setOpacity(0); } catch(e) {} } // NOSONAR
+    });
+    if (marcadorParadaActual) { try { marcadorParadaActual.setOpacity(0); } catch(e) {} } // NOSONAR
+    estadoMapa.gpsVisualActivo = false;
+    sincronizarEstadoGPSConPadre();
 }
 
-/**
- * Maneja el inicio de una sesión de navegación.
- * @param {Object} mensaje - Mensaje con datos de inicio
- * @returns {Object} Resultado de la operación
- */
-async function manejarIniciarNavegacion(mensaje) {
-    const logPrefix = `[NAVEGACION.INICIAR][${mensaje?.origen || 'desconocido'}]`;
-    const mensajeId = mensaje?.mensajeId || generarIdUnico();
-    
-    try {
-        logger.info(`${logPrefix} Iniciando navegación`, { mensajeId, datos: mensaje.datos });
-        
-        if (!_mapaInstance) {
-            throw new Error('Mapa no inicializado');
-        }
-
-        const { paradaInicial, destino, modo = 'caminando', opciones = {} } = mensaje.datos || {};
-
-        // Limpiar estado anterior
-        limpiarPorEstado({ modo: estadoMapa.modo });
-
-        // Configurar nueva navegación
-        estadoMapa.estado = 'iniciando';
-        estadoMapa.paradaActual = paradaInicial;
-        estadoMapa.destino = destino;
-        estadoMapa.modoNavegacion = modo;
-        estadoMapa.timestamp = Date.now();
-        estadoMapa.sesionId = generarIdUnico();
-
-        // Si hay coordenadas de inicio, centrar mapa
-        if (paradaInicial && arrayParadasLocal.length > 0) {
-            const parada = arrayParadasLocal.find(p => p.id === paradaInicial || p.paradaId === paradaInicial || p.padreid === paradaInicial);
-                if (parada) {
-                    await ejecutarOperacionMapa(mapa => {
-                        mapa.setView([parada.lat, parada.lng], opciones.zoom || 15);
-                        return true;
-                    }).catch(err => logger.warn('[funciones-mapa] Error centrando parada inicial (async):', err));
-                }
-        }
-
-        // Notificar que la navegación está iniciando
-        enviarMensaje({
-            destino: 'sistema',
-            tipo: TIPOS_MENSAJE.NAVEGACION.INICIADA,
-            origen: 'funciones-mapa',
-            mensajeId: generarIdUnico(),
-            datos: {
-                sesionId: estadoMapa.sesionId,
-                paradaInicial,
-                destino,
-                modo,
-                timestamp: estadoMapa.timestamp
-            }
-        });
-
-        // Enviar confirmación al origen
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-            origen: 'funciones-mapa',
-            idOriginal: mensaje.id || mensajeId, // CLAVE: permite resolver promesas pendientes
-            mensajeId: generarIdUnico(),
-            datos: {
-                estado: 'procesado',
-                sesionId: estadoMapa.sesionId
-            }
-        });
-
-        logger.info(`${logPrefix} Navegación iniciada`, { sesionId: estadoMapa.sesionId });
-        
-        return { exito: true, sesionId: estadoMapa.sesionId };
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error al iniciar navegación: ${error.message}`, error);
-        
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: 'funciones-mapa',
-            mensajeId: generarIdUnico(),
-            datos: {
-                error: error.message,
-                mensajeOriginalId: mensajeId,
-                tipo: 'ERROR_INICIAR_NAVEGACION'
-            }
-        });
-        
-        return { exito: false, error: error.message };
-    }
+export function revelarNavegacion() {
+    rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0.7 }); } catch(e) {} }); // NOSONAR
+    ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
+        const m = marcadoresParadas.get(k);
+        if (m) { try { m.setOpacity(1); } catch(e) {} } // NOSONAR
+    });
+    if (marcadorParadaActual) { try { marcadorParadaActual.setOpacity(1); } catch(e) {} } // NOSONAR
+    estadoMapa.gpsVisualActivo = true;
+    sincronizarEstadoGPSConPadre();
 }
 
-/**
- * Maneja la notificación de navegación iniciada.
- * @param {Object} mensaje - Mensaje de confirmación
- * @returns {Object} Resultado de la operación
- */
-async function manejarNavegacionIniciada(mensaje) {
-    const logPrefix = `[NAVEGACION.INICIADA][${mensaje?.origen || 'desconocido'}]`;
-    
-    try {
-        logger.info(`${logPrefix} Navegación confirmada como iniciada`, { datos: mensaje.datos });
-        
-        // Actualizar estado a activo
-        estadoMapa.estado = 'activo';
-        estadoMapa.timestamp = Date.now();
 
-        return { exito: true };
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error al procesar navegación iniciada: ${error.message}`, error);
-        return { exito: false, error: error.message };
-    }
-}
-
-/**
- * Maneja la cancelación de navegación.
- * @param {Object} mensaje - Mensaje de cancelación
- * @returns {Object} Resultado de la operación
- */
-async function manejarNavegacionCancelada(mensaje) {
-    const logPrefix = `[NAVEGACION.CANCELADA][${mensaje?.origen || 'desconocido'}]`;
-    const mensajeId = mensaje?.mensajeId || generarIdUnico();
-    
-    try {
-        logger.info(`${logPrefix} Procesando cancelación de navegación`, { mensajeId });
-        
-        const { motivo = 'usuario', sesionId } = mensaje.datos || {};
-
-        // Validar sesión si se proporciona
-        if (sesionId && estadoMapa.sesionId !== sesionId) {
-            logger.warn(`${logPrefix} Sesión no coincide: ${sesionId} vs ${estadoMapa.sesionId}`);
-        }
-
-        // Limpiar rutas activas
-        rutasActivas.forEach(ruta => {
-            if (_mapaInstance?.removeLayer) {
-                _mapaInstance.removeLayer(ruta);
-            }
-        });
-        rutasActivas = [];
-
-        // Limpiar marcador de destino
-        if (marcadorDestino && _mapaInstance) {
-            _mapaInstance.removeLayer(marcadorDestino);
-            marcadorDestino = null;
-        }
-
-        // Actualizar estado
-        estadoMapa.estado = 'cancelado';
-        estadoMapa.motivoCancelacion = motivo;
-        estadoMapa.timestamp = Date.now();
-
-        // Enviar confirmación
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-            origen: 'funciones-mapa',
-            idOriginal: mensaje.id || mensajeId, // CLAVE: permite resolver promesas pendientes
-            mensajeId: generarIdUnico(),
-            datos: {
-                estado: 'procesado',
-                sesionId: estadoMapa.sesionId
-            }
-        });
-
-        logger.info(`${logPrefix} Navegación cancelada`, { motivo, sesionId });
-        
-        return { exito: true };
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error al cancelar navegación: ${error.message}`, error);
-        
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: 'funciones-mapa',
-            mensajeId: generarIdUnico(),
-            datos: {
-                error: error.message,
-                mensajeOriginalId: mensajeId,
-                tipo: 'ERROR_CANCELAR_NAVEGACION'
-            }
-        });
-        
-        return { exito: false, error: error.message };
-    }
-}
-
-/**
- * Maneja la confirmación de destino establecido.
- * @param {Object} mensaje - Mensaje de confirmación
- * @returns {Object} Resultado de la operación
- */
-async function manejarDestinoEstablecido(mensaje) {
-    const logPrefix = `[NAVEGACION.DESTINO_ESTABLECIDO][${mensaje?.origen || 'desconocido'}]`;
-    
-    try {
-        logger.info(`${logPrefix} Destino confirmado como establecido`, { datos: mensaje.datos });
-        
-        const { destino, distancia, tiempoEstimado } = mensaje.datos || {};
-        
-        // Actualizar estado
-        estadoMapa.destinoEstablecido = true;
-        estadoMapa.destino = destino;
-        if (distancia !== undefined) estadoMapa.distancia = distancia;
-        if (tiempoEstimado !== undefined) estadoMapa.tiempoEstimado = tiempoEstimado;
-        estadoMapa.timestamp = Date.now();
-
-        return { exito: true };
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error al procesar destino establecido: ${error.message}`, error);
-        return { exito: false, error: error.message };
-    }
-}
-
-/**
- * Maneja la detección de llegada a destino.
- * @param {Object} mensaje - Mensaje de llegada
- * @returns {Object} Resultado de la operación
- */
-async function manejarLlegadaDetectada(mensaje) {
-    const logPrefix = `[NAVEGACION.LLEGADA_DETECTADA][${mensaje?.origen || 'desconocido'}]`;
-    const mensajeId = mensaje?.mensajeId || generarIdUnico();
-    
-    try {
-        logger.info(`${logPrefix} Procesando llegada a destino`, { mensajeId, datos: mensaje.datos });
-        
-        const { paradaId, coordenadas, precision } = mensaje.datos || {};
-
-        // Actualizar estado
-        estadoMapa.estado = 'llegada';
-        estadoMapa.ultimaLlegada = {
-            paradaId,
-            coordenadas,
-            precision,
-            timestamp: Date.now()
-        };
-
-        // Animar marcador de parada actual
-        if (marcadorParadaActual) {
-            // Añadir animación visual (pulse effect)
-            const originalIcon = marcadorParadaActual.getIcon();
-            marcadorParadaActual.setIcon(L.icon({
-                ...originalIcon.options,
-                className: 'arrival-pulse'
-            }));
-
-            // Restaurar después de 2 segundos (cancelar pulse previo si llegada doble)
-            clearTimeout(_pulseTimeout);
-            _pulseTimeout = setTimeout(() => {
-                marcadorParadaActual.setIcon(originalIcon);
-                _pulseTimeout = null;
-            }, 2000);
-        }
-
-        // Enviar confirmación
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-            origen: 'funciones-mapa',
-            idOriginal: mensaje.id || mensajeId, // CLAVE: permite resolver promesas pendientes
-            mensajeId: generarIdUnico(),
-            datos: {
-                estado: 'procesado',
-                llegada: estadoMapa.ultimaLlegada
-            }
-        });
-
-        logger.info(`${logPrefix} Llegada procesada`, { paradaId, coordenadas });
-        
-        return { exito: true, llegada: estadoMapa.ultimaLlegada };
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error al procesar llegada: ${error.message}`, error);
-        
-        enviarMensaje({
-            destino: mensaje.origen,
-            tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: 'funciones-mapa',
-            mensajeId: generarIdUnico(),
-            datos: {
-                error: error.message,
-                mensajeOriginalId: mensajeId,
-                tipo: 'ERROR_LLEGADA_DETECTADA'
-            }
-        });
-        
-        return { exito: false, error: error.message };
-    }
-}
-
-/**
- * Maneja los errores de navegación reportados.
- * @param {Object} mensaje - Mensaje de error
- * @returns {Object} Resultado de la operación
- */
-async function manejarErrorNavegacion(mensaje) {
-    const logPrefix = `[NAVEGACION.ERROR][${mensaje?.origen || 'desconocido'}]`;
-    
-    try {
-        logger.error(`${logPrefix} Error de navegación reportado`, { datos: mensaje.datos });
-        
-        const { error, codigo, severidad = 'medio', contexto } = mensaje.datos || {};
-
-        // Registrar error en estado
-        if (!estadoMapa.errores) {
-            estadoMapa.errores = [];
-        }
-
-        estadoMapa.errores.push({
-            error,
-            codigo,
-            severidad,
-            contexto,
-            timestamp: Date.now()
-        });
-
-        // Mantener solo los últimos 20 errores
-        if (estadoMapa.errores.length > 20) {
-            estadoMapa.errores = estadoMapa.errores.slice(-20);
-        }
-
-        // Si es error crítico, cancelar navegación
-        if (severidad === 'critico') {
-            logger.warn(`${logPrefix} Error crítico detectado, cancelando navegación`);
-            await manejarNavegacionCancelada({ // NOSONAR
-                origen: 'funciones-mapa',
-                datos: { motivo: 'error_critico', error, codigo }
-            });
-        }
-
-        return { exito: true };
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error al procesar error de navegación: ${error.message}`, error);
-        return { exito: false, error: error.message };
-    }
-}
-
-// ============================================
-// FUNCIONES MANEJADORAS GPS
-// ============================================
-
-/**
- * Maneja actualizaciones del estado GPS (activado/desactivado, permisos, etc.)
- * @param {Object} mensaje - Mensaje con estado GPS actualizado
- * @returns {Object} Resultado de la operación
- */
-async function manejarEstadoGPSActualizado(mensaje) {
-    const logPrefix = `[GPS.ESTADO_ACTUALIZADO][${mensaje?.origen || 'desconocido'}]`;
-
-    try {
-        // Validación de datos
-        if (!mensaje.datos || typeof mensaje.datos !== 'object') {
-            logger.warn(`${logPrefix} Mensaje sin datos válidos`);
-            return { exito: false, error: 'Datos inválidos' };
-        }
-
-        const { activo, permisos, precision, error } = mensaje.datos;
-
-        logger.info(`${logPrefix} Estado GPS actualizado:`, {
-            activo,
-            permisos,
-            precision: precision || 'N/A',
-            error: error || 'ninguno'
-        });
-
-        // Actualizar estado del mapa (estadoMapa es la única fuente de verdad)
-        estadoMapa.gpsActivo = activo;
-        estadoMapa.gpsPermisos = permisos;
-        estadoMapa.gpsPrecision = precision;
-        estadoMapa.gpsError = error;
-        
-        // Sincronizar con el estado global del padre
-        sincronizarEstadoGPSConPadre();
-
-        // Si GPS se desactiva, remover marcador de usuario
-        if (!activo) {
-            if (_mapaInstance && marcadorUsuario) {
-                _mapaInstance.removeLayer(marcadorUsuario);
-                marcadorUsuario = null;
-            }
-            estadoMapa.posicionUsuario = null;
-            logger.debug(`${logPrefix} Marcador de usuario removido (GPS desactivado)`);
-        }
-
-        // Si hay error de permisos, log especial
-        if (error && permisos === false) {
-            logger.warn(`${logPrefix} GPS sin permisos - funcionalidad limitada`);
-        }
-
-        return { exito: true };
-
-    } catch (error) {
-        logger.error(`${logPrefix} Error procesando estado GPS: ${error.message}`, error);
-        return { exito: false, error: error.message };
-    }
-}
 
 /**
  * Función de diagnóstico GPS para debugging
@@ -3192,7 +2519,6 @@ export async function manejarGPSActivar(mensaje) {
                 estadoMapa.gpsActivo = true;
                 estadoMapa.gpsPermisos = true;
                 estadoMapa.gpsError = null;
-                estadoMapa.watchId = gpsWatchId;
                 sincronizarEstadoGPSConPadre();
                 return { exito: true };
             } catch (err) {
@@ -3888,48 +3214,6 @@ async function manejarCambioModoMapa(mensaje) {
     }
 }
 
-/**
- * Maneja la respuesta con datos de paradas del padre
- * @param {Object} mensaje - Mensaje con datos de paradas
- */
-async function manejarRespuestaDatosParadas(mensaje) {
-    const logPrefix = `[NAVEGACION.RESPUESTA_DATOS_PARADAS][${mensaje?.origen || 'desconocido'}]`;
-    
-    try {
-        logger.info(`${logPrefix} Recibida respuesta de datos de paradas`);
-        
-        if (!mensaje?.datos?.paradas) {
-            throw new Error('Datos de paradas no incluidos en la respuesta');
-        }
-        
-        const { paradas } = mensaje.datos;
-        
-        if (!Array.isArray(paradas)) {
-            throw new TypeError('Datos de paradas no es un array válido');
-        }
-        
-        if (paradas.length === 0) {
-            logger.warn(`${logPrefix} Array de paradas vacío recibido`);
-            return;
-        }
-        
-        // Actualizar array local con los datos del padre (normalizar defensivamente)
-        const antes = Array.isArray(paradas) ? paradas.length : 0;
-        arrayParadasLocal = normalizarParadas(paradas);
-        datosParadasSolicitados = false; // Reset flag para permitir futuras solicitudes si es necesario
-
-        logger.info(`${logPrefix} Datos de paradas actualizados: ${arrayParadasLocal.length} paradas cargadas (recibidas: ${antes})`);
-
-        // Solo mostrar todos los marcadores en modo AVENTURA; en CASA el mapa muestra
-        // únicamente la parada activa cuando hijo5 la solicita (evita el clutter visual)
-        if (_mapaInstance && estadoMapa.modo === MODOS.AVENTURA) {
-            await mostrarTodasLasParadas(arrayParadasLocal);
-        }
-        
-    } catch (error) {
-        logger.error(`${logPrefix} Error procesando respuesta de datos de paradas:`, error);
-    }
-}
 
 /**
  * Registra los manejadores de mensajes para el mapa.
@@ -3951,10 +3235,7 @@ export function registrarManejadoresMensajes() {
         };
 
         // Registrar manejadores de mensajes con manejo de errores
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.ESTABLECER_DESTINO, manejarEstablecerDestino);
-        // ACTUALIZAR_POSICION eliminado - tipo de mensaje obsoleto (legacy code)
         registrarSiNoExiste(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, manejarCambioModoMapa);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_RUTA, manejarMostrarRuta);
         
         // Controladores de navegación adicionales
         // CAMBIO_PARADA: el handler de mensajería lo gestiona padre (codigo-padre.html)
@@ -3975,22 +3256,11 @@ export function registrarManejadoresMensajes() {
                 logger.error('[funciones-mapa] ❌ Error procesando vv-parada-cambiada:', err);
             }
         });
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, manejarActualizarEstadoNavegacion);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.INICIAR, manejarIniciarNavegacion);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.INICIADA, manejarNavegacionIniciada);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.CANCELADA, manejarNavegacionCancelada);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.DESTINO_ESTABLECIDO, manejarDestinoEstablecido);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, manejarLlegadaDetectada);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.ERROR, manejarErrorNavegacion);
-        
-        // Controladores GPS
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, manejarGPSActivar);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, manejarGPSDesactivar);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, manejarEstadoGPSActualizado);
-        
-        // Controlador para respuesta de datos de paradas
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS, manejarRespuestaDatosParadas);
-        
+        // Controladores GPS — registrarSiNoExiste para no sobreescribir los handlers del padre
+        // (padre verifica modo AVENTURA y gestiona estado completo antes de activar/desactivar)
+        registrarSiNoExiste(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, manejarGPSActivar);
+        registrarSiNoExiste(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, manejarGPSDesactivar);
+
         // Controladores de manipulación del mapa
         registrarControlador(TIPOS_MENSAJE.MAPA.INVALIDAR_TAMAÑO, manejarInvalidarTamanio);
         registrarControlador(TIPOS_MENSAJE.MAPA.SET_VIEW, manejarSetView);
@@ -4002,82 +3272,6 @@ export function registrarManejadoresMensajes() {
         // Controlador para solicitar paradas con proximidad avanzada
         // ...existing code...
         
-        // Usar limpiarPorEstado como manejador para SISTEMA.ESTADO
-        registrarControlador(TIPOS_MENSAJE.SISTEMA.ESTADO, limpiarPorEstado);
-        
-        // Registrar controladores para los nuevos mensajes
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.VALIDAR_RANGO_PARADA, async (mensaje) => {
-            try {
-                const { coordenadasUsuario, coordenadasParada, rango } = mensaje.datos;
-                if (!validarCoordenadas(coordenadasUsuario) || !validarCoordenadas(coordenadasParada)) {
-                    throw new Error('Coordenadas inválidas para validar rango');
-                }
-
-                const distancia = calcularDistancia(
-                    coordenadasUsuario.lat,
-                    coordenadasUsuario.lng,
-                    coordenadasParada.lat,
-                    coordenadasParada.lng
-                );
-                const dentroDelRango = distancia <= rango;
-
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.VALIDAR_RANGO_PARADA,
-                    origen: 'mapa',
-                    destino: mensaje.origen,
-                    datos: { dentroDelRango, distancia }
-                });
-            } catch (error) {
-                manejarError(error, mensaje);
-            }
-        });
-
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.ENVIAR_PARADA_COMPLETADA, async (mensaje) => {
-            try {
-                const { paradaCompletada, siguienteParada } = mensaje.datos;
-                if (!paradaCompletada || !siguienteParada) {
-                    throw new Error('Datos incompletos para enviar parada completada');
-                }
-
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.ENVIAR_PARADA_COMPLETADA,
-                    origen: 'mapa',
-                    destino: mensaje.origen,
-                    datos: { paradaCompletada, siguienteParada }
-                });
-            } catch (error) {
-                manejarError(error, mensaje);
-            }
-        });
-
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.DIBUJAR_POLYLINE, async (mensaje) => {
-            try {
-                const { tramo } = mensaje.datos;
-                if (!tramo?.inicio || !tramo?.fin) {
-                    throw new Error('Datos incompletos para dibujar polyline');
-                }
-
-                const polyline = dibujarTramo(tramo, true);
-                if (!polyline) {
-                    throw new Error('Error al dibujar polyline');
-                }
-
-                enviarMensaje({
-                    tipo: TIPOS_MENSAJE.NAVEGACION.DIBUJAR_POLYLINE,
-                    origen: 'mapa',
-                    destino: mensaje.origen,
-                    datos: { exito: true }
-                });
-
-
-
-
-
-
-            } catch (error) {
-                manejarError(error, mensaje);
-            }
-        });
 
         // Controladores para respuestas de consultas de cambio de parada
         registrarControlador(TIPOS_MENSAJE.NAVEGACION.RESPUESTA_COORDENADAS, async (mensaje) => {
@@ -4205,8 +3399,7 @@ async function iniciarGPSAventura() {
         estadoMapa.gpsActivo = true;
         estadoMapa.gpsPermisos = true;
         estadoMapa.gpsError = null;
-        estadoMapa.watchId = gpsWatchId;
-        
+
         // Sincronizar con el estado global del padre
         sincronizarEstadoGPSConPadre();
 
@@ -4291,9 +3484,9 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // Sincronizar con el estado global del padre
         sincronizarEstadoGPSConPadre();
 
-        // Solo procesar si precisión disponible y es buena (< 50m)
-        if (typeof accuracy === 'number' && accuracy > 50) {
-            logger.debug(`${logPrefix} Precisión insuficiente: ${accuracy}m > 50m`);
+        // Solo procesar si precisión disponible y es buena
+        if (typeof accuracy === 'number' && accuracy > CONFIG.GPS.PRECISION_MINIMA) {
+            logger.debug(`${logPrefix} Precisión insuficiente: ${accuracy}m > ${CONFIG.GPS.PRECISION_MINIMA}m`);
             return;
         }
 
@@ -4453,28 +3646,32 @@ async function procesarPosicionGPSParaAventura(posicion) {
             }
         }
 
-        // Si está dentro de tolerancia, activar la parada
+        // Si está dentro de tolerancia, activar la parada — SOLO en modo AVENTURA
+        // En CASA el usuario elige libremente tramo/parada; el GPS nunca fuerza el avance
         if (llegadaDetectada) {
-            logger.info(`${logPrefix} 🎯 Activando parada secuencial: ${siguienteParada.padreid}`);
+            if (estadoMapa.modo !== MODOS.AVENTURA) {
+                logger.debug(`${logPrefix} Llegada detectada en modo ${estadoMapa.modo} — sin avance automático por GPS`);
+            } else {
+                logger.info(`${logPrefix} 🎯 Activando parada secuencial: ${siguienteParada.padreid}`);
 
-            // Enviar mensaje de cambio de parada
-            // Derivar ids para compatibilidad (padreId vs paradaId)
-            const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
-            const derivedPadreId = siguienteParada.padreid || (derivedParadaId ? `padre-${derivedParadaId}` : null);
-            enviarMensaje({
-                destino: getPadreId(),
-                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                origen: 'funciones-mapa',
-                datos: {
-                    paradaId: derivedParadaId,
-                    parada_id: derivedParadaId,
-                    padreId: derivedPadreId,
-                    padreid: derivedPadreId,
-                    origen: 'gps-automatico',
-                    distancia: distancia,
-                    timestamp: Date.now()
-                }
-            });
+                // Derivar ids para compatibilidad (padreId vs paradaId)
+                const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
+                const derivedPadreId = siguienteParada.padreid || (derivedParadaId ? `padre-${derivedParadaId}` : null);
+                enviarMensaje({
+                    destino: getPadreId(),
+                    tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                    origen: 'funciones-mapa',
+                    datos: {
+                        paradaId: derivedParadaId,
+                        parada_id: derivedParadaId,
+                        padreId: derivedPadreId,
+                        padreid: derivedPadreId,
+                        origen: 'gps-automatico',
+                        distancia: distancia,
+                        timestamp: Date.now()
+                    }
+                });
+            }
         }
 
     } catch (error) {
@@ -4723,9 +3920,8 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
     
     try {
         // ── CRÍTICO: Actualizar estadoMapa.posicionUsuario ──────────────
-        // El handler GPS.UBICACION_ACTUALIZADA de funciones-mapa es código muerto
-        // (padre lo registra primero y gana). Esta es la ÚNICA ruta viva que recibe
-        // posiciones GPS, así que actualizamos el estado interno aquí para que
+        // Esta es la ÚNICA ruta viva que recibe posiciones GPS — NAVEGACION.ACTUALIZAR_ESTADO
+        // llega directo desde padre. Actualizamos el estado interno aquí para que
         // actualizarPosicionFlecha() y getPosicionUsuario() funcionen.
         estadoMapa.posicionUsuario = {
             lat,
@@ -4804,6 +4000,9 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
         const iconoLog = modo === 'casa' ? '🛸' : '➤';
         logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, heading: ${Math.round(heading || 0)}°)`);
 
+        // Actualizar posición de la flecha snap-to-route si hay tramo activo
+        if (flechaActiva) actualizarPosicionFlecha();
+
         // Círculo naranja 20m — zona de activación de parada.
         // Brújula activada en el mismo branch para evitar condición duplicada.
         if (modo !== 'casa') {
@@ -4873,69 +4072,3 @@ export function limpiarPolylineNavegacion() {
         logger.error('Error limpiando polyline de navegación:', error);
     }
 }
-
-// Controlador para estado global GPS
-registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_GLOBAL, async (mensaje) => {
-    try {
-        const permisos = await navigator.permissions.query({name:'geolocation'});
-        estadoMapa.gpsPermisos = permisos.state;
-        
-        if (permisos.state === 'granted') {
-            // Intentar obtener ubicación
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    estadoMapa.gpsPrecision = position.coords.accuracy;
-                    enviarMensaje({
-                        tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_GLOBAL,
-                        origen: 'funciones-mapa',
-                        destino: mensaje.origen,
-                        datos: {
-                            estado: 'activo',
-                            precision: position.coords.accuracy,
-                            permisos: 'granted'
-                        }
-                    });
-                },
-                (error) => {
-                    handleGeolocationError(error);
-                    enviarMensaje({
-                        tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_GLOBAL,
-                        origen: 'funciones-mapa',
-                        destino: mensaje.origen,
-                        datos: {
-                            estado: 'error',
-                            error: error.message,
-                            permisos: 'granted'
-                        }
-                    });
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: ajustarTimeoutPorConexion(15000), // Timeout dinámico
-                    maximumAge: 0
-                }
-            );
-        } else {
-            // denied → estado 'denegado' | prompt → estado 'solicitar'
-            enviarMensaje({
-                tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_GLOBAL,
-                origen: 'funciones-mapa',
-                destino: mensaje.origen,
-                datos: {
-                    estado: permisos.state === 'denied' ? 'denegado' : 'solicitar',
-                    permisos: permisos.state
-                }
-            });
-        }
-    } catch (error) {
-        enviarMensaje({
-            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_GLOBAL,
-            origen: 'funciones-mapa',
-            destino: mensaje.origen,
-            datos: {
-                estado: 'error',
-                error: error.message
-            }
-        });
-    }
-});

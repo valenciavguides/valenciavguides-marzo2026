@@ -281,6 +281,20 @@
         body.puzzle-mode #button-container { display: none; }
         body.puzzle-mode #respuestaCorrectaTexto { display: none !important; }
 
+        /* ===== BOTÓN ACCESO RETO (botonRetos) ===== */
+        #botonRetos-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2em 1em;
+            flex-shrink: 0;
+        }
+        #botonRetos {
+            font-size: clamp(18px, 5vmin, 22px);
+            padding: 0.8em 1.6em;
+            min-width: 10em;
+        }
+
         /* ===== BOTÓN GLOBO VERDE (btn-mundo-verde) ===== */
         .btn-mundo-verde {
             position: relative;
@@ -689,6 +703,7 @@
     let divRespuestaCorrecta;
     let btnNext;
     let fuegosDiv;
+    let botonRetos;
 
     let retoActual = null; // Objeto del reto actual
         let indiceReto = 0; // Índice del reto actualmente mostrado (inicializado en 0)
@@ -830,6 +845,21 @@
         divRespuestaCorrecta = document.getElementById("respuestaCorrectaTexto");
         btnNext = document.getElementById("btnNextAfterReto");
         fuegosDiv = document.getElementById("fuegos");
+        botonRetos = document.getElementById('botonRetos');
+        if (botonRetos) {
+            botonRetos.addEventListener('click', async () => {
+                try {
+                    await enviarMensaje({
+                        tipo: TIPOS_MENSAJE.RETO.SOLICITAR_RETO,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: getPadreId(),
+                        datos: { contexto: 'hijo4-botonRetos' }
+                    });
+                } catch(e) {
+                    logger.error('[hijo4] Error enviando RETO.SOLICITAR_RETO desde botonRetos:', e);
+                }
+            });
+        }
 
         // Verificar que todos los elementos necesarios se encontraron
         if (!retoDiv || !btnMostrarRespuesta || !divRespuestaCorrecta || !btnNext || !fuegosDiv) {
@@ -861,6 +891,8 @@
 
             // Ocultar todos los botones y mensajes al inicio de un nuevo reto
             ocultarControles();
+            const _bRWrapper = document.getElementById('botonRetos-wrapper');
+            if (_bRWrapper) _bRWrapper.style.display = 'none';
 
             // Los botones están siempre visibles, pero btnNext está deshabilitado hasta respuesta correcta
             if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#0077cc"; }
@@ -1432,6 +1464,13 @@
 
                     await mostrarReto(retoId);
                     estado.retoActualId = retoId;
+                    // Fase 2: confirmar al padre que el reto ha sido mostrado
+                    try {
+                        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.MOSTRADO, origen: CONFIG_HIJO.IFRAME_ID, destino: getPadreId(), datos: { retoId } });
+                        logger.info(`[hijo4] RETO.MOSTRADO enviado al padre para reto: ${retoId}`);
+                    } catch (sendErr) {
+                        logger.warn(`[hijo4] Error enviando RETO.MOSTRADO:`, sendErr?.message || sendErr);
+                    }
                 } catch (e) {
                     logger.error(`[hijo4] Error procesando RETO.MOSTRAR:`, e?.message || e);
                 }
@@ -1648,81 +1687,6 @@
                 }
             });
 
-            // Controlador para solicitar datos de un reto específico
-            registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_RETO, async (mensaje) => {
-                const logPrefix = `[hijo4][SOLICITAR_RETO]`;
-                try {
-                    const retoId = mensaje?.datos?.retoId;
-                    logger.info(`${logPrefix} DATOS.SOLICITAR_RETO recibido para reto: ${retoId}`);
-
-                    if (!retoId) {
-                        throw new Error('Falta retoId en mensaje.datos');
-                    }
-
-                    // Buscar usando función centralizada
-                    const retosArray = obtenerRetos() || [];
-                    const reto = Array.isArray(retosArray) ? retosArray.find(r => r && r.id === retoId) : null;
-
-                    if (!reto) {
-                        logger.warn(`${logPrefix} Reto no encontrado: ${retoId}`);
-                        const errorPayload = {
-                            mensajeOriginal: mensaje?.datos?.mensajeId,
-                            exito: false,
-                            error: 'Reto no encontrado',
-                            retoId
-                        };
-                        await enviarMensaje({
-                            destino: mensaje?.origen || getPadreId(),
-                            tipo: TIPOS_MENSAJE.DATOS.RESPUESTA_RETO,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            datos: errorPayload
-                        });
-                        return errorPayload;
-                    }
-
-                    // Normalizar y proteger campos del reto
-                    const payload = {
-                        mensajeOriginal: mensaje?.datos?.mensajeId,
-                        retoId,
-                        exito: true,
-                        reto: {
-                            id: reto.id,
-                            tipo: reto.tipo,
-                            pregunta: reto.pregunta,
-                            opciones: Array.isArray(reto.opciones) ? reto.opciones : [],
-                            multiple: !!reto.multiple,
-                            correctas: Array.isArray(reto.correctas) ? reto.correctas : [],
-                            puzzleSrc: reto.src || reto.puzzleSrc || null
-                        }
-                    };
-
-                    // Enviar datos del reto al origen (padre o quien lo solicitó)
-                    try {
-                        const enviar = enviarMensaje || (msg => globalThis.parent.postMessage(msg, globalThis.location.origin));
-                        await enviar({ destino: mensaje?.origen || getPadreId(), tipo: TIPOS_MENSAJE.DATOS.RESPUESTA_RETO, origen: CONFIG_HIJO.IFRAME_ID, datos: payload });
-                    } catch (err) {
-                        // Fallback: intentar postMessage directo si mensajería no disponible
-                        try { globalThis.parent.postMessage({ tipo: TIPOS_MENSAJE.DATOS.RESPUESTA_RETO, datos: payload, origen: CONFIG_HIJO.IFRAME_ID }, globalThis.location.origin); } catch (_) {} // NOSONAR
-                    }
-
-                    logger.info(`${logPrefix} Datos del reto enviados: ${retoId}`);
-
-                    // Return para auto-confirmación
-                    return payload;
-                } catch (error) {
-                    logger.error(`[hijo4][SOLICITAR_RETO] Error procesando solicitud:`, error);
-                    const errorPayload = { mensajeOriginal: mensaje?.datos?.mensajeId, exito: false, error: error && error.message };
-                    try {
-                        await enviarMensaje({
-                            destino: (mensaje && mensaje.origen) || getPadreId(),
-                            tipo: TIPOS_MENSAJE.DATOS.RESPUESTA_RETO,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            datos: errorPayload
-                        });
-                    } catch (_) { /* ignore send failure */ } // NOSONAR
-                    return errorPayload;
-                }
-            });
 
             // Controlador para ocultar el reto
             registrarControladorSeguro(TIPOS_MENSAJE.RETO.OCULTAR, async (_mensaje) => {
@@ -1747,6 +1711,10 @@
                     fuegosDiv.style.display = "none";
                 }
 
+                if (estado.modo?.actual === 'casa') {
+                    const wrapper = document.getElementById('botonRetos-wrapper');
+                    if (wrapper) wrapper.style.display = '';
+                }
                 logger.info(`[hijo4] Estado y interfaz limpiados tras RETO.OCULTAR`);
             });
 
@@ -1758,8 +1726,10 @@
                 try {
                     const { paradaId, razon } = mensaje?.datos || {};
 
-                    if (razon === 'audio_escuchado_1vez') {
-                        logger.info(`${logPrefix} Habilitando retos tras audio escuchado 1 vez para parada ${paradaId}`);
+                    if (razon === 'audio_escuchado_1vez' || razon === 'sin_audio') {
+                        logger.info(`${logPrefix} Habilitando retos (razon: ${razon}) para parada ${paradaId}`);
+                        const wrapper = document.getElementById('botonRetos-wrapper');
+                        if (wrapper) wrapper.style.display = '';
                         // Habilitar botón de retos
                         if (botonRetos) {
                             botonRetos.disabled = false;
@@ -1778,16 +1748,19 @@
                 logger.info(`${logPrefix} recibido de ${mensaje?.origen}`, mensaje?.datos);
 
                 try {
-                    const { tipo, habilitado } = mensaje?.datos || {};
+                    const { habilitado } = mensaje?.datos || {};
 
-                    if (tipo === 'parada' && habilitado) {
-                        logger.info(`${logPrefix} Habilitando retos en parada (modo CASA)`);
+                    const wrapperCasa = document.getElementById('botonRetos-wrapper');
+                    if (habilitado) {
+                        logger.info(`${logPrefix} Habilitando retos (modo CASA)`);
+                        if (wrapperCasa) wrapperCasa.style.display = '';
                         if (botonRetos) {
                             botonRetos.disabled = false;
                             botonRetos.classList.remove('deshabilitado');
                         }
-                    } else if (tipo === 'tramo' && !habilitado) {
-                        logger.info(`${logPrefix} Deshabilitando retos en tramo (modo CASA)`);
+                    } else {
+                        logger.info(`${logPrefix} Ocultando retos (modo CASA — tramo o parada sin reto)`);
+                        if (wrapperCasa) wrapperCasa.style.display = 'none';
                         if (botonRetos) {
                             botonRetos.disabled = true;
                             botonRetos.classList.add('deshabilitado');
@@ -1918,50 +1891,17 @@
                 }
             });
 
-            // ============================================================
-            // HANDLERS GPS
-            // ============================================================
-            registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA, async (_mensaje) => {
-                try {
-                    console.debug(`[hijo4][GPS.UBICACION_ACTUALIZADA] Ubicación recibida (no-op)`);
-                    return { exito: true };
-                } catch (e) {
-                    console.error('[hijo4][GPS.UBICACION_ACTUALIZADA] Error en handler no-op:', e);
-                    return { exito: false, error: e.message };
-                }
+            // Fase 3 del patrón bidireccional: padre confirma recepción de RETO.MOSTRADO
+            registrarControladorSeguro(TIPOS_MENSAJE.RETO.CONFIRMADO, async (mensaje) => {
+                const { retoId } = mensaje.datos || {};
+                logger.info(`[hijo4][RETO.CONFIRMADO] Padre confirmó recepción del reto mostrado: ${retoId}`);
             });
 
-            registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, async (mensaje) => {
-                try {
-                    console.debug(`[hijo4][GPS.ESTADO_ACTUALIZADO] Estado GPS recibido (no-op):`, mensaje?.datos || {});
-                    return { exito: true };
-                } catch (e) {
-                    console.error('[hijo4][GPS.ESTADO_ACTUALIZADO] Error en handler no-op:', e);
-                    return { exito: false, error: e.message };
-                }
+            // Fase 3 del patrón bidireccional: padre confirma recepción de DATOS.RETOS_CARGADOS
+            registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, async (mensaje) => {
+                const { subtipo } = mensaje.datos || {};
+                logger.info(`[hijo4][DATOS.CARGADOS_RECIBIDO] Padre confirmó recepción de ${subtipo}`);
             });
-
-            registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ERROR, async (mensaje) => {
-                try {
-                    const datos = mensaje?.datos || {};
-                    const { codigo } = datos;
-                    const errorMensaje = datos.mensaje || datos.message || null;
-                    const contexto = datos.contexto || datos.context || 'desconocido';
-                    const codeMap = { 1: 'PERMISSION_DENIED', 2: 'POSITION_UNAVAILABLE', 3: 'TIMEOUT' };
-                    const codeDesc = codeMap[codigo] || 'UNKNOWN_CODE';
-                    let details;
-                    try { details = JSON.stringify({ codigo, codeDesc, mensaje: errorMensaje, contexto }, null, 2); } catch (_e) { details = `codigo=${codigo} mensaje=${String(errorMensaje)} contexto=${String(contexto)}`; } // NOSONAR
-                    logger.error(`[hijo4][GPS.ERROR] Error GPS recibido: ${details}`);
-                    // Telemetría: incrementar contador por código de error GPS en hijo4
-                    try { if (codigo !== undefined) { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador(`gps_error_code_${codigo}`); } } catch (_err) { /* ignore */ } // NOSONAR
-                    // Enviar métrica a monitoreo
-                    try { if (typeof enviarMensaje === 'function') { enviarMensaje({ tipo: TIPOS_MENSAJE.MONITOREO.METRICA, origen: CONFIG_HIJO.IFRAME_ID || 'hijo4', destino: getPadreId(), datos: { nombre: 'gps_error_code', valor: 1, metadatos: { codigo } } }).catch(() => {}); } } catch (_ignore) { /* ignore */ } // NOSONAR
-                return { exito: true };
-            } catch (e) { // NOSONAR
-                logger.error('[hijo4][GPS.ERROR] Error en handler no-op:', e);
-                return { exito: false, error: e.message };
-            }
-        });
 
             // ============================================================
             // ENVIAR HIJO_PREPARADO AHORA QUE TODOS LOS CONTROLADORES ESTÁN REGISTRADOS
@@ -2001,6 +1941,9 @@
 </head>
 <body>
 
+<div id="botonRetos-wrapper" style="display:none">
+    <button id="botonRetos" class="btn" disabled>🧩 Iniciar reto</button>
+</div>
 <div id="reto" tabindex="0"></div>
 <button id="btn-puzzle-continuar" class="btn-mundo-verde">
     <div class="elemento-orbita retraso-1"><span class="flecha-v">➣</span></div>
