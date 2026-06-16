@@ -80,7 +80,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-sw-listener-fix-jun16';
+const CACHE_VERSION = 'v-sw-nocache-jun16';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
 const MEDIA_CACHE_MAX_ENTRIES = 100; // Máximo 100 archivos media en caché
@@ -111,9 +111,9 @@ self.addEventListener('install', event => {
         // Precachamos en paralelo pero toleramos fallos individuales.
         return Promise.allSettled(
           APP_SHELL.map(url =>
-            cache.add(url).catch(err =>
-              console.warn(`[SW] No se pudo precargar: ${url}`, err)
-            )
+            fetch(new Request(url, { cache: 'reload' }))
+              .then(res => { if (res.ok) return cache.put(url, res); })
+              .catch(err => console.warn(`[SW] No se pudo precargar: ${url}`, err))
           )
         );
       })
@@ -214,10 +214,12 @@ self.addEventListener('fetch', event => {
   }
 
   // Shell y módulos JS: Network First
-  // → Intenta red primero (contenido fresco)
-  // → Si falla (sin conexión), sirve desde caché
+  // → Intenta red primero (contenido fresco), bypasseando el caché HTTP
+  //   del navegador (cache:'no-store') para que el SW siempre vea la versión
+  //   real del servidor y no una copia vieja del caché HTTP.
+  // → Si falla (sin conexión), sirve desde caché SW
   event.respondWith(
-    fetch(event.request)
+    fetch(new Request(event.request, { cache: 'no-store' }))
       .then(response => {
         // Solo cachear respuestas válidas (200 OK)
         if (response.ok && response.status !== 206) {
