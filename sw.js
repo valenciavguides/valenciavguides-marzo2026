@@ -80,7 +80,8 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-sw-nocache-jun16';
+const CACHE_VERSION = 'v-sw-devbypass-jun16';
+const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
 const MEDIA_CACHE_MAX_ENTRIES = 100; // Máximo 100 archivos media en caché
@@ -145,6 +146,12 @@ self.addEventListener('activate', event => {
         // Tomar control de todas las pestañas abiertas inmediatamente
         return globalThis.clients.claim();
       })
+      .then(() => {
+        // Notificar a todas las pestañas para que recarguen con el nuevo SW
+        return self.clients.matchAll({ type: 'window' }).then(clients =>
+          Promise.all(clients.map(c => c.postMessage({ tipo: 'SW_ACTUALIZADO' })))
+        );
+      })
   );
 });
 
@@ -157,6 +164,12 @@ self.addEventListener('fetch', event => {
 
   // Solo peticiones GET
   if (event.request.method !== 'GET') return;
+
+  // Localhost/dev: siempre red directa, sin caché SW — el dev siempre ve la versión más reciente
+  if (IS_DEV) {
+    event.respondWith(fetch(new Request(event.request, { cache: 'no-store' })));
+    return;
+  }
 
   // API: Network Only (sin caché)
   if (esApi(url)) {

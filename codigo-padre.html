@@ -11944,6 +11944,14 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 (globalThis.logger || console).info('[SW] Nuevo service worker activo — recargando');
                 globalThis.location.reload();
             });
+            // Respaldo: el SW activo envía postMessage SW_ACTUALIZADO tras clients.claim()
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data?.tipo === 'SW_ACTUALIZADO' && !_swReloading) {
+                    _swReloading = true;
+                    (globalThis.logger || console).info('[SW] SW_ACTUALIZADO recibido — recargando');
+                    globalThis.location.reload();
+                }
+            });
 
             navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
                 .then(registration => {
