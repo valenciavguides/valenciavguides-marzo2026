@@ -8737,8 +8737,6 @@
                 }
                 (globalThis.logger || console).info(`[SCRIPT2] ✅ Controladores pendientes registrados: ${pendientes.length}`);
             }
-
-            (globalThis.logger || console).info('[SCRIPT2] 🚀 Registrando controladores adicionales de Script 2...');
         }
 
         async function _hdl_RETO_OCULTAR(mensaje) {
@@ -11761,14 +11759,8 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
         // Migrar controladores registrados tempranamente en módulos al sistema de mensajería
         try {
-            const { registrarControladoresMonitoreo } = await import('./js/monitoreo.js');
             const { registrarControladoresApp } = await import('./js/app.js');
-            const { registrarControladoresUtils } = await import('./js/utils.js');
-
-            // Ejecutar migraciones en orden (monitoreo primero para logs)
-            try { await registrarControladoresMonitoreo(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             try { await registrarControladoresApp(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            try { await registrarControladoresUtils(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         } catch (e) {
             (globalThis.logger || console).warn('No se pudieron migrar algunos controladores:', e.message);
         }
