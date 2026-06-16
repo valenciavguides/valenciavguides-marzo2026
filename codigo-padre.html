@@ -7086,15 +7086,13 @@
                 { id: 'hijo4', src: 'retos-hijo4.html' },
                 { id: 'hijo5', src: 'boton-casa-hijo5.html' }
             ];
-            for (const iframe of iframesHijos) {
+            await Promise.all(iframesHijos.map(iframe => {
                 (globalThis.logger || console).info(`${logPrefix} Cargando iframe hijo: ${iframe.id}`);
-                try {
-                    await _cargarUnIframeHijo(iframe, logPrefix);
-                } catch (error) {
+                return _cargarUnIframeHijo(iframe, logPrefix).catch(error => {
                     (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando hijo ${iframe.id}: ${error.message}`);
                     (globalThis.logger || console).warn(`${logPrefix} Continuando con siguiente hijo...`);
-                }
-            }
+                });
+            }));
             (globalThis.logger || console).success(`${logPrefix} ✅ FASE 3 COMPLETADA - Todos los iframes hijos cargados y confirmados`);
         }
 
@@ -7279,16 +7277,15 @@
 
             const hijosFallidos = [];
 
-            for (const iframe of iframes) {
+            await Promise.all(iframes.map(iframe => {
                 (globalThis.logger || console).info(`${logPrefix} Cargando iframe: ${iframe.id}`);
-                try {
-                    await _cargarUnIframeHijo(iframe, logPrefix);
-                    (globalThis.logger || console).success(`${logPrefix} ✅ ${iframe.id} listo y confirmado`);
-                } catch (error) {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando ${iframe.id}: ${error.message}`);
-                    hijosFallidos.push({ id: iframe.id, error: error.message });
-                }
-            }
+                return _cargarUnIframeHijo(iframe, logPrefix)
+                    .then(() => (globalThis.logger || console).success(`${logPrefix} ✅ ${iframe.id} listo y confirmado`))
+                    .catch(error => {
+                        (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando ${iframe.id}: ${error.message}`);
+                        hijosFallidos.push({ id: iframe.id, error: error.message });
+                    });
+            }));
 
             if (hijosFallidos.length > 0) {
                 (globalThis.logger || console).warn(`${logPrefix} ⚠️ ${hijosFallidos.length} iframes fallaron:`, hijosFallidos);
