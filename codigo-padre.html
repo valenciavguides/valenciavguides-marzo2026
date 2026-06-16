@@ -11936,70 +11936,28 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
             (async () => {
                 const previousController = navigator.serviceWorker.controller;
                 let _swReloading = false;
-                let _swPendingReload = false;
-                const SW_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
-
-                const esPuntoSeguroRecarga = () => {
-                    try {
-                        const modoActual = globalThis?.estadoPadre?.modo?.actual || globalThis?.estado?.modo?.actual || null;
-                        const modalFinalizacion = document.getElementById('modal-finalizacion-exitosa');
-                        const modalVisible = !!(modalFinalizacion && getComputedStyle(modalFinalizacion).display !== 'none');
-                        const iframeSeleccion = document.getElementById('iframe-seleccion') || document.getElementById('seleccion');
-                        const seleccionVisible = !!(iframeSeleccion && getComputedStyle(iframeSeleccion).display !== 'none' && getComputedStyle(iframeSeleccion).visibility !== 'hidden');
-
-                        // En aventura activa y visible, evitar recarga automática.
-                        const aventuraActivaVisible = modoActual === 'aventura' && !modalVisible && !seleccionVisible && document.visibilityState === 'visible';
-                        return !aventuraActivaVisible;
-                    } catch { // evaluación fallida; modo seguro: solo permitir en background
-                        return document.visibilityState === 'hidden';
-                    }
-                };
-
-                const intentarAplicarUpdatePendiente = (origen) => {
-                    if (!_swPendingReload || _swReloading) return;
-                    if (!esPuntoSeguroRecarga()) return;
-
-                    _swReloading = true;
-                    (globalThis.logger || console).info(`[SW] Aplicando actualización en punto seguro (${origen})`);
-                    globalThis.location.reload();
-                };
-
-                // Exponer helper para disparar chequeos en puntos seguros de la app.
-                globalThis.__vv_checkSwUpdateSafePoint = (origen = 'manual') => {
-                    try {
-                        intentarAplicarUpdatePendiente(origen);
-                    } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
-                };
 
                 try {
                     const registration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
 
-                    // Polling periódico de actualización eliminado (innecesario, ya se actualiza en visibilitychange)
-
-                    // Intentar actualización cuando la app pasa a segundo plano.
+                    // Forzar chequeo de actualización cuando la app pasa a segundo plano.
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'hidden') {
-                            try {
-                                registration.update();
-                            } catch (e) {
-                                (globalThis.logger || console).warn('Error actualizando Service Worker (background):', e);
-                            }
-                            intentarAplicarUpdatePendiente('background');
-                        } else {
-                            intentarAplicarUpdatePendiente('foreground');
+                            try { registration.update(); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                         }
                     });
                 } catch (e) {
                     (globalThis.logger || console).error('[SW] Error registrando service worker:', e);
                 }
 
-                // Cuando el SW cambia de versión (skipWaiting + clients.claim),
-                // aplicar recarga automática solo en punto seguro.
+                // Cuando el SW cambia de versión (skipWaiting + clients.claim), recargar siempre.
+                // La guarda previousController evita recargar en la primera instalación.
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (_swReloading) return;
-                    if (!previousController) return; // primera instalación, no recargar
-                    _swPendingReload = true;
-                    intentarAplicarUpdatePendiente('controllerchange');
+                    if (!previousController) return;
+                    _swReloading = true;
+                    (globalThis.logger || console).info('[SW] Nuevo service worker activo — recargando');
+                    globalThis.location.reload();
                 });
             })();
         }
