@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -278,13 +278,13 @@
     }
     .aventuras-lista .btn:disabled .aventura-stats { opacity: 0.3; }
     .aventuras-lista .btn .aventura-stat-emoji { font-size: 1.05em; }
-    #pantalla7 { justify-content: flex-start; padding-top: 3rem; }
-    #pantalla9, #pantalla13 {
+    #pantalla6 { justify-content: flex-start; padding-top: 3rem; }
+    #pantalla8, #pantalla12 {
       justify-content: flex-start;
       padding-top: clamp(0.4rem, 1.5vmin, 0.9rem);
     }
-    #pantalla10 { height: 100dvh; }
-    #pantalla9 .logo-alargado, #pantalla13 .logo-alargado {
+    #pantalla9 { height: 100dvh; }
+    #pantalla8 .logo-alargado, #pantalla12 .logo-alargado {
       width: min(55vw, 220px);
       margin-top: 0;
     }
@@ -302,7 +302,7 @@
     .audio-player-container { padding: clamp(0.5rem, 1.5vmin, 1.5rem) 0; width: 72vw; margin-left: 6vw; margin-right: 0; margin-top: clamp(0.5rem, 1.5vmin, 1.5rem); margin-bottom: clamp(0.5rem, 1.5vmin, 1.5rem); border: 0.25rem solid #0074d9; }
       /* Solo texto legible - mismo tamaño que hijo2, sin afectar UI */
       .texto-box,
-      #pantalla12 .audio-overlay,
+      #pantalla11 .audio-overlay,
       #aventura-seleccionada-texto,
       #audio-warning-text {
         font-size: clamp(16px, 5vmin, 18px);
@@ -324,32 +324,32 @@
         flex-shrink: 0;
       }
 
-      /* Scrollbar unificado para .texto-box y #pantalla12 .audio-overlay */
+      /* Scrollbar unificado para .texto-box y #pantalla11 .audio-overlay */
       .texto-box,
-      #pantalla12 .audio-overlay {
+      #pantalla11 .audio-overlay {
         scrollbar-color: #888 #e8d5b0;
         scrollbar-width: thin;
       }
       .texto-box::-webkit-scrollbar,
-      #pantalla12 .audio-overlay::-webkit-scrollbar {
+      #pantalla11 .audio-overlay::-webkit-scrollbar {
         width: 0.7rem;
         background: #e8d5b0;
       }
       .texto-box::-webkit-scrollbar-thumb,
-      #pantalla12 .audio-overlay::-webkit-scrollbar-thumb {
+      #pantalla11 .audio-overlay::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 0.5rem;
       }
 
     /* P5, P6, P15: sin padding lateral para que la caja ocupe el 95vw limpio */
-    #pantalla5, #pantalla6, #pantalla15 {
+    #pantalla16, #pantalla5, #pantalla14 {
       justify-content: flex-start;
       padding-top: 2.5rem;
       padding-bottom: var(--gap-inferior);
       padding-left: 0;
       padding-right: 0;
     }
-    #pantalla5 #agradecimientos-contenido {
+    #pantalla16 #agradecimientos-contenido {
       flex: 1;
       min-height: 0;
       width: 95vw;
@@ -365,7 +365,7 @@
       background-position: 0 0, center;
       background-repeat: repeat, no-repeat;
     }
-    #pantalla6 #terminos-contenido {
+    #pantalla5 #terminos-contenido {
       flex: 1;
       min-height: 0;
       width: 95vw;
@@ -381,7 +381,7 @@
       background-position: 0 0, center;
       background-repeat: repeat, no-repeat;
     }
-    #pantalla15 #normativa-contenido {
+    #pantalla14 #normativa-contenido {
       flex: 1;
       min-height: 0;
       width: 95vw;
@@ -401,9 +401,9 @@
     #pantalla1 .logo-alargado { width: min(98vw, 440px); }
     #pantalla4 .logo-alargado { width: min(98vw, 440px); }
     /* P5, P6, P15: botones con margen superior reducido */
-    #pantalla5 .btn, #pantalla6 .btn, #pantalla15 .btn { margin-top: 0.5rem; }
+    #pantalla16 .btn, #pantalla5 .btn, #pantalla14 .btn { margin-top: 0.5rem; }
     /* P8: layout pantalla y card de confirmación */
-    #pantalla8 { justify-content: flex-start; padding-top: 2.5rem; padding-left: 0; padding-right: 0; }
+    #pantalla7 { justify-content: flex-start; padding-top: 2.5rem; padding-left: 0; padding-right: 0; }
     #aventura-confirmacion-card {
       flex: 1;
       min-height: 0;
@@ -417,7 +417,7 @@
       font-size: clamp(16px, 6vmin, 40px);
       overflow: hidden;
     }
-    #pantalla8 .btn-mundo-verde, #pantalla8 .btn-mundo-rojo { margin-top: 0; }
+    #pantalla7 .btn-mundo-verde, #pantalla7 .btn-mundo-rojo { margin-top: 0; }
     /* ===== BOTÓN GLOBO VERDE ===== */
     .btn-mundo-verde {
       position: relative;
@@ -585,28 +585,28 @@
       border-radius: 0;
       display: block;
     }
-    #pantalla11 {
+    #pantalla10 {
       justify-content: flex-start;
       margin-top: 0;
       padding: 10px 0 0 0;
       overflow-x: hidden;
       overflow-y: hidden;
     }
-    #pantalla11 .logo-alargado {
+    #pantalla10 .logo-alargado {
       margin-top: 0;
       margin-bottom: 0;
     }
-    #pantalla11 .audio-btn-row {
+    #pantalla10 .audio-btn-row {
       margin-top: 20px;
       margin-bottom: 0;
     }
-    #pantalla11 .audio-player-container {
+    #pantalla10 .audio-player-container {
       margin-top: 0;
       margin-bottom: 0;
       margin-left: 7.5vw;
       margin-right: 0;
     }
-    #pantalla11 .audio-btn-row > .btn {
+    #pantalla10 .audio-btn-row > .btn {
       margin-top: 0;
       margin-left: clamp(0.6rem, 2vw, 1.1rem);
     }
@@ -617,7 +617,7 @@
       justify-content: flex-start;
       width: 100%;
     }
-    #pantalla11 .audio-overlay {
+    #pantalla10 .audio-overlay {
       margin-top: 20px;
       width: 98vw;
       background: #fff8e7;
@@ -700,8 +700,8 @@
       <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
     </button>
   </div>
-  <!-- P5: Agradecimientos y Fuentes -->
-  <div class="pantalla" id="pantalla5">
+  <!-- P15: Agradecimientos y Fuentes (solo ?despedida=1) -->
+  <div class="pantalla" id="pantalla16">
     <div class="free-demo">FREE DEMO</div>
     <div id="agradecimientos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkAgradecimientosScroll()">
       <p>Cargando agradecimientos...</p>
@@ -714,8 +714,8 @@
     </div>
   </div>
 
-  <!-- P6: Términos y Condiciones (carga dinámica desde js/terminos-aventuras.js) -->
-  <div class="pantalla" id="pantalla6">
+  <!-- P5: Términos y Condiciones (carga dinámica desde js/terminos-aventuras.js) -->
+  <div class="pantalla" id="pantalla5">
     <div class="free-demo">FREE DEMO</div>
     <div id="terminos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkTerminosScroll()">
       <!-- Contenido cargado dinámicamente según idioma seleccionado -->
@@ -729,20 +729,20 @@
     </div>
   </div>
 
-  <!-- P7: Elección de Aventura -->
-  <div class="pantalla" id="pantalla7">
+  <!-- P6: Elección de Aventura -->
+  <div class="pantalla" id="pantalla6">
     <div class="free-demo">FREE DEMO</div>
     <div class="aventuras-lista" id="aventuras-dinamicas">
       <!-- Aventuras cargadas dinámicamente según idioma -->
     </div>
   </div>
 
-  <!-- P8: Confirmación de aventura -->
-  <div class="pantalla" id="pantalla8">
+  <!-- P7: Confirmación de aventura -->
+  <div class="pantalla" id="pantalla7">
     <div class="free-demo">FREE DEMO</div>
     <div id="aventura-confirmacion-card" class="btn" style="cursor:default; pointer-events:none; margin-top:0;"></div>
     <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
-      <button class="btn btn-mundo-rojo" onclick="void mostrar(7)" title="No, cambiar">
+      <button class="btn btn-mundo-rojo" onclick="void mostrar(6)" title="No, cambiar">
         <div class="contenedor-x"><span class="icono-x">✗</span></div>
         <div class="contenedor-x segunda"><span class="icono-x">✗</span></div>
       </button>
@@ -753,8 +753,8 @@
     </div>
   </div>
 
-  <!-- P9: Vídeo introductorio -->
-  <div class="pantalla" id="pantalla9">
+  <!-- P8: Vídeo introductorio -->
+  <div class="pantalla" id="pantalla8">
     <div class="free-demo">FREE DEMO</div>
     <div style="position:relative; width:98vw; height:calc(96vh - var(--gap-superior) - env(safe-area-inset-bottom,0px)); background:#000; border:0.3125rem solid #00ff00; border-radius:0.9375rem; box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.3); overflow:hidden; display:flex; justify-content:center; align-items:center;">
       <video id="video-intro-player" controls preload="metadata" muted style="width:100%; height:100%; object-fit:contain; display:none;">
@@ -767,14 +767,14 @@
         <p style="color:#999; font-size:1.1rem; text-align:center; margin:0; padding:0 1rem;">Video introductorio próximamente</p>
       </div>
     </div>
-    <button class="btn btn-mundo-verde" onclick="void mostrar(10)" title="Siguiente" style="margin-top:1rem;">
+    <button class="btn btn-mundo-verde" onclick="void mostrar(9)" title="Siguiente" style="margin-top:1rem;">
       <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
       <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
     </button>
   </div>
 
-  <!-- P10: Puzzle (carga puzzle.html mediante iframe) -->
-  <div class="pantalla" id="pantalla10" style="padding:0; justify-content:center; align-items:center;">
+  <!-- P9: Puzzle (carga puzzle.html mediante iframe) -->
+  <div class="pantalla" id="pantalla9" style="padding:0; justify-content:center; align-items:center;">
     <div class="free-demo">FREE DEMO</div>
     <div id="puzzle-container" style="position:relative; width:100%; height:100%; overflow:hidden;">
       <iframe id="puzzle-iframe" src="" style="width:100%; height:100%; border:none;" title="Puzzle"></iframe>
@@ -789,8 +789,8 @@
     </div>
   </div>
 
-  <!-- P11: Audio intro + texto (padreid: "padre-intro", audio_id: audio-intro-xx, texto_id: txt-intro-xx) -->
-  <div class="pantalla" id="pantalla11">
+  <!-- P10: Audio intro + texto (padreid: "padre-intro", audio_id: audio-intro-xx, texto_id: txt-intro-xx) -->
+  <div class="pantalla" id="pantalla10">
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="" style="display:block; margin-left:auto; margin-right:auto; margin-top:0; margin-bottom:0;">
     <div class="audio-btn-row" style="margin-top:0; margin-bottom:0.7rem;">
@@ -800,7 +800,7 @@
           Tu navegador no soporta el audio.
         </audio>
       </div>
-      <button class="btn btn-mundo-verde" onclick="void mostrar(12)" title="Siguiente" style="align-self:center; flex-shrink:0; margin-right:7.5vw; margin-top:0;">
+      <button class="btn btn-mundo-verde" onclick="void mostrar(11)" title="Siguiente" style="align-self:center; flex-shrink:0; margin-right:7.5vw; margin-top:0;">
         <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
         <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
       </button>
@@ -812,8 +812,8 @@
     </div>
   </div>
 
-  <!-- P12: Reto R-1 (reto_id dinámico: R1-AvX-xx desde aventuras-ID-padre.js) -->
-  <div class="pantalla" id="pantalla12">
+  <!-- P11: Reto R-1 (reto_id dinámico: R1-AvX-xx desde aventuras-ID-padre.js) -->
+  <div class="pantalla" id="pantalla11">
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <div class="reto-box" id="reto-r1-box">
@@ -827,23 +827,23 @@
     </div>
   </div>
 
-  <!-- P13: Pantalla de pago (desactivada de momento) -->
-  <div class="pantalla" id="pantalla13">
+  <!-- P12: Pantalla de pago (desactivada de momento) -->
+  <div class="pantalla" id="pantalla12">
     <div class="free-demo">FREE DEMO</div>
     <div style="background:#fff8e7; padding:1.875rem; border-radius:1.25rem; margin:1.25rem; max-width:31.25rem; box-shadow:0 0.375rem 1.5625rem rgba(0,0,0,0.4); text-align:center;">
       <div style="font-size:3rem; margin-bottom:1rem;">💳</div>
       <p style="color:#333; font-size:1.2rem; font-weight:bold;">Pantalla de pago</p>
       <p style="color:#666; font-size:0.9rem;">Próximamente</p>
     </div>
-    <!-- De momento, saltar directamente a P14 -->
-    <button class="btn btn-mundo-verde" onclick="void mostrar(14)" title="Continuar" style="margin-top:1rem;">
+    <!-- De momento, saltar directamente a P13 -->
+    <button class="btn btn-mundo-verde" onclick="void mostrar(13)" title="Continuar" style="margin-top:1rem;">
       <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
       <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
     </button>
   </div>
 
-  <!-- P14: Código de activación y email -->
-  <div class="pantalla" id="pantalla14" style="background-color:orange;">
+  <!-- P13: Código de activación y email -->
+  <div class="pantalla" id="pantalla13" style="background-color:orange;">
     <div class="free-demo">FREE DEMO</div>
     <div style="background:#fff8e7; padding:1.5rem; border-radius:1.25rem; margin:0.5rem auto; max-width:95vw; width:95vw; box-sizing:border-box; box-shadow:0 0.375rem 1.5625rem rgba(0,0,0,0.4);">
       <div style="text-align:center; margin-bottom:1.25rem;">
@@ -870,7 +870,7 @@
           </div>
         </div>
       </div>
-      <button id="btn-iniciar-aventura" class="btn btn-mundo-verde" onclick="void mostrar(15)" disabled title="Iniciar aventura">
+      <button id="btn-iniciar-aventura" class="btn btn-mundo-verde" onclick="void mostrar(14)" disabled title="Iniciar aventura">
         <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
         <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
       </button>
@@ -880,8 +880,8 @@
     </div>
   </div>
 
-  <!-- P15: Normativa y Cumplimiento / Seguridad vial -->
-  <div class="pantalla" id="pantalla15">
+  <!-- P14: Normativa y Cumplimiento / Seguridad vial -->
+  <div class="pantalla" id="pantalla14">
     <div class="free-demo">FREE DEMO</div>
     <div id="normativa-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkNormativaScroll()">
       <p>Cargando normativa...</p>
@@ -894,9 +894,9 @@
     </div>
   </div>
 
-  <!-- P16: Reto R-2 (padreid: "padre-intro", reto_id: R2-AvX-xx) -->
+  <!-- P15: Reto R-2 (padreid: "padre-intro", reto_id: R2-AvX-xx) -->
   <!-- Sí/Yes/Oui/Sì/Ja/はい → aventura | No/NO/Non/Nee/いいえ → P1 -->
-  <div class="pantalla" id="pantalla16">
+  <div class="pantalla" id="pantalla15">
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <div class="reto-box" id="reto-r2-box">
@@ -1026,9 +1026,9 @@
     // FUNCIÓN PRINCIPAL: MOSTRAR PANTALLA
     // ============================================================
     function actualizarVisibilidadFreeDemo(idPantalla) {
-      // Mostrar FREE DEMO solo en fase gratuita: P2 hasta pantalla de Reto 1 (P12).
-      // Desde pantalla de pago (P14) en adelante debe permanecer oculto.
-      const mostrarFreeDemo = Number.isFinite(Number(idPantalla)) && Number(idPantalla) >= 2 && Number(idPantalla) <= 12;
+      // Mostrar FREE DEMO solo en fase gratuita: P2 hasta pantalla de Reto 1 (P11).
+      // Desde pantalla de pago (P13) en adelante debe permanecer oculto.
+      const mostrarFreeDemo = Number.isFinite(Number(idPantalla)) && Number(idPantalla) >= 2 && Number(idPantalla) <= 11;
       document.querySelectorAll('.free-demo').forEach((el) => {
         el.style.display = mostrarFreeDemo ? 'block' : 'none';
       });
@@ -1041,13 +1041,13 @@
         const puzzleIntro = PUZZLES_DATOS?.INTRO?.['puzzle.html']?.puzzle_id?.find(p => p.id === 'PZ-intro');
         const imagenPuzzle = puzzleIntro?.imagen || 'fotos-botones/logo-luna.jpg';
         if (!await verificarImagenExiste(imagenPuzzle)) {
-          _log.warn('[SELECCION] Imagen del puzzle no encontrada:', imagenPuzzle, '- Saltando a P11');
+          _log.warn('[SELECCION] Imagen del puzzle no encontrada:', imagenPuzzle, '- Saltando a P10');
           return false;
         }
         _log.info('[SELECCION] Imagen del puzzle encontrada:', imagenPuzzle);
         return true;
       } catch (error) {
-        _log.warn('[SELECCION] Error verificando puzzle, saltando a P11:', error);
+        _log.warn('[SELECCION] Error verificando puzzle, saltando a P10:', error);
         return false;
       }
     }
@@ -1067,21 +1067,21 @@
     }
 
     const _ACCION_PANTALLA = {
-      5:  () => _accionPantalla5(),
-      6:  () => { if (!terminosCargados) void cargarTerminos(); },
-      7:  () => void cargarAventurasDinamicamente(),
-      9:  () => cargarVideoIntro(),
-      10: () => { void cargarPuzzle(); notificarPadrePreparacion(); },
-      11: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } },
-      12: () => { if (!retoCargadoR1) void cargarRetoR1(); },
-      15: () => _accionPantalla15(),
-      16: () => { if (!retoCargadoR2) void cargarRetoR2(); },
+      5:  () => { if (!terminosCargados) void cargarTerminos(); },
+      6:  () => void cargarAventurasDinamicamente(),
+      8:  () => cargarVideoIntro(),
+      9:  () => { void cargarPuzzle(); notificarPadrePreparacion(); },
+      10: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } },
+      11: () => { if (!retoCargadoR1) void cargarRetoR1(); },
+      14: () => _accionPantalla15(),
+      15: () => { if (!retoCargadoR2) void cargarRetoR2(); },
+      16: () => _accionPantalla5(),
     };
 
     async function mostrar(id) {
-      if (id === 10 && !await _verificarPuzzleMostrar()) {
+      if (id === 9 && !await _verificarPuzzleMostrar()) {
         notificarPadrePreparacion();
-        void mostrar(11);
+        void mostrar(10);
         return;
       }
       document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
@@ -1251,7 +1251,7 @@
         boton.style.opacity = '1';
         boton.classList.add('success');
         document.querySelectorAll('input[name="reto-r1"]').forEach(input => { input.disabled = true; });
-        setTimeout(() => { void mostrar(13); }, 1500);
+        setTimeout(() => { void mostrar(12); }, 1500);
       } else {
         caja.style.borderColor = '#dc3545';
         tick.style.display = 'none';
@@ -1314,7 +1314,7 @@
     // P10: COMPLETAR PUZZLE Y CONTINUAR
     // ============================================================
     function completarPuzzle() {
-      void mostrar(11);
+      void mostrar(10);
     }
     
     // ============================================================
@@ -1437,7 +1437,7 @@
       if (modoDespedida) {
         void _ejecutarDespedida();
       } else {
-        void mostrar(6);
+        void mostrar(5);
       }
     }
 
@@ -1507,7 +1507,7 @@
     }
 
     function aceptarNormativa() {
-      void mostrar(16);
+      void mostrar(15);
     }
 
     function actualizarProgresoCargaAventura(porcentaje, pasoActual = 1, pasosTotales = 4) {
@@ -1669,7 +1669,7 @@
 
     function aceptarSinAudio() {
       document.getElementById('audio-warning-overlay').style.display = 'none';
-      void mostrar(9);
+      void mostrar(8);
     }
 
     function rechazarSinAudio() {
@@ -1682,7 +1682,7 @@
       const aventura = aventuraSeleccionada || 'Aventura1';
       const hayAudios = await tieneAudiosDisponibles(aventura, idioma);
       if (hayAudios) {
-        void mostrar(9);
+        void mostrar(8);
       } else {
         mostrarAvisoSinAudio(idioma);
       }
@@ -1807,7 +1807,7 @@
       const overlay = document.getElementById('mapa-vintage-overlay');
       if (overlay) overlay.style.display = 'none';
       try { globalThis.parent.postMessage({ tipo: 'NAVEGACION.SUPRIMIR_ROTACION', origen: globalThis.name || 'seleccion', value: false }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
-      void mostrar(8);
+      void mostrar(7);
     }
 
     // ============================================================
@@ -2338,8 +2338,8 @@
             if (!idiomaSeleccionado) {
                 idiomaSeleccionado = localStorage.getItem('vv_idioma') || 'es';
             }
-            logger.info(`${logPrefix} Modo despedida activo → mostrando P5 agradecimientos (idioma: ${idiomaSeleccionado})`);
-            void mostrar(5);
+            logger.info(`${logPrefix} Modo despedida activo → mostrando P16 agradecimientos (idioma: ${idiomaSeleccionado})`);
+            void mostrar(16);
         } else if (params.get('desde') === 'aventura') {
             logger.info(`${logPrefix} Entrada desde aventura → mostrando P2 selección de idioma`);
             void mostrar(2);
@@ -2722,10 +2722,10 @@
             });
             
             // Navegar a selección de aventura
-            void mostrar(7);
+            void mostrar(6);
         } catch (error) {
             logger.error(`[SELECCION] Error aceptando términos:`, error);
-            void mostrar(7);
+            void mostrar(6);
         }
     };
 
