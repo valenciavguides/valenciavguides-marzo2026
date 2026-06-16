@@ -18,7 +18,8 @@ const PROTECTED_FILES = [
     '/js/retos-aventuras.js',
     '/js/puzzles-aventuras.js',
     '/js/audios-aventuras.js',
-    '/js/parrafos-textos/',  // En producción se sirve vía GET /api/textos/:idioma
+    '/js/parrafos-textos/',       // En producción se sirve vía GET /api/textos/:idioma
+    '/audios-aventuras/',         // MP3 de contenido de pago — acceso solo vía API autenticada
     '/backend/'
 ];
 
@@ -37,6 +38,7 @@ const mimeTypes = {
   '.jpg': 'image/jpg',
   '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
+  '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
   '.mp4': 'video/mp4',
   '.woff': 'application/font-woff',
@@ -53,6 +55,11 @@ const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Permissions Policy: permite solo geolocalización (GPS), bloquea el resto
+  res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(), microphone=(), payment=(), usb=(), bluetooth=()');
+  // Feature-Policy: alias legacy para navegadores antiguos
+  res.setHeader('Feature-Policy', 'geolocation \'self\'; camera \'none\'; microphone \'none\'');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -100,7 +107,10 @@ const server = http.createServer((req, res) => {
         res.end(`Server Error: ${error.code}`, 'utf-8');
       }
     } else {
-      res.writeHead(200, { 'Content-Type': mimeType });
+      const headers = { 'Content-Type': mimeType };
+      // El SW debe llegar siempre fresco para que el navegador detecte cambios de versión
+      if (urlPath === '/sw.js') headers['Cache-Control'] = 'no-store';
+      res.writeHead(200, headers);
       res.end(content, 'utf-8');
     }
   });
