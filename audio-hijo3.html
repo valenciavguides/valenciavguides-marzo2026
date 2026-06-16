@@ -1472,19 +1472,6 @@
             const logPrefix = `[hijo3][CAMBIO_MODO]`;
 
             try {
-                // ðŸ”§ Cleanup de listeners antiguos al cambiar de modo
-                try {
-                    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
-                        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
-                            globalThis.removeEventListener('message', listener);
-                        }
-                        globalThis.messagingAdapter._listenerRegistry.clear();
-                        logger.info(`${logPrefix} ðŸ§¹ Limpiados listeners de messagingAdapter al cambiar de modo`);
-                    }
-                } catch (cleanupError) {
-                    logger.warn(`${logPrefix} Error limpiando listeners de messagingAdapter:`, cleanupError);
-                }
-
                 // Validar carga secuencial
                 if (!mensaje.datos?.secuenciaCompleta) {
                     logger.warn(`${logPrefix} Mensaje recibido antes de secuencia completa`);
