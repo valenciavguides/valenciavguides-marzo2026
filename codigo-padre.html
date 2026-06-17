@@ -2157,7 +2157,7 @@
                     }, ms));
                 };
                 if (_iframeEl.contentDocument?.readyState === 'complete') {
-                    _sendMapaVisible();
+                    requestAnimationFrame(_sendMapaVisible); // esperar reflow tras classList.add('visible')
                 } else {
                     _iframeEl.addEventListener('load', _sendMapaVisible, { once: true });
                     setTimeout(_sendMapaVisible, 1500); // fallback si load ya disparó
@@ -2178,6 +2178,7 @@
                 }
                 setTimeout(() => {
                     overlay.remove();
+                    globalThis._intentarAplicarReloadSW?.('overlay-cerrado');
                 }, 400);
             }
             (globalThis.logger || console).info('Iframe overlay cerrado');
@@ -6362,12 +6363,18 @@
 
         async function _activarHeartbeatAventura(hijosCriticos, mensaje, logPrefix) {
             try {
-                if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_START, origen: CONFIG_PADRE.ID, destino: CONFIG_PADRE.ID, datos: { intervalo: (typeof ajustarTimeoutPorConexion_S1 === 'function') ? ajustarTimeoutPorConexion_S1(5000) : 5000 } });
+                // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
+                // Llamar directamente a iniciarHeartbeat a través de globalThis.mensajeria.
+                const intervalo = (typeof ajustarTimeoutPorConexion_S1 === 'function') ? ajustarTimeoutPorConexion_S1(5000) : 5000;
+                const hbFn = globalThis.mensajeria?.iniciarHeartbeat || globalThis.iniciarHeartbeat;
+                if (typeof hbFn === 'function') {
+                    await hbFn(intervalo);
+                    globalThis.__HEARTBEAT_INICIADO = true;
+                    (globalThis.logger || console).info(`${logPrefix} Heartbeat iniciado en padre (intervalo: ${intervalo}ms)`);
                 } else {
-                    try { if (typeof globalThis.iniciarHeartbeat === 'function') globalThis.iniciarHeartbeat(); } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error iniciando heartbeat local (fallback):`, e); }
+                    (globalThis.logger || console).warn(`${logPrefix} iniciarHeartbeat no disponible en padre`);
                 }
-            } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error iniciando heartbeat local via messaging:`, e); }
+            } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error iniciando heartbeat en padre:`, e); }
             for (const h of hijosCriticos) {
                 await _enviarHeartbeatStartAHijo(h, mensaje.origen, logPrefix);
             }
@@ -6381,12 +6388,17 @@
                 localStorage.removeItem('vv_paradas_completadas');
             } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
             try {
-                if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_PAUSE, origen: CONFIG_PADRE.ID, destino: CONFIG_PADRE.ID, datos: { timestamp: Date.now(), razon: 'cambio_modo_casa' } });
+                // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
+                // Llamar directamente a pausarHeartbeat a través de globalThis.mensajeria.
+                const pausarFn = globalThis.mensajeria?.pausarHeartbeat || globalThis.pausarHeartbeat;
+                if (typeof pausarFn === 'function') {
+                    await pausarFn();
+                    globalThis.__HEARTBEAT_INICIADO = false;
+                    (globalThis.logger || console).info(`${logPrefix} Heartbeat pausado en padre`);
                 } else {
-                    try { if (typeof globalThis.pausarHeartbeat === 'function') globalThis.pausarHeartbeat(); } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error pausando heartbeat local (fallback):`, e); }
+                    (globalThis.logger || console).warn(`${logPrefix} pausarHeartbeat no disponible en padre`);
                 }
-            } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error pausando heartbeat local via messaging:`, e); }
+            } catch (e) { (globalThis.logger || console).error(`${logPrefix} Error pausando heartbeat en padre:`, e); }
             for (const h of hijosCriticos) {
                 try {
                     if (typeof enviarMensaje_S1 === 'function') {
@@ -11947,15 +11959,26 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 globalThis.location.reload();
             }
 
+            // Reload diferido: no recargar mientras el usuario tiene un overlay abierto.
+            // Cuando se cierra el overlay (cerrarIframeOverlay), se comprueba este flag.
+            globalThis._swReloadPendiente = false;
+            globalThis._intentarAplicarReloadSW = function(origen) {
+                if (!globalThis._swReloadPendiente) return;
+                if (document.getElementById('iframe-overlay')) return; // diferir hasta que cierre
+                _hacerRecargaSW('Nuevo service worker activo (desde: ' + (origen || 'check') + ')');
+            };
+
             // Listener ANTES del register: no perder controllerchange si ya hay SW en espera
             const previousController = navigator.serviceWorker.controller;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!previousController) return; // primera instalación, no recargar
-                _hacerRecargaSW('Nuevo service worker activo');
+                globalThis._swReloadPendiente = true;
+                globalThis._intentarAplicarReloadSW('controllerchange');
             });
             navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data?.tipo === 'SW_ACTUALIZADO' && previousController) {
-                    _hacerRecargaSW('SW_ACTUALIZADO recibido');
+                    globalThis._swReloadPendiente = true;
+                    globalThis._intentarAplicarReloadSW('SW_ACTUALIZADO');
                 }
             });
 
@@ -11965,6 +11988,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         if (document.visibilityState === 'hidden') {
                             try { registration.update(); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                         }
+                        globalThis._intentarAplicarReloadSW('visibilitychange');
                     });
                 })
                 .catch(e => (globalThis.logger || console).error('[SW] Error registrando service worker:', e));

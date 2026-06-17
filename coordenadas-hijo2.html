@@ -1070,12 +1070,16 @@ function _actualizarGpsEnModoAventura(btnAvanzar, esTramo, idParadaActual, dista
     } else {
         desactivarBoton(btnAvanzar);
         logger.debug(`🛰️ Botón GPS DESACTIVADO: distancia ${distanciaAlDestino?.toFixed(1) || 'desconocida'}m fuera de rango ${rangoMinimo}-${rangoMaximo}m`);
-        enviarMensaje({
-            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
-            origen: CONFIG_HIJO.IFRAME_ID,
-            destino: getPadreId(),
-            datos: { idParada: idParadaActual, distancia: distanciaAlDestino, disponible: 'solo_imagen' }
-        }).catch(e => logger.debug('[hijo2] Error notificando GPS restringido:', e.message));
+        if (!idParadaActual) {
+            logger.debug('[hijo2] GPS.RESTRINGIDO omitido — idParadaActual no disponible aún');
+        } else {
+            enviarMensaje({
+                tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                destino: getPadreId(),
+                datos: { idParada: idParadaActual, distancia: distanciaAlDestino, disponible: 'solo_imagen' }
+            }).catch(e => logger.debug('[hijo2] Error notificando GPS restringido:', e.message));
+        }
     }
 }
 

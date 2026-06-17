@@ -1549,14 +1549,18 @@
 
                     // Procesar cambio
                     logger.info(`${logPrefix} Procesando cambio a modo: ${modo}`);
-                    estado.retoActualId = null;
-                    retoActual = null;
-                    if (retoDiv) {
-                        retoDiv.innerHTML = "";
-                        retoDiv.classList.remove("correct", "incorrect");
+                    if (retoActual !== null || estado.retoActualId !== null) {
+                        logger.warn(`${logPrefix} CAMBIO_MODO recibido con reto activo (${estado.retoActualId}) — omitiendo limpieza`);
+                    } else {
+                        estado.retoActualId = null;
+                        retoActual = null;
+                        if (retoDiv) {
+                            retoDiv.innerHTML = "";
+                            retoDiv.classList.remove("correct", "incorrect");
+                        }
+                        ocultarControles();
+                        logger.debug(`${logPrefix} Estado de retos reseteado`);
                     }
-                    ocultarControles();
-                    logger.debug(`${logPrefix} Estado de retos reseteado`);
                     actualizarInterfazModo(modo);
 
                     // Enviar EFECTUADO

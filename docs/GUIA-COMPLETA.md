@@ -43,6 +43,7 @@ Hay tareas críticas sin resolver antes de publicar en `valenciavguides.es`. Ver
 28. [Implementación de restricciones GPS y comportamiento visual](#28-implementación-de-restricciones-gps-y-comportamiento-visual)
 29. [Corrección de errores de inicialización (logger y sleep)](#29-corrección-de-errores-de-inicialización-logger-y-sleep)
 30. [Posibles problemas en modo aventura](#30-posibles-problemas-en-modo-aventura)
+31. [Invariantes críticos del sistema de mensajería](#31-invariantes-críticos-del-sistema-de-mensajería)
 
 ---
 
@@ -3169,7 +3170,7 @@ Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay f
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo en UI |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
 | `NAVEGACION.GPS.ACTIVAR` | `{ activar:bool, idParada, distancia }` | Toggle GPS — click en `#btn-avanzar` |
-| `NAVEGACION.GPS.RESTRINGIDO` | `{ zona }` | Usuario en zona GPS restringida |
+| `NAVEGACION.GPS.RESTRINGIDO` | `{ idParada, distancia, disponible:'solo_imagen' }` | GPS fuera de rango — solo se envía si `idParadaActual !== null` (guard: evitar envío con ID nulo antes del primer `ACTUALIZAR_ESTADO`) |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, umbral }` | Usuario salió del radio de la parada activa |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` | Click en `#btn-ubicacion` — solicita polyline de retorno al destino |
 | `NAVEGACION.MOSTRAR_MAPA_JPG` | `{ accion:'mostrar-mapa-jpg', url, aventura, paradaId }` | Usuario pulsa `#btn-mapa-jpg` o `#btn-mapa-completo` |
@@ -3833,14 +3834,18 @@ flowchart TD
 
 ### 9.9 Gestión del heartbeat
 
-El heartbeat solo está activo en modo AVENTURA. Se gestiona en `_gestionarHeartbeatSegunModo`:
+El heartbeat solo está activo en modo AVENTURA. Se gestiona en `_gestionarHeartbeatSegunModo` (`codigo-padre.html` ~línea 6403):
 
 | Evento | Acción |
 |--------|--------|
-| Modo → AVENTURA | `_activarHeartbeatAventura`: envía `HEARTBEAT_START { intervalo }` al padre (self) y a cada hijo crítico. Después llama `ensureDefaultParada()` |
-| Modo → CASA | `_pausarHeartbeatCasa`: envía `HEARTBEAT_PAUSE` al padre (self) y a los hijos. Limpia el progreso de localStorage |
+| Modo → AVENTURA | `_activarHeartbeatAventura`: llama `globalThis.mensajeria.iniciarHeartbeat(intervalo)` directamente; luego envía `HEARTBEAT_START` a cada hijo crítico y llama `ensureDefaultParada()` |
+| Modo → CASA | `_pausarHeartbeatCasa`: llama `globalThis.mensajeria.pausarHeartbeat()` directamente; luego envía `HEARTBEAT_PAUSE` a los hijos y limpia el progreso de localStorage |
 
 El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión. Los hijos críticos son `['hijo2', 'hijo3', 'hijo4', 'hijo5']` filtrados por `hijosInicializados`.
+
+**Por qué la llamada directa (no self-message):** `enviarMensaje` con `destino: CONFIG_PADRE.ID` falla silenciosamente porque padre no está en `iframesRegistrados` — `_enviarDesdePadre` busca el ID en el Map de iframes registrados, no lo encuentra y retorna `false` con un warning. El `else` fallback nunca se ejecuta porque `enviarMensaje_S1` siempre está disponible. La solución correcta es llamar `globalThis.mensajeria.iniciarHeartbeat()` / `globalThis.mensajeria.pausarHeartbeat()` directamente. Ver §31.3.
+
+Los hijos (hijo3, hijo4, hijo5) sí tienen handlers para `HEARTBEAT_START` y `HEARTBEAT_PAUSE` que actualizan su flag `globalThis.__HEARTBEAT_ACTIVO`. Esos mensajes se envían correctamente desde padre a los iframes hijos vía `_enviarHeartbeatStartAHijo`.
 
 Cuando el modo vuelve a CASA, `_pausarHeartbeatCasa` también elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']`.
 
@@ -4005,16 +4010,16 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza manualmente en cada commit (valor actual: `'v-fixes-jun09'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-sw-no-broadcast-jun16'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
-**Canal SW → página (fuera del bus):** `sw.js` llama `clients.claim()` + `skipWaiting()` al activarse. Esto dispara el evento `controllerchange` en dos handlers:
+**Canal SW → página (fuera del bus):** `sw.js` llama `skipWaiting()` en `install` para activarse sin esperar cierre de pestañas. Al activar, llama `clients.claim()`. Esto dispara `controllerchange` en el cliente. Dos handlers en la app:
 
-| Archivo | Línea | Comportamiento |
-|---------|-------|----------------|
-| `index.html` | 81 | Recarga inmediata: `_swReloading = true; location.reload()`. Solo opera durante el breve instante antes de redirigir a `codigo-padre.html`. |
-| `codigo-padre.html` | 11716 | Recarga diferida: `_swPendingReload = true; intentarAplicarUpdatePendiente('controllerchange')` — busca un punto seguro para recargar (e.g. cuando la app está en segundo plano o en estado de reposo). Solo ocurre en actualizaciones reales (`previousController` existe). |
+| Archivo | Comportamiento |
+|---------|----------------|
+| `index.html` | Recarga inmediata: `location.reload()`. Opera solo durante el breve instante antes de redirigir. |
+| `codigo-padre.html` | Reload diferido: activa `globalThis._swReloadPendiente = true`, luego llama `_intentarAplicarReloadSW()`, que solo recarga si no hay `#iframe-overlay` abierto. Si hay overlay, el reload queda diferido hasta que `cerrarIframeOverlay` lo comprueba tras 400 ms. Cooldown de 8 s en sessionStorage evita cascadas. |
 
 Ambos ignoran la primera instalación (`!previousController → return`); la recarga solo ocurre en actualizaciones de SW existente.
 
@@ -4793,12 +4798,12 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre L2040 — 800 ms después de abrir el overlay de `MOSTRAR_MAPA_JPG` con `formato:'html'` |
+| Emitido por | `mostrarIframeOverlay` en padre |
 | Tipo | `'mapa-visible'` (string literal, fuera de `TIPOS_MENSAJE`) |
-| Canal | Raw `iframeEl.contentWindow.postMessage(...)` |
+| Canal | Raw `iframeEl.contentWindow.postMessage(...)` en tres instantes: 50 ms, 300 ms, 700 ms tras llamar a `_sendMapaVisible()` |
 | Destino | El iframe dinámico que carga `mapa-completo.html` |
-| Acción | Informa al iframe del mapa completo que ya es visible y puede inicializar Leaflet |
-| Nota | El delay de 800 ms da tiempo al módulo del iframe a cargar antes de escuchar el mensaje |
+| Acción | Llama `map.invalidateSize()` en el iframe para que Leaflet recalcule el tamaño real del contenedor |
+| Timing | Si `contentDocument.readyState === 'complete'` (iframe ya cargado): se envía en el siguiente frame de animación (`requestAnimationFrame`) para garantizar que el reflow del overlay precede al cálculo de tamaño. Si el iframe está cargando: se envía en `load` + fallback a 1500 ms. |
 
 #### `solicitar-ruta` / `ruta-completa` (padre → mapa-completo.html, raw — sin emisor activo)
 
@@ -6280,27 +6285,37 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 #### Ciclo de vida del SW en producción
 
-Al instalar, el SW hace `skipWaiting()` para activarse inmediatamente sin esperar a que el usuario cierre pestañas. Al activar, hace `clients.claim()` para tomar control de todas las pestañas abiertas al momento.
+`sw.js` llama `skipWaiting()` al final del evento `install`, activándose inmediatamente sin esperar a que el usuario cierre pestañas. Al activar, llama `clients.claim()` para tomar control de todas las pestañas abiertas. Esta estrategia permite que las actualizaciones de caché se apliquen en la siguiente carga de página sin requerir cerrar el navegador.
 
-Cuando hay una nueva versión del SW disponible (`controllerchange`), `codigo-padre.html` espera a un **punto seguro** (app en segundo plano o sin aventura activa) para recargar la página y aplicar la actualización:
+Cuando se activa un nuevo SW (`controllerchange`), `codigo-padre.html` no recarga de forma inmediata. En su lugar:
+
+1. Activa el flag `globalThis._swReloadPendiente = true`
+2. Llama `globalThis._intentarAplicarReloadSW(origen)`, que comprueba:
+   - Si `#iframe-overlay` está en el DOM (mapa completo u otro overlay abierto): **no recarga**. El flag queda activo.
+   - Si no hay overlay: llama `_hacerRecargaSW()` → `location.reload()` con cooldown de 8 s en `sessionStorage` para evitar cascadas.
+3. Los puntos de comprobación son: `controllerchange`, `SW_ACTUALIZADO`, `visibilitychange`, y el cierre de `cerrarIframeOverlay` (400 ms después de que el overlay desaparece del DOM).
 
 ```javascript
-// codigo-padre.html — registro y actualización del SW
-const registration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+// codigo-padre.html — mecanismo de reload diferido
+globalThis._swReloadPendiente = false;
+globalThis._intentarAplicarReloadSW = function(origen) {
+    if (!globalThis._swReloadPendiente) return;
+    if (document.getElementById('iframe-overlay')) return; // overlay abierto — diferir
+    _hacerRecargaSW('SW activo (desde: ' + origen + ')');
+};
 
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-        registration.update();                          // comprueba nueva versión
-        intentarAplicarUpdatePendiente('background');   // recarga si es seguro
-    } else {
-        intentarAplicarUpdatePendiente('foreground');
-    }
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!previousController) return; // primera instalación — sin reload
+    globalThis._swReloadPendiente = true;
+    globalThis._intentarAplicarReloadSW('controllerchange');
 });
 ```
 
-#### CACHE_VERSION y actualización manual
+#### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-fixes-jun09'`, línea 84 de `sw.js`) **debe cambiarse manualmente** en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que generaría la versión a partir del contenido real de los ficheros, pero ese script **no está implementado** — el directorio `tools/` existe en el proyecto pero está vacío.
+`CACHE_VERSION` (actualmente `'v-sw-no-broadcast-jun16'`, línea 84 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` existe pero está vacío.
+
+**Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
 ---
 
@@ -8821,55 +8836,55 @@ SOPORTE: {
 
 ## 27. Cleanup de listeners en cambio de aventura o modo
 
-Esta sección documenta el sistema de limpieza de listeners implementado para evitar la acumulación de event listeners cuando se cambia de aventura o modo.
+### 27.1 Estado actual (corregido)
 
-### 27.1 Problema original
+**El cleanup de `messagingAdapter._listenerRegistry` en `CAMBIO_MODO` no debe existir en ningún hijo.** Ver §31.1 para la explicación completa del invariante y sus efectos en cascada.
 
-Los listeners registrados con `addEventListener` y los controladores registrados en `messagingAdapter._listenerRegistry` no se limpiaban automáticamente al cambiar de aventura o modo, lo que podía causar:
-- Acumulación de listeners en memoria
-- Ejecución múltiple de handlers
-- Comportamiento impredecible
-- Fugas de memoria
+El único cleanup legítimo que permanece es el de `pagehide` — limpia los listeners cuando el iframe se descarga del DOM, que es el momento correcto.
 
-### 27.2 Solución implementada
+### 27.2 Qué NO hacer: cleanup en CAMBIO_MODO
 
-**En el padre (codigo-padre.html):**
+**No añadir nunca un bloque de limpieza de `messagingAdapter._listenerRegistry` en el handler de `CAMBIO_MODO` de ningún hijo.**
 
-- `limpiarControladoresAntiguos` se importa de `js/state-manager.js` (en el bloque de imports de Script 1), pero actualmente **no se llama desde ningún handler**. La función está disponible en el scope de Script 1 como `limpiarControladoresAntiguos_S1`, pero el cleanup activo del padre aún no está implementado.
+La razón: `messagingAdapter._listenerRegistry` contiene los handlers registrados con `registrarControladorSeguro` — incluyendo `HEARTBEAT`, `RETO.MOSTRAR`, `CAMBIO_MODO` propio, etc. Limpiar este Map en `CAMBIO_MODO` deja al hijo sin capacidad de responder a ningún mensaje posterior, rompiendo toda la cadena de comunicación padre-hijo. Los síntomas son:
 
-**En los hijos:**
+- El botón de retos (`#retosBtn`) permanece deshabilitado (hijo3 no puede habilitar porque perdió su listener de HEARTBEAT/RETO)
+- El panel de retos no muestra contenido (hijo4 no puede procesar `RETO.MOSTRAR`)
+- El heartbeat detecta falsos negativos y recarga iframes innecesariamente
 
-- **hijo3, hijo4 y hijo5**: cleanup de `messagingAdapter._listenerRegistry` en el controlador `CAMBIO_MODO`, ejecutado al inicio del handler antes de procesar el cambio de modo. Itera sobre todos los listeners del registry, los elimina con `removeEventListener` y llama `clear()`.
-- **hijo1, hijo2, hijo3, hijo4 y hijo5**: cleanup de `_listenerRegistry` en `pagehide` (al descargar el iframe). Es la capa de seguridad siempre presente — misma lógica que el CAMBIO_MODO pero garantizada incluso si el iframe se descarga sin pasar por un cambio de modo.
-- **hijo6 (chat-hijo6.html)**: **no usa `messagingAdapter`** — registra sus handlers directamente con `registrarControladorSeguro`. No tiene ni necesita cleanup de `_listenerRegistry`.
+### 27.3 Qué SÍ hacer: cleanup en pagehide
 
-### 27.3 Archivos afectados
+Cada hijo (excepto hijo6) limpia `_listenerRegistry` en el evento `pagehide`:
+
+```javascript
+globalThis.addEventListener('pagehide', () => {
+    if (globalThis.messagingAdapter?._listenerRegistry) {
+        for (const [tipo, fn] of globalThis.messagingAdapter._listenerRegistry) {
+            globalThis.removeEventListener(tipo, fn);
+        }
+        globalThis.messagingAdapter._listenerRegistry.clear();
+    }
+});
+```
+
+Este es el momento correcto: el iframe se está descargando, no necesitará más esos listeners, y limpiarlos evita fugas de memoria.
+
+### 27.4 Cleanup del padre
+
+`limpiarControladoresAntiguos` se importa de `js/state-manager.js` pero **no se llama desde ningún handler activo**. La función está disponible como `limpiarControladoresAntiguos_S1` pero el cleanup activo del padre no está implementado.
+
+### 27.5 Estado por archivo
 
 | Archivo | pagehide | CAMBIO_MODO |
-|---------|---------|-------------|
-| `extrainfo-hijo1.html` | ✓ | — |
-| `coordenadas-hijo2.html` | ✓ | — |
-| `audio-hijo3.html` | ✓ | ✓ |
-| `retos-hijo4.html` | ✓ | ✓ |
-| `boton-casa-hijo5.html` | ✓ | ✓ |
+|---------|----------|-------------|
+| `extrainfo-hijo1.html` | ✓ limpia registry | ✗ no tiene |
+| `coordenadas-hijo2.html` | ✓ limpia registry | ✗ no tiene |
+| `audio-hijo3.html` | ✓ limpia registry | ✗ no tiene |
+| `retos-hijo4.html` | ✓ limpia registry | ✗ no tiene |
+| `boton-casa-hijo5.html` | ✓ limpia registry | ✗ no tiene |
+| `En-busca-del-tesoro.html` | — (no usa messagingAdapter local) | — |
 | `chat-hijo6.html` | — (no usa messagingAdapter) | — |
-| `codigo-padre.html` | — | pendiente (función importada, no activada) |
-| `js/state-manager.js` | — | exporta `limpiarControladoresAntiguos` para uso futuro |
-
-### 27.4 Beneficios
-
-- **Prevención de fugas de memoria:** Los listeners antiguos se eliminan sistemáticamente
-- **Comportamiento predecible:** No hay acumulación de handlers que puedan causar efectos secundarios
-- **Mejor rendimiento:** Menos listeners activos en cada cambio de aventura/modo
-- **Logging de diagnóstico:** Se registra cuántos listeners fueron limpiados en cada operación
-
-### 27.5 Notas importantes
-
-- El cleanup del **padre** (`limpiarControladoresAntiguos`) **no está activo** — la función está importada y disponible pero ningún handler la llama. No confundir con el cleanup de los hijos, que sí funciona.
-- El cleanup en los **hijos** opera sobre `messagingAdapter._listenerRegistry` — itera los listeners, los elimina con `removeEventListener` y vacía el Map.
-- El cleanup en `CAMBIO_MODO` (hijo3, hijo4, hijo5) se ejecuta en un bloque `try/catch` propio: si falla, no bloquea el resto del handler.
-- El `pagehide` es la capa de seguridad final — garantiza limpieza incluso si el iframe se descarga sin recibir `CAMBIO_MODO`.
-- `chat-hijo6.html` no participa en este sistema: sus handlers los gestiona `registrarControladorSeguro` del padre, no el `messagingAdapter` local.
+| `codigo-padre.html` | — (función importada, no activada) | — |
 
 ---
 
@@ -9298,3 +9313,116 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 | 30.7b | TTL pending nunca ejecutado | — | `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` | ✅ corregido |
 
 ---
+
+## 31. Invariantes críticos del sistema de mensajería
+
+Esta sección documenta restricciones de diseño que no deben violarse. Son invariantes estructurales: cuando se rompen, los fallos son silenciosos y difíciles de diagnosticar porque no lanzan excepciones — simplemente el componente deja de responder.
+
+---
+
+### 31.1 Limpieza de listeners: únicamente en `pagehide`
+
+`messagingAdapter._listenerRegistry.clear()` solo puede llamarse en el handler de `pagehide`. En cualquier otro contexto — incluyendo `CAMBIO_MODO`, cambios de aventura, o reinicio de estado — esta llamada deja al iframe permanentemente sordo.
+
+**Por qué es irreversible:** `registrarControladorSeguro` usa el Set interno `__CONTROLADOR_REGISTRADOS` para evitar registros duplicados. Una vez que un handler ha sido registrado y luego borrado del registry, el flag de registro persiste → en la siguiente llamada a `registrarControladorSeguro`, el sistema detecta que ya fue registrado y no lo vuelve a añadir → el iframe no recibe ese mensaje nunca más, sin ningún error en consola.
+
+**Efectos en cascada si se limpia en `CAMBIO_MODO`:**
+
+- hijo3 pierde su handler de `HEARTBEAT` y `RETO.HABILITADO` → `#retosBtn` nunca se habilita
+- hijo4 pierde su handler de `RETO.MOSTRAR` → panel de retos permanece vacío
+- El heartbeat detecta falsos negativos (no recibe ACK) y recarga iframes innecesariamente
+
+**Dónde sí debe estar la limpieza** (patrón correcto — todos los hijos excepto hijo6):
+
+```javascript
+globalThis.addEventListener('pagehide', () => {
+    if (globalThis.messagingAdapter?._listenerRegistry) {
+        for (const [tipo, fn] of globalThis.messagingAdapter._listenerRegistry) {
+            globalThis.removeEventListener(tipo, fn);
+        }
+        globalThis.messagingAdapter._listenerRegistry.clear();
+    }
+});
+```
+
+Para el estado por archivo, ver §27.5.
+
+---
+
+### 31.2 CAMBIO_MODO en hijo4: guardar estado activo antes de limpiar
+
+El handler `_onCambioModo` de `retos-hijo4.html` **no debe limpiar `retoDiv.innerHTML`** cuando hay un reto activo.
+
+**Secuencia de eventos que justifica esta regla:**
+
+Cuando hijo4 se carga por primera vez durante una sesión de retos, la secuencia es:
+
+1. Usuario pulsa `#retosBtn` → padre llama `mostrarHijo4()` → hijo4 carga en DOM
+2. hijo4 envía `HIJO_LISTO` → padre lo añade a `hijosInicializados` (operación síncrona)
+3. `_esperarHijo4` (polling 100 ms) detecta la entrada y desbloquea la cadena de solicitud
+4. Padre envía `RETO.MOSTRAR` → hijo4 crea el iframe del puzzle (`PZ-xx`)
+5. En paralelo, `_hijoListo_sincronizarModoCriticos` envía `CAMBIO_MODO` a hijo2 → hijo3 → hijo4 (en serie, con `await` entre cada uno)
+6. `CAMBIO_MODO` llega a hijo4 después de que el iframe del puzzle ya existe
+
+Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle se destruye antes de que el usuario lo haya visto. Los retos de tipo opción múltiple o reflexión no se ven afectados porque son HTML inline; los retos tipo puzzle (`PZ-xx`) sí, porque el iframe tarda en cargar su módulo JS.
+
+**Fuentes adicionales de `CAMBIO_MODO` durante una sesión de retos:**
+
+- El retry loop de `pendingModeChanges` (reintento cada 5 s si hubo NACK)
+- `_propagarCambioModoAHijos` cuando el padre recibe cualquier `CAMBIO_MODO` de cualquier origen
+
+**Patrón correcto** en `_onCambioModo` de `retos-hijo4.html`:
+
+```javascript
+if (retoActual !== null || estado.retoActualId !== null) {
+    logger.warn(`${logPrefix} CAMBIO_MODO con reto activo (${estado.retoActualId}) — omitiendo limpieza`);
+} else {
+    estado.retoActualId = null;
+    retoActual = null;
+    if (retoDiv) {
+        retoDiv.innerHTML = "";
+        retoDiv.classList.remove("correct", "incorrect");
+    }
+    ocultarControles();
+}
+actualizarInterfazModo(modo);
+// CAMBIO_MODO_EFECTUADO se envía siempre, independientemente del guard
+```
+
+---
+
+### 31.3 El padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`
+
+`iframesRegistrados` en `mensajeria.js` es un Map que solo contiene los iframes hijo registrados. El padre nunca se registra en este Map. Por lo tanto, `enviarMensaje({ destino: CONFIG_PADRE.ID })` siempre falla silenciosamente:
+
+```text
+_enviarDesdePadre(mensaje, 'padre')
+  → iframesRegistrados.get('padre')   // undefined
+  → logger.warn('Iframe no encontrado: padre')
+  → return false
+  // la función objetivo nunca se llama
+```
+
+No se lanza ninguna excepción. El `return false` es el único indicador — y solo visible si se revisa la consola con nivel WARN activo.
+
+**Regla:** Para cualquier función de `mensajeria.js` que el padre necesite invocar sobre sí mismo, usar `globalThis.mensajeria` directamente.
+
+**Patrón correcto** para heartbeat desde `codigo-padre.html`:
+
+```javascript
+// Activar heartbeat en padre (en _activarHeartbeatAventura)
+const hbFn = globalThis.mensajeria?.iniciarHeartbeat || globalThis.iniciarHeartbeat;
+if (typeof hbFn === 'function') {
+    await hbFn(intervalo);
+    globalThis.__HEARTBEAT_INICIADO = true;
+}
+
+// Pausar heartbeat en padre (en _pausarHeartbeatCasa)
+const pausarFn = globalThis.mensajeria?.pausarHeartbeat || globalThis.pausarHeartbeat;
+if (typeof pausarFn === 'function') {
+    await pausarFn();
+    globalThis.__HEARTBEAT_INICIADO = false;
+}
+```
+
+Este patrón aplica a cualquier función de mensajería que el padre necesite llamar sobre sí mismo: nunca `enviarMensaje({ destino: CONFIG_PADRE.ID })`, siempre `globalThis.mensajeria.funcionX()`.
