@@ -950,6 +950,21 @@
             -moz-box-sizing: border-box;
         }
 
+        /* Contenedor específico para iframes a pantalla completa (ej: mapa completo).
+           Ocupa todo el espacio disponible del overlay (descontando safe-areas del padre),
+           recorta el contenido del iframe con overflow:hidden y elimina bordes redondeados
+           que harían escapar los tiles del mapa por las esquinas. */
+        .iframe-contenedor {
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            max-height: 100%;
+            border-radius: 0;
+            -webkit-border-radius: 0;
+            -moz-border-radius: 0;
+            overflow: hidden;
+        }
+
         /* Botón X para cerrar */
         .btn-cerrar-overlay {
             position: absolute;

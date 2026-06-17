@@ -202,7 +202,7 @@
     const BTN_STYLE = 'width:clamp(36px,11vmin,60px);height:clamp(36px,11vmin,60px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(1.5px,0.4vmin,3px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
 
     const selectorDiv = document.createElement('div');
-    selectorDiv.style.cssText = 'position:fixed;top:2.5vmin;left:2.5vmin;z-index:1000;display:flex;flex-direction:column;align-items:flex-start;gap:clamp(3px,0.8vmin,6px);';
+    selectorDiv.style.cssText = 'position:fixed;top:calc(2.5vmin + env(safe-area-inset-top,0px));left:calc(2.5vmin + env(safe-area-inset-left,0px));z-index:1000;display:flex;flex-direction:column;align-items:flex-start;gap:clamp(3px,0.8vmin,6px);';
 
     const btnPrincipal = document.createElement('div');
     btnPrincipal.style.cssText = BTN_STYLE;
@@ -257,15 +257,31 @@
     document.body.appendChild(selectorDiv);
 
     // ── Polyline de la ruta ─────────────────────────────────────────────────
+    let _rutaBounds = null;
+    let _vistaFijada = false;
+
     if (rutaPuntos.length > 0) {
       const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
-      map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
+      _rutaBounds = polyline.getBounds();
+      // No llamar fitBounds aquí — el contenedor puede tener dimensiones 0×0 si el overlay
+      // todavía no es visible (display:none → display:flex). fitBounds con tamaño 0 genera
+      // un zoom incorrecto y tiles equivocadas ("piezas"). Se llama en _fijarVista().
     }
 
-    // El overlay tiene transición CSS — forzar recálculo de tamaño una vez pintado
+    // Llama invalidateSize() y después fitBounds para que Leaflet calcule el zoom
+    // con las dimensiones reales del contenedor ya visibles.
+    function _fijarVista() {
+      map.invalidateSize();
+      if (_rutaBounds && !_vistaFijada) {
+        map.fitBounds(_rutaBounds, { padding: [24, 24] });
+        _vistaFijada = true;
+      }
+    }
+
     globalThis.addEventListener('resize', () => map.invalidateSize());
-    setTimeout(() => map.invalidateSize(), 50);
-    setTimeout(() => map.invalidateSize(), 400);
+    // Cubrir la transición CSS del overlay (0 → visible tarda ~400 ms)
+    setTimeout(_fijarVista, 50);
+    setTimeout(_fijarVista, 400);
 
     // ── Popup de monumento ──────────────────────────────────────────────────
     const overlay   = document.getElementById('monumento-overlay');
@@ -337,17 +353,15 @@
           ruta: rutaCompleta
         }, globalThis.location.origin);
       }
+      if (event.data?.tipo === 'mapa-visible') {
+        // El overlay acaba de hacerse visible: resetear flag para forzar re-encuadre
+        // (el usuario puede haber cerrado y vuelto a abrir el mapa completo).
+        _vistaFijada = false;
+        _fijarVista();
+        setTimeout(_fijarVista, 300);
+        setTimeout(() => map.invalidateSize(), 700);
+      }
     });
-  // Ensure Leaflet tiles render correctly after the iframe becomes visible.
-  // Multiple staggered calls cover cases where the overlay wasn't visible on first load.
-  [300, 700, 1500].forEach(ms => setTimeout(() => map.invalidateSize(), ms));
-  globalThis.addEventListener('resize', () => map.invalidateSize());
-  globalThis.addEventListener('message', (event) => {
-    if (event.origin !== globalThis.location.origin) return;
-    if (event.data?.tipo === 'mapa-visible') {
-      [50, 300, 700].forEach(ms => setTimeout(() => map.invalidateSize(), ms));
-    }
-  });
 </script>
 </body>
 </html>

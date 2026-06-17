@@ -4800,10 +4800,11 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 |-------|-------|
 | Emitido por | `mostrarIframeOverlay` en padre |
 | Tipo | `'mapa-visible'` (string literal, fuera de `TIPOS_MENSAJE`) |
-| Canal | Raw `iframeEl.contentWindow.postMessage(...)` en tres instantes: 50 ms, 300 ms, 700 ms tras llamar a `_sendMapaVisible()` |
+| Canal | Raw `iframeEl.contentWindow.postMessage(...)` en tres instantes: 50 ms, 300 ms, 700 ms |
 | Destino | El iframe dinámico que carga `mapa-completo.html` |
-| Acción | Llama `map.invalidateSize()` en el iframe para que Leaflet recalcule el tamaño real del contenedor |
-| Timing | Si `contentDocument.readyState === 'complete'` (iframe ya cargado): se envía en el siguiente frame de animación (`requestAnimationFrame`) para garantizar que el reflow del overlay precede al cálculo de tamaño. Si el iframe está cargando: se envía en `load` + fallback a 1500 ms. |
+| Acción | `mapa-completo.html` llama `_fijarVista()`: primero `map.invalidateSize()` (corrige dimensiones del contenedor) y después `map.fitBounds(_rutaBounds)` (encuadra la ruta completa). `fitBounds` solo se ejecuta si `_vistaFijada === false`; al recibir `mapa-visible` se resetea a `false` para permitir re-encuadre en cada apertura del overlay. |
+| Por qué no en init | El overlay empieza con `display:none`. Leaflet crea el mapa con contenedor 0×0. Si `fitBounds` se llama en ese momento, calcula un zoom incorrecto y solicita tiles para una zona/zoom equivocada. `invalidateSize()` posterior corrige el tamaño pero no reposiciona la vista → aparecen tiles "en piezas". La secuencia correcta es siempre: `invalidateSize()` primero, `fitBounds()` después. |
+| Timing | Si `contentDocument.readyState === 'complete'` (iframe ya cargado): se envía en el siguiente frame de animación (`requestAnimationFrame`). Si el iframe está cargando: en `load` + fallback a 1500 ms. |
 
 #### `solicitar-ruta` / `ruta-completa` (padre → mapa-completo.html, raw — sin emisor activo)
 
