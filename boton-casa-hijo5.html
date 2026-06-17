@@ -1080,19 +1080,6 @@
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
             const logPrefix = `[hijo5][CAMBIO_MODO]`;
             try {
-                // ðŸ”§ Cleanup de listeners antiguos al cambiar de modo
-                try {
-                    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
-                        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
-                            globalThis.removeEventListener('message', listener);
-                        }
-                        globalThis.messagingAdapter._listenerRegistry.clear();
-                        logger.info(`${logPrefix} ðŸ§¹ Limpiados listeners de messagingAdapter al cambiar de modo`);
-                    }
-                } catch (cleanupError) {
-                    logger.warn(`${logPrefix} Error limpiando listeners de messagingAdapter:`, cleanupError);
-                }
-
                 const validErr = await _validarCambioModo(mensaje, logPrefix);
                 if (validErr) return;
 
@@ -1449,7 +1436,7 @@
                 datos: {
                     componenteId: CONFIG_HIJO.COMPONENTE_ID,
                     version: '1.0.0',
-                    capacidades: ['modo-selector', 'gps', 'paradas-list'],
+                    capacidades: ['modo-selector', 'paradas-list'],
                     timestamp: Date.now()
                 }
             });
