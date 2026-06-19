@@ -1299,45 +1299,47 @@ async function _reproducirVideoParada(idParadaActual) {
     logger.info(`[hijo2] Ventana video solicitada para parada/tramo ${idParadaActual}:`, { hayVideo, urlVideo });
 }
 
+// ── Spin behavior (AVENTURA) ──
+// Botones glow-activo giran cada 5 s hasta ser pulsados; se reinicia en cada CAMBIO_PARADA.
+// Definido a nivel de módulo para que _resetSpinsAventura sea accesible desde los controladores
+// de mensajes registrados fuera del bloque DOMContentLoaded.
+const _spinState = new Map(); // id → { intervalId, pressed }
+
+function _iniciarSpinBtn(btn) {
+    if (!btn) return;
+    _detenerSpinBtn(btn);
+    const state = { intervalId: null, pressed: false };
+    state.intervalId = setInterval(() => {
+        if (state.pressed || btn.disabled) return;
+        btn.classList.remove('spinning');
+        void btn.offsetWidth; // forzar reflow para reiniciar animación
+        btn.classList.add('spinning');
+        btn.addEventListener('animationend', () => btn.classList.remove('spinning'), { once: true });
+    }, 5000);
+    _spinState.set(btn.id, state);
+    btn.addEventListener('click', () => {
+        state.pressed = true;
+        clearInterval(state.intervalId);
+        _spinState.delete(btn.id);
+    }, { once: true });
+}
+
+function _detenerSpinBtn(btn) {
+    if (!btn) return;
+    const s = _spinState.get(btn.id);
+    if (s) { clearInterval(s.intervalId); _spinState.delete(btn.id); }
+    btn.classList.remove('spinning');
+}
+
+function _resetSpinsAventura() {
+    [
+        elementosDOM.btnVideo, elementosDOM.btnAvanzar, elementosDOM.btnUbicacion,
+        elementosDOM.btnMapaCompleto, elementosDOM.btnMapaJpg, elementosDOM.btnImagen
+    ].forEach(btn => _iniciarSpinBtn(btn));
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     actualizarEstadoBotones();
-
-    // ── Spin behavior (AVENTURA) ──
-    // Botones glow-activo giran cada 5 s hasta ser pulsados; se reinicia en cada CAMBIO_PARADA.
-    const _spinState = new Map(); // id → { intervalId, pressed }
-
-    function _iniciarSpinBtn(btn) {
-        if (!btn) return;
-        _detenerSpinBtn(btn);
-        const state = { intervalId: null, pressed: false };
-        state.intervalId = setInterval(() => {
-            if (state.pressed || btn.disabled) return;
-            btn.classList.remove('spinning');
-            void btn.offsetWidth; // forzar reflow para reiniciar animación
-            btn.classList.add('spinning');
-            btn.addEventListener('animationend', () => btn.classList.remove('spinning'), { once: true });
-        }, 5000);
-        _spinState.set(btn.id, state);
-        btn.addEventListener('click', () => {
-            state.pressed = true;
-            clearInterval(state.intervalId);
-            _spinState.delete(btn.id);
-        }, { once: true });
-    }
-
-    function _detenerSpinBtn(btn) {
-        if (!btn) return;
-        const s = _spinState.get(btn.id);
-        if (s) { clearInterval(s.intervalId); _spinState.delete(btn.id); }
-        btn.classList.remove('spinning');
-    }
-
-    function _resetSpinsAventura() {
-        [
-            elementosDOM.btnVideo, elementosDOM.btnAvanzar, elementosDOM.btnUbicacion,
-            elementosDOM.btnMapaCompleto, elementosDOM.btnMapaJpg, elementosDOM.btnImagen
-        ].forEach(btn => _iniciarSpinBtn(btn));
-    }
 
     _resetSpinsAventura();
 

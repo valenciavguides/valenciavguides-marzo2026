@@ -2031,6 +2031,21 @@ sequenceDiagram
 - Reto activo → deshabilita `#btn-video` e `#btn-imagen`.
 - No hay tramo activo → deshabilita `#btn-video`.
 
+#### Animación de giro (spin) de botones
+
+Los 6 botones habilitados muestran una animación de giro cada 5 segundos (`@keyframes spin-btn`, clase `.spinning`) hasta que el usuario los pulsa por primera vez. Al cambiar de parada, el ciclo se reinicia en todos los botones.
+
+**Implementación**: tres funciones a nivel de módulo (fuera de `DOMContentLoaded`):
+
+| Función | Rol |
+|---------|-----|
+| `_spinState` (Map) | Mapa `btn.id → { intervalId, pressed }` que rastrea qué botones están girando |
+| `_iniciarSpinBtn(btn)` | Arranca el `setInterval` de 5 s para un botón; lo para cuando el usuario hace clic |
+| `_detenerSpinBtn(btn)` | Para el intervalo y elimina la clase `.spinning` |
+| `_resetSpinsAventura()` | Llama a `_iniciarSpinBtn` para los 6 botones — usada en la inicialización (dentro de `DOMContentLoaded`) y en el handler `NAVEGACION.CAMBIO_PARADA` (fuera de `DOMContentLoaded`) |
+
+**Invariante de scope**: estas funciones están declaradas a nivel de módulo (antes del bloque `DOMContentLoaded`) porque el controlador de mensajes `NAVEGACION.CAMBIO_PARADA` se registra fuera de `DOMContentLoaded` y necesita llamar a `_resetSpinsAventura()`. Si se mueven dentro de `DOMContentLoaded`, el handler no puede acceder a ellas y lanza `ReferenceError` silencioso.
+
 #### 4 modos de mapa — selector en el PADRE (`#selector-tipo-mapa`)
 
 > El selector de capa de mapa **no pertenece a hijo2** — está creado dinámicamente en `codigo-padre.html` (línea ~2651) y posicionado encima del mapa Leaflet del padre (`position:fixed; top; left`). hijo2 no lo controla.
