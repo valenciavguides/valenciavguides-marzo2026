@@ -16,7 +16,7 @@
  */
 
 // ─── Build timestamp (metadato opcional; no controla el versionado) ─────────
-// @build-ts: 2026-06-17T12:00:00.000Z
+// @build-ts: 2026-06-17T22:00:00.000Z
 
 // ─── App Shell ────────────────────────────────────────────────────────────────
 // Estos ficheros se precargan al instalar el SW.
@@ -80,7 +80,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-mapa-completo-fix-jun17';
+const CACHE_VERSION = 'v-mapa-leaflet-css-jun18';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';

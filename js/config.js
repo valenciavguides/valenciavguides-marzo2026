@@ -8,17 +8,6 @@
 
 import { MODOS, LOG_LEVELS } from './constants.js';
 
-/**
- * Mapeo de tipos de consulta por hijo
- * Usado para especificar el tipo de datos esperados en comunicaciones con iframes hijo
- * @type {Object<string, string>}
- */
-export const MAPA_TIPOS_HIJO = {
-    hijo2: 'COORDENADAS',
-    hijo3: 'AUDIO',
-    hijo4: 'RETO',
-    hijo5: 'CASA'
-};
 
 /**
  * Configuración principal del sistema
@@ -107,7 +96,7 @@ export const CONFIG = {
         RADIO_EXTENDIDO: 50,
         
         /** Precisión mínima aceptable (metros) */
-        PRECISION_MINIMA: 25,
+        PRECISION_MINIMA: 50,
         
         /** Número de muestras para promediar posición */
         MUESTRAS_PROMEDIO: 3

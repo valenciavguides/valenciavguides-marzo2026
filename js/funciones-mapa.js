@@ -14,10 +14,10 @@ import {
     enviarMensaje,
     registrarControlador
 } from './mensajeria.js';
-import { CONFIG, MAPA_TIPOS_HIJO } from './config.js';
+import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, manejarError, ajustarTimeoutPorConexion, normalizarParadas, resolverIdsParada, getPadreId } from './utils.js';
+import { generarIdUnico, manejarError, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, getPadreId } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -31,32 +31,19 @@ function handleGeolocationError(err) {
 
 
 /**
- * Calcula la distancia entre dos puntos geográficos usando la fórmula de Haversine
- * @param {number} lat1 - Latitud del primer punto
- * @param {number} lon1 - Longitud del primer punto
- * @param {number} lat2 - Latitud del segundo punto
- * @param {number} lon2 - Longitud del segundo punto
- * @returns {number} Distancia en metros
- */
-function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Radio de la Tierra en metros
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c;
-}
-
-/**
- * Helper: Extract lat/lng robustly from an object that may use different conventions
- * Supports: { lat, lng }, { latitud, longitud }, { coordenadas: {lat, lng} }
- * Returns { lat, lng } or null
+ * Extrae {lat, lng} de los distintos tipos de entrada de coordenadas-aventuras.js.
+ *
+ * Formatos en uso activo:
+ *   { lat, lng }               — tramo.inicio, tramo.fin, cada waypoint
+ *   { coordenadas: {lat, lng}} — parada.coordenadas, referencia.coordenadas
+ *
+ * Formato legacy (sin uso en datos actuales, mantenido por compatibilidad defensiva):
+ *   { latitud, longitud }
+ *
+ * Para tramos: pasar .inicio o .fin directamente — los tramos no tienen .coordenadas.
+ *
+ * @param {object} obj
+ * @returns {{lat: number, lng: number}|null}
  */
 function _getLatLng(obj) {
     if (!obj || typeof obj !== 'object') return null;
@@ -953,7 +940,7 @@ export async function getMapCenter() {
     return new Promise((resolve, reject) => {
         try {
             const center = _mapaInstance.getCenter();
-            if (!validarCoordenadas({ lat: center.lat, lng: center.lng })) return null;
+            if (!validarCoordenadas({ lat: center.lat, lng: center.lng })) return reject(new Error('Coordenadas del mapa inválidas'));
             resolve({ 
                 lat: center.lat, 
                 lng: center.lng, 
@@ -1986,7 +1973,7 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
         datos: { 
             paradaId,
             padreId,
-            tipoConsulta: MAPA_TIPOS_HIJO['hijo2']
+            tipoConsulta: globalThis.mensajeria?.getHijoTipo('hijo2') ?? 'COORDENADAS'
         }
     });
 }

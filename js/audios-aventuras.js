@@ -21509,7 +21509,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-es",
         title: "Parada 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -21944,7 +21944,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-en",
         title: "Stop 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -22379,7 +22379,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-fr",
         title: "Étape 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -22814,7 +22814,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-it",
         title: "Tappa 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -23249,7 +23249,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-nl",
         title: "Stop 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -23684,7 +23684,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-ja",
         title: "停留所 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -24119,7 +24119,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-de",
         title: "Halt 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -24554,7 +24554,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-zh",
         title: "站 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -24989,7 +24989,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-pl",
         title: "Przystanek 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -25424,7 +25424,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-pt",
         title: "Parada 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -25859,7 +25859,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-ru",
         title: "Остановка 23: Museo y Colegio del Arte Mayor de la Seda 2",
@@ -26294,7 +26294,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
+      // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-uk",
         title: "Зупинка 23: Museo y Colegio del Arte Mayor de la Seda 2",

@@ -729,6 +729,42 @@
                 category: 'Specific'
             },
             {
+                name: 'IDs: ID Mismatch Resolution',
+                file: 'test_id_mismatch_resolution.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'IDs: AVENTURA_PARADAS Lazy-Init',
+                file: 'test_aventura_paradas_lazy_init.html',
+                type: 'browser',
+                category: 'Specific'
+            },
+            {
+                name: 'Quality: Trailing Whitespace',
+                file: 'test_trailing_whitespace.html',
+                type: 'browser',
+                category: 'Verification'
+            },
+            {
+                name: 'Module: Constants Sync',
+                file: 'test_constants_sync.html',
+                type: 'browser',
+                category: 'Module'
+            },
+            {
+                name: 'Module: Exports Integrity',
+                file: 'test_module_exports.html',
+                type: 'browser',
+                category: 'Module'
+            },
+            {
+                name: 'Data: Aventuras Integrity',
+                file: 'test_data_integrity.html',
+                type: 'browser',
+                category: 'Data'
+            },
+            {
                 name: 'hijo2: Coordenadas',
                 file: 'test_hijo2_coordenadas.html',
                 type: 'browser',
@@ -781,6 +817,42 @@
             {
                 name: 'E2E: Queues Draining',
                 file: 'e2e/05-queues-draining.spec.js',
+                type: 'playwright',
+                category: 'E2E'
+            },
+            {
+                name: 'E2E: Race Conditions',
+                file: 'e2e/06-race-conditions.spec.js',
+                type: 'playwright',
+                category: 'E2E'
+            },
+            {
+                name: 'E2E: Performance Baseline',
+                file: 'e2e/07-performance-baseline.spec.js',
+                type: 'playwright',
+                category: 'E2E'
+            },
+            {
+                name: 'E2E: Children Handshake',
+                file: 'e2e/08-children-handshake.spec.js',
+                type: 'playwright',
+                category: 'E2E'
+            },
+            {
+                name: 'E2E: Cambio de Modo',
+                file: 'e2e/09-mode-change.spec.js',
+                type: 'playwright',
+                category: 'E2E'
+            },
+            {
+                name: 'E2E: Controladores Padre',
+                file: 'e2e/10-controladores-padre.spec.js',
+                type: 'playwright',
+                category: 'E2E'
+            },
+            {
+                name: 'E2E: Constants Integrity',
+                file: 'e2e/11-constants-integrity.spec.js',
                 type: 'playwright',
                 category: 'E2E'
             }
@@ -838,6 +910,10 @@
                 if (test.type === 'jest') {
                     updateTestStatus(i, 'skipped', 0);
                     addLog(`⏭️ Skipped: ${test.name} (Backend - run 'npm test')`, 'warning');
+                    results[i] = { status: 'skipped', time: 0 };
+                } else if (test.type === 'playwright') {
+                    updateTestStatus(i, 'skipped', 0);
+                    addLog(`⏭️ Skipped: ${test.name} (E2E - click "Load E2E Results")`, 'warning');
                     results[i] = { status: 'skipped', time: 0 };
                 } else {
                     await runBrowserTest(i, test);

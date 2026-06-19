@@ -19,7 +19,10 @@
     const logEl = document.getElementById('log');
     function append(...args){ logEl.textContent += args.join(' ') + '\n'; }
     const iframe = document.getElementById('sut');
-    await new Promise(r=>{ iframe.onload = r; });
+    await new Promise(r=>{
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') { r(); }
+      else { iframe.addEventListener('load', r, { once: true }); }
+    });
     append('[test] Parent cargado');
 
     const win = iframe.contentWindow;

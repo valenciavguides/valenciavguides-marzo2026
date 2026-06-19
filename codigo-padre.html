@@ -189,9 +189,6 @@
         globalThis.handleIframeLoad = function(iframeId) {
             const msg = `${iframeId} loaded successfully`;
             (globalThis.logger || console).debug(msg);
-            if (globalThis.logger?.debug) {
-                globalThis.logger.debug(msg);
-            }
             try {
                 if (iframeId === 'hijo5') {
                     const iframe = document.getElementById('hijo5');
@@ -959,6 +956,7 @@
             max-width: 100%;
             height: 100%;
             max-height: 100%;
+            align-self: stretch; /* garantiza altura completa en iOS Safari con align-items:center en el padre */
             border-radius: 0;
             -webkit-border-radius: 0;
             -moz-border-radius: 0;
@@ -1657,6 +1655,7 @@
                 btnChat.addEventListener('click', abrirChat);
 
                 globalThis.addEventListener('message', function(ev) {
+                    if (ev.origin !== globalThis.location.origin) return;
                     if (ev.data && (ev.data.tipo === (globalThis.TIPOS_MENSAJE?.CHAT?.CERRAR || 'CHAT.CERRAR'))) cerrarChat();
                 });
             })();
@@ -2162,21 +2161,18 @@
             }
 
             overlay.classList.add('visible');
-            // Notify mapa-completo that it's visible so it can call invalidateSize.
-            // Use load event (reliable) + 1500ms fallback (in case load already fired).
+            // Notify mapa-completo that it's visible so it can call invalidateSize+fitBounds.
+            // Send mapa-visible ONCE. mapa-completo.html handles internal retries (300ms, 700ms).
+            // Cancelling the fallback timer prevents a double-send if load fires first.
             const _iframeEl = overlay.querySelector('iframe');
             if (_iframeEl) {
+                let _mapaVisibleFallback;
                 const _sendMapaVisible = () => {
-                    [50, 300, 700].forEach(ms => setTimeout(() => {
-                        _iframeEl.contentWindow?.postMessage({ tipo: 'mapa-visible' }, globalThis.location.origin);
-                    }, ms));
+                    clearTimeout(_mapaVisibleFallback);
+                    _iframeEl.contentWindow?.postMessage({ tipo: 'mapa-visible' }, globalThis.location.origin);
                 };
-                if (_iframeEl.contentDocument?.readyState === 'complete') {
-                    requestAnimationFrame(_sendMapaVisible); // esperar reflow tras classList.add('visible')
-                } else {
-                    _iframeEl.addEventListener('load', _sendMapaVisible, { once: true });
-                    setTimeout(_sendMapaVisible, 1500); // fallback si load ya disparó
-                }
+                _iframeEl.addEventListener('load', () => requestAnimationFrame(_sendMapaVisible), { once: true });
+                _mapaVisibleFallback = setTimeout(_sendMapaVisible, 1500);
             }
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                 globalThis.actualizarVisibilidadSelectorMapa();
@@ -2660,7 +2656,7 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         import { DATOS_PADRE } from './js/aventuras-ID-padre.js';
         // DATOS_PADRE is now imported from module
@@ -3393,6 +3389,7 @@
 
         // Suprimir aviso de rotación cuando un iframe (ej: mapa vintage) lo solicite
         globalThis.addEventListener('message', function(event) {
+            if (event.origin !== globalThis.location.origin) return;
             if (event.data && (event.data.tipo === (globalThis.TIPOS_MENSAJE?.NAVEGACION?.SUPRIMIR_ROTACION || 'NAVEGACION.SUPRIMIR_ROTACION') || event.data.tipo === 'SUPPRESS_ROTATION')) {
                 globalThis.rotationSuppressed = !!event.data.value;
                 const rotMsg = document.getElementById('rotation-message');
@@ -3683,6 +3680,7 @@
             if (!id || !Array.isArray(elementosActuales)) return -1;
             return elementosActuales.findIndex(p => p.padreid === id || p.parada_id === id || p.tramo_id === id);
         }
+        globalThis.findIndexByPadreIdOrId = findIndexByPadreIdOrId;
 
         // Asegurar parada por defecto: usar P-0, primer inicio o primer parada
         async function ensureDefaultParada() {
@@ -4494,28 +4492,6 @@
             }
         }
 
-        /**
-         * Calcula la distancia entre dos puntos GPS usando la fórmula de Haversine
-         * @param {number} lat1 - Latitud del punto 1
-         * @param {number} lon1 - Longitud del punto 1
-         * @param {number} lat2 - Latitud del punto 2
-         * @param {number} lon2 - Longitud del punto 2
-         * @returns {number} Distancia en metros
-         */
-        function calcularDistancia(lat1, lon1, lat2, lon2) {
-            const R = 6371000; // Radio de la Tierra en metros
-            const φ1 = lat1 * Math.PI / 180;
-            const φ2 = lat2 * Math.PI / 180;
-            const Δφ = (lat2 - lat1) * Math.PI / 180;
-            const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                     Math.cos(φ1) * Math.cos(φ2) *
-                     Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-            return R * c; // Distancia en metros
-        }
         globalThis.calcularDistancia = calcularDistancia;
 
         /**
@@ -4836,9 +4812,6 @@
             (globalThis.logger || console).info('%cLlama diagnosticarGPS() de nuevo para actualizar el estado', 'color: #888888; font-style: italic');
         }
 
-        function _configurarDiagnosticoGPS(est) {
-            globalThis.diagnosticarGPS = function() { _diagnosticarGPS_impl(est); };
-        }
 
         function _gpsOnFreshDiagnostic(fresh, gpsCfg, est, logPrefix) {
             const a2 = fresh?.coords?.accuracy;
@@ -5183,8 +5156,6 @@
                 );
 
                 await _finalizarActivacionGPS(est, logPrefix, resolveActivacion);
-
-                _configurarDiagnosticoGPS(est);
 
                 return true;
 
@@ -6116,10 +6087,11 @@
                 }
 
                 const hijoId = mensaje.origen;
-                const { version = '1.0.0', capacidades = [] } = mensaje.datos || {};
+                const { version = '1.0.0', capacidades = [], tipo = 'DESCONOCIDO' } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Hijo preparado: ${hijoId}`, {
                     version,
+                    tipo,
                     capacidades: capacidades.length
                 });
 
@@ -6137,8 +6109,12 @@
                     preparado: true,
                     ultimoPing: timestamp,
                     version,
+                    tipo,
                     capacidades
                 });
+
+                // Registrar en el sistema dinámico de mensajería (heartbeat + tipo)
+                globalThis.mensajeria?.registrarHijo?.(hijoId, tipo, capacidades);
 
                 (globalThis.logger || console).success(`${logPrefix} ✅ ${hijoId} marcado como preparado`);
 
@@ -6396,7 +6372,7 @@
             try { await ensureDefaultParada(); } catch (err) { (globalThis.logger || console).warn('[CAMBIO_MODO] ensureDefaultParada error', err); }
         }
 
-        async function _pausarHeartbeatCasa(hijosCriticos, mensaje, logPrefix) {
+        async function _transicionarAModoCasa(hijosCriticos, mensaje, logPrefix) {
             try {
                 localStorage.removeItem('vv_aventura_iniciada');
                 localStorage.removeItem('vv_progreso');
@@ -6432,7 +6408,7 @@
                 if (modo === 'aventura') {
                     await _activarHeartbeatAventura(hijosCriticos, mensaje, logPrefix);
                 } else if (modo === 'casa') {
-                    await _pausarHeartbeatCasa(hijosCriticos, mensaje, logPrefix);
+                    await _transicionarAModoCasa(hijosCriticos, mensaje, logPrefix);
                 }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error propagando heartbeat control a hijos criticos:`, error);
@@ -9439,13 +9415,13 @@
             }
         }
 
-        async function _hdl_NAVEGACION_MOSTRAR_MAPA_JPG(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MOSTRAR_MAPA_JPG][${mensaje?.origen || 'desconocido'}]`;
+        async function _hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO(mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MOSTRAR_MAPA_COMPLETO][${mensaje?.origen || 'desconocido'}]`;
 
             try {
                 const { url, aventura } = mensaje.datos || {};
 
-                (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa vintage recibida — aventura: ${aventura}, url: ${url}`);
+                (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa completo recibida — aventura: ${aventura}, url: ${url}`);
 
                 if (!url) {
                     (globalThis.logger || console).warn(`${logPrefix} URL de mapa no proporcionada`);
@@ -9463,6 +9439,23 @@
 
                 return { exito: true, url, aventura };
 
+            } catch (error) {
+                (globalThis.logger || console).error(`${logPrefix} Error mostrando mapa vintage:`, error);
+                return { exito: false, error: error.message };
+            }
+        }
+
+        async function _hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE(mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MOSTRAR_MAPA_VINTAGE][${mensaje?.origen || 'desconocido'}]`;
+            try {
+                const { url, aventura } = mensaje.datos || {};
+                (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa vintage — aventura: ${aventura}, url: ${url}`);
+                if (!url) {
+                    (globalThis.logger || console).warn(`${logPrefix} URL de mapa vintage no proporcionada`);
+                    return { exito: false, error: 'URL de mapa vintage no proporcionada' };
+                }
+                globalThis.mostrarImagenOverlay(url, `Mapa vintage — ${aventura || 'Aventura'}`, null, null, { objectFit: 'fill', fullHeight: true });
+                return { exito: true, url, aventura };
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error mostrando mapa vintage:`, error);
                 return { exito: false, error: error.message };
@@ -10008,7 +10001,9 @@
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE, _hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE);
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_JPG, _hdl_NAVEGACION_MOSTRAR_MAPA_JPG);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO, _hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO);
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_VINTAGE, _hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE);
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, _hdl_NAVEGACION_CAMBIO_PARADA);
 

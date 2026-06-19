@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
     <script>
     /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÍMITES */
     (function(){
@@ -17,7 +18,6 @@
         globalThis.addEventListener("resize", escalar);
     })();
     </script>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- NOSONAR -->
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
@@ -545,6 +545,7 @@
 // ==================== INICIALIZACIÓN DE MENSAJERÍA ====================
 
 import { obtenerMapaVintage } from './js/mapa-vintage-aventuras.js';
+import { ajustarTimeoutPorConexion, calcularDistancia } from './js/utils.js';
 
 // Fallbacks que esperan a que globalThis.mensajeria esté disponible
 const enviarMensaje = async (...args) => {
@@ -817,44 +818,6 @@ const CONFIG_HIJO = {
 // 🔧 UTILIDADES - AJUSTE DINÁMICO DE TIMEOUTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-/**
- * Calcula multiplicador de timeout según tipo de conexión
- * Metodología consistente con codigo-padre.html (utils.js)
- * @returns {number} Multiplicador (1.0-3.0)
- */
-function calcularMultiplicadorTimeoutConexion() {
-    try {
-        if (!navigator.connection) {
-            return 1.5; // Valor moderado si no hay info de conexión
-        }
-
-        const effectiveType = navigator.connection.effectiveType || 'unknown';
-        const multiplicadores = {
-            '4g': 1,        // Conexión rápida
-            '3g': 1.5,      // Conexión media - 50% más tiempo
-            '2g': 2,        // Conexión lenta - doble tiempo
-            'slow-2g': 3,   // Conexión muy lenta - triple tiempo
-            'unknown': 1.5  // Desconocido - moderado
-        };
-
-        return multiplicadores[effectiveType] || 1.5;
-    } catch (error) {
-        console.warn('[HIJO2][TIMEOUT] Error calculando multiplicador:', error);
-        return 1.5;
-    }
-}
-
-/**
- * Ajusta timeout según conexión de red actual
- * @param {number} timeoutBase - Timeout base en ms
- * @returns {number} Timeout ajustado
- */
-function ajustarTimeoutPorConexion(timeoutBase) {
-    const multiplicador = calcularMultiplicadorTimeoutConexion();
-    const timeoutAjustado = Math.round(timeoutBase * multiplicador);
-    console.debug(`[HIJO2][TIMEOUT] ${timeoutBase}ms -> ${timeoutAjustado}ms (${multiplicador}x)`);
-    return timeoutAjustado;
-}
 
 // Estado del componente
 const estadoComponente = {
@@ -1157,29 +1120,6 @@ function actualizarEstadoBotones() {
 // ============================================================
 // FUNCIONES HELPER PARA VALIDACIÓN GPS
 // ============================================================
-
-/**
- * Calcula la distancia entre dos coordenadas GPS usando fórmula Haversine
- * @param {number} lat1 - Latitud punto 1
- * @param {number} lon1 - Longitud punto 1
- * @param {number} lat2 - Latitud punto 2
- * @param {number} lon2 - Longitud punto 2
- * @returns {number} Distancia en metros
- */
-function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371000; // Radio de la Tierra en metros
-    const lat1Rad = lat1 * Math.PI / 180;
-    const lat2Rad = lat2 * Math.PI / 180;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c; // Distancia en metros
-}
 
 function _calcularProximidadParadas(posicion, paradas, RADIO_PERMITIDO, logPrefix) {
     let dentroDeRango = false;
@@ -1588,17 +1528,16 @@ elementosDOM.btnMapaCompleto?.addEventListener('click', async () => {
         setBotonActivo('btnMapaCompleto');
 
         // Enviar mensaje al padre para mostrar mapa completo
-        // Usa el mismo handler MOSTRAR_MAPA_JPG (detecta iframe vs imagen por extensión)
         const aventuraActual = globalThis.__vv_aventuraActual
             || (globalThis.parent && globalThis.parent !== globalThis && globalThis.parent.aventuraSeleccionada)
             || (console.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
         const urlMapaCompleto = 'mapa-completo.html?aventura=' + encodeURIComponent(aventuraActual);
         await enviarMensaje({
-            tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_JPG,
+            tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO,
             origen: CONFIG_HIJO.IFRAME_ID,
             destino: getPadreId(),
             datos: {
-                accion: 'mostrar-mapa-jpg',
+                accion: 'mostrar-mapa-completo',
                 formato: 'html',
                 url: urlMapaCompleto,
                 aventura: aventuraActual,
@@ -1631,11 +1570,11 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
         }
 
         await enviarMensaje({
-            tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_JPG,
+            tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_VINTAGE,
             origen: CONFIG_HIJO.IFRAME_ID,
             destino: getPadreId(),
             datos: {
-                accion: 'mostrar-mapa-jpg',
+                accion: 'mostrar-mapa-vintage',
                 formato: 'jpg',
                 url: urlJpg,
                 aventura: aventuraActual,
@@ -2721,6 +2660,7 @@ try {
             datos: {
                 componenteId: CONFIG_HIJO.COMPONENTE_ID,
                 coordenadasDisponibles: obtenerCoordenadasParadas().length,
+                tipo: 'COORDENADAS',
                 capacidades: ['navegacion', 'coordenadas'],
                 timestamp: Date.now()
             }

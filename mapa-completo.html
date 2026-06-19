@@ -7,10 +7,21 @@
   <title>Mapa completo de aventura</title>
 
   <style>
-    :root { --gap-inferior: env(safe-area-inset-bottom, 0px); }
-    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-    #map { width: 100%; height: 100%; }
+    :root {
+      --gap-inferior: env(safe-area-inset-bottom, 0px);
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
 
+    /* Marcador pill de monumento */
     .monumento-marker {
       background: #fff;
       border: 2px solid #8B6914;
@@ -26,51 +37,96 @@
       gap: 3px;
     }
 
-
+    /* Overlay popup de monumento */
     #monumento-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6); z-index: 9999;
-      align-items: center; justify-content: center;
-      padding-bottom: var(--gap-inferior); box-sizing: border-box;
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: var(--gap-inferior);
+      box-sizing: border-box;
     }
-    #monumento-overlay.visible { display: flex; }
+    #monumento-overlay.visible {
+      display: flex;
+    }
     #monumento-card {
-      background: #fff; border-radius: 12px;
-      max-width: 95vw; width: 95vw; overflow: hidden;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4); position: relative;
+      background: #fff;
+      border-radius: 12px;
+      max-width: 95vw;
+      width: 95vw;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      position: relative;
     }
-    #monumento-card img { width: 100%; max-height: min(80vw,60vh); object-fit: cover; display: block; }
+    #monumento-card img {
+      width: 100%;
+      max-height: min(80vw, 60vh);
+      object-fit: cover;
+      display: block;
+    }
     #monumento-card .sin-imagen {
-      width: 100%; height: 140px; background: #f0ebe0;
-      display: flex; align-items: center; justify-content: center; font-size: 3rem;
+      width: 100%;
+      height: 140px;
+      background: #f0ebe0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
     }
-    #monumento-card .info { padding: 0.9rem 1rem 1rem; }
+    #monumento-card .info {
+      padding: 0.9rem 1rem 1rem;
+    }
     #monumento-card .info .numero {
-      font-size: 0.75rem; color: #8B6914; font-weight: bold;
-      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;
+      font-size: 0.75rem;
+      color: #8B6914;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
     }
-    #monumento-card .info .nombre { font-size: clamp(1rem,3.5vmin,1.3rem); font-weight: bold; color: #222; }
+    #monumento-card .info .nombre {
+      font-size: clamp(1rem, 3.5vmin, 1.3rem);
+      font-weight: bold;
+      color: #222;
+    }
     #monumento-cerrar {
-      position: absolute; top: 0; right: 0;
-      background: #ff8c00; color: #000;
-      border: 0.3125rem solid #ff0000; border-radius: 50%;
-      width: clamp(44px,11vmin,60px); height: clamp(44px,11vmin,60px);
-      font-size: clamp(28px,7vmin,36px); font-weight: bold; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      line-height: 1; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      touch-action: manipulation; z-index: 10000;
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #ff8c00;
+      color: #000;
+      border: 0.3125rem solid #ff0000;
+      border-radius: 50%;
+      width: clamp(44px, 11vmin, 60px);
+      height: clamp(44px, 11vmin, 60px);
+      font-size: clamp(28px, 7vmin, 36px);
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      touch-action: manipulation;
+      z-index: 10000;
     }
-    #monumento-cerrar:hover { background: #ff6600; border-color: #cc0000; transform: scale(1.1); }
-
-    /* .labels-tiles reserved for future use */
+    #monumento-cerrar:hover {
+      background: #ff6600;
+      border-color: #cc0000;
+      transform: scale(1.1);
+    }
   </style>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 
   <div id="map"></div>
 
+  <!-- Overlay popup monumento -->
   <div id="monumento-overlay">
     <div id="monumento-card">
       <button id="monumento-cerrar" title="Cerrar">✕</button>
@@ -83,11 +139,11 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="js/vendor/leaflet-rotate-src.js"></script>
 
   <script type="module">
     import { DATOS_AVENTURAS } from './js/coordenadas-aventuras.js';
 
+    // ── Aventura desde URL ──────────────────────────────────────────────────
     const params   = new URLSearchParams(globalThis.location.search);
     const aventura = params.get('aventura') || 'Aventura1';
 
@@ -100,6 +156,7 @@
 
     const coordenadas = datos['coordenadas-hijo2.html'].coordenadas;
 
+    // ── Construir polyline ──────────────────────────────────────────────────
     const rutaPuntos = [];
     coordenadas.forEach(entry => {
       if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
@@ -111,177 +168,59 @@
       }
     });
 
-    // ── Mapa sin controles de zoom, con rotación habilitada ─────────────────
-    const map = L.map('map', {
-      center: [39.476, -0.375],
-      zoom: 15,
-      maxZoom: 21,
-      zoomControl: false,
-      rotate: true,
-      rotateControl: false,
-      bearing: 0,
-      touchRotate: true
+    // ── Payload para solicitar-ruta ─────────────────────────────────────────
+    const rutaCompleta = [];
+    coordenadas.forEach(entry => {
+      if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
+        rutaCompleta.push({ tipo: 'parada', nombre: entry.nombre, lat: entry.coordenadas.lat, lng: entry.coordenadas.lng });
+      } else if (entry.tipo === 'tramo') {
+        rutaCompleta.push({ tipo: 'waypoint', lat: entry.inicio.lat, lng: entry.inicio.lng });
+        entry.waypoints.forEach(wp => rutaCompleta.push({ tipo: 'waypoint', lat: wp.lat, lng: wp.lng }));
+        rutaCompleta.push({ tipo: 'waypoint', lat: entry.fin.lat, lng: entry.fin.lng });
+      }
     });
 
-    // ── Panes ─────────────────────────────────────────────────────────────────
-    const paneParent = map._rotatePane || map.getPane('mapPane');
+    // ── Inicializar mapa ────────────────────────────────────────────────────
+    const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 });
 
-    map.createPane('labelsPane', paneParent);
-    map.getPane('labelsPane').style.zIndex = 400;
-    map.getPane('labelsPane').style.filter = 'drop-shadow(0 0 1.5px #FFD700)';
+    // Bounds al scope del módulo para que mapa-visible pueda llamar fitBounds
+    let _bounds = null;
 
-    map.createPane('callejeroPane', paneParent);
-    map.getPane('callejeroPane').style.zIndex = 200;
-    map.getPane('callejeroPane').style.filter = 'saturate(1.6) contrast(1.05)';
-
-    // ── Capas de mapa ────────────────────────────────────────────────────────
-    const THUMB_SAT      = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3115/4088';
-    const THUMB_VOYAGER  = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/13/4088/3115.png';
-    const THUMB_OSM      = 'https://a.basemaps.cartocdn.com/light_all/13/4088/3115.png';
-    const THUMB_NOCTURNO = 'https://a.basemaps.cartocdn.com/dark_all/13/4088/3115.png';
-
-    const capaSatelite = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 21, maxNativeZoom: 19,
-        attribution: '© Esri, Maxar, Earthstar Geographics',
-        detectRetina: true
-      }
-    );
-    const capaVoyager = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-        maxZoom: 21, maxNativeZoom: 20,
-        attribution: '© OpenStreetMap contributors © CARTO',
-        detectRetina: true
-      }
-    );
-    const capaOSM = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-        pane: 'callejeroPane',
-        maxZoom: 21, maxNativeZoom: 20,
-        attribution: '© OpenStreetMap contributors © CARTO',
-        detectRetina: true
-      }
-    );
-    const capaNocturno = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-        maxZoom: 21, maxNativeZoom: 20,
-        attribution: '© OpenStreetMap contributors © CARTO',
-        detectRetina: true
-      }
-    );
-    const capaEtiquetas = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
-        pane: 'labelsPane', className: 'labels-tiles',
-        tileSize: 512, zoomOffset: -1,
-        maxZoom: 21, maxNativeZoom: 20,
-        attribution: '© OpenStreetMap contributors © CARTO',
-        detectRetina: true
-      }
-    );
-    const capaEtiquetasNoche = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-        pane: 'labelsPane',
-        tileSize: 512, zoomOffset: -1,
-        maxZoom: 21, maxNativeZoom: 20,
-        attribution: '© OpenStreetMap contributors © CARTO',
-        detectRetina: true
-      }
-    );
-
-    // ── Selector desplegable de mapa ─────────────────────────────────────────
-    const MODOS_MAPA = [
-      { id: 'satelite', nombre: 'Satélite',  thumb: THUMB_SAT,      capa: capaSatelite, etiqCapa: capaEtiquetas,      filtroCss: 'drop-shadow(0 0 1.5px #FFD700)' },
-      { id: 'voyager',  nombre: 'Mapa',       thumb: THUMB_VOYAGER,  capa: capaVoyager,  etiqCapa: capaEtiquetas,      filtroCss: 'drop-shadow(0 0 1.5px #FFD700)' },
-      { id: 'osm',      nombre: 'Callejero',  thumb: THUMB_OSM,      capa: capaOSM,      etiqCapa: capaEtiquetas,      filtroCss: 'drop-shadow(0 0 1.5px #FFD700)' },
-      { id: 'nocturno', nombre: 'Nocturno',   thumb: THUMB_NOCTURNO, capa: capaNocturno, etiqCapa: capaEtiquetasNoche, filtroCss: 'none' },
-    ];
-
-    let modoActivo = 'satelite';
-    let dropdownAbierto = false;
-
-    const BTN_STYLE = 'width:clamp(36px,11vmin,60px);height:clamp(36px,11vmin,60px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(1.5px,0.4vmin,3px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
-
-    const selectorDiv = document.createElement('div');
-    selectorDiv.style.cssText = 'position:fixed;top:calc(2.5vmin + env(safe-area-inset-top,0px));left:calc(2.5vmin + env(safe-area-inset-left,0px));z-index:1000;display:flex;flex-direction:column;align-items:flex-start;gap:clamp(3px,0.8vmin,6px);';
-
-    const btnPrincipal = document.createElement('div');
-    btnPrincipal.style.cssText = BTN_STYLE;
-    btnPrincipal.title = 'Cambiar tipo de mapa';
-    selectorDiv.appendChild(btnPrincipal);
-
-    const dropdownDiv = document.createElement('div');
-    dropdownDiv.style.cssText = 'display:flex;flex-direction:column;gap:clamp(3px,0.8vmin,6px);max-height:0;overflow:hidden;transition:max-height 0.35s ease;';
-    selectorDiv.appendChild(dropdownDiv);
-
-    MODOS_MAPA.forEach(modo => {
-      const btn = document.createElement('div');
-      btn.style.cssText = BTN_STYLE + `background-image:url('${modo.thumb}');`;
-      btn.title = modo.nombre;
-      btn.addEventListener('click', (e) => { e.stopPropagation(); cambiarModo(modo.id); cerrarDropdown(); });
-      dropdownDiv.appendChild(btn);
-    });
-
-    btnPrincipal.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dropdownAbierto = !dropdownAbierto;
-      dropdownDiv.style.maxHeight = dropdownAbierto ? '500px' : '0';
-    });
-
-    document.addEventListener('click', () => { if (dropdownAbierto) cerrarDropdown(); });
-
-    function cerrarDropdown() { dropdownAbierto = false; dropdownDiv.style.maxHeight = '0'; }
-
-    function actualizarBtnPrincipal() {
-      const modo = MODOS_MAPA.find(m => m.id === modoActivo);
-      btnPrincipal.style.backgroundImage = `url('${modo.thumb}')`;
-    }
-
-    function cambiarModo(nuevoId) {
-      if (nuevoId === modoActivo) return;
-      const actual = MODOS_MAPA.find(m => m.id === modoActivo);
-      const nuevo  = MODOS_MAPA.find(m => m.id === nuevoId);
-      map.removeLayer(actual.capa);
-      if (actual.etiqCapa !== nuevo.etiqCapa) {
-        map.removeLayer(actual.etiqCapa);
-        nuevo.etiqCapa.addTo(map);
-      }
-      map.getPane('labelsPane').style.filter = nuevo.filtroCss;
-      nuevo.capa.addTo(map);
-      modoActivo = nuevoId;
-      actualizarBtnPrincipal();
-    }
-
-    capaSatelite.addTo(map);
-    capaEtiquetas.addTo(map);
-    actualizarBtnPrincipal();
-    document.body.appendChild(selectorDiv);
-
-    // ── Polyline de la ruta ─────────────────────────────────────────────────
-    let _rutaBounds = null;
-    let _vistaFijada = false;
-
+    // ── Polyline ────────────────────────────────────────────────────────────
     if (rutaPuntos.length > 0) {
       const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
-      _rutaBounds = polyline.getBounds();
-      // No llamar fitBounds aquí — el contenedor puede tener dimensiones 0×0 si el overlay
-      // todavía no es visible (display:none → display:flex). fitBounds con tamaño 0 genera
-      // un zoom incorrecto y tiles equivocadas ("piezas"). Se llama en _fijarVista().
+      _bounds = polyline.getBounds();
     }
 
-    // Llama invalidateSize() y después fitBounds para que Leaflet calcule el zoom
-    // con las dimensiones reales del contenedor ya visibles.
-    function _fijarVista() {
+    // ── Marcadores de referencia desde coordenadas-aventuras.js ────────────
+    coordenadas.filter(c => c.tipo === 'referencia').forEach(ref => {
+      if (!ref.coordenadas || ref.coordenadas.lat == null) return;
+      const icono = L.divIcon({
+        html: `<div class="monumento-marker">🏛️ ${ref.mapa_numero}</div>`,
+        className: '', iconSize: null, iconAnchor: [0, 0]
+      });
+      L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
+        icon: icono,
+        title: ref.nombre || `Monumento ${ref.mapa_numero}`,
+        zIndexOffset: 400
+      }).addTo(map).on('click', () => mostrarMonumento(ref));
+    });
+
+    // ── Centrar vista: invalidateSize + fitBounds ───────────────────────────
+    // Reutilizado también desde el handler mapa-visible para corregir
+    // cualquier problema de dimensiones al abrirse el overlay.
+    function _reajustarVista() {
       map.invalidateSize();
-      if (_rutaBounds && !_vistaFijada) {
-        map.fitBounds(_rutaBounds, { padding: [24, 24] });
-        _vistaFijada = true;
-      }
+      if (_bounds) map.fitBounds(_bounds, { padding: [24, 24] });
     }
 
-    globalThis.addEventListener('resize', () => map.invalidateSize());
-    // Cubrir la transición CSS del overlay (0 → visible tarda ~400 ms)
-    setTimeout(_fijarVista, 50);
-    setTimeout(_fijarVista, 400);
+    _reajustarVista();
+
+    // ── Tiles DESPUÉS de fijar la vista ────────────────────────────────────
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
     // ── Popup de monumento ──────────────────────────────────────────────────
     const overlay   = document.getElementById('monumento-overlay');
@@ -303,65 +242,27 @@
     btnCerrar.addEventListener('click', cerrarOverlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) cerrarOverlay(); });
 
-    // ── Marcadores de monumentos (referencias) ──────────────────────────────
-    coordenadas.filter(c => c.tipo === 'referencia').forEach(ref => {
-      if (!ref.coordenadas || ref.coordenadas.lat == null) return;
-      const icono = L.divIcon({
-        html: `<div class="monumento-marker">🏛️ ${ref.mapa_numero}</div>`,
-        className: '', iconSize: null, iconAnchor: [0, 0]
-      });
-      L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
-        icon: icono, title: ref.nombre || `Monumento ${ref.mapa_numero}`, zIndexOffset: 400
-      }).addTo(map).on('click', () => mostrarMonumento(ref));
-    });
+    // ── Resize ─────────────────────────────────────────────────────────────
+    globalThis.addEventListener('resize', () => map.invalidateSize());
 
-    // ── Marcadores de paradas e inicio (clickables con imagen) ──────────────
-    coordenadas.filter(c => c.tipo === 'parada' || c.tipo === 'inicio').forEach(punto => {
-      const lat = punto.coordenadas?.lat;
-      const lng = punto.coordenadas?.lng;
-      if (lat == null || lng == null) return;
-      const num = punto.parada != null ? punto.parada : (punto.tipo === 'inicio' ? '0' : '?');
-      const emoji = punto.tipo === 'inicio' ? '📌' : '🎯';
-      const icono = L.divIcon({
-        html: `<div class="monumento-marker" style="border-color:#2255cc;color:#2255cc;">${emoji} P${num}</div>`,
-        className: '', iconSize: null, iconAnchor: [0, 0]
-      });
-      L.marker([lat, lng], {
-        icon: icono, title: punto.nombre || `Parada ${num}`, zIndexOffset: 500
-      }).addTo(map).on('click', () => mostrarMonumento(punto));
-    });
-
-    // ── Comunicación con ventana padre ──────────────────────────────────────
-    const rutaCompleta = [];
-    coordenadas.forEach(entry => {
-      if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
-        rutaCompleta.push({ tipo: 'parada', nombre: entry.nombre, lat: entry.coordenadas.lat, lng: entry.coordenadas.lng });
-      } else if (entry.tipo === 'tramo') {
-        rutaCompleta.push({ tipo: 'waypoint', lat: entry.inicio.lat, lng: entry.inicio.lng });
-        entry.waypoints.forEach(wp => rutaCompleta.push({ tipo: 'waypoint', lat: wp.lat, lng: wp.lng }));
-        rutaCompleta.push({ tipo: 'waypoint', lat: entry.fin.lat, lng: entry.fin.lng });
-      }
-    });
-
-    globalThis.addEventListener('message', (event) => {
+    // ── Comunicación con el padre ───────────────────────────────────────────
+    globalThis.addEventListener('message', event => {
       if (event.origin !== globalThis.location.origin) return;
+
       if (event.data?.tipo === 'solicitar-ruta') {
         globalThis.parent.postMessage({
           tipo: 'ruta-completa',
-          paradas: rutaCompleta.filter(p => p.tipo === 'parada'),
+          paradas:   rutaCompleta.filter(p => p.tipo === 'parada'),
           waypoints: rutaCompleta.filter(p => p.tipo === 'waypoint'),
-          ruta: rutaCompleta
+          ruta:      rutaCompleta
         }, globalThis.location.origin);
       }
+
       if (event.data?.tipo === 'mapa-visible') {
-        // El overlay acaba de hacerse visible: resetear flag para forzar re-encuadre
-        // (el usuario puede haber cerrado y vuelto a abrir el mapa completo).
-        _vistaFijada = false;
-        _fijarVista();
-        setTimeout(_fijarVista, 300);
-        setTimeout(() => map.invalidateSize(), 700);
+        _reajustarVista();
+        setTimeout(_reajustarVista, 300);
       }
     });
-</script>
+  </script>
 </body>
 </html>

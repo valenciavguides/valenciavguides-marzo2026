@@ -62,9 +62,9 @@
         ];
 
         // Importar constantes y utils necesarios
-        import { TIPOS_MENSAJE } from './js/constants.js';
-        import { registrarControlador } from './js/mensajeria.js';
-        import { getPadreId } from './js/utils.js';
+        import { TIPOS_MENSAJE } from '../js/constants.js';
+        import { registrarControlador } from '../js/mensajeria.js';
+        import { getPadreId } from '../js/utils.js';
 
         const resultsDiv = document.getElementById('results');
 
@@ -137,7 +137,7 @@
                 }
 
                 // Preparar respuesta con datos combinados
-                const { normalizarParadas } = await import('./js/utils.js');
+                const { normalizarParadas } = await import('../js/utils.js');
                 const paradasNormalizadas = normalizarParadas(globalThis.AVENTURA_PARADAS);
                 const paradasParaEnviar = [];
 

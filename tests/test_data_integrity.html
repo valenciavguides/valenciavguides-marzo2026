@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test: Aventuras Data Integrity</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <h2>Test: Aventuras Data Integrity</h2>
+    <p>Verifica integridad de datos: tipos de campo correctos, sin JPG en video, IDs únicos, coordenadas válidas.</p>
+    <div id="results"></div>
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { DATOS_AVENTURAS } from '../js/coordenadas-aventuras.js';
+        import { AUDIOS_AVENTURAS } from '../js/audios-aventuras.js';
+        import { RETOS_AVENTURAS } from '../js/retos-aventuras.js';
+        import { INDICE_AVENTURAS } from '../js/indice-aventuras.js';
+
+        const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg'];
+        const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'];
+
+        const resultsDiv = document.getElementById('results');
+        let passed = 0, failed = 0;
+
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            resultsDiv.appendChild(div);
+        }
+
+        function check(label, condition, detail = '') {
+            if (condition) {
+                addResult('✅ ' + label + (detail ? ' — ' + detail : ''), 'success');
+                passed++;
+            } else {
+                addResult('❌ ' + label + (detail ? ' — ' + detail : ''), 'error');
+                failed++;
+            }
+        }
+
+        function isVideoExt(url) {
+            if (!url) return false;
+            return VIDEO_EXTENSIONS.some(ext => url.toLowerCase().endsWith(ext));
+        }
+
+        function isImageExt(url) {
+            if (!url) return false;
+            return IMAGE_EXTENSIONS.some(ext => url.toLowerCase().endsWith(ext));
+        }
+
+        function hasImageExtension(url) {
+            if (!url) return false;
+            return IMAGE_EXTENSIONS.some(ext => url.toLowerCase().endsWith(ext));
+        }
+
+        globalThis.runTest = function() {
+            addResult('── 1. Campo "video" no debe tener extensiones de imagen ──', 'info');
+
+            let videoFieldErrors = [];
+            let videoFieldOk = 0;
+
+            for (const aventuraId of Object.keys(DATOS_AVENTURAS)) {
+                const aventura = DATOS_AVENTURAS[aventuraId];
+                for (const claveCoord of Object.keys(aventura)) {
+                    const seccion = aventura[claveCoord];
+                    const coords = seccion?.coordenadas || [];
+                    for (const punto of coords) {
+                        if (punto.video !== undefined) {
+                            if (hasImageExtension(punto.video)) {
+                                videoFieldErrors.push(`${aventuraId}/${punto.id}: video="${punto.video}" tiene extensión de imagen`);
+                            } else if (isVideoExt(punto.video)) {
+                                videoFieldOk++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            check(
+                'Sin JPG/PNG en campos "video"',
+                videoFieldErrors.length === 0,
+                videoFieldErrors.length > 0 ? videoFieldErrors.join('; ') : `${videoFieldOk} campos video con extensión correcta`
+            );
+
+            addResult('── 2. Campos "imagen" deben tener extensiones de imagen ──', 'info');
+
+            let imagenErrors = [];
+            for (const aventuraId of Object.keys(DATOS_AVENTURAS)) {
+                const aventura = DATOS_AVENTURAS[aventuraId];
+                for (const claveCoord of Object.keys(aventura)) {
+                    const seccion = aventura[claveCoord];
+                    const coords = seccion?.coordenadas || [];
+                    for (const punto of coords) {
+                        for (const field of ['imagen', 'imagen2', 'imagen3']) {
+                            if (punto[field] !== undefined && punto[field] !== '' && !hasImageExtension(punto[field])) {
+                                imagenErrors.push(`${aventuraId}/${punto.id}: ${field}="${punto[field]}" sin extensión de imagen`);
+                            }
+                        }
+                    }
+                }
+            }
+
+            check(
+                'Campos imagen/imagen2/imagen3 con extensión correcta',
+                imagenErrors.length === 0,
+                imagenErrors.length > 0 ? imagenErrors.slice(0, 3).join('; ') : 'todos OK'
+            );
+
+            addResult('── 3. IDs únicos por aventura ──', 'info');
+
+            let idDuplicates = [];
+            for (const aventuraId of Object.keys(DATOS_AVENTURAS)) {
+                const aventura = DATOS_AVENTURAS[aventuraId];
+                for (const claveCoord of Object.keys(aventura)) {
+                    const seccion = aventura[claveCoord];
+                    const coords = seccion?.coordenadas || [];
+                    const ids = coords.map(c => c.id).filter(Boolean);
+                    const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
+                    if (duplicates.length > 0) {
+                        idDuplicates.push(`${aventuraId}: IDs duplicados: ${[...new Set(duplicates)].join(', ')}`);
+                    }
+                }
+            }
+
+            check(
+                'Sin IDs duplicados en coordenadas',
+                idDuplicates.length === 0,
+                idDuplicates.length > 0 ? idDuplicates.join('; ') : 'todos únicos'
+            );
+
+            addResult('── 4. Coordenadas lat/lng en rango válido ──', 'info');
+
+            let coordErrors = [];
+            for (const aventuraId of Object.keys(DATOS_AVENTURAS)) {
+                const aventuraInfo = INDICE_AVENTURAS[aventuraId];
+                if (!aventuraInfo?.disponible) continue;
+
+                const aventura = DATOS_AVENTURAS[aventuraId];
+                for (const claveCoord of Object.keys(aventura)) {
+                    const seccion = aventura[claveCoord];
+                    const coords = seccion?.coordenadas || [];
+                    for (const punto of coords) {
+                        const checkCoord = (lat, lng, label) => {
+                            if (lat === undefined || lng === undefined) return;
+                            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                                coordErrors.push(`${aventuraId}/${punto.id}/${label}: lat=${lat}, lng=${lng}`);
+                            }
+                        };
+                        if (punto.coordenadas) checkCoord(punto.coordenadas.lat, punto.coordenadas.lng, 'coordenadas');
+                        if (punto.inicio) checkCoord(punto.inicio.lat, punto.inicio.lng, 'inicio');
+                        if (punto.fin) checkCoord(punto.fin.lat, punto.fin.lng, 'fin');
+                        if (punto.lat !== undefined) checkCoord(punto.lat, punto.lng, 'lat/lng');
+                    }
+                }
+            }
+
+            check(
+                'Coordenadas lat/lng en rango válido',
+                coordErrors.length === 0,
+                coordErrors.length > 0 ? coordErrors.slice(0, 3).join('; ') : 'todas en rango'
+            );
+
+            addResult('── 5. Audio IDs no vacíos en Aventura1/es ──', 'info');
+
+            const av1Audios = AUDIOS_AVENTURAS?.Aventura1?.es || [];
+            const audiosConId = av1Audios.filter(a => a.id && a.id.trim() !== '');
+            check(
+                'Aventura1/es tiene audios con ID',
+                av1Audios.length > 0 && audiosConId.length === av1Audios.length,
+                `${audiosConId.length}/${av1Audios.length} audios con ID`
+            );
+
+            addResult('── 6. Retos tienen pregunta y opciones en Aventura1/es ──', 'info');
+
+            const av1Retos = RETOS_AVENTURAS?.Aventura1?.es || [];
+            const retosMalformados = av1Retos.filter(r => !r.id || (!r.pregunta && r.tipo !== 'puzzle'));
+            check(
+                'Aventura1/es retos bien formados',
+                av1Retos.length > 0 && retosMalformados.length === 0,
+                `${av1Retos.length - retosMalformados.length}/${av1Retos.length} retos válidos`
+            );
+
+            addResult('── Resumen: ' + passed + ' OK, ' + failed + ' fallidos ──', failed > 0 ? 'error' : 'info');
+
+            globalThis.TestReporter.report({
+                name: 'Data: Aventuras Integrity',
+                passed: passed,
+                failed: failed
+            });
+        };
+
+    </script>
+</body>
+</html>

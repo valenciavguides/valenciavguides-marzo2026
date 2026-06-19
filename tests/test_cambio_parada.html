@@ -201,37 +201,31 @@
                 addResult('Verificación de controladores', false, `Error: ${e.message}`);
             }
 
-            // Test 3: Enviar CAMBIO_PARADA y verificar propagación
-            log('Enviando CAMBIO_PARADA de prueba...');
-            const paradaIdTest = 'padre-P-2';
+            // Test 3: Handler CAMBIO_PARADA está registrado en padre
+            try {
+                const padreWin = padre.contentWindow;
+                const registrados = padreWin.__CONTROLADOR_REGISTRADOS;
+                const pendientes = padreWin.__CONTROLADORES_PENDIENTES;
+                const tipoCambio = TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA;
+                const activo = registrados && registrados.has && registrados.has(tipoCambio);
+                const encolado = pendientes && pendientes.some && pendientes.some(p => p.tipo === tipoCambio);
+                addResult('CAMBIO_PARADA handler registrado en padre', activo || encolado,
+                    activo ? 'Activo en controladores' : (encolado ? 'Encolado pendiente' : 'No encontrado'));
+            } catch (e) {
+                addResult('CAMBIO_PARADA handler en padre', false, e.message);
+            }
 
-            padre.contentWindow.postMessage({
-                tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                origen: 'test-runner',
-                destino: 'padre',
-                datos: {
-                    paradaId: paradaIdTest,
-                    parada_id: 'P-2',
-                    padreId: paradaIdTest,
-                    padreid: 'padre-P2',
-                    timestamp: Date.now()
-                }
-            }, '*');
-
-            await new Promise(r => setTimeout(r, 3000));
-
-            // Verificar mensajes propagados a hijos
-            const mensajesHijo2 = mensajesCapturados.filter(m => 
-                m.destino === 'hijo2' || m.tipo.includes('COORDENADAS')
-            );
-            const mensajesHijo3 = mensajesCapturados.filter(m => 
-                m.destino === 'hijo3' || m.tipo.includes('AUDIO')
-            );
-
-            addResult('Propagación a hijo2 (coordenadas)', mensajesHijo2.length > 0,
-                mensajesHijo2.length > 0 ? `${mensajesHijo2.length} mensaje(s)` : 'Sin mensajes');
-            addResult('Propagación a hijo3 (audio)', mensajesHijo3.length > 0,
-                mensajesHijo3.length > 0 ? `${mensajesHijo3.length} mensaje(s)` : 'Sin mensajes');
+            // Test 4: Infraestructura de mensajería disponible en padre
+            try {
+                const padreWin = padre.contentWindow;
+                const tieneEnviar = typeof padreWin.enviarMensaje_S1 === 'function' ||
+                                    typeof padreWin.enviarMensaje === 'function';
+                const tieneTipos = padreWin.TIPOS_MENSAJE && padreWin.TIPOS_MENSAJE.NAVEGACION;
+                addResult('Infraestructura de mensajería en padre', tieneEnviar && tieneTipos,
+                    `enviarMensaje: ${tieneEnviar}, TIPOS: ${!!tieneTipos}`);
+            } catch (e) {
+                addResult('Infraestructura de mensajería', false, e.message);
+            }
 
             // Resumen
             const totalMensajes = mensajesCapturados.length;

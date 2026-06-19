@@ -5,7 +5,10 @@ globalThis.runTest = async function(){
   const append = (...args) => { log.textContent += args.map(a => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' ') + '\n'; };
 
   const iframe = document.getElementById('sut');
-  await new Promise(resolve => { iframe.onload = resolve; });
+  await new Promise(resolve => {
+    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') { resolve(); }
+    else { iframe.addEventListener('load', resolve, { once: true }); }
+  });
   append('[test] iframe cargado');
 
   const win = iframe.contentWindow;

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test: Constants Sync</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <h2>Test: Constants Sync</h2>
+    <p>Verifica que TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA existe en constants.js y que su valor string es consistente en los archivos clave.</p>
+    <div id="results"></div>
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // Expected value as defined in constants.js
+        const EXPECTED_CAMBIO_PARADA = 'NAVEGACION.CAMBIO_PARADA';
+        const EXPECTED_CAMBIO_PARADA_CONFIRMADO = 'NAVEGACION.CAMBIO_PARADA_CONFIRMADO';
+        const EXPECTED_SOLICITAR_DATOS_PARADAS = 'NAVEGACION.SOLICITAR_DATOS_PARADAS';
+
+        async function fetchText(path) {
+            const response = await fetch(path);
+            if (!response.ok) throw new Error('HTTP ' + response.status + ' for ' + path);
+            return response.text();
+        }
+
+        globalThis.runTest = async function() {
+            addResult('── 1. Verificar constants.js contiene los tipos necesarios ──', 'info');
+
+            let constantsText = '';
+            try {
+                constantsText = await fetchText('../js/constants.js');
+            } catch (err) {
+                addResult('❌ No se pudo leer constants.js: ' + err.message, 'error');
+                globalThis.TestReporter.report({ name: 'Module: Constants Sync', resultsContainer: document.getElementById('results') });
+                return;
+            }
+
+            // Test 1: CAMBIO_PARADA definido como string literal en constants.js
+            if (constantsText.includes("CAMBIO_PARADA: 'NAVEGACION.CAMBIO_PARADA'")) {
+                addResult("✅ constants.js define CAMBIO_PARADA: 'NAVEGACION.CAMBIO_PARADA'", 'success');
+            } else {
+                addResult("❌ constants.js no define CAMBIO_PARADA con valor esperado 'NAVEGACION.CAMBIO_PARADA'", 'error');
+            }
+
+            // Test 2: CAMBIO_PARADA_CONFIRMADO definido
+            if (constantsText.includes("CAMBIO_PARADA_CONFIRMADO: 'NAVEGACION.CAMBIO_PARADA_CONFIRMADO'")) {
+                addResult("✅ constants.js define CAMBIO_PARADA_CONFIRMADO: 'NAVEGACION.CAMBIO_PARADA_CONFIRMADO'", 'success');
+            } else {
+                addResult("❌ constants.js no define CAMBIO_PARADA_CONFIRMADO correctamente", 'error');
+            }
+
+            // Test 3: SOLICITAR_DATOS_PARADAS definido
+            if (constantsText.includes("SOLICITAR_DATOS_PARADAS: 'NAVEGACION.SOLICITAR_DATOS_PARADAS'")) {
+                addResult("✅ constants.js define SOLICITAR_DATOS_PARADAS: 'NAVEGACION.SOLICITAR_DATOS_PARADAS'", 'success');
+            } else {
+                addResult("❌ constants.js no define SOLICITAR_DATOS_PARADAS correctamente", 'error');
+            }
+
+            addResult('── 2. Verificar uso en funciones-mapa.js ──', 'info');
+
+            let mapaText = '';
+            try {
+                mapaText = await fetchText('../js/funciones-mapa.js');
+            } catch (err) {
+                addResult('SKIP: funciones-mapa.js no accesible via fetch: ' + err.message, 'info');
+                mapaText = '';
+            }
+
+            if (mapaText) {
+                // Test 4: funciones-mapa.js references TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA (via import)
+                if (mapaText.includes('TIPOS_MENSAJE') && mapaText.includes('NAVEGACION')) {
+                    addResult('✅ funciones-mapa.js importa y usa TIPOS_MENSAJE.NAVEGACION', 'success');
+                } else {
+                    addResult('❌ funciones-mapa.js no usa TIPOS_MENSAJE.NAVEGACION', 'error');
+                }
+
+                // Test 5: funciones-mapa.js uses SOLICITAR_DATOS_PARADAS
+                if (mapaText.includes('TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS')) {
+                    addResult('✅ funciones-mapa.js usa TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS', 'success');
+                } else {
+                    addResult('❌ funciones-mapa.js no usa TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS', 'error');
+                }
+            }
+
+            addResult('── 3. Verificar uso en boton-casa-hijo5.html ──', 'info');
+
+            let hijo5Text = '';
+            try {
+                hijo5Text = await fetchText('../boton-casa-hijo5.html');
+            } catch (err) {
+                addResult('SKIP: boton-casa-hijo5.html no accesible: ' + err.message, 'info');
+                hijo5Text = '';
+            }
+
+            if (hijo5Text) {
+                // Test 6: hijo5 uses the same CAMBIO_PARADA constant string (not hardcoded differently)
+                const usesConstant = hijo5Text.includes('TIPOS_MENSAJE') || hijo5Text.includes("'NAVEGACION.CAMBIO_PARADA'") || hijo5Text.includes('"NAVEGACION.CAMBIO_PARADA"');
+                if (usesConstant) {
+                    addResult("✅ boton-casa-hijo5.html usa TIPOS_MENSAJE o el string 'NAVEGACION.CAMBIO_PARADA'", 'success');
+                } else {
+                    addResult("❌ boton-casa-hijo5.html no parece usar CAMBIO_PARADA", 'error');
+                }
+            }
+
+            addResult('── 4. Verificar uso en codigo-padre.html ──', 'info');
+
+            let padreText = '';
+            try {
+                padreText = await fetchText('../codigo-padre.html');
+            } catch (err) {
+                addResult('SKIP: codigo-padre.html no accesible: ' + err.message, 'info');
+                padreText = '';
+            }
+
+            if (padreText) {
+                // Test 7: padre references CAMBIO_PARADA
+                if (padreText.includes('CAMBIO_PARADA') || padreText.includes('NAVEGACION.CAMBIO_PARADA')) {
+                    addResult('✅ codigo-padre.html referencia CAMBIO_PARADA', 'success');
+                } else {
+                    addResult('❌ codigo-padre.html no referencia CAMBIO_PARADA', 'error');
+                }
+            }
+
+            addResult('── 5. Consistencia del valor string ──', 'info');
+
+            // Test 8: The literal string used everywhere is exactly 'NAVEGACION.CAMBIO_PARADA'
+            const literalOccurrences = [constantsText, mapaText, hijo5Text, padreText]
+                .filter(t => t.length > 0)
+                .filter(t => t.includes(EXPECTED_CAMBIO_PARADA));
+            if (literalOccurrences.length >= 1) {
+                addResult('✅ El string "' + EXPECTED_CAMBIO_PARADA + '" es consistente en ' + literalOccurrences.length + ' archivo(s)', 'success');
+            } else {
+                addResult('❌ El string "' + EXPECTED_CAMBIO_PARADA + '" no se encontró en ningún archivo accesible', 'error');
+            }
+
+            globalThis.TestReporter.report({
+                name: 'Module: Constants Sync',
+                resultsContainer: document.getElementById('results')
+            });
+        };
+
+        globalThis.runTest();
+    </script>
+</body>
+</html>

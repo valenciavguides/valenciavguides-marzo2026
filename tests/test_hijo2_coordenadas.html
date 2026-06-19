@@ -15,7 +15,7 @@
 </head>
 <body>
     <!-- Mock hijo2 DOM elements -->
-    <button id="btn-gps">GPS</button>
+    <button id="btn-avanzar">GPS</button>
     <button id="btn-imagen">Imagen</button>
     <button id="btn-video">Video</button>
     <button id="btn-ubicacion">Ubicación</button>
@@ -267,7 +267,7 @@
             addResult('── DOM elements ──', 'info');
 
             // Test 10: Key DOM elements exist
-            const domIds = ['btn-gps', 'btn-imagen', 'btn-video', 'btn-ubicacion', 'btn-mapa-completo', 'btn-mapa-jpg', 'status', 'fuera-rango-overlay'];
+            const domIds = ['btn-avanzar', 'btn-imagen', 'btn-video', 'btn-ubicacion', 'btn-mapa-completo', 'btn-mapa-jpg', 'status', 'fuera-rango-overlay'];
             let allDomOk = true;
             for (const id of domIds) {
                 if (!document.getElementById(id)) {

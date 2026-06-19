@@ -62,6 +62,25 @@ let ventanaPadre = null;
 const iframesRegistrados = new Map();
 
 /**
+ * Registro dinámico de hijos: id → { tipo, capacidades }
+ * Poblado por registrarHijo() cuando cada hijo envía HIJO_PREPARADO.
+ * @type {Map<string, {tipo: string, capacidades: string[]}>}
+ */
+const _hijosRegistrados = new Map();
+
+function registrarHijo(id, tipo = 'DESCONOCIDO', capacidades = []) {
+    _hijosRegistrados.set(id, { tipo, capacidades });
+}
+
+function getHijoTipo(id) {
+    return _hijosRegistrados.get(id)?.tipo ?? null;
+}
+
+function getHijosRegistrados() {
+    return new Map(_hijosRegistrados);
+}
+
+/**
  * Callbacks pendientes de confirmación
  * @type {Map<string, Object>}
  */
@@ -181,6 +200,11 @@ function exponerAPIGlobal() {
         estaInicializado: () => inicializado,
         getComponenteId: () => componenteId,
         getTipoComponente: () => tipoComponente,
+
+        // Registro dinámico de hijos
+        registrarHijo,
+        getHijoTipo,
+        getHijosRegistrados,
 
         // Funciones de iframe (solo padre)
         registrarIframe,
@@ -897,8 +921,10 @@ async function enviarHeartbeatAHijos() {
         const maxFallidos = CONFIG?.HEARTBEAT?.MAX_HEARTBEATS_FALLIDOS || 3;
         const autoReconectar = CONFIG?.HEARTBEAT?.AUTO_RECONECTAR !== false;
 
-        // Obtener hijos críticos
-        const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'];
+        // Obtener hijos críticos del registro dinámico; fallback a lista conocida si aún no hay registros
+        const hijosCriticos = _hijosRegistrados.size > 0
+            ? [..._hijosRegistrados.keys()]
+            : ['hijo2', 'hijo3', 'hijo4', 'hijo5'];
 
         for (const hijoId of hijosCriticos) {
             try {
@@ -1049,7 +1075,7 @@ export async function reenviarMensajesGPSAPendientes(hijoId) {
         for (const mensaje of pendientes) {
             try {
                 await enviarMensaje({
-                    tipo: mensaje.tipo || TIPOS_MENSAJE.NAVEGACION.GPS.UBICACION_ACTUALIZADA,
+                    tipo: mensaje.tipo || 'NAVEGACION.ACTUALIZAR_ESTADO',
                     destino: hijoId,
                     datos: mensaje.datos
                 });

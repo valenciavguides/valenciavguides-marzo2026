@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
     <script>
     /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÃMITES */
     (function(){
@@ -14,7 +15,6 @@
         globalThis.addEventListener("resize", escalar);
     })();
     </script>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
@@ -923,10 +923,13 @@
     try {
         // Ocultar UI hasta PADRE_CONFIRMA
         let _uiConfirmado = false;
+        let _uiMostrada = false;
         const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
         if (document.body) document.body.style.display = 'none';
         function mostrarUI() {
             if (!_uiConfirmado) { console.warn('[hijo5] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
+            if (_uiMostrada) return;
+            _uiMostrada = true;
             if (document.body) { document.body.style.display = _originalDisplay || 'block'; console.log('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); }
         }
 
@@ -1436,6 +1439,7 @@
                 datos: {
                     componenteId: CONFIG_HIJO.COMPONENTE_ID,
                     version: '1.0.0',
+                    tipo: 'CASA',
                     capacidades: ['modo-selector', 'paradas-list'],
                     timestamp: Date.now()
                 }

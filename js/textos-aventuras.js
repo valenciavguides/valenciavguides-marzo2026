@@ -888,8 +888,8 @@
     // Parada 22: Museo y Colegio del Arte Mayor de la Seda (Reto: 20) (Párrafos: 585, 145, 586) (mapa 14)
     { id: "txt-Av5-P22", parrafos: [585, 145, 586] },
 
-    // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587) (mapa 14)
-    { id: "txt-Av5-P23", parrafos: [587] },
+    // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
+    { id: "txt-Av5-P23", parrafos: [587, 396] },
 
     // Tramo 17 : Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592 ) (mapa 14→13)
     { id: "txt-Av5-TR17", parrafos: [588, 589, 590, 591, 592] },

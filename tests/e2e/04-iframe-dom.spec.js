@@ -23,12 +23,13 @@ const LEAFLET_STUB = path.join(__dirname, 'helpers/leaflet-stub.js');
 // IDs definidos en el HTML de codigo-padre.html
 // Cada uno corresponde a un hijo con rol específico
 const IFRAMES = [
-  { id: 'seleccion',      desc: 'Selección de aventura e idioma' },
-  { id: 'hijo1-opciones', desc: 'Opciones de usuario (extrainfo-hijo1.html)' },
-  { id: 'hijo2',          desc: 'Coordenadas/navegación (coordenadas-hijo2.html)' },
-  { id: 'hijo3',          desc: 'Audio (audio-hijo3.html)' },
+  { id: 'seleccion',      desc: 'Selección de aventura e idioma (En-busca-del-tesoro.html)' },
+  { id: 'hijo1-opciones', desc: 'Información extra y temporizador (extrainfo-hijo1.html)' },
+  { id: 'hijo2',          desc: 'Barra de controles GPS (coordenadas-hijo2.html)' },
+  { id: 'hijo3',          desc: 'Reproductor de audio (audio-hijo3.html)' },
   { id: 'hijo4',          desc: 'Retos y preguntas (retos-hijo4.html)' },
-  { id: 'hijo5',          desc: 'Botón Casa (boton-casa-hijo5.html)' },
+  { id: 'hijo5',          desc: 'Herramienta de desarrollo (boton-casa-hijo5.html)' },
+  { id: 'hijo6-chat',     desc: 'Asistente de chat (chat-hijo6.html)' },
 ];
 
 test.describe('DOM de iframes — estructura antes de selección de aventura', () => {
@@ -56,7 +57,7 @@ test.describe('DOM de iframes — estructura antes de selección de aventura', (
   // Si tienen src asignado, cargarían sus páginas hijo prematuramente y podrían
   // enviar HIJO_PREPARADO antes de que el padre esté listo.
 
-  for (const iframe of ['hijo2', 'hijo3', 'hijo4', 'hijo5', 'hijo1-opciones']) {
+  for (const iframe of ['hijo2', 'hijo3', 'hijo4', 'hijo5', 'hijo1-opciones', 'hijo6-chat']) {
     test(`iframe #${iframe} tiene src vacío antes de selección de aventura`, async ({ page }) => {
       const src = await page.evaluate(
         (id) => {

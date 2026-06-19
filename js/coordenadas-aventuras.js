@@ -6,6 +6,52 @@
  * En SonarLint standalone se excluye del analisis para evitar falsos positivos
  * de la regla "Don't use a zero fraction in the number".
  */
+/*
+ * ESTRUCTURA DE ENTRADAS — tres tipos posibles dentro del array .coordenadas
+ *
+ * ── REFERENCIA ────────────────────────────────────────────────────────────────
+ * Monumentos visibles en mapa-completo.html como marcadores numerados.
+ * {
+ *   tipo: 'referencia',
+ *   id: 'REF-N',
+ *   mapa_numero: N,
+ *   coordenadas: { lat, lng },   ← coordenadas bajo .coordenadas
+ *   nombre: string,
+ *   imagen: string
+ * }
+ *
+ * ── INICIO / PARADA ───────────────────────────────────────────────────────────
+ * Puntos donde el usuario se detiene. 'inicio' es la parada 0 de la aventura.
+ * {
+ *   tipo: 'inicio' | 'parada',
+ *   id: 'AvX-P-N',
+ *   parada: N,
+ *   mapa_numero: N,
+ *   nombre: string,
+ *   coordenadas: { lat, lng },   ← coordenadas bajo .coordenadas
+ *   imagen: string
+ * }
+ *
+ * ── TRAMO ─────────────────────────────────────────────────────────────────────
+ * Recorrido entre dos paradas. Las coordenadas NO van bajo .coordenadas sino
+ * directamente en .inicio, .fin y cada elemento de .waypoints.
+ * {
+ *   tipo: 'tramo',
+ *   id: 'AvX-TR-N',
+ *   tramo: N,
+ *   mapa_numero: string,         ← p.ej. "1→2"
+ *   nombre: string,
+ *   inicio: { lat, lng },        ← punto de inicio del tramo
+ *   waypoints: [{ lat, lng }],   ← puntos intermedios (puede ser vacío)
+ *   fin: { lat, lng },           ← punto final del tramo
+ *   imagen: string,
+ *   video: string
+ * }
+ *
+ * NOTA PARA NUEVAS AVENTURAS: los tramos no tienen campo .coordenadas.
+ * Para obtener una coordenada representativa de un tramo usa .inicio o .fin.
+ * El helper _getLatLng() en funciones-mapa.js gestiona estas diferencias.
+ */
 export const DATOS_AVENTURAS = {
   Aventura1: {
     "coordenadas-hijo2.html": {
@@ -5936,7 +5982,7 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         imagen2: "imagenes/imagenes-aventuras/museo_seda_date.jpg",
     },
-    // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587)
+    // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396)
     {
         id: "Av5-P-23",
         tipo: "parada",

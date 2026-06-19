@@ -48,7 +48,8 @@ function getCacheKey(...parts) {
 // ═══════════════════════════════════════════════════
 
 async function fetchFromAPI(endpoint) {
-    // Obtener token del TokenManager (definido en api-client.js)
+    // Obtener token del TokenManager (definido en js/api-client.js — pendiente de conectar cuando el backend esté desplegado)
+    // En modo 'local' esta función nunca se llama; solo activa en modo 'api'
     const token = globalThis.TokenManager ? globalThis.TokenManager.getToken() : null;
     
     const headers = { 'Content-Type': 'application/json' };

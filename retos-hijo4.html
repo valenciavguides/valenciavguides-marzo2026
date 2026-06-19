@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
     <script>
     /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÍMITES */
     (function(){
@@ -14,7 +15,6 @@
         globalThis.addEventListener("resize", escalar);
     })();
     </script>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
@@ -1186,9 +1186,7 @@
            Escucha mensajes provenientes del iframe del puzzle para coordinar el avance.
         */
         globalThis.addEventListener("message", async (event) => {
-            // En un entorno de producción, es MUY RECOMENDABLE verificar event.origin para seguridad
-            // if (event.origin !== "https://valenciavguides.github.io") return; // Reemplaza con tu dominio
-
+            if (event.origin !== globalThis.location.origin) return;
             // Asegúrate de que el mensaje provenga del iframe del puzzle
             if (event.source !== globalThis.frames[0]) {
                 return;
@@ -1906,6 +1904,7 @@
                     datos: {
                         componenteId: CONFIG_HIJO.COMPONENTE_ID,
                         version: '1.0.0',
+                        tipo: 'RETO',
                         capacidades: ['retos', 'preguntas', 'validacion'],
                         timestamp: Date.now()
                     }

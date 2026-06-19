@@ -21,6 +21,10 @@ backend/node_modules/
 .cache/
 dist/
 
+# Artefactos de tests generados automáticamente (no trackear)
+test-results/
+playwright-report/
+
 # Editor
 .vscode/
 .idea/

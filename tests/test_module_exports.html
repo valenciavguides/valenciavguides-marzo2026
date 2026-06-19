@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test: Module Exports Integrity</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <h2>Test: Module Exports Integrity</h2>
+    <p>Verifica que los módulos JS exportan los símbolos esperados y que los imports funcionan.</p>
+    <div id="results"></div>
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        function check(label, condition, detail = '') {
+            if (condition) {
+                addResult('✅ ' + label + (detail ? ' — ' + detail : ''), 'success');
+            } else {
+                addResult('❌ ' + label + (detail ? ' — ' + detail : ''), 'error');
+            }
+            return condition;
+        }
+
+        async function runAllChecks() {
+            let passed = 0;
+            let failed = 0;
+
+            // ── constants.js ──
+            addResult('── constants.js ──', 'info');
+            try {
+                const { TIPOS_MENSAJE } = await import('../js/constants.js');
+                if (check('TIPOS_MENSAJE exportado', !!TIPOS_MENSAJE)) passed++; else failed++;
+                if (check('TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA', typeof TIPOS_MENSAJE?.NAVEGACION?.CAMBIO_PARADA === 'string')) passed++; else failed++;
+                if (check('TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS', typeof TIPOS_MENSAJE?.DATOS?.CARGAR_COORDENADAS === 'string')) passed++; else failed++;
+                if (check('TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS', typeof TIPOS_MENSAJE?.DATOS?.CARGAR_AUDIOS === 'string')) passed++; else failed++;
+                if (check('TIPOS_MENSAJE.DATOS.CARGAR_RETOS', typeof TIPOS_MENSAJE?.DATOS?.CARGAR_RETOS === 'string')) passed++; else failed++;
+                if (check('TIPOS_MENSAJE.SISTEMA.HEARTBEAT', typeof TIPOS_MENSAJE?.SISTEMA?.HEARTBEAT === 'string')) passed++; else failed++;
+            } catch (e) {
+                addResult('❌ constants.js import falló: ' + e.message, 'error');
+                failed += 6;
+            }
+
+            // ── utils.js ──
+            addResult('── utils.js ──', 'info');
+            try {
+                const utils = await import('../js/utils.js');
+                if (check('getPadreId exportado', typeof utils.getPadreId === 'function')) passed++; else failed++;
+                if (check('normalizarParadas exportado', typeof utils.normalizarParadas === 'function')) passed++; else failed++;
+                const padreId = utils.getPadreId();
+                if (check('getPadreId() devuelve string', typeof padreId === 'string', padreId)) passed++; else failed++;
+            } catch (e) {
+                addResult('❌ utils.js import falló: ' + e.message, 'error');
+                failed += 3;
+            }
+
+            // ── coordenadas-aventuras.js ──
+            addResult('── coordenadas-aventuras.js ──', 'info');
+            try {
+                const { DATOS_AVENTURAS } = await import('../js/coordenadas-aventuras.js');
+                if (check('DATOS_AVENTURAS exportado', !!DATOS_AVENTURAS)) passed++; else failed++;
+                if (check('DATOS_AVENTURAS.Aventura1 existe', !!DATOS_AVENTURAS?.Aventura1)) passed++; else failed++;
+            } catch (e) {
+                addResult('❌ coordenadas-aventuras.js import falló: ' + e.message, 'error');
+                failed += 2;
+            }
+
+            // ── audios-aventuras.js ──
+            addResult('── audios-aventuras.js ──', 'info');
+            try {
+                const { AUDIOS_AVENTURAS } = await import('../js/audios-aventuras.js');
+                if (check('AUDIOS_AVENTURAS exportado', !!AUDIOS_AVENTURAS)) passed++; else failed++;
+                if (check('AUDIOS_AVENTURAS.Aventura1 existe', !!AUDIOS_AVENTURAS?.Aventura1)) passed++; else failed++;
+            } catch (e) {
+                addResult('❌ audios-aventuras.js import falló: ' + e.message, 'error');
+                failed += 2;
+            }
+
+            // ── retos-aventuras.js ──
+            addResult('── retos-aventuras.js ──', 'info');
+            try {
+                const { RETOS_AVENTURAS } = await import('../js/retos-aventuras.js');
+                if (check('RETOS_AVENTURAS exportado', !!RETOS_AVENTURAS)) passed++; else failed++;
+                if (check('RETOS_AVENTURAS.Aventura1 existe', !!RETOS_AVENTURAS?.Aventura1)) passed++; else failed++;
+            } catch (e) {
+                addResult('❌ retos-aventuras.js import falló: ' + e.message, 'error');
+                failed += 2;
+            }
+
+            // ── indice-aventuras.js ──
+            addResult('── indice-aventuras.js ──', 'info');
+            try {
+                const { INDICE_AVENTURAS, MAPEO_IDIOMAS } = await import('../js/indice-aventuras.js');
+                if (check('INDICE_AVENTURAS exportado', !!INDICE_AVENTURAS)) passed++; else failed++;
+                if (check('MAPEO_IDIOMAS exportado', !!MAPEO_IDIOMAS)) passed++; else failed++;
+                if (check('Aventura1 en INDICE_AVENTURAS', !!INDICE_AVENTURAS?.Aventura1)) passed++; else failed++;
+                if (check('Aventura1.disponible es boolean', typeof INDICE_AVENTURAS?.Aventura1?.disponible === 'boolean')) passed++; else failed++;
+            } catch (e) {
+                addResult('❌ indice-aventuras.js import falló: ' + e.message, 'error');
+                failed += 4;
+            }
+
+            // ── monitoreo.js ──
+            addResult('── monitoreo.js ──', 'info');
+            try {
+                const { registrarMetrica, getEstadoMonitoreo, inicializarMonitoreo } = await import('../js/monitoreo.js');
+                if (check('registrarMetrica exportado', typeof registrarMetrica === 'function')) passed++; else failed++;
+                if (check('getEstadoMonitoreo exportado', typeof getEstadoMonitoreo === 'function')) passed++; else failed++;
+                if (check('inicializarMonitoreo exportado', typeof inicializarMonitoreo === 'function')) passed++; else failed++;
+            } catch (e) {
+                addResult('❌ monitoreo.js import falló: ' + e.message, 'error');
+                failed += 3;
+            }
+
+            addResult('── Resumen: ' + passed + ' OK, ' + failed + ' fallidos ──', failed > 0 ? 'error' : 'info');
+
+            globalThis.TestReporter.report({
+                name: 'Module: Exports Integrity',
+                passed: passed,
+                failed: failed
+            });
+        }
+
+        globalThis.runTest = function() { runAllChecks(); };
+    </script>
+</body>
+</html>

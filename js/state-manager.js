@@ -196,19 +196,20 @@ export async function setHeartbeat(value) {
   await mutexes.heartbeat.runExclusive(() => { state.heartbeat = _deepCopy(value); });
 }
 
+function _deepMerge(target, source) {
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Set) && !(source[key] instanceof Map)) {
+      if (!target[key]) target[key] = {};
+      _deepMerge(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+}
+
 export async function updateHeartbeat(updates) {
   await mutexes.heartbeat.runExclusive(() => {
-    const deepMerge = (target, source) => {
-      for (const key in source) {
-        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Set) && !(source[key] instanceof Map)) {
-          if (!target[key]) target[key] = {};
-          deepMerge(target[key], source[key]);
-        } else {
-          target[key] = source[key];
-        }
-      }
-    }
-    deepMerge(state.heartbeat, updates);
+    _deepMerge(state.heartbeat, updates);
   });
 }
 
@@ -302,17 +303,7 @@ export async function setEstadoPadre(value) {
 
 export async function updateEstadoPadre(updates) {
   await mutexes.estadoPadre.runExclusive(() => {
-    const deepMerge = (target, source) => {
-      for (const key in source) {
-        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Set) && !(source[key] instanceof Map)) {
-          if (!target[key]) target[key] = {};
-          deepMerge(target[key], source[key]);
-        } else {
-          target[key] = source[key];
-        }
-      }
-    }
-    deepMerge(state.estadoPadre, updates);
+    _deepMerge(state.estadoPadre, updates);
   });
 }
 
@@ -418,11 +409,10 @@ export async function setFlag(flagName, value) {
 // ==================== CENTRALIZED CONTROLLER AND MESSAGE MANAGEMENT ====================
 
 /**
- * Validates a message structure for required fields and types
- * @param {Object} mensaje - The message to validate
- * @returns {boolean} - True if valid, throws error if invalid
+ * Aserción interna: lanza Error si el mensaje no tiene la estructura mínima requerida.
+ * Distinta de validacion.js/validarMensaje, que devuelve { valido, errores } sin lanzar.
  */
-export async function validarMensaje(mensaje) {
+async function _assertMensajeValido(mensaje) {
   if (!mensaje || typeof mensaje !== 'object') {
     throw new Error('Mensaje inválido: debe ser un objeto');
   }
@@ -616,7 +606,7 @@ export async function enviarMensajeCentral(mensaje) {
   if (!mensaje.mensajeId) {
     mensaje.mensajeId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
   }
-  await validarMensaje(mensaje); // NOSONAR
+  await _assertMensajeValido(mensaje); // NOSONAR
   await mutexes.mensajesEnviados.runExclusive(() => {
     state.mensajesEnviados.add(mensaje.mensajeId);
     try { console.debug(`[STATE-MGR] Mensaje registrado: ${mensaje.mensajeId} (tipo=${mensaje.tipo}) totalMensajes=${state.mensajesEnviados.size}`); } catch (_e) {} // NOSONAR
@@ -738,7 +728,6 @@ export async function inicializarStateManager() {
       
       // Funciones de mensajes
       enviarMensajeCentral,
-      validarMensaje,
       limpiarMensajesAntiguos,
       
       // Funciones de estado

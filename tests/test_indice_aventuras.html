@@ -127,6 +127,11 @@
                 for (const aventuraId of aventuras) {
                     const aventura = INDICE_AVENTURAS[aventuraId];
 
+                    if (!aventura.disponible) {
+                        exitosConteos.push(`${aventuraId}: omitida (no disponible)`);
+                        continue;
+                    }
+
                     try {
                         // Contar coordenadas reales
                         const coordenadasReales = DATOS_AVENTURAS[aventuraId]?.[aventura.claveCoord]?.coordenadas || [];

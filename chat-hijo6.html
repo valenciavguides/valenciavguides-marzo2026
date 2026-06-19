@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8">
   <script>
   (function(){
     function escalar(){
@@ -13,7 +14,6 @@
     globalThis.addEventListener('resize', escalar);
   })();
   </script>
-  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
@@ -288,8 +288,10 @@
   let inicializado = false;
 
   const TITULOS = {
-    es: 'Soporte', en: 'Support', fr: 'Assistance',
-    it: 'Supporto', nl: 'Ondersteuning', ja: 'サポート'
+    es: 'Soporte',    en: 'Support',       fr: 'Assistance',
+    it: 'Supporto',   nl: 'Ondersteuning', ja: 'サポート',
+    de: 'Hilfe',      zh: '帮助',           pl: 'Pomoc',
+    pt: 'Suporte',    ru: 'Помощь',         uk: 'Допомога',
   };
 
   const tituloEl  = document.getElementById('titulo-header');
@@ -427,7 +429,7 @@
       destino: getPadreId(),
       tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
       origen: CONFIG_HIJO.IFRAME_ID,
-      datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, version: '1.0.0', capacidades: ['chat', 'faq'], timestamp: Date.now() }
+      datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, version: '1.0.0', tipo: 'CHAT', capacidades: ['chat', 'faq'], timestamp: Date.now() }
     });
     logger.debug('[hijo6] HIJO_PREPARADO enviado; esperando PADRE_DATOS');
   } catch (e) { logger.warn('[hijo6] Error enviando HIJO_PREPARADO:', e && e.message); }

@@ -286,7 +286,7 @@ sequenceDiagram
 
 **Disparador**: el usuario pulsa el botón GPS en hijo5 estando en AVENTURA. hijo5 envía `SISTEMA.CAMBIO_MODO` con `modo: 'casa'`.
 
-**Secuencia** (`_pausarHeartbeatCasa()`, línea 5967):
+**Secuencia** (`_transicionarAModoCasa()`):
 
 ```mermaid
 sequenceDiagram
@@ -415,7 +415,7 @@ sequenceDiagram
 | `_propagarCambioModoAHijos()` | 5925 | Envía `CAMBIO_MODO` a cada hijo crítico |
 | `_gestionarHeartbeatSegunModo()` | 5993 | Inicia o pausa heartbeat según el modo |
 | `_activarHeartbeatAventura()` | 5953 | Envía `HEARTBEAT_START` a padre e hijos |
-| `_pausarHeartbeatCasa()` | 5967 | Envía `HEARTBEAT_PAUSE`, borra localStorage y limpia |
+| `_transicionarAModoCasa()` | — | Limpia localStorage de progreso, pausa heartbeat y notifica a los hijos |
 | `_gestionarGpsSegunModo()` | 6015 | Gestiona overlays GPS según modo (no toca watchPosition) |
 | `activarGPS()` | 4895 | Inicia `watchPosition` (con mutex anti-duplicado) |
 | `desactivarGPS()` | 4982 | Llama `clearWatch()` |
@@ -445,7 +445,7 @@ sequenceDiagram
 | hijo5 | `SISTEMA.CAMBIO_MODO` + `SISTEMA.HEARTBEAT_START` | `SISTEMA.CAMBIO_MODO` + `SISTEMA.HEARTBEAT_PAUSE` |
 | hijo6 | `SISTEMA.CAMBIO_MODO` | `SISTEMA.CAMBIO_MODO` |
 
-> hijo1 y hijo6 no están en la lista de hijos críticos (`[hijo2, hijo3, hijo4, hijo5]`) y por tanto no reciben heartbeat.
+> El heartbeat es dinámico: `enviarHeartbeatAHijos()` en `mensajeria.js` usa `_hijosRegistrados` (Map poblado por cada `HIJO_PREPARADO`). Todos los hijos — incluidos hijo1, hijo6 y la pantalla de selección — reciben el pulso una vez registrados. `HEARTBEAT_START`/`PAUSE` se envían desde `codigo-padre.html` a hijo2/3/4/5 explícitamente (estos son los hijos con estado heartbeat en modo aventura).
 
 ---
 
@@ -850,14 +850,42 @@ flowchart TD
     J([Zoom del mapa cambia]) --> K["getPolylineEscalado recalcula\ngrosor × factor de escala\ntodos los trazos se actualizan"]
 ```
 
+### 4.6b. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
+
+**Estado: parcialmente implementado. Detenido intencionalmente.**
+
+La app dispone de todos los datos necesarios para implementar instrucciones paso a paso tipo "gira a la derecha en 50 metros": los tramos tienen `waypoints` con coordenadas exactas de cada giro, el GPS actualiza posición en tiempo real, y `estadoMapa.tramoWaypoints` contiene la lista de puntos del tramo activo con sus coordenadas.
+
+**Razón por la que no se ha terminado**: El modelo de experiencia elegido prioriza la exploración libre. El usuario ve la polyline completa del recorrido, la polyline de navegación de vuelta cuando se aleja de la ruta, y la flecha snap-to-route en los tramos. Eso es suficiente orientación sin imponer un camino rígido. Las instrucciones tipo GPS ("gira aquí") harían la aventura mecánica y reduciría el placer de descubrir el camino.
+
+**Lo que está implementado hoy:**
+
+| Elemento | Implementado | Descripción |
+|---|---|---|
+| Polyline de ruta completa | ✅ | Se dibuja al activar la aventura |
+| Polyline de navegación (vuelta) | ✅ | Aparece si usuario se aleja >50 m |
+| Flecha snap-to-route | ✅ | Solo en tramos; sigue el waypoint más cercano |
+| Detección de proximidad a parada | ✅ | Radio configurable por aventura |
+| Distancia al destino (en hijo2) | ✅ | Se actualiza con cada GPS |
+
+**Lo que faltaría para turn-by-turn completo:**
+
+1. Función que calcule la instrucción de giro: leer ángulo entre waypoints consecutivos de `estadoMapa.tramoWaypoints` y determinar "recto / izquierda / derecha" según la posición del usuario.
+2. Umbral de activación: disparar la instrucción cuando el usuario esté a X metros del waypoint de giro.
+3. Tipo de mensaje nuevo (`NAVEGACION.INSTRUCCION_TURNO`) para enviar la instrucción a hijo2 o al padre.
+4. UI en hijo2 (o banner en el padre) que muestre la instrucción.
+5. Opcional: síntesis de voz con `speechSynthesis` en hijo3 o en padre.
+
+Si se decide implementar en el futuro, el punto de entrada natural es `actualizarPosicionFlecha()` en `funciones-mapa.js`, que ya se ejecuta en cada actualización GPS y tiene acceso a `estadoMapa.tramoWaypoints` y `estadoMapa.posicionUsuario`.
+
 ### 4.7. Botones del hijo 2 (coordenadas) — iconos por imagen
 
 Los 6 botones del panel de `coordenadas-hijo2.html` no usan emojis sino imágenes PNG. Orden en el HTML (de arriba a abajo):
 
 | ID | Imagen PNG | Mensaje enviado al padre | Acción |
 |----|-----------|--------------------------|--------|
-| `btn-mapa-completo` | `H2-fotomapa-moderno.png` | `NAVEGACION.MOSTRAR_MAPA_JPG` `{ formato: 'html', url: 'mapa-completo.html?aventura=X' }` | Abre el mapa interactivo completo en overlay |
-| `btn-mapa-jpg` | `H2-fotomapa-vintage.png` | `NAVEGACION.MOSTRAR_MAPA_JPG` `{ formato: 'jpg', url: <urlMapaVintage> }` | Abre el JPG del mapa vintage de la aventura actual |
+| `btn-mapa-completo` | `H2-fotomapa-moderno.png` | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` `{ formato: 'html', url: 'mapa-completo.html?aventura=X' }` | Abre el mapa interactivo completo en overlay |
+| `btn-mapa-jpg` | `H2-fotomapa-vintage.png` | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` `{ formato: 'jpg', url: <urlMapaVintage> }` | Abre el JPG del mapa vintage de la aventura actual |
 | `btn-video` | `H2-fotodron.png` | `_reproducirVideoParada()` (interno) | Solo disponible en **tramos**. Reproduce el vídeo de dron del tramo. Deshabilitado en paradas |
 | `btn-imagen` | `H2-fotoproximo-monumento.png` | `UI.ACCION_USUARIO` `{ accion: 'mostrar-imagen', paradaActual, urlImagen, imagenes[], tipo, mapa_numero }` | Abre imagen o galería del monumento de la parada actual. **Siempre habilitado** en MODO AVENTURA: no se deshabilita con `fueraDeRango5min === true` (el usuario necesita ver qué está buscando), ni cuando el reto o el vídeo están activos (cubren toda la pantalla y el botón queda tapado). Solo se deshabilita cuando el padre envía `CONTROL.DESHABILITAR { control: 'btnImagen' }` |
 | `btn-avanzar` | `fotoruta-A-B.png` | `NAVEGACION.GPS.ACTIVAR` `{ activar: bool, idParada, distancia }` | Botón de progresión y revelación de navegación. **En paradas** (completada: audio + reto): habilitado por el padre vía `CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'parada_completada' }`. Al pulsar: establece `estado.pendingRevealNavegacion = true` y llama `progresarSiguienteElemento()` — el siguiente `CAMBIO_PARADA` muestra de inmediato la navegación del nuevo elemento. **En tramos**: habilitado por GPS cuando el usuario está a 5-50 m del inicio del tramo. Al pulsar: llama `revelarNavegacion()` directamente (polyline + 📌 + 🎯 ya estaban cargados pero ocultos). El GPS auto-avanza cuando el usuario llega al final del tramo. El tracking GPS **nunca se detiene** |
@@ -867,8 +895,8 @@ Los 6 botones del panel de `coordenadas-hijo2.html` no usan emojis sino imágene
 flowchart LR
     A([Usuario pulsa\nbotón hijo2]) --> B{¿Qué botón?}
 
-    B -- btn-mapa-completo --> C["NAVEGACION.MOSTRAR_MAPA_JPG\nformato: html\n→ overlay mapa-completo.html"]
-    B -- btn-mapa-jpg --> D["NAVEGACION.MOSTRAR_MAPA_JPG\nformato: jpg\n→ overlay JPG vintage"]
+    B -- btn-mapa-completo --> C["NAVEGACION.MOSTRAR_MAPA_COMPLETO\nformato: html\n→ overlay mapa-completo.html"]
+    B -- btn-mapa-jpg --> D["NAVEGACION.MOSTRAR_MAPA_VINTAGE\nformato: jpg\n→ overlay JPG vintage"]
     B -- btn-video --> E{¿Tramo activo?}
     E -- Sí --> F["_reproducirVideoParada()\n→ vídeo de dron del tramo"]
     E -- No/Parada --> G["Acción bloqueada\n(no disponible en paradas)"]
@@ -1915,7 +1943,9 @@ El temporizador es una cuenta atrás autónoma dentro de hijo1. El tiempo total 
 
 ```javascript
 // Formato de display: HHH:MM:SS
-function formatearTiempo(s) {
+// Nota: se llama formatearReloj (no formatearTiempo) para distinguirla de
+// utils.js/formatearTiempo, que formatea milisegundos para logs de depuración.
+function formatearReloj(s) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
   return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
 }
@@ -2067,7 +2097,8 @@ El overlay se cierra al pulsar el botón cerrar (`ocultarOverlayFueraRango()`) o
 | `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-avanzar` (toggle GPS on/off) | `{ activar: bool, idParada, distancia }` |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | >50 m tras haber estado en rango | `{ paradaId, distancia }` |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Click en `#btn-ubicacion`; solicita al padre (funciones-mapa.js) dibujar polyline desde posición actual hasta el destino activo | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` |
-| `NAVEGACION.MOSTRAR_MAPA_JPG` | Click en `#btn-mapa-jpg` | `{ aventura, paradaId }` |
+| `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Click en `#btn-mapa-completo` | `{ formato: 'html', url: 'mapa-completo.html?aventura=X', aventura }` |
+| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Click en `#btn-mapa-jpg` | `{ formato: 'jpg', url, aventura, paradaActual }` |
 | `UI.ACCION_USUARIO` | Click en `#btn-video` o `#btn-imagen` | `{ accion: 'video'/'imagen', paradaId }` |
 | `DATOS.COORDENADAS_CARGADAS` | Tras cargar coordenadas de `DATOS.CARGAR_COORDENADAS` (éxito o error) | `{ exito, aventura, idioma, totalCargadas, timestamp }` |
 | `DATOS.TEXTOS_CARGADOS` | Tras cargar textos de `DATOS.CARGAR_TEXTOS` (éxito o error) | `{ exito, aventura, idioma, totalCargados, timestamp }` |
@@ -2854,9 +2885,12 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 | `broadcastToCapability(capacidad, tipo, datos)` | Envía a todos los iframes que declararon una capacidad concreta en `HIJO_PREPARADO` — sin call sites activos en padre (ver §10.18) |
 | `registrarControlador(tipo, handler, opciones={})` | Registra un handler para un tipo de mensaje entrante; delega al state-manager si está disponible, o cae en `__vv_manejadoresLocales` |
 | `registrarIframe(id, elemento)` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva |
-| `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` a `['hijo2','hijo3','hijo4','hijo5']` cada `intervalo` ms. El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `CONFIG.HEARTBEAT.MAX_HEARTBEATS_FALLIDOS` (3) fallos consecutivos sin `HEARTBEAT_RESPONSE`, recarga el iframe del hijo via self-assign (`iframe.src = iframe.src`) |
+| `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` a todos los hijos en `_hijosRegistrados` cada `intervalo` ms (fallback a `['hijo2','hijo3','hijo4','hijo5']` si el registro está vacío). El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `CONFIG.HEARTBEAT.MAX_HEARTBEATS_FALLIDOS` (3) fallos consecutivos sin `HEARTBEAT_RESPONSE`, recarga el iframe del hijo via self-assign (`iframe.src = iframe.src`) |
 | `pausarHeartbeat()` | Pausa el latido via state-manager (`sm.updateHeartbeat({ activo:false, intervalo:null })`); libera el `setInterval` |
 | `procesarHeartbeatResponse(mensaje)` | Resetea `heartbeatsFallidos` a 0 para el hijo que responde; si estaba marcado como desconectado, lo elimina de `hijosDesconectados` y reenvía mensajes GPS pendientes (`sm.getGpsPendientes()` → `NAVEGACION.ACTUALIZAR_ESTADO`) |
+| `registrarHijo(id, tipo, capacidades)` | Añade el hijo al Map `_hijosRegistrados`. Llamado desde `_hdl_SISTEMA_HIJO_PREPARADO` al recibir el handshake de cada iframe. A partir de ese punto el hijo queda incluido en el ciclo de heartbeat |
+| `getHijoTipo(id)` | Devuelve el `tipo` declarado por el hijo en `HIJO_PREPARADO`, o `null` si no está registrado |
+| `getHijosRegistrados()` | Devuelve una copia del Map `id → { tipo, capacidades }` con todos los hijos registrados |
 
 **Los hijos** envían siempre con `window.parent.postMessage(mensaje, location.origin)`.
 **El padre** envía con `iframe.contentWindow.postMessage(mensaje, location.origin)` para destinos concretos. `broadcastToCapability` está disponible en mensajería pero sin call sites activos en padre — todos los envíos GPS se hacen via `enviarMensaje_S1({destino:'hijo2',...})` directo.
@@ -2945,16 +2979,19 @@ sequenceDiagram
 - `PADRE_CONFIRMA_HIJO_LISTO` — señal para que el hijo muestre su UI. Hasta recibirlo la interfaz permanece oculta.
 - **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega, los hijos críticos muestran su UI igualmente (ver §5 — invariante `_normalizarSetHijos`).
 
-**Capacidades declaradas por cada hijo en `HIJO_PREPARADO`**:
+**Campos declarados por cada hijo en `HIJO_PREPARADO`** (`datos.tipo` + `datos.capacidades[]`):
 
-| Hijo | `capacidades[]` |
-|------|-----------------|
-| hijo1 | `['opciones', 'configuracion']` |
-| hijo2 | `['navegacion', 'coordenadas']` |
-| hijo3 | `['audio', 'reproduccion', 'controles']` |
-| hijo4 | `['retos', 'preguntas', 'validacion']` |
-| hijo5 | `['modo-selector', 'paradas-list']` |
-| hijo6 | `['chat', 'faq']` |
+El campo `tipo` es la clave del **registro dinámico de hijos** (`_hijosRegistrados` en `mensajeria.js`). El padre lo extrae en `_hdl_SISTEMA_HIJO_PREPARADO` y llama `globalThis.mensajeria.registrarHijo(id, tipo, capacidades)`. A partir de ese momento, `enviarHeartbeatAHijos()` incluye ese hijo en el ciclo de heartbeat automáticamente — no requiere cambios en `mensajeria.js` para añadir nuevos hijos.
+
+| Hijo | `tipo` | `capacidades[]` |
+|------|--------|-----------------|
+| hijo1 | `'EXTRAINFO'` | `['opciones', 'configuracion']` |
+| hijo2 | `'COORDENADAS'` | `['navegacion', 'coordenadas']` |
+| hijo3 | `'AUDIO'` | `['audio', 'reproduccion', 'controles']` |
+| hijo4 | `'RETO'` | `['retos', 'preguntas', 'validacion']` |
+| hijo5 | `'CASA'` | `['modo-selector', 'paradas-list']` |
+| hijo6 | `'CHAT'` | `['chat', 'faq']` |
+| seleccion (tesoro) | `'SELECCION'` | `['seleccion', 'idioma', 'aventura']` |
 
 ---
 
@@ -3006,7 +3043,8 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO` | Sin emisor activo | Handler en padre; ningún hijo lo envía actualmente — handler de `funciones-mapa.js` "MOVIDO A PADRE" pero sin callers en prod |
 | | `NAVEGACION.CENTRAR_EN_UBICACION` | Sin emisor activo → Padre | Handler en padre (`_hdl_NAVEGACION_CENTRAR_EN_UBICACION`); nadie lo envía actualmente — fue movido de `funciones-mapa.js` al padre pero sin callers activos |
 | | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo2 → Padre | Dibujar polyline hasta el usuario |
-| | `NAVEGACION.MOSTRAR_MAPA_JPG` | Hijo2/Padre → Padre | Mostrar imagen de mapa vintage |
+| | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo2 → Padre | Abrir mapa interactivo Leaflet (mapa-completo.html) en overlay |
+| | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo2 → Padre | Mostrar imagen JPG del mapa vintage en overlay |
 | | `NAVEGACION.SOLICITAR_COORDENADAS` | Padre → Hijo2 | Pedir coordenadas de una parada |
 | | `NAVEGACION.RESPUESTA_COORDENADAS` | Hijo2 → Padre | Responde con coordenadas |
 | | `NAVEGACION.SUPRIMIR_ROTACION` | Tesoro → Padre | Suprimir/restaurar rotación del mapa |
@@ -3119,7 +3157,7 @@ sequenceDiagram
 | `SISTEMA.CAMBIO_MODO` | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Acuse de recibo de que el modo fue aplicado globalmente |
 
-> La pantalla de selección no recibe `CAMBIO_PARADA` ni `SISTEMA.HEARTBEAT` — el padre solo envía el pulso de heartbeat a `['hijo2','hijo3','hijo4','hijo5']` (array `hijosCriticos` en `mensajeria.js:901`). Aunque la pantalla tenga un handler de heartbeat registrado, el padre nunca le envía el pulso.
+> La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde el momento en que su `HIJO_PREPARADO` la añade al registro dinámico `_hijosRegistrados` de `mensajeria.js` — el handler de heartbeat de la pantalla responde correctamente.
 
 ---
 
@@ -3150,7 +3188,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 | **padre →** | `UI.CLOSE_MENUS` | `{ except }` | Colapsa el menú si `except !== 'mas-opciones'` |
 | **padre →** | `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados |
 
-> **hijo1 no es hijo crítico**: el padre no le envía `SISTEMA.HEARTBEAT` (aunque hijo1 tiene el handler registrado y respondería si recibiese el pulso), ni `HEARTBEAT_START` ni `HEARTBEAT_PAUSE` — `hijo1-opciones` no está en el array `hijosCriticos`. Tampoco recibe `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
+> hijo1 recibe `SISTEMA.HEARTBEAT` desde el momento en que su `HIJO_PREPARADO` lo registra en `_hijosRegistrados` de `mensajeria.js` (tiene el handler y responde). No recibe `HEARTBEAT_START`/`HEARTBEAT_PAUSE` (esos se envían explícitamente a hijo2/3/4/5 desde `codigo-padre.html`), ni `DATOS.CARGAR_*`, ni participa en el flujo de paradas.
 >
 > **ID real del iframe**: `hijo1-opciones` (no `hijo1`). Todos los mensajes dirigidos a este hijo usan `destino:'hijo1-opciones'`.
 
@@ -3173,7 +3211,8 @@ Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay f
 | `NAVEGACION.GPS.RESTRINGIDO` | `{ idParada, distancia, disponible:'solo_imagen' }` | GPS fuera de rango — solo se envía si `idParadaActual !== null` (guard: evitar envío con ID nulo antes del primer `ACTUALIZAR_ESTADO`) |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, umbral }` | Usuario salió del radio de la parada activa |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` | Click en `#btn-ubicacion` — solicita polyline de retorno al destino |
-| `NAVEGACION.MOSTRAR_MAPA_JPG` | `{ accion:'mostrar-mapa-jpg', url, aventura, paradaId }` | Usuario pulsa `#btn-mapa-jpg` o `#btn-mapa-completo` |
+| `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | `{ formato: 'html', url: 'mapa-completo.html?aventura=X', aventura }` | Usuario pulsa `#btn-mapa-completo` |
+| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | `{ formato: 'jpg', url, aventura, paradaActual }` | Usuario pulsa `#btn-mapa-jpg` |
 | `NAVEGACION.LLEGADA_DETECTADA` | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` | **Solo AVENTURA** — GPS detecta entrada en radio ≤ 20 m |
 | `NAVEGACION.RESPUESTA_COORDENADAS` | `{ coordenadas, paradaId }` | Respuesta a `SOLICITAR_COORDENADAS` |
 | `DATOS.COORDENADAS_PARADAS_RESPONSE` | `{ coordenadas[], total, exito, paradaId? }` | Respuesta a `COORDENADAS_PARADAS_REQUEST` del padre |
@@ -3367,7 +3406,7 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 | **→ padre** | `CHAT.CERRAR` | `{ }` | Usuario pulsa el botón de cerrar |
 | **padre →** | `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Handshake init — idioma llega vía `CHAT.ESTADO_PADRE` |
 | **padre →** | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Handshake OK |
-| **padre →** | `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | hijo6 no es hijo crítico — no está en `hijosCriticos` y no recibe el pulso `SISTEMA.HEARTBEAT`; sí puede recibir `HEARTBEAT_START`/`PAUSE` si está cargado cuando el padre cambia de modo |
+| **padre →** | `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | hijo6 recibe el pulso `SISTEMA.HEARTBEAT` cuando está cargado (queda registrado en `_hijosRegistrados` via su `HIJO_PREPARADO`). `HEARTBEAT_START`/`PAUSE` se envían explícitamente desde `codigo-padre.html` a hijo2/3/4/5; hijo6 puede recibirlos si está cargado al cambiar de modo |
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Handler presente pero sin acción (no-op) |
 | **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Actualiza el FAQ con el contexto actual de la aventura |
 
@@ -3839,15 +3878,15 @@ El heartbeat solo está activo en modo AVENTURA. Se gestiona en `_gestionarHeart
 | Evento | Acción |
 |--------|--------|
 | Modo → AVENTURA | `_activarHeartbeatAventura`: llama `globalThis.mensajeria.iniciarHeartbeat(intervalo)` directamente; luego envía `HEARTBEAT_START` a cada hijo crítico y llama `ensureDefaultParada()` |
-| Modo → CASA | `_pausarHeartbeatCasa`: llama `globalThis.mensajeria.pausarHeartbeat()` directamente; luego envía `HEARTBEAT_PAUSE` a los hijos y limpia el progreso de localStorage |
+| Modo → CASA | `_transicionarAModoCasa`: limpia `localStorage` de progreso (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`); llama `globalThis.mensajeria.pausarHeartbeat()` directamente; luego envía `HEARTBEAT_PAUSE` a los hijos |
 
-El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión. Los hijos críticos son `['hijo2', 'hijo3', 'hijo4', 'hijo5']` filtrados por `hijosInicializados`.
+El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s, ajustado por calidad de conexión. El pulso se envía a todos los hijos en `_hijosRegistrados` (Map dinámico de `mensajeria.js`, poblado conforme cada hijo envía `HIJO_PREPARADO`). Fallback: si el Map está vacío todavía, se usa `['hijo2', 'hijo3', 'hijo4', 'hijo5']`. `HEARTBEAT_START`/`PAUSE` se envían explícitamente a hijo2/3/4/5 desde `codigo-padre.html`.
 
 **Por qué la llamada directa (no self-message):** `enviarMensaje` con `destino: CONFIG_PADRE.ID` falla silenciosamente porque padre no está en `iframesRegistrados` — `_enviarDesdePadre` busca el ID en el Map de iframes registrados, no lo encuentra y retorna `false` con un warning. El `else` fallback nunca se ejecuta porque `enviarMensaje_S1` siempre está disponible. La solución correcta es llamar `globalThis.mensajeria.iniciarHeartbeat()` / `globalThis.mensajeria.pausarHeartbeat()` directamente. Ver §31.3.
 
 Los hijos (hijo3, hijo4, hijo5) sí tienen handlers para `HEARTBEAT_START` y `HEARTBEAT_PAUSE` que actualizan su flag `globalThis.__HEARTBEAT_ACTIVO`. Esos mensajes se envían correctamente desde padre a los iframes hijos vía `_enviarHeartbeatStartAHijo`.
 
-Cuando el modo vuelve a CASA, `_pausarHeartbeatCasa` también elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']`.
+Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']` antes de pausar el heartbeat.
 
 ---
 
@@ -4449,12 +4488,22 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Handler en padre | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE` L9108 |
 | Acción | Obtiene coordenadas del usuario (`_obtenerUbicacionUsuario`), traza polyline discontinua hasta la próxima parada, centra el mapa si `centrar:true` |
 
-**NAVEGACION.MOSTRAR_MAPA_JPG** (hijo2 → padre)
+**NAVEGACION.MOSTRAR_MAPA_COMPLETO** (hijo2 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Handler en padre | `_hdl_NAVEGACION_MOSTRAR_MAPA_JPG` L9155 |
-| Acción | Muestra el mapa vintage de la aventura |
+| Emitido por | `btn-mapa-completo` en `coordenadas-hijo2.html` |
+| Handler en padre | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO` |
+| Acción | Abre `mapa-completo.html` en overlay iframe (mapa interactivo Leaflet) via `mostrarIframeOverlay`. |
+
+**NAVEGACION.MOSTRAR_MAPA_VINTAGE** (hijo2 → padre)
+
+| Campo | Valor |
+|-------|-------|
+| Emitido por | `btn-mapa-jpg` en `coordenadas-hijo2.html` |
+| Handler en padre | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE` |
+| Payload | `{ formato: 'jpg', url: <urlMapaVintage>, aventura, paradaActual }` |
+| Acción | Llama directamente `mostrarImagenOverlay` con la URL del JPG vintage de la aventura. Sin detección de tipo — este canal es exclusivamente para imágenes. |
 
 **NAVEGACION.CENTRAR_EN_UBICACION** ⚠️ sin emisor activo
 
@@ -4800,11 +4849,13 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 |-------|-------|
 | Emitido por | `mostrarIframeOverlay` en padre |
 | Tipo | `'mapa-visible'` (string literal, fuera de `TIPOS_MENSAJE`) |
-| Canal | Raw `iframeEl.contentWindow.postMessage(...)` en tres instantes: 50 ms, 300 ms, 700 ms |
+| Canal | Raw `iframeEl.contentWindow.postMessage(...)`, una sola vez por apertura del overlay |
 | Destino | El iframe dinámico que carga `mapa-completo.html` |
-| Acción | `mapa-completo.html` llama `_fijarVista()`: primero `map.invalidateSize()` (corrige dimensiones del contenedor) y después `map.fitBounds(_rutaBounds)` (encuadra la ruta completa). `fitBounds` solo se ejecuta si `_vistaFijada === false`; al recibir `mapa-visible` se resetea a `false` para permitir re-encuadre en cada apertura del overlay. |
-| Por qué no en init | El overlay empieza con `display:none`. Leaflet crea el mapa con contenedor 0×0. Si `fitBounds` se llama en ese momento, calcula un zoom incorrecto y solicita tiles para una zona/zoom equivocada. `invalidateSize()` posterior corrige el tamaño pero no reposiciona la vista → aparecen tiles "en piezas". La secuencia correcta es siempre: `invalidateSize()` primero, `fitBounds()` después. |
-| Timing | Si `contentDocument.readyState === 'complete'` (iframe ya cargado): se envía en el siguiente frame de animación (`requestAnimationFrame`). Si el iframe está cargando: en `load` + fallback a 1500 ms. |
+| Acción | Al recibir `mapa-visible`, `mapa-completo.html` llama `_reajustarVista()` — que hace `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` si `_bounds` está definido — y `setTimeout(_reajustarVista, 300)` como reintento de seguridad. |
+| Secuencia de init | Polyline + marcadores de referencia añadidos → `_reajustarVista()` (invalidateSize + fitBounds) → `L.tileLayer().addTo(map)`. Las tiles se piden solo para la vista correcta porque se añaden después de `fitBounds`. |
+| Por qué overlay visible en init | `mostrarIframeOverlay` es síncrona: añade `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo de `mapa-completo.html` solo puede ejecutar después de que esa tarea termine — el overlay ya es visible cuando el script corre y `_reajustarVista()` obtiene dimensiones reales. |
+| Timing de envío | `mapa-visible` se envía **una sola vez** por apertura del overlay, siempre vía `load` listener + `requestAnimationFrame`. Fallback cancelable a 1500 ms por si `load` no dispara. El reintento a 300 ms es interno a `mapa-completo.html` (en el handler de `mapa-visible`). |
+| Anti-patrón eliminado | Enviar `mapa-visible` múltiples veces (50ms + 300ms + 700ms + fallback no cancelado) causaba que `fitBounds()` se llamara repetidamente con tiles ya en vuelo → múltiples rondas de peticiones en paralelo → "piezas de mapa". Ahora se envía una sola vez; el único reintento (300ms) es interno a `mapa-completo.html`. |
 
 #### `solicitar-ruta` / `ruta-completa` (padre → mapa-completo.html, raw — sin emisor activo)
 
@@ -5995,7 +6046,7 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 - **Área de imagen:** `flex: 0 0 65%; height: 65%` — ocupa exactamente el 65 % de la ventana flotante.
 - **Imagen dentro:** `width: 100%; height: 100%; object-fit: fill` — la imagen **se estira para llenar el wrapper exacto** sin recorte ni desbordamiento (acepta distorsión). Este es el valor por defecto para todas las imágenes de parada.
 - **Texto de parada (`.texto-parada-overlay`):** `flex: 1; min-height: 0; overflow-y: auto` — ocupa **todo el espacio restante** después de la imagen. Si el contenido es corto no hay hueco en blanco debajo; si es largo aparece scroll.
-- **Mapa vintage (botón H2 y En-busca-del-tesoro):** `mostrarImagenOverlay` acepta `opciones.objectFit`. El controlador `MOSTRAR_MAPA_JPG` pasa `{ objectFit: 'fill' }` y fuerza el wrapper a `100%` de altura (sin texto debajo), de modo que el mapa cubre toda la ventana flotante.
+- **Mapa vintage (botón H2 y En-busca-del-tesoro):** `mostrarImagenOverlay` acepta `opciones.objectFit`. El controlador `MOSTRAR_MAPA_VINTAGE` pasa `{ objectFit: 'fill' }` y fuerza el wrapper a `100%` de altura (sin texto debajo), de modo que el mapa cubre toda la ventana flotante.
 
 #### Imágenes de mapas vintage (`imagenes/imagenes-mapas-vintage/`)
 
@@ -6094,7 +6145,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 
 | Capa | Qué hace | Dónde |
 |------|---------|--------|
-| **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`; los receptores verifican `event.origin` antes de procesar. Excepción: `event.origin === 'null'` también se acepta (protocolo `file://` en desarrollo local; irrelevante en producción HTTPS) | `js/mensajeria.js` |
+| **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) acepta también `event.origin === 'null'` (file:// en local) y `event.source === window` (auto-mensajes). Los listeners raw fuera del bus que validan origin son: `_handlePreModuleMessage` (padre, origin+source hijo5), CHAT.CERRAR (padre:1660), SUPRIMIR_ROTACION (padre:3394), NAVEGACION_PANTALLA (En-busca-del-tesoro.html:2749), `_onPuzzleMessage` (En-busca-del-tesoro.html:1271), listener puzzle (retos-hijo4.html:1188). Los messagingAdapters de todos los hijos validan `event.source === globalThis.parent`. | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
 | **confirmListener por ID único** | Cada mensaje con confirmación genera un `idMensaje` único; el listener filtra por `event.data.idOriginal === idMensaje` para evitar resoluciones cruzadas | `js/mensajeria.js` |
 | **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3 de contenido de pago), `backend/`. | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
@@ -6945,9 +6996,19 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 València centro histórico 1    👣±4km 🏛️19 📍41 🧩30 ⏳max60h
 ```
 
-Actualmente las Aventuras 1, 2, 3, 4, 5 y Fallas están disponibles; solo 34km aparece bloqueada. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. La aventura se guarda en `localStorage` como `vv_aventura`.
+Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTURAS` en `En-busca-del-tesoro.html`), aplicada como `backgroundImage` con una capa blanca semi-transparente (`rgba(255,255,255,0.75)`) para mantener la legibilidad del texto. Las imágenes están en `imagenes/imagenes-aventuras/`:
 
-**Pantalla 7 — Confirmación de aventura.** Similar a P3: se muestra el nombre de la aventura elegida con dos botones (→/✗). Si confirma, continúa.
+| ID | Imagen |
+|----|--------|
+| `Aventura1` | `plaza_de_la_almoina.jpg` |
+| `Aventura2` | `plaza_de_la_virgen.jpg` |
+| `Aventura3` | `pano_CAC.jpg` |
+| `Aventura4` | `parque_de_ cabecera_lake_side.jpg` |
+| `Aventura5` | `antiguo_orfanato.jpg` |
+| `AventuraFallas` | `fallas-castillo.png` |
+| `Aventura34km` | `aventura-34km.png` | Actualmente las Aventuras 1, 2, 3, 4, 5 y Fallas están disponibles; solo 34km aparece bloqueada. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. La aventura se guarda en `localStorage` como `vv_aventura`.
+
+**Pantalla 7 — Confirmación de aventura.** Similar a P3: se muestra el nombre de la aventura elegida con sus estadísticas en una card (`#aventura-confirmacion-card`). La card aplica la misma foto de fondo que el botón de P6 (misma entrada de `IMAGENES_AVENTURAS`, misma capa semi-transparente). Dos botones: → (confirmar) / ✗ (volver a P6). Si confirma, continúa.
 
 **Pantalla 8 — Vídeo introductorio.** Actualmente es un placeholder ("Próximamente"). Un botón avanza a P9.
 
@@ -7782,7 +7843,7 @@ if (handler) {
 
 #### El heartbeat
 
-Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a los hijos críticos (`hijo2`, `hijo3`, `hijo4`, `hijo5`). Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si un hijo no responde en 3 heartbeats consecutivos (`MAX_HEARTBEATS_FALLIDOS: 3` en `config.js`), el padre registra el fallo en `heartbeatsFallidos` (Map) e intenta reconectar recargando el iframe.
+Cada 5 segundos el padre envía `SISTEMA.HEARTBEAT` a todos los hijos registrados en `_hijosRegistrados` (`mensajeria.js`). El registro se puebla dinámicamente: cada hijo que envía `HIJO_PREPARADO` con su campo `tipo` queda incluido automáticamente — no se necesita cambio de código para añadir nuevos hijos. Cada hijo responde con `SISTEMA.HEARTBEAT_RESPONSE`. Si un hijo no responde en 3 heartbeats consecutivos (`MAX_HEARTBEATS_FALLIDOS: 3` en `config.js`), el padre registra el fallo en `heartbeatsFallidos` (Map) e intenta reconectar recargando el iframe.
 
 ---
 
@@ -9418,7 +9479,7 @@ if (typeof hbFn === 'function') {
     globalThis.__HEARTBEAT_INICIADO = true;
 }
 
-// Pausar heartbeat en padre (en _pausarHeartbeatCasa)
+// Pausar heartbeat en padre (en _transicionarAModoCasa)
 const pausarFn = globalThis.mensajeria?.pausarHeartbeat || globalThis.pausarHeartbeat;
 if (typeof pausarFn === 'function') {
     await pausarFn();
@@ -9427,3 +9488,47 @@ if (typeof pausarFn === 'function') {
 ```
 
 Este patrón aplica a cualquier función de mensajería que el padre necesite llamar sobre sí mismo: nunca `enviarMensaje({ destino: CONFIG_PADRE.ID })`, siempre `globalThis.mensajeria.funcionX()`.
+
+---
+
+### 31.4 Inicialización del mapa en `mapa-completo.html`
+
+El módulo ejecuta en secuencia durante el init:
+
+1. Polyline de la ruta (`rutaPuntos` de paradas/tramos) → `_bounds = polyline.getBounds()`
+2. Marcadores de referencia (`tipo === 'referencia'` en `DATOS_AVENTURAS`)
+3. `_reajustarVista()` — `map.invalidateSize()` + `map.fitBounds(_bounds, {padding:[24,24]})` — **antes** de añadir tiles
+4. `L.tileLayer('https://{s}.tile.openstreetmap.org/...').addTo(map)` — tiles con la vista ya correcta
+
+La variable `_bounds` tiene scope de módulo para que el handler de `mapa-visible` pueda llamar `fitBounds` sin necesidad de parámetros.
+
+```javascript
+let _bounds = null;
+if (rutaPuntos.length > 0) {
+    const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
+    _bounds = polyline.getBounds();
+}
+
+function _reajustarVista() {
+    map.invalidateSize();
+    if (_bounds) map.fitBounds(_bounds, { padding: [24, 24] });
+}
+
+_reajustarVista(); // fijar vista antes de pedir tiles
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+// En el handler de mapa-visible:
+if (event.data?.tipo === 'mapa-visible') {
+    _reajustarVista();
+    setTimeout(_reajustarVista, 300);
+}
+```
+
+**Por qué las tiles van después de `_reajustarVista()`:** Al añadir `L.tileLayer`, Leaflet solicita inmediatamente tiles para la vista actual. Si se añaden antes de `fitBounds`, Leaflet pide tiles para el centro por defecto (`[39.476, -0.375]` zoom 15) y después, al abrir el overlay, pide un segundo conjunto para la vista correcta — ambas peticiones en vuelo simultáneo producen el efecto de "piezas de mapa fragmentado". Llamando `_reajustarVista()` primero, las tiles se piden directamente para la vista final.
+
+**El handler de `mapa-visible`** sirve como garantía de refresco: si al abrir el overlay el CSS o el navegador aún no aplicó las dimensiones finales al iframe, `_reajustarVista()` las recalcula. El reintento a 300 ms absorbe las transiciones CSS del overlay. El padre envía `mapa-visible` **una sola vez** por apertura; múltiples envíos causarían múltiples rondas de peticiones de tiles en paralelo → "piezas".
+
+**Por qué el overlay ya es visible cuando el módulo corre:** `mostrarIframeOverlay` (padre) es síncrona: añade la clase `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo ES de `mapa-completo.html` solo ejecuta una vez que el navegador ha analizado el HTML del iframe — después de que el ciclo de tarea del padre termine. El overlay es visible cuando `_reajustarVista()` corre en el init, por lo que obtiene dimensiones reales del contenedor.

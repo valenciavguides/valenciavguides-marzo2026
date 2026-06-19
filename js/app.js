@@ -5,7 +5,7 @@
  *
  * IMPORTANTE — lógica dividida:
  * Este módulo exporta las funciones de orquestación (actualizarInterfazModo,
- * manejarCambioModo, enviarCambioModo, solicitarDatosAHijo, coordinarAccion…).
+ * manejarCambioModo, enviarCambioModo, coordinarAccion…).
  *
  * Los handlers que reaccionan a los mensajes reales del padre
  * (HIJO_PREPARADO, HIJO_LISTO, CAMBIO_PARADA, RETO.COMPLETADO, GPS.*, AUDIO.*…)
@@ -1217,48 +1217,6 @@ export async function enviarConfirmacionAHijo(hijoId, mensajeId) {
     }
 }
 
-/**
- * Envía el estado global a todos los hijos inicializados y verifica confirmaciones.
- * @param {Object} estado - Estado global de la aplicación
- */
-export async function enviarEstadoGlobal(estado) {
-    try {
-        if (!estado) return;
-        if (!estado.hijosInicializados) estado.hijosInicializados = new Set();
-        if (typeof estado.hijosInicializados[Symbol.iterator] !== 'function') {
-            logger.warn('estado.hijosInicializados no es iterable, omitiendo envio de estado global');
-            return;
-        }
-
-        const hijosSinConfirmar = new Set(estado.hijosInicializados);
-
-        for (const hijoId of estado.hijosInicializados) {
-            try {
-                await enviarMensaje({
-                    destino: hijoId,
-                    tipo: TIPOS_MENSAJE.SISTEMA.ESTADO,
-                    origen: getPadreId(),
-                    datos: {
-                        modo: estado.modo,
-                        paradaActual: estado.paradaActual,
-                        timestamp: new Date().toISOString()
-                    }
-                });
-                hijosSinConfirmar.delete(hijoId);
-                logger.info(`Estado global confirmado por ${hijoId}`);
-            } catch (error) {
-                logger.error(`Error al enviar estado global a ${hijoId}:`, error);
-            }
-        }
-
-        if (hijosSinConfirmar.size > 0) {
-            logger.warn(`Los siguientes hijos no confirmaron el estado global: ${Array.from(hijosSinConfirmar).join(', ')}`);
-        }
-    } catch (error) {
-        logger.error('Error al enviar estado global a los hijos:', error);
-    }
-}
-
 // Controladores AUDIO implementados en audio-hijo3.html (hijo3)
 // Controladores NAVEGACIóN en funciones-mapa.js
 
@@ -1351,12 +1309,7 @@ if (globalThis.window !== undefined) {
             promesasPendientes.clear();
             
             // Limpiar estado de coordinación
-            if (globalThis.estadoCoordinacion) {
-                globalThis.estadoCoordinacion.solicitudesPendientes.clear();
-                globalThis.estadoCoordinacion.datosCache.clear();
-                globalThis.estadoCoordinacion.coordinacionesActivas.clear();
-                delete globalThis.estadoCoordinacion;
-            }
+            estadoCoordinacion.coordinacionesActivas.clear();
             
             // Limpiar arrays globales
             if (globalThis.puntosRuta) delete globalThis.puntosRuta;
@@ -1371,7 +1324,6 @@ if (globalThis.window !== undefined) {
                 delete globalThis.intervaloReconciliacion;
             }
             clearInterval(intervaloLimpiezaPromesas);
-            clearInterval(idIntervaloCache);
             clearInterval(intervaloReintentoModo);
             
             logger.info('Limpieza agresiva de globales de la aplicación completada');
@@ -1391,60 +1343,8 @@ if (globalThis.window !== undefined) {
  * Estado de coordinación entre componentes
  */
 const estadoCoordinacion = {
-    solicitudesPendientes: new Map(), // id_solicitud -> { componente, tipo_datos, timestamp, resolve, reject }
-    datosCache: new Map(), // componente_tipo -> { datos, timestamp, ttl }
-    coordinacionesActivas: new Set(), // ids de coordinaciones en progreso
-    tiempoEsperaMax: 5000, // 5 segundos máximo para respuestas
-    cacheTTL: 30000 // 30 segundos de vida útil del cache
+    coordinacionesActivas: new Set() // ids de coordinaciones en progreso
 };
-
-/**
- * Solicita datos específicos a un componente hijo
- * @param {string} componenteId - ID del componente hijo
- * @param {string} tipoDatos - Tipo de datos solicitados ('coordenadas', 'audio', 'reto', etc.)
- * @param {Object} parametros - Parámetros adicionales para la solicitud
- * @returns {Promise<Object>} Datos del componente
- */
-export async function solicitarDatosAHijo(componenteId, tipoDatos, parametros = {}) {
-    const idSolicitud = `solicitud_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-
-    return new Promise((resolve, reject) => {
-        const claveCache = `${componenteId}_${tipoDatos}`;
-        const datosCache = estadoCoordinacion.datosCache.get(claveCache);
-
-        if (datosCache && (Date.now() - datosCache.timestamp) < estadoCoordinacion.cacheTTL) {
-            logger.debug(`Usando datos cacheados para ${claveCache}`);
-            resolve(datosCache.datos);
-            return;
-        }
-
-        const timeout = setTimeout(() => {
-            estadoCoordinacion.solicitudesPendientes.delete(idSolicitud);
-            reject(new Error(`Timeout esperando respuesta de ${componenteId} para ${tipoDatos}`));
-        }, estadoCoordinacion.tiempoEsperaMax);
-
-        estadoCoordinacion.solicitudesPendientes.set(idSolicitud, {
-            componente: componenteId,
-            tipoDatos,
-            timestamp: Date.now(),
-            resolve,
-            reject,
-            timeout
-        });
-
-        enviarMensaje({
-            tipo: TIPOS_MENSAJE.COORDINACION.SOLICITAR_DATOS_HIJO,
-            destino: componenteId,
-            origen: getPadreId(),
-            datos: { idSolicitud, tipoDatos, parametros, timestamp: new Date().toISOString() }
-        }).then(() => {
-            logger.debug(`Solicitud enviada a ${componenteId} para ${tipoDatos} (ID: ${idSolicitud})`);
-        }).catch(error => {
-            logger.error(`Error solicitando datos a ${componenteId}:`, error);
-            reject(error);
-        });
-    });
-}
 
 /**
  * Coordina una acción entre múltiples componentes
@@ -1546,33 +1446,9 @@ async function ejecutarAccionCoordinada(accion) {
     }
 }
 
-/**
- * Limpia el cache de datos expirados
- */
-export function limpiarCacheCoordinacion() {
-    const ahora = Date.now();
-    let eliminados = 0;
-
-    for (const [clave, datos] of estadoCoordinacion.datosCache) {
-        if ((ahora - datos.timestamp) > estadoCoordinacion.cacheTTL) {
-            estadoCoordinacion.datosCache.delete(clave);
-            eliminados++;
-        }
-    }
-
-    if (eliminados > 0) {
-        logger.debug(`Cache de coordinación limpiado: ${eliminados} entradas expiradas`);
-    }
-}
-
-// Limpiar cache periódicamente (optimized for mobile)
-const intervaloCache = esMovil ? estadoCoordinacion.cacheTTL * 2 : estadoCoordinacion.cacheTTL / 2; // 1 min móvil, 15 seg desktop
-const idIntervaloCache = setInterval(limpiarCacheCoordinacion, intervaloCache);
-
-// Los controladores de COORDINACION.* no están en mensajeria.js.
-// La lógica de coordinación entre hijos está implementada en las funciones
-// exportadas de este módulo (solicitarDatosAHijo, coordinarAccion) y en
-// los handlers registrados en el script inline de codigo-padre.html (~línea 2087).
+// La lógica de coordinación entre hijos está implementada en la función
+// exportada coordinarAccion() y en los handlers registrados en el script
+// inline de codigo-padre.html (~línea 2087).
 
 /**
  * Maneja las respuestas de datos de múltiples paradas (PUSH NOTIFICATION).

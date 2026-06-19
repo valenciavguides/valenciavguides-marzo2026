@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test: Trailing Whitespace</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <h2>Test: Trailing Whitespace</h2>
+    <p>Verifica que los archivos HTML principales no tienen trailing whitespace (espacios o tabs al final de línea).</p>
+    <div id="results"></div>
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        const FILES = [
+            '../codigo-padre.html',
+            '../audio-hijo3.html',
+            '../coordenadas-hijo2.html',
+            '../retos-hijo4.html',
+            '../boton-casa-hijo5.html'
+        ];
+
+        async function checkFile(filePath) {
+            const fileName = filePath.replace('../', '');
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) {
+                    addResult('SKIP: ' + fileName + ' — HTTP ' + response.status + ' (archivo no accesible via fetch)', 'info');
+                    return { skipped: true };
+                }
+                const text = await response.text();
+                const lines = text.split('\n');
+                const trailingLines = [];
+
+                lines.forEach((line, index) => {
+                    // Detectar trailing whitespace: espacio, tab, o retorno de carro solo
+                    if (/[ \t]+$/.test(line)) {
+                        trailingLines.push({ lineNum: index + 1, content: JSON.stringify(line.slice(-20)) });
+                    }
+                });
+
+                if (trailingLines.length === 0) {
+                    addResult('✅ ' + fileName + ' — sin trailing whitespace (' + lines.length + ' líneas)', 'success');
+                    return { passed: true, file: fileName };
+                } else {
+                    const preview = trailingLines.slice(0, 5).map(l => 'L' + l.lineNum + ': ' + l.content).join('; ');
+                    addResult('❌ ' + fileName + ' — ' + trailingLines.length + ' línea(s) con trailing whitespace. Primeras: ' + preview, 'error');
+                    return { passed: false, file: fileName, count: trailingLines.length };
+                }
+            } catch (err) {
+                addResult('SKIP: ' + fileName + ' — Error fetch: ' + err.message, 'info');
+                return { skipped: true };
+            }
+        }
+
+        globalThis.runTest = async function() {
+            addResult('── Comprobando trailing whitespace en archivos HTML principales ──', 'info');
+
+            const results = [];
+            for (const file of FILES) {
+                const result = await checkFile(file);
+                results.push(result);
+            }
+
+            const checked = results.filter(r => !r.skipped);
+            const passed = checked.filter(r => r.passed).length;
+            const failed = checked.filter(r => !r.passed).length;
+            const skipped = results.filter(r => r.skipped).length;
+
+            addResult(
+                '── Resumen: ' + passed + ' OK, ' + failed + ' con trailing whitespace, ' + skipped + ' sin acceso ──',
+                failed > 0 ? 'error' : 'info'
+            );
+
+            globalThis.TestReporter.report({
+                name: 'Quality: Trailing Whitespace',
+                resultsContainer: document.getElementById('results')
+            });
+        };
+
+        globalThis.runTest();
+    </script>
+</body>
+</html>

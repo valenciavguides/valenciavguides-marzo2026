@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
     <script>
     /* Escalado proporcional PURO: sincronizar con viewport del padre SIN LÃMITES */
     (function(){
@@ -14,7 +15,6 @@
         globalThis.addEventListener("resize", escalar);
     })();
     </script>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
@@ -431,7 +431,7 @@
     </audio>
 
     <script type="module">
-    import { retryUntilAvailable, resolverIdsParada, getPadreId } from './js/utils.js';
+    import { retryUntilAvailable, resolverIdsParada, getPadreId, ajustarTimeoutPorConexion } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
 
@@ -688,45 +688,6 @@
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // ðŸ”§ UTILIDADES - AJUSTE DINÃMICO DE TIMEOUTS
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
-    /**
-     * Calcula multiplicador de timeout segÃºn tipo de conexiÃ³n
-     * MetodologÃ­a consistente con codigo-padre.html (utils.js)
-     * @returns {number} Multiplicador (1.0-3.0)
-     */
-    function calcularMultiplicadorTimeoutConexion() {
-        try {
-            if (!navigator.connection) {
-                return 1.5; // Valor moderado si no hay info de conexiÃ³n
-            }
-
-            const effectiveType = navigator.connection.effectiveType || 'unknown';
-            const multiplicadores = {
-                '4g': 1,        // ConexiÃ³n rÃ¡pida
-                '3g': 1.5,      // ConexiÃ³n media - 50% mÃ¡s tiempo
-                '2g': 2,        // ConexiÃ³n lenta - doble tiempo
-                'slow-2g': 3,   // ConexiÃ³n muy lenta - triple tiempo
-                'unknown': 1.5  // Desconocido - moderado
-            };
-
-            return multiplicadores[effectiveType] || 1.5;
-        } catch (error) {
-            console.warn('[HIJO3][TIMEOUT] Error calculando multiplicador:', error);
-            return 1.5;
-        }
-    }
-
-    /**
-     * Ajusta timeout segÃºn conexiÃ³n de red actual
-     * @param {number} timeoutBase - Timeout base en ms
-     * @returns {number} Timeout ajustado
-     */
-    function ajustarTimeoutPorConexion(timeoutBase) {
-        const multiplicador = calcularMultiplicadorTimeoutConexion();
-        const timeoutAjustado = Math.round(timeoutBase * multiplicador);
-        console.debug(`[HIJO3][TIMEOUT] ${timeoutBase}ms -> ${timeoutAjustado}ms (${multiplicador}x)`);
-        return timeoutAjustado;
-    }
 
     // Estado del componente (homologado con otros hijos)
     const estado = {
@@ -1915,6 +1876,7 @@
                 datos: {
                     componenteId: CONFIG_HIJO.COMPONENTE_ID,
                     version: '1.0.0',
+                    tipo: 'AUDIO',
                     capacidades: ['audio', 'reproduccion', 'controles'],
                     timestamp: Date.now()
                 }

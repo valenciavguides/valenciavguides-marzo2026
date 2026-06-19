@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test: ID Mismatch Resolution</title>
+    <style>
+        body { font-family: monospace; padding: 10px; background: #1a1a2e; color: #eee; }
+        .test-result { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        .success { background: #1b5e20; color: #a5d6a7; }
+        .error { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        h2 { color: #ffd54f; }
+    </style>
+</head>
+<body>
+    <h2>Test: ID Mismatch Resolution</h2>
+    <p>Verifica que la resolución de ID mismatch funciona: hijo5 envía "padre-Av1-TR-2" → padre resuelve con tramo_id="Av1-TR-2" en DATOS_PADRE, y p.id==="Av1-TR-2" en coordenadas-aventuras.js</p>
+    <div id="results"></div>
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        // ── Real data matching aventuras-ID-padre.js (Aventura1/es) ──
+        const elementosIDpadre = [
+            { padreid: 'padre-pre-intro1', tipo: 'pre-intro1', parada_id: 'null', tramo_id: undefined },
+            { padreid: 'padre-intro', tipo: 'intro', parada_id: 'intro', tramo_id: undefined },
+            { padreid: 'padre-P0', tipo: 'inicio', parada_id: 'Av1-P-0', tramo_id: undefined },
+            { padreid: 'padre-TR1', tipo: 'tramo', parada_id: undefined, tramo_id: 'Av1-TR-1' },
+            { padreid: 'padre-P1', tipo: 'parada', parada_id: 'Av1-P-1', tramo_id: undefined },
+            { padreid: 'padre-TR2', tipo: 'tramo', parada_id: undefined, tramo_id: 'Av1-TR-2' },
+            { padreid: 'padre-P2', tipo: 'parada', parada_id: 'Av1-P-2', tramo_id: undefined }
+        ];
+
+        // ── Real data matching coordenadas-aventuras.js (Aventura1) ──
+        const coordenadas = [
+            { id: 'Av1-P-0', tipo: 'inicio', nombre: 'Torres de Serranos (start)', coordenadas: { lat: 39.47876, lng: -0.37626 } },
+            { id: 'Av1-TR-1', tipo: 'tramo', nombre: 'Torres de Serranos → Plaza de la crida', inicio: { lat: 39.47876, lng: -0.37626 }, fin: { lat: 39.47959, lng: -0.37583 } },
+            { id: 'Av1-P-1', tipo: 'parada', nombre: 'Plaza de la crida', coordenadas: { lat: 39.47959, lng: -0.37583 } },
+            { id: 'Av1-TR-2', tipo: 'tramo', nombre: 'Plaza de la crída → Calle Muro de Santa Ana', inicio: { lat: 39.47959, lng: -0.37583 }, fin: { lat: 39.47866, lng: -0.37470 } },
+            { id: 'Av1-P-2', tipo: 'parada', nombre: 'Calle Muro de Santa Ana', coordenadas: { lat: 39.47866, lng: -0.37470 } }
+        ];
+
+        // ── Exact search logic from funciones-mapa.js manejarCambiarParada (lines 2053-2061) ──
+        function buscarEnElementosIDpadre(paradas, idToMatch) {
+            if (!paradas || !idToMatch) return undefined;
+            const idSinPrefijo = idToMatch.startsWith('padre-') ? idToMatch.substring(6) : idToMatch;
+            return paradas.find(p =>
+                p.padreid === idToMatch ||
+                p.parada_id === idToMatch ||
+                p.tramo_id === idToMatch ||
+                p.id === idToMatch ||
+                p.parada_id === idSinPrefijo ||
+                p.tramo_id === idSinPrefijo ||
+                p.id === idSinPrefijo
+            );
+        }
+
+        // ── Search in coordenadas array (resolvedParadaId → p.id) ──
+        function buscarEnCoordenadas(coords, resolvedId) {
+            return coords.find(c => c.id === resolvedId);
+        }
+
+        globalThis.runTest = function() {
+            addResult('── 1. idSinPrefijo stripping ──', 'info');
+
+            // Test 1: strip "padre-" prefix correctly
+            const idHijo5 = 'padre-Av1-TR-2';
+            const idSinPrefijo = idHijo5.startsWith('padre-') ? idHijo5.substring(6) : idHijo5;
+            if (idSinPrefijo === 'Av1-TR-2') {
+                addResult('✅ "padre-Av1-TR-2".substring(6) === "Av1-TR-2"', 'success');
+            } else {
+                addResult('❌ strip failed: got "' + idSinPrefijo + '" expected "Av1-TR-2"', 'error');
+            }
+
+            // Test 2: strip does NOT apply when no "padre-" prefix
+            const idDirecto = 'Av1-TR-2';
+            const idDirecto2 = idDirecto.startsWith('padre-') ? idDirecto.substring(6) : idDirecto;
+            if (idDirecto2 === 'Av1-TR-2') {
+                addResult('✅ "Av1-TR-2" sin prefijo no se modifica', 'success');
+            } else {
+                addResult('❌ strip incorrectamente modificó el ID directo', 'error');
+            }
+
+            addResult('── 2. Búsqueda en elementosIDpadre (DATOS_PADRE) ──', 'info');
+
+            // Test 3: hijo5 sends "padre-Av1-TR-2" → resolves via tramo_id="Av1-TR-2"
+            const resultado = buscarEnElementosIDpadre(elementosIDpadre, 'padre-Av1-TR-2');
+            if (resultado && resultado.padreid === 'padre-TR2' && resultado.tramo_id === 'Av1-TR-2') {
+                addResult('✅ "padre-Av1-TR-2" → encontrado padre-TR2 (tramo_id=Av1-TR-2)', 'success');
+            } else {
+                addResult('❌ "padre-Av1-TR-2" no resuelto correctamente: ' + JSON.stringify(resultado), 'error');
+            }
+
+            // Test 4: hijo5 sends "padre-Av1-P-1" → resolves via parada_id="Av1-P-1"
+            const resultado2 = buscarEnElementosIDpadre(elementosIDpadre, 'padre-Av1-P-1');
+            if (resultado2 && resultado2.padreid === 'padre-P1' && resultado2.parada_id === 'Av1-P-1') {
+                addResult('✅ "padre-Av1-P-1" → encontrado padre-P1 (parada_id=Av1-P-1)', 'success');
+            } else {
+                addResult('❌ "padre-Av1-P-1" no resuelto: ' + JSON.stringify(resultado2), 'error');
+            }
+
+            // Test 5: direct tramo_id match "Av1-TR-2"
+            const resultado3 = buscarEnElementosIDpadre(elementosIDpadre, 'Av1-TR-2');
+            if (resultado3 && resultado3.tramo_id === 'Av1-TR-2') {
+                addResult('✅ "Av1-TR-2" directo → encontrado (tramo_id match)', 'success');
+            } else {
+                addResult('❌ "Av1-TR-2" directo no encontrado', 'error');
+            }
+
+            addResult('── 3. resolvedParadaId y búsqueda en coordenadas (p.id) ──', 'info');
+
+            // Test 6: after finding in elementosIDpadre, resolvedParadaId = tramo_id
+            const paradaBase = buscarEnElementosIDpadre(elementosIDpadre, 'padre-Av1-TR-2');
+            const resolvedParadaId = paradaBase ? (paradaBase.parada_id || paradaBase.tramo_id || paradaBase.id) : null;
+            if (resolvedParadaId === 'Av1-TR-2') {
+                addResult('✅ resolvedParadaId correctamente calculado: "' + resolvedParadaId + '"', 'success');
+            } else {
+                addResult('❌ resolvedParadaId incorrecto: "' + resolvedParadaId + '"', 'error');
+            }
+
+            // Test 7: p.id === idSinPrefijo matches in coordenadas
+            const coordResult = buscarEnCoordenadas(coordenadas, 'Av1-TR-2');
+            if (coordResult && coordResult.id === 'Av1-TR-2' && coordResult.tipo === 'tramo') {
+                addResult('✅ coordenadas.find(c => c.id === "Av1-TR-2") → encontrado tipo=tramo', 'success');
+            } else {
+                addResult('❌ p.id === "Av1-TR-2" no encontrado en coordenadas', 'error');
+            }
+
+            // Test 8: p.id === idSinPrefijo for parada
+            const coordResult2 = buscarEnCoordenadas(coordenadas, 'Av1-P-0');
+            if (coordResult2 && coordResult2.id === 'Av1-P-0' && coordResult2.tipo === 'inicio') {
+                addResult('✅ coordenadas.find(c => c.id === "Av1-P-0") → encontrado tipo=inicio', 'success');
+            } else {
+                addResult('❌ p.id === "Av1-P-0" no encontrado en coordenadas', 'error');
+            }
+
+            addResult('── 4. Flujo completo end-to-end ──', 'info');
+
+            // Test 9: Full flow: hijo5 sends → padreId found → resolvedParadaId → coordenada found
+            const inputHijo5 = 'padre-Av1-TR-2';
+            const paradaBaseE2E = buscarEnElementosIDpadre(elementosIDpadre, inputHijo5);
+            const resolvedIdE2E = paradaBaseE2E ? (paradaBaseE2E.parada_id || paradaBaseE2E.tramo_id) : null;
+            const coordE2E = resolvedIdE2E ? buscarEnCoordenadas(coordenadas, resolvedIdE2E) : null;
+
+            if (coordE2E && coordE2E.id === 'Av1-TR-2' && coordE2E.inicio && coordE2E.fin) {
+                addResult('✅ Flujo E2E: "' + inputHijo5 + '" → resolvedId="' + resolvedIdE2E + '" → coordenadas encontradas (inicio+fin)', 'success');
+            } else {
+                addResult('❌ Flujo E2E falló: paradaBase=' + JSON.stringify(paradaBaseE2E) + ' resolvedId=' + resolvedIdE2E, 'error');
+            }
+
+            // Test 10: Non-existent ID returns undefined cleanly
+            const noExiste = buscarEnElementosIDpadre(elementosIDpadre, 'padre-Av1-TR-99');
+            if (noExiste === undefined) {
+                addResult('✅ ID inexistente "padre-Av1-TR-99" → undefined (sin crash)', 'success');
+            } else {
+                addResult('❌ ID inexistente no retornó undefined: ' + JSON.stringify(noExiste), 'error');
+            }
+
+            globalThis.TestReporter.report({
+                name: 'IDs: ID Mismatch Resolution',
+                resultsContainer: document.getElementById('results')
+            });
+        };
+
+        globalThis.runTest();
+    </script>
+</body>
+</html>

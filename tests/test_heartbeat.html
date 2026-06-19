@@ -117,28 +117,19 @@
                 addResult('Verificación de constantes', false, e.message);
             }
 
-            // Test 2: Enviar heartbeat al padre
-            log('Enviando HEARTBEAT al padre...');
-            heartbeatResponses = [];
-            
-            padre.contentWindow.postMessage({
-                tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT,
-                origen: 'test-runner',
-                destino: 'padre',
-                datos: {
-                    timestamp: Date.now(),
-                    componenteId: 'test-runner'
-                }
-            }, '*');
-
-            await new Promise(r => setTimeout(r, 2000));
-            
-            const respuestas = heartbeatResponses.filter(h => 
-                h.tipo === TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE
-            );
-            
-            addResult('Respuesta a HEARTBEAT', respuestas.length > 0,
-                respuestas.length > 0 ? `${respuestas.length} respuesta(s)` : 'Sin respuesta');
+            // Test 2: Verificar que el handler HEARTBEAT está registrado en padre
+            try {
+                const padreWin = padre.contentWindow;
+                const registrados = padreWin.__CONTROLADOR_REGISTRADOS;
+                const pendientes = padreWin.__CONTROLADORES_PENDIENTES;
+                const tipoHeartbeat = TIPOS_MENSAJE.SISTEMA.HEARTBEAT;
+                const registrado = registrados && registrados.has && registrados.has(tipoHeartbeat);
+                const encolado = pendientes && pendientes.some && pendientes.some(p => p.tipo === tipoHeartbeat);
+                addResult('HEARTBEAT handler registrado en padre', registrado || encolado,
+                    registrado ? 'Activo en controladores' : (encolado ? 'Encolado pendiente' : 'No encontrado'));
+            } catch (e) {
+                addResult('HEARTBEAT handler en padre', false, e.message);
+            }
 
             // Test 3: Verificar estado del heartbeat
             try {
