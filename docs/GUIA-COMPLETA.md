@@ -9258,7 +9258,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Qué parada muestra el padre durante la pérdida:** la última parada activa antes de la pérdida — el padre no cambia de parada sin confirmación GPS de llegada. No hay reinicio.
 
-**Estado de implementación:** ❌ overlay pendiente. El mecanismo de reintento para código 3 ya existe (`_gpsRetryOnTimeout`); el overlay y el botón manual deben implementarse.
+**Estado de implementación:** ✅ implementado. El overlay se muestra vía `showGpsSignalOverlay(code)` desde `_watchPositionError`. El mecanismo de reintento para código 3 usa `_gpsRetryOnTimeout`.
 
 ---
 
@@ -9268,7 +9268,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Diferencia con código 2/3:** el `watchPosition` **no reintenta** — el browser bloquea directamente sin llamar al callback de éxito.
 
-**Qué ve el usuario (a implementar):** mismo overlay `imagen-no-gps.png` pero con botón distinto: **🛰️→🌐→⚙️** (secuencia visual que indica el camino: GPS de la app → permisos del browser → ajustes del sistema).
+**Qué ve el usuario:** mismo overlay `imagen-no-gps.png` pero con botón distinto: **🛰️→🌐→⚙️** (secuencia visual que indica el camino: GPS de la app → permisos del browser → ajustes del sistema).
 
 **Comportamiento del botón:**
 
@@ -9280,7 +9280,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Limitación técnica:** desde JavaScript no es posible abrir directamente la pantalla de ajustes del OS. El botón hace lo máximo posible (llamar a la API de geolocalización) y la secuencia de emojis orienta al usuario sobre dónde ir.
 
-**Estado de implementación:** ❌ pendiente.
+**Estado de implementación:** ✅ implementado. El overlay se muestra vía `showGpsSignalOverlay(1)` con botón 🛰️→🌐→⚙️ desde `_watchPositionError`.
 
 ---
 
