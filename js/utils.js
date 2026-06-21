@@ -32,7 +32,7 @@ export function generarIdUnico(prefijo = '') {
  * Obtiene el ID del padre desde la URL o genera uno nuevo
  * @returns {string} ID del padre
  */
-export function getPadreId() {
+export function resolverIdPadre() {
     // Intentar obtener de la URL
     const urlParams = new URLSearchParams(globalThis.location.search);
     const padreIdFromUrl = urlParams.get('padreId');
@@ -728,7 +728,7 @@ export function manejarError(error, contexto = null, opciones = {}) {
 if (globalThis.window !== undefined) {
     globalThis.__vv_utils = {
         generarIdUnico,
-        getPadreId,
+        resolverIdPadre,
         normalizarParadas,
         resolverIdsParada,
         ajustarTimeoutPorConexion,
@@ -742,7 +742,7 @@ if (globalThis.window !== undefined) {
 
 export default {
     generarIdUnico,
-    getPadreId,
+    resolverIdPadre,
     normalizarParadas,
     resolverIdsParada,
     ajustarTimeoutPorConexion,

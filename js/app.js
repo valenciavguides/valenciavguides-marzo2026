@@ -47,7 +47,7 @@ mensajeriaReadyPromise.then(() => {
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import logger from './logger.js';
 import { CONFIG } from './config.js';
-import { generarIdUnico, getPadreId, canonicalizarModo } from './utils.js';
+import { generarIdUnico, resolverIdPadre, canonicalizarModo } from './utils.js';
 import { promesasPendientes, registrarMetrica as registrarMetricaMonitoreo } from './monitoreo.js';
 import { esMovil } from './device-detection.js';
 
@@ -102,12 +102,12 @@ function _registrarHandlersModo() {
                 const { modo } = msg.datos || {};
                 enviarMensaje({
                     tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                    origen: getPadreId(),
+                    origen: resolverIdPadre(),
                     destino: msg.origen,
                     datos: { mensajeRecibido: 'CAMBIO_MODO_ENTENDIDO', modo, timestamp: Date.now() }
                 });
             } catch (_e) { /* ACK es cosmético */ } // NOSONAR
-        });
+        }, { permanente: true });
         registrar(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO, async (msg) => {
             _respuestasEfectuadoActual.set(msg.origen, { timestamp: Date.now(), datos: msg.datos });
             logger.debug(`[actualizarInterfazModo] EFECTUADO recibido de ${msg.origen}`);
@@ -115,12 +115,12 @@ function _registrarHandlersModo() {
                 const { modo } = msg.datos || {};
                 enviarMensaje({
                     tipo: TIPOS_MENSAJE.SISTEMA.ACK,
-                    origen: getPadreId(),
+                    origen: resolverIdPadre(),
                     destino: msg.origen,
                     datos: { mensajeRecibido: 'CAMBIO_MODO_EFECTUADO', modo, timestamp: Date.now() }
                 });
             } catch (_e) { /* ACK es cosmético */ } // NOSONAR
-        });
+        }, { permanente: true });
         logger.debug('[APP] Handlers ENTENDIDO/EFECTUADO registrados correctamente');
     } catch (e) {
         logger.warn('[APP] Error registrando handlers de modo:', e?.message);
@@ -248,7 +248,7 @@ export async function actualizarInterfazModo(estado, modo) {
             enviarMensaje({
                 destino: hijoId,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-                origen: getPadreId(),
+                origen: resolverIdPadre(),
                 datos: { modo, secuenciaCompleta: !!estado?.todosHijosListos, mensajeId }
             }).catch(err => {
                 logger.error(`[actualizarInterfazModo] Error enviando a ${hijoId}:`, err);
@@ -270,7 +270,7 @@ export async function actualizarInterfazModo(estado, modo) {
             enviarMensaje({
                 destino: hijoId,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_APLICADO,
-                origen: getPadreId(),
+                origen: resolverIdPadre(),
                 datos: { modo, timestamp: Date.now(), mensajeId }
             }).catch(err => {
                 logger.error(`[actualizarInterfazModo] Error enviando APLICADO a ${hijoId}:`, err);
@@ -339,9 +339,9 @@ export function notificarError(codigo, error, contexto = {}) {
     logger.error('Error crítico:', error);
     try {
         const r = enviarMensaje({
-            destino: getPadreId(),
+            destino: resolverIdPadre(),
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: getPadreId(),
+            origen: resolverIdPadre(),
             datos: {
                 codigo,
                 mensaje: error.message,
@@ -371,7 +371,7 @@ export async function enviarCambioModo(nuevoModo, origen = 'app') {
     return await enviarMensaje({
         destino: CONFIG.IFRAME_ID,
         tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-        origen: getPadreId(),
+        origen: resolverIdPadre(),
         datos: {
             modo: modoCanonical,
             origen,
@@ -446,8 +446,8 @@ async function _activarParadaDefectoAventura() {
             const padreId = paradaDefecto.padreid || `padre-${paradaId}`;
             const payloadCambioParada = {
                 tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
-                origen: getPadreId(),
-                destino: getPadreId(),
+                origen: resolverIdPadre(),
+                destino: resolverIdPadre(),
                 datos: {
                     paradaId,
                     parada_id: paradaId,
@@ -589,7 +589,7 @@ async function _notificarErrorCambioModo(mensaje, errorMsg, error, modo, logPref
         await enviarMensaje({
             destino: mensaje?.origen || 'sistema',
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
-            origen: getPadreId(),
+            origen: resolverIdPadre(),
             mensajeId: generarIdUnico(),
             timestamp: Date.now(),
             datos: {
@@ -1206,7 +1206,7 @@ export async function enviarConfirmacionAHijo(hijoId, mensajeId) {
         await enviarMensaje({
             destino: hijoId,
             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-            origen: getPadreId(),
+            origen: resolverIdPadre(),
             datos: {
                 mensajeId,
                 timestamp: new Date().toISOString()
@@ -1427,7 +1427,7 @@ async function ejecutarAccionCoordinada(accion) {
         const resultado = await enviarMensaje({
             tipo: tipo,
             destino: componente,
-            origen: getPadreId(),
+            origen: resolverIdPadre(),
             datos: datos
         });
 
@@ -1603,7 +1603,7 @@ const intervaloReintentoModo = setInterval(async () => {
                 await enviarMensaje({
                     destino: hijoId,
                     tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-                    origen: getPadreId(),
+                    origen: resolverIdPadre(),
                     datos: {
                         modo: pending.modo,
                         ...pending.datos,

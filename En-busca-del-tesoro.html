@@ -2017,7 +2017,7 @@
 
   <!-- MÓDULO DE MENSAJERÍA - Comunicación con el Padre -->
   <script type="module">
-    import { getEnviarMensaje, getRegistrarControlador, getPadreId } from './js/utils.js';
+    import { getEnviarMensaje, getRegistrarControlador, resolverIdPadre } from './js/utils.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {
@@ -2289,7 +2289,7 @@
     async function _enviarHijoPreparado(logPrefix) {
         try {
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { version: CONFIG_HIJO.VERSION, tipo: 'SELECCION', capacidades: ['seleccion', 'idioma', 'aventura'], timestamp: Date.now() }
@@ -2303,7 +2303,7 @@
     async function _enviarHijoFallido(logPrefix, error) {
         try {
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_FALLIDO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { error: error.message, stack: error.stack, timestamp: Date.now() }
@@ -2356,7 +2356,7 @@
     async function _enviarHijoListo(logPrefix) {
         try {
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, capacidades: ['seleccion', 'idioma', 'aventura'], timestamp: Date.now() }
@@ -2398,13 +2398,13 @@
         }
         globalThis._uiConfirmado = true;
         mostrarUI();
-        enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(() => { /* fire-and-forget: error de confirmación UI ignorado intencionalmente */ });
+        enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(() => { /* fire-and-forget: error de confirmación UI ignorado intencionalmente */ });
     }
 
     async function _notificarErrorPadre(logPrefix, controlador, error) {
         try {
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { error: error.message, controlador, timestamp: Date.now() }
@@ -2470,7 +2470,7 @@
                 componenteId: CONFIG_HIJO.COMPONENTE_ID, timestamp: Date.now(),
                 estado: 'activo', inicializado: estadoComponente.inicializado, padreConectado: estadoComponente.padreConectado
             };
-            await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, datos: datosRespuesta });
+            await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, datos: datosRespuesta });
             logger.debug(`${controladorPrefix} ACK respondido`);
             return { exito: true, timestamp: datosRespuesta.timestamp };
         } catch (error) {
@@ -2565,7 +2565,7 @@
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.IDIOMA_SELECCIONADO,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: {
                     idioma: idioma,
                     timestamp: Date.now()
@@ -2630,7 +2630,7 @@
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: { aventura: aventura, idioma: estadoComponente.idiomaSeleccionado || 'es', timestamp: Date.now() }
             });
             logger.debug(`[SELECCION] Mensaje AVENTURA_SELECCIONADA enviado al padre`);
@@ -2668,7 +2668,7 @@
             
             logger.info(`[SELECCION] Iniciando aventura: ${estadoComponente.aventuraSeleccionada} en idioma ${estadoComponente.idiomaSeleccionado}`);
             
-            const padreId = getPadreId();
+            const padreId = resolverIdPadre();
             logger.debug('🚀 [SELECCION] Destino (padre):', padreId);
             actualizarProgresoCargaAventura(55, 3, 4);
             
@@ -2717,7 +2717,7 @@
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.SELECCION.TERMINOS_ACEPTADOS,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: {
                     aceptados: true,
                     timestamp: Date.now()

@@ -17,7 +17,7 @@ import {
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, manejarError, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, getPadreId } from './utils.js';
+import { generarIdUnico, manejarError, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, resolverIdPadre } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -645,7 +645,7 @@ async function solicitarDatosParadas() {
         datosParadasSolicitados = true;
 
         enviarMensaje({
-            destino: getPadreId(),
+            destino: resolverIdPadre(),
             tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS,
             origen: 'funciones-mapa',
             datos: {
@@ -1968,7 +1968,7 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
     enviarMensaje({
         destino: 'hijo2',
         tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_COORDENADAS,
-        origen: getPadreId(),
+        origen: resolverIdPadre(),
         mensajeId,
         datos: { 
             paradaId,
@@ -2435,7 +2435,7 @@ async function verificarPermisosGeolocalizacion() {
             enviarMensaje({
                 tipo: TIPOS_MENSAJE.SISTEMA.ADVERTENCIA,
                 origen: 'funciones-mapa',
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: {
                     titulo: 'HTTPS Requerido',
                     mensaje: warningMsg,
@@ -2521,7 +2521,7 @@ export async function manejarGPSActivar(mensaje) {
         logger.info(`${logPrefix} Delegando activación GPS al padre`);
 
         enviarMensaje({
-            destino: getPadreId(),
+            destino: resolverIdPadre(),
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR,
             origen: 'funciones-mapa',
             datos: {
@@ -2595,7 +2595,7 @@ export async function manejarGPSDesactivar(mensaje) {
         logger.info(`${logPrefix} Delegando desactivación GPS al padre`);
 
         enviarMensaje({
-            destino: getPadreId(),
+            destino: resolverIdPadre(),
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR,
             origen: 'funciones-mapa',
             datos: {
@@ -3185,7 +3185,7 @@ async function manejarCambioModoMapa(mensaje) {
             enviarMensaje({
                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                 origen: 'funciones-mapa',
-                destino: mensaje?.origen || getPadreId(),
+                destino: mensaje?.origen || resolverIdPadre(),
                 mensajeId: generarIdUnico(),
                 datos: {
                     error: error.message,
@@ -3645,7 +3645,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
                 const derivedPadreId = siguienteParada.padreid || (derivedParadaId ? `padre-${derivedParadaId}` : null);
                 enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                     origen: 'funciones-mapa',
                     datos: {

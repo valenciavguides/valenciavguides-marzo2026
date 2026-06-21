@@ -213,6 +213,14 @@ export async function updateHeartbeat(updates) {
   });
 }
 
+export async function atomicUpdateHeartbeat(fn) {
+  await mutexes.heartbeat.runExclusive(async () => {
+    const snapshot = _deepCopy(state.heartbeat);
+    const updates = await fn(snapshot);
+    if (updates !== undefined) _deepMerge(state.heartbeat, updates);
+  });
+}
+
 export async function getGpsPendientes() {
   return await mutexes.heartbeat.runExclusive(() => _deepCopy(state.gpsPendientes));
 }
@@ -743,6 +751,7 @@ export async function inicializarStateManager() {
       setGpsPendientes,
       agregarMensajeGPSAPendientes,
       limpiarGpsPendientes,
+      atomicUpdateHeartbeat,
 
       // Sistema de eventos para HIJO_LISTO
       crearPromiseHijoListo,

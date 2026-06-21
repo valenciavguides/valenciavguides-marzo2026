@@ -9547,3 +9547,208 @@ if (event.data?.tipo === 'mapa-visible') {
 **El handler de `mapa-visible`** sirve como garantía de refresco: si al abrir el overlay el CSS o el navegador aún no aplicó las dimensiones finales al iframe, `_reajustarVista()` las recalcula. El reintento a 300 ms absorbe las transiciones CSS del overlay. El padre envía `mapa-visible` **una sola vez** por apertura; múltiples envíos causarían múltiples rondas de peticiones de tiles en paralelo → "piezas".
 
 **Por qué el overlay ya es visible cuando el módulo corre:** `mostrarIframeOverlay` (padre) es síncrona: añade la clase `.visible` al overlay (display:flex) antes de terminar su tarea actual. El módulo ES de `mapa-completo.html` solo ejecuta una vez que el navegador ha analizado el HTML del iframe — después de que el ciclo de tarea del padre termine. El overlay es visible cuando `_reajustarVista()` corre en el init, por lo que obtiene dimensiones reales del contenedor.
+
+---
+
+## §33 — Correcciones de bugs estructurales (2026-06-21)
+
+### §33.1 — Fix cola de controladores pendientes (`registrarControladorSeguro`)
+
+**Archivo:** `codigo-padre.html` ~línea 4360
+
+**Problema:** `globalThis.__CONTROLADOR_REGISTRADOS.add(tipo)` se ejecutaba **antes** de intentar el registro real. Si el handler iba a la cola (mensajería no disponible aún) quedaba marcado como "ya registrado". Al llamar `procesarControladoresPendientes` después, el guard `__CONTROLADOR_REGISTRADOS.has(tipo)` impedía el registro definitivo → el handler nunca se registraba.
+
+**Fix:** La marca se añade al Set solo **tras el éxito** del registro (tanto en la rama `registrarControlador_S1` como en la rama `mensajeria.registrarControlador`). En la rama de encolado **no se añade**. Además, `procesarControladoresPendientes` ahora emite `console.error` si, tras reintentar, el tipo sigue sin estar en el Set.
+
+```js
+// Antes (bug):
+globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);  // marca prematura
+if (typeof registrarControlador_S1 === 'function') {
+    return registrarControlador_S1(tipo, handler, opciones);
+} // ...
+
+// Después (fix):
+if (typeof registrarControlador_S1 === 'function') {
+    const result = registrarControlador_S1(tipo, handler, opciones);
+    globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);  // solo si éxito
+    return result;
+}
+```
+
+**Por qué este bug raramente causa síntomas visibles:** Los módulos ES garantizan que `mensajeria.js` (y por tanto `registrarControlador_S1`) están disponibles antes de que ningún script ejecute su cuerpo. La cola solo entra en juego si Script 2 llama a `registrarControladorSeguro` mientras Script 1 aún no terminó de ejecutarse — una ventana de milisegundos al inicio de la app. El fix hace que esa ventana no deje handlers huérfanos.
+
+---
+
+### §33.2 — Handlers críticos con `permanente: true`
+
+**Archivos:** `codigo-padre.html` (Script 1 y Script 2), `js/app.js`, `js/controladores-padre.js`
+
+**Problema:** `limpiarControladoresAntiguos` en `js/state-manager.js` (línea ~839) elimina controladores con más de 30 minutos sin actividad (`maxAgeMs = 30 * 60 * 1000`). Los handlers del corazón de la app (HIJO_PREPARADO, HEARTBEAT, CAMBIO_MODO, todos los NAVEGACION/AUDIO/DATOS…) pueden ser eliminados si el usuario permanece en una pantalla sin recibir esos mensajes durante 30 min — dejando al padre sordo a mensajes críticos.
+
+**Fix:** Todos los handlers registrados con `registrarControladorSeguro` en Script 1, Script 2, `app.js` y `controladores-padre.js` pasan ahora con `{ permanente: true }`:
+
+```js
+// Script 1 — ejemplo:
+registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HIJO_PREPARADO, _hdl_SISTEMA_HIJO_PREPARADO, { permanente: true });
+
+// Script 2 — ejemplo:
+globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO, _hdl_AUDIO_ESTADO_ACTUALIZADO, { permanente: true });
+
+// app.js:
+registrar(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO, async (msg) => { ... }, { permanente: true });
+
+// controladores-padre.js:
+registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje) => { ... }, { permanente: true });
+```
+
+`limpiarControladoresAntiguos` comprueba `!c.opciones?.permanente` antes de eliminar → los marcados con `permanente: true` se conservan indefinidamente.
+
+**Alcance:** 9 handlers en Script 1 (incluidos los 4 inline HEARTBEAT, HEARTBEAT_RESPONSE, HIJO_FALLIDO, CAMBIO_MODO_RESPONSE), 38 handlers en Script 2, 2 en `app.js`, 4 en `controladores-padre.js` = **53 handlers** marcados.
+
+**Nota:** El handler de `COORDENADAS_PARADAS_RESPONSE` en línea ~5351 se registra dinámicamente dentro de otra función (no en la inicialización); no se ha marcado como permanente para no interferir con su ciclo de vida específico.
+
+---
+
+### §33.3 — Race condition en operaciones heartbeat (`atomicUpdateHeartbeat`)
+
+**Archivos:** `js/state-manager.js`, `js/mensajeria.js`
+
+**Problema:** Las funciones `enviarHeartbeatAHijos`, `marcarHijoDesconectado` y `procesarHeartbeatResponse` hacían read-modify-write del estado heartbeat en **dos llamadas al mutex separadas**: `getHeartbeat()` (adquiere y libera) + `updateHeartbeat()` (adquiere y libera). Entre ambas llamadas, otra corrutina podía modificar el estado → pérdida de actualizaciones o contadores incorrectos.
+
+**Fix — `atomicUpdateHeartbeat` en `state-manager.js`:**
+
+```js
+export async function atomicUpdateHeartbeat(fn) {
+  await mutexes.heartbeat.runExclusive(async () => {
+    const snapshot = _deepCopy(state.heartbeat);
+    const updates = await fn(snapshot);
+    if (updates !== undefined) _deepMerge(state.heartbeat, updates);
+  });
+}
+```
+
+La función recibe un callback que opera sobre un snapshot y devuelve los cambios. Todo ocurre dentro de una única adquisición del mutex.
+
+**Fix en `mensajeria.js` — 3 puntos de carrera eliminados:**
+
+1. **`enviarHeartbeatAHijos`:** El incremento del contador de fallidos pasa a ser atómico. La variable `nuevosFailidos_count` se lee fuera del callback para la decisión posterior de desconectar.
+
+2. **`marcarHijoDesconectado`:** El `getHeartbeat` + `updateHeartbeat` por separado se reemplaza por una sola llamada `atomicUpdateHeartbeat`.
+
+3. **`procesarHeartbeatResponse`:** Los tres `updateHeartbeat` separados (resetear fallidos, actualizar `ultimoHeartbeat`, quitar de desconectados) se funden en una sola operación. La variable `estabaDesconectado` se captura dentro del callback y se lee fuera para disparar la lógica de reconexión.
+
+```js
+// Antes (3 llamadas al mutex):
+const estado = await sm.getHeartbeat();
+await sm.updateHeartbeat({ heartbeatsFallidos: ... });
+await sm.updateHeartbeat({ ultimoHeartbeat: ... });
+await sm.updateHeartbeat({ hijosDesconectados: ... });
+
+// Después (1 llamada al mutex):
+let estabaDesconectado = false;
+await sm.atomicUpdateHeartbeat(s => {
+    // ...modifica fallidos, ultimoHeartbeat, desconectados en un solo paso...
+    estabaDesconectado = desconectados.has(hijoId);
+    return { heartbeatsFallidos: ..., ultimoHeartbeat: ..., hijosDesconectados: ... };
+});
+```
+
+---
+
+### §33.4 — Renombrar `getPadreId` → `resolverIdPadre` en `utils.js`
+
+**Archivos:** `js/utils.js`, `js/app.js`, `js/funciones-mapa.js`, y todos los hijos HTML.
+
+**Problema:** `utils.js` exporta `getPadreId()`, que **resuelve** el ID del padre desde URL params / sessionStorage / generación aleatoria. Este nombre colisiona con `globalThis.getPadreId` definida en `codigo-padre.html` (línea ~3283), que **siempre devuelve `CONFIG_PADRE.ID` = `'padre'`**. Son dos funciones distintas con propósito distinto que comparten nombre, lo que confunde quién devuelve qué en el contexto de cada archivo.
+
+**Fix:** La función de `utils.js` se renombra a `resolverIdPadre` en todos sus puntos de definición y uso:
+
+- `js/utils.js`: definición (`export function resolverIdPadre`), objeto `__vv_utils`, `export default`
+- `js/app.js`: import + 12 llamadas como `origen:` en mensajes
+- `js/funciones-mapa.js`: import + usos
+- `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `chat-hijo6.html`, `boton-casa-hijo5.html`, `En-busca-del-tesoro.html`: import + usos
+
+**No renombrado (intencional):**
+
+- `codigo-padre.html`: usa `globalThis.getPadreId` (función propia, devuelve `'padre'`, no importa utils.js)
+- `js/controladores-padre.js`: recibe `getPadreId` como parámetro de inyección de dependencias desde el padre (recibe `getPadreId_S1`, la versión local). No importa de utils.js.
+
+---
+
+## §34 — Cierre de desplegables, pausa de audio y botón retroceder (2026-06-21)
+
+### §34.1 — UI.CLOSE_MENUS en el padre
+
+**Archivos:** `codigo-padre.html` Script 2, función `_hdl_UI_CLOSE_MENUS_PADRE`
+
+**Problema:** hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) cuando el usuario abre el panel "más-opciones", para que el padre cierre sus propios desplegables y evite solapamiento visual. El padre no tenía handler para ese mensaje.
+
+**Fix:** nuevo handler registrado en Script 2 cerca de `_regCtrl_NavegacionEventos`:
+
+```js
+function _hdl_UI_CLOSE_MENUS_PADRE(mensaje) {
+    const except = mensaje?.datos?.except;
+    if (except !== 'audio-control') {
+        const overlay = document.getElementById('audio-control-overlay');
+        if (overlay) overlay.classList.remove('open');
+    }
+}
+globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, _hdl_UI_CLOSE_MENUS_PADRE, { permanente: true });
+```
+
+---
+
+### §34.2 — Pausa de audio antes de abrir enlace externo
+
+**Archivo:** `extrainfo-hijo1.html`, dentro del handler `onclick` de cada icono de más-opciones
+
+**Problema:** Al pulsar un icono que abre YouTube, Instagram u otra web en nueva pestaña, el audio de la aventura seguía reproduciéndose sin que el usuario lo supiera.
+
+**Fix:** Antes de `globalThis.open(icono.url, '_blank')`, hijo1 envía `UI.ACCION_USUARIO` con `accion: 'audio_control', comando: 'pause'` directamente a `destino: 'hijo3'`. El audio queda pausado y el usuario lo reanuda manualmente cuando vuelve. El envío está en un `try/catch` propio para no bloquear la apertura del enlace si la pausa falla.
+
+```js
+try {
+    await enviarMensaje({
+        destino: 'hijo3',
+        tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
+        origen: CONFIG_HIJO.IFRAME_ID,
+        datos: { accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }
+    });
+} catch (_pe) { /* no bloquear apertura */ }
+globalThis.open(icono.url, '_blank');
+```
+
+hijo3 ya tenía el handler `UI.ACCION_USUARIO` que enruta `accion: 'audio_control'` a `_manejarAudioControl('pause', ...)` → `audioPlayer.pause()`. No se necesitó cambio en hijo3.
+
+---
+
+### §34.3 — Botón retroceder del dispositivo y vuelta de pestaña externa
+
+**Archivo:** `codigo-padre.html` Script 1
+
+**Mecanismo — botón retroceder:**
+
+Cuando la aventura se registra con éxito (en `_hdl_SELECCION_AVENTURA_ACTIVADA` y en `ejecutarReanudacion` del diálogo de reanudación), se inserta una entrada falsa en el historial del navegador:
+
+```js
+history.pushState({ vv_en_aventura: true }, '');
+```
+
+Un listener `popstate` detecta el evento y, si `e.state.vv_en_aventura` es `true` y hay una aventura activa en `globalThis.aventuraSeleccionada`, re-inserta otra entrada (para que el siguiente "atrás" también quede interceptado) y muestra `mostrarDialogoVueltaRapida`.
+
+**Mecanismo — vuelta de pestaña externa:**
+
+Cuando el padre recibe `UI.NAVEGACION_EXTERNA` (enviado por hijo1 al abrir un enlace), establece `globalThis.__vv_salidaEnlaceExterno = true`. Un listener `visibilitychange` comprueba este flag al volver (`document.visibilityState === 'visible'`), lo limpia y, si hay aventura activa, muestra el mismo diálogo.
+
+**`mostrarDialogoVueltaRapida(idioma)`:**
+
+Función hermana de `mostrarDialogoReanudacion` que reutiliza `TRADUCCIONES_REANUDACION` (ya disponibles en 12 idiomas) y el mismo estilo visual (`#1a1a2e`, borde `#f5a623`), pero con callbacks simplificados:
+
+- **"Continuar mi aventura"** → cierra el overlay. Audio queda pausado si lo estaba; el usuario lo reanuda manualmente.
+- **"Elegir otra aventura"** → limpia `localStorage` + globals + `estado.seleccion`, muestra el iframe de selección y lo navega a pantalla P2 (idioma).
+
+La función NO llama a `ejecutarRestauracionAventura` (no recarga la aventura, no muestra pantalla de carga). Es una intercepción ligera, no una restauración.
+
+**Guards de concurrencia:**
+- `_popstateActivo`: evita mostrar el diálogo dos veces si `popstate` se dispara antes de que el usuario responda
+- `_dialogoVueltaActivo`: ídem para `visibilitychange`

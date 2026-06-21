@@ -387,7 +387,7 @@
     <script type="module">
     /* --- Integración con Sistema de Mensajería --- */
 
-    import { retryUntilAvailable, getPadreId } from './js/utils.js';
+    import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {
@@ -852,7 +852,7 @@
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.RETO.SOLICITAR_RETO,
                         origen: CONFIG_HIJO.IFRAME_ID,
-                        destino: getPadreId(),
+                        destino: resolverIdPadre(),
                         datos: { contexto: 'hijo4-botonRetos' }
                     });
                 } catch(e) {
@@ -1088,7 +1088,7 @@
                         await enviarMensajeConConfirmacion({
                             tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
                             origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             datos: {
                                 retoId: reto.id,
                                 correcto: true,
@@ -1100,7 +1100,7 @@
                         enviarMensaje({
                             tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
                             origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             datos: {
                                 retoId: reto.id,
                                 correcto: true,
@@ -1154,7 +1154,7 @@
             enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.OCULTAR,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: {
                     retoId: retoActual ? retoActual.id : null
                 }
@@ -1176,7 +1176,7 @@
                 enviarMensaje({
                     tipo: TIPOS_MENSAJE.RETO.OCULTAR,
                     origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     datos: { retoId: retoActual ? retoActual.id : null }
                 });
             });
@@ -1205,7 +1205,7 @@
                 await enviarMensaje({
                     tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
                     origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     datos: {
                         retoId: retoActual.id,
                         completado: true
@@ -1347,7 +1347,7 @@
                     async function enviarHijoListoConReintento() {
                         try {
                             await enviarMensaje({
-                                destino: getPadreId(),
+                                destino: resolverIdPadre(),
                                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
                                 origen: CONFIG_HIJO.IFRAME_ID,
                                 datos: {
@@ -1416,7 +1416,7 @@
 
                 // Mostrar UI ahora que el padre confirmó
                 try { _uiConfirmado = true; mostrarUI(); } catch (_e) { /* ignore */ } // NOSONAR
-                try { await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (_e) { /* ignore */ } // NOSONAR
+                try { await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (_e) { /* ignore */ } // NOSONAR
 
                 // Verificación diferida: si CARGAR_RETOS no llegó en 3s, solicitarlo al padre
                 setTimeout(() => {
@@ -1425,7 +1425,7 @@
                         enviarMensaje({
                             tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS,
                             origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
                         }).catch(err => logger.error('[hijo4] Error solicitando retos:', err));
                     }
@@ -1464,7 +1464,7 @@
                     estado.retoActualId = retoId;
                     // Fase 2: confirmar al padre que el reto ha sido mostrado
                     try {
-                        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.MOSTRADO, origen: CONFIG_HIJO.IFRAME_ID, destino: getPadreId(), datos: { retoId } });
+                        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.MOSTRADO, origen: CONFIG_HIJO.IFRAME_ID, destino: resolverIdPadre(), datos: { retoId } });
                         logger.info(`[hijo4] RETO.MOSTRADO enviado al padre para reto: ${retoId}`);
                     } catch (sendErr) {
                         logger.warn(`[hijo4] Error enviando RETO.MOSTRADO:`, sendErr?.message || sendErr);
@@ -1643,7 +1643,7 @@
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.DATOS.RETOS_CARGADOS,
                         origen: CONFIG_HIJO.IFRAME_ID,
-                        destino: getPadreId(),
+                        destino: resolverIdPadre(),
                         datos: {
                             exito: true,
                             aventura: aventura,
@@ -1663,7 +1663,7 @@
                         await enviarMensaje({
                             tipo: TIPOS_MENSAJE.DATOS.RETOS_CARGADOS,
                             origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             datos: {
                                 exito: false,
                                 error: error.message,
@@ -1811,7 +1811,7 @@
                     }
                     // Send confirmation back to parent
                     await enviarMensaje({
-                        destino: mensaje.origen || getPadreId(),
+                        destino: mensaje.origen || resolverIdPadre(),
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
                         origen: CONFIG_HIJO.IFRAME_ID,
                         datos: { paradaId: paradaId || null, parada_id: paradaId || null, padreId: padreId || null, padreid: padreId || null, timestamp: Date.now() }
@@ -1898,7 +1898,7 @@
             try {
                 logger.debug('[hijo4] Todos los controladores registrados; enviando HIJO_PREPARADO ahora');
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {

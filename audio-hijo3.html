@@ -431,7 +431,7 @@
     </audio>
 
     <script type="module">
-    import { retryUntilAvailable, resolverIdsParada, getPadreId, ajustarTimeoutPorConexion } from './js/utils.js';
+    import { retryUntilAvailable, resolverIdsParada, resolverIdPadre, ajustarTimeoutPorConexion } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
 
@@ -800,7 +800,7 @@
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.SOLICITAR_RETO,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: {
                     contexto: 'manual',
                     audioId: currentAudioId
@@ -1054,7 +1054,7 @@
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: { audioId: currentAudioId, estado: 'reproduciendo' }
             });
         }
@@ -1075,7 +1075,7 @@
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.FIN_REPRODUCCION,
                 origen: CONFIG_HIJO.IFRAME_ID,
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 datos: { audioId: currentAudioId, estado: 'finalizado' }
             });
         }
@@ -1086,7 +1086,7 @@
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.AUDIO.ERROR,
             origen: CONFIG_HIJO.IFRAME_ID,
-            destino: getPadreId(),
+            destino: resolverIdPadre(),
             datos: { audioId: currentAudioId, error: audioPlayer.error?.message || 'Error desconocido' }
         });
     });
@@ -1201,7 +1201,7 @@
                 async function enviarHijoListoConReintento() {
                     try {
                         await enviarMensaje({
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
                             origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
@@ -1277,7 +1277,7 @@
                         logger.debug(`${logPrefix} No se pudo forzar mostrarUI`, e && e.message);
                     }
                     try {
-                        enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
+                        enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch((err) => logger.debug(`${logPrefix} Confirmacion UI_VISIBLE no enviada`, err && err.message));
                     } catch (e) {
                         logger.debug(`${logPrefix} Error armando confirmacion UI_VISIBLE`, e && e.message);
                     }
@@ -1303,7 +1303,7 @@
                         enviarMensaje({
                             tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS,
                             origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
                         }).catch(err => logger.error('[hijo3] Error solicitando audios:', err));
                     }
@@ -1353,7 +1353,7 @@
                 await enviarMensajeConConfirmacion({
                     tipo: TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS,
                     origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     datos: {
                         exito: true,
                         aventura: aventura,
@@ -1373,7 +1373,7 @@
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS,
                         origen: CONFIG_HIJO.IFRAME_ID,
-                        destino: getPadreId(),
+                        destino: resolverIdPadre(),
                         datos: {
                             exito: false,
                             error: error.message,
@@ -1660,7 +1660,7 @@
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO,
                         origen: CONFIG_HIJO.IFRAME_ID,
-                        destino: mensaje.origen || getPadreId(),
+                        destino: mensaje.origen || resolverIdPadre(),
                             datos: { paradaId: paradaId || null, parada_id: paradaId || null, padreId: padreId || null, padreid: padreId || null, timestamp: Date.now() }
                     });
                     logger.info(`${logPrefix} ConfirmaciÃ³n enviada`);
@@ -1697,7 +1697,7 @@
                 if (!Array.isArray(files) || files.length === 0) {
                     const errorData = { exito: false, error: 'audioFiles_missing', paradaId };
                     await enviarMensaje({
-                        destino: mensaje.origen || getPadreId(),
+                        destino: mensaje.origen || resolverIdPadre(),
                         tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
                         idOriginal: mensaje.id,
                         origen: CONFIG_HIJO.IFRAME_ID,
@@ -1739,7 +1739,7 @@
                         audioIdEsperado: audioIdEsperado || null
                     };
                     await enviarMensaje({
-                        destino: mensaje.origen || getPadreId(),
+                        destino: mensaje.origen || resolverIdPadre(),
                         tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
                         idOriginal: mensaje.id,
                         origen: CONFIG_HIJO.IFRAME_ID,
@@ -1760,7 +1760,7 @@
                 // Enviar confirmaciÃ³n con formato correcto para que enviarMensajeConConfirmacion resuelva
                 // Debe tener: tipo=SISTEMA.CONFIRMACION, idOriginal=mensaje.id, datos=resultado
                 await enviarMensaje({
-                    destino: mensaje.origen || getPadreId(),
+                    destino: mensaje.origen || resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
                     idOriginal: mensaje.id, // CLAVE: permite resolver la promesa pendiente
                     origen: CONFIG_HIJO.IFRAME_ID,
@@ -1841,7 +1841,7 @@
 
                 // Responder al ACK
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.ACK,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -1870,7 +1870,7 @@
         try {
             logger.debug('[hijo3] Todos los controladores registrados; enviando HIJO_PREPARADO ahora');
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -229,7 +229,7 @@
 </script>
 
 <script type="module">
-  import { retryUntilAvailable, getPadreId } from './js/utils.js';
+  import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import logger from './js/logger.js';
   import {
@@ -377,7 +377,7 @@
     if (!hijoListoEnviado) {
       try {
         await enviarMensaje({
-          destino: getPadreId(),
+          destino: resolverIdPadre(),
           tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
           origen: CONFIG_HIJO.IFRAME_ID,
           datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
@@ -426,7 +426,7 @@
   // ── HIJO_PREPARADO — después de registrar todos los controladores ─────────
   try {
     await enviarMensaje({
-      destino: getPadreId(),
+      destino: resolverIdPadre(),
       tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
       origen: CONFIG_HIJO.IFRAME_ID,
       datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, version: '1.0.0', tipo: 'CHAT', capacidades: ['chat', 'faq'], timestamp: Date.now() }

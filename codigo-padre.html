@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
@@ -2959,7 +2959,7 @@
 
           { TIPOS_MENSAJE: TIPOS_MENSAJE_S1, MODOS: MODOS_S1 },
 
-          { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S1, normalizarParadas: normalizarParadas_S1, getPadreId: getPadreId_S1 },
+          { ajustarTimeoutPorConexion: ajustarTimeoutPorConexion_S1, normalizarParadas: normalizarParadas_S1, resolverIdPadre: getPadreId_S1 },
 
           { esTelefonoMovil: esTelefonoMovil_S1 },
 
@@ -4055,6 +4055,8 @@
                     try {
                         await ejecutarRestauracionAventura(datosGuardados);
                         actualizarRestoreProgress(100);
+                        // Insertar entrada en el historial para interceptar "botón atrás"
+                        try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
                     } finally {
                         clearInterval(restoreProgressTimer);
                         cargandoEl.style.opacity = '0';
@@ -4123,6 +4125,94 @@
                 overlay.querySelector('#btn-confirmar-otra').addEventListener('click', ejecutarElegirOtra);
             });
         }
+
+        // ── Diálogo ligero: botón retroceder / vuelta de pestaña externa ─────────────
+        // Mismo estilo visual y traducciones que mostrarDialogoReanudacion pero sin
+        // restaurar aventura. "Continuar" cierra el modal (audio sigue pausado, el
+        // usuario lo reanuda manualmente). "Elegir otra" limpia estado y va a selección.
+        async function mostrarDialogoVueltaRapida(idioma) {
+            const t = TRADUCCIONES_REANUDACION[idioma] || TRADUCCIONES_REANUDACION['es'];
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.id = 'dialogo-vuelta-rapida-overlay';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;';
+                overlay.innerHTML = `
+                    <div style="background:#1a1a2e;border-radius:1.2rem;padding:2rem 1.5rem;max-width:95vw;width:min(95vw,26rem);text-align:center;box-shadow:0 0.5rem 2rem rgba(0,0,0,0.5);border:2px solid #f5a623;">
+                        <h2 style="color:#f5a623;margin:0 0 1.5rem 0;font-size:1.5rem;">${t.titulo}</h2>
+                        <button type="button" id="btn-vuelta-continuar" style="display:block;width:100%;padding:1rem;font-size:1.2rem;font-weight:bold;background:#27ae60;color:#fff;border:none;border-radius:0.8rem;cursor:pointer;margin-bottom:0.8rem;transition:background 0.2s;">
+                            ${t.continuar}
+                        </button>
+                        <button type="button" id="btn-vuelta-elegir-otra" style="display:block;width:100%;padding:0.7rem;font-size:0.95rem;background:transparent;color:#f5a623;border:1px solid #f5a623;border-radius:0.6rem;cursor:pointer;">
+                            ${t.elegirOtra}
+                        </button>
+                    </div>`;
+                document.body.appendChild(overlay);
+
+                function _continuar() { overlay.remove(); resolve('continuar'); }
+
+                async function _elegirOtra() {
+                    overlay.remove();
+                    try {
+                        localStorage.removeItem('vv_aventura_iniciada');
+                        localStorage.removeItem('vv_progreso');
+                        localStorage.removeItem('vv_paradas_completadas');
+                        localStorage.removeItem('vv_idioma');
+                        localStorage.removeItem('vv_aventura');
+                    } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                    globalThis.aventuraSeleccionada = null;
+                    globalThis.idiomaSeleccionado = null;
+                    if (estado.seleccion) {
+                        estado.seleccion.aventura = null;
+                        estado.seleccion.idioma = null;
+                        estado.seleccion.iniciada = false;
+                    }
+                    const iframeSeleccion = document.getElementById('seleccion');
+                    if (iframeSeleccion) {
+                        iframeSeleccion.style.display = 'block';
+                        iframeSeleccion.style.visibility = 'visible';
+                        try {
+                            iframeSeleccion.contentWindow.postMessage(
+                                { tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA, datos: { pantalla: 2 } },
+                                globalThis.location.origin
+                            );
+                        } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                    }
+                    resolve('otra');
+                }
+
+                overlay.querySelector('#btn-vuelta-continuar').addEventListener('click', _continuar);
+                overlay.querySelector('#btn-vuelta-elegir-otra').addEventListener('click', _elegirOtra);
+            });
+        }
+        globalThis._mostrarDialogoVueltaRapida = mostrarDialogoVueltaRapida;
+
+        // Popstate — intercepta el botón retroceder del dispositivo cuando hay aventura activa
+        let _popstateActivo = false;
+        globalThis.addEventListener('popstate', async (e) => {
+            if (!e.state?.vv_en_aventura) return;
+            const enAventura = !!(globalThis.aventuraSeleccionada && globalThis.idiomaSeleccionado);
+            if (!enAventura) return;
+            // Re-insertar entrada para que el próximo "atrás" también quede interceptado
+            try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
+            if (_popstateActivo) return;
+            _popstateActivo = true;
+            try { await mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es'); }
+            finally { _popstateActivo = false; }
+        });
+
+        // Visibilitychange — muestra diálogo al volver de pestaña externa solo si el usuario
+        // salió desde más-opciones (flag puesto por _hdl_UI_NAVEGACION_EXTERNA)
+        let _dialogoVueltaActivo = false;
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState !== 'visible') return;
+            if (!globalThis.__vv_salidaEnlaceExterno) return;
+            globalThis.__vv_salidaEnlaceExterno = false;
+            const enAventura = !!(globalThis.aventuraSeleccionada && globalThis.idiomaSeleccionado);
+            if (!enAventura || _dialogoVueltaActivo) return;
+            _dialogoVueltaActivo = true;
+            try { await mostrarDialogoVueltaRapida(globalThis.idiomaSeleccionado || 'es'); }
+            finally { _dialogoVueltaActivo = false; }
+        });
 
         // Ejecuta la restauración completa de una aventura guardada
 
@@ -4362,15 +4452,18 @@
                         (globalThis.logger || console).warn(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Controlador ya registrado, omitiendo: ${tipo}`);
                         return;
                     }
-                    globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
-
                     // Si registrarControlador_S1 no está disponible, usar mensajeria directa como fallback
                     if (typeof registrarControlador_S1 === 'function') {
-                        return registrarControlador_S1(tipo, handler, opciones);
+                        const result = registrarControlador_S1(tipo, handler, opciones);
+                        globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
+                        return result;
                     } else if (globalThis.mensajeria && globalThis.mensajeria.registrarControlador) {
-                        return globalThis.mensajeria.registrarControlador(tipo, handler, opciones);
+                        const result = globalThis.mensajeria.registrarControlador(tipo, handler, opciones);
+                        globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
+                        return result;
                     } else {
                         // Como último recurso, guardar en cola para registrar después
+                        // NO añadir al Set aquí: se añade cuando el registro real tenga éxito
                         if (!globalThis.__CONTROLADORES_PENDIENTES) globalThis.__CONTROLADORES_PENDIENTES = [];
                         globalThis.__CONTROLADORES_PENDIENTES.push({tipo, handler, opciones});
                         (globalThis.logger || console).info(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Controlador encolado: ${tipo} (mensajería no disponible)`);
@@ -4390,6 +4483,9 @@
                     for (const {tipo, handler, opciones} of pendientes) {
                         try {
                             globalThis.registrarControladorSeguro(tipo, handler, opciones);
+                            if (!globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) {
+                                (globalThis.logger || console).error(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Controlador pendiente NO registrado tras reintentar: ${tipo}`);
+                            }
                         } catch (e) {
                             (globalThis.logger || console).error(`${(globalThis.CONFIG_PADRE && globalThis.CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Error procesando controlador pendiente ${tipo}:`, e && e.message);
                         }
@@ -6170,7 +6266,7 @@
                 (globalThis.logger || console).error(`${logPrefix} Error procesando HIJO_PREPARADO:`, error);
             }
         }
-        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HIJO_PREPARADO, _hdl_SISTEMA_HIJO_PREPARADO);
+        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HIJO_PREPARADO, _hdl_SISTEMA_HIJO_PREPARADO, { permanente: true });
 
         // ============================================================
         // CONTROLADOR CRÍTICO: SISTEMA.HIJO_LISTO
@@ -6314,7 +6410,7 @@
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error procesando hijo listo:`, error); }
         }
 
-        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HIJO_LISTO, _hdl_SISTEMA_HIJO_LISTO);
+        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HIJO_LISTO, _hdl_SISTEMA_HIJO_LISTO, { permanente: true });
 
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ✅ Controlador HIJO_LISTO registrado (Script 1)`);
 
@@ -6454,7 +6550,7 @@
             }
         }
 
-        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, _hdl_SISTEMA_CAMBIO_MODO);
+        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, _hdl_SISTEMA_CAMBIO_MODO, { permanente: true });
 
         // NOTA: AUDIO.FIN_REPRODUCCION se maneja en Script 2 para evitar duplicados
         // (Controlador eliminado de aquí - ver línea ~6993 en Script 2)
@@ -6505,7 +6601,7 @@
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando heartbeat:`, error);
             }
-        });
+        }, { permanente: true });
 
         // CONTROLADOR: SISTEMA.HEARTBEAT_RESPONSE
         registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE, async (mensaje) => {
@@ -6547,7 +6643,7 @@
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando respuesta heartbeat:`, error);
             }
-        });
+        }, { permanente: true });
 
         // NOTA: Los handlers de CAMBIO_MODO_ENTENDIDO y CAMBIO_MODO_EFECTUADO
         // se registran en app.js (actualizarInterfazModo) para que el protocolo
@@ -6569,7 +6665,7 @@
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando HIJO_FALLIDO:`, error);
             }
-        });
+        }, { permanente: true });
         // bidireccional pueda rastrear qué hijos respondieron. Registrarlos aquí
         // bloquearía los de app.js debido a la dedup por tipo en registrarControladorSeguro,
         // provocando timeouts de 15s en cada cambio de modo.
@@ -6606,7 +6702,7 @@
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando respuesta de cambio de modo:`, error);
             }
-        });
+        }, { permanente: true });
 
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ✅ Controladores SISTEMA registrados (Script 1)`);
 
@@ -6674,7 +6770,7 @@
             }
         }
 
-        registrarControladorSeguro(TIPOS_MENSAJE_S1.UI.ACCION_USUARIO, _hdl_UI_ACCION_USUARIO);
+        registrarControladorSeguro(TIPOS_MENSAJE_S1.UI.ACCION_USUARIO, _hdl_UI_ACCION_USUARIO, { permanente: true });
 
         // CONTROLADOR: SISTEMA.APLICACION_INICIALIZADA
         async function _inicializarPrimerElemento(estado, logPrefix) {
@@ -6781,7 +6877,7 @@
             }
         }
 
-        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.APLICACION_INICIALIZADA, _hdl_APLICACION_INICIALIZADA);
+        registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.APLICACION_INICIALIZADA, _hdl_APLICACION_INICIALIZADA, { permanente: true });
 
         // Controladores principales en Script 2: RETO.SOLICITAR_RETO, DATOS.SOLICITAR_PARADAS, NAVEGACION.CAMBIO_PARADA
 
@@ -9018,11 +9114,11 @@
         }
 
         function _regCtrl_Reto(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.OCULTAR, _hdl_RETO_OCULTAR);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.OCULTAR, _hdl_RETO_OCULTAR, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.COMPLETADO, _hdl_RETO_COMPLETADO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.COMPLETADO, _hdl_RETO_COMPLETADO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.MOSTRADO, _hdl_RETO_MOSTRADO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.RETO.MOSTRADO, _hdl_RETO_MOSTRADO, { permanente: true });
 
         }
 
@@ -9131,11 +9227,11 @@
         }
 
         function _regCtrl_GPS(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, _hdl_NAVEGACION_GPS_ACTIVAR);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, _hdl_NAVEGACION_GPS_ACTIVAR, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, _hdl_NAVEGACION_GPS_DESACTIVAR);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, _hdl_NAVEGACION_GPS_DESACTIVAR, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO, _hdl_NAVEGACION_GPS_RESTRINGIDO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO, _hdl_NAVEGACION_GPS_RESTRINGIDO, { permanente: true });
         }
 
         async function _centrarEnParada(paradaActual, logPrefix) {
@@ -9995,17 +10091,17 @@
         }
 
         function _regCtrl_NavegacionMovimiento(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CENTRAR_EN_UBICACION, _hdl_NAVEGACION_CENTRAR_EN_UBICACION);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CENTRAR_EN_UBICACION, _hdl_NAVEGACION_CENTRAR_EN_UBICACION, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO, _hdl_NAVEGACION_ACTUALIZAR_MARCADOR_USUARIO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO, _hdl_NAVEGACION_ACTUALIZAR_MARCADOR_USUARIO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE, _hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE, _hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO, _hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO, _hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_VINTAGE, _hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_VINTAGE, _hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, _hdl_NAVEGACION_CAMBIO_PARADA);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, _hdl_NAVEGACION_CAMBIO_PARADA, { permanente: true });
 
         // Disparador directo para restauración de sesión (cross-scope: bloque 2419 no puede llamar _hdl directamente)
         globalThis.__triggerCambioParadaInterno = async function(datos) {
@@ -10017,9 +10113,9 @@
             });
         };
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO, _hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO, _hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, _hdl_NAVEGACION_LLEGADA_DETECTADA);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, _hdl_NAVEGACION_LLEGADA_DETECTADA, { permanente: true });
         }
 
         async function _hdl_NAVEGACION_USUARIO_FUERA_RANGO(mensaje) {
@@ -10059,6 +10155,8 @@
         function _hdl_UI_NAVEGACION_EXTERNA(mensaje) {
             const { url, titulo } = mensaje.datos || {};
             (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[NAVEGACION_EXTERNA] URL abierta por ${mensaje.origen || 'desconocido'}: ${url || '(sin url)'}${titulo ? ` — ${titulo}` : ''}`);
+            // Marcar salida a pestaña externa para mostrar diálogo al volver (visibilitychange)
+            globalThis.__vv_salidaEnlaceExterno = true;
         }
 
         function _hdl_SISTEMA_ADVERTENCIA(mensaje) {
@@ -10066,12 +10164,24 @@
             (globalThis.logger || console).warn(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SISTEMA.ADVERTENCIA] desde ${mensaje.origen || 'desconocido'}${codigo ? ` [${codigo}]` : ''}: ${texto || detalle || JSON.stringify(mensaje.datos)}`);
         }
 
+        function _hdl_UI_CLOSE_MENUS_PADRE(mensaje) {
+            // hijo1 envía este mensaje para que el padre cierre sus propios desplegables
+            // antes de abrir el panel de más-opciones (evita solapamiento visual)
+            const except = mensaje?.datos?.except;
+            if (except !== 'audio-control') {
+                const overlay = document.getElementById('audio-control-overlay');
+                if (overlay) overlay.classList.remove('open');
+            }
+        }
+
         function _regCtrl_NavegacionEventos(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO, _hdl_NAVEGACION_USUARIO_FUERA_RANGO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO, _hdl_NAVEGACION_USUARIO_FUERA_RANGO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.NAVEGACION_EXTERNA, _hdl_UI_NAVEGACION_EXTERNA);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.NAVEGACION_EXTERNA, _hdl_UI_NAVEGACION_EXTERNA, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ADVERTENCIA, _hdl_SISTEMA_ADVERTENCIA);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ADVERTENCIA, _hdl_SISTEMA_ADVERTENCIA, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, _hdl_UI_CLOSE_MENUS_PADRE, { permanente: true });
         }
 
         async function _hdl_AUDIO_ESTADO_ACTUALIZADO(mensaje) {
@@ -10372,13 +10482,13 @@
         }
 
         function _regCtrl_Audio(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO, _hdl_AUDIO_ESTADO_ACTUALIZADO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO, _hdl_AUDIO_ESTADO_ACTUALIZADO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.FIN_REPRODUCCION, _hdl_AUDIO_FIN_REPRODUCCION);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.FIN_REPRODUCCION, _hdl_AUDIO_FIN_REPRODUCCION, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ERROR, _hdl_AUDIO_ERROR);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ERROR, _hdl_AUDIO_ERROR, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE, _hdl_AUDIO_REPRODUCIR_RESPONSE);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE, _hdl_AUDIO_REPRODUCIR_RESPONSE, { permanente: true });
         }
 
         async function _hdl_DATOS_COORDENADAS_CARGADAS(mensaje) {
@@ -10486,13 +10596,13 @@
         }
 
         function _regCtrl_DatosRespuestas(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS, _hdl_DATOS_COORDENADAS_CARGADAS);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS, _hdl_DATOS_COORDENADAS_CARGADAS, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS, _hdl_DATOS_AUDIOS_CARGADOS);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS, _hdl_DATOS_AUDIOS_CARGADOS, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.RETOS_CARGADOS, _hdl_DATOS_RETOS_CARGADOS);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.RETOS_CARGADOS, _hdl_DATOS_RETOS_CARGADOS, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS, _hdl_DATOS_TEXTOS_CARGADOS);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS, _hdl_DATOS_TEXTOS_CARGADOS, { permanente: true });
         }
 
         function _combinarCoordenadas(paradaCompleta, item) {
@@ -10638,14 +10748,14 @@
         }
 
         function _regCtrl_DatosSolicitudes(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_PARADAS, _hdl_DATOS_SOLICITAR_PARADAS);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_PARADAS, _hdl_DATOS_SOLICITAR_PARADAS, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_COORDENADAS, _hdl_DATOS_SOLICITAR_COORDENADAS);
-
-
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_COORDENADAS, _hdl_DATOS_SOLICITAR_COORDENADAS, { permanente: true });
 
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.MONITOREO.METRICA, _hdl_MONITOREO_METRICA);
+
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.MONITOREO.METRICA, _hdl_MONITOREO_METRICA, { permanente: true });
         }
 
         async function _hdl_SELECCION_IDIOMA_SELECCIONADO(mensaje) {
@@ -10986,6 +11096,8 @@
                 setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA activo → timer pendiente hasta que el usuario active GPS en hijo5`);
                 (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);
+                // Insertar entrada en el historial del navegador para interceptar "botón atrás"
+                try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error registrando aventura:`, error, error?.stack);
@@ -11170,16 +11282,16 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         }
 
         function _regCtrl_Seleccion(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.IDIOMA_SELECCIONADO, _hdl_SELECCION_IDIOMA_SELECCIONADO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.IDIOMA_SELECCIONADO, _hdl_SELECCION_IDIOMA_SELECCIONADO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA, _hdl_SELECCION_AVENTURA_SELECCIONADA);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA, _hdl_SELECCION_AVENTURA_SELECCIONADA, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.PREPARAR_HIJOS, _hdl_SELECCION_PREPARAR_HIJOS);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.PREPARAR_HIJOS, _hdl_SELECCION_PREPARAR_HIJOS, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA, _hdl_SELECCION_AVENTURA_ACTIVADA);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA, _hdl_SELECCION_AVENTURA_ACTIVADA, { permanente: true });
 
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.TERMINOS_ACEPTADOS, _hdl_SELECCION_TERMINOS_ACEPTADOS);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.TERMINOS_ACEPTADOS, _hdl_SELECCION_TERMINOS_ACEPTADOS, { permanente: true });
         }
 
         async function _hdl_AVENTURA_ESTADISTICAS_TIEMPO(mensaje) {
@@ -11413,15 +11525,15 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         }
 
         function _regCtrl_AventuraYTiempo(TIPOS_MENSAJE) {
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.ESTADISTICAS_TIEMPO, _hdl_AVENTURA_ESTADISTICAS_TIEMPO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.ESTADISTICAS_TIEMPO, _hdl_AVENTURA_ESTADISTICAS_TIEMPO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_AGOTADO, _hdl_AVENTURA_TIEMPO_AGOTADO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_AGOTADO, _hdl_AVENTURA_TIEMPO_AGOTADO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.FINALIZADA, _hdl_AVENTURA_FINALIZADA);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.FINALIZADA, _hdl_AVENTURA_FINALIZADA, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_ACTUALIZADO, _hdl_AVENTURA_TIEMPO_ACTUALIZADO);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_ACTUALIZADO, _hdl_AVENTURA_TIEMPO_ACTUALIZADO, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE, _hdl_TEMPORIZADOR_TOGGLE);
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE, _hdl_TEMPORIZADOR_TOGGLE, { permanente: true });
         }
 
         function _regCtrl_UI(TIPOS_MENSAJE) {

@@ -934,14 +934,18 @@ async function enviarHeartbeatAHijos() {
                     datos: { timestamp: Date.now() }
                 });
 
-                // Incrementar contador de fallidos (se resetea al recibir respuesta)
-                const fallidos = estado.heartbeatsFallidos?.get(hijoId) || 0;
-                const nuevosFallidos = new Map(estado.heartbeatsFallidos || []);
-                nuevosFallidos.set(hijoId, fallidos + 1);
-                await sm.updateHeartbeat({ heartbeatsFallidos: nuevosFallidos });
+                // Incrementar contador de fallidos de forma atómica (evita race con procesarHeartbeatResponse)
+                let nuevosFailidos_count = 0;
+                await sm.atomicUpdateHeartbeat(s => {
+                    const fallidos = s.heartbeatsFallidos?.get(hijoId) || 0;
+                    nuevosFailidos_count = fallidos + 1;
+                    const nuevosFallidos = new Map(s.heartbeatsFallidos || []);
+                    nuevosFallidos.set(hijoId, nuevosFailidos_count);
+                    return { heartbeatsFallidos: nuevosFallidos };
+                });
 
                 // Verificar si excede MAX_HEARTBEATS_FALLIDOS
-                if (fallidos + 1 >= maxFallidos) {
+                if (nuevosFailidos_count >= maxFallidos) {
                     await marcarHijoDesconectado(hijoId, autoReconectar);
                 }
             } catch (error) {
@@ -963,11 +967,11 @@ async function marcarHijoDesconectado(hijoId, autoReconectar = true) {
     if (!sm) return;
 
     try {
-        const estado = await sm.getHeartbeat();
-        const desconectados = new Set(estado?.hijosDesconectados || []);
-        desconectados.add(hijoId);
-
-        await sm.updateHeartbeat({ hijosDesconectados: Array.from(desconectados) });
+        await sm.atomicUpdateHeartbeat(s => {
+            const desconectados = new Set(s?.hijosDesconectados || []);
+            desconectados.add(hijoId);
+            return { hijosDesconectados: Array.from(desconectados) };
+        });
         logger.warn(`[mensajeria] Hijo ${hijoId} marcado como desconectado`);
 
         // Intentar reconectar si AUTO_RECONECTAR está activo
@@ -1010,28 +1014,22 @@ export async function procesarHeartbeatResponse(mensaje) {
     try {
         const hijoId = mensaje.origen;
 
-        // Resetear contador de fallidos
-        const estado = await sm.getHeartbeat();
-        const nuevosFallidos = new Map(estado?.heartbeatsFallidos || []);
-        nuevosFallidos.set(hijoId, 0);
-        await sm.updateHeartbeat({ heartbeatsFallidos: nuevosFallidos });
+        // Resetear fallidos, actualizar último heartbeat y reconectar — todo en una sola operación atómica
+        let estabaDesconectado = false;
+        await sm.atomicUpdateHeartbeat(s => {
+            const nuevosFallidos = new Map(s?.heartbeatsFallidos || []);
+            nuevosFallidos.set(hijoId, 0);
+            const nuevosUltimos = new Map(s?.ultimoHeartbeat || []);
+            nuevosUltimos.set(hijoId, Date.now());
+            const desconectados = new Set(s?.hijosDesconectados || []);
+            estabaDesconectado = desconectados.has(hijoId);
+            if (estabaDesconectado) desconectados.delete(hijoId);
+            return { heartbeatsFallidos: nuevosFallidos, ultimoHeartbeat: nuevosUltimos, hijosDesconectados: Array.from(desconectados) };
+        });
 
-        // Actualizar último heartbeat
-        const nuevosUltimos = new Map(estado?.ultimoHeartbeat || []);
-        nuevosUltimos.set(hijoId, Date.now());
-        await sm.updateHeartbeat({ ultimoHeartbeat: nuevosUltimos });
-
-        // Si estaba desconectado, marcar como reconectado
-        const desconectados = new Set(estado?.hijosDesconectados || []);
-        if (desconectados.has(hijoId)) {
-            desconectados.delete(hijoId);
-            await sm.updateHeartbeat({ hijosDesconectados: Array.from(desconectados) });
+        if (estabaDesconectado) {
             logger.info(`[mensajeria] Hijo ${hijoId} reconectado`);
-
-            // Reenviar mensajes pendientes (si hay cola)
             await reenviarMensajesPendientes(hijoId);
-
-            // Reenviar mensajes GPS pendientes específicamente para hijo2
             if (hijoId === 'hijo2') {
                 await reenviarMensajesGPSAPendientes(hijoId);
             }

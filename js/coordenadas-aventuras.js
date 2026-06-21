@@ -7228,7 +7228,1462 @@ export const DATOS_AVENTURAS = {
   },
   Aventura34km: {
     "coordenadas-hijo2.html": {
-      coordenadas: [/* array de coordenadas hijo2 (Aventura 34km) */]
+      coordenadas: [
+        /* array de coordenadas hijo2 (Aventura 34km) */
+    // Coordenadas completas Aventura 3
+        // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228)
+    {
+        id: "Av3-P-0",
+        tipo: "inicio",
+        parada: 0, // mapa número 1
+        mapa_numero: 1,
+        nombre: "Torres de Serranos (start)",
+        coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+    },
+
+    // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 5)
+    {
+        id: "Av3-TR-1",
+        tipo: "tramo",
+        tramo: 1, // De mapa número 1 a mapa número 2
+        mapa_numero: "1→2",
+        nombre: "Torres de Serranos → Plaza de la Crída",
+        inicio: { lat: Number('39.478760'), lng: Number('-0.376260') },
+        waypoints: [
+            { lat: Number('39.479050'), lng: Number('-0.376130') },
+            { lat: Number('39.479341'), lng: Number('-0.376408') },
+            { lat: Number('39.479500'), lng: Number('-0.376210') },
+            { lat: Number('39.479430'), lng: Number('-0.375970') }
+        ],
+        fin: { lat: Number('39.479590'), lng: Number('-0.375830') },
+        imagen: "imagenes/imagenes-aventuras/00_ torres_de serranos_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        video: "",
+    },
+    // Parada 1: Plaza de la Crída (Torres de Serranos Front) (Reto 4) (Párrafos: 126, 233)
+    {
+        id: "Av3-P-1",
+        tipo: "parada",
+        parada: 1, // mapa número 2
+        mapa_numero: 2,
+        nombre: "Plaza de la Crída",
+        coordenadas: { lat: Number('39.480620'), lng: Number('-0.375350') },
+        imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+    },
+    // Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1 (Párrafos: 230, 231)
+    {
+        id: "Av3-TR-2",
+        tipo: "tramo",
+        tramo: 2, // De mapa número 1 a sin número de mapa (Centro Puente de Serranos)
+        mapa_numero: "1→2",
+        nombre: "Plaza de la Crída → Centro Puente de Serranos",
+        inicio: { lat: Number('39.480620'), lng: Number('-0.375350') },
+        waypoints:
+        [
+            { lat: Number('39.480260'), lng: Number('-0.375530') },
+        ],
+        fin: { lat: Number('39.480620'), lng: Number('-0.375350') },
+        imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_serranos_2.jpg",
+        imagen3:"imagenes/imagenes-aventuras/puente_serranos.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
+        video: "",
+    },
+    // Parada 2: Centro Puente Serranos 1 (Reto 5) (Párrafos: 608, 609, 610)
+    {
+        id: "Av3-P-2",
+        tipo: "parada",
+        parada: 2, // Sin número de mapa
+        mapa_numero: null,
+        nombre: "Centro Puente Serranos",
+        coordenadas: { lat: Number('39.480620'), lng: Number('-0.375350') },
+        imagen: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
+    },
+    // Parada 3: Centro Puente Serranos 2 (Párrafos: 602, 232, 234, 8, 235, 224)
+    {
+        id: "Av3-P-3",
+        tipo: "parada",
+        parada: 3, // Sin número de mapa
+        mapa_numero: null,
+        nombre: "Centro Puente Serranos 2",
+        coordenadas: { lat: Number('39.480640'), lng: Number('-0.375340') },
+        imagen: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
+    },
+    // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia (Párrafos: 236, 644, 7-B)
+    {
+        id: "Av3-TR-3",
+        tipo: "tramo",
+        tramo: 3, // De sin número de mapa (Centro Puente de Serranos 2) a mapa número 6
+        mapa_numero: "-→6",
+        nombre: "Centro Puente de Serranos 2 → Ruinas del Jardín del Turia",
+        inicio: { lat: Number('39.480640'), lng: Number('-0.375340') },
+        waypoints:
+        [
+            { lat: Number('39.480020'), lng: Number('-0.375640') },
+            { lat: Number('39.479570'), lng: Number('-0.375880') },
+            { lat: Number('39.479480'), lng: Number('-0.375800') },
+            { lat: Number('39.479270'), lng: Number('-0.375330') },
+            { lat: Number('39.479240'), lng: Number('-0.375220') },
+            { lat: Number('39.479170'), lng: Number('-0.375060') },
+            { lat: Number('39.479110'), lng: Number('-0.374920') },
+            { lat: Number('39.479060'), lng: Number('-0.374840') },
+            { lat: Number('39.479040'), lng: Number('-0.374780') },
+            { lat: Number('39.478980'), lng: Number('-0.374680') },
+            { lat: Number('39.478930'), lng: Number('-0.374560') },
+            { lat: Number('39.478870'), lng: Number('-0.374430') },
+            { lat: Number('39.478640'), lng: Number('-0.373910') },
+            { lat: Number('39.478490'), lng: Number('-0.373540') },
+            { lat: Number('39.478350'), lng: Number('-0.373220') },
+            { lat: Number('39.478150'), lng: Number('-0.372920') },
+            { lat: Number('39.478210'), lng: Number('-0.372790') },
+            { lat: Number('39.477920'), lng: Number('-0.372320') },
+            { lat: Number('39.477720'), lng: Number('-0.371990') },
+            { lat: Number('39.477720'), lng: Number('-0.371970') },
+            { lat: Number('39.477730'), lng: Number('-0.371950') },
+            { lat: Number('39.477790'), lng: Number('-0.371910') },
+            { lat: Number('39.477890'), lng: Number('-0.371830') },
+            { lat: Number('39.477960'), lng: Number('-0.371780') },
+            { lat: Number('39.477870'), lng: Number('-0.371610') },
+            { lat: Number('39.477790'), lng: Number('-0.371490') },
+        ],
+        fin: { lat: Number('39.477730'), lng: Number('-0.371390') },
+        imagen: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
+        imagen3: "imagenes/imagenes-aventuras/serranos_pont_fusta.jpg",
+        imagen4: "imagenes/imagenes-aventuras/pont_fusta.jpg",
+        imagen5: "imagenes/imagenes-aventuras/museo_bellas_artes.jpg",
+        imagen6: "imagenes/imagenes-aventuras/bajada_rio_ruinas.jpg",
+        imagen7: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
+        video: "",
+    },
+    // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A)
+    {
+        id: "Av3-P-4",
+        tipo: "parada",
+        parada: 4, // mapa número 6
+        mapa_numero: 6,
+        nombre: "Ruinas del Jardín del Turia",
+        coordenadas: { lat: Number('39.477730'), lng: Number('-0.371390') },
+        imagen: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
+    },
+    // Tramo 4: Ruinas del Jardín del Turia → Puente de la Exposición (Párrafos: )
+    {
+        id: "Av3-TR-4",
+        tipo: "tramo",
+        tramo: 4, // De mapa número 6 → mapa número 7
+        mapa_numero: "6→7",
+        nombre: "Ruinas del Jardín del Turia → Puente de la Exposición",
+        inicio: { lat: Number('39.477730'), lng: Number('-0.371390') },
+        waypoints:
+        [
+            { lat: Number('39.477958'), lng: Number('-0.371762') },
+            { lat: Number('39.477769'), lng: Number('-0.371943') },
+            { lat: Number('39.477101'), lng: Number('-0.370926') },
+            { lat: Number('39.476541'), lng: Number('-0.370091') },
+            { lat: Number('39.476460'), lng: Number('-0.369916') },
+            { lat: Number('39.476196'), lng: Number('-0.369499') },
+            { lat: Number('39.475416'), lng: Number('-0.368847') },
+            { lat: Number('39.474515'), lng: Number('-0.368177') },
+            { lat: Number('39.474033'), lng: Number('-0.367775') },
+            { lat: Number('39.474008'), lng: Number('-0.367508') },
+            { lat: Number('39.474227'), lng: Number('-0.366904') },
+            { lat: Number('39.473805'), lng: Number('-0.366658') },
+            { lat: Number('39.473376'), lng: Number('-0.366300') },
+        ],
+        fin: { lat: Number('39.473375'), lng: Number('-0.366101') },
+        imagen: "imagenes/imagenes-aventuras/ruinas_turia.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_real_down.jpg",
+        imagen3: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
+        video: "",
+    },
+    // Parada 6: Puente de la Exposición (Peineta) (Reto 7) (Párrafos: 237, 1, 145, 239)
+    {
+        id: "Av3-P-6",
+        tipo: "parada",
+        parada: 6, // mapa número 9
+        mapa_numero: 9,
+        nombre: "Puente de la Exposición",
+        coordenadas: { lat: Number('39.473375'), lng: Number('-0.366101') },
+        imagen: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
+    },
+    // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B)
+    {
+        id: "Av3-TR-6",
+        tipo: "tramo",
+        tramo: 6, // De mapa número 9 a mapa número 10
+        mapa_numero: "9→10",
+        nombre: "Puente de la Exposición → Puente de las Flores",
+        inicio: { lat: Number('39.473430'), lng: Number('-0.366170') },
+        waypoints:
+        [
+            { lat: Number('39.473200'), lng: Number('-0.366530') },
+            { lat: Number('39.473010'), lng: Number('-0.366910') },
+            { lat: Number('39.472320'), lng: Number('-0.366340') },
+            { lat: Number('39.471950'), lng: Number('-0.366030') },
+            { lat: Number('39.471280'), lng: Number('-0.365480') },
+        ],
+        fin: { lat: Number('39.470800'), lng: Number('-0.365070') },
+        imagen: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        video: "",
+    },
+    // Parada 7: Puente de las Flores (Párrafos: 241, 570)
+    {
+        id: "Av3-P-7",
+        tipo: "parada",
+        parada: 7, // mapa número 10
+        mapa_numero: 10,
+        nombre: "Puente de las Flores",
+        coordenadas: { lat: Number('39.470800'), lng: Number('-0.365070') },
+        imagen: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+    },
+    // Tramo 7: Puente de las Flores → Puente de Aragón (parte superior) (Párrafos: 242, 15, 243, 20-B)
+    {
+        id: "Av3-TR-7",
+        tipo: "tramo",
+        tramo: 7, // De mapa número 10 a mapa número 12
+        mapa_numero: "10→12",
+        nombre: "Puente de las Flores → Puente de Aragón (parte superior)",
+        inicio: { lat: Number('39.470800'), lng: Number('-0.365070') },
+        waypoints:
+        [
+            { lat: Number('39.470130'), lng: Number('-0.364480') },
+            { lat: Number('39.470150'), lng: Number('-0.364140') },
+            { lat: Number('39.469820'), lng: Number('-0.363800') },
+            { lat: Number('39.470080'), lng: Number('-0.363090') },
+            { lat: Number('39.470340'), lng: Number('-0.363210') },
+            { lat: Number('39.470350'), lng: Number('-0.362860') },
+            { lat: Number('39.470000'), lng: Number('-0.362560') },
+            { lat: Number('39.469470'), lng: Number('-0.362250') },
+            { lat: Number('39.469490'), lng: Number('-0.362200') },
+            { lat: Number('39.469140'), lng: Number('-0.361990') },
+            { lat: Number('39.468960'), lng: Number('-0.361920') },
+            { lat: Number('39.468940'), lng: Number('-0.362310') },
+        ],
+        fin: { lat: Number('39.468910'), lng: Number('-0.362860') },
+        imagen: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen2: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
+        imagen3: "imagenes/imagenes-aventuras/puente_aragon_subida.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
+        video: "",
+    },
+    // Parada 8: Puente de Aragón 1 (Reto 8) (Párrafos: 244, 246)
+    {
+        id: "Av3-P-8",
+        tipo: "parada",
+        parada: 8, // mapa número 12
+        mapa_numero: 12,
+        nombre: "Puente de Aragón",
+        coordenadas: { lat: Number('39.468910'), lng: Number('-0.362860') },
+        imagen: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Puente_de_aragon_vista.jpg",
+    },
+    // Parada 9: Puente de Aragón 2 (Párrafos: 339)
+    {
+        id: "Av3-P-9",
+        tipo: "parada",
+        parada: 9, // mapa número 12
+        mapa_numero: 12,
+        nombre: "Puente de Aragón 2",
+        coordenadas: { lat: Number('39.468920'), lng: Number('-0.362880') },
+        imagen: "imagenes/imagenes-aventuras/Puente_de_aragon_vista.jpg",
+    },
+    // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior) (Párrafos: 247, 15)
+    {
+        id: "Av3-TR-8",
+        tipo: "tramo",
+        tramo: 8, // De mapa número 12 a mapa número 11
+        mapa_numero: "12→11",
+        nombre: "Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)",
+        inicio: { lat: Number('39.468920'), lng: Number('-0.362880') },
+        waypoints:
+        [
+            { lat: Number('39.468910'), lng: Number('-0.363290') },
+            { lat: Number('39.468880'), lng: Number('-0.363980') },
+            { lat: Number('39.469460'), lng: Number('-0.364420') },
+        ],
+        fin: { lat: Number('39.470010'), lng: Number('-0.364770') },
+        imagen: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
+        imagen2: "imagenes/imagenes-aventuras/pont_de_la_mar_top.jpg",
+        video: "",
+    },
+    // Parada 10: Puente de la Mar (Parte Superior) (Reto 9) (Párrafos: 248, 249)
+    {
+        id: "Av3-P-10",
+        tipo: "parada",
+        parada: 10, // mapa número 11
+        mapa_numero: 11,
+        nombre: "Puente de la Mar (Parte Superior)",
+        coordenadas: { lat: Number('39.470010'), lng: Number('-0.364770') },
+        imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_top.jpg",
+    },
+    // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música (Párrafos: 250, 251, 3-B)
+    {
+        id: "Av3-TR-9",
+        tipo: "tramo",
+        tramo: 9, // De mapa número 11 a mapa número 13
+        mapa_numero: "11→13",
+        nombre: "Puente de la Mar (Parte Superior) → Palau de la música",
+        inicio: { lat: Number('39.470010'), lng: Number('-0.364770') },
+        waypoints:
+        [
+            { lat: Number('39.469870'), lng: Number('-0.364670') },
+            { lat: Number('39.469880'), lng: Number('-0.364530') },
+            { lat: Number('39.469310'), lng: Number('-0.364190') },
+            { lat: Number('39.468650'), lng: Number('-0.363580') },
+            { lat: Number('39.467950'), lng: Number('-0.363160') },
+            { lat: Number('39.466230'), lng: Number('-0.362090') },
+            { lat: Number('39.466330'), lng: Number('-0.361760') },
+        ],
+        fin: { lat: Number('39.465800'), lng: Number('-0.361490') },
+        imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_top.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_mar_bajada.jpg",
+        imagen3:"imagenes/imagenes-aventuras/palau_de_la_musica.jpg",
+        video: "",
+    },
+    // Parada 11: Palau de la Música (Reto 10) (Párrafos: 252, 253)
+    {
+        id: "Av3-P-11",
+        tipo: "parada",
+        parada: 11, // mapa número 13
+        mapa_numero: 13,
+        nombre: "Palau de la Música",
+        coordenadas:  { lat: Number('39.465800'), lng: Number('-0.361490') },
+        imagen: "imagenes/imagenes-aventuras/palau_de_la_musica.jpg",
+    },
+    // Tramo 10: Palau de la música → Gulliver (Párrafos: 254, 255, 21, 256, 257, 22-E)
+    {
+        id: "Av3-TR-10",
+        tipo: "tramo",
+        tramo: 10, // De mapa número 13 a mapa número 15
+        mapa_numero: "13→15",
+        nombre: "Palau de la música → Gulliver",
+        inicio: { lat: Number('39.465800'), lng: Number('-0.361490') },
+        waypoints:
+        [
+            { lat: Number('39.465260'), lng: Number('-0.361140') },
+            { lat: Number('39.465460'), lng: Number('-0.360590') },
+            { lat: Number('39.465350'), lng: Number('-0.360410') },
+            { lat: Number('39.464990'), lng: Number('-0.359970') },
+            { lat: Number('39.464490'), lng: Number('-0.359670') },
+            { lat: Number('39.463980'), lng: Number('-0.359480') },
+            { lat: Number('39.463100'), lng: Number('-0.359170') },
+        ],
+        fin: { lat: Number('39.462980'), lng: Number('-0.359720') },
+        imagen: "imagenes/imagenes-aventuras/palau_de_la_musica.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_angel_custodio.jpg",
+        imagen3: "imagenes/imagenes-aventuras/gulliver.jpg",
+        video: "",
+    },
+    // Parada 12: Gulliver (Reto 11) (Párrafos: 258, 260, 259)
+    {
+        id: "Av3-P-12",
+        tipo: "parada",
+        parada: 12, // mapa número 15
+        mapa_numero: 15,
+        nombre: "Gulliver",
+        coordenadas:  { lat: Number('39.462980'), lng: Number('-0.359720') },
+        imagen: "imagenes/imagenes-aventuras/gulliver.jpg",
+        imagen2: "imagenes/imagenes-aventuras/gulliver_maqueta.jpg",
+        imagen3: "imagenes/imagenes-aventuras/gulliver_dentro.jpg",
+    },
+    // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 261, 24-D, 113)
+    {
+        id: "Av3-TR-11",
+        tipo: "tramo",
+        tramo: 11, // De mapa número 15 a mapa número 17
+        mapa_numero: "15→17",
+        nombre: "Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias",
+        inicio: { lat: Number('39.462980'), lng: Number('-0.359720') },
+        waypoints:
+        [
+            { lat: Number('39.463100'), lng: Number('-0.359170') },
+            { lat: Number('39.463300'), lng: Number('-0.358890') },
+            { lat: Number('39.463260'), lng: Number('-0.358860') },
+            { lat: Number('39.462900'), lng: Number('-0.358640') },
+            { lat: Number('39.462790'), lng: Number('-0.358660') },
+            { lat: Number('39.462460'), lng: Number('-0.358440') },
+            { lat: Number('39.462320'), lng: Number('-0.358350') },
+            { lat: Number('39.462160'), lng: Number('-0.358200') },
+            { lat: Number('39.461970'), lng: Number('-0.358140') },
+            { lat: Number('39.460970'), lng: Number('-0.357580') },
+            { lat: Number('39.460430'), lng: Number('-0.357100') },
+            { lat: Number('39.460330'), lng: Number('-0.357350') },
+            { lat: Number('39.460030'), lng: Number('-0.357710') },
+        ],
+        fin: { lat: Number('39.459850'), lng: Number('-0.357590') },
+        imagen: "imagenes/imagenes-aventuras/gulliver.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_reino.jpg",
+        imagen3:"imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
+        imagen5:"imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        video: "",
+    },
+    // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 262, 17-B, 264, 265, 266, 18-B, 267, 27-B)
+    {
+        id: "Av3-P-13",
+        tipo: "parada",
+        parada: 13, // mapa número 17
+        mapa_numero: 17,
+        nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias",
+        coordenadas:  { lat: Number('39.459850'), lng: Number('-0.357590') },
+        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+    },
+    // Tramo 12: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269)
+    {
+        id: "Av3-TR-12",
+        tipo: "tramo",
+        tramo: 12, // De mapa número 17 a sin número de mapa
+        mapa_numero: "17→-",
+        nombre: "Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        inicio: { lat: Number('39.459850'), lng: Number('-0.357590') },
+        waypoints:
+        [
+            //comentadas porque la ruta ha cambiado pero aún pueden ser útiles en el futuro//
+            //{ lat: Number('39.460030'), lng: Number('-0.357710') },
+            //{ lat: Number('39.460330'), lng: Number('-0.357350') },
+            //{ lat: Number('39.460430'), lng: Number('-0.357100') },
+            //{ lat: Number('39.460210'), lng: Number('-0.356610') },
+            //{ lat: Number('39.460110'), lng: Number('-0.356270') },
+            //{ lat: Number('39.460250'), lng: Number('-0.356050') },
+            //{ lat: Number('39.460250'), lng: Number('-0.356020') },
+            //{ lat: Number('39.460210'), lng: Number('-0.355980') },
+            //{ lat: Number('39.460230'), lng: Number('-0.355890') },
+            //{ lat: Number('39.460210'), lng: Number('-0.355800') },
+            //{ lat: Number('39.460240'), lng: Number('-0.355770') },
+            //{ lat: Number('39.460230'), lng: Number('-0.355680') },
+            //{ lat: Number('39.460280'), lng: Number('-0.355590') },
+            //{ lat: Number('39.460150'), lng: Number('-0.355200') },
+            //{ lat: Number('39.459890'), lng: Number('-0.354460') },
+            //{ lat: Number('39.459830'), lng: Number('-0.354450') },
+            //{ lat: Number('39.459800'), lng: Number('-0.354420') },
+            //{ lat: Number('39.459790'), lng: Number('-0.354370') },
+            //{ lat: Number('39.459750'), lng: Number('-0.354350') },
+            //{ lat: Number('39.459690'), lng: Number('-0.354300') },
+            //{ lat: Number('39.459480'), lng: Number('-0.354140') },
+            //{ lat: Number('39.459350'), lng: Number('-0.354070') },
+            //{ lat: Number('39.459220'), lng: Number('-0.353830') },
+            //{ lat: Number('39.459080'), lng: Number('-0.353410') },
+            //{ lat: Number('39.459100'), lng: Number('-0.353360') },
+            //{ lat: Number('39.459090'), lng: Number('-0.353310') },
+            //{ lat: Number('39.458990'), lng: Number('-0.353000') },
+            //{ lat: Number('39.458910'), lng: Number('-0.352770') },
+            //{ lat: Number('39.458920'), lng: Number('-0.352740') },
+            //{ lat: Number('39.458900'), lng: Number('-0.352710') },
+            //{ lat: Number('39.458890'), lng: Number('-0.352670') },
+            //{ lat: Number('39.458850'), lng: Number('-0.352610') },
+            //{ lat: Number('39.458790'), lng: Number('-0.352530') },
+            //{ lat: Number('39.458730'), lng: Number('-0.352460') },
+            //{ lat: Number('39.458720'), lng: Number('-0.352380') },
+            //{ lat: Number('39.458690'), lng: Number('-0.352320') },
+            //{ lat: Number('39.458490'), lng: Number('-0.352200') },
+            //{ lat: Number('39.458410'), lng: Number('-0.352080') },
+            //{ lat: Number('39.458310'), lng: Number('-0.352010') },
+            //{ lat: Number('39.458300'), lng: Number('-0.352000') },
+            //{ lat: Number('39.458270'), lng: Number('-0.351950') },
+            //{ lat: Number('39.458220'), lng: Number('-0.351900') },
+            //{ lat: Number('39.458140'), lng: Number('-0.351870') },
+            //{ lat: Number('39.458110'), lng: Number('-0.351810') },
+            //{ lat: Number('39.458130'), lng: Number('-0.351520') },
+            //{ lat: Number('39.458070'), lng: Number('-0.351400') },
+            //{ lat: Number('39.457790'), lng: Number('-0.351350') },
+            //{ lat: Number('39.457580'), lng: Number('-0.350920') },
+            //{ lat: Number('39.457500'), lng: Number('-0.350590') },
+            //{ lat: Number('39.456790'), lng: Number('-0.349900') },
+            //{ lat: Number('39.456780'), lng: Number('-0.349860') },
+            //FIN comentadas porque la ruta ha cambiado pero aún pueden ser útiles en el futuro//
+            { lat: Number('39.460116'), lng: Number('-0.357540') },
+            { lat: Number('39.460265'), lng: Number('-0.357193') },
+            { lat: Number('39.460428'), lng: Number('-0.357201') },
+            { lat: Number('39.460470'), lng: Number('-0.357087') },
+            { lat: Number('39.460452'), lng: Number('-0.356951') },
+            { lat: Number('39.460553'), lng: Number('-0.357151') },
+            { lat: Number('39.460563'), lng: Number('-0.356952') },
+            { lat: Number('39.460629'), lng: Number('-0.357030') },
+            { lat: Number('39.460671'), lng: Number('-0.357144') },
+            { lat: Number('39.460722'), lng: Number('-0.357177') },
+            { lat: Number('39.460833'), lng: Number('-0.356953') },
+            { lat: Number('39.461012'), lng: Number('-0.356876') },
+            { lat: Number('39.460865'), lng: Number('-0.356629') },
+            { lat: Number('39.460686'), lng: Number('-0.356303') },
+            { lat: Number('39.460497'), lng: Number('-0.355896') },
+            { lat: Number('39.460275'), lng: Number('-0.355261') },
+            { lat: Number('39.460086'), lng: Number('-0.354500') },
+            { lat: Number('39.459989'), lng: Number('-0.354198') },
+            { lat: Number('39.459673'), lng: Number('-0.353900') },
+            { lat: Number('39.459559'), lng: Number('-0.353458') },
+            { lat: Number('39.459588'), lng: Number('-0.353269') },
+            { lat: Number('39.459549'), lng: Number('-0.353235') },
+            { lat: Number('39.459366'), lng: Number('-0.352965') },
+            { lat: Number('39.459168'), lng: Number('-0.352681') },
+            { lat: Number('39.458844'), lng: Number('-0.352215') },
+            { lat: Number('39.458546'), lng: Number('-0.351780') },
+            { lat: Number('39.457785'), lng: Number('-0.350672') },
+            { lat: Number('39.457337'), lng: Number('-0.350028') },
+            { lat: Number('39.457059'), lng: Number('-0.349621') },
+            { lat: Number('39.456843'), lng: Number('-0.349310') },
+        ],
+        fin: { lat: Number('39.456730'), lng: Number('-0.349399') },
+        imagen: "imagenes/imagenes-aventuras/CAC_patinaje.jpg",
+        imagen2: "imagenes/imagenes-aventuras/cac_mapa.jpg",
+        imagen3:"imagenes/imagenes-aventuras/pano_CAC.jpg",
+        video: "",
+    },
+    // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 27-B, 271)
+    {
+        id: "Av3-P-14",
+        tipo: "parada",
+        parada: 14, // mapa número 18
+        mapa_numero: 18,
+        nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        coordenadas:  { lat: Number('39.456730'), lng: Number('-0.349399') },
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen2: "imagenes/imagenes-aventuras/reina_sofia_side.jpg"
+    },
+    // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 31, 273, 275)
+    {
+        id: "Av3-P-15",
+        tipo: "parada",
+        parada: 15, // mapa número 20
+        mapa_numero: 20,
+        nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_principe_felipe.jpg",
+        imagen3: "imagenes/imagenes-aventuras/CAC-6.jpg",
+    },
+    // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or (Párrafos: 276, 32-B)
+    {
+        id: "Av3-TR-13",
+        tipo: "tramo",
+        tramo: 13, // De mapa número 20 a mapa número 21
+        mapa_numero: "20→21",
+        nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or",
+        inicio: { lat: Number('39.456689'), lng: Number('-0.349407') },
+        waypoints:
+        [
+            //comentadas porque la ruta ha cambiado pero aún pueden ser útiles en el futuro//
+            //{ lat: Number('39.456661'), lng: Number('-0.349362') },
+            //{ lat: Number('39.456532'), lng: Number('-0.349333') },
+            //{ lat: Number('39.456457'), lng: Number('-0.349199') },
+            //{ lat: Number('39.456205'), lng: Number('-0.348962') },
+            //{ lat: Number('39.456353'), lng: Number('-0.348608') },
+            //{ lat: Number('39.456239'), lng: Number('-0.348377') },
+            //FIN comentadas porque la ruta ha cambiado pero aún pueden ser útiles en el futuro//
+            { lat: Number('39.456800'), lng: Number('-0.349252') },
+            { lat: Number('39.456484'), lng: Number('-0.348792') },
+            { lat: Number('39.456243'), lng: Number('-0.348433') },
+            { lat: Number('39.456257'), lng: Number('-0.348392') },
+            { lat: Number('39.455986'), lng: Number('-0.348276') },
+        ],
+        fin: { lat: Number('39.455825'), lng: Number('-0.348149') },
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_Assut-2.jpg",
+        video: "",
+    },
+    // Parada 16: Puente l'Assut de l'Or (Reto12puzzle PZ-09) (Párrafos: 277, 278)
+    {
+        id: "Av3-P-16",
+        tipo: "parada",
+        parada: 16, // mapa número 21
+        mapa_numero: 21,
+        nombre: "Puente l'Assut de l'Or",
+        coordenadas:  { lat: Number('39.455825'), lng: Number('-0.348149') },
+        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+    },
+    // Tramo 14: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 116)
+    {
+        id: "Av3-TR-14",
+        tipo: "tramo",
+        tramo: 14, // De mapa número 21 a mapa número 22 y 23
+        mapa_numero: "21→22/23",
+        nombre: "Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        inicio: { lat: Number('39.455825'), lng: Number('-0.348149') },
+        waypoints:
+        [
+            { lat: Number('39.455900'), lng: Number('-0.348190') },
+            { lat: Number('39.455230'), lng: Number('-0.349190') },
+            { lat: Number('39.454320'), lng: Number('-0.350550') },
+            { lat: Number('39.453790'), lng: Number('-0.351300') },
+            { lat: Number('39.453620'), lng: Number('-0.351120') },
+        ],
+        fin: { lat: Number('39.453520'), lng: Number('-0.350810') },
+        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/agora.jpg",
+        imagen3: "imagenes/imagenes-aventuras/oceanografic.jpg",
+        imagen4:"imagenes/imagenes-aventuras/agora_oceanografic.jpg",
+        video: "",
+    },
+    // Parada 17: Ágora y Oceanogràfic (Párrafos: 281, 33, 282, 283, 34-B, 284)
+    {
+        id: "Av3-P-17",
+        tipo: "parada",
+        parada: 17, // mapa número 22/23
+        mapa_numero: "22/23",
+        nombre: "Ágora y Oceanogràfic",
+        coordenadas:  { lat: Number('39.453520'), lng: Number('-0.350810') },
+        imagen: "imagenes/imagenes-aventuras/agora_oceanografic.jpg",
+    },
+    // Tramo 15: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 35-B)
+    {
+        id: "Av3-TR-15",
+        tipo: "tramo",
+        tramo: 15, // De mapa número 22/23 a mapa número 24
+        mapa_numero: "22/23→24",
+        nombre: "Ágora y Oceanogràfic → Umbracle",
+        inicio: { lat: Number('39.453520'), lng: Number('-0.350810') },
+        waypoints:
+        [
+            { lat: Number('39.453620'), lng: Number('-0.351120') },
+            { lat: Number('39.453958'), lng: Number('-0.351566') },
+            { lat: Number('39.454040'), lng: Number('-0.352035') },
+            { lat: Number('39.454078'), lng: Number('-0.352015') },
+            { lat: Number('39.454067'), lng: Number('-0.351911') },
+            { lat: Number('39.454080'), lng: Number('-0.351803') },
+            { lat: Number('39.454138'), lng: Number('-0.351741') },
+            { lat: Number('39.454216'), lng: Number('-0.351765') },
+            { lat: Number('39.454288'), lng: Number('-0.351873') },
+            { lat: Number('39.454473'), lng: Number('-0.351941') },
+            { lat: Number('39.454990'), lng: Number('-0.352570') },
+            { lat: Number('39.455460'), lng: Number('-0.353270') },
+
+        ],
+        fin: { lat: Number('39.455635'), lng: Number('-0.353670') },
+        imagen: "imagenes/imagenes-aventuras/agora_oceanografic.jpg",
+        imagen2: "imagenes/imagenes-aventuras/umbracle.jpg",
+        video: "",
+    },
+    // Parada 18: Umbracle (Reto 13) (Párrafos: 286, 292)
+    {
+        id: "Av3-P-18",
+        tipo: "parada",
+        parada: 18, // mapa número 24
+        mapa_numero: "24",
+        nombre: "Umbracle",
+        coordenadas:  { lat: Number('39.455635'), lng: Number('-0.353670') },
+        imagen: "imagenes/imagenes-aventuras/umbracle.jpg",
+
+    },
+    // Tramo 16: Umbracle → Hemisféric (Párrafos: 287-B, 290)
+    {
+        id: "Av3-TR-16",
+        tipo: "tramo",
+        tramo: 16, // De mapa número 24 a mapa número 25
+        mapa_numero: "24→25",
+        nombre: "Umbracle → Hemisféric",
+        inicio: { lat: Number('39.455635'), lng: Number('-0.353670') },
+        waypoints:
+        [
+            { lat: Number('39.456678'), lng: Number('-0.355255') },
+            { lat: Number('39.457553'), lng: Number('-0.356357') },
+            { lat: Number('39.458643'), lng: Number('-0.357172') },
+            { lat: Number('39.459348'), lng: Number('-0.357818') },
+            { lat: Number('39.459003'), lng: Number('-0.356469') },
+            { lat: Number('39.458205'), lng: Number('-0.354901') },
+        ],
+        fin: { lat: Number('39.457675'), lng: Number('-0.353992') },
+        imagen: "imagenes/imagenes-aventuras/umbracle.jpg",
+        imagen2: "imagenes/imagenes-aventuras/reina_sofia_front.jpg",
+        imagen3:"imagenes/imagenes-aventuras/hemisferic.jpg",
+        video: "",
+    },
+    // Parada 19: Hemisféric (Reto 14) (Párrafos: 291, 707)
+    {
+        id: "Av3-P-19",
+        tipo: "parada",
+        parada: 19, // mapa número 25
+        mapa_numero: "25",
+        nombre: "Hemisféric",
+        coordenadas:  { lat: Number('39.457675'), lng: Number('-0.353992') },
+        imagen: "imagenes/imagenes-aventuras/hemisferic.jpg",
+    },
+    // Tramo 17: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30-B)
+    {
+        id: "Av3-TR-17",
+        tipo: "tramo",
+        tramo: 17, // De mapa número 25 a mapa número 11
+        mapa_numero: "25→11",
+        nombre: "Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        inicio: { lat: Number('39.457675'), lng: Number('-0.353992') },
+        waypoints:
+        [
+            { lat: Number('39.457838'), lng: Number('-0.353730') },
+            { lat: Number('39.458224'), lng: Number('-0.353780') },
+            { lat: Number('39.458632'), lng: Number('-0.354407') },
+            { lat: Number('39.459077'), lng: Number('-0.355962') },
+            { lat: Number('39.459412'), lng: Number('-0.357080') },
+            { lat: Number('39.459684'), lng: Number('-0.358352') },
+            { lat: Number('39.460893'), lng: Number('-0.359343') },
+            { lat: Number('39.462333'), lng: Number('-0.360201') },
+            { lat: Number('39.463831'), lng: Number('-0.360717') },
+            { lat: Number('39.466314'), lng: Number('-0.362187') },
+            { lat: Number('39.467368'), lng: Number('-0.362825') },
+            { lat: Number('39.468523'), lng: Number('-0.363562') },
+            { lat: Number('39.469606'), lng: Number('-0.364172') },
+            { lat: Number('39.470128'), lng: Number('-0.364533') },
+            { lat: Number('39.470169'), lng: Number('-0.364142') },
+            { lat: Number('39.470406'), lng: Number('-0.364173') },
+        ],
+        fin: { lat: Number('39.470617'), lng: Number('-0.363887') },
+        imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
+        imagen2: "imagenes/imagenes-aventuras/hemisferic.jpg",
+        imagen3: "imagenes/imagenes-aventuras/puente_reino_gargola.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente_reino_gargola_down.jpg",
+        imagen5: "imagenes/imagenes-aventuras/puente_angel_custodio.jpg",
+        imagen6: "imagenes/imagenes-aventuras/palau_de_la_musica.jpg",
+        imagen7: "imagenes/imagenes-aventuras/puente_aragon-down.jpg",
+        imagen8: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
+        video: "",
+    },
+    // Parada 20: Puente de la Mar (Reto 15) (Párrafos: 294, 295)
+    {
+        id: "Av3-P-20",
+        tipo: "parada",
+        parada: 20, // mapa número 11
+        mapa_numero: "25",
+        nombre: "Puente de la Mar",
+        coordenadas:  { lat: Number('39.470617'), lng: Number('-0.363887') },
+        imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
+    },
+    // Tramo 18: Puente de la Mar → Puerta de la Mar (Párrafos: 296-C, 297, 14-B, 298, 299, 245-B, 37)
+    {
+        id: "Av3-TR-18",
+        tipo: "tramo",
+        tramo: 18, // De mapa número 11 a mapa número 26
+        mapa_numero: "11→26",
+        nombre: "Puente de la Mar → Puerta de la Mar",
+        inicio: { lat: Number('39.470617'), lng: Number('-0.363887') },
+        waypoints:
+        [
+            { lat: Number('39.470599'), lng: Number('-0.363375') },
+            { lat: Number('39.470393'), lng: Number('-0.363195') },
+            { lat: Number('39.470431'), lng: Number('-0.362907') },
+            { lat: Number('39.471009'), lng: Number('-0.363373') },
+            { lat: Number('39.471705'), lng: Number('-0.363960') },
+            { lat: Number('39.471775'), lng: Number('-0.363853') },
+            { lat: Number('39.471569'), lng: Number('-0.363694') },
+            { lat: Number('39.471621'), lng: Number('-0.363449') },
+            { lat: Number('39.471527'), lng: Number('-0.363495') },
+            { lat: Number('39.471063'), lng: Number('-0.364554') },
+            { lat: Number('39.470789'), lng: Number('-0.365355') },
+            { lat: Number('39.470571'), lng: Number('-0.365544') },
+            { lat: Number('39.471018'), lng: Number('-0.366466') },
+            { lat: Number('39.471757'), lng: Number('-0.368081') },
+            { lat: Number('39.472201'), lng: Number('-0.368001') },
+            { lat: Number('39.472377'), lng: Number('-0.368183') },
+            { lat: Number('39.472445'), lng: Number('-0.368513') },
+            { lat: Number('39.472380'), lng: Number('-0.368756') },
+        ],
+        fin: { lat: Number('39.472081'), lng: Number('-0.368912') },
+        imagen: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puente_flores_subida.jpg",
+        imagen3: "imagenes/imagenes-aventuras/puente_flores_subida_2.jpg",
+        imagen4: "imagenes/imagenes-aventuras/puente-de_las_flores.jpg",
+        imagen5: "imagenes/imagenes-aventuras/puente_flores_top.jpg",
+        imagen6: "imagenes/imagenes-aventuras/puente_flores_agua.jpg",
+        imagen7: "imagenes/imagenes-aventuras/puerta_mar.jpg",
+        video: "",
+    },
+    // Parada 21: Puerta de la Mar (Reto 16) (Párrafos: 300, 84, 301, 302)
+    {
+        id: "Av3-P-21",
+        tipo: "parada",
+        parada: 21, // mapa número 26
+        mapa_numero: "26",
+        nombre: "Puerta de la Mar",
+        coordenadas:  { lat: Number('39.472081'), lng: Number('-0.368912') },
+        imagen: "imagenes/imagenes-aventuras/puerta_mar.jpg",
+    },
+// Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B)
+    {
+        id: "Av5-TR-8",
+        tipo: "tramo",
+        tramo: 8, // De mapa número 7 a mapa número 8
+        mapa_numero: "7→8",
+        nombre: "Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        inicio: { lat: Number('39.472081'), lng: Number('-0.368912') },
+        waypoints:
+        [
+            { lat: Number('39.471813'), lng: Number('-0.368974') },
+            { lat: Number('39.471722'), lng: Number('-0.368756') },
+            { lat: Number('39.471539'), lng: Number('-0.368960') },
+            { lat: Number('39.471278'), lng: Number('-0.369235') },
+            { lat: Number('39.470835'), lng: Number('-0.369726') },
+            { lat: Number('39.470654'), lng: Number('-0.369927') },
+            { lat: Number('39.470436'), lng: Number('-0.370165') },
+            { lat: Number('39.470349'), lng: Number('-0.370248') },
+            { lat: Number('39.470273'), lng: Number('-0.370069') },
+            { lat: Number('39.470139'), lng: Number('-0.369976') },
+        ],
+        fin: { lat: Number('39.470192'), lng: Number('-0.369919') },
+        imagen: "imagenes/imagenes-aventuras/puerta_mar.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_colon.jpg",
+        imagen3: "imagenes/imagenes-aventuras/casa_dragones.jpg",
+        video: "",
+    },
+    // Parada 9: Casa de los Dragones (Reto: 9) (Párrafos: 304, 305)
+    {
+        id: "Av5-P-9",
+        tipo: "parada",
+        parada: 9, // mapa número 8
+        mapa_numero: 8,
+        nombre: "Casa de los Dragones",
+        coordenadas: { lat: Number('39.470192'), lng: Number('-0.369919') },
+        imagen: "imagenes/imagenes-aventuras/casa_dragones.jpg",
+        imagen2: "imagenes/imagenes-aventuras/casa_dragones_dragon.jpg",
+    },
+    // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13)
+    {
+        id: "Av5-TR-9",
+        tipo: "tramo",
+        tramo: 9, // De mapa número 8 a mapa número 9
+        mapa_numero: "8→9",
+        nombre: "Casa de los Dragones → Mercado de Colón",
+        inicio: { lat: Number('39.470192'), lng: Number('-0.369919') },
+        waypoints:
+        [
+            { lat: Number('39.470099'), lng: Number('-0.369940') },
+            { lat: Number('39.469897'), lng: Number('-0.369794') },
+            { lat: Number('39.469042'), lng: Number('-0.369188') },
+            { lat: Number('39.468706'), lng: Number('-0.368954') },
+        ],
+        fin: { lat: Number('39.468727'), lng: Number('-0.368908') },
+        imagen: "imagenes/imagenes-aventuras/casa_dragones.jpg",
+        imagen2: "imagenes/imagenes-aventuras/mercado_colon.jpg",
+        video: "",
+    },
+    // Parada 10: Mercado de Colón 1 (Reto: 10) (Párrafos: 308, 309, 310)
+    {
+        id: "Av5-P-10",
+        tipo: "parada",
+        parada: 10, // mapa número 9
+        mapa_numero: 9,
+        nombre: "Mercado de Colón",
+        coordenadas: { lat: Number('39.468727'), lng: Number('-0.368908') },
+        imagen: "imagenes/imagenes-aventuras/mercado_colon.jpg",
+    },
+    // Parada 11: Mercado de Colón 2 (Reto: 11) (Párrafos: 311, 312)
+    {
+        id: "Av5-P-11",
+        tipo: "parada",
+        parada: 11, // mapa número 9
+        mapa_numero: 9,
+        nombre: "Mercado de Colón",
+        coordenadas: { lat: Number('39.468722'), lng: Number('-0.368902') },
+        imagen: "imagenes/imagenes-aventuras/mercado_colon.jpg",
+    },
+    // Parada 12: Mercado de Colón 3 (Reto: 12) (Párrafos: 313)
+    {
+        id: "Av5-P-12",
+        tipo: "parada",
+        parada: 12, // mapa número 9
+        mapa_numero: 9,
+        nombre: "Mercado de Colón",
+        coordenadas: { lat: Number('39.468712'), lng: Number('-0.368897') },
+        imagen: "imagenes/imagenes-aventuras/mercado_colon.jpg",
+    },
+    // Tramo 10: Mercado de Colón Front → Mercado de Colón Back (Párrafos: 314, 307)
+    {
+        id: "Av5-TR-10",
+        tipo: "tramo",
+        tramo: 10, // De mapa número 9 a mapa número 9
+        mapa_numero: "9→9",
+        nombre: "Mercado de Colón → Mercado de Colón",
+        inicio: { lat: Number('39.468712'), lng: Number('-0.368897') },
+        waypoints:
+        [
+            { lat: Number('39.468479'), lng: Number('-0.368752') },
+            { lat: Number('39.468593'), lng: Number('-0.368502') },
+            { lat: Number('39.468803'), lng: Number('-0.368004') },
+            { lat: Number('39.468984'), lng: Number('-0.367685') },
+            { lat: Number('39.469144'), lng: Number('-0.367817') },
+        ],
+        fin: { lat: Number('39.469161'), lng: Number('-0.367874') },
+        imagen: "imagenes/imagenes-aventuras/mercado_colon.jpg",
+        imagen2: "imagenes/imagenes-aventuras/mercado_de_colon_2.jpg",
+        video: "",
+    },
+    // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339)
+    {
+        id: "Av5-P-13",
+        tipo: "parada",
+        parada: 13, // mapa número 9
+        mapa_numero: 9,
+        nombre: "Mercado de Colón",
+        coordenadas: { lat: Number('39.469161'), lng: Number('-0.367874') },
+        imagen: "imagenes/imagenes-aventuras/mercado_de_colon_2.jpg",
+    },
+    // Parada 14: Mercado de Colón Back 2 (Fábula del Murciélago) (Párrafos: 339)
+    {
+        id: "Av5-P-14",
+        tipo: "parada",
+        parada: 14, // mapa número 9
+        mapa_numero: 9,
+        nombre: "Mercado de Colón",
+        coordenadas: { lat: Number('39.469169'), lng: Number('-0.367883') },
+        imagen: "imagenes/imagenes-aventuras/mercado_de_colon_2.jpg",
+    },
+    // Tramo 11: Mercado de Colón Back → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 14-B)
+    {
+        id: "Av5-TR-11",
+        tipo: "tramo",
+        tramo: 11, // De mapa número 9 a mapa número 10
+        mapa_numero: "9→10",
+        nombre: "Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        inicio: { lat: Number('39.469169'), lng: Number('-0.367883') },
+        waypoints:
+        [
+            { lat: Number('39.469406'), lng: Number('-0.367986') },
+            { lat: Number('39.469760'), lng: Number('-0.368246') },
+            { lat: Number('39.470116'), lng: Number('-0.368490') },
+            { lat: Number('39.470531'), lng: Number('-0.368768') },
+            { lat: Number('39.471024'), lng: Number('-0.369134') },
+            { lat: Number('39.471219'), lng: Number('-0.369323') },
+            { lat: Number('39.470843'), lng: Number('-0.369728') },
+            { lat: Number('39.470505'), lng: Number('-0.370108') },
+            { lat: Number('39.470200'), lng: Number('-0.370436') },
+            { lat: Number('39.470270'), lng: Number('-0.370520') },
+        ],
+        fin: { lat: Number('39.470209'), lng: Number('-0.370656') },
+        imagen: "imagenes/imagenes-aventuras/mercado_de_colon_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_colon_2.jpg",
+        imagen3: "imagenes/imagenes-aventuras/ruinas_calle_colon.jpg",
+        video: "",
+    },
+    // Parada 15: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318)
+    {
+        id: "Av5-P-15",
+        tipo: "parada",
+        parada: 15, // mapa número 10
+        mapa_numero: 10,
+        nombre: "Antigua Puerta Judía de la Muralla en Calle Colón",
+        coordenadas: { lat: Number('39.470209'), lng: Number('-0.370656') },
+        imagen: "imagenes/imagenes-aventuras/ruinas_calle_colon.jpg",
+    },
+    // Tramo 12: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 15)
+    {
+        id: "Av5-TR-12",
+        tipo: "tramo",
+        tramo: 12, // De mapa número 10 a mapa número 11
+        mapa_numero: "10→11",
+        nombre: "Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        inicio: { lat: Number('39.470209'), lng: Number('-0.370656') },
+        waypoints:
+        [
+            { lat: Number('39.470270'), lng: Number('-0.370520') },
+            { lat: Number('39.470200'), lng: Number('-0.370436') },
+            { lat: Number('39.470040'), lng: Number('-0.370620') },
+            { lat: Number('39.469791'), lng: Number('-0.370948') },
+            { lat: Number('39.469683'), lng: Number('-0.371090') },
+            { lat: Number('39.469514'), lng: Number('-0.371324') },
+            { lat: Number('39.469374'), lng: Number('-0.371533') },
+            { lat: Number('39.469137'), lng: Number('-0.371866') },
+            { lat: Number('39.468995'), lng: Number('-0.372075') },
+            { lat: Number('39.468787'), lng: Number('-0.372379') },
+            { lat: Number('39.468601'), lng: Number('-0.372616') },
+            { lat: Number('39.468410'), lng: Number('-0.372897') },
+            { lat: Number('39.468151'), lng: Number('-0.373276') },
+            { lat: Number('39.467896'), lng: Number('-0.373645') },
+            { lat: Number('39.467740'), lng: Number('-0.373869') },
+            { lat: Number('39.467509'), lng: Number('-0.374194') },
+            { lat: Number('39.467161'), lng: Number('-0.374708') },
+            { lat: Number('39.467072'), lng: Number('-0.374883') },
+            { lat: Number('39.467048'), lng: Number('-0.374994') },
+            { lat: Number('39.467040'), lng: Number('-0.375190') },
+            { lat: Number('39.467106'), lng: Number('-0.375551') },
+        ],
+        fin: { lat: Number('39.467031'), lng: Number('-0.375683') },
+        imagen: "imagenes/imagenes-aventuras/ruinas_calle_colon.jpg",
+        imagen2: "imagenes/imagenes-aventuras/calle_colon_2.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        video: "",
+    },
+    // Parada 16: Plaza de Toros(Reto: 14) (Párrafos: 320, 321, 323, 322)
+    {
+        id: "Av5-P-16",
+        tipo: "parada",
+        parada: 16, // mapa número 11
+        mapa_numero: 11,
+        nombre: "Plaza de Toros",
+        coordenadas: { lat: Number('39.467031'), lng: Number('-0.375683') },
+        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+    },
+    // Tramo 13: Plaza de Toros → Estación del Norte (Párrafos: 324, 20)
+    {
+        id: "Av5-TR-13",
+        tipo: "tramo",
+        tramo: 13, // De mapa número 11 a mapa número 12
+        mapa_numero: "11→12",
+        nombre: "Plaza de Toros → Estación del Norte",
+        inicio: { lat: Number('39.467031'), lng: Number('-0.375683') },
+        waypoints:
+        [
+            { lat: Number('39.467215'), lng: Number('-0.375988') },
+            { lat: Number('39.467318'), lng: Number('-0.376425') },
+            { lat: Number('39.467411'), lng: Number('-0.376851') },
+        ],
+        fin: { lat: Number('39.467381'), lng: Number('-0.377117') },
+        imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        video: "",
+    },
+    // Parada 17: (Reto: 15) (Párrafos: 325, 326)
+    {
+        id: "Av5-P-17",
+        tipo: "parada",
+        parada: 17, // mapa número 12
+        mapa_numero: 12,
+        nombre: "Estación del Norte (Tren)",
+        coordenadas: { lat: Number('39.467381'), lng: Number('-0.377117') },
+        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+    },
+    // Tramo 14: Estación del Norte (exterior) → Estación del Norte (interior) (Párrafos: 327, 330)
+    {
+        id: "Av5-TR-14",
+        tipo: "tramo",
+        tramo: 14, // De mapa número 12 a mapa número 12
+        mapa_numero: "12→12",
+        nombre: "Estación del Norte → Estación del Norte",
+        coordenadas: { lat: Number('39.467381'), lng: Number('-0.377117') },
+        waypoints:
+        [
+            { lat: Number('39.467149'), lng: Number('-0.377185') },
+        ],
+        fin: { lat: Number('39.467000'), lng: Number('-0.377270') },
+        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen2: "",
+        video: "",
+    },
+    // Parada 18: Estación del Norte (interior) (Reto: 16) (Párrafos: 328, 329)
+    {
+        id: "Av5-P-18",
+        tipo: "parada",
+        parada: 18, // mapa número 12
+        mapa_numero: 12,
+        nombre: "Estación del Norte",
+        coordenadas: { lat: Number('39.467000'), lng: Number('-0.377270') },
+        imagen: "",
+    },
+    // Tramo 24: Estación del Norte (interior) → Plaza del Ayuntamiento
+    {
+        id: "Av34km-TR-24",
+        tipo: "tramo",
+        tramo: 24, // De mapa número  a mapa número
+        mapa_numero: "→",
+        nombre: "Estación del Norte → Plaza del Ayuntamiento",
+        coordenadas: { lat: Number('39.467000'), lng: Number('-0.377270') },
+        waypoints:
+        [
+            { lat: Number('39.467382'), lng: Number('-0.377115') },
+            { lat: Number('39.467611, -0.377288') },
+            { lat: Number('39.467989, -0.377120') },
+            { lat: Number('39.468307, -0.377075') },
+            { lat: Number('39.468450, -0.377011') },
+            { lat: Number('39.468442, -0.376905') },
+            { lat: Number('39.468810, -0.376859') },
+            { lat: Number('39.469071, -0.376831') },
+            { lat: Number('39.469169, -0.376658') },
+            { lat: Number('39.469359, -0.376649') },
+            { lat: Number('39.469518, -0.376830') },
+        ],
+        fin: { lat: Number('39.469710'), lng: Number('-0.376930') },
+        imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen2: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
+        video: "",
+    },
+    // Parada 15: Edificio del Ayuntamiento (reto 12) (Párrafos:)
+    {
+        id: "AvFallas-P-15",
+        tipo: "parada",
+        parada: 15, // mapa número 12
+        mapa_numero: 12,
+        nombre: "Edificio del Ayuntamiento",
+        coordenadas: { lat: Number('39.469710'), lng: Number('-0.376930') },
+        imagen: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
+    },
+    // Parada 16: Edificio del Ayuntamiento 2 (Creación de una Falla) (Párrafos: 182, 183, 184, 185)
+    {
+        id: "AvFallas-P-16",
+        tipo: "parada",
+        parada: 16, // mapa número 12
+        mapa_numero: 12,
+        nombre: "Edificio del Ayuntamiento",
+        coordenadas: { lat: Number('39.469610'), lng: Number('-0.376870') },
+        imagen: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
+    },
+    // Tramo 10: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 188)
+    {
+        id: "AvFallas-TR-10",
+        tipo: "tramo",
+        tramo: 10, // De mapa número 12 a mapa número 13
+        mapa_numero: "12→13",
+        nombre: "Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        inicio: { lat: Number('39.469610'), lng: Number('-0.376870') },
+        waypoints: [
+            { lat: Number('39.469409'), lng: Number('-0.376853') },
+            { lat: Number('39.469365'), lng: Number('-0.376608') },
+            { lat: Number('39.469330'), lng: Number('-0.376148') },
+            { lat: Number('39.469358'), lng: Number('-0.376060') },
+            { lat: Number('39.469224'), lng: Number('-0.375661') },
+        ],
+        fin: { lat: Number('39.469420'), lng: Number('-0.375590') },
+        imagen: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
+        imagen2: "imagenes/imagenes-aventuras/correos.jpg",
+        video: "",
+    },
+    // Parada 17: Palacio de Comunicaciones (Correos) (Reto 13) (Párrafos: 343, 344)
+    {
+        id: "AvFallas-P-17",
+        tipo: "parada",
+        parada: 17, // mapa número 13
+        mapa_numero: 13,
+        nombre: "Palacio de Comunicaciones - Correos",
+        coordenadas: { lat: Number('39.469420'), lng: Number('-0.375590') },
+        imagen: "imagenes/imagenes-aventuras/correos.jpg",
+    },
+
+    // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B)
+    {
+        id: "AvFallas-P-18",
+        tipo: "parada",
+        parada: 18, // mapa número 14
+        mapa_numero: 14,
+        nombre: "Edificio Suay - La Equitativa",
+        coordenadas: { lat: Number('39.469610'), lng: Number('-0.375680') },
+        imagen: "imagenes/imagenes-aventuras/edificio_suay.jpg",
+    },
+    // Tramo 14: Palacio de Comunicaciones (Correos) → Banco de Valencia (Párrafos: 345, 347, 348, 22)
+    {
+        id: "Av1-TR-14",
+        tipo: "tramo",
+        tramo: 14, // De mapa número 14 a mapa número 15
+        mapa_numero: "14→15",
+        nombre: "Palacio de Comunicaciones → Banco de València",
+        inicio: { lat: Number('39.469610'), lng: Number('-0.375680') },
+        waypoints: [
+            { lat: Number('39.469980'), lng: Number('-0.375870') },
+            { lat: Number('39.470300'), lng: Number('-0.375900') },
+            { lat: Number('39.470390'), lng: Number('-0.375050') },
+            { lat: Number('39.470430'), lng: Number('-0.374270') }
+        ],
+        fin: { lat: Number('39.470610'), lng: Number('-0.374080') },
+        imagen: "imagenes/imagenes-aventuras/correos.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Calle_barcas.jpg",
+        imagen3: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
+        video: "",
+    },
+
+    // Parada 25: Banco de Valencia (Reto: 24) (Párrafos: 349, 350)
+    {
+        id: "Av1-P-25",
+        tipo: "parada",
+        parada: 25, // mapa número 15
+        mapa_numero: 15,
+        nombre: "Banco de Valencia",
+        coordenadas: { lat: Number('39.470610'), lng: Number('-0.374080') },
+        imagen: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
+    },
+
+    // Tramo 15: Banco de Valencia → Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" (Párrafos: 351, 23-B, 352, 354)
+    {
+        id: "Av1-TR-15",
+        tipo: "tramo",
+        tramo: 15, // De mapa número 15 a mapa número 16
+        mapa_numero: "15→16",
+        nombre: "Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        inicio: { lat: Number('39.470610'), lng: Number('-0.374080') },
+        waypoints: [
+            { lat: Number('39.471190'), lng: Number('-0.374230') },
+            { lat: Number('39.472140'), lng: Number('-0.374460') },
+            { lat: Number('39.472750'), lng: Number('-0.374450') }
+        ],
+        fin: { lat: Number('39.472760'), lng: Number('-0.374670') },
+        imagen: "imagenes/imagenes-aventuras/banco_de_valencia.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Iglesia_San_juan_cruz.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Marques_dos_aguas_2.jpg",
+        video: "",
+    },
+
+    // Parada 26: Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" (Párrafos: 356, 357)
+    {
+        id: "Av1-P-26",
+        tipo: "parada",
+        parada: 26, // mapa número 16
+        mapa_numero: 16,
+        nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        coordenadas: { lat: Number('39.472760'), lng: Number('-0.374670') },
+        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg",
+        imagen2:"imagenes/imagenes-aventuras/museo_ceramica_9.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_ceramica_8.jpg",
+    },
+
+    // Tramo 16: Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" → Mercado Central (Párrafos: 358, 359-B, 101)
+    {
+        id: "Av1-TR-16",
+        tipo: "tramo",
+        tramo: 16, // De mapa número 16 a mapa número 17
+        mapa_numero: "16→17",
+        nombre: "Palacio del Marqués → Mercado Central",
+        inicio: { lat: Number('39.472760'), lng: Number('-0.374670') },
+        waypoints: [
+            { lat: Number('39.473030'), lng: Number('-0.375270') },
+            { lat: Number('39.473080'), lng: Number('-0.375830') },
+            { lat: Number('39.473150'), lng: Number('-0.376080') },
+            { lat: Number('39.472610'), lng: Number('-0.376540') },
+            { lat: Number('39.472160'), lng: Number('-0.376840') },
+            { lat: Number('39.472400'), lng: Number('-0.377050') },
+            { lat: Number('39.473190'), lng: Number('-0.377650') },
+        ],
+        fin: { lat: Number('39.473770'), lng: Number('-0.378320') },
+        imagen: "imagenes/imagenes-aventuras/Marques_dos_aguas_1.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Calle_San_Vicente.jpg",
+        imagen3: "imagenes/imagenes-aventuras/mercado_central.jpg",
+        video: "",
+    },
+
+    // Parada 27: Mercado central (Reto 25) (Párrafos: 701, 24-D, 361, 362, 363, 364)
+    {
+        id: "Av1-P-27",
+        tipo: "parada",
+        parada: 27, // mapa número 17
+        mapa_numero: 17,
+        nombre: "Mercado central",
+        coordenadas: { lat: Number('39.473770'), lng: Number('-0.378320') },
+        imagen: "imagenes/imagenes-aventuras/mercado_central.jpg",
+    },
+
+    // Tramo 17: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 274, 27-C)
+    {
+        id: "Av1-TR-17",
+        tipo: "tramo",
+        tramo: 17, // De mapa número 17 a mapa número 18
+        mapa_numero: "17→18",
+        nombre: "Mercado Central → Iglesia de los Santos Juanes o San Juan del Mercado",
+        inicio: { lat: Number('39.473770'), lng: Number('-0.378320') },
+        waypoints: [
+            { lat: Number('39.474080'), lng: Number('-0.378620') },
+        ],
+        fin: { lat: Number('39.474250'), lng: Number('-0.378950') },
+        imagen: "imagenes/imagenes-aventuras/mercado_central.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg",
+        video: "",
+    },
+
+    // Parada 28: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 26) (Párrafos: 27-C, 365, 366)
+    {
+        id: "Av1-P-28",
+        tipo: "parada",
+        parada: 28, // mapa número 18
+        mapa_numero: 18,
+        nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)",
+        coordenadas: { lat: Number('39.474250'), lng: Number('-0.378950') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg",
+    },
+
+    // Parada 29: Iglesia de los Santos Juanes 2 (San Juan del Mercado) (Reto 27) (Párrafos: 368, 367)
+    {
+        id: "Av1-P-29",
+        tipo: "parada",
+        parada: 29, // mapa número 18
+        mapa_numero: 18,
+        nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)",
+        coordenadas: { lat: Number('39.474240'), lng: Number('-0.378890') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg",
+    },
+
+    // Tramo 18: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 28)
+    {
+        id: "Av1-TR-18",
+        tipo: "tramo",
+        tramo: 18, // De mapa número 18 a mapa número 19
+        mapa_numero: "18→19",
+        nombre: "Iglesia Santos Juanes → Lonja de València (Mercado de la Seda)",
+        inicio: { lat: Number('39.474240'), lng: Number('-0.378890') },
+        waypoints: [],
+        fin: { lat: Number('39.474220'), lng: Number('-0.378750') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja.jpg",
+        video: "",
+    },
+
+    // Parada 30: Lonja (Mercado de la Seda) historia (Reto28Puzzle PZ-04) (Párrafos: 370, 371, 372, 373, 374)
+    {
+        id: "Av1-P-30",
+        tipo: "parada",
+        parada: 30, // mapa número 19
+        mapa_numero: 19,
+        nombre: "Lonja Historia",
+        coordenadas: { lat: Number('39.474220'), lng: Number('-0.378750') },
+        imagen: "imagenes/imagenes-aventuras/lonja.jpg",
+    },
+
+    // Parada 31: Lonja (Mercado de la Seda) Puerta de Los Pecados 1 (Reto 29) (Párrafos: 375, 376, 377, 378, 379)
+    {
+        id: "Av1-P-31",
+        tipo: "parada",
+        parada: 31, // mapa número 19
+        mapa_numero: 19,
+        nombre: "Lonja Puerta de Los Pecados (Puerta de los Pecados 1)",
+        coordenadas: { lat: Number('39.474170'), lng: Number('-0.378600') },
+        imagen: "imagenes/imagenes-aventuras/Lonja_puerta_pecados.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja4.jpg",
+    },
+
+    // Parada 32: Lonja (Mercado de la Seda) Puerta de Los Pecados 2 (Reto 30) (Párrafos: 380, 381)
+    {
+        id: "Av1-P-32",
+        tipo: "parada",
+        parada: 32, // mapa número 19
+        mapa_numero: 19,
+        nombre: "Lonja Puerta de Los Pecados (Puerta de los Pecados 2)",
+        coordenadas: { lat: Number('39.474160'), lng: Number('-0.378570') },
+        imagen: "imagenes/imagenes-aventuras/lonja5.jpg",
+    },
+
+    // Parada 33: Lonja (Mercado de la Seda) Gárgolas 1 (Reto 31) (Párrafos: 383, 384)
+    {
+        id: "Av1-P-33",
+        tipo: "parada",
+        parada: 33, // mapa número 19
+        mapa_numero: 19,
+        nombre: "Lonja (Gárgolas 1)",
+        coordenadas: { lat: Number('39.474170'), lng: Number('-0.378680') },
+        imagen: "imagenes/imagenes-aventuras/lonja3.jpg",
+    },
+
+    // Parada 34: Lonja (Mercado de la Seda) Gárgolas 2 (Reto 32) (Párrafos: 385)
+    {
+        id: "Av1-P-34",
+        tipo: "parada",
+        parada: 34, // mapa número 19
+        mapa_numero: 19,
+        nombre: "Lonja (Gárgolas 2)",
+        coordenadas: { lat: Number('39.474190'), lng: Number('-0.378710') },
+        imagen: "imagenes/imagenes-aventuras/lonja.jpg",
+    },
+
+    // Parada 35: Lonja (Mercado de la Seda) Fornicador (Reto 33) (Párrafos: 386)
+    {
+        id: "Av1-P-35",
+        tipo: "parada",
+        parada: 35, // mapa número 19
+        mapa_numero: 19,
+        nombre: "Lonja (tallado ventana)",
+        coordenadas: { lat: Number('39.474340'), lng: Number('-0.378780') },
+        imagen: "imagenes/imagenes-aventuras/lonja6.jpg",
+    },
+
+    // Tramo 19: Rodeando la Lonja (Mercado de la Seda)(Párrafos: 388)
+    {
+        id: "Av1-TR-19",
+        tipo: "tramo",
+        tramo: 19, // De mapa número 19 a mapa número 19
+        mapa_numero: "19→19",
+        nombre: "Rodeando la Lonja",
+        inicio: { lat: Number('39.474340'), lng: Number('-0.378780') },
+        waypoints: [
+            { lat: Number('39.474450'), lng: Number('-0.378890') },
+        ],
+        fin: { lat: Number('39.474560'), lng: Number('-0.378700') },
+        imagen: "imagenes/imagenes-aventuras/Lonja_esquina_izquierda.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_far_view.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Lonja_patio_naranjos_close_view.jpg",
+        video: "",
+    },
+
+    // Parada 36: Lonja (Mercado de la Seda) - Gárgola Torre (Párrafos: 390, 391)
+    {
+        id: "Av1-P-36",
+        tipo: "parada",
+        parada: 36, // mapa número 19
+        mapa_numero: 19,
+        nombre: "Lonja (Gárgola Torre)",
+        coordenadas: { lat: Number('39.474560'), lng: Number('-0.378700') },
+        imagen: "imagenes/imagenes-aventuras/lonja7.jpg",
+    },
+
+    // Tramo 20: Lonja (Mercado de la Seda) - Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392)
+    {
+        id: "Av1-TR-20",
+        tipo: "tramo",
+        tramo: 20, // De mapa número 19 a mapa número 19
+        mapa_numero: "19→19",
+        nombre: "Lonja Patio de los naranjos → Lonja entrada visitantes",
+        inicio: { lat: Number('39.474560'), lng: Number('-0.378700') },
+        waypoints: [
+            { lat: Number('39.474750'), lng: Number('-0.378420') },
+        ],
+        fin: { lat: Number('39.474660'), lng: Number('-0.378340') },
+        imagen: "imagenes/imagenes-aventuras/Lonja_patio_narajnos_close_view.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        video: "",
+    },
+
+    // Tramo 21: Lonja (Mercado de la Seda) -entrada visitantes →  Plaza Doctor López Collado (Párrafos: 333, 397, 31)
+    {
+        id: "Av1-TR-21",
+        tipo: "tramo",
+        tramo: 21, // De mapa número 19 a mapa número 20
+        mapa_numero: "19→20",
+        nombre: "Lonja entrada visitantes →  Plaza Doctor López Collado",
+        inicio: { lat: Number('39.474660'), lng: Number('-0.378340') },
+        waypoints: [
+            { lat: Number('39.474530'), lng: Number('-0.378190') },
+            { lat: Number('39.474360'), lng: Number('-0.378000') },
+        ],
+        fin: { lat: Number('39.474440'), lng: Number('-0.377900') },
+        imagen: "imagenes/imagenes-aventuras/Lonja-puerta-visitante.jpg",
+        imagen2: "imagenes/imagenes-aventuras/lonja2.jpg",
+        imagen3: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        video: "",
+    },
+
+    // Parada 37: Plaza Doctor López Collado (Párrafos: 398)
+    {
+        id: "Av1-P-37",
+        tipo: "parada",
+        parada: 37, // mapa número 20
+        mapa_numero: 20,
+        nombre: "Plaza Doctor López Collado",
+        coordenadas: { lat: Number('39.474440'), lng: Number('-0.377900') },
+        imagen: "imagenes/imagenes-aventuras/lonja7.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+    },
+    // Tramo : Plaza Doctor López Collado → Plaza Redonda (Párrafos: )
+    {
+        id: "Av34km-TR-22",
+        tipo: "tramo",
+        tramo: 22, // De mapa número 20 a mapa número 21
+        mapa_numero: "20→21",
+        nombre: "Plaza Doctor López Collado → Plaza Redonda",
+        inicio: { lat: Number('39.474440'), lng: Number('-0.377900') },
+        waypoints: [
+            { lat: Number('39.474351'), lng: Number('-0.377968') },
+            { lat: Number('39.474213, -0.377785') },
+            { lat: Number('39.474236, -0.377706') },
+            { lat: Number('39.473996, -0.377416') },
+            { lat: Number('39.473841, -0.377219') },
+            { lat: Number('39.473616, -0.377010') },
+            { lat: Number('39.473414, -0.376820') },
+            { lat: Number('39.473569, -0.376650') },
+        ],
+        fin: { lat: Number('39.473690'), lng: Number('-0.376680') },
+        imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Plaza_redonda.jpg",
+        video: "",
+    },
+    // Parada 28 - Plaza Redonda (Reto24Puzzle PZ-07) (Párrafos: 406)
+                {
+                    id: "Av2-P-28",
+                    tipo: "parada",
+                    parada: 28, // mapa número 16
+                    mapa_numero: 16,
+                    nombre: "Plaza Redonda",
+                    coordenadas: { lat: Number('39.473690'), lng: Number('-0.376680') },
+                    imagen: "imagenes/imagenes-aventuras/plaza_redonda.jpg",
+                },
+]
     }
   },
 };

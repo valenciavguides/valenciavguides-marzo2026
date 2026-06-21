@@ -118,7 +118,7 @@ export function registrarControladoresDatos({
         } catch (error) {
             logger.error(`${logPrefix} Error enviando datos de paradas:`, error);
         }
-    });
+    }, { permanente: true });
 
     // ============================================================
     // CONTROLADORES: SOLICITAR_AUDIOS / SOLICITAR_TEXTOS / SOLICITAR_RETOS / SOLICITAR_COORDENADAS
@@ -151,7 +151,7 @@ export function registrarControladoresDatos({
         } catch (error) {
             logger.error(`${logPrefix} Error reenviando audios:`, error);
         }
-    });
+    }, { permanente: true });
 
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_TEXTOS, async (mensaje) => {
         const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_TEXTOS][${mensaje?.origen || 'desconocido'}]`;
@@ -178,7 +178,7 @@ export function registrarControladoresDatos({
         } catch (error) {
             logger.error(`${logPrefix} Error reenviando textos:`, error);
         }
-    });
+    }, { permanente: true });
 
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS, async (mensaje) => {
         const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_RETOS][${mensaje?.origen || 'desconocido'}]`;
@@ -205,6 +205,6 @@ export function registrarControladoresDatos({
         } catch (error) {
             logger.error(`${logPrefix} Error reenviando retos:`, error);
         }
-    });
+    }, { permanente: true });
 
 }

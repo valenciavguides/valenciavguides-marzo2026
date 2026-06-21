@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -25,7 +25,7 @@
   <script src="js/suppress-warnings.js"></script>
   <script type="module" src="js/monitoreo.js"></script>
   <script type="module">
-    import { getEnviarMensaje, getRegistrarControlador, getPadreId } from './js/utils.js';
+    import { getEnviarMensaje, getRegistrarControlador, resolverIdPadre } from './js/utils.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {
@@ -330,7 +330,7 @@
             // Enviar HIJO_PREPARADO al padre
             try {
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -351,7 +351,7 @@
             // Enviar HIJO_FALLIDO al padre
             try {
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.HIJO_FALLIDO,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -411,7 +411,7 @@
                 if (!estadoMenu.hijoListoEnviado) {
                     try {
                         await enviarMensaje({
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
                             origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
@@ -457,7 +457,7 @@
                     try { if (typeof inicializarLogicaMenu === 'function') inicializarLogicaMenu(); } catch (e) { logger.warn(`${controladorPrefix} inicializarLogicaMenu falló:`, e); }
                     globalThis._uiConfirmado = true;
                     mostrarUI();
-                    try { await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { console.warn('[hijo1-opciones] Error notificando UI_VISIBLE:', e); }
+                    try { await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (e) { console.warn('[hijo1-opciones] Error notificando UI_VISIBLE:', e); }
 
                     return {
                         exito: true,
@@ -471,7 +471,7 @@
                     // Notificar error al padre
                     try {
                         await enviarMensaje({
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                             origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
@@ -639,7 +639,7 @@
 
                     // 3. Enviar respuesta
                     await enviarMensaje({
-                        destino: getPadreId(),
+                        destino: resolverIdPadre(),
                         tipo: TIPOS_MENSAJE.SISTEMA.ACK,
                         origen: CONFIG_HIJO.IFRAME_ID,
                         datos: datosRespuesta
@@ -932,7 +932,7 @@
             // 1. Notificar al padre para cerrar otros menús
             try {
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.UI.CLOSE_MENUS,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -1035,7 +1035,7 @@
                     
                     try {
                         await enviarMensaje({
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                             origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
@@ -1077,12 +1077,22 @@
 
                             if (icono.url) {
                                 logger.info(`${clickPrefix} Abriendo URL: ${icono.url}`);
-                                
+
                                 try {
+                                    // Pausar audio antes de salir para que el usuario retome manualmente
+                                    try {
+                                        await enviarMensaje({
+                                            destino: 'hijo3',
+                                            tipo: TIPOS_MENSAJE.UI.ACCION_USUARIO,
+                                            origen: CONFIG_HIJO.IFRAME_ID,
+                                            datos: { accion: 'audio_control', comando: 'pause', contexto: 'enlace_externo' }
+                                        });
+                                    } catch (_pe) { /* no bloquear apertura del enlace si la pausa falla */ }
+
                                     globalThis.open(icono.url, '_blank');
                                     
                                     await enviarMensaje({
-                                        destino: getPadreId(),
+                                        destino: resolverIdPadre(),
                                         tipo: TIPOS_MENSAJE.UI.NAVEGACION_EXTERNA,
                                         origen: CONFIG_HIJO.IFRAME_ID,
                                         datos: {
@@ -1096,7 +1106,7 @@
                                     logger.error(`${clickPrefix} Error abriendo URL:`, openError);
                                     
                                     await enviarMensaje({
-                                        destino: getPadreId(),
+                                        destino: resolverIdPadre(),
                                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                                         origen: CONFIG_HIJO.IFRAME_ID,
                                         datos: {
@@ -1215,7 +1225,7 @@
         try {
             // Enviar mensaje al padre para que muestre/oculte el temporizador
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -1270,7 +1280,7 @@
             // Enviar actualización al padre cada segundo
             try {
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.AVENTURA.TIEMPO_ACTUALIZADO,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -1375,7 +1385,7 @@
         // Enviar mensaje urgente al padre
         try {
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.AVENTURA.TIEMPO_AGOTADO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -1428,7 +1438,7 @@
             
             // Enviar estadísticas al padre
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.AVENTURA.ESTADISTICAS_TIEMPO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: stats

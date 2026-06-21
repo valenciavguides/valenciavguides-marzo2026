@@ -305,7 +305,7 @@
     }
     </style>
     <script type="module">
-    import { retryUntilAvailable, resolverIdsParada, getPadreId } from './js/utils.js';
+    import { retryUntilAvailable, resolverIdsParada, resolverIdPadre } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
 
@@ -554,7 +554,7 @@
                 console.log(`[hijo5] Click en ${titulo}: idPadre=${idPadre}`);
                 logger.debug(`${clickPrefix} Enviando cambio de parada al padre: ${idPadre}`);
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: { paradaId: idPadre, parada_id: idSinPrefijo, padreId: idPadre, padreid: idPadre, timestamp: Date.now(), origen: 'hijo5' }
@@ -564,7 +564,7 @@
                 logger.error(`${clickPrefix} Error al manejar click:`, clickError);
                 try {
                     await enviarMensaje({
-                        destino: getPadreId(),
+                        destino: resolverIdPadre(),
                         tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                         origen: CONFIG_HIJO.IFRAME_ID,
                         datos: { error: clickError.message, contexto: 'click-boton-parada', paradaId: idPadre, timestamp: Date.now() }
@@ -824,7 +824,7 @@
             _actualizarUIParaModo(modoNuevo, logPrefix);
             logger.info(`${logPrefix} Notificando cambio de modo al padre: ${modoNuevo}`);
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { modo: modoNuevo, timestamp: Date.now(), origen: 'boton-gps' }
@@ -836,7 +836,7 @@
             estado.modo = modoRevertido;
             _actualizarUIParaModo(modoRevertido, logPrefix);
             logger.warn(`${logPrefix} Estado revertido debido al error`);
-            enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, contexto: 'manejarClickGPS', timestamp: Date.now() } })
+            enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, contexto: 'manejarClickGPS', timestamp: Date.now() } })
                 .catch(e => logger.debug(`${logPrefix} Error notificando al padre:`, e));
         }
     }
@@ -862,7 +862,7 @@
 
             // Enviar solicitud al padre
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -887,7 +887,7 @@
             // Intentar notificar al padre del error
             try {
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: {
@@ -994,7 +994,7 @@
                 async function enviarHijoListoConReintento() {
                     try {
                         await enviarMensaje({
-                            destino: getPadreId(),
+                            destino: resolverIdPadre(),
                             tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
                             origen: CONFIG_HIJO.IFRAME_ID,
                             datos: {
@@ -1069,7 +1069,7 @@
             try {
                 _uiConfirmado = true;
                 mostrarUI();
-                await enviarMensaje({ destino: getPadreId(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } });
+                await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } });
             } catch (e) { logger.debug('[hijo5] mostrarUI/confirmaciÃ³n UI error:', e); }
         });
 
@@ -1255,7 +1255,7 @@
                 estado.datosRecibidos = true;
 
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     idOriginal: mensaje.id,
@@ -1416,7 +1416,7 @@
             try {
                 // Responder automÃ¡ticamente con ACK para mantener bidireccionalidad
                 await enviarMensaje({
-                    destino: getPadreId(),
+                    destino: resolverIdPadre(),
                     tipo: TIPOS_MENSAJE.SISTEMA.ACK,
                     origen: CONFIG_HIJO.IFRAME_ID,
                     datos: { mensajeOriginalId: mensaje.id }
@@ -1433,7 +1433,7 @@
         // Enviar HIJO_PREPARADO y esperar PADRE_DATOS antes de enviar HIJO_LISTO
         try {
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.HIJO_PREPARADO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -1481,7 +1481,7 @@
         // Intentar notificar al padre del error crÃ­tico
             try {
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
@@ -1516,7 +1516,7 @@
 
             // 2. Enviar ping/heartbeat al padre para verificar conexiÃ³n
             await enviarMensaje({
-                destino: getPadreId(),
+                destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: {
