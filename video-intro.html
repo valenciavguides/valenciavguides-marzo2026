@@ -978,86 +978,61 @@ async function scene9(){
   Knight.hide(); await wait(600);
 }
 
-/* ── P10: Botón imagen / gastronomía ── */
+/* ── P11: Botón imagen próximo monumento (b4 hijo2) ── */
 async function sceneImg(){
-  setCounter(10);
-  setScene(mainHTML('disabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.completo);
-  await wait(900);
-  // Tap opts → sub-botón gastronomía aparece
-  await Gauntlet.tapEl($('bl-opts'),'L',()=>{
-    spin($('bl-opts'));
-    const mz=$('mz');
-    const wr=document.createElement('div'); wr.className='extra-wrap'; wr.id='xwimg';
-    wr.innerHTML=`<button class="x-btn" id="xbg" style="width:min(44px,10vw);height:min(44px,10vw)"><img src="${B.gastro}" alt=""></button>`;
-    mz.appendChild(wr);
-    setTimeout(()=>$('xbg')?.classList.add('show'),60);
-  });
-  await wait(700);
-  const xbg=$('xbg');
-  if(xbg){
-    spin(xbg);
-    await zoomBtn(xbg, B.gastro);
-    await Gauntlet.hover(xbg,'L',300);
-    await Gauntlet.tapEl(xbg,'L',()=>{
-      setOv(`<div class="float-win">
-        <div class="float-card">
-          <div class="ov-close" id="ocimg" style="pointer-events:auto">✕</div>
-          <img class="float-img" src="${IM}00_ torres_de serranos_back.jpg" alt="">
-          <div class="float-text">Blah, bla, blah, bla, blah, bla, blah, bla, blah, bla.</div>
-        </div>
-      </div>`);
-    });
-    await wait(2800);
-    await Gauntlet.tapEl($('ocimg'),'UR',()=>clearOv());
-  }
-  const xw=$('xwimg'); if(xw){ $('xbg')?.classList.remove('show'); setTimeout(()=>xw.remove(),300) }
-  await wait(500);
-  Knight.hide();
-}
-
-/* ── P11: Botón vídeo / historia ── */
-async function sceneVid(){
   setCounter(11);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.completo);
   await wait(900);
-  await Gauntlet.tapEl($('bl-opts'),'L',()=>{
-    spin($('bl-opts'));
-    const mz=$('mz');
-    const wr=document.createElement('div'); wr.className='extra-wrap'; wr.id='xwvid';
-    wr.innerHTML=`<button class="x-btn" id="xbh" style="width:min(44px,10vw);height:min(44px,10vw)"><img src="${B.historia}" alt=""></button>`;
-    mz.appendChild(wr);
-    setTimeout(()=>$('xbh')?.classList.add('show'),60);
+  const b4=$('b4');
+  spin(b4);
+  await zoomBtn(b4, B.b4);
+  await Gauntlet.hover(b4,'R',300);
+  await Gauntlet.tapEl(b4,'R',()=>{
+    setOv(`<div class="float-win">
+      <div class="float-card">
+        <div class="ov-close" id="ocimg" style="pointer-events:auto">✕</div>
+        <img class="float-img" src="${IM}00_ torres_de serranos_back.jpg" alt="">
+        <div class="float-text">Blah, bla, blah, bla, blah, bla, blah, bla, blah, bla.</div>
+      </div>
+    </div>`);
   });
-  await wait(700);
-  const xbh=$('xbh');
-  if(xbh){
-    spin(xbh);
-    await zoomBtn(xbh, B.historia);
-    await Gauntlet.hover(xbh,'L',300);
-    await Gauntlet.tapEl(xbh,'L',()=>{
-      setOv(`<div class="float-win">
-        <div class="float-card">
-          <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
-          <video class="float-video" src="" autoplay muted loop playsinline></video>
-          <div class="float-text">Blah, bla, blah, bla, blah, bla.</div>
-        </div>
-      </div>`);
-    });
-    await wait(3000);
-    await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
-  }
-  const xw=$('xwvid'); if(xw){ $('xbh')?.classList.remove('show'); setTimeout(()=>xw.remove(),300) }
+  await wait(2800);
+  await Gauntlet.tapEl($('ocimg'),'UR',()=>clearOv());
   await wait(500);
   Knight.hide();
 }
 
-/* ── P12: Botón avanzar (b-av) ── */
-async function scene10(){
+/* ── P12: Botón dron (b3 hijo2) ── */
+async function sceneVid(){
   setCounter(12);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.completo);
+  await wait(900);
+  const b3=$('b3');
+  spin(b3);
+  await zoomBtn(b3, B.b3);
+  await Gauntlet.hover(b3,'R',300);
+  await Gauntlet.tapEl(b3,'R',()=>{
+    setOv(`<div class="float-win">
+      <div class="float-card">
+        <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
+        <video class="float-video" src="" autoplay muted loop playsinline></video>
+        <div class="float-text">Blah, bla, blah, bla, blah, bla.</div>
+      </div>
+    </div>`);
+  });
+  await wait(3000);
+  await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
+  await wait(500);
+  Knight.hide();
+}
+
+/* ── P10: Botón avanzar (b-av) ── */
+async function scene10(){
+  setCounter(10);
   setScene(mainHTML('disabled'));
   MC.showInset(RA);
   Knight.show(K.completo);
@@ -1328,7 +1303,7 @@ async function scene15(){
 async function scene16(){
   setCounter(19);
   setScene(mainHTML('disabled'));
-  const farOff=[39.47800,-0.37940];
+  const farOff=[39.47180,-0.38320];  // muy lejos: ~1.2 km al suroeste
   $('map').classList.add('on');
   setTimeout(()=>{
     MC.map.invalidateSize();
@@ -1351,8 +1326,10 @@ async function scene16(){
   await Gauntlet.hover(b6p16,'L',320);
   await Gauntlet.tapEl(b6p16,'L',()=>{ spin(b6p16); MC.showSec(farOff, RA.path[0]) });
   await wait(600);
-  const retPath2={path:[farOff,[39.47880,-0.37900],[39.47940,-0.37862],RA.path[0]]};
-  await Knight.walk(retPath2, 4200);
+  const retPath2={path:[farOff,
+    [39.47320,-0.38140],[39.47480,-0.37980],
+    [39.47640,-0.37910],[39.47790,-0.37862],RA.path[0]]};
+  await Knight.walk(retPath2, 6000);
   Knight.hide(); await wait(200);
   Knight.show(K.up, true);
   await wait(2000);
@@ -1423,8 +1400,8 @@ async function scene19(){
 async function run(){
   MC.init(); await wait(350);
   const scenes=[scene1,scene2,scene3,scene4,scene5,scene6,scene7,scene8,scene9,
-    sceneImg,sceneVid,
-    scene10,scene11,scene12,sceneRetoMCQ,
+    scene10,sceneImg,sceneVid,
+    scene11,scene12,sceneRetoMCQ,
     scene13,scene14,scene15,scene16,scene17,scene18,scene19];
   for(const fn of scenes){ clearOv(); await fn(); await wait(650) }
 }
