@@ -22,21 +22,38 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 #overlay-layer.active{pointer-events:auto}
 
 /* ── KNIGHT ── */
+/* ── KNIGHT principal (abajo-izquierda por defecto) ── */
 #knight{
   position:absolute;left:2%;bottom:0;
-  height:300px;width:auto;max-width:58%;
+  height:320px;width:auto;max-width:60%;
   z-index:400;pointer-events:none;
   transform:translateY(100%);
   transition:transform .75s cubic-bezier(.34,1.56,.64,1);
   filter:drop-shadow(3px 6px 16px rgba(0,0,0,.6));
 }
-#knight.show{transform:translateY(20%)}
+#knight.show{transform:translateY(0%)}   /* cuerpo completo visible */
 #knight.bounce{animation:bounceK .45s ease-in-out infinite alternate}
-@keyframes bounceK{to{margin-top:-20px}}
+@keyframes bounceK{to{margin-top:-18px}}
 #knight.walk{height:130px;max-width:22%;bottom:auto;left:auto;
   transition:left .14s linear,top .14s linear;
   animation:knightBob .28s ease-in-out infinite alternate}
 @keyframes knightBob{from{margin-left:-2px}to{margin-left:2px}}
+
+/* ── KNIGHT secundario (abajo-derecha) ── */
+#knight2{
+  position:absolute;right:2%;bottom:0;
+  height:320px;width:auto;max-width:60%;
+  z-index:400;pointer-events:none;
+  transform:translateY(100%);
+  transition:transform .75s cubic-bezier(.34,1.56,.64,1);
+  filter:drop-shadow(-3px 6px 16px rgba(0,0,0,.6));
+}
+#knight2.show{transform:translateY(0%)}
+#knight2.bounce{animation:bounceK .45s ease-in-out infinite alternate}
+
+/* ── helper: knight principal a la DERECHA ── */
+.knight-right #knight{left:auto;right:2%;transform:translateY(100%)}
+.knight-right #knight.show{transform:translateY(0%)}
 
 /* ── GAUNTLET ── */
 #gauntlet{position:absolute;width:180px;height:auto;z-index:1000;opacity:0;pointer-events:none;mix-blend-mode:multiply}
@@ -67,12 +84,43 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .s1-w{width:min(175px,52vw);margin-top:18px;opacity:0;animation:fadeUp .9s ease 1.7s forwards}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-/* S2 */
-.s2-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(320px,84vw)}
-.s2-flag{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;border:1.5px solid #ddd;transition:transform .2s,box-shadow .2s}
-.s2-flag.hl{transform:scale(1.1);box-shadow:0 5px 16px rgba(0,0,0,.22)}
-.s2-big{width:min(120px,30vw);aspect-ratio:4/3;object-fit:cover;border-radius:8px;display:none;margin-bottom:12px}
-.s2-ok{width:52px;height:52px;border-radius:50%;background:#28a745;border:none;display:none;align-items:center;justify-content:center;cursor:pointer;margin-top:10px}
+/* S2 — flags más grandes */
+.s2-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(360px,90vw)}
+.s2-flag{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:7px;border:2px solid #ddd;transition:transform .2s,box-shadow .2s}
+.s2-flag.hl{transform:scale(1.12);box-shadow:0 6px 18px rgba(0,0,0,.28);border-color:#28a745}
+.s2-big{width:min(160px,38vw);aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:none;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.s2-ok{width:64px;height:64px;border-radius:50%;background:#28a745;border:none;display:none;align-items:center;justify-content:center;cursor:pointer;margin-top:14px;box-shadow:0 4px 14px rgba(40,167,69,.4)}
+
+/* S4 — adventure tabs */
+.adv-tabs{width:min(380px,94vw);display:flex;flex-direction:column;gap:7px;flex:1;justify-content:center}
+.adv-tab{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:12px;border:2px solid #28a745;background:#f8fff8;cursor:pointer;transition:.2s}
+.adv-tab.sel{background:#28a745;border-color:#155724}
+.adv-tab-name{font-size:clamp(9px,2.4vw,12px);font-weight:600;color:#333;filter:blur(1.5px);flex:1}
+.adv-tab.sel .adv-tab-name{color:#fff;filter:none}
+.adv-tab-km{font-size:clamp(9px,2.2vw,11px);color:#28a745;font-weight:700;white-space:nowrap;margin-left:8px}
+.adv-tab.sel .adv-tab-km{color:#fff}
+.adv-tab-veh{font-size:14px;margin-left:6px}
+
+/* S5 — vintage map large */
+.s5-map{width:min(340px,86vw);max-height:68vh;object-fit:contain;border-radius:10px;border:6px solid #8b5e1a;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+
+/* S6 — all buttons grid */
+.btn-grid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px;background:#f8f9fa}
+.btn-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.bg-label{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px;width:100%;text-align:center;margin-bottom:2px}
+.btn-main-ico{width:min(52px,11.5vw);height:min(52px,11.5vw);border-radius:50%;background:linear-gradient(180deg,#1e7e34,#0d3a16);overflow:hidden;box-shadow:inset 0 0 10px rgba(255,255,255,.15),0 3px 8px rgba(0,0,0,.3)}
+.btn-main-ico img{width:103%;height:103%;margin:-1.5%;object-fit:cover;border-radius:50%}
+.btn-sub-ico{width:min(36px,8vw);height:min(36px,8vw);border-radius:50%;background:linear-gradient(180deg,#1e7e34,#0d3a16);overflow:hidden;box-shadow:inset 0 0 6px rgba(255,255,255,.1)}
+.btn-sub-ico img{width:103%;height:103%;margin:-1.5%;object-fit:cover;border-radius:50%}
+.btn-main-ico.blue{background:linear-gradient(135deg,#007bff,#0056b3)}
+.btn-main-ico.blue img{border-radius:50%}
+
+/* S7 — no gps / no internet */
+.err-stack{display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;flex:1}
+.err-img{width:min(220px,55vw);object-fit:contain}
+
+/* button zoom showcase */
+.btn-zoom{position:absolute;border-radius:50%;overflow:hidden;border:4px solid #28a745;transition:none;z-index:500;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.35)}
 
 /* S3 */
 .adv-item{background:#fff;border:1.5px solid #e0e0e0;border-radius:13px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;transition:.2s;margin-bottom:7px;width:min(340px,86vw)}
@@ -291,10 +339,11 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   <div id="scene-layer"></div>
   <div id="overlay-layer"></div>
   <img id="knight" src="" alt="">
+  <img id="knight2" src="" alt="">
   <img id="gauntlet" src="" alt="">
   <div id="end-fade"></div>
 </div>
-<div id="counter">Escena 1 / 17</div>
+<div id="counter">Escena 1 / 19</div>
 <button id="restart" onclick="location.reload()">↺</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -306,7 +355,7 @@ const MV = 'imagenes/imagenes-mapas-vintage/';
 
 /* ── ASSETS ──────────────────────────────────── */
 const K = {
-  saluda:   VI+'caballero_cuerpo_completo_saluda.png',
+  completo: VI+'caballero_cuerpo_completo_saluda.png',
   cerca:    VI+'caballero_vista_cerca.png',
   perdido:  VI+'caballero_perdido.png',
   caminando:VI+'caballero_caminando.png',
@@ -314,6 +363,8 @@ const K = {
   up:       VI+'caballero_thumbs_up.png',
   down:     VI+'caballero_thumbs_down.png',
   llorando: VI+'caballero_llorando.png',
+  camara:   VI+'caballero_camara.png',
+  durmiendo:VI+'caballero_durmiendo.png',
 };
 const G = {
   L: VI+'guantelete_mira_izquierda.png',
@@ -380,7 +431,7 @@ const setScene = h => {
 };
 const setOv     = h => { $('overlay-layer').innerHTML=h; $('overlay-layer').classList.add('active') };
 const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').classList.remove('active') };
-const setCounter = (n,t=22) => $('counter').textContent=`${n} / ${t}`;
+const setCounter = (n,t=19) => $('counter').textContent=`${n} / ${t}`;
 
 function interp(pts,steps){
   const out=[]; const per=Math.ceil(steps/(pts.length-1));
@@ -423,6 +474,43 @@ const Knight = {
   }
 };
 
+/* ── KNIGHT2 (esquina derecha) ───────────────── */
+const Knight2 = {
+  show(src){
+    const k=$('knight2');
+    k.src=src; k.style.cssText='';
+    requestAnimationFrame(()=>k.classList.add('show'));
+  },
+  hide(){ const k=$('knight2'); k.classList.remove('show') }
+};
+
+/* ── ZOOM-SHOWCASE de botón ─────────────────── */
+async function zoomBtn(btnEl, imgSrc){
+  const sr=stageR(), br=btnEl.getBoundingClientRect();
+  const ol=$('overlay-layer');
+  const d=document.createElement('div');
+  const w=br.width, h=br.height;
+  d.className='btn-zoom';
+  d.style.cssText=`left:${br.left-sr.left}px;top:${br.top-sr.top}px;width:${w}px;height:${h}px`;
+  const img=document.createElement('img');
+  img.src=imgSrc; img.style.cssText='width:100%;height:100%;object-fit:cover;';
+  d.appendChild(img); ol.appendChild(d); ol.classList.add('active');
+  await wait(60);
+  const tw=Math.min(sr.width*.55, 200);
+  d.style.transition='all .55s cubic-bezier(.34,1.4,.64,1)';
+  d.style.left=(sr.width/2-tw/2)+'px';
+  d.style.top=(sr.height/2-tw/2)+'px';
+  d.style.width=tw+'px'; d.style.height=tw+'px';
+  d.style.boxShadow='0 10px 36px rgba(0,0,0,.55)';
+  await wait(2000);
+  d.style.transition='all .38s cubic-bezier(.4,0,.2,1)';
+  d.style.left=(br.left-sr.left)+'px'; d.style.top=(br.top-sr.top)+'px';
+  d.style.width=w+'px'; d.style.height=h+'px';
+  d.style.opacity='0';
+  await wait(420);
+  d.remove(); ol.classList.remove('active');
+}
+
 /* ── MAP CONTROLLER ──────────────────────────── */
 const MC = {
   map:null,poly:null,poly2:null,uM:null,dM:null,sM:null,detC:null,
@@ -447,9 +535,9 @@ const MC = {
   hide(){ $('map').classList.remove('on'); this._clr() },
   _mkM(r){
     this._clr();
-    // Caballero caminando como marcador GPS del usuario
-    const uh=`<img src="${K.caminando}" style="height:50px;width:auto;filter:drop-shadow(2px 3px 8px rgba(0,0,0,.55))">`;
-    this.uM=L.marker(r.user,{icon:L.divIcon({className:'',html:uh,iconSize:[40,50],iconAnchor:[20,50]})}).addTo(this.map);
+    // Pin GPS del usuario
+    const uh='<div style="font-size:26px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))">📍</div>';
+    this.uM=L.marker(r.user,{icon:L.divIcon({className:'',html:uh,iconSize:[28,32],iconAnchor:[12,32]})}).addTo(this.map);
     // 📌 inicio del tramo
     const sh='<div style="font-size:22px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))">📌</div>';
     this.sM=L.marker(r.path[0],{icon:L.divIcon({className:'',html:sh,iconSize:[26,26],iconAnchor:[8,26]})}).addTo(this.map);
@@ -679,17 +767,23 @@ function mainHTML(avState='disabled'){
 }
 
 /* ═══════════════════════════════════════
-   SCENES
+   SCENES  (19 pantallas rediseñadas)
 ═══════════════════════════════════════ */
 
+/* ── P1: Pantalla de bienvenida / idioma ── */
 async function scene1(){
-  setCounter(1); MC.hide(); Knight.show(K.saluda);
-  setScene(`<div class="sc"><img class="s1-r" src="${AI}logo-redondo.png" style="width:min(88px,18vw)" alt=""><img class="s1-w" src="${AI}logo-alargado-2.png" alt=""></div>`);
-  await wait(7000); Knight.hide();
+  setCounter(1); MC.hide(); Knight.show(K.completo);
+  setScene(`<div class="sc" style="padding:24px 18px;gap:28px">
+    <img class="s1-r" src="${AI}logo-redondo.png" alt="" style="width:min(120px,28vw)">
+    <img class="s1-w" src="${AI}logo-alargado-2.png" alt="" style="width:min(260px,68vw)">
+  </div>`);
+  await wait(6500);
+  Knight.hide();
 }
 
+/* ── P2: Selección de idioma (grid de banderas) ── */
 async function scene2(){
-  setCounter(2);
+  setCounter(2); MC.hide(); Knight.show(K.completo);
   const fl=[[AI+'bandera_españa.png','ES'],[AI+'bandera_inglesa.png','EN'],[AI+'bandera_francia.png','FR'],
     [AI+'bandera_italia.png','IT'],[AI+'bandera_paises_bajos.png','NL'],[AI+'bandera_japon.png','JP'],
     [AI+'bandera_alemania.png','DE'],[AI+'bandera_china.png','CN'],[AI+'bandera_polonia.png','PL'],
@@ -711,185 +805,196 @@ async function scene2(){
   await wait(1400);
   await Gauntlet.tapEl($('sok'),'R');
   await wait(600);
+  Knight.hide();
 }
 
+/* ── P3 (NUEVA): Confirmación de idioma ── */
 async function scene3(){
-  setCounter(3); Knight.show(K.cerca);
-  setScene(`<div class="sc" style="padding:18px 14px;align-items:stretch;gap:0">
-    <div style="font-size:10px;color:#999;margin-bottom:9px;filter:blur(1.5px)">· · · · ·</div>
-    <div class="adv-item" id="ai0"><div class="adv-blur"></div><span style="font-size:10px;color:#aaa">🚶 1.2 km</span></div>
-    <div class="adv-item" id="ai1"><div class="adv-blur"></div><span style="font-size:10px;color:#aaa">🚶 2.4 km</span></div>
-    <div class="adv-item" id="ai2"><div class="adv-blur"></div><span style="font-size:10px;color:#aaa">🚶 3.8 km</span></div>
-    <div class="s3-ov" id="s3ov">
-      <div class="ov-close" id="s3cls">✕</div>
-      <img class="s3-vimg" src="${MV}Av1_mapa.jpg" alt="">
+  setCounter(3); MC.hide(); Knight.show(K.up);
+  setScene(`<div class="sc" style="gap:30px;padding:30px 22px">
+    <img src="${AI}bandera_españa.png" alt="" style="width:min(190px,48vw);aspect-ratio:4/3;object-fit:cover;border-radius:14px;border:3px solid #28a745;box-shadow:0 6px 22px rgba(0,0,0,.28)">
+    <button id="confirmOk" style="width:78px;height:78px;border-radius:50%;background:#28a745;border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(40,167,69,.45);cursor:pointer;flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" width="38" height="38"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+  </div>`);
+  await wait(1600);
+  await Gauntlet.tapEl($('confirmOk'),'R',()=>{ spin($('confirmOk')) });
+  await wait(1000);
+  Knight.hide();
+}
+
+/* ── P4: Selección de aventura (7 tabs, como la app real) ── */
+async function scene4(){
+  setCounter(4); MC.hide(); Knight.show(K.completo);
+  const AVS=[
+    ['Aventura 1','4 km','👣'],['Aventura 2','4 km','👣'],['Aventura 3','10 km','🚲🛴'],
+    ['Aventura 4','10 km','🚲🛴'],['Aventura 5','6 km','🚲🛴'],
+    ['Av. Fallas','4 km','👣'],['Av. 34 km','34 km','🚲🛴👣'],
+  ];
+  setScene(`<div class="sc" style="gap:0;padding:14px 18px 14px;justify-content:center">
+    <div class="adv-tabs" id="atabs">
+      ${AVS.map(([n,km,v],i)=>`<div class="adv-tab" id="at${i}">
+        <span class="adv-tab-name">${n}</span>
+        <span class="adv-tab-km">${km}</span>
+        <span class="adv-tab-veh">${v}</span>
+      </div>`).join('')}
     </div>
   </div>`);
-  await wait(1200);
-  await Gauntlet.tapEl($('ai0'),'DR',()=>{ $('ai0').classList.add('tapped'); $('s3ov').classList.add('on') });
-  await wait(1900);
-  // Gauntlet va a la X en esquina superior derecha del mapa vintage
-  await Gauntlet.tapEl($('s3cls'),'DR',()=>{ $('s3ov').classList.remove('on') });
-  await wait(600); Knight.hide();
-}
-
-async function scene4(){
-  setCounter(4);
-  setScene(`<div class="sc">
-    <img class="spinA" src="${AI}logo-redondo.png" alt="" style="width:min(68px,15vw)">
-    <div class="s4-bar"><div class="s4-fill" id="s4f"></div></div>
-    <span class="s4-pct" id="s4p">0%</span>
-  </div>`);
-  await wait(100); $('s4f').style.width='100%';
-  let p=0; const t=setInterval(()=>{ p=Math.min(p+2,100); const e=$('s4p'); if(e)e.textContent=p+'%'; if(p>=100)clearInterval(t) },72);
-  await wait(4000);
-}
-
-async function scene5(){
-  setCounter(5);
-  setScene(mainHTML('disabled'));
-  MC.showInset(RA);
-  await wait(2500);
-  const pp=MC.drawPoly(RA,7200);
-  await wait(500);
-  await Knight.walk(RA,6900);
-  await pp;
-  await wait(900);
-  Knight.show(K.cerca);
+  await wait(1400);
+  const t0=$('at0');
+  await Gauntlet.hover(t0,'L',320);
+  await Gauntlet.tapEl(t0,'L',()=>{ t0.classList.add('sel') });
   await wait(3000);
   Knight.hide();
 }
 
-/* ── ESCENA 6: llegada GPS — el momento mágico de la app ── */
-/* ── ESCENAS INDIVIDUALES POR BOTÓN (6-11) ── */
-
-async function sceneB1(){
-  setCounter(6);
-  setScene(mainHTML('disabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.cerca);
-  await wait(900);
-  const b1=$('b1');
-  await Gauntlet.hover(b1,'R',350);
-  await Gauntlet.tapEl(b1,'R',()=>{ spin(b1); MC.showAll() });
-  await wait(3800);
-  MC.hideAll(); MC.show(RA); MC.showFull(RA);
-  Knight.hide(); await wait(600);
+/* ── P5: Mapa vintage de la aventura ── */
+async function scene5(){
+  setCounter(5); MC.hide(); Knight2.show(K.up);
+  setScene(`<div class="sc" style="background:#f5e6c8;gap:0;padding:20px">
+    <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
+  </div>`);
+  await wait(5500);
+  Knight2.hide();
 }
 
-async function sceneB2(){
-  setCounter(7);
-  setScene(mainHTML('disabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.cerca);
-  await wait(900);
-  const b2=$('b2');
-  await Gauntlet.hover(b2,'R',350);
-  await Gauntlet.tapEl(b2,'R',()=>{ spin(b2);
-    setOv(`<div class="ov-dark"><div class="ov-close" id="oc2">✕</div><img class="ov-img" src="${MV}Av1_mapa.jpg" alt=""></div>`);
-  });
-  await wait(3200);
-  await Gauntlet.tapEl($('oc2'),'DR',()=>clearOv());
-  Knight.hide(); await wait(600);
+/* ── P6 (NUEVA): Grid de todos los botones (estático 10 s) ── */
+async function scene6(){
+  setCounter(6); MC.hide(); Knight2.show(K.up);
+  setScene(`<div class="btn-grid">
+    <div class="bg-label">♪ Audio</div>
+    <div class="btn-group">
+      <div class="btn-main-ico blue"><img src="${B.aMain}" alt=""></div>
+      <div class="btn-sub-ico"><img src="${B.aPlay}" alt=""></div>
+      <div class="btn-sub-ico"><img src="${B.aPause}" alt=""></div>
+      <div class="btn-sub-ico"><img src="${B.aStop}" alt=""></div>
+      <div class="btn-sub-ico"><img src="${B.aRep}" alt=""></div>
+    </div>
+    <div class="bg-label">Info / Opciones</div>
+    <div class="btn-group">
+      <div class="btn-main-ico"><img src="${B.opts}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.timer}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.info}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.pages}" alt=""></div>
+    </div>
+    <div class="bg-label">Mapa / Ruta</div>
+    <div class="btn-group">
+      <div class="btn-main-ico"><img src="${B.b1}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.b2}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.b3}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.b4}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.bAv}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.b6}" alt=""></div>
+    </div>
+    <div class="bg-label">Reto · Chat</div>
+    <div class="btn-group">
+      <div class="btn-main-ico"><img src="${B.reto}" alt=""></div>
+      <div class="btn-main-ico"><img src="${B.chat}" alt=""></div>
+    </div>
+  </div>`);
+  await wait(10000);
+  Knight2.hide();
 }
 
-async function sceneB3(){
+/* ── P7 (NUEVA): Sin GPS / Sin internet ── */
+async function scene7(){
+  setCounter(7); MC.hide();
+  Knight.show(K.llorando); Knight2.show(K.perdido);
+  setScene(`<div class="sc" style="background:#f9f9f9;gap:0;justify-content:center;padding:12px">
+    <div class="err-stack">
+      <img class="err-img" src="${AI}imagen-no-gps.png" alt="">
+      <img class="err-img" src="${AI}imagen-no-internet.png" alt="">
+    </div>
+  </div>`);
+  await wait(7000);
+  Knight.hide(); Knight2.hide();
+}
+
+/* ── P8: Botón mapa-completo (b1) ── */
+async function scene8(){
   setCounter(8);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.cerca);
+  Knight2.show(K.completo);
   await wait(900);
-  const b3=$('b3');
-  await Gauntlet.hover(b3,'R',350);
-  await Gauntlet.tapEl(b3,'R',()=>{ spin(b3);
-    setOv(`<div class="ov-dark"><div class="ov-close" id="oc3">✕</div>
-      <div class="drone-frame"><img src="${AI}H2-fotodron.png" alt=""><div class="drone-bar"><div class="drone-prog"></div></div></div>
-    </div>`);
+  const b1=$('b1');
+  spin(b1);
+  await zoomBtn(b1, B.b1);
+  await Gauntlet.hover(b1,'R',350);
+  await Gauntlet.tapEl(b1,'R',()=>{ spin(b1); MC.showAll();
+    setOv(`<div class="ov-dark"><div class="ov-close" id="oc8">✕</div></div>`);
   });
-  await wait(3500);
-  await Gauntlet.tapEl($('oc3'),'DR',()=>clearOv());
-  Knight.hide(); await wait(600);
+  await wait(3800);
+  await Gauntlet.tapEl($('oc8'),'DR',()=>{ clearOv(); MC.hideAll(); MC.show(RA); MC.showFull(RA) });
+  Knight2.hide(); await wait(600);
 }
 
-async function sceneB4(){
+/* ── P9: Botón mapa-vintage (b2) ── */
+async function scene9(){
   setCounter(9);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.cerca);
+  Knight.show(K.caminando);
   await wait(900);
-  const b4=$('b4');
-  await Gauntlet.hover(b4,'R',350);
-  await Gauntlet.tapEl(b4,'R',()=>{ spin(b4);
-    setOv(`<div class="ov-dark"><div class="ov-close" id="oc4">✕</div><img class="ov-img" src="${AI}H2-fotoproximo-monumento.png" alt=""></div>`);
+  const b2=$('b2');
+  spin(b2);
+  await zoomBtn(b2, B.b2);
+  await Gauntlet.hover(b2,'R',350);
+  await Gauntlet.tapEl(b2,'R',()=>{ spin(b2);
+    setOv(`<div class="ov-dark"><div class="ov-close" id="oc9">✕</div><img class="ov-img" src="${MV}Av1_mapa.jpg" alt=""></div>`);
   });
   await wait(3200);
-  await Gauntlet.tapEl($('oc4'),'DR',()=>clearOv());
+  await Gauntlet.tapEl($('oc9'),'DR',()=>clearOv());
   Knight.hide(); await wait(600);
 }
 
-async function sceneB6(){
+/* ── P10: Botón avanzar (b-av) ── */
+async function scene10(){
   setCounter(10);
   setScene(mainHTML('disabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.cerca);
+  MC.showInset(RA);
+  Knight.show(K.completo);
   await wait(900);
-  const b6=$('b6');
-  await Gauntlet.hover(b6,'R',350);
-  await Gauntlet.tapEl(b6,'R',()=>{ spin(b6);
-    MC.showSec(RA.user, RA.dest);
-    setOv(`<div class="ov-dark" style="background:rgba(0,0,0,.5)"><div class="ov-close" id="oc6">✕</div>
-      <img src="${AI}H2-fotodistancia.png" alt="" style="width:min(120px,28vw);border-radius:50%;filter:drop-shadow(0 4px 14px rgba(0,0,0,.6))">
-    </div>`);
-  });
-  await wait(3500);
-  await Gauntlet.tapEl($('oc6'),'DR',()=>{ clearOv(); MC.hideSec() });
-  Knight.hide(); await wait(600);
+  const bav=$('b-av');
+  bav.classList.remove('disabled'); bav.classList.add('activo'); spin(bav);
+  await zoomBtn(bav, B.bAv);
+  await Gauntlet.hover(bav,'R',350);
+  await Gauntlet.tapEl(bav,'R',()=>{ spin(bav); MC.showFull(RA) });
+  await wait(600);
+  await Knight.walk(RA, 6500);
+  await wait(500);
+  Knight.hide();
 }
 
-async function sceneLeft(){
+/* ── P11: Botón audio principal (amain) ── */
+async function scene11(){
   setCounter(11);
   setScene(mainHTML('disabled'));
-  MC.showInset(RA);
-  Knight.show(K.cerca);
-  await wait(900);
-  const leftBtns=[
-    ['bl-opts',  B.opts,  'ocl0'],
-    ['bl-info',  B.info,  'ocl1'],
-    ['bl-pages', B.pages, 'ocl2'],
-    ['bl-timer', B.timer, 'ocl3'],
-  ];
-  for(const [id,img,ocId] of leftBtns){
-    const btn=$(id);
-    await Gauntlet.hover(btn,'L',280);
-    await Gauntlet.tapEl(btn,'L',()=>{ spin(btn);
-      setOv(`<div class="ov-dark"><div class="ov-close" id="${ocId}">✕</div>
-        <img class="ov-img" src="${img}" alt=""></div>`);
-    });
-    await wait(2200);
-    clearOv(); await wait(380);
-  }
-  Knight.hide(); await wait(500);
-}
-
-async function scene7(){
-  setCounter(12);
-  setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.cerca);
+  const amain=$('amain');
+  spin(amain);
+  await zoomBtn(amain, B.aMain);
+  Knight.show(K.completo);
+  await wait(300);
+  await Gauntlet.hover(amain,'R',350);
+  await Gauntlet.tapEl(amain,'R',()=>{ spin(amain); $('astrip').classList.add('open') });
   await wait(800);
-  await animAP(0,87,6200);
-  const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
-  await wait(2500); Knight.hide();
+  await animAP(0, 87, 6000);
+  await wait(800);
+  Knight.hide();
 }
 
-async function scene8(){
-  setCounter(13);
+/* ── P12: Botón reto (ar) ── */
+async function scene12(){
+  setCounter(12);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   setAP(87);
   const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
-  await wait(600);
-
+  await wait(400);
+  spin($('ar'));
+  await zoomBtn($('ar'), B.reto);
+  await wait(400);
   // Tap reto button → challenge panel + puzzle
   await Gauntlet.tapEl($('ar'),'UR',()=>{
     // Build challenge panel inside overlay
@@ -987,45 +1092,11 @@ async function scene8(){
   await wait(1200);
 }
 
-async function scene9(){
-  setCounter(14);
-  setScene(mainHTML('enabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  await wait(800);
-  const am=$('amain');
-  await Gauntlet.tapEl(am,'R',async()=>{ spin(am); $('astrip').classList.add('open') });
-  await wait(1600);
-  await Gauntlet.tapEl($('aplay'),'DL');
-  await wait(1000);
-  await Gauntlet.tapEl($('astop'),'DL');
-  await wait(900);
-  await Gauntlet.tapEl(am,'R',async()=>{ spin(am); $('astrip').classList.remove('open') });
-  await wait(700);
-}
 
-async function scene10(){
-  setCounter(15);
-  setScene(mainHTML('enabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.cerca);
-  await wait(800);
-  await Gauntlet.tapEl($('b6'),'L',async()=>{
-    spin($('b6'));
-    // Show the button image large first
-    setOv(`<div class="ov-dark"><div class="ov-close">✕</div><img class="ov-img" src="${B.b6}" alt="" style="max-height:50vh"></div>`);
-    await wait(1600);
-    clearOv();
-    // Then show secondary route polyline on map
-    MC.showSec(RA.user,[39.47800,-0.37720]);
-  });
-  await wait(2800);
-  await Gauntlet.tapEl($('b6'),'L',()=>{ spin($('b6')); MC.hideSec() });
-  await wait(800); Knight.hide();
-}
-
-async function scene11(){
-  setCounter(16);
-  setScene(mainHTML('enabled'));
+/* ── P18: Chat (hijo6) ── */
+async function scene18(){
+  setCounter(18);
+  setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   await wait(700);
   await Gauntlet.tapEl($('chat-btn'),'DL',()=>{
@@ -1053,164 +1124,138 @@ async function scene11(){
   await wait(700);
 }
 
-async function scene12(){
+/* ── P13: Mapa + caballero_camara + cuenta atrás 5 min ── */
+async function scene13(){
+  setCounter(13);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  const offPt=[39.47850,-0.37900];
+  MC.moveUser(offPt);
+  Knight.show(K.camara);
+  await wait(900);
+  let s=299; const timerRef={iv:null};
+  setOv(`<div class="gps-ov" style="background:transparent;pointer-events:none">
+    <div class="gps-cd" style="border-radius:.4rem"><span class="gps-digits" id="gcd">04:59</span></div>
+  </div>`);
+  timerRef.iv=setInterval(()=>{
+    s--; const m=Math.floor(s/60),sec=s%60;
+    const e=$('gcd'); if(e) e.textContent=`0${m}:${String(sec).padStart(2,'0')}`;
+    if(s<=0) clearInterval(timerRef.iv);
+  },1000);
+  await wait(5000);
+  clearInterval(timerRef.iv); clearOv();
+  Knight.hide(); await wait(400);
+}
+
+/* ── P14: Cuenta atrás agotada + foto-fuera-rango + btn-ubicacion ── */
+async function scene14(){
+  setCounter(14);
+  setScene(mainHTML('disabled'));
+  await wait(60); $('b6').classList.add('disabled');
+  Knight.show(K.perdido);
+  await wait(600);
+  setOv(`<div class="gps-ov">
+    <img class="gps-img" src="${AI}foto-fuera-rango.png" alt="">
+  </div>`);
+  await wait(3000);
+  clearOv(); await wait(400);
+  const b6=$('b6');
+  b6.classList.remove('disabled'); b6.classList.add('activo'); spin(b6);
+  await zoomBtn(b6, B.b6);
+  await Gauntlet.hover(b6,'L',320);
+  const offPt=[39.47850,-0.37900];
+  await Gauntlet.tapEl(b6,'L',()=>{ spin(b6); MC.showSec(offPt, RA.path[0]) });
+  await wait(1800);
+  Knight.hide();
+}
+
+/* ── P15: Caballero camina la polyline discontinua hasta chincheta ── */
+async function scene15(){
+  setCounter(15);
+  setScene(mainHTML('disabled'));
+  const offPt=[39.47850,-0.37900];
+  const retPath={path:[offPt,[39.47910,-0.37865],[39.47955,-0.37845],RA.path[0]]};
+  await Knight.walk(retPath, 4000);
+  Knight.hide(); await wait(200);
+  Knight.show(K.up, true);
+  await wait(2500);
+  Knight.hide();
+}
+
+/* ── P16: Error GPS + caballero_durmiendo ── */
+async function scene16(){
+  setCounter(16);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  const farOff=[39.47800,-0.37940];
+  MC.moveUser(farOff);
+  Knight.show(K.durmiendo);
+  await wait(60); $('b6').classList.add('disabled');
+  await wait(700);
+  setOv(`<div class="gps-ov">
+    <img class="gps-img" src="${AI}fotogpserror.png" alt="">
+  </div>`);
+  await wait(3000);
+  clearOv(); await wait(400);
+  const b6p16=$('b6');
+  b6p16.classList.remove('disabled'); b6p16.classList.add('activo'); spin(b6p16);
+  await zoomBtn(b6p16, B.b6);
+  await Gauntlet.hover(b6p16,'L',320);
+  await Gauntlet.tapEl(b6p16,'L',()=>{ spin(b6p16); MC.showSec(farOff, RA.path[0]) });
+  await wait(600);
+  const retPath2={path:[farOff,[39.47880,-0.37900],[39.47940,-0.37862],RA.path[0]]};
+  await Knight.walk(retPath2, 4200);
+  Knight.hide(); await wait(200);
+  Knight.show(K.up, true);
+  await wait(2000);
+  Knight.hide();
+}
+
+
+/* ── P17: Botón temporizador ── */
+async function scene17(){
   setCounter(17);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.mapa);
-  await wait(80); $('knight').style.left='-9%'; // alejar de la polyline
-  await wait(920);
-  setOv(`<div class="gps-ov">
-    <div class="ov-close" id="gcls">✕</div>
-    <img class="gps-img" src="${AI}foto-fuera-rango.png" alt="">
-    <div class="gps-cd"><span class="gps-digits" id="gcd">04:59</span></div>
-  </div>`);
-  let s=299; const t=setInterval(()=>{ s--; const m=Math.floor(s/60),sec=s%60; const e=$('gcd'); if(e)e.textContent=`0${m}:${String(sec).padStart(2,'0')}`; if(s<=0)clearInterval(t) },1000);
-  await wait(3500);
-  const gc=$('gcls'); if(gc) await Gauntlet.tapEl(gc,'DL',()=>{clearInterval(t);clearOv()});
-  else {clearInterval(t);clearOv()}
-  await wait(1600); Knight.hide();
-}
-
-async function scene13(){
-  setCounter(18);
-  setScene(mainHTML('disabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.mapa);
-  await wait(80); $('knight').style.left='-17%'; // aún más alejado de la polyline
-  await wait(1120);
-  // GPS error overlay + user drifts off route
-  setOv(`<div style="position:absolute;bottom:90px;left:50%;transform:translateX(-50%);pointer-events:none">
-    <img src="${AI}fotogpserror.png" alt="" style="width:min(130px,32vw);opacity:.9;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))">
-  </div>`);
-  const wrongPts=[[39.47988,-0.37830],[39.47980,-0.37870],[39.47975,-0.37910],[39.47970,-0.37950]];
-  for(const pt of wrongPts){ MC.dotOff(); MC.moveUser(pt); await wait(750) }
-  await wait(1500);
-  const retPts=[[39.47970,-0.37950],[39.47975,-0.37910],[39.47980,-0.37870],[39.47988,-0.37830]];
-  for(const pt of retPts){ MC.moveUser(pt); await wait(650) }
-  MC.dotOn(); clearOv();
-  await wait(1000); Knight.hide();
-}
-
-async function scene14(){
-  setCounter(19);
-  setScene(mainHTML('enabled'));
-  MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.saluda);
   await wait(700);
-  const bav=$('b-av');
-  await Gauntlet.tapEl(bav,'R',async()=>{
-    spin(bav); bav.classList.add('activo');
-    // btn-avanzar REVELA la polyline de la siguiente parada (estaba oculta)
-    MC.showSec(RA.dest, RB.path[0]); // línea discontinua hasta inicio de RB
-    await wait(500);
-    setOv(`<div class="modal-bg">
-      <div class="modal">
-        <button class="m-btn m-green" id="mok">▶</button>
-        <button class="m-btn m-out">✕</button>
-      </div>
+  const blt=$('bl-timer');
+  spin(blt);
+  await zoomBtn(blt, B.timer);
+  await Gauntlet.hover(blt,'L',320);
+  await Gauntlet.tapEl(blt,'L',()=>{
+    spin(blt);
+    setOv(`<div class="timer-bg" id="tov">
+      <div class="timer-card"><span class="timer-digits" id="tdig">100:00:00</span></div>
     </div>`);
+    let secs=360000;
+    const iv=setInterval(()=>{
+      secs=Math.max(0,secs-3600);
+      const h=Math.floor(secs/3600), m=Math.floor((secs%3600)/60), s=secs%60;
+      const td=$('tdig');
+      if(td) td.textContent=`${String(h).padStart(3,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if(secs===0){
+        clearInterval(iv);
+        setTimeout(()=>{
+          const ov=$('tov');
+          if(ov) ov.innerHTML=`<div class="ov-close" id="lcls">✕</div>
+            <img src="${K.llorando}" alt="" style="height:min(62vh,62%);object-fit:contain;filter:drop-shadow(0 4px 22px rgba(0,0,0,.65))">`;
+        },500);
+      }
+    },30);
   });
-  await wait(1600);
-  await Gauntlet.tapEl($('mok'),'DR',()=>{
-    clearOv(); MC.switchRoute(RB);
-    const bav2=$('b-av'); if(bav2) bav2.classList.add('disabled');
-  });
-  Knight.hide(); await wait(1000);
-}
-
-async function scene15(){
-  setCounter(20);
-  setScene(mainHTML('disabled'));
-  MC.showInset(RB); MC.showFull(RB);
-  Knight.show(K.perdido);
-  await wait(700);
-
-  // Estado 1: sin GPS (permiso denegado / sin señal)
-  setOv(`<div class="net-ov">
-    <img class="net-img" src="${AI}imagen-no-gps.png" alt="">
-    <div class="net-line"></div><div class="net-line" style="width:min(125px,34vw)"></div>
-  </div>`);
-  await wait(3000);
-  $('overlay-layer').style.transition='opacity .4s'; $('overlay-layer').style.opacity='0';
-  await wait(450); clearOv(); $('overlay-layer').style.transition=''; $('overlay-layer').style.opacity='';
-  await wait(400);
-
-  // Estado 2: sin internet
-  setOv(`<div class="net-ov">
-    <img class="net-img" src="${AI}imagen-no-internet.png" alt="">
-    <div class="net-line"></div><div class="net-line" style="width:min(125px,34vw)"></div>
-  </div>`);
-  await wait(3000);
-  $('overlay-layer').style.transition='opacity .5s'; $('overlay-layer').style.opacity='0';
-  await wait(600); clearOv(); $('overlay-layer').style.transition=''; $('overlay-layer').style.opacity='';
-  await wait(500); Knight.hide();
-}
-
-async function scene16(){
-  setCounter(21);
-  setScene(mainHTML('enabled'));
-  MC.showInset(RB); MC.showFull(RB);
-  Knight.show(K.cerca);
-  await wait(1100);
-  // Extra menu
-  const am=$('amain');
-  await Gauntlet.tapEl(am,'R',async()=>{
-    spin(am);
-    const mz=$('mz');
-    const wr=document.createElement('div'); wr.className='extra-wrap'; wr.id='xw';
-    [[B.timer,'timer'],[B.pages,'pags'],[B.info,'info'],[B.opts,'opts']].forEach(([img])=>{
-      wr.innerHTML+=`<button class="x-btn"><img src="${img}" alt=""></button>`;
-    });
-    mz.appendChild(wr);
-    setTimeout(()=>[...wr.querySelectorAll('.x-btn')].forEach(b=>b.classList.add('show')),60);
-  });
-  await wait(1400);
-  const tb=document.querySelector('.extra-wrap .x-btn');
-  if(tb){
-    await Gauntlet.tapEl(tb,'R',()=>{
-      setOv(`<div class="timer-bg" id="tov">
-        <div class="timer-card"><span class="timer-digits" id="tdig">100:00:00</span></div>
-      </div>`);
-
-      // Rapid countdown: 100h = 360 000s, 100 ticks × 30ms = 3s real time
-      let secs=360000;
-      const iv=setInterval(()=>{
-        secs=Math.max(0,secs-3600);
-        const h=Math.floor(secs/3600);
-        const m=Math.floor((secs%3600)/60);
-        const s=secs%60;
-        const td=$('tdig');
-        if(td) td.textContent=`${String(h).padStart(3,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        if(secs===0){
-          clearInterval(iv);
-          // Brief pause then show llorando + X to close
-          setTimeout(()=>{
-            const ov=$('tov');
-            if(ov) ov.innerHTML=`
-              <div class="ov-close" id="lcls">✕</div>
-              <img src="${K.llorando}" alt=""
-                style="height:min(62vh,62%);object-fit:contain;
-                filter:drop-shadow(0 4px 22px rgba(0,0,0,.65))">`;
-          },500);
-        }
-      },30);
-    });
-  }
-  // Wait: ~3s countdown + 0.5s pause + 2.2s llorando = 5.7s, then gauntlete cierra
   await wait(5800);
   const lcls=$('lcls');
   if(lcls) await Gauntlet.tapEl(lcls,'DR',()=>clearOv());
   else clearOv();
-  const xw=$('xw'); if(xw){ [...xw.querySelectorAll('.x-btn')].forEach(b=>b.classList.remove('show')); setTimeout(()=>xw.remove(),300) }
-  Knight.hide(); await wait(600);
+  await wait(600);
 }
 
-async function scene17(){
-  setCounter(22);
+/* ── P19: Pantalla de fin ── */
+async function scene19(){
+  setCounter(19);
   setScene(mainHTML('enabled'));
   MC.showInset(RB); MC.showFull(RB);
-  Knight.show(K.saluda, true);
+  Knight.show(K.completo, true);
   await wait(1400);
   setOv(`<div class="modal-bg">
     <div class="modal">
@@ -1229,8 +1274,8 @@ async function scene17(){
 /* ── RUN ─────────────────────────────────────── */
 async function run(){
   MC.init(); await wait(350);
-  const scenes=[scene1,scene2,scene3,scene4,scene5,sceneB1,sceneB2,sceneB3,sceneB4,sceneB6,sceneLeft,scene7,scene8,scene9,
-    scene10,scene11,scene12,scene13,scene14,scene15,scene16,scene17];
+  const scenes=[scene1,scene2,scene3,scene4,scene5,scene6,scene7,scene8,scene9,
+    scene10,scene11,scene12,scene13,scene14,scene15,scene16,scene17,scene18,scene19];
   for(const fn of scenes){ clearOv(); await fn(); await wait(650) }
 }
 run();
