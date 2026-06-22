@@ -116,8 +116,8 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .btn-main-ico.blue img{border-radius:50%}
 
 /* S7 — no gps / no internet */
-.err-stack{display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;flex:1}
-.err-img{width:min(220px,55vw);object-fit:contain}
+.err-stack{display:flex;flex-direction:column;gap:24px;align-items:center;justify-content:center;flex:1}
+.err-img{width:min(290px,74vw);object-fit:contain}
 
 /* button zoom showcase */
 .btn-zoom{position:absolute;border-radius:50%;overflow:hidden;border:4px solid #28a745;transition:none;z-index:500;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.35)}
@@ -246,7 +246,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 /* ── CHALLENGE PANEL + PUZZLE ── */
 .ch-panel{position:absolute;inset:0;background:#fff;border-radius:0;padding:12px 12px 14px;display:flex;flex-direction:column;gap:8px;z-index:200;overflow:hidden}
 .ch-icon-row{display:flex;align-items:center;justify-content:center;margin-bottom:2px}
-.ch-reto-icon{width:min(48px,12vw);height:min(48px,12vw);object-fit:contain}
+.ch-reto-icon{width:min(68px,17vw);height:min(68px,17vw);object-fit:contain}
 
 /* PUZZLE BOARD */
 .puzzle-board{
@@ -276,16 +276,16 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .pz-piece img{width:100%;height:100%;object-fit:cover;display:block}
 
 /* Challenge question & options */
-.ch-q{height:9px;background:#444;border-radius:3px;filter:blur(2px);width:65%;align-self:center;flex-shrink:0}
-.ch-opt{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.ch-radio{width:20px;height:20px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+.ch-q{height:11px;background:#444;border-radius:3px;filter:blur(2px);width:72%;align-self:center;flex-shrink:0}
+.ch-opt{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ch-radio{width:26px;height:26px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
 .ch-radio.on{border-color:#28a745}
-.ch-radio.on::after,.ch-radio.wrong::after{content:'';width:10px;height:10px;border-radius:50%}
+.ch-radio.on::after,.ch-radio.wrong::after{content:'';width:13px;height:13px;border-radius:50%}
 .ch-radio.on::after{background:#28a745}.ch-radio.wrong::after{background:#dc3545}
 .ch-radio.wrong{border-color:#dc3545}
-.ch-text{flex:1;height:7px;background:#ccc;border-radius:2.5px;filter:blur(2px)}
+.ch-text{flex:1;height:9px;background:#ccc;border-radius:3px;filter:blur(2px)}
 .ch-btns{display:flex;gap:7px;margin-top:auto}
-.ch-send{width:min(36px,9vw);height:min(36px,9vw);border-radius:50%;border:none;background:#007bff;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.5;transition:opacity .2s}
+.ch-send{width:min(50px,12.5vw);height:min(50px,12.5vw);border-radius:50%;border:none;background:#007bff;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.5;transition:opacity .2s}
 .ch-send.on{opacity:1}
 .ch-hint{width:min(36px,9vw);height:min(36px,9vw);border-radius:50%;border:none;background:#28a745;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .ch-next{display:none;height:38px;background:#28a745;border:none;border-radius:8px;color:#fff;font-size:18px;cursor:pointer;align-items:center;justify-content:center;flex:1}
@@ -335,7 +335,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 /* Route overview overlay (P8) */
 .or-title{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.72);color:#fff;font-size:11px;padding:3px 11px;border-radius:10px;white-space:nowrap;pointer-events:none;z-index:10}
 .or-badge{position:absolute;left:var(--tx);top:var(--ty);width:30px;height:30px;border-radius:50%;background:#28a745;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none;transform:translate(-50%,-50%)}
-.or-panel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(310px,84vw);background:#fff;border-radius:14px;border:3px solid #28a745;box-shadow:0 8px 32px rgba(0,0,0,.50);overflow:hidden;pointer-events:none}
+.or-panel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(380px,94vw);background:#fff;border-radius:14px;border:3px solid #28a745;box-shadow:0 8px 32px rgba(0,0,0,.50);overflow:hidden;pointer-events:none}
 .or-panel-header{background:#28a745;color:#fff;font-size:11px;font-weight:700;padding:7px 12px;text-align:center;letter-spacing:.4px}
 .or-svg{width:100%;height:auto;display:block;padding:8px 10px}
 
@@ -347,9 +347,12 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .float-video{width:100%;max-height:44vh;background:#111;display:block}
 
 /* Reto MCQ overlay (P15) */
-.ch-mcq{position:absolute;inset:0;background:#fff;z-index:200;display:flex;flex-direction:column;align-items:center;padding:14px 14px 0;gap:8px}
-.ch-opts-bot{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);width:min(310px,82vw);display:flex;flex-direction:column;gap:12px}
+.ch-mcq{position:absolute;inset:0;background:#fff;z-index:200;display:flex;flex-direction:column;align-items:center;padding:16px 14px 0;gap:10px}
+.ch-opts-bot{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);width:min(380px,93vw);display:flex;flex-direction:column;gap:16px}
 .ch-send-center{position:absolute;bottom:14px;left:50%;transform:translateX(-50%)}
+/* Fuegos artificiales P22 */
+@keyframes burst{0%{transform:translate(0,0) scale(1.2);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+.spark{position:absolute;pointer-events:none;z-index:500;font-size:var(--sz);animation:burst var(--dur) ease-out var(--del) both}
 </style>
 </head>
 <body>
@@ -518,7 +521,7 @@ async function zoomBtn(btnEl, imgSrc){
   img.src=imgSrc; img.style.cssText='width:100%;height:100%;object-fit:cover;';
   d.appendChild(img); ol.appendChild(d); ol.classList.add('active');
   await wait(60);
-  const tw=Math.min(sr.width*.55, 200);
+  const tw=Math.min(sr.width*.72, 280);
   d.style.transition='all .55s cubic-bezier(.34,1.4,.64,1)';
   d.style.left=(sr.width/2-tw/2)+'px';
   d.style.top=(sr.height/2-tw/2)+'px';
@@ -953,7 +956,7 @@ async function scene8(){
     setOv(`<div style="position:absolute;inset:0;pointer-events:none">
       <div class="ov-close" id="oc8" style="pointer-events:auto">✕</div>
       <div class="or-panel">
-        <div class="or-panel-header">Av1 — Ruta completa · 7 monumentos · 4 km</div>
+        <div class="or-panel-header" style="font-size:0;padding:4px"></div>
         <svg class="or-svg" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
           <!-- Fondo tipo mapa claro -->
           <rect width="220" height="170" fill="#eef2f7" rx="6"/>
@@ -1063,9 +1066,9 @@ async function sceneVid(){
   await Gauntlet.hover(b3,'R',300);
   await Gauntlet.tapEl(b3,'R',()=>{
     setOv(`<div class="float-win">
-      <div class="float-card">
+      <div class="float-card" style="width:min(420px,96vw)">
         <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
-        <video class="float-video" src="" autoplay muted loop playsinline></video>
+        <video class="float-video" style="max-height:60vh" src="" autoplay muted loop playsinline></video>
       </div>
     </div>`);
   });
@@ -1102,6 +1105,8 @@ async function scene11(){
   spin(amain);
   await zoomBtn(amain, B.aMain);
   Knight.show(K.completo);
+  // Subir caballero por encima de la barra de audio (78px)
+  const kn=$('knight'); if(kn) kn.style.bottom='min(92px,23vw)';
   await wait(300);
   await Gauntlet.hover(amain,'R',350);
   await Gauntlet.tapEl(amain,'R',()=>{ spin(amain); $('astrip').classList.add('open') });
@@ -1127,7 +1132,7 @@ async function scene12(){
     setOv(`<div class="ch-panel" id="ch">
       <div class="ch-icon-row"><img class="ch-reto-icon" src="${B.reto}" alt="" style="width:min(64px,15vw);filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))"></div>
       <!-- Puzzle board: 2x2, cells 0(filled) 1(empty) 2(empty) 3(filled) -->
-      <div class="puzzle-board" id="pboard" style="width:min(300px,78vw);height:min(226px,58.5vw)">
+      <div class="puzzle-board" id="pboard" style="width:min(350px,90vw);height:min(264px,67.5vw)">
         <div class="pz-cell filled" id="pc0"><img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 0%"></div>
         <div class="pz-cell" id="pc1"></div>
         <div class="pz-cell" id="pc2"></div>
@@ -1315,8 +1320,10 @@ async function scene14(){
   b6.classList.remove('disabled'); b6.classList.add('activo'); spin(b6);
   await zoomBtn(b6, B.b6);
   await Gauntlet.hover(b6,'L',320);
-  const offPt=[39.47850,-0.37900];
+  const offPt=[39.4748,-0.3815];  // ~580m al suroeste del inicio
   await Gauntlet.tapEl(b6,'L',()=>{ spin(b6); MC.showSec(offPt, RA.path[0]) });
+  // Pin de usuario más grande
+  setTimeout(()=>{ const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='42px' },300);
   await wait(1800);
   Knight.hide();
 }
@@ -1325,8 +1332,8 @@ async function scene14(){
 async function scene15(){
   setCounter(18);
   setScene(mainHTML('disabled'));
-  const offPt=[39.47850,-0.37900];
-  const retPath={path:[offPt,[39.47910,-0.37865],[39.47955,-0.37845],RA.path[0]]};
+  const offPt=[39.4748,-0.3815];
+  const retPath={path:[offPt,[39.4762,-0.3800],[39.4780,-0.3792],[39.4796,-0.3785],RA.path[0]]};
   await Knight.walk(retPath, 4000);
   Knight.hide(); await wait(200);
   Knight.show(K.up, true);
@@ -1338,7 +1345,7 @@ async function scene15(){
 async function scene16(){
   setCounter(19);
   setScene(mainHTML('disabled'));
-  const farOff=[39.47180,-0.38320];  // muy lejos: ~1.2 km al suroeste
+  const farOff=[39.4685,-0.3858];  // muy lejos: ~1.8 km al suroeste
   $('map').classList.add('on');
   setTimeout(()=>{
     MC.map.invalidateSize();
@@ -1360,10 +1367,13 @@ async function scene16(){
   await zoomBtn(b6p16, B.b6);
   await Gauntlet.hover(b6p16,'L',320);
   await Gauntlet.tapEl(b6p16,'L',()=>{ spin(b6p16); MC.showSec(farOff, RA.path[0]) });
+  // Pin de usuario más grande
+  setTimeout(()=>{ const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='44px' },300);
   await wait(600);
   const retPath2={path:[farOff,
-    [39.47320,-0.38140],[39.47480,-0.37980],
-    [39.47640,-0.37910],[39.47790,-0.37862],RA.path[0]]};
+    [39.4700,-0.3840],[39.4718,-0.3822],
+    [39.4736,-0.3810],[39.4758,-0.3798],
+    [39.4775,-0.3792],RA.path[0]]};
   await Knight.walk(retPath2, 6000);
   Knight.hide(); await wait(200);
   Knight.show(K.up, true);
@@ -1417,6 +1427,32 @@ async function scene19(){
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);
   await wait(1400);
+  // Fuegos artificiales
+  (function launchFW(){
+    const emojis=['🎆','🎇','✨','⭐','💥','🌟','🔥','🎉'];
+    const ol=$('overlay-layer');
+    function burst(){
+      for(let i=0;i<22;i++){
+        const el=document.createElement('div');
+        el.className='spark';
+        const ang=Math.random()*Math.PI*2;
+        const dist=50+Math.random()*130;
+        el.style.cssText=[
+          `--dx:${(Math.cos(ang)*dist).toFixed(1)}px`,
+          `--dy:${(Math.sin(ang)*dist-80).toFixed(1)}px`,
+          `--sz:${20+Math.random()*18}px`,
+          `--dur:${0.7+Math.random()*.9}s`,
+          `--del:${(Math.random()*.5).toFixed(2)}s`,
+          `left:${15+Math.random()*70}%`,
+          `top:${10+Math.random()*55}%`,
+        ].join(';');
+        el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+        ol.appendChild(el);
+        setTimeout(()=>el.remove(),2200);
+      }
+    }
+    burst(); setTimeout(burst,700); setTimeout(burst,1400);
+  })();
   setOv(`<div class="modal-bg">
     <div class="modal">
       <div style="height:8px;background:#555;border-radius:3px;width:80%;margin:0 auto 8px"></div>
