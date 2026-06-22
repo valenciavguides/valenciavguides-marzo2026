@@ -1442,13 +1442,13 @@ async function scene19(){
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);
   await wait(1400);
-  // Fuegos artificiales (canvas, inspirado en puzzle.html — más cantidad y 2s más)
+  // Fuegos artificiales (canvas — se añade a #stage para que setOv no lo destruya)
   (function launchFW(){
     const cv=document.createElement('canvas');
     const sr=stageR();
     cv.width=sr.width; cv.height=sr.height;
-    cv.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:600';
-    $('overlay-layer').appendChild(cv);
+    cv.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:9999';
+    $('stage').appendChild(cv);
     const ctx=cv.getContext('2d');
     const colors=['#ff2e2e','#ff7f50','#ffcc00','#3cff5f','#1e90ff','#9b30ff','#ff69b4','#00ffff'];
     const particles=[];
