@@ -335,6 +335,9 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 /* Route overview overlay (P8) */
 .or-title{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.72);color:#fff;font-size:11px;padding:3px 11px;border-radius:10px;white-space:nowrap;pointer-events:none;z-index:10}
 .or-badge{position:absolute;left:var(--tx);top:var(--ty);width:30px;height:30px;border-radius:50%;background:#28a745;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none;transform:translate(-50%,-50%)}
+.or-panel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(310px,84vw);background:#fff;border-radius:14px;border:3px solid #28a745;box-shadow:0 8px 32px rgba(0,0,0,.50);overflow:hidden;pointer-events:none}
+.or-panel-header{background:#28a745;color:#fff;font-size:11px;font-weight:700;padding:7px 12px;text-align:center;letter-spacing:.4px}
+.or-svg{width:100%;height:auto;display:block;padding:8px 10px}
 
 /* Floating info/video window (P10, P11) */
 .float-win{position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -875,10 +878,13 @@ async function scene4(){
 /* ── P5: Mapa vintage de la aventura ── */
 async function scene5(){
   setCounter(5); MC.hide(); Knight2.show(K.up);
-  setScene(`<div class="sc" style="background:#f5e6c8;gap:0;padding:20px">
+  setScene(`<div class="sc" style="background:#f5e6c8;gap:0;padding:18px 14px;position:relative">
+    <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px">✕</div>
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
   </div>`);
-  await wait(5500);
+  await wait(4000);
+  await Gauntlet.tapEl($('oc5'),'UR',()=>{});
+  await wait(600);
   Knight2.hide();
 }
 
@@ -946,12 +952,52 @@ async function scene8(){
   await Gauntlet.tapEl(b1,'R',()=>{ spin(b1); MC.showAll();
     setOv(`<div style="position:absolute;inset:0;pointer-events:none">
       <div class="ov-close" id="oc8" style="pointer-events:auto">✕</div>
-      <div class="or-title">Av1 — Vista completa</div>
-      <div class="or-badge" style="--tx:18%;--ty:34%">1</div>
-      <div class="or-badge" style="--tx:30%;--ty:46%">2</div>
-      <div class="or-badge" style="--tx:45%;--ty:57%">3</div>
-      <div class="or-badge" style="--tx:60%;--ty:51%">4</div>
-      <div class="or-badge" style="--tx:74%;--ty:41%">5</div>
+      <div class="or-panel">
+        <div class="or-panel-header">Av1 — Ruta completa · 7 monumentos · 4 km</div>
+        <svg class="or-svg" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
+          <!-- Fondo tipo mapa claro -->
+          <rect width="220" height="170" fill="#eef2f7" rx="6"/>
+          <!-- Calles simuladas -->
+          <line x1="0" y1="55" x2="220" y2="55" stroke="#ccc" stroke-width="6"/>
+          <line x1="0" y1="110" x2="220" y2="110" stroke="#ccc" stroke-width="6"/>
+          <line x1="70" y1="0" x2="70" y2="170" stroke="#ccc" stroke-width="6"/>
+          <line x1="150" y1="0" x2="150" y2="170" stroke="#ccc" stroke-width="6"/>
+          <!-- Ruta principal -->
+          <polyline points="14,152 38,130 55,110 70,88 95,70 120,55 150,44 175,38 205,28"
+            stroke="#3388ff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Desvío pequeño -->
+          <polyline points="95,70 105,80 120,72 120,55"
+            stroke="#3388ff" stroke-width="2.5" fill="none" stroke-dasharray="5 3" stroke-linecap="round"/>
+          <!-- Otra rama -->
+          <polyline points="150,44 158,58 165,72"
+            stroke="#80b4ff" stroke-width="2" fill="none" stroke-dasharray="4 3"/>
+          <!-- Pin inicio -->
+          <circle cx="14" cy="152" r="7" fill="#dc3545" stroke="#fff" stroke-width="1.5"/>
+          <text x="14" y="156" text-anchor="middle" fill="#fff" font-size="7" font-weight="bold">S</text>
+          <!-- Waypoints numerados -->
+          <circle cx="38" cy="130" r="9" fill="#28a745" stroke="#fff" stroke-width="2"/>
+          <text x="38" y="134" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">1</text>
+          <circle cx="70" cy="88" r="9" fill="#28a745" stroke="#fff" stroke-width="2"/>
+          <text x="70" y="92" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">2</text>
+          <circle cx="95" cy="70" r="9" fill="#28a745" stroke="#fff" stroke-width="2"/>
+          <text x="95" y="74" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">3</text>
+          <circle cx="120" cy="55" r="9" fill="#28a745" stroke="#fff" stroke-width="2"/>
+          <text x="120" y="59" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">4</text>
+          <circle cx="150" cy="44" r="9" fill="#28a745" stroke="#fff" stroke-width="2"/>
+          <text x="150" y="48" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">5</text>
+          <circle cx="175" cy="38" r="9" fill="#28a745" stroke="#fff" stroke-width="2"/>
+          <text x="175" y="42" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">6</text>
+          <circle cx="205" cy="28" r="9" fill="#28a745" stroke="#fff" stroke-width="2"/>
+          <text x="205" y="32" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">7</text>
+          <!-- Destino (bandera) -->
+          <line x1="205" y1="28" x2="205" y2="12" stroke="#333" stroke-width="1.5"/>
+          <polygon points="205,12 215,16 205,20" fill="#ffc107"/>
+          <!-- Distancias -->
+          <text x="50" y="148" fill="#666" font-size="6">0.5km</text>
+          <text x="100" y="88" fill="#666" font-size="6">2km</text>
+          <text x="162" y="56" fill="#666" font-size="6">3.5km</text>
+        </svg>
+      </div>
     </div>`);
   });
   await wait(4000);
@@ -1020,7 +1066,6 @@ async function sceneVid(){
       <div class="float-card">
         <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
         <video class="float-video" src="" autoplay muted loop playsinline></video>
-        <div class="float-text">Blah, bla, blah, bla, blah, bla.</div>
       </div>
     </div>`);
   });
@@ -1077,26 +1122,16 @@ async function scene12(){
   spin($('ar'));
   await zoomBtn($('ar'), B.reto);
   await wait(400);
-  // Tap reto button → challenge panel + puzzle
+  // Tap reto button → challenge panel con puzzle
   await Gauntlet.tapEl($('ar'),'UR',()=>{
-    // Build challenge panel inside overlay
     setOv(`<div class="ch-panel" id="ch">
-      <div class="ch-icon-row"><img class="ch-reto-icon" src="${B.reto}" alt=""></div>
+      <div class="ch-icon-row"><img class="ch-reto-icon" src="${B.reto}" alt="" style="width:min(64px,15vw);filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))"></div>
       <!-- Puzzle board: 2x2, cells 0(filled) 1(empty) 2(empty) 3(filled) -->
-      <div class="puzzle-board" id="pboard">
+      <div class="puzzle-board" id="pboard" style="width:min(300px,78vw);height:min(226px,58.5vw)">
         <div class="pz-cell filled" id="pc0"><img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 0%"></div>
         <div class="pz-cell" id="pc1"></div>
         <div class="pz-cell" id="pc2"></div>
         <div class="pz-cell filled" id="pc3"><img src="${AI}H2-fotoproximo-monumento.png" style="object-position:100% 100%"></div>
-      </div>
-      <div class="ch-q"></div>
-      <div class="ch-opt"><div class="ch-radio" id="r0"></div><div class="ch-text"></div></div>
-      <div class="ch-opt"><div class="ch-radio" id="r1"></div><div class="ch-text" style="width:72%"></div></div>
-      <div class="ch-opt"><div class="ch-radio" id="r2"></div><div class="ch-text" style="width:56%"></div></div>
-      <div class="ch-btns">
-        <button class="ch-send" id="cs">📤</button>
-        <button class="ch-hint">💡</button>
-        <button class="ch-next" id="cn">→</button>
       </div>
     </div>`);
     Knight.show(K.perdido);
@@ -1159,10 +1194,10 @@ async function sceneRetoMCQ(){
 
   // Botón de reto grande durante 3 segundos, luego desaparece
   const bf=document.createElement('div');
-  bf.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:300;pointer-events:none';
+  bf.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:300;pointer-events:none;background:rgba(0,0,0,.55)';
   const bi=document.createElement('img');
   bi.src=B.reto;
-  bi.style.cssText='width:min(150px,38vw);border-radius:50%;border:4px solid #28a745;box-shadow:0 8px 36px rgba(0,0,0,.55);animation:bounceK .5s ease-in-out infinite alternate';
+  bi.style.cssText='width:min(190px,50vw);border-radius:50%;border:5px solid #28a745;box-shadow:0 10px 44px rgba(0,0,0,.65);animation:bounceK .5s ease-in-out infinite alternate';
   bf.appendChild(bi);
   $('scene-layer').appendChild(bf);
   await wait(3000);
