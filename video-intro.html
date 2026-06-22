@@ -189,10 +189,21 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .audio-main-btn img{width:100%;height:100%;object-fit:contain}
 .audio-main-btn.spinning{animation:spin-btn .9s cubic-bezier(.2,.8,.4,1) forwards!important}
 
-/* Audio action strip */
-.audio-strip{position:absolute;top:36px;left:0;right:0;background:rgba(242,242,242,.97);border-bottom:1px solid #ddd;padding:7px 9px;display:flex;align-items:center;gap:7px;z-index:200;transform:translateY(-110%);transition:transform .35s ease;backdrop-filter:blur(4px)}
-.audio-strip.open{transform:translateY(0)}
-.aa-btn{width:min(36px,8.5vw);height:min(36px,8.5vw);border-radius:50%;border:none;background:none;cursor:pointer;padding:0}
+/* Audio action strip — columna vertical sobre el botón central (igual que en la PWA real) */
+.audio-strip{
+  position:absolute;
+  right:min(52px,12vw);
+  width:min(52px,12vw);
+  bottom:calc(78px + min(46px,10.5vw) + 10px);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:none;border:none;padding:0;
+  z-index:200;
+  transform:translateY(18px);opacity:0;
+  transition:transform .32s ease,opacity .32s ease;
+  pointer-events:none;
+}
+.audio-strip.open{transform:translateY(0);opacity:1;pointer-events:auto}
+.aa-btn{width:min(44px,10vw);height:min(44px,10vw);border-radius:50%;border:none;background:rgba(255,255,255,.92);cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.28)}
 .aa-btn img{width:100%;height:100%;object-fit:contain}
 
 /* Red badge */
@@ -350,9 +361,6 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .ch-mcq{position:absolute;inset:0;background:#fff;z-index:200;display:flex;flex-direction:column;align-items:center;padding:16px 14px 0;gap:10px}
 .ch-opts-bot{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);width:min(380px,93vw);display:flex;flex-direction:column;gap:16px}
 .ch-send-center{position:absolute;bottom:14px;left:50%;transform:translateX(-50%)}
-/* Fuegos artificiales P22 */
-@keyframes burst{0%{transform:translate(0,0) scale(1.2);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
-.spark{position:absolute;pointer-events:none;z-index:500;font-size:var(--sz);animation:burst var(--dur) ease-out var(--del) both}
 </style>
 </head>
 <body>
@@ -1286,7 +1294,7 @@ async function scene13(){
   setCounter(16);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  const offPt=[39.47850,-0.37900];
+  const offPt=[39.4748,-0.3815];
   MC.moveUser(offPt);
   Knight.show(K.camara);
   await wait(900);
@@ -1320,10 +1328,17 @@ async function scene14(){
   b6.classList.remove('disabled'); b6.classList.add('activo'); spin(b6);
   await zoomBtn(b6, B.b6);
   await Gauntlet.hover(b6,'L',320);
-  const offPt=[39.4748,-0.3815];  // ~580m al suroeste del inicio
-  await Gauntlet.tapEl(b6,'L',()=>{ spin(b6); MC.showSec(offPt, RA.path[0]) });
-  // Pin de usuario más grande
-  setTimeout(()=>{ const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='42px' },300);
+  const offPt=[39.4748,-0.3815];
+  await Gauntlet.tapEl(b6,'L',()=>{
+    spin(b6);
+    MC.showSec(offPt, RA.path[0]);
+    MC.moveUser(offPt);
+    setTimeout(()=>{
+      const ext=L.latLngBounds([RA.path[0], offPt]);
+      MC.map.fitBounds(ext,{paddingTopLeft:[62,52],paddingBottomRight:[62,96]});
+      const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='42px';
+    },200);
+  });
   await wait(1800);
   Knight.hide();
 }
@@ -1427,31 +1442,49 @@ async function scene19(){
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);
   await wait(1400);
-  // Fuegos artificiales
+  // Fuegos artificiales (canvas, inspirado en puzzle.html — más cantidad y 2s más)
   (function launchFW(){
-    const emojis=['🎆','🎇','✨','⭐','💥','🌟','🔥','🎉'];
-    const ol=$('overlay-layer');
-    function burst(){
-      for(let i=0;i<22;i++){
-        const el=document.createElement('div');
-        el.className='spark';
-        const ang=Math.random()*Math.PI*2;
-        const dist=50+Math.random()*130;
-        el.style.cssText=[
-          `--dx:${(Math.cos(ang)*dist).toFixed(1)}px`,
-          `--dy:${(Math.sin(ang)*dist-80).toFixed(1)}px`,
-          `--sz:${20+Math.random()*18}px`,
-          `--dur:${0.7+Math.random()*.9}s`,
-          `--del:${(Math.random()*.5).toFixed(2)}s`,
-          `left:${15+Math.random()*70}%`,
-          `top:${10+Math.random()*55}%`,
-        ].join(';');
-        el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-        ol.appendChild(el);
-        setTimeout(()=>el.remove(),2200);
+    const cv=document.createElement('canvas');
+    const sr=stageR();
+    cv.width=sr.width; cv.height=sr.height;
+    cv.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:600';
+    $('overlay-layer').appendChild(cv);
+    const ctx=cv.getContext('2d');
+    const colors=['#ff2e2e','#ff7f50','#ffcc00','#3cff5f','#1e90ff','#9b30ff','#ff69b4','#00ffff'];
+    const particles=[];
+    const duration=7000;
+    let startTime=null;
+    function createParticle(x,y){
+      return{x,y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:120,
+        color:colors[Math.floor(Math.random()*colors.length)],size:Math.random()*4+2};
+    }
+    function loop(ts){
+      if(!startTime) startTime=ts;
+      const elapsed=ts-startTime;
+      ctx.clearRect(0,0,cv.width,cv.height);
+      if(elapsed<duration){
+        if(particles.length<200){
+          const x=Math.random()*cv.width;
+          const y=Math.random()*cv.height*.6;
+          for(let i=0;i<10;i++) particles.push(createParticle(x,y));
+        }
+        for(let i=particles.length-1;i>=0;i--){
+          const p=particles[i];
+          p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life--;
+          if(p.life<=0){ particles.splice(i,1); continue; }
+          ctx.beginPath();
+          ctx.fillStyle=p.color;
+          ctx.shadowColor=p.color; ctx.shadowBlur=12;
+          ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+          ctx.fill(); ctx.closePath();
+        }
+        requestAnimationFrame(loop);
+      } else {
+        ctx.clearRect(0,0,cv.width,cv.height);
+        cv.remove();
       }
     }
-    burst(); setTimeout(burst,700); setTimeout(burst,1400);
+    requestAnimationFrame(loop);
   })();
   setOv(`<div class="modal-bg">
     <div class="modal">
