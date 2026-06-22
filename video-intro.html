@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Valencia VGuides — Intro</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-apple-system,Verdana,sans-serif}
+
+/* ── STAGE — clips all children ── */
+#stage{position:absolute;inset:0;overflow:hidden}
+
+/* ── MAP ── */
+#map{position:absolute;inset:0;z-index:1;display:none}
+#map.on{display:block}
+
+/* ── LAYERS ── */
+#scene-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
+#overlay-layer{position:absolute;inset:0;z-index:300;pointer-events:none}
+#overlay-layer.active{pointer-events:auto}
+
+/* ── KNIGHT ── */
+#knight{
+  position:absolute;left:2%;bottom:0;
+  height:300px;width:auto;max-width:58%;
+  z-index:400;pointer-events:none;
+  transform:translateY(100%);
+  transition:transform .75s cubic-bezier(.34,1.56,.64,1);
+  filter:drop-shadow(3px 6px 16px rgba(0,0,0,.6));
+}
+#knight.show{transform:translateY(20%)}
+#knight.bounce{animation:bounceK .45s ease-in-out infinite alternate}
+@keyframes bounceK{to{margin-top:-20px}}
+#knight.walk{height:130px;max-width:22%;bottom:auto;left:auto;
+  transition:left .14s linear,top .14s linear;
+  animation:knightBob .28s ease-in-out infinite alternate}
+@keyframes knightBob{from{margin-left:-2px}to{margin-left:2px}}
+
+/* ── GAUNTLET ── */
+#gauntlet{position:absolute;width:180px;height:auto;z-index:1000;opacity:0;pointer-events:none;mix-blend-mode:multiply}
+
+/* ── EQUALIZER BARS ── */
+.eq-wrap{display:none;align-items:flex-end;gap:2px;height:16px;margin:0 5px;flex-shrink:0}
+.eq-wrap.on{display:flex}
+.eq-bar{width:3px;border-radius:2px;background:#28a745;transform-origin:bottom;
+  animation:eqd var(--s,.4s) ease-in-out infinite alternate}
+@keyframes eqd{from{height:3px}to{height:14px}}
+
+/* ── END FADE ── */
+#end-fade{position:absolute;inset:0;z-index:9000;opacity:0;pointer-events:none;transition:opacity 1.2s}
+#end-fade.w{background:#fff}#end-fade.b{background:#000}#end-fade.on{opacity:1}
+
+/* ── HUD ── */
+#counter{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:4px 13px;border-radius:20px;z-index:5000;pointer-events:none;letter-spacing:.3px}
+#restart{position:absolute;bottom:7px;right:9px;background:rgba(0,0,0,.38);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:4px 11px;font-size:11px;cursor:pointer;z-index:5000}
+
+/* ═══════════════════════════════
+   SCREENS 1-4
+═══════════════════════════════ */
+.sc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;gap:0}
+
+/* S1 */
+.s1-r{width:min(88px,18vw);animation:spinOnce 1.7s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes spinOnce{82%{transform:rotate(360deg)}to{transform:rotate(360deg)}}
+.s1-w{width:min(175px,52vw);margin-top:18px;opacity:0;animation:fadeUp .9s ease 1.7s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* S2 */
+.s2-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(320px,84vw)}
+.s2-flag{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;border:1.5px solid #ddd;transition:transform .2s,box-shadow .2s}
+.s2-flag.hl{transform:scale(1.1);box-shadow:0 5px 16px rgba(0,0,0,.22)}
+.s2-big{width:min(120px,30vw);aspect-ratio:4/3;object-fit:cover;border-radius:8px;display:none;margin-bottom:12px}
+.s2-ok{width:52px;height:52px;border-radius:50%;background:#28a745;border:none;display:none;align-items:center;justify-content:center;cursor:pointer;margin-top:10px}
+
+/* S3 */
+.adv-item{background:#fff;border:1.5px solid #e0e0e0;border-radius:13px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;transition:.2s;margin-bottom:7px;width:min(340px,86vw)}
+.adv-item.tapped{background:#e8f5e9;border-color:#28a745}
+.adv-blur{width:50%;height:8px;background:#ccc;border-radius:3px;filter:blur(2px)}
+.s3-ov{position:absolute;inset:0;background:#f5e6c8;display:none;flex-direction:column;align-items:center;justify-content:center;border:8px solid #8b5e1a;z-index:100}
+.s3-ov.on{display:flex}
+.s3-vimg{width:76%;max-height:54%;object-fit:contain}
+.s3-ok{width:48px;height:48px;border-radius:50%;background:#28a745;border:none;margin-top:16px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* S4 */
+.s4-bar{width:min(225px,58vw);height:7px;background:#e0e0e0;border-radius:3.5px;overflow:hidden;margin-top:15px}
+.s4-fill{height:100%;background:#28a745;border-radius:3.5px;width:0%;transition:width 3.6s linear}
+.s4-pct{font-size:11px;color:#aaa;margin-top:7px;font-variant-numeric:tabular-nums}
+.spinA{animation:spinA 1.1s linear infinite}
+@keyframes spinA{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════
+   MAIN SCREEN (scenes 5-17)
+═══════════════════════════════ */
+.main{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;pointer-events:none}
+.main *{pointer-events:auto}
+
+/* Top strip */
+.top-strip{height:36px;background:rgba(255,255,255,.18);border-bottom:1px solid rgba(0,0,0,.1);display:flex;align-items:center;padding:0 9px;flex-shrink:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.top-name{flex:1;font-size:10px;color:#333;filter:blur(1.5px);letter-spacing:.4px;text-shadow:0 1px 3px rgba(255,255,255,.8)}
+.chat-btn{width:28px;height:28px;border:none;background:none;cursor:pointer;padding:0;flex-shrink:0}
+.chat-btn img{width:100%;height:100%;object-fit:contain}
+
+/* Map zone */
+.map-zone{flex:1;position:relative;background:transparent;overflow:hidden}
+
+/* ── RIGHT COLUMN — real hijo2 buttons ── */
+.col-wrap{
+  position:absolute;right:0;top:0;bottom:0;
+  width:min(52px,12vw);
+  display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;
+  gap:5px;padding:3px 2px 3px 0;z-index:101;
+}
+/* ── LEFT COLUMN — real hijo1 buttons ── */
+.col-left{
+  position:absolute;left:0;top:0;bottom:0;
+  width:min(52px,12vw);
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;
+  gap:5px;padding:3px 0 3px 2px;z-index:101;
+}
+.boton{
+  width:min(48px,11vw);height:min(48px,11vw);flex-shrink:0;
+  position:relative;border-radius:50%;border:none;
+  background:linear-gradient(180deg,#1e7e34 0%,#155724 50%,#0d3a16 100%);
+  cursor:pointer;overflow:hidden;padding:0;
+  animation:glowS 3s ease-in-out infinite;
+}
+.boton img{position:absolute;top:-1.5%;left:-1.5%;width:103%;height:103%;border-radius:50%;object-fit:cover;pointer-events:none}
+.boton.disabled{background:linear-gradient(to right,#dc3545,#c82333)!important;animation:glowDis 2.5s ease-in-out infinite!important}
+.boton.activo{background:linear-gradient(135deg,#007bff,#0056b3)!important;animation:glowAct 3s ease-in-out infinite!important}
+@keyframes glowS{0%,100%{box-shadow:inset 0 0 8px rgba(255,255,255,.15)}50%{box-shadow:inset 0 0 18px rgba(255,255,255,.38)}}
+@keyframes glowAct{0%,100%{box-shadow:inset 0 0 10px rgba(255,255,255,.2)}50%{box-shadow:inset 0 0 26px rgba(255,255,255,.55)}}
+@keyframes glowDis{0%,100%{box-shadow:0 0 6px rgba(220,53,69,.3)}50%{box-shadow:0 0 14px rgba(220,53,69,.7)}}
+@keyframes spin-btn{0%{transform:rotate(0deg)}60%{transform:rotate(1080deg)}85%{transform:rotate(1350deg)}100%{transform:rotate(1440deg)}}
+.spinning{animation:spin-btn .9s cubic-bezier(.2,.8,.4,1) forwards!important}
+
+/* ── AUDIO MAIN — botón central entre hijo3 y hijo2, a la derecha ── */
+.audio-toggle-wrap{position:absolute;right:min(52px,12vw);bottom:0;width:min(52px,12vw);height:78px;display:flex;align-items:center;justify-content:center;z-index:102}
+.audio-main-btn{width:min(46px,10.5vw);height:min(46px,10.5vw);border-radius:50%;border:none;background:none;cursor:pointer;padding:0;animation:glowAct 2.5s ease-in-out infinite}
+.audio-main-btn img{width:100%;height:100%;object-fit:contain}
+.audio-main-btn.spinning{animation:spin-btn .9s cubic-bezier(.2,.8,.4,1) forwards!important}
+
+/* Audio action strip */
+.audio-strip{position:absolute;top:36px;left:0;right:0;background:rgba(242,242,242,.97);border-bottom:1px solid #ddd;padding:7px 9px;display:flex;align-items:center;gap:7px;z-index:200;transform:translateY(-110%);transition:transform .35s ease;backdrop-filter:blur(4px)}
+.audio-strip.open{transform:translateY(0)}
+.aa-btn{width:min(36px,8.5vw);height:min(36px,8.5vw);border-radius:50%;border:none;background:none;cursor:pointer;padding:0}
+.aa-btn img{width:100%;height:100%;object-fit:contain}
+
+/* Red badge */
+.red-badge{position:absolute;top:5px;left:5px;width:min(46px,10.5vw);height:min(15px,3.4vw);background:#dc3545;border-radius:2px;z-index:110;pointer-events:none}
+
+/* ── AUDIO BAR — hijo3: centro entre col-left y audio-toggle ── */
+.audio-bar{height:78px;background:rgba(255,255,255,.18);border-top:1px solid rgba(0,0,0,.1);
+  padding:7px 9px 5px;display:flex;flex-direction:column;gap:5px;flex-shrink:0;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  /* deja espacio para col-left y audio-toggle+col-wrap */
+  margin-left:min(52px,12vw);margin-right:calc(min(52px,12vw)*2)}
+.audio-row{display:flex;align-items:center;gap:6px}
+.audio-track{flex:1;height:5px;background:#e0e0e0;border-radius:2.5px;position:relative}
+.audio-fill{height:100%;background:#28a745;border-radius:2.5px;width:0%;transition:width .1s linear}
+.audio-dot{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#007bff;border-radius:50%;left:0%;margin-left:-6px;transition:left .1s linear;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.audio-time{font-size:9px;color:#222;min-width:25px;font-variant-numeric:tabular-nums;font-family:monospace;text-shadow:0 1px 3px rgba(255,255,255,.9)}
+.audio-reto{width:min(30px,7.5vw);height:min(30px,7.5vw);border-radius:50%;border:none;cursor:pointer;padding:0;flex-shrink:0;transition:filter .3s,opacity .3s}
+.audio-reto img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+.audio-reto.grey{opacity:.4;filter:grayscale(1)}
+.audio-reto.green{opacity:1;filter:none;animation:glowAct 1.8s ease-in-out infinite}
+.audio-marquee{font-size:9px;color:#222;white-space:nowrap;overflow:hidden;text-shadow:0 1px 3px rgba(255,255,255,.9)}
+.audio-marquee span{display:inline-block;animation:marq 14s linear infinite}
+@keyframes marq{0%{transform:translateX(100%)}100%{transform:translateX(-200%)}}
+
+/* ═══════════════════════════════
+   OVERLAYS / PANELS / MODALS
+═══════════════════════════════ */
+.ov-dark{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ov-close{
+  position:absolute;top:10px;right:10px;
+  width:3rem;height:3rem;border-radius:50%;
+  background:#ff8c00;border:.2rem solid #00ff00;
+  color:#000;font-size:2.2rem;font-weight:bold;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;line-height:1;z-index:50;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.ov-img{width:min(340px,82vw);border-radius:10px;object-fit:cover;max-height:64vh}
+.drone-frame{width:min(340px,82vw);background:#000;border-radius:10px;overflow:hidden}
+.drone-frame img{width:100%;max-height:40vh;object-fit:cover}
+.drone-bar{height:5px;background:#333}
+.drone-prog{height:100%;width:0%;background:#28a745;animation:dP 9s linear forwards}
+@keyframes dP{to{width:68%}}
+
+/* Modal */
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.76);display:flex;align-items:center;justify-content:center}
+.modal{background:#fff;border-radius:16px;padding:18px;width:min(280px,74vw);display:flex;flex-direction:column;gap:10px}
+.m-btn{width:100%;height:44px;border:none;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600}
+.m-green{background:#27ae60;color:#fff}.m-red{background:#e74c3c;color:#fff}.m-out{background:#fff;border:2px solid #555;color:#333}
+
+/* ── CHALLENGE PANEL + PUZZLE ── */
+.ch-panel{position:absolute;inset:0;background:#fff;border-radius:0;padding:12px 12px 14px;display:flex;flex-direction:column;gap:8px;z-index:200;overflow:hidden}
+.ch-icon-row{display:flex;align-items:center;justify-content:center;margin-bottom:2px}
+.ch-reto-icon{width:min(48px,12vw);height:min(48px,12vw);object-fit:contain}
+
+/* PUZZLE BOARD */
+.puzzle-board{
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  gap:4px;width:min(260px,62vw);height:min(196px,46.5vw);
+  align-self:center;border:2px solid #8b5e1a;border-radius:6px;overflow:hidden;
+  flex-shrink:0;
+}
+.pz-cell{position:relative;background:#d0d0d0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pz-cell.filled{background:none}
+.pz-cell.filled img{width:100%;height:100%;object-fit:cover;display:block}
+.pz-cell:not(.filled)::after{content:'?';font-size:min(20px,4.5vw);color:#aaa;font-weight:bold}
+@keyframes snapIn{0%{transform:scale(1.12);opacity:.7}60%{transform:scale(.96)}100%{transform:scale(1);opacity:1}}
+.pz-cell.snap{animation:snapIn .35s ease forwards}
+
+/* Scattered puzzle pieces (absolute in overlay-layer) */
+.pz-piece{
+  position:absolute;
+  background:#e0c89a;
+  border:2px solid #8b5e1a;
+  border-radius:5px;
+  overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,.35);
+  pointer-events:none;
+  z-index:350;
+}
+.pz-piece img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Challenge question & options */
+.ch-q{height:9px;background:#444;border-radius:3px;filter:blur(2px);width:65%;align-self:center;flex-shrink:0}
+.ch-opt{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ch-radio{width:20px;height:20px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+.ch-radio.on{border-color:#28a745}
+.ch-radio.on::after,.ch-radio.wrong::after{content:'';width:10px;height:10px;border-radius:50%}
+.ch-radio.on::after{background:#28a745}.ch-radio.wrong::after{background:#dc3545}
+.ch-radio.wrong{border-color:#dc3545}
+.ch-text{flex:1;height:7px;background:#ccc;border-radius:2.5px;filter:blur(2px)}
+.ch-btns{display:flex;gap:7px;margin-top:auto}
+.ch-send{width:min(36px,9vw);height:min(36px,9vw);border-radius:50%;border:none;background:#007bff;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.5;transition:opacity .2s}
+.ch-send.on{opacity:1}
+.ch-hint{width:min(36px,9vw);height:min(36px,9vw);border-radius:50%;border:none;background:#28a745;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ch-next{display:none;height:38px;background:#28a745;border:none;border-radius:8px;color:#fff;font-size:18px;cursor:pointer;align-items:center;justify-content:center;flex:1}
+.ch-next.show{display:flex}
+
+/* Extra sub-buttons */
+.extra-wrap{position:absolute;left:0;bottom:calc(50% - min(24px,5.5vw));width:min(52px,12vw);display:flex;flex-direction:column-reverse;gap:4px;z-index:150}
+.x-btn{width:min(38px,9vw);height:min(38px,9vw);border-radius:50%;border:none;cursor:pointer;background:linear-gradient(180deg,#1e7e34 0%,#155724 50%,#0d3a16 100%);box-shadow:inset 0 0 5px rgba(255,255,255,.1);opacity:0;transform:translateY(10px);transition:opacity .22s,transform .22s;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+.x-btn img{width:100%;height:100%;object-fit:contain}
+.x-btn.show{opacity:1;transform:translateY(0)}
+
+/* Timer */
+.timer-bg{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center}
+.timer-card{background:#111;border-radius:10px;padding:14px 24px}
+.timer-digits{font-family:monospace;font-size:clamp(20px,5.5vw,30px);color:#00ff44;letter-spacing:4px}
+
+/* Chat */
+.chat-panel{position:absolute;top:0;right:-100%;bottom:0;width:min(310px,86vw);background:#fff;z-index:500;box-shadow:-5px 0 20px rgba(0,0,0,.27);transition:right .4s ease;display:flex;flex-direction:column}
+.chat-panel.open{right:0}
+.chat-hdr{background:#1a6ea8;height:48px;display:flex;align-items:center;justify-content:flex-end;padding:0 11px;flex-shrink:0}
+.chat-x{width:2.7rem;height:2.7rem;border-radius:50%;background:#ff8c00;border:.2rem solid #dc3545;color:#000;font-size:1.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold}
+.chat-body{padding:9px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.acc1{background:#ff8c00;border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.acc1-text{width:53%;height:8px;background:rgba(255,255,255,.7);border-radius:3px;filter:blur(1.5px)}
+.arr{color:#fff;font-size:10px;transition:transform .3s}.arr.open{transform:rotate(90deg)}
+.acc2-wrap{display:none;padding:3px 0 3px 9px;flex-direction:column;gap:4px}
+.acc2-wrap.open{display:flex}
+.acc2{background:#1a6ea8;border-radius:5px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.acc2-text{width:42%;height:7px;background:rgba(255,255,255,.7);border-radius:3px;filter:blur(1.5px)}
+.acc-content{display:none;padding:6px 10px;flex-direction:column;gap:4px}
+.acc-content.open{display:flex}
+.acc-line{height:7px;background:#ddd;border-radius:3px;filter:blur(1.5px)}
+.acc-line:nth-child(2){width:76%}.acc-line:nth-child(3){width:58%}
+
+/* GPS / error overlays */
+.gps-ov{position:absolute;inset:0;background:rgba(0,0,0,.78);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gps-img{width:min(170px,41vw);object-fit:contain}
+.gps-cd{position:absolute;bottom:0;left:0;right:0;height:44px;background:#dc3545;display:flex;align-items:center;justify-content:center;border:0.2rem solid #ff0000;border-radius:.4rem;margin:5px}
+.gps-digits{color:#ff4444;font-size:clamp(18px,5vw,26px);font-family:monospace;font-weight:bold;letter-spacing:3px;text-shadow:0 0 6px rgba(255,0,0,.5)}
+.net-ov{position:absolute;inset:0;background:rgba(0,0,0,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.net-img{width:min(150px,37vw);object-fit:contain}
+.net-line{height:7px;width:min(170px,46vw);background:rgba(255,255,255,.4);border-radius:3px;filter:blur(2px)}
+
+/* Leaflet user dot */
+@keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(0,123,255,.7)}70%{box-shadow:0 0 0 10px rgba(0,123,255,0)}100%{box-shadow:0 0 0 0 rgba(0,123,255,0)}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="map"></div>
+  <div id="scene-layer"></div>
+  <div id="overlay-layer"></div>
+  <img id="knight" src="" alt="">
+  <img id="gauntlet" src="" alt="">
+  <div id="end-fade"></div>
+</div>
+<div id="counter">Escena 1 / 17</div>
+<button id="restart" onclick="location.reload()">↺</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+'use strict';
+const AI = 'imagenes/imagenes-aplicación/';
+const VI = 'imagenes/imagenes video intro/';
+const MV = 'imagenes/imagenes-mapas-vintage/';
+
+/* ── ASSETS ──────────────────────────────────── */
+const K = {
+  saluda:   VI+'caballero_cuerpo_completo_saluda.png',
+  cerca:    VI+'caballero_vista_cerca.png',
+  perdido:  VI+'caballero_perdido.png',
+  caminando:VI+'caballero_caminando.png',
+  mapa:     VI+'caballero_mapa_desorientado.png',
+  up:       VI+'caballero_thumbs_up.png',
+  down:     VI+'caballero_thumbs_down.png',
+  llorando: VI+'caballero_llorando.png',
+};
+const G = {
+  L: VI+'guantelete_mira_izquierda.png',
+  R: VI+'guantelete_mira_derecha.png',
+  DL:VI+'guantelete_mira_oblicuo_abajo_izquierda.png',
+  DR:VI+'guantelete_mira_oblicuo_abajo_derecha.png',
+  UR:VI+'guantelete_mira_oblicuo_arriba_derecha.png',
+  UL:VI+'guantelete_mira_oblicuo_arriba_izquierda.png',
+};
+const B = {
+  b1:   AI+'H2-fotomapa-moderno.png',
+  b2:   AI+'H2-fotomapa-vintage.png',
+  b3:   AI+'H2-fotodron.png',
+  b4:   AI+'H2-fotoproximo-monumento.png',
+  bAv:  AI+'fotoruta-A-B.png',
+  b6:   AI+'H2-fotodistancia.png',
+  chat: AI+'fotochat-boton.png',
+  aMain:AI+'boton-audio-central.png',
+  aPlay:AI+'boton-audio-play.png',
+  aPause:AI+'boton-audio-pausa.png',
+  aStop: AI+'boton-audio-stop.png',
+  aRep:  AI+'boton-audio-replay.png',
+  reto:  AI+'H4-fotoretos.png',
+  opts:  AI+'foto-opciones.png',
+  timer: AI+'foto-temporizador.png',
+  info:  AI+'foto-informacion.png',
+  pages: AI+'foto-paginas-oficiales.png',
+};
+
+/* ── ROUTES ──────────────────────────────────── */
+const RA = {
+  path:[
+    [39.47988,-0.37830],[39.47970,-0.37828],[39.47952,-0.37824],[39.47935,-0.37816],
+    [39.47918,-0.37804],[39.47903,-0.37792],[39.47889,-0.37777],[39.47877,-0.37761],
+    [39.47864,-0.37743],[39.47850,-0.37724],[39.47836,-0.37706],[39.47820,-0.37688],
+    [39.47805,-0.37671],[39.47789,-0.37654],[39.47773,-0.37637],[39.47757,-0.37620],
+    [39.47740,-0.37604],[39.47724,-0.37589],[39.47708,-0.37574],[39.47692,-0.37559],
+    [39.47677,-0.37546],[39.47663,-0.37534],[39.47649,-0.37524],[39.47635,-0.37518],
+    [39.47620,-0.37517],[39.47605,-0.37518],[39.47590,-0.37519],[39.47575,-0.37520],
+    [39.47560,-0.37521],[39.47545,-0.37522],[39.47530,-0.37523],[39.47518,-0.37524],
+  ],
+  user:[39.47988,-0.37830],dest:[39.47518,-0.37524],center:[39.47753,-0.37674],zoom:17,
+};
+const RB = {
+  path:[
+    [39.47518,-0.37524],[39.47510,-0.37538],[39.47500,-0.37554],[39.47488,-0.37572],
+    [39.47474,-0.37592],[39.47460,-0.37615],[39.47448,-0.37640],[39.47438,-0.37668],
+    [39.47430,-0.37697],[39.47425,-0.37728],[39.47422,-0.37758],[39.47421,-0.37788],
+    [39.47423,-0.37818],[39.47428,-0.37848],[39.47436,-0.37876],[39.47447,-0.37902],
+    [39.47460,-0.37926],
+  ],
+  user:[39.47518,-0.37524],dest:[39.47460,-0.37926],center:[39.47489,-0.37725],zoom:17,
+};
+
+/* ── UTILS ───────────────────────────────────── */
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const $    = id => document.getElementById(id);
+const stageR = () => $('stage').getBoundingClientRect();
+const setScene = h => {
+  const sl=$('scene-layer');
+  sl.innerHTML=h; sl.style.pointerEvents='auto';
+  sl.style.transition='none'; sl.style.opacity='0';
+  requestAnimationFrame(()=>{ sl.style.transition='opacity .22s ease-in'; sl.style.opacity='1' });
+};
+const setOv     = h => { $('overlay-layer').innerHTML=h; $('overlay-layer').classList.add('active') };
+const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').classList.remove('active') };
+const setCounter = (n,t=22) => $('counter').textContent=`${n} / ${t}`;
+
+function interp(pts,steps){
+  const out=[]; const per=Math.ceil(steps/(pts.length-1));
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1];
+    for(let s=0;s<per;s++){const t=s/per;out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}
+  }
+  return out;
+}
+
+/* ── KNIGHT ──────────────────────────────────── */
+const Knight = {
+  show(src,bounce=false){
+    const k=$('knight');
+    k.src=src; k.classList.remove('walk');
+    k.style.cssText='';
+    requestAnimationFrame(()=>{
+      k.classList.add('show');
+      bounce ? k.classList.add('bounce') : k.classList.remove('bounce');
+    });
+  },
+  hide(){ const k=$('knight'); k.classList.remove('show','bounce') },
+  async walk(route,ms){
+    const k=$('knight');
+    k.src=K.caminando; k.classList.remove('show','bounce'); k.classList.add('walk');
+    const sr=stageR(), pts=interp(route.path,55), step=ms/pts.length;
+    const kH=Math.min(sr.height*.18,130);
+    const p0=MC.map.latLngToContainerPoint(L.latLng(pts[0]));
+    k.style.cssText=`position:absolute;height:${kH}px;width:auto;max-width:18%;
+      left:${p0.x-kH*.28}px;top:${p0.y-kH}px;z-index:400;pointer-events:none;
+      filter:drop-shadow(2px 3px 8px rgba(0,0,0,.55));transition:none`;
+    await wait(80);
+    for(let i=1;i<pts.length;i++){
+      const p=MC.map.latLngToContainerPoint(L.latLng(pts[i]));
+      k.style.transition=`left ${step*.9}ms linear,top ${step*.9}ms linear`;
+      k.style.left=(p.x-kH*.28)+'px'; k.style.top=(p.y-kH)+'px';
+      await wait(step);
+    }
+    k.style.cssText=''; k.classList.remove('walk');
+  }
+};
+
+/* ── MAP CONTROLLER ──────────────────────────── */
+const MC = {
+  map:null,poly:null,poly2:null,uM:null,dM:null,sM:null,detC:null,
+  init(){
+    this.map=L.map('map',{attributionControl:false,zoomControl:false,dragging:false,
+      touchZoom:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(this.map);
+  },
+  show(r=RA){
+    $('map').classList.add('on');
+    setTimeout(()=>{
+      this.map.invalidateSize();
+      // fitBounds with padding so markers clear the transparent strips
+      this.map.fitBounds(L.latLngBounds(r.path),{
+        paddingTopLeft:[58,52],    // left, top  (top strip = 36px)
+        paddingBottomRight:[58,96] // right, bottom (audio bar = 78px)
+      });
+    },80);
+    this._mkM(r);
+  },
+  showInset(r=RA){ this.show(r) },
+  hide(){ $('map').classList.remove('on'); this._clr() },
+  _mkM(r){
+    this._clr();
+    // Caballero caminando como marcador GPS del usuario
+    const uh=`<img src="${K.caminando}" style="height:50px;width:auto;filter:drop-shadow(2px 3px 8px rgba(0,0,0,.55))">`;
+    this.uM=L.marker(r.user,{icon:L.divIcon({className:'',html:uh,iconSize:[40,50],iconAnchor:[20,50]})}).addTo(this.map);
+    // 📌 inicio del tramo
+    const sh='<div style="font-size:22px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))">📌</div>';
+    this.sM=L.marker(r.path[0],{icon:L.divIcon({className:'',html:sh,iconSize:[26,26],iconAnchor:[8,26]})}).addTo(this.map);
+    // 🎯 destino
+    const dh='<div style="font-size:24px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))">🎯</div>';
+    this.dM=L.marker(r.dest,{icon:L.divIcon({className:'',html:dh,iconSize:[28,28],iconAnchor:[14,14]})}).addTo(this.map);
+  },
+  _clr(){ ['poly','poly2','polyB','uM','dM','sM','detC'].forEach(k=>{ if(this[k]){this.map.removeLayer(this[k]);this[k]=null} }) },
+  async drawPoly(r,ms){
+    if(this.poly) this.map.removeLayer(this.poly);
+    const pts=interp(r.path,70),step=ms/pts.length;
+    this.poly=L.polyline([],{color:'#3388ff',weight:6,opacity:.92}).addTo(this.map);
+    for(let i=1;i<=pts.length;i++){this.poly.setLatLngs(pts.slice(0,i));await wait(step)}
+  },
+  showFull(r){ if(this.poly)this.map.removeLayer(this.poly); this.poly=L.polyline(r.path,{color:'#3388ff',weight:6,opacity:.92}).addTo(this.map) },
+  // btn-mapa-completo: muestra TODA la aventura (ambas rutas juntas)
+  showAll(){
+    if(this.poly2)this.map.removeLayer(this.poly2);
+    if(this.polyB)this.map.removeLayer(this.polyB);
+    this.polyB=L.polyline(RB.path,{color:'#3388ff',weight:5,opacity:.75,dashArray:'6 4'}).addTo(this.map);
+    const all=[...RA.path,...RB.path];
+    this.map.fitBounds(L.latLngBounds(all),{paddingTopLeft:[62,52],paddingBottomRight:[62,96]});
+  },
+  hideAll(){ if(this.polyB){this.map.removeLayer(this.polyB);this.polyB=null} },
+  showSec(a,b){ if(this.poly2)this.map.removeLayer(this.poly2); this.poly2=L.polyline([a,b],{color:'#9b59b6',weight:5,dashArray:'9 7',opacity:.88}).addTo(this.map) },
+  hideSec(){ if(this.poly2){this.map.removeLayer(this.poly2);this.poly2=null} },
+  moveUser(ll){ if(this.uM) this.uM.setLatLng(ll) },
+  dotOff(){ const el=this.uM?.getElement(); if(el) el.style.opacity='.2' },
+  dotOn(){  const el=this.uM?.getElement(); if(el) el.style.opacity='1' },
+  switchRoute(r){
+    this._mkM(r); this.showFull(r);
+    this.map.flyToBounds(L.latLngBounds(r.path),{
+      paddingTopLeft:[58,52],paddingBottomRight:[58,96],duration:1.4
+    });
+  },
+};
+
+/* ── GAUNTLET ────────────────────────────────── */
+const Gauntlet = {
+  el: $('gauntlet'),
+  // offsets scaled to 180px gauntlet width (×1.636 from original 110px)
+  O:{
+    L: {tx:15, ty:41, sdx:213, sdy:0},
+    R: {tx:165,ty:41, sdx:-213,sdy:0},
+    DL:{tx:36, ty:105,sdx:147, sdy:-147},
+    DR:{tx:144,ty:105,sdx:-147,sdy:-147},
+    UR:{tx:144,ty:14, sdx:-147,sdy:147},
+    UL:{tx:36, ty:14, sdx:147, sdy:147},
+  },
+  _src(t){ return {L:G.L,R:G.R,DL:G.DL,DR:G.DR,UR:G.UR,UL:G.UL}[t] },
+  async tapAt(px,py,type='DL',cb=null){
+    const o=this.O[type], e=this.el;
+    const iL=px-o.tx, iT=py-o.ty;
+    e.src=this._src(type);
+    e.style.transition='none';
+    e.style.left=(iL+o.sdx)+'px'; e.style.top=(iT+o.sdy)+'px'; e.style.opacity='1';
+    await wait(60);
+    e.style.transition='left .62s ease-out,top .62s ease-out';   // viaje más lento
+    e.style.left=iL+'px'; e.style.top=iT+'px';
+    await wait(680);                                               // espera viaje + pausa antes de tap
+    e.style.transition='transform .14s';
+    e.style.transform=type==='L'?'translateX(8px)':type==='R'?'translateX(-8px)':'scale(.90)';
+    if(cb) cb();
+    await wait(180); e.style.transform=''; await wait(120);       // press + release más visibles
+    e.style.transition='left .48s ease-in,top .48s ease-in,opacity .28s';
+    e.style.left=(iL+o.sdx)+'px'; e.style.top=(iT+o.sdy)+'px'; e.style.opacity='0';
+    await wait(520);
+  },
+  async tapEl(el,type='DL',cb=null){
+    const r=el.getBoundingClientRect(), sr=stageR();
+    await this.tapAt(r.left-sr.left+r.width/2, r.top-sr.top+r.height/2, type, cb);
+  },
+  // drag: approach pieceEl, grab, move both to targetEl, snap piece in
+  async drag(pieceEl,targetEl,type='DR'){
+    const sr=stageR();
+    const pr=pieceEl.getBoundingClientRect();
+    const tr=targetEl.getBoundingClientRect();
+    const px=pr.left-sr.left+pr.width/2, py=pr.top-sr.top+pr.height/2;
+    const tx=tr.left-sr.left+tr.width/2, ty=tr.top-sr.top+tr.height/2;
+    const o=this.O[type], e=this.el;
+
+    // Approach piece
+    e.src=this._src(type);
+    e.style.transition='none';
+    e.style.left=(px-o.tx+o.sdx)+'px'; e.style.top=(py-o.ty+o.sdy)+'px'; e.style.opacity='1';
+    await wait(60);
+    e.style.transition='left .62s ease-out,top .62s ease-out';
+    e.style.left=(px-o.tx)+'px'; e.style.top=(py-o.ty)+'px';
+    await wait(680);
+
+    // Grab — both pressed
+    e.style.transition='transform .1s';
+    e.style.transform='scale(.93)';
+    pieceEl.style.transition='transform .12s,box-shadow .12s';
+    pieceEl.style.transform='scale(1.08)';
+    pieceEl.style.boxShadow='0 6px 20px rgba(0,0,0,.45)';
+    await wait(160); e.style.transform='';
+
+    // Move together to target (1s)
+    const dur=950;
+    const dx=tx-px, dy=ty-py;
+    const curL=parseFloat(pieceEl.style.left||0), curT=parseFloat(pieceEl.style.top||0);
+    pieceEl.style.transition=`left ${dur}ms cubic-bezier(.4,0,.2,1),top ${dur}ms cubic-bezier(.4,0,.2,1)`;
+    pieceEl.style.left=(curL+dx)+'px'; pieceEl.style.top=(curT+dy)+'px';
+    e.style.transition=`left ${dur}ms cubic-bezier(.4,0,.2,1),top ${dur}ms cubic-bezier(.4,0,.2,1)`;
+    e.style.left=(tx-o.tx)+'px'; e.style.top=(ty-o.ty)+'px';
+    await wait(dur+60);
+
+    // Drop
+    pieceEl.style.transform='scale(1)'; pieceEl.style.boxShadow='none';
+    await wait(80);
+    pieceEl.style.opacity='0';
+    targetEl.classList.add('filled','snap');
+    // Fill target with the piece's image source
+    const img=pieceEl.querySelector('img');
+    if(img){
+      const fi=document.createElement('img');
+      fi.src=img.src; fi.style.cssText=`width:100%;height:100%;object-fit:cover;object-position:${img.style.objectPosition}`;
+      targetEl.appendChild(fi);
+    }
+    await wait(100);
+
+    // Gauntlet retract
+    e.style.transition='left .28s ease-in,top .28s ease-in,opacity .2s';
+    e.style.left=(tx-o.tx+o.sdx)+'px'; e.style.top=(ty-o.ty+o.sdy)+'px'; e.style.opacity='0';
+    await wait(330);
+  },
+  // hover: sdx<0 → entra desde la izquierda; sdx>0 → entra desde la derecha
+  async hover(el, type='R', ms=600){
+    const r=el.getBoundingClientRect(), sr=stageR();
+    const bx=r.left-sr.left+r.width/2, by=r.top-sr.top+r.height/2;
+    const o=this.O[type], e=this.el;
+    const nx=bx-o.tx, ny=by-o.ty;
+    const rad=Math.min(sr.width*.13, 70);
+    const startX = o.sdx < 0 ? -190 : sr.width+190; // lado de entrada por tipo
+    const sideX  = o.sdx < 0 ? nx+rad*.75 : nx-rad*.75; // lado opuesto para el círculo
+    e.src=this._src(type);
+    e.style.transition='none';
+    e.style.left=startX+'px'; e.style.top=ny+'px'; e.style.opacity='1';
+    await wait(60);
+    e.style.transition='left .60s cubic-bezier(.4,0,.2,1),top .60s cubic-bezier(.4,0,.2,1)';
+    e.style.left=nx+'px'; e.style.top=(ny-rad)+'px';
+    await wait(640);
+    e.style.transition='left .40s ease-in-out,top .40s ease-in-out';
+    e.style.left=sideX+'px'; e.style.top=ny+'px';
+    await wait(440);
+    e.style.transition='left .40s ease-in-out,top .40s ease-in-out';
+    e.style.left=nx+'px'; e.style.top=(ny+rad*.5)+'px';
+    await wait(440);
+    e.style.transition='left .48s ease-out,top .48s ease-out';
+    e.style.left=nx+'px'; e.style.top=ny+'px';
+    await wait(ms);
+    e.style.transition='left .44s ease-in,top .44s ease-in,opacity .30s';
+    e.style.left=startX+'px'; e.style.top=ny+'px'; e.style.opacity='0';
+    await wait(480);
+  }
+};
+
+/* ── AUDIO HELPERS ───────────────────────────── */
+function setAP(p){ const f=$('af'),d=$('ad'); if(f)f.style.width=p+'%'; if(d)d.style.left=p+'%' }
+async function animAP(from,to,ms){
+  $('eqw')?.classList.add('on');
+  const steps=50,sm=ms/steps,delta=(to-from)/steps; let p=from;
+  for(let i=0;i<steps;i++){p+=delta;setAP(Math.round(p*10)/10);await wait(sm)}
+  $('eqw')?.classList.remove('on');
+}
+
+/* ── SPIN HELPER ─────────────────────────────── */
+async function spin(el){
+  el.classList.add('spinning');
+  await wait(950);
+  el.classList.remove('spinning');
+}
+
+/* ── MAIN SCREEN HTML ────────────────────────── */
+function mainHTML(avState='disabled'){
+  const ac=avState==='enabled'?'':'disabled';
+  return `<div class="main" id="ms">
+<div class="top-strip"><span class="top-name">· · · · ·</span>
+<button class="chat-btn" id="chat-btn"><img src="${B.chat}" alt=""></button></div>
+<div class="map-zone" id="mz">
+  <!-- hijo1: columna izquierda (opciones, temporizador, info, páginas) -->
+  <div class="col-left">
+    <button class="boton" id="bl-opts"><img src="${B.opts}" alt=""></button>
+    <button class="boton" id="bl-timer"><img src="${B.timer}" alt=""></button>
+    <button class="boton" id="bl-info"><img src="${B.info}" alt=""></button>
+    <button class="boton" id="bl-pages"><img src="${B.pages}" alt=""></button>
+  </div>
+  <!-- hijo2: columna derecha -->
+  <div class="col-wrap">
+    <button class="boton" id="b1"><img src="${B.b1}" alt=""></button>
+    <button class="boton" id="b2"><img src="${B.b2}" alt=""></button>
+    <button class="boton" id="b3"><img src="${B.b3}" alt=""></button>
+    <button class="boton" id="b4"><img src="${B.b4}" alt=""></button>
+    <button class="boton ${ac}" id="b-av"><img src="${B.bAv}" alt=""></button>
+    <button class="boton" id="b6"><img src="${B.b6}" alt=""></button>
+  </div>
+  <!-- audio-main: entre hijo3 (barra central) y hijo2 (derecha) -->
+  <div class="audio-toggle-wrap">
+    <button class="audio-main-btn" id="amain"><img src="${B.aMain}" alt=""></button>
+  </div>
+  <div class="red-badge"></div>
+  <div class="audio-strip" id="astrip">
+    <button class="aa-btn" id="aplay"><img src="${B.aPlay}" alt=""></button>
+    <button class="aa-btn" id="apause"><img src="${B.aPause}" alt=""></button>
+    <button class="aa-btn" id="astop"><img src="${B.aStop}" alt=""></button>
+    <button class="aa-btn" id="arep"><img src="${B.aRep}" alt=""></button>
+  </div>
+</div>
+<!-- hijo3: barra de audio centrada (deja margen col-left y audio-toggle+hijo2) -->
+<div class="audio-bar">
+  <div class="audio-row">
+    <div class="eq-wrap" id="eqw">
+      <div class="eq-bar" style="--s:.4s"></div>
+      <div class="eq-bar" style="--s:.25s"></div>
+      <div class="eq-bar" style="--s:.55s"></div>
+      <div class="eq-bar" style="--s:.35s"></div>
+      <div class="eq-bar" style="--s:.45s"></div>
+    </div>
+    <span class="audio-time">0:00</span>
+    <div class="audio-track"><div class="audio-fill" id="af"></div><div class="audio-dot" id="ad"></div></div>
+    <span class="audio-time">3:22</span>
+    <button class="audio-reto grey" id="ar"><img src="${B.reto}" alt=""></button>
+  </div>
+  <div class="audio-marquee"><span>♪ ♫ ♩ ♬ ♪ ♫ ♩ ♬ ♪ ♫ ♩ ♬ ♪ ♫ ♩ ♬ ♪ ♫ ♩ ♬</span></div>
+</div></div>`;
+}
+
+/* ═══════════════════════════════════════
+   SCENES
+═══════════════════════════════════════ */
+
+async function scene1(){
+  setCounter(1); MC.hide(); Knight.show(K.saluda);
+  setScene(`<div class="sc"><img class="s1-r" src="${AI}logo-redondo.png" style="width:min(88px,18vw)" alt=""><img class="s1-w" src="${AI}logo-alargado-2.png" alt=""></div>`);
+  await wait(7000); Knight.hide();
+}
+
+async function scene2(){
+  setCounter(2);
+  const fl=[[AI+'bandera_españa.png','ES'],[AI+'bandera_inglesa.png','EN'],[AI+'bandera_francia.png','FR'],
+    [AI+'bandera_italia.png','IT'],[AI+'bandera_paises_bajos.png','NL'],[AI+'bandera_japon.png','JP'],
+    [AI+'bandera_alemania.png','DE'],[AI+'bandera_china.png','CN'],[AI+'bandera_polonia.png','PL'],
+    [AI+'bandera_portugal.png','PT'],[AI+'bandera_rusia.png','RU'],[AI+'bandera_ucrania.png','UA']];
+  setScene(`<div class="sc" style="padding:14px;gap:0">
+    <div class="s2-grid" id="fg">${fl.map(([s,c])=>`<img class="s2-flag" id="f${c}" src="${s}" alt="">`).join('')}</div>
+    <img class="s2-big" id="sbig" src="" alt="">
+    <button class="s2-ok" id="sok"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+  </div>`);
+  await wait(1200);
+  $('fES').classList.add('hl');
+  await wait(700);
+  await Gauntlet.tapEl($('fES'),'R',()=>{
+    $('fES').classList.remove('hl');
+    $('fg').style.display='none';
+    $('sbig').src=AI+'bandera_españa.png'; $('sbig').style.display='block';
+    $('sok').style.display='flex';
+  });
+  await wait(1400);
+  await Gauntlet.tapEl($('sok'),'R');
+  await wait(600);
+}
+
+async function scene3(){
+  setCounter(3); Knight.show(K.cerca);
+  setScene(`<div class="sc" style="padding:18px 14px;align-items:stretch;gap:0">
+    <div style="font-size:10px;color:#999;margin-bottom:9px;filter:blur(1.5px)">· · · · ·</div>
+    <div class="adv-item" id="ai0"><div class="adv-blur"></div><span style="font-size:10px;color:#aaa">🚶 1.2 km</span></div>
+    <div class="adv-item" id="ai1"><div class="adv-blur"></div><span style="font-size:10px;color:#aaa">🚶 2.4 km</span></div>
+    <div class="adv-item" id="ai2"><div class="adv-blur"></div><span style="font-size:10px;color:#aaa">🚶 3.8 km</span></div>
+    <div class="s3-ov" id="s3ov">
+      <div class="ov-close" id="s3cls">✕</div>
+      <img class="s3-vimg" src="${MV}Av1_mapa.jpg" alt="">
+    </div>
+  </div>`);
+  await wait(1200);
+  await Gauntlet.tapEl($('ai0'),'DR',()=>{ $('ai0').classList.add('tapped'); $('s3ov').classList.add('on') });
+  await wait(1900);
+  // Gauntlet va a la X en esquina superior derecha del mapa vintage
+  await Gauntlet.tapEl($('s3cls'),'DR',()=>{ $('s3ov').classList.remove('on') });
+  await wait(600); Knight.hide();
+}
+
+async function scene4(){
+  setCounter(4);
+  setScene(`<div class="sc">
+    <img class="spinA" src="${AI}logo-redondo.png" alt="" style="width:min(68px,15vw)">
+    <div class="s4-bar"><div class="s4-fill" id="s4f"></div></div>
+    <span class="s4-pct" id="s4p">0%</span>
+  </div>`);
+  await wait(100); $('s4f').style.width='100%';
+  let p=0; const t=setInterval(()=>{ p=Math.min(p+2,100); const e=$('s4p'); if(e)e.textContent=p+'%'; if(p>=100)clearInterval(t) },72);
+  await wait(4000);
+}
+
+async function scene5(){
+  setCounter(5);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA);
+  await wait(2500);
+  const pp=MC.drawPoly(RA,7200);
+  await wait(500);
+  await Knight.walk(RA,6900);
+  await pp;
+  await wait(900);
+  Knight.show(K.cerca);
+  await wait(3000);
+  Knight.hide();
+}
+
+/* ── ESCENA 6: llegada GPS — el momento mágico de la app ── */
+/* ── ESCENAS INDIVIDUALES POR BOTÓN (6-11) ── */
+
+async function sceneB1(){
+  setCounter(6);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.cerca);
+  await wait(900);
+  const b1=$('b1');
+  await Gauntlet.hover(b1,'R',350);
+  await Gauntlet.tapEl(b1,'R',()=>{ spin(b1); MC.showAll() });
+  await wait(3800);
+  MC.hideAll(); MC.show(RA); MC.showFull(RA);
+  Knight.hide(); await wait(600);
+}
+
+async function sceneB2(){
+  setCounter(7);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.cerca);
+  await wait(900);
+  const b2=$('b2');
+  await Gauntlet.hover(b2,'R',350);
+  await Gauntlet.tapEl(b2,'R',()=>{ spin(b2);
+    setOv(`<div class="ov-dark"><div class="ov-close" id="oc2">✕</div><img class="ov-img" src="${MV}Av1_mapa.jpg" alt=""></div>`);
+  });
+  await wait(3200);
+  await Gauntlet.tapEl($('oc2'),'DR',()=>clearOv());
+  Knight.hide(); await wait(600);
+}
+
+async function sceneB3(){
+  setCounter(8);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.cerca);
+  await wait(900);
+  const b3=$('b3');
+  await Gauntlet.hover(b3,'R',350);
+  await Gauntlet.tapEl(b3,'R',()=>{ spin(b3);
+    setOv(`<div class="ov-dark"><div class="ov-close" id="oc3">✕</div>
+      <div class="drone-frame"><img src="${AI}H2-fotodron.png" alt=""><div class="drone-bar"><div class="drone-prog"></div></div></div>
+    </div>`);
+  });
+  await wait(3500);
+  await Gauntlet.tapEl($('oc3'),'DR',()=>clearOv());
+  Knight.hide(); await wait(600);
+}
+
+async function sceneB4(){
+  setCounter(9);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.cerca);
+  await wait(900);
+  const b4=$('b4');
+  await Gauntlet.hover(b4,'R',350);
+  await Gauntlet.tapEl(b4,'R',()=>{ spin(b4);
+    setOv(`<div class="ov-dark"><div class="ov-close" id="oc4">✕</div><img class="ov-img" src="${AI}H2-fotoproximo-monumento.png" alt=""></div>`);
+  });
+  await wait(3200);
+  await Gauntlet.tapEl($('oc4'),'DR',()=>clearOv());
+  Knight.hide(); await wait(600);
+}
+
+async function sceneB6(){
+  setCounter(10);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.cerca);
+  await wait(900);
+  const b6=$('b6');
+  await Gauntlet.hover(b6,'R',350);
+  await Gauntlet.tapEl(b6,'R',()=>{ spin(b6);
+    MC.showSec(RA.user, RA.dest);
+    setOv(`<div class="ov-dark" style="background:rgba(0,0,0,.5)"><div class="ov-close" id="oc6">✕</div>
+      <img src="${AI}H2-fotodistancia.png" alt="" style="width:min(120px,28vw);border-radius:50%;filter:drop-shadow(0 4px 14px rgba(0,0,0,.6))">
+    </div>`);
+  });
+  await wait(3500);
+  await Gauntlet.tapEl($('oc6'),'DR',()=>{ clearOv(); MC.hideSec() });
+  Knight.hide(); await wait(600);
+}
+
+async function sceneLeft(){
+  setCounter(11);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA);
+  Knight.show(K.cerca);
+  await wait(900);
+  const leftBtns=[
+    ['bl-opts',  B.opts,  'ocl0'],
+    ['bl-info',  B.info,  'ocl1'],
+    ['bl-pages', B.pages, 'ocl2'],
+    ['bl-timer', B.timer, 'ocl3'],
+  ];
+  for(const [id,img,ocId] of leftBtns){
+    const btn=$(id);
+    await Gauntlet.hover(btn,'L',280);
+    await Gauntlet.tapEl(btn,'L',()=>{ spin(btn);
+      setOv(`<div class="ov-dark"><div class="ov-close" id="${ocId}">✕</div>
+        <img class="ov-img" src="${img}" alt=""></div>`);
+    });
+    await wait(2200);
+    clearOv(); await wait(380);
+  }
+  Knight.hide(); await wait(500);
+}
+
+async function scene7(){
+  setCounter(12);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.cerca);
+  await wait(800);
+  await animAP(0,87,6200);
+  const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
+  await wait(2500); Knight.hide();
+}
+
+async function scene8(){
+  setCounter(13);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  setAP(87);
+  const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
+  await wait(600);
+
+  // Tap reto button → challenge panel + puzzle
+  await Gauntlet.tapEl($('ar'),'UR',()=>{
+    // Build challenge panel inside overlay
+    setOv(`<div class="ch-panel" id="ch">
+      <div class="ch-icon-row"><img class="ch-reto-icon" src="${B.reto}" alt=""></div>
+      <!-- Puzzle board: 2x2, cells 0(filled) 1(empty) 2(empty) 3(filled) -->
+      <div class="puzzle-board" id="pboard">
+        <div class="pz-cell filled" id="pc0"><img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 0%"></div>
+        <div class="pz-cell" id="pc1"></div>
+        <div class="pz-cell" id="pc2"></div>
+        <div class="pz-cell filled" id="pc3"><img src="${AI}H2-fotoproximo-monumento.png" style="object-position:100% 100%"></div>
+      </div>
+      <div class="ch-q"></div>
+      <div class="ch-opt"><div class="ch-radio" id="r0"></div><div class="ch-text"></div></div>
+      <div class="ch-opt"><div class="ch-radio" id="r1"></div><div class="ch-text" style="width:72%"></div></div>
+      <div class="ch-opt"><div class="ch-radio" id="r2"></div><div class="ch-text" style="width:56%"></div></div>
+      <div class="ch-btns">
+        <button class="ch-send" id="cs">📤</button>
+        <button class="ch-hint">💡</button>
+        <button class="ch-next" id="cn">→</button>
+      </div>
+    </div>`);
+    Knight.show(K.perdido);
+  });
+  await wait(1200);
+
+  // Wait for layout, then place puzzle pieces and drag them
+  const pboard=$('pboard');
+  const pc1=$('pc1'); // top-right hole
+  const pc2=$('pc2'); // bottom-left hole
+
+  if(pboard && pc1 && pc2){
+    const sr=stageR();
+    const br=pboard.getBoundingClientRect();
+    // Cell dimensions
+    const cw=(br.width-4)/2, ch=(br.height-4)/2;
+
+    // Create scattered piece 1 (top-right section of monument) — scattered bottom-left
+    const p1=document.createElement('div');
+    p1.id='pp1'; p1.className='pz-piece';
+    p1.style.cssText=`width:${cw}px;height:${ch}px;left:${br.left-sr.left-cw*.6}px;top:${br.bottom-sr.top+4}px`;
+    p1.innerHTML=`<img src="${AI}H2-fotoproximo-monumento.png" style="object-position:100% 0%">`;
+    $('overlay-layer').appendChild(p1);
+
+    // Create scattered piece 2 (bottom-left section) — scattered top-right
+    const p2=document.createElement('div');
+    p2.id='pp2'; p2.className='pz-piece';
+    p2.style.cssText=`width:${cw}px;height:${ch}px;left:${br.right-sr.left+5}px;top:${br.top-sr.top-ch*.4}px`;
+    p2.innerHTML=`<img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 100%">`;
+    $('overlay-layer').appendChild(p2);
+
+    await wait(700);
+
+    // Hover sobre pieza 1 antes de cogerla
+    await Gauntlet.hover(p1,'R',300);
+    // Drag piece 1 → pc1 (top-right hole)
+    await Gauntlet.drag(p1,pc1,'DR');
+    await wait(600);
+
+    // Hover sobre pieza 2 antes de cogerla
+    await Gauntlet.hover(p2,'DR',300);
+    // Drag piece 2 → pc2 (bottom-left hole): gauntlet apunta DL (mueve pieza arriba-derecha→abajo-izquierda)
+    await Gauntlet.drag(p2,pc2,'DL');
+    await wait(800);
+  }
+
+  // Knight thumbs up — puzzle complete!
+  Knight.hide(); await wait(200); Knight.show(K.up, true);
+
+  // Wrong radio → correct radio
+  await wait(800);
+  await Gauntlet.tapEl($('r0'),'R',()=>{ $('r0').classList.add('on'); $('cs').classList.add('on') });
+  await wait(600);
+  await Gauntlet.tapEl($('cs'),'DR',()=>{ const c=$('ch');if(c)c.style.border='3px solid #dc3545'; $('cs').textContent='👎'; $('r0').classList.remove('on'); $('r0').classList.add('wrong') });
+  Knight.hide(); await wait(200); Knight.show(K.down);
+  await wait(1600);
+  const ch=$('ch'); if(ch) ch.style.border='none';
+  $('cs').textContent='📤'; $('cs').classList.remove('on'); $('r0').classList.remove('on','wrong');
+  await wait(400);
+  await Gauntlet.tapEl($('r1'),'R',()=>{ $('r1').classList.add('on'); $('cs').classList.add('on') });
+  await wait(600);
+  await Gauntlet.tapEl($('cs'),'DR',()=>{
+    const c=$('ch');if(c)c.style.border='3px solid #28a745';
+    $('cs').textContent='👍';
+    $('cn').classList.add('show');
+  });
+  Knight.hide(); await wait(200); Knight.show(K.up, true);
+  await wait(2200); Knight.hide(); await wait(300);
+
+  // Close panel → avanzar button enables + turns blue (activo)
+  await Gauntlet.tapEl($('cn'),'R',()=>{
+    clearOv();
+    const bav=$('b-av'); if(bav){ bav.classList.remove('disabled'); bav.classList.add('activo'); spin(bav) }
+  });
+  await wait(1200);
+}
+
+async function scene9(){
+  setCounter(14);
+  setScene(mainHTML('enabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  await wait(800);
+  const am=$('amain');
+  await Gauntlet.tapEl(am,'R',async()=>{ spin(am); $('astrip').classList.add('open') });
+  await wait(1600);
+  await Gauntlet.tapEl($('aplay'),'DL');
+  await wait(1000);
+  await Gauntlet.tapEl($('astop'),'DL');
+  await wait(900);
+  await Gauntlet.tapEl(am,'R',async()=>{ spin(am); $('astrip').classList.remove('open') });
+  await wait(700);
+}
+
+async function scene10(){
+  setCounter(15);
+  setScene(mainHTML('enabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.cerca);
+  await wait(800);
+  await Gauntlet.tapEl($('b6'),'L',async()=>{
+    spin($('b6'));
+    // Show the button image large first
+    setOv(`<div class="ov-dark"><div class="ov-close">✕</div><img class="ov-img" src="${B.b6}" alt="" style="max-height:50vh"></div>`);
+    await wait(1600);
+    clearOv();
+    // Then show secondary route polyline on map
+    MC.showSec(RA.user,[39.47800,-0.37720]);
+  });
+  await wait(2800);
+  await Gauntlet.tapEl($('b6'),'L',()=>{ spin($('b6')); MC.hideSec() });
+  await wait(800); Knight.hide();
+}
+
+async function scene11(){
+  setCounter(16);
+  setScene(mainHTML('enabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  await wait(700);
+  await Gauntlet.tapEl($('chat-btn'),'DL',()=>{
+    setOv(`<div class="chat-panel" id="cpanel">
+      <div class="chat-hdr"><div class="chat-x">✕</div></div>
+      <div class="chat-body">
+        <div class="acc1" id="a1"><div class="acc1-text"></div><span class="arr" id="ar1">▶</span></div>
+        <div class="acc2-wrap" id="a2w">
+          <div class="acc2"><div class="acc2-text"></div><span class="arr" id="ar2">▶</span></div>
+          <div class="acc-content" id="acont"><div class="acc-line"></div><div class="acc-line"></div><div class="acc-line"></div></div>
+        </div>
+        <div class="acc1"><div class="acc1-text"></div><span class="arr">▶</span></div>
+        <div class="acc1"><div class="acc1-text"></div><span class="arr">▶</span></div>
+      </div>
+    </div>`);
+    setTimeout(()=>$('cpanel').classList.add('open'),60);
+  });
+  await wait(1300);
+  await Gauntlet.tapEl($('a1'),'L',()=>{ $('ar1').classList.add('open'); $('a2w').classList.add('open') });
+  await wait(1400);
+  await Gauntlet.tapEl($('a2w').querySelector('.acc2'),'L',()=>{ $('ar2').classList.add('open'); $('acont').classList.add('open') });
+  await wait(2000);
+  const cx=$('cpanel').querySelector('.chat-x');
+  await Gauntlet.tapEl(cx,'DL',()=>{ $('cpanel').classList.remove('open'); setTimeout(()=>clearOv(),440) });
+  await wait(700);
+}
+
+async function scene12(){
+  setCounter(17);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.mapa);
+  await wait(80); $('knight').style.left='-9%'; // alejar de la polyline
+  await wait(920);
+  setOv(`<div class="gps-ov">
+    <div class="ov-close" id="gcls">✕</div>
+    <img class="gps-img" src="${AI}foto-fuera-rango.png" alt="">
+    <div class="gps-cd"><span class="gps-digits" id="gcd">04:59</span></div>
+  </div>`);
+  let s=299; const t=setInterval(()=>{ s--; const m=Math.floor(s/60),sec=s%60; const e=$('gcd'); if(e)e.textContent=`0${m}:${String(sec).padStart(2,'0')}`; if(s<=0)clearInterval(t) },1000);
+  await wait(3500);
+  const gc=$('gcls'); if(gc) await Gauntlet.tapEl(gc,'DL',()=>{clearInterval(t);clearOv()});
+  else {clearInterval(t);clearOv()}
+  await wait(1600); Knight.hide();
+}
+
+async function scene13(){
+  setCounter(18);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.mapa);
+  await wait(80); $('knight').style.left='-17%'; // aún más alejado de la polyline
+  await wait(1120);
+  // GPS error overlay + user drifts off route
+  setOv(`<div style="position:absolute;bottom:90px;left:50%;transform:translateX(-50%);pointer-events:none">
+    <img src="${AI}fotogpserror.png" alt="" style="width:min(130px,32vw);opacity:.9;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))">
+  </div>`);
+  const wrongPts=[[39.47988,-0.37830],[39.47980,-0.37870],[39.47975,-0.37910],[39.47970,-0.37950]];
+  for(const pt of wrongPts){ MC.dotOff(); MC.moveUser(pt); await wait(750) }
+  await wait(1500);
+  const retPts=[[39.47970,-0.37950],[39.47975,-0.37910],[39.47980,-0.37870],[39.47988,-0.37830]];
+  for(const pt of retPts){ MC.moveUser(pt); await wait(650) }
+  MC.dotOn(); clearOv();
+  await wait(1000); Knight.hide();
+}
+
+async function scene14(){
+  setCounter(19);
+  setScene(mainHTML('enabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.saluda);
+  await wait(700);
+  const bav=$('b-av');
+  await Gauntlet.tapEl(bav,'R',async()=>{
+    spin(bav); bav.classList.add('activo');
+    // btn-avanzar REVELA la polyline de la siguiente parada (estaba oculta)
+    MC.showSec(RA.dest, RB.path[0]); // línea discontinua hasta inicio de RB
+    await wait(500);
+    setOv(`<div class="modal-bg">
+      <div class="modal">
+        <button class="m-btn m-green" id="mok">▶</button>
+        <button class="m-btn m-out">✕</button>
+      </div>
+    </div>`);
+  });
+  await wait(1600);
+  await Gauntlet.tapEl($('mok'),'DR',()=>{
+    clearOv(); MC.switchRoute(RB);
+    const bav2=$('b-av'); if(bav2) bav2.classList.add('disabled');
+  });
+  Knight.hide(); await wait(1000);
+}
+
+async function scene15(){
+  setCounter(20);
+  setScene(mainHTML('disabled'));
+  MC.showInset(RB); MC.showFull(RB);
+  Knight.show(K.perdido);
+  await wait(700);
+
+  // Estado 1: sin GPS (permiso denegado / sin señal)
+  setOv(`<div class="net-ov">
+    <img class="net-img" src="${AI}imagen-no-gps.png" alt="">
+    <div class="net-line"></div><div class="net-line" style="width:min(125px,34vw)"></div>
+  </div>`);
+  await wait(3000);
+  $('overlay-layer').style.transition='opacity .4s'; $('overlay-layer').style.opacity='0';
+  await wait(450); clearOv(); $('overlay-layer').style.transition=''; $('overlay-layer').style.opacity='';
+  await wait(400);
+
+  // Estado 2: sin internet
+  setOv(`<div class="net-ov">
+    <img class="net-img" src="${AI}imagen-no-internet.png" alt="">
+    <div class="net-line"></div><div class="net-line" style="width:min(125px,34vw)"></div>
+  </div>`);
+  await wait(3000);
+  $('overlay-layer').style.transition='opacity .5s'; $('overlay-layer').style.opacity='0';
+  await wait(600); clearOv(); $('overlay-layer').style.transition=''; $('overlay-layer').style.opacity='';
+  await wait(500); Knight.hide();
+}
+
+async function scene16(){
+  setCounter(21);
+  setScene(mainHTML('enabled'));
+  MC.showInset(RB); MC.showFull(RB);
+  Knight.show(K.cerca);
+  await wait(1100);
+  // Extra menu
+  const am=$('amain');
+  await Gauntlet.tapEl(am,'R',async()=>{
+    spin(am);
+    const mz=$('mz');
+    const wr=document.createElement('div'); wr.className='extra-wrap'; wr.id='xw';
+    [[B.timer,'timer'],[B.pages,'pags'],[B.info,'info'],[B.opts,'opts']].forEach(([img])=>{
+      wr.innerHTML+=`<button class="x-btn"><img src="${img}" alt=""></button>`;
+    });
+    mz.appendChild(wr);
+    setTimeout(()=>[...wr.querySelectorAll('.x-btn')].forEach(b=>b.classList.add('show')),60);
+  });
+  await wait(1400);
+  const tb=document.querySelector('.extra-wrap .x-btn');
+  if(tb){
+    await Gauntlet.tapEl(tb,'R',()=>{
+      setOv(`<div class="timer-bg" id="tov">
+        <div class="timer-card"><span class="timer-digits" id="tdig">100:00:00</span></div>
+      </div>`);
+
+      // Rapid countdown: 100h = 360 000s, 100 ticks × 30ms = 3s real time
+      let secs=360000;
+      const iv=setInterval(()=>{
+        secs=Math.max(0,secs-3600);
+        const h=Math.floor(secs/3600);
+        const m=Math.floor((secs%3600)/60);
+        const s=secs%60;
+        const td=$('tdig');
+        if(td) td.textContent=`${String(h).padStart(3,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        if(secs===0){
+          clearInterval(iv);
+          // Brief pause then show llorando + X to close
+          setTimeout(()=>{
+            const ov=$('tov');
+            if(ov) ov.innerHTML=`
+              <div class="ov-close" id="lcls">✕</div>
+              <img src="${K.llorando}" alt=""
+                style="height:min(62vh,62%);object-fit:contain;
+                filter:drop-shadow(0 4px 22px rgba(0,0,0,.65))">`;
+          },500);
+        }
+      },30);
+    });
+  }
+  // Wait: ~3s countdown + 0.5s pause + 2.2s llorando = 5.7s, then gauntlete cierra
+  await wait(5800);
+  const lcls=$('lcls');
+  if(lcls) await Gauntlet.tapEl(lcls,'DR',()=>clearOv());
+  else clearOv();
+  const xw=$('xw'); if(xw){ [...xw.querySelectorAll('.x-btn')].forEach(b=>b.classList.remove('show')); setTimeout(()=>xw.remove(),300) }
+  Knight.hide(); await wait(600);
+}
+
+async function scene17(){
+  setCounter(22);
+  setScene(mainHTML('enabled'));
+  MC.showInset(RB); MC.showFull(RB);
+  Knight.show(K.saluda, true);
+  await wait(1400);
+  setOv(`<div class="modal-bg">
+    <div class="modal">
+      <div style="height:8px;background:#555;border-radius:3px;width:80%;margin:0 auto 8px"></div>
+      <div style="height:7px;background:#aaa;border-radius:3px;width:60%;margin:0 auto 12px"></div>
+      <button class="m-btn m-green">🔄</button>
+      <button class="m-btn m-red">⏹</button>
+    </div>
+  </div>`);
+  await wait(2000); Knight.hide(); await wait(400);
+  const ef=$('end-fade'); ef.classList.add('w'); await wait(80); ef.classList.add('on');
+  await wait(1800); ef.classList.remove('w'); ef.classList.add('b');
+  await wait(2500);
+}
+
+/* ── RUN ─────────────────────────────────────── */
+async function run(){
+  MC.init(); await wait(350);
+  const scenes=[scene1,scene2,scene3,scene4,scene5,sceneB1,sceneB2,sceneB3,sceneB4,sceneB6,sceneLeft,scene7,scene8,scene9,
+    scene10,scene11,scene12,scene13,scene14,scene15,scene16,scene17];
+  for(const fn of scenes){ clearOv(); await fn(); await wait(650) }
+}
+run();
+</script>
+</body>
+</html>
