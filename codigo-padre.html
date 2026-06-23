@@ -12116,5 +12116,30 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 .catch(e => (globalThis.logger || console).error('[SW] Error registrando service worker:', e));
         }
     </script>
+
+    <!-- Screen Wake Lock — evita que la pantalla se apague durante la sesión -->
+    <script>
+    (function() {
+        let _wakeLock = null;
+
+        async function _requestWakeLock() {
+            if (!('wakeLock' in navigator)) return;
+            try {
+                _wakeLock = await navigator.wakeLock.request('screen');
+                _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+            } catch (e) {
+                (globalThis.logger || console).warn('[PADRE] Wake lock no disponible:', e.message);
+            }
+        }
+
+        _requestWakeLock();
+
+        // El navegador libera el wake lock automáticamente cuando la pestaña queda oculta.
+        // Lo re-adquirimos cuando vuelve a ser visible.
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') _requestWakeLock();
+        });
+    })();
+    </script>
 </body>
 </html>
