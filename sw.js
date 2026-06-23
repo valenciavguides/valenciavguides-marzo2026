@@ -37,6 +37,7 @@ const APP_SHELL = [
   '/puzzle.html',
   '/extrainfo-hijo1.html',
   '/chat-hijo6.html',
+  '/video-intro.html',
   '/manifest.json',
   // Lógica de la app
   '/js/constants.js',
@@ -80,7 +81,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-mapa-leaflet-css-jun18';
+const CACHE_VERSION = 'v-p17-videointro-jun23';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';

@@ -206,7 +206,7 @@ Al arrancar `codigo-padre.html`:
 ```mermaid
 flowchart TD
     A([Arranque codigo-padre.html\nestado.modo.actual = MODOS.CASA]) --> B{¿vv_aventura_iniciada\nen localStorage?}
-    B -- No --> C[Demo P1→P15\nSelección idioma + aventura]
+    B -- No --> C[Demo P1→P17\nSelección idioma + aventura + pago + activación]
     B -- Sí --> D[ejecutarRestauracionAventura\nRestaurar progreso guardado]
     C --> E[P15: SELECCION.AVENTURA_ACTIVADA\nrecibido por padre]
     E --> F[Cargar iframes hijos en paralelo\nhijo1 hijo2 hijo3 hijo4 hijo5 hijo6]
@@ -529,7 +529,7 @@ Este es el arco completo desde que el usuario abre la app hasta que completa la 
 flowchart TD
     A([Usuario abre valenciavguides.es]) --> B{¿Sesión guardada\nen localStorage?}
     B -- Sí vv_aventura_iniciada --> C[ejecutarRestauracionAventura\nRestaurar progreso · idioma · parada actual]
-    B -- No --> D[Demo P1→P15 · aventura · puzzle · pago · activación]
+    B -- No --> D[Demo P1→P17 · selección idioma · aventura · puzzle · pago · activación]
     D --> E[P15: SÍ → SELECCION.AVENTURA_ACTIVADA\nPadre carga hijos en paralelo]
     E --> F[Handshake HIJO_LISTO\nde cada hijo]
     F --> G[Padre distribuye datos\nDATOS.CARGAR_RETOS · coordenadas · audios]
@@ -639,15 +639,15 @@ padre  →  CONTROL.HABILITAR { control: 'retosBtn' }  →  hijo3    ← ahora s
 
 ### 4.1. Emojis en las pantallas de selección (En-busca-del-tesoro.html)
 
-Estos emojis aparecen durante las 16 pantallas de demo/selección, antes de que comience la aventura.
+Estos emojis aparecen durante las 17 pantallas de demo/selección, antes de que comience la aventura.
 
 | Emoji | Dónde aparece | Para qué sirve |
 |-------|---------------|-----------------|
-| → | Botones de avanzar/confirmar (P1, P4, P5, P7, P8, P10, P11, P12, P13, P14, P15, P16) | Flecha de navegación "ir a la siguiente pantalla" |
-| ➜ | Botón grande del puzzle (P9) | Flecha gruesa para continuar tras completar el puzzle |
+| → | Botones de avanzar/confirmar (P1, P4, P5, P9, P11, P12, P16) | Flecha de navegación "ir a la siguiente pantalla" |
+| ➜ | Botón grande del puzzle (P6) | Flecha gruesa para continuar tras completar el puzzle |
 | ✓ | Feedback de código correcto (P13) | Indicar código de activación correcto |
-| ✗ | Botones rojos de rechazo (P3, P7), feedback de código incorrecto (P13) | Cancelar selección o indicar respuesta incorrecta |
-| 🎬 | Pantalla de vídeo (P8) | Placeholder para el vídeo introductorio (aún no implementado) |
+| ✗ | Botones rojos de rechazo (P3, P9), feedback de código incorrecto (P13) | Cancelar selección o indicar respuesta incorrecta |
+| 🎬 | Pantalla de vídeo stub (P4) | Placeholder fijo de video introductorio |
 | 💳 | Pantalla de pago (P12) | Icono de la pasarela de pago (aún no implementada) |
 | 🔑 | Pantalla de activación (P13) | Indica que se necesita un código de acceso |
 | ✒️ | Pantalla de activación (P13) | Acompañamiento visual del campo de entrada |
@@ -657,30 +657,33 @@ Estos emojis aparecen durante las 16 pantallas de demo/selección, antes de que 
 
 ```mermaid
 flowchart TD
-    P1([P1\nBienvenida]) --> P2[P2\nSelección de idioma\n12 banderas]
+    P1([P1\nBienvenida\nlogo, pantalla inicial]) -- btn-mundo-verde --> P2
+    P2[P2\nSelección de idioma\n12 banderas]
     P2 --> P3{P3\nConfirmar idioma\n✓ / ✗}
-    P3 -- ✓ --> P4[P4\nImagen En Busca del Tesoro]
+    P3 -- ✓ --> P4[P4\nVídeo stub\nplaceholder]
     P3 -- ✗ --> P2
-    P4 --> P5[P5\nTérminos y condiciones\nscroll hasta el final obligatorio]
-    P5 --> P6[P6\nSelección de aventura\noverlay mapa vintage al elegir]
-    P6 --> P7{P7\nConfirmar aventura\n→ / ✗}
-    P7 -- → --> P8[P8\nVídeo introductorio\nplaceholder]
-    P7 -- ✗ --> P6
-    P8 --> P9{P9\nPuzzle interactivo}
-    P9 -- imagen existe --> P10b[Usuario resuelve puzzle\n➜ para continuar] --> P10
-    P9 -- no existe --> P10
-    P10[P10\nAudio + texto de introducción] --> P11{P11\nReto R-1\ntipo test}
-    P11 -- falla --> P11
-    P11 -- acierta → 1.5s --> P12[P12\nPago\nstub]
+    P4 --> P5[P5\nImagen En Busca del Tesoro]
+    P5 --> P6{P6\nPuzzle interactivo}
+    P6 -- imagen existe --> P6b[Usuario resuelve puzzle\n➜ para continuar] --> P7
+    P6 -- no existe --> P7
+    P7[P7\nSelección de aventura\noverlay mapa vintage al elegir]
+    P7 --> P8{P8\nReto R-1\ntipo test}
+    P8 -- falla --> P8
+    P8 -- acierta → 1.5s --> P9{P9\nConfirmar aventura\n→ / ✗}
+    P9 -- → --> P10[P10\nTérminos y condiciones\nscroll hasta el final obligatorio]
+    P9 -- ✗ --> P7
+    P10 --> P11[P11\nAudio + texto de introducción]
+    P11 --> P12[P12\nPago\nstub]
     P12 --> P13{P13\nCódigo de activación\n🔑}
     P13 -- código correcto\n🚀 --> P14[P14\nNormativa\nscroll hasta el final obligatorio]
     P13 -- código incorrecto --> P13
     P14 --> P15{P15\nReto R-2\nSÍ / NO}
-    P15 -- SÍ --> FIN([SELECCION.AVENTURA_ACTIVADA\naventura comienza])
+    P15 -- SÍ\nAVENTURA_ACTIVADA --> P16[P16\nLogos]
     P15 -- NO --> P1
+    P16 --> FIN([Aventura comienza\npadre oculta seleccion])
 ```
 
-### 4.2. Emojis en los botones de selección de aventura (P6)
+### 4.2. Emojis en los botones de selección de aventura (P7)
 
 Cada aventura muestra una línea de estadísticas con emojis universales (no necesitan traducción):
 
@@ -1268,7 +1271,7 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 | `gastronomia.html` | Información gastronómica valenciana. |
 | `paginas-oficiales-valencia.html` | Enlaces a webs oficiales de Valencia. |
 | `mapa-completo.html` | Vista del mapa completo (todas las aventuras). |
-| `puzzle.html` | Juego de puzzle interactivo — **componente interno** de `En-busca-del-tesoro.html`. No se carga directamente desde el padre; se embebe como sub-iframe dentro de la pantalla de selección cuando el usuario llega al reto puzzle (P9). |
+| `puzzle.html` | Juego de puzzle interactivo — **componente interno** de `En-busca-del-tesoro.html`. No se carga directamente desde el padre; se embebe como sub-iframe dentro de la pantalla de selección cuando el usuario llega al reto puzzle (P6). |
 
 ### El protocolo de arranque (handshake)
 
@@ -1353,19 +1356,19 @@ sequenceDiagram
 
     Note over S1: CAMBIO_PARADA P-0 → hijos críticos<br/>sistemaInicializado = true<br/>Overlay oculto — usuario ve pantalla seleccion
 
-    Note over SEL: Usuario completa P1→P6<br/>(idioma, términos, aventura...)
+    Note over SEL: Usuario completa P1→P7<br/>(idioma, vídeo stub, puzzle, elección aventura...)
 
     SEL->>S1: SELECCION.AVENTURA_SELECCIONADA (P7)
     Note over S1: cargarRestoDeiframes() secuencial:<br/>re-carga hijo1 → hijo2 → hijo3 → hijo4<br/>+ activarGPS()<br/>cargarHijoCasa(): hijo5 ya cargado, solo espera HIJO_LISTO
     S1->>S1: _hijoListo_enviarDatosHijo2()<br/>→ NAVEGACION.RESPUESTA_DATOS_PARADAS
     S1->>S1: _configurarRetoBtn() si hay parada activa
 
-    Note over SEL: Usuario completa P8-P9<br/>(vídeo + puzzle interactivo...)
+    Note over SEL: Usuario completa P8→P9<br/>(reto R-1 + confirmación aventura)
 
     SEL->>S1: SELECCION.PREPARAR_HIJOS (P9)
     Note over S1: Solo almacena { idioma, aventura, timestamp }<br/>en estado.seleccion — no carga iframes
 
-    Note over SEL: Usuario completa P10-P14<br/>(audio intro, reto R-1, pago, código...)
+    Note over SEL: Usuario completa P10-P14<br/>(términos, audio intro, pago, código, normativa...)
 
     SEL->>S1: SELECCION.AVENTURA_ACTIVADA (P15)
     Note over S1: Promise.all — hijo1 + hijo2 + hijo3 + hijo5<br/>(hijo4 NO está en esta lista)<br/>+ distribuirDatosAventura() + mostrarUIActivada()
@@ -1757,7 +1760,7 @@ El padre es el único componente con visión global. Ningún hijo habla con otro
 graph TD
     P["🧠 PADRE\ncodigo-padre.html\nestado global · decisiones · GPS · heartbeat"]
 
-    SEL["🎫 seleccion\nEn-busca-del-tesoro.html\nonboarding P1→P15"]
+    SEL["🎫 seleccion\nEn-busca-del-tesoro.html\nonboarding P1→P17"]
     H1["⚙️ hijo1\nextrainfo-hijo1.html\nopciones extra + temporizador"]
     H2["📍 hijo2\ncoordenadas-hijo2.html\nproximidad GPS + 6 botones navegación"]
     H3["🔊 hijo3\naudio-hijo3.html\nreproductor audio + retosBtn"]
@@ -1806,26 +1809,46 @@ graph TD
 
 **Después de la aventura**: el padre lo oculta de nuevo (`display:none; visibility:hidden`) cuando procesa `SELECCION.AVENTURA_ACTIVADA`. No se destruye — permanece en el DOM oculto.
 
-#### 16 pantallas secuenciales (se muestran y ocultan; solo una activa a la vez)
+#### 17 pantallas secuenciales (se muestran y ocultan; solo una activa a la vez)
 
 | Pant. | ID | Botones principales (IDs / clases) | Condición para avanzar | Mensaje al padre |
 |-------|----|------------------------------------|------------------------|-----------------|
-| P1 | `#pantalla1` | `.btn-mundo-verde` (Empezar) | Ninguna | — |
-| P2 | `#pantalla2` | `.bandera-btn` × 12 (idiomas) | Click en bandera → `seleccionarIdioma(codigo)` → avanza a P3 | `SELECCION.IDIOMA_SELECCIONADO { idioma }` (enviado al hacer click en la bandera, antes de confirmar en P3) |
-| P3 | `#pantalla3` | `#btn-mundo-verde` (Sí) / `#btn-mundo-rojo` (No) | Click Sí → P4; No → P2 (nueva selección) | — |
-| P4 | `#pantalla4` | `.btn-mundo-verde` (→) | Ninguna | — |
-| P5 | `#pantalla5` | `#btn-aceptar-terminos` | Scroll hasta el final (`disabled = false`) | `SELECCION.TERMINOS_ACEPTADOS` |
-| P6 | `#pantalla6` | `.btn` aventura (dinámico, 1 por aventura) | Click en tarjeta → `seleccionarAventura(id)` → overlay mapa vintage | `SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }` (enviado al hacer clic, via `seleccionarAventura()`) |
-| P7 | `#pantalla7` | `#btn-mundo-verde` (Confirmar) / `#btn-mundo-rojo` (No) | Click en Confirmar → `confirmarAventura()` → `mostrar(8)` | — |
-| P8 | `#pantalla8` | `.btn-mundo-verde` (→) | Ninguna (vídeo es placeholder) | — |
-| P9 | `#pantalla9` | `#btn-continuar-puzzle` (aparece tras completar puzzle) | `puzzle-state-completed` recibido del sub-iframe | `SELECCION.PREPARAR_HIJOS { idioma, aventura, timestamp }` |
-| P10 | `#pantalla10` | `.btn-mundo-verde` (→) | Ninguna (audio opcional) | — |
-| P11 | `#pantalla11` | Opciones del reto R-1 (radio/checkbox) + botón verificar | Respuesta correcta al reto | — |
+| **P1** | `#pantalla1` | `.btn-mundo-verde` (→) | **Pantalla inicial** (tiene clase `visible`). Botón → P2 | — |
+| P2 | `#pantalla2` | `.bandera-btn` × 12 (idiomas) | Click en bandera → `seleccionarIdioma(codigo)` → avanza a P3 | `SELECCION.IDIOMA_SELECCIONADO { idioma }` |
+| P3 | `#pantalla3` | `#btn-mundo-verde` (Sí) / `#btn-mundo-rojo` (No) | Click Sí → `confirmarIdioma()` → P4; No → P2 | — |
+| P4 | `#pantalla4` | `.btn-mundo-verde` (→) | Ninguna (placeholder estático de vídeo) | — |
+| P5 | `#pantalla5` | `.btn-mundo-verde` (→) | Imagen localizada según idioma (ver mapa de imágenes abajo) | — |
+| P6 | `#pantalla6` | `#btn-continuar-puzzle` (aparece tras completar puzzle) | Mensaje `PUZZLE.COMPLETADO` del sub-iframe; si imagen no disponible → salta a P7 | — |
+| P7 | `#pantalla7` | `.btn` aventura (dinámico, 1 por aventura) | Click en tarjeta → `seleccionarAventura(id)` → overlay mapa vintage → cierre → P8 | `SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }` |
+| P8 | `#pantalla8` | `#btn-verificar-reto-r1` | Respuesta correcta al Reto R-1 → `mostrar(9)` | — |
+| P9 | `#pantalla9` | `#btn-mundo-verde` (Confirmar) / `#btn-mundo-rojo` (No) | Click Confirmar → `confirmarAventura()` → P10; No → P7 | `SELECCION.PREPARAR_HIJOS { idioma, aventura, timestamp }` (al confirmar) |
+| P10 | `#pantalla10` | `#btn-aceptar-terminos` | Scroll hasta el final (`disabled = false`) → `aceptarTerminos()` → P11 | `SELECCION.TERMINOS_ACEPTADOS { aceptados: true }` |
+| P11 | `#pantalla11` | `.btn-mundo-verde` (→) | Ninguna (audio opcional) | — |
 | P12 | `#pantalla12` | `.btn-mundo-verde` (stub pago) | Ninguna (pago no implementado) | — |
 | P13 | `#pantalla13` | `#btn-iniciar-aventura` (deshabilitado hasta código correcto) | Código = `'0000'` → `disabled = false` → `mostrar(14)` | — |
-| P14 | `#pantalla14` | `#btn-siguiente-normativa` | Scroll hasta el final (`disabled = false`) → `mostrar(15)` | — |
-| P15 | `#pantalla15` | Opciones del reto R-2 | SÍ (verificarRetoR2) → aventura; NO → vuelve a P1 | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` (solo al SÍ) |
-| P16 *(solo `?despedida=1`)* | `#pantalla16` | `#btn-siguiente-agradecimientos` | Scroll hasta el final del texto (se habilita con `disabled = false`) → `_ejecutarDespedida()` | — |
+| P14 | `#pantalla14` | `#btn-siguiente-normativa` | Scroll hasta el final → `aceptarNormativa()` → `mostrar(15)` | — |
+| P15 | `#pantalla15` | Opciones del reto R-2 | SÍ (`verificarRetoR2()`) → activa aventura; NO → `reiniciarSeleccion()` → P1 | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` |
+| P16 | `#pantalla16` | `.btn-mundo-verde` (→) | Logos (logo redondo + logo alargado) → `mostrar(17)` | — |
+| P17 *(solo `?despedida=1`)* | `#pantalla17` | `#btn-siguiente-agradecimientos` | Scroll hasta el final del texto → `_ejecutarDespedida()` | — |
+
+**Mapa de imágenes P5** (`imagenes/imagenes-aplicación/`):
+
+| Código idioma | Archivo |
+| -------------- | ------- |
+| `es` | `en-busca-español.png` |
+| `en` | `en-busca-ingles.png` |
+| `fr` | `en-busca-frances.png` |
+| `it` | `en-busca-italiano.png` |
+| `nl` | `en-busca-neerlandes.png` |
+| `ja` | `en-busca-japones.png` |
+| `de` | `en-busca-aleman.png` |
+| `zh` | `en-busca-chino-simplificado.png` |
+| `pl` | `en-busca-polaco.png` |
+| `pt` | `en-busca-portugues.png` |
+| `ru` | `en-busca-ruso.png` |
+| `uk` | `en-busca-ucraniano.png` |
+
+Fallback si el código no existe: `en-busca-español.png`. La imagen se precarga en `confirmarIdioma()` (antes de mostrar P4) vía `document.getElementById('en-busca-imagen').src`.
 
 **Botones con scroll-gate**: `#btn-siguiente-agradecimientos` (P16), `#btn-aceptar-terminos` (P5), `#btn-siguiente-normativa` (P14) nacen con `disabled = true`. Se habilitan cuando el evento `scroll` del contenedor detecta `scrollTop + clientHeight ≥ scrollHeight - 5px`. No hay timeout: el usuario debe leer o hacer scroll manual.
 
@@ -1833,11 +1856,11 @@ graph TD
 
 | ID | Cuándo aparece | Elementos clave | Cómo se cierra |
 |----|----------------|-----------------|----------------|
-| `#mapa-vintage-overlay` | Al seleccionar aventura en P6 | `#mapa-vintage-img` (imagen del recorrido) + botón cerrar (top-right, naranja/rojo) | Click en botón cerrar → `ocultarMapaVintage()` |
+| `#mapa-vintage-overlay` | Al seleccionar aventura en P7 | `#mapa-vintage-img` (imagen del recorrido) + botón cerrar (top-right, naranja/rojo) | Click en botón cerrar → `ocultarMapaVintage()` |
 | `#audio-warning-overlay` | Si no hay audios para el idioma elegido | `#audio-warning-text` + `#audio-warning-yes` (verde) / `#audio-warning-no` (rojo) | Click yes (continúa sin audio) / no (vuelve a P2) |
 | `#overlay-carga-aventura` | Al completar P15 (arranque de aventura) | Logo giratorio (`animation: spin 7s linear infinite`) + `#carga-progreso-barra` + `#carga-progreso-porcentaje` | Se oculta automáticamente cuando el padre confirma carga completa |
 
-#### Sub-iframe puzzle.html en P9
+#### Sub-iframe puzzle.html en P6
 
 ```javascript
 // En cargarPuzzle() dentro de En-busca-del-tesoro.html
@@ -1847,30 +1870,32 @@ iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleConfig.id}&noOverlay=1`;
 
 El iframe escucha `window.addEventListener('message', _onPuzzleMessage)`. Cuando `puzzle.html` envía `{ tipo: 'puzzle-state-completed' }`, aparece el botón `#btn-continuar-puzzle`. Si `puzzle-state-timeout` llega antes, el botón también aparece (timeout = completado forzado). Ver detalles completos en §7.9.
 
-#### Secuencia completa P1→P15
+#### Secuencia completa P1→P17
 
 ```mermaid
 flowchart TD
-    P1([P1\nEmpezar]) --> P2[P2\nIdioma\n12 banderas]
+    P1([P1\nBienvenida\npantalla inicial]) -- btn-mundo-verde --> P2
+    P2[P2\nIdioma\n12 banderas]
     P2 --> P3{P3\nConfirmar\nidioma}
-    P3 -- Sí\nIDIOMA_SELECCIONADO --> P4[P4\nImagen título]
+    P3 -- Sí\nIDIOMA_SELECCIONADO --> P4[P4\nVídeo stub]
     P3 -- No --> P2
-    P4 --> P5[P5\nTérminos\nscroll hasta final\nTERMINOS_ACEPTADOS]
-    P5 --> P6[P6\nSelección aventura\noverlay mapa vintage]
-    P6 -- AVENTURA_SELECCIONADA --> P7{P7\nConfirmar\naventura}
-    P7 -- Sí --> P8[P8\nVídeo placeholder]
-    P7 -- No --> P6
-    P8 --> P9[P9\nPuzzle intro\nPREPARAR_HIJOS]
-    P9 -- puzzle completado --> P10[P10\nAudio + texto intro]
-    P10 --> P11{P11\nReto R-1}
-    P11 -- correcto → 1.5s --> P12[P12\nPago stub]
-    P11 -- falla --> P11
+    P4 --> P5[P5\nImagen título]
+    P5 --> P6{P6\nPuzzle intro}
+    P6 -- puzzle completado --> P7[P7\nSelección aventura\noverlay mapa vintage]
+    P6 -- sin imagen --> P7
+    P7 -- AVENTURA_SELECCIONADA --> P8{P8\nReto R-1}
+    P8 -- correcto → 1.5s --> P9{P9\nConfirmar\naventura}
+    P8 -- falla --> P8
+    P9 -- Sí\nPREPARAR_HIJOS --> P10[P10\nTérminos\nscroll hasta final\nTERMINOS_ACEPTADOS]
+    P9 -- No --> P7
+    P10 --> P11[P11\nAudio + texto intro]
+    P11 --> P12[P12\nPago stub]
     P12 --> P13{P13\nCódigo 0000}
     P13 -- código OK --> P14[P14\nNormativa\nscroll hasta final]
     P13 -- incorrecto --> P13
     P14 --> P15{P15\nReto R-2\nSÍ / NO}
-    P15 -- SÍ\nAVENTURA_ACTIVADA --> FIN([Aventura inicia\npadre oculta seleccion])
-    P15 -- NO --> P1
+    P15 -- SÍ\nAVENTURA_ACTIVADA --> P16[P16\nLogos → aventura]
+    P15 -- NO\nreiniciarSeleccion --> P1([P1\nBienvenida logo])
 ```
 
 #### Controladores que registra
@@ -1892,9 +1917,9 @@ flowchart TD
 | `SISTEMA.HIJO_LISTO` | Tras recibir `PADRE_DATOS` | `{ componenteId, iframeId, timestamp }` |
 | `SISTEMA.HIJO_FALLIDO` | Si la inicialización falla | `{ error, stack, timestamp }` |
 | `SELECCION.IDIOMA_SELECCIONADO` | Confirma idioma en P3 | `{ idioma }` |
-| `SELECCION.TERMINOS_ACEPTADOS` | Acepta términos en P5 | `{ timestamp }` |
-| `SELECCION.AVENTURA_SELECCIONADA` | Click en tarjeta de aventura en P6 (via `seleccionarAventura()`) | `{ aventura, idioma }` |
-| `SELECCION.PREPARAR_HIJOS` | Al entrar en P9 | `{ idioma, aventura, timestamp }` |
+| `SELECCION.TERMINOS_ACEPTADOS` | Acepta términos en P10 | `{ timestamp }` |
+| `SELECCION.AVENTURA_SELECCIONADA` | Click en tarjeta de aventura en P7 (via `seleccionarAventura()`) | `{ aventura, idioma }` |
+| `SELECCION.PREPARAR_HIJOS` | Al confirmar aventura en P9 | `{ idioma, aventura, timestamp }` |
 | `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P15 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Al recibir `CAMBIO_MODO` | — |
@@ -2687,7 +2712,7 @@ sequenceDiagram
 
 ### 7.8 puzzle.html — sub-iframe compartido (cargado por `seleccion` y por `hijo4`)
 
-**Propósito**: puzzle visual interactivo donde el usuario ensambla una imagen partida en piezas. Se usa en dos contextos: como reto introductorio (cargado por `En-busca-del-tesoro.html` en P9) y como tipo de reto dentro del juego (cargado por `retos-hijo4.html`). No forma parte de `_cargarIframesHijos()` — se carga solo cuando se necesita.
+**Propósito**: puzzle visual interactivo donde el usuario ensambla una imagen partida en piezas. Se usa en dos contextos: como reto introductorio (cargado por `En-busca-del-tesoro.html` en P6) y como tipo de reto dentro del juego (cargado por `retos-hijo4.html`). No forma parte de `_cargarIframesHijos()` — se carga solo cuando se necesita.
 
 **Configuración via URL**: recibe todos sus parámetros por querystring:
 ```
@@ -3039,10 +3064,11 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.ADVERTENCIA` | Cualquiera | Advertencia no bloqueante |
 | | `SISTEMA.APLICACION_INICIALIZADA` | Padre broadcast | App completamente lista |
 | **SELECCION** | `SELECCION.IDIOMA_SELECCIONADO` | Tesoro → Padre | Usuario eligió idioma (P2) |
-| | `SELECCION.AVENTURA_SELECCIONADA` | Tesoro → Padre | Usuario eligió aventura (P6) |
-| | `SELECCION.PREPARAR_HIJOS` | Tesoro → Padre | Prepara iframes durante puzzle (P9) |
+| | `SELECCION.AVENTURA_SELECCIONADA` | Tesoro → Padre | Usuario eligió aventura (P7) |
+| | `SELECCION.PREPARAR_HIJOS` | Tesoro → Padre | Prepara iframes al confirmar aventura (P9) |
 | | `SELECCION.AVENTURA_ACTIVADA` | Tesoro → Padre | Confirma inicio de aventura (P15) |
-| | `SELECCION.TERMINOS_ACEPTADOS` | Tesoro → Padre | Usuario aceptó términos |
+| | `SELECCION.TERMINOS_ACEPTADOS` | Tesoro → Padre | Usuario aceptó términos (P10) |
+| | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro → Tesoro | video-intro.html completó todas las escenas — manejado internamente si se integra; no llega al padre |
 | **NAVEGACION** | `NAVEGACION.CAMBIO_PARADA` | Padre → Hijos / Hijo5 → Padre | Parada activa cambia |
 | | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Bidireccional | Hijo3/Hijo4 → Padre: confirmación de haber procesado el cambio · Padre → Hijo5: confirmación con metadatos enriquecidos (audio, reto) |
 | | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo5 → Padre | Solicita lista completa de paradas |
@@ -3126,7 +3152,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 
 La pantalla de selección es el único iframe que el padre carga con `src` desde el HTML inicial. **No** participa en el ciclo de aventura posterior, pero es quien **dispara** toda la inicialización del sistema.
 
-**Flujo de mensajes durante P1–P15**:
+**Flujo de mensajes durante P1–P17** (el flujo con el padre arranca en P2):
 
 ```mermaid
 sequenceDiagram
@@ -3137,13 +3163,13 @@ sequenceDiagram
     T->>P: SELECCION.IDIOMA_SELECCIONADO { idioma }
     Note over P: _hdl_SELECCION_IDIOMA_SELECCIONADO — guarda idioma en estado
 
-    Note over T,P: P6 — usuario elige aventura
+    Note over T,P: P7 — usuario elige aventura
     T->>P: SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }
     Note over P: _hdl_SELECCION_AVENTURA_SELECCIONADA — cargarRestoDeiframes()
 
-    Note over T,P: P9 — puzzle/términos cargando
+    Note over T,P: P9 — confirmación de aventura
     T->>P: SELECCION.PREPARAR_HIJOS { idioma, aventura, timestamp }
-    Note over P: warmup de recursos mientras carga el puzzle
+    Note over P: warmup de recursos al confirmar aventura
 
     Note over T,P: P15 — usuario confirma inicio
     T->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados, timestamp }
@@ -3155,8 +3181,8 @@ sequenceDiagram
 | Mensaje | Pantalla | Payload | Qué dispara en el padre |
 |---------|----------|---------|------------------------|
 | `SELECCION.IDIOMA_SELECCIONADO` | P2 | `{ idioma:'es'/'en'/... }` | Guarda idioma en `estado.idioma` |
-| `SELECCION.AVENTURA_SELECCIONADA` | P6 | `{ aventura, idioma }` | `cargarRestoDeiframes()`, carga recursos de la aventura |
-| `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Warmup de iframes durante el puzzle |
+| `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | `cargarRestoDeiframes()`, carga recursos de la aventura |
+| `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Warmup de iframes al confirmar aventura |
 | `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Inicialización completa: normaliza hijos, carga iframes, espera HIJO_LISTO, distribuye datos |
 | `NAVEGACION.SUPRIMIR_ROTACION` | Mapa vintage | `{ value: true/false }` | Suprime/restaura rotación de hijo2 |
 | `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
@@ -3164,13 +3190,14 @@ sequenceDiagram
 
 **Mensajes recibidos por En-busca-del-tesoro.html**:
 
-| Mensaje | Qué hace |
-|---------|----------|
-| `SISTEMA.PADRE_DATOS` | Recibe `{ modo, timestamp }` — handshake estándar |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Completa el handshake |
-| `SISTEMA.ACK` | Acuse de recibo de mensajes enviados |
-| `SISTEMA.CAMBIO_MODO` | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
-| `SISTEMA.CAMBIO_MODO_APLICADO` | Acuse de recibo de que el modo fue aplicado globalmente |
+| Mensaje | Origen | Qué hace |
+|---------|--------|----------|
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe `{ modo, timestamp }` — handshake estándar |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Completa el handshake |
+| `SISTEMA.ACK` | Padre | Acuse de recibo de mensajes enviados |
+| `SISTEMA.CAMBIO_MODO` | Padre | Responde con `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO` |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | Padre | Acuse de recibo de que el modo fue aplicado globalmente |
+| `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html (sub-iframe, no activo en flujo actual) | Activa animación de botones si se integra el sub-iframe. Handler: `_hdl_VIDEO_INTRO_TERMINADO`. No reenvía al padre. |
 
 > La pantalla de selección no recibe `CAMBIO_PARADA`. Sí recibe `SISTEMA.HEARTBEAT` desde el momento en que su `HIJO_PREPARADO` la añade al registro dinámico `_hijosRegistrados` de `mensajeria.js` — el handler de heartbeat de la pantalla responde correctamente.
 
@@ -3584,42 +3611,49 @@ Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { eve
 
 ---
 
-### 9.3 Fase SELECCIÓN — El iframe `seleccion` (P1–P15)
+### 9.3 Fase SELECCIÓN — El iframe `seleccion` (P1–P17)
 
-El iframe `seleccion` carga `En-busca-del-tesoro.html`. La navegación interna usa la función `mostrar(id)`, que oculta todas las pantallas y muestra la indicada, ejecutando la acción de `_ACCION_PANTALLA[id]` si existe.
+El iframe `seleccion` carga `En-busca-del-tesoro.html`. La navegación interna usa la función `mostrar(id)`, que oculta todas las pantallas y muestra la indicada, ejecutando la acción de `_ACCION_PANTALLA[id]` si existe. **P1 es la pantalla inicial** (tiene la clase `visible` en el HTML). Los divs están ordenados en el HTML en el mismo orden que el flujo (P1–P17).
 
 | Pantalla | Contenido | Acción principal | Mensaje enviado al padre |
 |----------|-----------|-----------------|--------------------------|
-| P1 | Bienvenida / logo | `mostrar(2)` | — |
+| **P1** *(inicial)* | Bienvenida / logo | Botón → `mostrar(2)` | — |
 | P2 | Selección de idioma (12 banderas) | `seleccionarIdioma(codigo)` | `SELECCION.IDIOMA_SELECCIONADO { idioma }` |
-| P3 | Confirmación de idioma | `confirmarIdioma()` → `mostrar(4)` | — |
-| P4 | Splash "En Busca del Tesoro" | → `mostrar(5)` | — |
-| P5 | Términos y condiciones | `aceptarTerminos()` → `mostrar(6)` | `SELECCION.TERMINOS_ACEPTADOS { aceptados: true, timestamp }` |
-| P6 | Lista de aventuras (carga dinámica) | clic en tarjeta → `seleccionarAventura(id)` → `mostrarMapaVintage()` (P7) | `SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }` |
-| P7 | Confirmación de aventura (mapa vintage) | `confirmarAventura()` → `mostrar(8)` | — |
-| P8 | Vídeo introductorio | → `mostrar(9)` | — |
-| P9 | Puzzle (si ya resuelto → salta a P10) | `completarPuzzle()` → `mostrar(10)` | `SELECCION.PREPARAR_HIJOS { idioma, aventura }` *(raw postMessage — enviado al entrar en P9, no por mensajería)* |
-| P10 | Audio intro + texto narrativo | carga audio y texto | — |
-| P11 | Reto R-1 | `verificarRetoR1()` → `mostrar(12)` | — |
+| P3 | Confirmación de idioma | `confirmarIdioma()` → precarga imagen P5 + `mostrar(4)` | — |
+| P4 | Vídeo introductorio (stub estático) | → `mostrar(5)` | — |
+| P5 | Splash "En Busca del Tesoro" — imagen localizada según idioma (ver **Mapa de imágenes P5** en §9) | → `mostrar(6)` | — |
+| P6 | Puzzle (si imagen INTRO no disponible → salta a P7) | `completarPuzzle()` → `mostrar(7)` | — |
+| P7 | Lista de aventuras (carga dinámica) | clic en tarjeta → `seleccionarAventura(id)` → `mostrarMapaVintage()` → cierre → P8 | `SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }` |
+| P8 | Reto R-1 | `verificarRetoR1()` → respuesta correcta → `mostrar(9)` | — |
+| P9 | Confirmación de aventura | `confirmarAventura()` → `notificarPadrePreparacion()` → `mostrar(10)` | `SELECCION.PREPARAR_HIJOS { idioma, aventura, timestamp }` |
+| P10 | Términos y condiciones | `aceptarTerminos()` → `mostrar(11)` | `SELECCION.TERMINOS_ACEPTADOS { aceptados: true, timestamp }` |
+| P11 | Audio intro + texto narrativo | carga audio y texto → `mostrar(12)` | — |
 | P12 | Pantalla de pago (stub) | → `mostrar(13)` | — |
 | P13 | Código de activación (actualmente "0000") | → `mostrar(14)` | — |
 | P14 | Normativa (botón bloqueado hasta final del texto) | `aceptarNormativa()` → `mostrar(15)` | — |
-| P15 | Reto R-2 | `verificarRetoR2()` → respuesta correcta activa | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` |
-| P16 | Agradecimientos y fuentes *(solo vía `?despedida=1`, no en flujo normal de onboarding)* | `_ejecutarDespedida()` → `limpiarDatosAventura('completada')` | — |
+| P15 | Reto R-2 | `verificarRetoR2()` → SÍ: activa aventura; NO: `reiniciarSeleccion()` → `mostrar(1)` | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` |
+| P16 | Logos (logo redondo + logo alargado) — da paso oficial a la aventura | → `mostrar(17)` | — |
+| P17 | Agradecimientos y fuentes *(solo vía `?despedida=1`, no en flujo normal de onboarding)* | `_ejecutarDespedida()` → `limpiarDatosAventura('completada')` | — |
 
-Los totales de cada aventura (paradas, tramos, retos, monumentos, audios) se calculan **dinámicamente** en P6 mediante `cargarAventurasDinamicamente()`, que importa los módulos fuente en tiempo de ejecución.
+Los totales de cada aventura (paradas, tramos, retos, monumentos, audios) se calculan **dinámicamente** en P7 mediante `cargarAventurasDinamicamente()`, que importa los módulos fuente en tiempo de ejecución.
 
 ```mermaid
 sequenceDiagram
     participant U as Usuario
+    participant VI as video-intro.html (sub-iframe, no activo en flujo actual)
     participant S as seleccion iframe
     participant P as padre
 
-    U->>S: Toca bandera de idioma (P2)
+    Note over VI,S: video-intro — integración prevista (no activa actualmente)
+    VI->>VI: run() — 22 escenas automáticas
+    VI->>S: SELECCION.VIDEO_INTRO_TERMINADO (postMessage directo)
+    Note over S: _hdl_VIDEO_INTRO_TERMINADO<br/>btn-vi-continuar → centro + btn-vi-replay visible
+
+    U->>S: Toca btn-mundo-verde (continuar) o bandera de idioma (P2)
     S->>P: SELECCION.IDIOMA_SELECCIONADO { idioma }
     P-->>P: estado.seleccion.idioma = idioma
 
-    U->>S: Confirma aventura (P6)
+    U->>S: Elige aventura (P7)
     S->>P: SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }
     P-->>P: cargarRestoDeiframes()
     Note over P: Carga hijo1-opciones, hijo2, hijo3, hijo4\n+ activar GPS\n+ cargarHijoCasa() → hijo5
@@ -3632,7 +3666,7 @@ sequenceDiagram
 
 ---
 
-### 9.4 AVENTURA_SELECCIONADA — precarga diferida (P6)
+### 9.4 AVENTURA_SELECCIONADA — precarga diferida (P7)
 
 Cuando el padre recibe `SELECCION.AVENTURA_SELECCIONADA`, el handler `_hdl_SELECCION_AVENTURA_SELECCIONADA` ejecuta:
 
@@ -4064,7 +4098,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-mapa-leaflet-css-jun18'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-p17-videointro-jun23'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5836,7 +5870,7 @@ Los dos modos tienen caminos distintos para llegar al mismo punto (audio pre-car
 
 ### Aviso de audio no disponible
 
-Antes de confirmar la aventura (P7 de `En-busca-del-tesoro.html`, función `confirmarAventura()`), el sistema comprueba si el idioma elegido tiene algún audio grabado. Si no tiene ninguno, aparece un **modal overlay**:
+Antes de confirmar la aventura (P9 de `En-busca-del-tesoro.html`, función `confirmarAventura()`), el sistema comprueba si el idioma elegido tiene algún audio grabado. Si no tiene ninguno, aparece un **modal overlay**:
 
 > "Los audios para este idioma aún no están disponibles. Puedes continuar la aventura sin audio. ¿Deseas continuar?"
 >
@@ -6024,8 +6058,8 @@ Todas las ventanas flotantes con texto (`.reto-box`, cuadro P6, P12, P13, mapa v
 
 - **Fondo:** `#fff8e7` (crema cálido, contraste legible sin el blanco puro).
 - **Texto general (`html`, `body`):** `font-size: clamp(16px, 5vmin, 18px)` — escala entre 16 px (móvil pequeño) y 18 px (PC). El tope se redujo de 24 px a 18 px para evitar texto desproporcionado en pantallas grandes. **Excepción en `retos-hijo4.html`:** los títulos (`h3`) usan `clamp(20px, 6vmin, 26px)` y las opciones de respuesta (`.respuesta`) usan `clamp(18px, 5.5vmin, 22px)`, ya que necesitan ser algo más grandes para que los controles táctiles (radio/checkbox) sean cómodamente pulsables.
-- **Texto del reto (`.reto-box`):** el cuadro de reto ocupa `flex: 1; min-height: 0; overflow-y: auto` para llenar toda la pantalla disponible (excepto el logo y el safe-area inferior). Al tener más espacio, el texto usa tamaños más legibles: título `clamp(16px, 4.5vmin, 20px)` y cuerpo `clamp(14px, 4vmin, 17px)`. La pantalla P7 usa `justify-content: flex-start` explícitamente (`#pantalla7 { justify-content: flex-start }`). P11 y P15 (las pantallas de reto) logran el mismo efecto visual mediante `.reto-box { flex: 1 }`, que hace que el cuadro de reto crezca para llenar todo el espacio disponible bajo el logo — sin necesitar `flex-start` en el padre.
-- **Safe area inferior — cobertura completa:** la variable `--gap-inferior` (definida como `calc(1.5rem + env(safe-area-inset-bottom, 0px))` en `En-busca-del-tesoro.html` y en `codigo-padre.html`) está aplicada en **todos** los elementos que llegan al borde inferior: `.pantalla` base (cubre las 16 pantallas de una vez), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay`, `#audio-warning-overlay`, `#gps-restricted-overlay` (`codigo-padre.html`), `#monumento-overlay` (`mapa-completo.html`) y el botón de continuar del puzzle P9.
+- **Texto del reto (`.reto-box`):** el cuadro de reto ocupa `flex: 1; min-height: 0; overflow-y: auto` para llenar toda la pantalla disponible (excepto el logo y el safe-area inferior). Al tener más espacio, el texto usa tamaños más legibles: título `clamp(16px, 4.5vmin, 20px)` y cuerpo `clamp(14px, 4vmin, 17px)`. La pantalla P7 usa `justify-content: flex-start` explícitamente (`#pantalla7 { justify-content: flex-start }`). P8 y P15 (las pantallas de reto R-1 y R-2) logran el mismo efecto visual mediante `.reto-box { flex: 1 }`, que hace que el cuadro de reto crezca para llenar todo el espacio disponible bajo el logo — sin necesitar `flex-start` en el padre.
+- **Safe area inferior — cobertura completa:** la variable `--gap-inferior` (definida como `calc(1.5rem + env(safe-area-inset-bottom, 0px))` en `En-busca-del-tesoro.html` y en `codigo-padre.html`) está aplicada en **todos** los elementos que llegan al borde inferior: `.pantalla` base (cubre las 17 pantallas de una vez), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay`, `#audio-warning-overlay`, `#gps-restricted-overlay` (`codigo-padre.html`), `#monumento-overlay` (`mapa-completo.html`) y el botón de continuar del puzzle P6.
 - **Ancho de botones/pestañas de selección de aventura:** `width: 95vw; max-width: 95vw` para aprovechar toda la pantalla del móvil.
 
 #### Viewport dinámico — `100dvh` en pantallas de entrada y puzzle
@@ -6034,7 +6068,7 @@ iOS Safari calcula `100vh` incluyendo la barra del navegador (dirección + contr
 
 Este patrón está aplicado en:
 
-- **`En-busca-del-tesoro.html`**: `.pantalla` (cubre las 16 pantallas de entrada), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay` y `#audio-warning-overlay`.
+- **`En-busca-del-tesoro.html`**: `.pantalla` (cubre las 17 pantallas de entrada), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay` y `#audio-warning-overlay`.
 - **`puzzle.html`** (`body`): además de la doble declaración de altura, añade `padding-bottom: env(safe-area-inset-bottom, 0px)` y `box-sizing: border-box` para que el puzzle no quede bajo el indicador de inicio de iOS cuando se carga como iframe a pantalla completa desde `retos-hijo4.html`.
 
 ```css
@@ -6380,7 +6414,7 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-mapa-leaflet-css-jun18'`, línea 84 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-p17-videointro-jun23'`, línea 84 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -6393,7 +6427,7 @@ proyecto/
 │
 ├── index.html                        ← Redirección automática → codigo-padre.html
 ├── codigo-padre.html                 ← APLICACIÓN PRINCIPAL — orquestador central
-├── En-busca-del-tesoro.html          ← Selector: flujo de selección, pago y activación (16 pantallas)
+├── En-busca-del-tesoro.html          ← Selector: flujo de selección, pago y activación (17 pantallas)
 ├── extrainfo-hijo1.html              ← Hijo 1: información extra sobre Valencia y temporizador
 ├── coordenadas-hijo2.html            ← Hijo 2: barra de controles GPS y navegación
 ├── audio-hijo3.html                  ← Hijo 3: reproductor de audio
@@ -6789,7 +6823,7 @@ El pago es gestionado por Stripe, Inc. Valencia VGuides no almacena
 datos de tarjeta. [Ver condiciones completas →]
 ```
 
-El enlace "Ver condiciones completas" debe navegar a P5 (pantalla de términos) o abrir un overlay con las condiciones.
+El enlace "Ver condiciones completas" debe navegar a P10 (pantalla de términos) o abrir un overlay con las condiciones.
 
 #### 22.7.3 Política de privacidad accesible desde fuera de la aventura
 
@@ -6864,7 +6898,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 84 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-mapa-leaflet-css-jun18'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-p17-videointro-jun23'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -6907,7 +6941,7 @@ En modo `'local'`, los datos de aventura se importan como módulos JS — el nav
 | **Hijo 4** | `retos-hijo4.html` — pantalla de retos. Muestra la pregunta de cada parada, valida la respuesta y notifica al padre cuando el reto se completa |
 | **Hijo 5** | `boton-casa-hijo5.html` — herramienta de desarrollo local únicamente. Botón de cambio de modo y selector de paradas. **No aparece en la PWA final** |
 | **Hijo 6** | `chat-hijo6.html` — asistente de chat con intenciones predefinidas. Responde preguntas del usuario usando el contexto de la parada actual (parada, siguiente, paradas restantes) |
-| **Selector** | `En-busca-del-tesoro.html` — iframe de selección. Guía al usuario por las 16 pantallas de demo, idioma, aventura, pago y activación antes de iniciar el recorrido |
+| **Selector** | `En-busca-del-tesoro.html` — iframe de selección. Guía al usuario por las 17 pantallas de demo, idioma, aventura, pago y activación antes de iniciar el recorrido |
 | **Iframe** | Ventana incrustada dentro de otra página web |
 
 ### Lógica de aventura
@@ -6993,7 +7027,7 @@ La aplicación arranca en **modo CASA** — el estado "neutro" donde aún no hay
 
 ### 24.2. Las pantallas de demo (gratuitas)
 
-Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia VGuides. A partir de aquí recorre **16 pantallas** más **2 overlays** (mapa vintage y aviso de audio) dentro del iframe de selección. Todo es gratuito y forma la experiencia de demo:
+Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia VGuides. A partir de aquí recorre **17 pantallas** más **2 overlays** (mapa vintage y aviso de audio) dentro del iframe de selección. Todo es gratuito y forma la experiencia de demo:
 
 **Pantalla 1 — Bienvenida.** El logo de la marca sobre fondo naranja. Un botón con una flecha invita a empezar.
 
@@ -7001,11 +7035,13 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 
 **Pantalla 3 — Confirmación de idioma.** Se muestra la bandera elegida. Dos botones: ✓ (verde) para confirmar o ✗ (rojo) para volver a elegir.
 
-**Pantalla 4 — Imagen "En Busca del Tesoro".** Se muestra la imagen del título en el idioma seleccionado. Al pulsar `→` avanza a P5.
+**Pantalla 4 — Vídeo introductorio (stub).** Placeholder de vídeo ("Próximamente"). Un botón `→` avanza a P5.
 
-**Pantalla 5 — Términos y condiciones.** El cuadro de texto con scroll ocupa toda la pantalla disponible (`flex: 1`, `width: min(95vw, 92vmin)`) sin altura máxima fija. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final del texto. Usa `padding-bottom: var(--gap-inferior)` para respetar la safe area.
+**Pantalla 5 — Imagen "En Busca del Tesoro".** Se muestra la imagen del título en el idioma seleccionado. Al pulsar `→` avanza a P6.
 
-**Pantalla 6 — Selección de aventura.** Se listan las aventuras disponibles. Cada botón tiene `width: 95vw` para aprovechar toda la pantalla del móvil, y muestra una línea con estadísticas visuales universales (no necesitan traducción):
+**Pantalla 6 — Puzzle interactivo.** Un puzzle visual cargado en un iframe interno (`puzzle.html`). El botón de continuar (círculo verde, `position: absolute; bottom: calc(var(--gap-inferior) + 1rem)`) empieza **oculto** y solo aparece al completar el puzzle. Si la imagen del puzzle no existe en servidor, se salta automáticamente a P7.
+
+**Pantalla 7 — Selección de aventura.** Se listan las aventuras disponibles. Cada botón tiene `width: 95vw` para aprovechar toda la pantalla del móvil, y muestra una línea con estadísticas visuales universales (no necesitan traducción):
 
 ```text
 València centro histórico 1    👣±4km 🏛️19 📍41 🧩30 ⏳max60h
@@ -7021,17 +7057,17 @@ Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTU
 | `Aventura4` | `parque_de_ cabecera_lake_side.jpg` |
 | `Aventura5` | `antiguo_orfanato.jpg` |
 | `AventuraFallas` | `fallas-castillo.png` |
-| `Aventura34km` | `aventura-34km.png` | Actualmente las Aventuras 1, 2, 3, 4, 5 y Fallas están disponibles; solo 34km aparece bloqueada. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. La aventura se guarda en `localStorage` como `vv_aventura`.
+| `Aventura34km` | `aventura-34km.png` |
 
-**Pantalla 7 — Confirmación de aventura.** Similar a P3: se muestra el nombre de la aventura elegida con sus estadísticas en una card (`#aventura-confirmacion-card`). La card aplica la misma foto de fondo que el botón de P6 (misma entrada de `IMAGENES_AVENTURAS`, misma capa semi-transparente). Dos botones: → (confirmar) / ✗ (volver a P6). Si confirma, continúa.
+Actualmente las Aventuras 1, 2, 3, 4, 5 y Fallas están disponibles; solo 34km aparece bloqueada. Al tocar una aventura, se muestra un **overlay con el mapa vintage** del recorrido. La aventura se guarda en `localStorage` como `vv_aventura`. Al cerrar el mapa vintage → `cerrarMapaVintage()` → avanza a P8. Envía `SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }` al padre.
 
-**Pantalla 8 — Vídeo introductorio.** Actualmente es un placeholder ("Próximamente"). Un botón avanza a P9.
+**Pantalla 8 — Reto R-1 (prueba de conocimiento previa).** Una pregunta con opciones tipo test que el usuario debe superar antes de confirmar la aventura. Si acierta, el borde se pone verde, aparece un ✓ y avanza automáticamente a P9 a los 1,5 segundos. Si falla, puede reintentar.
 
-**Pantalla 9 — Puzzle interactivo.** Un puzzle visual cargado en un iframe interno (`puzzle.html`). El botón de continuar es un círculo verde (`position: absolute; bottom: calc(var(--gap-inferior) + 1rem)`) que empieza **oculto** (`display: none`) y solo aparece al completar el puzzle. Si la imagen del puzzle no existe, se salta automáticamente a P10. Durante esta pantalla, seleccion envía `SELECCION.PREPARAR_HIJOS` — el padre almacena los datos de pre-selección; los iframes hijos ya estaban pre-cargados desde el arranque.
+**Pantalla 9 — Confirmación de aventura.** Similar a P3: se muestra el nombre de la aventura elegida con sus estadísticas en una card (`#aventura-confirmacion-card`). La card aplica la misma foto de fondo que el botón de P7 (misma entrada de `IMAGENES_AVENTURAS`, misma capa semi-transparente). Dos botones: → (confirmar) / ✗ (volver a P7). Al confirmar, `confirmarAventura()` envía `SELECCION.PREPARAR_HIJOS` al padre y avanza a P10.
 
-**Pantalla 10 — Audio y texto de introducción.** El usuario escucha un audio narrativo de bienvenida mientras lee un texto descriptivo con fondo naranja. Ambos se cargan desde `js/audios-aventuras.js` y `js/textos-aventuras.js` respectivamente, en el idioma seleccionado.
+**Pantalla 10 — Términos y condiciones.** El cuadro de texto con scroll ocupa toda la pantalla disponible (`flex: 1`, `width: min(95vw, 92vmin)`) sin altura máxima fija. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final del texto. Usa `padding-bottom: var(--gap-inferior)` para respetar la safe area. Al aceptar, envía `SELECCION.TERMINOS_ACEPTADOS` y avanza a P11.
 
-**Pantalla 11 — Reto R-1 (prueba de conocimiento).** Una pregunta con opciones tipo test. El botón de avanzar está deshabilitado hasta elegir respuesta. Si acierta, el borde se pone verde, aparece un ✓ y avanza automáticamente a P12 a los 1,5 segundos. Si falla, el borde se pone rojo, vibra el móvil (300 ms) y puede reintentar.
+**Pantalla 11 — Audio y texto de introducción.** El usuario escucha un audio narrativo de bienvenida mientras lee un texto descriptivo con fondo naranja. Ambos se cargan desde `js/audios-aventuras.js` y `js/textos-aventuras.js` respectivamente, en el idioma seleccionado. Un botón `→` avanza a P12.
 
 **Pantalla 12 — Pantalla de pago.** Actualmente es un stub con texto "Próximamente". En el futuro integrará una pasarela de pago real. Por ahora avanza directamente a P13.
 
@@ -7039,9 +7075,11 @@ Cada botón muestra una **foto de fondo** del recorrido (objeto `IMAGENES_AVENTU
 
 **Pantalla 14 — Normativa y Cumplimiento.** Pantalla con fondo naranja más **imagen de fondo sutil** (`imagen-normativa.png` con capa naranja al 82% de opacidad). El aviso legal de seguridad vial (cargado desde `js/normativa-cumplimiento.js` en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta llegar al final. Al aceptar → avanza a P15.
 
-**Pantalla 15 — Reto R-2 (pregunta de confirmación).** Una pregunta SÍ/NO traducida al idioma del usuario. Es la **puerta final**: si elige la respuesta afirmativa, se envía `SELECCION.AVENTURA_ACTIVADA` al padre. Si elige la negativa, **todo se reinicia** desde P1.
+**Pantalla 15 — Reto R-2 (pregunta de confirmación).** Una pregunta SÍ/NO traducida al idioma del usuario. Es la **puerta final**: si elige la respuesta afirmativa, se envía `SELECCION.AVENTURA_ACTIVADA` al padre y avanza a P16. Si elige la negativa, **todo se reinicia** desde P1.
 
-**Pantalla 16 — Agradecimientos y Fuentes** *(solo accesible vía `?despedida=1`, no en el flujo normal de onboarding)*. Pantalla con fondo naranja `#ff8c00`. El texto de créditos y fuentes (cargado desde `js/agradecimientos-aventuras.js` en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final. Al confirmar ejecuta `_ejecutarDespedida()` → `limpiarDatosAventura('completada')`.
+**Pantalla 16 — Logos.** Pantalla con fondo naranja, logo redondo y logo alargado de Valencia VGuides. Un botón `→` da el paso oficial a la aventura avanzando a P17.
+
+**Pantalla 17 — Agradecimientos y Fuentes** *(solo accesible vía `?despedida=1`, no en el flujo normal de onboarding)*. Pantalla con fondo naranja `#ff8c00`. El texto de créditos y fuentes (cargado desde `js/agradecimientos-aventuras.js` en el idioma seleccionado) aparece en una caja `.texto-box.borde-azul` con scroll. El botón `→` está **deshabilitado** hasta que el usuario haga scroll hasta el final. Al confirmar ejecuta `_ejecutarDespedida()` → `limpiarDatosAventura('completada')`.
 
 Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
@@ -7243,7 +7281,7 @@ Si el usuario **cierra el navegador** o **recarga la página** (por accidente, p
 | Clave | Contenido | Cuándo se guarda |
 |-------|-----------|------------------|
 | `vv_idioma` | Idioma seleccionado (ej: `es`) | Al seleccionar idioma en P2 |
-| `vv_aventura` | Aventura seleccionada (ej: `1`) | Al seleccionar aventura en P6 |
+| `vv_aventura` | Aventura seleccionada (ej: `1`) | Al seleccionar aventura en P7 |
 | `vv_aventura_iniciada` | JSON con aventura, idioma y timestamp | Al completar Reto R-2 (P15) — padre lo guarda al recibir `SELECCION.AVENTURA_ACTIVADA` |
 | `vv_progreso` | JSON con índice, parada actual, total de paradas | En cada cambio de parada |
 | `vv_paradas_completadas` | Mapa serializado de paradas completadas | Al completar cada parada |
@@ -7347,7 +7385,7 @@ El usuario elige idioma (P2), confirma (P3), pasa por el flujo normal (P4→P5�
 
 **Botón "Terminar esta experiencia"** → `window.location.href = 'En-busca-del-tesoro.html?despedida=1'`:
 
-La página carga en modo standalone (no como iframe). El guard de redirección al inicio del HTML detecta el parámetro y **no redirige** a `codigo-padre.html` cuando `?despedida=1` está presente. `_checkUrlParams()` activa `modoDespedida = true`, recupera el idioma de `localStorage('vv_idioma')` en `idiomaSeleccionado` (para que P16 cargue en la lengua correcta) y llama `mostrar(16)`. Cuando el usuario pulsa el botón verde ➣, `_ejecutarDespedida()` ejecuta:
+La página carga en modo standalone (no como iframe). El guard de redirección al inicio del HTML detecta el parámetro y **no redirige** a `codigo-padre.html` cuando `?despedida=1` está presente. `_checkUrlParams()` activa `modoDespedida = true`, recupera el idioma de `localStorage('vv_idioma')` en `idiomaSeleccionado` (para que P17 cargue en la lengua correcta) y llama `mostrar(17)`. Cuando el usuario pulsa el botón verde ➣, `_ejecutarDespedida()` ejecuta:
 
 | Paso | Detalle |
 |------|---------|
@@ -8190,7 +8228,7 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe configuración inicial; prepara las 16 pantallas con el idioma por defecto | `SISTEMA.HIJO_LISTO` | Padre | Sin este paquete no puede cargar textos ni aventuras correctamente |
+| `SISTEMA.PADRE_DATOS` | Padre (handshake) | Recibe configuración inicial; prepara las 17 pantallas con el idioma por defecto | `SISTEMA.HIJO_LISTO` | Padre | Sin este paquete no puede cargar textos ni aventuras correctamente |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; la pantalla queda lista para interacción del usuario | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Cumple el protocolo (sin efecto visual — esta pantalla gestiona su visibilidad propia) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Participar en el ciclo de vida del modo aunque no cambie de pantalla internamente |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
@@ -8205,10 +8243,10 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
 | `SELECCION.IDIOMA_SELECCIONADO` | Padre | Al confirmar idioma en P3 | Comunicar el idioma elegido para que el padre lo propague |
-| `SELECCION.AVENTURA_SELECCIONADA` | Padre | Al confirmar aventura en P7 | Comunicar la aventura elegida |
+| `SELECCION.AVENTURA_SELECCIONADA` | Padre | Al seleccionar aventura en P7 | Comunicar la aventura elegida |
 | `SELECCION.AVENTURA_ACTIVADA` | Padre | Al confirmar respuesta afirmativa en P15 (Reto R-2 — pregunta final Sí/No) | Confirmar que la aventura está desbloqueada y lanzar el flujo de activación |
-| `SELECCION.TERMINOS_ACEPTADOS` | Padre | Al aceptar términos en P5 | Registrar aceptación legal |
-| `SELECCION.PREPARAR_HIJOS` | Padre | P9 (durante el puzzle) | Comunicar los datos de pre-selección `{ idioma, aventura, timestamp }` al padre; los iframes ya están pre-cargados desde el arranque |
+| `SELECCION.TERMINOS_ACEPTADOS` | Padre | Al aceptar términos en P10 | Registrar aceptación legal |
+| `SELECCION.PREPARAR_HIJOS` | Padre | P9 (confirmación aventura) | Comunicar los datos de pre-selección `{ idioma, aventura, timestamp }` al padre |
 
 ---
 
@@ -9116,7 +9154,7 @@ Aumentado el timeout de 15 a 30 segundos en `state-manager.js` línea 255.
 
 **Cambios en sw.js:**
 
-- Línea 84: CACHE_VERSION actualizado (valor actual en el código: `'v-mapa-leaflet-css-jun18'`)
+- Línea 84: CACHE_VERSION actualizado (valor actual en el código: `'v-p17-videointro-jun23'`)
 
 ### 29.4 Actualización del Service Worker
 
@@ -9128,7 +9166,7 @@ Se actualizó el CACHE_VERSION en `sw.js` para forzar la invalidación del cach�
 
 **Estado actual:**
 
-- Línea 84: `const CACHE_VERSION = 'v-mapa-leaflet-css-jun18'` — el valor cambia en cada commit relevante
+- Línea 84: `const CACHE_VERSION = 'v-p17-videointro-jun23'` — el valor cambia en cada commit relevante
 - El CACHE_VERSION debe actualizarse **manualmente** cada vez que se necesite invalidar la caché
 - El directorio `tools/` existe pero está vacío; `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no existe** — la nota es aspiracional
 
@@ -9752,3 +9790,141 @@ La función NO llama a `ejecutarRestauracionAventura` (no recarga la aventura, n
 **Guards de concurrencia:**
 - `_popstateActivo`: evita mostrar el diálogo dos veces si `popstate` se dispara antes de que el usuario responda
 - `_dialogoVueltaActivo`: ídem para `visibilitychange`
+
+---
+
+## 32. Video-intro — pantalla inicial de la PWA
+
+### 32.1 Propósito
+
+`video-intro.html` es una animación tutorial de 22 escenas que recorre todas las funciones de la PWA antes de que el usuario elija idioma. Existe como archivo independiente; la integración como sub-iframe dentro de `En-busca-del-Tesoro.html` (pantalla P0 en el diseño original) **no está activa en el flujo actual** — en el flujo actual, P4 es un placeholder estático de vídeo.
+
+El vídeo es puramente visual (sin audio): animaciones CSS/JS con Leaflet, caballeros, gauntlet cursor y overlays flotantes. Se auto-ejecuta al cargar — `run()` se llama desde el propio archivo, sin necesidad de señal externa.
+
+### 32.2 Integración arquitectural
+
+La relación es análoga a la de `puzzle.html` dentro de `hijo4`:
+
+```
+codigo-padre.html
+  └── En-busca-del-Tesoro.html  (iframe "seleccion")
+        └── video-intro.html    (sub-iframe — integración prevista, no activa en flujo actual)
+```
+
+`video-intro.html` no participa en el handshake padre-hijo ni en el ciclo de heartbeat. Solo envía un mensaje al terminar.
+
+### 32.3 Flujo de video-intro (referencia — no activo en flujo actual)
+
+Al arrancar la app (sin parámetros URL especiales), `En-busca-del-Tesoro.html` muestra `#pantalla1` como pantalla inicial (tiene la clase `visible`). Las demás pantallas empiezan ocultas.
+
+```
+App arranca
+  │
+  ▼
+pantalla4 visible — vídeo stub (placeholder estático)
+  │
+  │  btn-mundo-verde → mostrar(5) [En Busca del Tesoro]
+  │
+  ▼
+pantalla5 — imagen localizada según idioma → mostrar(6)
+```
+
+**Entradas directas** (gestionadas en `_checkUrlParams`):
+- `?despedida=1` → mostrar(17) — flujo fin de aventura (P17 agradecimientos)
+- `?desde=aventura` → mostrar(2) — usuario vuelve a elegir aventura
+
+### 32.4 Comunicación
+
+Sigue el mismo patrón que `puzzle.html → hijo4`: el sub-iframe envía un `postMessage` a su padre directo, que lo gestiona internamente sin reenviarlo al abuelo (`codigo-padre.html`).
+
+```mermaid
+sequenceDiagram
+    participant VI as video-intro.html
+    participant EB as En-busca-del-Tesoro.html
+    participant P as codigo-padre.html
+
+    Note over VI: run() completa las 22 escenas
+    VI->>EB: SELECCION.VIDEO_INTRO_TERMINADO { origen:'video-intro', timestamp }
+    Note over EB: _hdl_VIDEO_INTRO_TERMINADO
+    Note over EB: btn-vi-continuar → centro (CSS transition)
+    Note over EB: btn-vi-replay.display = 'flex'
+    Note over P: (no recibe este mensaje)
+```
+
+**Tipo de mensaje**: `SELECCION.VIDEO_INTRO_TERMINADO` (definido en `js/constants.js` → `TIPOS_MENSAJE.SELECCION`)
+
+**Payload**:
+```javascript
+{
+  tipo:      'SELECCION.VIDEO_INTRO_TERMINADO',
+  origen:    'video-intro',
+  timestamp: Date.now()
+}
+```
+
+**Origen del postMessage**: `location.origin` (o `'*'` en protocolo `file://`)
+
+**Handler en En-busca-del-Tesoro.html**: `_hdl_VIDEO_INTRO_TERMINADO` — registrado via `globalThis.addEventListener('message', _hdl_VIDEO_INTRO_TERMINADO)`
+
+### 32.5 Botones del sub-iframe (referencia — no activos en flujo actual)
+
+| Elemento | ID | Tipo | Estado inicial | Tras VIDEO_INTRO_TERMINADO |
+|----------|----|------|---------------|---------------------------|
+| Continuar | `#btn-vi-continuar` | `btn-mundo-verde` | Esquina superior izquierda (pos. absoluta) | Centro-izquierda (CSS transition `.vi-centrado`) |
+| Replay | `#btn-vi-replay` | `btn-mundo-rojo` ↺ | `display:none` | `display:flex` |
+
+**CSS de transición** (`.vi-centrado`):
+```css
+#btn-vi-continuar {
+  transition: top .5s cubic-bezier(.34,1.56,.64,1),
+              left .5s cubic-bezier(.34,1.56,.64,1),
+              transform .5s cubic-bezier(.34,1.56,.64,1);
+}
+#btn-vi-continuar.vi-centrado {
+  top: 50%;
+  left: 50%;
+  transform: translate(calc(-100% - 8px), -50%);
+}
+#btn-vi-replay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%);   /* se sitúa a la derecha del continuar */
+}
+```
+
+**Replay** (`_replayVideoIntro`): elimina `.vi-centrado`, oculta el botón rojo, y recarga el iframe con `iframe.src = iframe.src`.
+
+### 32.6 Las 22 escenas de video-intro.html
+
+| # | Función | Contenido |
+|---|---------|-----------|
+| 1 | `scene1` | Fondo azul cielo + caballero UP — pantalla de bienvenida |
+| 2 | `scene2` | Mapa Leaflet inset + fullscreen · marcador usuario · zoom gauntlet |
+| 3 | `scene3` | Pantalla de error GPS (sin señal) |
+| 4 | `scene4` | Pantalla de error red (sin internet) |
+| 5 | `scene5` | Mapa de la aventura + X de cierre con gauntlet |
+| 6 | `scene6` | Hijo1 (extrainfo) con temporizador pulsado |
+| 7 | `scene7` | Panel audio (amain + desplegables verticales) |
+| 8 | `scene8` | Overlay ruta SVG con polyline y waypoints numerados |
+| 9 | `scene9` | Hijo2 (coordenadas) con botones principales |
+| 10 | `scene10` | Botón Avanzar (btnAvanzar) pulsado → progresión |
+| 11 | `sceneImg` | Botón imagen (b4 H2-fotoproximo) → ventana flotante Torres de Serranos |
+| 12 | `sceneVid` | Botón dron (b3 H2-fotodron) → overlay vídeo fullscreen |
+| 13 | `scene11` | Panel audio overlay · caballero subido (bottom > barra audio) |
+| 14 | `scene12` | Reto puzzle (piezas deslizantes, tablero grande) |
+| 15 | `sceneRetoMCQ` | Reto MCQ — preguntas de opción múltiple |
+| 16 | `scene13` | Mapa completo · usuario fuera de ruta (farOff) |
+| 17 | `scene14` | Polyline discontinua usuario→parada · pin grande · fitBounds |
+| 18 | `scene15` | Knight.walk() desde farOff hasta parada (polyline larga) |
+| 19 | `scene16` | Posición aún más alejada · walk con 6 waypoints |
+| 20 | `scene17` | Llegada correcta · puzzle de validación |
+| 21 | `scene18` | Fin de reto MCQ · celebración |
+| 22 | `scene19` | Pantalla de final de aventura + fuegos artificiales (canvas) |
+
+### 32.7 Invariantes
+
+- `video-intro.html` NUNCA muestra `boton-casa-hijo5.html` — es una herramienta de desarrollo, no aparece en la PWA real.
+- El `postMessage` usa `globalThis.parent?.postMessage(...)` con `?.` para no fallar en modo standalone (abrir el archivo directamente).
+- El canvas de fuegos artificiales (P22) se apendiza a `#stage`, nunca a `#overlay-layer`, para sobrevivir a `setOv()`.
+- Las escenas `sceneImg` y `sceneVid` (P11-P12) aparecen DESPUÉS de `scene10` (avanzar) en el array `scenes[]` de `run()`.
