@@ -1282,37 +1282,6 @@ export async function mostrarTodasLasParadas(paradasExternas) {
 }
 
 /**
- * Actualiza el marcador de la posición actual del usuario en el mapa.
- * @param {Object} coordenadas - Coordenadas {lat, lng, accuracy}.
- */
-function actualizarPosicionUsuario(coordenadas) {
-    try {
-        validarCoordenadas(coordenadas);
-
-        // Usar await adecuadamente en contexto async, o simplemente ejecutar de forma síncrona
-        if (_mapaInstance) {
-            if (marcadorUsuario) {
-                _mapaInstance.removeLayer(marcadorUsuario);
-            }
-
-            marcadorUsuario = L.circle([coordenadas.lat, coordenadas.lng], {
-                radius: coordenadas.accuracy || 10,
-                color: '#4285F4',
-                fillColor: '#4285F4',
-                fillOpacity: 0.5
-            }).addTo(_mapaInstance);
-
-            console.info('Posición del usuario actualizada');
-        }
-    } catch (error) {
-        logger.error('Error al actualizar la posición del usuario:', error);
-    }
-
-    // Actualizar flecha si está activa
-    actualizarPosicionFlecha();
-}
-
-/**
  * Dibuja un tramo específico en el mapa.
  * @param {Object} tramo - Objeto tramo con inicio, fin y waypoints.
  * @param {boolean} destacado - Si es true, se muestra con énfasis.
@@ -1572,26 +1541,6 @@ export function limpiarPorEstado(nuevoEstado) {
             limpiado = true;
             logger.debug(`[funciones-mapa] Reset completo ejecutado para modo ${modo}`);
         } else {
-            // Limpieza por cambio de modo (lógica original)
-            if (modo !== estadoMapa.modo) {
-                if (modo === MODOS.CASA) {
-                    // En modo casa, limpiar estado para vista general
-                    limpiarRecursos();
-                    limpiado = true;
-                    logger.debug('Limpieza automática: Modo casa activado, recursos limpiados');
-                } else if (modo === MODOS.AVENTURA) {
-                    // En modo aventura, mantener marcadores básicos pero limpiar rutas anteriores
-                    rutasActivas.forEach(ruta => {
-                        if (_mapaInstance?.removeLayer) {
-                            _mapaInstance.removeLayer(ruta);
-                        }
-                    });
-                    rutasActivas = [];
-                    limpiado = true;
-                    logger.debug('Limpieza automática: Modo aventura activado, rutas limpiadas');
-                }
-            }
-
             // Limpieza por cambio de parada
             if (paradaActual !== estadoMapa.paradaActual && paradaActual !== null) {
                 // Limpiar marcadores de rutas anteriores (mantener marcadores de paradas)
@@ -3766,36 +3715,7 @@ if (globalThis.window !== undefined) {
     });
 }
 
-/**
- * Valida si las coordenadas del usuario están dentro del rango de 20 metros de una parada
- * @param {Object} coordenadasUsuario - Coordenadas del usuario {lat, lng}
- * @param {Object} coordenadasParada - Coordenadas de la parada {lat, lng}
- * @returns {boolean} True si está dentro del rango
- */
-function validarRango(coordenadasUsuario, coordenadasParada) {
-    const distancia = calcularDistancia(
-        coordenadasUsuario.lat,
-        coordenadasUsuario.lng,
-        coordenadasParada.lat,
-        coordenadasParada.lng
-    );
-    return distancia <= 20; // 20 metros o menos
-}
-
 // ==================== CONTROLADORES DE NAVEGACIÓN ====================
-
-/**
- * Estado de navegación (inicializar si no existe)
- */
-let estadoNavegacion = {
-    posicionActual: null,
-    vistaActual: null,
-    ultimaActualizacion: null,
-    estado: 'INACTIVO', // INACTIVO, ACTIVO, PAUSADO, ERROR
-    modoVista: 'normal',
-    tipoMapa: 'vectorial',
-    estadoMapa: null
-};
 
 /**
  * Controlador: NAVEGACION.CENTRAR_EN_UBICACION
