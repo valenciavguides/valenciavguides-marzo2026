@@ -278,13 +278,13 @@
     }
     .aventuras-lista .btn:disabled .aventura-stats { opacity: 0.3; }
     .aventuras-lista .btn .aventura-stat-emoji { font-size: 1.05em; }
-    #pantalla6 { justify-content: flex-start; padding-top: 3rem; }
-    #pantalla8, #pantalla12 {
+    #pantalla7 { justify-content: flex-start; padding-top: 3rem; }
+    #pantalla4, #pantalla12 {
       justify-content: flex-start;
       padding-top: clamp(0.4rem, 1.5vmin, 0.9rem);
     }
-    #pantalla9 { height: 100dvh; }
-    #pantalla8 .logo-alargado, #pantalla12 .logo-alargado {
+    #pantalla6 { height: 100dvh; }
+    #pantalla4 .logo-alargado, #pantalla12 .logo-alargado {
       width: min(55vw, 220px);
       margin-top: 0;
     }
@@ -302,7 +302,7 @@
     .audio-player-container { padding: clamp(0.5rem, 1.5vmin, 1.5rem) 0; width: 72vw; margin-left: 6vw; margin-right: 0; margin-top: clamp(0.5rem, 1.5vmin, 1.5rem); margin-bottom: clamp(0.5rem, 1.5vmin, 1.5rem); border: 0.25rem solid #0074d9; }
       /* Solo texto legible - mismo tamaño que hijo2, sin afectar UI */
       .texto-box,
-      #pantalla11 .audio-overlay,
+      #pantalla8 .audio-overlay,
       #aventura-seleccionada-texto,
       #audio-warning-text {
         font-size: clamp(16px, 5vmin, 18px);
@@ -324,32 +324,32 @@
         flex-shrink: 0;
       }
 
-      /* Scrollbar unificado para .texto-box y #pantalla11 .audio-overlay */
+      /* Scrollbar unificado para .texto-box y #pantalla8 .audio-overlay */
       .texto-box,
-      #pantalla11 .audio-overlay {
+      #pantalla8 .audio-overlay {
         scrollbar-color: #888 #e8d5b0;
         scrollbar-width: thin;
       }
       .texto-box::-webkit-scrollbar,
-      #pantalla11 .audio-overlay::-webkit-scrollbar {
+      #pantalla8 .audio-overlay::-webkit-scrollbar {
         width: 0.7rem;
         background: #e8d5b0;
       }
       .texto-box::-webkit-scrollbar-thumb,
-      #pantalla11 .audio-overlay::-webkit-scrollbar-thumb {
+      #pantalla8 .audio-overlay::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 0.5rem;
       }
 
     /* P5, P6, P15: sin padding lateral para que la caja ocupe el 95vw limpio */
-    #pantalla16, #pantalla5, #pantalla14 {
+    #pantalla17, #pantalla10, #pantalla14 {
       justify-content: flex-start;
       padding-top: 2.5rem;
       padding-bottom: var(--gap-inferior);
       padding-left: 0;
       padding-right: 0;
     }
-    #pantalla16 #agradecimientos-contenido {
+    #pantalla17 #agradecimientos-contenido {
       flex: 1;
       min-height: 0;
       width: 95vw;
@@ -365,7 +365,7 @@
       background-position: 0 0, center;
       background-repeat: repeat, no-repeat;
     }
-    #pantalla5 #terminos-contenido {
+    #pantalla10 #terminos-contenido {
       flex: 1;
       min-height: 0;
       width: 95vw;
@@ -399,11 +399,11 @@
     }
     /* P1 y P4: logo alargado al 98% del ancho */
     #pantalla1 .logo-alargado { width: min(98vw, 440px); }
-    #pantalla4 .logo-alargado { width: min(98vw, 440px); }
+    #pantalla5 .logo-alargado { width: min(98vw, 440px); }
     /* P5, P6, P15: botones con margen superior reducido */
-    #pantalla16 .btn, #pantalla5 .btn, #pantalla14 .btn { margin-top: 0.5rem; }
+    #pantalla17 .btn, #pantalla10 .btn, #pantalla14 .btn { margin-top: 0.5rem; }
     /* P8: layout pantalla y card de confirmación */
-    #pantalla7 { justify-content: flex-start; padding-top: 2.5rem; padding-left: 0; padding-right: 0; }
+    #pantalla9 { justify-content: flex-start; padding-top: 2.5rem; padding-left: 0; padding-right: 0; }
     #aventura-confirmacion-card {
       flex: 1;
       min-height: 0;
@@ -417,7 +417,7 @@
       font-size: clamp(16px, 6vmin, 40px);
       overflow: hidden;
     }
-    #pantalla7 .btn-mundo-verde, #pantalla7 .btn-mundo-rojo { margin-top: 0; }
+    #pantalla9 .btn-mundo-verde, #pantalla9 .btn-mundo-rojo { margin-top: 0; }
     /* ===== BOTÓN GLOBO VERDE ===== */
     .btn-mundo-verde {
       position: relative;
@@ -585,28 +585,28 @@
       border-radius: 0;
       display: block;
     }
-    #pantalla10 {
+    #pantalla11 {
       justify-content: flex-start;
       margin-top: 0;
       padding: 10px 0 0 0;
       overflow-x: hidden;
       overflow-y: hidden;
     }
-    #pantalla10 .logo-alargado {
+    #pantalla11 .logo-alargado {
       margin-top: 0;
       margin-bottom: 0;
     }
-    #pantalla10 .audio-btn-row {
+    #pantalla11 .audio-btn-row {
       margin-top: 20px;
       margin-bottom: 0;
     }
-    #pantalla10 .audio-player-container {
+    #pantalla11 .audio-player-container {
       margin-top: 0;
       margin-bottom: 0;
       margin-left: 7.5vw;
       margin-right: 0;
     }
-    #pantalla10 .audio-btn-row > .btn {
+    #pantalla11 .audio-btn-row > .btn {
       margin-top: 0;
       margin-left: clamp(0.6rem, 2vw, 1.1rem);
     }
@@ -617,7 +617,7 @@
       justify-content: flex-start;
       width: 100%;
     }
-    #pantalla10 .audio-overlay {
+    #pantalla11 .audio-overlay {
       margin-top: 20px;
       width: 98vw;
       background: #fff8e7;
@@ -689,92 +689,24 @@
     </div>
   </div>
 
+  <!-- P4: Video intro — video-intro.html en iframe (postMessage SELECCION.VIDEO_INTRO_TERMINADO → mostrar(5)) -->
+  <div class="pantalla" id="pantalla4" style="padding:0; overflow:hidden;">
+    <div id="video-intro-container" style="width:100%;height:100%;"></div>
+  </div>
 
   <!-- P4: Imagen "En Busca del Tesoro" según idioma -->
-  <div class="pantalla" id="pantalla4">
+  <div class="pantalla" id="pantalla5">
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <img id="en-busca-imagen" src="" alt="" style="width:min(97vw, 400px); margin-top:1rem;">
-    <button class="btn btn-mundo-verde" onclick="void mostrar(5)" title="Continuar">
-      <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
-      <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
-    </button>
-  </div>
-  <!-- P15: Agradecimientos y Fuentes (solo ?despedida=1) -->
-  <div class="pantalla" id="pantalla16">
-    <div class="free-demo">FREE DEMO</div>
-    <div id="agradecimientos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkAgradecimientosScroll()">
-      <p>Cargando agradecimientos...</p>
-    </div>
-    <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
-      <button class="btn btn-mundo-verde" id="btn-siguiente-agradecimientos" onclick="aceptarAgradecimientos()" disabled style="opacity:0.3;" title="Siguiente">
-        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
-        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
-      </button>
-    </div>
-  </div>
-
-  <!-- P5: Términos y Condiciones (carga dinámica desde js/terminos-aventuras.js) -->
-  <div class="pantalla" id="pantalla5">
-    <div class="free-demo">FREE DEMO</div>
-    <div id="terminos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkTerminosScroll()">
-      <!-- Contenido cargado dinámicamente según idioma seleccionado -->
-      <p>Cargando términos...</p>
-    </div>
-    <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
-      <button class="btn btn-mundo-verde" id="btn-aceptar-terminos" onclick="void aceptarTerminos()" disabled title="Aceptar términos">
-        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
-        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
-      </button>
-    </div>
-  </div>
-
-  <!-- P6: Elección de Aventura -->
-  <div class="pantalla" id="pantalla6">
-    <div class="free-demo">FREE DEMO</div>
-    <div class="aventuras-lista" id="aventuras-dinamicas">
-      <!-- Aventuras cargadas dinámicamente según idioma -->
-    </div>
-  </div>
-
-  <!-- P7: Confirmación de aventura -->
-  <div class="pantalla" id="pantalla7">
-    <div class="free-demo">FREE DEMO</div>
-    <div id="aventura-confirmacion-card" class="btn" style="cursor:default; pointer-events:none; margin-top:0;"></div>
-    <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
-      <button class="btn btn-mundo-rojo" onclick="void mostrar(6)" title="No, cambiar">
-        <div class="contenedor-x"><span class="icono-x">✗</span></div>
-        <div class="contenedor-x segunda"><span class="icono-x">✗</span></div>
-      </button>
-      <button class="btn btn-mundo-verde" onclick="void confirmarAventura()" title="Sí, confirmar">
-        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
-        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
-      </button>
-    </div>
-  </div>
-
-  <!-- P8: Vídeo introductorio -->
-  <div class="pantalla" id="pantalla8">
-    <div class="free-demo">FREE DEMO</div>
-    <div style="position:relative; width:98vw; height:calc(96vh - var(--gap-superior) - env(safe-area-inset-bottom,0px)); background:#000; border:0.3125rem solid #00ff00; border-radius:0.9375rem; box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.3); overflow:hidden; display:flex; justify-content:center; align-items:center;">
-      <video id="video-intro-player" controls preload="metadata" muted style="width:100%; height:100%; object-fit:contain; display:none;">
-        <source id="video-intro-source" src="" type="video/mp4">
-        <track kind="descriptions" src="" default label="Descripción visual">
-        Tu navegador no soporta el elemento video.
-      </video>
-      <div id="video-intro-placeholder" style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; height:100%; gap:1rem;">
-        <div style="font-size:5rem; opacity:0.3;">🎬</div>
-        <p style="color:#999; font-size:1.1rem; text-align:center; margin:0; padding:0 1rem;">Video introductorio próximamente</p>
-      </div>
-    </div>
-    <button class="btn btn-mundo-verde" onclick="void mostrar(9)" title="Siguiente" style="margin-top:1rem;">
+    <button class="btn btn-mundo-verde" onclick="void mostrar(6)" title="Continuar">
       <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
       <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
     </button>
   </div>
 
   <!-- P9: Puzzle (carga puzzle.html mediante iframe) -->
-  <div class="pantalla" id="pantalla9" style="padding:0; justify-content:center; align-items:center;">
+  <div class="pantalla" id="pantalla6" style="padding:0; justify-content:center; align-items:center;">
     <div class="free-demo">FREE DEMO</div>
     <div id="puzzle-container" style="position:relative; width:100%; height:100%; overflow:hidden;">
       <iframe id="puzzle-iframe" src="" style="width:100%; height:100%; border:none;" title="Puzzle"></iframe>
@@ -789,31 +721,16 @@
     </div>
   </div>
 
-  <!-- P10: Audio intro + texto (padreid: "padre-intro", audio_id: audio-intro-xx, texto_id: txt-intro-xx) -->
-  <div class="pantalla" id="pantalla10">
+  <!-- P6: Elección de Aventura -->
+  <div class="pantalla" id="pantalla7">
     <div class="free-demo">FREE DEMO</div>
-    <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="" style="display:block; margin-left:auto; margin-right:auto; margin-top:0; margin-bottom:0;">
-    <div class="audio-btn-row" style="margin-top:0; margin-bottom:0.7rem;">
-      <div class="audio-player-container" style="background:#fff8e7; border-radius:1.25rem; box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.3); margin-top:0; margin-bottom:0;">
-        <audio id="audio-intro-player" controls controlsList="nodownload">
-          <source id="audio-intro-source" src="" type="audio/mpeg">
-          Tu navegador no soporta el audio.
-        </audio>
-      </div>
-      <button class="btn btn-mundo-verde" onclick="void mostrar(11)" title="Siguiente" style="align-self:center; flex-shrink:0; margin-right:7.5vw; margin-top:0;">
-        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
-        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
-      </button>
-    </div>
-    <div class="audio-overlay" id="texto-intro-contenido">
-      <div style="padding:1.2rem;">
-        <p>Cargando texto introductorio...</p>
-      </div>
+    <div class="aventuras-lista" id="aventuras-dinamicas">
+      <!-- Aventuras cargadas dinámicamente según idioma -->
     </div>
   </div>
 
   <!-- P11: Reto R-1 (reto_id dinámico: R1-AvX-xx desde aventuras-ID-padre.js) -->
-  <div class="pantalla" id="pantalla11">
+  <div class="pantalla" id="pantalla8">
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <div class="reto-box" id="reto-r1-box">
@@ -824,6 +741,60 @@
         <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
         <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
       </button>
+    </div>
+  </div>
+
+  <!-- P7: Confirmación de aventura -->
+  <div class="pantalla" id="pantalla9">
+    <div class="free-demo">FREE DEMO</div>
+    <div id="aventura-confirmacion-card" class="btn" style="cursor:default; pointer-events:none; margin-top:0;"></div>
+    <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
+      <button class="btn btn-mundo-rojo" onclick="void mostrar(7)" title="No, cambiar">
+        <div class="contenedor-x"><span class="icono-x">✗</span></div>
+        <div class="contenedor-x segunda"><span class="icono-x">✗</span></div>
+      </button>
+      <button class="btn btn-mundo-verde" onclick="void confirmarAventura()" title="Sí, confirmar">
+        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- P5: Términos y Condiciones (carga dinámica desde js/terminos-aventuras.js) -->
+  <div class="pantalla" id="pantalla10">
+    <div class="free-demo">FREE DEMO</div>
+    <div id="terminos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkTerminosScroll()">
+      <!-- Contenido cargado dinámicamente según idioma seleccionado -->
+      <p>Cargando términos...</p>
+    </div>
+    <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
+      <button class="btn btn-mundo-verde" id="btn-aceptar-terminos" onclick="void aceptarTerminos()" disabled title="Aceptar términos">
+        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- P10: Audio intro + texto (padreid: "padre-intro", audio_id: audio-intro-xx, texto_id: txt-intro-xx) -->
+  <div class="pantalla" id="pantalla11">
+    <div class="free-demo">FREE DEMO</div>
+    <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="" style="display:block; margin-left:auto; margin-right:auto; margin-top:0; margin-bottom:0;">
+    <div class="audio-btn-row" style="margin-top:0; margin-bottom:0.7rem;">
+      <div class="audio-player-container" style="background:#fff8e7; border-radius:1.25rem; box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.3); margin-top:0; margin-bottom:0;">
+        <audio id="audio-intro-player" controls controlsList="nodownload">
+          <source id="audio-intro-source" src="" type="audio/mpeg">
+          Tu navegador no soporta el audio.
+        </audio>
+      </div>
+      <button class="btn btn-mundo-verde" onclick="void mostrar(12)" title="Siguiente" style="align-self:center; flex-shrink:0; margin-right:7.5vw; margin-top:0;">
+        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+      </button>
+    </div>
+    <div class="audio-overlay" id="texto-intro-contenido">
+      <div style="padding:1.2rem;">
+        <p>Cargando texto introductorio...</p>
+      </div>
     </div>
   </div>
 
@@ -894,7 +865,6 @@
     </div>
   </div>
 
-  <!-- P15: Reto R-2 (padreid: "padre-intro", reto_id: R2-AvX-xx) -->
   <!-- Sí/Yes/Oui/Sì/Ja/はい → aventura | No/NO/Non/Nee/いいえ → P1 -->
   <div class="pantalla" id="pantalla15">
     <div class="free-demo">FREE DEMO</div>
@@ -904,6 +874,31 @@
       <p id="reto-r2-pregunta">Cargando reto...</p>
       <div id="reto-r2-opciones"></div>
       <button class="btn btn-mundo-verde" id="btn-verificar-reto-r2" onclick="verificarRetoR2()" disabled title="Continuar">
+        <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+        <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- P16: Logos — pantalla de transición hacia la aventura -->
+  <div class="pantalla" id="pantalla16" style="background-color:orange; justify-content:center; align-items:center; gap:2rem;">
+    <div class="free-demo">FREE DEMO</div>
+    <img src="imagenes/imagenes-aplicación/logo-redondo.png" class="logo-redondo" alt="" style="width:min(55vw, 200px); height:min(55vw, 200px);">
+    <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="" style="width:min(85vw, 360px);">
+    <button class="btn btn-mundo-verde" onclick="void iniciarAventura()" title="Comenzar aventura">
+      <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+      <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+    </button>
+  </div>
+
+  <!-- P15: Agradecimientos y Fuentes (solo ?despedida=1) -->
+  <div class="pantalla" id="pantalla17">
+    <div class="free-demo">FREE DEMO</div>
+    <div id="agradecimientos-contenido" class="texto-box borde-azul" style="overflow-y:auto;" onscroll="checkAgradecimientosScroll()">
+      <p>Cargando agradecimientos...</p>
+    </div>
+    <div style="display:flex; gap:1.25rem; justify-content:center; margin-top:0.5rem;">
+      <button class="btn btn-mundo-verde" id="btn-siguiente-agradecimientos" onclick="aceptarAgradecimientos()" disabled style="opacity:0.3;" title="Siguiente">
         <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
         <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
       </button>
@@ -1069,21 +1064,20 @@
     }
 
     const _ACCION_PANTALLA = {
-      5:  () => { if (!terminosCargados) void cargarTerminos(); },
-      6:  () => void cargarAventurasDinamicamente(),
-      8:  () => cargarVideoIntro(),
-      9:  () => { void cargarPuzzle(); notificarPadrePreparacion(); },
-      10: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } },
-      11: () => { if (!retoCargadoR1) void cargarRetoR1(); },
+      4:  () => cargarVideoIntroIframe(),
+      6:  () => void cargarPuzzle(),
+      7:  () => void cargarAventurasDinamicamente(),
+      8:  () => { if (!retoCargadoR1) void cargarRetoR1(); },
+      10: () => { if (!terminosCargados) void cargarTerminos(); },
+      11: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } },
       14: () => _accionPantalla15(),
       15: () => { if (!retoCargadoR2) void cargarRetoR2(); },
-      16: () => _accionPantalla5(),
+      17: () => _accionPantalla5(),
     };
 
     async function mostrar(id) {
-      if (id === 9 && !await _verificarPuzzleMostrar()) {
-        notificarPadrePreparacion();
-        void mostrar(10);
+      if (id === 6 && !await _verificarPuzzleMostrar()) {
+        void mostrar(7);
         return;
       }
       document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
@@ -1253,7 +1247,7 @@
         boton.style.opacity = '1';
         boton.classList.add('success');
         document.querySelectorAll('input[name="reto-r1"]').forEach(input => { input.disabled = true; });
-        setTimeout(() => { void mostrar(12); }, 1500);
+        setTimeout(() => { void mostrar(9); }, 1500);
       } else {
         caja.style.borderColor = '#dc3545';
         tick.style.display = 'none';
@@ -1317,7 +1311,7 @@
     // P10: COMPLETAR PUZZLE Y CONTINUAR
     // ============================================================
     function completarPuzzle() {
-      void mostrar(10);
+      void mostrar(7);
     }
     
     // ============================================================
@@ -1440,7 +1434,7 @@
       if (modoDespedida) {
         void _ejecutarDespedida();
       } else {
-        void mostrar(5);
+        void mostrar(10);
       }
     }
 
@@ -1672,7 +1666,7 @@
 
     function aceptarSinAudio() {
       document.getElementById('audio-warning-overlay').style.display = 'none';
-      void mostrar(8);
+      void mostrar(10);
     }
 
     function rechazarSinAudio() {
@@ -1683,9 +1677,10 @@
     async function confirmarAventura() {
       const idioma = idiomaSeleccionado || 'es';
       const aventura = aventuraSeleccionada || 'Aventura1';
+      notificarPadrePreparacion();
       const hayAudios = await tieneAudiosDisponibles(aventura, idioma);
       if (hayAudios) {
-        void mostrar(8);
+        void mostrar(10);
       } else {
         mostrarAvisoSinAudio(idioma);
       }
@@ -1810,18 +1805,22 @@
       const overlay = document.getElementById('mapa-vintage-overlay');
       if (overlay) overlay.style.display = 'none';
       try { globalThis.parent.postMessage({ tipo: 'NAVEGACION.SUPRIMIR_ROTACION', origen: globalThis.name || 'seleccion', value: false }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
-      void mostrar(7);
+      void mostrar(8);
     }
 
     // ============================================================
-    // P10: CARGAR VIDEO INTRODUCTORIO
+    // P4: CARGAR VIDEO INTRO (video-intro.html en iframe)
     // ============================================================
-    function cargarVideoIntro() {
-      const video = document.getElementById('video-intro-player');
-      const placeholder = document.getElementById('video-intro-placeholder');
-      video.style.display = 'none';
-      if (placeholder) placeholder.style.display = 'flex';
-      _log.info('[SELECCION] Video intro: sin ruta, mostrando placeholder');
+    function cargarVideoIntroIframe() {
+      const container = document.getElementById('video-intro-container');
+      if (!container) return;
+      if (!container.querySelector('iframe')) {
+        const iframe = document.createElement('iframe');
+        iframe.src = 'video-intro.html';
+        iframe.style.cssText = 'width:100%;height:100%;border:none;';
+        iframe.title = 'Video intro';
+        container.appendChild(iframe);
+      }
     }
 
     // ============================================================
@@ -1960,7 +1959,7 @@
         // cierra la app, simplemente vuelve a P1 sin perder el código.
         // ============================================================
         _log.info('[SELECCION][P16] ✅ Reto R-2 completado → ACTIVANDO CÓDIGO');
-        setTimeout(() => { void _procesarAfirmativaR2(); }, 1500);
+        setTimeout(() => { void mostrar(16); }, 1500);
       } else {
         _log.info('[SELECCION] Reto R2: respuesta negativa → reinicio a P1');
         setTimeout(() => {
@@ -2341,8 +2340,8 @@
             if (!idiomaSeleccionado) {
                 idiomaSeleccionado = localStorage.getItem('vv_idioma') || 'es';
             }
-            logger.info(`${logPrefix} Modo despedida activo → mostrando P16 agradecimientos (idioma: ${idiomaSeleccionado})`);
-            void mostrar(16);
+            logger.info(`${logPrefix} Modo despedida activo → mostrando P17 agradecimientos (idioma: ${idiomaSeleccionado})`);
+            void mostrar(17);
         } else if (params.get('desde') === 'aventura') {
             logger.info(`${logPrefix} Entrada desde aventura → mostrando P2 selección de idioma`);
             void mostrar(2);
@@ -2724,11 +2723,11 @@
                 }
             });
             
-            // Navegar a selección de aventura
-            void mostrar(6);
+            // Navegar a audio intro
+            void mostrar(11);
         } catch (error) {
             logger.error(`[SELECCION] Error aceptando términos:`, error);
-            void mostrar(6);
+            void mostrar(11);
         }
     };
 
@@ -2750,7 +2749,13 @@
 
     // Escuchar mensaje del padre para navegar a una pantalla específica (ej. tras elegir otra aventura)
     globalThis.addEventListener('message', function(event) {
-        if (event.origin !== globalThis.location.origin) return;
+        const origenOk = event.origin === globalThis.location.origin || event.origin === 'null';
+        if (!origenOk) return;
+        if (event.data?.tipo === 'SELECCION.VIDEO_INTRO_TERMINADO') {
+            _log.info('[SELECCION][P4] video-intro terminado → mostrando P5');
+            void mostrar(5);
+            return;
+        }
         if (event.data?.tipo === TIPOS_MENSAJE.NAVEGACION_PANTALLA && event.data?.datos?.pantalla) {
             logger.debug('📋 [SELECCION] NAVEGAR_PANTALLA recibido → pantalla', event.data.datos.pantalla);
             void mostrar(event.data.datos.pantalla);
