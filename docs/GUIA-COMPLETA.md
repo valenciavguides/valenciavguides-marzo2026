@@ -1707,28 +1707,78 @@ Esta reconexión es **solo para fallos de carga inicial**. Los fallos de heartbe
 
 ### El state-manager (gestor de estado)
 
-El estado de la aplicación se guarda en un único lugar: `js/state-manager.js`. Solo los campos de acceso más concurrente — `aventuraSeleccionada` e `idiomaSeleccionado` — están protegidos por **mutex** (cerrojos) que evitan race conditions al leerlos o modificarlos simultáneamente. El resto del estado se accede directamente.
+El estado de la aplicación se guarda en un único lugar: `js/state-manager.js`. **Todos** los campos de estado tienen su propio `SimpleMutex` que serializa lecturas y escrituras concurrentes. `SimpleMutex` es una implementación nativa de Promise-chain (sin dependencias externas) definida al principio del archivo.
 
-La estructura tiene dos niveles diferenciados:
+**18 mutexes definidos** (líneas 21-40 de `state-manager.js`):
+
+| Campo | Tipo | Propósito |
+| --- | --- | --- |
+| `heartbeatPrewarmed` | `boolean` | Flag: heartbeat pre-calentado antes de activar GPS |
+| `procesandoCola` | `boolean` | Evita procesamiento concurrente de la cola de controladores |
+| `script2Listo` | `boolean` | Flag de sincronización entre Script 1 y Script 2 del padre |
+| `listenerRegistrado` | `boolean` | Flag: listener de mensajes ya registrado |
+| `mensajeriaReady` | `boolean` | Flag: `globalThis.mensajeria` disponible |
+| `coordenadasCargadas` | `boolean` | Confirmación de carga del módulo de coordenadas |
+| `audiosCargados` | `boolean` | Confirmación de carga del módulo de audios |
+| `retosCargados` | `boolean` | Confirmación de carga del módulo de retos |
+| `estadoPadre` | `object` | Estado completo del padre (modo, GPS, paradas, hijos, monitoreo…) |
+| `aventuraSeleccionada` | `string\|null` | ID de la aventura activa |
+| `idiomaSeleccionado` | `string\|null` | Código de idioma activo (`es`, `en`, `fr`…) |
+| `uiConfirmado` | `boolean` | Flag: UI de aventura ya mostrada |
+| `estadoComponenteInicializado` | `boolean` | Flag: componente padre inicializado |
+| `estadoMenuAbierto` | `boolean` | Estado del menú desplegable |
+| `controladores` | `Map` | Map de handlers de mensajes registrados |
+| `mensajesEnviados` | `Set` | Set de IDs de mensajes ya enviados (deduplicación) |
+| `heartbeat` | `object` | Estado completo del heartbeat (activo, fallos, timers, `gpsPendientes`) |
+| `hijosListosPromises` | `Map` | Promesas de carga de cada hijo (resueltas por `marcarHijoListo`) |
+
+> **Nota:** `gpsPendientes` (mensajes GPS encolados mientras hijo2 está desconectado) se almacena **dentro** del objeto `heartbeat` y comparte su mutex — no tiene mutex propio.
+>
+> **Nota:** `controladores` y `mensajesEnviados` tienen mutex definido pero el comentario en el código (línea 250) aclara: *"Sin mutex: el browser es single-threaded; Map/Set ops son atómicas en este contexto"* — se usan solo para consistencia de la API.
+
+La estructura del estado (`state`) tiene dos niveles diferenciados:
 
 ```javascript
-// Nivel raíz — campos con mutex propio
+// Campos raíz — cada uno con su propio SimpleMutex
 {
-    aventuraSeleccionada: "Aventura1",  // mutex
-    idiomaSeleccionado: "es",           // mutex
+    // Flags de inicialización (boolean)
+    heartbeatPrewarmed, procesandoCola, script2Listo,
+    listenerRegistrado, mensajeriaReady,
+    coordenadasCargadas, audiosCargados, retosCargados,
+    uiConfirmado, estadoComponenteInicializado, estadoMenuAbierto,
 
-    // Nivel estadoPadre — acceso directo, sin mutex individual
+    // Datos de aventura
+    aventuraSeleccionada: "Aventura1",
+    idiomaSeleccionado: "es",
+
+    // Estado completo del padre (mutex estadoPadre)
     estadoPadre: {
         modo: { actual: "aventura", anterior: "casa" },
         paradaActual: 5,
-        hijosInicializados: Set(["seleccion", "hijo1-opciones", "hijo2", "hijo3", "hijo4"]),
-        gps: {
-            activo: true,
-            posicionUsuario: { lat: 39.4789, lng: -0.3762 },
-            precision: 8   // metros
-        }
-        // ...monitoreo, sistema, heartbeat, gpsPendientes, etc.
-    }
+        hijosInicializados: Set([...]),
+        gps: { activo, watchId, posicionUsuario, precision, error, ultimaUbicacion },
+        monitoreo: { metricas, config, historial },
+        sistema: { prewarmIniciado, prewarmPausado, cambiandoModo },
+        retoActivo, audioActivo, ubicacionActiva,
+        tramoActual, elementoActual, siguiendoRuta,
+        hijosQueRecibieronPadreListo: Set([...])
+    },
+
+    // Colecciones (mutex propio pero atómicas en la práctica)
+    controladores: Map,      // handlers de mensajes
+    mensajesEnviados: Set,   // deduplicación de envíos
+
+    // Heartbeat + GPS pendientes (mutex compartido 'heartbeat')
+    heartbeat: {
+        activo, intervalo,
+        heartbeatsFallidos: Map,  // hijo → nº de fallos
+        ultimoHeartbeat: Map,     // hijo → timestamp
+        hijosDesconectados: []
+    },
+    gpsPendientes: [],            // dentro del mutex 'heartbeat'
+
+    // Promesas de carga de hijos
+    hijosListosPromises: Map      // id → { promise, resolve, reject }
 }
 ```
 
