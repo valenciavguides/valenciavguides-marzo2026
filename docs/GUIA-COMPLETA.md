@@ -1850,7 +1850,7 @@ graph TD
 
 Fallback si el código no existe: `en-busca-español.png`. La imagen se precarga en `confirmarIdioma()` (antes de mostrar P4) vía `document.getElementById('en-busca-imagen').src`.
 
-**Botones con scroll-gate**: `#btn-siguiente-agradecimientos` (P16), `#btn-aceptar-terminos` (P5), `#btn-siguiente-normativa` (P14) nacen con `disabled = true`. Se habilitan cuando el evento `scroll` del contenedor detecta `scrollTop + clientHeight ≥ scrollHeight - 5px`. No hay timeout: el usuario debe leer o hacer scroll manual.
+**Botones con scroll-gate**: `#btn-siguiente-agradecimientos` (P17), `#btn-aceptar-terminos` (P5), `#btn-siguiente-normativa` (P14) nacen con `disabled = true`. Se habilitan cuando el evento `scroll` del contenedor detecta `scrollTop + clientHeight ≥ scrollHeight - 5px`. No hay timeout: el usuario debe leer o hacer scroll manual.
 
 #### 3 overlays adicionales
 
@@ -7062,14 +7062,18 @@ La aplicación arranca en **modo CASA** — el estado "neutro" donde aún no hay
 ### 24.2. Las pantallas de demo (gratuitas)
 
 Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia VGuides. A partir de aquí recorre **17 pantallas** más **2 overlays** (mapa vintage y aviso de audio) dentro del iframe de selección. Todo es gratuito y forma la experiencia de demo:
-**Pantalla 0 logo spin (verifica si es el padre l en busca del tesoro quien la dispara) 
 **Pantalla 1 — Bienvenida.** El logo de la marca sobre fondo naranja. Un botón con una flecha invita a empezar.
 
 **Pantalla 2 — Selección de idioma.** Aparecen **12 banderas**: España, inglés, Francia, Italia, Países Bajos, Japón, Alemania, China, Polonia, Portugal, Rusia y Ucrania. El usuario toca la bandera de su idioma. Ese idioma se guarda en `localStorage` como `vv_idioma` y se envía al padre mediante un mensaje `IDIOMA_SELECCIONADO`.
 
 **Pantalla 3 — Confirmación de idioma.** Se muestra la bandera elegida. Dos botones: ✓ (verde) para confirmar o ✗ (rojo) para volver a elegir.
 
-**Pantalla 4 — Vídeo introductorio (stub).** Placeholder de vídeo ("Próximamente"). Un botón `→` avanza a P5.
+**Pantalla 4 — Vídeo introductorio (`video-intro.html`).** Un vídeo-demostración animado en HTML/CSS que muestra al usuario cómo funciona la aplicación antes de empezar. Se carga perezosamente en un iframe al confirmar el idioma (con `?lang=` para localización). Su contenido:
+
+- **Bocadillo Jaime I (escena 1):** El caballero `caballero_cuerpo_completo_saluda.png` aparece en esquina inferior izquierda; un bocadillo en esquina inferior derecha muestra el texto *"¡Hola! Soy Jaime I. Antes de empezar, déjame enseñarte cómo funciona esta aventura."* en el idioma seleccionado (12 idiomas). Duración: 8 segundos.
+- **19 escenas animadas** que muestran el mapa, los botones de hijo2, el audio, los retos, los overlays de error GPS/internet, y el modal de fin de aventura. El guantelete (`guantelete_*.png`) actúa de cursor animado.
+- **Botones al final:** globo rojo ↺ (izquierda, replay) y globo verde ➤ (derecha, continuar). Al pulsar ➤ se envía `postMessage({ tipo: 'SELECCION.VIDEO_INTRO_TERMINADO' })` al padre (`En-busca-del-tesoro.html`), que ejecuta `mostrar(5)`.
+- **Localización:** el idioma se pasa como `?lang=es` (o el código elegido). Las imágenes del caballero y el guantelete están en `imagenes/imagenes video intro/`.
 
 **Pantalla 5 — Imagen "En Busca del Tesoro".** Se muestra la imagen del título en el idioma seleccionado. Al pulsar `→` avanza a P6.
 
@@ -7129,7 +7133,12 @@ Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
 ### 24.3. El modo AVENTURA comienza
 
-Tras la activación (P15), el sistema está en **modo CASA** con todos los iframes de juego visibles. El usuario ve el mapa y los controles, pero el GPS y el heartbeat aún no están activos. Para arrancar la aventura, pulsa el botón GPS en hijo5, lo que cambia el modo a AVENTURA.
+Tras la activación (P16 — pantalla de logos), el sistema está en **modo CASA** con todos los iframes de juego visibles. El usuario ve el mapa y los controles, pero el GPS y el heartbeat aún no están activos.
+
+> **Nota de arquitectura — modo CASA es una herramienta de desarrollo:**
+> El modo CASA existe exclusivamente para trabajar desde casa, permitiendo navegar manualmente por las paradas sin GPS físico. En la PWA de producción, hijo5 quedará oculto detrás del z-index del mapa (no eliminado), de forma que el usuario final nunca lo verá. La app arrancará directamente en modo AVENTURA. En el futuro se contempla proteger el acceso a modo CASA con contraseña para uso del desarrollador.
+
+En el flujo de desarrollo actual, el usuario (desarrollador) pulsa el botón GPS 🛰️ de hijo5 para cambiar a modo AVENTURA.
 
 En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simultáneamente:
 
@@ -7483,13 +7492,13 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │                  SÍ                NO                        │
 │                  │                  │                        │
 │          Diálogo reanudación    Pantallas demo              │
-│          /              \       P1→P2→P3→P4→P5→             │
-│     Continuar      Elegir otra  P6→P7→P8→P9→P10→           │
-│         │               │       P11                         │
-│         │          Advertencia       │                      │
-│         │          /        \        │                      │
-│         │     Volver    Confirmar    │                      │
-│         │       │           │        │                      │
+│          /              \       P1→P2→P3→P4(video)→P5→     │
+│     Continuar      Elegir otra  P6(puzzle)→P7(aventura)→   │
+│         │               │       P8(RetoR1)→P9(confirma)→   │
+│         │          Advertencia  P10(términos)→P11(audio)→  │
+│         │          /        \   P12(pago)→P13(código)→     │
+│         │     Volver    Confirmar P14(normativa)→          │
+│         │       │           │    P15(RetoR2)→P16(logos)    │
 │         │       │     Limpia todo    │                      │
 │         │       │      → P2          │                      │
 │         ▼       ▼                    ▼                      │
@@ -7540,7 +7549,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │  - SW intacto             │          │                 │
 │    │  → Nuevo ciclo aventura   │          │                 │
 │    │                    En-busca-del-tesoro.html?despedida=1│
-│    │                    → P16 (agradecimientos en idioma)    │
+│    │                    → P17 (agradecimientos en idioma)    │
 │    │                    → botón verde ➣                     │
 │    │                    → _ejecutarDespedida()              │
 │    │                    → limpiarDatosAventura('completada')│
