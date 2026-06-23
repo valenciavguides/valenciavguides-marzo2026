@@ -4,14 +4,16 @@
  * Estrategia: Network First para el shell de la app, Network Only para media.
  *
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║  CACHE_VERSION se genera automáticamente en cada commit usando  ║
- * ║  SHA-256 de sw.js normalizado + archivos APP_SHELL.             ║
- * ║  CUALQUIER cambio en HTML/JS/CSS/manifest del shell genera      ║
- * ║  nueva versión de caché sin editar manualmente este archivo.    ║
- * ║  El navegador detecta el cambio byte-a-byte y re-registra SW.   ║
- * ║  El contenido media (audios, videos, imágenes de aventuras)     ║
- * ║  NUNCA se cachea: siempre viene de red.                         ║
- * ║  Sistema automático: cero intervención manual requerida.        ║
+ * ║  CACHE_VERSION: aspiracional SHA-256 auto-gen vía               ║
+ * ║  tools/build-sw.js (no implementado aún) — actualización        ║
+ * ║  manual en cada deploy relevante.                               ║
+ * ║                                                                  ║
+ * ║  ESTRATEGIAS DE CACHÉ:                                          ║
+ * ║  · Shell (HTML/JS/manifest): Network First → caché SW           ║
+ * ║  · Media (/audios-aventuras/, /videos-aventuras/,               ║
+ * ║    /imagenes/imagenes-aventuras/, /imagenes/imagenes-mapas-      ║
+ * ║    vintage/): Cache First + LRU (máx. 100 entradas)            ║
+ * ║  · API (/api/): Network Only, sin caché                         ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
