@@ -85,6 +85,30 @@ async function stubCDNResources(page) {
 }
 
 /**
+ * Intercepta /codigo-padre.html y elimina la meta Content-Security-Policy.
+ *
+ * Necesario en WebKit (CSP Level 3 estricto): 'unsafe-inline' no cubre
+ * <script type="module"> inline, lo que bloquea los 4 módulos del padre
+ * y FASE 1 nunca arranca. En tests no necesitamos la CSP de producción.
+ *
+ * DEBE llamarse ANTES de page.goto().
+ */
+async function stripCSPForTesting(page) {
+  await page.route('**/codigo-padre.html', async route => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(
+      /<meta[^>]*Content-Security-Policy[^>]*>/gi,
+      ''
+    );
+    await route.fulfill({
+      response,
+      body,
+      contentType: response.headers()['content-type'] || 'text/html; charset=utf-8',
+    });
+  });
+}
+
+/**
  * Navega a /codigo-padre.html y espera hasta que FASE 1 haya completado.
  *
  * Indicador: globalThis.__MENSAJERIA_INICIADA === true
@@ -96,6 +120,8 @@ async function stubCDNResources(page) {
  * @param {import('@playwright/test').Page} page
  */
 async function gotoAndWaitForFase1(page) {
+  await stripCSPForTesting(page);
+
   // Suprimir errores de consola que no son relevantes para los tests
   // (p. ej. warnings de serviceworker, Leaflet stub, etc.)
   page.on('console', msg => {
@@ -163,6 +189,7 @@ module.exports = {
   BOOT_TIMEOUT,
   injectInitSpy,
   stubCDNResources,
+  stripCSPForTesting,
   gotoAndWaitForFase1,
   getMensajeriaReadySnapshot,
 };

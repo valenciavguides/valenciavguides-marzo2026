@@ -40,6 +40,17 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
+    // Script 2 registra los handlers de controladores-padre.js de forma asíncrona,
+    // después de que __MENSAJERIA_INICIADA sea true (FASE 1). Esperamos a que
+    // los 4 tipos aparezcan antes de que los tests los verifiquen.
+    await page.waitForFunction(
+      (tipos) => {
+        const s = globalThis.__CONTROLADOR_REGISTRADOS;
+        return (s instanceof Set) && tipos.every(t => s.has(t));
+      },
+      TIPOS_EXTRAIDOS,
+      { timeout: 10_000 }
+    ).catch(() => { /* si expira, el test CP-1 reportará el fallo correctamente */ });
   });
 
   // ── CP-1: Tipos extraídos en __CONTROLADOR_REGISTRADOS ──────────────────
