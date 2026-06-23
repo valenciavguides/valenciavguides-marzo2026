@@ -9799,6 +9799,10 @@ await sm.atomicUpdateHeartbeat(s => {
 - `js/funciones-mapa.js`: import + usos
 - `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `chat-hijo6.html`, `boton-casa-hijo5.html`, `En-busca-del-tesoro.html`: import + usos
 
+**Alias de compatibilidad (añadido posteriormente):**
+
+`js/utils.js` exporta también `export const getPadreId = resolverIdPadre;` inmediatamente después de la función. Esto permite que los tests (`test_module_exports.html`, `test_datos_solicitar_paradas_combinados.html`) y cualquier código que importe bajo el nombre antiguo sigan funcionando sin cambios. La función canónica sigue siendo `resolverIdPadre`.
+
 **No renombrado (intencional):**
 
 - `codigo-padre.html`: usa `globalThis.getPadreId` (función propia, devuelve `'padre'`, no importa utils.js)
