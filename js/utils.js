@@ -36,22 +36,24 @@ export function resolverIdPadre() {
     // Intentar obtener de la URL
     const urlParams = new URLSearchParams(globalThis.location.search);
     const padreIdFromUrl = urlParams.get('padreId');
-    
+
     if (padreIdFromUrl) {
         return padreIdFromUrl;
     }
-    
+
     // Intentar obtener de sessionStorage
     const padreIdFromStorage = sessionStorage.getItem('vvguides_padreId');
     if (padreIdFromStorage) {
         return padreIdFromStorage;
     }
-    
+
     // Generar nuevo ID
     const nuevoPadreId = generarIdUnico('padre');
     sessionStorage.setItem('vvguides_padreId', nuevoPadreId);
     return nuevoPadreId;
 }
+// Alias: código padre y tests la referencian como getPadreId
+export const getPadreId = resolverIdPadre;
 
 /**
  * Normaliza un array de paradas a un formato consistente
