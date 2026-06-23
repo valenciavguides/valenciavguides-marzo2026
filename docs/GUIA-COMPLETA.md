@@ -41,9 +41,12 @@ Hay tareas críticas sin resolver antes de publicar en `valenciavguides.es`. Ver
 26. [El asistente de soporte (hijo 6)](#26-el-asistente-de-soporte-hijo-6)
 27. [Cleanup de listeners en cambio de aventura o modo](#27-cleanup-de-listeners-en-cambio-de-aventura-o-modo)
 28. [Implementación de restricciones GPS y comportamiento visual](#28-implementación-de-restricciones-gps-y-comportamiento-visual)
-29. [Corrección de errores de inicialización (logger y sleep)](#29-corrección-de-errores-de-inicialización-logger-y-sleep)
+29. [Inicialización robusta: logger, sleep e HIJO_LISTO](#29-inicialización-robusta-logger-sleep-e-hijo_listo)
 30. [Posibles problemas en modo aventura](#30-posibles-problemas-en-modo-aventura)
 31. [Invariantes críticos del sistema de mensajería](#31-invariantes-críticos-del-sistema-de-mensajería)
+32. [Video-intro — pantalla inicial de la PWA](#32-video-intro--pantalla-inicial-de-la-pwa)
+33. [Robustez del sistema de handlers y mensajería](#33-robustez-del-sistema-de-handlers-y-mensajería)
+34. [Gestión de UI distribuida: menús, audio y navegación](#34-gestión-de-ui-distribuida-menús-audio-y-navegación)
 
 ---
 
@@ -4995,7 +4998,7 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 
 Los mensajes `MAPA.*` son del contexto interno del padre. Los handlers están en `js/funciones-mapa.js` (L3469-3474), que corre en el mismo contexto de ventana que padre. Todos responden con `SISTEMA.CONFIRMACION` (éxito) o `SISTEMA.ERROR` (fallo).
 
-**Estado actual**: ningún componente emite actualmente ningún tipo `MAPA.*`. Tras el refactor de sesión 2026-06-10, padre llama `globalThis.funcionesMapa.*` directamente en lugar de enviar mensajes por el bus. Los tipos y handlers se conservan como API preparada para uso futuro.
+**Estado actual**: ningún componente emite actualmente ningún tipo `MAPA.*`. El padre llama `globalThis.funcionesMapa.*` directamente en lugar de enviar mensajes por el bus. Los tipos y handlers se conservan como API preparada para uso futuro.
 
 | Mensaje | Handler | Acción |
 |---------|---------|--------|
@@ -5006,7 +5009,7 @@ Los mensajes `MAPA.*` son del contexto interno del padre. Los handlers están en
 | `MAPA.REMOVE_MARKER` | `manejarRemoveMarker` L3099 | Elimina marcador por ID |
 | `MAPA.CLEAR_LAYERS` | `manejarClearLayers` L3171 | Limpia capas del mapa (polylines, marcadores) |
 
-**Refactor 2026-06-10**: el único call site existente (`_onNextEntityShowMapClick` ~L5527, overlay GPS "mostrar en mapa") enviaba `MAPA.ADD_MARKER` + `MAPA.SET_VIEW` via self-send — descartados silenciosamente. Reemplazado por `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })` directo. Todos los tipos `MAPA.*` quedan sin emisores — API preparada para uso externo futuro.
+`_onNextEntityShowMapClick` (~L5527, botón "mostrar en mapa" del overlay GPS) llama `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })` directamente, sin pasar por el bus. Todos los tipos `MAPA.*` quedan sin emisores activos.
 
 ---
 
@@ -5134,9 +5137,9 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 ### 10.15 Tipos y comportamientos pendientes
 
-#### ✅ CORREGIDO — conflicto GPS.ACTIVAR / GPS.DESACTIVAR
+#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro con `registrarSiNoExiste`
 
-`funciones-mapa.js` usaba `registrarControlador` (sobreescribe) para `GPS.ACTIVAR` y `GPS.DESACTIVAR`. Padre los registra con `registrarControladorSeguro` (primer-registro-gana). En startup normal el padre ganaba, pero en cualquier reinit de `registrarManejadoresMensajes()` funciones-mapa sobreescribía el Map y el handler de padre quedaba muerto (omitía la lógica de verificación de modo AVENTURA, `paradaListaParaAvanzar`, `revelarNavegacion`). Fix: cambiadas esas dos líneas de `funciones-mapa.js` para usar `registrarSiNoExiste` — si el padre ya registró su handler, funciones-mapa lo deja intacto.
+`funciones-mapa.js` usa `registrarSiNoExiste` (no `registrarControlador`) para `GPS.ACTIVAR` y `GPS.DESACTIVAR`. Padre los registra con `registrarControladorSeguro` (primer-registro-gana). Si funciones-mapa usara `registrarControlador` (sobreescribe), cualquier reinit de `registrarManejadoresMensajes()` mataría el handler del padre, omitiendo la lógica de verificación de modo AVENTURA, `paradaListaParaAvanzar` y `revelarNavegacion`. Con `registrarSiNoExiste`, si el padre ya registró su handler, funciones-mapa lo deja intacto.
 
 | Tipo | Estado |
 |------|--------|
@@ -5385,70 +5388,49 @@ Hay cinco puntos donde un hijo accede directamente a propiedades o métodos del 
 
 ---
 
-### 10.6 Issues detectados en la auditoría
+### 10.6 Comportamientos notables del sistema de mensajería
 
-#### ✅ CORREGIDO — `procesarPosicionGPSParaAventura` avanzaba en modo CASA
+#### `procesarPosicionGPSParaAventura` — guard de modo AVENTURA
 
 - **Dónde**: `js/funciones-mapa.js` función `procesarPosicionGPSParaAventura` — bloque `if (llegadaDetectada)`
-- **Problema**: Al detectar que el usuario estaba dentro del radio de la siguiente parada (50 m), enviaba `CAMBIO_PARADA` directamente al padre con `origen:'gps-automatico'` **sin comprobar el modo activo**. En modo CASA, cualquier usuario que pasara físicamente cerca de la siguiente parada veía la aventura avanzar automáticamente, ignorando que en CASA el usuario elige libremente cada tramo/parada.
-- **Fix**: Añadido guard `if (estadoMapa.modo !== MODOS.AVENTURA)` antes del `enviarMensaje(CAMBIO_PARADA)`. En CASA, se registra un debug log y se omite el envío. El marcador, el polyline y `ACTUALIZAR_ESTADO` a hijo2 siguen funcionando en ambos modos.
+- El guard `if (estadoMapa.modo !== MODOS.AVENTURA)` impide que se envíe `CAMBIO_PARADA` en modo CASA. El marcador, el polyline y `ACTUALIZAR_ESTADO` a hijo2 siguen funcionando en ambos modos; solo el avance automático de parada queda desactivado fuera de AVENTURA.
 
-#### ℹ️ INFO — `RETO.SOLICITAR_RETO` — handler confirmado (falsa alarma)
+#### `RETO.SOLICITAR_RETO` — handler en Script 2
 
-- **Dónde**: hijo3 L837 y hijo4 L853 envían `RETO.SOLICITAR_RETO` → `padre`
-- **Estado**: Handler `_hdl_RETO_SOLICITAR` existe en padre L8142 y está registrado en L8260 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. **No es un bug.** La búsqueda inicial no lo encontró porque está en Script 2, separado del resto de handlers.
+- hijo3 L837 y hijo4 L853 envían `RETO.SOLICITAR_RETO` → padre.
+- Handler `_hdl_RETO_SOLICITAR` en padre L8142, registrado en L8260 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. El handler está en Script 2, separado del resto; una búsqueda limitada a Script 1 no lo encontrará.
 
-#### ✅ CORREGIDO — `DATOS.SOLICITAR_COORDENADAS` no existía en `constants.js`
+#### `DATOS.SOLICITAR_COORDENADAS` en `constants.js`
 
-- **Dónde**: `constants.js` sección DATOS — la clave `SOLICITAR_COORDENADAS` no estaba definida.
-- **Problema**: Hijo2 reintentaba CARGAR_COORDENADAS con `tipo: undefined` → mensajería lo descartaba. El handler en padre también registrado bajo `undefined` → nunca activado.
-- **Fix aplicado**: Añadida `SOLICITAR_COORDENADAS: 'DATOS.SOLICITAR_COORDENADAS'` en `constants.js` L146.
-- **Nota**: `NAVEGACION.SOLICITAR_COORDENADAS` (L123) es un flujo diferente — padre pide coords de una parada concreta a hijo2.
+- Clave `SOLICITAR_COORDENADAS: 'DATOS.SOLICITAR_COORDENADAS'` en `constants.js` L146.
+- Nota: `NAVEGACION.SOLICITAR_COORDENADAS` (L123) es un flujo distinto — padre pide coords de una parada concreta a hijo2. No confundir.
 
-#### ℹ️ INFO — `SISTEMA.HIJO_FALLIDO` — handler confirmado (corrección)
+#### `SISTEMA.HIJO_FALLIDO` — handler en padre
 
-- **Dónde**: hijo1 (`extrainfo-hijo1.html` L354) y seleccion (`En-busca-del-tesoro.html` L2252) envían `SISTEMA.HIJO_FALLIDO` si su inicialización falla
-- **Estado**: Padre SÍ tiene handler — inline L6144 registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. Log del error. No hay reintento automático ni alerta al usuario, pero el fallo queda registrado.
+- hijo1 (`extrainfo-hijo1.html` L354) y seleccion (`En-busca-del-tesoro.html` L2252) envían `SISTEMA.HIJO_FALLIDO` si su inicialización falla.
+- Padre tiene handler inline L6144 registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. No hay reintento automático ni alerta al usuario; el fallo queda registrado en el log.
 
-#### ✅ CORREGIDO — `ensureDefaultParada` broken self-send
+#### Patrón: `enviarMensajePadre({destino: padreId})` no funciona
 
-- **Dónde**: `codigo-padre.html` función `ensureDefaultParada` (~L3585)
-- **Problema**: `enviarMensajePadre({destino: getPadreId()})` fallaba silenciosamente — padre no está en `iframesRegistrados`. El pipeline de CAMBIO_PARADA no arrancaba y la app arrancaba en blanco (sin audio, coords ni reto en P-0).
-- **Fix aplicado**: Reemplazado por `await globalThis.__triggerCambioParadaInterno(datosDefault)` con guard `typeof ... === 'function'`, igual que `_restoreBroadcast`.
+`_enviarDesdePadre(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las tres funciones afectadas usan en cambio `__triggerCambioParadaInterno` o `funcionesMapa.setMapView`:
 
-#### ✅ CORREGIDO — `progresarSiguienteElemento` broken self-send (progresión de aventura)
+| Función | Ubicación | Implementación actual |
+| ------- | --------- | --------------------- |
+| `ensureDefaultParada` | `codigo-padre.html` ~L3585 | `__triggerCambioParadaInterno(datosDefault)` |
+| `progresarSiguienteElemento` | `codigo-padre.html` ~L7731 | `__triggerCambioParadaInterno(datosCambio)` |
+| `_onNextEntityShowMapClick` (GPS overlay) | `codigo-padre.html` ~L5527 | `funcionesMapa.setMapView([lat, lng], 16, { animate: true })` |
 
-- **Dónde**: `codigo-padre.html` función `progresarSiguienteElemento` (~L7731)
-- **Problema**: Mismo patrón roto: `enviarMensajePadre({destino: getPadreId()})` descartado silenciosamente. El estado interno avanzaba (`indiceProgreso++`) pero ningún hijo recibía los datos de la nueva parada — aventura bloqueada desde el primer avance.
-- **Fix aplicado**: Reemplazado por `await globalThis.__triggerCambioParadaInterno(datosCambio)` con guard `typeof ... === 'function'`.
+#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro no destructivo en `funciones-mapa.js`
 
-#### ✅ CORREGIDO — GPS overlay "show on map" (patrón self-send roto)
+`funciones-mapa.js` usa `registrarSiNoExiste` (no `registrarControlador`) para estos dos mensajes, evitando que un reinit de `funciones-mapa.js` mate los handlers que el padre ya tenía registrados. Ver §10.15 para el detalle.
 
-- **Dónde**: `codigo-padre.html` función `_onNextEntityShowMapClick` (~L5527)
-- **Problema**: Los 3 self-sends (`MAPA.ADD_MARKER`, `CENTRAR_EN_UBICACION` ×2) eran descartados silenciosamente. El botón "mostrar en mapa" del overlay GPS nunca centraba el mapa ni añadía marcador.
-- **Fix aplicado**: Reemplazados por `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })`. Las coordenadas se resuelven directamente desde `el._entityData` o desde `DATOS_PADRE` si solo hay `datos.id`.
+#### `NAVEGACION.RESPUESTA_COORDENADAS` — handler en `funciones-mapa.js`
 
-#### ℹ️ PATRÓN — `enviarMensajePadre({destino: padreId})` siempre falla
+`funciones-mapa.js` L3481 registra handler para `RESPUESTA_COORDENADAS` mediante `procesarRespuestaConsulta`. Resuelve la promesa pendiente de `enviarMensajeConConfirmacion`. El handler está en `funciones-mapa.js`, no en un bloque `<script>` de `codigo-padre.html`; una búsqueda superficial del archivo padre no lo encontrará.
 
-Regla general: `_enviarDesdePadre(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está ahí — el mensaje se descarta sin error. Todas las instancias conocidas han sido corregidas:
+#### `UI.CLOSE_MENUS` hijo1 → padre
 
-| Línea orig. | Función | Fix |
-|------------|---------|-----|
-| ~L3590 | `ensureDefaultParada` | `__triggerCambioParadaInterno` ✅ |
-| ~L7741 | `progresarSiguienteElemento` | `__triggerCambioParadaInterno` ✅ |
-| ~L5533/5537/5539 | GPS overlay "show on map" | `funcionesMapa.setMapView` ✅ |
-
-#### ✅ CORREGIDO — conflicto de registro GPS.ACTIVAR/DESACTIVAR
-
-`funciones-mapa.js` usaba `registrarControlador` (sobreescribe) para `GPS.ACTIVAR`/`GPS.DESACTIVAR`, pudiendo matar los handlers del padre en reinit. Cambiado a `registrarSiNoExiste`. Ver §10.15 para el detalle.
-
-#### ℹ️ INFO — `NAVEGACION.RESPUESTA_COORDENADAS` — sí tiene handler (corrección)
-
-- `funciones-mapa.js` L3481 registra handler para `RESPUESTA_COORDENADAS` mediante `procesarRespuestaConsulta`. Resuelve la promesa pendiente de `enviarMensajeConConfirmacion`. **No es un bug.** El handler está en funciones-mapa.js, no en un bloque `<script>` de codigo-padre.html, lo que puede confundir una búsqueda superficial.
-
-#### ℹ️ INFO — `UI.CLOSE_MENUS` hijo1→padre sin handler
-
-- Hijo1 notifica al padre tras cerrar sus menús (L989). Es informativo — padre no necesita actuar. No es un bug.
+hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel de opciones. El padre tiene `_hdl_UI_CLOSE_MENUS_PADRE` en Script 2 que cierra el overlay `#audio-control-overlay` (ver §34.1).
 
 ---
 
@@ -5538,7 +5520,7 @@ export const MAPEO_IDIOMAS = {
 - **leaflet-rotate 0.2.8**: permite rotar el mapa (para brújula).
 - **leaflet-geometryutil 0.10.1**: cálculos geométricos (distancias, puntos cercanos).
 
-> **Servicio local (sin CDN):** los tres archivos anteriores se sirven desde `js/vendor/` (leaflet.css, leaflet.js, leaflet-rotate-src.js, leaflet.geometryutil.js). No hay dependencia de red en tiempo de carga — funciona sin conexión desde el primer render. Versiones fijadas y descargadas el 2026-05-26.
+> **Servicio local (sin CDN):** los tres archivos anteriores se sirven desde `js/vendor/` (leaflet.css, leaflet.js, leaflet-rotate-src.js, leaflet.geometryutil.js). No hay dependencia de red en tiempo de carga — funciona sin conexión desde el primer render. Versiones fijadas.
 
 ### Cómo funciona el mapa
 
@@ -8114,7 +8096,7 @@ Un mensaje de una página externa maliciosa es descartado sin dejar rastro.
 - Solo permite conexiones a `'self'` (`connect-src 'self'`) — sin CDNs externos
 - Convierte HTTP → HTTPS (`upgrade-insecure-requests`)
 
-> **Nota:** La CSP fue endurecida el 2026-05-26 al migrar Leaflet y plugins a `js/vendor/`. Antes incluía `https://unpkg.com` y `https://cdnjs.cloudflare.com` en `script-src`, `style-src` y `connect-src`. Al eliminar esas dependencias externas, se eliminaron también esas concesiones del CSP, reduciendo la superficie de ataque de supply-chain.
+> **Sin CDN externos:** Leaflet y sus plugins se sirven desde `js/vendor/`, lo que permite eliminar `https://unpkg.com` y `https://cdnjs.cloudflare.com` de `script-src`, `style-src` y `connect-src`, reduciendo la superficie de ataque de supply-chain.
 
 #### Cuarta capa: token JWT en API (cliente implementado; backend pendiente)
 
@@ -8572,7 +8554,7 @@ GPS detecta que el usuario llegó al final de un TRAMO (distancia ≤ tolerancia
 - Si el dispositivo tarda más que el timeout, la UI sigue invisible
 - No hay garantía de que el mensaje llegue dentro del tiempo especificado
 
-#### Solución implementada: reintentos activos
+#### Reintentos activos
 
 Los hijos reenvían `HIJO_LISTO` periódicamente hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`:
 
@@ -9190,43 +9172,26 @@ Cuando se completa la parada (condiciones `pending.llegada + pending.audio + ret
 
 ---
 
-## 29. Corrección de errores de inicialización (logger y sleep)
+## 29. Inicialización robusta: logger, sleep e HIJO_LISTO
 
-Esta sección documenta las correcciones realizadas para resolver los errores de ReferenceError que impedían el correcto funcionamiento de la aplicación.
+### 29.1 Patrón de logger con fallback
 
-### 29.1 Problema: "Uncaught ReferenceError: logger is not defined"
+**Archivo:** `codigo-padre.html` (~100+ puntos de uso)
 
-**Causa:**
-El código usaba `logger.` directamente en múltiples lugares sin verificar si el objeto logger estaba disponible. Esto causaba errores cuando el módulo logger no se había cargado completamente o cuando se ejecutaba código antes de la inicialización.
+Todo acceso al logger usa el patrón `(globalThis.logger || console).método()` en lugar de `logger.método()` directo. Esto garantiza que si el módulo logger no ha terminado de cargarse cuando un bloque de código se ejecuta, `console` actúa como fallback sin generar ReferenceError.
 
-**Solución implementada:**
-Se reemplazaron todos los usos de `logger.` con `(globalThis.logger || console).` para proporcionar un fallback robusto a console cuando logger no está disponible.
+Puntos de uso representativos:
 
-**Cambios en codigo-padre.html:**
-- Líneas 83, 86: `handleIframeError` - fallback para logger.error
-- Líneas 201, 203: `handleIframeLoad` - fallback para logger.debug
-- Líneas 2839, 7300, 11684: Corrección de imports de logger.js que fueron incorrectamente modificados
-- Líneas 11782, 11821: Corrección de duplicaciones en globalThis.logger
-- Todos los demás usos de logger. reemplazados con (globalThis.logger || console).
+- Líneas 83, 86: `handleIframeError` — fallback para `logger.error`
+- Líneas 201, 203: `handleIframeLoad` — fallback para `logger.debug`
+- Todos los demás usos de logger en el archivo siguen el mismo patrón
 
-**Archivos afectados:**
-- `codigo-padre.html` - ~100+ reemplazos de logger. por (globalThis.logger || console).
+### 29.2 Definición temprana de `sleep`
 
-### 29.2 Problema: "Uncaught ReferenceError: Cannot access 'sleep' before initialization"
+**Archivo:** `codigo-padre.html`
 
-**Causa:**
-La función `sleep(ms)` se definía demasiado tarde en el código (línea 6581), pero se usaba en múltiples lugares antes de esa definición (líneas 3036, 4021, 4028, 4055, etc.). Esto causaba ReferenceError cuando el código intentaba usar sleep antes de que estuviera definido.
+`sleep(ms)` se define en las primeras líneas de Script 1 (~L2420) y se expone en `globalThis.sleep` inmediatamente:
 
-**Solución implementada:**
-Se movió la definición de `sleep(ms)` al principio de Script 1 y se hizo disponible globalmente en `globalThis.sleep` para que todos los scripts puedan usarla. Se eliminaron las definiciones duplicadas en Script 2 (líneas 7286 y 8373) y Script 4 (línea 11922).
-
-**Cambios en codigo-padre.html:**
-
-- Línea ~2420: Definición de sleep al inicio de Script 1
-- Línea ~2422: `globalThis.sleep = sleep` para hacerla disponible globalmente
-- Scripts 2, 3 y 4: usan `const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)))` como fallback defensivo
-
-**Definición de sleep:**
 ```javascript
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -9234,55 +9199,35 @@ function sleep(ms) {
 globalThis.sleep = sleep;
 ```
 
-### 29.3 Problema: Timeout esperando HIJO_LISTO
+Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)))` como fallback defensivo. No hay definiciones duplicadas posteriores.
 
-**Causa:**
-El timeout de 15 segundos en `state-manager.js` para esperar HIJO_LISTO era demasiado corto, causando falsos timeouts aunque el mensaje HIJO_LISTO se recibía correctamente.
+### 29.3 Timeout de HIJO_LISTO
 
-**Solución implementada:**
-Aumentado el timeout de 15 a 30 segundos en `state-manager.js` línea 255.
+**Archivo:** `js/state-manager.js` línea 255
 
-**Cambios en state-manager.js:**
-- Línea 255: Timeout cambiado de 15000ms a 30000ms
+Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los dispositivos lentos o conexiones de baja calidad pueden tardar más de 15 s en cargar los iframes hijos.
 
-**Cambios en sw.js:**
+### 29.4 Ciclo de vida del Service Worker — CACHE_VERSION
 
-- Línea 84: CACHE_VERSION actualizado (valor actual en el código: `'v-wakelck-jun23'`)
+**Archivo:** `sw.js` línea 84
 
-### 29.4 Actualización del Service Worker
-
-**Causa:**
-El Service Worker cacheaba la versión anterior de codigo-padre.html, por lo que los cambios no se reflejaban al recargar la página.
-
-**Solución implementada:**
-Se actualizó el CACHE_VERSION en `sw.js` para forzar la invalidación del caché.
-
-**Estado actual:**
-
-- Línea 84: `const CACHE_VERSION = 'v-wakelck-jun23'` — el valor cambia en cada commit relevante
-- El CACHE_VERSION debe actualizarse **manualmente** cada vez que se necesite invalidar la caché
-- El directorio `tools/` existe pero está vacío; `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no existe** — la nota es aspiracional
-
-### 29.5 Verificación del sistema HIJO_LISTO
-
-Se verificó que el sistema de reconocimiento de hijos funciona correctamente después de las correcciones:
-
-**Handler _hdl_SISTEMA_HIJO_LISTO (línea ~5874):**
-```javascript
-estado.hijosInicializados.add(hijoId);
-// Marcar hijo como listo en sistema de eventos
-if (globalThis.__stateManager && typeof globalThis.__stateManager.marcarHijoListo === 'function') {
-    await globalThis.__stateManager.marcarHijoListo(hijoId);
-}
+```js
+const CACHE_VERSION = 'v-wakelck-jun23';
 ```
 
-**Función _esperarHijoListo (línea ~6399):**
+El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
+
+### 29.5 Sistema HIJO_LISTO
+
+**Archivo:** `codigo-padre.html` (~L5874 y ~L6399)
+
+El handler `_hdl_SISTEMA_HIJO_LISTO` añade el hijo a `estado.hijosInicializados` y llama a `globalThis.__stateManager.marcarHijoListo(hijoId)`. La función `_esperarHijoListo(iframeId)` usa el sistema de eventos de `state-manager.js` con fallback por timeout:
+
 ```javascript
 function _esperarHijoListo(iframeId) {
     if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
         return globalThis.__stateManager.crearPromiseHijoListo(iframeId);
     }
-    // Fallback simple sin sleep (solo verificar estado actual)
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
             if (globalThis.estadoPadre.hijosInicializados.has(iframeId)) {
@@ -9294,23 +9239,6 @@ function _esperarHijoListo(iframeId) {
     });
 }
 ```
-
-**Estado del sistema:**
-- ✅ Handler HIJO_LISTO llama correctamente a marcarHijoListo
-- ✅ _esperarHijoListo usa el sistema de eventos con fallback
-- ✅ Sistema de eventos en state-manager.js funciona correctamente
-- ✅ No hay race conditions en el reconocimiento de hijos
-
-### 29.6 Resumen de correcciones
-
-| Error | Causa | Solución | Archivos modificados |
-|-------|-------|----------|---------------------|
-| logger is not defined | logger. usado sin verificar disponibilidad | Reemplazar con (globalThis.logger \|\| console). | codigo-padre.html |
-| sleep before initialization | sleep definido después de su uso | Mover definición al inicio de Script 1 y 2 | codigo-padre.html |
-| Caché antiguo | Service Worker cacheaba versión anterior | Actualizar CACHE_VERSION | sw.js |
-
-**Resultado:**
-Los errores de ReferenceError han sido resueltos. La aplicación ahora carga correctamente sin errores de inicialización de logger o sleep. El sistema de reconocimiento de hijos funciona correctamente con el sistema de eventos implementado en state-manager.js.
 
 > `TIPOS_MENSAJE_VALIDOS` se actualiza automáticamente en `constants.js`: la función `_flattenTipos()` recorre el árbol de forma recursiva, así que no hay ningún paso adicional al añadir el nuevo namespace.
 
@@ -9681,48 +9609,42 @@ if (event.data?.tipo === 'mapa-visible') {
 
 ---
 
-## §33 — Correcciones de bugs estructurales (2026-06-21)
+## 33. Robustez del sistema de handlers y mensajería
 
-### §33.1 — Fix cola de controladores pendientes (`registrarControladorSeguro`)
+### 33.1 Cola de controladores pendientes (`registrarControladorSeguro`)
 
 **Archivo:** `codigo-padre.html` ~línea 4360
 
-**Problema:** `globalThis.__CONTROLADOR_REGISTRADOS.add(tipo)` se ejecutaba **antes** de intentar el registro real. Si el handler iba a la cola (mensajería no disponible aún) quedaba marcado como "ya registrado". Al llamar `procesarControladoresPendientes` después, el guard `__CONTROLADOR_REGISTRADOS.has(tipo)` impedía el registro definitivo → el handler nunca se registraba.
+`registrarControladorSeguro` gestiona el caso de que Script 2 llame al registro mientras Script 1 aún no ha terminado de ejecutarse (ventana de milisegundos al inicio de la app). El comportamiento es:
 
-**Fix:** La marca se añade al Set solo **tras el éxito** del registro (tanto en la rama `registrarControlador_S1` como en la rama `mensajeria.registrarControlador`). En la rama de encolado **no se añade**. Además, `procesarControladoresPendientes` ahora emite `console.error` si, tras reintentar, el tipo sigue sin estar en el Set.
+- Si `registrarControlador_S1` está disponible, lo invoca y añade el tipo a `globalThis.__CONTROLADOR_REGISTRADOS` **únicamente tras el éxito**.
+- Si la mensajería aún no está disponible, encola el handler. El tipo **no** se marca en `__CONTROLADOR_REGISTRADOS` hasta que `procesarControladoresPendientes` complete el registro definitivo.
+- `procesarControladoresPendientes` emite `console.error` si, tras reintentar, el tipo sigue sin estar en el Set.
 
 ```js
-// Antes (bug):
-globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);  // marca prematura
-if (typeof registrarControlador_S1 === 'function') {
-    return registrarControlador_S1(tipo, handler, opciones);
-} // ...
-
-// Después (fix):
 if (typeof registrarControlador_S1 === 'function') {
     const result = registrarControlador_S1(tipo, handler, opciones);
     globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);  // solo si éxito
     return result;
 }
+// si no está disponible: encolar, NO marcar en __CONTROLADOR_REGISTRADOS
 ```
 
-**Por qué este bug raramente causa síntomas visibles:** Los módulos ES garantizan que `mensajeria.js` (y por tanto `registrarControlador_S1`) están disponibles antes de que ningún script ejecute su cuerpo. La cola solo entra en juego si Script 2 llama a `registrarControladorSeguro` mientras Script 1 aún no terminó de ejecutarse — una ventana de milisegundos al inicio de la app. El fix hace que esa ventana no deje handlers huérfanos.
+Los módulos ES garantizan que `mensajeria.js` está disponible antes de que ningún script ejecute su cuerpo, por lo que la cola entra en juego solo en la ventana de arranque más temprana.
 
 ---
 
-### §33.2 — Handlers críticos con `permanente: true`
+### 33.2 Handlers críticos con `permanente: true`
 
 **Archivos:** `codigo-padre.html` (Script 1 y Script 2), `js/app.js`, `js/controladores-padre.js`
 
-**Problema:** `limpiarControladoresAntiguos` en `js/state-manager.js` (línea ~839) elimina controladores con más de 30 minutos sin actividad (`maxAgeMs = 30 * 60 * 1000`). Los handlers del corazón de la app (HIJO_PREPARADO, HEARTBEAT, CAMBIO_MODO, todos los NAVEGACION/AUDIO/DATOS…) pueden ser eliminados si el usuario permanece en una pantalla sin recibir esos mensajes durante 30 min — dejando al padre sordo a mensajes críticos.
-
-**Fix:** Todos los handlers registrados con `registrarControladorSeguro` en Script 1, Script 2, `app.js` y `controladores-padre.js` pasan ahora con `{ permanente: true }`:
+`limpiarControladoresAntiguos` en `js/state-manager.js` (línea ~839) puede eliminar controladores con más de 30 minutos sin actividad (`maxAgeMs = 30 * 60 * 1000`). Para proteger los handlers del núcleo de la app frente a esta limpieza, todos los handlers registrados con `registrarControladorSeguro` en Script 1, Script 2, `app.js` y `controladores-padre.js` se registran con `{ permanente: true }`:
 
 ```js
-// Script 1 — ejemplo:
+// Script 1:
 registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HIJO_PREPARADO, _hdl_SISTEMA_HIJO_PREPARADO, { permanente: true });
 
-// Script 2 — ejemplo:
+// Script 2:
 globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO, _hdl_AUDIO_ESTADO_ACTUALIZADO, { permanente: true });
 
 // app.js:
@@ -9732,21 +9654,19 @@ registrar(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO, async (msg) => { ... }, {
 registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje) => { ... }, { permanente: true });
 ```
 
-`limpiarControladoresAntiguos` comprueba `!c.opciones?.permanente` antes de eliminar → los marcados con `permanente: true` se conservan indefinidamente.
+`limpiarControladoresAntiguos` comprueba `!c.opciones?.permanente` antes de eliminar — los marcados con `permanente: true` se conservan indefinidamente.
 
-**Alcance:** 9 handlers en Script 1 (incluidos los 4 inline HEARTBEAT, HEARTBEAT_RESPONSE, HIJO_FALLIDO, CAMBIO_MODO_RESPONSE), 38 handlers en Script 2, 2 en `app.js`, 4 en `controladores-padre.js` = **53 handlers** marcados.
+**Alcance total:** 9 handlers en Script 1 (incluidos los 4 inline HEARTBEAT, HEARTBEAT_RESPONSE, HIJO_FALLIDO, CAMBIO_MODO_RESPONSE), 38 en Script 2, 2 en `app.js`, 4 en `controladores-padre.js` = **53 handlers** permanentes.
 
-**Nota:** El handler de `COORDENADAS_PARADAS_RESPONSE` en línea ~5351 se registra dinámicamente dentro de otra función (no en la inicialización); no se ha marcado como permanente para no interferir con su ciclo de vida específico.
+**Excepción:** El handler de `COORDENADAS_PARADAS_RESPONSE` (~línea 5351) se registra dinámicamente dentro de una función específica (no en la inicialización general) y no lleva `permanente: true` para no interferir con su ciclo de vida propio.
 
 ---
 
-### §33.3 — Race condition en operaciones heartbeat (`atomicUpdateHeartbeat`)
+### 33.3 Operaciones atómicas en heartbeat (`atomicUpdateHeartbeat`)
 
 **Archivos:** `js/state-manager.js`, `js/mensajeria.js`
 
-**Problema:** Las funciones `enviarHeartbeatAHijos`, `marcarHijoDesconectado` y `procesarHeartbeatResponse` hacían read-modify-write del estado heartbeat en **dos llamadas al mutex separadas**: `getHeartbeat()` (adquiere y libera) + `updateHeartbeat()` (adquiere y libera). Entre ambas llamadas, otra corrutina podía modificar el estado → pérdida de actualizaciones o contadores incorrectos.
-
-**Fix — `atomicUpdateHeartbeat` en `state-manager.js`:**
+Las operaciones de read-modify-write sobre el estado heartbeat requieren atomicidad. `atomicUpdateHeartbeat` en `state-manager.js` garantiza que toda la secuencia ocurre dentro de una única adquisición del mutex:
 
 ```js
 export async function atomicUpdateHeartbeat(fn) {
@@ -9758,27 +9678,17 @@ export async function atomicUpdateHeartbeat(fn) {
 }
 ```
 
-La función recibe un callback que opera sobre un snapshot y devuelve los cambios. Todo ocurre dentro de una única adquisición del mutex.
+La función recibe un callback que opera sobre un snapshot y devuelve los cambios. Tres funciones de `mensajeria.js` usan este patrón:
 
-**Fix en `mensajeria.js` — 3 puntos de carrera eliminados:**
+1. **`enviarHeartbeatAHijos`:** El incremento del contador de fallidos es atómico. La variable `nuevosFailidos_count` se captura dentro del callback y se lee fuera para decidir si desconectar al hijo.
 
-1. **`enviarHeartbeatAHijos`:** El incremento del contador de fallidos pasa a ser atómico. La variable `nuevosFailidos_count` se lee fuera del callback para la decisión posterior de desconectar.
+2. **`marcarHijoDesconectado`:** Usa una sola llamada a `atomicUpdateHeartbeat` en lugar de `getHeartbeat` + `updateHeartbeat` separados.
 
-2. **`marcarHijoDesconectado`:** El `getHeartbeat` + `updateHeartbeat` por separado se reemplaza por una sola llamada `atomicUpdateHeartbeat`.
-
-3. **`procesarHeartbeatResponse`:** Los tres `updateHeartbeat` separados (resetear fallidos, actualizar `ultimoHeartbeat`, quitar de desconectados) se funden en una sola operación. La variable `estabaDesconectado` se captura dentro del callback y se lee fuera para disparar la lógica de reconexión.
+3. **`procesarHeartbeatResponse`:** Resetear fallidos, actualizar `ultimoHeartbeat` y quitar al hijo de desconectados ocurre en una sola operación. `estabaDesconectado` se captura dentro del callback y se lee fuera para disparar la lógica de reconexión:
 
 ```js
-// Antes (3 llamadas al mutex):
-const estado = await sm.getHeartbeat();
-await sm.updateHeartbeat({ heartbeatsFallidos: ... });
-await sm.updateHeartbeat({ ultimoHeartbeat: ... });
-await sm.updateHeartbeat({ hijosDesconectados: ... });
-
-// Después (1 llamada al mutex):
 let estabaDesconectado = false;
 await sm.atomicUpdateHeartbeat(s => {
-    // ...modifica fallidos, ultimoHeartbeat, desconectados en un solo paso...
     estabaDesconectado = desconectados.has(hijoId);
     return { heartbeatsFallidos: ..., ultimoHeartbeat: ..., hijosDesconectados: ... };
 });
@@ -9786,39 +9696,37 @@ await sm.atomicUpdateHeartbeat(s => {
 
 ---
 
-### §33.4 — Renombrar `getPadreId` → `resolverIdPadre` en `utils.js`
+### 33.4 Nombres de funciones en `utils.js` — `resolverIdPadre` y `getPadreId`
 
 **Archivos:** `js/utils.js`, `js/app.js`, `js/funciones-mapa.js`, y todos los hijos HTML.
 
-**Problema:** `utils.js` exporta `getPadreId()`, que **resuelve** el ID del padre desde URL params / sessionStorage / generación aleatoria. Este nombre colisiona con `globalThis.getPadreId` definida en `codigo-padre.html` (línea ~3283), que **siempre devuelve `CONFIG_PADRE.ID` = `'padre'`**. Son dos funciones distintas con propósito distinto que comparten nombre, lo que confunde quién devuelve qué en el contexto de cada archivo.
+`utils.js` exporta `resolverIdPadre()`, que determina el ID del padre leyendo URL params, `sessionStorage` o generando un UUID nuevo. El nombre diferencia esta función de `globalThis.getPadreId` definida en `codigo-padre.html` (~línea 3283), que siempre devuelve `CONFIG_PADRE.ID = 'padre'` — dos funciones con propósito distinto.
 
-**Fix:** La función de `utils.js` se renombra a `resolverIdPadre` en todos sus puntos de definición y uso:
+`js/utils.js` exporta también `getPadreId` como alias de `resolverIdPadre` para compatibilidad con tests y cualquier código que use el nombre anterior:
 
-- `js/utils.js`: definición (`export function resolverIdPadre`), objeto `__vv_utils`, `export default`
-- `js/app.js`: import + 12 llamadas como `origen:` en mensajes
-- `js/funciones-mapa.js`: import + usos
-- `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `chat-hijo6.html`, `boton-casa-hijo5.html`, `En-busca-del-tesoro.html`: import + usos
+```js
+export function resolverIdPadre() { ... }
+export const getPadreId = resolverIdPadre;  // alias de compatibilidad
+```
 
-**Alias de compatibilidad (añadido posteriormente):**
+Usos en el código:
+- `js/app.js`: importa `resolverIdPadre` + 12 llamadas como `origen:` en mensajes
+- `js/funciones-mapa.js`: importa `resolverIdPadre`
+- `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `chat-hijo6.html`, `boton-casa-hijo5.html`, `En-busca-del-tesoro.html`: importan `resolverIdPadre`
 
-`js/utils.js` exporta también `export const getPadreId = resolverIdPadre;` inmediatamente después de la función. Esto permite que los tests (`test_module_exports.html`, `test_datos_solicitar_paradas_combinados.html`) y cualquier código que importe bajo el nombre antiguo sigan funcionando sin cambios. La función canónica sigue siendo `resolverIdPadre`.
-
-**No renombrado (intencional):**
-
-- `codigo-padre.html`: usa `globalThis.getPadreId` (función propia, devuelve `'padre'`, no importa utils.js)
-- `js/controladores-padre.js`: recibe `getPadreId` como parámetro de inyección de dependencias desde el padre (recibe `getPadreId_S1`, la versión local). No importa de utils.js.
+**No usan `utils.js` para esto (intencional):**
+- `codigo-padre.html`: usa `globalThis.getPadreId` (función propia, devuelve siempre `'padre'`)
+- `js/controladores-padre.js`: recibe `getPadreId` como inyección de dependencias desde el padre (`getPadreId_S1`, la versión local)
 
 ---
 
-## §34 — Cierre de desplegables, pausa de audio y botón retroceder (2026-06-21)
+## 34. Gestión de UI distribuida: menús, audio y navegación
 
-### §34.1 — UI.CLOSE_MENUS en el padre
+### 34.1 Cierre coordinado de menús del padre (`UI.CLOSE_MENUS`)
 
 **Archivos:** `codigo-padre.html` Script 2, función `_hdl_UI_CLOSE_MENUS_PADRE`
 
-**Problema:** hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) cuando el usuario abre el panel "más-opciones", para que el padre cierre sus propios desplegables y evite solapamiento visual. El padre no tenía handler para ese mensaje.
-
-**Fix:** nuevo handler registrado en Script 2 cerca de `_regCtrl_NavegacionEventos`:
+Cuando hijo1 abre su panel "más-opciones", envía `UI.CLOSE_MENUS` con `except: 'mas-opciones'` para que el padre cierre sus propios desplegables y evite solapamiento visual. El padre tiene handler registrado en Script 2 cerca de `_regCtrl_NavegacionEventos`:
 
 ```js
 function _hdl_UI_CLOSE_MENUS_PADRE(mensaje) {
@@ -9833,13 +9741,11 @@ globalThis.registrarControladorSeguro(TIPOS_MENSAJE.UI.CLOSE_MENUS, _hdl_UI_CLOS
 
 ---
 
-### §34.2 — Pausa de audio antes de abrir enlace externo
+### 34.2 Pausa de audio al abrir enlace externo
 
 **Archivo:** `extrainfo-hijo1.html`, dentro del handler `onclick` de cada icono de más-opciones
 
-**Problema:** Al pulsar un icono que abre YouTube, Instagram u otra web en nueva pestaña, el audio de la aventura seguía reproduciéndose sin que el usuario lo supiera.
-
-**Fix:** Antes de `globalThis.open(icono.url, '_blank')`, hijo1 envía `UI.ACCION_USUARIO` con `accion: 'audio_control', comando: 'pause'` directamente a `destino: 'hijo3'`. El audio queda pausado y el usuario lo reanuda manualmente cuando vuelve. El envío está en un `try/catch` propio para no bloquear la apertura del enlace si la pausa falla.
+Antes de `globalThis.open(icono.url, '_blank')`, hijo1 envía `UI.ACCION_USUARIO` con `accion: 'audio_control', comando: 'pause'` directamente a `destino: 'hijo3'`. El audio queda pausado y el usuario lo reanuda manualmente cuando vuelve. El envío está en un `try/catch` propio para no bloquear la apertura del enlace si la pausa falla.
 
 ```js
 try {
@@ -9857,11 +9763,11 @@ hijo3 ya tenía el handler `UI.ACCION_USUARIO` que enruta `accion: 'audio_contro
 
 ---
 
-### §34.3 — Botón retroceder del dispositivo y vuelta de pestaña externa
+### 34.3 Botón retroceder del dispositivo y vuelta de pestaña externa
 
 **Archivo:** `codigo-padre.html` Script 1
 
-**Mecanismo — botón retroceder:**
+**Botón retroceder:**
 
 Cuando la aventura se registra con éxito (en `_hdl_SELECCION_AVENTURA_ACTIVADA` y en `ejecutarReanudacion` del diálogo de reanudación), se inserta una entrada falsa en el historial del navegador:
 
@@ -9871,7 +9777,7 @@ history.pushState({ vv_en_aventura: true }, '');
 
 Un listener `popstate` detecta el evento y, si `e.state.vv_en_aventura` es `true` y hay una aventura activa en `globalThis.aventuraSeleccionada`, re-inserta otra entrada (para que el siguiente "atrás" también quede interceptado) y muestra `mostrarDialogoVueltaRapida`.
 
-**Mecanismo — vuelta de pestaña externa:**
+**Vuelta de pestaña externa:**
 
 Cuando el padre recibe `UI.NAVEGACION_EXTERNA` (enviado por hijo1 al abrir un enlace), establece `globalThis.__vv_salidaEnlaceExterno = true`. Un listener `visibilitychange` comprueba este flag al volver (`document.visibilityState === 'visible'`), lo limpia y, si hay aventura activa, muestra el mismo diálogo.
 
