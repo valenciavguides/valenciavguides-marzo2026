@@ -9024,6 +9024,564 @@ SOPORTE: {
 
 ---
 
+### 26.X — Catálogo de preguntas y respuestas en español
+
+Texto definitivo en español de cada intención. Es la fuente de verdad para rellenar `PREGUNTAS_SOPORTE` y `RESPUESTAS_SOPORTE` en `js/chat-asistente.js` antes de traducir a los 11 idiomas restantes.
+
+Las respuestas que describen overlays, botones y comportamientos concretos están sincronizadas con §30.
+
+Marcadores disponibles en las respuestas: `{{PARADA_ACTUAL}}`, `{{PARADA_SIGUIENTE}}`, `{{PARADAS_RESTANTES}}`, `{{IDIOMA_ACTIVO}}`, `{{AVENTURA}}`.
+
+---
+
+#### 📍 GPS y Ubicación
+
+##### `GPS_NO_DETECTA`
+
+**Pregunta:** ¿El GPS no me detecta?
+
+**Respuesta:**
+La app ya ha detectado el problema y te muestra una pantalla con el botón 🛰️🔄. Pulsa ese botón para reintentar obtener señal. Si el contador llega a cero sin éxito, el botón se vuelve a activar para que puedas intentarlo de nuevo.
+
+Si el problema continúa: sal a un espacio abierto alejado de edificios altos o de zonas bajo techo, comprueba que el GPS esté activado en los ajustes de tu teléfono y asegúrate de no estar en modo avión. El GPS no necesita internet para funcionar.
+
+**Imagen:** null
+
+---
+
+##### `GPS_PERMISO_DENEGADO`
+
+**Pregunta:** ¿La app no tiene permiso para el GPS?
+
+**Respuesta:**
+El GPS es imprescindible para avanzar en la aventura — la app lo necesita para confirmar que llegas a cada parada.
+
+Verás el botón 🛰️→🌐→⚙️. Sigue esta secuencia:
+
+1. Pulsa el botón — puede abrirse el diálogo nativo de permisos de tu navegador.
+2. Si no aparece nada, pulsa el icono de candado en la barra de dirección del navegador → permisos → ubicación → permitir.
+3. Si tampoco funciona, ve a los ajustes del sistema operativo de tu teléfono → aplicaciones → tu navegador → permisos → ubicación → permitir.
+
+Una vez concedido el permiso, la app detecta automáticamente tu posición y el aviso desaparece.
+
+**Imagen:** null
+
+---
+
+##### `GPS_FUERA_RANGO`
+
+**Pregunta:** ¿Por qué no puedo avanzar si estoy en el sitio?
+
+**Respuesta:**
+Si llevas más de 5 minutos alejado de la zona de la parada o tramo actual, la app bloquea el botón de avanzar y muestra un aviso.
+
+Vuelve a la zona marcada en el mapa. En cuanto el GPS te detecte dentro del rango, el botón se activa de nuevo y puedes continuar. El progreso no se pierde.
+
+El botón del mapa sigue activo — úsalo para orientarte y ver dónde está exactamente el punto al que tienes que volver.
+
+**Imagen:** null
+
+---
+
+##### `GPS_BAJA_PRECISION`
+
+**Pregunta:** ¿La app dice que mi señal GPS es imprecisa?
+
+**Respuesta:**
+Cuando la señal GPS tiene una precisión inferior a 50 metros (por ejemplo en zonas con muchos edificios altos o bajo techo), la app te lo avisa con una pantalla y el botón 🛰️🔄.
+
+Pulsa el botón para reintentar con más precisión. Mientras tanto:
+
+- Sal a un espacio más abierto si es posible.
+- Activa el modo de alta precisión en los ajustes de ubicación del teléfono (usa GPS + WiFi + datos móviles).
+- Espera unos segundos: la señal suele mejorar sola al aire libre.
+
+Si la precisión mejora, el aviso desaparece automáticamente y puedes continuar.
+
+**Imagen:** null
+
+---
+
+#### 🔊 Audio
+
+##### `AUDIO_NO_SUENA`
+
+**Pregunta:** ¿No escucho el audio de la parada?
+
+**Respuesta:**
+Comprueba estos puntos en orden:
+
+1. **Volumen del teléfono** — asegúrate de que el volumen multimedia está subido (no el de llamada ni el de notificaciones). Usa los botones físicos del lateral del teléfono mientras la app está abierta.
+2. **Auriculares** — si tienes auriculares conectados, el sonido sale solo por ellos.
+3. **Modo silencio** — desactívalo si está activo.
+4. **Conexión** — si el audio tarda en cargar, la app lo intentará de nuevo en cuanto haya señal.
+
+Si el problema persiste, cierra la app, vuelve a abrirla e intenta reproducir de nuevo.
+
+**Imagen:** null
+
+---
+
+##### `AUDIO_DETENIDO`
+
+**Pregunta:** ¿El audio se ha parado solo?
+
+**Respuesta:**
+El audio puede detenerse en estos casos:
+
+- **Llamada entrante** — se pausa automáticamente y vuelve cuando terminas la llamada.
+- **App en segundo plano** — si cierras la pantalla o cambias de app, el audio puede pausarse según el sistema operativo. Vuelve a la app para retomarlo.
+- **Interrupción de otra app de audio** — si abres música, un podcast u otra app de sonido, se detiene. Cierra esa app y pulsa el botón de reproducción en la pantalla de audio.
+
+Puedes reanudar el audio en cualquier momento desde la pantalla principal de la aventura.
+
+**Imagen:** null
+
+---
+
+##### `AUDIO_IDIOMA_NO_DISPONIBLE`
+
+**Pregunta:** ¿El audio suena en otro idioma?
+
+**Respuesta:**
+Si el audio de alguna parada no está disponible en tu idioma, la app usa el español como alternativa para que puedas continuar la aventura sin interrupciones.
+
+Cuando el audio en tu idioma esté disponible ({{IDIOMA_ACTIVO}}), se reproducirá automáticamente. Si prefieres cambiar a un idioma con más contenido disponible, puedes hacerlo desde la pantalla de selección de idioma.
+
+**Imagen:** null
+
+---
+
+##### `AUDIO_AUTOMATICO`
+
+**Pregunta:** ¿El audio se reproduce solo al llegar?
+
+**Respuesta:**
+Sí. Cuando el GPS confirma que has llegado a una parada o completado un tramo, el audio empieza a reproducirse automáticamente.
+
+No tienes que pulsar ningún botón para iniciar la reproducción. Sí puedes pausarlo, reanudarlo o repetirlo cuando quieras desde los controles de la pantalla principal.
+
+**Imagen:** null
+
+---
+
+##### `AUDIO_VOLUMEN`
+
+**Pregunta:** ¿Cómo controlo el volumen?
+
+**Respuesta:**
+Usa los botones físicos de volumen del lateral de tu teléfono. Asegúrate de ajustar el **volumen multimedia** (no el de llamada ni el de alarma).
+
+Si el teléfono muestra la barra de volumen de llamada al pulsar los botones, hazlo con la app en primer plano y el audio reproduciéndose — así el teléfono sabe que quieres ajustar el sonido multimedia.
+
+**Imagen:** null
+
+---
+
+##### `AUDIO_REPETIR`
+
+**Pregunta:** ¿Puedo repetir el audio de una parada?
+
+**Respuesta:**
+Sí. En la pantalla principal de la aventura encontrarás un botón de repetición junto a los controles de audio. Pulsa ese botón y el audio de la parada actual vuelve a reproducirse desde el principio.
+
+Puedes repetirlo tantas veces como quieras sin que afecte a tu progreso.
+
+**Imagen:** null
+
+---
+
+##### `AUDIO_IDIOMA_CAMBIO`
+
+**Pregunta:** ¿Puedo cambiar el idioma durante la aventura?
+
+**Respuesta:**
+Sí, puedes cambiar de idioma en cualquier momento. El botón de idioma está disponible en la pantalla principal.
+
+Al cambiar, el audio de la parada actual se recarga en el nuevo idioma y empieza desde el principio. Las paradas anteriores no se reproducen de nuevo — solo afecta a la parada actual y a las siguientes.
+
+**Imagen:** null
+
+---
+
+#### 🗺️ Navegación y Ruta
+
+##### `PROXIMA_PARADA`
+
+**Pregunta:** ¿Cuál es la siguiente parada?
+
+**Respuesta:**
+La siguiente parada es **{{PARADA_SIGUIENTE}}**. Está marcada en el mapa con un pin — pulsa el botón del mapa para verla y calcular cómo llegar.
+
+La línea azul del mapa te sugiere el camino, pero no es obligatoria: puedes ir por donde prefieras siempre que llegues al punto de destino.
+
+**Imagen:** null
+
+---
+
+##### `PARADA_ACTUAL`
+
+**Pregunta:** ¿En qué parada estoy?
+
+**Respuesta:**
+Estás en **{{PARADA_ACTUAL}}**. Te quedan **{{PARADAS_RESTANTES}}** paradas para completar la aventura.
+
+Si el GPS te sitúa fuera del rango de esta parada, verifica tu posición en el mapa con el botón de ubicación.
+
+**Imagen:** null
+
+---
+
+##### `PARADAS_RESTANTES`
+
+**Pregunta:** ¿Cuántas paradas me quedan?
+
+**Respuesta:**
+Te quedan **{{PARADAS_RESTANTES}}** paradas para terminar la aventura **{{AVENTURA}}**.
+
+La siguiente es **{{PARADA_SIGUIENTE}}**. Encuéntrala en el mapa con el botón del mapa.
+
+**Imagen:** null
+
+---
+
+##### `DESVIO_RUTA`
+
+**Pregunta:** ¿Tengo que seguir exactamente el camino del mapa?
+
+**Respuesta:**
+No, puedes ir por donde quieras. La app solo comprueba que llegues al punto final del tramo, no que sigas exactamente el camino marcado.
+
+La línea azul del mapa es una sugerencia de ruta, no un camino obligatorio. Si te desvías más de 50 metros, aparecerá una línea discontinua que te indica cómo volver a la ruta, pero no te bloquea ni te penaliza.
+
+**Imagen:** null
+
+*(Esta intención ya tiene texto completo en los 12 idiomas en `RESPUESTAS_SOPORTE`.)*
+
+---
+
+##### `MAPA_OFFLINE`
+
+**Pregunta:** ¿Funciona el mapa sin internet?
+
+**Respuesta:**
+Sí. El mapa se descarga en tu teléfono la primera vez que abres la app con conexión. A partir de ese momento funciona completamente sin internet.
+
+Si ves el mapa en blanco o con cuadrículas grises, cierra y vuelve a abrir la app con conexión para que se actualice la caché. Una vez cargado, ya funciona offline para toda la aventura.
+
+**Imagen:** null
+
+---
+
+#### 💾 Progreso y Guardado
+
+##### `PROGRESO_GUARDAR`
+
+**Pregunta:** ¿Tengo que guardar el progreso?
+
+**Respuesta:**
+No, el progreso se guarda automáticamente después de cada parada completada. No hay ningún botón de guardar.
+
+Si cierras la app o se te apaga el teléfono, al volver a abrirla con el mismo código de acceso retomas exactamente donde lo dejaste.
+
+**Imagen:** null
+
+---
+
+##### `PROGRESO_RETOMAR`
+
+**Pregunta:** ¿Puedo continuar la aventura otro día?
+
+**Respuesta:**
+Sí. Abre de nuevo el enlace de la app, selecciona tu aventura e introduce el mismo código de acceso. La app detecta que ya tienes progreso guardado y te lleva directamente a la parada en la que te quedaste.
+
+El progreso se guarda en este dispositivo. Si usas otro teléfono o borras los datos del navegador, tendrás que volver a empezar desde el principio.
+
+**Imagen:** null
+
+---
+
+##### `AVENTURA_COMPLETADA`
+
+**Pregunta:** ¿Qué pasa cuando termino la aventura?
+
+**Respuesta:**
+Al llegar a la última parada y escuchar el audio final, la app muestra una pantalla de despedida.
+
+Desde ahí puedes elegir entre iniciar una nueva aventura o cerrar la app. Si decides salir, el progreso se limpia para que otra persona pueda usar el mismo código desde cero.
+
+**Imagen:** null
+
+---
+
+##### `PROGRESO_PERDIDO`
+
+**Pregunta:** ¿He perdido mi progreso?
+
+**Respuesta:**
+El progreso puede perderse si has borrado los datos del navegador, cambiado de dispositivo o usado el modo privado / incógnito del navegador (este modo no guarda datos entre sesiones).
+
+Si cierras y vuelves a abrir la app normalmente con el mismo código en el mismo dispositivo, el progreso se recupera automáticamente.
+
+Si el progreso se ha perdido definitivamente y no has terminado la aventura, contacta con nosotros: podremos indicarte desde qué parada retomar o generar un nuevo acceso.
+
+**Imagen:** null
+
+---
+
+##### `CODIGO_CADUCIDAD`
+
+**Pregunta:** ¿El código de acceso tiene fecha de caducidad?
+
+**Respuesta:**
+El código no caduca mientras la aventura esté activa. Puedes hacer la ruta en varios días sin ningún límite de tiempo.
+
+Si tienes dudas sobre la validez de tu acceso, contacta con nosotros antes de empezar.
+
+**Imagen:** null
+
+---
+
+#### 🧩 Retos y Puzzles
+
+##### `RETO_NO_ENTIENDO`
+
+**Pregunta:** ¿No entiendo el reto?
+
+**Respuesta:**
+Lee el enunciado del reto con calma — a veces la clave está en los detalles o en el entorno que te rodea. Mira a tu alrededor: el reto siempre está relacionado con la parada en la que te encuentras.
+
+Si aun así no lo ves, usa la pista que encontrarás en la pantalla del reto. La pista no te da la respuesta directamente, pero te orienta hacia dónde mirar.
+
+**Imagen:** null
+
+---
+
+##### `RETO_RESPUESTA_MAL`
+
+**Pregunta:** ¿He respondido mal el reto?
+
+**Respuesta:**
+Sin problema — no hay penalización por respuesta incorrecta. Puedes intentarlo tantas veces como quieras.
+
+Revisa el enunciado, mira la pista si la necesitas y vuelve a intentarlo. No hay límite de intentos ni pérdida de puntos.
+
+**Imagen:** null
+
+---
+
+##### `PUZZLE_AYUDA`
+
+**Pregunta:** ¿Cómo consigo una pista?
+
+**Respuesta:**
+En la pantalla del reto encontrarás un botón de pista. Pulsa ese botón y recibirás una ayuda que te orienta sin darte la respuesta completa.
+
+Puedes pedirla en cualquier momento — no penaliza ni afecta a tu progreso en la aventura.
+
+**Imagen:** null
+
+---
+
+##### `RETO_CUANTOS`
+
+**Pregunta:** ¿Cuántos retos tiene la aventura?
+
+**Respuesta:**
+Hay un reto en cada parada. Verás cuántas paradas te quedan en el indicador de progreso — cada una tiene su propio reto que resolver en el lugar.
+
+Los retos están pensados para hacerse in situ: el entorno te da las pistas necesarias.
+
+**Imagen:** null
+
+---
+
+##### `RETO_SALTAR`
+
+**Pregunta:** ¿Puedo saltarme un reto?
+
+**Respuesta:**
+El reto es parte de la parada — completarlo es lo que abre el paso a la siguiente. No existe un botón de saltar.
+
+Si llevas mucho tiempo atascado, usa la pista disponible en la pantalla del reto. Si aun así no lo resuelves, contacta con nosotros y te ayudamos sin estropearte la experiencia del resto de la aventura.
+
+**Imagen:** null
+
+---
+
+#### 📱 La Aplicación
+
+##### `APP_GENERAL`
+
+**Pregunta:** ¿Cómo funciona la app?
+
+**Respuesta:**
+La app funciona como una audioguía interactiva. Te guía de parada en parada por Valencia usando el GPS de tu teléfono. Al llegar a cada punto, se reproduce un audio con información sobre el lugar y aparece un reto que tienes que resolver para continuar.
+
+No necesitas descargar nada de la tienda de aplicaciones — funciona directamente desde el navegador de tu teléfono.
+
+**Imagen:** null
+
+---
+
+##### `APP_SEGUNDO_PLANO`
+
+**Pregunta:** ¿La app funciona con la pantalla apagada?
+
+**Respuesta:**
+El GPS puede seguir funcionando con la pantalla apagada, pero el audio puede pausarse según tu teléfono y sistema operativo.
+
+Para que funcione mejor: mantén la pantalla encendida mientras caminas entre paradas, o activa el modo de pantalla siempre encendida en los ajustes si tu batería lo permite. Algunos teléfonos también permiten que la app siga activa en segundo plano desde los ajustes de batería (permite "actividad en segundo plano" para tu navegador).
+
+**Imagen:** null
+
+---
+
+##### `SIN_CONEXION`
+
+**Pregunta:** ¿Funciona sin internet?
+
+**Respuesta:**
+La app funciona sin internet después de la primera carga. Los mapas, audios y contenidos se guardan en tu teléfono la primera vez que los abres con conexión.
+
+Para garantizarlo, abre la app con WiFi o datos antes de empezar la ruta. A partir de ese momento puedes desactivar los datos móviles si lo prefieres — todo seguirá funcionando.
+
+Si una parada nueva carga por primera vez (audio o mapa no visitado antes) sí necesitarás conexión en ese momento.
+
+**Imagen:** null
+
+---
+
+##### `BOTONES_ESTADO`
+
+**Pregunta:** ¿Por qué los botones están desactivados?
+
+**Respuesta:**
+Los botones se activan progresivamente según tu posición:
+
+- **Botón de avanzar (gris)** — todavía no has llegado al punto de destino del tramo o parada actual. Camina hacia él y el botón se activará automáticamente cuando el GPS confirme tu llegada.
+- **Botón de reto (gris)** — el audio de la parada actual aún no ha terminado, o no has llegado todavía.
+- **Todos los botones desactivados** — puede que el GPS esté buscando señal. Espera unos segundos a que se estabilice.
+
+Si los botones siguen grises después de llegar al punto y el GPS funciona correctamente, cierra y vuelve a abrir la app.
+
+**Imagen:** null
+
+---
+
+##### `APP_INSTALAR`
+
+**Pregunta:** ¿Puedo instalar la app en mi teléfono?
+
+**Respuesta:**
+Sí. La app se puede instalar como aplicación en tu pantalla de inicio sin necesidad de la tienda de apps:
+
+- **Android (Chrome):** pulsa el menú ⋮ de Chrome → "Añadir a pantalla de inicio" → "Instalar".
+- **iPhone (Safari):** pulsa el botón de compartir 🔲↑ → "Añadir a pantalla de inicio".
+
+Una vez instalada, ábrela desde el icono igual que cualquier app. El contenido descargado permanece disponible offline.
+
+**Imagen:** null
+
+---
+
+##### `APP_MULTIPLES_DISPOSITIVOS`
+
+**Pregunta:** ¿Puedo usar la app en otro teléfono?
+
+**Respuesta:**
+Sí, pero el progreso no se sincroniza entre dispositivos. Cada teléfono guarda su propio progreso de forma independiente.
+
+Si abres la app con el mismo código en un segundo teléfono, empezarás desde el principio. Si quieres continuar donde lo dejaste, usa siempre el mismo dispositivo.
+
+**Imagen:** null
+
+---
+
+#### ⏱️ Tiempo y Recorrido
+
+##### `TIEMPO_AGOTADO`
+
+**Pregunta:** ¿Tengo un tiempo límite por parada?
+
+**Respuesta:**
+No. Puedes quedarte el tiempo que quieras en cada parada — no hay cuenta atrás ni penalización por ir despacio.
+
+Tómate tu tiempo para escuchar el audio, explorar el entorno y resolver el reto con calma.
+
+**Imagen:** null
+
+---
+
+##### `TIEMPO_AVENTURA`
+
+**Pregunta:** ¿Cuánto dura la aventura?
+
+**Respuesta:**
+La duración depende de tu ritmo. Una aventura completa, incluyendo los desplazamientos entre paradas, los audios y los retos, suele llevar entre 2 y 3 horas.
+
+Puedes hacer la aventura en varias sesiones: el progreso se guarda automáticamente y puedes retomarlo cuando quieras.
+
+**Imagen:** null
+
+---
+
+##### `PAUSAS_RUTA`
+
+**Pregunta:** ¿Puedo pausar y continuar más tarde?
+
+**Respuesta:**
+Sí, en cualquier momento. Simplemente cierra la app o apaga el teléfono — el progreso se guarda automáticamente al terminar cada parada.
+
+La próxima vez que abras la app con el mismo código, continúas exactamente donde lo dejaste, en el mismo dispositivo.
+
+**Imagen:** null
+
+---
+
+##### `ACCESO_MONUMENTOS`
+
+**Pregunta:** ¿Tengo que entrar a los monumentos?
+
+**Respuesta:**
+No. La aventura está diseñada para hacerse completamente en el exterior, en las calles y plazas de Valencia. No necesitas entrar a ningún edificio ni comprar entradas.
+
+Puedes disfrutar de los monumentos desde fuera mientras escuchas el audio y resuelves los retos.
+
+**Imagen:** null
+
+---
+
+##### `DURACION_ESTIMADA`
+
+**Pregunta:** ¿Cuánto camino hay en total?
+
+**Respuesta:**
+El recorrido completo tiene una distancia caminable de unos 3 a 4 km en total, dependiendo de la aventura y del camino que elijas entre paradas.
+
+El terreno es completamente llano — Valencia es una ciudad muy plana, ideal para caminar.
+
+**Imagen:** null
+
+---
+
+##### `COMPARTIR_CODIGO`
+
+**Pregunta:** ¿Puedo compartir mi código con alguien?
+
+**Respuesta:**
+El código de acceso es para una sola aventura. Puedes hacer la ruta en grupo con otras personas usando el mismo dispositivo, pero si otra persona quiere su propia experiencia independiente necesitará su propio código de acceso.
+
+**Imagen:** null
+
+---
+
+*Total: 7 temas, 35 intenciones.*
+
+*Intenciones nuevas respecto a las 26 originales (pendientes de añadir a `TEMAS_AGRUPADOS`): `GPS_BAJA_PRECISION`, `AUDIO_REPETIR`, `AUDIO_IDIOMA_CAMBIO`, `MAPA_OFFLINE`, `PROGRESO_PERDIDO`, `CODIGO_CADUCIDAD`, `RETO_CUANTOS`, `RETO_SALTAR`, `APP_INSTALAR`, `APP_MULTIPLES_DISPOSITIVOS`, `DURACION_ESTIMADA`, `COMPARTIR_CODIGO`.*
+
+---
+
 ## 27. Cleanup de listeners en cambio de aventura o modo
 
 ### 27.1 Estado actual (corregido)
