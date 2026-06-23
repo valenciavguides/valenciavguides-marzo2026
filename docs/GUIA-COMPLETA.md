@@ -3135,7 +3135,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo2 → Padre | Usuario fuera del radio de la parada |
 | | `NAVEGACION.ACTUALIZAR_ESTADO` | Padre → Hijo2 | Actualización de estado de navegación |
 | | `NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO` | Sin emisor activo | Handler en padre; ningún hijo lo envía actualmente — handler de `funciones-mapa.js` "MOVIDO A PADRE" pero sin callers en prod |
-| | `NAVEGACION.CENTRAR_EN_UBICACION` | Sin emisor activo → Padre | Handler en padre (`_hdl_NAVEGACION_CENTRAR_EN_UBICACION`); nadie lo envía actualmente — fue movido de `funciones-mapa.js` al padre pero sin callers activos |
+| | `NAVEGACION.CENTRAR_EN_UBICACION` | Sin emisor activo → Padre | Handler en padre (`_hdl_NAVEGACION_CENTRAR_EN_UBICACION`); nadie lo envía actualmente — sin callers activos |
 | | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo2 → Padre | Dibujar polyline hasta el usuario |
 | | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo2 → Padre | Abrir mapa interactivo Leaflet (mapa-completo.html) en overlay |
 | | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo2 → Padre | Mostrar imagen JPG del mapa vintage en overlay |
@@ -4615,7 +4615,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Payload | `{ posicion: {lat,lng}?, paradaActual?, zoom?, suavizado? }` |
 | Handler en padre | `_hdl_NAVEGACION_CENTRAR_EN_UBICACION` L8715 |
 | Acción | Resuelve `posicion` directa o coords de `paradaActual`; llama `funcionesMapa.setMapView` |
-| Nota | El handler fue movido de `funciones-mapa.js` a padre (comentario L3820 funciones-mapa: "MOVIDO A PADRE"); inconsistente con §8.3 ya corregido |
+| Nota | Handler en padre (`_hdl_NAVEGACION_CENTRAR_EN_UBICACION`); sin callers activos. `funciones-mapa.js` L3820 tiene comentario "MOVIDO A PADRE" como referencia |
 
 ---
 
@@ -5265,7 +5265,7 @@ Devuelve el número de mensajes enviados. Internamente itera `hijosConCapability
 | Error de geolocalización en watchPosition | `GPS.ERROR` → destino: 'hijo2' |
 | `desactivarGPS()` | `GPS.ESTADO_ACTUALIZADO` → destino: 'hijo2' |
 
-El doble-broadcast al desactivar GPS (que existía en `_hdl_NAVEGACION_GPS_DESACTIVAR`) ha sido eliminado — `desactivarGPS()` ya notifica a hijo2. GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre recibe desde hijo2.
+`desactivarGPS()` notifica a hijo2 directamente mediante `GPS.ESTADO_ACTUALIZADO` — `_hdl_NAVEGACION_GPS_DESACTIVAR` no envía notificación adicional. GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre recibe desde hijo2.
 
 ---
 
@@ -5384,7 +5384,7 @@ Hay cinco puntos donde un hijo accede directamente a propiedades o métodos del 
 
 **Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html:1526` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
 
-**Acceso inverso (padre → hijo, contentDocument):** `_injectParadasStyle` inyecta CSS directamente en el documento de hijo5 (`iframe.contentDocument` → inserción de `<style id='vv-hijo5-paradas-fix-style'>`). Es el único caso de manipulación DOM directa entre ventanas en la app. La rama `reapplyParadasStyle` (función que nunca existió en hijo5) fue eliminada como código muerto.
+**Acceso inverso (padre → hijo, contentDocument):** `_injectParadasStyle` inyecta CSS directamente en el documento de hijo5 (`iframe.contentDocument` → inserción de `<style id='vv-hijo5-paradas-fix-style'>`). Es el único caso de manipulación DOM directa entre ventanas en la app.
 
 ---
 
@@ -8608,7 +8608,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, asyn
 });
 ```
 
-#### Archivos modificados
+#### Archivos con sistema de reintentos
 
 - `retos-hijo4.html` — Líneas 1311-1315 (variables), 1315-1346 (reenvío), 1354-1359 (limpieza)
 - `audio-hijo3.html` — Líneas 1184-1188 (variables), 1195-1226 (reenvío), 1247-1252 (limpieza)
@@ -9153,20 +9153,21 @@ Cuando se completa la parada (condiciones `pending.llegada + pending.audio + ret
 
 ### 28.8 Comportamiento de botones en modo CASA
 
-**Verificación realizada:**
+Estado de botones por hijo en modo CASA:
+
 - **Hijo 2 (coordenadas-hijo2.html):**
   - Botones habilitados: imagen, mapa completo, mapa jpg
-  - Botones deshabilitados: `btnAvanzar` (antes "botón GPS"), ubicación
+  - Botones deshabilitados: `btnAvanzar`, ubicación
 - **Hijo 3 (audio-hijo3.html):**
-  - Botón audio: habilitado (sin restricción específica en modo CASA)
+  - Botón audio: habilitado (sin restricción en modo CASA)
 - **Hijo 4 (retos-hijo4.html):**
   - Botón retos: controlado por `RETO.ESTADO_CASA` (habilitado solo en paradas **con reto**, oculto en tramos y en paradas sin reto)
 
-### 28.9 Resumen de archivos modificados
+### 28.9 Archivos con lógica de restricciones GPS
 
-1. **js/config.js**: Parámetros GPS actualizados
+1. **js/config.js**: Parámetros GPS
 2. **codigo-padre.html**: Estado GPS, lógica de botones de avance y retos
-3. **js/constants.js**: Nuevos tipos de mensaje (RETO.HABILITAR, RETO.ESTADO_CASA)
+3. **js/constants.js**: Tipos de mensaje RETO.HABILITAR, RETO.ESTADO_CASA
 4. **js/funciones-mapa.js**: Estado GPS visual y sincronización interna
 5. **retos-hijo4.html**: Handlers RETO.HABILITAR y RETO.ESTADO_CASA
 
