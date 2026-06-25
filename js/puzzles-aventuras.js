@@ -75,10 +75,6 @@ export const PUZZLES_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
     },
     {
-        id: "PZ-17",
-        imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
-    },
-    {
         id: "PZ-18",
         imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg",
     },

@@ -4796,7 +4796,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-es", audio_id: "audio-intro-es", reto_id: "R2-Av4-es" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-es", audio_id: "audio-Av4-P-0-es", reto_id: "R3-Av4-es" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-es", audio_id: "audio-Av4-TR-1-es" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-es", audio_id: "audio-Av4-P-1-es", reto_id: "R4-Av4-es" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-es", audio_id: "audio-Av4-P-1-es", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-es", audio_id: "audio-Av4-TR-2-es" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-es", audio_id: "audio-Av4-P-2-es", reto_id: "R5-Av4-es" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-es", audio_id: "audio-Av4-P-3-es", reto_id: "R6-Av4-es" },
@@ -4867,7 +4867,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-en", audio_id: "audio-intro-en", reto_id: "R2-Av4-en" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-en", audio_id: "audio-Av4-P-0-en", reto_id: "R3-Av4-en" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-en", audio_id: "audio-Av4-TR-1-en" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-en", audio_id: "audio-Av4-P-1-en", reto_id: "R4-Av4-en" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-en", audio_id: "audio-Av4-P-1-en", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-en", audio_id: "audio-Av4-TR-2-en" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-en", audio_id: "audio-Av4-P-2-en", reto_id: "R5-Av4-en" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-en", audio_id: "audio-Av4-P-3-en", reto_id: "R6-Av4-en" },
@@ -4938,7 +4938,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-fr", audio_id: "audio-intro-fr", reto_id: "R2-Av4-fr" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-fr", audio_id: "audio-Av4-P-0-fr", reto_id: "R3-Av4-fr" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-fr", audio_id: "audio-Av4-TR-1-fr" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-fr", audio_id: "audio-Av4-P-1-fr", reto_id: "R4-Av4-fr" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-fr", audio_id: "audio-Av4-P-1-fr", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-fr", audio_id: "audio-Av4-TR-2-fr" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-fr", audio_id: "audio-Av4-P-2-fr", reto_id: "R5-Av4-fr" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-fr", audio_id: "audio-Av4-P-3-fr", reto_id: "R6-Av4-fr" },
@@ -5009,7 +5009,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-it", audio_id: "audio-intro-it", reto_id: "R2-Av4-it" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-it", audio_id: "audio-Av4-P-0-it", reto_id: "R3-Av4-it" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-it", audio_id: "audio-Av4-TR-1-it" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-it", audio_id: "audio-Av4-P-1-it", reto_id: "R4-Av4-it" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-it", audio_id: "audio-Av4-P-1-it", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-it", audio_id: "audio-Av4-TR-2-it" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-it", audio_id: "audio-Av4-P-2-it", reto_id: "R5-Av4-it" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-it", audio_id: "audio-Av4-P-3-it", reto_id: "R6-Av4-it" },
@@ -5080,7 +5080,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-nl", audio_id: "audio-intro-nl", reto_id: "R2-Av4-nl" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-nl", audio_id: "audio-Av4-P-0-nl", reto_id: "R3-Av4-nl" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-nl", audio_id: "audio-Av4-TR-1-nl" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-nl", audio_id: "audio-Av4-P-1-nl", reto_id: "R4-Av4-nl" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-nl", audio_id: "audio-Av4-P-1-nl", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-nl", audio_id: "audio-Av4-TR-2-nl" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-nl", audio_id: "audio-Av4-P-2-nl", reto_id: "R5-Av4-nl" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-nl", audio_id: "audio-Av4-P-3-nl", reto_id: "R6-Av4-nl" },
@@ -5151,7 +5151,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-ja", audio_id: "audio-intro-ja", reto_id: "R2-Av4-ja" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-ja", audio_id: "audio-Av4-P-0-ja", reto_id: "R3-Av4-ja" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-ja", audio_id: "audio-Av4-TR-1-ja" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-ja", audio_id: "audio-Av4-P-1-ja", reto_id: "R4-Av4-ja" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-ja", audio_id: "audio-Av4-P-1-ja", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-ja", audio_id: "audio-Av4-TR-2-ja" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-ja", audio_id: "audio-Av4-P-2-ja", reto_id: "R5-Av4-ja" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-ja", audio_id: "audio-Av4-P-3-ja", reto_id: "R6-Av4-ja" },
@@ -5222,7 +5222,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-de", audio_id: "audio-intro-de", reto_id: "R2-Av4-de" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-de", audio_id: "audio-Av4-P-0-de", reto_id: "R3-Av4-de" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-de", audio_id: "audio-Av4-TR-1-de" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-de", audio_id: "audio-Av4-P-1-de", reto_id: "R4-Av4-de" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-de", audio_id: "audio-Av4-P-1-de", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-de", audio_id: "audio-Av4-TR-2-de" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-de", audio_id: "audio-Av4-P-2-de", reto_id: "R5-Av4-de" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-de", audio_id: "audio-Av4-P-3-de", reto_id: "R6-Av4-de" },
@@ -5293,7 +5293,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-zh", audio_id: "audio-intro-zh", reto_id: "R2-Av4-zh" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-zh", audio_id: "audio-Av4-P-0-zh", reto_id: "R3-Av4-zh" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-zh", audio_id: "audio-Av4-TR-1-zh" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-zh", audio_id: "audio-Av4-P-1-zh", reto_id: "R4-Av4-zh" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-zh", audio_id: "audio-Av4-P-1-zh", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-zh", audio_id: "audio-Av4-TR-2-zh" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-zh", audio_id: "audio-Av4-P-2-zh", reto_id: "R5-Av4-zh" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-zh", audio_id: "audio-Av4-P-3-zh", reto_id: "R6-Av4-zh" },
@@ -5364,7 +5364,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-pl", audio_id: "audio-intro-pl", reto_id: "R2-Av4-pl" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-pl", audio_id: "audio-Av4-P-0-pl", reto_id: "R3-Av4-pl" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-pl", audio_id: "audio-Av4-TR-1-pl" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-pl", audio_id: "audio-Av4-P-1-pl", reto_id: "R4-Av4-pl" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-pl", audio_id: "audio-Av4-P-1-pl", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-pl", audio_id: "audio-Av4-TR-2-pl" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-pl", audio_id: "audio-Av4-P-2-pl", reto_id: "R5-Av4-pl" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-pl", audio_id: "audio-Av4-P-3-pl", reto_id: "R6-Av4-pl" },
@@ -5435,7 +5435,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-pt", audio_id: "audio-intro-pt", reto_id: "R2-Av4-pt" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-pt", audio_id: "audio-Av4-P-0-pt", reto_id: "R3-Av4-pt" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-pt", audio_id: "audio-Av4-TR-1-pt" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-pt", audio_id: "audio-Av4-P-1-pt", reto_id: "R4-Av4-pt" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-pt", audio_id: "audio-Av4-P-1-pt", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-pt", audio_id: "audio-Av4-TR-2-pt" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-pt", audio_id: "audio-Av4-P-2-pt", reto_id: "R5-Av4-pt" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-pt", audio_id: "audio-Av4-P-3-pt", reto_id: "R6-Av4-pt" },
@@ -5506,7 +5506,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-ru", audio_id: "audio-intro-ru", reto_id: "R2-Av4-ru" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-ru", audio_id: "audio-Av4-P-0-ru", reto_id: "R3-Av4-ru" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-ru", audio_id: "audio-Av4-TR-1-ru" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-ru", audio_id: "audio-Av4-P-1-ru", reto_id: "R4-Av4-ru" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-ru", audio_id: "audio-Av4-P-1-ru", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-ru", audio_id: "audio-Av4-TR-2-ru" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-ru", audio_id: "audio-Av4-P-2-ru", reto_id: "R5-Av4-ru" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-ru", audio_id: "audio-Av4-P-3-ru", reto_id: "R6-Av4-ru" },
@@ -5577,7 +5577,7 @@ export const DATOS_PADRE = {
         { padreid: "padre-intro", tipo: "intro", nombre: "Intro", parada_id: "intro", numero_mapa: null, texto_id: "txt-intro-uk", audio_id: "audio-intro-uk", reto_id: "R2-Av4-uk" },
         { padreid: "padre-P0", tipo: "inicio", nombre: "Torres de Serranos (start)", parada_id: "Av4-P-0", numero_mapa: 1, texto_id: "txt-Av4-P0-uk", audio_id: "audio-Av4-P-0-uk", reto_id: "R3-Av4-uk" },
         { padreid: "padre-TR1", tipo: "tramo", nombre: "Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)", tramo_id: "Av4-TR-1", numero_mapa: "1→2", texto_id: "txt-Av4-TR1-uk", audio_id: "audio-Av4-TR-1-uk" },
-        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-uk", audio_id: "audio-Av4-P-1-uk", reto_id: "R4-Av4-uk" },
+        { padreid: "padre-P1", tipo: "parada", nombre: "Museo de Corpus Christi (Casa de las Rocas)", parada_id: "Av4-P-1", numero_mapa: 2, texto_id: "txt-Av4-P1-uk", audio_id: "audio-Av4-P-1-uk", reto_id: "PZ-18" },
         { padreid: "padre-TR2", tipo: "tramo", nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)", tramo_id: "Av4-TR-2", numero_mapa: "2→3", texto_id: "txt-Av4-TR2-uk", audio_id: "audio-Av4-TR-2-uk" },
         { padreid: "padre-P2", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)", parada_id: "Av4-P-2", numero_mapa: 3, texto_id: "txt-Av4-P2-uk", audio_id: "audio-Av4-P-2-uk", reto_id: "R5-Av4-uk" },
         { padreid: "padre-P3", tipo: "parada", nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) 2", parada_id: "Av4-P-3", numero_mapa: 3, texto_id: "txt-Av4-P3-uk", audio_id: "audio-Av4-P-3-uk", reto_id: "R6-Av4-uk" },
@@ -6526,7 +6526,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-es", audio_id: "audio-AvFallas-P-18-es", reto_id: "R14-AvFallas-es" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-es", audio_id: "audio-AvFallas-TR-11-es" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-es", audio_id: "audio-AvFallas-TR-11-es" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-es", audio_id: "audio-AvFallas-P-19-es", reto_id: "R15-AvFallas-es" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -6626,7 +6626,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-en", audio_id: "audio-AvFallas-P-18-en", reto_id: "R14-AvFallas-en" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-en", audio_id: "audio-AvFallas-TR-11-en" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-en", audio_id: "audio-AvFallas-TR-11-en" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-en", audio_id: "audio-AvFallas-P-19-en", reto_id: "R15-AvFallas-en" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -6726,7 +6726,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-fr", audio_id: "audio-AvFallas-P-18-fr", reto_id: "R14-AvFallas-fr" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-fr", audio_id: "audio-AvFallas-TR-11-fr" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-fr", audio_id: "audio-AvFallas-TR-11-fr" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-fr", audio_id: "audio-AvFallas-P-19-fr", reto_id: "R15-AvFallas-fr" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -6826,7 +6826,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-it", audio_id: "audio-AvFallas-P-18-it", reto_id: "R14-AvFallas-it" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-it", audio_id: "audio-AvFallas-TR-11-it" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-it", audio_id: "audio-AvFallas-TR-11-it" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-it", audio_id: "audio-AvFallas-P-19-it", reto_id: "R15-AvFallas-it" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -6926,7 +6926,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-nl", audio_id: "audio-AvFallas-P-18-nl", reto_id: "R14-AvFallas-nl" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-nl", audio_id: "audio-AvFallas-TR-11-nl" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-nl", audio_id: "audio-AvFallas-TR-11-nl" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-nl", audio_id: "audio-AvFallas-P-19-nl", reto_id: "R15-AvFallas-nl" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -7026,7 +7026,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-ja", audio_id: "audio-AvFallas-P-18-ja", reto_id: "R14-AvFallas-ja" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-ja", audio_id: "audio-AvFallas-TR-11-ja" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-ja", audio_id: "audio-AvFallas-TR-11-ja" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-ja", audio_id: "audio-AvFallas-P-19-ja", reto_id: "R15-AvFallas-ja" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -7126,7 +7126,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-de", audio_id: "audio-AvFallas-P-18-de", reto_id: "R14-AvFallas-de" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-de", audio_id: "audio-AvFallas-TR-11-de" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-de", audio_id: "audio-AvFallas-TR-11-de" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-de", audio_id: "audio-AvFallas-P-19-de", reto_id: "R15-AvFallas-de" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -7226,7 +7226,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-zh", audio_id: "audio-AvFallas-P-18-zh", reto_id: "R14-AvFallas-zh" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-zh", audio_id: "audio-AvFallas-TR-11-zh" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-zh", audio_id: "audio-AvFallas-TR-11-zh" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-zh", audio_id: "audio-AvFallas-P-19-zh", reto_id: "R15-AvFallas-zh" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -7326,7 +7326,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-pl", audio_id: "audio-AvFallas-P-18-pl", reto_id: "R14-AvFallas-pl" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-pl", audio_id: "audio-AvFallas-TR-11-pl" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-pl", audio_id: "audio-AvFallas-TR-11-pl" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-pl", audio_id: "audio-AvFallas-P-19-pl", reto_id: "R15-AvFallas-pl" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -7426,7 +7426,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-pt", audio_id: "audio-AvFallas-P-18-pt", reto_id: "R14-AvFallas-pt" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-pt", audio_id: "audio-AvFallas-TR-11-pt" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-pt", audio_id: "audio-AvFallas-TR-11-pt" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-pt", audio_id: "audio-AvFallas-P-19-pt", reto_id: "R15-AvFallas-pt" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -7526,7 +7526,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-ru", audio_id: "audio-AvFallas-P-18-ru", reto_id: "R14-AvFallas-ru" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-ru", audio_id: "audio-AvFallas-TR-11-ru" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-ru", audio_id: "audio-AvFallas-TR-11-ru" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-ru", audio_id: "audio-AvFallas-P-19-ru", reto_id: "R15-AvFallas-ru" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
@@ -7626,7 +7626,7 @@ export const DATOS_PADRE = {
         // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
         {padreid: "padre-P18", tipo: "parada", nombre: "Edificio Suay - La Equitativa", parada_id: "AvFallas-P-18", numero_mapa: 14, texto_id: "txt-AvFallas-P18-uk", audio_id: "audio-AvFallas-P-18-uk", reto_id: "R14-AvFallas-uk" },
         // AvFallas-TR-11
-        {padreid: "padre-TR11", tipo: "tramo", nombre: "Tramo 11", tramo_id: "AvFallas-TR-11", numero_mapa: null, texto_id: "txt-AvFallas-TR11-uk", audio_id: "audio-AvFallas-TR-11-uk" },
+        {padreid: "padre-TR11", tipo: "tramo", nombre: "Palacio de Comunicaciones → Mercado Central", tramo_id: "AvFallas-TR-11", numero_mapa: "14→15", texto_id: "txt-AvFallas-TR11-uk", audio_id: "audio-AvFallas-TR-11-uk" },
         // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
         {padreid: "padre-P19", tipo: "parada", nombre: "Mercado central", parada_id: "AvFallas-P-19", numero_mapa: 15, texto_id: "txt-AvFallas-P19-uk", audio_id: "audio-AvFallas-P-19-uk", reto_id: "R15-AvFallas-uk" },
         // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)

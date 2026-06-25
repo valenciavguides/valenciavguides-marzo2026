@@ -307,7 +307,30 @@ sequenceDiagram
     P->>P: Ocultar overlays GPS (hideNextEntityOverlay + hideGpsOutOfRangeOverlay)
     HH-->>P: CAMBIO_MODO_EFECTUADO
     Note over P,HH: GPS watchPosition sigue activo<br/>pero sin validar distancias ni emitir CAMBIO_PARADA
+    P->>P: funciones-mapa.js limpiarPorEstado(resetCompleto:true)<br/>→ limpiarRecursos(): polylines, marcadores, rutas activas<br/>→ setMapView a CENTRO_DEFECTO + ZOOM_INICIAL
 ```
+
+**Implementación de `limpiarPorEstado`**: `cambiarModo()` en `funciones-mapa.js`
+asigna `estadoMapa.modo = modo` **antes** de llamar a `limpiarPorEstado`. Sin el
+parámetro explícito `resetCompleto: true`, la comprobación interna
+`modo !== estadoMapa.modo` siempre sería falsa (ya son iguales) y la rama de
+limpieza de capas nunca se ejecutaría. La corrección captura el modo anterior en
+`modoAnterior` antes de actualizar el estado:
+`limpiarPorEstado({ modo, resetCompleto: modoAnterior !== modo })`.
+
+**Estado en memoria durante CASA**: el borrado de localStorage afecta solo a la
+persistencia. El estado en memoria de `codigo-padre.html` (`estadoPadre.paradaActual`,
+`paradasCompletadas`, `elementoActual`) **no se limpia** al pasar a CASA. Mientras
+el usuario no recargue la página, ese estado sigue presente.
+
+**Retorno a AVENTURA (misma sesión)**: al reactivar el GPS,
+`_activarParadaDefectoAventura()` envía `CAMBIO_PARADA` para padre-P-0. El GPS
+detectará la posición real del usuario y emitirá el siguiente `CAMBIO_PARADA`
+automáticamente. El progreso visual (`paradasCompletadas`) se mantiene desde memoria.
+
+**Retorno a AVENTURA (sesión nueva — app cerrada en CASA)**: el localStorage fue
+borrado. El progreso se pierde. No hay mecanismo de recuperación entre sesiones
+cuando la app se cierra en modo CASA.
 
 ---
 
@@ -423,6 +446,8 @@ sequenceDiagram
 | `activarGPS()` | 4895 | Inicia `watchPosition` (con mutex anti-duplicado) |
 | `desactivarGPS()` | 4982 | Llama `clearWatch()` |
 | `ejecutarRestauracionAventura()` | 4152 | Restaura sesión desde `localStorage` |
+| `cambiarModo(modo)` | `js/funciones-mapa.js` | Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
+| `limpiarPorEstado({ modo, resetCompleto })` | `js/funciones-mapa.js` | Elimina capas Leaflet activas (polylines, marcadores, rutas) y restablece la vista a `CENTRO_DEFECTO` / `ZOOM_INICIAL`. `resetCompleto:true` es obligatorio cuando se llama tras un cambio de modo, porque en ese punto `estadoMapa.modo` ya fue actualizado y la comprobación interna fallaría sin el flag explícito. |
 
 ---
 
@@ -1781,7 +1806,7 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
     gpsPendientes: [],            // dentro del mutex 'heartbeat'
 
     // Promesas de carga de hijos
-    hijosListosPromises: Map      // id → { promise, resolve, reject }
+    hijosListosPromises: Map      // id → { promise, resolve, reject, timeout }
 }
 ```
 
@@ -3660,7 +3685,28 @@ Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { eve
 
 #### 9.2.4 estado.paradasCompletadas
 
-`Map<string, timestamp>` donde la clave es el `parada_id` o `tramo_id` limpio (sin el prefijo `"padre-"`). Se persiste en `localStorage['vv_paradas_completadas']` como un objeto JSON.
+`Map<string, Object>` donde la clave es el `parada_id` o `tramo_id` limpio
+(sin el prefijo `"padre-"`). El valor es un registro
+`{ paradaId, padreId, origen, coordenadas, distancia, causa, timestamp }`.
+
+**Serialización en localStorage**: se guarda como `[...Map.entries()]` — un
+array de pares `[clave, valor]`, no un objeto plano. El formato en disco es:
+
+```json
+[["parada-1", {"paradaId":"parada-1","timestamp":...}], ["parada-2", {...}]]
+```
+
+**Restauración**: el JSON parseado ya es un array de `[clave, valor]`, que el
+constructor `new Map(array)` acepta directamente. No usar `Object.entries()`
+sobre el array — produciría claves numéricas `'0'`, `'1'`... en lugar de los
+IDs de parada, rompiendo el dedup de `marcarParadaCompletada`.
+La restauración en `ejecutarRestauracionAventura` usa la forma defensiva:
+
+```js
+Array.isArray(paradasObj)
+  ? new Map(paradasObj)
+  : new Map(Object.entries(paradasObj))
+```
 
 ---
 
@@ -5021,7 +5067,7 @@ Los puzzles son un subtipo de reto con mecánica especial. Usan `puzzle.html` em
 puzzle.html finaliza
   → parent.postMessage({ tipo:'PUZZLE.COMPLETADO', ... })  (raw, fuera del bus)
 hijo4 L1188 lo escucha via globalThis.addEventListener('message')
-  → verifica event.source === globalThis.frames[0]
+  → verifica event.source === document.getElementById('puzzleIframe')?.contentWindow
   → si COMPLETADO: añade clase 'correct', llama fuegosArtificiales()
   → envía RETO.COMPLETADO al padre via bus
 padre _hdl_RETO_COMPLETADO L8465
@@ -5281,7 +5327,7 @@ Devuelve el número de mensajes enviados. Internamente itera `hijosConCapability
 | `idioma_seleccionado` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
 | `idioma` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
 | `vv_aventura` | padre | — | ID de aventura: `'Aventura1'`, etc. | `limpiarDatosAventura()` |
-| `vv_paradas_completadas` | padre | padre al restaurar | JSON con paradas completadas de la sesión | `limpiarDatosAventura()` |
+| `vv_paradas_completadas` | padre | padre al restaurar | Array de pares `[[id, registro], ...]` — formato nativo de `Map.entries()`. Se restaura con `new Map(paradasObj)`, **no** con `Object.entries()` (este último produce claves numéricas y rompe el dedup). | `limpiarDatosAventura()` |
 | `vv_debug` | Manual (DevTools) | `js/proteccion.js` | `'1'` = modo debug activo (desactiva algunas protecciones) | Manual |
 | `vv_hard_protect` | Manual (DevTools) | `js/proteccion.js` | `'1'` = protección fuerte de contenido activa | Manual |
 | `vv_debug_verbose` | `js/suppress-warnings.js` | `js/suppress-warnings.js` | `'1'` o `'true'` = conservar trazas completas de `console.debug` | — |
@@ -5376,11 +5422,15 @@ Hay cinco puntos donde un hijo accede directamente a propiedades o métodos del 
 |---------|----------|----------------------------|----------------------|
 | `puzzle.html` | 142 | `parent.__vv_aventuraActual` | Fallback 1: aventura activa si no hay `?aventura=` en URL |
 | `puzzle.html` | 153 | `parent.aventuraSeleccionada` | Fallback 2: si fallback 1 falla → último recurso antes de usar `'Aventura1'` |
-| `coordenadas-hijo2.html` | 1539 | `parent.estadoPadre.elementoActual` | Obtener parada/tramo actual al pulsar "volver a ruta" |
 | `coordenadas-hijo2.html` | 1585, 1615 | `parent.aventuraSeleccionada` | Fallback de aventura al abrir mapa completo o mapa vintage (si `globalThis.__vv_aventuraActual` no está en hijo2) |
 | `chat-hijo6.html` | 200 | `parent.cerrarChatSoporte()` | Llamada directa a función expuesta por padre (documentado en §10.8) |
 
-**Por qué existen estos accesos directos**: los datos `__vv_aventuraActual` y `estadoPadre.elementoActual` se publican en `window` del padre como propiedades globales. Los iframes los leen directamente como optimización de arranque (disponibles síncronamente sin esperar un mensaje). El bus es el canal principal; estos accesos directos son fallbacks de último recurso cuando el bus aún no ha transmitido el dato.
+**Por qué existen estos accesos directos**: los datos `__vv_aventuraActual`
+y `aventuraSeleccionada` se publican en `window` del padre como propiedades
+globales. Los iframes los leen directamente como optimización de arranque
+(disponibles síncronamente sin esperar un mensaje). El bus es el canal
+principal; estos accesos directos son fallbacks de último recurso cuando el
+bus aún no ha transmitido el dato.
 
 **Propiedad expuesta explícitamente por el padre**: `cerrarChatSoporte()` se asigna en `codigo-padre.html:1526` como `globalThis.cerrarChatSoporte = function() {...}` para que hijo6 la pueda llamar directamente. El resto de accesos leen estado pasivo, no llaman funciones del padre.
 
@@ -5541,6 +5591,19 @@ El estado GPS tiene una **única fuente de verdad**: el objeto `estadoMapa` dent
 Cada vez que el estado GPS cambia, la función `sincronizarEstadoGPSConPadre()` copia los valores relevantes a `window.estadoPadre.gps`. Esto permite que el resto del código del padre acceda al estado GPS mediante `window.estadoPadre.gps` sin acceder directamente a las variables internas de `funciones-mapa.js`.
 
 No existe una tercera copia en `state-manager.js` — la única sincronización es `funciones-mapa.js → window.estadoPadre.gps`.
+
+### Limpieza del mapa en cambio de modo (AVENTURA → CASA)
+
+Al pasar a CASA, `limpiarPorEstado({ modo, resetCompleto: true })` en
+`funciones-mapa.js` elimina todas las capas activas (polylines de ruta,
+marcadores de parada, referencias visuales) y restablece la vista al centro y
+zoom por defecto (`CONFIG.MAPA.CENTRO_DEFECTO`, `CONFIG.MAPA.ZOOM_INICIAL`).
+
+El parámetro `resetCompleto` debe pasarse explícitamente porque `estadoMapa.modo`
+ya ha sido actualizado al momento de la llamada — la comprobación interna
+`modo !== estadoMapa.modo` devolvería `false` sin él y las capas no se limpiarían.
+`cambiarModo()` captura `const modoAnterior = estadoMapa.modo` antes de
+actualizar el estado para calcular el flag correctamente.
 
 > **Nota de diseño — hub + adaptador, no duplicación.**
 > `activarGPS()` / `desactivarGPS()` en `codigo-padre.html` son el **hub**: la única implementación real que llama a `navigator.geolocation.watchPosition`. `manejarGPSActivar()` / `manejarGPSDesactivar()` en `funciones-mapa.js` son el **adaptador**: detectan si están en el padre (`window.parent === window`) y delegan al hub, o si están en un iframe, envían postMessage al padre para que el hub actúe. No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento.
@@ -5992,7 +6055,14 @@ No hay requisito de audio. El reto se habilita por posición en la ruta (parada 
 6. Usuario responde → `RETO.COMPLETADO` → mismo comportamiento de cola que en AVENTURA.
 7. Usuario pulsa `#btnNextAfterReto` → `RETO.OCULTAR` a padre. hijo4 vuelve a mostrar `#botonRetos`.
 
-**Diferencia clave**: en AVENTURA el gatillo es el fin del audio (hijo3 → `retosBtn`); en CASA el gatillo es la posición en ruta (padre → `RETO.ESTADO_CASA`). A partir del paso 5/4 respectivamente, el flujo es idéntico en ambos modos.
+**Diferencia clave**: en AVENTURA el gatillo es el fin del audio (hijo3 →
+`retosBtn`); en CASA el gatillo es la posición en ruta (padre →
+`RETO.ESTADO_CASA`). A partir del paso 5/4 respectivamente, el flujo es
+idéntico en ambos modos.
+
+**Decisión de diseño — sin retroceso**: hijo4 no permite volver a un reto ya
+completado. La navegación de retos es estrictamente secuencial hacia adelante.
+No existe botón "volver" ni historial de retos en la sesión.
 
 ### Los puzzles
 

@@ -172,9 +172,9 @@ export const CONFIG = {
             lng: -0.3763
         },
         
-        /** Estilo del mapa */
-        ESTILO: 'mapbox://styles/mapbox/streets-v11',
-        
+        /** Mostrar control de zoom en el mapa */
+        ZOOM_CONTROL: true,
+
         /** Duración de animación de vuelo (ms) */
         DURACION_VUELO: 1500
     },

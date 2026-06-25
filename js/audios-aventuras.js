@@ -26662,10 +26662,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-es",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -26992,10 +26992,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-en",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -27322,10 +27322,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-fr",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -27652,10 +27652,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-it",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -27982,10 +27982,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-nl",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -28312,10 +28312,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-ja",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -28642,10 +28642,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-de",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -28972,10 +28972,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-zh",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -29302,10 +29302,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-pl",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -29632,10 +29632,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-pt",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -29962,10 +29962,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-ru",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 
@@ -30292,10 +30292,10 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // AvFallas-TR-11
+      // Tramo 11: Palacio de Comunicaciones → Mercado Central
       {
         id: "audio-AvFallas-TR-11-uk",
-        title: "AvFallas-TR-11",
+        title: "Tramo 11: Palacio de Comunicaciones → Mercado Central",
         file: ""
       },
 

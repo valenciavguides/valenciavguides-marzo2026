@@ -258,6 +258,7 @@ export function crearPromiseHijoListo(hijoId) {
   const entry = {};
   entry.promise = new Promise((resolve, reject) => {
     entry.resolve = resolve;
+    entry.reject = reject;
     entry.timeout = setTimeout(() => {
       state.hijosListosPromises.delete(hijoId);
       reject(new Error(`Timeout esperando HIJO_LISTO de ${hijoId}`));

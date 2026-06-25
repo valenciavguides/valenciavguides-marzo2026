@@ -682,6 +682,7 @@ export const DATOS_AVENTURAS = {
         nombre: "Estación del Norte",
         coordenadas: { lat: Number('39.467220'), lng: Number('-0.377020') },
         imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
+        imagen2:"imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
     },
 
     // Tramo 11: Estación del Norte - Tren → Plaza de Toros de València (Párrafos: 20-C)
@@ -6974,7 +6975,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 11, // De mapa número 14 a mapa número 15
         mapa_numero: "14→15",
-        nombre: "Palacio de Comunicaciones → Banco de València",
+        nombre: "Palacio de Comunicaciones → Mercado Central",
         inicio: { lat: Number('39.469610'), lng: Number('-0.375680') },
         waypoints: [
             { lat: Number('39.470272'), lng: Number('-0.375873') },

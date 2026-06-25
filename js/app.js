@@ -573,8 +573,8 @@ async function _limpiarMapaTrasMode(modoNormalized, logPrefix) {
                 logger.debug(`${logPrefix} Capas del mapa limpiadas para modo ${modoNormalized}`);
             }
             if (typeof globalThis.funcionesMapa.setMapView === 'function') {
-                const defaultCenter = CONFIG?.MAPA?.CENTER || [39.4699, -0.3763];
-                const defaultZoom = (typeof CONFIG?.MAPA?.ZOOM === 'number') ? CONFIG.MAPA.ZOOM : 13;
+                const defaultCenter = CONFIG?.MAPA?.CENTRO_DEFECTO || [39.4699, -0.3763];
+                const defaultZoom = (typeof CONFIG?.MAPA?.ZOOM_INICIAL === 'number') ? CONFIG.MAPA.ZOOM_INICIAL : 13;
                 await globalThis.funcionesMapa.setMapView(defaultCenter, defaultZoom, { animate: true, duration: 0.6 });
                 logger.debug(`${logPrefix} Vista del mapa restaurada a zoom ${defaultZoom}`);
             }

@@ -1041,10 +1041,10 @@ export async function inicializarMapa(config = {}) {
 
     // Create new map instance
     const mapa = L.map(containerId, {
-        center: CONFIG.MAPA.CENTER,
-        zoom: CONFIG.MAPA.ZOOM,
-        minZoom: CONFIG.MAPA.MIN_ZOOM,
-        maxZoom: CONFIG.MAPA.MAX_ZOOM,
+        center: CONFIG.MAPA.CENTRO_DEFECTO,
+        zoom: CONFIG.MAPA.ZOOM_INICIAL,
+        minZoom: CONFIG.MAPA.ZOOM_MIN,
+        maxZoom: CONFIG.MAPA.ZOOM_MAX,
         zoomControl: CONFIG.MAPA.ZOOM_CONTROL
     });
 
@@ -3097,14 +3097,16 @@ async function manejarCambioModoMapa(mensaje) {
         // En modo CASA, el GPS permanece activo pero sin validaciones de distancia
 
         // Aplicar cambios según el modo usando la lógica existente de limpiarPorEstado
-        const limpiado = limpiarPorEstado({ modo });
+        // resetCompleto=true cuando hay cambio real de modo, porque estadoMapa.modo ya
+        // fue actualizado arriba y la comparación interna de limpiarPorEstado no lo detectaría
+        const limpiado = limpiarPorEstado({ modo, resetCompleto: modoAnterior !== modo });
         
         logger.info(`${logPrefix} DEBUG: Cambio de modo ${modoAnterior} -> ${modo}, limpiado=${limpiado}`);
         
         // Restaurar la vista del mapa al centro/zoom por defecto (CONFIG.MAPA)
         try {
-            const defaultCenter = CONFIG?.MAPA?.CENTER ?? [39.4699, -0.3763];
-            const defaultZoom = (typeof CONFIG?.MAPA?.ZOOM === 'number') ? CONFIG.MAPA.ZOOM : 13;
+            const defaultCenter = CONFIG?.MAPA?.CENTRO_DEFECTO ?? [39.4699, -0.3763];
+            const defaultZoom = (typeof CONFIG?.MAPA?.ZOOM_INICIAL === 'number') ? CONFIG.MAPA.ZOOM_INICIAL : 13;
             logger.debug(`${logPrefix} Restaurando vista por defecto: center=${JSON.stringify(defaultCenter)}, zoom=${defaultZoom}`);
             // Usar setMapView para garantizar normalización/validación
             await setMapView(defaultCenter, defaultZoom, { animate: true, duration: 0.6 });

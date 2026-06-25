@@ -4403,7 +4403,11 @@
                     if (paradasRaw) {
                         const paradasObj = JSON.parse(paradasRaw);
                         if (paradasObj && typeof paradasObj === 'object') {
-                            estado.paradasCompletadas = new Map(Object.entries(paradasObj));
+                            // paradasObj es un array [[id, registro], ...] — Map() lo acepta directamente.
+                            // Object.entries() sobre un array produce claves '0','1'... en lugar de los IDs reales.
+                            estado.paradasCompletadas = Array.isArray(paradasObj)
+                                ? new Map(paradasObj)
+                                : new Map(Object.entries(paradasObj));
                             (globalThis.logger || console).info(`${logPrefix} ✅ ${estado.paradasCompletadas.size} paradas completadas restauradas`);
                         }
                     }

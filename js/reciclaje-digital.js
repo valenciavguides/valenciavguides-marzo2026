@@ -120,8 +120,8 @@ export function verificarTimeoutAventura() {
             return false;
         }
         
-        const tiempoMaximoMinutos = metadatos.tiempoEstimado; // 3600 min (60h) o 9000 min (150h)
-        const tiempoMaximoMs = tiempoMaximoMinutos * 60 * 1000;
+        const tiempoMaximoSegundos = metadatos.tiempoEstimado; // 3600 s (1h) o 9000 s (2.5h)
+        const tiempoMaximoMs = tiempoMaximoSegundos * 1000;
         const tiempoTranscurrido = Date.now() - timestamp;
         
         if (tiempoTranscurrido > tiempoMaximoMs) {

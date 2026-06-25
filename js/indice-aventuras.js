@@ -25,7 +25,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'València centro histórico 1',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // minutos
+        tiempoEstimado: 3600, // segundos
         distanciaKm: 4,
         vehiculo: '👣',
         idiomas: {

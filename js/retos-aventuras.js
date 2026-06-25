@@ -1587,15 +1587,15 @@ export const RETOS_AVENTURAS = {
                 correctas: ["1952"]
             },
             {
-                reto: 12,
-                id: "R12-Av1-ja",
+                reto: 13,
+                id: "R13-Av1-ja",
                 tipo: "texto",
                 pregunta: "12. この建物は何年に建てられましたか？ヒント：ファサードの上部を見てください。",
                 correctas: ["1906"]
             },
             {
-                reto: 13,
-                id: "R13-Av1-ja",
+                reto: 14,
+                id: "R14-Av1-ja",
                 tipo: "opcion",
                 pregunta: "13. 内部には何が見えますか？",
                 opciones: ["闘牛場", "ローマ風浴場", "地下鉄駅"],
@@ -1603,14 +1603,14 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 14,
+                reto: 15,
                 id: "PZ-02",
                 tipo: "puzzle",
                 src: "puzzle.html?id=PZ-02"
             },
             {
-                reto: 15,
-                id: "R15-Av1-ja",
+                reto: 16,
+                id: "R16-Av1-ja",
                 tipo: "opcion",
                 pregunta: "15. 形状を判定できますか？",
                 opciones: ["「六角形」,「八角形」,「四角形」r"],
@@ -1618,15 +1618,15 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 16,
-                id: "R16-Av1-ja",
+                reto: 17,
+                id: "R17-Av1-ja",
                 tipo: "texto",
                 pregunta: "16. 門はいくつのアーチで構成されていますか？",
                 correctas: ["6"]
             },
             {
-                reto: 17,
-                id: "R17-Av1-ja",
+                reto: 18,
+                id: "R18-Av1-ja",
                 tipo: "opcion",
                 pregunta: "17. 市章の上にいる動物を覚えていますか？",
                 opciones: ["ドラゴン", "コウモリ", "馬"],
@@ -1634,8 +1634,8 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 18,
-                id: "R18-Av1-ja",
+                reto: 19,
+                id: "R19-Av1-ja",
                 tipo: "opcion",
                 pregunta: "18. 第一の塔のファサードに注目！どの柑橘類が装飾されていますか？",
                 opciones: ["レモン", "グレープフルーツ", "オレンジ"],
@@ -1643,21 +1643,21 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 19,
+                reto: 20,
                 id: "PZ-03",
                 tipo: "puzzle",
                 src: "puzzle.html?id=PZ-03"
             },
             {
-                reto: 20,
-                id: "R20-Av1-ja",
+                reto: 21,
+                id: "R21-Av1-ja",
                 tipo: "texto",
                 pregunta: "20. この建物にはどの商店が入っていますか？",
                 correctas: ["?"]
             },
             {
-                reto: 21,
-                id: "R21-Av1-ja",
+                reto: 22,
+                id: "R22-Av1-ja",
                 tipo: "opcion-multiple",
                 pregunta: "21. 正面入口の上の半円アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
                 opciones: ["たいまつ", "剣", "王冠"],
@@ -1665,8 +1665,8 @@ export const RETOS_AVENTURAS = {
                 multiple: true
             },
             {
-                reto: 22,
-                id: "R22-Av1-ja",
+                reto: 23,
+                id: "R23-Av1-ja",
                 tipo: "opcion",
                 pregunta: "22. この像は手に何を持っていますか？",
                 opciones: ["天秤", "本", "羽ペン"],
@@ -1674,15 +1674,15 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 23,
-                id: "R23-Av1-ja",
+                reto: 24,
+                id: "R24-Av1-ja",
                 tipo: "texto",
                 pregunta: "22. 建物は何階建てですか？",
                 correctas: ["10"]
             },
             {
-                reto: 24,
-                id: "R24-Av1-ja",
+                reto: 25,
+                id: "R25-Av1-ja",
                 tipo: "opcion",
                 pregunta: "23. ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
                 opciones: ["「四角形」,「円形」,「三角形」"],
@@ -1690,8 +1690,8 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 25,
-                id: "R25-Av1-ja",
+                reto: 26,
+                id: "R26-Av1-ja",
                 tipo: "opcion-multiple",
                 pregunta: "24. 聖母は手に何を持っていますか？",
                 opciones: ["ロザリオ", "子供", "王冠"],
@@ -1699,8 +1699,8 @@ export const RETOS_AVENTURAS = {
                 multiple: true
             },
             {
-                reto: 26,
-                id: "R26-Av1-ja",
+                reto: 27,
+                id: "R27-Av1-ja",
                 tipo: "opcion",
                 pregunta: "26. 天使は子供に何を渡していますか？",
                 opciones: ["鳩", "オーブ", "食べ物"],
@@ -1708,14 +1708,14 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 27,
+                reto: 28,
                 id: "PZ-04",
                 tipo: "puzzle",
                 src: "puzzle.html?id=PZ-04"
             },
             {
-                reto: 28,
-                id: "R28-Av1-ja",
+                reto: 29,
+                id: "R29-Av1-ja",
                 tipo: "opcion-multiple",
                 pregunta: "28. 死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
                 opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
@@ -1723,8 +1723,8 @@ export const RETOS_AVENTURAS = {
                 multiple: true
             },
             {
-                reto: 29,
-                id: "R29-Av1-ja",
+                reto: 30,
+                id: "R30-Av1-ja",
                 tipo: "opcion-multiple",
                 pregunta: "29. 右側、天使が陰茎を見せて…",
                 opciones: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
@@ -1732,8 +1732,8 @@ export const RETOS_AVENTURAS = {
                 multiple: true
             },
             {
-                reto: 30,
-                id: "R30-Av1-ja",
+                reto: 31,
+                id: "R31-Av1-ja",
                 tipo: "opcion-multiple",
                 pregunta: "30. 中央：ひげの男とライオン：",
                 opciones: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
@@ -1741,8 +1741,8 @@ export const RETOS_AVENTURAS = {
                 multiple: true
             },
             {
-                reto: 31,
-                id: "R31-Av1-ja",
+                reto: 32,
+                id: "R32-Av1-ja",
                 tipo: "opcion-multiple",
                 pregunta: "31. ここで追加チャレンジ！絹の取引所の乱交者を探してください！",
                 opciones: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
@@ -1750,8 +1750,8 @@ export const RETOS_AVENTURAS = {
                 multiple: true
             },
             {
-                reto: 32,
-                id: "R32-Av1-ja",
+                reto: 33,
+                id: "R33-Av1-ja",
                 tipo: "opcion-multiple",
                 pregunta: "32. 「追加のチャレンジがあります！ラ・ロンハ・デ・ラ・セダの好色な人物を探してみてください！」",
                 opciones: ["「その窓の一つには彫刻された男性が見つかります。彼の頭は見えませんが、性器は非常にはっきりと見えます。」"],
@@ -1759,8 +1759,8 @@ export const RETOS_AVENTURAS = {
                 multiple: true
             },
             {
-                reto: 33,
-                id: "R33-Av1-ja",
+                reto: 34,
+                id: "R34-Av1-ja",
                 tipo: "opcion",
                 pregunta: "33. 「その子どもは手に何を持っていますか？」",
                 opciones: ["「一羽の鳩」「貝殻」「食べ物」"],
@@ -1768,7 +1768,7 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
-                reto: 34,
+                reto: 35,
                 id: "PZ-05",
                 tipo: "puzzle",
                 src: "puzzle.html?id=PZ-05"
@@ -9109,81 +9109,69 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
-            },
-            {
-                reto: 4,
-                id: "R4-Av4-en",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Could you tell me what these towers are called?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Tower of Santa Catalina"],
+                correctas: ["Torres de Serranos"],
                 multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Above the door lintel stands out the coat of arms of the Carmelite Order.",
+                opciones: ["A Crown", "A Cross", "A Star"],
+                correctas: ["A Crown"],
                 multiple: false
             },
             {
                 reto: 6,
                 id: "R6-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "What is the Virgin holding in her arms?",
+                opciones: ["A Heart", "A Dove", "Baby Jesus"],
+                correctas: ["Baby Jesus"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av4-en",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "What is Saint Teresa holding in her hands?",
+                opciones: ["A quill", "A sword", "A book", "A jug"],
+                correctas: ["A quill", "A book"],
+                multiple: true
             },
             {
                 reto: 8,
                 id: "R8-Av4-en",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "How much does admission to this museum cost?",
+                correctas: ["Free"],
                 multiple: false
             },
             {
                 reto: 9,
                 id: "R9-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "How many cats can you see depicted on the panel?",
+                opciones: ["3", "4", "5"],
+                correctas: ["4"],
                 multiple: false
             },
             {
                 reto: 10,
                 id: "R10-Av4-en",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "What height does this panel indicate?",
+                correctas: ["1.90 metres"],
                 multiple: false
             },
             {
                 reto: 11,
                 id: "R11-Av4-en",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "What year does the upper panel indicate?",
+                correctas: ["2100"],
                 multiple: false
             },
             {
@@ -9196,9 +9184,9 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Could you tell me the name of this ancient river?",
+                opciones: ["Turia", "Júcar", "Segura", "Ebro"],
+                correctas: ["Turia"],
                 multiple: false
             },
             {
@@ -9216,19 +9204,19 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 16,
                 id: "R16-Av4-en",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "What uses can those stone blocks have?",
+                opciones: ["Stop the water", "Stop the cart wheels", "Collect the river waste"],
+                correctas: ["Stop the cart wheels", "Collect the river waste"],
+                multiple: true
             },
             {
                 reto: 17,
                 id: "R17-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "At the top of the towers flies the flag of Valencia: its colours are red, yellow and…",
+                opciones: ["Purple", "Green", "Blue"],
+                correctas: ["Blue"],
                 multiple: false
             },
             {
@@ -9241,18 +9229,18 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "What is this museum dedicated to?",
+                opciones: ["Architecture", "History", "Natural Sciences"],
+                correctas: ["Natural Sciences"],
                 multiple: false
             },
             {
                 reto: 20,
                 id: "R20-Av4-en",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "What figure decorates the fountain?",
+                opciones: ["A duck", "A stork", "A fish"],
+                correctas: ["A stork"],
                 multiple: false
             },
             {
@@ -9292,81 +9280,69 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
-            },
-            {
-                reto: 4,
-                id: "R4-Av4-fr",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
                 multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Au-dessus du linteau de la porte se distingue le blason de l'Ordre du Carmel.",
+                opciones: ["Une Couronne", "Une Croix", "Une Étoile"],
+                correctas: ["Une Couronne"],
                 multiple: false
             },
             {
                 reto: 6,
                 id: "R6-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Que porte la Vierge dans ses bras ?",
+                opciones: ["Un Cœur", "Une Colombe", "L'Enfant Jésus"],
+                correctas: ["L'Enfant Jésus"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av4-fr",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "Que porte Sainte Thérèse dans ses mains ?",
+                opciones: ["Une plume", "Une épée", "Un livre", "Une cruche"],
+                correctas: ["Une plume", "Un livre"],
+                multiple: true
             },
             {
                 reto: 8,
                 id: "R8-Av4-fr",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Combien coûte l'entrée de ce musée ?",
+                correctas: ["Gratuit"],
                 multiple: false
             },
             {
                 reto: 9,
                 id: "R9-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Combien de chats peut-on voir représentés sur le panneau ?",
+                opciones: ["3", "4", "5"],
+                correctas: ["4"],
                 multiple: false
             },
             {
                 reto: 10,
                 id: "R10-Av4-fr",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Quelle hauteur indique ce panneau ?",
+                correctas: ["1,90 mètre"],
                 multiple: false
             },
             {
                 reto: 11,
                 id: "R11-Av4-fr",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Quelle année indique le panneau supérieur ?",
+                correctas: ["2100"],
                 multiple: false
             },
             {
@@ -9379,9 +9355,9 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Pourriez-vous me dire le nom de cet ancien fleuve ?",
+                opciones: ["Turia", "Júcar", "Segura", "Ebro"],
+                correctas: ["Turia"],
                 multiple: false
             },
             {
@@ -9399,19 +9375,19 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 16,
                 id: "R16-Av4-fr",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "Quels usages peuvent avoir ces blocs de pierre ?",
+                opciones: ["Arrêter l'eau", "Stopper les roues des charrettes", "Recueillir les saletés du fleuve"],
+                correctas: ["Stopper les roues des charrettes", "Recueillir les saletés du fleuve"],
+                multiple: true
             },
             {
                 reto: 17,
                 id: "R17-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs se composent de rouge, jaune et…",
+                opciones: ["Violet", "Vert", "Bleu"],
+                correctas: ["Bleu"],
                 multiple: false
             },
             {
@@ -9424,18 +9400,18 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "À quoi ce musée est-il consacré ?",
+                opciones: ["Architecture", "Histoire", "Sciences naturelles"],
+                correctas: ["Sciences naturelles"],
                 multiple: false
             },
             {
                 reto: 20,
                 id: "R20-Av4-fr",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Quelle figure décore la fontaine ?",
+                opciones: ["Un canard", "Une cigogne", "Un poisson"],
+                correctas: ["Une cigogne"],
                 multiple: false
             },
             {
@@ -9475,81 +9451,69 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
-            },
-            {
-                reto: 4,
-                id: "R4-Av4-it",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Saprebbe dirmi come si chiamano queste Torri?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre di Santa Catalina"],
+                correctas: ["Torres de Serranos"],
                 multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Sopra il davanzale della porta risalta lo stemma dell'Ordine del Carmelo.",
+                opciones: ["Una Corona", "Una Croce", "Una Stella"],
+                correctas: ["Una Corona"],
                 multiple: false
             },
             {
                 reto: 6,
                 id: "R6-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Cosa porta la Vergine in braccio?",
+                opciones: ["Un Cuore", "Una Colomba", "Gesù Bambino"],
+                correctas: ["Gesù Bambino"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av4-it",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "Cosa porta Santa Teresa nelle sue mani?",
+                opciones: ["Una penna", "Una spada", "Un libro", "Una brocca"],
+                correctas: ["Una penna", "Un libro"],
+                multiple: true
             },
             {
                 reto: 8,
                 id: "R8-Av4-it",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Quanto costa l'ingresso a questo museo?",
+                correctas: ["Gratis"],
                 multiple: false
             },
             {
                 reto: 9,
                 id: "R9-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Quanti gatti si possono vedere raffigurati sul pannello?",
+                opciones: ["3", "4", "5"],
+                correctas: ["4"],
                 multiple: false
             },
             {
                 reto: 10,
                 id: "R10-Av4-it",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Quale altezza indica questo pannello?",
+                correctas: ["1,90 metri"],
                 multiple: false
             },
             {
                 reto: 11,
                 id: "R11-Av4-it",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Quale anno indica il pannello superiore?",
+                correctas: ["2100"],
                 multiple: false
             },
             {
@@ -9562,9 +9526,9 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Saprebbe dirmi il nome di questo antico fiume?",
+                opciones: ["Turia", "Júcar", "Segura", "Ebro"],
+                correctas: ["Turia"],
                 multiple: false
             },
             {
@@ -9582,19 +9546,19 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 16,
                 id: "R16-Av4-it",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "Quale uso possono avere questi blocchi di pietra?",
+                opciones: ["Fermare l'acqua", "Bloccare le ruote dei carri", "Raccogliere le impurità del fiume"],
+                correctas: ["Bloccare le ruote dei carri", "Raccogliere le impurità del fiume"],
+                multiple: true
             },
             {
                 reto: 17,
                 id: "R17-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "In cima alle torri sventola la bandiera di Valencia: i suoi colori sono rosso, giallo e…",
+                opciones: ["Viola", "Verde", "Blu"],
+                correctas: ["Blu"],
                 multiple: false
             },
             {
@@ -9607,18 +9571,18 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "A cosa è dedicato questo museo?",
+                opciones: ["Architettura", "Storia", "Scienze Naturali"],
+                correctas: ["Scienze Naturali"],
                 multiple: false
             },
             {
                 reto: 20,
                 id: "R20-Av4-it",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Quale figura decora la fontana?",
+                opciones: ["Un'anatra", "Una cicogna", "Un pesce"],
+                correctas: ["Una cicogna"],
                 multiple: false
             },
             {
@@ -9658,81 +9622,69 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
-            },
-            {
-                reto: 4,
-                id: "R4-Av4-nl",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Weet u hoe deze Torens heten?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
                 multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Boven de deurpost staat het wapen van de Orde van de Karmel.",
+                opciones: ["Een Kroon", "Een Kruis", "Een Ster"],
+                correctas: ["Een Kroon"],
                 multiple: false
             },
             {
                 reto: 6,
                 id: "R6-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Wat draagt de Maagd in haar armen?",
+                opciones: ["Een Hart", "Een Duif", "Jezuskind"],
+                correctas: ["Jezuskind"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av4-nl",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "Wat draagt de Heilige Teresa in haar handen?",
+                opciones: ["Een veer", "Een zwaard", "Een boek", "Een kruik"],
+                correctas: ["Een veer", "Een boek"],
+                multiple: true
             },
             {
                 reto: 8,
                 id: "R8-Av4-nl",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Hoeveel kost de toegang tot dit museum?",
+                correctas: ["Gratis"],
                 multiple: false
             },
             {
                 reto: 9,
                 id: "R9-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Hoeveel katten zijn er afgebeeld op het paneel?",
+                opciones: ["3", "4", "5"],
+                correctas: ["4"],
                 multiple: false
             },
             {
                 reto: 10,
                 id: "R10-Av4-nl",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Welke hoogte geeft dit paneel aan?",
+                correctas: ["1,90 meter"],
                 multiple: false
             },
             {
                 reto: 11,
                 id: "R11-Av4-nl",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "Welk jaar geeft het bovenste paneel aan?",
+                correctas: ["2100"],
                 multiple: false
             },
             {
@@ -9745,9 +9697,9 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Kunt u mij de naam van deze oude rivier vertellen?",
+                opciones: ["Turia", "Júcar", "Segura", "Ebro"],
+                correctas: ["Turia"],
                 multiple: false
             },
             {
@@ -9765,19 +9717,19 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 16,
                 id: "R16-Av4-nl",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "Welk gebruik kunnen die stenen blokken hebben?",
+                opciones: ["Het water stoppen", "De wielen van de wagens stoppen", "Het vuilnis van de rivier opvangen"],
+                correctas: ["De wielen van de wagens stoppen", "Het vuilnis van de rivier opvangen"],
+                multiple: true
             },
             {
                 reto: 17,
                 id: "R17-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Aan de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…",
+                opciones: ["Paars", "Groen", "Blauw"],
+                correctas: ["Blauw"],
                 multiple: false
             },
             {
@@ -9790,18 +9742,18 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Waaraan is dit museum gewijd?",
+                opciones: ["Architectuur", "Geschiedenis", "Natuurwetenschappen"],
+                correctas: ["Natuurwetenschappen"],
                 multiple: false
             },
             {
                 reto: 20,
                 id: "R20-Av4-nl",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "Welke figuur siert de fontein?",
+                opciones: ["Een eend", "Een ooievaar", "Een vis"],
+                correctas: ["Een ooievaar"],
                 multiple: false
             },
             {
@@ -9841,81 +9793,69 @@ export const RETOS_AVENTURAS = {
                 reto: 3,
                 id: "R3-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
-            },
-            {
-                reto: 4,
-                id: "R4-Av4-ja",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "これらの塔の名前を教えていただけますか？",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
                 multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "扉の鴨居の上にカルメル修道会の紋章が目立ちます。",
+                opciones: ["王冠", "十字架", "星"],
+                correctas: ["王冠"],
                 multiple: false
             },
             {
                 reto: 6,
                 id: "R6-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "聖母は腕に何を抱いていますか？",
+                opciones: ["ハート", "鳩", "幼子イエス"],
+                correctas: ["幼子イエス"],
                 multiple: false
             },
             {
                 reto: 7,
                 id: "R7-Av4-ja",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "聖テレサは手に何を持っていますか？",
+                opciones: ["羽根ペン", "剣", "本", "水差し"],
+                correctas: ["羽根ペン", "本"],
+                multiple: true
             },
             {
                 reto: 8,
                 id: "R8-Av4-ja",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "この博物館の入場料はいくらですか？",
+                correctas: ["無料"],
                 multiple: false
             },
             {
                 reto: 9,
                 id: "R9-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "パネルに何匹の猫が描かれているのが見えますか？",
+                opciones: ["3", "4", "5"],
+                correctas: ["4"],
                 multiple: false
             },
             {
                 reto: 10,
                 id: "R10-Av4-ja",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "このパネルはどの高さを示していますか？",
+                correctas: ["1.90メートル"],
                 multiple: false
             },
             {
                 reto: 11,
                 id: "R11-Av4-ja",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                tipo: "texto",
+                pregunta: "上部パネルはどの年を示していますか？",
+                correctas: ["2100"],
                 multiple: false
             },
             {
@@ -9928,9 +9868,9 @@ export const RETOS_AVENTURAS = {
                 reto: 13,
                 id: "R13-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "この古い川の名前を教えていただけますか？",
+                opciones: ["Turia", "Júcar", "Segura", "Ebro"],
+                correctas: ["Turia"],
                 multiple: false
             },
             {
@@ -9948,19 +9888,19 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 16,
                 id: "R16-Av4-ja",
-                tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
-                multiple: false
+                tipo: "opcion-multiple",
+                pregunta: "それらの石のブロックにはどのような用途がありますか？",
+                opciones: ["水を止める", "荷車の車輪を止める", "川のごみを集める"],
+                correctas: ["荷車の車輪を止める", "川のごみを集める"],
+                multiple: true
             },
             {
                 reto: 17,
                 id: "R17-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして…",
+                opciones: ["紫", "緑", "青"],
+                correctas: ["青"],
                 multiple: false
             },
             {
@@ -9973,18 +9913,18 @@ export const RETOS_AVENTURAS = {
                 reto: 19,
                 id: "R19-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "この博物館は何に捧げられていますか？",
+                opciones: ["建築", "歴史", "自然科学"],
+                correctas: ["自然科学"],
                 multiple: false
             },
             {
                 reto: 20,
                 id: "R20-Av4-ja",
                 tipo: "opcion",
-                pregunta: "",
-                opciones: [""],
-                correctas: [""],
+                pregunta: "噴水を飾っているのはどんな像ですか？",
+                opciones: ["アヒル", "コウノトリ", "魚"],
+                correctas: ["コウノトリ"],
                 multiple: false
             },
             {
@@ -11306,23 +11246,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 3,
                 id: "R3-Av5-en",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Could you tell me what these towers are called?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Tower of Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
             },
             {
                 reto: 4,
                 id: "R4-Av5-en",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "At the top of the towers flies the flag of Valencia: its colours are red, yellow and…",
+                opciones: ["Purple", "Green", "Blue"],
+                correctas: ["Blue"],
+                multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av5-en",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Could you tell me the name of this ancient river?",
+                correctas: ["Turia"],
+                multiple: false
             },
             // Reto 6 (puzzle inferido desde comentarios)
             {
@@ -11334,16 +11279,121 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 7,
                 id: "R7-Av5-en",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Could you tell me the name of these popular festivals in Valencia?",
+                opciones: ["Las Fallas", "La Tomatina", "Midsummer bonfires"],
+                correctas: ["Las Fallas"],
+                multiple: false
             },
             {
                 reto: 8,
                 id: "R8-Av5-en",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "What can be seen in the span of the central arch?",
+                correctas: ["A cross"],
+                multiple: false
+            },
+            {
+                reto: 9,
+                id: "R9-Av5-en",
+                tipo: "opcion",
+                pregunta: "What can be seen on the locomotive?",
+                opciones: ["A dragon", "A star", "A date"],
+                correctas: ["A star"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-Av5-en",
+                tipo: "opcion-multiple",
+                pregunta: "What elements can be seen in this scene?",
+                opciones: ["A Faller and a Fallera", "Oranges", "Grapes"],
+                correctas: ["A Faller and a Fallera", "Oranges", "Grapes"],
+                multiple: true
+            },
+            {
+                reto: 11,
+                id: "R11-Av5-en",
+                tipo: "opcion-multiple",
+                pregunta: "What could it be?",
+                opciones: ["A round loaf of bread", "Crabs", "Apples"],
+                correctas: ["A round loaf of bread", "Crabs"],
+                multiple: true
+            },
+            {
+                reto: 12,
+                id: "R12-Av5-en",
+                tipo: "texto",
+                pregunta: "How many animals can you count? Note that there are cows, pigs…",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-Av5-en",
+                tipo: "opcion",
+                pregunta: "What animal tops the coat of arms of Valencia?",
+                opciones: ["A dragon", "A bat", "A horse"],
+                correctas: ["A bat"],
+                multiple: false
+            },
+            {
+                reto: 14,
+                id: "R14-Av5-en",
+                tipo: "texto",
+                pregunta: "How many floors does this Monument have?",
+                correctas: ["4"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-Av5-en",
+                tipo: "opcion",
+                pregunta: "What citrus fruit native to Valencia decorates the façade?",
+                opciones: ["Lemons", "Grapefruits", "Oranges"],
+                correctas: ["Oranges"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-Av5-en",
+                tipo: "texto",
+                pregunta: "Can you find your language?",
+                correctas: ["Yes? No?"],
+                multiple: false
+            },
+            {
+                reto: 17,
+                id: "R17-Av5-en",
+                tipo: "opcion",
+                pregunta: "What shape does the fountain have?",
+                opciones: ["Shell", "Fish", "Person"],
+                correctas: ["Person"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "R18-Av5-en",
+                tipo: "texto",
+                pregunta: "In what year did the construction begin? Look at the façade!",
+                correctas: ["1400"],
+                multiple: false
+            },
+            {
+                reto: 19,
+                id: "R19-Av5-en",
+                tipo: "texto",
+                pregunta: "Could you tell me the year of its last renovation? I'm sure you've already seen it!",
+                correctas: ["2012"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "R20-Av5-en",
+                tipo: "texto",
+                pregunta: "In what year were those works carried out? Need a clue? Look at the façade of the building.",
+                correctas: ["1756"],
+                multiple: false
             },
             // Reto 21 (puzzle inferido desde comentarios)
             {
@@ -11355,9 +11405,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 22,
                 id: "R22-Av5-en",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Could you determine what shape it has?",
+                opciones: ["Square", "Round", "Triangular"],
+                correctas: ["Round"],
+                multiple: false
             },
             // Reto 23 (puzzle inferido desde comentarios)
             {
@@ -11369,23 +11421,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 24,
                 id: "R24-Av5-en",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "The bargeman who rows against the current.",
+                opciones: ["A man with a sad face steering a small wooden boat escapes against the current from a monster."],
+                correctas: ["A man with a sad face steering a small wooden boat escapes against the current from a monster."],
+                multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-en",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "A dead tree: symbol of Sin, stands between the two door panels as a central column.",
+                opciones: ["Observe at the top of the tree how 4 naked men whip each other."],
+                correctas: ["Observe at the top of the tree how 4 naked men whip each other."],
+                multiple: true
             },
             {
                 reto: 26,
                 id: "R26-Av5-en",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "How many bullet holes can you count?",
+                correctas: ["?"],
+                multiple: false
             },
             // Reto 27 (puzzle inferido desde comentarios)
             {
@@ -11397,9 +11454,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 28,
                 id: "R28-Av5-en",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "What tops the coat of arms?",
+                opciones: ["A crown", "A bat", "A dragon"],
+                correctas: ["A crown"],
+                multiple: false
             },
             // Reto 35 (puzzle inferido desde comentarios)
             {
@@ -11438,23 +11497,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 3,
                 id: "R3-Av5-fr",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
             },
             {
                 reto: 4,
                 id: "R4-Av5-fr",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs se composent de rouge, jaune et…",
+                opciones: ["Violet", "Vert", "Bleu"],
+                correctas: ["Bleu"],
+                multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av5-fr",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Pourriez-vous me dire le nom de cet ancien fleuve ?",
+                correctas: ["Turia"],
+                multiple: false
             },
             // Reto 6 (puzzle inferido desde comentarios)
             {
@@ -11466,16 +11530,121 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 7,
                 id: "R7-Av5-fr",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Pourriez-vous me dire le nom de ces fêtes populaires de Valence ?",
+                opciones: ["Las Fallas", "La Tomatina", "Les feux de la Saint-Jean"],
+                correctas: ["Las Fallas"],
+                multiple: false
             },
             {
                 reto: 8,
                 id: "R8-Av5-fr",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Que peut-on voir dans le vide de l'arc central ?",
+                correctas: ["Une croix"],
+                multiple: false
+            },
+            {
+                reto: 9,
+                id: "R9-Av5-fr",
+                tipo: "opcion",
+                pregunta: "Que peut-on voir sur la locomotive ?",
+                opciones: ["Un dragon", "Une étoile", "Une date"],
+                correctas: ["Une étoile"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-Av5-fr",
+                tipo: "opcion-multiple",
+                pregunta: "Quels éléments peut-on voir dans cette scène ?",
+                opciones: ["Un Fallero et une Fallera", "Des oranges", "Du raisin"],
+                correctas: ["Un Fallero et une Fallera", "Des oranges", "Du raisin"],
+                multiple: true
+            },
+            {
+                reto: 11,
+                id: "R11-Av5-fr",
+                tipo: "opcion-multiple",
+                pregunta: "Qu'est-ce que cela pourrait être ?",
+                opciones: ["Une miche de pain", "Des crabes", "Des pommes"],
+                correctas: ["Une miche de pain", "Des crabes"],
+                multiple: true
+            },
+            {
+                reto: 12,
+                id: "R12-Av5-fr",
+                tipo: "texto",
+                pregunta: "Combien d'animaux pouvez-vous dénombrer ? Notez qu'il y a des vaches, des cochons…",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-Av5-fr",
+                tipo: "opcion",
+                pregunta: "Quel animal surmonte le blason de Valence ?",
+                opciones: ["Un dragon", "Une chauve-souris", "Un cheval"],
+                correctas: ["Une chauve-souris"],
+                multiple: false
+            },
+            {
+                reto: 14,
+                id: "R14-Av5-fr",
+                tipo: "texto",
+                pregunta: "Combien d'étages possède ce Monument ?",
+                correctas: ["4"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-Av5-fr",
+                tipo: "opcion",
+                pregunta: "Quel agrume natif de Valence décore la façade ?",
+                opciones: ["Citrons", "Pamplemousses", "Oranges"],
+                correctas: ["Oranges"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-Av5-fr",
+                tipo: "texto",
+                pregunta: "Pouvez-vous trouver votre langue ?",
+                correctas: ["Oui ? Non ?"],
+                multiple: false
+            },
+            {
+                reto: 17,
+                id: "R17-Av5-fr",
+                tipo: "opcion",
+                pregunta: "Quelle forme a la fontaine ?",
+                opciones: ["Coquillage", "Poisson", "Personne"],
+                correctas: ["Personne"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "R18-Av5-fr",
+                tipo: "texto",
+                pregunta: "En quelle année les travaux ont-ils commencé ? Regardez la façade !",
+                correctas: ["1400"],
+                multiple: false
+            },
+            {
+                reto: 19,
+                id: "R19-Av5-fr",
+                tipo: "texto",
+                pregunta: "Pourriez-vous me dire l'année de sa dernière réhabilitation ? Vous l'avez sûrement déjà vu !",
+                correctas: ["2012"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "R20-Av5-fr",
+                tipo: "texto",
+                pregunta: "En quelle année ces travaux ont-ils été réalisés ? Besoin d'un indice ? Regardez la façade du bâtiment.",
+                correctas: ["1756"],
+                multiple: false
             },
             // Reto 21 (puzzle inferido desde comentarios)
             {
@@ -11487,9 +11656,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 22,
                 id: "R22-Av5-fr",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Pourriez-vous déterminer quelle forme il a ?",
+                opciones: ["Carré", "Rond", "Triangulaire"],
+                correctas: ["Rond"],
+                multiple: false
             },
             // Reto 23 (puzzle inferido desde comentarios)
             {
@@ -11501,23 +11672,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 24,
                 id: "R24-Av5-fr",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "Le batelier qui rame à contre-courant.",
+                opciones: ["Un homme au visage triste manœuvre un petit bateau en bois et s'échappe à contre-courant d'un monstre."],
+                correctas: ["Un homme au visage triste manœuvre un petit bateau en bois et s'échappe à contre-courant d'un monstre."],
+                multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-fr",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "Un arbre mort : symbole du Péché, entre les deux vantaux de la porte en guise de poteau médian.",
+                opciones: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
+                correctas: ["Observez au sommet de l'arbre comment 4 hommes nus se fouettent mutuellement."],
+                multiple: true
             },
             {
                 reto: 26,
                 id: "R26-Av5-fr",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Combien de perforations de projectiles pouvez-vous comptabiliser ?",
+                correctas: ["?"],
+                multiple: false
             },
             // Reto 27 (puzzle inferido desde comentarios)
             {
@@ -11529,9 +11705,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 28,
                 id: "R28-Av5-fr",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Qu'est-ce qui surmonte le blason ?",
+                opciones: ["Une couronne", "Une chauve-souris", "Un dragon"],
+                correctas: ["Une couronne"],
+                multiple: false
             },
             // Reto 35 (puzzle inferido desde comentarios)
             {
@@ -11570,23 +11748,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 3,
                 id: "R3-Av5-it",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Saprebbe dirmi come si chiamano queste Torri?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre di Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
             },
             {
                 reto: 4,
                 id: "R4-Av5-it",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "In cima alle torri sventola la bandiera di Valencia: i suoi colori sono rosso, giallo e…",
+                opciones: ["Viola", "Verde", "Blu"],
+                correctas: ["Blu"],
+                multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av5-it",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Saprebbe dirmi il nome di questo antico fiume?",
+                correctas: ["Turia"],
+                multiple: false
             },
             // Reto 6 (puzzle inferido desde comentarios)
             {
@@ -11598,16 +11781,121 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 7,
                 id: "R7-Av5-it",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Saprebbe dirmi il nome di queste feste popolari di Valencia?",
+                opciones: ["Las Fallas", "La Tomatina", "I falò di San Giovanni"],
+                correctas: ["Las Fallas"],
+                multiple: false
             },
             {
                 reto: 8,
                 id: "R8-Av5-it",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Cosa si può vedere nella luce dell'arco centrale?",
+                correctas: ["Una croce"],
+                multiple: false
+            },
+            {
+                reto: 9,
+                id: "R9-Av5-it",
+                tipo: "opcion",
+                pregunta: "Cosa si può vedere sulla locomotiva?",
+                opciones: ["Un drago", "Una stella", "Una data"],
+                correctas: ["Una stella"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-Av5-it",
+                tipo: "opcion-multiple",
+                pregunta: "Quali elementi si possono vedere in questa scena?",
+                opciones: ["Un Fallero e una Fallera", "Arance", "Uva"],
+                correctas: ["Un Fallero e una Fallera", "Arance", "Uva"],
+                multiple: true
+            },
+            {
+                reto: 11,
+                id: "R11-Av5-it",
+                tipo: "opcion-multiple",
+                pregunta: "Cosa potrebbe essere?",
+                opciones: ["Un pane di segale", "Granchi", "Mele"],
+                correctas: ["Un pane di segale", "Granchi"],
+                multiple: true
+            },
+            {
+                reto: 12,
+                id: "R12-Av5-it",
+                tipo: "texto",
+                pregunta: "Quanti animali riesce a enumerare? Noti che ci sono mucche, maiali…",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-Av5-it",
+                tipo: "opcion",
+                pregunta: "Quale animale corona lo stemma di Valencia?",
+                opciones: ["Un drago", "Un pipistrello", "Un cavallo"],
+                correctas: ["Un pipistrello"],
+                multiple: false
+            },
+            {
+                reto: 14,
+                id: "R14-Av5-it",
+                tipo: "texto",
+                pregunta: "Quanti piani ha questo Monumento?",
+                correctas: ["4"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-Av5-it",
+                tipo: "opcion",
+                pregunta: "Quale frutto agrumato tipico di Valencia decora la facciata?",
+                opciones: ["Limoni", "Pompelmi", "Arance"],
+                correctas: ["Arance"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-Av5-it",
+                tipo: "texto",
+                pregunta: "Riesce a trovare la sua lingua?",
+                correctas: ["Sì? No?"],
+                multiple: false
+            },
+            {
+                reto: 17,
+                id: "R17-Av5-it",
+                tipo: "opcion",
+                pregunta: "Che forma ha la fontana?",
+                opciones: ["Conchiglia", "Pesce", "Persona"],
+                correctas: ["Persona"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "R18-Av5-it",
+                tipo: "texto",
+                pregunta: "In che anno iniziarono i lavori? Guardi la facciata!",
+                correctas: ["1400"],
+                multiple: false
+            },
+            {
+                reto: 19,
+                id: "R19-Av5-it",
+                tipo: "texto",
+                pregunta: "Saprebbe dirmi l'anno del suo ultimo restauro? Sono sicuro che l'ha già visto!",
+                correctas: ["2012"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "R20-Av5-it",
+                tipo: "texto",
+                pregunta: "In che anno vennero eseguiti quei lavori? Ha bisogno di un indizio? Guardi la facciata dell'edificio.",
+                correctas: ["1756"],
+                multiple: false
             },
             // Reto 21 (puzzle inferido desde comentarios)
             {
@@ -11619,9 +11907,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 22,
                 id: "R22-Av5-it",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Saprebbe determinare che forma ha?",
+                opciones: ["Quadrata", "Rotonda", "Triangolare"],
+                correctas: ["Rotonda"],
+                multiple: false
             },
             // Reto 23 (puzzle inferido desde comentarios)
             {
@@ -11633,23 +11923,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 24,
                 id: "R24-Av5-it",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "Il barcaiolo che rema controcorrente.",
+                opciones: ["Un uomo dal volto triste manovra una piccola barca di legno e fugge controcorrente da un mostro."],
+                correctas: ["Un uomo dal volto triste manovra una piccola barca di legno e fugge controcorrente da un mostro."],
+                multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-it",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "Un albero morto: simbolo del Peccato, tra i due battenti della porta come trumeau.",
+                opciones: ["Osservate in cima all'albero come 4 uomini nudi si fustigano a vicenda."],
+                correctas: ["Osservate in cima all'albero come 4 uomini nudi si fustigano a vicenda."],
+                multiple: true
             },
             {
                 reto: 26,
                 id: "R26-Av5-it",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Quante perforazioni di proiettili riesce a contare?",
+                correctas: ["?"],
+                multiple: false
             },
             // Reto 27 (puzzle inferido desde comentarios)
             {
@@ -11661,9 +11956,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 28,
                 id: "R28-Av5-it",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Cosa corona lo stemma?",
+                opciones: ["Una corona", "Un pipistrello", "Un drago"],
+                correctas: ["Una corona"],
+                multiple: false
             },
             // Reto 35 (puzzle inferido desde comentarios)
             {
@@ -11702,23 +11999,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 3,
                 id: "R3-Av5-nl",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Weet u hoe deze Torens heten?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
             },
             {
                 reto: 4,
                 id: "R4-Av5-nl",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Aan de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en…",
+                opciones: ["Paars", "Groen", "Blauw"],
+                correctas: ["Blauw"],
+                multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av5-nl",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Kunt u mij de naam van deze oude rivier vertellen?",
+                correctas: ["Turia"],
+                multiple: false
             },
             // Reto 6 (puzzle inferido desde comentarios)
             {
@@ -11730,16 +12032,121 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 7,
                 id: "R7-Av5-nl",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Weet u de naam van deze volksfeesten in Valencia?",
+                opciones: ["Las Fallas", "La Tomatina", "Johannisvuren"],
+                correctas: ["Las Fallas"],
+                multiple: false
             },
             {
                 reto: 8,
                 id: "R8-Av5-nl",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Wat is te zien in de opening van de centrale boog?",
+                correctas: ["Een kruis"],
+                multiple: false
+            },
+            {
+                reto: 9,
+                id: "R9-Av5-nl",
+                tipo: "opcion",
+                pregunta: "Wat is er op de locomotief te zien?",
+                opciones: ["Een draak", "Een ster", "Een datum"],
+                correctas: ["Een ster"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-Av5-nl",
+                tipo: "opcion-multiple",
+                pregunta: "Welke elementen zijn er in deze scène te zien?",
+                opciones: ["Een Fallero en een Fallera", "Sinaasappelen", "Druiven"],
+                correctas: ["Een Fallero en een Fallera", "Sinaasappelen", "Druiven"],
+                multiple: true
+            },
+            {
+                reto: 11,
+                id: "R11-Av5-nl",
+                tipo: "opcion-multiple",
+                pregunta: "Wat zou het kunnen zijn?",
+                opciones: ["Een rond brood", "Krabben", "Appels"],
+                correctas: ["Een rond brood", "Krabben"],
+                multiple: true
+            },
+            {
+                reto: 12,
+                id: "R12-Av5-nl",
+                tipo: "texto",
+                pregunta: "Hoeveel dieren kunt u tellen? Let op dat er koeien, varkens zijn…",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-Av5-nl",
+                tipo: "opcion",
+                pregunta: "Welk dier bekroont het wapen van Valencia?",
+                opciones: ["Een draak", "Een vleermuis", "Een paard"],
+                correctas: ["Een vleermuis"],
+                multiple: false
+            },
+            {
+                reto: 14,
+                id: "R14-Av5-nl",
+                tipo: "texto",
+                pregunta: "Hoeveel verdiepingen heeft dit Monument?",
+                correctas: ["4"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-Av5-nl",
+                tipo: "opcion",
+                pregunta: "Welke citrusvrucht typisch voor Valencia siert de gevel?",
+                opciones: ["Citroenen", "Grapefruits", "Sinaasappelen"],
+                correctas: ["Sinaasappelen"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-Av5-nl",
+                tipo: "texto",
+                pregunta: "Kunt u uw taal vinden?",
+                correctas: ["Ja? Nee?"],
+                multiple: false
+            },
+            {
+                reto: 17,
+                id: "R17-Av5-nl",
+                tipo: "opcion",
+                pregunta: "Welke vorm heeft de fontein?",
+                opciones: ["Schelp", "Vis", "Persoon"],
+                correctas: ["Persoon"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "R18-Av5-nl",
+                tipo: "texto",
+                pregunta: "In welk jaar begon de bouw? Kijk naar de gevel!",
+                correctas: ["1400"],
+                multiple: false
+            },
+            {
+                reto: 19,
+                id: "R19-Av5-nl",
+                tipo: "texto",
+                pregunta: "Kunt u mij het jaar van de laatste renovatie vertellen? U heeft het vast al gezien!",
+                correctas: ["2012"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "R20-Av5-nl",
+                tipo: "texto",
+                pregunta: "In welk jaar werden die werken uitgevoerd? Heeft u een hint nodig? Kijk naar de gevel van het gebouw.",
+                correctas: ["1756"],
+                multiple: false
             },
             // Reto 21 (puzzle inferido desde comentarios)
             {
@@ -11751,9 +12158,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 22,
                 id: "R22-Av5-nl",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Kunt u bepalen welke vorm het heeft?",
+                opciones: ["Vierkant", "Rond", "Driehoekig"],
+                correctas: ["Rond"],
+                multiple: false
             },
             // Reto 23 (puzzle inferido desde comentarios)
             {
@@ -11765,23 +12174,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 24,
                 id: "R24-Av5-nl",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "De schuitenvoerder die tegen de stroom inroeit.",
+                opciones: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt stroomopwaarts aan een monster."],
+                correctas: ["Een man met een droevig gezicht bestuurt een kleine houten boot en ontsnapt stroomopwaarts aan een monster."],
+                multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-nl",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "Een dode boom: symbool van de Zonde, staat tussen de twee deurbladden als middenstijl.",
+                opciones: ["Bekijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
+                correctas: ["Bekijk hoe bovenin de boom 4 naakte mannen elkaar geselen."],
+                multiple: true
             },
             {
                 reto: 26,
                 id: "R26-Av5-nl",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "Hoeveel kogelgaten kunt u tellen?",
+                correctas: ["?"],
+                multiple: false
             },
             // Reto 27 (puzzle inferido desde comentarios)
             {
@@ -11793,9 +12207,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 28,
                 id: "R28-Av5-nl",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "Wat bekroont het wapen?",
+                opciones: ["Een kroon", "Een vleermuis", "Een draak"],
+                correctas: ["Een kroon"],
+                multiple: false
             },
             // Reto 35 (puzzle inferido desde comentarios)
             {
@@ -11834,23 +12250,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 3,
                 id: "R3-Av5-ja",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "これらの塔の名前を教えていただけますか？",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
             },
             {
                 reto: 4,
                 id: "R4-Av5-ja",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして…",
+                opciones: ["紫", "緑", "青"],
+                correctas: ["青"],
+                multiple: false
             },
             {
                 reto: 5,
                 id: "R5-Av5-ja",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "この古い川の名前を教えていただけますか？",
+                correctas: ["Turia"],
+                multiple: false
             },
             // Reto 6 (puzzle inferido desde comentarios)
             {
@@ -11862,16 +12283,121 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 7,
                 id: "R7-Av5-ja",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "バレンシアのこれらの民衆祭りの名前を教えていただけますか？",
+                opciones: ["ファジャス", "ラ・トマティーナ", "ミッドサマーのかがり火"],
+                correctas: ["ファジャス"],
+                multiple: false
             },
             {
                 reto: 8,
                 id: "R8-Av5-ja",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "中央アーチの開口部に何が見えますか？",
+                correctas: ["十字架"],
+                multiple: false
+            },
+            {
+                reto: 9,
+                id: "R9-Av5-ja",
+                tipo: "opcion",
+                pregunta: "機関車に何が見えますか？",
+                opciones: ["ドラゴン", "星", "日付"],
+                correctas: ["星"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-Av5-ja",
+                tipo: "opcion-multiple",
+                pregunta: "このシーンに何が見えますか？",
+                opciones: ["ファジェーロとファジェーラ", "オレンジ", "ぶどう"],
+                correctas: ["ファジェーロとファジェーラ", "オレンジ", "ぶどう"],
+                multiple: true
+            },
+            {
+                reto: 11,
+                id: "R11-Av5-ja",
+                tipo: "opcion-multiple",
+                pregunta: "これは何でしょうか？",
+                opciones: ["丸パン", "カニ", "リンゴ"],
+                correctas: ["丸パン", "カニ"],
+                multiple: true
+            },
+            {
+                reto: 12,
+                id: "R12-Av5-ja",
+                tipo: "texto",
+                pregunta: "何頭の動物が数えられますか？牛、豚…があることに注目してください。",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-Av5-ja",
+                tipo: "opcion",
+                pregunta: "バレンシアの紋章の上にいる動物は何ですか？",
+                opciones: ["ドラゴン", "コウモリ", "馬"],
+                correctas: ["コウモリ"],
+                multiple: false
+            },
+            {
+                reto: 14,
+                id: "R14-Av5-ja",
+                tipo: "texto",
+                pregunta: "このモニュメントは何階建てですか？",
+                correctas: ["4"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-Av5-ja",
+                tipo: "opcion",
+                pregunta: "バレンシア原産の柑橘類のどれがファサードを飾っていますか？",
+                opciones: ["レモン", "グレープフルーツ", "オレンジ"],
+                correctas: ["オレンジ"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-Av5-ja",
+                tipo: "texto",
+                pregunta: "あなたの言語を見つけられますか？",
+                correctas: ["はい？いいえ？"],
+                multiple: false
+            },
+            {
+                reto: 17,
+                id: "R17-Av5-ja",
+                tipo: "opcion",
+                pregunta: "噴水の形は何ですか？",
+                opciones: ["貝殻", "魚", "人"],
+                correctas: ["人"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "R18-Av5-ja",
+                tipo: "texto",
+                pregunta: "工事が始まったのは何年ですか？ファサードを見てください！",
+                correctas: ["1400"],
+                multiple: false
+            },
+            {
+                reto: 19,
+                id: "R19-Av5-ja",
+                tipo: "texto",
+                pregunta: "最後の修復の年を教えていただけますか？もう見たはずです！",
+                correctas: ["2012"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "R20-Av5-ja",
+                tipo: "texto",
+                pregunta: "それらの工事が行われたのは何年ですか？ヒントが必要ですか？建物のファサードを見てください。",
+                correctas: ["1756"],
+                multiple: false
             },
             // Reto 21 (puzzle inferido desde comentarios)
             {
@@ -11883,9 +12409,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 22,
                 id: "R22-Av5-ja",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "どんな形をしているか分かりますか？",
+                opciones: ["正方形", "円形", "三角形"],
+                correctas: ["円形"],
+                multiple: false
             },
             // Reto 23 (puzzle inferido desde comentarios)
             {
@@ -11897,23 +12425,28 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 24,
                 id: "R24-Av5-ja",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "流れに逆らって漕ぐ渡し守。",
+                opciones: ["悲しそうな顔をした男が小さな木の舟を操りながら怪物から流れに逆らって逃げています。"],
+                correctas: ["悲しそうな顔をした男が小さな木の舟を操りながら怪物から流れに逆らって逃げています。"],
+                multiple: true
             },
             {
                 reto: 25,
                 id: "R25-Av5-ja",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion-multiple",
+                pregunta: "枯れ木：罪の象徴で、扉の2枚の羽の間にあり中央柱として機能しています。",
+                opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
+                correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
+                multiple: true
             },
             {
                 reto: 26,
                 id: "R26-Av5-ja",
                 tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                pregunta: "弾丸の穴をいくつ数えられますか？",
+                correctas: ["?"],
+                multiple: false
             },
             // Reto 27 (puzzle inferido desde comentarios)
             {
@@ -11925,9 +12458,11 @@ export const RETOS_AVENTURAS = {
             {
                 reto: 28,
                 id: "R28-Av5-ja",
-                tipo: "texto",
-                pregunta: "",
-                correctas: ["?"]
+                tipo: "opcion",
+                pregunta: "紋章の上には何がありますか？",
+                opciones: ["王冠", "コウモリ", "龍"],
+                correctas: ["王冠"],
+                multiple: false
             },
             // Reto 35 (puzzle inferido desde comentarios)
             {
@@ -13559,7 +14094,155 @@ export const RETOS_AVENTURAS = {
                 opciones: ["Yes", "No"],
                 correctas: ["?"],
                 multiple: false
-            }
+            },
+            {
+                reto: 3,
+                id: "R3-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "Could you tell me what these towers are called?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Tower of Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
+            },
+            {
+                reto: 4,
+                id: "R4-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "At the top of the towers flies the flag of Valencia: its colours are red, yellow and…?",
+                opciones: ["Purple", "Green", "Blue"],
+                correctas: ["Blue"],
+                multiple: false
+            },
+            {
+                reto: 5,
+                id: "R5-AvFallas-en",
+                tipo: "texto",
+                pregunta: "Could you tell me the name of this street?",
+                correctas: ["Calle Muro de Santa Ana"],
+                multiple: false
+            },
+            {
+                reto: 6,
+                id: "R6-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "What is Saint Lawrence holding in his hand?",
+                opciones: ["A Dove", "A spoon", "A grill"],
+                correctas: ["A grill"],
+                multiple: false
+            },
+            {
+                reto: 7,
+                id: "R7-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "With which hand does Neptune hold the cornucopia?",
+                opciones: ["Left", "Right"],
+                correctas: ["Right"],
+                multiple: false
+            },
+            {
+                reto: 8,
+                id: "PZ-01",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-01"
+            },
+            {
+                reto: 9,
+                id: "R9-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "Could you determine what geometry the Cimborrio of the Cathedral of Valencia has?",
+                opciones: ["Hexagonal", "Octagonal", "Square"],
+                correctas: ["Octagonal"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-AvFallas-en",
+                tipo: "texto",
+                pregunta: "How many windows can you see?",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 11,
+                id: "PZ-17",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-17"
+            },
+            {
+                reto: 12,
+                id: "R12-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "Do you remember which animal tops the coat of arms of Valencia?",
+                opciones: ["Bat", "Dragon", "Lion"],
+                correctas: ["Bat"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-AvFallas-en",
+                tipo: "opcion-multiple",
+                pregunta: "Above the main entrance, in a rounded arch, allegorical figures represent the five continents. What does the central figure carry?",
+                opciones: ["A Torch", "A Sword", "A Crown"],
+                correctas: ["A Torch", "A Sword"],
+                multiple: true
+            },
+            {
+                reto: 14,
+                id: "R14-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "What is the figure holding in its hand?",
+                opciones: ["A balance", "A book", "A quill"],
+                correctas: ["A balance"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "Find the stained-glass window with the colours of the Valencian Senyera on the façade of the building. Could you determine what shape it has?",
+                opciones: ["Square", "Round", "Triangular"],
+                correctas: ["Round"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-AvFallas-en",
+                tipo: "opcion-multiple",
+                pregunta: "What does the Virgin hold in her hand?",
+                opciones: ["A Rosary", "A child", "A crown"],
+                correctas: ["A Rosary", "A child"],
+                multiple: true
+            },
+            {
+                reto: 17,
+                id: "R17-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "What does the angel give to the child?",
+                opciones: ["A dove", "An orb", "Food"],
+                correctas: ["An orb"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "PZ-04",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-04"
+            },
+            {
+                reto: 19,
+                id: "R19-AvFallas-en",
+                tipo: "opcion",
+                pregunta: "What is the child holding in his hands?",
+                opciones: ["A dove", "A shell", "Food"],
+                correctas: ["A shell"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "PZ-05",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-05"
+            },
         ],
         fr: [
             // Array de retos AventuraFallas FRANCÉS
@@ -13586,7 +14269,155 @@ export const RETOS_AVENTURAS = {
                 opciones: ["Oui", "Non"],
                 correctas: ["?"],
                 multiple: false
-            }
+            },
+            {
+                reto: 3,
+                id: "R3-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Pourriez-vous me dire comment s'appellent ces tours ?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
+            },
+            {
+                reto: 4,
+                id: "R4-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Au sommet des tours flotte le drapeau de Valence : ses couleurs se composent de rouge, jaune et… ?",
+                opciones: ["Violet", "Vert", "Bleu"],
+                correctas: ["Bleu"],
+                multiple: false
+            },
+            {
+                reto: 5,
+                id: "R5-AvFallas-fr",
+                tipo: "texto",
+                pregunta: "Pourriez-vous me dire le nom de cette rue ?",
+                correctas: ["Calle Muro de Santa Ana"],
+                multiple: false
+            },
+            {
+                reto: 6,
+                id: "R6-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Que porte Saint Laurent dans la main ?",
+                opciones: ["Une Colombe", "Une cuillère", "Un gril"],
+                correctas: ["Un gril"],
+                multiple: false
+            },
+            {
+                reto: 7,
+                id: "R7-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "De quelle main Neptune tient-il la corne d'abondance ?",
+                opciones: ["Gauche", "Droite"],
+                correctas: ["Droite"],
+                multiple: false
+            },
+            {
+                reto: 8,
+                id: "PZ-01",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-01"
+            },
+            {
+                reto: 9,
+                id: "R9-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Pourriez-vous déterminer quelle géométrie a le Cimborrio de la Cathédrale de Valence ?",
+                opciones: ["Hexagonale", "Octogonale", "Carrée"],
+                correctas: ["Octogonale"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-AvFallas-fr",
+                tipo: "texto",
+                pregunta: "Combien de fenêtres pouvez-vous voir ?",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 11,
+                id: "PZ-17",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-17"
+            },
+            {
+                reto: 12,
+                id: "R12-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Vous souvenez-vous quel animal surmonte le blason de Valence ?",
+                opciones: ["Chauve-souris", "Dragon", "Lion"],
+                correctas: ["Chauve-souris"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-AvFallas-fr",
+                tipo: "opcion-multiple",
+                pregunta: "Au-dessus de l'entrée principale, dans un arc en plein cintre, des figures allégoriques représentent les cinq continents. Que porte la figure centrale ?",
+                opciones: ["Une Torche", "Une Épée", "Une Couronne"],
+                correctas: ["Une Torche", "Une Épée"],
+                multiple: true
+            },
+            {
+                reto: 14,
+                id: "R14-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Que tient la figure dans la main ?",
+                opciones: ["Une balance", "Un livre", "Une plume"],
+                correctas: ["Une balance"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Cherchez le vitrail aux couleurs de la Senyera valencienne sur la façade du bâtiment. Pourriez-vous déterminer quelle forme il a ?",
+                opciones: ["Carré", "Rond", "Triangulaire"],
+                correctas: ["Rond"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-AvFallas-fr",
+                tipo: "opcion-multiple",
+                pregunta: "Que tient la Vierge dans sa main ?",
+                opciones: ["Un Rosaire", "Un enfant", "Une couronne"],
+                correctas: ["Un Rosaire", "Un enfant"],
+                multiple: true
+            },
+            {
+                reto: 17,
+                id: "R17-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Que donne l'ange à l'enfant ?",
+                opciones: ["Une colombe", "Un orbe", "De la nourriture"],
+                correctas: ["Un orbe"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "PZ-04",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-04"
+            },
+            {
+                reto: 19,
+                id: "R19-AvFallas-fr",
+                tipo: "opcion",
+                pregunta: "Que tient l'enfant dans ses mains ?",
+                opciones: ["Une colombe", "Un coquillage", "De la nourriture"],
+                correctas: ["Un coquillage"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "PZ-05",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-05"
+            },
         ],
         it: [
             // Array de retos AventuraFallas ITALIANO
@@ -13613,7 +14444,155 @@ export const RETOS_AVENTURAS = {
                 opciones: ["Sì", "No"],
                 correctas: ["?"],
                 multiple: false
-            }
+            },
+            {
+                reto: 3,
+                id: "R3-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Saprebbe dirmi come si chiamano queste Torri?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre di Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
+            },
+            {
+                reto: 4,
+                id: "R4-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "In cima alle torri sventola la bandiera di Valencia: i suoi colori sono rosso, giallo e… ?",
+                opciones: ["Viola", "Verde", "Blu"],
+                correctas: ["Blu"],
+                multiple: false
+            },
+            {
+                reto: 5,
+                id: "R5-AvFallas-it",
+                tipo: "texto",
+                pregunta: "Saprebbe dirmi il nome di questa via?",
+                correctas: ["Calle Muro de Santa Ana"],
+                multiple: false
+            },
+            {
+                reto: 6,
+                id: "R6-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Cosa porta San Lorenzo in mano?",
+                opciones: ["Una Colomba", "Un cucchiaio", "Una graticola"],
+                correctas: ["Una graticola"],
+                multiple: false
+            },
+            {
+                reto: 7,
+                id: "R7-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Con quale mano Nettuno tiene la cornucopia?",
+                opciones: ["Sinistra", "Destra"],
+                correctas: ["Destra"],
+                multiple: false
+            },
+            {
+                reto: 8,
+                id: "PZ-01",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-01"
+            },
+            {
+                reto: 9,
+                id: "R9-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Saprebbe determinare quale geometria ha il Cimborrio della Cattedrale di Valencia?",
+                opciones: ["Esagonale", "Ottagonale", "Quadrata"],
+                correctas: ["Ottagonale"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-AvFallas-it",
+                tipo: "texto",
+                pregunta: "Quante finestre riesce a vedere?",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 11,
+                id: "PZ-17",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-17"
+            },
+            {
+                reto: 12,
+                id: "R12-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Si ricorda quale animale corona lo stemma di Valencia?",
+                opciones: ["Pipistrello", "Drago", "Leone"],
+                correctas: ["Pipistrello"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-AvFallas-it",
+                tipo: "opcion-multiple",
+                pregunta: "Sopra l'ingresso principale, in un arco a tutto sesto, figure allegoriche rappresentano i cinque continenti. Cosa porta la figura centrale?",
+                opciones: ["Una Torcia", "Una Spada", "Una Corona"],
+                correctas: ["Una Torcia", "Una Spada"],
+                multiple: true
+            },
+            {
+                reto: 14,
+                id: "R14-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Cosa porta la figura nella mano?",
+                opciones: ["Una bilancia", "Un libro", "Una penna"],
+                correctas: ["Una bilancia"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Cerchi la vetrata con i colori della Senyera valenciana sulla facciata dell'edificio. Saprebbe determinare che forma ha?",
+                opciones: ["Quadrata", "Rotonda", "Triangolare"],
+                correctas: ["Rotonda"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-AvFallas-it",
+                tipo: "opcion-multiple",
+                pregunta: "Cosa tiene la Vergine nella sua mano?",
+                opciones: ["Un Rosario", "Un bambino", "Una corona"],
+                correctas: ["Un Rosario", "Un bambino"],
+                multiple: true
+            },
+            {
+                reto: 17,
+                id: "R17-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Cosa consegna l'angelo al bambino?",
+                opciones: ["Una colomba", "Un globo", "Cibo"],
+                correctas: ["Un globo"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "PZ-04",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-04"
+            },
+            {
+                reto: 19,
+                id: "R19-AvFallas-it",
+                tipo: "opcion",
+                pregunta: "Cosa tiene il bambino nelle sue mani?",
+                opciones: ["Una colomba", "Una conchiglia", "Cibo"],
+                correctas: ["Una conchiglia"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "PZ-05",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-05"
+            },
         ],
         nl: [
             // Array de retos AventuraFallas HOLANDÉS
@@ -13640,7 +14619,155 @@ export const RETOS_AVENTURAS = {
                 opciones: ["Ja", "Nee"],
                 correctas: ["?"],
                 multiple: false
-            }
+            },
+            {
+                reto: 3,
+                id: "R3-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Weet u hoe deze Torens heten?",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
+            },
+            {
+                reto: 4,
+                id: "R4-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Aan de top van de torens wappert de vlag van Valencia: de kleuren zijn rood, geel en… ?",
+                opciones: ["Paars", "Groen", "Blauw"],
+                correctas: ["Blauw"],
+                multiple: false
+            },
+            {
+                reto: 5,
+                id: "R5-AvFallas-nl",
+                tipo: "texto",
+                pregunta: "Kunt u mij de naam van deze straat vertellen?",
+                correctas: ["Calle Muro de Santa Ana"],
+                multiple: false
+            },
+            {
+                reto: 6,
+                id: "R6-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Wat heeft de Heilige Laurentius in zijn hand?",
+                opciones: ["Een Duif", "Een lepel", "Een rooster"],
+                correctas: ["Een rooster"],
+                multiple: false
+            },
+            {
+                reto: 7,
+                id: "R7-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "In welke hand houdt Neptunus de hoorn des overvloeds?",
+                opciones: ["Links", "Rechts"],
+                correctas: ["Rechts"],
+                multiple: false
+            },
+            {
+                reto: 8,
+                id: "PZ-01",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-01"
+            },
+            {
+                reto: 9,
+                id: "R9-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Kunt u bepalen welke geometrie de Cimborrio van de Kathedraal van Valencia heeft?",
+                opciones: ["Zeshoekig", "Achthoekig", "Vierkant"],
+                correctas: ["Achthoekig"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-AvFallas-nl",
+                tipo: "texto",
+                pregunta: "Hoeveel ramen kunt u zien?",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 11,
+                id: "PZ-17",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-17"
+            },
+            {
+                reto: 12,
+                id: "R12-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Weet u nog welk dier het wapen van Valencia bekroont?",
+                opciones: ["Vleermuis", "Draak", "Leeuw"],
+                correctas: ["Vleermuis"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-AvFallas-nl",
+                tipo: "opcion-multiple",
+                pregunta: "Boven de hoofdingang, in een rondboog, stellen allegorische figuren de vijf continenten voor. Wat draagt de centrale figuur?",
+                opciones: ["Een Fakkel", "Een Zwaard", "Een Kroon"],
+                correctas: ["Een Fakkel", "Een Zwaard"],
+                multiple: true
+            },
+            {
+                reto: 14,
+                id: "R14-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Wat draagt de figuur in zijn hand?",
+                opciones: ["Een weegschaal", "Een boek", "Een pen"],
+                correctas: ["Een weegschaal"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Zoek het gebrandschilderde raam met de kleuren van de Valenciaanse Senyera op de gevel van het gebouw. Kunt u bepalen welke vorm het heeft?",
+                opciones: ["Vierkant", "Rond", "Driehoekig"],
+                correctas: ["Rond"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-AvFallas-nl",
+                tipo: "opcion-multiple",
+                pregunta: "Wat houdt de Maagd in haar hand?",
+                opciones: ["Een Rozenkrans", "Een kind", "Een kroon"],
+                correctas: ["Een Rozenkrans", "Een kind"],
+                multiple: true
+            },
+            {
+                reto: 17,
+                id: "R17-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Wat geeft de engel aan het kind?",
+                opciones: ["Een duif", "Een bol", "Voedsel"],
+                correctas: ["Een bol"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "PZ-04",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-04"
+            },
+            {
+                reto: 19,
+                id: "R19-AvFallas-nl",
+                tipo: "opcion",
+                pregunta: "Wat houdt het kind in zijn handen?",
+                opciones: ["Een duif", "Een schelp", "Voedsel"],
+                correctas: ["Een schelp"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "PZ-05",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-05"
+            },
         ],
         ja: [
             // Array de retos AventuraFallas JAPONÉS
@@ -13667,7 +14794,155 @@ export const RETOS_AVENTURAS = {
                 opciones: ["はい", "いいえ"],
                 correctas: ["?"],
                 multiple: false
-            }
+            },
+            {
+                reto: 3,
+                id: "R3-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "これらの塔の名前を教えていただけますか？",
+                opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
+                correctas: ["Torres de Serranos"],
+                multiple: false
+            },
+            {
+                reto: 4,
+                id: "R4-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "塔の頂上にはバレンシアの旗が翻っています：その色は赤、黄色、そして…？",
+                opciones: ["紫", "緑", "青"],
+                correctas: ["青"],
+                multiple: false
+            },
+            {
+                reto: 5,
+                id: "R5-AvFallas-ja",
+                tipo: "texto",
+                pregunta: "この通りの名前を教えていただけますか？",
+                correctas: ["Calle Muro de Santa Ana"],
+                multiple: false
+            },
+            {
+                reto: 6,
+                id: "R6-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "聖ラウレンティウスは手に何を持っていますか？",
+                opciones: ["鳩", "スプーン", "焼き網"],
+                correctas: ["焼き網"],
+                multiple: false
+            },
+            {
+                reto: 7,
+                id: "R7-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "ネプチューンはどちらの手で豊穣の角を持っていますか？",
+                opciones: ["左手", "右手"],
+                correctas: ["右手"],
+                multiple: false
+            },
+            {
+                reto: 8,
+                id: "PZ-01",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-01"
+            },
+            {
+                reto: 9,
+                id: "R9-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "バレンシア大聖堂のシンボリオはどのような幾何学形状をしているか分かりますか？",
+                opciones: ["六角形", "八角形", "正方形"],
+                correctas: ["八角形"],
+                multiple: false
+            },
+            {
+                reto: 10,
+                id: "R10-AvFallas-ja",
+                tipo: "texto",
+                pregunta: "窓はいくつ見えますか？",
+                correctas: ["?"],
+                multiple: false
+            },
+            {
+                reto: 11,
+                id: "PZ-17",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-17"
+            },
+            {
+                reto: 12,
+                id: "R12-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "バレンシアの紋章の上にいる動物を覚えていますか？",
+                opciones: ["コウモリ", "ドラゴン", "ライオン"],
+                correctas: ["コウモリ"],
+                multiple: false
+            },
+            {
+                reto: 13,
+                id: "R13-AvFallas-ja",
+                tipo: "opcion-multiple",
+                pregunta: "正面入口の上の丸アーチには、5大陸を表す寓意的な像があります。中央の像は何を持っていますか？",
+                opciones: ["たいまつ", "剣", "王冠"],
+                correctas: ["たいまつ", "剣"],
+                multiple: true
+            },
+            {
+                reto: 14,
+                id: "R14-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "その像は手に何を持っていますか？",
+                opciones: ["天秤", "本", "羽根ペン"],
+                correctas: ["天秤"],
+                multiple: false
+            },
+            {
+                reto: 15,
+                id: "R15-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "建物のファサードにあるバレンシアの旗の色のステンドグラスを探してください。どんな形をしているか分かりますか？",
+                opciones: ["正方形", "円形", "三角形"],
+                correctas: ["円形"],
+                multiple: false
+            },
+            {
+                reto: 16,
+                id: "R16-AvFallas-ja",
+                tipo: "opcion-multiple",
+                pregunta: "聖母は手に何を持っていますか？",
+                opciones: ["ロザリオ", "子供", "王冠"],
+                correctas: ["ロザリオ", "子供"],
+                multiple: true
+            },
+            {
+                reto: 17,
+                id: "R17-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "天使は子供に何を渡していますか？",
+                opciones: ["鳩", "球体", "食べ物"],
+                correctas: ["球体"],
+                multiple: false
+            },
+            {
+                reto: 18,
+                id: "PZ-04",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-04"
+            },
+            {
+                reto: 19,
+                id: "R19-AvFallas-ja",
+                tipo: "opcion",
+                pregunta: "子供は手に何を持っていますか？",
+                opciones: ["鳩", "貝殻", "食べ物"],
+                correctas: ["貝殻"],
+                multiple: false
+            },
+            {
+                reto: 20,
+                id: "PZ-05",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-05"
+            },
         ],
         de: [
             // Array de retos AventuraFallas DE

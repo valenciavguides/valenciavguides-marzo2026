@@ -1485,21 +1485,13 @@ elementosDOM.btnUbicacion?.addEventListener('click', async () => {
         let elementoId = null;
 
         try {
-            // Intentar obtener elemento actual del estado del padre
-            if (globalThis.parent && globalThis.parent.estadoPadre && globalThis.parent.estadoPadre.elementoActual) {
-                elementoDestino = globalThis.parent.estadoPadre.elementoActual;
-                elementoId = elementoDestino.parada_id || elementoDestino.tramo_id || elementoDestino.id || 'desconocido';
-                logger.debug(`${logPrefix} Elemento destino desde padre: ${elementoId}`);
-            } else {
-                // Fallback: usar idParadaActual de hijo2
-                elementoId = estadoComponente.idParadaActual || 'P-0';
-                const paradas = globalThis.__vv_coordenadasAventura || [];
-                elementoDestino = paradas.find(p => p.id === elementoId || p.parada_id === elementoId || p.tramo_id === elementoId);
-                logger.debug(`${logPrefix} Elemento destino desde hijo2: ${elementoId}`);
-            }
+            elementoId = estadoComponente.idParadaActual || 'P-0';
+            const paradas = globalThis.__vv_coordenadasAventura || [];
+            elementoDestino = paradas.find(p => p.id === elementoId || p.parada_id === elementoId || p.tramo_id === elementoId);
+            logger.debug(`${logPrefix} Elemento destino: ${elementoId}`);
         } catch (e) {
             logger.warn(`${logPrefix} Error obteniendo elemento destino:`, e);
-            elementoId = 'P-0'; // Default a inicio
+            elementoId = 'P-0';
         }
 
         // Solicitar al padre que muestre polyline desde ubicación actual hasta destino

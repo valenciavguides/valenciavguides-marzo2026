@@ -1187,8 +1187,9 @@
         */
         globalThis.addEventListener("message", async (event) => {
             if (event.origin !== globalThis.location.origin) return;
-            // Asegúrate de que el mensaje provenga del iframe del puzzle
-            if (event.source !== globalThis.frames[0]) {
+            // Filtrar: solo mensajes del iframe del puzzle activo (referenciado por su id, no por posición)
+            const puzzleEl = document.getElementById('puzzleIframe');
+            if (!puzzleEl || event.source !== puzzleEl.contentWindow) {
                 return;
             }
 

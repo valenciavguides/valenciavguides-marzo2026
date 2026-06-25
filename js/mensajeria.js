@@ -970,7 +970,10 @@ async function marcarHijoDesconectado(hijoId, autoReconectar = true) {
         await sm.atomicUpdateHeartbeat(s => {
             const desconectados = new Set(s?.hijosDesconectados || []);
             desconectados.add(hijoId);
-            return { hijosDesconectados: Array.from(desconectados) };
+            // Resetear contador para evitar reloads repetidos durante la recarga
+            const nuevosFallidos = new Map(s?.heartbeatsFallidos || []);
+            nuevosFallidos.set(hijoId, 0);
+            return { hijosDesconectados: Array.from(desconectados), heartbeatsFallidos: nuevosFallidos };
         });
         logger.warn(`[mensajeria] Hijo ${hijoId} marcado como desconectado`);
 
