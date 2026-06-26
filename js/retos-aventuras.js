@@ -1613,7 +1613,7 @@ export const RETOS_AVENTURAS = {
                 id: "R16-Av1-ja",
                 tipo: "opcion",
                 pregunta: "15. 形状を判定できますか？",
-                opciones: ["「六角形」,「八角形」,「四角形」r"],
+                opciones: ["「六角形」", "「八角形」", "「四角形」"],
                 correctas: ["「六角形」"],
                 multiple: false
             },
@@ -1685,7 +1685,7 @@ export const RETOS_AVENTURAS = {
                 id: "R25-Av1-ja",
                 tipo: "opcion",
                 pregunta: "23. ファサードのバレンシアのセニェーラの色のステンドグラスを探してください。形状は何ですか？",
-                opciones: ["「四角形」,「円形」,「三角形」"],
+                opciones: ["「四角形」", "「円形」", "「三角形」"],
                 correctas: ["「円形」"],
                 multiple: false
             },
@@ -1763,7 +1763,7 @@ export const RETOS_AVENTURAS = {
                 id: "R34-Av1-ja",
                 tipo: "opcion",
                 pregunta: "34. 「その子どもは手に何を持っていますか？」",
-                opciones: ["「一羽の鳩」「貝殻」「食べ物」"],
+                opciones: ["「一羽の鳩」", "「貝殻」", "「食べ物」"],
                 correctas: ["「貝殻」"],
                 multiple: false
             },
@@ -9115,6 +9115,12 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
+                reto: 4,
+                id: "PZ-18",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-18"
+            },
+            {
                 reto: 5,
                 id: "R5-Av4-en",
                 tipo: "opcion",
@@ -9284,6 +9290,12 @@ export const RETOS_AVENTURAS = {
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
+            },
+            {
+                reto: 4,
+                id: "PZ-18",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-18"
             },
             {
                 reto: 5,
@@ -9457,6 +9469,12 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
+                reto: 4,
+                id: "PZ-18",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-18"
+            },
+            {
                 reto: 5,
                 id: "R5-Av4-it",
                 tipo: "opcion",
@@ -9628,6 +9646,12 @@ export const RETOS_AVENTURAS = {
                 multiple: false
             },
             {
+                reto: 4,
+                id: "PZ-18",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-18"
+            },
+            {
                 reto: 5,
                 id: "R5-Av4-nl",
                 tipo: "opcion",
@@ -9797,6 +9821,12 @@ export const RETOS_AVENTURAS = {
                 opciones: ["Torres de Quart", "Torres de Serranos", "Torre del Miguelete", "Torre de Santa Catalina"],
                 correctas: ["Torres de Serranos"],
                 multiple: false
+            },
+            {
+                reto: 4,
+                id: "PZ-18",
+                tipo: "puzzle",
+                src: "puzzle.html?id=PZ-18"
             },
             {
                 reto: 5,
