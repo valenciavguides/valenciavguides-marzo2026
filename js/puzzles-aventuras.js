@@ -40,7 +40,7 @@ export const PUZZLES_AVENTURAS = {
     },
     {
         id: "PZ-09",
-        imagen: "imagenes/imagenes-aventuras/puente_Assut-2.jpg",
+        imagen: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
     },
     {
         id: "PZ-10",
