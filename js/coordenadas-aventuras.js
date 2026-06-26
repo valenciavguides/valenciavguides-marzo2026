@@ -4020,7 +4020,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 1, // mapa número 2
         mapa_numero: 1,
-        nombre: "",
+        nombre: "Museo de Corpus Christi (Casa de las Rocas)",
         coordenadas: { lat: Number('39.478960'), lng: Number('-0.376920') },
         imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg",
     },
@@ -4060,7 +4060,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 3, // mapa número 3
         mapa_numero: 3,
-        nombre: "",
+        nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)",
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.378600') },
         imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
     },
@@ -4531,7 +4531,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 20, // mapa número 16
         mapa_numero: 16,
-        nombre: "",
+        nombre: "Molino del Sol",
         coordenadas: { lat: Number('39.481476'), lng: Number('-0.410299') },
         imagen: "imagenes/imagenes-aventuras/parque_de_cabecera_end_park.jpg",
     },
@@ -5064,7 +5064,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 33, // mapa número v12
         mapa_numero: "v12",
-        nombre: "",
+        nombre: "Portón del Convento de San Julián",
         coordenadas: { lat: Number('39.478579'), lng: Number('-0.369801') },
         imagen: "imagenes/imagenes-aventuras/viveros_san_julian.jpg",
         imagen2: "imagenes/imagenes-aventuras/viveros_plano.png",
@@ -5897,7 +5897,7 @@ export const DATOS_AVENTURAS = {
         tramo: 14, // De mapa número 12 a mapa número 12
         mapa_numero: "12→12",
         nombre: "Estación del Norte → Estación del Norte",
-       coordenadas: { lat: Number('39.467381'), lng: Number('-0.377117') },
+        inicio: { lat: Number('39.467381'), lng: Number('-0.377117') },
         waypoints:
         [
             { lat: Number('39.467149'), lng: Number('-0.377185') },
