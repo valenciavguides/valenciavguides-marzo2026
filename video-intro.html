@@ -373,6 +373,21 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;
   border-right:12px solid #28a745}
 
+/* ── SKIP BUTTON ── */
+#btn-skip{position:absolute;top:8px;left:8px;z-index:9600;
+  width:clamp(52px,14vw,72px);height:clamp(52px,14vw,72px);
+  border-radius:50%;border:none;overflow:hidden;cursor:pointer;
+  box-shadow:0 4px 18px rgba(0,0,0,.45);
+  opacity:0;pointer-events:none;transition:opacity .6s}
+#btn-skip.on{opacity:1;pointer-events:auto}
+#btn-skip::before{content:'';position:absolute;inset:0;z-index:1;
+  background-image:radial-gradient(circle at 35% 35%,#4caf50,#0d2b0d);border-radius:50%}
+#btn-skip::after{content:'';position:absolute;top:5%;left:15%;width:70%;height:35%;
+  background:rgba(255,255,255,.18);border-radius:50%;z-index:2}
+#btn-skip span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:3;font-size:clamp(18px,5.5vw,28px);color:#fff;letter-spacing:-1px}
+#btn-skip:active{transform:scale(0.9)}
+
 /* ── END SCREEN ── */
 #end-btns{position:absolute;inset:0;z-index:9500;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:36px;
@@ -403,6 +418,9 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   <img id="knight2" src="" alt="">
   <img id="gauntlet" src="" alt="">
   <div id="end-fade"></div>
+  <button id="btn-skip" onclick="globalThis._skipVideoIntro()" title="Saltar intro">
+    <span>➤➤</span>
+  </button>
   <div id="end-btns">
     <div class="end-row">
       <div class="end-col">
@@ -1580,14 +1598,27 @@ globalThis._continuarVideo = function() {
 globalThis._replayVideoIntro = function() {
   globalThis.location.reload();
 };
+let _skipRequested = false;
+globalThis._skipVideoIntro = function() {
+  _skipRequested = true;
+  $('btn-skip').classList.remove('on');
+  globalThis._continuarVideo();
+};
 
 async function run(){
   MC.init(); await wait(350);
+  // Mostrar botón saltar tras 3 s
+  wait(3000).then(() => { if (!_skipRequested) $('btn-skip').classList.add('on'); });
   const scenes=[scene1,scene2,scene3,scene4,scene5,scene6,scene7,scene8,scene9,
     scene10,sceneImg,sceneVid,
     scene11,scene12,sceneRetoMCQ,
     scene13,scene14,scene15,scene16,scene17,scene18,scene19];
-  for(const fn of scenes){ clearOv(); await fn(); await wait(650) }
+  for(const fn of scenes){
+    if (_skipRequested) break;
+    clearOv(); await fn(); await wait(650);
+  }
+  if (_skipRequested) return;
+  $('btn-skip').classList.remove('on');
   clearOv(); Knight.show(K.completo);
   $('end-btns').classList.add('on');
 }
