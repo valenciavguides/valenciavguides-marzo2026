@@ -5915,7 +5915,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         nombre: "Estación del Norte",
         coordenadas: { lat: Number('39.467000'), lng: Number('-0.377270') },
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
     },
      // Tramo 15: Estación del Norte → Calle del Hospital (Párrafos: 576, 3-E, 3-B)
     {
@@ -8264,7 +8264,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 12,
         nombre: "Estación del Norte",
         coordenadas: { lat: Number('39.467000'), lng: Number('-0.377270') },
-        imagen: "",
+        imagen: "imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
     },
     // Tramo 24: Estación del Norte (interior) → Plaza del Ayuntamiento
     {
