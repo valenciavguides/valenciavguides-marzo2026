@@ -832,7 +832,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "28. Le batelier qui rame à contre-courant.",
+                pregunta: "29. Le batelier qui rame à contre-courant.",
                 opciones: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
                 correctas: ["Un homme au visage triste dirige un petit bateau en bois pour échapper à contre-courant à un monstre."],
                 multiple: true
@@ -841,7 +841,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "29. Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
+                pregunta: "30. Un arbre mort : symbole du péché, se trouve entre les deux feuilles de la porte et fait office de meneau.",
                 opciones: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
                 correctas: ["Observez au sommet de l'arbre quatre hommes nus qui se flagellent entre eux."],
                 multiple: true
@@ -859,7 +859,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "31. Au centre : L'homme barbu et le lion :",
+                pregunta: "32. Au centre : L'homme barbu et le lion :",
                 opciones: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 correctas: ["Scène originale et contradictoire où le doux est précisément le lion et non le vieil homme barbu."],
                 multiple: true
@@ -868,7 +868,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-fr",
                 tipo: "opcion-multiple",
-                pregunta: "32. Voici un défi supplémentaire ! Cherchez le fornicateur de la Bourse de la soie !",
+                pregunta: "33. Voici un défi supplémentaire ! Cherchez le fornicateur de la Bourse de la soie !",
                 opciones: ["Dans une de ses fenêtres, vous trouverez un homme sculpté ; sa tête n'est pas visible mais ses parties génitales le sont, très clairement."],
                 correctas: ["Dans une de ses fenêtres, vous trouverez un homme sculpté ; sa tête n'est pas visible mais ses parties génitales le sont, très clairement."],
                 multiple: true
@@ -877,7 +877,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-fr",
                 tipo: "opcion",
-                pregunta: "33. Que tient l'enfant dans ses mains ?",
+                pregunta: "34. Que tient l'enfant dans ses mains ?",
                 opciones: ["Une colombe", "Une coquille", "Des aliments"],
                 correctas: ["Une coquille"],
                 multiple: false
@@ -1127,7 +1127,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "28. Il barcaiolo che rema controcorrente.",
+                pregunta: "29. Il barcaiolo che rema controcorrente.",
                 opciones: ["Un uomo con volto triste che manovra una piccola barca di legno fugge controcorrente da un mostro."],
                 correctas: ["Un uomo con volto triste che manovra una piccola barca di legno fugge controcorrente da un mostro."],
                 multiple: true
@@ -1136,7 +1136,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "29. Un albero morto: simbolo del Peccato, si vede tra le due foglie della porta e funge da parteluz.",
+                pregunta: "30. Un albero morto: simbolo del Peccato, si vede tra le due foglie della porta e funge da parteluz.",
                 opciones: ["Osserva sulla cima dell'albero come 4 uomini nudi si flagellano tra loro."],
                 correctas: ["Osserva sulla cima dell'albero come 4 uomini nudi si flagellano tra loro."],
                 multiple: true
@@ -1154,7 +1154,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "31. Al centro: L'uomo barbuto e il leone:",
+                pregunta: "32. Al centro: L'uomo barbuto e il leone:",
                 opciones: ["Scena originale e contraddittoria in cui il mansueto è proprio il leone e non il vecchio uomo barbuto."],
                 correctas: ["Scena originale e contraddittoria in cui il mansueto è proprio il leone e non il vecchio uomo barbuto."],
                 multiple: true
@@ -1163,7 +1163,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-it",
                 tipo: "opcion-multiple",
-                pregunta: "32. Ecco una sfida extra! Cerca il fornicatore della Lonja della Seta!",
+                pregunta: "33. Ecco una sfida extra! Cerca il fornicatore della Lonja della Seta!",
                 opciones: ["In una delle sue finestre, troverai un uomo scolpito; la sua testa non è visibile ma i suoi genitali lo sono, molto chiaramente."],
                 correctas: ["In una delle sue finestre, troverai un uomo scolpito; la sua testa non è visibile ma i suoi genitali lo sono, molto chiaramente."],
                 multiple: true
@@ -1172,7 +1172,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-it",
                 tipo: "opcion",
-                pregunta: "33. Cosa tiene il bambino nelle sue mani?",
+                pregunta: "34. Cosa tiene il bambino nelle sue mani?",
                 opciones: ["Una colomba", "Una conchiglia", "Cibo"],
                 correctas: ["Una conchiglia"],
                 multiple: false
@@ -1422,7 +1422,7 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "28. De veerman die tegen de stroom in roeit.",
+                pregunta: "29. De veerman die tegen de stroom in roeit.",
                 opciones: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
                 correctas: ["Een man met een verdrietig gezin die een klein houten boot bestuurt ontsnapt tegen de stroom van een monster."],
                 multiple: true
@@ -1431,7 +1431,7 @@ export const RETOS_AVENTURAS = {
                 reto: 30,
                 id: "R30-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "29. Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
+                pregunta: "30. Een dode boom: symbool van Zonde, is te zien tussen de twee bladeren van de deur en fungeert als middenstijl.",
                 opciones: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
                 correctas: ["Let op de top van de boom waar 4 naakte mannen elkaar geselen."],
                 multiple: true
@@ -1449,7 +1449,7 @@ export const RETOS_AVENTURAS = {
                 reto: 32,
                 id: "R32-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "31. In het midden: De baardige man en de leeuw:",
+                pregunta: "32. In het midden: De baardige man en de leeuw:",
                 opciones: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 correctas: ["Origineel en tegenstrijdig tafereel waarin de zachte precies de leeuw is en niet de baardige oude man."],
                 multiple: true
@@ -1458,7 +1458,7 @@ export const RETOS_AVENTURAS = {
                 reto: 33,
                 id: "R33-Av1-nl",
                 tipo: "opcion-multiple",
-                pregunta: "32. Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
+                pregunta: "33. Hier is een extra uitdaging! Zoek de fornicator in de Zijdehal!",
                 opciones: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
                 correctas: ["In een van zijn ramen vindt u een uitgehouwen man; zijn hoofd is niet zichtbaar maar zijn genitaliën zijn, heel duidelijk."],
                 multiple: true
@@ -1467,7 +1467,7 @@ export const RETOS_AVENTURAS = {
                 reto: 34,
                 id: "R34-Av1-nl",
                 tipo: "opcion",
-                pregunta: "33. Wat houdt het kind in zijn handen?",
+                pregunta: "34. Wat houdt het kind in zijn handen?",
                 opciones: ["Een duif", "Een schelp", "Voedsel"],
                 correctas: ["Een schelp"],
                 multiple: false
@@ -1717,52 +1717,52 @@ export const RETOS_AVENTURAS = {
                 reto: 29,
                 id: "R29-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "28. 死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
-                opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
-                correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
+                pregunta: "29. 逆流を漕ぐ船頭。",
+                opciones: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
+                correctas: ["悲しい表情の男が小さな木製の舟を操り、怪物から逃げるように逆流を進んでいる。"],
                 multiple: true
             },
             {
                 reto: 30,
                 id: "R30-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "29. 右側、天使が陰茎を見せて…",
-                opciones: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
-                correctas: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
+                pregunta: "30. 死んだ木：罪の象徴、門の2枚の扉の間にあり、中央の柱として機能しています。",
+                opciones: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
+                correctas: ["木の頂上で4人の裸の男性がお互いを鞭打つ様子を観察してください。"],
                 multiple: true
             },
             {
                 reto: 31,
                 id: "R31-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "30. 中央：ひげの男とライオン：",
-                opciones: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
-                correctas: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
+                pregunta: "31. 右側、天使が陰茎を見せて…",
+                opciones: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
+                correctas: ["もう片方の手で持つ花瓶に挿入しようとしている。不思議で異常ですよね？"],
                 multiple: true
             },
             {
                 reto: 32,
                 id: "R32-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "31. ここで追加チャレンジ！絹の取引所の乱交者を探してください！",
-                opciones: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
-                correctas: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
+                pregunta: "32. 中央：ひげの男とライオン：",
+                opciones: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
+                correctas: ["穏やかなのはライオンであり、ひげの老人ではない、という独特で矛盾した場面。"],
                 multiple: true
             },
             {
                 reto: 33,
                 id: "R33-Av1-ja",
                 tipo: "opcion-multiple",
-                pregunta: "32. 「追加のチャレンジがあります！ラ・ロンハ・デ・ラ・セダの好色な人物を探してみてください！」",
-                opciones: ["「その窓の一つには彫刻された男性が見つかります。彼の頭は見えませんが、性器は非常にはっきりと見えます。」"],
-                correctas: ["「その窓の一つには彫刻された男性が見つかります。彼の頭は見えませんが、性器は非常にはっきりと見えます。」"],
+                pregunta: "33. ここで追加チャレンジ！絹の取引所の乱交者を探してください！",
+                opciones: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
+                correctas: ["窓の一つに彫刻された男性がいます。頭は見えませんが、性器ははっきり見えます。"],
                 multiple: true
             },
             {
                 reto: 34,
                 id: "R34-Av1-ja",
                 tipo: "opcion",
-                pregunta: "33. 「その子どもは手に何を持っていますか？」",
+                pregunta: "34. 「その子どもは手に何を持っていますか？」",
                 opciones: ["「一羽の鳩」「貝殻」「食べ物」"],
                 correctas: ["「貝殻」"],
                 multiple: false
