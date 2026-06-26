@@ -396,8 +396,8 @@
     // Parada 6: Puente de la Exposición (Peineta) (Reto 7) (Párrafos: 237, 1, 145, 239) (mapa 9)
     { id: "txt-Av3-P6", parrafos: [237, 1, 145, 239] },
 
-    // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
-    { id: "txt-Av3-TR6", parrafos: ["225-14-B"] },
+    // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
+    { id: "txt-Av3-TR6", parrafos: [225, "14-B"] },
 
     // Parada 7: Puente de las Flores (Párrafos: 241, 570) (mapa 10)
     { id: "txt-Av3-P7", parrafos: [241, 570] },
@@ -819,8 +819,8 @@
     // Parada 8: Puerta de la Mar (Reto 8) (Párrafos: 300, 84, 301, 148, 117) (mapa 7)
     { id: "txt-Av5-P8", parrafos: [300, 84, 301, 148, 117] },
 
-    // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
-    { id: "txt-Av5-TR8", parrafos: ["303-12-B"] },
+    // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
+    { id: "txt-Av5-TR8", parrafos: [303, "12-B"] },
 
     // Parada 9: Casa de los Dragones (Reto: 9) (Párrafos: 304, 305) (mapa 8)
     { id: "txt-Av5-P9", parrafos: [304, 305] },
