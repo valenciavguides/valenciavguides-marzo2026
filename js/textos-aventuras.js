@@ -1047,7 +1047,7 @@
     // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
     { id: "txt-AvFallas-P18", parrafos: ["693-C", 455, "693-B"] },
 
-    // Tramo 11: Palacio de Comunicaciones → Mercado Central (Párrafos: 189) (mapa 14→15)
+    // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189) (mapa 14→15)
     { id: "txt-AvFallas-TR11", parrafos: [189] },
 
     // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
