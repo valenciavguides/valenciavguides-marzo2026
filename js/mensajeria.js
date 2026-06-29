@@ -138,16 +138,16 @@ export async function inicializarMensajeria(opciones = {}) {
     componenteId = id;
     stateManager = sm || (globalThis.window === undefined ? null : globalThis.__vv_stateManager);
     
-    // VALIDACIÓN CRÍTICA: Verificar que state-manager esté disponible
-    // Si no está disponible, esperamos brevemente o advertimos
+    // VALIDACIÓN CRÍTICA: Verificar que state-manager esté disponible.
+    // En el padre, state-manager.js se inicializa (await) antes de que se llame aquí,
+    // por lo que sm siempre se pasa como parámetro y este bloque no se ejecuta.
+    // En hijos, no hay state-manager — se trabaja con __vv_manejadoresLocales (fallback previsto).
+    // Si por alguna razón sm es null y globalThis.__vv_stateManager tampoco está disponible,
+    // obtenerStateManager() lo encontrará dinámicamente en cada operación posterior.
     if (!stateManager && globalThis.window !== undefined) {
-        // Intentar obtenerlo una vez más después de un pequeño delay
-        await new Promise(resolve => setTimeout(resolve, 10));
         stateManager = globalThis.__vv_stateManager || globalThis.__stateManager;
-        
         if (!stateManager) {
-            logger.warn('[mensajeria] ⚠️ state-manager no disponible - algunas funciones centralizadas no funcionarán');
-            logger.warn('[mensajeria] Asegúrate de que state-manager.js se cargue ANTES que mensajeria.js');
+            logger.warn('[mensajeria] ⚠️ state-manager no disponible en init — se usará fallback local. obtenerStateManager() lo buscará dinámicamente en cada operación.');
         }
     }
     
@@ -191,8 +191,11 @@ function exponerAPIGlobal() {
 
         // Funciones de heartbeat
         iniciarHeartbeat,
+        preiniciarHeartbeat,
+        reanudarHeartbeat,
         pausarHeartbeat,
         procesarHeartbeatResponse,
+        esperarHijosListos,
 
         // Funciones de consulta
         getControladoresRegistrados,
@@ -871,6 +874,35 @@ export async function iniciarHeartbeat(intervalo = 5000) {
     } finally {
         _heartbeatIniciando = false;
     }
+}
+
+// Alias para pre-warm: inicia el heartbeat antes de que empiece la aventura.
+// app.js lo llama en modo CASA para tenerlo listo; pausarHeartbeat() lo pausa a continuación.
+export async function preiniciarHeartbeat(intervalo) {
+    return iniciarHeartbeat(intervalo);
+}
+
+// Alias para reanudar el heartbeat tras una pausa (llamado desde _reanudarSubsistemasTrasPrewarm).
+// pausarHeartbeat() pone activo=false y limpia el intervalo; llamar iniciarHeartbeat() de nuevo lo relanza.
+export async function reanudarHeartbeat(intervalo) {
+    return iniciarHeartbeat(intervalo);
+}
+
+// Espera a que todos los iframes registrados hayan completado el handshake HIJO_LISTO.
+// Se usa como optimización pre-aventura; si el SM no está disponible o no hay iframes,
+// resuelve inmediatamente igual que el fallback de app.js.
+export async function esperarHijosListos(timeout = 5000) {
+    const sm = obtenerStateManager();
+    if (!sm || typeof sm.crearPromiseHijoListo !== 'function') return { ready: true };
+    const ids = [...iframesRegistrados.keys()];
+    if (ids.length === 0) return { ready: true };
+    try {
+        await Promise.race([
+            Promise.all(ids.map(id => sm.crearPromiseHijoListo(id).catch(() => {}))),
+            new Promise(resolve => setTimeout(resolve, timeout))
+        ]);
+    } catch (_) { /* timeouts individuales ignorados */ }
+    return { ready: true };
 }
 
 /**

@@ -164,15 +164,6 @@ export async function registrarControladoresApp() {
 
 // Estado global en codigo-padre.html
 
-// Función para limpiar historial de monitoreo
-function limpiarHistorialMonitoreo(estado) {
-    const { maxItems } = estado.monitoreo.historial;
-    estado.monitoreo.historial.eventos = estado.monitoreo.historial.eventos.slice(-maxItems);
-    estado.monitoreo.historial.metricas = estado.monitoreo.historial.metricas.slice(-maxItems);
-    estado.monitoreo.historial.errores = estado.monitoreo.historial.errores.slice(-maxItems);
-    logger.debug(`Historial de monitoreo limpiado a ${maxItems} elementos`);
-}
-
 // Función para limpiar promesas pendientes expiradas
 function limpiarPromesasPendientes() {
     const ttl = 60000; // Ajustado a 60 segundos
@@ -1146,7 +1137,7 @@ export function obtenerEstadoMonitoreo(estado) {
 
 // Inicializar monitoreo de memoria si está disponible (optimized for mobile)
 if (globalThis.performance?.memory && !globalThis.__vv_intervaloMemoria) {
-    const intervaloMemoria = esMovil ? 300000 : 60000; // 5 min móvil, 1 min desktop
+    const intervaloMemoria = esMovil() ? 300000 : 60000; // 5 min móvil, 1 min desktop
     globalThis.__vv_intervaloMemoria = setInterval(() => {
         const { memory } = globalThis.performance;
         const usoMemoria = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
@@ -1560,31 +1551,33 @@ function _computeBackoff(attempt) {
     return Math.round(base + jitter);
 }
 
-registrarControlador(TIPOS_MENSAJE.SISTEMA.NACK, async (mensaje) => {
-    if (mensaje?.tipo !== TIPOS_MENSAJE.SISTEMA.NACK) return;
-    if (!mensaje?.datos?.esperarPermiso) return;
-    if (!mensaje?.origen) return;
-    
-    try {
-        const hijoId = mensaje.origen;
-        const modoRaw = mensaje.datos?.modoSolicitado || (mensaje.datos?.modo || null);
-        const modo = canonicalizarModo(modoRaw);
+mensajeriaReadyPromise.then(() => {
+    registrarControlador(TIPOS_MENSAJE.SISTEMA.NACK, async (mensaje) => {
+        if (mensaje?.tipo !== TIPOS_MENSAJE.SISTEMA.NACK) return;
+        if (!mensaje?.datos?.esperarPermiso) return;
+        if (!mensaje?.origen) return;
 
-        const existing = pendingModeChanges.get(hijoId) || { intentos: 0 };
-        const intentos = Math.min((existing.intentos || 0) + 1, MODE_RETRY_MAX_INTENTOS);
-        const nextAttemptAt = Date.now() + _computeBackoff(intentos);
+        try {
+            const hijoId = mensaje.origen;
+            const modoRaw = mensaje.datos?.modoSolicitado || (mensaje.datos?.modo || null);
+            const modo = canonicalizarModo(modoRaw);
 
-        pendingModeChanges.set(hijoId, {
-            modo,
-            datos: mensaje.datos,
-            intentos,
-            nextAttemptAt
-        });
+            const existing = pendingModeChanges.get(hijoId) || { intentos: 0 };
+            const intentos = Math.min((existing.intentos || 0) + 1, MODE_RETRY_MAX_INTENTOS);
+            const nextAttemptAt = Date.now() + _computeBackoff(intentos);
 
-        logger.info(`[APP][CAMBIO_MODO][RESEND] NACK con esperarPermiso de ${hijoId}, guardado intento=${intentos} nextAt=${new Date(nextAttemptAt).toISOString()}`);
-    } catch (e) {
-        logger.warn('[APP][CAMBIO_MODO][RESEND] Error procesando NACK esperarPermiso:', e);
-    }
+            pendingModeChanges.set(hijoId, {
+                modo,
+                datos: mensaje.datos,
+                intentos,
+                nextAttemptAt
+            });
+
+            logger.info(`[APP][CAMBIO_MODO][RESEND] NACK con esperarPermiso de ${hijoId}, guardado intento=${intentos} nextAt=${new Date(nextAttemptAt).toISOString()}`);
+        } catch (e) {
+            logger.warn('[APP][CAMBIO_MODO][RESEND] Error procesando NACK esperarPermiso:', e);
+        }
+    }).catch(e => logger.warn('[APP][NACK] Error registrando handler NACK:', e?.message));
 });
 
 // Background retry loop: periodically attempt to resend pending CAMBIO_MODO

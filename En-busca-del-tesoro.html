@@ -841,10 +841,14 @@
           </div>
         </div>
       </div>
-      <button id="btn-iniciar-aventura" class="btn btn-mundo-verde" onclick="void mostrar(14)" disabled title="Iniciar aventura">
+      <button id="btn-iniciar-aventura" class="btn btn-mundo-verde" onclick="void _irANormativa()" disabled title="Iniciar aventura">
         <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
         <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
       </button>
+      <div id="gps-denegado-p13" style="display:none; text-align:center; margin-top:1rem; padding:0.75rem; background:#fff3cd; border-radius:0.75rem; color:#856404;">
+        <div style="font-size:2rem;">📵</div>
+        <p id="gps-denegado-texto" style="margin:0.5rem 0; font-size:0.9rem;">Activa el GPS en los ajustes de tu navegador y vuelve a pulsar →</p>
+      </div>
     </div>
     <div style="text-align:center; margin-top:0.9375rem;">
       <div style="font-size:1rem; color:#1a1a1a;">🔑 → 0000</div>
@@ -1380,6 +1384,36 @@
       }
     }
     
+    async function _irANormativa() {
+      const errorDiv = document.getElementById('gps-denegado-p13');
+      if (errorDiv) errorDiv.style.display = 'none';
+
+      let permState = 'prompt';
+      try {
+        const perm = await navigator.permissions.query({ name: 'geolocation' });
+        permState = perm.state;
+      } catch (_) { /* API no disponible — watchPosition manejará el prompt */ }
+
+      if (permState === 'denied') {
+        if (errorDiv) errorDiv.style.display = 'block';
+        return;
+      }
+
+      if (globalThis.parent && globalThis.parent !== globalThis) {
+        globalThis.parent.postMessage({
+          tipo: 'SELECCION.CODIGO_VALIDADO',
+          origen: 'seleccion',
+          destino: 'padre',
+          datos: {
+            aventura: aventuraSeleccionada,
+            idioma: idiomaSeleccionado || 'es',
+            timestamp: Date.now()
+          }
+        }, globalThis.location.origin);
+      }
+      void mostrar(14);
+    }
+
     // ============================================================
     // FUNCIONES DE NAVEGACIÓN (actualizadas)
     // ============================================================

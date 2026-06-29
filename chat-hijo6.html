@@ -412,7 +412,20 @@
   });
 
   registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, async (mensaje) => {
-    logger.debug(`[hijo6] CAMBIO_MODO recibido: ${mensaje?.datos?.modo}`);
+    const modo = mensaje?.datos?.modo;
+    logger.debug(`[hijo6] CAMBIO_MODO recibido: ${modo}`);
+    await enviarMensaje({
+      destino: mensaje.origen,
+      tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_ENTENDIDO,
+      origen: CONFIG_HIJO.IFRAME_ID,
+      datos: { modo, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id }
+    });
+    await enviarMensaje({
+      destino: mensaje.origen,
+      tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_EFECTUADO,
+      origen: CONFIG_HIJO.IFRAME_ID,
+      datos: { modo, exito: true, timestamp: Date.now(), mensajeId: mensaje.datos?.mensajeId || mensaje.id }
+    });
   });
 
   registrarControladorSeguro(TIPOS_MENSAJE.CHAT.ESTADO_PADRE, async (mensaje) => {

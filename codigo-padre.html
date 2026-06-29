@@ -5153,6 +5153,11 @@
                 case error.PERMISSION_DENIED:
                     errorMsg = 'Permisos GPS denegados';
                     est.gps.permisos = false;
+                    est.gps.activo = false;
+                    if (est.gps.watchId !== null && est.gps.watchId !== undefined) {
+                        try { navigator.geolocation.clearWatch(est.gps.watchId); } catch (_) {}
+                        est.gps.watchId = null;
+                    }
                     break;
                 case error.POSITION_UNAVAILABLE:
                     errorMsg = 'GPS no disponible';
@@ -5624,6 +5629,16 @@
             btn.addEventListener('click', () => {
                 try {
                     (globalThis.logger || console).info('[PADRE][GPS][SIGNAL] Reintento manual desde overlay GPS signal');
+                    // Si el error fue PERMISSION_DENIED, reiniciar watchPosition completo
+                    const errCode = parseInt(document.getElementById('gps-signal-action')
+                        ?.getAttribute('data-gps-error-code') || '0');
+                    if (errCode === 1) {
+                        activarGPS().catch(err => {
+                            (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] activarGPS falló en reintento:', err?.message);
+                        });
+                        return; // overlay se oculta vía _watchPositionSuccess cuando GPS da posición
+                    }
+                    // Para TIMEOUT / POSITION_UNAVAILABLE: watchPosition ya corre, pedir una posición puntual
                     const cd = document.getElementById('gps-signal-countdown');
                     const b = document.getElementById('gps-signal-action');
                     if (globalThis.__VV_GPS_SIGNAL_TIMER) clearInterval(globalThis.__VV_GPS_SIGNAL_TIMER);
@@ -5649,12 +5664,12 @@
         function showGpsSignalOverlay(errorCode) {
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
-                if (modoActual !== MODOS.AVENTURA) return;
+                // Mostrar en AVENTURA o cuando el código ya fue validado en P13 (fase previa a aventura)
+                if (modoActual !== MODOS.AVENTURA && !globalThis._codigoValidadoP13) return;
                 _ensureGpsSignalOverlay();
                 const el = document.getElementById('gps-signal-overlay');
                 if (!el) return;
                 const btn = document.getElementById('gps-signal-action');
-                // code 1 = permiso denegado: botón abre diálogo nativo si está en estado 'prompt'
                 if (btn) {
                     if (errorCode === 1) {
                         btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️→🌐→⚙️</span>';
@@ -5665,6 +5680,8 @@
                         btn.setAttribute('aria-label', 'Reintentar GPS');
                         btn.title = 'Reintentar GPS';
                     }
+                    // Guardar código de error para que el click handler sepa qué tipo de reintento hacer
+                    btn.setAttribute('data-gps-error-code', errorCode);
                 }
                 el.classList.add('show');
                 (globalThis.logger || console).info('[PADRE][GPS][SIGNAL] Overlay GPS sin señal mostrado (code:', errorCode, ')');
@@ -7394,15 +7411,6 @@
                 (globalThis.logger || console).warn(`${logPrefix} ⚠️ ${hijosFallidos.length} iframes fallaron:`, hijosFallidos);
             } else {
                 (globalThis.logger || console).success(`${logPrefix} ✅ Todos los iframes cargados correctamente`);
-            }
-
-            // 🌍 ACTIVAR GPS DESPUÉS de cargar iframes
-            (globalThis.logger || console).info(`${logPrefix} 🚀 Activando GPS...`);
-            try {
-                await activarGPS();
-                (globalThis.logger || console).success(`${logPrefix} ✅ GPS activado correctamente`);
-            } catch (gpsError) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error activando GPS:`, gpsError);
             }
         }
 
@@ -10861,22 +10869,9 @@
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
                 (globalThis.logger || console).debug(`${logPrefix} Aventura almacenada en estado global: ${aventura}`);
 
-                await _fase2CargarDatos(logPrefix);
-
-                // Cargar iframes ANTES de distribuir datos: distribuirDatosAventura espera
-                // HIJO_LISTO de hijo2/hijo3/hijo4 — si aún no tienen src, nunca estarán listos.
-                (globalThis.logger || console).info(`${logPrefix} 🚀 Cargando resto de iframes antes de distribuir datos...`);
-                try {
-                    await cargarRestoDeiframes();
-                    (globalThis.logger || console).success(`${logPrefix} ✅ Resto de iframes cargados correctamente`);
-                } catch (error) {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando resto de iframes:`, error);
-                }
-
-                (globalThis.logger || console).info(`${logPrefix} 🚀 Cargando hijo5 después de selección de aventura...`);
-                await cargarHijoCasa();
-
-                await _distribuirConEspera(aventura, idioma, logPrefix);
+                // Limpiar flags de P13 para esta selección de aventura
+                globalThis._codigoValidadoP13 = false;
+                globalThis._iframesPreCargadosP13 = false;
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando selección de aventura:`, error, error?.stack);
@@ -10900,6 +10895,44 @@
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando pre-selección:`, error, error?.stack);
                 (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
+            }
+        }
+
+        async function _hdl_SELECCION_CODIGO_VALIDADO(mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[CODIGO_VALIDADO]`;
+            try {
+                const { aventura, idioma } = mensaje.datos || {};
+                const _av = aventura || estado?.seleccion?.aventura;
+                const _id = idioma  || estado?.seleccion?.idioma || 'es';
+
+                // Flag antes de activarGPS: showGpsSignalOverlay necesita verlo en su guard
+                globalThis._codigoValidadoP13 = true;
+
+                // Paso 1: GPS — si ya estaba denegado, verificarPermisosGPS lanza aquí
+                try {
+                    await activarGPS();
+                } catch (gpsErr) {
+                    (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
+                    showGpsSignalOverlay(1); // guard permite: _codigoValidadoP13 = true
+                    return;
+                }
+
+                // Paso 2: datos + iframes en paralelo mientras el usuario lee P14
+                // _cargarUnIframeHijo (usado en cargarRestoDeiframes) ya espera HIJO_LISTO internamente
+                await Promise.all([
+                    _fase2CargarDatos(logPrefix),
+                    cargarRestoDeiframes(),
+                    cargarHijoCasa()
+                ]);
+
+                // Paso 3: distribuir — ambas precondiciones cumplidas: datos listos + iframes con HIJO_LISTO
+                await _distribuirConEspera(_av, _id, logPrefix);
+
+                // Paso 4: marcar pre-cargado para que AVENTURA_ACTIVADA no recargue iframes
+                globalThis._iframesPreCargadosP13 = true;
+
+            } catch (error) {
+                (globalThis.logger || console).error(`${logPrefix} ❌ Error en CODIGO_VALIDADO:`, error, error?.stack);
             }
         }
 
@@ -11073,16 +11106,23 @@
                     { id: 'hijo3', src: 'audio-hijo3.html' },
                     { id: 'hijo5', src: 'boton-casa-hijo5.html' }
                 ];
-                // Normalizar ANTES de asignar src: evita que HIJO_LISTO llegue durante la carga
-                // y sea borrado por _normalizarSetHijos, dejando _esperarHijosCargados sin resolver.
                 const _idsRecargados = iframesHijos.map(c => c.id);
-                _normalizarSetHijos(estado, _idsRecargados, logPrefix);
-                await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
-                (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
-                updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
                 estado.seleccion.timestampInicio = timestamp;
 
-                await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
+                if (globalThis._iframesPreCargadosP13) {
+                    // Iframes cargados desde P13 — saltamos recarga para no destruir su estado
+                    (globalThis.logger || console).info(`${logPrefix} ✅ Iframes pre-cargados desde P13 — saltando recarga`);
+                    globalThis._iframesPreCargadosP13 = false;
+                    updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
+                } else {
+                    // Ruta normal: normalizar ANTES de asignar src para evitar que HIJO_LISTO llegue
+                    // durante la carga y sea borrado por _normalizarSetHijos
+                    _normalizarSetHijos(estado, _idsRecargados, logPrefix);
+                    await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
+                    (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
+                    updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
+                    await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
+                }
                 updateLoadingStatus('Hijos sincronizados', 'Distribuyendo datos de aventura', 62);
 
                 try {
@@ -11291,6 +11331,8 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_SELECCIONADA, _hdl_SELECCION_AVENTURA_SELECCIONADA, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.PREPARAR_HIJOS, _hdl_SELECCION_PREPARAR_HIJOS, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.CODIGO_VALIDADO, _hdl_SELECCION_CODIGO_VALIDADO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA, _hdl_SELECCION_AVENTURA_ACTIVADA, { permanente: true });
 

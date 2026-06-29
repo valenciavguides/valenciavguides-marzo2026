@@ -7996,7 +7996,7 @@ export const DATOS_AVENTURAS = {
         coordenadas:  { lat: Number('39.472081'), lng: Number('-0.368912') },
         imagen: "imagenes/imagenes-aventuras/puerta_mar.jpg",
     },
-// Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B)
+    // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B)
     {
         id: "Av5-TR-8",
         tipo: "tramo",
@@ -8253,7 +8253,7 @@ export const DATOS_AVENTURAS = {
         ],
         fin: { lat: Number('39.467000'), lng: Number('-0.377270') },
         imagen: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
-        imagen2: "",
+        imagen2: "imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
         video: "",
     },
     // Parada 18: Estación del Norte (interior) (Reto: 16) (Párrafos: 328, 329)
@@ -8651,40 +8651,989 @@ export const DATOS_AVENTURAS = {
         imagen: "imagenes/imagenes-aventuras/lonja7.jpg",
         imagen2: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
     },
-    // Tramo : Plaza Doctor López Collado → Plaza Redonda (Párrafos: )
+    // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: )
     {
-        id: "Av34km-TR-22",
+        id: "Av1-TR-35",
         tipo: "tramo",
-        tramo: 22, // De mapa número 20 a mapa número 21
+        tramo: 35, // De mapa número 20 a mapa número 21
         mapa_numero: "20→21",
         nombre: "Plaza Doctor López Collado → Plaza Redonda",
         inicio: { lat: Number('39.474440'), lng: Number('-0.377900') },
         waypoints: [
             { lat: Number('39.474351'), lng: Number('-0.377968') },
-            { lat: Number('39.474213, -0.377785') },
-            { lat: Number('39.474236, -0.377706') },
-            { lat: Number('39.473996, -0.377416') },
-            { lat: Number('39.473841, -0.377219') },
-            { lat: Number('39.473616, -0.377010') },
-            { lat: Number('39.473414, -0.376820') },
-            { lat: Number('39.473569, -0.376650') },
+            { lat: Number('39.474213'), lng: Number('-0.377785') },
+            { lat: Number('39.474236'), lng: Number('-0.377706') },
+            { lat: Number('39.473996'), lng: Number('-0.377416') },
+            { lat: Number('39.473841'), lng: Number('-0.377219') },
+            { lat: Number('39.473616'), lng: Number('-0.377010') },
+            { lat: Number('39.473414'), lng: Number('-0.376820') },
+            { lat: Number('39.473569'), lng: Number('-0.376650') },
         ],
         fin: { lat: Number('39.473690'), lng: Number('-0.376680') },
         imagen: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
         imagen2: "imagenes/imagenes-aventuras/Plaza_redonda.jpg",
         video: "",
     },
-    // Parada 28 - Plaza Redonda (Reto24Puzzle PZ-07) (Párrafos: 406)
-                {
-                    id: "Av2-P-28",
-                    tipo: "parada",
-                    parada: 28, // mapa número 16
-                    mapa_numero: 16,
-                    nombre: "Plaza Redonda",
-                    coordenadas: { lat: Number('39.473690'), lng: Number('-0.376680') },
-                    imagen: "imagenes/imagenes-aventuras/plaza_redonda.jpg",
-                },
-]
+    // Parada 28 - Plaza Redonda (Reto36Puzzle PZ-07) (Párrafos: 406)
+    {
+        id: "Av2-P-28",
+        tipo: "parada",
+        parada: 28, // mapa número 16
+        mapa_numero: 16,
+        nombre: "Plaza Redonda",
+        coordenadas: { lat: Number('39.473690'), lng: Number('-0.376680') },
+        imagen: "imagenes/imagenes-aventuras/plaza_redonda.jpg",
+    },
+    // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407)
+    {
+        id: "Av1-TR-36",
+        tipo: "tramo",
+        tramo: 36, // De mapa número 36 a mapa número 37
+        mapa_numero: "20→21",
+        nombre: "Plaza Redonda → Plaza Lope de Vega",
+        inicio: { lat: Number('39.473690'), lng: Number('-0.376680') },
+        waypoints: [
+            { lat: Number('39.473917'), lng: Number('-0.376830') },
+            { lat: Number('39.473992'), lng: Number('-0.376824') },
+        ],
+        fin: { lat: Number('39.474040'), lng: Number('-0.376750') },
+        imagen: "imagenes/imagenes-aventuras/plaza_redonda.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_santa_catalina.jpg",
+        imagen3: "imagenes/imagenes-aventuras/edificio_estrecho.jpg",
+        video: "",
+    },
+    // Parada 27 - Plaza Lope de Vega - Edificio estrecho (Reto 23) (Párrafos: 408, 409, 410)
+    {
+        id: "Av2-P-27",
+        tipo: "parada",
+        parada: 27, // mapa número 15
+        mapa_numero: 15,
+        nombre: "Plaza Lope de Vega - Edificio estrecho",
+        coordenadas: { lat: Number('39.474040'), lng: Number('-0.376750') },
+        imagen: "imagenes/imagenes-aventuras/edificio_estrecho.jpg",
+    },
+    // Parada 25 - Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414)
+    {
+        id: "Av2-P-25",
+        tipo: "parada",
+        parada: 25, // mapa número 15
+        mapa_numero: 15,
+        nombre: "Plaza Lope de Vega - Iglesia de Santa Catalina",
+        coordenadas: { lat: Number('39.474040'), lng: Number('-0.376740') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_santa_catalina.jpg",
+    },
+    // Parada 26 - Plaza Lope de Vega - Iglesia de Santa Catalina 2 (Reto 22) (Párrafos: 417, 416)
+    {
+        id: "Av2-P-26",
+        tipo: "parada",
+        parada: 26, // mapa número 15
+        mapa_numero: 15,
+        nombre: "Plaza Lope de Vega - Iglesia de Santa Catalina 2",
+        coordenadas: { lat: Number('39.474040'), lng: Number('-0.376750') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_santa_catalina.jpg",
+    },
+    // Tramo : Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: )
+    {
+        id: "Av1-TR-36",
+        tipo: "tramo",
+        tramo: 36, // De mapa número  a mapa número 
+        mapa_numero: "→",
+        nombre: "Plaza Redonda → Plaza Lope de Vega",
+        inicio: { lat: Number('39.474040'), lng: Number('-0.376750') },
+        waypoints: [
+            { lat: Number('39.473921, -0.376690') },
+            { lat: Number('39.473898, -0.376218') },
+            { lat: Number('39.473876, -0.375965') },
+        ],
+        fin: { lat: Number('39.473830'), lng: Number('-0.375720') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_santa_catalina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
+        video: "",
+    },
+    //Parada 24 - Torre Barroca de Santa Catalina 2 (Reto 21) (Párrafos: 421, 422)
+    {
+        id: "Av2-P-24",
+        tipo: "parada",
+        parada: 24, // mapa número 14
+        mapa_numero: 14,
+        nombre: "Torre Barroca de Santa Catalina 2",
+        coordenadas: { lat: Number('39.473830'), lng: Number('-0.375720') },
+        imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
+    },
+    // Parada 23 - Torre Barroca de Santa Catalina (Reto 20) (Párrafos: 425, 420, 423)
+    {
+        id: "Av2-P-23",
+        tipo: "parada",
+        parada: 23, // mapa número 14
+        mapa_numero: 14,
+        nombre: "Torre Barroca de Santa Catalina",
+        coordenadas: { lat: Number('39.473830'), lng: Number('-0.375710') },
+        imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
+    },
+    // Tramo : Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: )
+    {
+        id: "Av2-TR-13",
+        tipo: "tramo",
+        tramo: 13, // De mapa número 13 a mapa número 14
+        mapa_numero: "13→14",
+        nombre: "Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        inicio: { lat: Number('39.473830'), lng: Number('-0.375710') },
+        waypoints:
+        [
+            { lat: Number('39.474226'), lng: Number('-0.375648') },
+            { lat: Number('39.474577'), lng: Number('-0.375593') },
+            { lat: Number('39.475036'), lng: Number('-0.375500') },
+            { lat: Number('39.475180'), lng: Number('-0.375530') },
+        ],
+        fin: { lat: Number('39.475220'), lng: Number('-0.375650') },
+        imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Plaza_Reina_2.jpg",
+        imagen3: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
+        video: ""
+    },
+    // Parada 21 - Torre del Miguelete 2 (Reto 18) (Párrafos: 428)
+    {
+        id: "Av2-P-21",
+        tipo: "parada",
+        parada: 21, // mapa número 12
+        mapa_numero: 12,
+        nombre: "Torre del Miguelete 2",
+        coordenadas: { lat: Number('39.475230'), lng: Number('-0.375670') },
+        imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
+    },
+
+    // Parada 22 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Reto 19) (Párrafos: 430, 432, 431)
+    {
+        id: "Av2-P-22",
+        tipo: "parada",
+        parada: 22, // mapa número 13
+        mapa_numero: 13,
+        nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        coordenadas: { lat: Number('39.475210'), lng: Number('-0.375610') },
+        imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
+    },
+    // Tramo : Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: )
+    {
+        id: "Av2-TR-13",
+        tipo: "tramo",
+        tramo: 13, // De mapa número  a mapa número 
+        mapa_numero: "→",
+        nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        inicio: { lat: Number('39.475210'), lng: Number('-0.375610') },
+        waypoints:
+        [
+            { lat: Number('39.475031'), lng: Number('-0.375011') },
+            { lat: Number('39.475237'), lng: Number('-0.374880') },
+            { lat: Number('39.475539'), lng: Number('-0.374720') },
+        ],
+        fin: { lat: Number('39.475552'), lng: Number('-0.374557') },
+        imagen: "imagenes/imagenes-aventuras/puerta_barroca_catedral_miguelete.jpg",
+        imagen2: "imagenes/imagenes-aventuras/catedral_hacia_plaza_reina.jpg",
+        imagen3: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
+        video: ""
+    },
+    // Parada 29: Catedral de Valencia (Puerta Románica) (Reto 19) (Párrafos: 437, 439, 438)
+    {
+        id: "Av3-P-29",
+        tipo: "parada",
+        parada: 29, // mapa número 32
+        mapa_numero: "32",
+        nombre: "Catedral de Valencia (Puerta Románica)",
+        coordenadas:  { lat: Number('39.475552'), lng: Number('-0.374557') },
+        imagen: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
+    },
+    // Tramo 26: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 45-B)
+    {
+        id: "Av3-TR-26",
+        tipo: "tramo",
+        tramo: 26, // De mapa número 32 a mapa número 33
+        mapa_numero: "32→33",
+        nombre: "Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        inicio: { lat: Number('39.475552'), lng: Number('-0.374557') },
+        waypoints:
+        [
+            { lat: Number('39.475836'), lng: Number('-0.374397') }
+        ],
+        fin: { lat: Number('39.475986'), lng: Number('-0.374472') },
+        imagen: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        video: "",
+    },
+    // Parada 30: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 1, Panel cerámico (reto 20) (Párrafos: 441, 442)
+    {
+        id: "Av3-P-30",
+        tipo: "parada",
+        parada: 30, // mapa número 33
+        mapa_numero: "33",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia",
+        coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
+        imagen3: "imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg",
+    },
+    // Parada 31: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 2, Capilla exterior (reto 21) (Párrafos: 443, 444)
+    {
+        id: "Av3-P-31",
+        tipo: "parada",
+        parada: 31, // mapa número 33
+        mapa_numero: "33",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia",
+        coordenadas:  { lat: Number('39.476012'), lng: Number('-0.374604') },
+        imagen: "imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg",
+    },
+    // Parada 32: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 3, Capilla exterior (reto 22) (Párrafos: 445)
+    {
+        id: "Av3-P-32",
+        tipo: "parada",
+        parada: 32, // mapa número 33
+        mapa_numero: "33",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia",
+        coordenadas:  { lat: Number('39.476025'), lng: Number('-0.374600') },
+        imagen: "imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg",
+    },
+     // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia (Párrafos: 446, 447, 46-B, 452, 45-C)
+    {
+        id: "Av3-P-33",
+        tipo: "parada",
+        parada: 33, // mapa número 33/34
+        mapa_numero: "33/34",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia",
+        coordenadas:  { lat: Number('39.476046'), lng: Number('-0.374656') },
+        imagen: "imagenes/imagenes-aventuras/capilla_pared_catedral.jpg",
+        imagen2: "imagenes/imagenes-aventuras/puerta_negra_relieve_basilica.jpg",
+        imagen3: "imagenes/imagenes-aventuras/basilica_almoina.jpg",
+    },
+    // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23) (Párrafos: 45-D, 454, 455, 455-B, 456)
+    {
+        id: "Av3-P-34",
+        tipo: "parada",
+        parada: 34, // mapa número 33
+        mapa_numero: "33",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo",
+        coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
+        imagen: "imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg",
+    },
+    // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 457, 45-E)
+    {
+        id: "Av3-TR-27",
+        tipo: "tramo",
+        tramo: 27, // De mapa número 33 a mapa número 33
+        mapa_numero: "33→33",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        inicio: { lat: Number('39.475986'), lng: Number('-0.374472') },
+        waypoints:
+        [
+            { lat: Number('39.476078'), lng: Number('-0.374327') },
+            { lat: Number('39.476050'), lng: Number('-0.374290') },
+        ],
+        fin: { lat: Number('39.476240'), lng: Number('-0.374270') },
+        imagen: "imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
+        video: "",
+    },
+    // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24) (Párrafos: 458)
+    {
+        id: "Av3-P-35",
+        tipo: "parada",
+        parada: 35, // mapa número 33
+        mapa_numero: "33",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        coordenadas:  { lat: Number('39.476240'), lng: Number('-0.374270') },
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_almoina_2.jpg",
+    },
+    // Parada 36: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico 2 (Reto25puzzle PZ-02) (Párrafos: 459, 460, 461)
+    {
+        id: "Av3-P-36",
+        tipo: "parada",
+        parada: 36, // mapa número 33
+        mapa_numero: "33",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        coordenadas:  { lat: Number('39.476240'), lng: Number('-0.374290') },
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_la_almoina.jpg",
+    },
+    // Tramo 28: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen (Párrafos: 465, 47-B)
+    {
+        id: "Av3-TR-28",
+        tipo: "tramo",
+        tramo: 28, // De mapa número 33 a mapa número 35
+        mapa_numero: "33→35",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen",
+        inicio: { lat: Number('39.476240'), lng: Number('-0.374290') },
+        waypoints:
+        [
+            { lat: Number('39.476300'), lng: Number('-0.374600') },
+            { lat: Number('39.476560'), lng: Number('-0.374540') },
+            { lat: Number('39.476610'), lng: Number('-0.374990') },
+            { lat: Number('39.476660'), lng: Number('-0.375180') },
+        ],
+        fin: { lat: Number('39.476600'), lng: Number('-0.375270') },
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg",
+        video: "",
+    },
+    // Parada 37: Plaza de la Virgen (Fuente de Neptuno) (Reto 26) (Párrafos: 466, 467)
+    {
+        id: "Av3-P-37",
+        tipo: "parada",
+        parada: 37, // mapa número 35
+        mapa_numero: "35",
+        nombre: "Plaza de la Virgen (Fuente de Neptuno)",
+        coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375270') },
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
+    },
+    // Parada 38: Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia) (Reto 27) (Párrafos: 477-B, 479, 141, 468)
+    {
+        id: "Av3-P-38",
+        tipo: "parada",
+        parada: 38, // mapa número 35
+        mapa_numero: "35",
+        nombre: "Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia)",
+        coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375290') },
+        imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
+    },
+    // Tramo : Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia) → Palacio de la Generalitat Valenciana (Párrafos: )
+    {
+        id: "Av3-TR-28",
+        tipo: "tramo",
+        tramo: 28, // De mapa número  a mapa número 
+        mapa_numero: "33→35",
+        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen",
+        inicio: { lat: Number('39.476600'), lng: Number('-0.375290') },
+        waypoints:
+        [
+            { lat: Number('39.476708'), lng: Number('-0.375872') },
+            { lat: Number('39.476795'), lng: Number('-0.376293') },
+            { lat: Number('39.476885'), lng: Number('-0.376760') },
+        ],
+        fin: { lat: Number('39.476680'), lng: Number('-0.376710') },
+        imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
+        video: "",
+    },
+    // Parada 4 - Palau de la Generalitat (Reto 5) (Párrafos: 481, 482, 482-B, 483)
+    {
+        id: "Av2-P-4",
+        tipo: "parada",
+        parada: 4, // mapa número 3
+        mapa_numero: 3,
+        nombre: "Palau de la Generalitat",
+        coordenadas: { lat: Number('39.476680'), lng: Number('-0.376710') },
+        imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
+    },
+    // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104)
+    {
+        id: "Av2-TR-3",
+        tipo: "tramo",
+        tramo: 3, // De mapa número 3 a mapa número 4
+        mapa_numero: "3→4",
+        nombre: "Palau de la Generalitat → Calle Caballeros",
+        inicio: { lat: Number('39.476680'), lng: Number('-0.376710') },
+        waypoints: [],
+        fin: { lat: Number('39.476590'), lng: Number('-0.376940') },
+        imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        video: ""
+    },
+
+    // Tramo 4 - Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487-B)
+    {
+        id: "Av2-TR-4",
+        tipo: "tramo",
+        tramo: 4, // De mapa número 4 a mapa número 5
+        mapa_numero: "4→5",
+        nombre: "Calle Caballeros → Iglesia de San Nicolás",
+        inicio: { lat: Number('39.476590'), lng: Number('-0.376940') },
+        waypoints:
+        [
+            { lat: Number('39.476600'), lng: Number('-0.376860') },
+            { lat: Number('39.476630'), lng: Number('-0.377830') },
+            { lat: Number('39.476670'), lng: Number('-0.378380') },
+            { lat: Number('39.476620'), lng: Number('-0.378650') },
+        ],
+        fin: { lat: Number('39.476570'), lng: Number('-0.378830') },
+        imagen: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
+        video: ""
+    },
+
+    // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490)
+    {
+        id: "Av2-P-5",
+        tipo: "parada",
+        parada: 5, // mapa número 5
+        mapa_numero: 5,
+        nombre: "Iglesia de San Nicolás FRONT",
+        coordenadas: { lat: Number('39.476570'), lng: Number('-0.378830') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
+    },
+
+    // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10)
+    {
+        id: "Av2-TR-5",
+        tipo: "tramo",
+        tramo: 5, // De mapa número 5 a mapa número 6
+        mapa_numero: "5→6",
+        nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        inicio: { lat: Number('39.476570'), lng: Number('-0.378830') },
+        waypoints:
+        [
+            { lat: Number('39.476550'), lng: Number('-0.379180') },
+            { lat: Number('39.476320'), lng: Number('-0.379170') },
+        ],
+        fin: { lat: Number('39.476100'), lng: Number('-0.379180') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg",
+        video: ""
+    },
+
+    // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496)
+    {
+        id: "Av2-P-6",
+        tipo: "parada",
+        parada: 6, // mapa número 6
+        mapa_numero: 6,
+        nombre: "Iglesia de San Nicolás BACK",
+        coordenadas: { lat: Number('39.476100'), lng: Number('-0.379180') },
+        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+    },
+
+    // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498)
+    {
+        id: "Av2-P-7",
+        tipo: "parada",
+        parada: 7, // mapa número 6
+        mapa_numero: 6,
+        nombre: "Iglesia de San Nicolás BACK",
+        coordenadas: { lat: Number('39.476070'), lng: Number('-0.379180') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg",
+    },
+
+    // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505)
+    {
+        id: "Av2-P-8",
+        tipo: "parada",
+        parada: 8, // mapa número 6
+        mapa_numero: 6,
+        nombre: "Iglesia de San Nicolás BACK",
+        coordenadas: { lat: Number('39.476050'), lng: Number('-0.379150') },
+        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+    },
+
+    // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B)
+    {
+        id: "Av2-TR-6",
+        tipo: "tramo",
+        tramo: 6, // De mapa número 6 a mapa número 7
+        mapa_numero: "6→7",
+        nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito",
+        inicio: { lat: Number('39.476050'), lng: Number('-0.379150') },
+        waypoints:
+        [
+            { lat: Number('39.476030'), lng: Number('-0.378910') },
+            { lat: Number('39.475980'), lng: Number('-0.378540') },
+            { lat: Number('39.475900'), lng: Number('-0.378110') },
+            { lat: Number('39.475810'), lng: Number('-0.377680') },
+            { lat: Number('39.475950'), lng: Number('-0.377520') },
+
+
+        ],
+        fin: { lat: Number('39.476110'), lng: Number('-0.377410') },
+        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_san_nicolas_3.jpg",
+        imagen3: "imagenes/imagenes-aventuras/iglesia_san_nicolas_4.jpg",
+        imagen4: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen5: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
+        video: ""
+    },
+
+    // Parada 9 - Plaza del Negrito (Reto 10) (Párrafos: 382, 501)
+    {
+        id: "Av2-P-9",
+        tipo: "parada",
+        parada: 9, // mapa número 7
+        mapa_numero: 7,
+        nombre: "Plaza del Negrito",
+        coordenadas: { lat: Number('39.476110'), lng: Number('-0.377410') },
+        imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
+        imagen2: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
+    },
+
+    // Tramo 7 - Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502-B, 506, 12)
+    {
+        id: "Av2-TR-7",
+        tipo: "tramo",
+        tramo: 7, // De mapa número 7 a mapa número 4 y mapa número 8
+        mapa_numero: "7→4→8",
+        nombre: "Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        inicio: { lat: Number('39.476110'), lng: Number('-0.377410') },
+        waypoints:
+        [
+            { lat: Number('39.476310'), lng: Number('-0.377370') },
+            { lat: Number('39.476490'), lng: Number('-0.377340') },
+            { lat: Number('39.476620'), lng: Number('-0.377330') },
+            { lat: Number('39.476630'), lng: Number('-0.377830') },
+            { lat: Number('39.476670'), lng: Number('-0.378380') },
+            { lat: Number('39.476620'), lng: Number('-0.378650') },
+            { lat: Number('39.476560'), lng: Number('-0.379110') },
+            { lat: Number('39.476510'), lng: Number('-0.379440') },
+            { lat: Number('39.476460'), lng: Number('-0.379720') },
+        ],
+        fin: { lat: Number('39.476390'), lng: Number('-0.380010') },
+        imagen: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
+        imagen2: "imagenes/imagenes-aventuras/Calle_caballeros.jpg",
+        imagen3: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
+        imagen4: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
+        video: ""
+    },
+
+    // Parada 10 - Plaza del Tossal (Reto 11) (Párrafos: 12-C, 508, 509)
+    {
+        id: "Av2-P-10",
+        tipo: "parada",
+        parada: 10, // mapa número 8
+        mapa_numero: 8,
+        nombre: "Plaza del Tossal",
+        coordenadas: { lat: Number('39.476390'), lng: Number('-0.380010') },
+        imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
+    },
+
+    // Parada 11 - Plaza del Tossal 2 (Párrafos: 510, 511)
+    {
+        id: "Av2-P-11",
+        tipo: "parada",
+        parada: 11, // mapa número 8
+        mapa_numero: 8,
+        nombre: "Plaza del Tossal",
+        coordenadas: { lat: Number('39.476360'), lng: Number('-0.379990') },
+        imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
+    },
+
+    // Tramo 8 - Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 13-C)
+    {
+        id: "Av2-TR-8",
+        tipo: "tramo",
+        tramo: 8, // De mapa número 8 a mapa número 9
+        mapa_numero: "8→9",
+        nombre: "Plaza del Tossal → Portal de la Valldigna",
+        inicio: { lat: Number('39.476360'), lng: Number('-0.379990') },
+        waypoints:
+        [
+            { lat: Number('39.476520'), lng: Number('-0.379940') },
+            { lat: Number('39.476770'), lng: Number('-0.379830') },
+            { lat: Number('39.477010'), lng: Number('-0.379690') },
+            { lat: Number('39.477330'), lng: Number('-0.379570') },
+            { lat: Number('39.477560'), lng: Number('-0.379450') },
+            { lat: Number('39.477760'), lng: Number('-0.379150') },
+            { lat: Number('39.477660'), lng: Number('-0.378890') },
+        ],
+        fin: { lat: Number('39.477550'), lng: Number('-0.378600') },
+        imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
+        imagen2: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+        video: ""
+    },
+
+    // Parada 12 - Portal de la Valldigna (Párrafos: 513, 589, 144)
+    {
+        id: "Av2-P-12",
+        tipo: "parada",
+        parada: 12, // mapa número 9
+        mapa_numero: 9,
+        nombre: "Portal de la Valldigna",
+        coordenadas: { lat: Number('39.477550'), lng: Number('-0.378600') },
+        imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+    },
+
+    // Tramo 9 - Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 560, 514, 14-C)
+    {
+        id: "Av2-TR-9",
+        tipo: "tramo",
+        tramo: 9, // De mapa número 9 a mapa número 10
+        mapa_numero: "9→10",
+        nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        inicio: { lat: Number('39.477550'), lng: Number('-0.378600') },
+        waypoints:
+        [
+            { lat: Number('39.477470'), lng: Number('-0.378150') },
+            { lat: Number('39.477430'), lng: Number('-0.377980') },
+            { lat: Number('39.477680'), lng: Number('-0.377950') },
+            { lat: Number('39.477770'), lng: Number('-0.377940') },
+            { lat: Number('39.478010'), lng: Number('-0.377860') },
+        ],
+        fin: { lat: Number('39.478030'), lng: Number('-0.377910') },
+        imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+        video: ""
+    },
+
+    // Parada 13 - Torre del Ángel (Torre árabe) (Reto 12) (Párrafos: 515, 516, 517, 518, 519)
+    {
+        id: "Av2-P-13",
+        tipo: "parada",
+        parada: 13, // mapa número 10
+        mapa_numero: 10,
+        nombre: "Torre del Ángel (Torre árabe)",
+        coordenadas: { lat: Number('39.478030'), lng: Number('-0.377910') },
+        imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+        video: ""
+    },
+    // Tramo 10 - Torre del Ángel (Torre árabe) → Plaza de la Virgen (Párrafos: 521, 522, 671, 520, 105, 15-B)
+    {
+        id: "Av2-TR-10",
+        tipo: "tramo",
+        tramo: 10, // De mapa número 10 a mapa número 11
+        mapa_numero: "10→11",
+        nombre: "Torre del Ángel (Torre árabe) → Plaza de la Virgen",
+        inicio: { lat: Number('39.478030'), lng: Number('-0.377910') },
+        waypoints:
+        [
+            { lat: Number('39.477950'), lng: Number('-0.377730') },
+            { lat: Number('39.478100'), lng: Number('-0.377590') },
+            { lat: Number('39.478060'), lng: Number('-0.377300') },
+            { lat: Number('39.477970'), lng: Number('-0.376910') },
+            { lat: Number('39.477910'), lng: Number('-0.376620') },
+            { lat: Number('39.478183'), lng: Number('-0.376511') },
+             ],
+        fin: { lat: Number('39.478310'), lng: Number('-0.376540') },
+        imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
+        imagen2: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
+        video: ""
+    },
+        // Parada 3 - Refugio Guerra Civil (Párrafos: 524, 395)
+    {
+        id: "Av2-P-3",
+        tipo: "parada",
+        parada: 3, // mapa número 3
+        mapa_numero: 3,
+        nombre: "Refugio Guerra Civil",
+        coordenadas: { lat: Number('39.478290'), lng: Number('-0.376475') },
+        imagen: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
+    },
+    // Tramo : Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: )
+    {
+        id: "Av3-TR-28",
+        tipo: "tramo",
+        tramo: 28, // De mapa número  a mapa número 
+        mapa_numero: "33→35",
+        nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        inicio: { lat: Number('39.478290'), lng: Number('-0.376475') },
+        waypoints:
+        [
+            { lat: Number('39.478507'), lng: Number('-0.376375') },
+            { lat: Number('39.478792'), lng: Number('-0.376264') },
+            { lat: Number('39.478860'), lng: Number('-0.376565') },
+        ],
+        coordenadas: { lat: Number('39.478960'), lng: Number('-0.376920') },
+        imagen: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
+        imagen2: "imagenes/imagenes-aventuras/casa_rocas.jpg",
+        video: "",
+    },
+    // Parada 1 - Museo de Corpus Christi (Casa de las Rocas) (Reto4Puzzle PZ-18) (Párrafos: 5-B, 530, 531, 532, 396)
+    {
+        id: "Av4-P-1",
+        tipo: "parada",
+        parada: 1, // mapa número 2
+        mapa_numero: 1,
+        nombre: "",
+        coordenadas: { lat: Number('39.478960'), lng: Number('-0.376920') },
+        imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg",
+    },
+    // Tramo 2: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 6-B)
+    {
+        id: "Av4-TR-2",
+        tipo: "tramo",
+        tramo: 2, // De mapa número 2 a mapa número 3
+        mapa_numero: "2→3",
+        nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        inicio: { lat: Number('39.478960'), lng: Number('-0.376920') },
+         waypoints: [
+            { lat: Number('39.479010'), lng: Number('-0.377120') },
+            { lat: Number('39.479020'), lng: Number('-0.377420') },
+            { lat: Number('39.478990'), lng: Number('-0.377800') },
+            { lat: Number('39.479040'), lng: Number('-0.378190') },
+            { lat: Number('39.479130'), lng: Number('-0.378380') },
+         ],
+        fin: {lat: Number('39.479210'), lng: Number('-0.378590') },
+        imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
+        video: "",
+    },
+    // Parada 2 - Parroquia de la Santísima Cruz (Iglesia del Carmen) (Reto 5) (Párrafos: 534, 535, 536, 537, 538)
+    {
+        id: "Av4-P-2",
+        tipo: "parada",
+        parada: 2, // mapa número 3
+        mapa_numero: 3,
+        nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        coordenadas: { lat: Number('39.479210'), lng: Number('-0.378590') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
+    },
+    // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541)
+    {
+        id: "Av4-P-3",
+        tipo: "parada",
+        parada: 3, // mapa número 3
+        mapa_numero: 3,
+        nombre: "",
+        coordenadas: { lat: Number('39.479210'), lng: Number('-0.378600') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
+    },
+    // Tramo 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo "El Carmen" (Párrafos: 542, 7)
+    {
+        id: "Av4-TR-3",
+        tipo: "tramo",
+        tramo: 3, // De mapa número 3 a mapa número 4
+        mapa_numero: "3→4",
+        nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        inicio: { lat: Number('39.479210'), lng: Number('-0.378600') },
+         waypoints: [
+            { lat: Number('39.479270'), lng: Number('-0.378760') },
+         ],
+        fin: {lat: Number('39.479340'), lng: Number('-0.378850') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg",
+        video: "",
+    },
+    // Parada 4 - Centro Cultural Contemporáneo "El Carmen" (Reto 7) (Párrafos: 543, 544-B, 545, 546)
+    {
+        id: "Av4-P-4",
+        tipo: "parada",
+        parada: 4, // mapa número 4
+        mapa_numero: 4,
+        nombre: "Centro Cultural Contemporáneo: El Carmen",
+        coordenadas: { lat: Number('39.479340'), lng: Number('-0.378850') },
+        imagen: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg",
+    },
+    // Parada 5 - Centro Cultural Contemporáneo "El Carmen" 2 (Reto 8) (Párrafos: 547, 548, 549, 550)
+    {
+        id: "Av4-P-5",
+        tipo: "parada",
+        parada: 5, // mapa número 4
+        mapa_numero: 4,
+        nombre: "Centro Cultural Contemporáneo: El Carmen",
+        coordenadas: { lat: Number('39.479360'), lng: Number('-0.378880') },
+        imagen: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg",
+    },
+    // Tramo 4: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 8-B, 552)
+    {
+        id: "Av4-TR-4",
+        tipo: "tramo",
+        tramo: 4, // De mapa número 4 a mapa número 5
+        mapa_numero: "4→5",
+        nombre: "Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        inicio: { lat: Number('39.479360'), lng: Number('-0.378880') },
+         waypoints: [
+            { lat: Number('39.479360'), lng: Number('-0.378880') },
+            { lat: Number('39.479630'), lng: Number('-0.379290') }
+         ],
+        fin: {lat: Number('39.479740'), lng: Number('-0.379500') },
+        imagen: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg",
+        imagen2: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
+        video: "",
+    },
+    // Parada 6 - Casa de los Gatos (Reto 9) (Párrafos: 553, 554)
+    {
+        id: "Av4-P-6",
+        tipo: "parada",
+        parada: 6, // mapa número 5
+        mapa_numero: 5,
+        nombre: "Casa de los Gatos",
+        coordenadas: { lat: Number('39.479740'), lng: Number('-0.379500') },
+        imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
+    },
+    // Parada 7 - Casa de los Gatos 2 (Párrafos: 555, 556)
+    {
+        id: "Av4-P-7",
+        tipo: "parada",
+        parada: 7, // mapa número 5
+        mapa_numero: 5,
+        nombre: "Casa de los Gatos",
+        coordenadas: { lat: Number('39.479750'), lng: Number('-0.379510') },
+        imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
+    },
+    // Parada 8 - Casa de los Gatos 3 (Reto 10) (Párrafos: 557, 558)
+    {
+        id: "Av4-P-8",
+        tipo: "parada",
+        parada: 8, // mapa número 5
+        mapa_numero: 5,
+        nombre: "Casa de los Gatos",
+        coordenadas: { lat: Number('39.479750'), lng: Number('-0.379500') },
+        imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
+    },
+    // Parada 9 - Casa de los Gatos 4 (Reto 11) (Párrafos: 559)
+    {
+        id: "Av4-P-9",
+        tipo: "parada",
+        parada: 9, // mapa número 5
+        mapa_numero: 5,
+        nombre: "Casa de los Gatos",
+        coordenadas: { lat: Number('39.479740'), lng: Number('-0.379510') },
+        imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
+    },
+    // Tramo 5: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 10-C)
+    {
+        id: "Av4-TR-5",
+        tipo: "tramo",
+        tramo: 5, // De mapa número 5 a mapa número 6
+        mapa_numero: "5→6",
+        nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        inicio: { lat: Number('39.479740'), lng: Number('-0.379510') },
+         waypoints: [
+            { lat: Number('39.479780'), lng: Number('-0.379860')},
+            { lat: Number('39.479670'), lng: Number('-0.379840') },
+            { lat: Number('39.479590'), lng: Number('-0.379860') },
+            { lat: Number('39.479760'), lng: Number('-0.380620') },
+            { lat: Number('39.480010'), lng: Number('-0.381750') },
+            { lat: Number('39.480140'), lng: Number('-0.382410') },
+            { lat: Number('39.480250'), lng: Number('-0.382920') },
+         ],
+        fin: { lat: Number('39.480022'), lng: Number('-0.382899') },
+        imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
+        imagen2: "imagenes/imagenes-aventuras/ivam.jpg",
+        video: "",
+    },
+    // Parada 10: Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas (Párrafos: 562, 562-B)
+    {
+        id: "Av4-P-10",
+        tipo: "parada",
+        parada: 10, // mapa número 6
+        mapa_numero: 6,
+        nombre: "Instituto Valenciano de Arte Moderno (IVAM)",
+        coordenadas: { lat: Number('39.480022'), lng: Number('-0.382899') },
+        imagen: "imagenes/imagenes-aventuras/ivam.jpg",
+        imagen2:"imagenes/imagenes-aventuras/torres_de_quart.jpg",
+    },
+    // Parada 11: Instituto Valenciano de Arte Moderno (IVAM): Museo (Párrafos: 563-C)
+    {
+        id: "Av4-P-11",
+        tipo: "parada",
+        parada: 11, // mapa número 6
+        mapa_numero: 6,
+        nombre: "Instituto Valenciano de Arte Moderno (IVAM)",
+        coordenadas: { lat: Number('39.480022'), lng: Number('-0.382899') },
+        imagen: "imagenes/imagenes-aventuras/ivam.jpg",
+    },
+    // Tramo : Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: )
+    {
+        id: "Av4-TR-5",
+        tipo: "tramo",
+        tramo: 5, // De mapa número  a mapa número 
+        mapa_numero: "5→6",
+        nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        inicio: { lat: Number('39.480022'), lng: Number('-0.382899') },
+         waypoints: [
+            { lat: Number('39.480023'), lng: Number('-0.383164') },
+            { lat: Number('39.479822'), lng: Number('-0.383262') },
+            { lat: Number('39.479651'), lng: Number('-0.383301') },
+            { lat: Number('39.479293'), lng: Number('-0.383427') },
+            { lat: Number('39.479044'), lng: Number('-0.383525') },
+            { lat: Number('39.478782'), lng: Number('-0.383634') },
+            { lat: Number('39.478334'), lng: Number('-0.383766') },
+            { lat: Number('39.478158'), lng: Number('-0.383787') },
+            { lat: Number('39.478182'), lng: Number('-0.383672') },
+            { lat: Number('39.478290'), lng: Number('-0.383551') },
+            { lat: Number('39.478279'), lng: Number('-0.383392') },
+         ],
+        fin: { lat: Number('39.478248'), lng: Number('-0.383117') },
+        imagen: "imagenes/imagenes-aventuras/ivam.jpg",
+        imagen3: "imagenes/imagenes-aventuras/museo_prehistoria_far.jpg",
+        imagen4: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
+        imagen5: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        video: "",
+    },
+    // Parada 33: Museo de prehistoria y Etnología (Párrafos: 565, 566)
+    {
+        id: "Av5-P-33",
+        tipo: "parada",
+        parada: 33, // mapa número 18/19
+        mapa_numero: "18/19",
+        nombre: "Museo de Prehistoria y Etnología",
+        coordenadas: { lat: Number('39.478248'), lng: Number('-0.383117') },
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+    },
+    // Tramo 22: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 31)
+    {
+        id: "Av5-TR-22",
+        tipo: "tramo",
+        tramo: 22, // De mapa número 18/19 a mapa número 20
+        mapa_numero: "18/19→20",
+        nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        inicio: { lat: Number('39.478248'), lng: Number('-0.383117') },
+        waypoints:
+        [
+            { lat: Number('39.478208'), lng: Number('-0.382867') },
+        ],
+        fin: { lat: Number('39.478176'), lng: Number('-0.382630') },
+        imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
+        imagen2: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
+        video: "",
+    },
+    // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127)
+    {
+        id: "Av5-P-34",
+        tipo: "parada",
+        parada: 34, // mapa número 20
+        mapa_numero: "20",
+        nombre: "Iglesia de la Milagrosa",
+        coordenadas: { lat: Number('39.478176'), lng: Number('-0.382630') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
+    },
+    // Tramo : Iglesia de la Milagrosa → Torres de Quart (Párrafos: 567, 31)
+    {
+        id: "Av5-TR-22",
+        tipo: "tramo",
+        tramo: 22, // De mapa número 18/19 a mapa número 20
+        mapa_numero: "18/19→20",
+        nombre: "Iglesia de la Milagrosa → Torres de Quart",
+        inicio: { lat: Number('39.478176'), lng: Number('-0.382630') },
+        waypoints:
+        [
+            { lat: Number('39.478248'), lng: Number('-0.383117') },
+            { lat: Number('39.478279'), lng: Number('-0.383392') },
+            { lat: Number('39.478285'), lng: Number('-0.383578') },
+            { lat: Number('39.478216'), lng: Number('-0.383616') },
+            { lat: Number('39.478155'), lng: Number('-0.383797') },
+            { lat: Number('39.477940'), lng: Number('-0.383839') },
+            { lat: Number('39.477595'), lng: Number('-0.383909') },
+            { lat: Number('39.477378'), lng: Number('-0.383947') },
+            { lat: Number('39.477033'), lng: Number('-0.384030') },
+            { lat: Number('39.476724'), lng: Number('-0.384087') },
+            { lat: Number('39.476406'), lng: Number('-0.384140') },
+            { lat: Number('39.476014'), lng: Number('-0.384200') },
+            { lat: Number('39.475863'), lng: Number('-0.384217') },
+        ],
+        fin: { lat: Number('39.475797'), lng: Number('-0.384197') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
+        imagen2: "imagenes/imagenes-aventuras/museo_prehistoria_close.jpg",
+        imagen3: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
+        video: "",
+    },
+    // Parada 31: Torres de Quart 1 (Reto 26) (Párrafos: 571, 594, 572, 573)
+    {
+        id: "Av5-P-31",
+        tipo: "parada",
+        parada: 31, // mapa número 17
+        mapa_numero: 17,
+        nombre: "Torres de Quart",
+        coordenadas: { lat: Number('39.475797'), lng: Number('-0.384197') },
+        imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
+    },
+    // Parada 32: Torres de Quart 2 (Reto27Puzzle PZ-15) (Párrafos: 574, 575)
+    {
+        id: "Av5-P-32",
+        tipo: "parada",
+        parada: 32, // mapa número 17
+        mapa_numero: 17,
+        nombre: "Torres de Quart",
+        coordenadas: { lat: Number('39.475780'), lng: Number('-0.384202') },
+        imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
+        imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
+    },
+    ]
     }
   },
 };

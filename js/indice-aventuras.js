@@ -161,24 +161,24 @@ export const INDICE_AVENTURAS = {
     Aventura34km: {
         id: 'Aventura34km',
         nombre: 'Aventura 34 kilómetros',
-        disponible: false,
+        disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
         tiempoEstimado: 9000,
         distanciaKm: 34,
         vehiculo: '🚲🛴👣',
         idiomas: {
-            es: { disponible: false },
-            en: { disponible: false },
-            fr: { disponible: false },
-            it: { disponible: false },
-            nl: { disponible: false },
-            ja: { disponible: false },
-            de: { disponible: false },
-            zh: { disponible: false },
-            pl: { disponible: false },
-            pt: { disponible: false },
-            ru: { disponible: false },
-            uk: { disponible: false }
+            es: { disponible: true },
+            en: { disponible: true },
+            fr: { disponible: true },
+            it: { disponible: true },
+            nl: { disponible: true },
+            ja: { disponible: true },
+            de: { disponible: true },
+            zh: { disponible: true },
+            pl: { disponible: true },
+            pt: { disponible: true },
+            ru: { disponible: true },
+            uk: { disponible: true }
         }
     }
 };

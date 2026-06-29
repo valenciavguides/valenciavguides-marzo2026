@@ -373,46 +373,140 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;
   border-right:12px solid #28a745}
 
-/* ── BOTONES MUNDO (patrón compartido verde + rojo) ── */
-.btn-mundo-verde,.btn-mundo-rojo{
-  position:relative;width:clamp(44px,11vmin,56px);height:clamp(44px,11vmin,56px);
-  border-radius:50%;border:none;overflow:hidden;
-  box-shadow:0 6px 20px rgba(0,0,0,.35);padding:0;cursor:pointer}
-.btn-mundo-verde{background:#1b4d1b}
-.btn-mundo-rojo{background:#4d1b1b}
-.btn-mundo-verde::before{content:'';position:absolute;inset:0;
-  background-image:radial-gradient(circle at 35% 35%,#4caf50,#0d2b0d);z-index:1}
-.btn-mundo-rojo::before{content:'';position:absolute;inset:0;
-  background-image:radial-gradient(circle at 35% 35%,#ff4d4d,#301010);z-index:1}
-.btn-mundo-verde::after,.btn-mundo-rojo::after{content:'';position:absolute;
-  top:5%;left:15%;width:70%;height:35%;
-  background-image:linear-gradient(to bottom,rgba(255,255,255,.35),transparent);
-  border-radius:50% 50% 45% 45%;z-index:3;pointer-events:none}
-.btn-mundo-rojo::after{background-image:linear-gradient(to bottom,rgba(255,255,255,.4),transparent)}
-.contenedor-flecha,.contenedor-replay{
-  position:absolute;width:100%;height:100%;
-  display:flex;justify-content:center;align-items:center;
-  z-index:2;animation:orbitaContinua 3s linear infinite;opacity:0}
-.contenedor-flecha.segunda,.contenedor-replay.segunda{animation-delay:1.5s}
-.flecha-v{font-size:clamp(18px,5vmin,26px);color:#fff;transform:scaleY(1.8);
-  text-shadow:0 0 10px rgba(0,0,0,.5);display:inline-block;-webkit-text-stroke:1px white}
-.icono-replay{font-size:clamp(18px,5vmin,26px);color:#fff;
-  text-shadow:0 0 15px rgba(0,0,0,.5);display:inline-block;font-weight:bold}
-@keyframes orbitaContinua{
-  0%  {transform:translateX(-73%) translateY(0)   scale(.65);opacity:0}
-  10% {opacity:1}
-  50% {transform:translateX(0)    translateY(-6%) scale(1.1);opacity:1}
-  90% {opacity:1}
-  100%{transform:translateX(73%)  translateY(0)   scale(.65);opacity:0}
+/* ── BOTONES MUNDO — CSS idéntico a En-busca-del-tesoro.html ── */
+.btn-mundo-verde {
+  position: relative;
+  width: clamp(44px, 11vmin, 56px);
+  height: clamp(44px, 11vmin, 56px);
+  border-radius: 50%;
+  border: none;
+  overflow: hidden;
+  background: #1b4d1b;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn-mundo-verde:hover .contenedor-flecha{animation-play-state:paused}
-.btn-mundo-rojo:hover  .contenedor-replay{animation-play-state:paused}
-.btn-mundo-verde:active,.btn-mundo-rojo:active{transform:scale(.93);box-shadow:none}
+.btn-mundo-verde::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: #0d2b0d;
+  background-image: radial-gradient(circle at 35% 35%, #4caf50, #0d2b0d);
+  z-index: 1;
+}
+.btn-mundo-verde::after {
+  content: '';
+  position: absolute;
+  top: 5%;
+  left: 15%;
+  width: 70%;
+  height: 35%;
+  background-color: transparent;
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent);
+  border-radius: 50% 50% 45% 45%;
+  z-index: 3;
+  pointer-events: none;
+}
+.contenedor-flecha {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  animation: orbitaContinua 3s linear infinite;
+  opacity: 0;
+}
+.contenedor-flecha.segunda { animation-delay: 1.5s; }
+.flecha-v {
+  font-size: clamp(18px, 5vmin, 26px);
+  color: white;
+  transform: scaleY(1.8);
+  text-shadow: 0 0 10px rgba(0,0,0,0.5);
+  display: inline-block;
+  -webkit-text-stroke: 1px white;
+}
+@keyframes orbitaContinua {
+  0%   { transform: translateX(-73%) translateY(0)   scale(0.65); opacity: 0; }
+  10%  { opacity: 1; }
+  50%  { transform: translateX(0)    translateY(-6%) scale(1.1);  opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(73%)  translateY(0)   scale(0.65); opacity: 0; }
+}
+.btn-mundo-verde:hover .contenedor-flecha { animation-play-state: paused; }
+.btn-mundo-verde:active { transform: scale(0.93); box-shadow: none; }
+.btn-mundo-rojo {
+  position: relative;
+  width: clamp(44px, 11vmin, 56px);
+  height: clamp(44px, 11vmin, 56px);
+  border-radius: 50%;
+  border: none;
+  overflow: hidden;
+  background: #4d1b1b;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-mundo-rojo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: #301010;
+  background-image: radial-gradient(circle at 35% 35%, #ff4d4d, #301010);
+  z-index: 1;
+}
+.btn-mundo-rojo::after {
+  content: '';
+  position: absolute;
+  top: 5%;
+  left: 15%;
+  width: 70%;
+  height: 35%;
+  background-color: transparent;
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+  border-radius: 50% 50% 45% 45%;
+  z-index: 3;
+  pointer-events: none;
+}
+.contenedor-replay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  animation: orbitaContinua 3s linear infinite;
+  opacity: 0;
+}
+.contenedor-replay.segunda { animation-delay: 1.5s; }
+.icono-replay {
+  font-size: clamp(18px, 5vmin, 26px);
+  color: white;
+  transform: scaleY(1.4);
+  text-shadow: 0 0 15px rgba(0,0,0,0.5);
+  display: inline-block;
+  -webkit-text-stroke: 1.5px white;
+  font-weight: bold;
+}
+.btn-mundo-rojo:hover .contenedor-replay { animation-play-state: paused; }
+.btn-mundo-rojo:active { transform: scale(0.93); box-shadow: none; }
 
 /* ── SKIP BUTTON (durante intro, esquina superior izquierda) ── */
 #btn-skip{position:absolute;top:8px;left:8px;z-index:9600;
-  opacity:0;pointer-events:none;transition:opacity .6s}
-#btn-skip.on{opacity:1;pointer-events:auto}
+  opacity:0.3;pointer-events:none;transition:opacity .6s,filter .6s;filter:grayscale(1)}
+#btn-skip.on{opacity:1;pointer-events:auto;filter:none}
 
 /* ── END SCREEN ── */
 #end-btns{position:absolute;inset:0;z-index:9500;display:flex;flex-direction:column;
@@ -434,8 +528,8 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   <img id="gauntlet" src="" alt="">
   <div id="end-fade"></div>
   <button id="btn-skip" class="btn-mundo-verde" onclick="globalThis._skipVideoIntro()" title="Saltar intro">
-    <div class="contenedor-flecha"><span class="flecha-v">›</span></div>
-    <div class="contenedor-flecha segunda"><span class="flecha-v">›</span></div>
+    <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+    <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
   </button>
   <div id="end-btns">
     <div class="end-row">
@@ -444,14 +538,12 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
           <div class="contenedor-replay"><span class="icono-replay">↺</span></div>
           <div class="contenedor-replay segunda"><span class="icono-replay">↺</span></div>
         </button>
-        <div class="end-label">↩</div>
       </div>
       <div class="end-col">
         <button class="btn-mundo-verde" onclick="globalThis._continuarVideo()">
-          <div class="contenedor-flecha"><span class="flecha-v">›</span></div>
-          <div class="contenedor-flecha segunda"><span class="flecha-v">›</span></div>
+          <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+          <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
         </button>
-        <div class="end-label">▶</div>
       </div>
     </div>
   </div>
@@ -563,7 +655,7 @@ const setScene = h => {
 };
 const setOv     = h => { $('overlay-layer').innerHTML=h; $('overlay-layer').classList.add('active') };
 const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').classList.remove('active') };
-const setCounter = (n,t=22) => $('counter').textContent=`${n} / ${t}`;
+const setCounter = (n,t=20) => $('counter').textContent=`${n} / ${t}`;
 
 function interp(pts,steps){
   const out=[]; const per=Math.ceil(steps/(pts.length-1));
@@ -920,56 +1012,10 @@ async function scene1(){
   Knight.hide();
 }
 
-/* ── P2: Selección de idioma (grid de banderas) ── */
-async function scene2(){
-  setCounter(2); MC.hide(); Knight.show(K.completo);
-  const fl=[[AI+'bandera_españa.png','ES'],[AI+'bandera_inglesa.png','EN'],[AI+'bandera_francia.png','FR'],
-    [AI+'bandera_italia.png','IT'],[AI+'bandera_paises_bajos.png','NL'],[AI+'bandera_japon.png','JP'],
-    [AI+'bandera_alemania.png','DE'],[AI+'bandera_china.png','CN'],[AI+'bandera_polonia.png','PL'],
-    [AI+'bandera_portugal.png','PT'],[AI+'bandera_rusia.png','RU'],[AI+'bandera_ucrania.png','UA']];
-  setScene(`<div class="sc" style="padding:14px;gap:0">
-    <div class="s2-grid" id="fg">${fl.map(([s,c])=>`<img class="s2-flag" id="f${c}" src="${s}" alt="">`).join('')}</div>
-    <img class="s2-big" id="sbig" src="" alt="">
-    <button class="s2-ok" id="sok"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></button>
-  </div>`);
-  await wait(1000);
-  // Todos los bordes se ponen verdes uno por uno
-  const afl=[...document.querySelectorAll('.s2-flag')];
-  for(const f of afl){ f.classList.add('hl'); await wait(180) }
-  await wait(500);
-  afl.forEach(f=>f.classList.remove('hl'));
-  $('fES').classList.add('hl');
-  await wait(400);
-  await Gauntlet.tapEl($('fES'),'R',()=>{
-    $('fES').classList.remove('hl');
-    $('fg').style.display='none';
-    $('sbig').src=AI+'bandera_españa.png'; $('sbig').style.display='block';
-    $('sok').style.display='flex';
-  });
-  await wait(1400);
-  await Gauntlet.tapEl($('sok'),'R');
-  await wait(600);
-  Knight.hide();
-}
-
-/* ── P3 (NUEVA): Confirmación de idioma ── */
-async function scene3(){
-  setCounter(3); MC.hide(); Knight.show(K.up);
-  setScene(`<div class="sc" style="gap:30px;padding:30px 22px">
-    <img src="${AI}bandera_españa.png" alt="" style="width:min(190px,48vw);aspect-ratio:4/3;object-fit:cover;border-radius:14px;border:3px solid #28a745;box-shadow:0 6px 22px rgba(0,0,0,.28)">
-    <button id="confirmOk" style="width:78px;height:78px;border-radius:50%;background:#28a745;border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(40,167,69,.45);cursor:pointer;flex-shrink:0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" width="38" height="38"><polyline points="20 6 9 17 4 12"/></svg>
-    </button>
-  </div>`);
-  await wait(1600);
-  await Gauntlet.tapEl($('confirmOk'),'R',()=>{ spin($('confirmOk')) });
-  await wait(1000);
-  Knight.hide();
-}
 
 /* ── P4: Selección de aventura (7 tabs, como la app real) ── */
 async function scene4(){
-  setCounter(4); MC.hide(); Knight.show(K.completo);
+  setCounter(2); MC.hide(); Knight.show(K.completo);
   const AVS=[
     ['Aventura 1','4 km','👣'],['Aventura 2','4 km','👣'],['Aventura 3','10 km','🚲🛴'],
     ['Aventura 4','10 km','🚲🛴'],['Aventura 5','6 km','🚲🛴'],
@@ -994,7 +1040,7 @@ async function scene4(){
 
 /* ── P5: Mapa vintage de la aventura ── */
 async function scene5(){
-  setCounter(5); MC.hide(); Knight2.show(K.up);
+  setCounter(3); MC.hide(); Knight2.show(K.up);
   setScene(`<div class="sc" style="background:#f5e6c8;gap:0;padding:18px 14px;position:relative">
     <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px">✕</div>
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
@@ -1007,7 +1053,7 @@ async function scene5(){
 
 /* ── P6 (NUEVA): Grid de todos los botones (estático 10 s) ── */
 async function scene6(){
-  setCounter(6); MC.hide(); Knight2.show(K.up);
+  setCounter(4); MC.hide(); Knight2.show(K.up);
   setScene(`<div class="btn-grid" style="gap:14px">
     <div class="btn-group">
       <div class="btn-main-ico blue"><img src="${B.aMain}" alt=""></div>
@@ -1043,7 +1089,7 @@ async function scene6(){
 
 /* ── P7 (NUEVA): Sin GPS / Sin internet ── */
 async function scene7(){
-  setCounter(7); MC.hide();
+  setCounter(5); MC.hide();
   Knight.show(K.llorando); Knight2.show(K.perdido);
   setScene(`<div class="sc" style="background:#f9f9f9;gap:0;justify-content:center;padding:12px">
     <div class="err-stack">
@@ -1057,7 +1103,7 @@ async function scene7(){
 
 /* ── P8: Botón mapa-completo (b1) ── */
 async function scene8(){
-  setCounter(8);
+  setCounter(6);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight2.show(K.completo);
@@ -1124,7 +1170,7 @@ async function scene8(){
 
 /* ── P9: Botón mapa-vintage (b2) ── */
 async function scene9(){
-  setCounter(9);
+  setCounter(7);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.caminando);
@@ -1143,7 +1189,7 @@ async function scene9(){
 
 /* ── P11: Botón imagen próximo monumento (b4 hijo2) ── */
 async function sceneImg(){
-  setCounter(11);
+  setCounter(9);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.completo);
@@ -1167,9 +1213,19 @@ async function sceneImg(){
   Knight.hide();
 }
 
-/* ── P12: Botón dron (b3 hijo2) ── */
+function waitForVideoEnd(videoEl) {
+  return new Promise(resolve => {
+    if (!videoEl || videoEl.ended) { resolve(); return; }
+    const done = () => { clearInterval(checker); resolve(); };
+    videoEl.addEventListener('ended', done, {once:true});
+    videoEl.addEventListener('error', done, {once:true});
+    const checker = setInterval(()=>{ if (_skipRequested) done(); }, 300);
+  });
+}
+
+/* ── P10 (dron): Botón dron (b3 hijo2) ── */
 async function sceneVid(){
-  setCounter(12);
+  setCounter(10);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.completo);
@@ -1182,19 +1238,21 @@ async function sceneVid(){
     setOv(`<div class="float-win">
       <div class="float-card" style="width:min(420px,96vw)">
         <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
-        <video class="float-video" style="max-height:60vh" src="" autoplay muted loop playsinline></video>
+        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline></video>
       </div>
     </div>`);
   });
-  await wait(3000);
-  await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
+  await waitForVideoEnd(document.querySelector('.float-video'));
+  if (!_skipRequested) {
+    await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
+  }
   await wait(500);
   Knight.hide();
 }
 
 /* ── P10: Botón avanzar (b-av) ── */
 async function scene10(){
-  setCounter(10);
+  setCounter(8);
   setScene(mainHTML('disabled'));
   MC.showInset(RA);
   Knight.show(K.completo);
@@ -1212,7 +1270,7 @@ async function scene10(){
 
 /* ── P13: Botón audio principal (amain) ── */
 async function scene11(){
-  setCounter(13);
+  setCounter(11);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const amain=$('amain');
@@ -1232,7 +1290,7 @@ async function scene11(){
 
 /* ── P14: Reto — puzzle ── */
 async function scene12(){
-  setCounter(14);
+  setCounter(12);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   setAP(87);
@@ -1304,7 +1362,7 @@ async function scene12(){
 
 /* ── P15: Reto — preguntas de opción múltiple ── */
 async function sceneRetoMCQ(){
-  setCounter(15);
+  setCounter(13);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   setAP(87);
@@ -1366,7 +1424,7 @@ async function sceneRetoMCQ(){
 
 /* ── P21: Chat (hijo6) ── */
 async function scene18(){
-  setCounter(21);
+  setCounter(19);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   await wait(700);
@@ -1397,7 +1455,7 @@ async function scene18(){
 
 /* ── P16: Mapa + caballero_camara + cuenta atrás 5 min ── */
 async function scene13(){
-  setCounter(16);
+  setCounter(14);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const offPt=[39.4748,-0.3815];
@@ -1420,7 +1478,7 @@ async function scene13(){
 
 /* ── P17: Cuenta atrás agotada + foto-fuera-rango + btn-ubicacion ── */
 async function scene14(){
-  setCounter(17);
+  setCounter(15);
   setScene(mainHTML('disabled'));
   await wait(60); $('b6').classList.add('disabled');
   Knight.show(K.perdido);
@@ -1451,7 +1509,7 @@ async function scene14(){
 
 /* ── P18: Caballero camina la polyline discontinua hasta chincheta ── */
 async function scene15(){
-  setCounter(18);
+  setCounter(16);
   setScene(mainHTML('disabled'));
   const offPt=[39.4748,-0.3815];
   const retPath={path:[offPt,[39.4762,-0.3800],[39.4780,-0.3792],[39.4796,-0.3785],RA.path[0]]};
@@ -1464,7 +1522,7 @@ async function scene15(){
 
 /* ── P19: Error GPS + caballero_durmiendo ── */
 async function scene16(){
-  setCounter(19);
+  setCounter(17);
   setScene(mainHTML('disabled'));
   const farOff=[39.4685,-0.3858];  // muy lejos: ~1.8 km al suroeste
   $('map').classList.add('on');
@@ -1505,7 +1563,7 @@ async function scene16(){
 
 /* ── P20: Botón temporizador ── */
 async function scene17(){
-  setCounter(20);
+  setCounter(18);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   await wait(700);
@@ -1543,7 +1601,7 @@ async function scene17(){
 
 /* ── P22: Pantalla de fin ── */
 async function scene19(){
-  setCounter(22);
+  setCounter(20);
   setScene(mainHTML('enabled'));
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);
@@ -1620,20 +1678,20 @@ let _skipRequested = false;
 globalThis._skipVideoIntro = function() {
   _skipRequested = true;
   $('btn-skip').classList.remove('on');
-  globalThis._continuarVideo();
+  clearOv(); Knight.hide(); Knight2.hide();
+  $('end-btns').classList.add('on');
 };
 
 async function run(){
   MC.init(); await wait(350);
-  // Mostrar botón saltar tras 3 s
-  wait(3000).then(() => { if (!_skipRequested) $('btn-skip').classList.add('on'); });
-  const scenes=[scene1,scene2,scene3,scene4,scene5,scene6,scene7,scene8,scene9,
+  const scenes=[scene1,scene4,scene5,scene6,scene7,scene8,scene9,
     scene10,sceneImg,sceneVid,
     scene11,scene12,sceneRetoMCQ,
     scene13,scene14,scene15,scene16,scene17,scene18,scene19];
   for(const fn of scenes){
     if (_skipRequested) break;
     clearOv(); await fn(); await wait(650);
+    if(fn===scene5) $('btn-skip').classList.add('on');
   }
   if (_skipRequested) return;
   $('btn-skip').classList.remove('on');
