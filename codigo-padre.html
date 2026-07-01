@@ -2089,14 +2089,12 @@
                     <div class="media-contenedor" style="background: #fff8e7; padding: 40px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <button type="button" class="btn-cerrar-overlay" title="Cerrar">×</button>
                         <div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">⚠️</div>
-                        <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Error de contenido</h3>
+                        <h3 style="color: #333; margin: 0 0 15px 0; font-size: 24px;">404</h3>
                         <p id="error-message" style="color: #666; margin: 0; font-size: 14px; line-height: 1.4; max-width: 500px;"></p>
-                        <button type="button" id="btn-cerrar-error" style="margin-top: 25px; padding: 10px 25px; background: #007acc; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">Cerrar</button>
                     </div>
                 `;
                 document.body.appendChild(overlay);
                 overlay.querySelector('.btn-cerrar-overlay')?.addEventListener('click', cerrarErrorOverlay);
-                overlay.querySelector('#btn-cerrar-error')?.addEventListener('click', cerrarErrorOverlay);
             }
 
             // Configurar mensaje de error
@@ -2660,9 +2658,10 @@
         globalThis.resolverIdsParada = resolverIdsParada;
         import { DATOS_PADRE } from './js/aventuras-ID-padre.js';
         // DATOS_PADRE is now imported from module
-        import { limpiarDatosAventura, verificarTimeoutAventura } from './js/reciclaje-digital.js';
+        import { limpiarDatosAventura, verificarTimeoutAventura, armarRedDeSeguridad } from './js/reciclaje-digital.js';
         globalThis.limpiarDatosAventura = limpiarDatosAventura;
         globalThis.verificarTimeoutAventura = verificarTimeoutAventura;
+        import { TRADUCCIONES_REANUDACION, TRADUCCIONES_FINALIZACION } from './js/traducciones-ui.js';
 
         // Initialize map after Leaflet is loaded
         // Variable para guardar la instancia del mapa y evitar reinicialización
@@ -3405,6 +3404,23 @@
 
         // toggleRotationMessage se ejecutará en el DOMContentLoaded unificado
 
+        // DEV MODE TOGGLE — Ctrl+Alt+clic en logo P1 del selector
+        // Sube hijo5 por encima del mapa (dev) o lo hunde detrás (producción).
+        // En producción el mapa tendrá z-index mayor que el valor de "apagado" (900).
+        ;(function() {
+            let _devModeActivo = false;
+            globalThis.addEventListener('message', function(ev) {
+                if (ev.origin !== globalThis.location.origin) return;
+                if (ev.data?.tipo !== 'SELECCION.DEV_MODE_TOGGLE') return;
+                _devModeActivo = !_devModeActivo;
+                const hijo5 = document.getElementById('hijo5');
+                if (hijo5) hijo5.style.zIndex = _devModeActivo ? '2000000' : '900';
+                (globalThis.logger || console).warn(
+                    `[DEV_MODE] ${_devModeActivo ? '🟢 ACTIVADO' : '🔴 DESACTIVADO'} — hijo5 z-index: ${_devModeActivo ? '2000000 (visible)' : '900 (oculto bajo mapa)'}`
+                );
+            });
+        })();
+
         // ============================================================
         // ESTADO GLOBAL DE LA APLICACIÓN (compartido con Script 2)
         // ============================================================
@@ -3735,214 +3751,6 @@
         // Muestra un diálogo preguntando si continuar aventura activa
         // o elegir otra (con advertencia de pérdida de progreso).
         // ============================================================
-        const TRADUCCIONES_REANUDACION = {
-            es: {
-                titulo: '¡Aventura en curso!',
-                info: 'Tienes una aventura activa:',
-                idioma: 'Idioma',
-                progreso: 'Progreso',
-                parada: 'parada',
-                de: 'de',
-                continuar: 'Continuar mi aventura',
-                elegirOtra: 'Elegir otra aventura',
-                autoContinuar: 'Continuando automáticamente en',
-                segundos: 's',
-                // Warning step 2
-                advertenciaTitulo: '⚠️ Atención',
-                advertenciaTexto1: 'Perderás todo el progreso de tu aventura actual:',
-                advertenciaTexto2: 'Además, necesitarás adquirir una nueva aventura.',
-                volver: 'Volver a mi aventura',
-                confirmarOtra: 'Sí, elegir otra aventura'
-            },
-            en: {
-                titulo: 'Adventure in progress!',
-                info: 'You have an active adventure:',
-                idioma: 'Language',
-                progreso: 'Progress',
-                parada: 'stop',
-                de: 'of',
-                continuar: 'Continue my adventure',
-                elegirOtra: 'Choose another adventure',
-                autoContinuar: 'Auto-continuing in',
-                segundos: 's',
-                advertenciaTitulo: '⚠️ Warning',
-                advertenciaTexto1: 'You will lose all progress in your current adventure:',
-                advertenciaTexto2: 'You will also need to purchase a new adventure.',
-                volver: 'Return to my adventure',
-                confirmarOtra: 'Yes, choose another adventure'
-            },
-            fr: {
-                titulo: 'Aventure en cours !',
-                info: 'Vous avez une aventure active :',
-                idioma: 'Langue',
-                progreso: 'Progression',
-                parada: 'arrêt',
-                de: 'sur',
-                continuar: 'Continuer mon aventure',
-                elegirOtra: 'Choisir une autre aventure',
-                autoContinuar: 'Continuation automatique dans',
-                segundos: 's',
-                advertenciaTitulo: '⚠️ Attention',
-                advertenciaTexto1: 'Vous perdrez toute la progression de votre aventure actuelle :',
-                advertenciaTexto2: 'De plus, vous devrez acheter une nouvelle aventure.',
-                volver: 'Retourner à mon aventure',
-                confirmarOtra: 'Oui, choisir une autre aventure'
-            },
-            it: {
-                titulo: 'Avventura in corso!',
-                info: 'Hai un\'avventura attiva:',
-                idioma: 'Lingua',
-                progreso: 'Progresso',
-                parada: 'tappa',
-                de: 'di',
-                continuar: 'Continua la mia avventura',
-                elegirOtra: 'Scegli un\'altra avventura',
-                autoContinuar: 'Continuazione automatica tra',
-                segundos: 's',
-                advertenciaTitulo: '⚠️ Attenzione',
-                advertenciaTexto1: 'Perderai tutto il progresso della tua avventura attuale:',
-                advertenciaTexto2: 'Inoltre, dovrai acquistare una nuova avventura.',
-                volver: 'Torna alla mia avventura',
-                confirmarOtra: 'Sì, scegli un\'altra avventura'
-            },
-            nl: {
-                titulo: 'Avontuur bezig!',
-                info: 'Je hebt een actief avontuur:',
-                idioma: 'Taal',
-                progreso: 'Voortgang',
-                parada: 'halte',
-                de: 'van',
-                continuar: 'Mijn avontuur voortzetten',
-                elegirOtra: 'Kies een ander avontuur',
-                autoContinuar: 'Automatisch verder over',
-                segundos: 's',
-                advertenciaTitulo: '⚠️ Let op',
-                advertenciaTexto1: 'Je verliest alle voortgang van je huidige avontuur:',
-                advertenciaTexto2: 'Bovendien moet je een nieuw avontuur aanschaffen.',
-                volver: 'Terug naar mijn avontuur',
-                confirmarOtra: 'Ja, kies een ander avontuur'
-            },
-            ja: {
-                titulo: '冒険が進行中です！',
-                info: 'アクティブな冒険があります：',
-                idioma: '言語',
-                progreso: '進捗',
-                parada: 'ストップ',
-                de: '/',
-                continuar: '冒険を続ける',
-                elegirOtra: '別の冒険を選ぶ',
-                autoContinuar: '自動的に続行します',
-                segundos: '秒',
-                advertenciaTitulo: '⚠️ 注意',
-                advertenciaTexto1: '現在の冒険のすべての進捗を失います：',
-                advertenciaTexto2: 'また、新しい冒険を購入する必要があります。',
-                volver: '冒険に戻る',
-                confirmarOtra: 'はい、別の冒険を選びます'
-            },
-            ru: {
-                titulo: 'Приключение в процессе!',
-                info: 'У вас есть активное приключение:',
-                idioma: 'Язык',
-                progreso: 'Прогресс',
-                parada: 'остановка',
-                de: 'из',
-                continuar: 'Продолжить приключение',
-                elegirOtra: 'Выбрать другое приключение',
-                autoContinuar: 'Автоматическое продолжение через',
-                segundos: 'с',
-                advertenciaTitulo: '⚠️ Внимание',
-                advertenciaTexto1: 'Вы потеряете весь прогресс текущего приключения:',
-                advertenciaTexto2: 'Кроме того, вам нужно будет приобрести новое приключение.',
-                volver: 'Вернуться к приключению',
-                confirmarOtra: 'Да, выбрать другое приключение'
-            },
-            zh: {
-                titulo: '冒险进行中！',
-                info: '您有一个进行中的冒险：',
-                idioma: '语言',
-                progreso: '进度',
-                parada: '站点',
-                de: '/',
-                continuar: '继续我的冒险',
-                elegirOtra: '选择其他冒险',
-                autoContinuar: '自动继续，倒计时',
-                segundos: '秒',
-                advertenciaTitulo: '⚠️ 注意',
-                advertenciaTexto1: '您将失去当前冒险的所有进度：',
-                advertenciaTexto2: '此外，您还需要购买新的冒险。',
-                volver: '返回我的冒险',
-                confirmarOtra: '是，选择其他冒险'
-            },
-            pl: {
-                titulo: 'Przygoda w toku!',
-                info: 'Masz aktywną przygodę:',
-                idioma: 'Język',
-                progreso: 'Postęp',
-                parada: 'przystanek',
-                de: 'z',
-                continuar: 'Kontynuuj moją przygodę',
-                elegirOtra: 'Wybierz inną przygodę',
-                autoContinuar: 'Automatyczne kontynuowanie za',
-                segundos: 's',
-                advertenciaTitulo: '⚠️ Uwaga',
-                advertenciaTexto1: 'Stracisz cały postęp swojej obecnej przygody:',
-                advertenciaTexto2: 'Ponadto będziesz musiał zakupić nową przygodę.',
-                volver: 'Wróć do mojej przygody',
-                confirmarOtra: 'Tak, wybierz inną przygodę'
-            },
-            uk: {
-                titulo: 'Пригода в процесі!',
-                info: 'У вас є активна пригода:',
-                idioma: 'Мова',
-                progreso: 'Прогрес',
-                parada: 'зупинка',
-                de: 'з',
-                continuar: 'Продовжити пригоду',
-                elegirOtra: 'Вибрати іншу пригоду',
-                autoContinuar: 'Автоматичне продовження через',
-                segundos: 'с',
-                advertenciaTitulo: '⚠️ Увага',
-                advertenciaTexto1: 'Ви втратите весь прогрес поточної пригоди:',
-                advertenciaTexto2: 'Крім того, вам потрібно буде придбати нову пригоду.',
-                volver: 'Повернутися до пригоди',
-                confirmarOtra: 'Так, вибрати іншу пригоду'
-            },
-            pt: {
-                titulo: 'Aventura em curso!',
-                info: 'Tem uma aventura ativa:',
-                idioma: 'Idioma',
-                progreso: 'Progresso',
-                parada: 'paragem',
-                de: 'de',
-                continuar: 'Continuar a minha aventura',
-                elegirOtra: 'Escolher outra aventura',
-                autoContinuar: 'Continuação automática em',
-                segundos: 's',
-                advertenciaTitulo: '⚠️ Atenção',
-                advertenciaTexto1: 'Perderá todo o progresso da sua aventura atual:',
-                advertenciaTexto2: 'Além disso, precisará adquirir uma nova aventura.',
-                volver: 'Voltar à minha aventura',
-                confirmarOtra: 'Sim, escolher outra aventura'
-            },
-            de: {
-                titulo: 'Abenteuer läuft!',
-                info: 'Sie haben ein aktives Abenteuer:',
-                idioma: 'Sprache',
-                progreso: 'Fortschritt',
-                parada: 'Halt',
-                de: 'von',
-                continuar: 'Mein Abenteuer fortsetzen',
-                elegirOtra: 'Ein anderes Abenteuer wählen',
-                autoContinuar: 'Automatische Fortsetzung in',
-                segundos: 's',
-                advertenciaTitulo: '⚠️ Achtung',
-                advertenciaTexto1: 'Sie verlieren den gesamten Fortschritt Ihres aktuellen Abenteuers:',
-                advertenciaTexto2: 'Außerdem müssen Sie ein neues Abenteuer erwerben.',
-                volver: 'Zurück zu meinem Abenteuer',
-                confirmarOtra: 'Ja, ein anderes Abenteuer wählen'
-            }
-        };
-
         function _getInfoProgresoText(t) {
             try {
                 const raw = localStorage.getItem('vv_progreso');
@@ -7557,20 +7365,6 @@
         //   2. Terminar       → navega a En-busca-del-tesoro.html?despedida=1
         //                       (limpieza completa ocurre allí, al pulsar el botón verde de P5)
         // ============================================================
-        const TRADUCCIONES_FINALIZACION = {
-            es: { titulo: '¡Felicidades!',             completado: 'Has completado',                    pregunta: '¿Qué deseas hacer ahora?',           btn_otra: 'Hacer otra aventura',          btn_terminar: 'Terminar esta experiencia' },
-            en: { titulo: 'Congratulations!',          completado: 'You have completed',                pregunta: 'What would you like to do now?',     btn_otra: 'Start another adventure',      btn_terminar: 'End this experience' },
-            fr: { titulo: 'Félicitations !',      completado: 'Vous avez terminé',                 pregunta: 'Que souhaitez-vous faire maintenant ?', btn_otra: 'Faire une autre aventure', btn_terminar: 'Terminer cette expérience' },
-            it: { titulo: 'Congratulazioni!',          completado: 'Hai completato',                    pregunta: 'Cosa desideri fare adesso?',         btn_otra: "Fare un'altra avventura",      btn_terminar: 'Terminare questa esperienza' },
-            nl: { titulo: 'Gefeliciteerd!',            completado: 'Je hebt voltooid',                  pregunta: 'Wat wil je nu doen?',                btn_otra: 'Een ander avontuur beginnen',  btn_terminar: 'Deze ervaring beëindigen' },
-            de: { titulo: 'Herzlichen Glückwunsch!',   completado: 'Sie haben abgeschlossen',           pregunta: 'Was möchten Sie jetzt tun?',         btn_otra: 'Ein anderes Abenteuer beginnen', btn_terminar: 'Dieses Erlebnis beenden' },
-            ja: { titulo: 'おめでとうございます！',    completado: '完了しました',                      pregunta: '次に何をしますか？',                 btn_otra: '別のアドベンチャーを始める',   btn_terminar: 'この体験を終了する' },
-            zh: { titulo: '恭喜！',                    completado: '您已完成',                          pregunta: '您现在想做什么？',                   btn_otra: '开始另一个冒险',               btn_terminar: '结束此体验' },
-            pl: { titulo: 'Gratulacje!',               completado: 'Ukończyłeś',                        pregunta: 'Co chcesz teraz zrobić?',            btn_otra: 'Rozpocząć inną przygodę',      btn_terminar: 'Zakończyć to doświadczenie' },
-            pt: { titulo: 'Parabéns!',                 completado: 'Você completou',                    pregunta: 'O que deseja fazer agora?',          btn_otra: 'Fazer outra aventura',         btn_terminar: 'Terminar esta experiência' },
-            ru: { titulo: 'Поздравляем!',              completado: 'Вы завершили',                      pregunta: 'Что вы хотите сделать сейчас?',      btn_otra: 'Начать другое приключение',    btn_terminar: 'Завершить этот опыт' },
-            uk: { titulo: 'Вітаємо!',                  completado: 'Ви завершили',                      pregunta: 'Що ви хочете зробити тепер?',        btn_otra: 'Розпочати іншу пригоду',       btn_terminar: 'Завершити цей досвід' },
-        };
 
         function mostrarModalFinalizacion() {
             const modoActual = estado?.modo?.actual || MODOS.CASA;
@@ -7586,6 +7380,10 @@
 
             // Evitar doble instancia
             document.getElementById('modal-finalizacion-aventura')?.remove();
+            if (typeof globalThis.__desarmarAbandonoFinAventura === 'function') {
+                globalThis.__desarmarAbandonoFinAventura();
+                globalThis.__desarmarAbandonoFinAventura = null;
+            }
 
             const modal = document.createElement('div');
             modal.id = 'modal-finalizacion-aventura';
@@ -7616,63 +7414,40 @@
 
             document.body.appendChild(modal);
 
-            document.getElementById('btn-fin-otra-aventura').onclick = () => {
-                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió OTRA AVENTURA');
+            async function _finalizarYLimpiar(motivo) {
                 modal.remove();
-                _iniciarNuevaAventura();
+                (globalThis.logger || console).info(`[PADRE][MODAL_FIN] Finalizando aventura — motivo: ${motivo}`);
+                try {
+                    if (typeof limpiarDatosAventura === 'function') {
+                        await limpiarDatosAventura(motivo);
+                    }
+                } catch (e) {
+                    (globalThis.logger || console).error('[PADRE][MODAL_FIN] Error en limpieza:', e);
+                }
+                globalThis.location.reload();
+            }
+
+            // Red de seguridad: si el usuario abandona el modal sin pulsar nada
+            // (pestaña en segundo plano, pantalla bloqueada, cierre de pestaña),
+            // limpiar y reiniciar igual que si hubiera pulsado "otra aventura".
+            const _desarmarFn = armarRedDeSeguridad(() => _finalizarYLimpiar('abandono'), 'FIN_AVENTURA');
+            const _desarmarAbandonoFin = () => { _desarmarFn(); globalThis.__desarmarAbandonoFinAventura = null; };
+            globalThis.__desarmarAbandonoFinAventura = _desarmarAbandonoFin;
+
+            document.getElementById('btn-fin-otra-aventura').onclick = () => {
+                _desarmarAbandonoFin();
+                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió OTRA AVENTURA');
+                _finalizarYLimpiar('otra_aventura');
             };
 
             document.getElementById('btn-fin-terminar').onclick = () => {
-                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió TERMINAR experiencia');
+                _desarmarAbandonoFin();
+                (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió TERMINAR experiencia → P17 despedida');
                 modal.remove();
                 globalThis.location.href = 'En-busca-del-tesoro.html?despedida=1';
             };
 
             (globalThis.logger || console).info('[PADRE][MODAL_FIN] Modal de finalización mostrado. Aventura:', nombreAventura, '| Idioma:', idioma);
-        }
-
-        function _iniciarNuevaAventura() {
-            try {
-                // Limpiar estado de aventura sin tocar SW ni caches
-                ['vv_aventura_iniciada', 'vv_progreso', 'vv_paradas_completadas', 'vv_idioma', 'vv_aventura'].forEach(k => {
-                    try { localStorage.removeItem(k); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
-                });
-
-                // Resetear globals de aventura
-                globalThis.aventuraSeleccionada = null;
-                globalThis.idiomaSeleccionado = null;
-                if (estado.seleccion) {
-                    estado.seleccion.aventura  = null;
-                    estado.seleccion.idioma    = null;
-                    estado.seleccion.iniciada  = false;
-                    estado.seleccion.activada  = false;
-                }
-                estado.indiceProgreso  = 0;
-                estado.elementoActual  = null;
-
-                // Enviar P2 al iframe de selección (En-busca-del-tesoro.html)
-                const iframeSeleccion = document.getElementById('seleccion');
-                if (iframeSeleccion) {
-                    iframeSeleccion.style.display    = 'block';
-                    iframeSeleccion.style.visibility = 'visible';
-                    try {
-                        iframeSeleccion.contentWindow.postMessage(
-                            { tipo: TIPOS_MENSAJE_S1.NAVEGACION_PANTALLA, datos: { pantalla: 2 } },
-                            globalThis.location.origin
-                        );
-                    } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
-                }
-
-                // Ocultar iframes de aventura
-                ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                });
-
-                (globalThis.logger || console).info('[PADRE][NUEVA_AVENTURA] Estado limpiado — selección P2 activa');
-            } catch (e) {
-                (globalThis.logger || console).error('[PADRE][NUEVA_AVENTURA] Error inesperado:', e);
-            }
         }
 
         globalThis.mostrarModalFinalizacion = mostrarModalFinalizacion;
@@ -7718,6 +7493,8 @@
         const loggerScript2 = (await import('./js/logger.js')).default;
         // inicializarMonitoreo ya importado en Script 1 como inicializarMonitoreo_S1
         await import('./js/config.js');
+        const { TRADUCCIONES_TIEMPO_AGOTADO, TRADUCCIONES_FINALIZACION } = await import('./js/traducciones-ui.js');
+        const { armarRedDeSeguridad: armarRedDeSeguridad_S2 } = await import('./js/reciclaje-digital.js');
 
 
         const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
@@ -11236,12 +11013,12 @@
             try {
                 _cancelarTimerAnteriorSiCambia(aventura, logPrefix);
                 const indiceAventuras = globalThis.__vv_INDICE_AVENTURAS;
-                let tiempoEstimado = 3600;
+                let tiempoEstimado = 216000; // segundos — fallback 60h
                 if (indiceAventuras && indiceAventuras[aventura]) {
-                    tiempoEstimado = indiceAventuras[aventura].tiempoEstimado || 3600;
-                    (globalThis.logger || console).info(`${logPrefix} ⏱️ Tiempo estimado para ${aventura}: ${tiempoEstimado} minutos`);
+                    tiempoEstimado = indiceAventuras[aventura].tiempoEstimado || 216000;
+                    (globalThis.logger || console).info(`${logPrefix} ⏱️ Tiempo estimado para ${aventura}: ${tiempoEstimado}s (${Math.round(tiempoEstimado / 3600)}h)`);
                 } else {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ No se encontró tiempoEstimado para ${aventura}, usando default: ${tiempoEstimado} min`);
+                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ No se encontró tiempoEstimado para ${aventura}, usando default: ${tiempoEstimado}s`);
                 }
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones && iframeOpciones.contentWindow) {
@@ -11388,6 +11165,8 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 // 2. Crear y mostrar modal de tiempo agotado
                 let modalTiempoAgotado = document.getElementById('modal-tiempo-agotado');
                 if (!modalTiempoAgotado) {
+                    const tFin = TRADUCCIONES_FINALIZACION[idioma] || TRADUCCIONES_FINALIZACION['es'];
+
                     modalTiempoAgotado = document.createElement('div');
                     modalTiempoAgotado.id = 'modal-tiempo-agotado';
                     modalTiempoAgotado.style.cssText = `
@@ -11403,51 +11182,59 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         align-items: center;
                         justify-content: center;
                         z-index: 9999;
-                        color: white;
                         font-family: Verdana, sans-serif;
-                        text-align: center;
                         padding-top: var(--gap-superior);
                         padding-bottom: env(safe-area-inset-bottom, 0px);
                         box-sizing: border-box;
                     `;
 
                     modalTiempoAgotado.innerHTML = `
-                        <div style="font-size: 4rem; margin-bottom: 1rem;">⏰</div>
-                        <h1 style="font-size: 2rem; color: #ff4444; margin-bottom: 1rem;">${t.titulo}</h1>
-                        <p style="font-size: 1.2rem; margin-bottom: 2rem; max-width: 80%;">
-                            ${t.cuerpo}
-                        </p>
-                        <button type="button" id="btn-reiniciar-aventura" style="
-                            padding: 1rem 2rem;
-                            font-size: 1.2rem;
-                            background: #007acc;
-                            color: white;
-                            border: none;
-                            border-radius: 0.5rem;
-                            cursor: pointer;
-                        ">${t.btnReiniciar}</button>
+                        <div style="background:#c8e6f7;border-radius:1rem;padding:clamp(1.5rem,5vmin,2.5rem);max-width:95vw;width:95vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.4);">
+                            <img src="imagenes/imagenes video intro/caballero_llorando.png" alt="" style="max-width:clamp(120px,35vmin,220px);width:100%;height:auto;margin-bottom:1rem;">
+                            <h1 style="font-size:clamp(1.2rem,5vmin,1.8rem);color:#1a5276;margin:0 0 0.75rem 0;">${t.titulo}</h1>
+                            <p style="font-size:clamp(0.9rem,3.5vmin,1.1rem);color:#333;margin:0 0 1.5rem 0;">${t.cuerpo}</p>
+                            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                                <button id="btn-tiempo-agotado-otra" type="button" style="background:#1a5276;color:#fff;border:none;border-radius:0.5rem;padding:clamp(0.75rem,3vmin,1rem) 1.5rem;font-size:clamp(0.9rem,3.5vmin,1rem);font-family:Verdana,sans-serif;cursor:pointer;white-space:nowrap;">${tFin.btn_otra}</button>
+                                <button id="btn-tiempo-agotado-terminar" type="button" style="background:#7f8c8d;color:#fff;border:none;border-radius:0.5rem;padding:clamp(0.75rem,3vmin,1rem) 1.5rem;font-size:clamp(0.9rem,3.5vmin,1rem);font-family:Verdana,sans-serif;cursor:pointer;white-space:nowrap;">${tFin.btn_terminar}</button>
+                            </div>
+                        </div>
                     `;
 
                     document.body.appendChild(modalTiempoAgotado);
 
-                    // Añadir evento al botón de reinicio
-                    const btnReiniciar = document.getElementById('btn-reiniciar-aventura');
-                    if (btnReiniciar) {
-                        btnReiniciar.onclick = async () => {
-                            // Ejecutar limpieza digital antes de recargar
-                            try {
-                                if (typeof limpiarDatosAventura === 'function') {
-                                    (globalThis.logger || console).info(`${logPrefix} Ejecutando limpieza digital por timeout...`);
-                                    await limpiarDatosAventura('timeout');
-                                    (globalThis.logger || console).info(`${logPrefix} Limpieza completada, recargando...`);
-                                }
-                            } catch (e) {
-                                (globalThis.logger || console).error(`${logPrefix} Error en limpieza digital:`, e);
+                    const _limpiarYRecargarTiempoAgotado = async (motivo) => {
+                        modalTiempoAgotado.remove();
+                        try {
+                            if (typeof limpiarDatosAventura === 'function') {
+                                await limpiarDatosAventura(motivo);
                             }
-                            // Recargar la página para volver a En-busca-del-tesoro.html
-                            globalThis.location.reload();
-                        };
-                    }
+                        } catch (e) {
+                            (globalThis.logger || console).error(`${logPrefix} Error en limpieza digital:`, e);
+                        }
+                        globalThis.location.reload();
+                    };
+
+                    // Red de seguridad: si el usuario abandona el modal sin pulsar nada
+                    // (pestaña en segundo plano, pantalla bloqueada, cierre de pestaña),
+                    // limpiar y reiniciar igual que si hubiera pulsado "otra aventura".
+                    const _desarmarAbandonoTiempoAgotado = armarRedDeSeguridad_S2(
+                        () => _limpiarYRecargarTiempoAgotado('abandono'), 'TIEMPO_AGOTADO'
+                    );
+
+                    // "Hacer otra aventura": limpieza total + recarga (mismo camino que el modal de fin de aventura normal)
+                    document.getElementById('btn-tiempo-agotado-otra').onclick = async () => {
+                        _desarmarAbandonoTiempoAgotado();
+                        (globalThis.logger || console).info(`${logPrefix} Usuario eligió OTRA AVENTURA`);
+                        await _limpiarYRecargarTiempoAgotado('timeout');
+                    };
+
+                    // "Terminar esta experiencia": mismo camino emotivo que el modal de fin de aventura normal (P17 despedida)
+                    document.getElementById('btn-tiempo-agotado-terminar').onclick = () => {
+                        _desarmarAbandonoTiempoAgotado();
+                        (globalThis.logger || console).info(`${logPrefix} Usuario eligió TERMINAR experiencia → P17 despedida`);
+                        modalTiempoAgotado.remove();
+                        globalThis.location.href = 'En-busca-del-tesoro.html?despedida=1';
+                    };
                 }
 
                 modalTiempoAgotado.style.display = 'flex';

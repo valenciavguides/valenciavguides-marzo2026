@@ -1,8 +1,25 @@
 /**
- * reciclaje-digital.js - Sistema de limpieza total de datos de aventura
- * 
- * Implementa reciclaje digital automático al finalizar aventura o exceder tiempo límite.
- * Elimina por completo el dispositivo: localStorage, sessionStorage, cachés y Service Worker.
+ * reciclaje-digital.js - Limpieza total de datos de aventura y red de seguridad automática
+ *
+ * Dos responsabilidades relacionadas que siempre se usan juntas:
+ *
+ *  limpiarDatosAventura()   — EJECUTA la limpieza: borra localStorage, sessionStorage,
+ *                             cachés del Service Worker y desregistra el SW. Se llama
+ *                             cuando el usuario pulsa un botón de final de aventura O
+ *                             cuando la red de seguridad se dispara automáticamente.
+ *
+ *  verificarTimeoutAventura() — Comprueba al arrancar si la aventura guardada en
+ *                             localStorage ya superó su tiempo máximo (60h / 150h).
+ *                             Se usa en el arranque de En-busca-del-tesoro.html.
+ *
+ *  armarRedDeSeguridad()    — DETECTA el abandono: arma tres triggers (timeout 10 min +
+ *                             visibilitychange + pagehide) para llamar a limpiarDatosAventura
+ *                             automáticamente si el usuario deja el modal sin pulsar nada.
+ *                             Importante: el "timeout de la aventura" (60h/150h) ya ocurrió
+ *                             ANTES de llamar a esta función; el timeout interno de 10 min es
+ *                             únicamente la ventana de gracia para que el usuario interactúe
+ *                             con el modal de fin de aventura. Devuelve desarmar() para
+ *                             cancelar la red en cuanto el usuario pulsa un botón real.
  */
 
 'use strict';
@@ -103,39 +120,80 @@ export async function limpiarDatosAventura(motivo = 'desconocido') {
 export function verificarTimeoutAventura() {
     const logPrefix = '[TIMEOUT_CHECK]';
     const logger = globalThis.logger || console;
-    
+
     try {
         const datosInicio = localStorage.getItem('vv_aventura_iniciada');
-        if (!datosInicio) return false;
-        
+        if (!datosInicio) return { excedido: false };
+
         const { aventura, timestamp } = JSON.parse(datosInicio);
-        if (!aventura || !timestamp) return false;
-        
-        // Obtener tiempo máximo de la aventura específica
+        if (!aventura || !timestamp) return { excedido: false };
+
         const INDICE = globalThis.__vv_INDICE_AVENTURAS || globalThis.INDICE_AVENTURAS;
         const metadatos = INDICE?.[aventura];
-        
+
         if (!metadatos) {
             logger.warn(`${logPrefix} No se encontraron metadatos para ${aventura}`);
-            return false;
+            return { excedido: false };
         }
-        
-        const tiempoMaximoSegundos = metadatos.tiempoEstimado; // 3600 s (1h) o 9000 s (2.5h)
-        const tiempoMaximoMs = tiempoMaximoSegundos * 1000;
+
+        const tiempoMaximoMs = metadatos.tiempoEstimado * 1000; // tiempoEstimado en segundos (216000 = 60h, 540000 = 150h)
         const tiempoTranscurrido = Date.now() - timestamp;
-        
+        const tiempoTranscurridoMinutos = Math.floor(tiempoTranscurrido / 60000);
+        const tiempoEstimadoMinutos = Math.floor(tiempoMaximoMs / 60000);
+
         if (tiempoTranscurrido > tiempoMaximoMs) {
-            const horasTranscurridas = Math.floor(tiempoTranscurrido / (60 * 60 * 1000));
-            const horasMaximas = Math.floor(tiempoMaximoMs / (60 * 60 * 1000));
-            
-            logger.info(`${logPrefix} ⏱️ Aventura ${aventura} caducada: ${horasTranscurridas}h transcurridas de ${horasMaximas}h máximas`);
-            return true;
+            logger.info(`${logPrefix} ⏱️ Aventura ${aventura} caducada: ${tiempoTranscurridoMinutos}min de ${tiempoEstimadoMinutos}min máximos`);
+            return { excedido: true, tiempoTranscurridoMinutos, tiempoEstimadoMinutos };
         }
-        
-        return false;
-        
+
+        return { excedido: false };
+
     } catch (error) {
         logger.error(`${logPrefix} Error verificando timeout:`, error);
-        return false;
+        return { excedido: false };
     }
+}
+
+const TIMEOUT_ABANDONO_MS = 10 * 60 * 1000; // gracia de 10 min tras mostrar el modal de fin
+
+/**
+ * Arma una red de seguridad que llama a accionLimpieza con lo primero que ocurra:
+ * - 10 minutos de inactividad (pantalla bloqueada, usuario distraído)
+ * - la pestaña pasa a segundo plano (visibilitychange → 'hidden')
+ * - la pestaña se cierra (pagehide)
+ *
+ * Nota: el timeout de la aventura (60h/150h) ya se agotó ANTES de llamar aquí.
+ * Los 10 min internos son solo la ventana de gracia para el modal de fin de aventura.
+ *
+ * @param {() => void|Promise<void>} accionLimpieza - misma acción que pulsar "otra aventura"
+ * @param {string} etiqueta - identifica el origen en los logs ('FIN_AVENTURA', 'TIEMPO_AGOTADO', 'P17_DESPEDIDA')
+ * @returns {() => void} desarmar - cancela la red; llamarla cuando el usuario pulse un botón real
+ */
+export function armarRedDeSeguridad(accionLimpieza, etiqueta) {
+    const logPrefix = `[RED_SEGURIDAD][${etiqueta}]`;
+    const logger = globalThis.logger || console;
+    let activado = false;
+
+    function ejecutar(origen) {
+        if (activado) return;
+        activado = true;
+        desarmar();
+        logger.info(`${logPrefix} Disparada por ${origen} — limpiando y reiniciando`);
+        accionLimpieza();
+    }
+
+    const timerId = setTimeout(() => ejecutar('timeout-10min'), TIMEOUT_ABANDONO_MS);
+    const onVisibility = () => { if (document.visibilityState === 'hidden') ejecutar('visibilitychange'); };
+    const onPagehide = () => ejecutar('pagehide');
+
+    document.addEventListener('visibilitychange', onVisibility);
+    globalThis.addEventListener('pagehide', onPagehide);
+
+    function desarmar() {
+        clearTimeout(timerId);
+        document.removeEventListener('visibilitychange', onVisibility);
+        globalThis.removeEventListener('pagehide', onPagehide);
+    }
+
+    return desarmar;
 }
