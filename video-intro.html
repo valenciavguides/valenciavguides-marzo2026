@@ -362,16 +362,16 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .ch-opts-bot{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);width:min(380px,93vw);display:flex;flex-direction:column;gap:16px}
 .ch-send-center{position:absolute;bottom:14px;left:50%;transform:translateX(-50%)}
 
-/* ── SPEECH BUBBLE (scene 1) — esquina inferior derecha, flecha apunta al caballero ── */
-#s1-bubble{position:absolute;bottom:clamp(18px,4vw,36px);right:clamp(10px,3vw,20px);
-  max-width:min(240px,48vw);background:rgba(255,255,255,.96);border:2.5px solid #28a745;
-  border-radius:14px;padding:13px 16px;font-size:clamp(12px,2.8vw,15px);color:#1a3a1a;
+/* ── SPEECH BUBBLE (Jaime, esquina inferior izquierda, flecha apunta al caballero abajo) ── */
+.jaime-bubble{position:absolute;bottom:clamp(215px,35vw,335px);left:clamp(8px,2vw,18px);
+  max-width:min(220px,52vw);background:rgba(255,255,255,.96);border:2.5px solid #28a745;
+  border-radius:14px;padding:11px 14px;font-size:clamp(11px,2.6vw,14px);color:#1a3a1a;
   font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;
   animation:fadeUp .7s ease .2s forwards;line-height:1.5;pointer-events:none;z-index:450}
-#s1-bubble::after{content:'';position:absolute;
-  left:-12px;top:40%;transform:translateY(-50%);
-  width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;
-  border-right:12px solid #28a745}
+.jaime-bubble::after{content:'';position:absolute;
+  bottom:-12px;left:20px;
+  width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;
+  border-top:12px solid #28a745}
 
 /* ── BOTONES MUNDO — CSS idéntico a En-busca-del-tesoro.html ── */
 .btn-mundo-verde {
@@ -552,6 +552,10 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 <button id="restart" onclick="location.reload()">↺</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module">
+  import { JAIME_SCENES } from './js/traducciones-ui.js';
+  globalThis.JAIME_SCENES = JAIME_SCENES;
+</script>
 <script>
 'use strict';
 const AI = 'imagenes/imagenes-aplicación/';
@@ -560,20 +564,8 @@ const MV = 'imagenes/imagenes-mapas-vintage/';
 const IM = 'imagenes/imagenes-aventuras/';
 
 const _lang = new URLSearchParams(globalThis.location.search).get('lang') || 'es';
-const JAIME_PHRASES = {
-  es: '¡Hola! Soy Jaime I. Antes de empezar, déjame enseñarte cómo funciona esta aventura.',
-  en: 'Hello! I\'m James I. Before you start, let me show you how this adventure works.',
-  fr: 'Bonjour ! Je suis Jacques Ier. Avant de commencer, laisse-moi te montrer comment fonctionne cette aventure.',
-  it: 'Ciao! Sono Giacomo I. Prima di iniziare, lasciami mostrarti come funziona questa avventura.',
-  nl: 'Hallo! Ik ben James I. Laat me je eerst laten zien hoe dit avontuur werkt.',
-  ja: 'こんにちは！私はハイメ1世です。始める前に、この冒険の遊び方をご紹介します。',
-  de: 'Hallo! Ich bin Jakob I. Bevor du anfängst, lass mich dir zeigen, wie dieses Abenteuer funktioniert.',
-  zh: '你好！我是哈梅一世。在开始之前，让我来向你展示这场冒险是如何进行的。',
-  pl: 'Cześć! Jestem Jakub I. Zanim zaczniesz, pozwól, że pokażę ci, jak działa ta przygoda.',
-  pt: 'Olá! Sou Jaime I. Antes de começar, deixa-me mostrar como funciona esta aventura.',
-  ru: 'Привет! Я Хайме I. Прежде чем начать, позволь мне показать тебе, как работает это приключение.',
-  uk: 'Привіт! Я Хайме I. Перш ніж почати, дозволь мені показати тобі, як працює ця пригода.',
-};
+// JAIME_SCENES vive en js/traducciones-ui.js; se expone via globalThis
+// desde el <script type="module"> previo porque este es un <script> clasico.
 
 /* ── ASSETS ──────────────────────────────────── */
 const K = {
@@ -655,6 +647,16 @@ const setScene = h => {
 };
 const setOv     = h => { $('overlay-layer').innerHTML=h; $('overlay-layer').classList.add('active') };
 const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').classList.remove('active') };
+function showBubble(idx) {
+  const scenes = globalThis.JAIME_SCENES;
+  const entry = scenes && scenes[idx];
+  if (!entry) return () => {};
+  const b = document.createElement('div');
+  b.className = 'jaime-bubble';
+  b.textContent = entry[_lang] || entry.es;
+  $('stage').appendChild(b);
+  return () => b.remove();
+}
 const setCounter = (n,t=20) => $('counter').textContent=`${n} / ${t}`;
 
 function interp(pts,steps){
@@ -1003,12 +1005,9 @@ async function scene1(){
     <img class="s1-w" src="${AI}logo-alargado-2.png" alt="" style="width:min(310px,84vw)">
   </div>`);
   await wait(800);
-  const bubble = document.createElement('div');
-  bubble.id = 's1-bubble';
-  bubble.textContent = JAIME_PHRASES[_lang] || JAIME_PHRASES.es;
-  $('stage').appendChild(bubble);
+  const hideBubble = showBubble(0);
   await wait(8000);
-  bubble.remove();
+  hideBubble();
   Knight.hide();
 }
 
@@ -1030,11 +1029,13 @@ async function scene4(){
       </div>`).join('')}
     </div>
   </div>`);
+  const hideBubble = showBubble(2);
   await wait(1400);
   const t0=$('at0');
   await Gauntlet.hover(t0,'L',320);
   await Gauntlet.tapEl(t0,'L',()=>{ t0.classList.add('sel') });
   await wait(3000);
+  hideBubble();
   Knight.hide();
 }
 
@@ -1045,15 +1046,18 @@ async function scene5(){
     <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px">✕</div>
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
   </div>`);
+  const hideBubble = showBubble(3);
   await wait(4000);
   await Gauntlet.tapEl($('oc5'),'UR',()=>{});
   await wait(600);
+  hideBubble();
   Knight2.hide();
 }
 
 /* ── P6 (NUEVA): Grid de todos los botones (estático 10 s) ── */
 async function scene6(){
   setCounter(4); MC.hide(); Knight2.show(K.up);
+  const hideBubble = showBubble(4);
   setScene(`<div class="btn-grid" style="gap:14px">
     <div class="btn-group">
       <div class="btn-main-ico blue"><img src="${B.aMain}" alt=""></div>
@@ -1084,6 +1088,7 @@ async function scene6(){
     </div>
   </div>`);
   await wait(10000);
+  hideBubble();
   Knight2.hide();
 }
 
@@ -1097,7 +1102,9 @@ async function scene7(){
       <img class="err-img" src="${AI}imagen-no-internet.png" alt="">
     </div>
   </div>`);
+  const hideBubble = showBubble(1);
   await wait(7000);
+  hideBubble();
   Knight.hide(); Knight2.hide();
 }
 
@@ -1107,6 +1114,7 @@ async function scene8(){
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight2.show(K.completo);
+  const hideBubble = showBubble(5);
   await wait(900);
   const b1=$('b1');
   spin(b1);
@@ -1165,7 +1173,7 @@ async function scene8(){
   });
   await wait(4000);
   await Gauntlet.tapEl($('oc8'),'UR',()=>{ clearOv(); MC.hideAll(); MC.showInset(RA); MC.showFull(RA) });
-  Knight2.hide(); await wait(600);
+  hideBubble(); Knight2.hide(); await wait(600);
 }
 
 /* ── P9: Botón mapa-vintage (b2) ── */
@@ -1174,6 +1182,7 @@ async function scene9(){
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.caminando);
+  const hideBubble = showBubble(6);
   await wait(900);
   const b2=$('b2');
   spin(b2);
@@ -1184,7 +1193,7 @@ async function scene9(){
   });
   await wait(3200);
   await Gauntlet.tapEl($('oc9'),'UR',()=>clearOv());
-  Knight.hide(); await wait(600);
+  hideBubble(); Knight.hide(); await wait(600);
 }
 
 /* ── P11: Botón imagen próximo monumento (b4 hijo2) ── */
@@ -1193,6 +1202,7 @@ async function sceneImg(){
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.completo);
+  const hideBubble = showBubble(8);
   await wait(900);
   const b4=$('b4');
   spin(b4);
@@ -1210,6 +1220,7 @@ async function sceneImg(){
   await wait(2800);
   await Gauntlet.tapEl($('ocimg'),'UR',()=>clearOv());
   await wait(500);
+  hideBubble();
   Knight.hide();
 }
 
@@ -1229,6 +1240,7 @@ async function sceneVid(){
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.completo);
+  const hideBubble = showBubble(9);
   await wait(900);
   const b3=$('b3');
   spin(b3);
@@ -1247,6 +1259,7 @@ async function sceneVid(){
     await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
   }
   await wait(500);
+  hideBubble();
   Knight.hide();
 }
 
@@ -1256,6 +1269,7 @@ async function scene10(){
   setScene(mainHTML('disabled'));
   MC.showInset(RA);
   Knight.show(K.completo);
+  const hideBubble = showBubble(7);
   await wait(900);
   const bav=$('b-av');
   bav.classList.remove('disabled'); bav.classList.add('activo'); spin(bav);
@@ -1265,6 +1279,7 @@ async function scene10(){
   await wait(600);
   await Knight.walk(RA, 6500);
   await wait(500);
+  hideBubble();
   Knight.hide();
 }
 
@@ -1277,6 +1292,7 @@ async function scene11(){
   spin(amain);
   await zoomBtn(amain, B.aMain);
   Knight.show(K.completo);
+  const hideBubble = showBubble(10);
   // Subir caballero por encima de la barra de audio (78px)
   const kn=$('knight'); if(kn) kn.style.bottom='min(92px,25vw)';
   await wait(300);
@@ -1285,6 +1301,7 @@ async function scene11(){
   await wait(800);
   await animAP(0, 87, 6000);
   await wait(800);
+  hideBubble();
   Knight.hide();
 }
 
@@ -1294,6 +1311,7 @@ async function scene12(){
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   setAP(87);
+  const hideBubble = showBubble(11);
   const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
   await wait(400);
   spin($('ar'));
@@ -1357,7 +1375,7 @@ async function scene12(){
 
   // Knight thumbs up — puzzle complete!
   Knight.hide(); await wait(200); Knight.show(K.up, true);
-  await wait(2800); clearOv(); Knight.hide(); await wait(300);
+  await wait(2800); hideBubble(); clearOv(); Knight.hide(); await wait(300);
 }
 
 /* ── P15: Reto — preguntas de opción múltiple ── */
@@ -1366,6 +1384,7 @@ async function sceneRetoMCQ(){
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   setAP(87);
+  const hideBubble = showBubble(12);
   const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
   await wait(400);
 
@@ -1418,7 +1437,7 @@ async function sceneRetoMCQ(){
   });
   Knight.hide(); await wait(200); Knight.show(K.up, true);
   await wait(2000); Knight.hide(); await wait(300);
-  clearOv();
+  hideBubble(); clearOv();
 }
 
 
@@ -1427,6 +1446,8 @@ async function scene18(){
   setCounter(19);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.completo);
+  const hideBubble = showBubble(18);
   await wait(700);
   await Gauntlet.tapEl($('chat-btn'),'DL',()=>{
     setOv(`<div class="chat-panel" id="cpanel">
@@ -1451,6 +1472,8 @@ async function scene18(){
   const cx=$('cpanel').querySelector('.chat-x');
   await Gauntlet.tapEl(cx,'DL',()=>{ $('cpanel').classList.remove('open'); setTimeout(()=>clearOv(),440) });
   await wait(700);
+  hideBubble();
+  Knight.hide();
 }
 
 /* ── P16: Mapa + caballero_camara + cuenta atrás 5 min ── */
@@ -1461,6 +1484,7 @@ async function scene13(){
   const offPt=[39.4748,-0.3815];
   MC.moveUser(offPt);
   Knight.show(K.camara);
+  const hideBubble = showBubble(13);
   await wait(900);
   let s=299; const timerRef={iv:null};
   setOv(`<div class="gps-ov" style="background:transparent;pointer-events:none">
@@ -1473,7 +1497,7 @@ async function scene13(){
   },1000);
   await wait(5000);
   clearInterval(timerRef.iv); clearOv();
-  Knight.hide(); await wait(400);
+  hideBubble(); Knight.hide(); await wait(400);
 }
 
 /* ── P17: Cuenta atrás agotada + foto-fuera-rango + btn-ubicacion ── */
@@ -1482,6 +1506,7 @@ async function scene14(){
   setScene(mainHTML('disabled'));
   await wait(60); $('b6').classList.add('disabled');
   Knight.show(K.perdido);
+  const hideBubble = showBubble(14);
   await wait(600);
   setOv(`<div class="gps-ov">
     <img class="gps-img" src="${AI}foto-fuera-rango.png" alt="">
@@ -1504,6 +1529,7 @@ async function scene14(){
     },200);
   });
   await wait(1800);
+  hideBubble();
   Knight.hide();
 }
 
@@ -1534,6 +1560,7 @@ async function scene16(){
   MC._mkM(RA); MC.showFull(RA);
   setTimeout(()=>MC.moveUser(farOff),150);
   Knight.show(K.durmiendo);
+  const hideBubble = showBubble(16);
   await wait(60); $('b6').classList.add('disabled');
   await wait(700);
   setOv(`<div class="gps-ov">
@@ -1557,7 +1584,7 @@ async function scene16(){
   Knight.hide(); await wait(200);
   Knight.show(K.up, true);
   await wait(2000);
-  Knight.hide();
+  hideBubble(); Knight.hide();
 }
 
 
@@ -1566,6 +1593,8 @@ async function scene17(){
   setCounter(18);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
+  Knight.show(K.completo);
+  const hideBubble = showBubble(17);
   await wait(700);
   const blt=$('bl-timer');
   spin(blt);
@@ -1597,6 +1626,8 @@ async function scene17(){
   if(lcls) await Gauntlet.tapEl(lcls,'DR',()=>clearOv());
   else clearOv();
   await wait(600);
+  hideBubble();
+  Knight.hide();
 }
 
 /* ── P22: Pantalla de fin ── */
@@ -1605,6 +1636,7 @@ async function scene19(){
   setScene(mainHTML('enabled'));
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);
+  const hideBubble = showBubble(19);
   await wait(1400);
   // Fuegos artificiales (canvas — se añade a #stage para que setOv no lo destruya)
   (function launchFW(){
@@ -1658,7 +1690,7 @@ async function scene19(){
       <button class="m-btn m-red">⏹</button>
     </div>
   </div>`);
-  await wait(2000); Knight.hide(); await wait(400);
+  await wait(2000); hideBubble(); Knight.hide(); await wait(400);
   const ef=$('end-fade'); ef.classList.add('w'); await wait(80); ef.classList.add('on');
   await wait(1800); ef.classList.remove('w'); ef.classList.add('b');
   await wait(2500);
@@ -1684,7 +1716,7 @@ globalThis._skipVideoIntro = function() {
 
 async function run(){
   MC.init(); await wait(350);
-  const scenes=[scene1,scene4,scene5,scene6,scene7,scene8,scene9,
+  const scenes=[scene1,scene7,scene4,scene5,scene6,scene8,scene9,
     scene10,sceneImg,sceneVid,
     scene11,scene12,sceneRetoMCQ,
     scene13,scene14,scene15,scene16,scene17,scene18,scene19];
