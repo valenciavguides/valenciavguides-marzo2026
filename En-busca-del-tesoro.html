@@ -861,7 +861,7 @@
         <div style="display:flex; align-items:center; gap:0.75rem;">
           <span style="font-size:3rem; color:#666; position:relative; top:-1.25rem;">🔐</span>
           <div style="flex:1;">
-            <input type="text" id="input-codigo" placeholder="0000" maxlength="10" aria-label="Código de acceso" oninput="validarCodigo()" style="width:100%; padding:1.125rem; border:0.125rem solid #ddd; border-radius:0.75rem; font-size:1.75rem; text-align:center; letter-spacing:0.75rem; box-sizing:border-box; font-weight:bold;">
+            <input type="text" id="input-codigo" placeholder="····" maxlength="10" aria-label="Código de acceso" oninput="validarCodigo()" style="width:100%; padding:1.125rem; border:0.125rem solid #ddd; border-radius:0.75rem; font-size:1.75rem; text-align:center; letter-spacing:0.75rem; box-sizing:border-box; font-weight:bold;">
             <div id="feedback-codigo" style="text-align:center; margin-top:0.5rem; font-size:2rem; height:2.5rem;"></div>
           </div>
         </div>
@@ -1000,6 +1000,8 @@
     let INDICE_AVENTURAS_DATOS = null;
     let aventuraIniciando = false;
     let timerMensajeCarga = null;
+    let _devCasaMode = false;
+    let _devCargaIniciada = false;
     let timerProgresoCarga = null;
     const IMAGENES_AVENTURAS = {
       'Aventura1': 'imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg',
@@ -1096,6 +1098,26 @@
       if (id === 6 && !await _verificarPuzzleMostrar()) {
         void mostrar(7);
         return;
+      }
+      // Dev mode: saltar P12 y P13, ir directamente a P14 disparando la carga
+      if (_devCasaMode && (id === 12 || id === 13)) {
+        if (!_devCargaIniciada) {
+            _devCargaIniciada = true;
+            if (globalThis.parent && globalThis.parent !== globalThis) {
+                globalThis.parent.postMessage({
+                    tipo: 'SELECCION.CODIGO_VALIDADO',
+                    origen: 'seleccion',
+                    destino: 'padre',
+                    datos: {
+                        aventura: globalThis.aventuraSeleccionada || aventuraSeleccionada || '',
+                        idioma: idiomaSeleccionado || 'es',
+                        timestamp: Date.now()
+                    }
+                }, globalThis.location.origin);
+            }
+            _log.warn('[DEV] Skip P12/P13 → P14, CODIGO_VALIDADO enviado al padre');
+        }
+        id = 14;
       }
       document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
       document.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
@@ -1370,8 +1392,7 @@
       
       const codigo = inputCodigo.value.trim();
       
-      // Código válido de prueba: "0000" | Código dev: "[REDACTED]"
-      if (codigo === '0000' || codigo === '[REDACTED]') {
+      if (codigo === '[REDACTED]') {
         _log.info('[SELECCION][P14] Código validado (formato correcto). NO activado todavía.');
         btnIniciar.disabled = false;
         btnIniciar.style.opacity = '1';
@@ -2819,18 +2840,66 @@
         void init();
     }
 
-    // DEV: Ctrl+Alt+clic en el logo de P1 → toggle modo desarrollador en el padre
+    // DEV: Ctrl+Alt+clic o 5 toques rápidos en logo P1 → modal código dev
     document.addEventListener('DOMContentLoaded', () => {
         const logoP1 = document.querySelector('#pantalla1 .logo-circular-bg');
-        if (logoP1) {
-            logoP1.addEventListener('mousedown', e => {
-                if (e.ctrlKey && e.altKey && e.button === 0) {
-                    e.preventDefault();
-                    window.parent.postMessage({ tipo: 'SELECCION.DEV_MODE_TOGGLE' }, globalThis.location.origin);
-                }
-            });
-        }
+        if (!logoP1) return;
+
+        // Desktop: Ctrl+Alt+clic izquierdo
+        logoP1.addEventListener('mousedown', e => {
+            if (e.ctrlKey && e.altKey && e.button === 0) {
+                e.preventDefault();
+                _mostrarModalDevP1();
+            }
+        });
+
+        // Móvil: 5 toques consecutivos en ≤ 5 segundos
+        let _tapCount = 0;
+        let _tapTimer = null;
+        logoP1.addEventListener('touchstart', e => {
+            e.stopPropagation();
+            _tapCount++;
+            clearTimeout(_tapTimer);
+            _tapTimer = setTimeout(() => { _tapCount = 0; }, 5000);
+            if (_tapCount >= 5) {
+                _tapCount = 0;
+                clearTimeout(_tapTimer);
+                _mostrarModalDevP1();
+            }
+        }, { passive: true });
     });
+
+    function _mostrarModalDevP1() {
+        const CODIGO_DEV = '[REDACTED]';
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;';
+        overlay.innerHTML = `<div style="background:#1a1a2e;border-radius:1rem;padding:2rem 1.5rem;width:min(90vw,22rem);text-align:center;border:2px solid #f5a623;">
+            <p style="color:#f5a623;font-size:1.1rem;font-weight:bold;margin:0 0 1rem 0;">🔧 Modo desarrollador</p>
+            <input id="_devp1-code" type="password" maxlength="10" autocomplete="off"
+                style="width:100%;padding:0.9rem;border:2px solid #555;border-radius:0.6rem;font-size:1.6rem;text-align:center;letter-spacing:0.5rem;background:#0d0d1a;color:#fff;box-sizing:border-box;">
+            <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+                <button id="_devp1-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
+                <button id="_devp1-ok" style="flex:1;padding:0.7rem;background:#f5a623;color:#000;border:none;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;font-weight:bold;">OK</button>
+            </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('#_devp1-code');
+        input.focus();
+        const cerrar = () => { try { document.body.removeChild(overlay); } catch (_) {} };
+        const confirmar = () => {
+            const codigo = input.value.trim();
+            cerrar();
+            if (codigo !== CODIGO_DEV) return;
+            _devCasaMode = true;
+            if (globalThis.parent && globalThis.parent !== globalThis) {
+                globalThis.parent.postMessage({ tipo: 'SELECCION.DEV_MODE_TOGGLE' }, globalThis.location.origin);
+            }
+            _log.warn('[DEV] Modo dev activado en P1 — se saltarán P12 y P13');
+        };
+        overlay.querySelector('#_devp1-cancel').addEventListener('click', cerrar);
+        overlay.querySelector('#_devp1-ok').addEventListener('click', confirmar);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') confirmar(); if (e.key === 'Escape') cerrar(); });
+    }
 
     // Función para inicializar la lógica de selección (llamada después de PADRE_CONFIRMA_HIJO_LISTO)
     function inicializarLogicaSeleccion() {

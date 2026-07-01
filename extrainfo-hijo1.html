@@ -1138,6 +1138,30 @@
 
             logger.info(`${logPrefix} Lógica del menú inicializada correctamente`);
 
+            // Gesto dev en botón timer: 5 toques (móvil) o Ctrl+Alt+clic (desktop)
+            const btnTimer = document.getElementById('icono-temporizador');
+            if (btnTimer) {
+                const _enviarDevGesto = () => {
+                    enviarMensaje({
+                        tipo: TIPOS_MENSAJE.CONTROL.DEV_CINCO_TOQUES,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: resolverIdPadre(),
+                        datos: { timestamp: Date.now() }
+                    }).catch(e => logger.debug('[DEV] Error enviando DEV_CINCO_TOQUES:', e?.message));
+                };
+                let _devTapCount = 0;
+                let _devTapTimer = null;
+                btnTimer.addEventListener('touchstart', () => {
+                    _devTapCount++;
+                    clearTimeout(_devTapTimer);
+                    _devTapTimer = setTimeout(() => { _devTapCount = 0; }, 5000);
+                    if (_devTapCount >= 5) { _devTapCount = 0; clearTimeout(_devTapTimer); _enviarDevGesto(); }
+                }, { passive: true });
+                btnTimer.addEventListener('mousedown', e => {
+                    if (e.ctrlKey && e.altKey && e.button === 0) { e.preventDefault(); _enviarDevGesto(); }
+                });
+            }
+
         } catch (error) {
             logger.error(`${logPrefix} Error crítico:`, error);
             throw error;
