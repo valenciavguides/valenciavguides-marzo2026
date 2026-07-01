@@ -191,7 +191,7 @@ if (!puzzleId || !puzzleConfig) {
 const imageSrc = puzzleConfig.imagen;
 const rows = puzzleConfig.filas || 3;
 const cols = puzzleConfig.columnas || 3;
-const initialTime = puzzleConfig.tiempo || 120;
+const initialTime = puzzleConfig.tiempo || 180;
 
 // Actualizar el título de la página
 document.title = puzzleConfig.nombre || `Puzzle ${puzzleId}`;
@@ -597,9 +597,8 @@ function runConfetti() {
 restartBtn.addEventListener("click", () => {
     paused = false;
     puzzleEnded = false;
-    init();
     puzzleWrapper.style.borderColor = "#007bff";
-    requestAnimationFrame(draw);
+    init();
 });
 
 pauseBtn.addEventListener("click", () => {

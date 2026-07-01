@@ -232,6 +232,7 @@
   import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import logger from './js/logger.js';
+  import { TITULOS_CHAT } from './js/traducciones-ui.js';
   import {
     IDIOMAS_SOPORTADOS,
     TEMAS_ETIQUETAS,
@@ -287,12 +288,7 @@
   let hijoListoEnviado = false;
   let inicializado = false;
 
-  const TITULOS = {
-    es: 'Soporte',    en: 'Support',       fr: 'Assistance',
-    it: 'Supporto',   nl: 'Ondersteuning', ja: 'サポート',
-    de: 'Hilfe',      zh: '帮助',           pl: 'Pomoc',
-    pt: 'Suporte',    ru: 'Помощь',         uk: 'Допомога',
-  };
+  const TITULOS = TITULOS_CHAT;
 
   const tituloEl  = document.getElementById('titulo-header');
   const faqEl     = document.getElementById('faq');

@@ -5,7 +5,7 @@
  *
  * IMPORTANTE — lógica dividida:
  * Este módulo exporta las funciones de orquestación (actualizarInterfazModo,
- * manejarCambioModo, enviarCambioModo, coordinarAccion…).
+ * manejarCambioModo, coordinarAccion…).
  *
  * Los handlers que reaccionan a los mensajes reales del padre
  * (HIJO_PREPARADO, HIJO_LISTO, CAMBIO_PARADA, RETO.COMPLETADO, GPS.*, AUDIO.*…)
@@ -347,28 +347,6 @@ export function notificarError(codigo, error, contexto = {}) {
     } catch (err) {
         logger.error('Error al notificar error:', err);
     }
-}
-
-/**
- * Envía un mensaje para cambiar el modo de la aplicación
- * @param {string} nuevoModo - Nuevo modo ('casa' o 'aventura')
- * @param {string} origen - Origen del cambio
- * @returns {Promise<Object>} Resultado de la operación
- */
-export async function enviarCambioModo(nuevoModo, origen = 'app') {
-    const modoCanonical = canonicalizarModo(nuevoModo);
-    if (!modoCanonical) throw new Error(`Modo inválido: ${nuevoModo}`);
-
-    return await enviarMensaje({
-        destino: CONFIG.IFRAME_ID,
-        tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
-        origen: resolverIdPadre(),
-        datos: {
-            modo: modoCanonical,
-            origen,
-            timestamp: new Date().toISOString()
-        }
-    });
 }
 
 /**

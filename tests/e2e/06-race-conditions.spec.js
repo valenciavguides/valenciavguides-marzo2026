@@ -243,7 +243,7 @@ test.describe('Race conditions documentadas — DT-1 Opción B', () => {
   });
 
   test('Race #4d. las funciones de Script 2 en app.js están disponibles vía window tras boot', async ({ page }) => {
-    // Script 2 también importa: manejarCambioModo, actualizarInterfazModo, enviarCambioModo de app.js
+    // Script 2 también importa: manejarCambioModo, actualizarInterfazModo de app.js
     // Estas se exponen en window o se usan internamente.
     // Verificamos que app.js se cargó correctamente verificando que TIPOS_MENSAJE y MODOS
     // (que también importa Script 2 de constants.js) están disponibles.

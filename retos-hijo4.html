@@ -388,6 +388,7 @@
     /* --- Integración con Sistema de Mensajería --- */
 
     import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
+    import { MSG_RETOS_COMPLETOS, PLACEHOLDER_RESPUESTA_TEXTO } from './js/traducciones-ui.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {
@@ -952,7 +953,7 @@
                 inputTexto.setAttribute("inputmode", "text");
                 inputTexto.style.fontSize = "1.2em";
                 inputTexto.style.width = "100%";
-                inputTexto.placeholder = "Escriba su respuesta aquí...";
+                inputTexto.placeholder = PLACEHOLDER_RESPUESTA_TEXTO[globalThis.__vv_idiomaActual] || PLACEHOLDER_RESPUESTA_TEXTO.es;
                 retoDiv.appendChild(inputTexto);
                 // Insertar btnEnviar en el button-container para mantener estilos consistentes
                 const buttonContainer = document.getElementById('button-container');
@@ -1220,15 +1221,23 @@
                 retoDiv.classList.add("incorrect");
                 retoDiv.classList.remove("correct");
                 vibrar();
-                // El puzzle gestiona su propio comportamiento de timeout, no se activan aquí.
+                await enviarMensaje({
+                    tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
+                    origen: CONFIG_HIJO.IFRAME_ID,
+                    destino: resolverIdPadre(),
+                    datos: { retoId: retoActual.id, completado: true }
+                });
+                const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
+                if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
             }
             else if (event.data === "advance-to-next") {
                 divRespuestaCorrecta.style.display = "none";
                 indiceReto++;
                 const retosArray = obtenerRetos();
                 if (indiceReto >= retosArray.length) {
-                    alert("¡Has terminado todos los retos de la Aventura 1!");
-                    indiceReto = 0; // Opcional: Reiniciar o redirigir
+                    const _lang = globalThis.__vv_idiomaActual || 'es';
+                    alert(MSG_RETOS_COMPLETOS[_lang] || MSG_RETOS_COMPLETOS.es);
+                    indiceReto = 0;
                 }
                 const siguiente = retosArray[indiceReto];
                 if (siguiente) {

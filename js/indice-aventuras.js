@@ -25,7 +25,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'València centro histórico 1',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600, // segundos
+        tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 4,
         vehiculo: '👣',
         idiomas: {
@@ -48,7 +48,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'València centro histórico 2',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600,
+        tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 4,
         vehiculo: '👣',
         idiomas: {
@@ -71,7 +71,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'Ciudad de las Artes y las Ciencias',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600,
+        tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 10,
         vehiculo: '🚲🛴',
         idiomas: {
@@ -94,7 +94,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'Parque de Cabecera y Viveros',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600,
+        tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 10,
         vehiculo: '🚲🛴',
         idiomas: {
@@ -117,7 +117,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'Murallas de València',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600,
+        tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 6,
         vehiculo: '🚲🛴',
         idiomas: {
@@ -140,7 +140,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'València en Fallas',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 3600,
+        tiempoEstimado: 216000, // segundos (60 horas)
         distanciaKm: 4,
         vehiculo: '👣',
         idiomas: {
@@ -163,7 +163,7 @@ export const INDICE_AVENTURAS = {
         nombre: 'Aventura 34 kilómetros',
         disponible: true,
         claveCoord: 'coordenadas-hijo2.html',
-        tiempoEstimado: 9000,
+        tiempoEstimado: 540000, // segundos (150 horas)
         distanciaKm: 34,
         vehiculo: '🚲🛴👣',
         idiomas: {

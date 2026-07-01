@@ -1246,18 +1246,17 @@
 
     /**
      * Inicia la cuenta atrás del temporizador
-     * @param {number} tiempoMinutos - Tiempo en minutos
+     * @param {number} tiempoSegundos - Tiempo en segundos (de tiempoEstimado en indice-aventuras.js)
      */
-    function iniciarTemporizador(tiempoMinutos) {
+    function iniciarTemporizador(tiempoSegundos) {
         const logPrefix = '[TEMPORIZADOR][iniciar]';
-        
-        // Convertir minutos a segundos
-        estadoTemporizador.tiempoTotal = tiempoMinutos * 60;
+
+        estadoTemporizador.tiempoTotal = tiempoSegundos;
         estadoTemporizador.tiempoRestante = estadoTemporizador.tiempoTotal;
         estadoTemporizador.enCuenta = true;
         estadoTemporizador.modoAventura = true;
-        
-        logger.info(`${logPrefix} Iniciando cuenta atrás: ${tiempoMinutos} minutos (${estadoTemporizador.tiempoTotal} segundos)`);
+
+        logger.info(`${logPrefix} Iniciando cuenta atrás: ${Math.round(tiempoSegundos / 3600)}h (${tiempoSegundos} segundos)`);
         
         // Actualizar display inicial
         actualizarDisplayTiempo();
@@ -1412,9 +1411,9 @@
             logger.info(`${logPrefix} Aventura iniciada, recibiendo tiempo...`);
             
             if (mensaje.datos && mensaje.datos.tiempoEstimado) {
-                const tiempoMinutos = mensaje.datos.tiempoEstimado;
-                logger.info(`${logPrefix} Tiempo estimado: ${tiempoMinutos} minutos`);
-                iniciarTemporizador(tiempoMinutos);
+                const tiempoSegundos = mensaje.datos.tiempoEstimado;
+                logger.info(`${logPrefix} Tiempo estimado: ${tiempoSegundos} segundos (${Math.round(tiempoSegundos / 3600)}h)`);
+                iniciarTemporizador(tiempoSegundos);
                 
                 return { exito: true, mensaje: 'Temporizador iniciado' };
             } else {
