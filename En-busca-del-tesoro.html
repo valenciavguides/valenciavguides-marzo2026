@@ -1000,7 +1000,8 @@
     let INDICE_AVENTURAS_DATOS = null;
     let aventuraIniciando = false;
     let timerMensajeCarga = null;
-    let _devCasaMode = false;
+    // _devCasaMode se comparte entre script clásico y módulo via globalThis
+    globalThis._devCasaMode = globalThis._devCasaMode || false;
     let _devCargaIniciada = false;
     let timerProgresoCarga = null;
     const IMAGENES_AVENTURAS = {
@@ -1100,7 +1101,7 @@
         return;
       }
       // Dev mode: saltar P12 y P13, ir directamente a P14 disparando la carga
-      if (_devCasaMode && (id === 12 || id === 13)) {
+      if (globalThis._devCasaMode && (id === 12 || id === 13)) {
         if (!_devCargaIniciada) {
             _devCargaIniciada = true;
             if (globalThis.parent && globalThis.parent !== globalThis) {
@@ -1431,12 +1432,6 @@
       if (permState === 'denied') {
         if (errorDiv) errorDiv.style.display = 'block';
         return;
-      }
-
-      const codigoIntroducido = document.getElementById('input-codigo')?.value.trim();
-      if (codigoIntroducido === '[REDACTED]' && globalThis.parent && globalThis.parent !== globalThis) {
-        globalThis.parent.postMessage({ tipo: 'SELECCION.DEV_MODE_TOGGLE' }, globalThis.location.origin);
-        _log.warn('[DEV] Código dev [REDACTED] → DEV_MODE_TOGGLE enviado al padre');
       }
 
       if (globalThis.parent && globalThis.parent !== globalThis) {
@@ -2841,7 +2836,7 @@
     }
 
     // DEV: Ctrl+Alt+clic o 5 toques rápidos en logo P1 → modal código dev
-    document.addEventListener('DOMContentLoaded', () => {
+    function _setupLogoDevGesture() {
         const logoP1 = document.querySelector('#pantalla1 .logo-circular-bg');
         if (!logoP1) return;
 
@@ -2867,7 +2862,12 @@
                 _mostrarModalDevP1();
             }
         }, { passive: true });
-    });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _setupLogoDevGesture);
+    } else {
+        _setupLogoDevGesture();
+    }
 
     function _mostrarModalDevP1() {
         const CODIGO_DEV = '[REDACTED]';
@@ -2890,11 +2890,11 @@
             const codigo = input.value.trim();
             cerrar();
             if (codigo !== CODIGO_DEV) return;
-            _devCasaMode = true;
+            globalThis._devCasaMode = true;
             if (globalThis.parent && globalThis.parent !== globalThis) {
                 globalThis.parent.postMessage({ tipo: 'SELECCION.DEV_MODE_TOGGLE' }, globalThis.location.origin);
             }
-            _log.warn('[DEV] Modo dev activado en P1 — se saltarán P12 y P13');
+            (globalThis.logger || console).warn('[DEV] Modo dev activado en P1 — se saltarán P12 y P13');
         };
         overlay.querySelector('#_devp1-cancel').addEventListener('click', cerrar);
         overlay.querySelector('#_devp1-ok').addEventListener('click', confirmar);
