@@ -236,15 +236,34 @@ flowchart TD
 
 **Disparador**: el usuario pulsa el botón GPS en hijo5. hijo5 envía `SISTEMA.CAMBIO_MODO` con `modo: 'aventura'` al padre.
 
-**Controlador en padre**: `_hdl_SISTEMA_CAMBIO_MODO()` (línea 6019), que delega en `manejarCambioModo(estado, mensaje)` de `js/app.js`.
+**Controlador en padre**: `_hdl_SISTEMA_CAMBIO_MODO()`, que:
+1. Inmediatamente (antes de cualquier await): establece `_devModeActivo = false` y oculta el iframe hijo5 (`display: none`).
+2. Llama `manejarCambioModo(estado, mensaje)` de `js/app.js`.
+3. Dentro de `manejarCambioModo`: actualiza `estado.modo.actual = 'aventura'` (optimistic update) y llama `actualizarInterfazModo()`, que envía `SISTEMA.CAMBIO_MODO` a todos los hijos con `secuenciaCompleta: !!estado.todosHijosListos` y espera ENTENDIDO+EFECTUADO de cada uno (timeout 5s+10s).
+4. Tras `manejarCambioModo`: propaga de nuevo con `_propagarCambioModoAHijos()` (siempre con `secuenciaCompleta: true`), inicia heartbeat y activa GPS.
 
-**Payload de `SISTEMA.CAMBIO_MODO`**:
+**Payload original de hijo5** (enviado al padre al pulsar el botón):
+
+```javascript
+{
+    tipo: 'SISTEMA.CAMBIO_MODO',
+    origen: 'hijo5',
+    destino: resolverIdPadre(),   // 'padre'
+    datos: {
+        modo: 'aventura',
+        timestamp: Date.now(),
+        origen: 'boton-gps'
+    }
+}
+```
+
+**Payload de la re-propagación** que padre envía a cada hijo (`_propagarCambioModoAHijos`):
 
 ```javascript
 {
     tipo: 'SISTEMA.CAMBIO_MODO',
     origen: CONFIG_PADRE.ID,
-    destino: hijoId,   // [hijo2, hijo3, hijo4, hijo5]
+    destino: hijoId,   // hijo2, hijo3, hijo4, hijo5
     datos: {
         modo: 'aventura',
         timestamp: Date.now(),
@@ -254,8 +273,6 @@ flowchart TD
     }
 }
 ```
-
-**Secuencia completa** (`_propagarCambioModoAHijos`, línea 5925; `_activarHeartbeatAventura`, línea 5953):
 
 > **Nota GPS**: `_hdl_SISTEMA_CAMBIO_MODO` llama `_gestionarGpsSegunModo(modo, ...)` al final. Si el modo es AVENTURA y `!estado.gps.activo`, llama `activarGPS()`. Ruta independiente: `btn-avanzar` en hijo2 envía `NAVEGACION.GPS.ACTIVAR` → `_hdl_NAVEGACION_GPS_ACTIVAR` → progresar elemento o revelar navegación, luego `activarGPS()`. El mutex en `activarGPS()` evita doble `watchPosition`.
 
@@ -269,13 +286,27 @@ sequenceDiagram
     participant H4 as hijo4
 
     U->>H5: Pulsa botón GPS (activar)
-    H5->>P: SISTEMA.CAMBIO_MODO (modo: aventura)
-    P->>P: estado.modo.actual = 'aventura'
-    par Propagar cambio de modo
-        P->>H2: SISTEMA.CAMBIO_MODO (aventura)
-        P->>H3: SISTEMA.CAMBIO_MODO (aventura)
-        P->>H4: SISTEMA.CAMBIO_MODO (aventura)
-        P->>H5: SISTEMA.CAMBIO_MODO (aventura)
+    H5->>P: SISTEMA.CAMBIO_MODO (modo: aventura, origen: boton-gps)
+    Note over P: INMEDIATO: _devModeActivo=false · iframe hijo5 display=none
+    P->>P: manejarCambioModo → estado.modo.actual = 'aventura'
+    Note over P: actualizarInterfazModo() envía CAMBIO_MODO a todos los hijos<br/>(secuenciaCompleta: !!todosHijosListos) y espera ENTENDIDO+EFECTUADO
+    par actualizarInterfazModo — primera propagación
+        P->>H2: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
+        P->>H3: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
+        P->>H4: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
+        P->>H5: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta)
+    end
+    H2-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
+    H3-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
+    H4-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
+    H5-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
+    H5--)P: SOLICITAR_DATOS_PARADAS (fire-and-forget tras recibir CAMBIO_MODO aventura)
+    Note over P: manejarCambioModo completa → _propagarCambioModoAHijos
+    par _propagarCambioModoAHijos — segunda propagación (secuenciaCompleta: true)
+        P->>H2: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
+        P->>H3: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
+        P->>H4: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
+        P->>H5: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
     end
     par Iniciar heartbeat
         P->>P: SISTEMA.HEARTBEAT_START (intervalo: 5000ms)
@@ -285,10 +316,6 @@ sequenceDiagram
         P->>H5: SISTEMA.HEARTBEAT_START
     end
     P->>P: _gestionarGpsSegunModo → ocultar overlays + activarGPS() si !estado.gps.activo
-    H2-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
-    H3-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
-    H4-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
-    H5-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
 ```
 
 ---

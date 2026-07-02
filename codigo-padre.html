@@ -6486,18 +6486,22 @@
             try {
                 (globalThis.logger || console).info(`${logPrefix} Procesando cambio de modo desde ${mensaje.origen}`);
 
+                const { origen, modo } = mensaje.datos || {};
+
+                // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
+                // de manejarCambioModo (puede tardar hasta 15s si algún hijo no responde)
+                if (modo === MODOS.AVENTURA) {
+                    globalThis._devModeActivo = false;
+                    const hijo5El = document.getElementById('hijo5');
+                    if (hijo5El) hijo5El.style.display = 'none';
+                }
+
                 const resultado = await manejarCambioModo(estado, mensaje);
                 if (resultado.exito) {
                     (globalThis.logger || console).success(`${logPrefix} Cambio de modo exitoso: ${resultado.modoActual}`);
-                    const { origen, modo } = mensaje.datos || {};
                     const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'].filter(
                         h => globalThis.estadoPadre?.hijosInicializados?.has(h)
                     );
-                    if (modo === MODOS.AVENTURA) {
-                        globalThis._devModeActivo = false;
-                        const hijo5El = document.getElementById('hijo5');
-                        if (hijo5El) hijo5El.style.display = 'none';
-                    }
                     await _propagarCambioModoAHijos(hijosCriticos, modo, mensaje, logPrefix);
                     await _gestionarHeartbeatSegunModo(modo, hijosCriticos, mensaje, logPrefix);
                     await _gestionarGpsSegunModo(modo, origen, mensaje, logPrefix);
