@@ -1151,12 +1151,22 @@
                 };
                 let _devTapCount = 0;
                 let _devTapTimer = null;
-                btnTimer.addEventListener('touchstart', () => {
+                let _gestureInProgress = false;
+                btnTimer.addEventListener('click', e => {
+                    if (_gestureInProgress) { e.stopPropagation(); return; }
+                }, true);
+                btnTimer.addEventListener('touchstart', e => {
                     _devTapCount++;
+                    if (_devTapCount >= 2) _gestureInProgress = true;
                     clearTimeout(_devTapTimer);
-                    _devTapTimer = setTimeout(() => { _devTapCount = 0; }, 5000);
-                    if (_devTapCount >= 5) { _devTapCount = 0; clearTimeout(_devTapTimer); _enviarDevGesto(); }
-                }, { passive: true });
+                    _devTapTimer = setTimeout(() => { _devTapCount = 0; _gestureInProgress = false; }, 5000);
+                    if (_devTapCount >= 5) {
+                        e.preventDefault();
+                        _devTapCount = 0; _gestureInProgress = false;
+                        clearTimeout(_devTapTimer);
+                        _enviarDevGesto();
+                    }
+                }, { passive: false });
                 btnTimer.addEventListener('mousedown', e => {
                     if (e.ctrlKey && e.altKey && e.button === 0) { e.preventDefault(); _enviarDevGesto(); }
                 });

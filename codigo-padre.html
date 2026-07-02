@@ -10702,16 +10702,18 @@
                 const _av = aventura || estado?.seleccion?.aventura;
                 const _id = idioma  || estado?.seleccion?.idioma || 'es';
 
-                // Flag antes de activarGPS: showGpsSignalOverlay necesita verlo en su guard
-                globalThis._codigoValidadoP13 = true;
-
-                // Paso 1: GPS — si ya estaba denegado, verificarPermisosGPS lanza aquí
-                try {
-                    await activarGPS();
-                } catch (gpsErr) {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
-                    showGpsSignalOverlay(1); // guard permite: _codigoValidadoP13 = true
-                    return;
+                // En dev mode se omite GPS (CASA no necesita proximidad y GPS bloqueante impediría test en desktop)
+                if (!globalThis._devModeActivo) {
+                    // Flag antes de activarGPS: showGpsSignalOverlay necesita verlo en su guard
+                    globalThis._codigoValidadoP13 = true;
+                    // Paso 1: GPS — si ya estaba denegado, verificarPermisosGPS lanza aquí
+                    try {
+                        await activarGPS();
+                    } catch (gpsErr) {
+                        (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
+                        showGpsSignalOverlay(1); // guard permite: _codigoValidadoP13 = true
+                        return;
+                    }
                 }
 
                 // Paso 2: datos + iframes en paralelo mientras el usuario lee P14
