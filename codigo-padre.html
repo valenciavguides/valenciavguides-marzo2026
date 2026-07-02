@@ -3413,10 +3413,8 @@
             globalThis.addEventListener('message', function(ev) {
                 if (ev.origin !== globalThis.location.origin) return;
                 if (ev.data?.tipo !== 'SELECCION.DEV_MODE_TOGGLE') return;
-                globalThis._devModeActivo = !globalThis._devModeActivo;
-                (globalThis.logger || console).warn(
-                    `[DEV_MODE] ${globalThis._devModeActivo ? '🟢 ACTIVADO' : '🔴 DESACTIVADO'}`
-                );
+                globalThis._devModeActivo = true;
+                (globalThis.logger || console).warn('[DEV_MODE] 🟢 ACTIVADO');
             });
         })();
         // Exponer disparador de cambio de modo para uso desde Script 2
@@ -11136,6 +11134,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         }
 
         function _hdl_CONTROL_DEV_CINCO_TOQUES() {
+            if (document.getElementById('_dev-code-input')) return;
             const CODIGO_DEV = '[REDACTED]';
             const overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;';
