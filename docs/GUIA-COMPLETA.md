@@ -257,7 +257,7 @@ flowchart TD
 
 **Secuencia completa** (`_propagarCambioModoAHijos`, línea 5925; `_activarHeartbeatAventura`, línea 5953):
 
-> **Nota**: la activación de GPS es un flujo paralelo e independiente. Cuando hijo5 pulsa GPS activa, envía además `NAVEGACION.GPS.ACTIVAR` → `_hdl_NAVEGACION_GPS_ACTIVAR` (línea 8495) → `activarGPS()`. El flujo `CAMBIO_MODO` solo gestiona estado, propagación y heartbeat; no toca el watchPosition.
+> **Nota GPS**: `_hdl_SISTEMA_CAMBIO_MODO` llama `_gestionarGpsSegunModo(modo, ...)` al final. Si el modo es AVENTURA y `estado.gps.activo` es `false`, llama `activarGPS()` directamente. hijo5 puede además emitir `NAVEGACION.GPS.ACTIVAR` → `_hdl_NAVEGACION_GPS_ACTIVAR` → `activarGPS()` como ruta alternativa; el guard `estado.gps.activo` evita doble activación.
 
 ```mermaid
 sequenceDiagram
@@ -7571,11 +7571,12 @@ flowchart TD
     NORMAL --> P12_13{mostrar(12) o mostrar(13)}
     P12_13 -- "_devCasaMode === true\n_devCargaIniciada === false" --> BYPASS["_devCargaIniciada = true\nenviar CODIGO_VALIDADO al padre\nid = 14 → avanzar a P14\nsin GPS · sin código de compra"]
     P12_13 -- "_devCasaMode === false" --> NORMAL2["Flujo normal:\nP12 pago → P13 código de compra → GPS"]
-    BYPASS --> P14[P14 — Normativa]
+    BYPASS --> HDLCV["padre: _hdl_SELECCION_CODIGO_VALIDADO\nif (_devModeActivo) skip activarGPS\ncargarRestoDeiframes + _fase2CargarDatos"]
     NORMAL2 --> P14
-    P14 --> P15[P15 — Reto R-2\n→ AVENTURA_ACTIVADA]
-    P15 --> HDLCV["padre: _hdl_SELECCION_CODIGO_VALIDADO\nif (_devModeActivo) skip activarGPS\ncargarRestoDeiframes + _fase2CargarDatos\nhijo5: display:block · visibility:visible"]
-    HDLCV --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS no activo en watchPosition])
+    HDLCV --> P14[P14 — Normativa]
+    P14 --> P15[P15 — Reto R-2\nseleccion envía AVENTURA_ACTIVADA]
+    P15 --> HDLAA["padre: _hdl_SELECCION_AVENTURA_ACTIVADA\n_mostrarUIActivada: hijo5 display:block · visibility:visible\n_vv_triggerCambioModo(MODOS.CASA)"]
+    HDLAA --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS no activo en watchPosition])
 ```
 
 El guard `_devCargaIniciada` garantiza que aunque el flujo pase por P12 y luego por P13 (o viceversa), `CODIGO_VALIDADO` solo se envía una vez.
@@ -7609,7 +7610,7 @@ El modo DEV se desactiva siempre a través del botón GPS de hijo5.
 ```mermaid
 flowchart TD
     CASA_DEV([MODO CASA dev activo\nhijo5 visible]) --> BTN["Desarrollador pulsa 🛰️ ON en hijo5\nhijo5 envía SISTEMA.CAMBIO_MODO\nmodo: 'aventura' · datos.origen: 'boton-gps'"]
-    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\nglobalThis._devModeActivo = false\nhijo5: display:none\nGPS activarGPS() + heartbeat iniciados"]
+    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\nmanejarCambioModo: _devModeActivo=false · hijo5:display:none\n_gestionarHeartbeatSegunModo: heartbeat activado\n_gestionarGpsSegunModo: activarGPS() si !estado.gps.activo"]
     HDLAV --> AVENTURA([MODO AVENTURA\nGPS watchPosition activo\nvalidaciones de proximidad activas])
 ```
 

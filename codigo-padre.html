@@ -6164,7 +6164,7 @@
         async function _hijoListo_confirmarAlHijo(hijoId, logPrefix) {
             try {
                 if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, origen: getPadreId(), datos: { timestamp: Date.now(), mensaje: 'Hijo confirmado como listo' } });
+                    await enviarMensaje_S1({ destino: hijoId, tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, origen: getPadreId(), datos: { timestamp: Date.now(), mensaje: 'Hijo confirmado como listo', modoInicial: estado?.modo?.actual || MODOS.CASA } });
                     (globalThis.logger || console).info(`${logPrefix} PADRE_CONFIRMA_HIJO_LISTO enviado a ${hijoId}`);
                 }
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error enviando PADRE_CONFIRMA_HIJO_LISTO a ${hijoId}:`, error); }
@@ -6306,6 +6306,23 @@
 
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ✅ Controlador HIJO_LISTO registrado (Script 1)`);
 
+        // CONTROLADOR: NAVEGACION.SOLICITAR_DATOS_PARADAS
+        // hijo5 (boton-casa-hijo5) lo envía tras PADRE_CONFIRMA_HIJO_LISTO para poblar sus botones
+        registrarControladorSeguro(TIPOS_MENSAJE_S1.NAVEGACION.SOLICITAR_DATOS_PARADAS, async (mensaje) => {
+            const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_DATOS_PARADAS]`;
+            try {
+                const av = globalThis.aventuraSeleccionada || estado?.seleccion?.aventura;
+                const id = globalThis.idiomaSeleccionado || 'es';
+                if (!av) { (globalThis.logger || console).warn(`${logPrefix} Sin aventura seleccionada, ignorando`); return; }
+                if (!DATOS_PADRE[av]?.[id]) { (globalThis.logger || console).warn(`${logPrefix} Sin datos para ${av}/${id}`); return; }
+                const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
+                if (typeof enviarMensaje_S1 === 'function') {
+                    await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
+                    (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pNorm.length} paradas)`);
+                }
+            } catch (err) { (globalThis.logger || console).error(`${logPrefix} Error:`, err); }
+        }, { permanente: true });
+
         // ============================================================
         // CONTROLADORES ADICIONALES (MOVIDOS DESDE SCRIPT 2)
         // Registrados ANTES de cargar iframes para evitar errores de timing
@@ -6415,6 +6432,11 @@
 
         function _gestionarGpsSegunModo(modo, origen, mensaje, logPrefix) {
             _gestionarGpsOverlays(modo, logPrefix);
+            if (modo === MODOS.AVENTURA && !estado.gps?.activo) {
+                activarGPS().catch(err => {
+                    (globalThis.logger || console).warn(`${logPrefix} GPS no pudo activarse tras CAMBIO_MODO:`, err?.message);
+                });
+            }
         }
 
         async function _hdl_SISTEMA_CAMBIO_MODO(mensaje) {
@@ -10884,6 +10906,9 @@
                     updateLoadingStatus('Aventura lista', 'Entrando en modo CASA', 100);
                     setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
                     (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA activo (dev) → hijo5 visible, proximidad OFF`);
+                    if (typeof globalThis._vv_triggerCambioModo === 'function') {
+                        globalThis._vv_triggerCambioModo(MODOS.CASA);
+                    }
                 } else {
                     updateLoadingStatus('Aventura lista', 'Iniciando en modo AVENTURA', 100);
                     setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
