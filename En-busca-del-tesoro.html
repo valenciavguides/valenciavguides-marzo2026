@@ -1112,7 +1112,8 @@
                     datos: {
                         aventura: globalThis.aventuraSeleccionada || aventuraSeleccionada || '',
                         idioma: idiomaSeleccionado || 'es',
-                        timestamp: Date.now()
+                        timestamp: Date.now(),
+                        devMode: true
                     }
                 }, globalThis.location.origin);
             }

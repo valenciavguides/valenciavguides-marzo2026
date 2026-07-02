@@ -1739,6 +1739,10 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) =
 try {
     // Ocultar la UI hasta que el padre confirme que los controladores están listos
     let _uiConfirmado = false;
+    let _reintentosHijoListo = 0;
+    const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 intentos × 1s = 30 segundos máximo
+    const INTERVALO_REINTENTO = 1000; // 1 segundo entre reintentos
+    let _intervaloReintento = null;
     const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
     try { if (document.body) document.body.style.display = 'none'; } catch (e) { console.warn('[hijo2] Error ocultando UI inicial:', e && e.message); }
     function mostrarUI() {
@@ -1766,8 +1770,7 @@ try {
     // ============================================================
     // CONTROLADOR 1: SISTEMA.PADRE_DATOS
     // ============================================================
-    async function _enviarHijoListo() {
-        if (estadoComponente.hijoListoEnviado) return;
+    async function enviarHijoListoConReintento() {
         try {
             await enviarMensaje({
                 destino: resolverIdPadre(),
@@ -1775,9 +1778,15 @@ try {
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
             });
-            estadoComponente.hijoListoEnviado = true;
-            estadoComponente.inicializado = true;
-            logger.info('[hijo2] HIJO_LISTO enviado al padre');
+            _reintentosHijoListo++;
+            logger.info(`[hijo2] HIJO_LISTO enviado al padre (reintento ${_reintentosHijoListo}/${MAX_REINTENTOS_HIJO_LISTO})`);
+            if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
+                _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+            } else {
+                logger.warn('[hijo2] Máximo de reintentos alcanzado, mostrando UI como fallback');
+                _uiConfirmado = true;
+                mostrarUI();
+            }
         } catch (error) {
             logger.error('[hijo2] Error enviando HIJO_LISTO:', error);
         }
@@ -1810,7 +1819,11 @@ try {
         } catch (error) {
             logger.error(`${logPrefix} Error procesando PADRE_DATOS:`, error);
         }
-        await _enviarHijoListo();
+        if (!estadoComponente.hijoListoEnviado) {
+            estadoComponente.hijoListoEnviado = true;
+            estadoComponente.inicializado = true;
+            enviarHijoListoConReintento();
+        }
     });
 
     // NOTA: Controlador SISTEMA.PADRE_PIDE_MANEJADORES eliminado (obsoleto).
@@ -1833,6 +1846,7 @@ try {
             }
 
             logger.info(`${logPrefix} Confirmación recibida del padre - controladores listos`);
+            if (_intervaloReintento) { clearTimeout(_intervaloReintento); _intervaloReintento = null; logger.info('[hijo2] Reintento HIJO_LISTO cancelado tras confirmación del padre'); }
 
             // 🔥 NUEVO: Procesar modo inicial si viene en datos
             const { modoInicial } = mensaje.datos || {};

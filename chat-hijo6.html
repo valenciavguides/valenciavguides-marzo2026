@@ -287,6 +287,10 @@
   let estadoPadre = {};
   let hijoListoEnviado = false;
   let inicializado = false;
+  let _reintentosHijoListo = 0;
+  const MAX_REINTENTOS_HIJO_LISTO = 30; // 30 intentos × 1s = 30 segundos máximo
+  const INTERVALO_REINTENTO = 1000; // 1 segundo entre reintentos
+  let _intervaloReintento = null;
 
   const TITULOS = TITULOS_CHAT;
 
@@ -371,22 +375,32 @@
       else construirFAQ();
     }
     if (!hijoListoEnviado) {
-      try {
-        await enviarMensaje({
-          destino: resolverIdPadre(),
-          tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
-          origen: CONFIG_HIJO.IFRAME_ID,
-          datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
-        });
-        hijoListoEnviado = true;
-        inicializado = true;
-        logger.info('[hijo6] HIJO_LISTO enviado al padre');
-      } catch (e) { logger.error('[hijo6] Error enviando HIJO_LISTO:', e && e.message); }
+      hijoListoEnviado = true;
+      inicializado = true;
+      async function enviarHijoListoConReintento() {
+        try {
+          await enviarMensaje({
+            destino: resolverIdPadre(),
+            tipo: TIPOS_MENSAJE.SISTEMA.HIJO_LISTO,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
+          });
+          _reintentosHijoListo++;
+          logger.info(`[hijo6] HIJO_LISTO enviado al padre (reintento ${_reintentosHijoListo}/${MAX_REINTENTOS_HIJO_LISTO})`);
+          if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
+            _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+          } else {
+            logger.warn('[hijo6] Máximo de reintentos alcanzado');
+          }
+        } catch (e) { logger.error('[hijo6] Error enviando HIJO_LISTO:', e && e.message); }
+      }
+      enviarHijoListoConReintento();
     }
   });
 
   registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (_mensaje) => {
     logger.debug('[hijo6] PADRE_CONFIRMA_HIJO_LISTO recibido');
+    if (_intervaloReintento) { clearTimeout(_intervaloReintento); _intervaloReintento = null; logger.debug('[hijo6] Reintento HIJO_LISTO cancelado tras confirmación del padre'); }
   });
 
   registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT, async (mensaje) => {

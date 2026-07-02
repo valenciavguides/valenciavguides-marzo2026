@@ -1028,6 +1028,10 @@ async function intentarReconectarHijo(hijoId) {
 
         const iframe = iframesRegistrados.get(hijoId);
         if (iframe?.elemento) {
+            // Notificar al padre para que tome snapshot de estado antes del reload
+            if (typeof globalThis._vv_beforeHijoReload === 'function') {
+                globalThis._vv_beforeHijoReload(hijoId);
+            }
             iframe.elemento.src = iframe.elemento.src; // NOSONAR — self-assign fuerza reload del iframe
             logger.info(`[mensajeria] Iframe ${hijoId} recargado`);
         } else {
