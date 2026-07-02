@@ -7731,37 +7731,24 @@
                 // 1. Enviar coordenadas a hijo2
                 const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
                 (globalThis.logger || console).info(`${logPrefix} 📍 Coordenadas disponibles: ${coords.length} para ${aventura}`);
-                
-                // CRITICAL FIX: Establecer globalThis.AVENTURA_PARADAS para funciones-mapa.js
+
                 if (coords.length > 0) {
                     globalThis.AVENTURA_PARADAS = coords;
-                    (globalThis.logger || console).info(`${logPrefix} ✅ globalThis.AVENTURA_PARADAS establecido con ${coords.length} elementos`);
                     globalThis.dispatchEvent(new CustomEvent('vv:paradas-disponibles', { detail: coords }));
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay coordenadas para ${aventura} - globalThis.AVENTURA_PARADAS quedará vacío`);
                 }
-                
-                if (coords.length > 0) {
-                    if (!hijosInicializados.has('hijo2')) {
-                        (globalThis.logger || console).info(`${logPrefix} 📍 hijo2 no listo, esperando hasta 5s...`);
-                        const t2 = Date.now();
-                        while (!hijosInicializados.has('hijo2') && Date.now() - t2 < 5000) { await sleep(200); }
-                    }
-                    const hijo2Listo = hijosInicializados.has('hijo2');
-                    (globalThis.logger || console).info(`${logPrefix} 📍 hijo2 listo: ${hijo2Listo}`);
-                    if (hijo2Listo) {
-                        await enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_COORDENADAS,
-                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
-                            destino: 'hijo2',
-                            datos: { aventura, idioma, coordenadas: coords, total: coords.length, timestamp: Date.now() }
-                        });
-                        resultados.coordenadas.enviado = true;
-                        resultados.coordenadas.destinos.push('hijo2');
-                        (globalThis.logger || console).info(`${logPrefix} ✅ ${coords.length} coordenadas enviadas a hijo2`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo2 NO listo tras espera, no se enviaron coordenadas`);
-                    }
+
+                if (coords.length > 0 && hijosInicializados.has('hijo2')) {
+                    await enviarMensaje_S2({
+                        tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_COORDENADAS,
+                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                        destino: 'hijo2',
+                        datos: { aventura, idioma, coordenadas: coords, total: coords.length, timestamp: Date.now() }
+                    });
+                    resultados.coordenadas.enviado = true;
+                    resultados.coordenadas.destinos.push('hijo2');
+                    (globalThis.logger || console).info(`${logPrefix} ✅ ${coords.length} coordenadas enviadas a hijo2`);
+                } else if (coords.length > 0) {
+                    (globalThis.logger || console).info(`${logPrefix} 📍 hijo2 no listo aún — usará SOLICITAR_COORDENADAS cuando lo esté`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay coordenadas para ${aventura}`);
                 }
@@ -7769,119 +7756,84 @@
                 // 2. Enviar audios a hijo3
                 const audios = globalThis.__vv_AUDIOS_AVENTURAS?.[aventura]?.[idioma] || [];
                 (globalThis.logger || console).info(`${logPrefix} 🎵 Audios disponibles: ${audios.length} para ${aventura}/${idioma}`);
-                if (audios.length > 0) {
-                    if (!hijosInicializados.has('hijo3')) {
-                        (globalThis.logger || console).info(`${logPrefix} 🎵 hijo3 no listo, esperando hasta 5s...`);
-                        const t3 = Date.now();
-                        while (!hijosInicializados.has('hijo3') && Date.now() - t3 < 5000) { await sleep(200); }
-                    }
-                    const hijo3Listo = hijosInicializados.has('hijo3');
-                    (globalThis.logger || console).info(`${logPrefix} 🎵 hijo3 listo: ${hijo3Listo}`);
-                    if (hijo3Listo) {
-                        await enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_AUDIOS,
-                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
-                            destino: 'hijo3',
-                            datos: { aventura, idioma, audios, total: audios.length, timestamp: Date.now() }
-                        });
-                        resultados.audios.enviado = true;
-                        resultados.audios.destinos.push('hijo3');
-                        (globalThis.logger || console).info(`${logPrefix} ✅ ${audios.length} audios enviados a hijo3`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo3 NO listo tras espera, no se enviaron audios`);
-                    }
+                if (audios.length > 0 && hijosInicializados.has('hijo3')) {
+                    await enviarMensaje_S2({
+                        tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_AUDIOS,
+                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                        destino: 'hijo3',
+                        datos: { aventura, idioma, audios, total: audios.length, timestamp: Date.now() }
+                    });
+                    resultados.audios.enviado = true;
+                    resultados.audios.destinos.push('hijo3');
+                    (globalThis.logger || console).info(`${logPrefix} ✅ ${audios.length} audios enviados a hijo3`);
+                } else if (audios.length > 0) {
+                    (globalThis.logger || console).info(`${logPrefix} 🎵 hijo3 no listo aún — usará SOLICITAR_AUDIOS cuando lo esté`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay audios para ${aventura}/${idioma}`);
                 }
 
-                // 3. Enviar retos a hijo4  
+                // 3. Enviar retos a hijo4
                 const retos = globalThis.__vv_RETOS_AVENTURAS?.[aventura]?.[idioma] || [];
                 (globalThis.logger || console).info(`${logPrefix} 🎯 Retos disponibles: ${retos.length} para ${aventura}/${idioma}`);
-                if (retos.length > 0) {
-                    if (!hijosInicializados.has('hijo4')) {
-                        (globalThis.logger || console).info(`${logPrefix} 🎯 hijo4 no listo, esperando hasta 5s...`);
-                        const t4 = Date.now();
-                        while (!hijosInicializados.has('hijo4') && Date.now() - t4 < 5000) { await sleep(200); }
-                    }
-                    const hijo4Listo = hijosInicializados.has('hijo4');
-                    (globalThis.logger || console).info(`${logPrefix} 🎯 hijo4 listo: ${hijo4Listo}`);
-                    if (hijo4Listo) {
-                        await enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_RETOS,
-                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
-                            destino: 'hijo4',
-                            datos: { aventura, idioma, retos, total: retos.length, timestamp: Date.now() }
-                        });
-                        resultados.retos.enviado = true;
-                        resultados.retos.destinos.push('hijo4');
-                        (globalThis.logger || console).info(`${logPrefix} ✅ ${retos.length} retos enviados a hijo4`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo4 NO listo tras espera, no se enviaron retos`);
-                    }
+                if (retos.length > 0 && hijosInicializados.has('hijo4')) {
+                    await enviarMensaje_S2({
+                        tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_RETOS,
+                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                        destino: 'hijo4',
+                        datos: { aventura, idioma, retos, total: retos.length, timestamp: Date.now() }
+                    });
+                    resultados.retos.enviado = true;
+                    resultados.retos.destinos.push('hijo4');
+                    (globalThis.logger || console).info(`${logPrefix} ✅ ${retos.length} retos enviados a hijo4`);
+                } else if (retos.length > 0) {
+                    (globalThis.logger || console).info(`${logPrefix} 🎯 hijo4 no listo aún — usará SOLICITAR_RETOS cuando lo esté`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay retos para ${aventura}/${idioma}`);
                 }
 
-                // 4. Enviar textos a hijo2 (mapa)
+                // 4. Enviar textos a hijo2
                 const textos = globalThis.__vv_TEXTOS_AVENTURAS?.[aventura]?.[idioma] || [];
                 (globalThis.logger || console).info(`${logPrefix} 📝 Textos disponibles: ${textos.length} para ${aventura}/${idioma}`);
-                if (textos.length > 0) {
-                    if (!hijosInicializados.has('hijo2')) {
-                        (globalThis.logger || console).info(`${logPrefix} 📝 hijo2 no listo, esperando hasta 5s...`);
-                        const t1 = Date.now();
-                        while (!hijosInicializados.has('hijo2') && Date.now() - t1 < 5000) { await sleep(200); }
-                    }
-                    const hijo2TextosListo = hijosInicializados.has('hijo2');
-                    (globalThis.logger || console).info(`${logPrefix} 📝 hijo2 listo: ${hijo2TextosListo}`);
-                    if (hijo2TextosListo) {
-                        await enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_TEXTOS,
-                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
-                            destino: 'hijo2',
-                            datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
-                        });
-                        resultados.textos.enviado = true;
-                        resultados.textos.destinos.push('hijo2');
-                        (globalThis.logger || console).info(`${logPrefix} ✅ ${textos.length} textos enviados a hijo2`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo2 NO listo tras espera, no se enviaron textos`);
-                    }
+                if (textos.length > 0 && hijosInicializados.has('hijo2')) {
+                    await enviarMensaje_S2({
+                        tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_TEXTOS,
+                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                        destino: 'hijo2',
+                        datos: { aventura, idioma, textos, total: textos.length, timestamp: Date.now() }
+                    });
+                    resultados.textos.enviado = true;
+                    resultados.textos.destinos.push('hijo2');
+                    (globalThis.logger || console).info(`${logPrefix} ✅ ${textos.length} textos enviados a hijo2`);
+                } else if (textos.length > 0) {
+                    (globalThis.logger || console).info(`${logPrefix} 📝 hijo2 no listo aún — usará SOLICITAR_TEXTOS cuando lo esté`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay textos para ${aventura}/${idioma}`);
                 }
 
                 // 5. Enviar paradas a hijo5 (botones de navegación CASA)
-                if (coords.length > 0) {
-                    if (!hijosInicializados.has('hijo5')) {
-                        (globalThis.logger || console).info(`${logPrefix} 🏠 hijo5 no listo, esperando hasta 5s...`);
-                        const t5 = Date.now();
-                        while (!hijosInicializados.has('hijo5') && Date.now() - t5 < 5000) { await sleep(200); }
-                    }
-                    const hijo5Listo = hijosInicializados.has('hijo5');
-                    (globalThis.logger || console).info(`${logPrefix} 🏠 hijo5 listo: ${hijo5Listo}`);
-                    if (hijo5Listo) {
-                        const pH5 = coords.map(c => ({
-                            id: `padre-${c.id}`,
-                            parada_id: c.id,
-                            tipo: c.tipo,
-                            parada: c.parada,
-                            tramo: c.tramo,
-                            nombre: c.nombre,
-                            padreid: `padre-${c.id}`,
-                            coordenadas: c.coordenadas || c.inicio || null
-                        }));
-                        await enviarMensaje_S2({
-                            tipo: TIPOS_MENSAJE_S2.NAVEGACION.RESPUESTA_DATOS_PARADAS,
-                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
-                            destino: 'hijo5',
-                            datos: { paradas: pH5, aventura, timestamp: Date.now() }
-                        });
-                        resultados.hijo5 = { enviado: true, total: pH5.length };
-                        (globalThis.logger || console).info(`${logPrefix} ✅ ${pH5.length} paradas enviadas a hijo5`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo5 NO listo tras espera, no se enviaron paradas`);
-                        resultados.hijo5 = { enviado: false };
-                    }
+                // Fire-and-forget: si hijo5 no está listo, solicitará paradas él mismo vía SOLICITAR_DATOS_PARADAS
+                if (coords.length > 0 && hijosInicializados.has('hijo5')) {
+                    const pH5 = coords.map(c => ({
+                        id: `padre-${c.id}`,
+                        parada_id: c.id,
+                        tipo: c.tipo,
+                        parada: c.parada,
+                        tramo: c.tramo,
+                        nombre: c.nombre,
+                        padreid: `padre-${c.id}`,
+                        coordenadas: c.coordenadas || c.inicio || null
+                    }));
+                    await enviarMensaje_S2({
+                        tipo: TIPOS_MENSAJE_S2.NAVEGACION.RESPUESTA_DATOS_PARADAS,
+                        origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                        destino: 'hijo5',
+                        datos: { paradas: pH5, aventura, timestamp: Date.now() }
+                    });
+                    resultados.hijo5 = { enviado: true, total: pH5.length };
+                    (globalThis.logger || console).info(`${logPrefix} ✅ ${pH5.length} paradas enviadas a hijo5`);
+                } else if (coords.length > 0) {
+                    (globalThis.logger || console).info(`${logPrefix} 🏠 hijo5 no listo aún — solicitará paradas vía SOLICITAR_DATOS_PARADAS`);
+                    resultados.hijo5 = { enviado: false };
                 }
 
                 (globalThis.logger || console).success(`${logPrefix} ✅ Distribución completada`);
