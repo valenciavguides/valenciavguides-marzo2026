@@ -7791,9 +7791,17 @@
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay retos para ${aventura}/${idioma}`);
                 }
 
-                // 4. Enviar textos a hijo2
-                const textos = globalThis.__vv_TEXTOS_AVENTURAS?.[aventura]?.[idioma] || [];
-                (globalThis.logger || console).info(`${logPrefix} 📝 Textos disponibles: ${textos.length} para ${aventura}/${idioma}`);
+                // 4. Enviar textos procesados a hijo2
+                // __vv_TEXTOS_AVENTURAS tiene arrays planos sin clave de idioma (raw data).
+                // cargarTextos() ensambla {id, title, content} con los párrafos del idioma.
+                let textos = [];
+                try {
+                    const { cargarTextos: _cargarTx } = await import('./js/data-loader.js');
+                    textos = await _cargarTx(aventura, idioma) || [];
+                } catch (txErr) {
+                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ cargarTextos falló, sin textos:`, txErr?.message);
+                }
+                (globalThis.logger || console).info(`${logPrefix} 📝 Textos procesados disponibles: ${textos.length} para ${aventura}/${idioma}`);
                 if (textos.length > 0 && hijosInicializados.has('hijo2')) {
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE_S2.DATOS.CARGAR_TEXTOS,

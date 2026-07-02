@@ -1244,8 +1244,10 @@
                 logger.info(`${logPrefix} ${validas.length} paradas vÃ¡lidas almacenadas`);
                 console.log('[hijo5] Paradas del padre almacenadas:', validas.slice(0, 3), '...');
 
-                estado.modo = 'casa';
-                await activarModoInicial('casa');
+                // Solo actualizar la UI si estamos en modo casa (en aventura hijo5 está oculto)
+                if (estado.modo !== 'aventura') {
+                    activarModoInicial('casa');
+                }
 
                 if (estadisticas) {
                     logger.debug(`${logPrefix} EstadÃ­sticas: paradas=${estadisticas.paradas || 0}, tramos=${estadisticas.tramos || 0}`);

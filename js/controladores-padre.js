@@ -80,14 +80,17 @@ export function registrarControladoresDatos({
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_TEXTOS, async (mensaje) => {
         const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_TEXTOS][${mensaje?.origen || 'desconocido'}]`;
         try {
-            logger.info(`${logPrefix} Hijo solicita textos — reenviando CARGAR_TEXTOS`);
+            logger.info(`${logPrefix} Hijo solicita textos — cargando con cargarTextos()`);
             const aventura = globalThis.aventuraSeleccionada;
             const idioma = globalThis.idiomaSeleccionado;
             if (!aventura || !idioma) {
                 logger.debug(`${logPrefix} Contexto no listo (aventura/idioma), omitiendo envío`);
                 return;
             }
-            const textos = globalThis.__vv_TEXTOS_AVENTURAS?.[aventura]?.[idioma] || [];
+            // __vv_TEXTOS_AVENTURAS tiene arrays planos sin clave de idioma.
+            // cargarTextos() ensambla {id, title, content} correctamente.
+            const { cargarTextos } = await import('./data-loader.js');
+            const textos = await cargarTextos(aventura, idioma) || [];
             if (textos.length === 0) {
                 logger.debug(`${logPrefix} Sin textos disponibles para ${aventura}/${idioma}`);
                 return;
