@@ -4017,9 +4017,9 @@ El comportamiento externo es idéntico al anterior — la extracción es puramen
 
 ---
 
-### 9.6 distribuirDatosAventura — distribución secuencial de datos
+### 9.6 distribuirDatosAventura — distribución fire-and-forget de datos
 
-`distribuirDatosAventura(aventura, idioma)` distribuye los datos de la aventura a los hijos que los necesitan. La distribución es **secuencial** (no paralela): espera confirmación HIJO_LISTO de cada hijo antes de enviar al siguiente. Timeout por hijo: 5 s, polling cada 200 ms.
+`distribuirDatosAventura(aventura, idioma)` distribuye los datos de la aventura a los hijos que los necesitan. La distribución es **fire-and-forget**: envía a cada hijo solo si ya está en `hijosInicializados`; si no lo está, omite ese hijo sin esperar — el hijo activará su fallback `SOLICITAR_*` a los 3 s de su propia inicialización.
 
 | Paso | Destino | Mensaje | Datos enviados |
 |------|---------|---------|----------------|
@@ -4027,8 +4027,16 @@ El comportamiento externo es idéntico al anterior — la extracción es puramen
 | 2 | hijo3 | `DATOS.CARGAR_AUDIOS` | `{ aventura, idioma, audios[], total, timestamp }` — array de metadatos de audio desde `__vv_AUDIOS_AVENTURAS[aventura][idioma]` |
 | 3 | hijo4 | `DATOS.CARGAR_RETOS` | `{ aventura, idioma, retos[], total, timestamp }` — array de retos desde `__vv_RETOS_AVENTURAS[aventura][idioma]` |
 | 4 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` — array de textos desde `__vv_TEXTOS_AVENTURAS[aventura][idioma]` |
+| 5 | hijo5 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], aventura, timestamp }` — paradas normalizadas con campos `id`, `parada_id`, `tipo`, `nombre`, `coordenadas` |
 
-Además, el padre asigna `globalThis.AVENTURA_PARADAS` con el array de paradas para uso de `js/funciones-mapa.js`.
+Además, el padre asigna `globalThis.AVENTURA_PARADAS` con el array de paradas para uso de `js/funciones-mapa.js` y emite el evento `vv:paradas-disponibles`.
+
+**Fallback por hijo** (patrón request-response automático):
+- hijo2: tras 3 s sin `CARGAR_COORDENADAS` → envía `DATOS.SOLICITAR_COORDENADAS` → padre responde (`_hdl_DATOS_SOLICITAR_COORDENADAS`, Script 2 de `codigo-padre.html`)
+- hijo2: tras 3 s sin `CARGAR_TEXTOS` → envía `DATOS.SOLICITAR_TEXTOS` → padre responde (`js/controladores-padre.js`)
+- hijo3: tras 3 s sin `CARGAR_AUDIOS` → envía `DATOS.SOLICITAR_AUDIOS` → padre responde (`js/controladores-padre.js`)
+- hijo4: tras 3 s sin `CARGAR_RETOS` → envía `DATOS.SOLICITAR_RETOS` → padre responde (`js/controladores-padre.js`)
+- hijo5: solicita paradas vía `NAVEGACION.SOLICITAR_DATOS_PARADAS` → padre responde desde Script 1 de `codigo-padre.html`
 
 ---
 
