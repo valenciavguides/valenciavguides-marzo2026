@@ -5234,7 +5234,7 @@
             const incluirRutas = datos.incluirRutas === undefined ? (esTramoIndividual || !esCambioIndividual) : datos.incluirRutas;
             (globalThis.logger || console).info('[PADRE][COORDENADAS_PARADAS_RESPONSE] Dibujando ' + coordenadasTransformadas.length + ' puntos en mapa, incluirRutas=' + incluirRutas);
             try {
-                mapa.dibujarRutaConMarcadores(coordenadasTransformadas, { dibujarRuta: incluirRutas, ajustarZoom: false });
+                mapa.dibujarRutaConMarcadores(coordenadasTransformadas, { dibujarRuta: incluirRutas });
             } catch (drawErr) {
                 (globalThis.logger || console).warn('[PADRE][COORDENADAS_PARADAS_RESPONSE] Error dibujando:', drawErr);
             }
@@ -7844,6 +7844,40 @@
                     }
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay textos para ${aventura}/${idioma}`);
+                }
+
+                // 5. Enviar paradas a hijo5 (botones de navegación CASA)
+                if (coords.length > 0) {
+                    if (!hijosInicializados.has('hijo5')) {
+                        (globalThis.logger || console).info(`${logPrefix} 🏠 hijo5 no listo, esperando hasta 5s...`);
+                        const t5 = Date.now();
+                        while (!hijosInicializados.has('hijo5') && Date.now() - t5 < 5000) { await sleep(200); }
+                    }
+                    const hijo5Listo = hijosInicializados.has('hijo5');
+                    (globalThis.logger || console).info(`${logPrefix} 🏠 hijo5 listo: ${hijo5Listo}`);
+                    if (hijo5Listo) {
+                        const pH5 = coords.map(c => ({
+                            id: `padre-${c.id}`,
+                            parada_id: c.id,
+                            tipo: c.tipo,
+                            parada: c.parada,
+                            tramo: c.tramo,
+                            nombre: c.nombre,
+                            padreid: `padre-${c.id}`,
+                            coordenadas: c.coordenadas || c.inicio || null
+                        }));
+                        await enviarMensaje_S2({
+                            tipo: TIPOS_MENSAJE_S2.NAVEGACION.RESPUESTA_DATOS_PARADAS,
+                            origen: globalThis.CONFIG_PADRE?.ID || 'padre',
+                            destino: 'hijo5',
+                            datos: { paradas: pH5, aventura, timestamp: Date.now() }
+                        });
+                        resultados.hijo5 = { enviado: true, total: pH5.length };
+                        (globalThis.logger || console).info(`${logPrefix} ✅ ${pH5.length} paradas enviadas a hijo5`);
+                    } else {
+                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ hijo5 NO listo tras espera, no se enviaron paradas`);
+                        resultados.hijo5 = { enviado: false };
+                    }
                 }
 
                 (globalThis.logger || console).success(`${logPrefix} ✅ Distribución completada`);
