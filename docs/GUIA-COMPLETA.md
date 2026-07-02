@@ -376,7 +376,7 @@ flowchart TD
     A([Arranque]) --> B[GPS inactivo]
     B --> C{CODIGO_VALIDADO\nrecibido en P13}
     C --> DEVCHK{¿_devModeActivo?\nFactor 1 activo}
-    DEVCHK -- Sí → modo DEV --> HDEV[GPS no se activa\naventura arranca en MODO CASA\nsin watchPosition · hijo5 visible]
+    DEVCHK -- Sí → modo DEV --> HDEV[GPS no se activa en CODIGO_VALIDADO\naventura arranca en MODO CASA · sin watchPosition\nhijo5 visible tras AVENTURA_ACTIVADA]
     DEVCHK -- No --> D{¿Permiso GPS\nen navigator.permissions?}
     D -- denied --> E[Aviso en P13\nUsuario va a ajustes del navegador]
     E --> C
@@ -464,7 +464,7 @@ sequenceDiagram
 | `_gestionarHeartbeatSegunModo()` | 5993 | Inicia o pausa heartbeat según el modo |
 | `_activarHeartbeatAventura()` | 5953 | Envía `HEARTBEAT_START` a padre e hijos |
 | `_transicionarAModoCasa()` | — | Limpia localStorage de progreso, pausa heartbeat y notifica a los hijos |
-| `_gestionarGpsSegunModo()` | 6015 | Gestiona overlays GPS según modo (no toca watchPosition) |
+| `_gestionarGpsSegunModo()` | 6433 | Gestiona overlays GPS según modo; si modo=AVENTURA y `!estado.gps.activo` llama `activarGPS()` |
 | `activarGPS()` | 4895 | Inicia `watchPosition` (con mutex anti-duplicado) |
 | `desactivarGPS()` | 4982 | Llama `clearWatch()` |
 | `ejecutarRestauracionAventura()` | 4152 | Restaura sesión desde `localStorage` |
@@ -1364,7 +1364,7 @@ Padre                                Hijo
   │<─── HIJO_LISTO ───────────────────│  { componenteId, iframeId, timestamp }
   │                                    │  "procesé los datos, estoy listo"
   │                                    │
-  │──── PADRE_CONFIRMA_HIJO_LISTO ────>│  { timestamp, mensaje }
+  │──── PADRE_CONFIRMA_HIJO_LISTO ────>│  { timestamp, mensaje, modoInicial }
   │                                    │  "confirmado — puedes hacer tu UI visible"
   │                                    │
   ▼                                    ▼
@@ -1772,7 +1772,7 @@ Los 4 handlers que responden a peticiones de datos de aventuras están extraído
 | Textos narrativos | `DATOS.SOLICITAR_TEXTOS` | `DATOS.CARGAR_TEXTOS` |
 | Retos y respuestas | `DATOS.SOLICITAR_RETOS` | `DATOS.CARGAR_RETOS` |
 
-Los tres handlers `DATOS.*` leen de `globalThis.__vv_AUDIOS_AVENTURAS` / `__vv_TEXTOS_AVENTURAS` / `__vv_RETOS_AVENTURAS` (cargados en FASE 2). `SOLICITAR_DATOS_PARADAS` lee de `globalThis.aventuraSeleccionada` y `globalThis.__vv_DATOS_AVENTURAS`. Todos responden con `enviarMensaje` al origen de la solicitud.
+Los tres handlers `DATOS.*` leen de `globalThis.__vv_AUDIOS_AVENTURAS` / `__vv_TEXTOS_AVENTURAS` / `__vv_RETOS_AVENTURAS` (cargados en FASE 2). `SOLICITAR_DATOS_PARADAS` está registrado en **Script 1** (no en `_regCtrl_DatosRespuestas`): lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
 
 ### Reconexión de hijos fallidos
 
@@ -1877,7 +1877,7 @@ sequenceDiagram
     H-->>P: SISTEMA.HIJO_PREPARADO { componenteId, version, capacidades[] }
     P->>H: SISTEMA.PADRE_DATOS { modo, timestamp }
     H-->>P: SISTEMA.HIJO_LISTO { componenteId, iframeId, timestamp }
-    P->>H: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO { timestamp, mensaje }
+    P->>H: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO { timestamp, mensaje, modoInicial }
     Note over H: UI visible — comunicación normal
 ```
 
@@ -3177,7 +3177,7 @@ sequenceDiagram
     Note over H: hijo procesa datos, prepara su UI
     H->>P: SISTEMA.HIJO_LISTO { componenteId, iframeId, timestamp }
     Note over P: marcarHijoListo(hijoId) → resuelve Promise
-    P->>H: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO { timestamp, mensaje }
+    P->>H: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO { timestamp, mensaje, modoInicial }
     Note over H: hijo muestra su UI al usuario
 ```
 
