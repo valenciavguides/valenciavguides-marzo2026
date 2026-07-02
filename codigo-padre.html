@@ -6307,18 +6307,60 @@
         (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} ✅ Controlador HIJO_LISTO registrado (Script 1)`);
 
         // CONTROLADOR: NAVEGACION.SOLICITAR_DATOS_PARADAS
-        // hijo5 (boton-casa-hijo5) lo envía tras PADRE_CONFIRMA_HIJO_LISTO para poblar sus botones
+        // hijo5 lo envía tras PADRE_CONFIRMA_HIJO_LISTO para poblar sus botones.
+        // Registrado en Script 1 para responder incluso antes de que Script 2 esté listo.
+        // Fuente primaria: DATOS_PADRE (aventuras-ID-padre.js, idioma-aware, normalizarParadas_S1).
+        // Fallback: __vv_DATOS_AVENTURAS (coordenadas-aventuras.js) si DATOS_PADRE no disponible aún.
+        // Siempre envía respuesta — array vacío si no hay datos (nunca silencio).
         registrarControladorSeguro(TIPOS_MENSAJE_S1.NAVEGACION.SOLICITAR_DATOS_PARADAS, async (mensaje) => {
-            const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_DATOS_PARADAS]`;
+            const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_DATOS_PARADAS][${mensaje?.origen || 'desconocido'}]`;
+            const destino = mensaje?.origen || 'hijo5';
             try {
                 const av = globalThis.aventuraSeleccionada || estado?.seleccion?.aventura;
                 const id = globalThis.idiomaSeleccionado || 'es';
-                if (!av) { (globalThis.logger || console).warn(`${logPrefix} Sin aventura seleccionada, ignorando`); return; }
-                if (!DATOS_PADRE[av]?.[id]) { (globalThis.logger || console).warn(`${logPrefix} Sin datos para ${av}/${id}`); return; }
-                const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
+
+                if (!av) {
+                    (globalThis.logger || console).debug(`${logPrefix} Sin aventura seleccionada — enviando lista vacía`);
+                    if (typeof enviarMensaje_S1 === 'function') {
+                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: [], aventura: null, timestamp: Date.now() } });
+                    }
+                    return;
+                }
+
+                // Fuente primaria: DATOS_PADRE (más rico, idioma-aware)
+                if (DATOS_PADRE[av]?.[id]) {
+                    const pNorm = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
+                    if (typeof enviarMensaje_S1 === 'function') {
+                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
+                        (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → ${destino} (${pNorm.length} paradas, fuente: DATOS_PADRE)`);
+                    }
+                    return;
+                }
+
+                // Fallback: coordenadas-aventuras.js (cuando DATOS_PADRE aún no cargó para este idioma)
+                const coordFallback = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
+                if (coordFallback?.length) {
+                    const pFallback = coordFallback.map(coord => ({
+                        id: `padre-${coord.id}`,
+                        parada_id: coord.id,
+                        tipo: coord.tipo,
+                        parada: coord.parada,
+                        tramo: coord.tramo,
+                        nombre: coord.nombre,
+                        padreid: `padre-${coord.id}`,
+                        coordenadas: coord.coordenadas || coord.inicio || null
+                    }));
+                    if (typeof enviarMensaje_S1 === 'function') {
+                        await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pFallback, aventura: av, timestamp: Date.now() } });
+                        (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → ${destino} (${pFallback.length} paradas, fuente: DATOS_AVENTURAS fallback)`);
+                    }
+                    return;
+                }
+
+                // Sin datos — array vacío explícito
+                (globalThis.logger || console).warn(`${logPrefix} Sin datos para ${av}/${id} — enviando lista vacía`);
                 if (typeof enviarMensaje_S1 === 'function') {
-                    await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pNorm, aventura: av, timestamp: Date.now() } });
-                    (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pNorm.length} paradas)`);
+                    await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: [], aventura: av, timestamp: Date.now() } });
                 }
             } catch (err) { (globalThis.logger || console).error(`${logPrefix} Error:`, err); }
         }, { permanente: true });

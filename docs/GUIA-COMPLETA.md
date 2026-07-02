@@ -257,7 +257,7 @@ flowchart TD
 
 **Secuencia completa** (`_propagarCambioModoAHijos`, línea 5925; `_activarHeartbeatAventura`, línea 5953):
 
-> **Nota GPS**: `_hdl_SISTEMA_CAMBIO_MODO` llama `_gestionarGpsSegunModo(modo, ...)` al final. Si el modo es AVENTURA y `estado.gps.activo` es `false`, llama `activarGPS()` directamente. hijo5 puede además emitir `NAVEGACION.GPS.ACTIVAR` → `_hdl_NAVEGACION_GPS_ACTIVAR` → `activarGPS()` como ruta alternativa; el guard `estado.gps.activo` evita doble activación.
+> **Nota GPS**: `_hdl_SISTEMA_CAMBIO_MODO` llama `_gestionarGpsSegunModo(modo, ...)` al final. Si el modo es AVENTURA y `!estado.gps.activo`, llama `activarGPS()`. Ruta independiente: `btn-avanzar` en hijo2 envía `NAVEGACION.GPS.ACTIVAR` → `_hdl_NAVEGACION_GPS_ACTIVAR` → progresar elemento o revelar navegación, luego `activarGPS()`. El mutex en `activarGPS()` evita doble `watchPosition`.
 
 ```mermaid
 sequenceDiagram
@@ -270,7 +270,6 @@ sequenceDiagram
 
     U->>H5: Pulsa botón GPS (activar)
     H5->>P: SISTEMA.CAMBIO_MODO (modo: aventura)
-    H5->>P: NAVEGACION.GPS.ACTIVAR (flujo paralelo)
     P->>P: estado.modo.actual = 'aventura'
     par Propagar cambio de modo
         P->>H2: SISTEMA.CAMBIO_MODO (aventura)
@@ -285,8 +284,7 @@ sequenceDiagram
         P->>H4: SISTEMA.HEARTBEAT_START
         P->>H5: SISTEMA.HEARTBEAT_START
     end
-    P->>P: _gestionarGpsSegunModo → ocultar overlays CASA
-    Note over P: GPS.ACTIVAR activa watchPosition (ya puede estar activo)
+    P->>P: _gestionarGpsSegunModo → ocultar overlays + activarGPS() si !estado.gps.activo
     H2-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     H3-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     H4-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
@@ -562,7 +560,7 @@ graph TD
     P <-->|"postMessage\nCHAT.ESTADO_PADRE"| H6["hijo6\nchat-hijo6.html\nasistente FAQ"]
     P <-->|"postMessage\nSELECCION.AVENTURA_ACTIVADA\nPREPARAR_HIJOS"| S["seleccion\nEn-busca-del-tesoro.html\npantallas de demo e inicio"]
 
-    H4 -.-|"sub-iframe interno\npuzzle-state-completed\npuzzle-state-timeout"| PZ["puzzle.html\n(no es hijo directo del padre)"]
+    H4 -.-|"sub-iframe interno\nPUZZLE.COMPLETADO\nPUZZLE.TIMEOUT"| PZ["puzzle.html\n(no es hijo directo del padre)"]
 
     style P fill:#4a90d9,color:#fff
     style H5 fill:#aaa,color:#fff
@@ -798,7 +796,7 @@ flowchart TD
 | 🆘❓ Botón SOS (`#btnMostrarRespuesta`) | Siempre visible | Muestra/oculta el panel con la respuesta correcta. Segunda pulsación lo esconde |
 | 🌍 Botón continuar (`#btnNextAfterReto`) **deshabilitado** | Antes de acertar | `.btn-mundo-verde:disabled` — `opacity: 0.35`, `cursor: not-allowed`, elementos orbita detenidos. No interactivo hasta respuesta correcta |
 | 🌍 Botón continuar (`#btnNextAfterReto`) **verde brillante** | Después de acertar | `.btn-mundo-verde` habilitado, con elementos orbitando (➣ 🎯) en animación continua |
-| 🌍 Botón puzzle (`#btn-puzzle-continuar`) | Cuando el puzzle se completa | Mismo estilo `.btn-mundo-verde` con orbiting; oculto hasta que `puzzle.html` envía `puzzle-state-completed` |
+| 🌍 Botón puzzle (`#btn-puzzle-continuar`) | Cuando el puzzle se completa | Mismo estilo `.btn-mundo-verde` con orbiting; oculto hasta que `puzzle.html` envía `PUZZLE.COMPLETADO` |
 
 ```mermaid
 flowchart TD
@@ -814,7 +812,7 @@ flowchart TD
     F -- Sí --> H
 
     D --> H
-    E -- puzzle resuelto\npuzzle-state-completed --> H
+    E -- puzzle resuelto\nPUZZLE.COMPLETADO --> H
 
     H[Borde verde\nFuegos artificiales 15 explosiones × 30 chispas\n🌍 #btnNextAfterReto se habilita verde con orbiting]
     H --> I[Usuario pulsa 🌍 continuar\nhijo4 envía RETO.COMPLETADO a padre]
@@ -1426,7 +1424,7 @@ sequenceDiagram
     S1->>H5: asigna src (display:none)
     H5-->>S1: handshake completo
 
-    Note over S1: CAMBIO_PARADA P-0 → hijos críticos<br/>sistemaInicializado = true<br/>Overlay oculto — usuario ve pantalla seleccion
+    Note over S1: CAMBIO_MODO sincronizacion_inicial → H2/H3/H4<br/>sistemaInicializado = true<br/>Overlay oculto — usuario ve pantalla seleccion
 
     Note over SEL: Usuario completa P1→P7<br/>(idioma, vídeo stub, puzzle, elección aventura...)
 
@@ -1454,7 +1452,7 @@ sequenceDiagram
     Note over H6: hijo6-chat: src="" en HTML<br/>Se carga al primer click en btn-chat-soporte<br/>(apertura lazy)
 ```
 
-> **Carga secuencial en el arranque:** `_cargarIframesHijos()` usa un `for` loop que `await`ea el handshake de cada hijo antes de cargar el siguiente. Lo mismo en `cargarRestoDeiframes()` (activación via `CODIGO_VALIDADO` en P13). En cambio, `_hdl_SELECCION_AVENTURA_ACTIVADA` usa un fast-path cuando `_iframesPreCargadosP13 = true` — salta completamente la recarga porque los iframes ya están listos.
+> **Carga en paralelo:** `_cargarIframesHijos()` usa `Promise.all` para cargar todos los iframes hijo en paralelo — cada uno hace su handshake independientemente. Lo mismo en `cargarRestoDeiframes()` (activación via `CODIGO_VALIDADO` en P13) y en `_hdl_SELECCION_AVENTURA_ACTIVADA` vía `_cargarSoloIframeActivacion`. En cambio, `_hdl_SELECCION_AVENTURA_ACTIVADA` usa un fast-path cuando `_iframesPreCargadosP13 = true` — salta completamente la recarga porque los iframes ya están listos.
 
 ### Diagrama de arquitectura global
 
@@ -1605,8 +1603,8 @@ indice-aventuras.js       →  globalThis.__vv_INDICE_AVENTURAS
 Necesita FASE 2 completa. Todo ocurre en el arranque, dentro de `ejecutarInicializacionAutomatica()`, antes de cualquier interacción del usuario:
 
 1. `cargarIframeSoloSeleccion()` — asigna `src` a `seleccion` y espera su handshake
-2. `_cargarIframesHijos()` — carga hijo1→hijo2→hijo3→hijo4→hijo5 **secuencialmente**, todos ocultos (`display:none`). No espera señal alguna de seleccion
-3. Se envía `CAMBIO_PARADA { paradaId: 'P-0' }` a los hijos críticos (hijo2, hijo3, hijo4, hijo5) como estado inicial del mapa
+2. `_cargarIframesHijos()` — carga hijo1/hijo2/hijo3/hijo4/hijo5 en **paralelo** (`Promise.all`), todos ocultos (`display:none`). No espera señal alguna de seleccion
+3. Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `_hdl_APLICACION_INICIALIZADA`. En este punto no hay aventura seleccionada aún → `ensureDefaultParada()` falla silenciosamente; ningún CAMBIO_PARADA se envía hasta CODIGO_VALIDADO
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
@@ -1620,8 +1618,8 @@ flowchart TD
     F1["FASE 1 — Infraestructura\nstate-manager → mensajeria → validacion+mapa\n→ 7 módulos en Promise.all"]
     F2["FASE 2 — Datos de aventura\nPromise.all 5 módulos .js\n→ globalThis.__vv_*"]
     F3A["FASE 3.1\ncargarIframeSoloSeleccion()\nseleccion cargado + handshake"]
-    F3B["FASE 3.2\n_cargarIframesHijos()\nhijo1→2→3→4→5 secuencial\ntodos ocultos (display:none)"]
-    FIN["✅ Sistema listo\nCAMBIO_PARADA P-0 enviado\noverlay oculto — usuario ve seleccion"]
+    F3B["FASE 3.2\n_cargarIframesHijos()\nhijo1/2/3/4/5 en paralelo (Promise.all)\ntodos ocultos (display:none)"]
+    FIN["✅ Sistema listo\nCAMBIO_MODO sincronizacion_inicial → H2/H3/H4\noverlay oculto — usuario ve seleccion"]
     SEL_A["AVENTURA_SELECCIONADA (P7)\nsolo almacena estado.seleccion\nreset flags P13"]
     SEL_P["PREPARAR_HIJOS (P9)\nalmacena estado.seleccion\n(sin carga de iframes)"]
     SEL_CV["CODIGO_VALIDADO (P13)\nactivarGPS() + cargarRestoDeiframes()\n+ _fase2CargarDatos() en paralelo\n→ _distribuirConEspera()"]
@@ -1745,7 +1743,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
   1. resolverIdsParada(datos) → buscarParadaEnDatos() → parada object
   2. _actualizarEstadoParada()     → estado.paradaActual = paradaId
   3. _solicitarParadaAHijo2()      → DATOS.COORDENADAS_PARADAS_REQUEST a hijo2
-  4. _notificarCambioParadaHijos() → CAMBIO_PARADA a hijo2, hijo4 (si listo), hijo5 (si no es el origen)
+  4. _notificarCambioParadaHijos() → CAMBIO_PARADA a hijo2, hijo3, hijo4 (si listo), hijo5 (si no es el origen)
   5. _configurarRetoBtn()          → diferente según modo (ver tabla arriba)
   6. dispatchEvent('vv-parada-cambiada') → funciones-mapa.js dibuja marcadores / polylines
 
@@ -1763,16 +1761,15 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 
 ### Los controladores de datos (js/controladores-padre.js)
 
-Los 4 handlers que responden a peticiones de datos de aventuras están extraídos en el módulo `js/controladores-padre.js` (importado dinámicamente al final de Script 1). La función exportada es `registrarControladoresDatos(deps)`, que recibe todas sus dependencias por inyección:
+Los handlers de datos de aventuras están extraídos en el módulo `js/controladores-padre.js` (importado dinámicamente al final de Script 1). La función exportada es `registrarControladoresDatos(deps)`, que recibe todas sus dependencias por inyección:
 
 | Handler | Tipo de mensaje | Responde con |
 |---------|----------------|--------------|
-| Datos de paradas para hijo5 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | Metadatos de audio | `DATOS.SOLICITAR_AUDIOS` | `DATOS.CARGAR_AUDIOS` |
 | Textos narrativos | `DATOS.SOLICITAR_TEXTOS` | `DATOS.CARGAR_TEXTOS` |
 | Retos y respuestas | `DATOS.SOLICITAR_RETOS` | `DATOS.CARGAR_RETOS` |
 
-Los tres handlers `DATOS.*` leen de `globalThis.__vv_AUDIOS_AVENTURAS` / `__vv_TEXTOS_AVENTURAS` / `__vv_RETOS_AVENTURAS` (cargados en FASE 2). `SOLICITAR_DATOS_PARADAS` está registrado en **Script 1** (no en `_regCtrl_DatosRespuestas`): lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
+Los handlers leen de `globalThis.__vv_AUDIOS_AVENTURAS` / `__vv_TEXTOS_AVENTURAS` / `__vv_RETOS_AVENTURAS` (cargados en FASE 2). `controladores-padre.js` también contiene una entrada para `SOLICITAR_DATOS_PARADAS`, pero es **dead code**: Script 1 la registra primero (ver §6 handshake) y `registrarControladorSeguro` deduplicates — la de controladores-padre.js se ignora. El handler activo de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
 
 ### Reconexión de hijos fallidos
 
@@ -1907,8 +1904,8 @@ graph TD
     P <-->|"CAMBIO_PARADA\nRETO.MOSTRAR · RETO.COMPLETADO\nRETO.ESTADO_CASA\nDATA.CARGAR_RETOS"| H4
     P <-->|"CAMBIO_MODO · CAMBIO_PARADA\nRESPUESTA_DATOS_PARADAS"| H5
     P <-->|"CHAT.ESTADO_PADRE\nhandshake"| H6
-    H4 -.-|"puzzle-state-completed\npuzzle-state-timeout"| PZ
-    SEL -.-|"puzzle-state-completed\npuzzle-state-timeout"| PZ
+    H4 -.-|"PUZZLE.COMPLETADO\nPUZZLE.TIMEOUT"| PZ
+    SEL -.-|"PUZZLE.COMPLETADO\nPUZZLE.TIMEOUT"| PZ
 
     style P fill:#4a90d9,color:#fff,stroke:#2c5f8a
     style H5 fill:#aaa,color:#fff
@@ -1934,9 +1931,9 @@ graph TD
 
 **Propósito**: primera pantalla que ve el usuario. Gestiona el flujo completo de incorporación: selección de idioma, aventura, términos, retos previos y código de activación. Cuando el código es válido, avisa al padre para que active el GPS y cargue los iframes. Cuando el Reto R-2 se supera, confirma el inicio de la aventura.
 
-**Rol en el sistema**: es el **punto de entrada único**. Ningún hijo de juego (hijo2, hijo3, hijo4) es visible hasta que `seleccion` completa su flujo y el padre recibe `SELECCION.AVENTURA_ACTIVADA`. Los iframes se cargan en segundo plano a partir de P13 (no antes), ocultos, mientras el usuario lee la normativa vial (P14).
+**Rol en el sistema**: es el **punto de entrada único**. Ningún hijo de juego (hijo2, hijo3, hijo4) es visible hasta que `seleccion` completa su flujo y el padre recibe `SELECCION.AVENTURA_ACTIVADA`.
 
-**Inicialización**: es el primer iframe en cargarse al arrancar la app. El iframe existe en el DOM desde el inicio pero arranca `display:none; visibility:hidden`; el padre lo hace visible inmediatamente. El resto de iframes (hijo1-opciones, hijo2, hijo3, hijo4, hijo5) **no se cargan** hasta que el padre recibe `SELECCION.CODIGO_VALIDADO` en P13. Antes de ese punto los elementos `<iframe>` existen en el DOM pero sin `src`.
+**Inicialización**: es el primer iframe en cargarse al arrancar la app. El iframe existe en el DOM desde el inicio pero arranca `display:none; visibility:hidden`; el padre lo hace visible inmediatamente. Los iframes hijo1-hijo5 se cargan también en FASE 3 del arranque via `_cargarIframesHijos` — **todos ocultos** (`display:none`). Al llegar P13 (`SELECCION.CODIGO_VALIDADO`), `cargarRestoDeiframes()` los **recarga** (hijo1-hijo4) con datos actualizados; hijo5 se recarga via `cargarHijoCasa()`.
 
 **Después de la aventura**: el padre lo oculta de nuevo (`display:none; visibility:hidden`) cuando procesa `SELECCION.AVENTURA_ACTIVADA`. No se destruye — permanece en el DOM oculto.
 
@@ -2514,15 +2511,30 @@ click 2: classList.remove('mostrado') // #respuestaCorrectaTexto oculto
 #### Sub-iframe puzzle.html en modo reto
 
 ```javascript
-// inicializarPuzzleReto()
-const iframeReto = document.getElementById('puzzle-iframe-reto');
-iframeReto.src = `puzzle.html?aventura=${aventuraActual}&id=${retoConfig.puzzle_id}&tipoReto=true`;
+// Crea el iframe del puzzle en el reto activo
+const puzzleIframe = document.createElement('iframe');
+puzzleIframe.id = 'puzzleIframe';
+puzzleIframe.src = reto.src;  // 'puzzle.html?id=PZ-reto-3&aventura=...'
+retoDiv.appendChild(puzzleIframe);
 
-// Escucha:
-window.addEventListener('message', (e) => {
-  if (e.data?.tipo === 'puzzle-state-completed') {
-    document.getElementById('btn-puzzle-continuar').style.display = 'block';
-  }
+// Escucha mensajes del iframe del puzzle (comprueba source para evitar cross-origin)
+globalThis.addEventListener('message', async (event) => {
+    if (event.origin !== globalThis.location.origin) return;
+    const puzzleEl = document.getElementById('puzzleIframe');
+    if (!puzzleEl || event.source !== puzzleEl.contentWindow) return;
+
+    // Soporte doble formato: 'PUZZLE.COMPLETADO' (actual) y 'puzzle-state-completed' (legacy)
+    const tipoPuzzle = event.data?.tipo;
+    const esCompletado = tipoPuzzle === TIPOS_MENSAJE.PUZZLE.COMPLETADO
+                      || event.data === TIPOS_MENSAJE.PUZZLE.LEGACY_COMPLETADO;
+
+    if (esCompletado) {
+        retoDiv.classList.add('correct');
+        fuegosArtificiales();
+        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.COMPLETADO, datos: { retoId: retoActual.id, completado: true } });
+        const btnContinuar = document.getElementById('btn-puzzle-continuar');
+        if (btnContinuar) btnContinuar.style.display = 'flex';  // 'flex', no 'block'
+    }
 });
 ```
 
@@ -2549,20 +2561,27 @@ window.addEventListener('message', (e) => {
 #### Payload de RETO.COMPLETADO (enviado al padre)
 
 ```javascript
+// Retos estándar (opcion, opcion-multiple, texto):
 {
   tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
   datos: {
-    reto_id: 'R3-Av1-es',
-    tipo_reto: 'opcion',
-    respuesta_usuario: ['Siglo XIV'],
-    respuesta_correcta: ['Siglo XIV'],
+    retoId: 'R3-Av1-es',   // 'retoId', no 'reto_id'
     correcto: true,
-    tiempo_resolucion: 12400,   // ms desde que se mostró el reto
-    intentos: 1,
-    timestamp: Date.now()
+    progreso: estadoRetos.progreso   // índice de progreso interno
+  }
+}
+
+// Retos tipo puzzle — payload más simple:
+{
+  tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
+  datos: {
+    retoId: 'PZ-reto-3',
+    completado: true
   }
 }
 ```
+
+> **Nota**: el payload real es más simple que versiones anteriores de la documentación. No incluye `tipo_reto`, `respuesta_usuario`, `respuesta_correcta`, `tiempo_resolucion` ni `intentos` — solo los campos mínimos que el padre necesita para avanzar.
 
 #### Controladores que registra
 
@@ -2608,7 +2627,8 @@ sequenceDiagram
     alt tipo = 'puzzle'
         H4->>PZ: asigna src puzzle.html?id=...
         Note over PZ: usuario resuelve puzzle
-        PZ-->>H4: puzzle-state-completed
+        PZ-->>H4: PUZZLE.COMPLETADO (o legacy puzzle-state-completed)
+        H4-->>P: RETO.COMPLETADO { retoId, completado:true }
         H4->>H4: muestra #btn-puzzle-continuar
     else tipo = 'opcion' | 'texto' | 'opcion-multiple'
         Note over H4: usuario elige respuesta + click verificar
@@ -2722,8 +2742,8 @@ wrap.classList.add('marquee');
 
 | Controlador | Qué hace |
 |---|---|
-| `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); sincroniza estado visual del `#gps-casa-btn`; las paradas se solicitan por separado vía `NAVEGACION.SOLICITAR_DATOS_PARADAS` |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
+| `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); confirma recepción enviando `HIJO_LISTO`; **no** sincroniza el botón GPS |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Sincroniza el estado visual del `#gps-casa-btn` vía campo `modoInicial` → `_sincronizarBotonConModo()`; hace la UI visible; desencadena `SOLICITAR_DATOS_PARADAS` |
 | `SISTEMA.CAMBIO_MODO` | Sincroniza el estado visual del `#gps-casa-btn` (ON/OFF); muestra/oculta `#paradas-window` |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | Confirmación de modo completamente aplicado |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Recibe la lista de paradas del padre → `generarBotonesParadas()` |
@@ -2745,7 +2765,14 @@ sequenceDiagram
     participant P as Padre
     participant H5 as hijo5
 
-    Note over H5: Inicialización
+    Note over H5: Handshake inicial
+    H5-->>P: SISTEMA.HIJO_LISTO
+    P->>H5: SISTEMA.PADRE_DATOS { modo, timestamp }
+    H5-->>P: SISTEMA.HIJO_LISTO (confirmación)
+    P->>H5: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO { modoInicial }
+    H5->>H5: _sincronizarBotonConModo(modoInicial) → #gps-casa-btn visible
+
+    Note over H5: Solicitud de paradas (tras PADRE_CONFIRMA_HIJO_LISTO)
     H5-->>P: NAVEGACION.SOLICITAR_DATOS_PARADAS
     P->>H5: NAVEGACION.RESPUESTA_DATOS_PARADAS { paradas: [...] }
     H5->>H5: generarBotonesParadas() → botones en DOM
@@ -2835,19 +2862,21 @@ Payload de `CHAT.ESTADO_PADRE` (recibido del padre), construido por `construirEs
 
 | Controlador | Qué hace |
 |---|---|
-| `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); llama `construirFAQ()` con idioma por defecto (idioma real llega después vía `CHAT.ESTADO_PADRE`); envía `HIJO_LISTO` |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Confirma inicialización |
-| `CHAT.ESTADO_PADRE` | Actualiza `estadoPadre` interno; si cambia el idioma → reconstruye FAQ |
-| `SISTEMA.CAMBIO_MODO` | Registrado, solo ACK estándar |
+| `SISTEMA.PADRE_DATOS` | Recibe `{ modo, timestamp }` (sin idioma — el padre no lo envía aquí); actualiza `estadoPadre`; como no hay campo `idioma`, llama `construirFAQ()` con idioma `'es'` por defecto; envía `HIJO_LISTO` (con reintentos cada 1s, máx 30s). El idioma real solo llega después vía `CHAT.ESTADO_PADRE` cuando el usuario abre el chat |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Cancela el timer de reintentos de `HIJO_LISTO` |
+| `CHAT.ESTADO_PADRE` | Actualiza `estadoPadre` interno; si cambia el idioma → `actualizarIdioma()` → reconstruye FAQ |
+| `SISTEMA.CAMBIO_MODO` | Envía `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO { exito: true }` al padre |
 | `SISTEMA.HEARTBEAT` / `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | Gestión del latido |
 
 #### Mensajes que envía al padre
 
 | Tipo | Cuándo | Payload |
 |------|--------|---------|
-| `SISTEMA.HIJO_PREPARADO` | Al cargarse | `{ componenteId, version, capacidades[], timestamp }` |
-| `SISTEMA.HIJO_LISTO` | Tras procesar `PADRE_DATOS` | `{ componenteId, iframeId, timestamp }` |
-| `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
+| `SISTEMA.HIJO_PREPARADO` | Tras registrar todos los controladores (antes incluso de recibir `PADRE_DATOS`) | `{ componenteId, version: '1.0.0', tipo: 'CHAT', capacidades: ['chat','faq'], timestamp }` |
+| `SISTEMA.HIJO_LISTO` | Tras procesar `PADRE_DATOS` (con reintentos cada 1s, máx 30) | `{ componenteId, iframeId, timestamp }` |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Al recibir `CAMBIO_MODO` | `{ modo, timestamp, mensajeId }` |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | Al recibir `CAMBIO_MODO` | `{ modo, exito: true, timestamp, mensajeId }` |
+| `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp, estado: 'activo'/'inicializando' }` |
 
 ```mermaid
 sequenceDiagram
@@ -2858,20 +2887,27 @@ sequenceDiagram
     Note over H6: src="" — aún no cargado
     U->>P: click en #btn-chat-soporte (1ª vez)
     P->>H6: asigna src = 'chat-hijo6.html' + display:block
+    H6->>H6: registra controladores → construirFAQ() inicial (idioma 'es')
     H6-->>P: SISTEMA.HIJO_PREPARADO
     P->>H6: SISTEMA.PADRE_DATOS { modo, timestamp }
-    H6->>H6: construirFAQ() con idioma 'es'
-    H6-->>P: SISTEMA.HIJO_LISTO
+    H6->>H6: construirFAQ() con idioma 'es' (por defecto; PADRE_DATOS no incluye idioma)
+    H6-->>P: SISTEMA.HIJO_LISTO (con reintentos cada 1s)
     P->>H6: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
+    H6->>H6: cancela timer de reintentos
     Note over H6: FAQ visible — usuario navega acordeón
 
     U->>P: click en #btn-chat-soporte (2ª vez)
     P->>H6: display:none
     Note over H6: oculto pero sigue inicializado
 
-    Note over P: Cambio de parada → actualiza contexto
-    P->>H6: CHAT.ESTADO_PADRE { paradaActualNombre: 'Estación del Norte', idioma: 'es', ... }
-    H6->>H6: reconstruye respuestas con nuevos tokens
+    U->>P: click en #btn-chat-soporte (3ª vez)
+    P->>H6: CHAT.ESTADO_PADRE { paradaActualNombre, idioma, ... }
+    P->>H6: display:block
+    H6->>H6: actualiza estadoPadre → reconstruye tokens en respuestas
+
+    Note over P: Cambio de parada (en cualquier momento)
+    P->>H6: CHAT.ESTADO_PADRE { paradaActualNombre: 'Mercado Central', ... }
+    H6->>H6: estadoPadre actualizado → próxima apertura mostrará contexto nuevo
 ```
 
 **Modo AVENTURA / CASA**: el FAQ adapta el contexto de sus respuestas via `CHAT.ESTADO_PADRE`. No hay diferencia visual de layout entre modos. El acordeón mantiene su estado abierto/cerrado incluso al ocultarse y reabrirse.
@@ -2897,7 +2933,8 @@ puzzle.html?aventura=Aventura1&id=PZ-reto-3&tipoReto=true
 | `noOverlay` | `'1'` | Sin overlays extra (para P9 en seleccion) |
 | `tipoReto` | `'true'` | Indica que es reto de juego (para hijo4) |
 
-La config se carga de `PUZZLES_AVENTURAS[aventura]['puzzle.html'].find(p => p.id === id)`.
+La config se carga de `PUZZLES_AVENTURAS[aventura]['puzzle.html'].puzzle_id.find(p => p.id === id)`.  
+Si el puzzle no se encuentra en `aventura`, puzzle.html hace búsqueda global en todas las entradas de `PUZZLES_AVENTURAS`.
 
 #### Elementos UI y botones
 
@@ -2930,10 +2967,10 @@ pauseBtn.addEventListener('click', () => {
 
 | Tipo | Cuándo | Payload |
 |------|--------|---------|
-| `puzzle-state-completed` | Todas las piezas colocadas correctamente | `{ tipo: 'puzzle-state-completed', puzzleId, exito: true, tiempoUsado, timestamp }` |
-| `puzzle-state-timeout` | Timer llega a 0 | `{ tipo: 'puzzle-state-timeout', puzzleId, exito: false, tiempoUsado, timestamp }` |
+| `PUZZLE.COMPLETADO` | Todas las piezas colocadas correctamente | `{ tipo: 'PUZZLE.COMPLETADO', origen: 'puzzle', datos: { puzzleId, exito: true, timestamp } }` |
+| `PUZZLE.TIMEOUT` | Timer llega a 0 | `{ tipo: 'PUZZLE.TIMEOUT', origen: 'puzzle', datos: { puzzleId, exito: false, timestamp } }` |
 
-> Nota: `puzzle-state-completed` y `puzzle-state-timeout` son el formato legacy que usan tanto `En-busca-del-tesoro.html` como `retos-hijo4.html` para escuchar el resultado.
+> Nota: los receptores (`En-busca-del-tesoro.html` y `retos-hijo4.html`) también aceptan el formato legacy (`'puzzle-state-completed'`/`'puzzle-state-timeout'`) por compatibilidad con versiones antiguas, pero `puzzle.html` ya solo envía el formato actual.
 
 #### Efectos visuales al finalizar
 
@@ -3599,8 +3636,8 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 
 | Mensaje | Payload clave | Qué hace hijo5 | CASA | AVENTURA |
 |---------|---------------|----------------|------|----------|
-| `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Init estado visual del `#gps-casa-btn`; las paradas se solicitan vía `SOLICITAR_DATOS_PARADAS` | ✓ | ✓ |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Muestra UI | ✓ | ✓ |
+| `SISTEMA.PADRE_DATOS` | `{ modo, timestamp }` | Registra modo inicial; confirma con `HIJO_LISTO`; **no** sincroniza botón GPS | ✓ | ✓ |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje, modoInicial }` | Sincroniza `#gps-casa-btn` vía `modoInicial`; muestra UI; desencadena `SOLICITAR_DATOS_PARADAS` | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza botón GPS (rojo OFF / verde ON), modo UI | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
@@ -3886,7 +3923,7 @@ Cuando el padre recibe `SELECCION.CODIGO_VALIDADO`, el handler `_hdl_SELECCION_C
 2. Llama `activarGPS()` — si PERMISSION_DENIED: muestra `imagen-no-gps.png` y aborta
 3. En `Promise.all` paralelo:
    - `_fase2CargarDatos()` — carga módulos JS de datos de la aventura
-   - `cargarRestoDeiframes()` — carga secuencialmente hijo1→2→3→4 y espera su `HIJO_LISTO`
+   - `cargarRestoDeiframes()` — carga hijo1→2→3→4 en paralelo (`Promise.all`) y espera su `HIJO_LISTO`
    - `cargarHijoCasa()` — verifica/carga hijo5
 4. `_distribuirConEspera(aventura, idioma)` — distribuye coordenadas, audios, retos, textos a los hijos
 5. Marca `globalThis._iframesPreCargadosP13 = true`
@@ -4296,7 +4333,8 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 | `hijo2` | `coordenadas-hijo2.html` | Iframe | GPS, detección de proximidad (Haversine), 6 botones navegación, botón Avanzar. Sin Leaflet — mapa en padre |
 | `hijo3` | `audio-hijo3.html` | Iframe | Reproductor de audio y botón de retos |
 | `hijo4` | `retos-hijo4.html` | Iframe | Retos interactivos |
-| `hijo6` | `chat-hijo6.html` | Iframe | Chat IA asistente |
+| `hijo5` | `boton-casa-hijo5.html` | Iframe | Botón GPS (CASA/AVENTURA) + lista de paradas (scroll horizontal) |
+| `hijo6` | `chat-hijo6.html` | Iframe | Asistente FAQ estático (acordeón 2 niveles) |
 | `seleccion` | `En-busca-del-tesoro.html` | Iframe | Selector de aventura/idioma |
 | `funciones-mapa` | `js/funciones-mapa.js` | Módulo en padre | Dibujo de ruta, marcadores (escucha CustomEvent) |
 
@@ -4368,7 +4406,7 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Todos los hijos (hijo1, hijo2, hijo3, hijo4, hijo6) |
+| Emitido por | Todos los hijos (hijo1, hijo2, hijo3, hijo4, hijo5, hijo6) |
 | Destino | `padre` |
 | Payload | `{ componenteId, version, capacidades[], timestamp }` |
 | Handler en padre | `_hdl_SISTEMA_HIJO_PREPARADO` (L5790 codigo-padre.html) |
@@ -4401,9 +4439,9 @@ padre → hijo   SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
 |-------|-------|
 | Emitido por | Padre (tras HIJO_LISTO) |
 | Destino | El hijo confirmado |
-| Payload | `{ timestamp, mensaje: 'Hijo confirmado como listo' }` |
-| Handler en hijos | L1884 hijo2, L1275 hijo3, L1382 hijo4, L433 hijo1, L392 hijo6 |
-| Acción | Hijo cancela reintentos, muestra UI definitiva |
+| Payload | `{ timestamp, mensaje: 'Hijo confirmado como listo', modoInicial: 'casa'/'aventura' }` — `modoInicial` va a TODOS los hijos; hijo5 lo usa para sincronizar `#gps-casa-btn` |
+| Handler en hijos | hijo1, hijo2, hijo3, hijo4, hijo5, hijo6 |
+| Acción | Hijo cancela reintentos, muestra UI definitiva. Hijo5 además llama `_sincronizarBotonConModo(modoInicial)` |
 
 ##### SISTEMA.HIJO_FALLIDO
 
@@ -5070,9 +5108,9 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `boton-casa-hijo5.html` L807 — `TIPOS_MENSAJE.PARADAS.READY` = `'VV:PARADAS:READY'` |
-| Tipo | `'VV:PARADAS:READY'` / `'VV:PARADAS:SHOWN'` — hijo5 usa la constante; padre compara string literal en el raw listener pre-módulo |
-| Listener en padre | `_handlePreModuleMessage` L124 (función) / L140 (registrado); el check de PARADAS está en L130 |
+| Emitido por | `boton-casa-hijo5.html` — `TIPOS_MENSAJE.PARADAS.READY` = `'VV:PARADAS:READY'`. Solo READY se envía activamente. `PARADAS.SHOWN` está definido en `js/constants.js` y el listener del padre lo maneja, pero hijo5 **nunca lo envía** (emisor muerto). |
+| Tipo | `'VV:PARADAS:READY'` — hijo5 usa la constante; padre compara string literal en el raw listener pre-módulo. `'VV:PARADAS:SHOWN'` preparado pero sin emisor activo. |
+| Listener en padre | `_handlePreModuleMessage` (función pre-módulo); ambos tipos son capturados por el mismo handler |
 | Acción | Padre llama `_injectParadasStyle(iframe)` — inyecta CSS de fondo transparente en hijo5 |
 | Canal | Raw `window.postMessage` a `parent`, no pasa por `mensajeria.js` |
 
@@ -5250,16 +5288,20 @@ Solicita la lista de paradas transformada a partir de `coordenadas-aventuras.js`
 hijo5 L866 → padre   NAVEGACION.SOLICITAR_DATOS_PARADAS
   { incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }
   ↓
-controladores-padre.js L52
-  → lee globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas
-  → transforma a { id:'padre-P-X', parada_id, tipo, nombre, padreid, coordenadas }
-padre → hijo5   NAVEGACION.RESPUESTA_DATOS_PARADAS
+codigo-padre.html Script 1 (handler SOLICITAR_DATOS_PARADAS)
+  → Fuente primaria: DATOS_PADRE[av][idioma].elementosIDpadre + normalizarParadas_S1
+  → Fallback: globalThis.__vv_DATOS_AVENTURAS[av]['coordenadas-hijo2.html'].coordenadas
+  → Destino dinámico: mensaje.origen (no hardcodeado a 'hijo5')
+  → Siempre responde (array vacío si sin aventura, no silencio)
+padre → mensaje.origen   NAVEGACION.RESPUESTA_DATOS_PARADAS
   ↓
 hijo5 L1237 genera botones de parada en panel CASA
 hijo5 → padre   PARADAS.READY (pre-module listener)
 
 También lo envía: funciones-mapa.js L662 (para dibujar ruta). hijo2 **no** envía este mensaje.
 También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos de proximidad GPS). ~~funciones-mapa.js `manejarRespuestaDatosParadas`~~ — eliminado (handler muerto: padre enviaba directo al iframe, nunca pasaba por el bus)
+
+> Nota: el handler que existía en `controladores-padre.js` L52 fue eliminado (dead code — Script 1 gana la deduplicación de `registrarControladorSeguro`). El handler activo es el de Script 1 de `codigo-padre.html`.
 ```
 
 #### Flujo B — DATOS.SOLICITAR_PARADAS (datos enriquecidos con retos)
@@ -5281,8 +5323,8 @@ padre → solicitante   DATOS.RESPUESTA_PARADAS
 |-------|---------|---------|
 | Tipo solicitud | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `DATOS.SOLICITAR_PARADAS` |
 | Tipo respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `DATOS.RESPUESTA_PARADAS` |
-| Handler padre | `controladores-padre.js` L52 | `codigo-padre.html` L10270 |
-| Fuente datos | `coordenadas-aventuras.js` | `elementosIDpadre` + `cargarRetos` |
+| Handler padre | Script 1 de `codigo-padre.html` (eliminado de `controladores-padre.js` — dead code) | `codigo-padre.html` L10270 |
+| Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre` (primaria) + `__vv_DATOS_AVENTURAS` (fallback) | `elementosIDpadre` + `cargarRetos` |
 | Incluye reto | ❌ | ✅ |
 | Emisor conocido | hijo5, funciones-mapa (hijo2 **no** lo emite) | No identificado activamente en código actual |
 | Nota | El comentario en hijo5 L878 dice "DATOS.RESPUESTA_PARADAS" pero el handler real es para `NAVEGACION.RESPUESTA_DATOS_PARADAS` — comentario erróneo en código | Puede ser flujo legacy o de uso futuro |
@@ -5613,29 +5655,30 @@ hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel d
 
 ### 10.7 Tabla resumen de cobertura por hijo
 
-| Mensaje | hijo1 | hijo2 | hijo3 | hijo4 | hijo6 |
-|---------|-------|-------|-------|-------|-------|
-| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ❌ |
-| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ❌ |
-| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ |
-| HEARTBEAT_START | ❌ | ✅ | ✅ | ✅ | ✅ |
-| HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ |
-| GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ |
-| GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ |
-| CARGAR_COORDENADAS | — | ✅ | — | — | — |
-| CARGAR_AUDIOS | — | — | ✅ | — | — |
-| CARGAR_RETOS | — | — | — | ✅ | — |
-| CARGAR_TEXTOS | — | ✅ | — | — | — |
-| AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — |
-| RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — |
-| RETO.HABILITAR | — | — | — | ✅ | — |
-| RETO.ESTADO_CASA | — | — | — | ✅ | — |
-| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | ✅ | — |
-| AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — |
-| CHAT.ESTADO_PADRE | — | — | — | — | ✅ |
+| Mensaje | hijo1 | hijo2 | hijo3 | hijo4 | hijo5 | hijo6 |
+|---------|-------|-------|-------|-------|-------|-------|
+| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ (+ sync GPS btn) | ✅ |
+| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ (muestra/oculta #paradas-window) | ✅ |
+| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (marca botón .activo) | ❌ |
+| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| HEARTBEAT_START | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| CARGAR_COORDENADAS | — | ✅ | — | — | — | — |
+| CARGAR_AUDIOS | — | — | ✅ | — | — | — |
+| CARGAR_RETOS | — | — | — | ✅ | — | — |
+| CARGAR_TEXTOS | — | ✅ | — | — | — | — |
+| AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — | — |
+| RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — | — |
+| RETO.HABILITAR | — | — | — | ✅ | — | — |
+| RETO.ESTADO_CASA | — | — | — | ✅ | — | — |
+| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | ✅ | — | — |
+| AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — | — |
+| RESPUESTA_DATOS_PARADAS | — | — | — | — | ✅ (genera botones) | — |
+| CHAT.ESTADO_PADRE | — | — | — | — | — | ✅ |
 
 **Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
 
@@ -8979,7 +9022,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta el padre | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.HIJO_PREPARADO` | Cualquier hijo al cargarse | Registra al hijo como preparado; prepara los datos de aventura+idioma del `DATOS_PADRE` en memoria | `SISTEMA.PADRE_DATOS` (paquete completo: aventura, idioma, modo, textos, lista de paradas, configuración) | El hijo que envió la señal | Arrancar el handshake de inicialización; el hijo no puede funcionar sin estos datos |
+| `SISTEMA.HIJO_PREPARADO` | Cualquier hijo al cargarse | Registra al hijo en `hijosPreparados`; envía ACK + PADRE_DATOS inmediatamente (no espera a los demás hijos) | `SISTEMA.ACK` + `SISTEMA.PADRE_DATOS { modo, timestamp }` | El hijo que envió la señal | Arrancar el handshake de inicialización |
 | `SISTEMA.HIJO_LISTO` | Cualquier hijo tras procesar `PADRE_DATOS` | Marca ese hijo como `listo=true` en el mapa interno; cuando todos los hijos esperados están listos, llama `_hijoListo_onTodosListos()` | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | El hijo que envió la señal | Completar la fase de handshake; saber cuándo la app está 100% operativa |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Registra en un `Map` interno que ese hijo recibió y entendió el cambio de modo | (ninguna respuesta directa; el padre espera a `EFECTUADO`) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Registra que el hijo aplicó el modo; cuando todos los hijos confirman, cierra la transición | `SISTEMA.CAMBIO_MODO_APLICADO` | **Broadcast a todos los hijos** | 4.ª y última fase del protocolo; el padre emite broadcast (no solo al emisor) para que todos completen la transición |
