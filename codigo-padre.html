@@ -10704,42 +10704,39 @@
             }
         }
 
-        async function _hdl_SELECCION_CODIGO_VALIDADO(mensaje) {
+        async function _hdl_SELECCION_CODIGO_VALIDADO(_mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[CODIGO_VALIDADO]`;
-            try {
-                // En dev mode se omite GPS (CASA no necesita proximidad y GPS bloqueante impediría test en desktop)
-                if (!globalThis._devModeActivo && !mensaje.datos?.devMode) {
-                    // Flag antes de activarGPS: showGpsSignalOverlay necesita verlo en su guard
-                    globalThis._codigoValidadoP13 = true;
-                    try {
-                        await activarGPS();
-                    } catch (gpsErr) {
-                        (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
-                        showGpsSignalOverlay(1); // guard permite: _codigoValidadoP13 = true
-                        return;
-                    }
-                }
-                // Carga de datos e iframes delegada a _hdl_SELECCION_P14_MOSTRADA
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error en CODIGO_VALIDADO:`, error, error?.stack);
-            }
+            // P13 validó el código — GPS, iframes y datos se activan en P14_MOSTRADA
+            (globalThis.logger || console).info(`${logPrefix} ✅ Código validado — carga delegada a P14_MOSTRADA`);
         }
 
         async function _hdl_SELECCION_P14_MOSTRADA(_mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[P14_MOSTRADA]`;
             if (globalThis._iframesPreCargadosP14) {
-                (globalThis.logger || console).info(`${logPrefix} ⏭️ Iframes ya cargados desde P14 — ignorando duplicado`);
+                (globalThis.logger || console).info(`${logPrefix} ⏭️ Ya cargado desde P14 — ignorando duplicado`);
                 return;
             }
             try {
-                (globalThis.logger || console).info(`${logPrefix} 📦 P14 visible — cargando iframes + datos en paralelo`);
+                // En prod: activar GPS (tras validación de código en P13)
+                if (!globalThis._devModeActivo) {
+                    globalThis._codigoValidadoP13 = true; // guard para showGpsSignalOverlay
+                    try {
+                        await activarGPS();
+                    } catch (gpsErr) {
+                        (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
+                        showGpsSignalOverlay(1);
+                        return;
+                    }
+                }
+                // Cargar iframes HTML + datos de aventura en paralelo mientras usuario lee la normativa
+                (globalThis.logger || console).info(`${logPrefix} 📦 Cargando iframes + datos en paralelo`);
                 await Promise.all([
                     _fase2CargarDatos(logPrefix),
                     cargarRestoDeiframes(),
                     cargarHijoCasa()
                 ]);
                 globalThis._iframesPreCargadosP14 = true;
-                (globalThis.logger || console).info(`${logPrefix} ✅ Iframes y datos listos para AVENTURA_ACTIVADA`);
+                (globalThis.logger || console).info(`${logPrefix} ✅ GPS + iframes + datos listos para AVENTURA_ACTIVADA`);
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error en P14_MOSTRADA:`, error, error?.stack);
             }
