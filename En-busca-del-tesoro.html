@@ -2031,6 +2031,9 @@
         setTimeout(() => { void mostrar(16); }, 1500);
       } else {
         _log.info('[SELECCION] Reto R2: respuesta negativa → reinicio a P1');
+        if (globalThis.parent && globalThis.parent !== globalThis) {
+          globalThis.parent.postMessage({ tipo: 'SELECCION.REINICIAR' }, globalThis.location.origin);
+        }
         setTimeout(() => {
           reiniciarSeleccion();
           void mostrar(1);

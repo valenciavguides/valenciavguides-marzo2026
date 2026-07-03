@@ -5545,6 +5545,21 @@
                         btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️→🌐→⚙️</span>';
                         btn.setAttribute('aria-label', 'Activar permisos GPS');
                         btn.title = 'Activar permisos GPS';
+                        // Auto-detectar permiso concedido en SO sin necesidad de pulsar el botón (no-iOS)
+                        const esApple = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                        if (!esApple && !globalThis.__vv_gps_perm_watcher && navigator.permissions?.query) {
+                            globalThis.__vv_gps_perm_watcher = true;
+                            navigator.permissions.query({ name: 'geolocation' }).then(status => {
+                                const onChange = () => {
+                                    if (status.state === 'granted') {
+                                        status.removeEventListener('change', onChange);
+                                        globalThis.__vv_gps_perm_watcher = false;
+                                        activarGPS().catch(() => {});
+                                    }
+                                };
+                                status.addEventListener('change', onChange);
+                            }).catch(() => {});
+                        }
                     } else {
                         btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
                         btn.setAttribute('aria-label', 'Reintentar GPS');
@@ -10633,6 +10648,12 @@
             }
         }
 
+        function _hdl_SELECCION_REINICIAR() {
+            globalThis._codigoValidadoP13 = false;
+            globalThis._iframesPreCargadosP14 = false;
+            (globalThis.logger || console).info('[PADRE][SELECCION.REINICIAR] Flags P13/P14 reseteados — NO en R2');
+        }
+
         let _aventuraEnProceso = false; // guard contra double-fire de AVENTURA_SELECCIONADA/ACTIVADA
 
         async function _hdl_SELECCION_AVENTURA_SELECCIONADA(mensaje) {
@@ -11174,6 +11195,8 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.P14_MOSTRADA, _hdl_SELECCION_P14_MOSTRADA, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA, _hdl_SELECCION_AVENTURA_ACTIVADA, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.REINICIAR, _hdl_SELECCION_REINICIAR, { permanente: true });
 
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.TERMINOS_ACEPTADOS, _hdl_SELECCION_TERMINOS_ACEPTADOS, { permanente: true });

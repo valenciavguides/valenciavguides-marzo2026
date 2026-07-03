@@ -7606,17 +7606,17 @@ flowchart TD
     SET1 --> IIFE["IIFE Script 1 padre:\nglobalThis._devModeActivo = true"]
     IIFE --> NORMAL[Usuario navega P2→P11 con normalidad]
     NORMAL --> P12_13{mostrar(12) o mostrar(13)}
-    P12_13 -- "_devCasaMode === true" --> BYPASS["id = 14 directamente (sin CODIGO_VALIDADO)\nsin GPS · sin código de compra"]
+    P12_13 -- "_devCasaMode === true" --> BYPASS["id = 14 directamente (sin CODIGO_VALIDADO)\nsin código de compra · GPS se activa en P14"]
     P12_13 -- "_devCasaMode === false" --> NORMAL2["Flujo normal:\nP12 pago → P13 código de compra → GPS"]
     BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos → activarGPS (dev+prod)"]
     HDLP14 --> P14[P14 — Normativa]
     NORMAL2 --> P14
     P14 --> P15[P15 — Reto R-2\nseleccion envía AVENTURA_ACTIVADA]
     P15 --> HDLAA["padre: _hdl_SELECCION_AVENTURA_ACTIVADA\n_mostrarUIActivada: hijo5 display:block · visibility:visible\n_vv_triggerCambioModo(MODOS.CASA)"]
-    HDLAA --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS no activo en watchPosition])
+    HDLAA --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS activo en watchPosition · overlay GPS silenciado])
 ```
 
-En dev mode, `mostrar(12)` y `mostrar(13)` redirigen directamente a P14 (`id = 14`) — no se envía `CODIGO_VALIDADO`. La función `_accionPantalla15()` envía `SELECCION.P14_MOSTRADA` al padre, que en `_hdl_SELECCION_P14_MOSTRADA` salta el GPS (dev mode) y carga iframes + datos. Guard `_iframesPreCargadosP14` evita doble carga.
+En dev mode, `mostrar(12)` y `mostrar(13)` redirigen directamente a P14 (`id = 14`) — no se envía `CODIGO_VALIDADO`. La función `_accionPantalla15()` envía `SELECCION.P14_MOSTRADA` al padre, que en `_hdl_SELECCION_P14_MOSTRADA` carga iframes + datos y activa GPS (igual en dev y prod). Guard `_iframesPreCargadosP14` evita doble carga.
 
 #### Factor 2 — Activación durante la aventura activa
 
@@ -7716,6 +7716,174 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 | Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Skip P12/P13 → P14, CODIGO_VALIDADO enviado` |
 
 El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código `[REDACTED]`, ni los gestos de activación.
+
+---
+
+#### La experiencia del desarrollador — narrativa completa del modo CASA
+
+Esta sección describe el recorrido completo del desarrollador en modo DEV, en orden cronológico, desde la activación hasta el uso en modo AVENTURA. Es la versión legible de lo que los diagramas de Factor 1 y Factor 2 describen técnicamente.
+
+---
+
+**Paso 1 — Activar el modo DEV en P1**
+
+El desarrollador abre la app en el navegador (escritorio o móvil). Ve la pantalla de bienvenida con el logo circular naranja. Hace 5 taps rápidos sobre el logo (o `Ctrl+Alt+clic` en escritorio). Aparece un overlay con un campo de texto. Introduce `[REDACTED]`. El overlay desaparece. En consola: `[DEV_MODE] 🟢 ACTIVADO`.
+
+En este momento se setean dos variables en memoria:
+- `globalThis._devCasaMode = true` — en la pantalla de selección (`En-busca-del-tesoro.html`)
+- `globalThis._devModeActivo = true` — en el padre (`codigo-padre.html`)
+
+No hay ningún indicador visual para el usuario final. La app sigue teniendo exactamente el mismo aspecto.
+
+---
+
+**Paso 2 — P2 a P11: flujo normal**
+
+El desarrollador navega como cualquier usuario: elige idioma, selecciona aventura, ve el vídeo intro, acepta los términos de uso, hace el reto R-1. Todo funciona con normalidad. Los iframes de aventura (hijo1-5) todavía no están cargados.
+
+---
+
+**Paso 3 — El bypass de P12/P13**
+
+Cuando la lógica de `mostrar()` intentaría mostrar la pantalla de pago (P12) o la pantalla de código de compra (P13), detecta `_devCasaMode === true` y redirige directamente al `id = 14`. El desarrollador nunca ve el formulario de pago ni el campo de código. No se envía `SELECCION.CODIGO_VALIDADO` al padre.
+
+---
+
+**Paso 4 — P14: normativa**
+
+El desarrollador ve la pantalla de normativa. Es obligatoria incluso en modo DEV: debe hacer scroll hasta el final para habilitar el botón de aceptar. Al aceptar, `_accionPantalla15()` envía `SELECCION.P14_MOSTRADA` al padre.
+
+El padre ejecuta `_hdl_SELECCION_P14_MOSTRADA` en este orden:
+
+1. En paralelo: carga iframes hijo1–4 (`cargarRestoDeiframes()`), hijo5 (`cargarHijoCasa()`), y datos de aventura (`_fase2CargarDatos()`)
+2. Setea `globalThis._codigoValidadoP13 = true` — habilita que `showGpsSignalOverlay` pueda mostrarse si GPS falla a continuación
+3. Activa GPS (`await activarGPS()`) — **igual en dev que en prod**
+   - Si GPS falla (permiso denegado): `showGpsSignalOverlay(1)` y `return` — la aventura no puede continuar
+   - Si GPS arranca bien: continúa
+4. Setea `globalThis._iframesPreCargadosP14 = true`
+
+El desarrollador sigue viendo la normativa mientras todo esto ocurre en segundo plano. No hay ningún spinner ni indicador de carga — la pantalla permanece estática.
+
+---
+
+**Paso 5 — P15: Reto R-2**
+
+El desarrollador ve la pregunta de confirmación SÍ/NO (Reto R-2). Responde SÍ. La pantalla de selección envía `SELECCION.AVENTURA_ACTIVADA` al padre.
+
+---
+
+**Paso 6 — El spin de activación**
+
+Aparece el overlay de carga (`#overlay-carga-aventura`) con el logo giratorio naranja. El desarrollador ve el spinner mientras el padre trabaja:
+
+1. Detecta `_iframesPreCargadosP14 = true` → fast-path: no recarga iframes
+2. Distribuye datos de aventura a los hijos (`distribuirDatosAventura()`)
+3. Hace visible hijo5 (`display:block; visibility:visible`)
+4. Llama `await _vv_triggerCambioModo(MODOS.CASA)` — todos los hijos reciben `CAMBIO_MODO(CASA)` y responden con `ENTENDIDO` + `EFECTUADO`
+5. ⚠️ **Pendiente:** resetea `globalThis._codigoValidadoP13 = false` — a partir de aquí el overlay de GPS solo se mostrará en modo AVENTURA (ver estado GPS más abajo)
+6. Oculta el overlay de carga (`hideParentLoadingOverlay()`)
+
+El spin dura lo que necesite — no hay timeout fijo. Solo desaparece cuando todos los pasos anteriores han completado. Esto garantiza que cuando el desarrollador ve la UI, el estado está completamente inicializado.
+
+---
+
+**Paso 7 — CASA mode: lo que ve el desarrollador**
+
+El mapa aparece. hijo5 está visible en la parte superior derecha. El GPS está corriendo en segundo plano (`watchPosition` activo) pero completamente silenciado:
+
+- Las posiciones GPS llegan a `_watchPositionSuccess` → `procesarPosicionGPSParaAventura`, que devuelve inmediatamente en la línea `if (estadoMapa.modo !== MODOS.AVENTURA) return` — nada avanza en la aventura
+- Si el GPS pierde señal, `_watchPositionError` llama a `showGpsSignalOverlay`, pero el guard comprueba modo CASA + `_codigoValidadoP13 = false` (tras el reset del paso 6) → devuelve sin mostrar nada
+
+El desarrollador puede explorar el mapa, ver las paradas marcadas, inspeccionar el estado con hijo5, navegar libremente — todo sin que el GPS interfiera ni muestre overlays de error.
+
+**Estado del GPS en modo CASA:**
+
+| Aspecto | Estado |
+|---------|--------|
+| `watchPosition` | ✅ activo — señal se mantiene caliente |
+| Procesamiento de proximidad | ❌ bloqueado por `estadoMapa.modo !== MODOS.AVENTURA` |
+| Overlay de error GPS | ❌ silenciado por `_codigoValidadoP13 = false` + modo CASA |
+| Avance de paradas | ❌ imposible en modo CASA |
+
+---
+
+**Paso 8 — Botón 🛰️ en hijo5: entrar en AVENTURA**
+
+Cuando el desarrollador está listo para probar la navegación real, pulsa el botón GPS (🛰️) de hijo5:
+
+1. hijo5 envía `SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }` al padre
+2. El padre ejecuta `_hdl_SISTEMA_CAMBIO_MODO(AVENTURA)`:
+   - `globalThis._devModeActivo = false`
+   - hijo5: `display:none` (desaparece)
+   - `manejarCambioModo(AVENTURA)` → todos los hijos notificados, `estadoMapa.modo = MODOS.AVENTURA`
+   - `_gestionarGpsSegunModo(AVENTURA)` → guard `!estado.gps?.activo` — GPS ya activo desde P14, **no-op**
+3. A partir de este momento:
+   - `procesarPosicionGPSParaAventura` ya no devuelve en la línea de modo — la proximidad está activa
+   - Si GPS pierde señal, el overlay de error sí aparece (modo AVENTURA)
+   - El heartbeat de hijos se activa
+
+---
+
+**Paso 9 (opcional) — Factor 2: volver a CASA durante la aventura**
+
+Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por ejemplo, para ver qué paradas están marcadas en hijo5):
+
+1. 5 taps en el icono del temporizador de hijo1 (o `Ctrl+Alt+clic`)
+2. Introduce `[REDACTED]`
+3. `_devModeActivo = true`, hijo5 visible, `CAMBIO_MODO(CASA)` propagado
+4. `estadoMapa.modo = MODOS.CASA` — proximidad desactivada, GPS silenciado de nuevo
+5. GPS sigue corriendo — la señal no se interrumpe
+
+Repetir desde el paso 8 para volver a AVENTURA.
+
+---
+
+**Estado GPS a lo largo de todo el flujo**
+
+| Fase | `watchPosition` | Proximidad activa | Overlay de error |
+|------|----------------|------------------|-----------------|
+| Antes de P14 | ❌ | — | ❌ |
+| P14 cargando (entre iframes y GPS) | ❌ | — | ❌ |
+| P14 activando GPS | ✅ arrancando | ❌ modo CASA | ✅ si falla aquí |
+| Spin de AVENTURA_ACTIVADA | ✅ activo | ❌ modo CASA | ✅ si falla aquí |
+| CASA mode (tras spin) | ✅ activo | ❌ | ❌ silenciado (`_codigoValidadoP13 = false`) |
+| AVENTURA mode | ✅ activo | ✅ | ✅ si falla |
+| CASA mode (Factor 2) | ✅ activo | ❌ | ❌ silenciado |
+
+---
+
+**Caso adicional A — NO en P15 (Reto R-2 negativo)**
+
+El desarrollador responde NO a la pregunta de confirmación. Antes de reiniciar la selección:
+
+1. `En-busca-del-tesoro.html` envía `SELECCION.REINICIAR` al padre vía `postMessage`
+2. El padre ejecuta `_hdl_SELECCION_REINICIAR`: `_codigoValidadoP13 = false` + `_iframesPreCargadosP14 = false`
+3. `reiniciarSeleccion()` limpia el estado de selección (idioma, aventura, retos, flags de contenido)
+4. `mostrar(1)` → vuelve a P1
+
+GPS: sigue corriendo — el mutex de `activarGPS()` evita doble activación en el siguiente P14. Los iframes quedan cargados en el DOM (ocultos), pero `_iframesPreCargadosP14 = false` hace que el fast-path no se use en el siguiente `AVENTURA_ACTIVADA` — los datos se redistribuyen correctamente.
+
+Dev mode persiste (`_devCasaMode` sigue siendo `true`) — el desarrollador puede volver a hacer P14 sin necesidad de reintroducir `[REDACTED]`.
+
+---
+
+**Caso adicional B — GPS denegado: recuperación automática al conceder el permiso**
+
+Si GPS falla por permiso denegado (`errorCode === 1`), `showGpsSignalOverlay(1)` muestra el overlay con el botón `🛰️→🌐→⚙️`. La recuperación ocurre de dos formas:
+
+- **iOS (iPad/iPhone/iPod):** al pulsar el botón, se registra un listener `visibilitychange { once: true }`. Cuando el desarrollador vuelve de Ajustes, `activarGPS()` se llama automáticamente.
+- **No-iOS:** al mostrar el overlay, se registra `permissions.onchange` con un guard `__vv_gps_perm_watcher` para evitar duplicados. Cuando el SO cambia el estado de geolocation a `'granted'` (sin necesidad de pulsar el botón), `activarGPS()` se llama automáticamente. Si el desarrollador pulsa el botón, `activarGPS()` también se llama directamente.
+
+En ambos casos: cuando GPS da la primera posición válida, `_watchPositionSuccess` llama a `hideGpsSignalOverlay()` y la app continúa.
+
+---
+
+**Caso adicional C — Recarga de página**
+
+Si el desarrollador recarga el navegador en cualquier momento:
+
+- **Antes de P15 (adventure no iniciada):** no hay `vv_aventura_iniciada` en localStorage → la app arranca desde P1 limpia. `_devModeActivo` y `_devCasaMode` se pierden — hay que reintroducir `[REDACTED]` si se quiere dev mode.
+- **Después de P15 (aventura iniciada):** el padre guarda `vv_aventura_iniciada` en localStorage cuando recibe `SELECCION.AVENTURA_ACTIVADA`. Al recargar, detecta la clave y muestra `mostrarDialogoReanudacion()` — el desarrollador puede elegir continuar o empezar de nuevo. Si elige continuar, `ejecutarRestauracionAventura()` restaura el progreso (GPS se reactiva, iframes se recargan). Dev mode se pierde en cualquier caso tras la recarga.
 
 ---
 
