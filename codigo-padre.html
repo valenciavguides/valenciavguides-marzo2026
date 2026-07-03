@@ -7237,8 +7237,8 @@
                 await cargarIframeSoloSeleccion();
                 (globalThis.logger || console).success(`${logPrefix} ✅ FASE 3.1 COMPLETADA - Iframe de selección cargado`);
 
-                // 2. Cargar el resto de iframes hijos en secuencia
-                await _cargarIframesHijos(logPrefix);
+                // Los iframes hijo (hijo1-5) NO se cargan aquí — contienen lógica de pago.
+                // Se cargan en _hdl_SELECCION_P14_MOSTRADA, tras validación del código en P13.
 
                 // 5. Marcar sistema como inicializado
                 globalThis.estadoPadre.sistemaInicializado = true;
@@ -10675,8 +10675,9 @@
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
                 (globalThis.logger || console).debug(`${logPrefix} Aventura almacenada en estado global: ${aventura}`);
 
-                // Limpiar flag de P13 para esta selección de aventura
+                // Limpiar flags de P13/P14 para esta selección de aventura
                 globalThis._codigoValidadoP13 = false;
+                globalThis._iframesPreCargadosP14 = false;
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando selección de aventura:`, error, error?.stack);
@@ -10726,10 +10727,19 @@
 
         async function _hdl_SELECCION_P14_MOSTRADA(_mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[P14_MOSTRADA]`;
+            if (globalThis._iframesPreCargadosP14) {
+                (globalThis.logger || console).info(`${logPrefix} ⏭️ Iframes ya cargados desde P14 — ignorando duplicado`);
+                return;
+            }
             try {
-                (globalThis.logger || console).info(`${logPrefix} 📦 P14 visible — precargando datos`);
-                await _fase2CargarDatos(logPrefix);
-                (globalThis.logger || console).info(`${logPrefix} ✅ Datos precargados, listos para AVENTURA_ACTIVADA`);
+                (globalThis.logger || console).info(`${logPrefix} 📦 P14 visible — cargando iframes + datos en paralelo`);
+                await Promise.all([
+                    _fase2CargarDatos(logPrefix),
+                    cargarRestoDeiframes(),
+                    cargarHijoCasa()
+                ]);
+                globalThis._iframesPreCargadosP14 = true;
+                (globalThis.logger || console).info(`${logPrefix} ✅ Iframes y datos listos para AVENTURA_ACTIVADA`);
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error en P14_MOSTRADA:`, error, error?.stack);
             }
@@ -10899,24 +10909,30 @@
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado || 'es';
 
-                (globalThis.logger || console).info(`${logPrefix} 📦 Cargando iframes hijos...`);
-                const iframesHijos = [
-                    { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
-                    { id: 'hijo2', src: 'coordenadas-hijo2.html' },
-                    { id: 'hijo3', src: 'audio-hijo3.html' },
-                    { id: 'hijo4', src: 'retos-hijo4.html' },
-                    { id: 'hijo5', src: 'boton-casa-hijo5.html' }
-                ];
-                const _idsRecargados = iframesHijos.map(c => c.id);
                 estado.seleccion.timestampInicio = timestamp;
 
-                // Normalizar ANTES de asignar src para evitar que HIJO_LISTO llegue
-                // durante la carga y sea borrado por _normalizarSetHijos
-                _normalizarSetHijos(estado, _idsRecargados, logPrefix);
-                await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
-                (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
-                updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
-                await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
+                if (globalThis._iframesPreCargadosP14) {
+                    // Iframes cargados desde P14 — saltamos recarga para no destruir su estado
+                    (globalThis.logger || console).info(`${logPrefix} ✅ Iframes pre-cargados desde P14 — saltando recarga`);
+                    globalThis._iframesPreCargadosP14 = false;
+                    updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
+                } else {
+                    // Ruta fallback: reanudación de sesión o P14 no disparó (normalizar + recargar todo)
+                    (globalThis.logger || console).info(`${logPrefix} 📦 Cargando iframes hijos (ruta fallback)...`);
+                    const iframesHijos = [
+                        { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
+                        { id: 'hijo2', src: 'coordenadas-hijo2.html' },
+                        { id: 'hijo3', src: 'audio-hijo3.html' },
+                        { id: 'hijo4', src: 'retos-hijo4.html' },
+                        { id: 'hijo5', src: 'boton-casa-hijo5.html' }
+                    ];
+                    const _idsRecargados = iframesHijos.map(c => c.id);
+                    _normalizarSetHijos(estado, _idsRecargados, logPrefix);
+                    await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
+                    (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
+                    updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
+                    await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
+                }
                 updateLoadingStatus('Hijos sincronizados', 'Distribuyendo datos de aventura', 62);
 
                 const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA;
