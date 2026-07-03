@@ -10700,26 +10700,25 @@
                 return;
             }
             try {
-                // En prod: activar GPS (tras validación de código en P13)
-                if (!globalThis._devModeActivo) {
-                    globalThis._codigoValidadoP13 = true; // guard para showGpsSignalOverlay
-                    try {
-                        await activarGPS();
-                    } catch (gpsErr) {
-                        (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
-                        showGpsSignalOverlay(1);
-                        return;
-                    }
-                }
-                // Cargar iframes HTML + datos de aventura en paralelo mientras usuario lee la normativa
+                // Cargar iframes + datos en paralelo mientras usuario lee la normativa
                 (globalThis.logger || console).info(`${logPrefix} 📦 Cargando iframes + datos en paralelo`);
                 await Promise.all([
                     _fase2CargarDatos(logPrefix),
                     cargarRestoDeiframes(),
                     cargarHijoCasa()
                 ]);
+                // GPS se activa DESPUÉS de los iframes (dev y prod):
+                // hijo2 ya está en modo CASA → estadoMapa.modo = CASA → proximidad inactiva
+                globalThis._codigoValidadoP13 = true; // guard para showGpsSignalOverlay
+                try {
+                    await activarGPS();
+                } catch (gpsErr) {
+                    (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
+                    showGpsSignalOverlay(1);
+                    return;
+                }
                 globalThis._iframesPreCargadosP14 = true;
-                (globalThis.logger || console).info(`${logPrefix} ✅ GPS + iframes + datos listos para AVENTURA_ACTIVADA`);
+                (globalThis.logger || console).info(`${logPrefix} ✅ Iframes + datos + GPS listos para AVENTURA_ACTIVADA`);
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error en P14_MOSTRADA:`, error, error?.stack);
             }

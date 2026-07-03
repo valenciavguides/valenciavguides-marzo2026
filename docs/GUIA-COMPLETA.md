@@ -204,9 +204,9 @@ Al arrancar `codigo-padre.html`:
 2. Se comprueba si existe `vv_aventura_iniciada` en `localStorage`.
    - Si existe → `ejecutarRestauracionAventura()` (línea 4152) restaura el estado anterior.
    - Si no existe → la app queda en MODO CASA esperando que el usuario complete el flujo de incorporación.
-3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P14 (`SELECCION.P14_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P13. Antes de P14, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1):** si `_devModeActivo` es `true`, `mostrar()` intercepta P12 y P13 y redirige directamente a P14 sin validar código ni GPS.
+3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P14 (`SELECCION.P14_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P13. Antes de P14, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1):** si `_devModeActivo` es `true`, `mostrar()` intercepta P12 y P13 y redirige directamente a P14 sin validar código. GPS sí se activa en P14 (después de los iframes), igual que en prod.
 4. Cuando `SELECCION.CODIGO_VALIDADO` llega (P13, solo prod): el handler está vacío — solo registra que el código fue validado con un log. GPS, iframes y datos de aventura se activan en P14.
-5. Cuando `SELECCION.P14_MOSTRADA` llega: activa GPS (solo prod) y en paralelo carga hijo1-5 (`cargarRestoDeiframes` + `cargarHijoCasa`) y precarga datos (`_fase2CargarDatos`), mientras el usuario lee la normativa. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
+5. Cuando `SELECCION.P14_MOSTRADA` llega: carga hijo1-5 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo; después activa GPS (dev y prod). El orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
 
 ```mermaid
 flowchart TD
@@ -216,7 +216,7 @@ flowchart TD
     C --> DEV{¿_devModeActivo?\nFactor 1 activado antes de P12}
     DEV -- Sí\nmodo DEV --> BYPASS["mostrar() intercepta P12 y P13\nredirige id=14 directamente\nsin GPS · sin CODIGO_VALIDADO"]
     DEV -- No --> P13[P13: usuario introduce código de compra\nseleccion envía CODIGO_VALIDADO · padre solo registra]
-    P13 --> P14[P14: normativa mostrada\n_accionPantalla15() → P14_MOSTRADA\nactiva GPS prod + carga hijo1-5 + datos en paralelo]
+    P13 --> P14[P14: normativa mostrada\n_accionPantalla15() → P14_MOSTRADA\ncarga hijo1-5 + datos en paralelo → activa GPS (dev+prod)]
     BYPASS --> P14
     P14 --> P15[P15: Reto R-2\nSÍ → AVENTURA_ACTIVADA]
     P15 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat inactivo\nUsuario ve mapa y controles])
@@ -574,7 +574,7 @@ flowchart TD
     B -- Sí vv_aventura_iniciada --> C[ejecutarRestauracionAventura\nRestaurar progreso · idioma · parada actual]
     B -- No --> D[Demo P1→P17 · selección idioma · aventura · puzzle · pago · activación]
     D --> P13V[P13: usuario introduce código\nPadre recibe CODIGO_VALIDADO]
-    P13V --> E[P14_MOSTRADA -> padre activa GPS (prod) + carga iframes + datos\nen paralelo mientras usuario lee normativa]
+    P13V --> E[P14_MOSTRADA -> padre carga iframes + datos en paralelo\nluego activa GPS (dev+prod) mientras usuario lee normativa]
     E --> F[Handshake HIJO_LISTO\nde cada hijo]
     F --> G[Padre distribuye datos\nDATOS.CARGAR_RETOS · coordenadas · audios]
     G --> H([MODO CASA\nUsuario ve mapa · GPS activo sin validaciones · heartbeat inactivo])
@@ -1606,7 +1606,7 @@ Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el 
 - `SELECCION.AVENTURA_SELECCIONADA` (P7) → solo almacena `{ aventura, idioma }` en `estado.seleccion`; resetea flags `_codigoValidadoP13` y `_iframesPreCargadosP14`; **no carga iframes ni activa GPS**
 - `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `{ idioma, aventura, timestamp }` en `estado.seleccion`; **no carga iframes**
 - `SELECCION.CODIGO_VALIDADO` (P13, solo prod) → handler vacío — registra con un log que el código fue validado; nada más
-- `SELECCION.P14_MOSTRADA` (P14) → activa GPS (solo prod) si GPS deniega aborta con overlay; en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`
+- `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; después: `activarGPS()` (dev y prod); si GPS deniega → overlay + abort
 - `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-5 como fallback; siempre distribuye datos y activa modo CASA
 ```mermaid
 flowchart TD
@@ -1616,7 +1616,7 @@ flowchart TD
     FIN["✅ Sistema listo\nCAMBIO_MODO sincronizacion_inicial → H2/H3/H4\noverlay oculto — usuario ve seleccion"]
     SEL_A["AVENTURA_SELECCIONADA (P7)\nsolo almacena estado.seleccion\nreset _codigoValidadoP13 y _iframesPreCargadosP14"]
     SEL_CV["CODIGO_VALIDADO (P13 — solo prod)\nhandler vacío — registra con log"]
-    SEL_P14["P14_MOSTRADA (P14)\nactivarGPS (prod) + cargarRestoDeiframes + cargarHijoCasa\n+ _fase2CargarDatos en paralelo"]
+    SEL_P14["P14_MOSTRADA (P14)\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos en paralelo\n→ activarGPS (dev+prod)"]
     SEL_C["AVENTURA_ACTIVADA (P15→P16)\nfast-path si _iframesPreCargadosP14\nsi no: carga hijo1-5 + distribuirDatosAventura()"]
     F1 --> F2 --> F3A --> FIN
     FIN -.->|"más tarde:\nusuario completa\nonboarding"| SEL_A
@@ -3379,7 +3379,7 @@ sequenceDiagram
 
     Note over T,P: P14 — normativa mostrada
     T->>P: SELECCION.P14_MOSTRADA { timestamp }
-    Note over P: _hdl_SELECCION_P14_MOSTRADA — activarGPS (prod) + cargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos
+    Note over P: _hdl_SELECCION_P14_MOSTRADA — cargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos → activarGPS (dev+prod)
 
     Note over T,P: P15/P16 — usuario confirma inicio (tras reto R-2)
     T->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados, timestamp }
@@ -3394,7 +3394,7 @@ sequenceDiagram
 | `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | Almacena estado; resetea `_codigoValidadoP13`; no carga iframes |
 | `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Almacena `estado.seleccion`; no carga iframes |
 | `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
-| `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `activarGPS()` (prod) + `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo |
+| `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `activarGPS()` (dev y prod) |
 | `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
 | `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
 | `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, iframeId }` | Handshake estándar |
@@ -4530,7 +4530,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ timestamp }` |
 | Handler en padre | `_hdl_SELECCION_P14_MOSTRADA` |
-| Acción | `activarGPS()` (solo prod) + en paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4) + `cargarHijoCasa()` (hijo5). Si GPS deniega: `showGpsSignalOverlay(1)` y aborta. Guard `_iframesPreCargadosP14` evita doble carga. |
+| Acción | En paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4) + `cargarHijoCasa()` (hijo5). Después: `activarGPS()` (dev y prod). Si GPS deniega: `showGpsSignalOverlay(1)` y aborta sin setear `_iframesPreCargadosP14`. Guard `_iframesPreCargadosP14` evita doble carga. |
 
 **SELECCION.AVENTURA_ACTIVADA** (seleccion → padre)
 
@@ -7608,7 +7608,7 @@ flowchart TD
     NORMAL --> P12_13{mostrar(12) o mostrar(13)}
     P12_13 -- "_devCasaMode === true" --> BYPASS["id = 14 directamente (sin CODIGO_VALIDADO)\nsin GPS · sin código de compra"]
     P12_13 -- "_devCasaMode === false" --> NORMAL2["Flujo normal:\nP12 pago → P13 código de compra → GPS"]
-    BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\nactivarGPS (prod) + cargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos"]
+    BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos → activarGPS (dev+prod)"]
     HDLP14 --> P14[P14 — Normativa]
     NORMAL2 --> P14
     P14 --> P15[P15 — Reto R-2\nseleccion envía AVENTURA_ACTIVADA]
