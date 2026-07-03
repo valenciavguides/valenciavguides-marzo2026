@@ -36,17 +36,18 @@ Hay tareas críticas sin resolver antes de publicar en `valenciavguides.es`. Ver
 21. [Cómo arrancar la aplicación en local](#21-cómo-arrancar-la-aplicación-en-local)
 22. [Preparación para producción](#22-preparación-para-producción)
 23. [Glosario de términos](#23-glosario-de-términos)
-24. [La experiencia del usuario: narrativa completa del modo AVENTURA](#24-la-experiencia-del-usuario-narrativa-completa-del-modo-aventura)
-25. [Los controladores JS: roles, comunicación e inicialización](#25-los-controladores-js-roles-comunicación-e-inicialización)
-26. [El asistente de soporte (hijo 6)](#26-el-asistente-de-soporte-hijo-6)
-27. [Cleanup de listeners en cambio de aventura o modo](#27-cleanup-de-listeners-en-cambio-de-aventura-o-modo)
-28. [Implementación de restricciones GPS y comportamiento visual](#28-implementación-de-restricciones-gps-y-comportamiento-visual)
-29. [Inicialización robusta: logger, sleep e HIJO_LISTO](#29-inicialización-robusta-logger-sleep-e-hijo_listo)
-30. [Posibles problemas en modo aventura](#30-posibles-problemas-en-modo-aventura)
-31. [Invariantes críticos del sistema de mensajería](#31-invariantes-críticos-del-sistema-de-mensajería)
-32. [Video-intro — pantalla inicial de la PWA](#32-video-intro--pantalla-inicial-de-la-pwa)
-33. [Robustez del sistema de handlers y mensajería](#33-robustez-del-sistema-de-handlers-y-mensajería)
-34. [Gestión de UI distribuida: menús, audio y navegación](#34-gestión-de-ui-distribuida-menús-audio-y-navegación)
+24. [SOLO PARA EL DESARROLLADOR — Modo DEV](#24-solo-para-el-desarrollador--modo-dev)
+25. [La experiencia del usuario: narrativa completa del modo AVENTURA](#25-la-experiencia-del-usuario-narrativa-completa-del-modo-aventura)
+26. [Los controladores JS: roles, comunicación e inicialización](#26-los-controladores-js-roles-comunicación-e-inicialización)
+27. [El asistente de soporte (hijo 6)](#27-el-asistente-de-soporte-hijo-6)
+28. [Cleanup de listeners en cambio de aventura o modo](#28-cleanup-de-listeners-en-cambio-de-aventura-o-modo)
+29. [Implementación de restricciones GPS y comportamiento visual](#29-implementación-de-restricciones-gps-y-comportamiento-visual)
+30. [Inicialización robusta: logger, sleep e HIJO_LISTO](#30-inicialización-robusta-logger-sleep-e-hijo_listo)
+31. [Posibles problemas en modo aventura](#31-posibles-problemas-en-modo-aventura)
+32. [Invariantes críticos del sistema de mensajería](#32-invariantes-críticos-del-sistema-de-mensajería)
+33. [Video-intro — pantalla inicial de la PWA](#33-video-intro--pantalla-inicial-de-la-pwa)
+34. [Robustez del sistema de handlers y mensajería](#34-robustez-del-sistema-de-handlers-y-mensajería)
+35. [Gestión de UI distribuida: menús, audio y navegación](#35-gestión-de-ui-distribuida-menús-audio-y-navegación)
 
 ---
 
@@ -7552,14 +7553,9 @@ Propiedades añadidas en la sesión de julio 2026:
 
 ---
 
-## 24. La experiencia del usuario: narrativa completa del modo AVENTURA
+## 24. SOLO PARA EL DESARROLLADOR — Modo DEV
 
-
-> Esta sección describe paso a paso qué vive el usuario desde que abre la aplicación hasta que completa una aventura, explicado de forma narrativa para que sea fácil de entender.
-
----
-
-### 24.0. SOLO PARA EL DESARROLLADOR — Sistema Modo DEV
+### 24.0. Sistema Modo DEV: activación, factores y seguridad
 
 > **El usuario final nunca debe saber que esto existe.** Esta sección documenta el sistema de acceso al panel de control de desarrollo (`hijo5`) y la activación del modo DEV.
 
@@ -7719,7 +7715,7 @@ El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, e
 
 ---
 
-#### La experiencia del desarrollador — narrativa completa del modo CASA
+### 24.1. La experiencia del desarrollador: narrativa completa del modo CASA
 
 Esta sección describe el recorrido completo del desarrollador en modo DEV, en orden cronológico, desde la activación hasta el uso en modo AVENTURA. Es la versión legible de lo que los diagramas de Factor 1 y Factor 2 describen técnicamente.
 
@@ -7887,7 +7883,13 @@ Si el desarrollador recarga el navegador en cualquier momento:
 
 ---
 
-### 24.1. Abriendo la aplicación por primera vez
+## 25. La experiencia del usuario: narrativa completa del modo AVENTURA
+
+> Esta sección describe paso a paso qué vive el usuario desde que abre la aplicación hasta que completa una aventura, explicado de forma narrativa para que sea fácil de entender.
+
+---
+
+### 25.1. Abriendo la aplicación por primera vez
 
 El turista abre el navegador de su móvil y entra en **valenciavguides.es**. La aplicación carga `codigo-padre.html`, que es el cerebro de todo. Lo primero que ve es una **animación de carga** (logo redondo animado) mientras se inicializan los sistemas internos.
 
@@ -7904,7 +7906,7 @@ Si el turista sostiene el móvil en horizontal al abrir la app, lo primero que v
 
 ---
 
-### 24.2. Las pantallas de demo (gratuitas)
+### 25.2. Las pantallas de demo (gratuitas)
 
 Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia VGuides. A partir de aquí recorre **17 pantallas** más **2 overlays** (mapa vintage y aviso de audio) dentro del iframe de selección. Todo es gratuito y forma la experiencia de demo:
 **Pantalla 1 — Bienvenida.** El logo de la marca sobre fondo naranja. Un botón con una flecha invita a empezar.
@@ -7976,7 +7978,7 @@ Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
 ---
 
-### 24.3. El modo AVENTURA comienza
+### 25.3. El modo AVENTURA comienza
 
 Tras la activación (P16 — pantalla de logos), el sistema está en **modo CASA** con todos los iframes de juego visibles. El usuario ve el mapa y los controles, pero el GPS y el heartbeat aún no están activos.
 
@@ -8000,7 +8002,7 @@ En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simu
 
 ---
 
-### 24.4. ¿Qué ve el usuario en la pantalla de aventura?
+### 25.4. ¿Qué ve el usuario en la pantalla de aventura?
 
 La pantalla de aventura se compone de varios elementos superpuestos:
 
@@ -8034,7 +8036,7 @@ La pantalla de aventura se compone de varios elementos superpuestos:
 
 ---
 
-### 24.5. El usuario camina: dentro del radio de acción
+### 25.5. El usuario camina: dentro del radio de acción
 
 Cuando el usuario está **dentro del radio de acción** de la parada o tramo actual, la experiencia está completa. Los umbrales que controlan el comportamiento en tiempo de ejecución son:
 
@@ -8062,7 +8064,7 @@ En esta situación ideal, el usuario escucha la historia, lee el texto, mira las
 
 ---
 
-### 24.6. Caminando entre paradas: los tramos
+### 25.6. Caminando entre paradas: los tramos
 
 Un **tramo** es el camino entre dos paradas. Cuando el usuario deja una parada y camina hacia la siguiente, el padre detecta que ha entrado en un tramo y ajusta el comportamiento:
 
@@ -8081,7 +8083,7 @@ La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica q
 
 ---
 
-### 24.7. Cuando el usuario se aleja demasiado: fuera del radio
+### 25.7. Cuando el usuario se aleja demasiado: fuera del radio
 
 Si el usuario se aleja del radio de la parada o tramo actual (20 m para paradas, ~50 m para tramos), **hijo2** lo detecta y **reacciona inmediatamente**:
 
@@ -8121,7 +8123,7 @@ Cuando el countdown llega a `00:00`:
 
 ---
 
-### 24.8. Los retos en cada parada
+### 25.8. Los retos en cada parada
 
 Cuando el usuario pulsa el botón **Retos** del hijo 3 (audio), se abre el **hijo 4** (retos) como un modal a pantalla completa. Los retos pueden ser de 4 tipos:
 
@@ -8147,7 +8149,7 @@ Cuando el usuario completa el **último reto disponible** de la secuencia, apare
 
 ---
 
-### 24.9. Volver a modo CASA
+### 25.9. Volver a modo CASA
 
 En cualquier momento, el usuario puede pulsar el botón 🛰 **ON** del hijo 5 para cambiar a modo CASA. Cuando lo hace:
 
@@ -8163,7 +8165,7 @@ En cualquier momento, el usuario puede pulsar el botón 🛰 **ON** del hijo 5 p
 
 ---
 
-### 24.10. Cerrar o recargar la página: persistencia y reanudación
+### 25.10. Cerrar o recargar la página: persistencia y reanudación
 
 Si el usuario **cierra el navegador** o **recarga la página** (por accidente, por batería baja, o porque recibió una llamada), la aplicación no pierde el progreso. El sistema de persistencia guarda en `localStorage`:
 
@@ -8235,7 +8237,7 @@ Ambos diálogos están **traducidos a los 12 idiomas** (español, inglés, franc
 
 ---
 
-### 24.11. Fin de la aventura: modal de finalización y reciclaje digital
+### 25.11. Fin de la aventura: modal de finalización y reciclaje digital
 
 Cuando el usuario completa la última parada, `progresarSiguienteElemento()` intenta obtener el siguiente elemento y no lo encuentra. Esto dispara `_handleFinDeAventura()`.
 
@@ -8295,7 +8297,7 @@ Los dos botones tienen caminos distintos, pero el resultado final es idéntico �
 
 ---
 
-### 24.12. Tiempo agotado: modal adaptado del fin de aventura
+### 25.12. Tiempo agotado: modal adaptado del fin de aventura
 
 Cuando el contador de tiempo de hijo1 llega a 0, se dispara `AVENTURA.TIEMPO_AGOTADO` → `_hdl_AVENTURA_TIEMPO_AGOTADO()` (`codigo-padre.html` L11148, Script 2).
 
@@ -8348,7 +8350,7 @@ export const TRADUCCIONES_TIEMPO_AGOTADO = {
 
 ---
 
-### 24.13. Red de seguridad: limpieza automática por abandono
+### 25.13. Red de seguridad: limpieza automática por abandono
 
 **Motivación.** La app ya retrasa la carga de los datos del padre hasta que el código se verifica con éxito (capa pasiva de seguridad frente al robo de datos, ver §10 y el flujo de verificación de código). Esta sección documenta la contraparte simétrica: si el usuario **abandona el dispositivo** tras terminar la aventura o agotar el tiempo —sin pulsar ningún botón del modal—, los datos ya cargados (coordenadas, audios, textos, puzzles) no deben quedar en el dispositivo de forma indefinida. `armarRedDeSeguridad()`, exportada desde `js/reciclaje-digital.js`, cierra ese hueco.
 
@@ -8416,7 +8418,7 @@ Nota aparte: si la pestaña *completa* del padre (no solo el iframe de hijo1) pa
 
 ---
 
-### 24.14. Error de GPS: la imagen de señal perdida
+### 25.14. Error de GPS: la imagen de señal perdida
 
 Hay dos overlays distintos relacionados con GPS que no deben confundirse:
 
@@ -8447,7 +8449,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 
 ---
 
-### 24.15. Resumen visual del flujo completo
+### 25.15. Resumen visual del flujo completo
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -8524,7 +8526,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 
 ---
 
-### 24.16. Valores técnicos de referencia
+### 25.16. Valores técnicos de referencia
 
 | Parámetro | Valor | Variable en código |
 |-----------|-------|--------------------|
@@ -8545,7 +8547,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 
 ---
 
-### 24.17. ¿Qué pasa si algo falla durante la aventura?
+### 25.17. ¿Qué pasa si algo falla durante la aventura?
 
 La aplicación está diseñada para que ningún error externo deje al usuario bloqueado sin explicación. Cuando algo sale mal, aparece un overlay a pantalla completa con una imagen descriptiva, un botón de acción y, en la mayoría de casos, una cuenta atrás que reactiva el botón automáticamente.
 
