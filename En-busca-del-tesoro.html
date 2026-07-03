@@ -1002,7 +1002,6 @@
     let timerMensajeCarga = null;
     // _devCasaMode se comparte entre script clásico y módulo via globalThis
     globalThis._devCasaMode = globalThis._devCasaMode || false;
-    let _devCargaIniciada = false;
     let timerProgresoCarga = null;
     const IMAGENES_AVENTURAS = {
       'Aventura1': 'imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg',
@@ -1077,6 +1076,15 @@
     }
 
     function _accionPantalla15() {
+      // Notificar al padre que P14 es visible → precarga de datos e iframes
+      if (globalThis.parent && globalThis.parent !== globalThis) {
+        globalThis.parent.postMessage({
+          tipo: 'SELECCION.P14_MOSTRADA',
+          origen: 'seleccion',
+          destino: 'padre',
+          datos: { timestamp: Date.now() }
+        }, globalThis.location.origin);
+      }
       if (!normativaCargada) { void cargarNormativaOverlay(); return; }
       const cont = document.getElementById('normativa-contenido');
       if (cont) cont.scrollTop = 0;
@@ -1100,25 +1108,8 @@
         void mostrar(7);
         return;
       }
-      // Dev mode: saltar P12 y P13, ir directamente a P14 disparando la carga
+      // Dev mode: saltar P12 y P13, ir directamente a P14
       if (globalThis._devCasaMode && (id === 12 || id === 13)) {
-        if (!_devCargaIniciada) {
-            _devCargaIniciada = true;
-            if (globalThis.parent && globalThis.parent !== globalThis) {
-                globalThis.parent.postMessage({
-                    tipo: 'SELECCION.CODIGO_VALIDADO',
-                    origen: 'seleccion',
-                    destino: 'padre',
-                    datos: {
-                        aventura: globalThis.aventuraSeleccionada || aventuraSeleccionada || '',
-                        idioma: idiomaSeleccionado || 'es',
-                        timestamp: Date.now(),
-                        devMode: true
-                    }
-                }, globalThis.location.origin);
-            }
-            _log.warn('[DEV] Skip P12/P13 → P14, CODIGO_VALIDADO enviado al padre');
-        }
         id = 14;
       }
       document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });

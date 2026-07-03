@@ -134,8 +134,8 @@
                 const data = ev && ev.data;
                 if (!data || !data.tipo) return;
                 if (!_isValidPreModuleSource(ev)) return;
-                // Valores = TIPOS_MENSAJE.PARADAS.READY / SHOWN (no disponible aún pre-módulos)
-                if (data.tipo === 'VV:PARADAS:READY' || data.tipo === 'VV:PARADAS:SHOWN') {
+                // Valores = TIPOS_MENSAJE.PARADAS.READY (no disponible aún pre-módulos)
+                if (data.tipo === 'VV:PARADAS:READY') {
                     const iframe = document.getElementById('hijo5');
                     if (!iframe) return;
                     _injectParadasStyle(iframe);
@@ -4448,7 +4448,7 @@
 
         /**
          * Helper: obtener coordenadas P-0 de la aventura actual (evita hardcodear lat/lng).
-         * Accesible desde activarGPS y CENTRAR_EN_UBICACION.
+         * Accesible desde activarGPS.
          */
         function _obtenerCoordenadasP0Fallback() {
             try {
@@ -5121,6 +5121,9 @@
                 est.gps.activo = false;
                 est.gps.error = error.message;
                 rejectActivacion && rejectActivacion(error);
+                // Si los permisos fueron denegados antes de iniciar watchPosition,
+                // _watchPositionError nunca se llama → mostrar overlay manualmente.
+                try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(1); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 throw error;
             } finally {
                 // Limpiar bandera de activación en curso
@@ -6920,7 +6923,7 @@
                 const { aventura, idioma } = globalThis.__pendingDistribucion;
                 (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🔄 Procesando distribución pendiente de aventura ${aventura} (${idioma}) después de carga de iframes...`);
                 try {
-                    const resultados = await distribuirDatosAventura(aventura, idioma);
+                    const resultados = await globalThis.distribuirDatosAventura(aventura, idioma);
                     if (resultados.pospuesto) { (globalThis.logger || console).warn(`${CONFIG_PADRE.LOG_PREFIX} ⚠️ Distribución pendiente aún pospuesta: ${resultados.mensaje}`); }
                     else { (globalThis.logger || console).success(`${CONFIG_PADRE.LOG_PREFIX} ✅ Distribución pendiente completada:`, resultados); globalThis.__pendingDistribucion = undefined; }
                 } catch (error) {
@@ -7132,7 +7135,7 @@
             const { aventura, idioma, razon } = globalThis.__pendingDistribucion;
             (globalThis.logger || console).info(`${logPrefix} 🔄 Procesando distribución pendiente (${razon}): ${aventura}/${idioma}`);
             try {
-                const resultados = await distribuirDatosAventura(aventura, idioma);
+                const resultados = await globalThis.distribuirDatosAventura(aventura, idioma);
                 if (resultados.pospuesto) {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ Distribución pendiente aún pospuesta:`, resultados.mensaje);
                 } else {
@@ -7655,7 +7658,9 @@
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
         // También esperamos estadoPadre: se asigna ~486 líneas después de mensajeria en Script 1,
         // por lo que sin esta condición Script 2 podría leerlo como undefined.
+        let _waitMs2 = 0;
         while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function' || !globalThis.estadoPadre) {
+            if (++_waitMs2 > 200) { (globalThis.logger || console).error('[PADRE Script2] mensajeria/estadoPadre no disponible tras 10s'); break; }
             await sleep(50);
         }
         const { registrarControlador: registrarControlador_S2, enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
@@ -10670,9 +10675,8 @@
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
                 (globalThis.logger || console).debug(`${logPrefix} Aventura almacenada en estado global: ${aventura}`);
 
-                // Limpiar flags de P13 para esta selección de aventura
+                // Limpiar flag de P13 para esta selección de aventura
                 globalThis._codigoValidadoP13 = false;
-                globalThis._iframesPreCargadosP13 = false;
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando selección de aventura:`, error, error?.stack);
@@ -10702,16 +10706,10 @@
         async function _hdl_SELECCION_CODIGO_VALIDADO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[CODIGO_VALIDADO]`;
             try {
-                const { aventura, idioma } = mensaje.datos || {};
-                const _av = aventura || estado?.seleccion?.aventura;
-                const _id = idioma  || estado?.seleccion?.idioma || 'es';
-
                 // En dev mode se omite GPS (CASA no necesita proximidad y GPS bloqueante impediría test en desktop)
-                // Belt-and-suspenders: acepta el flag tanto del estado global como del propio payload
                 if (!globalThis._devModeActivo && !mensaje.datos?.devMode) {
                     // Flag antes de activarGPS: showGpsSignalOverlay necesita verlo en su guard
                     globalThis._codigoValidadoP13 = true;
-                    // Paso 1: GPS — si ya estaba denegado, verificarPermisosGPS lanza aquí
                     try {
                         await activarGPS();
                     } catch (gpsErr) {
@@ -10720,23 +10718,20 @@
                         return;
                     }
                 }
-
-                // Paso 2: datos + iframes en paralelo mientras el usuario lee P14
-                // _cargarUnIframeHijo (usado en cargarRestoDeiframes) ya espera HIJO_LISTO internamente
-                await Promise.all([
-                    _fase2CargarDatos(logPrefix),
-                    cargarRestoDeiframes(),
-                    cargarHijoCasa()
-                ]);
-
-                // Paso 3: distribuir — ambas precondiciones cumplidas: datos listos + iframes con HIJO_LISTO
-                await _distribuirConEspera(_av, _id, logPrefix);
-
-                // Paso 4: marcar pre-cargado para que AVENTURA_ACTIVADA no recargue iframes
-                globalThis._iframesPreCargadosP13 = true;
-
+                // Carga de datos e iframes delegada a _hdl_SELECCION_P14_MOSTRADA
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error en CODIGO_VALIDADO:`, error, error?.stack);
+            }
+        }
+
+        async function _hdl_SELECCION_P14_MOSTRADA(_mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[P14_MOSTRADA]`;
+            try {
+                (globalThis.logger || console).info(`${logPrefix} 📦 P14 visible — precargando datos`);
+                await _fase2CargarDatos(logPrefix);
+                (globalThis.logger || console).info(`${logPrefix} ✅ Datos precargados, listos para AVENTURA_ACTIVADA`);
+            } catch (error) {
+                (globalThis.logger || console).error(`${logPrefix} ❌ Error en P14_MOSTRADA:`, error, error?.stack);
             }
         }
 
@@ -10909,25 +10904,19 @@
                     { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
                     { id: 'hijo2', src: 'coordenadas-hijo2.html' },
                     { id: 'hijo3', src: 'audio-hijo3.html' },
+                    { id: 'hijo4', src: 'retos-hijo4.html' },
                     { id: 'hijo5', src: 'boton-casa-hijo5.html' }
                 ];
                 const _idsRecargados = iframesHijos.map(c => c.id);
                 estado.seleccion.timestampInicio = timestamp;
 
-                if (globalThis._iframesPreCargadosP13) {
-                    // Iframes cargados desde P13 — saltamos recarga para no destruir su estado
-                    (globalThis.logger || console).info(`${logPrefix} ✅ Iframes pre-cargados desde P13 — saltando recarga`);
-                    globalThis._iframesPreCargadosP13 = false;
-                    updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
-                } else {
-                    // Ruta normal: normalizar ANTES de asignar src para evitar que HIJO_LISTO llegue
-                    // durante la carga y sea borrado por _normalizarSetHijos
-                    _normalizarSetHijos(estado, _idsRecargados, logPrefix);
-                    await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
-                    (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
-                    updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
-                    await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
-                }
+                // Normalizar ANTES de asignar src para evitar que HIJO_LISTO llegue
+                // durante la carga y sea borrado por _normalizarSetHijos
+                _normalizarSetHijos(estado, _idsRecargados, logPrefix);
+                await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
+                (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
+                updateLoadingStatus('Componentes listos', 'Sincronizando estado de aventura', 45);
+                await _esperarHijosCargados(_idsRecargados, estado, logPrefix);
                 updateLoadingStatus('Hijos sincronizados', 'Distribuyendo datos de aventura', 62);
 
                 const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA;
@@ -11187,6 +11176,8 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.CODIGO_VALIDADO, _hdl_SELECCION_CODIGO_VALIDADO, { permanente: true });
 
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.P14_MOSTRADA, _hdl_SELECCION_P14_MOSTRADA, { permanente: true });
+
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SELECCION.AVENTURA_ACTIVADA, _hdl_SELECCION_AVENTURA_ACTIVADA, { permanente: true });
 
 
@@ -11211,6 +11202,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         globalThis.mostrarModalFinalizacion();
                     } else {
                         (globalThis.logger || console).error(`${logPrefix} mostrarModalFinalizacion no disponible — verificar Script 1`);
+                        try { globalThis.errorUI?.showToast('No se pudo mostrar el resumen final de la aventura.', { type: 'warning', duration: 8000 }); } catch (_) {}
                     }
                 } else {
                     (globalThis.logger || console).info(`${logPrefix} Modo CASA — estadísticas guardadas, sin modal de finalización`);
@@ -11612,7 +11604,9 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         const loggerIframe = (await import('./js/logger.js')).default;
         const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
+        let _waitMs3 = 0;
         while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
+            if (++_waitMs3 > 200) { (globalThis.logger || console).error('[PADRE Script3] mensajeria no disponible tras 10s'); break; }
             await sleep(50);
         }
         const { enviarMensaje: enviarMensajeIframe } = globalThis.mensajeria;
@@ -11807,7 +11801,9 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
         const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
         // mensajeria.js ya importado en Script 1 - esperar a que esté disponible antes de destructurar
+        let _waitMs4 = 0;
         while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') {
+            if (++_waitMs4 > 200) { (globalThis.logger || console).error('[PADRE Script4] mensajeria no disponible tras 10s'); break; }
             await sleep(50);
         }
         const { enviarMensaje: enviarMensaje_S4 } = globalThis.mensajeria;

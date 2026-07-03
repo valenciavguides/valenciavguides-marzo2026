@@ -1428,10 +1428,7 @@ async function ejecutarAccionCoordinada(accion) {
  * Se usa cuando el padre o un servicio ENVÍA actualizaciones de paradas de forma
  * asíncrona (no solicitadas), como notificaciones de cambios.
  * 
- * ?? DIFERENCIA con SOLICITAR_PARADAS:
- * - SOLICITAR_PARADAS: Request/Response síncrono (hijo pide ? padre responde con return)
- * - RESPUESTA_PARADAS: Push notification (padre envía update ? hijos reciben y procesan)
- * 
+ *
  * @param {Object} mensaje - Mensaje con los datos de las paradas
  * @param {string} mensaje.origen - ID del componente que envía la respuesta
  * @param {Object} mensaje.datos - Datos de las paradas
@@ -1462,49 +1459,6 @@ async function ejecutarAccionCoordinada(accion) {
  * });
  */
 // El handler de DATOS.RESPUESTA_PARADAS está registrado en codigo-padre.html (~línea 8019).
-
-/**
- * Maneja las solicitudes de datos de paradas.
- * Este controlador procesa las solicitudes de datos de paradas y devuelve la información solicitada
- * según los criterios de filtrado proporcionados.
- * 
- * ?? IMPORTANTE: Este controlador usa patrón Request/Response DIRECTO (return).
- * La respuesta NO viene en .datos, viene directamente en el objeto de respuesta.
- * 
- * @param {Object} mensaje - Mensaje de solicitud de paradas
- * @param {string} mensaje.origen - ID del componente que realiza la solicitud
- * @param {Object} mensaje.datos - Parámetros de la solicitud
- * @param {string} [mensaje.datos.filtro] - Filtro opcional para buscar paradas por nombre o ID
- * @param {Object} [mensaje.datos.rango] - Rango geográfico opcional para filtrar paradas
- * @param {number} mensaje.datos.rango.lat - Latitud central
- * @param {number} mensaje.datos.rango.lng - Longitud central
- * @param {number} [mensaje.datos.rango.radio=1000] - Radio en metros (por defecto 1km)
- * @param {Array<string>} [mensaje.datos.campos] - Campos específicos a devolver (por defecto todos)
- * @param {number} [mensaje.datos.limite=100] - Número máximo de resultados a devolver
- * @param {boolean} [mensaje.datos.soloActivas=true] - Si es true, solo devuelve paradas activas
- * @param {string} [mensaje.datos.ordenPor='nombre'] - Campo por el que ordenar los resultados
- * @param {string} [mensaje.datos.orden='asc'] - Orden de clasificación ('asc' o 'desc')
- * @param {boolean} [mensaje.datos.incluirEstadisticas=false] - Si incluir estadísticas de los resultados
- * 
- * @returns {Promise<Object>} Objeto con los resultados (DIRECTO, sin .datos)
- * @returns {number} return.total - Total de paradas encontradas
- * @returns {Array<Object>} return.paradas - Array de objetos de paradas
- * @returns {Object} [return.estadisticas] - Estadísticas si se solicitaron
- * @returns {Object} return.metadatos - Metadatos de la respuesta
- * 
- * @example
- * // USO CORRECTO:
- * const respuesta = await enviarMensaje({
- *     tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_PARADAS,
- *     datos: {}
- * });
- * // CORRECTO: respuesta.paradas
- * if (respuesta && respuesta.paradas) {
- *     logger.debug(respuesta.paradas);
- * }
- * // INCORRECTO: respuesta.datos.paradas (NO existe)
- */
-// El handler de DATOS.SOLICITAR_PARADAS está registrado en codigo-padre.html (~línea 7873).
 
 // --- Automatic resend logic for CAMBIO_MODO on NACK with esperarPermiso ---
 // pendingModeChanges: hijoId -> { modo, datos, intentos, nextAttemptAt }

@@ -1334,13 +1334,6 @@
                     mensajeOriginal: mensajeOriginal || 'N/A'
                 });
 
-                // Si el error es relacionado con solicitudes de hijo5, intentar reintentar
-                if (mensajeOriginal === TIPOS_MENSAJE.DATOS.SOLICITAR_PARADAS) {
-                    logger.warn(`${logPrefix} Error en solicitud de paradas, intentando recargar despuÃ©s de 5s`);
-                    setTimeout(() => {
-                        solicitarParadasDelPadre();
-                    }, 5000);
-                }
 
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar notificaciÃ³n de error:`, error);

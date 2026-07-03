@@ -214,14 +214,14 @@ flowchart TD
     B -- No --> C[Demo P1→P11\nIdioma · aventura · puzzle · pago]
     B -- Sí --> D[ejecutarRestauracionAventura\nRestaurar progreso guardado]
     C --> DEV{¿_devModeActivo?\nFactor 1 activado antes de P12}
-    DEV -- Sí\nmodo DEV --> BYPASS["mostrar() intercepta P12 y P13\nenvía CODIGO_VALIDADO sin GPS\nsalta directamente a P14"]
+    DEV -- Sí\nmodo DEV --> BYPASS["mostrar() intercepta P12 y P13\nredirige id=14 directamente\nsin GPS · sin CODIGO_VALIDADO"]
     DEV -- No --> P13[P13: usuario introduce código de compra\nseleccion envía CODIGO_VALIDADO al padre]
     P13 --> GPS[activarGPS\nwatchPosition iniciado]
-    P13 --> IF[Cargar iframes hijos en paralelo\nhijo1 hijo2 hijo3 hijo4 hijo5]
-    P13 --> DF[_fase2CargarDatos\ncargar datos de aventura]
-    BYPASS --> IF
-    BYPASS --> DF
-    GPS --> DI[Distribuir datos a hijos\ncoordenadas · audios · retos]
+    GPS --> P14[P14: normativa mostrada\n_accionPantalla15() → SELECCION.P14_MOSTRADA]
+    P14 --> DF[_fase2CargarDatos\ncargar datos de aventura]
+    BYPASS --> P14
+    DF --> IF[Cargar iframes hijos en AVENTURA_ACTIVADA\nhijo1 hijo2 hijo3 hijo4 hijo5]
+    IF --> DI[Distribuir datos a hijos\ncoordenadas, audios, retos]
     IF --> DI
     DF --> DI
     DI --> P14[P14: normativa vial\nUsuario lee y acepta]
@@ -1456,7 +1456,7 @@ sequenceDiagram
     Note over SEL: Usuario completa P1→P7<br/>(idioma, vídeo stub, puzzle, elección aventura...)
 
     SEL->>S1: SELECCION.AVENTURA_SELECCIONADA (P7)
-    Note over S1: Solo almacena { aventura, idioma } en estado.seleccion<br/>Resetea _codigoValidadoP13 = false y _iframesPreCargadosP13 = false
+    Note over S1: Solo almacena { aventura, idioma } en estado.seleccion<br/>Resetea _codigoValidadoP13 = false
 
     Note over SEL: Usuario completa P8→P9<br/>(reto R-1 + confirmación aventura)
 
@@ -1465,13 +1465,13 @@ sequenceDiagram
 
     Note over SEL: Usuario completa P10-P12<br/>(términos, audio intro, pago)
 
-    SEL->>S1: SELECCION.CODIGO_VALIDADO (P13)
-    Note over S1: activarGPS() + cargarRestoDeiframes() + _fase2CargarDatos()<br/>en parallel · luego _distribuirConEspera()<br/>_iframesPreCargadosP13 = true al terminar
+    SEL->>S1: SELECCION.CODIGO_VALIDADO (P13 — solo prod)
+    Note over S1: Solo activarGPS() en prod. Dev: no se envía este mensaje.
 
-    Note over SEL: Usuario lee P14 (normativa) y completa P15 (reto R-2)
+    Note over SEL: Usuario ve P14 (normativa) y completa P15 (reto R-2)
 
     SEL->>S1: SELECCION.AVENTURA_ACTIVADA (P15)
-    Note over S1: _iframesPreCargadosP13 = true → fast-path<br/>Salta _normalizarSetHijos + recarga de iframes<br/>+ distribuirDatosAventura() + mostrarUIActivada()
+    Note over S1: _normalizarSetHijos + carga hijo1/2/3/4/5 en paralelo<br/>_esperarHijosCargados() + distribuirDatosAventura() + mostrarUIActivada()
     S1->>SEL: SISTEMA.NOTIFICACION { evento:'AVENTURA_ACTIVADA' }
 
     Note over S1: hijo2 + hijo3 + hijo4 listos<br/>→ _hijoListo_onTodosListos()<br/>→ CAMBIO_MODO { razon:'sincronizacion_inicial' }
@@ -1479,7 +1479,7 @@ sequenceDiagram
     Note over H6: hijo6-chat: src="" en HTML<br/>Se carga al primer click en btn-chat-soporte<br/>(apertura lazy)
 ```
 
-> **Carga en paralelo:** `_cargarIframesHijos()` usa `Promise.all` para cargar todos los iframes hijo en paralelo — cada uno hace su handshake independientemente. Lo mismo en `cargarRestoDeiframes()` (activación via `CODIGO_VALIDADO` en P13) y en `_hdl_SELECCION_AVENTURA_ACTIVADA` vía `_cargarSoloIframeActivacion`. En cambio, `_hdl_SELECCION_AVENTURA_ACTIVADA` usa un fast-path cuando `_iframesPreCargadosP13 = true` — salta completamente la recarga porque los iframes ya están listos.
+> **Carga en paralelo:** `_cargarIframesHijos()` usa `Promise.all` para cargar todos los iframes hijo en paralelo. `_hdl_SELECCION_AVENTURA_ACTIVADA` carga los 5 hijos (hijo1-5 incluyendo hijo4) vía `_cargarSoloIframeActivacion`. `_fase2CargarDatos()` precarga módulos JS cuando P14 se muestra (`SELECCION.P14_MOSTRADA`), de modo que AVENTURA_ACTIVADA puede distribuir datos sin esperar imports adicionales.
 
 ### Diagrama de arquitectura global
 
@@ -1637,9 +1637,9 @@ Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el 
 
 - `SELECCION.AVENTURA_SELECCIONADA` (P7) → solo almacena `{ aventura, idioma }` en `estado.seleccion`; resetea flags de P13; **no carga iframes ni activa GPS**
 - `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `{ idioma, aventura, timestamp }` en `estado.seleccion`; **no carga iframes**
-- `SELECCION.CODIGO_VALIDADO` (P13) → activa GPS + `cargarRestoDeiframes()` + `_fase2CargarDatos()` en **paralelo**; luego `_distribuirConEspera()`; marca `_iframesPreCargadosP13 = true`
-- `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → si `_iframesPreCargadosP13`: fast-path (sin recarga de iframes); si no: recarga normal hijo1/hijo2/hijo3/hijo5 vía `Promise.all`; distribuye datos y muestra UI
-
+- `SELECCION.CODIGO_VALIDADO` (P13, solo prod) → activa GPS; si GPS deniega, muestra overlay de error y aborta
+- `SELECCION.P14_MOSTRADA` (P14) → `_fase2CargarDatos()` — precarga módulos JS de datos de la aventura; no carga iframes
+- `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`; distribuye datos y muestra UI
 ```mermaid
 flowchart TD
     F1["FASE 1 — Infraestructura\nstate-manager → mensajeria → validacion+mapa\n→ 7 módulos en Promise.all"]
@@ -1649,12 +1649,12 @@ flowchart TD
     FIN["✅ Sistema listo\nCAMBIO_MODO sincronizacion_inicial → H2/H3/H4\noverlay oculto — usuario ve seleccion"]
     SEL_A["AVENTURA_SELECCIONADA (P7)\nsolo almacena estado.seleccion\nreset flags P13"]
     SEL_P["PREPARAR_HIJOS (P9)\nalmacena estado.seleccion\n(sin carga de iframes)"]
-    SEL_CV["CODIGO_VALIDADO (P13)\nactivarGPS() + cargarRestoDeiframes()\n+ _fase2CargarDatos() en paralelo\n→ _distribuirConEspera()"]
-    SEL_C["AVENTURA_ACTIVADA (P15→P16)\nfast-path si _iframesPreCargadosP13\no recarga normal hijo1/2/3/5\n+ distribuirDatosAventura()"]
-
+    SEL_CV["CODIGO_VALIDADO (P13 — solo prod)\nactivarGPS()"]
+    SEL_P14["P14_MOSTRADA (P14)\n_fase2CargarDatos()"]
+    SEL_C["AVENTURA_ACTIVADA (P15→P16)\ncarga hijo1/2/3/4/5 + distribuirDatosAventura()"]
     F1 --> F2 --> F3A --> F3B --> FIN
     FIN -.->|"más tarde:\nusuario completa\nonboarding"| SEL_A
-    SEL_A --> SEL_P --> SEL_CV --> SEL_C
+    SEL_A --> SEL_P --> SEL_CV --> SEL_P14 --> SEL_C
 
     style F1 fill:#fff3cd
     style F2 fill:#d4edda
@@ -3402,7 +3402,7 @@ sequenceDiagram
 
     Note over T,P: P7 — usuario elige aventura
     T->>P: SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }
-    Note over P: _hdl_SELECCION_AVENTURA_SELECCIONADA — almacena estado solo<br/>reset _codigoValidadoP13 = false y _iframesPreCargadosP13 = false
+    Note over P: _hdl_SELECCION_AVENTURA_SELECCIONADA — almacena estado solo<br/>reset _codigoValidadoP13 = false
 
     Note over T,P: P9 — confirmación de aventura
     T->>P: SELECCION.PREPARAR_HIJOS { idioma, aventura, timestamp }
@@ -3410,11 +3410,15 @@ sequenceDiagram
 
     Note over T,P: P13 — usuario introduce código válido
     T->>P: SELECCION.CODIGO_VALIDADO { aventura, idioma, timestamp }
-    Note over P: _hdl_SELECCION_CODIGO_VALIDADO — activarGPS()<br/>+ cargarRestoDeiframes() + _fase2CargarDatos() en paralelo<br/>→ _distribuirConEspera() → _iframesPreCargadosP13 = true
+    Note over P: _hdl_SELECCION_CODIGO_VALIDADO — solo activarGPS() en prod
+
+    Note over T,P: P14 — normativa mostrada
+    T->>P: SELECCION.P14_MOSTRADA { timestamp }
+    Note over P: _hdl_SELECCION_P14_MOSTRADA — _fase2CargarDatos()
 
     Note over T,P: P15/P16 — usuario confirma inicio (tras reto R-2)
     T->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados, timestamp }
-    Note over P: _hdl_SELECCION_AVENTURA_ACTIVADA — fast-path si _iframesPreCargadosP13<br/>salta recarga de iframes; distribuye datos y muestra UI
+    Note over P: _hdl_SELECCION_AVENTURA_ACTIVADA — carga hijo1/2/3/4/5<br/>espera HIJO_LISTO; distribuye datos y muestra UI
 ```
 
 **Mensajes enviados por En-busca-del-tesoro.html**:
@@ -3422,11 +3426,11 @@ sequenceDiagram
 | Mensaje | Pantalla | Payload | Qué dispara en el padre |
 |---------|----------|---------|------------------------|
 | `SELECCION.IDIOMA_SELECCIONADO` | P2 | `{ idioma:'es'/'en'/... }` | Guarda idioma en `estado.idioma` |
-| `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | Almacena estado; resetea `_codigoValidadoP13` y `_iframesPreCargadosP13`; no carga iframes |
+| `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | Almacena estado; resetea `_codigoValidadoP13`; no carga iframes |
 | `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Almacena `estado.seleccion`; no carga iframes |
-| `SELECCION.CODIGO_VALIDADO` | P13 | `{ aventura, idioma, timestamp }` | Activa GPS + carga iframes + carga datos en paralelo; distribuye datos; marca `_iframesPreCargadosP13 = true` |
-| `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP13`; si no: normaliza hijos, carga iframes, espera HIJO_LISTO; siempre distribuye datos y muestra UI |
-| `NAVEGACION.SUPRIMIR_ROTACION` | Mapa vintage | `{ value: true/false }` | Suprime/restaura el aviso `#rotation-message` del padre para que no bloquee el mapa vintage cuando el usuario gira el dispositivo |
+| `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, timestamp }` | Solo activa GPS. Si GPS deniega: muestra error y aborta. Dev mode: no se envía. |
+| `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `_fase2CargarDatos()` — precarga módulos JS de datos de la aventura |
+| `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
 | `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
 | `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, iframeId }` | Handshake estándar |
 
@@ -3920,16 +3924,20 @@ sequenceDiagram
     S->>P: SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }
     P-->>P: almacena estado — no carga iframes
 
-    U->>S: Introduce código correcto (P13) — o Factor 1 DEV salta P12/P13
+    U->>S: Introduce código correcto (P13 — solo prod)
     S->>P: SELECCION.CODIGO_VALIDADO { aventura, idioma, timestamp }
-    Note over P: si _devModeActivo: omite activarGPS()<br/>siempre: cargarRestoDeiframes() + _fase2CargarDatos()<br/>en paralelo → _distribuirConEspera() → _iframesPreCargadosP13 = true
+    Note over P: prod: activarGPS(). Dev: no se envía este mensaje.
+
+    U->>S: P14 mostrada (prod y dev)
+    S->>P: SELECCION.P14_MOSTRADA { timestamp }
+    Note over P: _fase2CargarDatos() — precarga módulos JS
 
     U->>S: Reto R-2 correcto (P15)
     S->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }
-    P-->>P: _hdl_SELECCION_AVENTURA_ACTIVADA() — fast-path (iframes ya cargados)
+    P-->>P: _hdl_SELECCION_AVENTURA_ACTIVADA() — carga hijo1/2/3/4/5; distribuye datos; muestra UI
     Note over P: Modo CASA — GPS activo sin validación
-```
 
+```
 ---
 
 ### 9.4 AVENTURA_SELECCIONADA — registro de estado (P7)
@@ -3938,36 +3946,23 @@ Cuando el padre recibe `SELECCION.AVENTURA_SELECCIONADA`, el handler `_hdl_SELEC
 
 1. Almacena `aventura` e `idioma` en `estado.seleccion` y `globalThis`
 2. Persiste en `localStorage` (`vv_aventura`, `vv_idioma`)
-3. Resetea `globalThis._codigoValidadoP13 = false` y `globalThis._iframesPreCargadosP13 = false`
+3. Resetea `globalThis._codigoValidadoP13 = false`
 
-**No** carga iframes, no activa GPS, no carga datos de aventura. Esas operaciones se disparan en P13 al recibir `SELECCION.CODIGO_VALIDADO`.
+**No** carga iframes, no activa GPS, no carga datos de aventura. Esas operaciones se gestionan separadamente: GPS en P13, datos en P14, iframes en AVENTURA_ACTIVADA.
 
-### 9.4b CODIGO_VALIDADO — carga de iframes y GPS (P13)
+### 9.4b CODIGO_VALIDADO — activación GPS (P13, solo prod)
 
 Cuando el padre recibe `SELECCION.CODIGO_VALIDADO`, el handler `_hdl_SELECCION_CODIGO_VALIDADO` ejecuta:
 
 1. Establece `globalThis._codigoValidadoP13 = true` (permite `showGpsSignalOverlay` fuera de MODO AVENTURA)
 2. Llama `activarGPS()` — si PERMISSION_DENIED: muestra `imagen-no-gps.png` y aborta
-3. En `Promise.all` paralelo:
-   - `_fase2CargarDatos()` — carga módulos JS de datos de la aventura
-   - `cargarRestoDeiframes()` — carga hijo1→2→3→4 en paralelo (`Promise.all`) y espera su `HIJO_LISTO`
-   - `cargarHijoCasa()` — verifica/carga hijo5
-4. `_distribuirConEspera(aventura, idioma)` — distribuye coordenadas, audios, retos, textos a los hijos
-5. Marca `globalThis._iframesPreCargadosP13 = true`
 
-Todo ocurre mientras el usuario lee la normativa vial (P14), de forma totalmente transparente.
-
-> **hijo4 (retos)** se carga aquí, en `cargarRestoDeiframes()`. El handler de `AVENTURA_ACTIVADA` no vuelve a cargarlo — su fast-path solo gestiona el estado.
-
+En dev mode, `mostrar(12)` y `mostrar(13)` redirigen directamente a `id = 14` sin enviar este mensaje — GPS no se activa.
 ---
 
 ### 9.5 AVENTURA_ACTIVADA — activación completa (modo CASA)
 
-Al recibir `SELECCION.AVENTURA_ACTIVADA` (fin de P15), el padre ejecuta `_hdl_SELECCION_AVENTURA_ACTIVADA`. Hay dos rutas:
-
-**Ruta rápida** (cuando `_iframesPreCargadosP13 = true`): los iframes ya se cargaron desde P13 y los datos ya se distribuyeron. El handler solo sincroniza el estado de aventura y muestra la UI.
-
-**Ruta normal** (sin código validado previo, por ejemplo en reanudación de sesión): el handler recarga iframes, espera handshakes y distribuye datos.
+Al recibir `SELECCION.AVENTURA_ACTIVADA` (fin de P15), el padre ejecuta `_hdl_SELECCION_AVENTURA_ACTIVADA`. El handler siempre carga todos los iframes:
 
 ```mermaid
 sequenceDiagram
@@ -3980,17 +3975,11 @@ sequenceDiagram
     P-->>P: Almacena estado.seleccion + globalThis
     P-->>P: showParentLoadingOverlay("Preparando aventura...")
 
-    alt _iframesPreCargadosP13 = true (ruta rápida)
-        P-->>P: _iframesPreCargadosP13 = false
-        P-->>P: updateLoadingStatus('Componentes listos', 45%)
-    else ruta normal
-        P->>H: _normalizarSetHijos() — limpia hijosInicializados para 4 iframes
-        P->>H: Promise.all([_cargarSoloIframeActivacion × 4])
-        Note over H: hijo1-opciones, hijo2, hijo3, hijo5 (no hijo4)
-        H->>P: SISTEMA.HIJO_LISTO (×4, vía handshake)
-        P-->>P: _esperarHijosCargados() resuelve
-    end
-
+    P->>H: _normalizarSetHijos() — limpia hijosInicializados para 5 iframes
+    P->>H: Promise.all([_cargarSoloIframeActivacion x5])
+    Note over H: hijo1-opciones, hijo2, hijo3, hijo4, hijo5
+    H->>P: SISTEMA.HIJO_LISTO (x5, via handshake)
+    P-->>P: _esperarHijosCargados() resuelve
     P-->>P: localStorage.setItem('vv_aventura_iniciada', { modo: 'casa' })
     P->>H: distribuirDatosAventura(aventura, idioma)
     P->>P: _mostrarUIActivada() — oculta iframe seleccion, muestra hijo2/3/1-opciones/5
@@ -4026,7 +4015,7 @@ El comportamiento externo es idéntico al anterior — la extracción es puramen
 | 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` — array de paradas/tramos con coords GPS |
 | 2 | hijo3 | `DATOS.CARGAR_AUDIOS` | `{ aventura, idioma, audios[], total, timestamp }` — array de metadatos de audio desde `__vv_AUDIOS_AVENTURAS[aventura][idioma]` |
 | 3 | hijo4 | `DATOS.CARGAR_RETOS` | `{ aventura, idioma, retos[], total, timestamp }` — array de retos desde `__vv_RETOS_AVENTURAS[aventura][idioma]` |
-| 4 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` — array de textos desde `__vv_TEXTOS_AVENTURAS[aventura][idioma]` |
+| 4 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` — array `[{id, title, content}]` ensamblado por `cargarTextos(aventura, idioma)` desde `data-loader.js` (combina `TEXTOS_AVENTURAS[aventura]` + parrafos JSON del idioma + títulos de `AUDIOS_AVENTURAS[aventura][idioma]`) |
 | 5 | hijo5 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], aventura, timestamp }` — paradas normalizadas con campos `id`, `parada_id`, `tipo`, `nombre`, `coordenadas` |
 
 Además, el padre asigna `globalThis.AVENTURA_PARADAS` con el array de paradas para uso de `js/funciones-mapa.js` y emite el evento `vv:paradas-disponibles`.
@@ -4390,7 +4379,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-dev-mode-fix4bugs-jul02'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-p14-iframe-trigger-jul03'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4555,7 +4544,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aventura, idioma }` |
 | Handler en padre | `_hdl_SELECCION_AVENTURA_SELECCIONADA` |
-| Acción | Guarda `globalThis.aventuraSeleccionada`; resetea `_codigoValidadoP13` y `_iframesPreCargadosP13`; no carga iframes ni activa GPS |
+| Acción | Guarda `globalThis.aventuraSeleccionada`; resetea `_codigoValidadoP13`; no carga iframes ni activa GPS |
 
 **SELECCION.PREPARAR_HIJOS** (seleccion → padre)
 
@@ -4571,7 +4560,15 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aventura, idioma, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_CODIGO_VALIDADO` |
-| Acción | Activa GPS + carga iframes (hijo1→4 vía `cargarRestoDeiframes()`, hijo5 vía `cargarHijoCasa()`) + datos (`_fase2CargarDatos()`) en paralelo; luego `_distribuirConEspera()`; marca `_iframesPreCargadosP13 = true`. Si GPS deniega: muestra `imagen-no-gps.png` y aborta. |
+| Acción | Solo activa GPS (`activarGPS()`). Si GPS deniega: muestra `imagen-no-gps.png` y aborta. Iframes y datos se gestionan en P14 y AVENTURA_ACTIVADA respectivamente. |
+
+**SELECCION.P14_MOSTRADA** (seleccion → padre)
+
+| Campo | Valor |
+|-------|-------|
+| Payload | `{ timestamp }` |
+| Handler en padre | `_hdl_SELECCION_P14_MOSTRADA` |
+| Acción | `_fase2CargarDatos()` — importa dinámicamente módulos JS de datos de la aventura (audios, retos, textos, coordenadas, índice) y los almacena en `globalThis.__vv_*`. Solo precarga; no carga iframes ni distribuye. |
 
 **SELECCION.AVENTURA_ACTIVADA** (seleccion → padre)
 
@@ -4579,7 +4576,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aventura, idioma, terminosAceptados, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_AVENTURA_ACTIVADA` |
-| Acción | Si `_iframesPreCargadosP13 = true`: fast-path (sin recarga). Si no: recarga hijo1/hijo2/hijo3/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`. En ambos casos: `distribuirDatosAventura`, activa modo CASA. hijo4 **no se recarga** aquí — ya está cargado desde P13. |
+| Acción | Normaliza `hijosInicializados`, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`. Luego: `distribuirDatosAventura`, activa modo CASA. |
 
 ---
 
@@ -6830,7 +6827,7 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-dev-mode-fix4bugs-jul02'`, línea 84 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-p14-iframe-trigger-jul03'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7386,11 +7383,11 @@ Actualmente en APP_SHELL (sw.js):
 
 ### 22.10 `CACHE_VERSION` al desplegar
 
-Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.js` (línea 84) para que el Service Worker invalide la caché antigua y fuerce la recarga de todos los recursos:
+Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.js` (línea 89) para que el Service Worker invalide la caché antigua y fuerce la recarga de todos los recursos:
 
 ```javascript
-// sw.js línea 84 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-dev-mode-fix4bugs-jul02'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+// sw.js línea 89 — actualizar en cada despliegue
+const CACHE_VERSION = 'v-p14-iframe-trigger-jul03'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -7647,17 +7644,17 @@ flowchart TD
     SET1 --> IIFE["IIFE Script 1 padre:\nglobalThis._devModeActivo = true"]
     IIFE --> NORMAL[Usuario navega P2→P11 con normalidad]
     NORMAL --> P12_13{mostrar(12) o mostrar(13)}
-    P12_13 -- "_devCasaMode === true\n_devCargaIniciada === false" --> BYPASS["_devCargaIniciada = true\nenviar CODIGO_VALIDADO al padre\nid = 14 → avanzar a P14\nsin GPS · sin código de compra"]
+    P12_13 -- "_devCasaMode === true" --> BYPASS["id = 14 directamente (sin CODIGO_VALIDADO)\nsin GPS · sin código de compra"]
     P12_13 -- "_devCasaMode === false" --> NORMAL2["Flujo normal:\nP12 pago → P13 código de compra → GPS"]
-    BYPASS --> HDLCV["padre: _hdl_SELECCION_CODIGO_VALIDADO\nif (_devModeActivo) skip activarGPS\ncargarRestoDeiframes + _fase2CargarDatos"]
+    BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\n_fase2CargarDatos()"]
+    HDLP14 --> P14[P14 — Normativa]
     NORMAL2 --> P14
-    HDLCV --> P14[P14 — Normativa]
     P14 --> P15[P15 — Reto R-2\nseleccion envía AVENTURA_ACTIVADA]
     P15 --> HDLAA["padre: _hdl_SELECCION_AVENTURA_ACTIVADA\n_mostrarUIActivada: hijo5 display:block · visibility:visible\n_vv_triggerCambioModo(MODOS.CASA)"]
     HDLAA --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS no activo en watchPosition])
 ```
 
-El guard `_devCargaIniciada` garantiza que aunque el flujo pase por P12 y luego por P13 (o viceversa), `CODIGO_VALIDADO` solo se envía una vez.
+En dev mode, `mostrar(12)` y `mostrar(13)` redirigen directamente a P14 (`id = 14`) — no se envía `CODIGO_VALIDADO`. La función `_accionPantalla15()` que se ejecuta al mostrar P14 envía `SELECCION.P14_MOSTRADA` al padre, que llama `_fase2CargarDatos()`. No hay guard necesario porque la misma P14 solo se muestra una vez por flujo.
 
 #### Factor 2 — Activación durante la aventura activa
 
@@ -10688,10 +10685,10 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 
 ### 29.4 Ciclo de vida del Service Worker — CACHE_VERSION
 
-**Archivo:** `sw.js` línea 84
+**Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-dev-mode-fix4bugs-jul02';
+const CACHE_VERSION = 'v-p14-iframe-trigger-jul03';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11491,3 +11488,225 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 - `sceneVid` NO tiene atributo `loop` — el vídeo se reproduce una vez y la escena avanza al evento `ended`. Si el archivo no carga, el evento `error` también libera la promesa. Si el usuario pulsa skip, el intervalo interno detecta `_skipRequested` y resuelve la promesa.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 3 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
+
+---
+
+## 35. Metodología de auditoría completa
+
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 15 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
+
+**Preparación antes de empezar:** ejecuta `npm run inventory` para tener el inventario de funciones actualizado y `npm run inventory:dupes` para detectar duplicados de nombre.
+
+---
+
+### 35.1 EJE 1 — IDs del DOM (existencia y unicidad)
+
+1. Lista todos los `id="..."` definidos en cada HTML (padre e hijos). Detecta IDs duplicados en el mismo documento — viola el estándar HTML; `getElementById` devuelve el primero y oculta al resto silenciosamente.
+2. Lista todos los `document.getElementById(id)`, `querySelector('#id')` y referencias por nombre de iframe. Verifica que cada ID buscado existe en el DOM del mismo documento.
+3. Reporta:
+   - **IDs usados pero no definidos** → `getElementById` devuelve `null`; el código actúa sobre `null` en silencio, normalmente sin lanzar error inmediato.
+   - **IDs definidos pero nunca referenciados** → DOM muerto, candidato a limpieza.
+4. Verifica que los IDs de los iframes en el padre (`hijo2`, `hijo3`, `hijo4`, `hijo5`, `hijo6`, `hijo1-opciones`) coinciden exactamente con los que el código referencia en `document.getElementById(...)`.
+
+---
+
+### 35.2 EJE 2 — Scope de funciones entre scripts (codigo-padre.html)
+
+`codigo-padre.html` tiene 4 `<script type="module">` con scope completamente separado. Una función definida en Script 2 (líneas ~7583–11609) es **invisible** en Script 1 (líneas ~2574–7582) a menos que esté expuesta via `globalThis.fn = fn`.
+
+1. Para cada función llamada en Script 1 que no está definida en Script 1: verifica que el acceso usa `globalThis.fn(...)`. Una bare call sin `globalThis.` lanza `ReferenceError` en runtime (aunque puede quedar silenciada en un `catch`).
+2. Para cada `globalThis.fn = fn` al final de un script: verifica que `fn` está efectivamente definida en ese mismo script y no viene de otro módulo sin re-exposición explícita.
+3. Verifica que Scripts 3 y 4 acceden a funciones de Scripts 1/2 exclusivamente via `globalThis.`.
+4. Detecta bucles `while(!globalThis.fn) { await sleep(x); }` sin límite de iteraciones — pueden colgar la app indefinidamente si el módulo que define `fn` falla al cargar. Todos deben tener un contador máximo y un `logger.error` de fallback.
+
+---
+
+### 35.3 EJE 3 — Contratos de datos (estructura real vs. uso asumido)
+
+Las estructuras de datos de las aventuras tienen formas distintas según el tipo:
+
+| Objeto | Acceso correcto | Clave idioma |
+|--------|----------------|--------------|
+| `TEXTOS_AVENTURAS` | `[aventura]` → array plano | ❌ NO tiene |
+| `AUDIOS_AVENTURAS` | `[aventura][idioma]` → array | ✅ SÍ tiene |
+| `RETOS_AVENTURAS` | `[aventura][idioma]` → array | ✅ SÍ tiene |
+| `cargarTextos(aventura, idioma)` | devuelve `[{id, title, content}]` ensamblado | via función en `js/data-loader.js` |
+
+1. Traza cada punto en el codebase donde se accede a estas estructuras. Verifica que el acceso usa la forma correcta (sin clave idioma para TEXTOS, con clave para AUDIOS/RETOS).
+2. Verifica que `cargarTextos(aventura, idioma)` ensambla correctamente: `id` y `title` provienen de `AUDIOS_AVENTURAS`; `content` proviene del mapa de párrafos JSON cargado por `cargarMapaParrafos(idioma)`.
+3. Verifica que `cargarMapaParrafos(idioma)` **no cachea fallos** — si se cachea un resultado vacío, todos los textos del idioma quedan bloqueados en esa sesión sin posibilidad de reintento.
+4. Verifica que `AUDIOS_AVENTURAS[aventura][idioma]` y `TEXTOS_AVENTURAS[aventura]` tienen el mismo número de entradas por aventura — cada parada debe tener audio y texto.
+
+---
+
+### 35.4 EJE 4 — Comunicación postMessage: emisores y receptores
+
+Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
+
+1. **Emisores:** ¿qué archivo y función emite ese tipo? ¿Con qué payload exacto (`datos: {...}`)?
+2. **Receptores:** ¿qué archivo registra un handler? ¿Usa `registrarControladorSeguro`, `registrarControlador` o `addEventListener('message', ...)`?
+3. Verifica:
+   - **Huérfano receptor (handler sin emisor):** el handler existe pero nadie emite ese tipo → código muerto.
+   - **Huérfano emisor (emisor sin handler):** el mensaje se emite pero nadie lo escucha → datos perdidos.
+   - **Destino incorrecto:** el mensaje se emite con `destino: 'hijo3'` pero el handler está registrado en `hijo2`.
+4. Para mensajes bidireccionales (los que esperan ENTENDIDO / EFECTUADO / respuesta): verifica que la respuesta existe, viaja al `origen` correcto y se procesa dentro del timeout esperado.
+5. Resultado en tabla: `Tipo | Emisor | Receptor | Payload | Estado (✅/⚠️/❌/🕳️)`.
+
+---
+
+### 35.5 EJE 5 — Orden de inicialización
+
+1. Traza la secuencia completa de carga del padre: imports de módulos → init Script 1 → exposiciones `globalThis` de Script 1 → init Script 2 → exposiciones `globalThis` de Script 2 → Scripts 3/4 → carga de iframes.
+2. Para cada `globalThis.fn` usada en un script: ¿cuándo se define (en qué script, en qué línea) vs. cuándo se llama por primera vez? ¿Hay garantía de orden?
+3. Todos los `while(!globalThis.fn) await sleep(x)` deben tener un límite de iteraciones con log de error al superarlo.
+4. Verifica que los iframes no reciben mensajes `postMessage` antes de que `contentWindow` esté disponible (el evento `load` del iframe debe haberse disparado).
+5. Detecta dependencias circulares: Módulo A espera a Módulo B, que espera a Módulo A.
+
+---
+
+### 35.6 EJE 6 — Estado de modo (CASA ↔ AVENTURA)
+
+El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estado.modo.actual` (en `js/state-manager.js`), `modoActual` (variable local en cada hijo) y las constantes `MODOS.AVENTURA = 'aventura'` / `MODOS.CASA = 'casa'` de `js/constants.js`.
+
+1. Para cada bloque `if (modo === MODOS.AVENTURA)` o `if (modoActual === MODOS.CASA)`: verifica que lee de la fuente correcta para ese contexto (padre vs. hijo).
+2. Transición **CASA→AVENTURA**: verifica que se muestra el mapa, se activa GPS, se oculta hijo5 (`display:none`), y se inicia heartbeat.
+3. Transición **AVENTURA→CASA**: verifica limpieza de overlays, detención del GPS, pausa del audio, reset del estado de cada hijo.
+4. En cada hijo: ¿de dónde recibe el modo? ¿Lo persiste en su `estado.modo`? ¿Responde correctamente con ENTENDIDO y EFECTUADO al padre?
+5. Verifica que el modo se propaga a todos los hijos antes de que cada uno lo necesite para actuar.
+
+---
+
+### 35.7 EJE 7 — Rutas de error: silenciosas vs. visibles al usuario
+
+1. Detecta `catch (err) { console.error(...); return {}; }` → el usuario no ve nada, pero la app continúa con datos vacíos.
+2. Detecta `?.` / `|| []` / `|| {}` que enmascaran ausencias de datos sin ningún log → los datos simplemente no aparecen, sin indicación de fallo.
+3. Para cada `fetch` o `import()` dinámico que puede fallar: ¿hay feedback visible al usuario vía `globalThis.errorUI?.showToast(...)` o modal?
+4. Errores críticos que **siempre deben tener feedback visible** al usuario:
+   - GPS denegado por el usuario
+   - JSON de párrafos no cargado → textos aparecen vacíos sin explicación
+   - Iframe no respondió → datos no distribuidos
+   - Función crítica no disponible (`distribuirDatosAventura`, `mostrarModalFinalizacion`)
+5. Verifica que los `catch` en handlers de mensajería no tragan errores de negocio sin notificar al sistema de log.
+
+---
+
+### 35.8 EJE 8 — Async y blocking
+
+1. Lista todos los `while(!condition) { await sleep(x); }`. Verifica que cada uno tiene un contador máximo con `if (++n > MAX) { logger.error(...); break; }`.
+2. Lista todos los `await fn()` en flujos críticos sin timeout. Verifica que se usa `withTimeout` donde corresponde. Advertencia: `withTimeout` en `js/app.js` resuelve `null` (no rechaza) al agotar el tiempo — todos los callers deben verificar `result !== null`.
+3. Detecta condiciones de carrera: dos handlers que modifican el mismo estado compartido de forma no coordinada.
+4. Detecta `Promise.all([...])` donde un fallo individual puede silenciarse si cada elemento tiene `.catch` interno propio.
+
+---
+
+### 35.9 EJE 9 — Párrafos y textos: IDs y cobertura multiidioma
+
+1. Extrae todos los IDs de parada definidos en `js/textos-aventuras.js` por aventura.
+2. Verifica que cada ID tiene entrada en `parrafos-textos/parrafos-texto-espanol.json` (ES es la referencia base).
+3. Verifica cobertura cruzada: para cada ID en ES, comprueba que existe en los 11 idiomas restantes (`en`, `fr`, `it`, `nl`, `ja`, `de`, `zh`, `pl`, `pt`, `ru`, `uk`).
+4. Detecta IDs presentes en idiomas no-ES que **no están** en ES → posible error de clave o entrada extra sin correspondencia.
+5. Verifica que cada entrada JSON tiene HTML bien formado (etiquetas abiertas y cerradas, sin caracteres corruptos por doble codificación UTF-8).
+6. Cuenta entradas por idioma: todos los idiomas deben tener el mismo número de entradas para las aventuras activas.
+
+---
+
+### 35.10 EJE 10 — Imágenes y archivos media
+
+1. Lista todos los atributos `src`, `href`, `background-image: url(...)` y llamadas a `fetch(url)` que apuntan a archivos locales del proyecto.
+2. Para cada ruta: verifica que el archivo existe en disco. Reporta rutas rotas → 404 silencioso en runtime.
+3. Lista archivos en `/imagenes/`, `/audios-aventuras/`, `/videos-aventuras/` que **no están referenciados** en ningún JS/HTML → archivos huérfanos, candidatos a limpieza.
+4. Verifica las imágenes de error del sistema GPS: que existen en la ruta exacta que el código referencia.
+5. Detecta `src=""` o `src="about:blank"` que deberían tener contenido real pero se han quedado sin asignar.
+6. Verifica coherencia de rutas relativas vs. absolutas (no mezclar `/imagenes/` con `../imagenes/` sin motivo).
+
+---
+
+### 35.11 EJE 11 — Coherencia cross-módulo de aventuras y coordenadas
+
+1. Lista todas las aventuras definidas en `js/indice-aventuras.js`.
+2. Para cada aventura, verifica presencia en: `js/coordenadas-aventuras.js`, `js/audios-aventuras.js`, `js/textos-aventuras.js`, `js/retos-aventuras.js`, `js/puzzles-aventuras.js`, `js/mapa-vintage-aventuras.js`.
+3. Para cada parada (ID) en coordenadas: verifica que existe también en audios y textos de la misma aventura.
+4. Detecta paradas en audios/textos **sin coordenadas** → la parada nunca se activaría al aproximarse el usuario.
+5. Verifica que el campo `aventura` dentro de cada objeto de parada coincide exactamente con la clave del objeto padre (sin typos ni variantes de capitalización).
+6. Verifica que el estado de la aventura (activa/bloqueada) y el código de acceso en `js/proteccion.js` son consistentes con `js/indice-aventuras.js`.
+
+---
+
+### 35.12 EJE 12 — Duplicidades
+
+1. **IDs DOM duplicados** en el mismo HTML → `getElementById` devuelve el primero en silencio.
+2. **Funciones duplicadas** → `npm run inventory:dupes`. Para cada duplicado: ¿son versiones distintas? ¿Una está obsoleta?
+3. **Constantes de mensaje duplicadas** → dos keys distintas en `TIPOS_MENSAJE` con el mismo valor string → los handlers se confunden.
+4. **Handlers duplicados** para el mismo tipo de mensaje en el mismo contexto → el último registrado sobrescribe al anterior.
+5. **Imports duplicados** del mismo módulo en el mismo archivo → posible inconsistencia de instancias.
+6. **Traducciones duplicadas** → misma clave en dos secciones distintas del JSON de párrafos.
+7. **Exposiciones `globalThis` duplicadas** → dos scripts que asignan `globalThis.fn` a funciones distintas → la segunda sobrescribe a la primera.
+
+---
+
+### 35.13 EJE 13 — Controladores obsoletos o huérfanos
+
+1. Ejecuta `npm run inventory` y lista todos los handlers registrados con `registrarControladorSeguro` y `registrarControlador`.
+2. Para cada handler: busca en el codebase si existe al menos un emisor del tipo de mensaje correspondiente. Sin emisor = huérfano receptor.
+3. Busca todos los `enviarMensaje({ tipo: TIPOS_MENSAJE.X... })`. Para cada tipo emitido: ¿existe un handler registrado? Sin handler = mensaje ignorado (huérfano emisor).
+4. Lista funciones expuestas via `globalThis.fn = fn` que nunca se llaman como `globalThis.fn(...)` en ningún archivo → exposición innecesaria.
+5. Lista exports de módulos (`export function`, `export const`) que ningún archivo importa.
+6. Distingue: huérfano intencional (documentado para uso futuro) vs. huérfano accidental (olvidado).
+
+---
+
+### 35.14 EJE 14 — Calidad de código y sintaxis
+
+1. Detecta `window.` en lugar de `globalThis.` en archivos de módulos — pueden fallar en contextos non-browser o workers.
+2. Detecta variables locales llamadas `window` que colisionan con búsquedas de `window.`; deben renombrarse antes de cualquier sustitución global.
+3. Detecta `console.log / console.warn / console.error` directos en lugar de `(globalThis.logger || console)` en código de producción.
+4. Detecta catch blocks vacíos `catch (_) {}` sin ningún log — errores completamente invisibles.
+5. Detecta condiciones siempre verdaderas o siempre falsas (dead branches).
+6. Detecta variables `const`/`let` declaradas pero nunca leídas.
+7. Verifica que todos los `await` en Scripts 3/4 están en contexto válido (top-level `await` de módulo ES2022, verificar compatibilidad de target).
+
+---
+
+### 35.15 EJE 15 — Journey completo end-to-end
+
+Traza cada flujo completo verificando que cada paso tiene emisor, receptor, manejo de error y feedback al usuario:
+
+**Flujo A — Inicio de aventura:**
+P1 selecciona aventura e idioma → emite `AVENTURA_ACTIVADA` → P2 recibe → valida código de acceso → carga iframes hijos secuencialmente → `globalThis.distribuirDatosAventura()` envía `CARGAR_AUDIOS` / `CARGAR_TEXTOS` / `CARGAR_RETOS` / `CARGAR_COORDENADAS` a cada hijo → cada hijo confirma con `HIJO_LISTO` → padre cambia a modo AVENTURA → GPS se activa.
+
+**Flujo B — Parada:**
+GPS detecta posición dentro del radio de una parada → calcula parada más cercana → emite `NUEVA_PARADA` → hijo2 muestra marcador activo → padre muestra overlay de texto (via `cargarTextos`) → hijo3 reproduce audio de la parada → hijo4 muestra reto → usuario resuelve → hijo4 emite `RETO_COMPLETADO` → padre marca parada y actualiza progreso.
+
+**Flujo C — Fin de aventura:**
+Todas las paradas completadas O tiempo agotado → `globalThis.mostrarModalFinalizacion()` → modal en 12 idiomas → "otra aventura" (vuelve a P2 sin limpiar SW) O "terminar" (`?despedida=1` → página de despedida P5 → `limpiarDatosAventura()`).
+
+**Flujo D — Cambio a modo CASA:**
+`CAMBIO_MODO(CASA)` → cada hijo responde ENTENDIDO → aplica ocultamiento propio → responde EFECTUADO → padre confirma con `CAMBIO_MODO_APLICADO` → GPS se desactiva → audio se pausa → heartbeat continúa.
+
+**Flujo E — Error GPS:**
+GPS denegado por usuario → `verificarPermisosGPS()` devuelve `false` → `activarGPS()` lanza antes de iniciar `watchPosition` → `catch` en `activarGPS` llama `showGpsSignalOverlay(1)` → usuario ve imagen de error + instrucciones → overlay persiste hasta que el usuario concede permisos o recarga.
+
+---
+
+### 35.16 Formato del reporte de auditoría
+
+Para cada hallazgo, usar exactamente este formato:
+
+```
+[VEREDICTO] Eje N — Título breve del problema
+Archivo: ruta/relativa/archivo.js : línea N
+Causa: por qué ocurre técnicamente
+Impacto en runtime: qué experimenta el usuario si no se corrige
+Fix exacto: el cambio mínimo necesario (código o descripción precisa)
+```
+
+**Veredictos:**
+- ✅ **OK** — funciona correctamente; solo incluir si es relevante para confirmar algo
+- ⚠️ **MEDIO** — riesgo latente; no falla hoy pero puede fallar bajo condiciones específicas
+- ❌ **CRÍTICO** — fallo activo o garantizado bajo condiciones normales de uso
+- 🕳️ **HUÉRFANO** — código que no participa en ningún flujo activo
+- 💀 **MUERTO** — código que nunca puede ejecutarse (dead code confirmado)
+
+**Orden de entrega:** primero todos los ❌ CRÍTICO ordenados por impacto, luego ⚠️ MEDIO, luego 🕳️ HUÉRFANO y 💀 MUERTO. Agrupar por eje cuando hay múltiples hallazgos en el mismo eje.
+
+**Antes de reportar un hallazgo:** verificar que es real leyendo el código exacto — no reportar por inferencia. Si el bug ya está corregido en el código actual, marcarlo como ✅ OK con nota "corregido en [commit/fecha]".
