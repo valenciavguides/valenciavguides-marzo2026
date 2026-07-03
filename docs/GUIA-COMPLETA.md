@@ -11654,7 +11654,48 @@ Dev mode activo → P14 (redirect directo, sin enviar `SELECCION.CODIGO_VALIDADO
 
 ---
 
-### 35.16 Formato del reporte de auditoría
+### 35.16 EJE 16 — Ciclo de vida de timers, intervalos y watches
+
+Busca todos los `setTimeout`, `setInterval` y `navigator.geolocation.watchPosition` en todos los archivos del proyecto.
+
+Para cada llamada:
+1. ¿Se guarda el ID de retorno en una variable accesible para cancelarla? Si no, es imposible limpiarla.
+2. ¿Existe la llamada `clearTimeout` / `clearInterval` / `clearWatch` correspondiente? ¿En qué función y bajo qué condición se llama (cambio de modo, `limpiarDatosAventura`, fin de aventura, destrucción de iframe)?
+3. ¿Puede el callback dispararse **después** de que el contexto que lo creó ya no es válido? Por ejemplo: timer de overlay GPS que se dispara después de un CAMBIO\_MODO, o heartbeat que sigue enviando pings a un iframe que ya fue recargado.
+
+Reportar como ❌ CRÍTICO timers sin clear en recursos que cambian de estado (GPS, audio, heartbeat). Reportar como ⚠️ MEDIO timers con clear pero cuya condición de limpieza puede no ejecutarse en todos los flujos de salida (error, timeout, recarga de iframe).
+
+---
+
+### 35.17 EJE 17 — Completitud de payload (emisor vs. handler)
+
+El eje 4 verifica que existe un handler para cada emisor. Este eje verifica que el payload que envía el emisor contiene **todos los campos** que el handler usa.
+
+Para cada `enviarMensaje({ datos: { a, b, c } })`:
+1. Localiza el handler receptor.
+2. Lista todos los campos que el handler accede: `mensaje.datos.x`, `const { x } = mensaje.datos`, etc.
+3. Verifica que cada campo existe en el payload del emisor.
+4. El uso de `?.` enmascara silenciosamente los campos ausentes: el handler recibe `undefined` y continúa sin error visible.
+
+Veredictos:
+- ❌ CRÍTICO: campo ausente accedido **sin** `?.` en una decisión de flujo (causa excepción o comportamiento incorrecto garantizado).
+- ⚠️ MEDIO: campo ausente accedido **con** `?.` (fallo silencioso, valor por defecto incorrecto).
+
+---
+
+### 35.18 EJE 18 — Re-registro de handlers en iframes recargados
+
+Cuando el heartbeat detecta que un iframe no responde, resetea su `src` para recargarlo. El iframe ejecuta de nuevo su `init()` y re-registra todos sus handlers con `registrarControladorSeguro`.
+
+Verificar:
+1. ¿`registrarControladorSeguro` / `registrarControlador` deduplica handlers del mismo tipo para el mismo iframe, o los acumula? Si los acumula, cada mensaje recibe N ejecuciones del callback (N = número de recargas + 1).
+2. ¿Los handlers con `{ permanente: true }` en el padre (p.ej. ENTENDIDO/EFECTUADO) se registran solo una vez, o cada llamada a `_registrarHandlersModo` añade uno nuevo?
+3. Traza el flujo completo de recarga de iframe: `src` reset → nuevo `load` → `init()` → `HIJO_LISTO` → `_vv_afterHijoListo` → ¿se desregistran los handlers previos antes de registrar los nuevos?
+4. Si el iframe recargado envía su estado inicial y un handler del padre lo procesa dos veces (porque hay dos registros del handler), ¿qué efecto tiene?
+
+---
+
+### 35.19 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 
