@@ -117,17 +117,21 @@ async function cargarMapaParrafos(idioma) {
         const url = new URL(`./parrafos-textos/parrafos-texto-${archivo}.json`, import.meta.url);
         const resp = await fetch(url);
         if (!resp.ok) {
-            console.error(`[DataLoader] No se pudo cargar párrafos: ${url} (HTTP ${resp.status})`);
-            parrafosCache.set(idioma, {});
+            const logger = globalThis.logger || console;
+            logger.error(`[DataLoader] No se pudo cargar párrafos: ${url} (HTTP ${resp.status})`);
+            // No cacheamos el fallo para que el siguiente intento reintente la red
+            try { globalThis.errorUI?.showToast(`No se pudieron cargar los textos (${idioma}, HTTP ${resp.status})`, { type: 'warning', duration: 8000 }); } catch (_) {}
             return {};
         }
         const mapa = await resp.json();
-        console.log(`[DataLoader] Párrafos "${idioma}": ${Object.keys(mapa).length} entradas`);
+        (globalThis.logger || console).log(`[DataLoader] Párrafos "${idioma}": ${Object.keys(mapa).length} entradas`);
         parrafosCache.set(idioma, mapa);
         return mapa;
     } catch (err) {
-        console.error(`[DataLoader] Error cargando párrafos para "${idioma}":`, err);
-        parrafosCache.set(idioma, {});
+        const logger = globalThis.logger || console;
+        logger.error(`[DataLoader] Error cargando párrafos para "${idioma}":`, err);
+        // No cacheamos el fallo para que el siguiente intento reintente la red
+        try { globalThis.errorUI?.showToast(`No se pudieron cargar los textos (${idioma})`, { type: 'warning', duration: 8000 }); } catch (_) {}
         return {};
     }
 }
