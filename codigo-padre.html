@@ -6374,22 +6374,6 @@
         // ============================================================
 
         // CONTROLADOR: SISTEMA.CAMBIO_MODO
-        async function _propagarCambioModoAHijos(hijosCriticos, modo, mensaje, logPrefix) {
-            (globalThis.logger || console).info(`${logPrefix} Propagando cambio de modo ${modo} a hijos críticos: ${hijosCriticos.join(', ')}`);
-            for (const hijoId of hijosCriticos) {
-                try {
-                    if (typeof enviarMensaje_S1 === 'function') {
-                        await enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.SISTEMA.CAMBIO_MODO, origen: CONFIG_PADRE.ID, destino: hijoId, datos: { modo, timestamp: Date.now(), propagadoDesde: mensaje.origen, razon: 'cambio_modo_global', secuenciaCompleta: true } });
-                        (globalThis.logger || console).debug(`${logPrefix} SISTEMA.CAMBIO_MODO enviado a ${hijoId}`);
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} enviarMensaje_S1 no disponible para propagación de modo`);
-                    }
-                } catch (error) {
-                    (globalThis.logger || console).error(`${logPrefix} Error enviando SISTEMA.CAMBIO_MODO a ${hijoId}:`, error);
-                }
-            }
-        }
-
         async function _enviarHeartbeatStartAHijo(h, origen, logPrefix) {
             try {
                 if (typeof enviarMensaje_S1 === 'function') {
@@ -6505,7 +6489,6 @@
                     const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'].filter(
                         h => globalThis.estadoPadre?.hijosInicializados?.has(h)
                     );
-                    await _propagarCambioModoAHijos(hijosCriticos, modo, mensaje, logPrefix);
                     await _gestionarHeartbeatSegunModo(modo, hijosCriticos, mensaje, logPrefix);
                     await _gestionarGpsSegunModo(modo, origen, mensaje, logPrefix);
                 } else {
@@ -10946,11 +10929,11 @@
 
                 if (globalThis._devModeActivo) {
                     updateLoadingStatus('Aventura lista', 'Entrando en modo CASA', 100);
-                    setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
                     (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA activo (dev) → hijo5 visible, proximidad OFF`);
                     if (typeof globalThis._vv_triggerCambioModo === 'function') {
-                        globalThis._vv_triggerCambioModo(MODOS.CASA);
+                        await globalThis._vv_triggerCambioModo(MODOS.CASA);
                     }
+                    globalThis.hideParentLoadingOverlay?.();
                 } else {
                     updateLoadingStatus('Aventura lista', 'Iniciando en modo AVENTURA', 100);
                     setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);

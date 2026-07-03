@@ -232,7 +232,7 @@ flowchart TD
 1. Inmediatamente (antes de cualquier await): establece `_devModeActivo = false` y oculta el iframe hijo5 (`display: none`).
 2. Llama `manejarCambioModo(estado, mensaje)` de `js/app.js`.
 3. Dentro de `manejarCambioModo`: actualiza `estado.modo.actual = 'aventura'` (optimistic update) y llama `actualizarInterfazModo()`, que envía `SISTEMA.CAMBIO_MODO` a todos los hijos con `secuenciaCompleta: !!estado.todosHijosListos` y espera ENTENDIDO+EFECTUADO de cada uno (timeout 5s+10s).
-4. Tras `manejarCambioModo`: propaga de nuevo con `_propagarCambioModoAHijos()` (siempre con `secuenciaCompleta: true`), inicia heartbeat y activa GPS.
+4. Tras `manejarCambioModo`: inicia heartbeat (`_gestionarHeartbeatSegunModo`) y activa GPS (`_gestionarGpsSegunModo`).
 
 **Payload original de hijo5** (enviado al padre al pulsar el botón):
 
@@ -245,23 +245,6 @@ flowchart TD
         modo: 'aventura',
         timestamp: Date.now(),
         origen: 'boton-gps'
-    }
-}
-```
-
-**Payload de la re-propagación** que padre envía a cada hijo (`_propagarCambioModoAHijos`):
-
-```javascript
-{
-    tipo: 'SISTEMA.CAMBIO_MODO',
-    origen: CONFIG_PADRE.ID,
-    destino: hijoId,   // hijo2, hijo3, hijo4, hijo5
-    datos: {
-        modo: 'aventura',
-        timestamp: Date.now(),
-        propagadoDesde: 'hijo5',
-        razon: 'cambio_modo_global',
-        secuenciaCompleta: true
     }
 }
 ```
@@ -293,13 +276,7 @@ sequenceDiagram
     H4-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     H5-->>P: CAMBIO_MODO_ENTENDIDO + CAMBIO_MODO_EFECTUADO
     H5--)P: SOLICITAR_DATOS_PARADAS (fire-and-forget tras recibir CAMBIO_MODO aventura)
-    Note over P: manejarCambioModo completa → _propagarCambioModoAHijos
-    par _propagarCambioModoAHijos — segunda propagación (secuenciaCompleta: true)
-        P->>H2: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
-        P->>H3: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
-        P->>H4: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
-        P->>H5: SISTEMA.CAMBIO_MODO (aventura, secuenciaCompleta: true)
-    end
+    Note over P: manejarCambioModo completa → heartbeat + GPS
     par Iniciar heartbeat
         P->>P: SISTEMA.HEARTBEAT_START (intervalo: 5000ms)
         P->>H2: SISTEMA.HEARTBEAT_START
@@ -477,7 +454,6 @@ sequenceDiagram
 | Función | Línea | Qué hace |
 |---------|-------|----------|
 | `manejarCambioModo(estado, mensaje)` | `js/app.js` | Orquesta la secuencia completa |
-| `_propagarCambioModoAHijos()` | 5925 | Envía `CAMBIO_MODO` a cada hijo crítico |
 | `_gestionarHeartbeatSegunModo()` | 5993 | Inicia o pausa heartbeat según el modo |
 | `_activarHeartbeatAventura()` | 5953 | Envía `HEARTBEAT_START` a padre e hijos |
 | `_transicionarAModoCasa()` | — | Limpia localStorage de progreso, pausa heartbeat y notifica a los hijos |
@@ -4035,10 +4011,7 @@ sequenceDiagram
     participant H as hijos 2/3/4/5
 
     H5->>P: SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }
-    P-->>P: manejarCambioModo(estado, mensaje) → estado.modo.actual = 'aventura'
-
-    P->>H: _propagarCambioModoAHijos()
-    Note over P,H: SISTEMA.CAMBIO_MODO { modo, propagadoDesde, secuenciaCompleta:true }\na hijo2, hijo3, hijo4, hijo5
+    P-->>P: manejarCambioModo → actualizarInterfazModo() → CAMBIO_MODO a todos los hijos (ENTENDIDO+EFECTUADO+APLICADO)
 
     P-->>P: _gestionarHeartbeatSegunModo('aventura')
     P->>P: SISTEMA.HEARTBEAT_START { intervalo: ~5000ms } → self
@@ -4061,7 +4034,7 @@ Para cambios de modo iniciados desde el padre (no desde hijo5), `js/app.js` impl
 
 Los handlers de ENTENDIDO/EFECTUADO se registran una sola vez y escriben en `_respuestasEntendidoActual` / `_respuestasEfectuadoActual` (Maps compartidos, limpiados al inicio de cada llamada).
 
-En el flujo de hijo5 (botón GPS), **no se usa `actualizarInterfazModo`** — se usa `_propagarCambioModoAHijos` directamente (sin esperar ENTENDIDO/EFECTUADO).
+En el flujo de hijo5 (botón GPS), `manejarCambioModo` usa `actualizarInterfazModo` con el protocolo bidireccional completo (ENTENDIDO+EFECTUADO+APLICADO), igual que cualquier otro cambio de modo.
 
 ---
 
@@ -11029,7 +11002,6 @@ Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle
 **Fuentes adicionales de `CAMBIO_MODO` durante una sesión de retos:**
 
 - El retry loop de `pendingModeChanges` (reintento cada 5 s si hubo NACK)
-- `_propagarCambioModoAHijos` cuando el padre recibe cualquier `CAMBIO_MODO` de cualquier origen
 
 **Patrón correcto** en `_onCambioModo` de `retos-hijo4.html`:
 
@@ -11540,6 +11512,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
    - **Destino incorrecto:** el mensaje se emite con `destino: 'hijo3'` pero el handler está registrado en `hijo2`.
 4. Para mensajes bidireccionales (los que esperan ENTENDIDO / EFECTUADO / respuesta): verifica que la respuesta existe, viaja al `origen` correcto y se procesa dentro del timeout esperado.
 5. Resultado en tabla: `Tipo | Emisor | Receptor | Payload | Estado (✅/⚠️/❌/🕳️)`.
+6. **Call-chain deduplication:** para cada `enviarMensaje(tipo=X)`, sube el call-stack completo hacia el caller y el segundo nivel. Verifica si alguna función ancestora también emite `tipo=X` a destinatarios solapados. Si hay solapamiento, el receptor recibe el mismo mensaje dos veces en una sola acción de usuario; determina si los side effects del handler son idempotentes o dañinos. Ejemplo real: `manejarCambioModo` → `actualizarInterfazModo` envía `SISTEMA.CAMBIO_MODO` a todos los hijos; luego `_hdl_SISTEMA_CAMBIO_MODO` llama `_propagarCambioModoAHijos` que lo envía de nuevo a hijo2/3/4/5, provocando doble ejecución de side effects.
 
 ---
 
@@ -11585,6 +11558,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 2. Lista todos los `await fn()` en flujos críticos sin timeout. Verifica que se usa `withTimeout` donde corresponde. Advertencia: `withTimeout` en `js/app.js` resuelve `null` (no rechaza) al agotar el tiempo — todos los callers deben verificar `result !== null`.
 3. Detecta condiciones de carrera: dos handlers que modifican el mismo estado compartido de forma no coordinada.
 4. Detecta `Promise.all([...])` donde un fallo individual puede silenciarse si cada elemento tiene `.catch` interno propio.
+5. **Fire-and-forget + mutex:** busca todas las llamadas a funciones `async` sin `await` y sin almacenar la Promise. Para cada una: (a) ¿setea algún flag de concurrencia (`cambiandoModo`, `_iframesPreCargadosP14`, etc.) síncronamente antes de su primer `await`? (b) ¿puede el usuario interactuar con la UI antes de que ese flag se libere en el `finally`? Calcula el tiempo hasta que la UI se hace interactiva (p.ej. `setTimeout` que oculta un overlay) vs. el tiempo mínimo de la función hasta su `finally`. Si UI\_interactiva < función\_finally → race condition garantizada. Ejemplo real: `_vv_triggerCambioModo(MODOS.CASA)` fire-and-forget setea `cambiandoModo=true`; 250 ms después el overlay desaparece y el usuario puede pulsar el botón GPS; si `manejarCambioModo(CASA)` aún no terminó, el segundo cambio falla silenciosamente.
 
 ---
 
@@ -11674,6 +11648,9 @@ Todas las paradas completadas O tiempo agotado → `globalThis.mostrarModalFinal
 
 **Flujo E — Error GPS:**
 GPS denegado por usuario → `verificarPermisosGPS()` devuelve `false` → `activarGPS()` lanza antes de iniciar `watchPosition` → `catch` en `activarGPS` llama `showGpsSignalOverlay(1)` → usuario ve imagen de error + instrucciones → overlay persiste hasta que el usuario concede permisos o recarga.
+
+**Flujo F — Dev mode, pulsación GPS en hijo5:**
+Dev mode activo → P14 (redirect directo, sin enviar `SELECCION.CODIGO_VALIDADO`) → `_hdl_SELECCION_P14_MOSTRADA` carga iframes + datos (GPS no se activa: guard `if (!_devModeActivo)`) → AVENTURA\_ACTIVADA → `_mostrarUIActivada` muestra hijo5 → `setTimeout(250)` programa ocultamiento del overlay → `_vv_triggerCambioModo(MODOS.CASA)` fire-and-forget → `cambiandoModo=true` (síncrono) → overlay desaparece a los 250 ms → **verificar que `cambiandoModo` ya es `false` antes de ese punto** → usuario ve hijo5 → pulsa GPS → `_hdl_SISTEMA_CAMBIO_MODO`: `_devModeActivo=false`, hijo5 oculto → `manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos → `_propagarCambioModoAHijos` envía de nuevo a hijo2/3/4/5 → **verificar que este segundo envío no existe o está eliminado** → `_gestionarGpsSegunModo` llama `activarGPS()` por primera vez en esta sesión → modo AVENTURA activo, heartbeat arranca.
 
 ---
 
