@@ -5758,11 +5758,16 @@ Los pasos 1-3 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 4-5 solo o
 
 ### Fuente única de verdad del estado GPS
 
-El estado GPS tiene una **única fuente de verdad**: el objeto `estadoMapa` dentro de `js/funciones-mapa.js`. Este objeto contiene `gpsActivo`, `posicionUsuario`, `precision`, etc.
+El estado GPS está repartido entre dos propietarios con responsabilidades distintas:
 
-Cada vez que el estado GPS cambia, la función `sincronizarEstadoGPSConPadre()` copia los valores relevantes a `window.estadoPadre.gps`. Esto permite que el resto del código del padre acceda al estado GPS mediante `window.estadoPadre.gps` sin acceder directamente a las variables internas de `funciones-mapa.js`.
+**`estadoMapa` (`js/funciones-mapa.js`)** — propietario de los campos de comportamiento GPS:
+`gpsActivo`, `gpsPermisos`, `gpsPrecision`, `gpsError`, `posicionUsuario`, `ultimaUbicacion`, `gpsVisualActivo`.
+Cada vez que alguno de estos campos cambia, `sincronizarEstadoGPSConPadre()` los copia a `window.estadoPadre.gps`, permitiendo que el resto del padre los lea sin acceder directamente a las variables internas de `funciones-mapa.js`.
 
-No existe una tercera copia en `state-manager.js` — la única sincronización es `funciones-mapa.js → window.estadoPadre.gps`.
+**`estadoPadre.gps.watchId` (`codigo-padre.html`)** — propiedad exclusiva del padre.
+Solo `activarGPS()` lo asigna (al llamar a `navigator.geolocation.watchPosition`) y solo `desactivarGPS()` lo limpia (al llamar a `clearWatch`). `funciones-mapa.js` no tiene campo `watchId` en `estadoMapa` ni escribe en `estadoPadre.gps.watchId`. `sincronizarEstadoGPSConPadre()` deliberadamente no sincroniza este campo.
+
+No existe una tercera copia en `state-manager.js` — la única sincronización de campos de comportamiento es `funciones-mapa.js → window.estadoPadre.gps`.
 
 ### Limpieza del mapa en cambio de modo (AVENTURA → CASA)
 

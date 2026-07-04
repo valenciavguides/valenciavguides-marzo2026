@@ -1068,26 +1068,12 @@ export async function procesarHeartbeatResponse(mensaje) {
 
         if (estabaDesconectado) {
             logger.info(`[mensajeria] Hijo ${hijoId} reconectado`);
-            await reenviarMensajesPendientes(hijoId);
             if (hijoId === 'hijo2') {
                 await reenviarMensajesGPSAPendientes(hijoId);
             }
         }
     } catch (error) {
         logger.error('[mensajeria] Error procesando heartbeat response:', error);
-    }
-}
-
-/**
- * Reenvía mensajes pendientes a un hijo reconectado
- * @param {string} hijoId - ID del hijo
- */
-async function reenviarMensajesPendientes(hijoId) {
-    try {
-        logger.info(`[mensajeria] Reenviando mensajes pendientes a ${hijoId}`);
-        // Implementación futura: reenviar mensajes que fallaron mientras el hijo estaba desconectado
-    } catch (error) {
-        logger.error(`[mensajeria] Error reenviando mensajes pendientes a ${hijoId}:`, error);
     }
 }
 

@@ -633,6 +633,7 @@
             try {
                 (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
                 if (!tipo || typeof handler !== 'function') {
+                    // NOTA: string con encoding UTF-8 corrupto ('parÃ¡metros invÃ¡lidos' = 'parámetros inválidos'). Solo alcanzable si se llama registrarControladorSeguro con tipo null o handler no-función — no ocurre en paths de producción.
                     (globalThis.logger || console).warn && (globalThis.logger || console).warn(`[HIJO] registrarControladorSeguro parÃ¡metros invÃ¡lidos: tipo=${tipo}`);
                     return;
                 }
