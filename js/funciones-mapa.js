@@ -2675,10 +2675,11 @@ export function registrarManejadoresMensajes() {
             registrarControlador(tipo, handler);
         };
 
-        // Registrar manejadores de mensajes con manejo de errores
-        registrarSiNoExiste(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, manejarCambioModoMapa);
-        
         // Controladores de navegación adicionales
+        // NOTA: SISTEMA.CAMBIO_MODO lo registra _hdl_SISTEMA_CAMBIO_MODO en codigo-padre.html Script 1
+        // (permanente: true). Ese handler llama a globalThis.funcionesMapa.manejarCambioModoMapa()
+        // para las actualizaciones de mapa. No registrar aquí para evitar que funciones-mapa
+        // gane la carrera de inserción en getMapaControladoresSync() (primer-wins).
         // CAMBIO_PARADA: el handler de mensajería lo gestiona padre (codigo-padre.html)
         // que coordina hijo2/hijo3/hijo4/hijo5. Funciones-mapa escucha un CustomEvent
         // disparado por padre DESPUÉS de procesar, para dibujar marcadores/polylines/zoom.
@@ -3151,6 +3152,7 @@ globalThis.funcionesMapa = {
     verificarLlegadaADestino,
     procesarPosicionGPSParaAventura,
     iniciarGPSAventura,
+    manejarCambioModoMapa,
     // Exponer la API pública centralizada para cambiar la vista
     setMapView,
     // API para ajustar vista a un rectángulo de coordenadas

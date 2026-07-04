@@ -4343,7 +4343,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-gps-at-p14-jul03'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-dev-mode-fixes-jul04'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6850,7 +6850,7 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-gps-at-p14-jul03'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-dev-mode-fixes-jul04'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7412,7 +7412,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-gps-at-p14-jul03'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-dev-mode-fixes-jul04'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -7705,7 +7705,7 @@ El modo DEV se desactiva siempre a través del botón GPS de hijo5.
 ```mermaid
 flowchart TD
     CASA_DEV([MODO CASA dev activo\nhijo5 visible]) --> BTN["Desarrollador pulsa 🛰️ ON en hijo5\nhijo5 envía SISTEMA.CAMBIO_MODO\nmodo: 'aventura' · datos.origen: 'boton-gps'"]
-    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\nmanejarCambioModo: _devModeActivo=false · hijo5:display:none\n_gestionarHeartbeatSegunModo: heartbeat activado\n_gestionarGpsSegunModo: activarGPS() si !estado.gps.activo"]
+    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\n_devModeActivo=false · hijo5:display:none\nfuncionesMapa.manejarCambioModoMapa() — estado mapa · limpiarPorEstado · reset vista\nmanejarCambioModo (app.js) — coordina hijos\n_gestionarHeartbeatSegunModo: heartbeat activado\n_gestionarGpsSegunModo: activarGPS() si !estado.gps.activo"]
     HDLAV --> AVENTURA([MODO AVENTURA\nGPS watchPosition activo\nvalidaciones de proximidad activas])
 ```
 
@@ -7770,7 +7770,7 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 | Persistencia | Ninguna — `_devModeActivo` y `_devCasaMode` son variables en memoria |
 | Recarga de página | Reinicia el modo DEV; hijo5 vuelve a `display:none` |
 | Código de acceso | [solo conocido por el desarrollador — verificado por hash SHA-256 en `codigo-padre.html` y `En-busca-del-tesoro.html`; no documentado en materiales de usuario, soporte ni chat] |
-| Visibilidad al usuario final | Ninguna — hijo5 oculto, gestos no señalizados en la UI |
+| Visibilidad al usuario final | Badge naranja `MODO DEV/CASA` en esquina superior-derecha de P1-P5 cuando está activo; hijo5 visible durante la aventura |
 | Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Modo dev activado en P1 — se saltarán P12 y P13` |
 
 El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código DEV, ni los gestos de activación.
@@ -7785,13 +7785,13 @@ Esta sección describe el recorrido completo del desarrollador en modo DEV, en o
 
 **Paso 1 — Activar el modo DEV en P1**
 
-El desarrollador abre la app en el navegador (escritorio o móvil). Ve la pantalla de bienvenida con el logo circular naranja. Hace 5 taps rápidos sobre el logo (o `Ctrl+Alt+clic` en escritorio). Aparece un overlay con un campo de texto. Introduce el código DEV. El overlay desaparece. En consola: `[DEV_MODE] 🟢 ACTIVADO`.
+El desarrollador abre la app en el navegador (escritorio o móvil). Ve la pantalla de bienvenida con el logo circular naranja. Hace 5 taps rápidos sobre el logo (o `Ctrl+Alt+clic` en escritorio). Aparece un overlay con un campo de texto. Introduce el código DEV. Si el código es incorrecto, el overlay permanece abierto y muestra "Código incorrecto" en rojo (el input se limpia). Si es correcto, el overlay desaparece.
 
 En este momento se setean dos variables en memoria:
 - `globalThis._devCasaMode = true` — en la pantalla de selección (`En-busca-del-tesoro.html`)
 - `globalThis._devModeActivo = true` — en el padre (`codigo-padre.html`)
 
-No hay ningún indicador visual para el usuario final. La app sigue teniendo exactamente el mismo aspecto.
+Aparece un badge naranja `MODO DEV/CASA` en la esquina superior-derecha de P1-P5. Es el único indicador visual: el usuario final que no conoce el gesto no tiene forma de saber que está activo (el badge no explica por sí solo qué hace ni cómo se activó).
 
 ---
 
@@ -10897,7 +10897,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-gps-at-p14-jul03';
+const CACHE_VERSION = 'v-dev-mode-fixes-jul04';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.

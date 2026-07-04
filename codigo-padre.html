@@ -4294,12 +4294,13 @@
         // Wrapper seguro para evitar doble registro de controladores críticos.
         // DISEÑO INTENCIONAL — comportamiento "first wins": el primer módulo que registra
         // un tipo de mensaje gana; los siguientes intentos se ignoran silenciosamente.
-        // Esto es seguro porque el espacio de nombres está particionado por prefijo:
+        // El espacio de nombres está particionado por prefijo:
         //   SISTEMA.*       → Script 1 (este script)
         //   NAVEGACION.*    → funciones-mapa.js
         //   DATOS.*         → controladores-padre.js
-        // Ningún par de módulos compite por el mismo tipo, por lo que "first wins"
-        // nunca resuelve en el módulo equivocado en condiciones normales de producción.
+        // EXCEPCIÓN: SISTEMA.CAMBIO_MODO lo registra Script 1 (permanente), que además
+        // llama a globalThis.funcionesMapa.manejarCambioModoMapa() directamente para
+        // las operaciones de mapa. funciones-mapa.js NO lo registra como handler.
         if (globalThis.registrarControladorSeguro === undefined) {
             globalThis.registrarControladorSeguro = function(tipo, handler, opciones) {
                 try {
@@ -6496,6 +6497,16 @@
                     globalThis._devModeActivo = false;
                     const hijo5El = document.getElementById('hijo5');
                     if (hijo5El) hijo5El.style.display = 'none';
+                }
+
+                // Actualizar estado del mapa (estadoMapa.modo, limpiarPorEstado, reset vista).
+                // manejarCambioModoMapa no se registra como handler CAMBIO_MODO (ganaría la
+                // carrera de inserción en getMapaControladoresSync vs este handler permanente),
+                // así que lo llamamos directamente aquí.
+                try {
+                    await globalThis.funcionesMapa?.manejarCambioModoMapa?.(mensaje);
+                } catch (mapaErr) {
+                    (globalThis.logger || console).warn(`${logPrefix} Error en actualización de mapa:`, mapaErr?.message);
                 }
 
                 const resultado = await manejarCambioModo(estado, mensaje);
@@ -11158,13 +11169,15 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 <p style="color:#f5a623;font-size:1.1rem;font-weight:bold;margin:0 0 1rem 0;">🔧 Modo desarrollador</p>
                 <input id="_dev-code-input" type="password" maxlength="20" autocomplete="off"
                     style="width:100%;padding:0.9rem;border:2px solid #555;border-radius:0.6rem;font-size:1.6rem;text-align:center;letter-spacing:0.5rem;background:#0d0d1a;color:#fff;box-sizing:border-box;">
-                <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+                <p id="_dev-code-error" style="color:#ff4444;font-size:0.85rem;margin:0.5rem 0 0 0;min-height:1.2em;"></p>
+                <div style="display:flex;gap:0.8rem;margin-top:0.8rem;">
                     <button id="_dev-code-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
                     <button id="_dev-code-ok" style="flex:1;padding:0.7rem;background:#f5a623;color:#000;border:none;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;font-weight:bold;">OK</button>
                 </div>
             </div>`;
             document.body.appendChild(overlay);
             const input = overlay.querySelector('#_dev-code-input');
+            const errorEl = overlay.querySelector('#_dev-code-error');
             input.focus();
             const cerrar = () => { try { document.body.removeChild(overlay); } catch (_) {} };
             let _confirming = false;
@@ -11173,11 +11186,17 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 _confirming = true;
                 try {
                     const codigo = input.value.trim();
-                    cerrar();
-                    if (!codigo) return;
+                    if (!codigo) { errorEl.textContent = 'Introduce el código'; _confirming = false; return; }
                     const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
                     const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-                    if (hashHex !== CODIGO_DEV_HASH) return;
+                    if (hashHex !== CODIGO_DEV_HASH) {
+                        errorEl.textContent = 'Código incorrecto';
+                        input.value = '';
+                        input.focus();
+                        _confirming = false;
+                        return;
+                    }
+                    cerrar();
                     globalThis._devModeActivo = true;
                     if (typeof globalThis._vv_triggerCambioModo === 'function') {
                         await globalThis._vv_triggerCambioModo(MODOS_S2.CASA);
@@ -11187,7 +11206,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                     (globalThis.logger || console).warn('[DEV_MODE] 🟢 CASA activado desde Factor 2 (timer hijo1)');
                 } catch (err) {
                     (globalThis.logger || console).error('[DEV_MODE] Error activando modo dev:', err?.message || err);
-                } finally {
                     _confirming = false;
                 }
             };
