@@ -205,9 +205,9 @@ Al arrancar `codigo-padre.html`:
 2. Se comprueba si existe `vv_aventura_iniciada` en `localStorage`.
    - Si existe → `ejecutarRestauracionAventura()` (línea 4152) restaura el estado anterior.
    - Si no existe → la app queda en MODO CASA esperando que el usuario complete el flujo de incorporación.
-3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P14 (`SELECCION.P14_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P13. Antes de P14, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1):** si `_devModeActivo` es `true`, `mostrar()` intercepta P12 y P13 y redirige directamente a P14 sin validar código. GPS sí se activa en P14 (después de los iframes), igual que en prod.
+3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P14 (`SELECCION.P14_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P13. Antes de P14, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1):** si `_devModeActivo` es `true`, `mostrar()` intercepta P12 y P13 y redirige directamente a P14 sin validar código. El GPS **no** se activa en P14 en modo DEV — `_hdl_SELECCION_P14_MOSTRADA` omite `activarGPS()` cuando `_devModeActivo = true`; arranca solo cuando el desarrollador pulsa 🛰️ en hijo5 para entrar en AVENTURA.
 4. Cuando `SELECCION.CODIGO_VALIDADO` llega (P13, solo prod): el handler está vacío — solo registra que el código fue validado con un log. GPS, iframes y datos de aventura se activan en P14.
-5. Cuando `SELECCION.P14_MOSTRADA` llega: carga hijo1-5 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo; después activa GPS (dev y prod). El orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
+5. Cuando `SELECCION.P14_MOSTRADA` llega: carga hijo1-5 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo; después activa GPS **solo si `!_devModeActivo`**. En prod, el orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
 
 ```mermaid
 flowchart TD
@@ -217,7 +217,7 @@ flowchart TD
     C --> DEV{¿_devModeActivo?\nFactor 1 activado antes de P12}
     DEV -- Sí\nmodo DEV --> BYPASS["mostrar() intercepta P12 y P13\nredirige id=14 directamente\nsin GPS · sin CODIGO_VALIDADO"]
     DEV -- No --> P13[P13: usuario introduce código de compra\nseleccion envía CODIGO_VALIDADO · padre solo registra]
-    P13 --> P14[P14: normativa mostrada\n_accionPantalla15() → P14_MOSTRADA\ncarga hijo1-5 + datos en paralelo → activa GPS (dev+prod)]
+    P13 --> P14[P14: normativa mostrada\n_accionPantalla15() → P14_MOSTRADA\ncarga hijo1-5 + datos en paralelo → activa GPS solo si !_devModeActivo]
     BYPASS --> P14
     P14 --> P15[P15: Reto R-2\nSÍ → AVENTURA_ACTIVADA]
     P15 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat inactivo\nUsuario ve mapa y controles])
@@ -362,9 +362,9 @@ navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
 
 **Ciclo de vida del GPS**:
 
-El permiso GPS se comprueba en P13 (cuando el usuario introduce el código de activación), pero `activarGPS()` **no se llama ahí** — `_hdl_SELECCION_CODIGO_VALIDADO` delega explícitamente a P14. `watchPosition` se inicia en **P14**, después de que todos los iframes hayan enviado `HIJO_LISTO`. En modo DEV (Factor 1) el flujo llega a P14 saltando P12/P13, pero el GPS se activa exactamente igual.
+El permiso GPS se comprueba en P13 (cuando el usuario introduce el código de activación), pero `activarGPS()` **no se llama ahí** — `_hdl_SELECCION_CODIGO_VALIDADO` delega explícitamente a P14. En prod, `watchPosition` se inicia en **P14**, después de que todos los iframes hayan enviado `HIJO_LISTO`. En modo DEV (Factor 1), `_hdl_SELECCION_P14_MOSTRADA` **omite** `activarGPS()` por completo cuando `_devModeActivo = true` — el GPS arranca solo cuando el desarrollador pulsa 🛰️ en hijo5 para entrar en AVENTURA.
 
-Si el permiso ya está denegado, `_irANormativa()` en selección muestra un aviso local en P13 y el usuario no avanza. Si el permiso es `'prompt'` o `'granted'`, el padre avanza a P14, carga iframes y activa GPS. Si GPS lanza PERMISSION_DENIED en `_watchPositionError`, el padre limpia `watchId`, muestra `imagen-no-gps.png` sobre toda la pantalla con el botón 🛰️→🌐→⚙️, y el usuario no puede continuar hasta ir a los ajustes del sistema y pulsar de nuevo el botón (que llama `activarGPS()` desde el overlay).
+Si el permiso ya está denegado en **prod**, `_irANormativa()` muestra un aviso local en P13 y el usuario no avanza. **En dev** (`_devCasaMode = true`), el check de GPS denegado se salta — el usuario avanza a P14 igualmente porque en modo CASA el GPS no es necesario. Si el permiso es `'prompt'` o `'granted'`, el padre avanza a P14, carga iframes y activa GPS (solo prod). Si GPS lanza PERMISSION_DENIED en `_watchPositionError`, el padre limpia `watchId`, muestra `imagen-no-gps.png` sobre toda la pantalla con el botón 🛰️→🌐→⚙️, y el usuario no puede continuar hasta ir a los ajustes del sistema y pulsar de nuevo el botón (que llama `activarGPS()` desde el overlay).
 
 ```mermaid
 flowchart TD
@@ -576,7 +576,7 @@ flowchart TD
     B -- Sí vv_aventura_iniciada --> C[ejecutarRestauracionAventura\nRestaurar progreso · idioma · parada actual]
     B -- No --> D[Demo P1→P17 · selección idioma · aventura · puzzle · pago · activación]
     D --> P13V[P13: usuario introduce código\nPadre recibe CODIGO_VALIDADO]
-    P13V --> E[P14_MOSTRADA -> padre carga iframes + datos en paralelo\nluego activa GPS (dev+prod) mientras usuario lee normativa]
+    P13V --> E[P14_MOSTRADA -> padre carga iframes + datos en paralelo\nluego activa GPS (solo prod) mientras usuario lee normativa]
     E --> F[Handshake HIJO_LISTO\nde cada hijo]
     F --> G[Padre distribuye datos\nDATOS.CARGAR_RETOS · coordenadas · audios]
     G --> H([MODO CASA\nUsuario ve mapa · GPS activo sin validaciones · heartbeat inactivo])
@@ -1608,7 +1608,7 @@ Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el 
 - `SELECCION.AVENTURA_SELECCIONADA` (P7) → solo almacena `{ aventura, idioma }` en `estado.seleccion`; resetea flags `_codigoValidadoP13` y `_iframesPreCargadosP14`; **no carga iframes ni activa GPS**
 - `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `{ idioma, aventura, timestamp }` en `estado.seleccion`; **no carga iframes**
 - `SELECCION.CODIGO_VALIDADO` (P13, solo prod) → handler vacío — registra con un log que el código fue validado; nada más
-- `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; después: `activarGPS()` (dev y prod); si GPS deniega → overlay + abort
+- `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; después: `activarGPS()` **solo si `!_devModeActivo`**; si GPS deniega en prod → overlay + abort
 - `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-5 como fallback; siempre distribuye datos y activa modo CASA
 ```mermaid
 flowchart TD
@@ -1618,7 +1618,7 @@ flowchart TD
     FIN["✅ Sistema listo\nCAMBIO_MODO sincronizacion_inicial → H2/H3/H4\noverlay oculto — usuario ve seleccion"]
     SEL_A["AVENTURA_SELECCIONADA (P7)\nsolo almacena estado.seleccion\nreset _codigoValidadoP13 y _iframesPreCargadosP14"]
     SEL_CV["CODIGO_VALIDADO (P13 — solo prod)\nhandler vacío — registra con log"]
-    SEL_P14["P14_MOSTRADA (P14)\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos en paralelo\n→ activarGPS (dev+prod)"]
+    SEL_P14["P14_MOSTRADA (P14)\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos en paralelo\n→ activarGPS (solo si !_devModeActivo)"]
     SEL_C["AVENTURA_ACTIVADA (P15→P16)\nfast-path si _iframesPreCargadosP14\nsi no: carga hijo1-5 + distribuirDatosAventura()"]
     F1 --> F2 --> F3A --> FIN
     FIN -.->|"más tarde:\nusuario completa\nonboarding"| SEL_A
@@ -2077,7 +2077,7 @@ flowchart TD
 | `SELECCION.AVENTURA_SELECCIONADA` | Click en tarjeta de aventura en P7 (via `seleccionarAventura()`) | `{ aventura, idioma }` — el padre solo anota estado; no carga nada |
 | `SELECCION.PREPARAR_HIJOS` | Al confirmar aventura en P9 | `{ idioma, aventura, timestamp }` |
 | `SELECCION.DEV_MODE_TOGGLE` | Al activar Factor 1 DEV con código DEV en el modal de P1 | `{}` — el padre (IIFE Script 1) pone `_devModeActivo = true` |
-| `SELECCION.CODIGO_VALIDADO` | Al pulsar → en P13 con código de compra correcto y GPS no denegado (via `_irANormativa()`); o automáticamente desde `mostrar()` cuando `_devCasaMode === true` intercepta P12/P13 | Normal: `{ aventura, idioma, timestamp }` · DEV Factor 1: `{ aventura, idioma, timestamp, devMode: true }` — dispara carga de iframes; activa GPS solo si `_devModeActivo === false` **y** `mensaje.datos.devMode !== true` (belt-and-suspenders) |
+| `SELECCION.CODIGO_VALIDADO` | Al pulsar "Iniciar" en P13 con código de compra correcto y GPS no denegado (via `_irANormativa()`). **En modo DEV Factor 1 P13 se salta** — nunca se envía `CODIGO_VALIDADO`; `mostrar()` redirige directamente a P14 sin pasar por `_irANormativa()`. | `{ aventura, idioma, timestamp }` — el handler padre (`_hdl_SELECCION_CODIGO_VALIDADO`) es no-op; la carga real la hace `P14_MOSTRADA` |
 | `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P15 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` — el padre usa fast-path si iframes ya cargados desde P13 |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Al recibir `CAMBIO_MODO` | — |
@@ -3270,7 +3270,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SELECCION.AVENTURA_ACTIVADA` | Tesoro → Padre | Confirma inicio de aventura (P15) |
 | | `SELECCION.TERMINOS_ACEPTADOS` | Tesoro → Padre | Usuario aceptó términos (P10) |
 | | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro → Tesoro | video-intro.html completó todas las escenas — manejado internamente si se integra; no llega al padre |
-| | `SELECCION.CODIGO_VALIDADO` | Tesoro → Padre | Código de compra aceptado en P13 (o interceptado automáticamente por `mostrar()` en modo DEV Factor 1); el padre activa GPS (si no es modo DEV) y carga todos los iframes de aventura |
+| | `SELECCION.CODIGO_VALIDADO` | Tesoro → Padre | Código de compra aceptado en P13 (solo prod — en modo DEV Factor 1, P13 se salta y este mensaje nunca se envía); el handler padre es no-op — la carga de iframes y GPS la gestiona `P14_MOSTRADA` |
 | | `SELECCION.DEV_MODE_TOGGLE` | Tesoro → Padre (IIFE Script 1) | Factor 1 DEV activado con código DEV en el modal de P1; el IIFE pone `globalThis._devModeActivo = true` sin pasar por el bus de mensajería |
 | **NAVEGACION** | `NAVEGACION.CAMBIO_PARADA` | Padre → Hijos / Hijo5 → Padre | Parada activa cambia |
 | | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Bidireccional | Hijo3/Hijo4 → Padre: confirmación de haber procesado el cambio · Padre → Hijo5: confirmación con metadatos enriquecidos (audio, reto) |
@@ -3381,7 +3381,7 @@ sequenceDiagram
 
     Note over T,P: P14 — normativa mostrada
     T->>P: SELECCION.P14_MOSTRADA { timestamp }
-    Note over P: _hdl_SELECCION_P14_MOSTRADA — cargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos → activarGPS (dev+prod)
+    Note over P: _hdl_SELECCION_P14_MOSTRADA — cargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos → activarGPS (solo si !_devModeActivo)
 
     Note over T,P: P15/P16 — usuario confirma inicio (tras reto R-2)
     T->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados, timestamp }
@@ -3396,7 +3396,7 @@ sequenceDiagram
 | `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | Almacena estado; resetea `_codigoValidadoP13`; no carga iframes |
 | `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Almacena `estado.seleccion`; no carga iframes |
 | `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
-| `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `activarGPS()` (dev y prod) |
+| `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `activarGPS()` solo si `!_devModeActivo` |
 | `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
 | `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
 | `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, iframeId }` | Handshake estándar |
@@ -4532,7 +4532,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ timestamp }` |
 | Handler en padre | `_hdl_SELECCION_P14_MOSTRADA` |
-| Acción | En paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4) + `cargarHijoCasa()` (hijo5). Después: `activarGPS()` (dev y prod). Si GPS deniega: `showGpsSignalOverlay(1)` y aborta sin setear `_iframesPreCargadosP14`. Guard `_iframesPreCargadosP14` evita doble carga. |
+| Acción | En paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4) + `cargarHijoCasa()` (hijo5). Después: `activarGPS()` **solo si `!_devModeActivo`** (en dev se omite — GPS arranca cuando el desarrollador pulsa 🛰️ en hijo5). En prod, si GPS deniega: `showGpsSignalOverlay(1)` y aborta sin setear `_iframesPreCargadosP14`. Guard `_iframesPreCargadosP14` evita doble carga. |
 
 **SELECCION.AVENTURA_ACTIVADA** (seleccion → padre)
 
@@ -7659,9 +7659,9 @@ flowchart TD
     SET1 --> IIFE["IIFE Script 1 padre:\nglobalThis._devModeActivo = true"]
     IIFE --> NORMAL[Usuario navega P2→P11 con normalidad]
     NORMAL --> P12_13{mostrar(12) o mostrar(13)}
-    P12_13 -- "_devCasaMode === true" --> BYPASS["id = 14 directamente (sin CODIGO_VALIDADO)\nsin código de compra · GPS se activa en P14"]
+    P12_13 -- "_devCasaMode === true" --> BYPASS["id = 14 directamente (sin CODIGO_VALIDADO)\nsin código de compra · GPS NO se activa en P14"]
     P12_13 -- "_devCasaMode === false" --> NORMAL2["Flujo normal:\nP12 pago → P13 código de compra → GPS"]
-    BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos → activarGPS (dev+prod)"]
+    BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos\nGPS omitido (_devModeActivo=true)"]
     HDLP14 --> P14[P14 — Normativa]
     NORMAL2 --> P14
     P14 --> P15[P15 — Reto R-2\nseleccion envía AVENTURA_ACTIVADA]
@@ -7669,7 +7669,7 @@ flowchart TD
     HDLAA --> CASA1([Sistema en MODO CASA\nhijo5 visible · GPS activo en watchPosition · overlay GPS silenciado])
 ```
 
-En dev mode, `mostrar(12)` y `mostrar(13)` redirigen directamente a P14 (`id = 14`) — no se envía `CODIGO_VALIDADO`. La función `_accionPantalla15()` envía `SELECCION.P14_MOSTRADA` al padre, que en `_hdl_SELECCION_P14_MOSTRADA` carga iframes + datos y activa GPS (igual en dev y prod). Guard `_iframesPreCargadosP14` evita doble carga.
+En dev mode, `mostrar(12)` y `mostrar(13)` redirigen directamente a P14 (`id = 14`) — no se envía `CODIGO_VALIDADO`. La función `_accionPantalla15()` envía `SELECCION.P14_MOSTRADA` al padre, que en `_hdl_SELECCION_P14_MOSTRADA` carga iframes + datos **pero omite `activarGPS()`** cuando `_devModeActivo = true`. Guard `_iframesPreCargadosP14` evita doble carga.
 
 #### Factor 2 — Activación durante la aventura activa
 
@@ -7766,7 +7766,7 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 | Recarga de página | Reinicia el modo DEV; hijo5 vuelve a `display:none` |
 | Código de acceso | [solo conocido por el desarrollador — verificado por hash SHA-256 en `codigo-padre.html` y `En-busca-del-tesoro.html`; no documentado en materiales de usuario, soporte ni chat] |
 | Visibilidad al usuario final | Ninguna — hijo5 oculto, gestos no señalizados en la UI |
-| Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Skip P12/P13 → P14, CODIGO_VALIDADO enviado` |
+| Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Modo dev activado en P1 — se saltarán P12 y P13` |
 
 El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código DEV, ni los gestos de activación.
 
@@ -7809,10 +7809,8 @@ El desarrollador ve la pantalla de normativa. Es obligatoria incluso en modo DEV
 El padre ejecuta `_hdl_SELECCION_P14_MOSTRADA` en este orden:
 
 1. En paralelo: carga iframes hijo1–4 (`cargarRestoDeiframes()`), hijo5 (`cargarHijoCasa()`), y datos de aventura (`_fase2CargarDatos()`)
-2. Setea `globalThis._codigoValidadoP13 = true` — habilita que `showGpsSignalOverlay` pueda mostrarse si GPS falla a continuación
-3. Activa GPS (`await activarGPS()`) — **igual en dev que en prod**
-   - Si GPS falla (permiso denegado): `showGpsSignalOverlay(1)` y `return` — la aventura no puede continuar
-   - Si GPS arranca bien: continúa
+2. Setea `globalThis._codigoValidadoP13 = true`
+3. **Omite `activarGPS()`** porque `_devModeActivo = true` — en modo DEV el GPS no se inicia aquí. Si GPS estuviera denegado, la aventura puede continuar igualmente (modo CASA no requiere GPS). El GPS arrancará cuando el desarrollador pulse 🛰️ en hijo5.
 4. Setea `globalThis._iframesPreCargadosP14 = true`
 
 El desarrollador sigue viendo la normativa mientras todo esto ocurre en segundo plano. No hay ningún spinner ni indicador de carga — la pantalla permanece estática.
@@ -7842,20 +7840,15 @@ El spin dura lo que necesite — no hay timeout fijo. Solo desaparece cuando tod
 
 **Paso 7 — CASA mode: lo que ve el desarrollador**
 
-El mapa aparece. hijo5 está visible en la parte superior derecha. El GPS está corriendo en segundo plano (`watchPosition` activo) pero completamente silenciado:
+El mapa aparece. hijo5 está visible en la parte superior derecha. El GPS **no está corriendo** — `watchPosition` no se inició en P14 porque `_devModeActivo = true`. El desarrollador puede explorar el mapa, ver las paradas marcadas e inspeccionar el estado con hijo5 libremente, sin ninguna interferencia GPS.
 
-- Las posiciones GPS llegan a `_watchPositionSuccess` → `procesarPosicionGPSParaAventura`, que devuelve inmediatamente en la línea `if (estadoMapa.modo !== MODOS.AVENTURA) return` — nada avanza en la aventura
-- Si el GPS pierde señal, `_watchPositionError` llama a `showGpsSignalOverlay`, pero el guard comprueba modo CASA + `_codigoValidadoP13 = false` (tras el reset del paso 6) → devuelve sin mostrar nada
-
-El desarrollador puede explorar el mapa, ver las paradas marcadas, inspeccionar el estado con hijo5, navegar libremente — todo sin que el GPS interfiera ni muestre overlays de error.
-
-**Estado del GPS en modo CASA:**
+**Estado del GPS en modo CASA (dev):**
 
 | Aspecto | Estado |
 |---------|--------|
-| `watchPosition` | ✅ activo — señal se mantiene caliente |
+| `watchPosition` | ❌ no iniciado — se omitió en P14 |
 | Procesamiento de proximidad | ❌ bloqueado por `estadoMapa.modo !== MODOS.AVENTURA` |
-| Overlay de error GPS | ❌ silenciado por `_codigoValidadoP13 = false` + modo CASA |
+| Overlay de error GPS | ❌ no puede aparecer — `watchPosition` no está activo |
 | Avance de paradas | ❌ imposible en modo CASA |
 
 ---
@@ -7869,7 +7862,7 @@ Cuando el desarrollador está listo para probar la navegación real, pulsa el bo
    - `globalThis._devModeActivo = false`
    - hijo5: `display:none` (desaparece)
    - `manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `SISTEMA.CAMBIO_MODO` a todos los hijos, espera `ENTENDIDO` + `EFECTUADO`, envía `APLICADO`
-   - `_gestionarGpsSegunModo(AVENTURA)` → guard `!estado.gps?.activo` — GPS ya activo desde P14, **no-op**
+   - `_gestionarGpsSegunModo(AVENTURA)` → guard `!estado.gps?.activo` — GPS no estaba activo (se omitió en P14) → **llama `activarGPS()` aquí por primera vez**
 3. Qué hace cada hijo al recibir `CAMBIO_MODO('aventura')`:
    - **hijo2**: `_resetarEstadoParaModo('aventura')` → `estadoComponente.modo = 'aventura'` + si `estadoComponente.posicionActualUsuario` está poblado (lo es si ya había llegado algún `ACTUALIZAR_ESTADO` antes), llama `verificarDistanciaYActualizarBotones()` inmediatamente.
      `verificarDistanciaYActualizarBotones()` usa `estadoComponente.distanciaAlDestino` — la distancia a **la parada que toca** según el índice de progreso actual, calculada por `funciones-mapa.js` y recibida en el último `ACTUALIZAR_ESTADO`. No hace Haversine propio ni comprueba todas las paradas. Si el desarrollador vuelve de CASA con un `distanciaAlDestino` previo, la lógica "fuera de rango 5 min" se reactiva en el acto respecto a esa parada concreta.
@@ -9284,7 +9277,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `CHAT.CERRAR` | Hijo 6 (asistente) | Oculta el panel del asistente en el padre; libera el iframe | (ninguna) | — | El usuario pulsó el botón de cerrar dentro del iframe de soporte |
 | `UI.NAVEGACION_EXTERNA` | Cualquier hijo | Registra en log la URL que el hijo abrió en una pestaña externa; no bloquea ni modifica nada | (ninguna) | — | Trazabilidad de navegación externa; el hijo avisa al padre antes de hacer `window.open()` |
 | `SISTEMA.ADVERTENCIA` | Cualquier hijo | Registra en log la advertencia con código y texto; no interrumpe el flujo | (ninguna) | — | Canal de advertencias no fatales; evita que los hijos usen `console.warn` directamente para asuntos relevantes |
-| `SELECCION.CODIGO_VALIDADO` | Pantalla de selección (P13 normal o automático en modo DEV Factor 1) | `_hdl_SELECCION_CODIGO_VALIDADO`: si `_devModeActivo === false` **y** `mensaje.datos.devMode !== true` activa GPS (`activarGPS()`); en ambos casos ejecuta `cargarRestoDeiframes()` + `_fase2CargarDatos()` en paralelo. En modo DEV Factor 1, el payload incluye `devMode: true` como belt-and-suspenders adicional al flag global. | (ninguna directa — carga iframes en background) | — | Punto de no retorno: el usuario ha completado el flujo de selección y la aventura empieza a cargarse |
+| `SELECCION.CODIGO_VALIDADO` | Pantalla de selección (P13 — **solo prod**; en modo DEV Factor 1 P13 se salta y este mensaje nunca se envía) | `_hdl_SELECCION_CODIGO_VALIDADO`: handler vacío — registra con log que el código fue validado; no carga iframes ni activa GPS (todo delegado a `P14_MOSTRADA`). | (ninguna) | — | Registro de que el usuario completó P13; la carga real la dispara P14_MOSTRADA |
 | `SELECCION.DEV_MODE_TOGGLE` | Pantalla de selección (Factor 1 DEV — código DEV en modal de P1) | IIFE independiente en Script 1: pone `globalThis._devModeActivo = true`. No pasa por `registrarControladorSeguro`. | (ninguna) | — | Activar el flag DEV antes de que el usuario navegue P2→P11, para que `mostrar()` intercepte P12/P13 |
 | `CONTROL.DEV_CINCO_TOQUES` | Hijo 1 (`#icono-temporizador` — 5 taps o `Ctrl+Alt+clic`) | `_hdl_CONTROL_DEV_CINCO_TOQUES`: abre modal de código (guard anti-doble); con código DEV correcto (verificado por hash SHA-256) pone `_devModeActivo = true`, hace `display:block` en hijo5 y llama `_vv_triggerCambioModo(MODOS.CASA)` | (ninguna directa) | — | Factor 2 DEV: activar modo CASA en mitad de una aventura activa sin reiniciar la sesión |
 | `SELECCION.IDIOMA_SELECCIONADO` | Pantalla de selección (P3) | `_hdl_SELECCION_IDIOMA_SELECCIONADO`: actualiza `estado.idioma`; si los hijos ya están cargados, propaga el cambio | (ninguna) | — | Mantener el idioma sincronizado en el estado global del padre |
