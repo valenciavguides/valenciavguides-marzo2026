@@ -861,7 +861,7 @@
         <div style="display:flex; align-items:center; gap:0.75rem;">
           <span style="font-size:3rem; color:#666; position:relative; top:-1.25rem;">🔐</span>
           <div style="flex:1;">
-            <input type="text" id="input-codigo" placeholder="····" maxlength="10" aria-label="Código de acceso" oninput="validarCodigo()" style="width:100%; padding:1.125rem; border:0.125rem solid #ddd; border-radius:0.75rem; font-size:1.75rem; text-align:center; letter-spacing:0.75rem; box-sizing:border-box; font-weight:bold;">
+            <input type="text" id="input-codigo" placeholder="····" maxlength="20" aria-label="Código de acceso" oninput="validarCodigo()" style="width:100%; padding:1.125rem; border:0.125rem solid #ddd; border-radius:0.75rem; font-size:1.75rem; text-align:center; letter-spacing:0.75rem; box-sizing:border-box; font-weight:bold;">
             <div id="feedback-codigo" style="text-align:center; margin-top:0.5rem; font-size:2rem; height:2.5rem;"></div>
           </div>
         </div>
@@ -1377,15 +1377,28 @@
     // El código NO se marca como "usado" hasta que el usuario complete
     // exitosamente el Reto R-2 en P16, que es el PUNTO DE ACTIVACIÓN.
     // ============================================================
-    function validarCodigo() {
+    async function validarCodigo() {
+      const CODIGO_ACCESO_HASH = 'b88919efac1f1343b21bbaa3cbc788362ee3e525d74f72c176616f71ddad0df8';
       const inputCodigo = document.getElementById('input-codigo');
       const inputEmail = document.getElementById('input-email');
       const btnIniciar = document.getElementById('btn-iniciar-aventura');
       const feedbackCodigo = document.getElementById('feedback-codigo');
-      
+
       const codigo = inputCodigo.value.trim();
-      
-      if (codigo === '[REDACTED]') {
+      if (!codigo) {
+        btnIniciar.disabled = true;
+        btnIniciar.style.opacity = '0.3';
+        btnIniciar.classList.remove('success', 'error');
+        inputCodigo.style.borderColor = '#ddd';
+        if (inputEmail) inputEmail.style.borderColor = '#ddd';
+        feedbackCodigo.innerHTML = '';
+        return;
+      }
+
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
+      const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      if (hashHex === CODIGO_ACCESO_HASH) {
         _log.info('[SELECCION][P14] Código validado (formato correcto). NO activado todavía.');
         btnIniciar.disabled = false;
         btnIniciar.style.opacity = '1';
@@ -2866,12 +2879,12 @@
 
     function _mostrarModalDevP1() {
         if (document.getElementById('_devp1-code')) return;
-        const CODIGO_DEV = '[REDACTED]';
+        const CODIGO_DEV_HASH = 'b88919efac1f1343b21bbaa3cbc788362ee3e525d74f72c176616f71ddad0df8';
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;';
         overlay.innerHTML = `<div style="background:#1a1a2e;border-radius:1rem;padding:2rem 1.5rem;width:min(90vw,22rem);text-align:center;border:2px solid #f5a623;">
             <p style="color:#f5a623;font-size:1.1rem;font-weight:bold;margin:0 0 1rem 0;">🔧 Modo desarrollador</p>
-            <input id="_devp1-code" type="password" maxlength="10" autocomplete="off"
+            <input id="_devp1-code" type="password" maxlength="20" autocomplete="off"
                 style="width:100%;padding:0.9rem;border:2px solid #555;border-radius:0.6rem;font-size:1.6rem;text-align:center;letter-spacing:0.5rem;background:#0d0d1a;color:#fff;box-sizing:border-box;">
             <div style="display:flex;gap:0.8rem;margin-top:1rem;">
                 <button id="_devp1-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
@@ -2882,15 +2895,27 @@
         const input = overlay.querySelector('#_devp1-code');
         input.focus();
         const cerrar = () => { try { document.body.removeChild(overlay); } catch (_) {} };
-        const confirmar = () => {
-            const codigo = input.value.trim();
-            cerrar();
-            if (codigo !== CODIGO_DEV) return;
-            globalThis._devCasaMode = true;
-            if (globalThis.parent && globalThis.parent !== globalThis) {
-                globalThis.parent.postMessage({ tipo: 'SELECCION.DEV_MODE_TOGGLE' }, globalThis.location.origin);
+        let _confirming = false;
+        const confirmar = async () => {
+            if (_confirming) return;
+            _confirming = true;
+            try {
+                const codigo = input.value.trim();
+                cerrar();
+                if (!codigo) return;
+                const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
+                const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                if (hashHex !== CODIGO_DEV_HASH) return;
+                globalThis._devCasaMode = true;
+                if (globalThis.parent && globalThis.parent !== globalThis) {
+                    globalThis.parent.postMessage({ tipo: 'SELECCION.DEV_MODE_TOGGLE' }, globalThis.location.origin);
+                }
+                (globalThis.logger || console).warn('[DEV] Modo dev activado en P1 — se saltarán P12 y P13');
+            } catch (err) {
+                (globalThis.logger || console).error('[DEV] Error activando modo dev:', err?.message || err);
+            } finally {
+                _confirming = false;
             }
-            (globalThis.logger || console).warn('[DEV] Modo dev activado en P1 — se saltarán P12 y P13');
         };
         overlay.querySelector('#_devp1-cancel').addEventListener('click', cerrar);
         overlay.querySelector('#_devp1-ok').addEventListener('click', confirmar);

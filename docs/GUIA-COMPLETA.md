@@ -362,30 +362,31 @@ navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
 
 **Ciclo de vida del GPS**:
 
-El permiso GPS se solicita en P13 (cuando el usuario introduce el código de activación), no antes. Hasta ese momento `watchPosition` está inactivo aunque el usuario haya seleccionado la aventura. **Excepción modo DEV (Factor 1):** si `globalThis._devModeActivo` es `true` cuando llega `CODIGO_VALIDADO`, el padre omite `activarGPS()` completamente — la aventura arranca en modo CASA sin ningún `watchPosition` activo.
+El permiso GPS se comprueba en P13 (cuando el usuario introduce el código de activación), pero `activarGPS()` **no se llama ahí** — `_hdl_SELECCION_CODIGO_VALIDADO` delega explícitamente a P14. `watchPosition` se inicia en **P14**, después de que todos los iframes hayan enviado `HIJO_LISTO`. En modo DEV (Factor 1) el flujo llega a P14 saltando P12/P13, pero el GPS se activa exactamente igual.
 
-Si en ese momento el permiso ya está denegado (`navigator.permissions.query` devuelve `'denied'`), la función `_irANormativa()` en selección muestra un aviso local en P13 y el usuario no avanza hasta resolver el permiso desde los ajustes del navegador. Si el permiso es `'prompt'` o `'granted'`, `activarGPS()` en el padre inicia `watchPosition` y la carga de iframes prosigue en paralelo. Si GPS lanza PERMISSION_DENIED en `_watchPositionError`, el padre limpia `watchId`, muestra `imagen-no-gps.png` sobre toda la pantalla con el botón 🛰️→🌐→⚙️, y el usuario no puede continuar hasta ir a los ajustes del sistema y pulsar de nuevo el botón (que llama `activarGPS()` desde el overlay).
+Si el permiso ya está denegado, `_irANormativa()` en selección muestra un aviso local en P13 y el usuario no avanza. Si el permiso es `'prompt'` o `'granted'`, el padre avanza a P14, carga iframes y activa GPS. Si GPS lanza PERMISSION_DENIED en `_watchPositionError`, el padre limpia `watchId`, muestra `imagen-no-gps.png` sobre toda la pantalla con el botón 🛰️→🌐→⚙️, y el usuario no puede continuar hasta ir a los ajustes del sistema y pulsar de nuevo el botón (que llama `activarGPS()` desde el overlay).
 
 ```mermaid
 flowchart TD
     A([Arranque]) --> B[GPS inactivo]
     B --> C{CODIGO_VALIDADO\nrecibido en P13}
-    C --> DEVCHK{¿_devModeActivo?\nFactor 1 activo}
-    DEVCHK -- Sí → modo DEV --> HDEV[GPS no se activa en CODIGO_VALIDADO\naventura arranca en MODO CASA · sin watchPosition\nhijo5 visible tras AVENTURA_ACTIVADA]
-    DEVCHK -- No --> D{¿Permiso GPS\nen navigator.permissions?}
+    C --> C2[_hdl_SELECCION_CODIGO_VALIDADO\nno-op — delega a P14_MOSTRADA]
+    C2 --> P14{P14 — Normativa\nusuario acepta}
+    P14 --> IFRAMES[Promise.all iframes + datos\nespera HIJO_LISTO de todos]
+    IFRAMES --> D{¿Permiso GPS\nen navigator.permissions?}
     D -- denied --> E[Aviso en P13\nUsuario va a ajustes del navegador]
     E --> C
     D -- prompt o granted --> F[activarGPS\nwatchPosition iniciado\nenabledHighAccuracy · timeout 35s · maximumAge 0]
     F --> G{¿Callback?}
-    G -- onGpsSuccess --> H[MODO CASA\nwatchPosition activo\nSIN validaciones de distancia]
+    G -- onGpsSuccess --> H[MODO CASA\nwatchPosition activo\nSIN validaciones de distancia\nfunciones-mapa guard bloquea ACTUALIZAR_ESTADO a hijo2]
     G -- PERMISSION_DENIED --> I[clearWatch · watchId null\nimagen-no-gps.png fullscreen\nbotón 🛰️→🌐→⚙️]
     I --> J{Usuario ajusta permisos\ny pulsa botón overlay}
     J --> F
-    H --> K{Usuario inicia AVENTURA\nvía hijo5 o modo DEV Factor 2}
+    H --> K{Usuario inicia AVENTURA\nvía botón 🛰️ hijo5 o Factor 2}
     K --> L[MODO AVENTURA\nwatchPosition activo + validaciones distancia]
-    L --> M[onGpsSuccess: posición recibida\nfunciones-mapa procesa → ACTUALIZAR_ESTADO hijo2]
+    L --> M[onGpsSuccess → funciones-mapa calcula distancia\n→ ACTUALIZAR_ESTADO a hijo2\nhijo2 compara contra umbral → LLEGADA_DETECTADA]
     M --> L
-    L --> N{Usuario desactiva GPS\nvía botón hijo5}
+    L --> N{Usuario vuelve a CASA\nvía hijo5 button o Factor 2}
     N --> H
     L --> O{desactivarGPS llamado\nmanualmente}
     O --> P[clearWatch\nGPS completamente detenido]
@@ -1320,7 +1321,7 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 |--------|----|---------|-----------|--------------|---------|
 | Pantalla selección | `seleccion` | `En-busca-del-tesoro.html` | No | Al arrancar `codigo-padre.html` (único iframe con `src` desde el inicio) | Pantalla de incorporación: selección de idioma, aventura, retos previos y código de activación. Se oculta al iniciar la aventura. |
 | Hijo 1 | `hijo1-opciones` | `extrainfo-hijo1.html` | No | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()` | Panel lateral izquierdo con botón "Más opciones". Despliega iconos de acceso a contenido complementario (temporizador, vídeos, etc.). |
-| Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()` | Motor GPS: detecta proximidad a paradas/tramos (Haversine), gestiona 6 botones de navegación, envía `LLEGADA_DETECTADA` al padre. Sin Leaflet — el mapa lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
+| Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()` | Gestiona 6 botones de navegación. Recibe `distanciaAlDestino` de `funciones-mapa.js` (el Haversine lo hace el padre), compara contra umbral, envía `LLEGADA_DETECTADA` y gestiona overlay "fuera de rango". Sin Leaflet — el mapa lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
 | Hijo 3 | `hijo3` | `audio-hijo3.html` | **Sí** | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()` | Reproductor de audio. Recibe del padre qué audio reproducir y lo controla. |
 | Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()`. **No** forma parte del `Promise.all` de `AVENTURA_ACTIVADA` | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
 | Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarHijoCasa()` (si ya está cargado, solo espera `HIJO_LISTO`) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`); permanece oculto (`display:none`) en todo momento normal. |
@@ -1651,7 +1652,7 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 | `RETO.*` | Script 2 | `SOLICITAR_RETO`, `OCULTAR`, `COMPLETADO`, `MOSTRADO` |
 | `SELECCION.*` | Script 2 | `PREPARAR_HIJOS`, `CODIGO_VALIDADO`, `AVENTURA_SELECCIONADA`, `AVENTURA_ACTIVADA`, `IDIOMA_SELECCIONADO` |
 | `SELECCION.DEV_MODE_TOGGLE` | Script 1 (IIFE independiente) | No pasa por `registrarControladorSeguro` — IIFE propio que escucha `message` directamente y pone `globalThis._devModeActivo = true`. Recibido desde la pantalla de selección al activar Factor 1 DEV |
-| `CONTROL.DEV_CINCO_TOQUES` | Script 2 | `_hdl_CONTROL_DEV_CINCO_TOQUES` — muestra modal de código DEV. Con código `[REDACTED]` correcto: `_devModeActivo = true`, hijo5 `display:block`, `_vv_triggerCambioModo(MODOS.CASA)` |
+| `CONTROL.DEV_CINCO_TOQUES` | Script 2 | `_hdl_CONTROL_DEV_CINCO_TOQUES` — muestra modal de código DEV. Con código DEV correcto (verificado por hash SHA-256): `_devModeActivo = true`, hijo5 `display:block`, `_vv_triggerCambioModo(MODOS.CASA)` |
 | `AUDIO.*` | Script 2 | `ESTADO_ACTUALIZADO`, `FIN_REPRODUCCION` |
 | `DATOS.*` | `codigo-padre.html` (`_regCtrl_DatosRespuestas`) + `js/controladores-padre.js` | `COORDENADAS_CARGADAS`, `AUDIOS_CARGADOS`, `RETOS_CARGADOS`, `TEXTOS_CARGADOS`; fallbacks: `SOLICITAR_AUDIOS`, `SOLICITAR_RETOS`, `SOLICITAR_TEXTOS`, `SOLICITAR_DATOS_PARADAS` |
 
@@ -1670,7 +1671,7 @@ La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MOD
 | hijo5 (botón GPS 🛰️) | Al pulsar el botón para iniciar AVENTURA o desactivar modo DEV | `'cambio_modo_global'`, `origen: 'boton-gps'` |
 | Reanudación automática | Al detectar `vv_aventura_iniciada` en `localStorage` | payload incluye `restaurado: true` |
 | Padre (modo DEV Factor 1) | `_hdl_SELECCION_AVENTURA_ACTIVADA` cuando `_devModeActivo === true` — aventura arranca directamente en CASA sin GPS | llamada interna via `globalThis._vv_triggerCambioModo(MODOS.CASA)` |
-| Padre (modo DEV Factor 2) | `_hdl_CONTROL_DEV_CINCO_TOQUES` con código `[REDACTED]` — vuelve a CASA desde cualquier modo activo | llamada interna via `globalThis._vv_triggerCambioModo(MODOS.CASA)` |
+| Padre (modo DEV Factor 2) | `_hdl_CONTROL_DEV_CINCO_TOQUES` con código DEV correcto — vuelve a CASA desde cualquier modo activo | llamada interna via `globalThis._vv_triggerCambioModo(MODOS.CASA)` |
 
 **Payload de `CAMBIO_MODO`:**
 
@@ -1912,7 +1913,7 @@ graph TD
 |------|------------------|------------------------|
 | `seleccion` | Onboarding: recoge idioma, aventura, código. Dispara el arranque | Solo al inicio (o al reiniciar) |
 | `hijo1` | Contenido extra + temporizador. Sin impacto en la lógica de navegación | Cualquier momento que el usuario lo pida |
-| `hijo2` | Motor GPS: detecta proximidad a paradas (Haversine), gestiona 6 botones de navegación, envía `LLEGADA_DETECTADA` al padre. Sin Leaflet — el mapa lo renderiza padre vía `funciones-mapa.js` | Continuamente en AVENTURA; visible en CASA |
+| `hijo2` | Recibe `distanciaAlDestino` de `funciones-mapa.js` y compara contra umbral (el Haversine lo hace el padre). Gestiona 6 botones de navegación, envía `LLEGADA_DETECTADA`. Sin Leaflet — el mapa lo renderiza padre vía `funciones-mapa.js` | Continuamente en AVENTURA; visible en CASA |
 | `hijo3` | Reproduce los audios. Notifica al padre cuando terminan → desencadena habilitar retos | En cada CAMBIO_PARADA con audio |
 | `hijo4` | Muestra y valida el reto de la parada activa. Notifica resultado | Cuando padre envía RETO.MOSTRAR |
 | `hijo5` | Permite navegar en CASA sin GPS y togglear el modo | Solo en modo CASA o al activar AVENTURA |
@@ -2075,7 +2076,7 @@ flowchart TD
 | `SELECCION.TERMINOS_ACEPTADOS` | Acepta términos en P10 | `{ timestamp }` |
 | `SELECCION.AVENTURA_SELECCIONADA` | Click en tarjeta de aventura en P7 (via `seleccionarAventura()`) | `{ aventura, idioma }` — el padre solo anota estado; no carga nada |
 | `SELECCION.PREPARAR_HIJOS` | Al confirmar aventura en P9 | `{ idioma, aventura, timestamp }` |
-| `SELECCION.DEV_MODE_TOGGLE` | Al activar Factor 1 DEV con código `[REDACTED]` en el modal de P1 | `{}` — el padre (IIFE Script 1) pone `_devModeActivo = true` |
+| `SELECCION.DEV_MODE_TOGGLE` | Al activar Factor 1 DEV con código DEV en el modal de P1 | `{}` — el padre (IIFE Script 1) pone `_devModeActivo = true` |
 | `SELECCION.CODIGO_VALIDADO` | Al pulsar → en P13 con código de compra correcto y GPS no denegado (via `_irANormativa()`); o automáticamente desde `mostrar()` cuando `_devCasaMode === true` intercepta P12/P13 | Normal: `{ aventura, idioma, timestamp }` · DEV Factor 1: `{ aventura, idioma, timestamp, devMode: true }` — dispara carga de iframes; activa GPS solo si `_devModeActivo === false` **y** `mensaje.datos.devMode !== true` (belt-and-suspenders) |
 | `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P15 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` — el padre usa fast-path si iframes ya cargados desde P13 |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
@@ -2192,9 +2193,9 @@ sequenceDiagram
 
 ### 7.3 coordenadas-hijo2.html — mapa interactivo (iframe `id="hijo2"`)
 
-**Propósito**: gestiona la lógica GPS de proximidad (cálculo Haversine, `LLEGADA_DETECTADA`, overlay fuera-de-rango) y los 6 botones de navegación. **No contiene código Leaflet** — el mapa con tiles y marcadores vive exclusivamente en `codigo-padre.html` (gestionado por `funciones-mapa.js`). Es la **única fuente de verdad sobre la distancia del usuario al objetivo** en el sistema.
+**Propósito**: gestiona los 6 botones de navegación, el overlay fuera-de-rango y envía `LLEGADA_DETECTADA` cuando recibe confirmación de proximidad. **No contiene código Leaflet** — el mapa con tiles y marcadores vive exclusivamente en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
 
-**Importante**: hijo2 **no tiene `watchPosition` propio**. El único `navigator.geolocation.watchPosition()` de la app está en `activarGPS()` dentro de `codigo-padre.html`. El padre envía las posiciones GPS a hijo2 via `NAVEGACION.ACTUALIZAR_ESTADO`; hijo2 las recibe, ejecuta la lógica de proximidad y envía `LLEGADA_DETECTADA` si corresponde.
+**Importante**: hijo2 **no tiene `watchPosition` propio**. El único `navigator.geolocation.watchPosition()` está en `activarGPS()` del padre. Las posiciones GPS van: padre → `funciones-mapa.js` → calcula Haversine → envía `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, lat, lng }` a hijo2. `_aplicarDatosEstado()` almacena `{ lat, lng }` en `estadoComponente.posicionActualUsuario`, lo que activa `verificarDistanciaYActualizarBotones()` para la lógica de fuera-de-rango 5 min y el botón ubicación.
 
 **Inicialización**: pre-cargado por `_cargarIframesHijos()`, oculto. Body arranca con clase `modo-casa hijo2-container`.
 
@@ -2242,18 +2243,18 @@ Los 6 botones habilitados muestran una animación de giro cada 5 segundos (`@key
 
 #### Lógica de proximidad y LLEGADA_DETECTADA
 
-Cuando el padre envía `NAVEGACION.ACTUALIZAR_ESTADO { lat, lng, toleranciaGPS }`, hijo2 calcula la distancia Haversine al elemento activo:
+El Haversine **no lo calcula hijo2** — lo calcula `funciones-mapa.js` en el padre. Cuando `procesarPosicionGPSParaAventura()` detecta una posición válida (precisión ≤50 m, modo AVENTURA), envía a hijo2 `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, tipoParada, toleranciaGPS }` con la distancia ya calculada. Hijo2 solo compara contra el umbral:
 
 ```
-Si tipo === 'parada':   umbral = 20 m  (fijo)
-Si tipo === 'tramo':    umbral = toleranciaGPS  (enviado por el padre, variable)
+Si tipoParada === 'parada':   umbral = 20 m  (fijo en hijo2)
+Si tipoParada === 'tramo':    umbral = toleranciaGPS  (calculado y enviado por funciones-mapa.js)
 ```
 
-Si `distancia ≤ umbral`:
+Si `distanciaAlDestino ≤ umbral`:
 1. Habilita `#btn-avanzar`
 2. Envía `NAVEGACION.LLEGADA_DETECTADA { paradaId, distancia, timestamp }`
 
-Si el usuario había llegado y luego supera 50 m: envía `NAVEGACION.USUARIO_FUERA_RANGO`. Si lleva más de 5 minutos fuera de rango: `fueraDeRango5min = true` → muestra `#fuera-rango-overlay`.
+Si el usuario supera 50 m de la **parada que toca** (la `distanciaAlDestino` que envía `funciones-mapa.js`): inicia el countdown. Si lleva más de 5 minutos fuera de ese rango: `fueraDeRango5min = true` → muestra `#fuera-rango-overlay`, habilita `#btn-ubicacion`, envía `NAVEGACION.USUARIO_FUERA_RANGO`.
 
 #### Overlay "fuera de rango"
 
@@ -2270,7 +2271,7 @@ El overlay se cierra al pulsar el botón cerrar (`ocultarOverlayFueraRango()`) o
 
 | Controlador | Qué hace |
 |---|---|
-| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe posición GPS + `toleranciaGPS`; actualiza `estadoComponente.posicionActualUsuario`; calcula distancia Haversine al objetivo; habilita `#btn-avanzar` y envía `LLEGADA_DETECTADA` si en rango |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `idParada`, `toleranciaGPS`, `lat`, `lng`; actualiza `estadoComponente.posicionActualUsuario`; habilita `#btn-avanzar` y envía `LLEGADA_DETECTADA` si en rango; en modo AVENTURA llama `verificarDistanciaYActualizarBotones()` para gestionar el overlay "fuera de rango 5 min" respecto a la parada que toca |
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza clase CSS del body; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `SISTEMA.CAMBIO_MODO` | Cambia clase CSS del body (`modo-casa`/`modo-aventura`); en CASA desactiva detección de proximidad |
@@ -2310,11 +2311,11 @@ sequenceDiagram
 
     FM->>P: posicion GPS { lat, lng, precision }
     P->>H2: NAVEGACION.ACTUALIZAR_ESTADO { lat, lng, toleranciaGPS }
-    H2->>H2: Haversine(distancia al objetivo)
-    alt distancia ≤ umbral
+    H2->>H2: compara distanciaAlDestino contra umbral (Haversine la calcula funciones-mapa)
+    alt distanciaAlDestino ≤ umbral
         H2-->>P: NAVEGACION.LLEGADA_DETECTADA { paradaId, distancia }
         P->>P: _hdl_NAVEGACION_LLEGADA_DETECTADA → CAMBIO_PARADA
-    else distancia > 50m durante >5min
+    else distanciaAlDestino > 50m durante >5min
         H2-->>P: NAVEGACION.USUARIO_FUERA_RANGO
         H2->>H2: muestra #fuera-rango-overlay
     end
@@ -3270,7 +3271,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SELECCION.TERMINOS_ACEPTADOS` | Tesoro → Padre | Usuario aceptó términos (P10) |
 | | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro → Tesoro | video-intro.html completó todas las escenas — manejado internamente si se integra; no llega al padre |
 | | `SELECCION.CODIGO_VALIDADO` | Tesoro → Padre | Código de compra aceptado en P13 (o interceptado automáticamente por `mostrar()` en modo DEV Factor 1); el padre activa GPS (si no es modo DEV) y carga todos los iframes de aventura |
-| | `SELECCION.DEV_MODE_TOGGLE` | Tesoro → Padre (IIFE Script 1) | Factor 1 DEV activado con código `[REDACTED]` en el modal de P1; el IIFE pone `globalThis._devModeActivo = true` sin pasar por el bus de mensajería |
+| | `SELECCION.DEV_MODE_TOGGLE` | Tesoro → Padre (IIFE Script 1) | Factor 1 DEV activado con código DEV en el modal de P1; el IIFE pone `globalThis._devModeActivo = true` sin pasar por el bus de mensajería |
 | **NAVEGACION** | `NAVEGACION.CAMBIO_PARADA` | Padre → Hijos / Hijo5 → Padre | Parada activa cambia |
 | | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Bidireccional | Hijo3/Hijo4 → Padre: confirmación de haber procesado el cambio · Padre → Hijo5: confirmación con metadatos enriquecidos (audio, reto) |
 | | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo5 → Padre | Solicita lista completa de paradas |
@@ -3315,7 +3316,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `AUDIO.SOLICITAR_AUDIO` | Padre → Hijo3 | Pedir metadatos del audio de una parada (`paradaId`) sin reproducir — solo CASA; padre coordina la reproducción con la respuesta |
 | **CONTROL** | `CONTROL.HABILITAR` | Padre → Hijo2/Hijo3 | Habilitar un control concreto (`btnAvanzar`, `retosBtn`, botones de mapa) |
 | | `CONTROL.DESHABILITAR` | Padre → Hijo2/Hijo3 | Deshabilitar un control concreto |
-| | `CONTROL.DEV_CINCO_TOQUES` | Hijo1 → Padre | 5 taps o `Ctrl+Alt+clic` sobre `#icono-temporizador` — activa Factor 2 DEV; el padre abre modal de código y con `[REDACTED]` correcto pone `_devModeActivo = true` y cambia a modo CASA |
+| | `CONTROL.DEV_CINCO_TOQUES` | Hijo1 → Padre | 5 taps o `Ctrl+Alt+clic` sobre `#icono-temporizador` — activa Factor 2 DEV; el padre abre modal de código y con código DEV correcto (verificado por hash SHA-256) pone `_devModeActivo = true` y cambia a modo CASA |
 | **RETO** | `RETO.MOSTRAR` | Padre → Hijo4 | Muestra el reto de la parada actual |
 | | `RETO.OCULTAR` | Bidireccional | Hijo4 → Padre: usuario cierra el reto · Padre → Hijo4: señal de limpieza de estado interno tras ocultar el iframe |
 | | `RETO.COMPLETADO` | Hijo4 → Padre | Usuario respondió (correcto/incorrecto) |
@@ -3450,7 +3451,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 
 ### 8.6 hijo2 — coordenadas-hijo2.html (GPS + botones)
 
-Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay fuera-de-rango) y los 6 botones de navegación. **No tiene código Leaflet** — el mapa vive en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
+Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `distanciaAlDestino` (calculada por `funciones-mapa.js`) y la compara contra el umbral para detectar llegada (`LLEGADA_DETECTADA`) o activar el countdown de 5 min. **No calcula Haversine** y **no tiene código Leaflet** — el mapa vive en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
 
 #### Mensajes que hijo2 envía al padre
 
@@ -3497,7 +3498,7 @@ Gestiona la lógica GPS de proximidad (Haversine, `LLEGADA_DETECTADA`, overlay f
 | `CONTROL.HABILITAR` | `{ control:'btnAvanzar', razon:'parada_completada' }` | Activa botón "avanzar" | — | ✓ |
 | `CONTROL.DESHABILITAR` | `{ control:'btnAvanzar', razon:'parada_pendiente_completar' }` | Bloquea botón "avanzar" | — | ✓ |
 | `CONTROL.HABILITAR` | `{ motivo:'reto_cerrado'/'vista_cerrada' }` | Rehabilita todos los botones de mapa (sin `control` explícito — hijo2 decide qué re-habilitar según `motivo`) | ✓ | ✓ |
-| `NAVEGACION.ACTUALIZAR_ESTADO` | `{ distanciaAlDestino, idParada, tipoParada, toleranciaGPS }` | Aplica datos GPS de posición; detecta llegada a tramos con tolerancia dinámica | — | ✓ |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | `{ distanciaAlDestino, idParada, tipoParada, toleranciaGPS, lat, lng }` | Almacena posición en `posicionActualUsuario`; detecta llegada; activa lógica fuera-de-rango 5 min | — | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global (no-op informativo) | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Notificaciones informativas del sistema | ✓ | ✓ |
 | `DATOS.CARGADOS_RECIBIDO` | `{ subtipo:'COORDENADAS'/'TEXTOS', exito }` | Padre confirma recepción de datos — fase 3 del protocolo 3 fases | ✓ | ✓ |
@@ -4317,7 +4318,7 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 |------|---------|------|-----|
 | `padre` | `codigo-padre.html` | Orquestador | Coordina todo el ciclo de aventura |
 | `hijo1` | `extrainfo-hijo1.html` | Iframe | Temporizador, créditos, textos extra |
-| `hijo2` | `coordenadas-hijo2.html` | Iframe | GPS, detección de proximidad (Haversine), 6 botones navegación, botón Avanzar. Sin Leaflet — mapa en padre |
+| `hijo2` | `coordenadas-hijo2.html` | Iframe | Recibe `distanciaAlDestino` del padre (Haversine en `funciones-mapa.js`), 6 botones navegación, overlay fuera de rango. Sin Leaflet — mapa en padre |
 | `hijo3` | `audio-hijo3.html` | Iframe | Reproductor de audio y botón de retos |
 | `hijo4` | `retos-hijo4.html` | Iframe | Retos interactivos |
 | `hijo5` | `boton-casa-hijo5.html` | Iframe | Botón GPS (CASA/AVENTURA) + lista de paradas (scroll horizontal) |
@@ -5739,7 +5740,9 @@ export const MAPEO_IDIOMAS = {
 
 ### Cuándo se activa el GPS por primera vez
 
-`activarGPS()` se llama por primera vez cuando el usuario introduce un código válido en **P13** (pantalla de activación) y pulsa →. Antes de enviar `SELECCION.CODIGO_VALIDADO`, `En-busca-del-tesoro.html` comprueba el permiso GPS con `navigator.permissions.query` — si ya está `'denied'`, muestra un aviso en P13 y no avanza. Si el permiso es `'prompt'` o `'granted'`, el padre recibe `CODIGO_VALIDADO` y llama `activarGPS()` en paralelo con la carga de iframes. El permiso nativo del navegador (si el estado era `'prompt'`) se solicita en este punto. En ejecuciones posteriores (GPS ya concedido en sesión anterior), `activarGPS()` resuelve sin diálogo. Durante la aventura, el botón `#btnAvanzar` en hijo2 puede volver a llamar a `activarGPS()` si el usuario lo desactivó (`NAVEGACION.GPS.ACTIVAR`).
+`activarGPS()` se llama por primera vez desde **`_hdl_SELECCION_P14_MOSTRADA`** — cuando el usuario acepta la normativa en **P14**, tanto en producción como en modo DEV. `_hdl_SELECCION_CODIGO_VALIDADO` (P13) no llama a `activarGPS()`; su cuerpo completo es un log con el comentario literal `// GPS, iframes y datos se activan en P14_MOSTRADA`. El orden dentro de P14_MOSTRADA es: primero `Promise.all([iframes + datos])` (espera hasta `HIJO_LISTO` de todos los hijos) y solo después `await activarGPS()`. Esto garantiza que cuando llegan las primeras posiciones GPS todos los hijos ya tienen sus handlers registrados.
+
+Antes de mostrar P14, `En-busca-del-tesoro.html` comprueba el permiso GPS con `navigator.permissions.query` en P13 — si ya está `'denied'`, muestra un aviso local y el usuario no avanza. Si el permiso es `'prompt'` o `'granted'`, el padre recibe `CODIGO_VALIDADO`, avanza a P14 y activa GPS ahí. Durante la aventura, el botón `#btn-avanzar` en hijo2 puede volver a llamar a `activarGPS()` si el usuario lo desactivó (`NAVEGACION.GPS.ACTIVAR`).
 
 ### Cómo funciona el mapa
 
@@ -5791,6 +5794,58 @@ Existe infraestructura para reintentar envíos GPS fallidos, pero **el alimentad
 **Flujo GPS real:** `funciones-mapa.js:procesarPosicionGPSParaAventura()` → `enviarMensaje({destino:'hijo2', tipo: ACTUALIZAR_ESTADO})` — envío directo sin confirmación ni cola. Si hijo2 no responde, el mensaje se pierde silenciosamente.
 
 La infraestructura de cola fue preparada pero nunca conectada al emisor real.
+
+> **Hijo2 no tiene `watchPosition` propio.** `funciones-mapa.js` incluye `lat` y `lng` en cada `ACTUALIZAR_ESTADO`; `_aplicarDatosEstado()` los almacena en `estadoComponente.posicionActualUsuario`. En **modo CASA** los botones se deshabilitan directamente y no se llama a `verificarDistanciaYActualizarBotones()`. En **modo AVENTURA** sí se llama, y con `posicionActualUsuario` ya poblado, ejecuta la lógica de fuera-de-rango 5 min y habilita el botón ubicación cuando corresponde.
+
+### Sistema "fuera de rango" — flujo completo y estados de botones
+
+Se activa cuando `distanciaAlDestino > 50 m` respecto a **la parada que le toca al usuario** (la siguiente según `estado.indiceProgreso`). El umbral es fijo a 50 m independientemente del tipo de elemento (parada o tramo).
+
+**Pipeline completo en cada posición GPS:**
+
+```text
+watchPosition (padre)
+  → procesarPosicionGPSParaAventura() [funciones-mapa.js]
+      calcula distancia Haversine a siguienteParada (indiceProgreso + 1)
+  → NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, toleranciaGPS, lat, lng } → hijo2
+      _aplicarDatosEstado() — guarda posicionActualUsuario + distanciaAlDestino
+      actualizarEstadoBotones()
+      verificarDistanciaYActualizarBotones()  ← solo en modo AVENTURA
+          si distanciaAlDestino ≤ 50m → _procesarDentroDeRango()
+          si distanciaAlDestino > 50m → inicia/continúa countdown
+          si > 5 min fuera → _procesarFueraDeRango5min() → deshabilita botones
+```
+
+**Estados de los 6 botones de hijo2 según fase:**
+
+| Botón | En rango (≤50m) | Countdown (0–5min) | Fuera >5min |
+|-------|-----------------|--------------------|-------------|
+| `#btn-avanzar` | verde si parada completa, rojo si no | según estado parada | ❌ rojo |
+| `#btn-imagen` | verde (rojo si reto activo) | verde (rojo si reto activo) | sin cambio |
+| `#btn-video` | verde | verde | ❌ rojo |
+| `#btn-ubicacion` | ❌ rojo (no necesario) | ❌ rojo | ✅ **verde** |
+| `#btn-mapa-completo` | verde | verde | ❌ rojo |
+| `#btn-mapa-jpg` | verde | verde | ❌ rojo |
+
+**Respuesta del padre a `NAVEGACION.USUARIO_FUERA_RANGO`:**
+- Limpia polylines de navegación activas (`limpiarPolylineNavegacion()`)
+- Registra `estado.usuarioFueraRango = { activo: true, distancia, tiempoFuera, elementoMasCercano }`
+- No envía mensajes a hijo3 ni hijo4 — sus controles no cambian
+
+**Hijo3 e hijo4 no se ven afectados** por el mecanismo de fuera de rango. El audio sigue reproduciéndose; el reto sigue accesible.
+
+**Recuperación:** cuando `distanciaAlDestino` vuelve a ≤ 50m, `_procesarDentroDeRango()` resetea `timestampSalioDeRango = null`, `fueraDeRango5min = false`, oculta el overlay y restaura los botones.
+
+**Comportamiento en ciclos AVENTURA→CASA→AVENTURA (modo DEV):**
+
+| Evento | `timestampSalioDeRango` | `fueraDeRango5min` | `distanciaAlDestino` | `paradasCompletadas` |
+|--------|-------------------------|--------------------|----------------------|----------------------|
+| Ir a CASA (Factor 2) | → `null` (reset) | no cambia | no cambia | Map en memoria intacto |
+| Volver a AVENTURA (🛰️) | `null` (ya reseteado) | no cambia | valor del último ACTUALIZAR_ESTADO | Map en memoria intacto |
+| Primer GPS en AVENTURA | según distancia real | corregido | fresco | Map en memoria intacto |
+| Recarga de página en CASA | — | — | — | perdido (localStorage borrado al ir a CASA) |
+
+El countdown de 5 min **siempre arranca desde cero** al volver a AVENTURA — el tiempo pasado en CASA no cuenta.
 
 ### Las coordenadas
 
@@ -7057,6 +7112,7 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 9 | Eliminar archivos sensibles del `APP_SHELL` del SW | §22.9 | ⏳ pendiente |
 | 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
 | 11 | `DATA_MODE = 'api'` en `js/data-loader.js` | §22.11 | ⏳ pendiente |
+| 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
 
 ---
 
@@ -7195,6 +7251,7 @@ El servidor actual **no tiene autenticación**. Para producción habrá que impl
 - **CSP via cabeceras HTTP** en lugar del `<meta>` actual (ver §22.2).
 - **CORS restringido** al dominio de producción.
 - **`DATA_MODE = 'api'`** en `js/data-loader.js` (ver §22.11).
+- **Validación del código DEV en el backend:** actualmente el código DEV se verifica comparando el SHA-256 del input contra un hash hardcodeado en el cliente (`codigo-padre.html` y `En-busca-del-tesoro.html`). Aunque el código no es visible en texto plano, un atacante con tiempo puede hacer fuerza bruta sobre el hash. En producción, la validación debe moverse a un endpoint protegido del backend: el cliente envía el código via POST (HTTPS), el servidor compara contra una variable de entorno (`DEV_CODE`) y devuelve un token de sesión de corta duración. El cliente solo activa `_devModeActivo = true` si recibe ese token. Así el código nunca está en ningún fichero del proyecto.
 
 ---
 
@@ -7596,7 +7653,7 @@ Ambas variables son puramente en memoria. Una recarga de página deja la app en 
 flowchart TD
     P1([P1 — Bienvenida\n.logo-circular-bg visible]) --> GESTO{Gesto DEV\n5 taps · Ctrl+Alt+clic}
     GESTO --> MODAL["_mostrarModalDevP1()\noverlay con input #_devp1-code\nguard: si ya existe input, no abre"]
-    MODAL --> CODE{código == '[REDACTED]'?}
+    MODAL --> CODE{¿código DEV correcto?}
     CODE -- No --> MODAL
     CODE -- Sí --> SET1["globalThis._devCasaMode = true\nSELECCION.DEV_MODE_TOGGLE → padre"]
     SET1 --> IIFE["IIFE Script 1 padre:\nglobalThis._devModeActivo = true"]
@@ -7629,7 +7686,7 @@ flowchart TD
     AV([Aventura activa — cualquier modo]) --> GESTO2{Gesto DEV en hijo1\n5 taps · Ctrl+Alt+clic\nen #icono-temporizador}
     GESTO2 --> MSG2["hijo1 envía\nCONTROL.DEV_CINCO_TOQUES → padre"]
     MSG2 --> HDL["padre Script 2:\n_hdl_CONTROL_DEV_CINCO_TOQUES\noverlay con input #_dev-code-input\nguard: si ya existe input, no abre"]
-    HDL --> CODE2{código == '[REDACTED]'?}
+    HDL --> CODE2{¿código DEV correcto?}
     CODE2 -- No --> HDL
     CODE2 -- Sí --> SET2["globalThis._devModeActivo = true\nhijo5: display:block · visibility:visible\n_vv_triggerCambioModo(MODOS.CASA)"]
     SET2 --> CAMBIO["_hdl_SISTEMA_CAMBIO_MODO(CASA)\nheartbeat pausado\nlocalStorage progreso limpiado\nhijos notificados CAMBIO_MODO"]
@@ -7707,11 +7764,11 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 |-----------|---------------|
 | Persistencia | Ninguna — `_devModeActivo` y `_devCasaMode` son variables en memoria |
 | Recarga de página | Reinicia el modo DEV; hijo5 vuelve a `display:none` |
-| Código de acceso | `[REDACTED]` — no documentado en materiales de usuario, soporte ni chat |
+| Código de acceso | [solo conocido por el desarrollador — verificado por hash SHA-256 en `codigo-padre.html` y `En-busca-del-tesoro.html`; no documentado en materiales de usuario, soporte ni chat] |
 | Visibilidad al usuario final | Ninguna — hijo5 oculto, gestos no señalizados en la UI |
 | Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Skip P12/P13 → P14, CODIGO_VALIDADO enviado` |
 
-El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código `[REDACTED]`, ni los gestos de activación.
+El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código DEV, ni los gestos de activación.
 
 ---
 
@@ -7723,7 +7780,7 @@ Esta sección describe el recorrido completo del desarrollador en modo DEV, en o
 
 **Paso 1 — Activar el modo DEV en P1**
 
-El desarrollador abre la app en el navegador (escritorio o móvil). Ve la pantalla de bienvenida con el logo circular naranja. Hace 5 taps rápidos sobre el logo (o `Ctrl+Alt+clic` en escritorio). Aparece un overlay con un campo de texto. Introduce `[REDACTED]`. El overlay desaparece. En consola: `[DEV_MODE] 🟢 ACTIVADO`.
+El desarrollador abre la app en el navegador (escritorio o móvil). Ve la pantalla de bienvenida con el logo circular naranja. Hace 5 taps rápidos sobre el logo (o `Ctrl+Alt+clic` en escritorio). Aparece un overlay con un campo de texto. Introduce el código DEV. El overlay desaparece. En consola: `[DEV_MODE] 🟢 ACTIVADO`.
 
 En este momento se setean dos variables en memoria:
 - `globalThis._devCasaMode = true` — en la pantalla de selección (`En-busca-del-tesoro.html`)
@@ -7811,10 +7868,15 @@ Cuando el desarrollador está listo para probar la navegación real, pulsa el bo
 2. El padre ejecuta `_hdl_SISTEMA_CAMBIO_MODO(AVENTURA)`:
    - `globalThis._devModeActivo = false`
    - hijo5: `display:none` (desaparece)
-   - `manejarCambioModo(AVENTURA)` → todos los hijos notificados, `estadoMapa.modo = MODOS.AVENTURA`
+   - `manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `SISTEMA.CAMBIO_MODO` a todos los hijos, espera `ENTENDIDO` + `EFECTUADO`, envía `APLICADO`
    - `_gestionarGpsSegunModo(AVENTURA)` → guard `!estado.gps?.activo` — GPS ya activo desde P14, **no-op**
-3. A partir de este momento:
+3. Qué hace cada hijo al recibir `CAMBIO_MODO('aventura')`:
+   - **hijo2**: `_resetarEstadoParaModo('aventura')` → `estadoComponente.modo = 'aventura'` + si `estadoComponente.posicionActualUsuario` está poblado (lo es si ya había llegado algún `ACTUALIZAR_ESTADO` antes), llama `verificarDistanciaYActualizarBotones()` inmediatamente.
+     `verificarDistanciaYActualizarBotones()` usa `estadoComponente.distanciaAlDestino` — la distancia a **la parada que toca** según el índice de progreso actual, calculada por `funciones-mapa.js` y recibida en el último `ACTUALIZAR_ESTADO`. No hace Haversine propio ni comprueba todas las paradas. Si el desarrollador vuelve de CASA con un `distanciaAlDestino` previo, la lógica "fuera de rango 5 min" se reactiva en el acto respecto a esa parada concreta.
+   - **funciones-mapa.js** (vía `manejarCambioModoMapa`): `estadoMapa.modo = MODOS.AVENTURA` — el guard `estadoMapa.modo !== MODOS.AVENTURA` de `procesarPosicionGPSParaAventura` deja de bloquear; las posiciones GPS entrantes vuelven a calcular la distancia a la siguiente parada (`siguienteParada = paradas[paradaActualIndex + 1]`) y enviarla a hijo2 vía `ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, toleranciaGPS, lat, lng }`
+4. A partir de este momento:
    - `procesarPosicionGPSParaAventura` ya no devuelve en la línea de modo — la proximidad está activa
+   - El `watchPosition` nunca paró — las posiciones GPS siguen llegando sin interrupción
    - Si GPS pierde señal, el overlay de error sí aparece (modo AVENTURA)
    - El heartbeat de hijos se activa
 
@@ -7825,10 +7887,27 @@ Cuando el desarrollador está listo para probar la navegación real, pulsa el bo
 Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por ejemplo, para ver qué paradas están marcadas en hijo5):
 
 1. 5 taps en el icono del temporizador de hijo1 (o `Ctrl+Alt+clic`)
-2. Introduce `[REDACTED]`
+2. Introduce el código DEV
 3. `_devModeActivo = true`, hijo5 visible, `CAMBIO_MODO(CASA)` propagado
-4. `estadoMapa.modo = MODOS.CASA` — proximidad desactivada, GPS silenciado de nuevo
+4. `estadoMapa.modo = MODOS.CASA` — `procesarPosicionGPSParaAventura` deja de enviar `ACTUALIZAR_ESTADO`; proximidad desactivada, GPS silenciado de nuevo
 5. GPS sigue corriendo — la señal no se interrumpe
+6. En hijo2, `_resetarEstadoParaModo('casa')`:
+   - `timestampSalioDeRango` → `null` (el countdown de "fuera de rango" se cancela)
+   - `fueraDeRango5min` → **no se resetea** (conserva su último valor)
+   - `distanciaAlDestino` → **no se resetea** (último valor recibido antes de ir a CASA)
+   - `posicionActualUsuario` → **no se resetea**
+   - `#btn-ubicacion` → rojo, deshabilitado (comportamiento CASA)
+7. **localStorage**: `vv_paradas_completadas` y `vv_progreso` se **borran** al pasar a CASA
+8. **En memoria**: `estado.paradasCompletadas` (Map) y `estado.indiceProgreso` **se conservan** — la sesión recuerda las paradas completadas aunque el localStorage esté vacío
+
+**Al volver a AVENTURA (pulsar 🛰️ en hijo5):**
+
+1. hijo2 ejecuta `_resetarEstadoParaModo('aventura')`:
+   - `timestampSalioDeRango` sigue a `null` — el countdown de 5 min **arranca desde cero**
+   - Si `posicionActualUsuario` está poblado, llama `verificarDistanciaYActualizarBotones()` con el `distanciaAlDestino` del último mensaje recibido antes de ir a CASA (puede ser ligeramente desactualizado)
+2. `funciones-mapa.js` reanuda: `estadoMapa.modo = MODOS.AVENTURA` → el siguiente pulso GPS genera un `ACTUALIZAR_ESTADO` fresco con la distancia real a la siguiente parada no completada
+3. Si el desarrollador está fuera de rango (>50m) al volver: el overlay aparece y el countdown arranca desde 00:00 (sin penalización por el tiempo en CASA)
+4. **`estado.indiceProgreso` sigue apuntando a la parada correcta** — `siguienteParada` en funciones-mapa usa este índice, por lo que el cálculo de distancia se hace a la parada que tocaba antes de ir a CASA
 
 Repetir desde el paso 8 para volver a AVENTURA.
 
@@ -7859,7 +7938,7 @@ El desarrollador responde NO a la pregunta de confirmación. Antes de reiniciar 
 
 GPS: sigue corriendo — el mutex de `activarGPS()` evita doble activación en el siguiente P14. Los iframes quedan cargados en el DOM (ocultos), pero `_iframesPreCargadosP14 = false` hace que el fast-path no se use en el siguiente `AVENTURA_ACTIVADA` — los datos se redistribuyen correctamente.
 
-Dev mode persiste (`_devCasaMode` sigue siendo `true`) — el desarrollador puede volver a hacer P14 sin necesidad de reintroducir `[REDACTED]`.
+Dev mode persiste (`_devCasaMode` sigue siendo `true`) — el desarrollador puede volver a hacer P14 sin necesidad de reintroducir el código DEV.
 
 ---
 
@@ -7878,7 +7957,7 @@ En ambos casos: cuando GPS da la primera posición válida, `_watchPositionSucce
 
 Si el desarrollador recarga el navegador en cualquier momento:
 
-- **Antes de P15 (adventure no iniciada):** no hay `vv_aventura_iniciada` en localStorage → la app arranca desde P1 limpia. `_devModeActivo` y `_devCasaMode` se pierden — hay que reintroducir `[REDACTED]` si se quiere dev mode.
+- **Antes de P15 (adventure no iniciada):** no hay `vv_aventura_iniciada` en localStorage → la app arranca desde P1 limpia. `_devModeActivo` y `_devCasaMode` se pierden — hay que reintroducir el código DEV si se quiere dev mode.
 - **Después de P15 (aventura iniciada):** el padre guarda `vv_aventura_iniciada` en localStorage cuando recibe `SELECCION.AVENTURA_ACTIVADA`. Al recargar, detecta la clave y muestra `mostrarDialogoReanudacion()` — el desarrollador puede elegir continuar o empezar de nuevo. Si elige continuar, `ejecutarRestauracionAventura()` restaura el progreso (GPS se reactiva, iframes se recargan). Dev mode se pierde en cualquier caso tras la recarga.
 
 ---
@@ -8085,41 +8164,41 @@ La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica q
 
 ### 25.7. Cuando el usuario se aleja demasiado: fuera del radio
 
-Si el usuario se aleja del radio de la parada o tramo actual (20 m para paradas, ~50 m para tramos), **hijo2** lo detecta y **reacciona inmediatamente**:
+**El umbral:** si `distanciaAlDestino` (la distancia a la parada que le toca al usuario, calculada en tiempo real por `funciones-mapa.js`) supera los **50 metros**, hijo2 activa el sistema de "fuera de rango". Esto se comprueba en cada posición GPS que llega. El sistema verifica solo la parada o tramo activo — no vale estar cerca de cualquier punto de la ruta.
 
-**Fase 1 — Advertencia inmediata (0 a 5 minutos):**
+**Fase 1 — Advertencia inmediata (0 a 5 minutos fuera del radio):**
 
 - Un **overlay de advertencia** aparece al instante (`#fuera-rango-overlay` en hijo2) con la imagen `imagenes/imagenes-aplicación/foto-fuera-rango.png`. Tiene un botón ✖ naranja para cerrarlo.
-- En el **borde inferior de la pantalla**, centrado horizontalmente, aparece un **temporizador de cuenta atrás de 5 minutos** con números rojos grandes (`05:00`) sobre fondo negro con borde rojo. Es muy visible y avisa al usuario del tiempo que le queda.
-- Los botones **siguen funcionando con normalidad** durante la cuenta atrás.
+- En el borde inferior de la pantalla aparece un **temporizador de cuenta atrás de 5 minutos** (`05:00`) con números rojos. Es muy visible y avisa al usuario del tiempo que le queda.
+- Durante la cuenta atrás el botón **Ubicación** se deshabilita (rojo) y el resto de botones de hijo2 mantienen su estado normal.
 - El usuario puede volver al radio sin consecuencias: si lo hace, el overlay y el countdown desaparecen inmediatamente y todo se reinicia.
 
-**Fase 2 — Bloqueo total (después de 5 minutos fuera):**
+**Fase 2 — Bloqueo (después de 5 minutos fuera):**
 
-Cuando el countdown llega a `00:00`:
+Cuando el countdown llega a `00:00`, `_desactivarBotonesRangoExcedido()` actúa sobre los 6 botones de hijo2:
 
-**Lo que se deshabilita (rojo):**
+| Botón hijo2 | Estado tras 5 min |
+|-------------|------------------|
+| `#btn-avanzar` (→ siguiente parada) | ❌ deshabilitado (rojo) |
+| `#btn-imagen` (foto monumento) | sin cambio — mantiene su último estado |
+| `#btn-video` (vídeo aéreo) | ❌ deshabilitado (rojo) |
+| `#btn-ubicacion` (ver dónde estoy) | ✅ **habilitado (verde)** — única acción disponible |
+| `#btn-mapa-completo` (mapa moderno) | ❌ deshabilitado (rojo) |
+| `#btn-mapa-jpg` (mapa vintage) | ❌ deshabilitado (rojo) |
 
-- ❌ Botón GPS → rojo, deshabilitado.
-- ❌ Botón Imagen → rojo, deshabilitado.
-- ❌ Botón Vídeo → rojo, deshabilitado.
-- ❌ Botones Mapas → deshabilitados.
-- ❌ Audio → deshabilitado (rojo).
-- ❌ Retos → deshabilitados (rojo).
+**Hijo3 (audio) e hijo4 (retos) no reciben ningún mensaje** en este momento — sus controles no cambian de estado por el mecanismo "fuera de rango". Solo se ven afectados los botones de hijo2.
 
-**Lo único que se habilita (verde):**
+El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO` con la distancia y tiempo fuera. Responde limpiando las polylines de navegación activas en el mapa y actualizando `estado.usuarioFueraRango`.
 
-- ✅ Botón Ubicación → **verde, habilitado**. Es la única forma de volver: muestra una polyline en el mapa desde la posición actual hasta la parada, indicando cómo regresar a la ruta.
-- Se envía un mensaje `USUARIO_FUERA_RANGO` al padre.
+**El razonamiento:** si el usuario se ha perdido, lo único útil es ayudarle a volver. El botón Ubicación muestra una polyline en el mapa desde la posición actual del usuario hasta la parada que le toca, indicando el camino a seguir.
 
-**El razonamiento es:** si el usuario se ha perdido, no tiene sentido que escuche audios o vea fotos de un monumento que no está viendo. Lo único útil es ayudarle a volver. El botón de ubicación le muestra exactamente cómo regresar.
-
-**¿Cómo se recupera?** Cuando el usuario vuelve a estar dentro del radio de su elemento actual (20 m para paradas; `toleranciaGPS` dinámico para tramos):
+**¿Cómo se recupera?** Cuando `distanciaAlDestino` vuelve a ≤ 50m de la parada que toca:
 
 1. El overlay y el countdown se ocultan automáticamente.
-2. Todos los botones se restauran a su estado normal.
-3. El temporizador de "fuera de rango" se reinicia.
-4. La experiencia continúa donde la dejó.
+2. `fueraDeRango5min` se resetea a `false`.
+3. Todos los botones de hijo2 se restauran a su estado normal (según lógica de `actualizarEstadoBotones()`).
+4. El timer `timestampSalioDeRango` se borra.
+5. La experiencia continúa exactamente donde la dejó.
 
 ---
 
@@ -9206,8 +9285,8 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `UI.NAVEGACION_EXTERNA` | Cualquier hijo | Registra en log la URL que el hijo abrió en una pestaña externa; no bloquea ni modifica nada | (ninguna) | — | Trazabilidad de navegación externa; el hijo avisa al padre antes de hacer `window.open()` |
 | `SISTEMA.ADVERTENCIA` | Cualquier hijo | Registra en log la advertencia con código y texto; no interrumpe el flujo | (ninguna) | — | Canal de advertencias no fatales; evita que los hijos usen `console.warn` directamente para asuntos relevantes |
 | `SELECCION.CODIGO_VALIDADO` | Pantalla de selección (P13 normal o automático en modo DEV Factor 1) | `_hdl_SELECCION_CODIGO_VALIDADO`: si `_devModeActivo === false` **y** `mensaje.datos.devMode !== true` activa GPS (`activarGPS()`); en ambos casos ejecuta `cargarRestoDeiframes()` + `_fase2CargarDatos()` en paralelo. En modo DEV Factor 1, el payload incluye `devMode: true` como belt-and-suspenders adicional al flag global. | (ninguna directa — carga iframes en background) | — | Punto de no retorno: el usuario ha completado el flujo de selección y la aventura empieza a cargarse |
-| `SELECCION.DEV_MODE_TOGGLE` | Pantalla de selección (Factor 1 DEV — código `[REDACTED]` en modal de P1) | IIFE independiente en Script 1: pone `globalThis._devModeActivo = true`. No pasa por `registrarControladorSeguro`. | (ninguna) | — | Activar el flag DEV antes de que el usuario navegue P2→P11, para que `mostrar()` intercepte P12/P13 |
-| `CONTROL.DEV_CINCO_TOQUES` | Hijo 1 (`#icono-temporizador` — 5 taps o `Ctrl+Alt+clic`) | `_hdl_CONTROL_DEV_CINCO_TOQUES`: abre modal de código (guard anti-doble); con código `[REDACTED]` correcto pone `_devModeActivo = true`, hace `display:block` en hijo5 y llama `_vv_triggerCambioModo(MODOS.CASA)` | (ninguna directa) | — | Factor 2 DEV: activar modo CASA en mitad de una aventura activa sin reiniciar la sesión |
+| `SELECCION.DEV_MODE_TOGGLE` | Pantalla de selección (Factor 1 DEV — código DEV en modal de P1) | IIFE independiente en Script 1: pone `globalThis._devModeActivo = true`. No pasa por `registrarControladorSeguro`. | (ninguna) | — | Activar el flag DEV antes de que el usuario navegue P2→P11, para que `mostrar()` intercepte P12/P13 |
+| `CONTROL.DEV_CINCO_TOQUES` | Hijo 1 (`#icono-temporizador` — 5 taps o `Ctrl+Alt+clic`) | `_hdl_CONTROL_DEV_CINCO_TOQUES`: abre modal de código (guard anti-doble); con código DEV correcto (verificado por hash SHA-256) pone `_devModeActivo = true`, hace `display:block` en hijo5 y llama `_vv_triggerCambioModo(MODOS.CASA)` | (ninguna directa) | — | Factor 2 DEV: activar modo CASA en mitad de una aventura activa sin reiniciar la sesión |
 | `SELECCION.IDIOMA_SELECCIONADO` | Pantalla de selección (P3) | `_hdl_SELECCION_IDIOMA_SELECCIONADO`: actualiza `estado.idioma`; si los hijos ya están cargados, propaga el cambio | (ninguna) | — | Mantener el idioma sincronizado en el estado global del padre |
 | `SELECCION.AVENTURA_SELECCIONADA` | Pantalla de selección (P7) | `_hdl_SELECCION_AVENTURA_SELECCIONADA`: guarda `estado.aventura`; no carga nada aún | (ninguna) | — | Registrar la aventura elegida antes de que el usuario complete el onboarding |
 | `SELECCION.PREPARAR_HIJOS` | Pantalla de selección (P9) | `_hdl_SELECCION_PREPARAR_HIJOS`: recibe `{ idioma, aventura, timestamp }`; arranca la carga de iframes en background vía `_cargarIframesHijos()` | (ninguna directa) | — | Arrancar la precarga de iframes mientras el usuario lee términos y reto R-2 (P10–P15) |
@@ -9294,7 +9373,7 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 | `SELECCION.TERMINOS_ACEPTADOS` | Padre | Al aceptar términos en P10 | Registrar aceptación legal |
 | `SELECCION.PREPARAR_HIJOS` | Padre | P9 (confirmación aventura) | Comunicar los datos de pre-selección `{ idioma, aventura, timestamp }` al padre |
 | `SELECCION.CODIGO_VALIDADO` | Padre | Al pulsar → en P13 con código correcto y GPS no denegado (`_irANormativa()`), o automáticamente desde `mostrar()` cuando `_devCasaMode === true` intercepta P12/P13 | Disparar la carga de iframes y activación de GPS en el padre |
-| `SELECCION.DEV_MODE_TOGGLE` | Padre | Al introducir código `[REDACTED]` en el modal DEV de P1 (Factor 1) | Activar `_devModeActivo = true` en el padre antes de navegar P2→P11 |
+| `SELECCION.DEV_MODE_TOGGLE` | Padre | Al introducir código DEV en el modal DEV de P1 (Factor 1) | Activar `_devModeActivo = true` en el padre antes de navegar P2→P11 |
 
 ---
 
@@ -10979,7 +11058,12 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 
 **Nota:** este overlay vive en hijo2, no en el padre. Es el único de los 5 casos que reside en un hijo.
 
-**Estado de implementación:** ⚠️ parcialmente implementado — el overlay `#fuera-rango-overlay`, la lógica de 5 minutos y `_desactivarBotonesRangoExcedido` existen. Pendiente de verificar que el cálculo use todos los puntos (inicio, fin, waypoints) y no solo el destino final.
+**Estado de implementación:** ✅ implementado — el flujo completo es:
+1. `funciones-mapa.js` incluye `lat` y `lng` en cada payload de `NAVEGACION.ACTUALIZAR_ESTADO`
+2. `_aplicarDatosEstado()` asigna `estadoComponente.posicionActualUsuario = { lat, lng }`
+3. El handler `ACTUALIZAR_ESTADO` llama explícitamente a `verificarDistanciaYActualizarBotones()` en modo AVENTURA, después de `actualizarEstadoBotones()`
+
+El overlay `#fuera-rango-overlay`, la lógica de 5 minutos y `_desactivarBotonesRangoExcedido` están operativos y se ejecutan en cada posición GPS recibida.
 
 ---
 
@@ -11624,7 +11708,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 
 ## 35. Metodología de auditoría completa
 
-Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 15 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 20 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
 
 **Preparación antes de empezar:** ejecuta `npm run inventory` para tener el inventario de funciones actualizado y `npm run inventory:dupes` para detectar duplicados de nombre.
 
@@ -11820,7 +11904,19 @@ Todas las paradas completadas O tiempo agotado → `globalThis.mostrarModalFinal
 GPS denegado por usuario → `verificarPermisosGPS()` devuelve `false` → `activarGPS()` lanza antes de iniciar `watchPosition` → `catch` en `activarGPS` llama `showGpsSignalOverlay(1)` → usuario ve imagen de error + instrucciones → overlay persiste hasta que el usuario concede permisos o recarga.
 
 **Flujo F — Dev mode, pulsación GPS en hijo5:**
-Dev mode activo → P14 (redirect directo, sin enviar `SELECCION.CODIGO_VALIDADO`) → `_hdl_SELECCION_P14_MOSTRADA` carga iframes + datos (GPS no se activa: guard `if (!_devModeActivo)`) → AVENTURA\_ACTIVADA → `_mostrarUIActivada` muestra hijo5 → `setTimeout(250)` programa ocultamiento del overlay → `_vv_triggerCambioModo(MODOS.CASA)` fire-and-forget → `cambiandoModo=true` (síncrono) → overlay desaparece a los 250 ms → **verificar que `cambiandoModo` ya es `false` antes de ese punto** → usuario ve hijo5 → pulsa GPS → `_hdl_SISTEMA_CAMBIO_MODO`: `_devModeActivo=false`, hijo5 oculto → `manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos → `_propagarCambioModoAHijos` envía de nuevo a hijo2/3/4/5 → **verificar que este segundo envío no existe o está eliminado** → `_gestionarGpsSegunModo` llama `activarGPS()` por primera vez en esta sesión → modo AVENTURA activo, heartbeat arranca.
+
+Hay dos rutas de activación del modo dev:
+
+*Ruta P14 (DEV\_MODE\_TOGGLE desde pantalla de selección):* `_devModeActivo=true` antes de iniciar aventura → P14 carga iframes (GPS no se activa: guard en `_gestionarGpsSegunModo`) → `_mostrarUIActivada` muestra hijo5 → `await _vv_triggerCambioModo(MODOS.CASA)` (correctamente awaited) → `hideParentLoadingOverlay()` **después del await** → cuando el overlay desaparece, `cambiandoModo` ya es `false`; no hay race condition en esta ruta.
+
+*Ruta Factor 2 (`_hdl_CONTROL_DEV_CINCO_TOQUES` desde hijo1):* usuario entra código correcto → `confirmar()` es `async` con flag `_confirming` (bloquea reentradas: doble Enter ignorado) y `try/catch/finally` (error de `_vv_triggerCambioModo` queda logueado, no silencioso) → `_devModeActivo=true` → `await _vv_triggerCambioModo(MODOS_S2.CASA)` → solo después del await: hijo5 se hace visible → `cambiandoModo` ya es `false` cuando el usuario puede pulsar GPS; no hay race condition.
+
+*GPS button click (ambas rutas):* hijo5 envía `SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }` → `_hdl_SISTEMA_CAMBIO_MODO`: `_devModeActivo=false` (síncrono), hijo5 oculto inmediatamente → `await manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos (una sola vez; no existe ninguna función `_propagarCambioModoAHijos`) → `_gestionarGpsSegunModo(AVENTURA)` llama `activarGPS()` por primera vez en esta sesión → modo AVENTURA activo, heartbeat arranca.
+
+*Persistencia de `_devModeActivo`:* se resetea a `false` solo en dos momentos: cuando el usuario pulsa GPS (línea 6496 de `codigo-padre.html`), o recarga completa de página. "Otra aventura" (P2 sin reload) mantiene `_devModeActivo=true` — comportamiento intencional para conveniencia del desarrollador.
+
+**Flujo G — GPS→botones, usuario fuera de rango:**
+GPS dispara `_watchPositionSuccess` → `procesarPosicionGPSParaAventura` (funciones-mapa.js) calcula Haversine a `paradas[paradaActualIndex + 1]` (la siguiente parada, no todas) → emite `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, lat, lng, toleranciaGPS }` a hijo2 → handler hijo2: llama `actualizarEstadoBotones()` y, si `modo === 'aventura'` y `distanciaAlDestino !== null`, llama `verificarDistanciaYActualizarBotones()` → si distancia > 50 m (`RADIO_PERMITIDO`): setea `timestampSalioDeRango`, muestra overlay, inicia countdown → si han transcurrido > 5 min (`tiempoFueraRequerido`): `_desactivarBotonesRangoExcedido()` deshabilita `#btn-video` / `#btn-avanzar` / `#btn-mapa-completo` / `#btn-mapa-jpg`; habilita `#btn-ubicacion` (verde); `#btn-imagen` **no se toca** → hijo2 emite `NAVEGACION.USUARIO_FUERA_RANGO` al padre → padre limpia polylines, registra `estado.usuarioFueraRango = true`; **no envía nada a hijo3 ni a hijo4**. Verificar: hijo3/hijo4 no reciben mensajes; `_resetarEstadoParaModo` resetea `timestampSalioDeRango = null` en la siguiente vuelta al modo aventura.
 
 ---
 
@@ -11865,7 +11961,36 @@ Verificar:
 
 ---
 
-### 35.19 Formato del reporte de auditoría
+### 35.19 EJE 19 — Completitud de call-sites (existe vs. se llama)
+
+Para cada función que implementa comportamiento crítico de usuario (detección de rango, avance de parada, cambio de modo, actualización de botones, etc.):
+
+1. Lista **todos** los puntos donde debería ejecutarse según el diseño: ¿qué eventos de usuario la disparan? ¿Qué mensajes `postMessage` deberían invocarla? ¿Qué cambios de estado deberían llamarla?
+2. `grep` de todos los call-sites reales en el código.
+3. Para cada trigger esperado: ¿está llamando realmente a la función? ¿O solo confía en que alguien más lo hará?
+4. Verifica guards: ¿pueden los triggers llamar a la función cuando no debería ejecutarse (modo CASA, sin datos GPS, iframe no cargado)?
+
+**Por qué hace falta este eje:** EJE 4 confirma que el mensaje existe y que el handler existe, pero no verifica que el handler realmente invoca la función de negocio. EJE 13 busca huérfanos postMessage, pero no verifica call-sites dentro de los handlers. Ejemplo real: `verificarDistanciaYActualizarBotones()` estaba bien implementada pero el handler de `ACTUALIZAR_ESTADO` nunca la llamaba — el sistema fuera-de-rango estaba completamente muerto en producción y ninguna auditoría anterior lo detectó.
+
+---
+
+### 35.20 EJE 20 — Contraste guía vs. código (afirmaciones concretas)
+
+Para cada sección de `docs/GUIA-COMPLETA.md` que haga afirmaciones concretas sobre comportamiento (qué botones cambian de estado, qué payload se envía, qué radio se usa, qué hijos reciben un mensaje):
+
+1. Lee la función real en el código que implementa ese comportamiento.
+2. Contrasta cada afirmación de la guía línea a línea contra el código.
+3. Clasifica cada discrepancia:
+   - **Guía correcta / código roto** → bug real, abrir fix.
+   - **Código correcto / guía desactualizada** → actualizar guía.
+   - **Ambos incorrectos** → investigar.
+4. Áreas prioritarias en cada auditoría: estados de botones, payloads de `postMessage`, radios/umbrales, lista de hijos que reciben cada tipo de mensaje.
+
+**Por qué hace falta este eje:** Las auditorías anteriores validaban el código contra sí mismo, pero nunca cruzaban la guía con el código. Ejemplo real: §25.7 afirmaba umbral 20 m (real: 50 m en `RADIO_PERMITIDO`), decía que hijo3 y hijo4 recibían mensajes (falso: ninguno), mencionaba botones por nombres que no existen en `_desactivarBotonesRangoExcedido`. La guía y el código llevaban tiempo divergiendo sin que ninguna auditoría lo detectara.
+
+---
+
+### 35.21 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 

@@ -1211,18 +1211,14 @@ function _procesarFueraDeRango5min(btn, logPrefix, distanciaMinima, elementoMasC
  */
 function verificarDistanciaYActualizarBotones() {
     const logPrefix = '[hijo2][verificarDistanciaYActualizarBotones]';
-    if (!estadoComponente.posicionActualUsuario) {
-        logger.warn(`${logPrefix} No hay posición GPS disponible`);
-        return;
-    }
-    const RADIO_PERMITIDO = 50;
-    const paradas = globalThis.__vv_coordenadasAventura || [];
-    if (paradas.length === 0) {
-        logger.warn(`${logPrefix} No hay paradas disponibles para validar`);
+    const { distanciaAlDestino, idParadaActual } = estadoComponente;
+    if (distanciaAlDestino === undefined || distanciaAlDestino === null) {
+        logger.warn(`${logPrefix} No hay distancia a parada actual disponible`);
         return;
     }
 
-    const { dentroDeRango, elementoMasCercano, distanciaMinima } = _calcularProximidadParadas(estadoComponente.posicionActualUsuario, paradas, RADIO_PERMITIDO, logPrefix);
+    const RADIO_PERMITIDO = 50;
+    const dentroDeRango = distanciaAlDestino <= RADIO_PERMITIDO;
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
     if (!btn) {
@@ -1237,19 +1233,19 @@ function verificarDistanciaYActualizarBotones() {
 
     if (estadoComponente.timestampSalioDeRango === null) {
         estadoComponente.timestampSalioDeRango = ahora;
-        logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango (mostrando overlay + countdown 5min)`);
+        logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango de parada ${idParadaActual} (mostrando overlay + countdown 5min)`);
         mostrarOverlayFueraRango();
         iniciarCountdown();
     }
     const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
     if (tiempoFuera >= estadoComponente.tiempoFueraRequerido) {
-        _procesarFueraDeRango5min(btn, logPrefix, distanciaMinima, elementoMasCercano, tiempoFuera);
+        _procesarFueraDeRango5min(btn, logPrefix, distanciaAlDestino, { id: idParadaActual }, tiempoFuera);
     } else {
         btn.disabled = true;
         btn.style.backgroundColor = '#f44336';
         btn.style.opacity = '0.6';
         const segundosRestantes = Math.ceil(Math.max(0, estadoComponente.tiempoFueraRequerido - tiempoFuera) / 1000);
-        logger.debug(`${logPrefix} ⏳ Esperando: ${segundosRestantes}s restantes`);
+        logger.debug(`${logPrefix} ⏳ ${idParadaActual}: a ${distanciaAlDestino}m, esperando: ${segundosRestantes}s restantes`);
     }
 }
 
@@ -1592,7 +1588,7 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 // Ahora se usa ACTUALIZAR_ESTADO que incluye distancia y otros datos
 
 function _aplicarDatosEstado(datos, logPrefix) {
-    const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva } = datos;
+    const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
     if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
     if (idParada !== undefined) estadoComponente.idParadaActual = idParada;
     if (tipoParada !== undefined) estadoComponente.tipoParadaActual = tipoParada;
@@ -1607,6 +1603,9 @@ function _aplicarDatosEstado(datos, logPrefix) {
     if (ubicacionActiva !== undefined) {
         estadoComponente.ubicacionActiva = ubicacionActiva;
         logger.info(`${logPrefix} 🧭 Estado de ubicación actualizado: ${ubicacionActiva ? 'ACTIVA' : 'INACTIVA'}`);
+    }
+    if (lat !== undefined && lng !== undefined) {
+        estadoComponente.posicionActualUsuario = { lat, lng };
     }
 }
 
@@ -1663,6 +1662,9 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         }
 
         actualizarEstadoBotones();
+        if (estadoComponente.modo === 'aventura' && estadoComponente.distanciaAlDestino !== null && estadoComponente.distanciaAlDestino !== undefined) {
+            verificarDistanciaYActualizarBotones();
+        }
         logger.debug(`${logPrefix} 📍 Estado actualizado: distancia=${distanciaAlDestino}m, tolerancia=${toleranciaGPS}m, parada=${idParada}, tipo=${tipoParada}, reto=${estadoComponente.retoActivo}, ubicacion=${estadoComponente.ubicacionActiva}`);
     } catch (error) {
         logger.error(`${logPrefix} Error procesando actualización de estado:`, error);

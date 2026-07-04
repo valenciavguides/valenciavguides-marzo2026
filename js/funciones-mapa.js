@@ -2987,7 +2987,9 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     distanciaAlDestino: Math.ceil(distancia),
                     idParada: siguienteParada.padreid,
                     tipoParada: siguienteParada.tipo || 'parada',
-                    toleranciaGPS: toleranciaGPS, // Tolerancia dinámica: 50m paradas, variable tramos
+                    toleranciaGPS: toleranciaGPS,
+                    lat: latitude,
+                    lng: longitude,
                     timestamp: Date.now()
                 }
             });
