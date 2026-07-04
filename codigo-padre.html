@@ -10728,15 +10728,16 @@
                     cargarRestoDeiframes(),
                     cargarHijoCasa()
                 ]);
-                // GPS se activa DESPUÉS de los iframes (dev y prod):
-                // hijo2 ya está en modo CASA → estadoMapa.modo = CASA → proximidad inactiva
+                // GPS se activa DESPUÉS de los iframes solo en prod — en dev (CASA) no es necesario
                 globalThis._codigoValidadoP13 = true; // guard para showGpsSignalOverlay
-                try {
-                    await activarGPS();
-                } catch (gpsErr) {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
-                    showGpsSignalOverlay(1);
-                    return;
+                if (!globalThis._devModeActivo) {
+                    try {
+                        await activarGPS();
+                    } catch (gpsErr) {
+                        (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
+                        showGpsSignalOverlay(1);
+                        return;
+                    }
                 }
                 globalThis._iframesPreCargadosP14 = true;
                 (globalThis.logger || console).info(`${logPrefix} ✅ Iframes + datos + GPS listos para AVENTURA_ACTIVADA`);

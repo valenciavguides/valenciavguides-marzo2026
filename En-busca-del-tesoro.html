@@ -1434,7 +1434,7 @@
         permState = perm.state;
       } catch (_) { /* API no disponible — watchPosition manejará el prompt */ }
 
-      if (permState === 'denied') {
+      if (permState === 'denied' && !globalThis._devCasaMode) {
         if (errorDiv) errorDiv.style.display = 'block';
         return;
       }
