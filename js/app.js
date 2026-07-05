@@ -235,13 +235,13 @@ export async function actualizarInterfazModo(estado, modo) {
     try {
         // 1. Enviar CAMBIO_MODO a todos los hijos
         logger.info(`[actualizarInterfazModo] Enviando CAMBIO_MODO a todos los hijos...`);
-        const promesasEnvio = hijosList.map(hijoId => 
-            enviarMensaje({
+        const promesasEnvio = hijosList.map(hijoId =>
+            Promise.resolve(enviarMensaje({
                 destino: hijoId,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
                 origen: resolverIdPadre(),
                 datos: { modo, secuenciaCompleta: !!estado?.todosHijosListos, mensajeId }
-            }).catch(err => {
+            })).catch(err => {
                 logger.error(`[actualizarInterfazModo] Error enviando a ${hijoId}:`, err);
             })
         );
@@ -258,12 +258,12 @@ export async function actualizarInterfazModo(estado, modo) {
         // 4. Enviar APLICADO a todos
         logger.info(`[actualizarInterfazModo] Enviando APLICADO a todos los hijos...`);
         const promesasAplicado = hijosList.map(hijoId =>
-            enviarMensaje({
+            Promise.resolve(enviarMensaje({
                 destino: hijoId,
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO_APLICADO,
                 origen: resolverIdPadre(),
                 datos: { modo, timestamp: Date.now(), mensajeId }
-            }).catch(err => {
+            })).catch(err => {
                 logger.error(`[actualizarInterfazModo] Error enviando APLICADO a ${hijoId}:`, err);
             })
         );
