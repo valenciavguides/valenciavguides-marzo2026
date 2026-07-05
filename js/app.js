@@ -1209,8 +1209,8 @@ export async function enviarConfirmacionAHijo(hijoId, mensajeId) {
 // Son tipos definidos en constants.js pero no se usan en la codebase actual.
 
 // ❌ CONTROLADOR RESPUESTA_PARADA (singular) ELIMINADO - OBSOLETO
-// El sistema actual usa RESPUESTA_PARADAS (plural) para recibir arrays completos
-// y COORDENADAS_PARADAS_REQUEST/RESPONSE para solicitudes específicas
+// El sistema actual usa NAVEGACION.RESPUESTA_DATOS_PARADAS para recibir arrays completos
+// y DATOS.COORDENADAS_PARADAS_REQUEST/RESPONSE para solicitudes específicas
 
 // Confirmado: No hay dependencias de generarHashContenido, configurarUtils, registrarListener, removerListener o removerTodosLosListeners.
 
@@ -1449,7 +1449,7 @@ async function ejecutarAccionCoordinada(accion) {
  * @example
  * // USO: Enviar actualización desde el padre
  * enviarMensaje({
- *     tipo: TIPOS_MENSAJE.DATOS.RESPUESTA_PARADAS,
+ *     tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
  *     destino: 'broadcast', // O un hijo específico
  *     datos: {
  *         paradas: [...],
@@ -1458,7 +1458,7 @@ async function ejecutarAccionCoordinada(accion) {
  *     }
  * });
  */
-// El handler de DATOS.RESPUESTA_PARADAS está registrado en codigo-padre.html (~línea 8019).
+// El handler de NAVEGACION.RESPUESTA_DATOS_PARADAS está registrado en codigo-padre.html.
 
 // --- Automatic resend logic for CAMBIO_MODO on NACK with esperarPermiso ---
 // pendingModeChanges: hijoId -> { modo, datos, intentos, nextAttemptAt }

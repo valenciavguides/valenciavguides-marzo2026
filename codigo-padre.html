@@ -6242,14 +6242,13 @@
                 }
             } catch (error) { (globalThis.logger || console).error(`${logPrefix} Error solicitando coordenadas iniciales:`, error); }
             // Disparar APLICACION_INICIALIZADA formalmente ahora que todos los hijos críticos están listos
-            try {
-                await _hdl_APLICACION_INICIALIZADA({
-                    tipo: TIPOS_MENSAJE_S1.SISTEMA.APLICACION_INICIALIZADA,
-                    origen: 'handshake-interno',
-                    destino: getPadreId(),
-                    datos: { totalComponentes: hijosCriticos.length, tiempoInicializacion: Date.now() - (estado.tiempoInicio || timestamp), version: '1.0.0' }
-                });
-            } catch (err) { (globalThis.logger || console).warn(`${logPrefix} Error disparando APLICACION_INICIALIZADA:`, err); }
+            // Pasar por mensajería (origen distinto a componenteId para no ser descartado)
+            globalThis.postMessage({
+                tipo: TIPOS_MENSAJE_S1.SISTEMA.APLICACION_INICIALIZADA,
+                origen: 'handshake-interno',
+                destino: getPadreId(),
+                datos: { totalComponentes: hijosCriticos.length, tiempoInicializacion: Date.now() - (estado.tiempoInicio || timestamp), version: '1.0.0' }
+            }, globalThis.location.origin);
         }
 
         function _actualizarPendingModeFail(hijoId, pending, intentos) {
@@ -8781,7 +8780,9 @@
             await sleep(0);
 
             // Double-check registrarControladorSeguro is available
+            let _waitRCS = 0;
             while (typeof globalThis.registrarControladorSeguro !== 'function') {
+                if (++_waitRCS > 200) { (globalThis.logger || console).error('[SCRIPT2] ❌ registrarControladorSeguro no disponible tras 10s'); break; }
                 (globalThis.logger || console).debug('[SCRIPT2] registrarControladorSeguro no disponible, esperando...');
                 await sleep(50);
             }

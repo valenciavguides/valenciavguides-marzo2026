@@ -875,8 +875,8 @@
 
             logger.debug(`${logPrefix} Solicitud enviada al padre - esperando respuesta asÃ­ncrona`);
 
-            // La respuesta serÃ¡ procesada por el controlador DATOS.RESPUESTA_PARADAS
-            // No esperamos respuesta aquÃ­ porque el procesamiento es asÃ­ncrono
+            // La respuesta será procesada por el controlador NAVEGACION.RESPUESTA_DATOS_PARADAS
+            // No esperamos respuesta aquí porque el procesamiento es asíncrono
 
         } catch (error) {
             logger.error(`${logPrefix} Error al solicitar paradas del padre:`, {
@@ -1218,9 +1218,9 @@
         });
 
         // ============================================
-        // CONTROLADOR: DATOS.RESPUESTA_PARADAS
+        // CONTROLADOR: NAVEGACION.RESPUESTA_DATOS_PARADAS
         // ============================================
-        // PropÃ³sito: Recibir respuesta con datos de paradas del padre
+        // Propósito: Recibir respuesta con datos de paradas del padre
         // Origen esperado: padre, funciones-mapa
         // Datos requeridos: { paradas: Array, total: number }
         // Respuesta: Ninguna (procesamiento de datos)
@@ -1267,7 +1267,7 @@
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar respuesta de paradas:`, error);
                 try {
-                    await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, stack: error.stack, contexto: 'DATOS.RESPUESTA_PARADAS', mensajeOriginal: mensaje.tipo } });
+                    await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, stack: error.stack, contexto: 'NAVEGACION.RESPUESTA_DATOS_PARADAS', mensajeOriginal: mensaje.tipo } });
                 } catch (notifError) {
                     logger.error(`${logPrefix} Error al notificar error al origen:`, notifError);
                 }

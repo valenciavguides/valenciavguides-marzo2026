@@ -114,7 +114,6 @@ export const TIPOS_MENSAJE = {
         SUPRIMIR_ROTACION: 'NAVEGACION.SUPRIMIR_ROTACION'
     },
     DATOS: {
-        RESPUESTA_PARADAS: 'DATOS.RESPUESTA_PARADAS',
         COORDENADAS_PARADAS_REQUEST: 'DATOS.COORDENADAS_PARADAS_REQUEST',
         COORDENADAS_PARADAS_RESPONSE: 'DATOS.COORDENADAS_PARADAS_RESPONSE',
         CARGAR_COORDENADAS: 'DATOS.CARGAR_COORDENADAS',
@@ -329,5 +328,5 @@ if (globalThis.window !== undefined) {
         CSS_CLASES,
         TIPOS_MENSAJE_VALIDOS
     };
-    console.log('✅ constants.js loaded, globalThis.constants assigned');
+    (globalThis.logger || console).debug('✅ constants.js cargado');
 }

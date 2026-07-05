@@ -2666,15 +2666,6 @@ export function registrarManejadoresMensajes() {
             throw new TypeError('La función registrarControlador no está disponible');
         }
         
-        // Helper: solo registrar si el padre no lo registró ya (evita sobrescribir)
-        const registrarSiNoExiste = (tipo, handler) => {
-            if (globalThis.__CONTROLADOR_REGISTRADOS?.has(tipo)) {
-                logger.debug(`[funciones-mapa] Handler para ${tipo} ya registrado por padre, omitiendo`);
-                return;
-            }
-            registrarControlador(tipo, handler);
-        };
-
         // Controladores de navegación adicionales
         // NOTA: SISTEMA.CAMBIO_MODO lo registra _hdl_SISTEMA_CAMBIO_MODO en codigo-padre.html Script 1
         // (permanente: true). Ese handler llama a globalThis.funcionesMapa.manejarCambioModoMapa()
@@ -2698,10 +2689,11 @@ export function registrarManejadoresMensajes() {
                 logger.error('[funciones-mapa] ❌ Error procesando vv-parada-cambiada:', err);
             }
         });
-        // Controladores GPS — registrarSiNoExiste para no sobreescribir los handlers del padre
-        // (padre verifica modo AVENTURA y gestiona estado completo antes de activar/desactivar)
-        registrarSiNoExiste(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, manejarGPSActivar);
-        registrarSiNoExiste(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, manejarGPSDesactivar);
+        // GPS handlers: registrados aquí como fallback inicial.
+        // registrarControladorSeguro en Script 2 (codigo-padre.html) los sobrescribe
+        // con los handlers completos que verifican modo AVENTURA y gestionan watchId.
+        registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, manejarGPSActivar);
+        registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, manejarGPSDesactivar);
 
 
         // Controlador para solicitar paradas con proximidad avanzada
@@ -2713,7 +2705,7 @@ export function registrarManejadoresMensajes() {
             await procesarRespuestaConsulta('coordenadas', mensaje.datos);
         });
         
-        console.debug('Manejadores de mensajes del mapa registrados correctamente');
+        logger.debug('[funciones-mapa] Manejadores de mensajes del mapa registrados correctamente');
         return true;
     } catch (error) {
         console.error('Error al registrar manejadores de mensajes:', error);
