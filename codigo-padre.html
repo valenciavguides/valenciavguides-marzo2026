@@ -6,6 +6,7 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff8c00">
     <!-- iOS PWA: pantalla de inicio nativa sin barra del navegador -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VGuides">
@@ -2202,7 +2203,6 @@
                 }
                 setTimeout(() => {
                     overlay.remove();
-                    globalThis._intentarAplicarReloadSW?.('overlay-cerrado');
                 }, 400);
             }
             (globalThis.logger || console).info('Iframe overlay cerrado');
@@ -2464,7 +2464,7 @@
         aria-label="Página de selección de idioma y aventura"
         style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:2000; border:none; display:none; visibility:hidden; background:#fff;"></iframe>
 
-    <iframe id="hijo1-opciones" name="hijo1-opciones" src=""
+    <iframe id="hijo1-opciones" name="hijo1-opciones"
         title="Opciones de usuario"
         aria-label="Opciones y configuración"
         style="position:fixed; left:1.5px; right:auto; top:auto; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(6 * var(--franja-lateral) + 26px); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: transparent;"></iframe>
@@ -2484,7 +2484,7 @@
         aria-label="Chat de soporte operativo"
         style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000020; border:none; display:none; visibility:hidden; background:rgba(0,0,0,0.45);"></iframe>
 
-    <iframe id="hijo5" name="hijo5" src=""
+    <iframe id="hijo5" name="hijo5"
         title="Botón Casa"
         aria-label="Botón para cambiar entre modo Casa y Aventura"
         style="position:fixed; left:50%; transform:translateX(-50%); top:3px; height:22vh; width:99vw; z-index:1000000; pointer-events:auto; transition:width 0.3s; display:none; visibility:hidden; background: transparent;"></iframe>
@@ -2502,7 +2502,7 @@
             srcdoc="<html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Sistema UI - Notificaciones</title><style>body{font-family:Arial,sans-serif;font-size:14px;margin:0;padding:8px;}#notificaciones{max-height:100%;overflow-y:auto;} .notif{border-radius:6px;padding:8px;margin-bottom:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);} .notif.info{border-left:6px solid #2196F3;} .notif.warn{border-left:6px solid #FFC107;} .notif.error{border-left:6px solid #F44336;}</style></head><body><h3>Notificaciones</h3><div id=\"notificaciones\"></div><script>globalThis.addEventListener('message',function(event){try{const data=event.data||{};if(!data||!data.tipo)return;if(data.tipo!=='SISTEMA.NOTIFICACION'&&data.tipo!=='UI.NOTIFICACION')return;const n=document.getElementById('notificaciones');const d=document.createElement('div');d.className='notif '+(data.datos&&data.datos.tipo||'info');const t=data.datos&&data.datos.titulo||'Notificación';const m=data.datos&&data.datos.mensaje||'';d.innerHTML='<strong>'+t+'</strong><div>'+m+'</div><small><em>'+data.origen+'</em></small>';n.insertBefore(d,n.firstChild);}catch(e){(globalThis.logger || console).warn('sistema-ui error parsing message',e);}});</script></body></html>"></iframe>
 
     <!-- Audio component con bordes redondeados -->
-    <iframe id="hijo3" name="hijo3" src=""
+    <iframe id="hijo3" name="hijo3"
         title="Audio de la aventura"
         aria-label="Reproductor de audio de la aventura con botón de retos"
         class="iframe-rounded-right"></iframe>
@@ -2529,14 +2529,14 @@
     </fieldset>
 
     <!-- Coordinates component con bordes redondeados -->
-    <iframe id="hijo2" name="hijo2" src=""
+    <iframe id="hijo2" name="hijo2"
         title="Botones de coordenadas"
         aria-label="Botones de navegación y coordenadas"
         class="iframe-rounded-right"
         allow="geolocation"></iframe>
 
     <!-- Retos iframe -->
-    <iframe id="hijo4" name="hijo4" src=""
+    <iframe id="hijo4" name="hijo4"
         title="Retos y preguntas"
         aria-label="Ventana de retos y preguntas"
         style="display: none;"></iframe>
@@ -7121,24 +7121,6 @@
                 iframeEl.style.display = '';
                 iframeEl.style.visibility = 'visible';
             }
-        }
-
-        async function _cargarIframesHijos(logPrefix) {
-            const iframesHijos = [
-                { id: 'hijo1-opciones', src: 'extrainfo-hijo1.html' },
-                { id: 'hijo2', src: 'coordenadas-hijo2.html' },
-                { id: 'hijo3', src: 'audio-hijo3.html' },
-                { id: 'hijo4', src: 'retos-hijo4.html' },
-                { id: 'hijo5', src: 'boton-casa-hijo5.html' }
-            ];
-            await Promise.all(iframesHijos.map(iframe => {
-                (globalThis.logger || console).info(`${logPrefix} Cargando iframe hijo: ${iframe.id}`);
-                return _cargarUnIframeHijo(iframe, logPrefix).catch(error => {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando hijo ${iframe.id}: ${error.message}`);
-                    (globalThis.logger || console).warn(`${logPrefix} Continuando con siguiente hijo...`);
-                });
-            }));
-            (globalThis.logger || console).success(`${logPrefix} ✅ FASE 3 COMPLETADA - Todos los iframes hijos cargados y confirmados`);
         }
 
         async function _procesarDistribucionPendiente(logPrefix) {
@@ -12032,37 +12014,39 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
     <script>
         if ('serviceWorker' in navigator) {
-            // sessionStorage persiste entre recargas de la misma pestaña — evita cascada
-            // cuando controllerchange y SW_ACTUALIZADO llegan a páginas distintas.
-            function _hacerRecargaSW(motivo) {
-                const lastTs = parseInt(sessionStorage.getItem('vv_sw_reload_ts') || '0');
-                if (Date.now() - lastTs < 8000) return; // cooldown 8 s anti-cascada
-                sessionStorage.setItem('vv_sw_reload_ts', String(Date.now()));
-                (globalThis.logger || console).info('[SW] ' + motivo + ' — recargando');
-                globalThis.location.reload();
-            }
+            // Bandera local: evita duplicar el banner si controllerchange y SW_ACTIVADO
+            // llegan casi simultáneamente para la misma actualización.
+            let _swBannerMostrado = false;
 
-            // Reload diferido: no recargar mientras el usuario tiene un overlay abierto.
-            // Cuando se cierra el overlay (cerrarIframeOverlay), se comprueba este flag.
-            globalThis._swReloadPendiente = false;
-            globalThis._intentarAplicarReloadSW = function(origen) {
-                if (!globalThis._swReloadPendiente) return;
-                if (document.getElementById('iframe-overlay')) return; // diferir hasta que cierre
-                _hacerRecargaSW('Nuevo service worker activo (desde: ' + (origen || 'check') + ')');
-            };
+            function _mostrarBannerSW(version) {
+                if (document.getElementById('sw-update-banner')) return;
+                _swBannerMostrado = true;
+                const banner = document.createElement('div');
+                banner.id = 'sw-update-banner';
+                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1100000;background:#1a1a2e;color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Verdana,sans-serif;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.4);';
+                const label = document.createElement('span');
+                label.textContent = '🔄 Nueva versión disponible' + (version ? ' (' + version + ')' : '');
+                const btn = document.createElement('button');
+                btn.textContent = 'Actualizar';
+                btn.style.cssText = 'background:#ff8c00;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;';
+                btn.addEventListener('click', () => { globalThis.location.reload(); });
+                banner.appendChild(label);
+                banner.appendChild(btn);
+                document.body.appendChild(banner);
+            }
 
             // Listener ANTES del register: no perder controllerchange si ya hay SW en espera
             const previousController = navigator.serviceWorker.controller;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!previousController) return; // primera instalación, no recargar
-                globalThis._swReloadPendiente = true;
-                globalThis._intentarAplicarReloadSW('controllerchange');
+                if (!previousController) return; // primera instalación — sin banner
+                if (_swBannerMostrado) return;
+                _mostrarBannerSW(null);
             });
             navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data?.tipo === 'SW_ACTUALIZADO' && previousController) {
-                    globalThis._swReloadPendiente = true;
-                    globalThis._intentarAplicarReloadSW('SW_ACTUALIZADO');
-                }
+                if (event.data?.tipo !== 'SW_ACTIVADO') return;
+                if (!previousController) return; // primera instalación — sin banner
+                if (_swBannerMostrado) return;
+                _mostrarBannerSW(event.data.version || null);
             });
 
             navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
@@ -12071,7 +12055,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         if (document.visibilityState === 'hidden') {
                             try { registration.update(); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                         }
-                        globalThis._intentarAplicarReloadSW('visibilitychange');
                     });
                 })
                 .catch(e => (globalThis.logger || console).error('[SW] Error registrando service worker:', e));

@@ -1320,11 +1320,11 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 | Iframe | ID | Archivo | ¿Crítico? | Cuándo carga | Función |
 |--------|----|---------|-----------|--------------|---------|
 | Pantalla selección | `seleccion` | `En-busca-del-tesoro.html` | No | Al arrancar `codigo-padre.html` (único iframe con `src` desde el inicio) | Pantalla de incorporación: selección de idioma, aventura, retos previos y código de activación. Se oculta al iniciar la aventura. |
-| Hijo 1 | `hijo1-opciones` | `extrainfo-hijo1.html` | No | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()` | Panel lateral izquierdo con botón "Más opciones". Despliega iconos de acceso a contenido complementario (temporizador, vídeos, etc.). |
-| Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()` | Gestiona 6 botones de navegación. Recibe `distanciaAlDestino` de `funciones-mapa.js` (el Haversine lo hace el padre), compara contra umbral, envía `LLEGADA_DETECTADA` y gestiona overlay "fuera de rango". Sin Leaflet — el mapa lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
-| Hijo 3 | `hijo3` | `audio-hijo3.html` | **Sí** | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()` | Reproductor de audio. Recibe del padre qué audio reproducir y lo controla. |
-| Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarRestoDeiframes()`. **No** forma parte del `Promise.all` de `AVENTURA_ACTIVADA` | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
-| Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | Arranque inicial: `_cargarIframesHijos()`. Activación de aventura: `CODIGO_VALIDADO` (P13) → `cargarHijoCasa()` (si ya está cargado, solo espera `HIJO_LISTO`) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`); permanece oculto (`display:none`) en todo momento normal. |
+| Hijo 1 | `hijo1-opciones` | `extrainfo-hijo1.html` | No | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Panel lateral izquierdo con botón "Más opciones". Despliega iconos de acceso a contenido complementario (temporizador, vídeos, etc.). |
+| Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Gestiona 6 botones de navegación. Recibe `distanciaAlDestino` de `funciones-mapa.js` (el Haversine lo hace el padre), compara contra umbral, envía `LLEGADA_DETECTADA` y gestiona overlay "fuera de rango". Sin Leaflet — el mapa lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
+| Hijo 3 | `hijo3` | `audio-hijo3.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Reproductor de audio. Recibe del padre qué audio reproducir y lo controla. |
+| Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()`. **No** forma parte del `Promise.all` de `AVENTURA_ACTIVADA` | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
+| Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | `SELECCION.P14_MOSTRADA` → `cargarHijoCasa()` (si ya está cargado, solo espera `HIJO_LISTO`) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`); permanece oculto (`display:none`) en todo momento normal. |
 | Hijo 6 | `hijo6-chat` | `chat-hijo6.html` | No | **Lazy** — `src=""` en HTML; se asigna al primer click en `#btn-chat-soporte` | Asistente de soporte FAQ en acordeón. Accesible desde un botón flotante propio del padre. |
 
 > **Hijos críticos para heartbeat** (`hijo2`, `hijo3`, `hijo4`, `hijo5`): reciben `SISTEMA.HEARTBEAT` cada 5 s en MODO AVENTURA (array `hijosCriticos` en `mensajeria.js`). Si cualquiera no responde 3 heartbeats consecutivos, el padre lo recarga automáticamente (`AUTO_RECONECTAR: true`). Los hijos sin supervisión de heartbeat son hijo1 e hijo6. Nota: `hijo5` está en el ciclo de heartbeat aunque no sea "crítico" en el sentido de que no bloquea `_esperarHijosCargados` — su función en aventura es secundaria (tool de desarrollo).
@@ -4343,18 +4343,18 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-audit-jul05'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-jul06'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
-**Canal SW → página (fuera del bus):** `sw.js` llama `skipWaiting()` en `install` para activarse sin esperar cierre de pestañas. Al activar, llama `clients.claim()`. Esto dispara `controllerchange` en el cliente. Dos handlers en la app:
+**Canal SW → página (fuera del bus):** `sw.js` llama `skipWaiting()` en `install` para activarse sin esperar cierre de pestañas. Al activar, llama `clients.claim()` y envía `{ tipo: 'SW_ACTIVADO', version: CACHE_VERSION }` a todos los clientes. Dos comportamientos en la app:
 
 | Archivo | Comportamiento |
 |---------|----------------|
-| `index.html` | Recarga inmediata: `location.reload()`. Opera solo durante el breve instante antes de redirigir. |
-| `codigo-padre.html` | Reload diferido: activa `globalThis._swReloadPendiente = true`, luego llama `_intentarAplicarReloadSW()`, que solo recarga si no hay `#iframe-overlay` abierto. Si hay overlay, el reload queda diferido hasta que `cerrarIframeOverlay` lo comprueba tras 400 ms. Cooldown de 8 s en sessionStorage evita cascadas. |
+| `index.html` | Solo registra el SW. Sin listener de actualización. La página redirige inmediatamente a `codigo-padre.html`. |
+| `codigo-padre.html` | Muestra banner no bloqueante `#sw-update-banner` (`z-index:1100000`) con botón [Actualizar]. El usuario decide cuándo recargar. Guard `previousController` evita el banner en primera instalación. Guard `_swBannerMostrado` evita duplicar si `controllerchange` y `SW_ACTIVADO` llegan simultáneamente. |
 
-Ambos ignoran la primera instalación (`!previousController → return`); la recarga solo ocurre en actualizaciones de SW existente.
+En ambos listeners (`controllerchange` y mensaje `SW_ACTIVADO`) se ignora la primera instalación (`!previousController → return`).
 
 ---
 
@@ -5540,6 +5540,8 @@ En modo `'local'`, `data-loader.js` hace dos tipos de fetch:
 
 Los archivos JSON de párrafos **no están en el APP_SHELL del SW** — se sirven con Network First en producción. Si el fetch falla (sin red, SW desactualizado), `cargarMapaParrafos` devuelve `{}` y `cargarTextos` **no cachea** el resultado, permitiendo reintento en la próxima llamada. `_handleMostrarImagen` también reintenta la carga si `textoParada.content` llega vacío desde hijo2.
 
+> **Invariante crítico del logger en `data-loader.js`:** El logger público solo expone `.info()`, `.warn()`, `.error()`, `.debug()` — **no expone `.log()`**. El try-catch de `cargarMapaParrafos` engloba también la línea de confirmación de éxito; si esa línea lanza (p.ej. llamando a un método inexistente del logger), el catch convierte el fetch exitoso en `{}` silenciosamente y `parrafosCache` nunca se popula. Cualquier log de confirmación en el success-path debe usar exclusivamente métodos del API pública del logger.
+
 En modo `'api'` (pendiente de activar), usaría `fetchFromAPI()` hacia el backend Express.
 
 #### js/api-client.js — cliente REST (preparado, no activo)
@@ -6703,6 +6705,8 @@ Para ejecutarlos: `http://localhost:8080/tests/master-test.html` (panel de orque
 | `test_auditoria_completa.html` | Auditoría global de handlers, race conditions y estado |
 | `test_heartbeat.html` | Mecanismo de ping/pong heartbeat con hijos |
 | `test_carga_secuencial_iframes.html` | Orden de carga FASE 1 → FASE 2 → iframes |
+| `test_sw_update_notification.html` | Banner SW no bloqueante: z-index, guards `previousController`/`_swBannerMostrado`, ausencia de auto-reload, botón Actualizar |
+| `test_cargar_textos.html` | `cargarTextos` retorna entradas con content no vacío; mock de logger sin `.log()` detecta errores silenciosos en el success-path de `cargarMapaParrafos` |
 
 ### 18.3 Tests E2E con Playwright (tests/e2e/)
 
@@ -6825,35 +6829,48 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 #### Ciclo de vida del SW en producción
 
-`sw.js` llama `skipWaiting()` al final del evento `install`, activándose inmediatamente sin esperar a que el usuario cierre pestañas. Al activar, llama `clients.claim()` para tomar control de todas las pestañas abiertas. Esta estrategia permite que las actualizaciones de caché se apliquen en la siguiente carga de página sin requerir cerrar el navegador.
-
-Cuando se activa un nuevo SW (`controllerchange`), `codigo-padre.html` no recarga de forma inmediata. En su lugar:
-
-1. Activa el flag `globalThis._swReloadPendiente = true`
-2. Llama `globalThis._intentarAplicarReloadSW(origen)`, que comprueba:
-   - Si `#iframe-overlay` está en el DOM (mapa completo u otro overlay abierto): **no recarga**. El flag queda activo.
-   - Si no hay overlay: llama `_hacerRecargaSW()` → `location.reload()` con cooldown de 8 s en `sessionStorage` para evitar cascadas.
-3. Los puntos de comprobación son: `controllerchange`, `SW_ACTUALIZADO`, `visibilitychange`, y el cierre de `cerrarIframeOverlay` (400 ms después de que el overlay desaparece del DOM).
+`sw.js` llama `skipWaiting()` al final del evento `install`, activándose inmediatamente sin esperar a que el usuario cierre pestañas. Al activar, llama `clients.claim()` para tomar control de todas las pestañas abiertas y luego envía un mensaje `SW_ACTIVADO` a todos los clientes activos:
 
 ```javascript
-// codigo-padre.html — mecanismo de reload diferido
-globalThis._swReloadPendiente = false;
-globalThis._intentarAplicarReloadSW = function(origen) {
-    if (!globalThis._swReloadPendiente) return;
-    if (document.getElementById('iframe-overlay')) return; // overlay abierto — diferir
-    _hacerRecargaSW('SW activo (desde: ' + origen + ')');
-};
+// sw.js — activate event
+.then(() => globalThis.clients.claim())
+.then(() => globalThis.clients.matchAll({ type: 'window' }))
+.then(clientList => {
+    clientList.forEach(c => c.postMessage({ tipo: 'SW_ACTIVADO', version: CACHE_VERSION }));
+})
+```
+
+Cuando un cliente (`codigo-padre.html`) recibe la señal de actualización — por `controllerchange` o por el mensaje `SW_ACTIVADO` — **no recarga automáticamente**. Muestra un banner no bloqueante en la parte superior de la pantalla:
+
+- **`#sw-update-banner`** (`position:fixed; top:0; z-index:1100000`): mensaje "🔄 Nueva versión disponible (versión)" con botón [Actualizar] que el usuario pulsa cuando está listo. El botón llama `location.reload()`. El z-index 1100000 garantiza que aparece por encima del overlay del mapa (`z-index:1000010`).
+- **Guard `previousController`**: si no había un SW previo (primera instalación), no se muestra el banner.
+- **Guard `_swBannerMostrado`**: bandera en scope del bloque, evita mostrar el banner dos veces si `controllerchange` y `SW_ACTIVADO` llegan casi simultáneamente.
+
+```javascript
+// codigo-padre.html — bloque SW al final del body
+let _swBannerMostrado = false;
+const previousController = navigator.serviceWorker.controller;
 
 navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!previousController) return; // primera instalación — sin reload
-    globalThis._swReloadPendiente = true;
-    globalThis._intentarAplicarReloadSW('controllerchange');
+    if (!previousController) return; // primera instalación — sin banner
+    if (_swBannerMostrado) return;
+    _mostrarBannerSW(null);
+});
+navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data?.tipo !== 'SW_ACTIVADO') return;
+    if (!previousController) return;
+    if (_swBannerMostrado) return;
+    _mostrarBannerSW(event.data.version || null);
 });
 ```
 
+`registration.update()` se llama en `visibilitychange → hidden` para que el browser compruebe actualizaciones del SW cada vez que el usuario cambia de app.
+
+`index.html` solo registra el SW (`navigator.serviceWorker.register`) sin ningún listener de actualización, ya que esa página redirige inmediatamente a `codigo-padre.html`.
+
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-audit-jul05'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-jul06'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7415,7 +7432,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-audit-jul05'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-jul06'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10900,7 +10917,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-audit-jul05';
+const CACHE_VERSION = 'v-jul06';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11750,7 +11767,7 @@ Las estructuras de datos de las aventuras tienen formas distintas según el tipo
 
 1. Traza cada punto en el codebase donde se accede a estas estructuras. Verifica que el acceso usa la forma correcta (sin clave idioma para TEXTOS, con clave para AUDIOS/RETOS).
 2. Verifica que `cargarTextos(aventura, idioma)` ensambla correctamente: `id` y `title` provienen de `AUDIOS_AVENTURAS`; `content` proviene del mapa de párrafos JSON cargado por `cargarMapaParrafos(idioma)`.
-3. Verifica que `cargarMapaParrafos(idioma)` **no cachea fallos** — si se cachea un resultado vacío, todos los textos del idioma quedan bloqueados en esa sesión sin posibilidad de reintento.
+3. Verifica que `cargarMapaParrafos(idioma)` **no cachea fallos** — si se cachea un resultado vacío, todos los textos del idioma quedan bloqueados en esa sesión sin posibilidad de reintento. Adicionalmente, el try-catch engloba la línea de confirmación de éxito: si esa línea lanza (p.ej. llamando a `.log()` que no existe en el logger público), el catch convierte el fetch exitoso en `{}` silenciosamente. Verificar que el log de éxito usa solo `.info()`, `.warn()`, `.error()` o `.debug()`.
 4. Verifica que `AUDIOS_AVENTURAS[aventura][idioma]` y `TEXTOS_AVENTURAS[aventura]` tienen el mismo número de entradas por aventura — cada parada debe tener audio y texto.
 
 ---
@@ -11882,6 +11899,8 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 5. Detecta condiciones siempre verdaderas o siempre falsas (dead branches).
 6. Detecta variables `const`/`let` declaradas pero nunca leídas.
 7. Verifica que todos los `await` en Scripts 3/4 están en contexto válido (top-level `await` de módulo ES2022, verificar compatibilidad de target).
+8. **API pública del logger** — el logger solo expone `.info()`, `.warn()`, `.error()`, `.debug()`. NO expone `.log()`. Cualquier `(globalThis.logger || console).log(...)` lanza `TypeError: .log is not a function` cuando el logger está inicializado (truthy pero sin `.log`). Buscar en todos los módulos JS cualquier llamada `.log(` combinada con `(globalThis.logger || console)` y cambiarla a `.info(` o `.debug(`. Ejemplo real (2026-07-06): `data-loader.js` línea 127 lanzaba TypeError en el success-path de `cargarMapaParrafos`, el catch devolvía `{}` y los textos de todas las paradas salían vacíos.
+9. **Try-block demasiado amplio en cargadores de datos** — si el try engloba tanto la operación de red como la línea de log de éxito, cualquier error en esa línea de log se convierte en fallo silencioso (el catch devuelve el valor por defecto `{}`). Verificar que las llamadas de confirmación de éxito usan únicamente métodos del logger que existen, o moverlas fuera del try.
 
 ---
 

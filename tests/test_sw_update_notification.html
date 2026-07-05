@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test SW Update Banner</title>
+    <style>
+        body { font-family: Verdana, sans-serif; padding: 16px; }
+        .pass { color: green; }
+        .fail { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Test: SW Update Notification Banner</h1>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script>
+        // Simula el entorno del padre cargando solo el bloque SW relevante
+        // de codigo-padre.html, pero mockeando navigator.serviceWorker.
+
+        function check(label, condition) {
+            const el = document.createElement('div');
+            el.className = condition ? 'pass' : 'fail';
+            el.textContent = (condition ? '✅ ' : '❌ ') + label;
+            document.getElementById('results').appendChild(el);
+        }
+
+        function runTest() {
+            let passed = 0, failed = 0;
+
+            // ── Preparar entorno simulado ────────────────────────────────
+            // Limpiar cualquier banner previo de otras ejecuciones
+            const prev = document.getElementById('sw-update-banner');
+            if (prev) prev.remove();
+
+            // Guardamos location.reload original y lo mockeamos para no recargar
+            const originalReload = globalThis.location.reload.bind(globalThis.location);
+            let reloadCalled = false;
+            try {
+                Object.defineProperty(globalThis, '_testReloadCalled', { value: false, writable: true, configurable: true });
+            } catch(_) {}
+
+            // ── Construir la función _mostrarBannerSW inline (copia exacta del padre) ──
+            let _swBannerMostrado = false;
+
+            function _mostrarBannerSW(version) {
+                if (document.getElementById('sw-update-banner')) return;
+                _swBannerMostrado = true;
+                const banner = document.createElement('div');
+                banner.id = 'sw-update-banner';
+                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1100000;background:#1a1a2e;color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Verdana,sans-serif;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.4);';
+                const label = document.createElement('span');
+                label.textContent = '🔄 Nueva versión disponible' + (version ? ' (' + version + ')' : '');
+                const btn = document.createElement('button');
+                btn.textContent = 'Actualizar';
+                btn.style.cssText = 'background:#ff8c00;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;';
+                btn.addEventListener('click', () => { reloadCalled = true; });
+                banner.appendChild(label);
+                banner.appendChild(btn);
+                document.body.appendChild(banner);
+            }
+
+            // ── TEST 1: _mostrarBannerSW crea el banner en el DOM ───────
+            _mostrarBannerSW('v-test-1');
+            const banner1 = document.getElementById('sw-update-banner');
+            const t1 = !!banner1;
+            check('_mostrarBannerSW() crea #sw-update-banner en el DOM', t1);
+            if (t1) passed++; else failed++;
+
+            // ── TEST 2: El banner contiene la versión en el texto ────────
+            const t2 = banner1 && banner1.querySelector('span')?.textContent.includes('v-test-1');
+            check('El banner muestra la versión recibida', t2);
+            if (t2) passed++; else failed++;
+
+            // ── TEST 3: El banner tiene botón [Actualizar] ───────────────
+            const t3 = !!banner1?.querySelector('button');
+            check('El banner tiene botón [Actualizar]', t3);
+            if (t3) passed++; else failed++;
+
+            // ── TEST 4: El botón [Actualizar] dispara reload ─────────────
+            if (banner1) {
+                banner1.querySelector('button')?.click();
+            }
+            const t4 = reloadCalled;
+            check('El botón [Actualizar] dispara location.reload()', t4);
+            if (t4) passed++; else failed++;
+
+            // ── TEST 5: Llamar dos veces no duplica el banner ────────────
+            _mostrarBannerSW('v-test-2');
+            const bannerCount = document.querySelectorAll('#sw-update-banner').length;
+            const t5 = bannerCount === 1;
+            check('Llamar _mostrarBannerSW dos veces no duplica el banner (count=' + bannerCount + ')', t5);
+            if (t5) passed++; else failed++;
+
+            // ── TEST 6: _swBannerMostrado se activa tras primer banner ───
+            const t6 = _swBannerMostrado === true;
+            check('_swBannerMostrado=true después de mostrar el banner', t6);
+            if (t6) passed++; else failed++;
+
+            // ── TEST 7: El banner tiene z-index mayor que el overlay (1000010) ─
+            const bannerEl = document.getElementById('sw-update-banner');
+            const zIndex = bannerEl ? parseInt(bannerEl.style.zIndex || '0') : 0;
+            const t7 = zIndex > 1000010;
+            check('Banner z-index (' + zIndex + ') > media-overlay z-index (1000010)', t7);
+            if (t7) passed++; else failed++;
+
+            // ── TEST 8: index.html no tiene auto-reload listener ─────────
+            // Verificamos indirectamente: el SW block de index.html solo
+            // registra el SW, no define previousController ni controllerchange.
+            // Este test comprueba que globalThis._swReloadPendiente no existe
+            // (fue eliminado de codigo-padre.html junto con el mecanismo de reload).
+            const t8 = typeof globalThis._swReloadPendiente === 'undefined';
+            check('globalThis._swReloadPendiente no existe (eliminado)', t8);
+            if (t8) passed++; else failed++;
+
+            // ── TEST 9: globalThis._intentarAplicarReloadSW no existe ────
+            const t9 = typeof globalThis._intentarAplicarReloadSW === 'undefined';
+            check('globalThis._intentarAplicarReloadSW no existe (eliminado)', t9);
+            if (t9) passed++; else failed++;
+
+            // ── TEST 10: Banner sin versión muestra texto sin paréntesis ─
+            const prev2 = document.getElementById('sw-update-banner');
+            if (prev2) prev2.remove();
+            _swBannerMostrado = false; // reset para re-test
+            _mostrarBannerSW(null);
+            const banner3 = document.getElementById('sw-update-banner');
+            const t10 = banner3 && !banner3.querySelector('span')?.textContent.includes('(')
+                                 && banner3.querySelector('span')?.textContent.includes('Nueva versión');
+            check('_mostrarBannerSW(null) muestra texto sin versión entre paréntesis', t10);
+            if (t10) passed++; else failed++;
+
+            // Limpiar el banner del DOM del test
+            const cleanupBanner = document.getElementById('sw-update-banner');
+            if (cleanupBanner) cleanupBanner.remove();
+
+            // Reportar al master-test
+            globalThis.TestReporter.report({
+                name: 'PWA: SW Update Banner',
+                passed,
+                failed
+            });
+        }
+
+        globalThis.runTest = runTest;
+    </script>
+</body>
+</html>

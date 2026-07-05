@@ -70,20 +70,7 @@
     </script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'});
-            // Cuando el SW cambia de versión (skipWaiting + clients.claim),
-            // recargar la página para garantizar un SW y caché consistentes.
-            // Solo se recarga si había un controlador previo (UPDATE real).
-            // Sin el chequeo de previousController, el clients.claim() del primer
-            // install también dispara controllerchange y provoca un bucle infinito.
-            const previousController = navigator.serviceWorker.controller;
-            let _swReloading = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (_swReloading) return;
-                if (!previousController) return; // primera instalación, no recargar
-                _swReloading = true;
-                globalThis.location.reload();
-            });
+            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
         }
     </script>
 </body>

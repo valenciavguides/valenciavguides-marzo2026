@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: cargarTextos — párrafos con contenido</title>
+    <style>
+        body { font-family: Verdana, sans-serif; padding: 16px; }
+        .pass { color: green; margin: 4px 0; }
+        .fail { color: red; margin: 4px 0; }
+        h1 { font-size: 1.1em; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Test: cargarTextos — párrafos con contenido</h1>
+    <div id="results"></div>
+
+    <script src="test-reporter-utility.js"></script>
+    <script type="module">
+        import { cargarTextos, limpiarCacheDatos } from '../js/data-loader.js';
+
+        function check(label, condition) {
+            const el = document.createElement('div');
+            el.className = condition ? 'pass' : 'fail';
+            el.textContent = (condition ? '✅ ' : '❌ ') + label;
+            document.getElementById('results').appendChild(el);
+        }
+
+        async function runTest() {
+            let passed = 0, failed = 0;
+
+            // ── RONDA 1: mock de logger sin .log() — simula el logger real ──────────
+            // El logger real expone .info .warn .error .debug pero NO .log.
+            // Si alguna línea del success-path llama .log(), lanza TypeError y el catch
+            // lo convierte silenciosamente en {} → content vacío en todos los textos.
+            const originalLogger = globalThis.logger;
+            globalThis.logger = { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} };
+            limpiarCacheDatos();
+
+            let textos1, error1;
+            try {
+                textos1 = await cargarTextos('Aventura1', 'es');
+            } catch (e) {
+                error1 = e;
+            } finally {
+                globalThis.logger = originalLogger;
+            }
+
+            const t1 = !error1;
+            check('No lanza excepción con logger sin .log() (mock que simula el logger real)', t1);
+            if (t1) passed++; else failed++;
+
+            const t2 = Array.isArray(textos1);
+            check('Devuelve un array', t2);
+            if (t2) passed++; else failed++;
+
+            const t3 = t2 && textos1.length > 0;
+            check(`Array tiene entradas (${textos1?.length ?? 0})`, t3);
+            if (t3) passed++; else failed++;
+
+            // Test crítico: si cargarMapaParrafos falla en el success path (p.ej. .log()),
+            // el catch devuelve {} y todos los content quedan como ''. Este test lo detecta.
+            const conContent = t2 ? textos1.filter(t => t?.content && t.content.length > 0) : [];
+            const t4 = conContent.length > 0;
+            check(`Al menos una parada tiene content no vacío (${conContent.length}/${textos1?.length ?? 0})`, t4);
+            if (t4) passed++; else failed++;
+
+            const conUndefined = t2 ? textos1.filter(t => t?.content === undefined) : [];
+            const t5 = conUndefined.length === 0;
+            check(`Ninguna entrada tiene content undefined (${conUndefined.length} con undefined)`, t5);
+            if (t5) passed++; else failed++;
+
+            const sinSufijo = t2 ? textos1.filter(t => t?.id && !t.id.endsWith('-es')) : [];
+            const t6 = t2 && sinSufijo.length === 0;
+            check(`Todos los IDs tienen sufijo "-es" (${sinSufijo.length} sin sufijo)`, t6);
+            if (t6) passed++; else failed++;
+
+            // ── RONDA 2: sin logger — usa console como fallback ──────────────────────
+            limpiarCacheDatos();
+            const savedLogger = globalThis.logger;
+            globalThis.logger = undefined;
+
+            let textos2, error2;
+            try {
+                textos2 = await cargarTextos('Aventura1', 'es');
+            } catch (e) {
+                error2 = e;
+            } finally {
+                globalThis.logger = savedLogger;
+            }
+
+            const t7 = !error2 && Array.isArray(textos2) && textos2.filter(t => t?.content?.length > 0).length > 0;
+            check('Funciona igual sin logger (console fallback con .log disponible)', t7);
+            if (t7) passed++; else failed++;
+
+            globalThis.TestReporter.report({
+                name: 'DataLoader: cargarTextos con párrafos',
+                passed,
+                failed
+            });
+        }
+
+        globalThis.runTest = runTest;
+    </script>
+</body>
+</html>

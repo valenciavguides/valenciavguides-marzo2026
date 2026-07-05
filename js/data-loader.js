@@ -124,7 +124,7 @@ async function cargarMapaParrafos(idioma) {
             return {};
         }
         const mapa = await resp.json();
-        (globalThis.logger || console).log(`[DataLoader] Párrafos "${idioma}": ${Object.keys(mapa).length} entradas`);
+        (globalThis.logger || console).info(`[DataLoader] Párrafos "${idioma}": ${Object.keys(mapa).length} entradas`);
         parrafosCache.set(idioma, mapa);
         return mapa;
     } catch (err) {
