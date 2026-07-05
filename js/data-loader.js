@@ -151,6 +151,7 @@ export async function cargarTextos(aventuraId, idioma) {
     }
 
     let result;
+    let _mapaParrafosCargado = true; // false → fetch falló → no cachear
     if (DATA_MODE === 'local') {
         console.log(`[DataLoader][cargarTextos] Modo local - importando módulos...`);
         const { TEXTOS_AVENTURAS } = await import('./textos-aventuras.js');
@@ -162,7 +163,15 @@ export async function cargarTextos(aventuraId, idioma) {
         const audioMap = new Map(audios.map(a => [a.id, a]));
         console.log(`[DataLoader][cargarTextos] Cargando mapa de párrafos para idioma=${idioma}...`);
         const mapa = await cargarMapaParrafos(idioma);
-        console.log(`[DataLoader][cargarTextos] Mapa de párrafos cargado: ${Object.keys(mapa).length} párrafos`);
+        const nParrafos = Object.keys(mapa).length;
+        console.log(`[DataLoader][cargarTextos] Mapa de párrafos cargado: ${nParrafos} párrafos`);
+
+        // Si el mapa vino vacío y hay entradas que necesitan párrafos, la carga falló.
+        // Marcamos como no cacheable para que el próximo intento reintente la red.
+        if (nParrafos === 0 && entradas.some(e => e.parrafos?.length > 0)) {
+            _mapaParrafosCargado = false;
+            (globalThis.logger || console).warn(`[DataLoader][cargarTextos] ⚠️ Mapa de párrafos vacío para idioma="${idioma}" — contenido de paradas no disponible. Se reintentará en la próxima llamada.`);
+        }
 
         result = entradas.map(entrada => {
             const idLang = entrada.id + '-' + idioma;
@@ -190,8 +199,12 @@ export async function cargarTextos(aventuraId, idioma) {
         result = data.parrafos; // BUG: devuelve mapa crudo, no array ensamblado
     }
 
-    dataCache.set(key, result);
-    console.log(`[DataLoader][cargarTextos] Guardado en cache y devolviendo ${result?.length ?? 0} textos`);
+    if (_mapaParrafosCargado) {
+        dataCache.set(key, result);
+        console.log(`[DataLoader][cargarTextos] Guardado en cache y devolviendo ${result?.length ?? 0} textos`);
+    } else {
+        console.log(`[DataLoader][cargarTextos] No cacheado (mapa vacío) — devolviendo ${result?.length ?? 0} textos sin contenido de párrafos`);
+    }
     return result;
 }
 

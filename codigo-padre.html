@@ -6675,8 +6675,11 @@
 
         async function _handleMostrarImagen({ urlImagen, nombre, mensajeError, textoParada, paradaActual, imagenes, tipo, mapa_numero, logPrefix }) {
             let textoFinal = textoParada;
-            if (!textoFinal && paradaActual) {
-                textoFinal = await _buscarTextoParaParada(paradaActual, logPrefix);
+            // Si el texto llegó sin contenido (párrafos no cargados aún), cargar fresco desde padre
+            if (paradaActual && (!textoFinal || !textoFinal.content)) {
+                const textoFresco = await _buscarTextoParaParada(paradaActual, logPrefix);
+                if (textoFresco?.content) textoFinal = textoFresco;
+                else if (!textoFinal) textoFinal = textoFresco;
             }
             if (typeof globalThis.mostrarImagenOverlay === 'function') {
                 globalThis.mostrarImagenOverlay(urlImagen, nombre || '', mensajeError, textoFinal, {
