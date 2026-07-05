@@ -6842,7 +6842,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 Cuando un cliente (`codigo-padre.html`) recibe la señal de actualización — por `controllerchange` o por el mensaje `SW_ACTIVADO` — **no recarga automáticamente**. Muestra un banner no bloqueante en la parte superior de la pantalla:
 
-- **`#sw-update-banner`** (`position:fixed; top:0; z-index:1100000`): mensaje "🔄 Nueva versión disponible (versión)" con botón [Actualizar] que el usuario pulsa cuando está listo. El botón llama `location.reload()`. El z-index 1100000 garantiza que aparece por encima del overlay del mapa (`z-index:1000010`).
+- **`#sw-update-banner`** (`position:fixed; top:0; z-index:1100000`): mensaje y botón [Actualizar] en el idioma del usuario (12 idiomas vía `TRADUCCIONES_SW_UPDATE` de `js/traducciones-ui.js`, expuesta en `globalThis.TRADUCCIONES_SW_UPDATE` desde Script 1). El idioma se lee de `globalThis.idiomaSeleccionado` o de `localStorage.getItem('vv_idioma')`; si ninguno está disponible, cae a `'es'`. El botón llama `location.reload()`. El z-index 1100000 garantiza que aparece por encima del overlay del mapa (`z-index:1000010`).
 - **Guard `previousController`**: si no había un SW previo (primera instalación), no se muestra el banner.
 - **Guard `_swBannerMostrado`**: bandera en scope del bloque, evita mostrar el banner dos veces si `controllerchange` y `SW_ACTIVADO` llegan casi simultáneamente.
 

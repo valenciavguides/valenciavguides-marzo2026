@@ -572,6 +572,21 @@ export const JAIME_SCENES = [
     },
 ];
 
+export const TRADUCCIONES_SW_UPDATE = {
+    es: { label: '🔄 Nueva versión disponible', boton: 'Actualizar' },
+    en: { label: '🔄 New version available',    boton: 'Update' },
+    fr: { label: '🔄 Nouvelle version disponible', boton: 'Mettre à jour' },
+    it: { label: '🔄 Nuova versione disponibile',   boton: 'Aggiorna' },
+    nl: { label: '🔄 Nieuwe versie beschikbaar',    boton: 'Bijwerken' },
+    de: { label: '🔄 Neue Version verfügbar',       boton: 'Aktualisieren' },
+    ja: { label: '🔄 新しいバージョンが利用可能です', boton: '更新' },
+    zh: { label: '🔄 新版本可用',                   boton: '更新' },
+    pl: { label: '🔄 Nowa wersja dostępna',         boton: 'Zaktualizuj' },
+    pt: { label: '🔄 Nova versão disponível',       boton: 'Atualizar' },
+    ru: { label: '🔄 Доступна новая версия',        boton: 'Обновить' },
+    uk: { label: '🔄 Доступна нова версія',         boton: 'Оновити' },
+};
+
 export const PLACEHOLDER_RESPUESTA_TEXTO = {
     es: 'Escriba su respuesta aquí...',
     en: 'Write your answer here...',
