@@ -1601,7 +1601,7 @@ Necesita FASE 2 completa. Todo ocurre en el arranque, dentro de `ejecutarInicial
 
 1. `cargarIframeSoloSeleccion()` — asigna `src` a `seleccion` y espera su handshake
 2. `_cargarIframesHijos()` — carga hijo1/hijo2/hijo3/hijo4/hijo5 en **paralelo** (`Promise.all`), todos ocultos (`display:none`). No espera señal alguna de seleccion
-3. Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `_hdl_APLICACION_INICIALIZADA`. En este punto no hay aventura seleccionada aún → `ensureDefaultParada()` falla silenciosamente; ningún CAMBIO_PARADA se envía hasta CODIGO_VALIDADO
+3. Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `SISTEMA.APLICACION_INICIALIZADA` vía `window.postMessage` (origen `'handshake-interno'`), que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus. En este punto no hay aventura seleccionada aún → `ensureDefaultParada()` falla silenciosamente; ningún CAMBIO_PARADA se envía hasta CODIGO_VALIDADO
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
@@ -3304,7 +3304,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `DATOS.SOLICITAR_RETOS` | Hijo4 → Padre | Solicita retos si no los recibió en handshake |
 | | `DATOS.SOLICITAR_TEXTOS` | Hijo2 → Padre | Solicita textos si no los recibió en handshake |
 | | `DATOS.SOLICITAR_PARADAS` | Hijo → Padre | Solicitar paradas (handler activo; sin callers en prod — ruta activa usa `NAVEGACION.SOLICITAR_DATOS_PARADAS`) |
-| | `DATOS.RESPUESTA_PARADAS` | Padre → Hijo | Respuesta a `SOLICITAR_PARADAS` con array de paradas |
+| | ~~`DATOS.RESPUESTA_PARADAS`~~ | ❌ Eliminado | Constante muerta — nunca hubo handler activo. El mecanismo real es `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas) |
 | | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Hijo2 → Padre | Devuelve `{ coordenadas[], total, exito, paradaId? }` — padre lo procesa y dibuja en mapa |
 | | `DATOS.SOLICITAR_COORDENADAS` | Hijo2 → Padre | Fallback: hijo2 solicita sus coordenadas si no las recibió en handshake; padre responde con `DATOS.CARGAR_COORDENADAS` |
@@ -5315,15 +5315,16 @@ padre → solicitante   DATOS.RESPUESTA_PARADAS
   { paradas[], total, estadisticas: { paradas, tramos }, metadatos: { fuente:'combinada_v1' } }
 ```
 
-| Campo | Flujo A | Flujo B |
-|-------|---------|---------|
-| Tipo solicitud | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `DATOS.SOLICITAR_PARADAS` |
-| Tipo respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `DATOS.RESPUESTA_PARADAS` |
-| Handler padre | Script 1 de `codigo-padre.html` (eliminado de `controladores-padre.js` — dead code) | `codigo-padre.html` L10270 |
-| Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre` (primaria) + `__vv_DATOS_AVENTURAS` (fallback) | `elementosIDpadre` + `cargarRetos` |
-| Incluye reto | ❌ | ✅ |
-| Emisor conocido | hijo5, funciones-mapa (hijo2 **no** lo emite) | No identificado activamente en código actual |
-| Nota | El comentario en hijo5 L878 dice "DATOS.RESPUESTA_PARADAS" pero el handler real es para `NAVEGACION.RESPUESTA_DATOS_PARADAS` — comentario erróneo en código | Puede ser flujo legacy o de uso futuro |
+| Campo | Flujo activo |
+|-------|-------------|
+| Tipo solicitud | `NAVEGACION.SOLICITAR_DATOS_PARADAS` |
+| Tipo respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
+| Handler padre | Script 1 de `codigo-padre.html` (eliminado de `controladores-padre.js` — dead code) |
+| Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre` (primaria) + `__vv_DATOS_AVENTURAS` (fallback) |
+| Incluye reto | ❌ |
+| Emisor conocido | hijo5, funciones-mapa (hijo2 **no** lo emite) |
+
+`DATOS.RESPUESTA_PARADAS` era un flujo alternativo nunca implementado — la constante fue eliminada de `constants.js` (2026-07-05).
 
 ---
 
@@ -5331,7 +5332,7 @@ padre → solicitante   DATOS.RESPUESTA_PARADAS
 
 #### SISTEMA.APLICACION_INICIALIZADA ✅ implementado
 
-Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake. Handler `_hdl_APLICACION_INICIALIZADA` restaura sesión guardada o espera selección de aventura. Guard interno evita doble inicialización si la aventura ya fue activada vía `SELECCION.AVENTURA_ACTIVADA`.
+Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake. El emisor usa `window.postMessage` con `origen: 'handshake-interno'` para que fluya por la mensajería centralizada (un origen distinto al propio padre evita el filtro anti-bucle). Handler `_hdl_APLICACION_INICIALIZADA` restaura sesión guardada o espera selección de aventura. Guard interno evita doble inicialización si la aventura ya fue activada vía `SELECCION.AVENTURA_ACTIVADA`.
 
 #### DATOS.SOLICITAR_RETOS
 
@@ -5349,9 +5350,9 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 ### 10.15 Tipos y comportamientos pendientes
 
-#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro con `registrarSiNoExiste`
+#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro en dos fases
 
-`funciones-mapa.js` usa `registrarSiNoExiste` (no `registrarControlador`) para `GPS.ACTIVAR` y `GPS.DESACTIVAR`. Padre los registra con `registrarControladorSeguro` (primer-registro-gana). Si funciones-mapa usara `registrarControlador` (sobreescribe), cualquier reinit de `registrarManejadoresMensajes()` mataría el handler del padre, omitiendo la lógica de verificación de modo AVENTURA, `paradaListaParaAvanzar` y `revelarNavegacion`. Con `registrarSiNoExiste`, si el padre ya registró su handler, funciones-mapa lo deja intacto.
+`funciones-mapa.js` registra `GPS.ACTIVAR` y `GPS.DESACTIVAR` mediante `registrarControlador` (registro directo) como handlers de fallback inicial. Script 2 de `codigo-padre.html` los sobrescribe después con `registrarControladorSeguro`, que contiene la lógica completa de verificación de modo AVENTURA, `paradaListaParaAvanzar` y `revelarNavegacion`. El orden garantizado por `_setupRegistrarControladores` (espera a que Script 1 esté listo) asegura que la sobrescritura siempre ocurre. `registrarSiNoExiste` fue eliminado en 2026-07-05 porque `__CONTROLADOR_REGISTRADOS` está vacío cuando `registrarManejadoresMensajes()` ejecuta, lo que anulaba silenciosamente la guardia.
 
 | Tipo | Estado |
 |------|--------|
@@ -5537,6 +5538,8 @@ En modo `'local'`, `data-loader.js` hace dos tipos de fetch:
 | Módulos JS de datos (`coordenadas-aventuras.js`, `textos-aventuras.js`, etc.) | `import()` dinámico | Mismo origen |
 | Archivos JSON de párrafos (`parrafos-texto-{idioma}.json`) | `fetch(url)` | Mismo origen (`/js/parrafos-textos/`) |
 
+Los archivos JSON de párrafos **no están en el APP_SHELL del SW** — se sirven con Network First en producción. Si el fetch falla (sin red, SW desactualizado), `cargarMapaParrafos` devuelve `{}` y `cargarTextos` **no cachea** el resultado, permitiendo reintento en la próxima llamada. `_handleMostrarImagen` también reintenta la carga si `textoParada.content` llega vacío desde hijo2.
+
 En modo `'api'` (pendiente de activar), usaría `fetchFromAPI()` hacia el backend Express.
 
 #### js/api-client.js — cliente REST (preparado, no activo)
@@ -5637,7 +5640,7 @@ bus aún no ha transmitido el dato.
 
 #### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro no destructivo en `funciones-mapa.js`
 
-`funciones-mapa.js` usa `registrarSiNoExiste` (no `registrarControlador`) para estos dos mensajes, evitando que un reinit de `funciones-mapa.js` mate los handlers que el padre ya tenía registrados. Ver §10.15 para el detalle.
+`funciones-mapa.js` registra estos dos mensajes con `registrarControlador` (fallback inicial); Script 2 los sobrescribe con handlers completos vía `registrarControladorSeguro`. Ver §10.15 para el detalle.
 
 #### `NAVEGACION.RESPUESTA_COORDENADAS` — handler en `funciones-mapa.js`
 
