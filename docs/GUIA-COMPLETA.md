@@ -5350,11 +5350,11 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 ### 10.15 Tipos y comportamientos pendientes
 
-#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — solo registrados en Script 2
+#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro exclusivo en Script 2
 
-`funciones-mapa.js` **no** registra `GPS.ACTIVAR` ni `GPS.DESACTIVAR` en el bus de mensajes. Solo Script 2 de `codigo-padre.html` los registra, mediante `registrarControladorSeguro`, con los handlers completos que verifican modo AVENTURA, gestionan `paradaListaParaAvanzar` y llaman a `revelarNavegacion`.
+`NAVEGACION.GPS.ACTIVAR` y `NAVEGACION.GPS.DESACTIVAR` los registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. Los handlers (`_hdl_NAVEGACION_GPS_ACTIVAR`, `_hdl_NAVEGACION_GPS_DESACTIVAR`) verifican que el modo activo sea AVENTURA, evalúan `paradaListaParaAvanzar` para decidir si progresar al siguiente elemento o revelar la navegación (vía `revelarNavegacion()`), y en cualquier caso llaman a `activarGPS()`.
 
-Motivo: `state-manager.js` bloquea registros duplicados sin posibilidad de sobrescritura — si `funciones-mapa.js` los registrase primero, el `registrarControladorSeguro` de Script 2 retornaría `false` silenciosamente y los handlers completos nunca se activarían. La función `manejarGPSActivar` existe en `funciones-mapa.js` para uso interno del módulo (cuando opera en contexto del padre), pero no se registra en el bus.
+`funciones-mapa.js` contiene `manejarGPSActivar` / `manejarGPSDesactivar` para llamadas internas directas dentro del módulo, pero estas funciones no se registran en el bus de mensajes. `state-manager.js` garantiza exactamente un handler por tipo de mensaje; cualquier segundo intento de registro para el mismo tipo retorna `false` silenciosamente.
 
 | Tipo | Estado |
 |------|--------|
@@ -5642,9 +5642,9 @@ bus aún no ha transmitido el dato.
 | `progresarSiguienteElemento` | `codigo-padre.html` ~L7731 | `__triggerCambioParadaInterno(datosCambio)` |
 | `_onNextEntityShowMapClick` (GPS overlay) | `codigo-padre.html` ~L5527 | `funcionesMapa.setMapView([lat, lng], 16, { animate: true })` |
 
-#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — `funciones-mapa.js` no los registra
+#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — handlers en Script 2
 
-`funciones-mapa.js` **no** registra estos mensajes. Solo Script 2 lo hace, vía `registrarControladorSeguro` (handlers completos con verificación de modo AVENTURA). Ver §10.15 para el detalle.
+`NAVEGACION.GPS.ACTIVAR` y `NAVEGACION.GPS.DESACTIVAR` están gestionados por Script 2 de `codigo-padre.html` (handlers `_hdl_NAVEGACION_GPS_ACTIVAR` / `_hdl_NAVEGACION_GPS_DESACTIVAR`). Ver §10.15 para el detalle completo del flujo.
 
 #### `NAVEGACION.RESPUESTA_COORDENADAS` — handler en `funciones-mapa.js`
 
