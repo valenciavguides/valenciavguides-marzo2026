@@ -5295,9 +5295,9 @@ hijo5 L1237 genera botones de parada en panel CASA
 hijo5 → padre   PARADAS.READY (pre-module listener)
 
 También lo envía: funciones-mapa.js L662 (para dibujar ruta). hijo2 **no** envía este mensaje.
-También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos de proximidad GPS). ~~funciones-mapa.js `manejarRespuestaDatosParadas`~~ — eliminado (handler muerto: padre enviaba directo al iframe, nunca pasaba por el bus)
+También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos de proximidad GPS).
 
-> Nota: el handler que existía en `controladores-padre.js` L52 fue eliminado (dead code — Script 1 gana la deduplicación de `registrarControladorSeguro`). El handler activo es el de Script 1 de `codigo-padre.html`.
+> El handler activo para `SOLICITAR_DATOS_PARADAS` es el de Script 1 de `codigo-padre.html`; `controladores-padre.js` no tiene handler competidor para este tipo — `registrarControladorSeguro` garantiza exactamente un handler por tipo.
 ```
 
 #### Flujo B — DATOS.SOLICITAR_PARADAS (datos enriquecidos con retos)
@@ -5323,8 +5323,6 @@ padre → solicitante   DATOS.RESPUESTA_PARADAS
 | Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre` (primaria) + `__vv_DATOS_AVENTURAS` (fallback) |
 | Incluye reto | ❌ |
 | Emisor conocido | hijo5, funciones-mapa (hijo2 **no** lo emite) |
-
-`DATOS.RESPUESTA_PARADAS` era un flujo alternativo nunca implementado — la constante fue eliminada de `constants.js` (2026-07-05).
 
 ---
 
@@ -5361,7 +5359,7 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 | `RETO.MOSTRADO` + `RETO.CONFIRMADO` | **✅ Implementado** — hijo4 emite `MOSTRADO` tras `mostrarReto()`; padre actualiza `estado.retoActual.disponible=true` y responde con `CONFIRMADO` |
 | `SISTEMA.APLICACION_INICIALIZADA` | **✅ Implementado** — `_hijoListo_onTodosListos` lo dispara cuando hijo2+hijo3+hijo4 completan el handshake; ver §10.14 para detalle |
 | `SISTEMA.NACK` | **Activo con filtro** — `app.js` L1607 solo lo procesa si `esperarPermiso === true`; los NACK de cambio de modo sin espera se descartan silenciosamente |
-| `AVENTURA.FINALIZADA` | **✅ Implementado.** Flujo: `_handleFinDeAventura()` → envía `AVENTURA.FINALIZADA` a hijo1 → hijo1 detiene timer y responde con `AVENTURA.ESTADISTICAS_TIEMPO` → `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` llama `mostrarModalFinalizacion()`. `_hdl_AVENTURA_FINALIZADA()` neutralizado (era limpieza prematura). Ver §24.11. |
+| `AVENTURA.FINALIZADA` | **✅ Implementado.** Flujo: `_handleFinDeAventura()` → envía `AVENTURA.FINALIZADA` a hijo1 → hijo1 detiene timer y responde con `AVENTURA.ESTADISTICAS_TIEMPO` → `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` llama `mostrarModalFinalizacion()`. `_hdl_AVENTURA_FINALIZADA()` registra el mensaje pero no realiza ninguna acción — toda la gestión de fin de aventura ocurre en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO`. Ver §24.11. |
 
 ---
 
@@ -6579,7 +6577,7 @@ Plataforma de pago ──► POST /api/webhooks/pago
                     SELECCION.CODIGO_VALIDADO → aventura
 ```
 
-> **Estado actual (local):** `validarCodigo()` valida el código de compra contra el backend cuando `DATA_MODE = 'api'`. En modo `'local'` (activo ahora) la validación de compra queda pendiente del backend — el campo acepta cualquier entrada que el frontend libere. El código hardcodeado de prueba anterior fue eliminado por seguridad. `SELECCION.CODIGO_VALIDADO` se envía directamente al padre una vez la validación local pasa.
+> **Estado actual (local):** `validarCodigo()` valida el código de compra contra el backend cuando `DATA_MODE = 'api'`. En modo `'local'` (activo en desarrollo) la validación de compra queda pendiente del backend — el campo acepta cualquier entrada que el frontend libere; no hay código fijo hardcodeado. `SELECCION.CODIGO_VALIDADO` se envía directamente al padre una vez la validación local pasa.
 
 ### 16.3 Cambios necesarios en el frontend para producción
 
@@ -6587,7 +6585,7 @@ Todos los cambios son en `En-busca-del-tesoro.html` y `js/api-client.js`. Ningun
 
 **1. `validarCodigo()` — doble modo** (`En-busca-del-tesoro.html` ~L1352)
 
-Estado actual: en modo `'local'` la validación de compra queda pendiente del backend — el código hardcodeado de prueba fue eliminado por seguridad.
+Estado actual: en modo `'local'` la validación de compra queda pendiente del backend — no hay código fijo hardcodeado.
 
 En producción debe bifurcarse según `DATA_MODE`:
 - Modo `'local'`: validar solo el formato del código y del email (sin llamada al servidor). El campo de código no acepta valores fijos hardcodeados.
@@ -6643,7 +6641,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 | **CORS** | Cabeceras `Access-Control-Allow-Origin: *` en el servidor estático. Deberá restringirse al dominio en producción. | `js/server.js` |
 | **Permissions Policy** | Permite solo geolocalización (`self`); bloquea explícitamente cámara, micrófono, pagos, USB y bluetooth. También se envía la cabecera `Feature-Policy` (alias legacy). | `js/server.js` |
 | **`.gitignore`** | Impide que `.env`, certificados SSL y logs lleguen al repositorio | `.gitignore` |
-| **Código de activación local** | Validación del código de compra en pantalla P13. El código hardcodeado de prueba fue eliminado por seguridad. Solo tras validación exitosa se envía `SELECCION.CODIGO_VALIDADO` al padre. La validación completa (email + código único + JWT) queda pendiente del backend de producción. | `En-busca-del-tesoro.html` |
+| **Código de activación local** | Validación del código de compra en pantalla P13. No hay código fijo hardcodeado. Solo tras validación exitosa se envía `SELECCION.CODIGO_VALIDADO` al padre. La validación completa (email + código único + JWT) queda pendiente del backend de producción. | `En-busca-del-tesoro.html` |
 | **Pre-comprobación de permiso GPS + activación en P14** | `_irANormativa()` llama a `navigator.permissions.query({name:'geolocation'})` antes de enviar `CODIGO_VALIDADO`. Si el estado es `'denied'`, muestra `#gps-denegado-p13` y bloquea en P13. Si se permite, el padre activa GPS en `_hdl_SELECCION_P14_MOSTRADA` (no en `CODIGO_VALIDADO`). | `En-busca-del-tesoro.html`, `codigo-padre.html` |
 
 ### Seguridad pendiente de implementar (para producción)
@@ -7895,7 +7893,7 @@ Cuando el desarrollador está listo para probar la navegación real, pulsa el bo
      `verificarDistanciaYActualizarBotones()` usa `estadoComponente.distanciaAlDestino` — la distancia a **la parada que toca** según el índice de progreso actual, calculada por `funciones-mapa.js` y recibida en el último `ACTUALIZAR_ESTADO`. No hace Haversine propio ni comprueba todas las paradas. Si el desarrollador vuelve de CASA con un `distanciaAlDestino` previo, la lógica "fuera de rango 5 min" se reactiva en el acto respecto a esa parada concreta.
    - **funciones-mapa.js** (vía `manejarCambioModoMapa`): `estadoMapa.modo = MODOS.AVENTURA` — el guard `estadoMapa.modo !== MODOS.AVENTURA` de `procesarPosicionGPSParaAventura` deja de bloquear; las posiciones GPS entrantes vuelven a calcular la distancia a la siguiente parada (`siguienteParada = paradas[paradaActualIndex + 1]`) y enviarla a hijo2 vía `ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, toleranciaGPS, lat, lng }`
 4. A partir de este momento:
-   - `procesarPosicionGPSParaAventura` ya no devuelve en la línea de modo — la proximidad está activa
+   - `procesarPosicionGPSParaAventura` procesa posiciones: el guard `estadoMapa.modo !== MODOS.AVENTURA` pasa a `false` y la proximidad está activa
    - El `watchPosition` nunca paró — las posiciones GPS siguen llegando sin interrupción
    - Si GPS pierde señal, el overlay de error sí aparece (modo AVENTURA)
    - El heartbeat de hijos se activa
@@ -9184,7 +9182,7 @@ Controla la detección de proximidad GPS, los 6 botones de acción (avanzar, ima
 
 #### Hijo 3 — audio-hijo3.html (el reproductor)
 
-Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada está: solo recibe una URL y la reproduce. Ya no muestra botón local de play/pausa; esa función está centralizada en el padre con el desplegable de audio.
+Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada está: solo recibe una URL y la reproduce. El control de play/pausa está centralizado en el padre (desplegable de audio); hijo3 no expone controles propios de reproducción.
 
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
@@ -9730,20 +9728,7 @@ Además, el flujo ya había cambiado: `_hdl_DATOS_SOLICITAR_PARADAS` maneja `SOL
 
 Para el GPS: padre emite `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` **hacia hijo2** vía `enviarMensaje_S1({destino:'hijo2',...})` — directo, no broadcast. La dirección inversa (hijo2 → padre) no existe.
 
-#### Impacto en producción antes del fix
-
-Impacto cero visible. Los handlers se registraban, pero al nunca superar el primer `if`, eran ruido. Sin embargo, generaban logs de error `[CRÍTICO] CorrelationId GPS no encontrado` en cada GPS update que llegara con un `correlationId` en los datos, contaminando la consola.
-
-#### Lo que se eliminó
-
-- `estadoPadre.correlacionesMensajes` — Map nunca poblado
-- Interval de limpieza TTL `__vv_correlacion_cleanup` (cada 30s, iteraba un Map siempre vacío)
-- `_limpiarCorrelacionesPendientes()` y su llamada en `_limpiarPagehide`
-- `_hdl_NAVEGACION_GPS_ESTADO_ACTUALIZADO` + su `registrarControladorSeguro`
-- `_hdl_NAVEGACION_GPS_ERROR` + su `registrarControladorSeguro`
-- `_hdl_DATOS_RESPUESTA_PARADAS` + su `registrarControladorSeguro`
-
-#### Lo que se conserva
+#### Lo que existe
 
 - `enviarMensajeConConfirmacion` (líneas ~9394–9518) — usa `confirmacionesPendientes` de `mensajeria.js`, resuelve por `idOriginal`, tiene timeout de 5 s con `Promise.reject()` explícito. Sistema completamente distinto al relay, activo y correcto.
 - `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` en `constants.js` — los usa padre para emitir hacia hijos. No afectados.
@@ -10833,7 +10818,7 @@ Cuando se completa la parada (condiciones `pending.llegada + pending.audio + ret
 
 **Archivo: `codigo-padre.html`**
 - En `_hdl_AUDIO_FIN_REPRODUCCION`:
-  - Solo registra `audioEscuchadoPorParada.set(paradaActual, true)` — ya NO envía `RETO.HABILITAR` directamente
+  - Solo registra `audioEscuchadoPorParada.set(paradaActual, true)`; el envío de `RETO.HABILITAR` lo gestiona `_procesarFinAudioElemento`
 - En `_procesarFinAudioElemento` (función separada):
   - Si `tieneRetos && modoAventura && hijo4Listo`: envía `CONTROL.HABILITAR { control: 'retosBtn' }` → hijo3 Y `RETO.HABILITAR` → hijo4
   - Si la parada no tiene retos: llama directamente `_audioFinalizadoSinReto()` sin enviar nada a hijo4
