@@ -1600,7 +1600,7 @@ indice-aventuras.js       →  globalThis.__vv_INDICE_AVENTURAS
 Necesita FASE 2 completa. Todo ocurre en el arranque, dentro de `ejecutarInicializacionAutomatica()`, antes de cualquier interacción del usuario:
 
 1. `cargarIframeSoloSeleccion()` — asigna `src` a `seleccion` y espera su handshake
-2. `_cargarIframesHijos()` — carga hijo1/hijo2/hijo3/hijo4/hijo5 en **paralelo** (`Promise.all`), todos ocultos (`display:none`). No espera señal alguna de seleccion
+2. `_cargarIframesHijos()` — carga hijo1/hijo2/hijo3/hijo4/hijo5 en **paralelo** (`Promise.all`), todos ocultos (`display:none`). No espera señal alguna de seleccion. El listener `load` de cada iframe incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
 3. Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `SISTEMA.APLICACION_INICIALIZADA` vía `window.postMessage` (origen `'handshake-interno'`), que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus. En este punto no hay aventura seleccionada aún → `ensureDefaultParada()` falla silenciosamente; ningún CAMBIO_PARADA se envía hasta CODIGO_VALIDADO
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
@@ -5350,9 +5350,11 @@ Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 com
 
 ### 10.15 Tipos y comportamientos pendientes
 
-#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro en dos fases
+#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — solo registrados en Script 2
 
-`funciones-mapa.js` registra `GPS.ACTIVAR` y `GPS.DESACTIVAR` mediante `registrarControlador` (registro directo) como handlers de fallback inicial. Script 2 de `codigo-padre.html` los sobrescribe después con `registrarControladorSeguro`, que contiene la lógica completa de verificación de modo AVENTURA, `paradaListaParaAvanzar` y `revelarNavegacion`. El orden garantizado por `_setupRegistrarControladores` (espera a que Script 1 esté listo) asegura que la sobrescritura siempre ocurre. `registrarSiNoExiste` fue eliminado en 2026-07-05 porque `__CONTROLADOR_REGISTRADOS` está vacío cuando `registrarManejadoresMensajes()` ejecuta, lo que anulaba silenciosamente la guardia.
+`funciones-mapa.js` **no** registra `GPS.ACTIVAR` ni `GPS.DESACTIVAR` en el bus de mensajes. Solo Script 2 de `codigo-padre.html` los registra, mediante `registrarControladorSeguro`, con los handlers completos que verifican modo AVENTURA, gestionan `paradaListaParaAvanzar` y llaman a `revelarNavegacion`.
+
+Motivo: `state-manager.js` bloquea registros duplicados sin posibilidad de sobrescritura — si `funciones-mapa.js` los registrase primero, el `registrarControladorSeguro` de Script 2 retornaría `false` silenciosamente y los handlers completos nunca se activarían. La función `manejarGPSActivar` existe en `funciones-mapa.js` para uso interno del módulo (cuando opera en contexto del padre), pero no se registra en el bus.
 
 | Tipo | Estado |
 |------|--------|
@@ -5640,9 +5642,9 @@ bus aún no ha transmitido el dato.
 | `progresarSiguienteElemento` | `codigo-padre.html` ~L7731 | `__triggerCambioParadaInterno(datosCambio)` |
 | `_onNextEntityShowMapClick` (GPS overlay) | `codigo-padre.html` ~L5527 | `funcionesMapa.setMapView([lat, lng], 16, { animate: true })` |
 
-#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro no destructivo en `funciones-mapa.js`
+#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — `funciones-mapa.js` no los registra
 
-`funciones-mapa.js` registra estos dos mensajes con `registrarControlador` (fallback inicial); Script 2 los sobrescribe con handlers completos vía `registrarControladorSeguro`. Ver §10.15 para el detalle.
+`funciones-mapa.js` **no** registra estos mensajes. Solo Script 2 lo hace, vía `registrarControladorSeguro` (handlers completos con verificación de modo AVENTURA). Ver §10.15 para el detalle.
 
 #### `NAVEGACION.RESPUESTA_COORDENADAS` — handler en `funciones-mapa.js`
 
@@ -7677,7 +7679,7 @@ Ambas variables son puramente en memoria. Una recarga de página deja la app en 
 ```mermaid
 flowchart TD
     P1([P1 — Bienvenida\n.logo-circular-bg visible]) --> GESTO{Gesto DEV\n5 taps · Ctrl+Alt+clic}
-    GESTO --> MODAL["_mostrarModalDevP1()\noverlay con input #_devp1-code\nguard: si ya existe input, no abre"]
+    GESTO --> MODAL["_mostrarModalDevP1()\noverlay con input #_devp1-code en <form autocomplete=off>\nguard: si ya existe input, no abre"]
     MODAL --> CODE{¿código DEV correcto?}
     CODE -- No --> MODAL
     CODE -- Sí --> SET1["globalThis._devCasaMode = true\nSELECCION.DEV_MODE_TOGGLE → padre"]
