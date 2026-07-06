@@ -285,18 +285,18 @@ export const TITULOS_CHAT = {
 export const JAIME_SCENES = [
     // 0 — Logos / bienvenida
     {
-        es: '¡Saludos! ¡Le damos la bienvenida a esta nueva aventura! Soy Jaime I. Permítame acompañarle durante los primeros pasos de su búsqueda del tesoro.',
-        en: 'Greetings! Welcome to this new adventure! I am James I. Allow me to accompany you during the first steps of your treasure hunt.',
-        fr: 'Salutations ! Bienvenue dans cette nouvelle aventure ! Je suis Jacques Ier. Permettez-moi de vous accompagner lors des premiers pas de votre chasse au trésor.',
-        it: 'Saluti! Benvenuti in questa nuova avventura! Sono Giacomo I. Permettetemi di accompagnarvi durante i primi passi della vostra caccia al tesoro.',
-        nl: 'Groeten! Welkom bij dit nieuwe avontuur! Ik ben Jacobus I. Sta mij toe u te begeleiden tijdens de eerste stappen van uw schattenjacht.',
-        ja: 'ご挨拶申し上げます！この新しい冒険へようこそ！私はハイメ1世です。宝探しの最初の一歩をご一緒させてください。',
-        de: 'Seid gegrüßt! Willkommen bei diesem neuen Abenteuer! Ich bin Jakob I. Gestatten Sie mir, Sie bei den ersten Schritten Ihrer Schatzsuche zu begleiten.',
-        zh: '您好！欢迎来到这次新的冒险！我是哈梅一世。请允许我陪伴您踏上寻宝之旅的第一步。',
-        pl: 'Pozdrowienia! Witamy w tej nowej przygodzie! Jestem Jakubem I. Pozwólcie, że będę wam towarzyszył podczas pierwszych kroków poszukiwania skarbu.',
-        pt: 'Saudações! Bem-vindo a esta nova aventura! Sou Jaime I. Permita-me acompanhá-lo durante os primeiros passos da sua caça ao tesouro.',
-        ru: 'Приветствую! Добро пожаловать в это новое приключение! Я Хайме I. Позвольте мне сопровождать вас на первых шагах вашего поиска сокровищ.',
-        uk: 'Вітаю! Ласкаво просимо до цієї нової пригоди! Я Хайме I. Дозвольте мені супроводжувати вас під час перших кроків вашого пошуку скарбів.',
+        es: '¡Saludos! ¡Le damos la bienvenida a esta nueva aventura! Somos Jaime I y María de Castilla. Permítanos acompañarle durante los primeros pasos de su búsqueda del tesoro.',
+        en: 'Greetings! Welcome to this new adventure! We are James I and María of Castile. Allow us to accompany you during the first steps of your treasure hunt.',
+        fr: 'Salutations ! Bienvenue dans cette nouvelle aventure ! Nous sommes Jacques Ier et Marie de Castille. Permettez-nous de vous accompagner lors des premiers pas de votre chasse au trésor.',
+        it: 'Saluti! Benvenuti in questa nuova avventura! Siamo Giacomo I e María di Castiglia. Permetteteci di accompagnarvi durante i primi passi della vostra caccia al tesoro.',
+        nl: 'Groeten! Welkom bij dit nieuwe avontuur! Wij zijn Jacobus I en María van Castilië. Sta ons toe u te begeleiden tijdens de eerste stappen van uw schattenjacht.',
+        ja: 'ご挨拶申し上げます！この新しい冒険へようこそ！私たちはハイメ1世とカスティーリャのマリアです。宝探しの最初の一歩をご一緒させてください。',
+        de: 'Seid gegrüßt! Willkommen bei diesem neuen Abenteuer! Wir sind Jakob I. und María von Kastilien. Gestatten Sie uns, Sie bei den ersten Schritten Ihrer Schatzsuche zu begleiten.',
+        zh: '您好！欢迎来到这次新的冒险！我们是哈梅一世和卡斯蒂利亚的玛丽亚。请允许我们陪伴您踏上寻宝之旅的第一步。',
+        pl: 'Pozdrowienia! Witamy w tej nowej przygodzie! Jesteśmy Jakubem I i Marią z Kastylii. Pozwólcie, że towarzyszymy wam podczas pierwszych kroków poszukiwania skarbu.',
+        pt: 'Saudações! Bem-vindos a esta nova aventura! Somos Jaime I e Maria de Castela. Permitam-nos acompanhá-los durante os primeiros passos da vossa caça ao tesouro.',
+        ru: 'Приветствуем! Добро пожаловать в это новое приключение! Мы — Хайме I и Мария Кастильская. Позвольте нам сопровождать вас в первых шагах вашей охоты за сокровищами.',
+        uk: 'Вітаємо! Ласкаво просимо до цієї нової пригоди! Ми — Хайме I та Марія Кастильська. Дозвольте нам супроводжувати вас під час перших кроків пошуку скарбу.',
     },
     // 1 — GPS / internet (reubicada como segunda pantalla)
     {

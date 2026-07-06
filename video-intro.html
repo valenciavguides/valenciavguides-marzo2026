@@ -367,7 +367,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   position:absolute;bottom:0;left:0;width:100%;min-height:20vh;height:auto;
   background:#fff8e7;z-index:350;pointer-events:none;
   display:flex;align-items:center;
-  padding:14px 12px 14px 30%;
+  padding:14px 5px 14px 3px;
   gap:12px;
   opacity:0;transition:opacity .4s ease;
 }
@@ -583,7 +583,9 @@ const _lang = new URLSearchParams(globalThis.location.search).get('lang') || 'es
 
 /* ── ASSETS ──────────────────────────────────── */
 const K = {
-  completo: VI+'caballero_cuerpo_completo_saluda.png',
+  saluda:      VI+'jaime_saluda.png',
+  mapaPerdido: VI+'jaime_mapa_perdido.png',
+  completo:    VI+'caballero_cuerpo_completo_saluda.png',
   cerca:    VI+'caballero_vista_cerca.png',
   perdido:  VI+'caballero_perdido.png',
   caminando:VI+'caballero_caminando.png',
@@ -593,6 +595,13 @@ const K = {
   llorando: VI+'caballero_llorando.png',
   camara:   VI+'caballero_camara.png',
   durmiendo:VI+'caballero_durmiendo.png',
+};
+const M = {
+  camina: VI+'maria_camina.png',
+  posa:   VI+'maria_posa.png',
+  saluda: VI+'maria_saluda.png',
+  up:     VI+'maria_thumbsup.png',
+  pareja: VI+'pareja_camara.png',
 };
 const G = {
   L: VI+'guantelete_mira_izquierda.png',
@@ -1027,18 +1036,23 @@ function mainHTML(avState='disabled'){
    SCENES  (19 pantallas rediseñadas)
 ═══════════════════════════════════════ */
 
-/* ── P1: Pantalla de bienvenida / idioma ── */
+/* ── P1: Pantalla de bienvenida ── */
 async function scene1(){
-  setCounter(1); MC.hide(); Knight.show(K.completo);
-  setScene(`<div class="sc" style="padding:24px 18px;gap:28px">
-    <img class="s1-r" src="${AI}logo-redondo.png" alt="" style="width:min(170px,40vw)">
+  setCounter(1); MC.hide();
+  Knight.show(K.saluda);
+  Knight2.show(M.saluda);
+  $('knight2').style.left = 'auto';
+  $('knight2').style.right = '2%';
+  setScene(`<div class="sc" style="justify-content:flex-start;padding-top:68px;gap:20px">
     <img class="s1-w" src="${AI}logo-alargado-2.png" alt="" style="width:min(310px,84vw)">
+    <img class="s1-r" src="${AI}logo-redondo.png" alt="" style="width:min(170px,40vw)">
   </div>`);
   await wait(800);
   const hideBubble = showBubble(0);
   await waitForNextBtn();
   hideBubble();
   Knight.hide();
+  Knight2.hide();
 }
 
 
@@ -1122,20 +1136,25 @@ async function scene5(){
   Knight2.hide();
 }
 
-/* ── P2 (NUEVA): Sin GPS / Sin internet ── */
+/* ── P2: Sin GPS / Sin internet ── */
 async function scene2(){
   setCounter(2); MC.hide();
-  Knight2.show(K.mapa);
-  setScene(`<div class="sc" style="background:#f9f9f9;gap:0;justify-content:center;padding:12px">
-    <div class="err-stack">
-      <img class="err-img" src="${AI}imagen-no-gps.png" alt="">
-      <img class="err-img" src="${AI}imagen-no-internet.png" alt="">
+  setScene(`<div class="sc" style="background:#f9f9f9;padding:0">
+    <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between">
+      <img src="${K.mapaPerdido}" alt=""
+           style="height:clamp(180px,33vw,300px);width:auto;flex-shrink:0;
+                  filter:drop-shadow(2px 4px 12px rgba(0,0,0,.5))">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding:0 6px 8px 0;flex-shrink:0">
+        <img src="${AI}imagen-no-gps.png" alt=""
+             style="max-height:clamp(100px,25vh,200px);width:auto;max-width:min(150px,38vw);object-fit:contain">
+        <img src="${AI}imagen-no-internet.png" alt=""
+             style="max-height:clamp(100px,25vh,200px);width:auto;max-width:min(150px,38vw);object-fit:contain">
+      </div>
     </div>
   </div>`);
   const hideBubble = showBubble(1);
   await waitForNextBtn();
   hideBubble();
-  Knight2.hide();
 }
 
 /* ── P8: Botón mapa-completo (b1) ── */
@@ -1753,6 +1772,10 @@ async function run(){
     scene13,scene14,scene15,scene16,scene17,scene18,scene19];
   for(const fn of scenes){
     if (_skipRequested) break;
+    // Ocultar caballeros al instante (sin transición) para que no sangren entre escenas
+    [$('knight'),$('knight2')].forEach(k=>{
+      if(k){ k.classList.remove('show','bounce','walk'); k.style.transition='none'; k.style.transform='translateY(110%)'; }
+    });
     clearOv(); await fn(); await wait(650);
     if(fn===scene4) $('btn-skip').classList.add('on');
   }
