@@ -794,10 +794,10 @@ const MC = {
     $('map').classList.add('on');
     setTimeout(()=>{
       this.map.invalidateSize();
-      // fitBounds with padding so markers clear the transparent strips
+      const bandH = parseInt($('stage').style.getPropertyValue('--band-h')) || 0;
       this.map.fitBounds(L.latLngBounds(r.path),{
-        paddingTopLeft:[58,52],    // left, top  (top strip = 36px)
-        paddingBottomRight:[58,96] // right, bottom (audio bar = 78px)
+        paddingTopLeft:[58,52],
+        paddingBottomRight:[58, Math.max(96, bandH + 20)]
       });
     },80);
     this._mkM(r);
@@ -830,7 +830,8 @@ const MC = {
     if(this.polyB)this.map.removeLayer(this.polyB);
     this.polyB=L.polyline(RB.path,{color:'#3388ff',weight:5,opacity:.75,dashArray:'6 4'}).addTo(this.map);
     const all=[...RA.path,...RB.path];
-    this.map.fitBounds(L.latLngBounds(all),{paddingTopLeft:[62,52],paddingBottomRight:[62,96]});
+    const bandH = parseInt($('stage').style.getPropertyValue('--band-h')) || 0;
+    this.map.fitBounds(L.latLngBounds(all),{paddingTopLeft:[62,52],paddingBottomRight:[62, Math.max(96, bandH + 20)]});
   },
   hideAll(){ if(this.polyB){this.map.removeLayer(this.polyB);this.polyB=null} },
   showSec(a,b){ if(this.poly2)this.map.removeLayer(this.poly2); this.poly2=L.polyline([a,b],{color:'#9b59b6',weight:5,dashArray:'9 7',opacity:.88}).addTo(this.map) },
