@@ -1797,7 +1797,7 @@
             registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async (_mensaje) => {
                 try {
                     globalThis.__HEARTBEAT_ACTIVO = true;
-                    logger.info(`[hijo4][HEARTBEAT_START] Activado heartbeat local`);
+                    logger.debug(`[hijo4][HEARTBEAT_START] Activado heartbeat local`);
                     return { started: true };
                 } catch (error) {
                     logger.error(`[hijo4][HEARTBEAT_START] Error:`, error);
@@ -1835,7 +1835,7 @@
             registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE, async (_mensaje) => {
                 try {
                     globalThis.__HEARTBEAT_ACTIVO = false;
-                    logger.info(`[hijo4][HEARTBEAT_PAUSE] Pausado heartbeat local`);
+                    logger.debug(`[hijo4][HEARTBEAT_PAUSE] Pausado heartbeat local`);
                     return { paused: true };
                 } catch (error) {
                     logger.error(`[hijo4][HEARTBEAT_PAUSE] Error:`, error);

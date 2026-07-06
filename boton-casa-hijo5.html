@@ -1196,7 +1196,7 @@
             const logPrefix = `[hijo5][HEARTBEAT_START][${mensaje?.origen || 'desconocido'}]`;
             try {
                 estado.heartbeatActivo = true;
-                logger.info(`${logPrefix} Activado heartbeat local`);
+                logger.debug(`${logPrefix} Activado heartbeat local`);
                 return { started: true };
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando HEARTBEAT_START:`, error);
@@ -1209,7 +1209,7 @@
             const logPrefix = `[hijo5][HEARTBEAT_PAUSE][${mensaje?.origen || 'desconocido'}]`;
             try {
                 estado.heartbeatActivo = false;
-                logger.info(`${logPrefix} Pausado heartbeat local`);
+                logger.debug(`${logPrefix} Pausado heartbeat local`);
                 return { paused: true };
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando HEARTBEAT_PAUSE:`, error);

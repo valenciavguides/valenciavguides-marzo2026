@@ -11870,7 +11870,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
                     }
                     globalThis.__HEARTBEAT_INICIADO = true;
-                    (globalThis.logger || console).info('[PADRE] Heartbeat iniciado (Script 4) - modo AVENTURA');
+                    (globalThis.logger || console).debug('[PADRE] Heartbeat iniciado (Script 4) - modo AVENTURA');
                 } else {
                     // Ensure heartbeat is paused in CASA
                     try {
@@ -11884,7 +11884,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         (globalThis.logger || console).debug('[PADRE] HEARTBEAT_PAUSE via mensaje falló, usando fallback directo:', e);
                         try { (typeof globalThis.pausarHeartbeat === 'function') && globalThis.pausarHeartbeat(); } catch (err) { (globalThis.logger || console).debug('[VV]:', err?.message); } // NOSONAR
                     }
-                    (globalThis.logger || console).info('[PADRE] Heartbeat no iniciado por modo CASA (Script 4)');
+                    (globalThis.logger || console).debug('[PADRE] Heartbeat no iniciado por modo CASA (Script 4)');
                 }
             } catch (e) {
                 (globalThis.logger || console).warn('[PADRE] Error controlando heartbeat en script 4:', e);

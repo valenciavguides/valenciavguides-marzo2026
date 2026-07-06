@@ -866,7 +866,7 @@ export async function iniciarHeartbeat(intervalo = 5000) {
         }, intervalo);
 
         await sm.updateHeartbeat({ intervalo: intervalId });
-        logger.info('[mensajeria] Heartbeat iniciado');
+        logger.debug('[mensajeria] Heartbeat iniciado');
         return true;
     } catch (error) {
         logger.error('[mensajeria] Error iniciando heartbeat:', error);
@@ -930,7 +930,7 @@ export async function pausarHeartbeat() {
 
         // Marcar como inactivo
         await sm.updateHeartbeat({ activo: false, intervalo: null });
-        logger.info('[mensajeria] Heartbeat pausado');
+        logger.debug('[mensajeria] Heartbeat pausado');
         return true;
     } catch (error) {
         logger.error('[mensajeria] Error pausando heartbeat:', error);
