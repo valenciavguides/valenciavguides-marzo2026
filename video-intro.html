@@ -13,12 +13,12 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 #stage{position:absolute;inset:0;overflow:hidden}
 
 /* ── MAP ── */
-#map{position:absolute;inset:0;z-index:1;display:none}
+#map{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:1;display:none}
 #map.on{display:block}
 
 /* ── LAYERS ── */
-#scene-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
-#overlay-layer{position:absolute;inset:0;z-index:300;pointer-events:none}
+#scene-layer{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:2;pointer-events:none}
+#overlay-layer{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:300;pointer-events:none}
 #overlay-layer.active{pointer-events:auto}
 
 /* ── KNIGHT ── */
@@ -362,20 +362,23 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .ch-opts-bot{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);width:min(380px,93vw);display:flex;flex-direction:column;gap:16px}
 .ch-send-center{position:absolute;bottom:14px;left:50%;transform:translateX(-50%)}
 
-/* ── TEXT BAND (Jaime, franja inferior 20vh, caballeros encima) ── */
+/* ── TEXT BAND (Jaime, franja inferior adaptativa, caballeros encima) ── */
 #jaime-band{
-  position:absolute;bottom:0;left:0;width:100%;height:20vh;
+  position:absolute;bottom:0;left:0;width:100%;min-height:20vh;height:auto;
   background:#fff8e7;z-index:350;pointer-events:none;
-  display:flex;align-items:center;justify-content:flex-start;
-  padding:0 clamp(12px,4vw,32px) 0 30%;
+  display:flex;align-items:center;
+  padding:14px 12px 14px 30%;
+  gap:12px;
   opacity:0;transition:opacity .4s ease;
 }
 #jaime-band.on{opacity:1}
 #jaime-band p{
-  margin:0;
-  font-size:clamp(13px,3.2vmin,17px);
+  flex:1;min-width:0;margin:0;
+  font-size:clamp(15px,4.5vmin,19px);
   color:#1a3a1a;font-weight:500;line-height:1.5;text-align:left;
 }
+#band-next-btn{flex-shrink:0;pointer-events:none}
+#jaime-band.on #band-next-btn{pointer-events:auto}
 
 /* ── BOTONES MUNDO — CSS idéntico a En-busca-del-tesoro.html ── */
 .btn-mundo-verde {
@@ -527,14 +530,20 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   <div id="map"></div>
   <div id="scene-layer"></div>
   <div id="overlay-layer"></div>
-  <div id="jaime-band"><p id="jaime-band-text"></p></div>
+  <div id="jaime-band">
+    <p id="jaime-band-text"></p>
+    <button id="band-next-btn" class="btn-mundo-verde" onclick="globalThis._onBandNext()" title="Siguiente">
+      <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
+      <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+    </button>
+  </div>
   <img id="knight" src="" alt="">
   <img id="knight2" src="" alt="">
   <img id="gauntlet" src="" alt="">
   <div id="end-fade"></div>
-  <button id="btn-skip" class="btn-mundo-verde" onclick="globalThis._skipVideoIntro()" title="Saltar intro">
-    <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
-    <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
+  <button id="btn-skip" class="btn-mundo-rojo" onclick="globalThis._skipVideoIntro()" title="Saltar intro">
+    <div class="contenedor-replay"><span class="icono-replay">✕</span></div>
+    <div class="contenedor-replay segunda"><span class="icono-replay">✕</span></div>
   </button>
   <div id="end-btns">
     <div class="end-row">
@@ -652,6 +661,17 @@ const setScene = h => {
 };
 const setOv     = h => { $('overlay-layer').innerHTML=h; $('overlay-layer').classList.add('active') };
 const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').classList.remove('active') };
+function ajustarScena() {
+  const h = $('jaime-band').offsetHeight;
+  $('stage').style.setProperty('--band-h', h + 'px');
+}
+let _bandResolve = null;
+function waitForNextBtn() {
+  return new Promise(resolve => { _bandResolve = resolve; });
+}
+globalThis._onBandNext = function() {
+  if (_bandResolve) { _bandResolve(); _bandResolve = null; }
+};
 function showBubble(idx) {
   const scenes = globalThis.JAIME_SCENES;
   const entry = scenes && scenes[idx];
@@ -660,7 +680,12 @@ function showBubble(idx) {
   if (!entry || !band) return () => {};
   txt.textContent = entry[_lang] || entry.es;
   band.classList.add('on');
-  return () => { band.classList.remove('on'); txt.textContent = ''; };
+  requestAnimationFrame(ajustarScena);
+  return () => {
+    band.classList.remove('on');
+    txt.textContent = '';
+    $('stage').style.setProperty('--band-h', '0px');
+  };
 }
 const setCounter = (n,t=20) => $('counter').textContent=`${n} / ${t}`;
 
@@ -1011,7 +1036,7 @@ async function scene1(){
   </div>`);
   await wait(800);
   const hideBubble = showBubble(0);
-  await wait(8000);
+  await waitForNextBtn();
   hideBubble();
   Knight.hide();
 }
@@ -1039,7 +1064,7 @@ async function scene3(){
   const t0=$('at0');
   await Gauntlet.hover(t0,'L',320);
   await Gauntlet.tapEl(t0,'L',()=>{ t0.classList.add('sel') });
-  await wait(3000);
+  await waitForNextBtn();
   hideBubble();
   Knight.hide();
 }
@@ -1052,7 +1077,7 @@ async function scene4(){
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
   </div>`);
   const hideBubble = showBubble(3);
-  await wait(4000);
+  await waitForNextBtn();
   await Gauntlet.tapEl($('oc5'),'UR',()=>{});
   await wait(600);
   hideBubble();
@@ -1092,7 +1117,7 @@ async function scene5(){
       <div class="btn-main-ico"><img src="${B.chat}" alt=""></div>
     </div>
   </div>`);
-  await wait(10000);
+  await waitForNextBtn();
   hideBubble();
   Knight2.hide();
 }
@@ -1108,7 +1133,7 @@ async function scene2(){
     </div>
   </div>`);
   const hideBubble = showBubble(1);
-  await wait(7000);
+  await waitForNextBtn();
   hideBubble();
   Knight2.hide();
 }
@@ -1176,7 +1201,7 @@ async function scene8(){
       </div>
     </div>`);
   });
-  await wait(4000);
+  await waitForNextBtn();
   await Gauntlet.tapEl($('oc8'),'UR',()=>{ clearOv(); MC.hideAll(); MC.showInset(RA); MC.showFull(RA) });
   hideBubble(); Knight2.hide(); await wait(600);
 }
@@ -1196,7 +1221,7 @@ async function scene9(){
   await Gauntlet.tapEl(b2,'R',()=>{ spin(b2);
     setOv(`<div class="ov-dark"><div class="ov-close" id="oc9">✕</div><img class="ov-img" src="${MV}Av1_mapa.jpg" alt=""></div>`);
   });
-  await wait(3200);
+  await waitForNextBtn();
   await Gauntlet.tapEl($('oc9'),'UR',()=>clearOv());
   hideBubble(); Knight.hide(); await wait(600);
 }
@@ -1222,7 +1247,7 @@ async function sceneImg(){
       </div>
     </div>`);
   });
-  await wait(2800);
+  await waitForNextBtn();
   await Gauntlet.tapEl($('ocimg'),'UR',()=>clearOv());
   await wait(500);
   hideBubble();
@@ -1259,11 +1284,12 @@ async function sceneVid(){
       </div>
     </div>`);
   });
-  await waitForVideoEnd(document.querySelector('.float-video'));
+  await Promise.race([waitForVideoEnd(document.querySelector('.float-video')), waitForNextBtn()]);
   if (!_skipRequested) {
     await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
+  } else {
+    clearOv();
   }
-  await wait(500);
   hideBubble();
   Knight.hide();
 }
@@ -1283,7 +1309,7 @@ async function scene10(){
   await Gauntlet.tapEl(bav,'R',()=>{ spin(bav); MC.showFull(RA) });
   await wait(600);
   await Knight.walk(RA, 6500);
-  await wait(500);
+  await waitForNextBtn();
   hideBubble();
   Knight.hide();
 }
@@ -1304,8 +1330,7 @@ async function scene11(){
   await Gauntlet.hover(amain,'R',350);
   await Gauntlet.tapEl(amain,'R',()=>{ spin(amain); $('astrip').classList.add('open') });
   await wait(800);
-  await animAP(0, 87, 6000);
-  await wait(800);
+  await Promise.race([animAP(0, 87, 6000), waitForNextBtn()]);
   hideBubble();
   Knight.hide();
 }
@@ -1380,7 +1405,7 @@ async function scene12(){
 
   // Knight thumbs up — puzzle complete!
   Knight.hide(); await wait(200); Knight.show(K.up, true);
-  await wait(2800); hideBubble(); clearOv(); Knight.hide(); await wait(300);
+  await waitForNextBtn(); hideBubble(); clearOv(); Knight.hide();
 }
 
 /* ── P15: Reto — preguntas de opción múltiple ── */
@@ -1441,7 +1466,7 @@ async function sceneRetoMCQ(){
     const bav=$('b-av'); if(bav){ bav.classList.remove('disabled'); bav.classList.add('activo') }
   });
   Knight.hide(); await wait(200); Knight.show(K.up, true);
-  await wait(2000); Knight.hide(); await wait(300);
+  await waitForNextBtn(); Knight.hide();
   hideBubble(); clearOv();
 }
 
@@ -1476,7 +1501,7 @@ async function scene18(){
   await wait(2000);
   const cx=$('cpanel').querySelector('.chat-x');
   await Gauntlet.tapEl(cx,'DL',()=>{ $('cpanel').classList.remove('open'); setTimeout(()=>clearOv(),440) });
-  await wait(700);
+  await waitForNextBtn();
   hideBubble();
   Knight.hide();
 }
@@ -1500,9 +1525,9 @@ async function scene13(){
     const e=$('gcd'); if(e) e.textContent=`0${m}:${String(sec).padStart(2,'0')}`;
     if(s<=0) clearInterval(timerRef.iv);
   },1000);
-  await wait(5000);
+  await waitForNextBtn();
   clearInterval(timerRef.iv); clearOv();
-  hideBubble(); Knight.hide(); await wait(400);
+  hideBubble(); Knight.hide();
 }
 
 /* ── P17: Cuenta atrás agotada + foto-fuera-rango + btn-ubicacion ── */
@@ -1533,7 +1558,7 @@ async function scene14(){
       const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='42px';
     },200);
   });
-  await wait(1800);
+  await waitForNextBtn();
   hideBubble();
   Knight.hide();
 }
@@ -1588,7 +1613,7 @@ async function scene16(){
   await Knight.walk(retPath2, 6000);
   Knight.hide(); await wait(200);
   Knight.show(K.up, true);
-  await wait(2000);
+  await waitForNextBtn();
   hideBubble(); Knight.hide();
 }
 
@@ -1626,11 +1651,11 @@ async function scene17(){
       }
     },30);
   });
-  await wait(5800);
+  await waitForNextBtn();
   const lcls=$('lcls');
   if(lcls) await Gauntlet.tapEl(lcls,'DR',()=>clearOv());
   else clearOv();
-  await wait(600);
+  await wait(400);
   hideBubble();
   Knight.hide();
 }
@@ -1695,7 +1720,7 @@ async function scene19(){
       <button class="m-btn m-red">⏹</button>
     </div>
   </div>`);
-  await wait(2000); hideBubble(); Knight.hide(); await wait(400);
+  await waitForNextBtn(); hideBubble(); Knight.hide(); await wait(400);
   const ef=$('end-fade'); ef.classList.add('w'); await wait(80); ef.classList.add('on');
   await wait(1800); ef.classList.remove('w'); ef.classList.add('b');
   await wait(2500);
@@ -1714,6 +1739,7 @@ globalThis._replayVideoIntro = function() {
 let _skipRequested = false;
 globalThis._skipVideoIntro = function() {
   _skipRequested = true;
+  if (_bandResolve) { _bandResolve(); _bandResolve = null; }
   $('btn-skip').classList.remove('on');
   clearOv(); Knight.hide(); Knight2.hide();
   $('end-btns').classList.add('on');
