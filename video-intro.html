@@ -27,7 +27,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   position:absolute;left:2%;bottom:20vh;
   height:clamp(200px,33vw,320px);width:auto;max-width:60%;
   z-index:400;pointer-events:none;
-  transform:translateY(100%);
+  transform:translateY(250%);
   transition:transform .75s cubic-bezier(.34,1.56,.64,1);
   filter:drop-shadow(3px 6px 16px rgba(0,0,0,.6));
 }
@@ -44,7 +44,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   position:absolute;left:2%;bottom:20vh;
   height:clamp(200px,33vw,320px);width:auto;max-width:60%;
   z-index:400;pointer-events:none;
-  transform:translateY(100%);
+  transform:translateY(250%);
   transition:transform .75s cubic-bezier(.34,1.56,.64,1);
   filter:drop-shadow(3px 6px 16px rgba(0,0,0,.6));
 }
@@ -673,6 +673,9 @@ const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').cl
 function ajustarScena() {
   const h = $('jaime-band').offsetHeight;
   $('stage').style.setProperty('--band-h', h + 'px');
+  requestAnimationFrame(() => {
+    if (MC && MC.map) MC.map.invalidateSize({ animate: false });
+  });
 }
 let _bandResolve = null;
 function waitForNextBtn() {
@@ -694,6 +697,9 @@ function showBubble(idx) {
     band.classList.remove('on');
     txt.textContent = '';
     $('stage').style.setProperty('--band-h', '0px');
+    requestAnimationFrame(() => {
+      if (MC && MC.map) MC.map.invalidateSize({ animate: false });
+    });
   };
 }
 const setCounter = (n,t=20) => $('counter').textContent=`${n} / ${t}`;
@@ -1058,15 +1064,16 @@ async function scene1(){
 
 /* ── P3: Selección de aventura (7 tabs, como la app real) ── */
 async function scene3(){
-  setCounter(3); MC.hide(); Knight.show(K.completo);
+  setCounter(3); MC.hide();
+  Knight2.show(M.up);
   const AVS=[
     ['Aventura 1','4 km','👣'],['Aventura 2','4 km','👣'],['Aventura 3','10 km','🚲🛴'],
     ['Aventura 4','10 km','🚲🛴'],['Aventura 5','6 km','🚲🛴'],
     ['Av. Fallas','4 km','👣'],['Av. 34 km','34 km','🚲🛴👣'],
   ];
-  setScene(`<div class="sc" style="gap:0;padding:14px 18px 14px;justify-content:center">
-    <div class="adv-tabs" id="atabs">
-      ${AVS.map(([n,km,v],i)=>`<div class="adv-tab" id="at${i}">
+  setScene(`<div class="sc" style="gap:0;padding:14px 14px 14px 0;justify-content:center;align-items:flex-end">
+    <div class="adv-tabs" id="atabs" style="width:min(210px,54vw);gap:5px">
+      ${AVS.map(([n,km,v],i)=>`<div class="adv-tab" id="at${i}" style="padding:6px 10px">
         <span class="adv-tab-name">${n}</span>
         <span class="adv-tab-km">${km}</span>
         <span class="adv-tab-veh">${v}</span>
@@ -1076,17 +1083,17 @@ async function scene3(){
   const hideBubble = showBubble(2);
   await wait(1400);
   const t0=$('at0');
-  await Gauntlet.hover(t0,'L',320);
-  await Gauntlet.tapEl(t0,'L',()=>{ t0.classList.add('sel') });
+  await Gauntlet.hover(t0,'R',320);
+  await Gauntlet.tapEl(t0,'R',()=>{ t0.classList.add('sel') });
   await waitForNextBtn();
   hideBubble();
-  Knight.hide();
+  Knight2.hide();
 }
 
 /* ── P4: Mapa vintage de la aventura ── */
 async function scene4(){
   setCounter(4); MC.hide(); Knight2.show(K.up);
-  setScene(`<div class="sc" style="background:#f5e6c8;gap:0;padding:18px 14px;position:relative">
+  setScene(`<div class="sc" style="gap:0;padding:18px 14px 18px 0;position:relative;align-items:flex-end">
     <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px">✕</div>
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
   </div>`);
@@ -1100,35 +1107,39 @@ async function scene4(){
 
 /* ── P5 (NUEVA): Grid de todos los botones (estático 10 s) ── */
 async function scene5(){
-  setCounter(5); MC.hide(); Knight2.show(K.up);
+  setCounter(5); MC.hide();
+  Knight2.show(M.posa);
   const hideBubble = showBubble(4);
-  setScene(`<div class="btn-grid" style="gap:14px">
-    <div class="btn-group">
-      <div class="btn-main-ico blue"><img src="${B.aMain}" alt=""></div>
-      <div class="btn-sub-ico"><img src="${B.aPlay}" alt=""></div>
-      <div class="btn-sub-ico"><img src="${B.aPause}" alt=""></div>
-      <div class="btn-sub-ico"><img src="${B.aStop}" alt=""></div>
-      <div class="btn-sub-ico"><img src="${B.aRep}" alt=""></div>
-    </div>
-    <div class="btn-group">
-      <div class="btn-main-ico"><img src="${B.opts}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.gastro}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.historia}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.timer}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.info}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.pages}" alt=""></div>
-    </div>
-    <div class="btn-group">
-      <div class="btn-main-ico"><img src="${B.b1}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.b2}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.b3}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.b4}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.bAv}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.b6}" alt=""></div>
-    </div>
-    <div class="btn-group">
-      <div class="btn-main-ico"><img src="${B.reto}" alt=""></div>
-      <div class="btn-main-ico"><img src="${B.chat}" alt=""></div>
+  setScene(`<div class="sc" style="background:#f8f9fa;padding:0 14px 0 0;align-items:flex-end;justify-content:center">
+    <div style="display:flex;flex-direction:row;align-items:flex-start;gap:8px">
+      <!-- columna izquierda (6) -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="btn-main-ico"><img src="${B.b1}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.b3}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.b4}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.bAv}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.b6}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.reto}" alt=""></div>
+      </div>
+      <!-- columna central hijo1 (6) -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="btn-main-ico"><img src="${B.opts}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.info}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.gastro}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.historia}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.pages}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.timer}" alt=""></div>
+      </div>
+      <!-- columna derecha audio+chat+mapa vintage (7) -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="btn-main-ico blue"><img src="${B.aMain}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.aPlay}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.aPause}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.aStop}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.aRep}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.chat}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.b2}" alt=""></div>
+      </div>
     </div>
   </div>`);
   await waitForNextBtn();
@@ -1144,11 +1155,11 @@ async function scene2(){
       <img src="${K.mapaPerdido}" alt=""
            style="height:clamp(180px,33vw,300px);width:auto;flex-shrink:0;
                   filter:drop-shadow(2px 4px 12px rgba(0,0,0,.5))">
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding:0 6px 8px 0;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;padding:0 8px 12px 0;flex-shrink:0">
         <img src="${AI}imagen-no-gps.png" alt=""
-             style="max-height:clamp(100px,25vh,200px);width:auto;max-width:min(150px,38vw);object-fit:contain">
+             style="max-height:clamp(130px,35vh,280px);width:auto;max-width:min(220px,46vw);object-fit:contain">
         <img src="${AI}imagen-no-internet.png" alt=""
-             style="max-height:clamp(100px,25vh,200px);width:auto;max-width:min(150px,38vw);object-fit:contain">
+             style="max-height:clamp(130px,35vh,280px);width:auto;max-width:min(220px,46vw);object-fit:contain">
       </div>
     </div>
   </div>`);
@@ -1230,7 +1241,6 @@ async function scene9(){
   setCounter(7);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.caminando);
   const hideBubble = showBubble(6);
   await wait(900);
   const b2=$('b2');
@@ -1242,7 +1252,7 @@ async function scene9(){
   });
   await waitForNextBtn();
   await Gauntlet.tapEl($('oc9'),'UR',()=>clearOv());
-  hideBubble(); Knight.hide(); await wait(600);
+  hideBubble(); await wait(600);
 }
 
 /* ── P11: Botón imagen próximo monumento (b4 hijo2) ── */
@@ -1772,9 +1782,8 @@ async function run(){
     scene13,scene14,scene15,scene16,scene17,scene18,scene19];
   for(const fn of scenes){
     if (_skipRequested) break;
-    // Ocultar caballeros al instante (sin transición) para que no sangren entre escenas
     [$('knight'),$('knight2')].forEach(k=>{
-      if(k){ k.classList.remove('show','bounce','walk'); k.style.transition='none'; k.style.transform='translateY(110%)'; }
+      if(k){ k.classList.remove('show','bounce','walk'); k.style.cssText='display:none'; }
     });
     clearOv(); await fn(); await wait(650);
     if(fn===scene4) $('btn-skip').classList.add('on');
