@@ -2689,11 +2689,11 @@ export function registrarManejadoresMensajes() {
                 logger.error('[funciones-mapa] ❌ Error procesando vv-parada-cambiada:', err);
             }
         });
-        // GPS handlers: registrados aquí como fallback inicial.
-        // registrarControladorSeguro en Script 2 (codigo-padre.html) los sobrescribe
-        // con los handlers completos que verifican modo AVENTURA y gestionan watchId.
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, manejarGPSActivar);
-        registrarControlador(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, manejarGPSDesactivar);
+        // GPS handlers NO se registran aquí — los registra Script 2 de codigo-padre.html
+        // con _hdl_NAVEGACION_GPS_ACTIVAR/_DESACTIVAR (verifican modo AVENTURA,
+        // gestionan paradaListaParaAvanzar y revelarNavegacion).
+        // Si se registrasen aquí primero, state-manager bloquearía el registro de Script 2
+        // por "Controlador duplicado" y el handler incompleto de funciones-mapa ganaría.
 
 
         // Controlador para solicitar paradas con proximidad avanzada

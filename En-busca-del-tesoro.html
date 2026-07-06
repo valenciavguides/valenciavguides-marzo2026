@@ -2887,13 +2887,15 @@
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;';
         overlay.innerHTML = `<div style="background:#1a1a2e;border-radius:1rem;padding:2rem 1.5rem;width:min(90vw,22rem);text-align:center;border:2px solid #f5a623;">
             <p style="color:#f5a623;font-size:1.1rem;font-weight:bold;margin:0 0 1rem 0;">🔧 Modo desarrollador</p>
+            <form autocomplete="off" onsubmit="return false" style="margin:0;">
             <input id="_devp1-code" type="password" maxlength="20" autocomplete="off"
                 style="width:100%;padding:0.9rem;border:2px solid #555;border-radius:0.6rem;font-size:1.6rem;text-align:center;letter-spacing:0.5rem;background:#0d0d1a;color:#fff;box-sizing:border-box;">
             <p id="_devp1-error" style="color:#ff4444;font-size:0.85rem;margin:0.5rem 0 0 0;min-height:1.2em;"></p>
             <div style="display:flex;gap:0.8rem;margin-top:0.8rem;">
-                <button id="_devp1-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
-                <button id="_devp1-ok" style="flex:1;padding:0.7rem;background:#f5a623;color:#000;border:none;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;font-weight:bold;">OK</button>
+                <button type="button" id="_devp1-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
+                <button type="button" id="_devp1-ok" style="flex:1;padding:0.7rem;background:#f5a623;color:#000;border:none;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;font-weight:bold;">OK</button>
             </div>
+            </form>
         </div>`;
         document.body.appendChild(overlay);
         const input = overlay.querySelector('#_devp1-code');
