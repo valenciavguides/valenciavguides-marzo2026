@@ -410,7 +410,6 @@
       origen: CONFIG_HIJO.IFRAME_ID,
       datos: { timestamp: Date.now(), estado: inicializado ? 'activo' : 'inicializando' }
     });
-    logger.debug('[hijo6] HEARTBEAT respondido');
   });
 
   registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async () => {

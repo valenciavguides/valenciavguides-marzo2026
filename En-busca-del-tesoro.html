@@ -422,9 +422,10 @@
       background-position: 0 0, center;
       background-repeat: repeat, no-repeat;
     }
-    /* P1 y P4: logo alargado al 98% del ancho */
+    /* P1, P4, P16: logo alargado al 98% del ancho */
     #pantalla1 .logo-alargado { width: min(98vw, 440px); }
     #pantalla5 .logo-alargado { width: min(98vw, 440px); }
+    #pantalla16 .logo-alargado { width: min(98vw, 440px); }
     /* P5, P6, P15: botones con margen superior reducido */
     #pantalla17 .btn, #pantalla10 .btn, #pantalla14 .btn { margin-top: 0.5rem; }
     /* P8: layout pantalla y card de confirmación */
@@ -910,10 +911,12 @@
   </div>
 
   <!-- P16: Logos — pantalla de transición hacia la aventura -->
-  <div class="pantalla" id="pantalla16" style="background-color:orange; justify-content:center; align-items:center; gap:2rem;">
+  <div class="pantalla" id="pantalla16">
     <div class="free-demo">FREE DEMO</div>
-    <img src="imagenes/imagenes-aplicación/logo-redondo.png" class="logo-redondo" alt="" style="width:min(55vw, 200px); height:min(55vw, 200px);">
-    <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="" style="width:min(85vw, 360px);">
+    <div class="logo-circular-bg">
+      <img src="imagenes/imagenes-aplicación/logo-redondo.png" class="logo-redondo" alt="">
+    </div>
+    <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="">
     <button class="btn btn-mundo-verde" onclick="void iniciarAventura()" title="Comenzar aventura">
       <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
       <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
@@ -2554,7 +2557,6 @@
                 terminosAceptados: estadoComponente.terminosAceptados, ultimaInteraccion: estadoComponente.ultimaInteraccion
             };
             await enviarMensaje({ destino: mensaje.origen, tipo: TIPOS_MENSAJE.SISTEMA.HEARTBEAT_RESPONSE, origen: CONFIG_HIJO.IFRAME_ID, datos: datosRespuesta });
-            logger.debug(`${controladorPrefix} Respuesta enviada a ${mensaje.origen}`);
             return { exito: true, timestamp: datosRespuesta.timestamp };
         } catch (error) {
             logger.error(`${controladorPrefix} Error en controlador:`, error);

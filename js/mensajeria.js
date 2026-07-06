@@ -368,7 +368,7 @@ export function enviarMensaje(tipoOrMensaje, datos, destino) {
             tipoOrigen: tipoComponente,
             destino: objDestino
         };
-        logger.debug(`[mensajeria] Enviando mensaje: ${tipo}`, { destino: objDestino || 'broadcast' });
+        if (!String(tipo).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipo}`, { destino: objDestino || 'broadcast' });
         return enviarMensajeInterno(mensaje, objDestino);
     }
     
@@ -380,7 +380,7 @@ export function enviarMensaje(tipoOrMensaje, datos, destino) {
     
     const mensaje = crearMensaje(tipoOrMensaje, datos);
     
-    logger.debug(`[mensajeria] Enviando mensaje: ${tipoOrMensaje}`, { destino: destino || 'broadcast' }); // NOSONAR
+    if (!String(tipoOrMensaje).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipoOrMensaje}`, { destino: destino || 'broadcast' }); // NOSONAR
     
     return enviarMensajeInterno(mensaje, destino);
 }

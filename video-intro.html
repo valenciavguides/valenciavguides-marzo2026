@@ -39,14 +39,14 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   animation:knightBob .28s ease-in-out infinite alternate}
 @keyframes knightBob{from{margin-left:-2px}to{margin-left:2px}}
 
-/* ── KNIGHT secundario (abajo-derecha) ── */
+/* ── KNIGHT secundario (abajo-izquierda) ── */
 #knight2{
-  position:absolute;right:2%;bottom:0;
+  position:absolute;left:2%;bottom:0;
   height:clamp(200px,33vw,320px);width:auto;max-width:60%;
   z-index:400;pointer-events:none;
   transform:translateY(100%);
   transition:transform .75s cubic-bezier(.34,1.56,.64,1);
-  filter:drop-shadow(-3px 6px 16px rgba(0,0,0,.6));
+  filter:drop-shadow(3px 6px 16px rgba(0,0,0,.6));
 }
 #knight2.show{transform:translateY(0%)}
 #knight2.bounce{animation:bounceK .45s ease-in-out infinite alternate}
@@ -70,8 +70,8 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 #end-fade.w{background:#fff}#end-fade.b{background:#000}#end-fade.on{opacity:1}
 
 /* ── HUD ── */
-#counter{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:4px 13px;border-radius:20px;z-index:5000;pointer-events:none;letter-spacing:.3px}
-#restart{position:absolute;bottom:7px;right:9px;background:rgba(0,0,0,.38);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:4px 11px;font-size:11px;cursor:pointer;z-index:5000}
+#counter{position:absolute;bottom:calc(20vh + 9px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:4px 13px;border-radius:20px;z-index:5000;pointer-events:none;letter-spacing:.3px}
+#restart{position:absolute;bottom:calc(20vh + 7px);right:9px;background:rgba(0,0,0,.38);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:4px 11px;font-size:11px;cursor:pointer;z-index:5000}
 
 /* ═══════════════════════════════
    SCREENS 1-4
@@ -362,16 +362,20 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .ch-opts-bot{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);width:min(380px,93vw);display:flex;flex-direction:column;gap:16px}
 .ch-send-center{position:absolute;bottom:14px;left:50%;transform:translateX(-50%)}
 
-/* ── SPEECH BUBBLE (Jaime, esquina inferior izquierda, flecha apunta al caballero abajo) ── */
-.jaime-bubble{position:absolute;bottom:clamp(215px,35vw,335px);left:clamp(8px,2vw,18px);
-  max-width:min(220px,52vw);background:rgba(255,255,255,.96);border:2.5px solid #28a745;
-  border-radius:14px;padding:11px 14px;font-size:clamp(11px,2.6vw,14px);color:#1a3a1a;
-  font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;
-  animation:fadeUp .7s ease .2s forwards;line-height:1.5;pointer-events:none;z-index:450}
-.jaime-bubble::after{content:'';position:absolute;
-  bottom:-12px;left:20px;
-  width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;
-  border-top:12px solid #28a745}
+/* ── TEXT BAND (Jaime, franja inferior 20vh, caballeros encima) ── */
+#jaime-band{
+  position:absolute;bottom:0;left:0;width:100%;height:20vh;
+  background:#fff8e7;z-index:350;pointer-events:none;
+  display:flex;align-items:center;justify-content:flex-start;
+  padding:0 clamp(12px,4vw,32px) 0 30%;
+  opacity:0;transition:opacity .4s ease;
+}
+#jaime-band.on{opacity:1}
+#jaime-band p{
+  margin:0;
+  font-size:clamp(13px,3.2vmin,17px);
+  color:#1a3a1a;font-weight:500;line-height:1.5;text-align:left;
+}
 
 /* ── BOTONES MUNDO — CSS idéntico a En-busca-del-tesoro.html ── */
 .btn-mundo-verde {
@@ -523,6 +527,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   <div id="map"></div>
   <div id="scene-layer"></div>
   <div id="overlay-layer"></div>
+  <div id="jaime-band"><p id="jaime-band-text"></p></div>
   <img id="knight" src="" alt="">
   <img id="knight2" src="" alt="">
   <img id="gauntlet" src="" alt="">
@@ -650,12 +655,12 @@ const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').cl
 function showBubble(idx) {
   const scenes = globalThis.JAIME_SCENES;
   const entry = scenes && scenes[idx];
-  if (!entry) return () => {};
-  const b = document.createElement('div');
-  b.className = 'jaime-bubble';
-  b.textContent = entry[_lang] || entry.es;
-  $('stage').appendChild(b);
-  return () => b.remove();
+  const band = $('jaime-band');
+  const txt  = $('jaime-band-text');
+  if (!entry || !band) return () => {};
+  txt.textContent = entry[_lang] || entry.es;
+  band.classList.add('on');
+  return () => { band.classList.remove('on'); txt.textContent = ''; };
 }
 const setCounter = (n,t=20) => $('counter').textContent=`${n} / ${t}`;
 
@@ -1012,9 +1017,9 @@ async function scene1(){
 }
 
 
-/* ── P4: Selección de aventura (7 tabs, como la app real) ── */
-async function scene4(){
-  setCounter(2); MC.hide(); Knight.show(K.completo);
+/* ── P3: Selección de aventura (7 tabs, como la app real) ── */
+async function scene3(){
+  setCounter(3); MC.hide(); Knight.show(K.completo);
   const AVS=[
     ['Aventura 1','4 km','👣'],['Aventura 2','4 km','👣'],['Aventura 3','10 km','🚲🛴'],
     ['Aventura 4','10 km','🚲🛴'],['Aventura 5','6 km','🚲🛴'],
@@ -1039,9 +1044,9 @@ async function scene4(){
   Knight.hide();
 }
 
-/* ── P5: Mapa vintage de la aventura ── */
-async function scene5(){
-  setCounter(3); MC.hide(); Knight2.show(K.up);
+/* ── P4: Mapa vintage de la aventura ── */
+async function scene4(){
+  setCounter(4); MC.hide(); Knight2.show(K.up);
   setScene(`<div class="sc" style="background:#f5e6c8;gap:0;padding:18px 14px;position:relative">
     <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px">✕</div>
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
@@ -1054,9 +1059,9 @@ async function scene5(){
   Knight2.hide();
 }
 
-/* ── P6 (NUEVA): Grid de todos los botones (estático 10 s) ── */
-async function scene6(){
-  setCounter(4); MC.hide(); Knight2.show(K.up);
+/* ── P5 (NUEVA): Grid de todos los botones (estático 10 s) ── */
+async function scene5(){
+  setCounter(5); MC.hide(); Knight2.show(K.up);
   const hideBubble = showBubble(4);
   setScene(`<div class="btn-grid" style="gap:14px">
     <div class="btn-group">
@@ -1092,10 +1097,10 @@ async function scene6(){
   Knight2.hide();
 }
 
-/* ── P7 (NUEVA): Sin GPS / Sin internet ── */
-async function scene7(){
-  setCounter(5); MC.hide();
-  Knight.show(K.llorando); Knight2.show(K.perdido);
+/* ── P2 (NUEVA): Sin GPS / Sin internet ── */
+async function scene2(){
+  setCounter(2); MC.hide();
+  Knight2.show(K.mapa);
   setScene(`<div class="sc" style="background:#f9f9f9;gap:0;justify-content:center;padding:12px">
     <div class="err-stack">
       <img class="err-img" src="${AI}imagen-no-gps.png" alt="">
@@ -1105,7 +1110,7 @@ async function scene7(){
   const hideBubble = showBubble(1);
   await wait(7000);
   hideBubble();
-  Knight.hide(); Knight2.hide();
+  Knight2.hide();
 }
 
 /* ── P8: Botón mapa-completo (b1) ── */
@@ -1716,14 +1721,14 @@ globalThis._skipVideoIntro = function() {
 
 async function run(){
   MC.init(); await wait(350);
-  const scenes=[scene1,scene7,scene4,scene5,scene6,scene8,scene9,
+  const scenes=[scene1,scene2,scene3,scene4,scene5,scene8,scene9,
     scene10,sceneImg,sceneVid,
     scene11,scene12,sceneRetoMCQ,
     scene13,scene14,scene15,scene16,scene17,scene18,scene19];
   for(const fn of scenes){
     if (_skipRequested) break;
     clearOv(); await fn(); await wait(650);
-    if(fn===scene5) $('btn-skip').classList.add('on');
+    if(fn===scene4) $('btn-skip').classList.add('on');
   }
   if (_skipRequested) return;
   $('btn-skip').classList.remove('on');

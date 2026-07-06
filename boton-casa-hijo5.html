@@ -1150,7 +1150,6 @@
                     return;
                 }
 
-                logger.debug(`${logPrefix} HEARTBEAT recibido, enviando respuesta`);
 
                 // Enviar respuesta con timestamp actual
                 await enviarMensaje({
@@ -1168,7 +1167,6 @@
                     }
                 });
 
-                logger.debug(`${logPrefix} HEARTBEAT_RESPONSE enviado exitosamente`);
 
             } catch (error) {
                 logger.error(`${logPrefix} Error al procesar HEARTBEAT:`, error);

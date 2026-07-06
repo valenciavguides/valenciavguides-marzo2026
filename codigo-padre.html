@@ -9460,15 +9460,15 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (!audioDatos) return null;
                 (globalThis.logger || console).debug(`${logPrefix} [CASA] Audio info recibida de hijo3:`, audioDatos);
                 const audioIdParaRepro = audioDatos.audioId || audioDatos.url || parada.audio_id;
-                return Promise.resolve(enviarMensajeConConfirmacion({
+                enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
                     origen: getPadreId(),
                     destino: 'hijo3',
                     datos: { audioId: audioIdParaRepro, autoplay: false, contexto: { parada: paradaIdSolicitud, tipo: parada.tipo } }
-                })).catch(error => {
+                }).catch(error => {
                     (globalThis.logger || console).warn(`${logPrefix} [CASA] Error solicitando reproducción a hijo3:`, error);
-                    return null;
                 });
+                return null;
             }).catch(error => {
                 (globalThis.logger || console).warn(`${logPrefix} [CASA] Error solicitando info de audio a hijo3:`, error);
                 return null;
@@ -9482,12 +9482,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 _solicitarAudioCasa(parada, paradaIdSolicitud, solicitudes, logPrefix);
             } else {
                 (globalThis.logger || console).debug(`${logPrefix} Solicitando reproducción de audio a hijo3 con ID: ${parada.audio_id}`);
-                solicitudes.audio = Promise.resolve(enviarMensajeConConfirmacion({
+                solicitudes.audio = enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
                     origen: getPadreId(),
                     destino: 'hijo3',
                     datos: { audioId: parada.audio_id, autoplay: false, contexto: { parada: parada.parada_id || parada.tramo_id, tipo: parada.tipo } }
-                })).catch(error => {
+                }).catch(error => {
                     (globalThis.logger || console).warn(`${logPrefix} Error solicitando audio a hijo3:`, error);
                     return null;
                 });
