@@ -6888,7 +6888,6 @@
                         (globalThis.logger || console).info(`${logPrefix} [DEBUG] Controladores centralizados para HIJO_LISTO:`, central.map(c => c.id));
                     }
                     (globalThis.logger || console).info(`${logPrefix} [DEBUG] estadoPadre.hijosInicializados:`, Array.from(globalThis.estadoPadre.hijosInicializados || new Set()));
-                    (globalThis.logger || console).info(`${logPrefix} [DEBUG] estadoPadre.hijosListos:`, Array.from(globalThis.estadoPadre.hijosListos || new Set()));
                 } catch (e) { (globalThis.logger || console).debug(`${logPrefix} [DEBUG] Error en diagnóstico:`, e?.message); }
             })();
         }
@@ -7086,8 +7085,7 @@
             // Asegurar propiedades mínimas sin destruir el objeto existente
             if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
-            if (!globalThis.estadoPadre.hijosListos) globalThis.estadoPadre.hijosListos = new Set();
-            if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
+if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
             if (!globalThis.estadoPadre.retoActual) {
                 globalThis.estadoPadre.retoActual = { id: null, disponible: false, completado: false, cola: [], indiceCola: 0, colaCompletados: new Set() };
             }
@@ -7172,13 +7170,7 @@
                 (globalThis.logger || console).info(`${logPrefix} 🎉 Overlay de carga ocultado`);
             }
             (globalThis.logger || console).info(`${logPrefix} 🎉 UI VISIBLE - Sistema completamente inicializado`);
-            if (typeof globalThis.registrarEvento === 'function') {
-                globalThis.registrarEvento('SISTEMA_LISTO', {
-                    timestamp: Date.now(),
-                    iframesCargados: globalThis.estadoPadre?.hijosListos?.length || 0
-                }, 'info');
-            }
-            await _comprobarReanudacionAventura(logPrefix);
+await _comprobarReanudacionAventura(logPrefix);
         }
 
         // ============================================================
