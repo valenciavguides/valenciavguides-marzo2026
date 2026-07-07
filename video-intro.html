@@ -585,7 +585,7 @@ const _lang = new URLSearchParams(globalThis.location.search).get('lang') || 'es
 const K = {
   saluda:      VI+'jaime_saluda.png',
   mapaPerdido: VI+'jaime_mapa_perdido.png',
-  completo:    VI+'caballero_cuerpo_completo_saluda.png',
+  completo:    VI+'jaime_saluda.png',
   cerca:    VI+'caballero_vista_cerca.png',
   perdido:  VI+'caballero_perdido.png',
   caminando:VI+'caballero_caminando.png',
@@ -733,7 +733,7 @@ const Knight = {
     const p0=MC.map.latLngToContainerPoint(L.latLng(pts[0]));
     k.style.cssText=`position:absolute;height:${kH}px;width:auto;max-width:18%;
       left:${p0.x-kH*.28}px;top:${p0.y-kH}px;z-index:400;pointer-events:none;
-      filter:drop-shadow(2px 3px 8px rgba(0,0,0,.55));transition:none`;
+      filter:drop-shadow(2px 3px 8px rgba(0,0,0,.55));transition:none;transform:none`;
     await wait(80);
     for(let i=1;i<pts.length;i++){
       const p=MC.map.latLngToContainerPoint(L.latLng(pts[i]));
@@ -1379,10 +1379,10 @@ async function scene12(){
   await wait(400);
   // Tap reto button → challenge panel con puzzle
   await Gauntlet.tapEl($('ar'),'UR',()=>{
-    setOv(`<div class="ch-panel" id="ch">
+    setOv(`<div class="ch-panel" id="ch" style="align-items:flex-end">
       <div class="ch-icon-row"><img class="ch-reto-icon" src="${B.reto}" alt="" style="width:min(64px,15vw);filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))"></div>
       <!-- Puzzle board: 2x2, cells 0(filled) 1(empty) 2(empty) 3(filled) -->
-      <div class="puzzle-board" id="pboard" style="width:min(350px,90vw);height:min(264px,67.5vw)">
+      <div class="puzzle-board" id="pboard" style="width:min(220px,58vw);height:min(166px,43.5vw);align-self:flex-end">
         <div class="pz-cell filled" id="pc0"><img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 0%"></div>
         <div class="pz-cell" id="pc1"></div>
         <div class="pz-cell" id="pc2"></div>
@@ -1411,10 +1411,10 @@ async function scene12(){
     p1.innerHTML=`<img src="${AI}H2-fotoproximo-monumento.png" style="object-position:100% 0%">`;
     $('overlay-layer').appendChild(p1);
 
-    // Create scattered piece 2 (bottom-left section) — scattered top-right
+    // Create scattered piece 2 (bottom-left section) — scattered above board
     const p2=document.createElement('div');
     p2.id='pp2'; p2.className='pz-piece';
-    p2.style.cssText=`width:${cw}px;height:${ch}px;left:${br.right-sr.left+5}px;top:${br.top-sr.top-ch*.4}px`;
+    p2.style.cssText=`width:${cw}px;height:${ch}px;left:${br.right-sr.left-cw}px;top:${br.top-sr.top-ch-10}px`;
     p2.innerHTML=`<img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 100%">`;
     $('overlay-layer').appendChild(p2);
 
@@ -1433,9 +1433,9 @@ async function scene12(){
     await wait(800);
   }
 
-  // Knight thumbs up — puzzle complete!
-  Knight.hide(); await wait(200); Knight.show(K.up, true);
-  await waitForNextBtn(); hideBubble(); clearOv(); Knight.hide();
+  // María thumbs up — puzzle complete!
+  Knight.hide(); await wait(200); Knight2.show(M.up);
+  await waitForNextBtn(); hideBubble(); clearOv(); Knight2.hide();
 }
 
 /* ── P15: Reto — preguntas de opción múltiple ── */
@@ -1461,16 +1461,16 @@ async function sceneRetoMCQ(){
   await wait(420); bf.remove();
   await wait(200);
 
-  Knight.show(K.perdido);
-  setOv(`<div class="ch-mcq">
+  Knight2.show(M.posa);
+  setOv(`<div class="ch-mcq" style="align-items:flex-end">
     <div class="ch-icon-row"><img class="ch-reto-icon" src="${B.reto}" alt=""></div>
-    <div class="ch-q" style="width:65%"></div>
-    <div class="ch-opts-bot" id="mopts">
-      <div class="ch-opt"><div class="ch-radio" id="mr0"></div><div class="ch-text"></div></div>
-      <div class="ch-opt"><div class="ch-radio" id="mr1"></div><div class="ch-text" style="width:72%"></div></div>
-      <div class="ch-opt"><div class="ch-radio" id="mr2"></div><div class="ch-text" style="width:56%"></div></div>
+    <div class="ch-q" style="width:40%"></div>
+    <div class="ch-opts-bot" id="mopts" style="left:auto;right:14px;transform:none;width:min(240px,60vw)">
+      <div class="ch-opt"><div class="ch-radio" id="mr0"></div><div class="ch-text" style="width:60%"></div></div>
+      <div class="ch-opt"><div class="ch-radio" id="mr1"></div><div class="ch-text" style="width:50%"></div></div>
+      <div class="ch-opt"><div class="ch-radio" id="mr2"></div><div class="ch-text" style="width:38%"></div></div>
     </div>
-    <div class="ch-send-center">
+    <div class="ch-send-center" style="left:auto;right:14px;transform:none">
       <button class="ch-send" id="mcs">📤</button>
     </div>
   </div>`);
@@ -1483,7 +1483,7 @@ async function sceneRetoMCQ(){
     $('mr0').classList.remove('on'); $('mr0').classList.add('wrong');
     const ov=$('overlay-layer'); if(ov) ov.style.outline='3px solid #dc3545';
   });
-  Knight.hide(); await wait(200); Knight.show(K.down);
+  Knight2.hide(); await wait(200); Knight.show(K.down);
   await wait(1600);
   const ov=$('overlay-layer'); if(ov) ov.style.outline='none';
   $('mcs').textContent='📤'; $('mcs').classList.remove('on'); $('mr0').classList.remove('on','wrong');
@@ -1495,8 +1495,8 @@ async function sceneRetoMCQ(){
     const ov2=$('overlay-layer'); if(ov2) ov2.style.outline='3px solid #28a745';
     const bav=$('b-av'); if(bav){ bav.classList.remove('disabled'); bav.classList.add('activo') }
   });
-  Knight.hide(); await wait(200); Knight.show(K.up, true);
-  await waitForNextBtn(); Knight.hide();
+  Knight.hide(); await wait(200); Knight2.show(M.up);
+  await waitForNextBtn(); Knight2.hide();
   hideBubble(); clearOv();
 }
 
@@ -1543,7 +1543,7 @@ async function scene13(){
   MC.showInset(RA); MC.showFull(RA);
   const offPt=[39.4748,-0.3815];
   MC.moveUser(offPt);
-  Knight.show(K.camara);
+  Knight2.show(M.pareja);
   const hideBubble = showBubble(13);
   await wait(900);
   let s=299; const timerRef={iv:null};
@@ -1557,7 +1557,7 @@ async function scene13(){
   },1000);
   await waitForNextBtn();
   clearInterval(timerRef.iv); clearOv();
-  hideBubble(); Knight.hide();
+  hideBubble(); Knight2.hide();
 }
 
 /* ── P17: Cuenta atrás agotada + foto-fuera-rango + btn-ubicacion ── */
