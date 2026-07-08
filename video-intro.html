@@ -24,7 +24,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 /* ── KNIGHT ── */
 /* ── KNIGHT principal (abajo-izquierda por defecto) ── */
 #knight{
-  position:absolute;left:2%;bottom:20vh;
+  position:absolute;left:0.8vw;bottom:max(20vh,var(--band-h,0px));
   height:clamp(200px,33vw,320px);width:auto;max-width:60%;
   z-index:400;pointer-events:none;
   transform:translateY(250%);
@@ -41,7 +41,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 
 /* ── KNIGHT secundario (abajo-izquierda) ── */
 #knight2{
-  position:absolute;left:2%;bottom:20vh;
+  position:absolute;left:0.8vw;bottom:max(20vh,var(--band-h,0px));
   height:clamp(200px,33vw,320px);width:auto;max-width:60%;
   z-index:400;pointer-events:none;
   transform:translateY(250%);
@@ -52,7 +52,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 #knight2.bounce{animation:bounceK .45s ease-in-out infinite alternate}
 
 /* ── helper: knight principal a la DERECHA ── */
-.knight-right #knight{left:auto;right:2%;transform:translateY(100%)}
+.knight-right #knight{left:auto;right:0.8vw;transform:translateY(100%)}
 .knight-right #knight.show{transform:translateY(0%)}
 
 /* ── GAUNTLET ── */
@@ -377,8 +377,9 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   font-size:clamp(15px,4.5vmin,19px);
   color:#1a3a1a;font-weight:500;line-height:1.5;text-align:left;
 }
-#band-next-btn{flex-shrink:0;pointer-events:none}
-#jaime-band.on #band-next-btn{pointer-events:auto}
+#band-next-btn{flex-shrink:0;pointer-events:none;opacity:0.35;filter:grayscale(1);transition:opacity .4s,filter .4s}
+#jaime-band.on #band-next-btn{pointer-events:none}
+#jaime-band.on.next-ready #band-next-btn{pointer-events:auto;opacity:1;filter:none}
 
 /* ── BOTONES MUNDO — CSS idéntico a En-busca-del-tesoro.html ── */
 .btn-mundo-verde {
@@ -679,9 +680,11 @@ function ajustarScena() {
 }
 let _bandResolve = null;
 function waitForNextBtn() {
+  const band=$('jaime-band'); if(band) band.classList.add('next-ready');
   return new Promise(resolve => { _bandResolve = resolve; });
 }
 globalThis._onBandNext = function() {
+  const band=$('jaime-band'); if(band) band.classList.remove('next-ready');
   if (_bandResolve) { _bandResolve(); _bandResolve = null; }
 };
 function showBubble(idx) {
@@ -1049,7 +1052,7 @@ async function scene1(){
   Knight.show(K.saluda);
   Knight2.show(M.saluda);
   $('knight2').style.left = 'auto';
-  $('knight2').style.right = '2%';
+  $('knight2').style.right = '0.8vw';
   setScene(`<div class="sc" style="justify-content:flex-start;padding-top:68px;gap:20px">
     <img class="s1-w" src="${AI}logo-alargado-2.png" alt="" style="width:min(310px,84vw)">
     <img class="s1-r" src="${AI}logo-redondo.png" alt="" style="width:min(170px,40vw)">
@@ -1152,15 +1155,15 @@ async function scene5(){
 async function scene2(){
   setCounter(2); MC.hide();
   setScene(`<div class="sc" style="background:#f9f9f9;padding:0">
-    <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between">
+    <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between;overflow:hidden">
       <img src="${K.mapaPerdido}" alt=""
-           style="height:clamp(180px,33vw,300px);width:auto;flex-shrink:0;
+           style="height:min(32vw,20vh);width:auto;flex-shrink:0;
                   filter:drop-shadow(2px 4px 12px rgba(0,0,0,.5))">
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;padding:0 8px 12px 0;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2vw;padding:0 2vw 3vh 0;flex-shrink:0">
         <img src="${AI}imagen-no-gps.png" alt=""
-             style="max-height:clamp(130px,35vh,280px);width:auto;max-width:min(220px,46vw);object-fit:contain">
+             style="width:min(38vw,24vh);height:auto;object-fit:contain">
         <img src="${AI}imagen-no-internet.png" alt=""
-             style="max-height:clamp(130px,35vh,280px);width:auto;max-width:min(220px,46vw);object-fit:contain">
+             style="width:min(38vw,24vh);height:auto;object-fit:contain">
       </div>
     </div>
   </div>`);
@@ -1185,7 +1188,9 @@ async function scene8(){
     setOv(`<div style="position:absolute;inset:0;pointer-events:none">
       <div class="ov-close" id="oc8" style="pointer-events:auto">✕</div>
       <div class="or-panel">
-        <div class="or-panel-header" style="font-size:0;padding:4px"></div>
+        <div class="or-panel-header" style="display:flex;align-items:center;justify-content:center;padding:1.2vw;gap:1.5vw">
+          <img src="${B.b1}" alt="" style="width:min(7vw,4vh);height:auto;border-radius:1vw">
+        </div>
         <svg class="or-svg" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
           <!-- Fondo tipo mapa claro -->
           <rect width="220" height="170" fill="#eef2f7" rx="6"/>
@@ -1271,6 +1276,9 @@ async function sceneImg(){
   await Gauntlet.tapEl(b4,'R',()=>{
     setOv(`<div class="float-win">
       <div class="float-card">
+        <div style="display:flex;align-items:center;justify-content:center;padding:1.5vw;background:#f8f9fa;border-bottom:1px solid #eee">
+          <img src="${B.b4}" alt="" style="width:min(7vw,4vh);height:auto;border-radius:1vw">
+        </div>
         <div class="ov-close" id="ocimg" style="pointer-events:auto">✕</div>
         <img class="float-img" src="${IM}00_ torres_de serranos_back.jpg" alt="">
         <div class="float-text">Blah, bla, blah, bla, blah, bla, blah, bla, blah, bla.</div>
@@ -1307,10 +1315,14 @@ async function sceneVid(){
   await zoomBtn(b3, B.b3);
   await Gauntlet.hover(b3,'R',300);
   await Gauntlet.tapEl(b3,'R',()=>{
+    Knight.hide();
     setOv(`<div class="float-win">
       <div class="float-card" style="width:min(420px,96vw)">
+        <div style="display:flex;align-items:center;justify-content:center;padding:1.5vw;background:#f8f9fa;border-bottom:1px solid #eee">
+          <img src="${B.b3}" alt="" style="width:min(7vw,4vh);height:auto;border-radius:1vw">
+        </div>
         <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
-        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline></video>
+        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline controls></video>
       </div>
     </div>`);
   });
@@ -1382,7 +1394,7 @@ async function scene12(){
     setOv(`<div class="ch-panel" id="ch" style="align-items:flex-end">
       <div class="ch-icon-row"><img class="ch-reto-icon" src="${B.reto}" alt="" style="width:min(64px,15vw);filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))"></div>
       <!-- Puzzle board: 2x2, cells 0(filled) 1(empty) 2(empty) 3(filled) -->
-      <div class="puzzle-board" id="pboard" style="width:min(220px,58vw);height:min(166px,43.5vw);align-self:flex-end">
+      <div class="puzzle-board" id="pboard" style="align-self:flex-end">
         <div class="pz-cell filled" id="pc0"><img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 0%"></div>
         <div class="pz-cell" id="pc1"></div>
         <div class="pz-cell" id="pc2"></div>
@@ -1404,17 +1416,17 @@ async function scene12(){
     // Cell dimensions
     const cw=(br.width-4)/2, ch=(br.height-4)/2;
 
-    // Create scattered piece 1 (top-right section of monument) — scattered bottom-left
+    // Create scattered piece 1 (top-right section) — below board left half
     const p1=document.createElement('div');
     p1.id='pp1'; p1.className='pz-piece';
-    p1.style.cssText=`width:${cw}px;height:${ch}px;left:${br.left-sr.left-cw*.6}px;top:${br.bottom-sr.top+4}px`;
+    p1.style.cssText=`width:${cw}px;height:${ch}px;left:${br.left-sr.left}px;top:${br.bottom-sr.top+8}px`;
     p1.innerHTML=`<img src="${AI}H2-fotoproximo-monumento.png" style="object-position:100% 0%">`;
     $('overlay-layer').appendChild(p1);
 
-    // Create scattered piece 2 (bottom-left section) — scattered above board
+    // Create scattered piece 2 (bottom-left section) — below board right half
     const p2=document.createElement('div');
     p2.id='pp2'; p2.className='pz-piece';
-    p2.style.cssText=`width:${cw}px;height:${ch}px;left:${br.right-sr.left-cw}px;top:${br.top-sr.top-ch-10}px`;
+    p2.style.cssText=`width:${cw}px;height:${ch}px;left:${br.left-sr.left+cw+4}px;top:${br.bottom-sr.top+8}px`;
     p2.innerHTML=`<img src="${AI}H2-fotoproximo-monumento.png" style="object-position:0% 100%">`;
     $('overlay-layer').appendChild(p2);
 
@@ -1422,14 +1434,14 @@ async function scene12(){
 
     // Hover sobre pieza 1 antes de cogerla
     await Gauntlet.hover(p1,'R',300);
-    // Drag piece 1 → pc1 (top-right hole)
-    await Gauntlet.drag(p1,pc1,'DR');
+    // Drag piece 1 → pc1 (top-right hole): sube y va a la derecha
+    await Gauntlet.drag(p1,pc1,'UR');
     await wait(600);
 
     // Hover sobre pieza 2 antes de cogerla
-    await Gauntlet.hover(p2,'DR',300);
-    // Drag piece 2 → pc2 (bottom-left hole): gauntlet apunta DL (mueve pieza arriba-derecha→abajo-izquierda)
-    await Gauntlet.drag(p2,pc2,'DL');
+    await Gauntlet.hover(p2,'L',300);
+    // Drag piece 2 → pc2 (bottom-left hole): sube y va a la izquierda
+    await Gauntlet.drag(p2,pc2,'UL');
     await wait(800);
   }
 
@@ -1506,7 +1518,6 @@ async function scene18(){
   setCounter(19);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.completo);
   const hideBubble = showBubble(18);
   await wait(700);
   await Gauntlet.tapEl($('chat-btn'),'DL',()=>{
@@ -1533,7 +1544,6 @@ async function scene18(){
   await Gauntlet.tapEl(cx,'DL',()=>{ $('cpanel').classList.remove('open'); setTimeout(()=>clearOv(),440) });
   await waitForNextBtn();
   hideBubble();
-  Knight.hide();
 }
 
 /* ── P16: Mapa + caballero_camara + cuenta atrás 5 min ── */
@@ -1653,7 +1663,6 @@ async function scene17(){
   setCounter(18);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.completo);
   const hideBubble = showBubble(17);
   await wait(700);
   const blt=$('bl-timer');
@@ -1687,7 +1696,6 @@ async function scene17(){
   else clearOv();
   await wait(400);
   hideBubble();
-  Knight.hide();
 }
 
 /* ── P22: Pantalla de fin ── */
@@ -1696,6 +1704,8 @@ async function scene19(){
   setScene(mainHTML('enabled'));
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);
+  Knight2.show(M.saluda);
+  $('knight2').style.left='auto'; $('knight2').style.right='2%';
   const hideBubble = showBubble(19);
   await wait(1400);
   // Fuegos artificiales (canvas — se añade a #stage para que setOv no lo destruya)
@@ -1750,7 +1760,7 @@ async function scene19(){
       <button class="m-btn m-red">⏹</button>
     </div>
   </div>`);
-  await waitForNextBtn(); hideBubble(); Knight.hide(); await wait(400);
+  await waitForNextBtn(); hideBubble(); Knight.hide(); Knight2.hide(); await wait(400);
   const ef=$('end-fade'); ef.classList.add('w'); await wait(80); ef.classList.add('on');
   await wait(1800); ef.classList.remove('w'); ef.classList.add('b');
   await wait(2500);
