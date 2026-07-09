@@ -287,7 +287,7 @@ export const JAIME_SCENES = [
     {
         es: '¡Saludos! ¡Le damos la bienvenida a esta nueva aventura! Somos Jaime I y María de Castilla. Permítanos acompañarle durante los primeros pasos de su búsqueda del tesoro.',
         en: 'Welcome to your new adventure! We are James the First of Aragon and María of Castile — delighted to be your guides on this treasure hunt through Valencia.',
-        fr: 'Salutations ! Bienvenue dans cette nouvelle aventure ! Nous sommes Jacques Ier et Marie de Castille. Permettez-nous de vous accompagner lors des premiers pas de votre chasse au trésor.',
+        fr: 'Bienvenue dans cette nouvelle aventure ! Nous sommes Jacques Ier d\'Aragon et Marie de Castille — ravis d\'être vos guides pour cette chasse au trésor à travers Valence.',
         it: 'Saluti! Benvenuti in questa nuova avventura! Siamo Giacomo I e María di Castiglia. Permetteteci di accompagnarvi durante i primi passi della vostra caccia al tesoro.',
         nl: 'Groeten! Welkom bij dit nieuwe avontuur! Wij zijn Jacobus I en María van Castilië. Sta ons toe u te begeleiden tijdens de eerste stappen van uw schattenjacht.',
         ja: 'ご挨拶申し上げます！この新しい冒険へようこそ！私たちはハイメ1世とカスティーリャのマリアです。宝探しの最初の一歩をご一緒させてください。',
@@ -302,7 +302,7 @@ export const JAIME_SCENES = [
     {
         es: 'Una pequeña cosa antes de partir: active el GPS, asegúrese de tener conexión a internet y conceda los permisos que le solicite su dispositivo.',
         en: 'One small thing before you set off: make sure GPS and internet are switched on, and grant any permissions your device asks for.',
-        fr: 'Une petite chose avant de partir : activez le GPS, assurez-vous d\'avoir une connexion internet et accordez les autorisations demandées par votre appareil.',
+        fr: 'Avant de partir, une petite chose : vérifiez que le GPS et internet sont bien activés, et accordez les autorisations que votre appareil vous demande.',
         it: 'Una piccola cosa prima di partire: attivate il GPS, assicuratevi di avere una connessione internet e concedete i permessi richiesti dal vostro dispositivo.',
         nl: 'Eén ding voor het vertrek: schakel GPS in, zorg voor een internetverbinding en verleen de toestemmingen die uw apparaat vraagt.',
         ja: '出発前にひとつ：GPSを有効にし、インターネット接続を確認し、デバイスが要求する権限を許可してください。',
@@ -317,7 +317,7 @@ export const JAIME_SCENES = [
     {
         es: 'Tenemos el gusto de poder ofrecerle varias aventuras. Cada una tiene su distancia y duración determinada y también un tipo de transporte recomendado. Elija la que más le guste o se adapte a sus necesidades.',
         en: 'We have several adventures lined up for you. Each one has its own distance, duration and a suggested way to get around. Pick the one that suits you best.',
-        fr: 'Nous avons le plaisir de vous proposer plusieurs aventures. Chacune a une distance et une durée déterminées ainsi qu\'un mode de transport recommandé. Choisissez celle qui vous plaît le plus ou qui correspond le mieux à vos besoins.',
+        fr: 'Nous vous proposons plusieurs aventures. Chacune a sa distance, sa durée et un moyen de transport conseillé. Choisissez celle qui vous convient le mieux.',
         it: 'Abbiamo il piacere di offrirvi diverse avventure. Ognuna ha una distanza e una durata determinate, nonché un tipo di trasporto consigliato. Scegliete quella che preferite o che meglio si adatta alle vostre esigenze.',
         nl: 'Het is ons een genoegen u verschillende avonturen aan te bieden. Elk heeft een vaste afstand en duur, evenals een aanbevolen vervoersmiddel. Kies het avontuur dat u het meest aanspreekt of het beste bij uw behoeften past.',
         ja: 'いくつかの冒険をご用意しております。それぞれ決まった距離と所要時間、おすすめの交通手段があります。お好みや、ご自身のニーズに合ったものをお選びください。',
@@ -332,7 +332,7 @@ export const JAIME_SCENES = [
     {
         es: 'Un vistazo a su aventura al completo: paradas numeradas, ruta trazada. La ciudad entera, esperándole.',
         en: 'Your full adventure at a glance: numbered stops, a mapped-out route — and the whole city waiting to be explored.',
-        fr: 'Un aperçu complet de votre aventure : arrêts numérotés, itinéraire tracé. La ville entière vous attend.',
+        fr: 'Votre aventure en un coup d\'œil : arrêts numérotés, itinéraire tracé — et toute la ville qui n\'attend que vous.',
         it: 'Uno sguardo alla vostra avventura completa: tappe numerate, percorso tracciato. L\'intera città vi aspetta.',
         nl: 'Een blik op uw volledige avontuur: genummerde haltes, uitgestippelde route. De hele stad wacht op u.',
         ja: 'あなたの冒険を一望できます：番号付きの停車地、描かれたルート。街全体があなたを待っています。',
@@ -347,7 +347,7 @@ export const JAIME_SCENES = [
     {
         es: 'Estos son los botones que harán posible su aventura. Los iremos descubriendo uno a uno.',
         en: 'Here are the buttons that will power your adventure. Let\'s go through them one by one.',
-        fr: 'Voici les boutons qui rendront votre aventure possible. Nous les découvrirons un par un.',
+        fr: 'Voici les boutons qui vont animer votre aventure. Découvrons-les ensemble, un par un.',
         it: 'Questi sono i pulsanti che renderanno possibile la vostra avventura. Li scopriremo uno per uno.',
         nl: 'Dit zijn de knoppen die uw avontuur mogelijk maken. We ontdekken ze één voor één.',
         ja: 'これらのボタンがあなたの冒険を可能にします。一つずつご確認いきましょう。',
@@ -362,7 +362,7 @@ export const JAIME_SCENES = [
     {
         es: 'Este botón le mostrará el trazado completo de su aventura, así como los puntos relevantes a visitar.',
         en: 'This button shows you the full route of your adventure and all the key stops along the way.',
-        fr: 'Ce bouton vous montrera le tracé complet de votre aventure, ainsi que les points pertinents à visiter.',
+        fr: 'Ce bouton affiche le tracé complet de votre aventure ainsi que tous les points clés à visiter.',
         it: 'Questo pulsante vi mostrerà il tracciato completo della vostra avventura, nonché i punti rilevanti da visitare.',
         nl: 'Deze knop toont u de volledige route van uw avontuur, evenals de relevante punten om te bezoeken.',
         ja: 'このボタンを押すと、冒険の完全なルートと訪問すべき重要なポイントが表示されます。',
@@ -377,7 +377,7 @@ export const JAIME_SCENES = [
     {
         es: 'Este botón le mostrará el mismo mapa, pero con alma de época. Un estilo vintage que le transportará siglos atrás. ¿cuál prefiere?',
         en: 'The same map — but with a soul all of its own. A vintage style that takes you centuries back in time. Which do you prefer?',
-        fr: 'Ce bouton vous montrera la même carte, mais avec une âme d\'époque. Un style vintage qui vous transportera des siècles en arrière. Lequel préférez-vous ?',
+        fr: 'La même carte — mais avec tout le charme d\'une autre époque. Un style vintage qui vous replonge plusieurs siècles en arrière. Laquelle préférez-vous ?',
         it: 'Questo pulsante vi mostrerà la stessa mappa, ma con un\'anima d\'epoca. Uno stile vintage che vi trasporterà indietro di secoli. Quale preferite?',
         nl: 'Deze knop toont u dezelfde kaart, maar met een tijdloze ziel. Een vintage stijl die u eeuwen terug in de tijd brengt. Welke verkiest u?',
         ja: 'このボタンを押すと同じ地図が表示されますが、時代の魂を宿しています。ヴィンテージスタイルが何世紀も前へとあなたを誘います。どちらがお好みですか？',
@@ -392,7 +392,7 @@ export const JAIME_SCENES = [
     {
         es: 'De parada en parada irá descubriendo maravillosos tesoros que le ofrece la ciudad, la aventura avanza con usted. Este botón se activa o desactiva automáticamente, siempre al ritmo que necesite.',
         en: 'Stop by stop, the city reveals its wonderful treasures as the adventure unfolds around you. This button switches on and off automatically — always keeping pace with you.',
-        fr: 'Arrêt après arrêt, vous découvrirez de merveilleux trésors qu\'offre la ville, l\'aventure avance avec vous. Ce bouton s\'active ou se désactive automatiquement, toujours au rythme dont vous avez besoin.',
+        fr: 'Arrêt après arrêt, la ville vous dévoile ses merveilleux trésors tandis que l\'aventure avance à votre rythme. Ce bouton s\'active et se désactive automatiquement — toujours au bon moment.',
         it: 'Tappa dopo tappa scoprirete i meravigliosi tesori che la città ha da offrire, l\'avventura avanza con voi. Questo pulsante si attiva o si disattiva automaticamente, sempre al ritmo di cui avete bisogno.',
         nl: 'Halte na halte ontdekt u de prachtige schatten die de stad te bieden heeft, terwijl het avontuur met u meebeweegt. Deze knop activeert of deactiveert automatisch, altijd op het tempo dat u nodig heeft.',
         ja: '停車地から停車地へと、街が誇る素晴らしい宝を発見しながら、冒険はあなたと共に進みます。このボタンは自動的に有効または無効になり、常に必要なペースに合わせてくれます。',
@@ -407,7 +407,7 @@ export const JAIME_SCENES = [
     {
         es: '¿Llegando a una nueva parada? Pulse este botón y un vistazo a la imagen de su próxima parada le ayudará a reconocer el lugar al instante.',
         en: 'Coming up on a new stop? Tap this button for a quick look at the photo so you can spot the place straight away.',
-        fr: 'Vous approchez d\'un nouvel arrêt ? Appuyez sur ce bouton et un coup d\'œil à l\'image de votre prochain arrêt vous aidera à reconnaître le lieu instantanément.',
+        fr: 'Vous approchez d\'un nouvel arrêt ? Appuyez sur ce bouton pour voir la photo et repérer l\'endroit d\'un seul coup d\'œil.',
         it: 'State arrivando a una nuova tappa? Premete questo pulsante e uno sguardo all\'immagine della vostra prossima tappa vi aiuterà a riconoscere il posto all\'istante.',
         nl: 'Komt u bij een nieuwe halte? Tik op deze knop en een blik op de afbeelding van uw volgende halte helpt u de plek direct te herkennen.',
         ja: '新しい停車地に近づいていますか？このボタンを押すと、次の停車地の画像をひと目見るだけで、その場所をすぐに認識できます。',
@@ -422,7 +422,7 @@ export const JAIME_SCENES = [
     {
         es: 'Para quienes prefieran anticiparse antes de llegar: pulsando este botón, un vídeo le guiará hasta la siguiente parada, sin perderse nada. Puede volver a ver el vídeo si lo necesita para no desviarse de la ruta designada.',
         en: 'Rather see where you\'re heading before you get there? Tap this button for a short video guide to the next stop. You can watch it again any time to stay on track.',
-        fr: 'Pour ceux qui préfèrent anticiper avant d\'arriver : en appuyant sur ce bouton, une vidéo vous guidera jusqu\'au prochain arrêt, sans rien manquer. Vous pouvez revoir la vidéo si nécessaire pour ne pas vous écarter de l\'itinéraire désigné.',
+        fr: 'Vous préférez voir où vous allez avant d\'y arriver ? Ce bouton lance une courte vidéo qui vous guide jusqu\'au prochain arrêt. Regardez-la autant de fois qu\'il le faut pour rester sur le bon chemin.',
         it: 'Per chi preferisce anticipare prima di arrivare: premendo questo pulsante, un video vi guiderà fino alla prossima tappa, senza perdersi nulla. Potete rivedere il video se necessario per non deviare dal percorso designato.',
         nl: 'Voor wie liever vooruitloopt voor aankomst: door op deze knop te drukken begeleidt een video u naar de volgende halte, zonder iets te missen. U kunt de video opnieuw bekijken als u de aangewezen route wilt volgen.',
         ja: '到着前に先を知りたい方へ：このボタンを押すと、次の停車地まで何も見逃さずにビデオが案内します。指定されたルートから外れないよう、必要であれば再度ビデオをご覧になれます。',
@@ -437,7 +437,7 @@ export const JAIME_SCENES = [
     {
         es: 'En Busca del Tesoro es una experiencia audioguiada, interactiva y didáctica, ideal para descubrir la ciudad mientras juega. Este botón le permitirá escuchar las narraciones en el idioma que elija.',
         en: 'En Busca del Tesoro is an audio-guided, interactive experience designed to help you discover the city while you play. Use this button to listen to the commentary in the language of your choice.',
-        fr: 'En Busca del Tesoro est une expérience audioguide, interactive et didactique, idéale pour découvrir la ville en jouant. Ce bouton vous permettra d\'écouter les narrations dans la langue de votre choix.',
+        fr: 'En Busca del Tesoro est une expérience interactive avec audioguide, idéale pour découvrir la ville en s\'amusant. Ce bouton vous permet d\'écouter les commentaires dans la langue de votre choix.',
         it: 'En Busca del Tesoro è un\'esperienza audioguida, interattiva e didattica, ideale per scoprire la città mentre si gioca. Questo pulsante vi permetterà di ascoltare le narrazioni nella lingua di vostra scelta.',
         nl: 'En Busca del Tesoro is een audiobegeleide, interactieve en educatieve ervaring, ideaal om de stad te ontdekken terwijl u speelt. Met deze knop kunt u de vertellingen beluisteren in de taal van uw keuze.',
         ja: '「En Busca del Tesoro」は、遊びながら街を発見するのに理想的な、音声ガイド付きのインタラクティブで教育的な体験です。このボタンで、お好みの言語でナレーションをお聴きいただけます。',
@@ -452,7 +452,7 @@ export const JAIME_SCENES = [
     {
         es: 'Cuando este botón se habilite, la diversión irá un paso más allá. Puzles, acertijos y pruebas le esperan.',
         en: 'When this button lights up, the fun takes it up a notch. Puzzles, riddles and challenges are waiting for you.',
-        fr: 'Quand ce bouton sera disponible, le plaisir ira un cran plus loin. Puzzles, énigmes et épreuves vous attendent.',
+        fr: 'Quand ce bouton s\'allume, le plaisir monte d\'un cran. Puzzles, énigmes et défis vous attendent.',
         it: 'Quando questo pulsante sarà disponibile, il divertimento andrà un passo più in là. Puzzle, enigmi e prove vi aspettano.',
         nl: 'Wanneer deze knop beschikbaar wordt, gaat het plezier een stap verder. Puzzels, raadsels en proeven wachten op u.',
         ja: 'このボタンが使えるようになると、楽しさがもう一段上がります。パズル、なぞなぞ、そして試練があなたを待っています。',
@@ -467,7 +467,7 @@ export const JAIME_SCENES = [
     {
         es: '¿Y si las preguntas no fueran tan simples? Algunas son de opción múltiple y pueden tener más de una respuesta correcta. ¡Lea con atención antes de responder y observe su entorno!',
         en: 'Not all questions are as simple as they look. Some are multiple choice — and more than one answer may be correct. Read carefully, look around you and think before you tap!',
-        fr: 'Et si les questions n\'étaient pas si simples ? Certaines sont à choix multiples et peuvent avoir plus d\'une bonne réponse. Lisez attentivement avant de répondre et observez votre environnement !',
+        fr: 'Les questions ne sont pas toujours aussi simples qu\'elles en ont l\'air. Certaines sont à choix multiples — et il peut y avoir plus d\'une bonne réponse. Lisez bien, regardez autour de vous et réfléchissez avant de répondre !',
         it: 'E se le domande non fossero così semplici? Alcune sono a opzione multipla e possono avere più di una risposta corretta. Leggete attentamente prima di rispondere e osservate l\'ambiente intorno a voi!',
         nl: 'Wat als de vragen niet zo eenvoudig zijn? Sommige zijn meerkeuze en kunnen meer dan één correct antwoord hebben. Lees zorgvuldig voordat u antwoordt en observeer uw omgeving!',
         ja: 'もし質問がそれほど簡単でなかったら？複数選択式で、正しい答えが複数ある場合もあります。答える前によく読み、周囲をよく観察しましょう！',
@@ -482,7 +482,7 @@ export const JAIME_SCENES = [
     {
         es: 'Valencia merece ser saboreada. Fotografíe, descanse, explore el lugar recomendado… Su aventura no tiene prisa. Tampoco usted. Le invitamos a recorrer sus calles, resolver enigmas y descubrir su patrimonio de una forma amena. Hagamos de la historia una experiencia divertida.',
         en: 'Valencia deserves to be savoured. Stop for a photo, take a rest, explore the recommended spot… There\'s no rush. Wander the streets, unravel the mysteries and discover the city\'s heritage at your own pace. Let\'s make history an experience worth remembering.',
-        fr: 'Valence mérite d\'être savourée. Photographiez, reposez-vous, explorez l\'endroit recommandé… Votre aventure n\'est pas pressée. Vous non plus. Nous vous invitons à parcourir ses rues, résoudre des énigmes et découvrir son patrimoine d\'une façon agréable. Faisons de l\'histoire une expérience amusante.',
+        fr: 'Valence mérite d\'être savourée. Prenez des photos, faites une pause, explorez l\'endroit recommandé… Rien ne presse. Flânez dans ses rues, percez ses mystères et découvrez son patrimoine à votre rythme. Faisons ensemble de l\'histoire une expérience mémorable.',
         it: 'Valencia merita di essere assaporata. Fotografate, riposatevi, esplorate il posto consigliato… La vostra avventura non ha fretta. Neanche voi. Vi invitiamo a percorrere le sue strade, risolvere enigmi e scoprire il suo patrimonio in modo piacevole. Facciamo della storia un\'esperienza divertente.',
         nl: 'Valencia verdient het om te worden geproefd. Fotografeer, rust uit, verken de aanbevolen plek… Uw avontuur heeft geen haast. U ook niet. Wij nodigen u uit om door de straten te wandelen, raadsels op te lossen en het erfgoed op een aangename manier te ontdekken. Laten we van geschiedenis een leuke ervaring maken.',
         ja: 'バレンシアは味わう価値があります。写真を撮り、休息し、おすすめの場所を探索してください…あなたの冒険は急ぎません。あなたも同じです。街の通りを歩き、謎を解き、その文化遺産を楽しく発見されることをお勧めします。歴史を楽しい体験にしましょう。',
@@ -529,7 +529,7 @@ export const JAIME_SCENES = [
     {
         es: 'Cada aventura tiene un tiempo estimado de finalización. Aquí puede controlar el tiempo transcurrido en todo momento.',
         en: 'Every adventure has an estimated finish time. Check how much time has passed here whenever you like.',
-        fr: 'Chaque aventure a un temps estimé de réalisation. Ici, vous pouvez vérifier le temps écoulé quand vous le souhaitez.',
+        fr: 'Chaque aventure a une durée estimée. Consultez ici le temps écoulé quand vous le souhaitez.',
         it: 'Ogni avventura ha un tempo stimato di completamento. Qui potete controllare il tempo trascorso quando volete.',
         nl: 'Elk avontuur heeft een geschatte voltooiingstijd. Hier kunt u de verstreken tijd controleren wanneer u maar wilt.',
         ja: '各冒険には推定完了時間があります。ここでいつでも経過時間を確認できます。',
@@ -544,7 +544,7 @@ export const JAIME_SCENES = [
     {
         es: '¿Alguna pregunta? Tenemos respuestas. Pulse aquí para acceder a nuestro listado de preguntas frecuentes.',
         en: 'Got a question? We have answers. Tap here to browse our frequently asked questions.',
-        fr: 'Des questions ? Nous avons des réponses. Appuyez ici pour accéder à notre liste de questions fréquentes.',
+        fr: 'Des questions ? Nous avons des réponses. Appuyez ici pour consulter notre liste de questions fréquentes.',
         it: 'Domande? Abbiamo le risposte. Premete qui per accedere al nostro elenco di domande frequenti.',
         nl: 'Vragen? Wij hebben antwoorden. Druk hier om toegang te krijgen tot onze lijst met veelgestelde vragen.',
         ja: 'ご質問はありますか？回答があります。こちらをタップして、よくある質問の一覧にアクセスしてください。',
@@ -559,7 +559,7 @@ export const JAIME_SCENES = [
     {
         es: 'Todo preparado. Valencia le espera con sus monumentos, sus secretos y sus retos. ¡Que comience la aventura!',
         en: 'All set. Valencia is waiting — with its monuments, its secrets and its challenges. Let the adventure begin!',
-        fr: 'Tout est prêt. Valence vous attend avec ses monuments, ses secrets et ses défis. Que l\'aventure commence !',
+        fr: 'Tout est prêt. Valence vous attend — ses monuments, ses secrets, ses défis. Que l\'aventure commence !',
         it: 'Tutto pronto. Valencia vi aspetta con i suoi monumenti, i suoi segreti e le sue sfide. Che l\'avventura abbia inizio!',
         nl: 'Alles klaar. Valencia wacht op u met zijn monumenten, zijn geheimen en zijn uitdagingen. Laat het avontuur beginnen!',
         ja: '準備完了です。バレンシアがその名所、秘密、そして挑戦とともにあなたを待っています。冒険を始めましょう！',
