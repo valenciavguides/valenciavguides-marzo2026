@@ -1809,7 +1809,7 @@ async function run(){
   for(const fn of scenes){
     if (_skipRequested) break;
     [$('knight'),$('knight2')].forEach(k=>{
-      if(k){ k.classList.remove('show','bounce','walk'); k.style.cssText='display:none'; }
+      if(k){ k.classList.remove('show','bounce','walk','knight-fullbody'); k.style.cssText='display:none'; }
     });
     clearOv(); await fn(); await wait(650);
     if(fn===scene4) $('btn-skip').classList.add('on');
