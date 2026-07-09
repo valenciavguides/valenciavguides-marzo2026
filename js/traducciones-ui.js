@@ -296,7 +296,7 @@ export const JAIME_SCENES = [
         pl: 'Pozdrowienia! Witamy w tej nowej przygodzie! Jesteśmy Jakubem I i Marią z Kastylii. Pozwólcie, że towarzyszymy wam podczas pierwszych kroków poszukiwania skarbu.',
         pt: 'Bem-vindos a esta nova aventura! Somos Jaime I de Aragão e Maria de Castela — encantados por ser os vossos guias nesta caça ao tesouro por Valência.',
         ru: 'Добро пожаловать в это новое приключение! Мы — Хайме I Арагонский и Мария Кастильская, и мы рады быть вашими проводниками в этой охоте за сокровищами через Валенсию.',
-        uk: 'Вітаємо! Ласкаво просимо до цієї нової пригоди! Ми — Хайме I та Марія Кастильська. Дозвольте нам супроводжувати вас під час перших кроків пошуку скарбу.',
+        uk: 'Ласкаво просимо до нової пригоди! Ми — Хайме I Арагонський та Марія Кастильська, і нам приємно бути вашими провідниками у цьому пошуку скарбів Валенсією.',
     },
     // 1 — GPS / internet (reubicada como segunda pantalla)
     {
@@ -311,7 +311,7 @@ export const JAIME_SCENES = [
         pl: 'Jedna mała rzecz przed wyruszeniem: włączcie GPS, upewnijcie się, że macie połączenie z internetem i przyznajcie uprawnienia, których wymaga urządzenie.',
         pt: 'Antes de partir, uma pequena coisa: certifique-se de que o GPS e a internet estão ativos e conceda as permissões que o seu dispositivo pedir.',
         ru: 'Перед отправлением — один небольшой момент: убедитесь, что GPS и интернет включены, и разрешите запросы, которые присылает ваше устройство.',
-        uk: 'Одна невелика річ перед відправленням: увімкніть GPS, переконайтеся, що є підключення до інтернету, та надайте дозволи, які запитує ваш пристрій.',
+        uk: 'Перед відправленням — невелика річ: переконайтеся, що GPS та інтернет увімкнені, та надайте дозволи, які запитує ваш пристрій.',
     },
     // 2 — Selección de aventura
     {
@@ -326,7 +326,7 @@ export const JAIME_SCENES = [
         pl: 'Mamy przyjemność zaoferować wam kilka przygód. Każda ma określoną odległość i czas trwania, a także zalecany środek transportu. Wybierzcie tę, która najbardziej wam odpowiada lub najlepiej pasuje do waszych potrzeb.',
         pt: 'Temos várias aventuras à sua espera. Cada uma tem a sua distância, duração e um meio de transporte sugerido. Escolha a que melhor lhe convém.',
         ru: 'Для вас подготовлено несколько приключений. У каждого своя дистанция, продолжительность и рекомендуемый транспорт. Выберите то, что подходит вам больше всего.',
-        uk: 'Ми раді запропонувати вам кілька пригод. Кожна має визначену відстань і тривалість, а також рекомендований вид транспорту. Оберіть ту, яка вам найбільше подобається або найкраще відповідає вашим потребам.',
+        uk: 'Для вас підготовлено кілька пригод. Кожна має свою відстань, тривалість і рекомендований транспорт. Оберіть ту, що найкраще вам підходить.',
     },
     // 3 — Mapa vintage de la aventura
     {
@@ -341,7 +341,7 @@ export const JAIME_SCENES = [
         pl: 'Rzut oka na całą przygodę: ponumerowane przystanki, wytyczona trasa. Całe miasto czeka na was.',
         pt: 'A sua aventura toda de relance: paragens numeradas, rota traçada — e a cidade inteira à sua espera.',
         ru: 'Ваше приключение с первого взгляда: пронумерованные остановки, проложенный маршрут — и весь город, который вас ждёт.',
-        uk: 'Погляд на всю вашу пригоду: пронумеровані зупинки, прокладений маршрут. Усе місто чекає на вас.',
+        uk: 'Вся ваша пригода з першого погляду: пронумеровані зупинки, прокладений маршрут — і все місто, яке чекає на вас.',
     },
     // 4 — Grid de todos los botones
     {
@@ -356,7 +356,7 @@ export const JAIME_SCENES = [
         pl: 'To są przyciski, które umożliwią waszą przygodę. Będziemy je odkrywać jeden po drugim.',
         pt: 'Estes são os botões que vão dar vida à sua aventura. Vamos percorrê-los juntos, um a um.',
         ru: 'Вот кнопки, которые оживят ваше приключение. Давайте разберём их вместе, одну за другой.',
-        uk: 'Це кнопки, які зроблять вашу пригоду можливою. Ми відкриватимемо їх одну за одною.',
+        uk: 'Ось кнопки, які оживлять вашу пригоду. Розберімо їх разом, одну за одною.',
     },
     // 5 — Botón mapa digital completo (b1)
     {
@@ -371,7 +371,7 @@ export const JAIME_SCENES = [
         pl: 'Ten przycisk pokaże wam pełny przebieg trasy waszej przygody, a także istotne punkty do odwiedzenia.',
         pt: 'Este botão mostra o traçado completo da sua aventura e todos os pontos-chave a visitar.',
         ru: 'Эта кнопка показывает полный маршрут вашего приключения и все ключевые точки для посещения.',
-        uk: 'Ця кнопка покаже вам повний маршрут вашої пригоди, а також відповідні місця для відвідування.',
+        uk: 'Ця кнопка показує повний маршрут вашої пригоди та всі ключові місця для відвідування.',
     },
     // 6 — Botón mapa vintage (b2)
     {
@@ -386,7 +386,7 @@ export const JAIME_SCENES = [
         pl: 'Ten przycisk pokaże wam tę samą mapę, ale z duszą epoki. Styl vintage, który przeniesie was o wieki wstecz. Który wolelibyście?',
         pt: 'O mesmo mapa — mas com todo o charme de outra época. Um estilo vintage que o leva de volta séculos no tempo. Qual prefere?',
         ru: 'Та же карта — но с духом другой эпохи. Винтажный стиль, который перенесёт вас на несколько веков назад. Какая вам больше нравится?',
-        uk: 'Ця кнопка покаже вам ту саму карту, але з душею епохи. Вінтажний стиль перенесе вас на кілька століть назад. Що ви надаєте перевагу?',
+        uk: 'Та сама карта — але з духом іншої епохи. Вінтажний стиль, який перенесе вас на кілька століть у минуле. Яка вам більше до вподоби?',
     },
     // 7 — Botón avanzar (b-av)
     {
@@ -401,7 +401,7 @@ export const JAIME_SCENES = [
         pl: 'Przystanek po przystanku będziecie odkrywać wspaniałe skarby, które oferuje miasto, a przygoda postępuje razem z wami. Ten przycisk aktywuje się lub dezaktywuje automatycznie, zawsze we właściwym rytmie.',
         pt: 'Paragem a paragem, a cidade revela os seus maravilhosos tesouros enquanto a aventura avança ao seu ritmo. Este botão ativa-se e desativa-se automaticamente — sempre na hora certa.',
         ru: 'Остановка за остановкой город открывает свои удивительные сокровища, пока приключение идёт в вашем темпе. Эта кнопка включается и выключается сама — всегда в нужный момент.',
-        uk: 'Зупинка за зупинкою ви відкриватимете чудові скарби, які пропонує місто, а пригода рухається разом з вами. Ця кнопка вмикається або вимикається автоматично, завжди в потрібному вам темпі.',
+        uk: 'Зупинка за зупинкою місто відкриває свої чудові скарби, поки пригода рухається у вашому темпі. Ця кнопка вмикається і вимикається сама — завжди саме тоді, коли потрібно.',
     },
     // 8 — Botón imagen próxima parada (b4)
     {
@@ -416,7 +416,7 @@ export const JAIME_SCENES = [
         pl: 'Zbliżacie się do nowego przystanku? Naciśnijcie ten przycisk, a jedno spojrzenie na zdjęcie waszego następnego przystanku pomoże natychmiast rozpoznać miejsce.',
         pt: 'A aproximar-se de uma nova paragem? Prima este botão para ver a foto e reconhecer o local de imediato.',
         ru: 'Приближаетесь к новой остановке? Нажмите эту кнопку, чтобы взглянуть на фото и сразу узнать место.',
-        uk: 'Наближаєтеся до нової зупинки? Натисніть цю кнопку, і один погляд на зображення вашої наступної зупинки допоможе миттєво впізнати місце.',
+        uk: 'Наближаєтеся до нової зупинки? Натисніть цю кнопку, щоб поглянути на фото і відразу впізнати місце.',
     },
     // 9 — Botón vídeo / dron (b3)
     {
@@ -431,7 +431,7 @@ export const JAIME_SCENES = [
         pl: 'Dla tych, którzy wolą przygotować się przed dotarciem: naciskając ten przycisk, film poprowadzi was do następnego przystanku, bez pominięcia czegokolwiek. Możecie obejrzeć film ponownie, jeśli potrzebujecie, aby nie zbaczać z wyznaczonej trasy.',
         pt: 'Prefere saber para onde vai antes de lá chegar? Prima este botão para um breve vídeo que o guia até à próxima paragem. Reveja-o sempre que precisar para manter a rota certa.',
         ru: 'Хотите знать заранее, куда идти? Нажмите эту кнопку, и короткое видео проведёт вас к следующей остановке. Пересматривайте его сколько угодно, чтобы не сбиться с маршрута.',
-        uk: 'Для тих, хто вважає за краще підготуватися наперед: натиснувши цю кнопку, відео проведе вас до наступної зупинки, не пропустивши нічого. Ви можете переглянути відео ще раз, якщо потрібно, щоб не відхилятися від вказаного маршруту.',
+        uk: 'Хочете знати, куди прямуєте, ще до прибуття? Натисніть цю кнопку, і коротке відео проведе вас до наступної зупинки. Переглядайте його скільки потрібно, щоб не збитися з маршруту.',
     },
     // 10 — Botón audio principal
     {
@@ -446,7 +446,7 @@ export const JAIME_SCENES = [
         pl: 'En Busca del Tesoro to interaktywne i dydaktyczne doświadczenie z przewodnikiem audio, idealne do odkrywania miasta podczas zabawy. Ten przycisk pozwoli wam słuchać narracji w wybranym języku.',
         pt: 'En Busca del Tesoro é uma experiência interativa com audioguia, pensada para descobrir a cidade a jogar. Use este botão para ouvir os comentários no idioma da sua escolha.',
         ru: 'En Busca del Tesoro — это интерактивный опыт с аудиогидом, созданный для того, чтобы открывать город в игровой форме. С помощью этой кнопки слушайте комментарии на выбранном языке.',
-        uk: 'En Busca del Tesoro — це аудіогід, інтерактивний та навчальний досвід, ідеальний для відкриття міста під час гри. Ця кнопка дозволить вам слухати розповіді обраною мовою.',
+        uk: 'En Busca del Tesoro — це інтерактивний досвід з аудіогідом, створений для того, щоб відкривати місто в ігровій формі. За допомогою цієї кнопки слухайте коментарі обраною мовою.',
     },
     // 11 — Reto puzzle
     {
@@ -461,7 +461,7 @@ export const JAIME_SCENES = [
         pl: 'Gdy ten przycisk stanie się dostępny, zabawa pójdzie o krok dalej. Puzzle, zagadki i próby czekają na was.',
         pt: 'Quando este botão se acender, a diversão sobe de nível. Puzzles, enigmas e desafios esperam por si.',
         ru: 'Когда эта кнопка загорится, веселье выйдет на новый уровень. Головоломки, загадки и испытания уже ждут вас.',
-        uk: 'Коли ця кнопка стане доступною, розваги підуть на крок далі. Пазли, загадки та випробування чекають на вас.',
+        uk: 'Коли ця кнопка засвітиться, розваги виходять на новий рівень. Пазли, загадки та випробування вже чекають на вас.',
     },
     // 12 — Reto preguntas MCQ
     {
@@ -476,7 +476,7 @@ export const JAIME_SCENES = [
         pl: 'A gdyby pytania nie były takie proste? Niektóre są wielokrotnego wyboru i mogą mieć więcej niż jedną poprawną odpowiedź. Czytajcie uważnie przed odpowiedzią i obserwujcie otoczenie!',
         pt: 'Nem todas as perguntas são tão simples como parecem. Algumas são de escolha múltipla — e pode haver mais do que uma resposta certa. Leia com atenção, olhe à sua volta e pense antes de responder!',
         ru: 'Не все вопросы так просты, как кажутся. Некоторые из них — с множественным выбором, и правильных ответов может быть несколько. Читайте внимательно, оглядывайтесь вокруг и думайте, прежде чем отвечать!',
-        uk: 'А що, якщо запитання виявляться не такими простими? Деякі є множинним вибором і можуть мати більше однієї правильної відповіді. Читайте уважно перед відповіддю та спостерігайте за своїм оточенням!',
+        uk: 'Не всі запитання такі прості, якими здаються. Деякі мають множинний вибір — і правильних відповідей може бути кілька. Читайте уважно, озирайтеся навколо і думайте, перш ніж відповідати!',
     },
     // 13 — Pausa / cámara / lugar recomendado
     {
@@ -491,7 +491,7 @@ export const JAIME_SCENES = [
         pl: 'Walencja zasługuje na to, żeby ją smakować. Fotografujcie, odpoczywajcie, odkrywajcie polecane miejsce… Wasza przygoda się nie spieszy. Wy też nie. Zapraszamy do spacerowania jej ulicami, rozwiązywania zagadek i odkrywania jej dziedzictwa w przyjemny sposób. Sprawmy, żeby historia stała się zabawnym przeżyciem.',
         pt: 'Valência merece ser saboreada. Tire fotos, descanse, explore o local recomendado… Não há pressa. Passeie pelas ruas, desvende os enigmas e descubra o património da cidade ao seu ritmo. Façamos juntos da história uma experiência inesquecível.',
         ru: 'Валенсия заслуживает того, чтобы её смаковали. Фотографируйте, отдыхайте, исследуйте рекомендованное место… Никуда не спешите. Прогуляйтесь по улицам, разгадайте загадки и откройте для себя наследие города в собственном темпе. Давайте вместе превратим историю в незабываемое переживание.',
-        uk: 'Валенсія заслуговує на те, щоб нею насолоджуватися. Фотографуйте, відпочивайте, досліджуйте рекомендоване місце… Ваша пригода не поспішає. І ви теж. Запрошуємо вас прогулятися її вулицями, розгадати загадки та відкрити її спадщину в приємний спосіб. Зробімо з історії веселий досвід.',
+        uk: 'Валенсія заслуговує на те, щоб нею насолоджуватися. Фотографуйте, відпочивайте, досліджуйте рекомендоване місце… Нікуди не поспішайте. Гуляйте вулицями, розгадуйте загадки та відкривайте спадщину міста у власному темпі. Зробімо разом з історії незабутній досвід.',
     },
     // 14 — Fuera de ruta / botón ubicación (b6)
     {
@@ -538,7 +538,7 @@ export const JAIME_SCENES = [
         pl: 'Każda przygoda ma szacowany czas ukończenia. Tutaj możecie sprawdzić upłynięty czas, kiedy tylko chcecie.',
         pt: 'Cada aventura tem uma duração estimada. Consulte aqui o tempo decorrido sempre que quiser.',
         ru: 'Каждое приключение имеет расчётную продолжительность. Проверяйте здесь прошедшее время в любой момент.',
-        uk: 'Кожна пригода має розрахунковий час завершення. Тут ви можете перевірити минулий час будь-коли.',
+        uk: 'Кожна пригода має розрахункову тривалість. Перевіряйте тут час, що минув, коли завгодно.',
     },
     // 18 — Asistente / preguntas frecuentes
     {
@@ -553,7 +553,7 @@ export const JAIME_SCENES = [
         pl: 'Macie pytania? Mamy odpowiedzi. Naciśnijcie tutaj, aby uzyskać dostęp do naszej listy często zadawanych pytań.',
         pt: 'Alguma dúvida? Temos respostas. Prima aqui para consultar as nossas perguntas frequentes.',
         ru: 'Есть вопросы? У нас найдутся ответы. Нажмите здесь, чтобы открыть наш список часто задаваемых вопросов.',
-        uk: 'Є запитання? Ми маємо відповіді. Натисніть тут, щоб отримати доступ до списку поширених запитань.',
+        uk: 'Є запитання? У нас є відповіді. Натисніть тут, щоб переглянути список поширених запитань.',
     },
     // 19 — Pantalla final
     {
@@ -568,7 +568,7 @@ export const JAIME_SCENES = [
         pl: 'Wszystko gotowe. Walencja czeka na was ze swoimi zabytkami, tajemnicami i wyzwaniami. Niech przygoda się rozpocznie!',
         pt: 'Tudo pronto. Valência aguarda-o — com os seus monumentos, os seus segredos e os seus desafios. Que a aventura comece!',
         ru: 'Всё готово. Валенсия ждёт вас — с памятниками, тайнами и испытаниями. Пусть приключение начнётся!',
-        uk: 'Все готово. Валенсія чекає на вас зі своїми пам\'ятками, таємницями та випробуваннями. Нехай пригода розпочнеться!',
+        uk: 'Все готово. Валенсія чекає на вас — з пам\'ятками, таємницями та випробуваннями. Нехай пригода розпочнеться!',
     },
 ];
 
