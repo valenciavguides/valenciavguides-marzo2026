@@ -731,11 +731,11 @@ const Knight = {
     });
   },
   hide(){ const k=$('knight'); k.classList.remove('show','bounce') },
-  async walk(route,ms){
+  async walk(route,ms,heightFactor=1){
     const k=$('knight');
     k.src=K.caminando; k.classList.remove('show','bounce'); k.classList.add('walk');
     const sr=stageR(), pts=interp(route.path,55), step=ms/pts.length;
-    const kH=Math.min(sr.height*.18,130);
+    const kH=Math.min(sr.height*.18,130)*heightFactor;
     const p0=MC.map.latLngToContainerPoint(L.latLng(pts[0]));
     k.style.cssText=`position:absolute;height:${kH}px;width:auto;max-width:18%;
       left:${p0.x-kH*.28}px;top:${p0.y-kH}px;z-index:400;pointer-events:none;
@@ -1357,7 +1357,7 @@ async function scene10(){
   await Gauntlet.hover(bav,'R',350);
   await Gauntlet.tapEl(bav,'R',()=>{ spin(bav); MC.showFull(RA) });
   await wait(600);
-  await Knight.walk(RA, 6500);
+  await Knight.walk(RA, 6500, 0.7);
   await waitForNextBtn();
   hideBubble();
   Knight.hide();
