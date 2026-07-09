@@ -1276,7 +1276,6 @@ async function sceneImg(){
   setCounter(9);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(M.camina);
   const hideBubble = showBubble(8);
   await wait(900);
   const b4=$('b4');
@@ -1316,7 +1315,6 @@ async function sceneVid(){
   setCounter(10);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(M.camina);
   const hideBubble = showBubble(9);
   await wait(900);
   const b3=$('b3');
@@ -1352,7 +1350,6 @@ async function scene10(){
   setCounter(8);
   setScene(mainHTML('disabled'));
   MC.showInset(RA);
-  Knight.show(M.camina);
   const hideBubble = showBubble(7);
   await wait(900);
   const bav=$('b-av');
@@ -1596,7 +1593,7 @@ async function scene14(){
     const ext=L.latLngBounds([...RA.path, offPt]);
     MC.map.fitBounds(ext,{paddingTopLeft:[62,52],paddingBottomRight:[62,96]});
   },100);
-  MC._mkM(RA); MC.showFull(RA);
+  MC._mkM(RA); MC.showFull(RA); MC.showSec(offPt, RA.path[0]);
   setTimeout(()=>MC.moveUser(offPt),150);
   await wait(60); $('b6').classList.add('disabled');
   // Caballero perdido + banda de texto visible desde el inicio (botón deshabilitado)
@@ -1686,7 +1683,7 @@ async function scene17(){
   await wait(700);
   const blt=$('bl-timer');
   spin(blt);
-  await zoomBtn(blt, B.timer);
+  await zoomBtn(blt, B.timer, 7000);
   await Gauntlet.hover(blt,'L',320);
   await Gauntlet.tapEl(blt,'L',()=>{
     spin(blt);
