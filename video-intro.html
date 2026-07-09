@@ -1165,9 +1165,9 @@ async function scene2(){
                   filter:drop-shadow(2px 4px 12px rgba(0,0,0,.5))">
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2vw;padding:0 2vw 3vh 0;flex-shrink:0">
         <img src="${AI}imagen-no-gps.png" alt=""
-             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.05)">
+             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.20);transform-origin:top center">
         <img src="${AI}imagen-no-internet.png" alt=""
-             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.05)">
+             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.20);transform-origin:top center">
       </div>
     </div>
   </div>`);
@@ -1379,7 +1379,8 @@ async function scene11(){
   await Gauntlet.hover(amain,'R',350);
   await Gauntlet.tapEl(amain,'R',()=>{ spin(amain); $('astrip').classList.add('open') });
   await wait(800);
-  await Promise.race([animAP(0, 87, 6000), waitForNextBtn()]);
+  await animAP(0, 87, 6000);
+  await waitForNextBtn();
   hideBubble();
   Knight.hide();
 }
