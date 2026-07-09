@@ -707,7 +707,7 @@ function showBubble(idx) {
     });
   };
 }
-const setCounter = (n,t=20) => $('counter').textContent=`${n} / ${t}`;
+const setCounter = (n,t=19) => $('counter').textContent=`${n} / ${t}`;
 
 function interp(pts,steps){
   const out=[]; const per=Math.ceil(steps/(pts.length-1));
@@ -1523,7 +1523,7 @@ async function sceneRetoMCQ(){
 
 /* ── P21: Chat (hijo6) ── */
 async function scene18(){
-  setCounter(19);
+  setCounter(18);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.cerca);
@@ -1634,7 +1634,7 @@ async function scene15(){
 
 /* ── P19: Error GPS + caballero_durmiendo ── */
 async function scene16(){
-  setCounter(17);
+  setCounter(16);
   setScene(mainHTML('disabled'));
   const farOff=[39.4685,-0.3858];  // muy lejos: ~1.8 km al suroeste
   $('map').classList.add('on');
@@ -1676,7 +1676,7 @@ async function scene16(){
 
 /* ── P20: Botón temporizador ── */
 async function scene17(){
-  setCounter(18);
+  setCounter(17);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const hideBubble = showBubble(17);
@@ -1716,7 +1716,7 @@ async function scene17(){
 
 /* ── P22: Pantalla de fin ── */
 async function scene19(){
-  setCounter(20);
+  setCounter(19);
   setScene(mainHTML('enabled'));
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);
