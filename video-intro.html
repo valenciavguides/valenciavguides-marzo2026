@@ -263,7 +263,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 /* PUZZLE BOARD */
 .puzzle-board{
   display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
-  gap:4px;width:min(338px,80.6vw);height:min(255px,60.5vw);
+  gap:4px;width:min(355px,84.6vw);height:min(293px,69.6vw);
   align-self:center;border:2px solid #8b5e1a;border-radius:6px;overflow:hidden;
   flex-shrink:0;
 }
@@ -763,7 +763,7 @@ const Knight2 = {
 };
 
 /* ── ZOOM-SHOWCASE de botón ─────────────────── */
-async function zoomBtn(btnEl, imgSrc){
+async function zoomBtn(btnEl, imgSrc, displayMs=2000){
   const sr=stageR(), br=btnEl.getBoundingClientRect();
   const ol=$('overlay-layer');
   const d=document.createElement('div');
@@ -780,7 +780,7 @@ async function zoomBtn(btnEl, imgSrc){
   d.style.top=(sr.height/2-tw/2)+'px';
   d.style.width=tw+'px'; d.style.height=tw+'px';
   d.style.boxShadow='0 10px 36px rgba(0,0,0,.55)';
-  await wait(2000);
+  await wait(displayMs);
   d.style.transition='all .38s cubic-bezier(.4,0,.2,1)';
   d.style.left=(br.left-sr.left)+'px'; d.style.top=(br.top-sr.top)+'px';
   d.style.width=w+'px'; d.style.height=h+'px';
@@ -1165,9 +1165,9 @@ async function scene2(){
                   filter:drop-shadow(2px 4px 12px rgba(0,0,0,.5))">
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2vw;padding:0 2vw 3vh 0;flex-shrink:0">
         <img src="${AI}imagen-no-gps.png" alt=""
-             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain">
+             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.05)">
         <img src="${AI}imagen-no-internet.png" alt=""
-             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain">
+             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.05)">
       </div>
     </div>
   </div>`);
@@ -1181,12 +1181,12 @@ async function scene8(){
   setCounter(6);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight2.show(K.completo);
+  Knight2.show(M.camina);
   const hideBubble = showBubble(5);
   await wait(900);
   const b1=$('b1');
   spin(b1);
-  await zoomBtn(b1, B.b1);
+  await zoomBtn(b1, B.b1, 7000);
   await Gauntlet.hover(b1,'R',350);
   await Gauntlet.tapEl(b1,'R',()=>{ spin(b1); MC.showAll();
     setOv(`<div style="position:absolute;inset:0;pointer-events:none">
@@ -1255,7 +1255,7 @@ async function scene9(){
   await wait(900);
   const b2=$('b2');
   spin(b2);
-  await zoomBtn(b2, B.b2);
+  await zoomBtn(b2, B.b2, 7000);
   await Gauntlet.hover(b2,'R',350);
   await Gauntlet.tapEl(b2,'R',()=>{ spin(b2);
     setOv(`<div class="ov-dark" style="justify-content:flex-start">
@@ -1276,12 +1276,12 @@ async function sceneImg(){
   setCounter(9);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.completo);
+  Knight.show(M.camina);
   const hideBubble = showBubble(8);
   await wait(900);
   const b4=$('b4');
   spin(b4);
-  await zoomBtn(b4, B.b4);
+  await zoomBtn(b4, B.b4, 7000);
   await Gauntlet.hover(b4,'R',300);
   await Gauntlet.tapEl(b4,'R',()=>{
     setOv(`<div class="float-win">
@@ -1316,12 +1316,12 @@ async function sceneVid(){
   setCounter(10);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
-  Knight.show(K.completo);
+  Knight.show(M.camina);
   const hideBubble = showBubble(9);
   await wait(900);
   const b3=$('b3');
   spin(b3);
-  await zoomBtn(b3, B.b3);
+  await zoomBtn(b3, B.b3, 7000);
   await Gauntlet.hover(b3,'R',300);
   await Gauntlet.tapEl(b3,'R',()=>{
     Knight.hide();
@@ -1352,12 +1352,12 @@ async function scene10(){
   setCounter(8);
   setScene(mainHTML('disabled'));
   MC.showInset(RA);
-  Knight.show(K.completo);
+  Knight.show(M.camina);
   const hideBubble = showBubble(7);
   await wait(900);
   const bav=$('b-av');
   bav.classList.remove('disabled'); bav.classList.add('activo'); spin(bav);
-  await zoomBtn(bav, B.bAv);
+  await zoomBtn(bav, B.bAv, 7000);
   await Gauntlet.hover(bav,'R',350);
   await Gauntlet.tapEl(bav,'R',()=>{ spin(bav); MC.showFull(RA) });
   await wait(600);
@@ -1374,7 +1374,7 @@ async function scene11(){
   MC.showInset(RA); MC.showFull(RA);
   const amain=$('amain');
   spin(amain);
-  await zoomBtn(amain, B.aMain);
+  await zoomBtn(amain, B.aMain, 7000);
   Knight.show(K.completo);
   const hideBubble = showBubble(10);
   // Subir caballero por encima de la barra de audio (78px) respetando --band-h
@@ -1479,7 +1479,7 @@ async function sceneRetoMCQ(){
   bi.style.cssText='width:min(190px,50vw);border-radius:50%;border:5px solid #28a745;box-shadow:0 10px 44px rgba(0,0,0,.65);animation:bounceK .5s ease-in-out infinite alternate';
   bf.appendChild(bi);
   $('scene-layer').appendChild(bf);
-  await wait(3000);
+  await wait(8000);
   bf.style.transition='opacity .4s'; bf.style.opacity='0';
   await wait(420); bf.remove();
   await wait(200);
@@ -1583,34 +1583,38 @@ async function scene13(){
   hideBubble(); Knight2.hide();
 }
 
-/* ── P17: Cuenta atrás agotada + foto-fuera-rango + btn-ubicacion ── */
+/* ── P15: Usuario fuera de rango → camina hasta ruta → maria thumbsup ── */
 async function scene14(){
   setCounter(15);
   setScene(mainHTML('disabled'));
+  const offPt=[39.4748,-0.3815];
+  const retPath={path:[offPt,[39.4762,-0.3800],[39.4780,-0.3792],[39.4796,-0.3785],RA.path[0]]};
+  // Mapa con polyline completa + usuario desviado
+  $('map').classList.add('on');
+  setTimeout(()=>{
+    MC.map.invalidateSize();
+    const ext=L.latLngBounds([...RA.path, offPt]);
+    MC.map.fitBounds(ext,{paddingTopLeft:[62,52],paddingBottomRight:[62,96]});
+  },100);
+  MC._mkM(RA); MC.showFull(RA);
+  setTimeout(()=>MC.moveUser(offPt),150);
   await wait(60); $('b6').classList.add('disabled');
+  // Caballero perdido + banda de texto visible desde el inicio (botón deshabilitado)
   Knight.show(K.perdido);
   const hideBubble = showBubble(14);
   await wait(600);
+  // Overlay foto-fuera-rango (+15% más grande) durante 5 segundos
   setOv(`<div class="gps-ov">
-    <img class="gps-img" src="${AI}foto-fuera-rango.png" alt="">
+    <img class="gps-img" src="${AI}foto-fuera-rango.png" alt="" style="width:min(276px,66.7vw)">
   </div>`);
   await wait(5000);
   clearOv(); await wait(400);
-  const b6=$('b6');
-  b6.classList.remove('disabled'); b6.classList.add('activo'); spin(b6);
-  await zoomBtn(b6, B.b6);
-  await Gauntlet.hover(b6,'L',320);
-  const offPt=[39.4748,-0.3815];
-  await Gauntlet.tapEl(b6,'L',()=>{
-    spin(b6);
-    MC.showSec(offPt, RA.path[0]);
-    MC.moveUser(offPt);
-    setTimeout(()=>{
-      const ext=L.latLngBounds([RA.path[0], offPt]);
-      MC.map.fitBounds(ext,{paddingTopLeft:[62,52],paddingBottomRight:[62,96]});
-      const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='42px';
-    },200);
-  });
+  // Caballero perdido desaparece, caminando recorre la polyline
+  Knight.hide(); await wait(200);
+  await Knight.walk(retPath, 8000);
+  await wait(200);
+  // Maria thumbsup aparece → ahora se habilita el botón verde
+  Knight.show(M.up);
   await waitForNextBtn();
   hideBubble();
   Knight.hide();
@@ -1805,7 +1809,7 @@ async function run(){
   const scenes=[scene1,scene2,scene3,scene4,scene5,scene8,scene9,
     scene10,sceneImg,sceneVid,
     scene11,scene12,sceneRetoMCQ,
-    scene13,scene14,scene15,scene16,scene17,scene18,scene19];
+    scene13,scene14,scene16,scene17,scene18,scene19];
   for(const fn of scenes){
     if (_skipRequested) break;
     [$('knight'),$('knight2')].forEach(k=>{
