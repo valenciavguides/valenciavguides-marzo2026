@@ -1357,7 +1357,7 @@ async function scene10(){
   await Gauntlet.hover(bav,'R',350);
   await Gauntlet.tapEl(bav,'R',()=>{ spin(bav); MC.showFull(RA) });
   await wait(600);
-  await Knight.walk(RA, 6500, 0.5);
+  await Knight.walk(RA, 6500);
   await waitForNextBtn();
   hideBubble();
   Knight.hide();
