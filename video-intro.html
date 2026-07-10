@@ -765,7 +765,11 @@ const Knight2 = {
 /* ── ZOOM-SHOWCASE de botón ─────────────────── */
 async function zoomBtn(btnEl, imgSrc, displayMs=2000){
   const sr=stageR(), br=btnEl.getBoundingClientRect();
+  const sl=$('scene-layer');
   const ol=$('overlay-layer');
+  const bg=document.createElement('div');
+  bg.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.55);pointer-events:none;opacity:0;transition:opacity .3s';
+  sl.appendChild(bg);
   const d=document.createElement('div');
   const w=br.width, h=br.height;
   d.className='btn-zoom';
@@ -774,19 +778,25 @@ async function zoomBtn(btnEl, imgSrc, displayMs=2000){
   img.src=imgSrc; img.style.cssText='width:100%;height:100%;object-fit:cover;';
   d.appendChild(img); ol.appendChild(d); ol.classList.add('active');
   await wait(60);
+  bg.style.opacity='1';
   const tw=Math.min(sr.width*.72, 280);
   d.style.transition='all .55s cubic-bezier(.34,1.4,.64,1)';
   d.style.left=(sr.width/2-tw/2)+'px';
   d.style.top=(sr.height/2-tw/2)+'px';
   d.style.width=tw+'px'; d.style.height=tw+'px';
   d.style.boxShadow='0 10px 36px rgba(0,0,0,.55)';
+  await wait(600);
+  const anim=d.animate([{marginTop:'0px'},{marginTop:'-18px'}],
+    {duration:500,iterations:Infinity,direction:'alternate',easing:'ease-in-out'});
   await wait(displayMs);
+  anim.cancel();
+  bg.style.opacity='0';
   d.style.transition='all .38s cubic-bezier(.4,0,.2,1)';
   d.style.left=(br.left-sr.left)+'px'; d.style.top=(br.top-sr.top)+'px';
   d.style.width=w+'px'; d.style.height=h+'px';
   d.style.opacity='0';
   await wait(420);
-  d.remove(); ol.classList.remove('active');
+  d.remove(); bg.remove(); ol.classList.remove('active');
 }
 
 /* ── MAP CONTROLLER ──────────────────────────── */
@@ -1163,7 +1173,7 @@ async function scene2(){
       <img src="${K.mapaPerdido}" alt=""
            style="height:min(40vw,25vh);width:auto;flex-shrink:0;
                   filter:drop-shadow(2px 4px 12px rgba(0,0,0,.5))">
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2vw;padding:0 2vw 3vh 0;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3vh;padding:0 2vw 8vh 0;flex-shrink:0">
         <img src="${AI}imagen-no-gps.png" alt=""
              style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.20);transform-origin:top center">
         <img src="${AI}imagen-no-internet.png" alt=""
@@ -1185,7 +1195,7 @@ async function scene8(){
   await wait(900);
   const b1=$('b1');
   spin(b1);
-  await zoomBtn(b1, B.b1, 7000);
+  await zoomBtn(b1, B.b1, 5000);
   await Gauntlet.hover(b1,'R',350);
   await Gauntlet.tapEl(b1,'R',()=>{ spin(b1); MC.showAll();
     setOv(`<div style="position:absolute;inset:0;pointer-events:none">
@@ -1254,7 +1264,7 @@ async function scene9(){
   await wait(900);
   const b2=$('b2');
   spin(b2);
-  await zoomBtn(b2, B.b2, 7000);
+  await zoomBtn(b2, B.b2, 5000);
   await Gauntlet.hover(b2,'R',350);
   await Gauntlet.tapEl(b2,'R',()=>{ spin(b2);
     setOv(`<div class="ov-dark" style="justify-content:flex-start">
@@ -1279,7 +1289,7 @@ async function sceneImg(){
   await wait(900);
   const b4=$('b4');
   spin(b4);
-  await zoomBtn(b4, B.b4, 7000);
+  await zoomBtn(b4, B.b4, 5000);
   await Gauntlet.hover(b4,'R',300);
   await Gauntlet.tapEl(b4,'R',()=>{
     setOv(`<div class="float-win">
@@ -1318,7 +1328,7 @@ async function sceneVid(){
   await wait(900);
   const b3=$('b3');
   spin(b3);
-  await zoomBtn(b3, B.b3, 7000);
+  await zoomBtn(b3, B.b3, 5000);
   await Gauntlet.hover(b3,'R',300);
   await Gauntlet.tapEl(b3,'R',()=>{
     Knight.hide();
@@ -1328,12 +1338,15 @@ async function sceneVid(){
           <img src="${B.b3}" alt="" style="width:min(14vw,8vh);height:auto;border-radius:1vw">
         </div>
         <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
-        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline controls></video>
+        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline controls preload="auto"></video>
       </div>
     </div>`);
   });
   const _vid = document.querySelector('.float-video');
-  if (_vid) _vid.play().catch(()=>{});
+  if (_vid) {
+    _vid.addEventListener('stalled', function(){ setTimeout(()=>this.play().catch(()=>{}), 500); });
+    _vid.play().catch(()=>{});
+  }
   await Promise.race([waitForVideoEnd(_vid), waitForNextBtn()]);
   if (!_skipRequested) {
     await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
@@ -1353,7 +1366,7 @@ async function scene10(){
   await wait(900);
   const bav=$('b-av');
   bav.classList.remove('disabled'); bav.classList.add('activo'); spin(bav);
-  await zoomBtn(bav, B.bAv, 7000);
+  await zoomBtn(bav, B.bAv, 5000);
   await Gauntlet.hover(bav,'R',350);
   await Gauntlet.tapEl(bav,'R',()=>{ spin(bav); MC.showFull(RA) });
   await wait(600);
@@ -1370,7 +1383,7 @@ async function scene11(){
   MC.showInset(RA); MC.showFull(RA);
   const amain=$('amain');
   spin(amain);
-  await zoomBtn(amain, B.aMain, 7000);
+  await zoomBtn(amain, B.aMain, 5000);
   Knight.show(K.completo);
   const hideBubble = showBubble(10);
   // Subir caballero por encima de la barra de audio (78px) respetando --band-h
@@ -1395,7 +1408,7 @@ async function scene12(){
   const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
   await wait(400);
   spin($('ar'));
-  await zoomBtn($('ar'), B.reto);
+  await zoomBtn($('ar'), B.reto, 5000);
   await wait(400);
   // Tap reto button → challenge panel con puzzle
   await Gauntlet.tapEl($('ar'),'UR',()=>{
@@ -1467,18 +1480,8 @@ async function sceneRetoMCQ(){
   const hideBubble = showBubble(12);
   const ar=$('ar'); if(ar){ ar.classList.remove('grey'); ar.classList.add('green') }
   await wait(400);
-
-  // Botón de reto grande durante 3 segundos, luego desaparece
-  const bf=document.createElement('div');
-  bf.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:300;pointer-events:none;background:rgba(0,0,0,.55)';
-  const bi=document.createElement('img');
-  bi.src=B.reto;
-  bi.style.cssText='width:min(190px,50vw);border-radius:50%;border:5px solid #28a745;box-shadow:0 10px 44px rgba(0,0,0,.65);animation:bounceK .5s ease-in-out infinite alternate';
-  bf.appendChild(bi);
-  $('scene-layer').appendChild(bf);
-  await wait(8000);
-  bf.style.transition='opacity .4s'; bf.style.opacity='0';
-  await wait(420); bf.remove();
+  spin($('ar'));
+  await zoomBtn($('ar'), B.reto, 5000);
   await wait(200);
 
   Knight2.show(M.posa);
@@ -1648,15 +1651,10 @@ async function scene16(){
   Knight.show(K.durmiendo);
   const hideBubble = showBubble(16);
   await wait(60); $('b6').classList.add('disabled');
-  await wait(700);
-  setOv(`<div class="gps-ov">
-    <img class="gps-img" src="${AI}fotogpserror.png" alt="">
-  </div>`);
-  await wait(5000);
-  clearOv(); await wait(400);
+  await wait(3000);
   const b6p16=$('b6');
   b6p16.classList.remove('disabled'); b6p16.classList.add('activo'); spin(b6p16);
-  await zoomBtn(b6p16, B.b6);
+  await zoomBtn(b6p16, B.b6, 5000);
   await Gauntlet.hover(b6p16,'L',320);
   await Gauntlet.tapEl(b6p16,'L',()=>{ spin(b6p16); MC.showSec(farOff, RA.path[0]) });
   // Pin de usuario más grande
@@ -1683,7 +1681,7 @@ async function scene17(){
   await wait(700);
   const blt=$('bl-timer');
   spin(blt);
-  await zoomBtn(blt, B.timer, 7000);
+  await zoomBtn(blt, B.timer, 5000);
   await Gauntlet.hover(blt,'L',320);
   await Gauntlet.tapEl(blt,'L',()=>{
     spin(blt);
