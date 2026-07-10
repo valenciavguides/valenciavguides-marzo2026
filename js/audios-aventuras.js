@@ -9950,7 +9950,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-es",
         title: "Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -10441,7 +10441,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-en",
         title: "Section 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -10932,7 +10932,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-fr",
         title: "Section 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -11423,7 +11423,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-it",
         title: "Tratto 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -11914,7 +11914,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-nl",
         title: "Traject 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -12405,7 +12405,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-ja",
         title: "区間 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -12896,7 +12896,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-de",
         title: "Abschnitt 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -13387,7 +13387,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-zh",
         title: "段 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -13878,7 +13878,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-pl",
         title: "Odcinek 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -14369,7 +14369,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-pt",
         title: "Percurso 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -14860,7 +14860,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-ru",
         title: "Участок 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -15351,7 +15351,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225-14-B) (mapa 9→10)
+      // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-uk",
         title: "Ділянка 6: Puente de la Exposición (Peineta) → Puente de las Flores",
@@ -21348,7 +21348,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-es",
         title: "Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -21783,7 +21783,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-en",
         title: "Section 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -22218,7 +22218,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-fr",
         title: "Section 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -22653,7 +22653,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-it",
         title: "Tratto 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -23088,7 +23088,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-nl",
         title: "Traject 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -23523,7 +23523,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-ja",
         title: "区間 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -23958,7 +23958,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-de",
         title: "Abschnitt 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -24393,7 +24393,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-zh",
         title: "段 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -24828,7 +24828,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-pl",
         title: "Odcinek 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -25263,7 +25263,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-pt",
         title: "Percurso 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -25698,7 +25698,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-ru",
         title: "Участок 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
@@ -26133,7 +26133,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303-12-B) (mapa 7→8)
+      // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-uk",
         title: "Ділянка 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
