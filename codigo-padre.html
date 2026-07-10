@@ -1806,7 +1806,7 @@
         // Sanitizador que permite etiquetas HTML seguras (incluido img para logo inline)
         function _galeriaSanitizarHTML(str) {
             if (!str) return '';
-            const TAGS_PERMITIDAS = new Set(['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'span', 'ul', 'ol', 'li', 'img']);
+            const TAGS_PERMITIDAS = new Set(['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'span', 'ul', 'ol', 'li', 'img', 'mark']);
             const ATTRS_PERMITIDOS = { '*': ['style'], 'img': ['src', 'alt', 'style'] };
             const div = document.createElement('div');
             div.innerHTML = str;
