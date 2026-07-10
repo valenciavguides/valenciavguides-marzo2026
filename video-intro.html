@@ -780,9 +780,10 @@ async function zoomBtn(btnEl, imgSrc, displayMs=2000){
   await wait(60);
   bg.style.opacity='1';
   const tw=Math.min(sr.width*.72, 280);
+  const bandH=parseInt($('stage').style.getPropertyValue('--band-h'))||0;
   d.style.transition='all .55s cubic-bezier(.34,1.4,.64,1)';
   d.style.left=(sr.width/2-tw/2)+'px';
-  d.style.top=(sr.height/2-tw/2)+'px';
+  d.style.top=((sr.height-bandH)/2-tw/2)+'px';
   d.style.width=tw+'px'; d.style.height=tw+'px';
   d.style.boxShadow='0 10px 36px rgba(0,0,0,.55)';
   await wait(600);
@@ -1175,7 +1176,7 @@ async function scene2(){
                   filter:drop-shadow(2px 4px 12px rgba(0,0,0,.5))">
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3vh;padding:0 2vw 8vh 0;flex-shrink:0">
         <img src="${AI}imagen-no-gps.png" alt=""
-             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.20);transform-origin:top center">
+             style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.20);transform-origin:bottom center">
         <img src="${AI}imagen-no-internet.png" alt=""
              style="width:min(45.6vw,28.8vh);height:auto;object-fit:contain;transform:scaleY(1.20);transform-origin:top center">
       </div>
@@ -1338,13 +1339,14 @@ async function sceneVid(){
           <img src="${B.b3}" alt="" style="width:min(14vw,8vh);height:auto;border-radius:1vw">
         </div>
         <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
-        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline controls preload="auto"></video>
+        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline controls preload="auto" loop></video>
       </div>
     </div>`);
   });
   const _vid = document.querySelector('.float-video');
   if (_vid) {
-    _vid.addEventListener('stalled', function(){ setTimeout(()=>this.play().catch(()=>{}), 500); });
+    _vid.addEventListener('stalled', function(){ setTimeout(()=>this.play().catch(()=>{}), 300); });
+    _vid.addEventListener('waiting', function(){ setTimeout(()=>this.play().catch(()=>{}), 500); });
     _vid.play().catch(()=>{});
   }
   await Promise.race([waitForVideoEnd(_vid), waitForNextBtn()]);
@@ -1652,6 +1654,7 @@ async function scene16(){
   const hideBubble = showBubble(16);
   await wait(60); $('b6').classList.add('disabled');
   await wait(3000);
+  Knight.hide(); await wait(400);
   const b6p16=$('b6');
   b6p16.classList.remove('disabled'); b6p16.classList.add('activo'); spin(b6p16);
   await zoomBtn(b6p16, B.b6, 5000);
