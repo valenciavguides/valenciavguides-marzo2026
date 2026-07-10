@@ -4343,7 +4343,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-intro-jul10a'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-intro-jul10b'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6870,7 +6870,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-video-intro-jul10a'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-video-intro-jul10b'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7432,7 +7432,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-video-intro-jul10a'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-video-intro-jul10b'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10904,7 +10904,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-video-intro-jul10a';
+const CACHE_VERSION = 'v-video-intro-jul10b';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11555,7 +11555,7 @@ La función NO llama a `ejecutarRestauracionAventura` (no recarga la aventura, n
 
 ### 32.1 Propósito
 
-`video-intro.html` es una animación tutorial de 20 escenas que recorre todas las funciones de la PWA antes de que el usuario elija idioma. Existe como archivo independiente; la integración como sub-iframe dentro de `En-busca-del-Tesoro.html` (pantalla P0 en el diseño original) **no está activa en el flujo actual** — en el flujo actual, P4 es un placeholder estático de vídeo.
+`video-intro.html` es una animación tutorial de 19 escenas que recorre todas las funciones de la PWA antes de que el usuario elija idioma. Existe como archivo independiente; la integración como sub-iframe dentro de `En-busca-del-Tesoro.html` (pantalla P0 en el diseño original) **no está activa en el flujo actual** — en el flujo actual, P4 es un placeholder estático de vídeo.
 
 El vídeo es puramente visual (sin audio): animaciones CSS/JS con Leaflet, caballeros, gauntlet cursor y overlays flotantes. Se auto-ejecuta al cargar — `run()` se llama desde el propio archivo, sin necesidad de señal externa.
 
@@ -11601,7 +11601,7 @@ sequenceDiagram
     participant EB as En-busca-del-Tesoro.html
     participant P as codigo-padre.html
 
-    Note over VI: run() completa las 20 escenas
+    Note over VI: run() completa las 19 escenas
     VI->>EB: SELECCION.VIDEO_INTRO_TERMINADO { origen:'video-intro', timestamp }
     Note over EB: _hdl_VIDEO_INTRO_TERMINADO
     Note over EB: btn-vi-continuar → centro (CSS transition)
@@ -11684,28 +11684,27 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 | 7 | `scene9` | b2 zoom-showcase + overlay `Av1_mapa.jpg` fullscreen | [6] |
 | 8 | `scene10` | b-av activo → polyline → `Knight.walk()` ruta RA (6,5 s) | [7] |
 | 9 | `sceneImg` | b4 zoom-showcase + ventana flotante imagen Torres de Serranos | [8] |
-| 10 | `sceneVid` | b3 zoom-showcase + overlay vídeo `video_intro_ejemplo.mp4` · espera `ended` | [9] |
+| 10 | `sceneVid` | b3 zoom-showcase + overlay vídeo `video_intro_ejemplo.mp4` · vídeo con `loop`; usuario avanza con botón siguiente | [9] |
 | 11 | `scene11` | amain zoom-showcase + `astrip` vertical · `animAP` 0→87 % | [10] |
 | 12 | `scene12` | Panel puzzle 2×2 · 2 piezas scattered · drag gauntlet · Knight thumbs-up | [11] |
 | 13 | `sceneRetoMCQ` | Imagen reto 3 s + overlay MCQ · opción 0 errónea → opción 1 correcta | [12] |
 | 14 | `scene13` | Caballero cámara · countdown 5 min (5 s visibles) | [13] |
-| 15 | `scene14` | `foto-fuera-rango.png` → b6 activo → `showSec` offPt→parada | [14] |
-| 16 | `scene15` | `Knight.walk()` offPt → `RA.path[0]` · Knight thumbs-up · **sin bocadillo** | `null` |
-| 17 | `scene16` | `farOff` · caballero durmiendo · `fotogpserror.png` → b6 → walk 6 waypoints | [16] |
-| 18 | `scene17` | bl-timer zoom-showcase + overlay timer → caballero llorando · Knight completo | [17] |
-| 19 | `scene18` | Panel FAQ lateral → acordeón 2 niveles → cierre ✕ · Knight completo | [18] |
-| 20 | `scene19` | Ruta RB + fuegos artificiales canvas (7 s) + modal fin · fade blanco→negro | [19] |
+| 15 | `scene14` | `foto-fuera-rango.png` 5s → `Knight.walk()` offPt→parada → M.up · botón banda verde | [14] |
+| 16 | `scene16` | `farOff` · caballero durmiendo 3s · `Knight.hide()` → zoomBtn b6 5s → walk 6 waypoints → thumbsup | [16] |
+| 17 | `scene17` | bl-timer zoom-showcase + overlay timer → caballero llorando · Knight completo | [17] |
+| 18 | `scene18` | Panel FAQ lateral → acordeón 2 niveles → cierre ✕ · Knight completo | [18] |
+| 19 | `scene19` | Ruta RB + fuegos artificiales canvas (7 s) + modal fin · fade blanco→negro | [19] |
 
 ### 32.7 Invariantes
 
 - `video-intro.html` NUNCA muestra `boton-casa-hijo5.html` — es una herramienta de desarrollo, no aparece en la PWA real.
 - El `postMessage` usa `globalThis.parent?.postMessage(...)` con `?.` para no fallar en modo standalone (abrir el archivo directamente).
-- El canvas de fuegos artificiales (P20) se apendiza a `#stage`, nunca a `#overlay-layer`, para sobrevivir a `setOv()`.
+- El canvas de fuegos artificiales (P19) se apendiza a `#stage`, nunca a `#overlay-layer`, para sobrevivir a `setOv()`.
 - Las escenas `sceneImg` y `sceneVid` (posiciones 9-10) aparecen DESPUÉS de `scene10` (avanzar) en el array `scenes[]` de `run()`.
-- `JAIME_SCENES[15]` es `null` — `scene15` (caballero camina de vuelta) es visual pura, sin bocadillo.
+- `JAIME_SCENES[15]` es `null` — `scene15` existe como función en el archivo pero **no está en el array `run()`**; su lógica de caballero caminando está integrada en `scene14`. Sin bocadillo asignado.
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
-- `sceneVid` NO tiene atributo `loop` — el vídeo se reproduce una vez y la escena avanza al evento `ended`. Si el archivo no carga, el evento `error` también libera la promesa. Si el usuario pulsa skip, el intervalo interno detecta `_skipRequested` y resuelve la promesa.
+- `sceneVid` tiene atributo `loop` — el vídeo demo de 3 s se repite indefinidamente; la escena avanza cuando el usuario pulsa el botón siguiente (`waitForNextBtn`), no por el evento `ended`. Los handlers `stalled` y `waiting` reintentan `play()` para recuperar la reproducción en GitHub Pages.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 3 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
 
