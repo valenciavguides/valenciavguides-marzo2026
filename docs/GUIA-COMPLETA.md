@@ -11701,7 +11701,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 - El `postMessage` usa `globalThis.parent?.postMessage(...)` con `?.` para no fallar en modo standalone (abrir el archivo directamente).
 - El canvas de fuegos artificiales (P19) se apendiza a `#stage`, nunca a `#overlay-layer`, para sobrevivir a `setOv()`.
 - Las escenas `sceneImg` y `sceneVid` (posiciones 9-10) aparecen DESPUÉS de `scene10` (avanzar) en el array `scenes[]` de `run()`.
-- `JAIME_SCENES[15]` es `null` — `scene15` existe como función en el archivo pero **no está en el array `run()`**; su lógica de caballero caminando está integrada en `scene14`. Sin bocadillo asignado.
+- `JAIME_SCENES[15]` es `null` — ninguna escena del array `run()` llama a `showBubble(15)`.
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
 - `sceneVid` tiene atributo `loop` — el vídeo demo de 3 s se repite indefinidamente; la escena avanza cuando el usuario pulsa el botón siguiente (`waitForNextBtn`), no por el evento `ended`. Los handlers `stalled` y `waiting` reintentan `play()` para recuperar la reproducción en GitHub Pages.
