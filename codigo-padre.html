@@ -8260,14 +8260,16 @@ await _comprobarReanudacionAventura(logPrefix);
 
             try {
                 (globalThis.logger || console).info(`${logPrefix} Solicitando reproducción de audio ${audioId}`);
+                const audioData = await _resolverAudioData(audioId, logPrefix);
                 // Tracking para snapshot de reload
-                _snapshotRecuperacion.audioActual = { audioId, contexto: 'progresion_aventura', autoplay: false };
+                _snapshotRecuperacion.audioActual = { audioId, audioData, contexto: 'progresion_aventura', autoplay: false };
                 await enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
                     origen: getPadreId(),
                     destino: 'hijo3',
                     datos: {
                         audioId: audioId,
+                        audioData,
                         contexto: 'progresion_aventura',
                         autoplay: false
                     }
@@ -9410,6 +9412,9 @@ await _comprobarReanudacionAventura(logPrefix);
             const paradaIdSolicitud = parada.parada_id || parada.tramo_id || parada.audio_id;
             (globalThis.logger || console).debug(`${logPrefix} Solicitando reproducción de audio a hijo3 con ID: ${parada.audio_id} (modo: ${estado.modo?.actual})`);
             solicitudes.audio = _resolverAudioData(parada.audio_id, logPrefix).then(audioData => {
+                // Tracking para snapshot de reload (igual que _enviarRetoMostrar con retoActual):
+                // sin esto, un reload de hijo3 por heartbeat no puede restaurar el audio en curso.
+                _snapshotRecuperacion.audioActual = { audioId: parada.audio_id, audioData, autoplay: false, contexto: { parada: paradaIdSolicitud, tipo: parada.tipo } };
                 return enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
                     origen: getPadreId(),

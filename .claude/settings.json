@@ -76,7 +76,16 @@
       "Bash(curl -s \"https://api.cdnjs.com/libraries/font-awesome/6.0.0-beta3?fields=files,sri\")",
       "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const j=JSON.parse\\(d\\); const sri=j.sri; const key=Object.keys\\(sri\\).find\\(k=>k.includes\\('all.min.css'\\)\\); console.log\\(key, sri[key]\\);\")",
       "Bash(curl -s \"https://api.cdnjs.com/libraries/font-awesome/6.0.0-beta3?fields=sri\")",
-      "Bash(tee \"C:\\\\Users\\\\gomez\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\\\9323ce8a-b283-426c-be0e-ba2bb34e024a\\\\scratchpad\\\\e2e-verification-run.log\")"
+      "Bash(tee \"C:\\\\Users\\\\gomez\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\\\9323ce8a-b283-426c-be0e-ba2bb34e024a\\\\scratchpad\\\\e2e-verification-run.log\")",
+      "Bash(node tools/inventory.js --duplicates)",
+      "Bash(awk 'NR==7552,NR==9420 && /<\\\\/script>|<script/' codigo-padre.html)",
+      "Bash(awk 'NR>=7552 && NR<=9420 && /<\\\\/script>|<script/ {print NR\": \"$0}' codigo-padre.html)",
+      "Bash(tee \"C:\\\\Users\\\\gomez\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\\\9323ce8a-b283-426c-be0e-ba2bb34e024a\\\\scratchpad\\\\e2e-audio-fix-run.log\")",
+      "Bash(ffprobe -v error -show_entries stream=index,codec_type,codec_name -of default=noprint_wrappers=1 \"videos-aventuras/video_intro_ejemplo.mp4\")",
+      "Bash(node \"C:\\\\Users\\\\gomez\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\\\9323ce8a-b283-426c-be0e-ba2bb34e024a\\\\scratchpad\\\\inspect-mp4.js\" \"videos-aventuras/video_intro_ejemplo.mp4\")",
+      "Bash(ffmpeg -version)",
+      "Bash(awk 'NR>=213 && /^```/ {print NR\": \"$0; c++; if\\(c>=1\\) exit}' docs/GUIA-COMPLETA.md)",
+      "Bash(grep -c '^```' docs/GUIA-COMPLETA.md)"
     ],
     "additionalDirectories": [
       "c:\\Users\\gomez\\.claude\\projects\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\memory"

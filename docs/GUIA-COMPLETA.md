@@ -89,7 +89,14 @@ flowchart TD
 
 La aplicación soporta **12 idiomas**: español, inglés, francés, italiano, neerlandés, japonés, alemán, chino simplificado, polaco, portugués, ruso y ucraniano.
 
-Actualmente hay **7 aventuras planificadas**, todas disponibles: **Aventuras 1, 2, 3, 4, 5, Fallas y 34km**.
+Actualmente hay **7 aventuras** definidas en `js/indice-aventuras.js`, todas con `disponible: true` (aparecen en la pantalla de selección): **Aventuras 1, 2, 3, 4, 5, Fallas y 34km**. `disponible: true` solo controla si la aventura es seleccionable — no garantiza que el contenido esté completo, y el nivel de completitud varía mucho según el tipo de contenido:
+
+- **Rutas GPS** (`coordenadas-aventuras.js`): completas en las 7 aventuras.
+- **Audios narrados** (`audios-aventuras.js`, campo `file`): prácticamente vacíos en **las 7 aventuras y los 12 idiomas** — la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma, pero el campo `file` (ruta al MP3) está sin rellenar en casi todas las entradas, incluido el español (p. ej. Aventura1: 1 de 66 con archivo real; Aventura2/3/Fallas: 0 de todas). El sistema lo gestiona sin romper el flujo (`file:''` → sin reproducción, ver §7.4) — es un estado de producción de contenido pendiente, no un bug. Ver §12 para el detalle completo por aventura.
+- **Textos narrativos** (párrafos): sí completos en 1-5 y Fallas en los 12 idiomas (870 párrafos/idioma) — ver §14. **Aventura34km** es la excepción real: solo 2 textos definidos, ruta real de 232 puntos pero prácticamente sin narrativa.
+- **Retos**: completos en 1-5 y Fallas en los 12 idiomas; Aventura34km solo tiene retos en 6 de los 12 idiomas (es/en/fr/it/nl/ja, 3 retos).
+
+Aventura34km es la más incompleta en conjunto (ruta sin apenas texto ni reto), pero ningún idioma de ninguna aventura tiene hoy audio narrado grabado de verdad más allá de un puñado de entradas de prueba.
 
 ---
 
@@ -222,6 +229,7 @@ flowchart TD
     P14 --> P15[P15: Reto R-2\nSÍ → AVENTURA_ACTIVADA]
     P15 --> J([Sistema en MODO CASA\nhijo5 visible si modo DEV · heartbeat inactivo\nUsuario ve mapa y controles])
     D --> J
+```
 
 ---
 
@@ -1948,7 +1956,7 @@ graph TD
 | P12 | `#pantalla12` | `.btn-mundo-verde` (stub pago) | Ninguna (pago no implementado) | — |
 | P13 | `#pantalla13` | `#btn-iniciar-aventura` (deshabilitado hasta código correcto) | Código de compra válido → `disabled = false` → `onclick="_irANormativa()"`. Si el permiso GPS ya está denegado en el navegador, muestra `#gps-denegado-p13` (icono, sin texto) y no avanza — el usuario corrige el permiso y pulsa de nuevo la misma flecha. Si el permiso es `prompt` o `granted`, envía `SELECCION.CODIGO_VALIDADO` al padre y avanza a P14. **En modo DEV (Factor 1)** esta pantalla se salta automáticamente — `mostrar()` intercepta P12/P13 y envía `CODIGO_VALIDADO` directamente sin GPS ni código de compra. | `SELECCION.CODIGO_VALIDADO { aventura, idioma, timestamp }` |
 | P14 | `#pantalla14` | `#btn-siguiente-normativa` | Scroll hasta el final → `aceptarNormativa()` → `mostrar(15)` | — |
-| P15 | `#pantalla15` | Opciones del reto R-2 | SÍ (`verificarRetoR2()`) → activa aventura; NO → `reiniciarSeleccion()` → P1. En NO el padre recibe el próximo `AVENTURA_SELECCIONADA` con los flags de P13 ya limpios | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` |
+| P15 | `#pantalla15` | Opciones del reto R-2 | SÍ (`verificarRetoR2()`) → activa aventura; NO → envía `SELECCION.REINICIAR` al padre → `reiniciarSeleccion()` → P1 | SÍ: `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` · NO: `SELECCION.REINICIAR {}` |
 | P16 | `#pantalla16` | `.btn-mundo-verde` (→) | Logos (logo redondo + logo alargado) → `mostrar(17)` | — |
 | P17 *(solo `?despedida=1`)* | `#pantalla17` | `#btn-siguiente-agradecimientos` | Scroll hasta el final del texto → `_ejecutarDespedida()` | — |
 
@@ -2596,7 +2604,7 @@ globalThis.addEventListener('message', async (event) => {
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
 | `RETO.MOSTRADO` | Tras renderizar correctamente el reto | `{ retoId }` |
-| `RETO.COMPLETADO` | Usuario envía respuesta | `{ reto_id, tipo_reto, correcto, respuesta_usuario, tiempo_resolucion, intentos }` |
+| `RETO.COMPLETADO` | Usuario envía respuesta | `{ retoId, correcto, progreso }` (puzzle: `{ retoId, completado: true }`) — ver payload completo arriba |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Tras procesar `CAMBIO_PARADA` (no precarga el reto, ver fila `NAVEGACION.CAMBIO_PARADA` arriba) | `{ paradaId }` |
 | `DATOS.SOLICITAR_RETOS { retoId }` | Cache-miss: `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) | `{ retoId, motivo:'cache_miss', timestamp }` |
 | `RETO.SOLICITAR_RETO` | Click en `#botonRetos` (botón secundario "Iniciar reto") | `{ contexto: 'hijo4-botonRetos' }` |
@@ -2624,7 +2632,7 @@ sequenceDiagram
         Note over H4: usuario elige respuesta + click verificar
     end
 
-    H4-->>P: RETO.COMPLETADO { reto_id, correcto, respuesta_usuario }
+    H4-->>P: RETO.COMPLETADO { retoId, correcto, progreso }
     alt correcto === true
         P->>H4: RETO.OCULTAR
         P->>P: marcar parada completada → habilitar btnAvanzar en hijo2
@@ -3267,6 +3275,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro → Tesoro | video-intro.html completó todas las escenas — manejado internamente si se integra; no llega al padre |
 | | `SELECCION.CODIGO_VALIDADO` | Tesoro → Padre | Código de compra aceptado en P13 (solo prod — en modo DEV Factor 1, P13 se salta y este mensaje nunca se envía); el handler padre es no-op — la carga de iframes y GPS la gestiona `P14_MOSTRADA` |
 | | `SELECCION.DEV_MODE_TOGGLE` | Tesoro → Padre (IIFE Script 1) | Factor 1 DEV activado con código DEV en el modal de P1; el IIFE pone `globalThis._devModeActivo = true` sin pasar por el bus de mensajería |
+| | `SELECCION.REINICIAR` | Tesoro → Padre | Usuario responde NO en el Reto R-2 (P15); `_hdl_SELECCION_REINICIAR` resetea `_codigoValidadoP13`/`_iframesPreCargadosP14` — ver §24.1 caso adicional A |
 | **NAVEGACION** | `NAVEGACION.CAMBIO_PARADA` | Padre → Hijos / Hijo5 → Padre | Parada activa cambia |
 | | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Bidireccional | Hijo3/Hijo4 → Padre: confirmación de haber procesado el cambio · Padre → Hijo5: confirmación con metadatos enriquecidos (audio, reto) |
 | | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo5 → Padre | Solicita lista completa de paradas |
@@ -3294,7 +3303,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `DATOS.SOLICITAR_AUDIOS` | Hijo3 → Padre | Cache-miss: pide un `audioId` concreto (no la aventura completa); el padre responde con `AUDIO.REPRODUCIR_REQUEST` |
 | | `DATOS.SOLICITAR_RETOS` | Hijo4 → Padre | Cache-miss: pide un `retoId` concreto; el padre responde con `RETO.MOSTRAR` |
 | | `DATOS.SOLICITAR_TEXTOS` | Hijo2 → Padre | Solicita textos si no los recibió en handshake |
-| | `DATOS.SOLICITAR_PARADAS` | Hijo → Padre | Solicitar paradas (handler activo; sin callers en prod — ruta activa usa `NAVEGACION.SOLICITAR_DATOS_PARADAS`) |
+| | ~~`DATOS.SOLICITAR_PARADAS`~~ | ❌ Eliminado | Constante muerta — cero referencias en el código, sin handler. La ruta real es `NAVEGACION.SOLICITAR_DATOS_PARADAS` |
 | | ~~`DATOS.RESPUESTA_PARADAS`~~ | ❌ Eliminado | Constante muerta — nunca hubo handler activo. El mecanismo real es `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas) |
 | | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Hijo2 → Padre | Devuelve `{ coordenadas[], total, exito, paradaId? }` — padre lo procesa y dibuja en mapa |
@@ -3863,7 +3872,7 @@ sequenceDiagram
     participant P as padre
 
     Note over VI,S: video-intro — integración prevista (no activa actualmente)
-    VI->>VI: run() — 22 escenas automáticas
+    VI->>VI: run() — 19 escenas automáticas
     VI->>S: SELECCION.VIDEO_INTRO_TERMINADO (postMessage directo)
     Note over S: _hdl_VIDEO_INTRO_TERMINADO<br/>btn-vi-continuar → centro + btn-vi-replay visible
 
@@ -4212,9 +4221,11 @@ Esto garantiza que los handlers están registrados antes de recibir los datos, i
 | Aventura4 | Parque de Cabecera y Viveros | ~10 | 🚲🛴 | ✅ | Disponible |
 | Aventura5 | València murallas | ~6 | 🚲🛴 | ✅ | Disponible |
 | AventuraFallas | València en Fallas | ~4 | 👣 | ✅ | Desbloqueada 2026-05-21 |
-| Aventura34km | València 34 kilómetros | ~34 | 🚲🛴👣 | ✅ | Disponible |
+| Aventura34km | València 34 kilómetros | ~34 | 🚲🛴👣 | ⚠️ | Seleccionable, contenido incompleto |
 
 Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P6 se calculan dinámicamente importando los módulos fuente, sin valores hardcoded en el índice.
+
+> **Aventura34km**: `disponible: true` en el índice y ruta real (232 coordenadas), pero 0 audios en los 12 idiomas, solo 2 textos narrativos y retos solo en 6/12 idiomas — ver detalle completo en §1.
 
 ---
 
@@ -4282,10 +4293,10 @@ Por una razón de diseño pensando en la seguridad futura:
 
 > ⚠️ **CRÍTICO — No activar `PROTECT_DATA=true` todavía**: el servidor estático ya bloquea los JS sensibles con 403 cuando esta flag está activa, pero `codigo-padre.html` y `En-busca-del-tesoro.html` siguen importándolos directamente (sin pasar por el backend). Activarla en producción rompería la carga de aventuras. Ver §22.12 para la lista exacta de imports a migrar. Ver **§17** para el modelo de seguridad completo.
 
-El módulo `js/data-loader.js` gestiona esta transición. Tiene una variable `DATA_MODE`:
+El módulo `js/data-loader.js` gestiona esta transición. Tiene una variable `DATA_MODE`, calculada automáticamente y gateada por el interruptor manual `BACKEND_READY` (`false` por defecto — ver detalle completo en **§17**):
 
-- `'local'`: carga desde ficheros JS (desarrollo).
-- `'api'`: carga desde el backend con token (producción).
+- `'local'`: carga desde ficheros JS (desarrollo). Activo siempre mientras `BACKEND_READY=false`, sin importar el dominio.
+- `'api'`: carga desde el backend con token (producción). Solo posible con `BACKEND_READY=true` en un dominio no local.
 
 ---
 
@@ -5017,7 +5028,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 |-------|-------|
 | Emitido en hijo1 | `tiempoAgotado()` L1413 → `enviarMensaje` L1430, tipo L1432 — cuando `tiempoRestante <= 0` |
 | Handler en padre | `_hdl_AVENTURA_TIEMPO_AGOTADO` L11148 |
-| Acción | Termina la aventura por tiempo. Muestra `#modal-tiempo-agotado` — modal adaptado del de fin de aventura (imagen `caballero_llorando.png` + título/cuerpo de `TRADUCCIONES_TIEMPO_AGOTADO` + botones `btn_otra`/`btn_terminar` de `TRADUCCIONES_FINALIZACION`, ambos en `js/traducciones-ui.js`, 12 idiomas). Arma además la red de seguridad por abandono (ver §24.12 y §24.13). Ver detalle en §24.12 |
+| Acción | Termina la aventura por tiempo. Muestra `#modal-tiempo-agotado` — modal adaptado del de fin de aventura (imagen `caballero_llorando.png` + título/cuerpo de `TRADUCCIONES_TIEMPO_AGOTADO` + botones `btn_otra`/`btn_terminar` de `TRADUCCIONES_FINALIZACION`, ambos en `js/traducciones-ui.js`, 12 idiomas). Arma además la red de seguridad por abandono (ver §25.12 y §25.13). Ver detalle en §25.12 |
 
 **AVENTURA.ESTADISTICAS_TIEMPO** (hijo1 → padre)
 
@@ -5027,7 +5038,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Disparador | hijo1 lo envía tras recibir `AVENTURA.FINALIZADA` y detener el temporizador |
 | Payload | `{ tiempoTotal, tiempoRestante, tiempoUsado, completado }` |
 | Handler en padre | `_hdl_AVENTURA_ESTADISTICAS_TIEMPO` L11122 |
-| Acción | Guarda stats en `estado.seleccion.estadisticasTiempo` y, si el modo es AVENTURA, llama `mostrarModalFinalizacion()` — dispara el modal de fin de aventura (ver §24.11), que arma además la red de seguridad por abandono (§24.13) |
+| Acción | Guarda stats en `estado.seleccion.estadisticasTiempo` y, si el modo es AVENTURA, llama `mostrarModalFinalizacion()` — dispara el modal de fin de aventura (ver §25.11), que arma además la red de seguridad por abandono (§25.13) |
 
 **TEMPORIZADOR.TOGGLE** (hijo1 → padre)
 
@@ -5045,7 +5056,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Campo | Valor |
 |-------|-------|
 | Handler en hijo6 | L418 |
-| Acción | Hijo6 recibe contexto de aventura actual para contextualizar respuestas de la IA |
+| Acción | Hijo6 recibe contexto de aventura actual para sustituir los tokens dinámicos del FAQ (parada actual, siguiente parada, idioma) — no hay IA/LLM implicado, es un acordeón de preguntas y respuestas estático (ver §7.7 y §26) |
 | Nota | hijo6 no tiene handlers de CAMBIO_PARADA — recibe contexto solo vía ESTADO_PADRE |
 
 hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_PREPARADO`, y `CHAT.CERRAR` (raw postMessage a padre L221 cuando el usuario cierra el panel desde dentro de hijo6). No inicia flujos de aventura.
@@ -5245,11 +5256,7 @@ setInterval app.js L1633 (background retry loop)
 
 ---
 
-### 10.12 Flujos de solicitud de paradas — dos mecanismos paralelos
-
-Existen **dos flujos distintos** para obtener datos de paradas, con propósitos y payloads diferentes. Son complementarios, no alternativos.
-
-#### Flujo A — NAVEGACION.SOLICITAR_DATOS_PARADAS (coordenadas, ligero)
+### 10.12 Flujo de solicitud de paradas — NAVEGACION.SOLICITAR_DATOS_PARADAS
 
 Solicita la lista de paradas transformada a partir de `coordenadas-aventuras.js`. Usada para dibujar el mapa y generar botones de navegación.
 
@@ -5273,29 +5280,16 @@ También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos
 > El handler activo para `SOLICITAR_DATOS_PARADAS` es el de Script 1 de `codigo-padre.html`; `controladores-padre.js` no tiene handler competidor para este tipo — `registrarControladorSeguro` garantiza exactamente un handler por tipo.
 ```
 
-#### Flujo B — DATOS.SOLICITAR_PARADAS (datos enriquecidos con retos)
-
-Solicita datos combinados de `elementosIDpadre` + `cargarRetos`. Proporciona datos completos incluyendo coordenadas, audio, imagen, vídeo y datos del reto para cada parada.
-
-```text
-? → padre   DATOS.SOLICITAR_PARADAS
-  ↓
-codigo-padre.html _hdl_DATOS_SOLICITAR_PARADAS L10270
-  → importa utils.js:normalizarParadas + data-loader.js:cargarRetos
-  → lee DATOS_PADRE[aventura][idioma].elementosIDpadre
-  → combina con reto: { id, ubicacion, tipo, nombre, waypoints, imagen, video, audio, reto }
-padre → solicitante   DATOS.RESPUESTA_PARADAS
-  { paradas[], total, estadisticas: { paradas, tramos }, metadatos: { fuente:'combinada_v1' } }
-```
-
 | Campo | Flujo activo |
 |-------|-------------|
 | Tipo solicitud | `NAVEGACION.SOLICITAR_DATOS_PARADAS` |
 | Tipo respuesta | `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
-| Handler padre | Script 1 de `codigo-padre.html` (eliminado de `controladores-padre.js` — dead code) |
+| Handler padre | Script 1 de `codigo-padre.html` |
 | Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre` (primaria) + `__vv_DATOS_AVENTURAS` (fallback) |
 | Incluye reto | ❌ |
 | Emisor conocido | hijo5, funciones-mapa (hijo2 **no** lo emite) |
+
+> `DATOS.SOLICITAR_PARADAS`/`DATOS.RESPUESTA_PARADAS` (un supuesto "segundo flujo" con datos de reto incluidos) no existe en el código — cero referencias en `codigo-padre.html`, `controladores-padre.js` ni `constants.js`. Es una constante muerta, nunca tuvo handler activo (ver §8.3). El único mecanismo real para obtener paradas es el descrito arriba.
 
 ---
 
@@ -5338,7 +5332,7 @@ Los 3 handlers reales viven en Script 4, registrados justo antes del bloque de a
 | `RETO.MOSTRADO` + `RETO.CONFIRMADO` | **✅ Implementado** — hijo4 emite `MOSTRADO` tras `mostrarReto()`; padre actualiza `estado.retoActual.disponible=true` y responde con `CONFIRMADO` |
 | `SISTEMA.APLICACION_INICIALIZADA` | **✅ Implementado** — `_hijoListo_onTodosListos` lo dispara cuando hijo2+hijo3+hijo4 completan el handshake; ver §10.14 para detalle |
 | `SISTEMA.NACK` | **Activo con filtro** — `app.js` L1607 solo lo procesa si `esperarPermiso === true`; los NACK de cambio de modo sin espera se descartan silenciosamente |
-| `AVENTURA.FINALIZADA` | **✅ Implementado.** Flujo: `_handleFinDeAventura()` → envía `AVENTURA.FINALIZADA` a hijo1 → hijo1 detiene timer y responde con `AVENTURA.ESTADISTICAS_TIEMPO` → `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` llama `mostrarModalFinalizacion()`. `_hdl_AVENTURA_FINALIZADA()` registra el mensaje pero no realiza ninguna acción — toda la gestión de fin de aventura ocurre en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO`. Ver §24.11. |
+| `AVENTURA.FINALIZADA` | **✅ Implementado.** Flujo: `_handleFinDeAventura()` → envía `AVENTURA.FINALIZADA` a hijo1 → hijo1 detiene timer y responde con `AVENTURA.ESTADISTICAS_TIEMPO` → `_hdl_AVENTURA_ESTADISTICAS_TIEMPO()` llama `mostrarModalFinalizacion()`. `_hdl_AVENTURA_FINALIZADA()` registra el mensaje pero no realiza ninguna acción — toda la gestión de fin de aventura ocurre en `_hdl_AVENTURA_ESTADISTICAS_TIEMPO`. Ver §25.11. |
 
 ---
 
@@ -5506,7 +5500,7 @@ codigo-padre.html arranca
 
 ### 10.21 HTTP / fetch — capa de datos
 
-Dos módulos gestionan la comunicación con servidores externos. **Actualmente `DATA_MODE = 'local'`** — todas las peticiones al backend están desactivadas. Para los detalles de seguridad de `PROTECT_DATA`, protección de rutas y el modelo de origen verificado en `postMessage`, ver **§17 (Seguridad y protección)**.
+Dos módulos gestionan la comunicación con servidores externos. **Actualmente `DATA_MODE = 'local'` siempre**, porque `BACKEND_READY = false` en `js/data-loader.js` — todas las peticiones al backend están desactivadas hasta que ese interruptor pase a `true`. Para los detalles de seguridad de `PROTECT_DATA`, protección de rutas y el modelo de origen verificado en `postMessage`, ver **§17 (Seguridad y protección)**.
 
 #### js/data-loader.js — cargador de datos (activo ahora)
 
@@ -5684,7 +5678,7 @@ hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel d
 - **Textos narrativos**: estructura en `textos-aventuras.js` — 66 entradas por aventura, language-agnostic (solo referencias a párrafos; no contiene texto). El HTML real de cada párrafo está en `js/parrafos-textos/parrafos-texto-[idioma].json`: **870 párrafos por idioma, 12 ficheros** (uno por idioma, incluyendo es/en/fr/it/nl/ja/de/zh/pl/pt/ru/uk).
 - **Títulos de textos** (`title` en textos-aventuras.js): ✅ los 12 idiomas — "Parada" → Stop / Arrêt / Fermata / Halte / 停留所 / Haltestelle / 停靠站 / Przystanek / Parada / Остановка / Зупинка, "Tramo" → Section / Tronçon / Tratto / Traject / 区間 / Abschnitt / 路段 / Odcinek / Trecho / Участок / Ділянка.
 - **Retos** (`retos-aventuras.js`): ✅ los 12 idiomas (preguntas, opciones y respuestas traducidas).
-- **Audios** (`audios-aventuras.js`): solo español tiene archivos MP3 reales. Los demás 11 idiomas tienen la estructura preparada pero sin fichero.
+- **Audios** (`audios-aventuras.js`): la estructura de metadatos existe en los 12 idiomas con el mismo número de entradas, pero el campo `file` (ruta al MP3) está prácticamente vacío en **todos** los idiomas, incluido el español — no es que español esté grabado y el resto pendiente; ningún idioma tiene el grueso de sus audios grabados todavía. Ver detalle por aventura en §1 y §12.
 - **Interfaz (botones, avisos)**: traducida en `En-busca-del-tesoro.html` con objetos como `AUDIO_WARNING_TEXTS`, `TEXTOS_CONFIRMACION`, etc.
 - **Logo inline**: todas las menciones a "València be Guides" en los textos narrativos se han sustituido por una imagen del logo (`imagenes/imagenes-aplicación/logo_alargado_3.png`) renderizada con `height:1.4em` para escalar con el texto. Esto elimina la necesidad de traducir el nombre de la marca.
 
@@ -6085,7 +6079,7 @@ La animación de zoom al cambiar de parada usa Leaflet `flyTo` con la constante 
 | Zoom in (acercar) | `durFase × 1.5` = **0.525 s** | Acerca al destino al máximo de zoom |
 | Timeout fallback | `durFase × 1000 + 600 ms` = **950 ms** | Si `moveend` no dispara, continúa tras este tiempo |
 
-El valor anterior era `durFase = 0.7 s` (tiempo total ~2.9 s). Con `0.35 s` el tiempo total es ~1.45 s.
+Con `durFase = 0.35 s`, el tiempo total de la animación de zoom (out + in) es ~1.45 s.
 
 ### Optimización CAMBIO_PARADA (`codigo-padre.html`)
 
@@ -6327,17 +6321,31 @@ Todos los botones de avance en `retos-hijo4.html` usan la clase `.btn-mundo-verd
 
 ## 14. Los textos narrativos
 
-### Estructura
+### Estructura — dos ficheros, ensamblados en tiempo de ejecución
 
-En `js/textos-aventuras.js`, cada texto se almacena como HTML:
+`js/textos-aventuras.js` **no contiene HTML ni está organizado por idioma** — es un índice plano, language-agnostic, que mapea cada parada/tramo a la lista de párrafos que la componen (por número):
 
 ```javascript
-{
-    id: "txt-Av1-P16-es",
-    title: "Parada 5: Plaza de la Virgen",
-    content: "<h1>Plaza de la Virgen</h1>\n<p>Esta plaza es el corazón de Valencia..."
+// js/textos-aventuras.js
+export const TEXTOS_AVENTURAS = {
+  Aventura1: [
+    { id: "txt-intro", parrafos: [200, 201, 202, 203, /* ... */] },
+    { id: "txt-Av1-P0", parrafos: [223, 226, 228] },
+    // ... una entrada por parada y tramo, sin distinción de idioma
+  ]
 }
 ```
+
+El contenido HTML real vive por separado, en `js/parrafos-textos/parrafos-texto-{idioma}.json` — un mapa plano número de párrafo → HTML (870 párrafos por idioma, uno de estos ficheros por cada uno de los 12 idiomas):
+
+```json
+{
+  "200": "<p>Las Fallas fueron declaradas Patrimonio Inmaterial...</p>",
+  "223": "<p>Diríjase, siguiendo el mapa...</p>"
+}
+```
+
+`cargarTextos(aventura, idioma)` (`js/data-loader.js`) ensambla ambos en tiempo de ejecución: por cada entrada de `TEXTOS_AVENTURAS[aventura]`, concatena el HTML de los párrafos listados y añade el `title` desde `AUDIOS_AVENTURAS[aventura][idioma]` (mismo `id`), produciendo el array final `[{id, title, content}]` que se distribuye a hijo2 (ver §9.6 y §10.5).
 
 ### Contenido rico
 
@@ -6418,14 +6426,13 @@ Todas las imágenes están en orientación vertical para coincidir con la ventan
 
 ### Traducciones
 
-Cada parada tiene un texto en cada uno de los 12 idiomas. La estructura es:
+Cada parada tiene un texto en cada uno de los 12 idiomas, pero el idioma no vive en `textos-aventuras.js` (que es el mismo índice de números de párrafo para los 12 idiomas — ver "Estructura" arriba) sino en qué fichero de párrafos se usa para resolverlos:
 
 ```text
-TEXTOS_AVENTURAS.Aventura1.es[0]  → Intro en español
-TEXTOS_AVENTURAS.Aventura1.es[1]  → Parada 0 en español
-TEXTOS_AVENTURAS.Aventura1.en[0]  → Intro en inglés
-TEXTOS_AVENTURAS.Aventura1.en[1]  → Parada 0 en inglés
-... etc.
+TEXTOS_AVENTURAS.Aventura1[0].parrafos → [200, 201, ...]  (mismos números para todos los idiomas)
+parrafos-texto-espanol.json["200"]     → HTML en español
+parrafos-texto-ingles.json["200"]      → HTML en inglés
+... 12 ficheros, un HTML distinto por número de párrafo y por idioma
 ```
 
 Los `title` de cada entrada están traducidos al idioma correspondiente (ej: "Parada 5" en español → "Stop 5" en inglés → "Arrêt 5" en francés). Los nombres de monumentos se mantienen en su nombre original.
@@ -6784,13 +6791,16 @@ Define cómo se ve la app cuando se instala en el móvil (`manifest.json` en la 
   "theme_color": "#ff8c00",
   "lang": "es",
   "categories": ["travel", "navigation", "entertainment"],
+  "prefer_related_applications": false,
   "icons": [
     { "src": "imagenes/imagenes-aplicación/logo-redondo.png",           "sizes": "192x192", "type": "image/png",  "purpose": "any" },
     { "src": "imagenes/imagenes-aplicación/logo-redondo.png",           "sizes": "512x512", "type": "image/png",  "purpose": "any" },
-    { "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "maskable" }
+    { "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "maskable" },
+    { "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "maskable" }
   ],
+  "screenshots": [],
   "shortcuts": [
-    { "name": "Iniciar Aventura", "url": "/codigo-padre.html" }
+    { "name": "Iniciar Aventura", "url": "/codigo-padre.html", "icons": [{ "src": "imagenes/imagenes-aplicación/logo-redondo.png", "sizes": "192x192" }] }
   ]
 }
 ```
@@ -7000,7 +7010,7 @@ proyecto/
 │   ├── ── DATOS ──
 │   ├── data-loader.js                ← Cargador de datos (modo 'local' actual / 'api' futuro)
 │   ├── coordenadas-aventuras.js      ← Coordenadas GPS de paradas y waypoints
-│   ├── textos-aventuras.js           ← Textos narrativos por parada e idioma
+│   ├── textos-aventuras.js           ← Índice de textos por parada (language-agnostic — mapea a números de párrafo, ver §14)
 │   ├── retos-aventuras.js            ← Retos y respuestas por parada
 │   ├── audios-aventuras.js           ← Metadatos de archivos de audio
 │   ├── puzzles-aventuras.js          ← Datos de puzzles
@@ -7103,10 +7113,16 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run test:e2e:headed` | Con navegador visible — útil para depurar tests |
 | `npm run test:e2e:debug` | Modo debug interactivo de Playwright |
 | `npm run test:e2e:report` | Abrir el último reporte HTML de Playwright |
-| `npm run lint` | ESLint sobre `js/**/*.js` |
+| `npm run lint` | ESLint sobre `js/**/*.js` y `*.html` |
 | `npm run lint:fix` | ESLint con autocorrección |
+| `npm run inventory` | Lista completa de funciones del proyecto en orden alfabético (`tools/inventory.js`) — consultar antes de escribir cualquier función nueva |
+| `npm run inventory:dupes` | Solo nombres de función que aparecen en más de un archivo |
+| `npm run inventory:file` | Inventario de funciones agrupado por archivo |
+| `npm run verificar-mensajeria` | Detecta tipos de `TIPOS_MENSAJE` sin emisor, sin receptor, o sin ninguna referencia (`tools/verificar-mensajeria.js`) — tiene falsos positivos documentados, verificar cada hallazgo en el código real |
 | `npm run build:sw` | Recompilar el Service Worker — **pendiente:** `tools/build-sw.js` aún no existe |
 | `npm run dev:watch` | Watch del SW en desarrollo — **pendiente:** `tools/watch-sw.js` aún no existe |
+
+> `postinstall` (`node tools/install-hooks.js`) se ejecuta automáticamente tras `npm install`, pero ese fichero tampoco existe todavía — falla silenciosamente sin afectar a la instalación de dependencias. `tools/` hoy solo contiene `inventory.js`, `verificar-mensajeria.js` y `renumber-pantallas.js` (utilidad de renumeración de pantallas de `En-busca-del-tesoro.html`, sin script npm asociado).
 
 ---
 
@@ -7547,10 +7563,8 @@ La única solución es un **paso de compilación con Babel** que transpile la si
 
 #### manifest.json — configuración de instalación
 
-Propiedades añadidas en la sesión de julio 2026:
-
 - `"prefer_related_applications": false` — indica a Chrome/Android que no sugiera una app nativa alternativa en lugar de la PWA.
-- Icono `512x512 maskable` con `logo-redondo-fondo-blanco.jpg` — requerido por Lighthouse y Chrome para instalar la PWA sin advertencias. El propósito `maskable` indica que el icono tiene zona de sangrado segura para que el sistema operativo pueda recortarlo.
+- Icono `maskable` en dos tamaños (`192x192` y `512x512`) con `logo-redondo-fondo-blanco.jpg` — requerido por Lighthouse y Chrome para instalar la PWA sin advertencias. El propósito `maskable` indica que el icono tiene zona de sangrado segura para que el sistema operativo pueda recortarlo.
 
 ---
 
@@ -8353,7 +8367,7 @@ progresarSiguienteElemento()  ← no hay siguiente elemento
 - Título de felicitación + nombre de la aventura + dos botones.
 - Multilingüe: 12 idiomas (`es`, `en`, `fr`, `it`, `nl`, `de`, `ja`, `zh`, `pl`, `pt`, `ru`, `uk`) — textos en `TRADUCCIONES_FINALIZACION`, importado desde `js/traducciones-ui.js`.
 - Definido en `mostrarModalFinalizacion()` (`codigo-padre.html` L7371, Script 1) y expuesto como `globalThis.mostrarModalFinalizacion`.
-- Al mostrarse, arma automáticamente la **red de seguridad por abandono** (§24.13): si el usuario no pulsa ningún botón, la sesión se limpia sola.
+- Al mostrarse, arma automáticamente la **red de seguridad por abandono** (§25.13): si el usuario no pulsa ningún botón, la sesión se limpia sola.
 
 Los dos botones tienen caminos distintos, pero el resultado final es idéntico — limpieza total y vuelta a P1:
 
@@ -8404,7 +8418,7 @@ hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO
       3. estado.seleccion.iniciada = false
 ```
 
-**El modal (`#modal-tiempo-agotado`):** visualmente es una variante del modal de fin de aventura normal (§24.11) — misma tarjeta celeste `#c8e6f7`, mismo `border-radius:1rem`, mismos dos botones verticales con `gap:0.75rem`. Las diferencias:
+**El modal (`#modal-tiempo-agotado`):** visualmente es una variante del modal de fin de aventura normal (§25.11) — misma tarjeta celeste `#c8e6f7`, mismo `border-radius:1rem`, mismos dos botones verticales con `gap:0.75rem`. Las diferencias:
 
 | | Fin de aventura normal (`#modal-finalizacion-aventura`) | Tiempo agotado (`#modal-tiempo-agotado`) |
 |---|---|---|
@@ -8415,7 +8429,7 @@ hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO
 
 `TRADUCCIONES_FINALIZACION` se importa en Script 2 mediante `await import('./js/traducciones-ui.js')` (L7498) junto a `TRADUCCIONES_TIEMPO_AGOTADO`, ya que el import estático de Script 1 (L2664) no es visible en Script 2 (ver regla de scopes separados en `CLAUDE.md`).
 
-Al crear el modal por primera vez, también arma la **red de seguridad por abandono** (§24.13) mediante `armarRedDeSeguridad_S2(...)` (Script 2, importado en L7499) — si el usuario no pulsa ningún botón, la sesión se limpia sola igual que en el modal de fin de aventura.
+Al crear el modal por primera vez, también arma la **red de seguridad por abandono** (§25.13) mediante `armarRedDeSeguridad_S2(...)` (Script 2, importado en L7499) — si el usuario no pulsa ningún botón, la sesión se limpia sola igual que en el modal de fin de aventura.
 
 **Botón "Hacer otra aventura"** (`#btn-tiempo-agotado-otra`) — camino rápido, igual que en fin de aventura normal:
 1. `modalTiempoAgotado.remove()`
@@ -8430,7 +8444,7 @@ Al crear el modal por primera vez, también arma la **red de seguridad por aband
 5. **Solo en este paso** ocurre la limpieza: `await limpiarDatosAventura('completada')` (`En-busca-del-tesoro.html` L1519-1520)
 6. Pausa 2 s, recarga a P1
 
-Es decir: el botón "Terminar" del modal de tiempo agotado **no limpia nada por sí mismo** — solo navega a la pantalla de despedida; la limpieza real ocurre cuando el usuario, tras leer el agradecimiento, pulsa el botón verde mundo de esa pantalla. Es exactamente el mismo mecanismo que usa el botón "Terminar esta experiencia" del modal de fin de aventura normal (§24.11) — no hay lógica duplicada, solo se reutiliza la misma URL/flujo.
+Es decir: el botón "Terminar" del modal de tiempo agotado **no limpia nada por sí mismo** — solo navega a la pantalla de despedida; la limpieza real ocurre cuando el usuario, tras leer el agradecimiento, pulsa el botón verde mundo de esa pantalla. Es exactamente el mismo mecanismo que usa el botón "Terminar esta experiencia" del modal de fin de aventura normal (§25.11) — no hay lógica duplicada, solo se reutiliza la misma URL/flujo.
 
 **Textos** (`js/traducciones-ui.js`):
 
@@ -8515,7 +8529,7 @@ Nota aparte: si la pestaña *completa* del padre (no solo el iframe de hijo1) pa
 
 Hay dos overlays distintos relacionados con GPS que no deben confundirse:
 
-**Overlay A — Fuera del radio físico** (`#fuera-rango-overlay` en hijo2): ya documentado en §24.7. Se activa cuando el usuario está a más de 20 m de la parada (o fuera del tramo). Es una advertencia de posición, no de señal.
+**Overlay A — Fuera del radio físico** (`#fuera-rango-overlay` en hijo2): ya documentado en §25.7. Se activa cuando el usuario está a más de 20 m de la parada (o fuera del tramo). Es una advertencia de posición, no de señal.
 
 **Overlay B — Señal GPS de baja precisión** (`#gps-out-of-range-overlay` en el padre): se activa cuando el GPS sí funciona pero la precisión reportada es **peor de 50 m** (`CONFIG.GPS.PRECISION_MINIMA`). El teléfono tiene señal pero demasiado débil para confiar en ella.
 
@@ -8538,7 +8552,7 @@ El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la 
 
 El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }`. En cada reintento por timeout, `enableHighAccuracy` se baja a `false` y el timeout se duplica (máximo 60 s).
 
-> Esta sección cubre el overlay de baja precisión. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§24.17**.
+> Esta sección cubre el overlay de baja precisión. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§25.17**.
 
 ---
 
@@ -8675,7 +8689,7 @@ A veces el GPS funciona, pero la precisión que reporta es peor de 50 metros (po
 
 El usuario ve el overlay de baja precisión (`fotogpserror.png`) con el botón 🛰️🔄 y una cuenta atrás de 15 segundos. Si en la siguiente lectura la precisión mejora por debajo de 50 m, el overlay desaparece solo. Si el usuario pulsa el botón, se lanza una lectura inmediata.
 
-Este caso ya estaba documentado en §24.14 con más detalle técnico.
+Este caso ya estaba documentado en §25.14 con más detalle técnico.
 
 ---
 
@@ -8828,7 +8842,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 |--------|-----|--------|
 | `mensajeria.js` | Bus central de comunicación padre↔hijos. Registro de handlers, envío dirigido o broadcast, cola de mensajes pendientes, sistema ACK/timeout, limpieza periódica por TTL. Delega al `state-manager` para almacenar handlers; fallback a mapa local si no está disponible. | `window.mensajeria` / `window.__vv_mensajeria` |
 | `api-client.js` | Cliente HTTP para el backend. Detecta entorno automáticamente (localhost:3001 en dev, dominio real en prod). Implementa `TokenManager` (JWT en memoria + `sessionStorage`). | `window.TokenManager` |
-| `data-loader.js` | Carga datos con doble modo: `'local'` (import JS directo) en localhost, `'api'` (backend + token) en producción. Cache interna (`Map`) para evitar peticiones repetidas. | `cargarCoordenadas()`, `cargarTextos()`, `cargarAudios()`, `cargarRetos()` |
+| `data-loader.js` | Carga datos con doble modo: `'local'` (import JS directo) o `'api'` (backend + token) — `DATA_MODE` se calcula por hostname pero queda anulado a `'local'` mientras `BACKEND_READY=false` (ver §17). Cache interna (`Map`) para evitar peticiones repetidas. | `cargarCoordenadas()`, `cargarTextos()`, `cargarAudios()`, `cargarRetos()` |
 | `monitoreo.js` | Métricas de rendimiento (tiempos de carga, latencias). `promesasPendientes` compartido con `app.js`. Historial en `state-manager.estadoPadre.monitoreo`. | `registrarMetrica()`, `promesasPendientes` |
 
 #### Módulos de aplicación
@@ -8955,7 +8969,7 @@ Si un mensaje llega antes de que el destino esté registrado, va a `colaMensajes
 #### Las confirmaciones (ACK / timeout)
 
 ```javascript
-enviarMensajeConConfirmacion('DATOS.SOLICITAR_PARADAS', {}, { timeout: 5000 })
+enviarMensajeConConfirmacion('NAVEGACION.SOLICITAR_DATOS_PARADAS', {}, { timeout: 5000 })
     .then(respuesta => { /* procesar */ })
     .catch(err => { /* timeout o error */ });
 ```
@@ -9258,7 +9272,7 @@ El marcador es una píldora blanca con borde naranja (`#ff8c00`), emoji 🏛 a l
 - **Heartbeat**: el padre detecta hijos sin respuesta y puede recargar el iframe.
 - **puzzleListener lifecycle**: `window._puzzleListener` almacena el listener activo; se elimina y sustituye en cada re-inicialización para evitar acumulación de listeners.
 - **Registro de handlers con fallbacks en cadena**: `registrarControlador_S1` → `sm.registrarManejador` es la vía primaria; si mensajería no está lista, cae a `__vv_manejadoresLocales` y encola en `__CONTROLADORES_PENDIENTES`, que se drena garantizadamente tras `mensajeriaReady`. El Set `__CONTROLADOR_REGISTRADOS` evita dobles registros. Diseño defensivo intencional, no una duplicación accidental.
-- **`DATOS.SOLICITAR_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
+- **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia (`DATOS.SOLICITAR_PARADAS` es una constante distinta, sin ninguna referencia en el código — ver §10.12).
 - **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
 - **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor, o sin ninguno de los dos. Es una heurística con falsos positivos conocidos (indirección vía variable, handlers registrados en una línea posterior a su definición) — cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
 
@@ -9325,7 +9339,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AUDIO.ERROR` | Hijo 3 (error durante reproducción) | `_hdl_AUDIO_ERROR`: registra en log; habilita el reto igualmente si la parada tiene reto (el audio no es bloqueante ante error) | `RETO.HABILITAR` condicional | Hijo 4 | El error de audio no debe impedir al usuario completar el reto |
 | `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: marca coordenadas como listas en el estado de carga | (ninguna) | — | Tracking de completitud de carga de datos |
 | `DATOS.TEXTOS_CARGADOS` | Hijo 2 (confirmación de carga de textos descriptivos) | `_hdl_DATOS_TEXTOS_CARGADOS`: marca textos como listos | (ninguna) | — | Ídem |
-| `DATOS.SOLICITAR_PARADAS` | Hijo → Padre (fallback legacy) | `_hdl_DATOS_SOLICITAR_PARADAS`: responde con array de paradas; ruta activa usa `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `DATOS.RESPUESTA_PARADAS` | Hijo solicitante | Handler activo pero sin callers en producción — ruta legacy |
+| ~~`DATOS.SOLICITAR_PARADAS`~~ | ❌ Eliminado | Constante muerta — cero referencias en `codigo-padre.html`, `controladores-padre.js` ni `constants.js`; no existe ningún `_hdl_DATOS_SOLICITAR_PARADAS`. El mecanismo real es `NAVEGACION.SOLICITAR_DATOS_PARADAS` (ver §10.12) | — | — | — |
 | `MONITOREO.METRICA` | Hijo 1 (errores de geolocalización detectados) | `_hdl_MONITOREO_METRICA`: registra la métrica en log; sin reenvío | (ninguna) | — | Telemetría interna de calidad de GPS |
 
 ---
@@ -9710,7 +9724,7 @@ El diseño nunca llegó a completarse. **El Map se inicializaba en la línea ~42
 | `_hdl_NAVEGACION_GPS_ERROR` | `NAVEGACION.GPS.ERROR` desde hijos | Ídem |
 | `_hdl_DATOS_RESPUESTA_PARADAS` | `DATOS.RESPUESTA_PARADAS` desde hijo2 | Ídem |
 
-Además, el flujo ya había cambiado: `_hdl_DATOS_SOLICITAR_PARADAS` maneja `SOLICITAR_PARADAS` directamente desde los datos en memoria (`DATOS_PADRE`), sin reenviar a hijo2. Nadie envía ya `RESPUESTA_PARADAS` a padre.
+Además, el flujo ya había cambiado hacia un mecanismo distinto y sin relación con este: `NAVEGACION.SOLICITAR_DATOS_PARADAS` (nótese el prefijo `NAVEGACION`, no `DATOS`), manejado en Script 1 de `codigo-padre.html` directamente desde los datos en memoria (`DATOS_PADRE`), sin reenviar a hijo2. Nadie envía ya `RESPUESTA_PARADAS` a padre; de hecho, hoy `DATOS.SOLICITAR_PARADAS` y `DATOS.RESPUESTA_PARADAS` no tienen ninguna referencia en el código — ni la constante, ni ningún handler (ver §10.12).
 
 Para el GPS: padre emite `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` **hacia hijo2** vía `enviarMensaje_S1({destino:'hijo2',...})` — directo, no broadcast. La dirección inversa (hijo2 → padre) no existe.
 
@@ -9718,7 +9732,7 @@ Para el GPS: padre emite `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` **hacia hijo2** 
 
 - `enviarMensajeConConfirmacion` (líneas ~9394–9518) — usa `confirmacionesPendientes` de `mensajeria.js`, resuelve por `idOriginal`, tiene timeout de 5 s con `Promise.reject()` explícito. Sistema completamente distinto al relay, activo y correcto.
 - `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` en `constants.js` — los usa padre para emitir hacia hijos. No afectados.
-- `_hdl_DATOS_SOLICITAR_PARADAS` — maneja directamente `SOLICITAR_PARADAS` y responde desde memoria. Es el diseño actual y funciona.
+- El handler de Script 1 para `NAVEGACION.SOLICITAR_DATOS_PARADAS` — resuelve directamente desde `DATOS_PADRE` en memoria y responde con `NAVEGACION.RESPUESTA_DATOS_PARADAS`. Es el diseño actual y funciona (ver §10.12). No debe confundirse con `DATOS.SOLICITAR_PARADAS`/`_hdl_DATOS_SOLICITAR_PARADAS`, que no existen en el código.
 
 #### Lección sobre riesgos de correlación dinámica
 
@@ -9760,7 +9774,7 @@ _hdl_SISTEMA_HIJO_LISTO(mensaje)     [codigo-padre.html Script 1]
 | Campo | Fuente | Se usa para restaurar |
 |---|---|---|
 | `_snapshotRecuperacion.tiempoRestante` | `AVENTURA.TIEMPO_ACTUALIZADO` (cada tick) | `hijo1`: re-envía `AVENTURA.INICIADA` con tiempo restante |
-| `_snapshotRecuperacion.audioActual` | `solicitarAudioAHijo3()` antes del send | `hijo3`: re-envía `AUDIO.REPRODUCIR_REQUEST` |
+| `_snapshotRecuperacion.audioActual` | `_solicitarAudioParaParada()` (camino principal, cada cambio de parada) y `solicitarAudioAHijo3()` (fallback de reanudación) — ambos resuelven `audioData` vía `_resolverAudioData()` antes de guardar el snapshot | `hijo3`: re-envía `AUDIO.REPRODUCIR_REQUEST` con el audio ya resuelto, sin depender de un cache-miss posterior |
 | `_snapshotRecuperacion.retoActual` | `_enviarRetoMostrar()` antes del send; limpiado en `RETO.COMPLETADO` | `hijo4`: re-envía `RETO.MOSTRAR` |
 | `globalThis.estadoPadre.paradaActual` | Estado global del padre (actualizado en `NAVEGACION.CAMBIO_PARADA`) | `hijo2`: re-envía `NAVEGACION.CAMBIO_PARADA` |
 
@@ -9770,7 +9784,7 @@ _hdl_SISTEMA_HIJO_LISTO(mensaje)     [codigo-padre.html Script 1]
 |---|---|---|
 | `hijo1` | `AVENTURA.INICIADA { tiempoEstimado: tiempoRestante, pausado: false }` | `tiempoRestante !== undefined` y modo aventura |
 | `hijo2` | `NAVEGACION.CAMBIO_PARADA { paradaActual }` | `paradaActual` definida y modo aventura |
-| `hijo3` | `AUDIO.REPRODUCIR_REQUEST { audioId, contexto, autoplay }` | `audioActual !== null` y modo aventura |
+| `hijo3` | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData, contexto, autoplay }` | `audioActual !== null` y modo aventura |
 | `hijo4` | `RETO.MOSTRAR { retoId, contexto, retosArray }` | `retoActual !== null` y modo aventura |
 
 Si el modo no es aventura al momento del reload, el snapshot se descarta sin enviar nada (en modo CASA no hay estado que restaurar).
@@ -9779,7 +9793,7 @@ Si el modo no es aventura al momento del reload, el snapshot se descarta sin env
 
 - `js/mensajeria.js` — `intentarReconectarHijo()`: llama `globalThis._vv_beforeHijoReload(hijoId)` antes del reload
 - `codigo-padre.html` Script 1 — `_hdl_SISTEMA_HIJO_LISTO`: llama `globalThis._vv_afterHijoListo(hijoId)` tras `_hijoListo_confirmarAlHijo`
-- `codigo-padre.html` Script 2 — `_snapshotRecuperacion`, `_reloadsPendientes`, `_vv_beforeHijoReload`, `_vv_afterHijoListo` declarados tras imports (antes del wait de mensajería); tracking añadido en `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`, `solicitarAudioAHijo3`, `_enviarRetoMostrar` y `_hdl_RETO_COMPLETADO`
+- `codigo-padre.html` Script 2 — `_snapshotRecuperacion`, `_reloadsPendientes`, `_vv_beforeHijoReload`, `_vv_afterHijoListo` declarados tras imports (antes del wait de mensajería); tracking añadido en `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`, `_solicitarAudioParaParada`, `solicitarAudioAHijo3`, `_enviarRetoMostrar` y `_hdl_RETO_COMPLETADO`
 
 ---
 
@@ -10750,9 +10764,9 @@ Esta sección documenta los cambios implementados para las restricciones GPS y e
 
 | Parámetro | Valor | Archivo | Línea |
 |-----------|-------|---------|-------|
-| `PRECISION_MINIMA` | 50 m | `js/config.js` | 110 |
-| `INTERVALO_ACTUALIZACION` | 7.000 ms | `js/config.js` | 98 |
-| `TIMEOUT` | 30.000 ms | `js/config.js` | 92 |
+| `PRECISION_MINIMA` | 50 m | `js/config.js` | 99 |
+| `INTERVALO_ACTUALIZACION` | 7.000 ms | `js/config.js` | 87 |
+| `TIMEOUT` | 30.000 ms | `js/config.js` | 81 |
 | `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | ~4957 |
 
 ### 28.2 Nuevos tipos de mensaje
@@ -10868,7 +10882,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 
 ### 29.3 Timeout de HIJO_LISTO
 
-**Archivo:** `js/state-manager.js` línea 255
+**Archivo:** `js/state-manager.js` línea 266 (función `crearPromiseHijoListo`, declarada en la línea 252)
 
 Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los dispositivos lentos o conexiones de baja calidad pueden tardar más de 15 s en cargar los iframes hijos.
 
@@ -11089,15 +11103,11 @@ El overlay actual `#gps-out-of-range-overlay` (imagen `fotogpserror.png`) se dis
 
 Si `FIN_REPRODUCCION` nunca llega, `pending.audio` se queda `false` para siempre y `intentarCompletarElemento()` nunca avanza al siguiente elemento.
 
-**Bug 1 — `AUDIO.ERROR` no desbloquea el pending:**
-El handler `_hdl_AUDIO_ERROR()` ([codigo-padre.html:9713](codigo-padre.html#L9713)) solo loguea el error e incrementa métricas. No llama a `intentarCompletarElemento()` ni marca `pending.audio = true`. Si el audio da error por internet caído, la parada queda bloqueada igual que si no hubiera llegado `FIN_REPRODUCCION`.
+**Corrección 30.7a — `AUDIO.ERROR` desbloquea el pending:**
+El handler `_hdl_AUDIO_ERROR()` ([codigo-padre.html:10188](codigo-padre.html#L10188)) localiza el elemento por `audioId` con `findElementoPorAudio()`, resuelve su pending vía `ensurePending()` y, si `pending.audio` aún no estaba a `true`, lo marca y llama a `intentarCompletarElemento()`. El error de audio se trata como fin de audio a efectos de progresión — la parada no queda bloqueada aunque el MP3 nunca cargue.
 
-**Bug 2 — TTL configurado pero nunca ejecutado:**
-Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, configurable por elemento en `_buildPendingConfig()`). Sin embargo, no existe ningún `setInterval` ni timer que compruebe si `Date.now() - pending.timestamp > pending.ttlMs` y fuerce la compleción. El TTL es letra muerta.
-
-**Solución a implementar (dos partes):**
-1. En `_hdl_AUDIO_ERROR()`: marcar `pending.audio = true` y llamar a `intentarCompletarElemento()` — tratar el error de audio como fin de audio para no bloquear la progresión.
-2. Activar el TTL: un `setInterval` (cada 60 segundos es suficiente) que recorra `estado.pendingCompleciones`, detecte los que llevan más de `ttlMs` activos, y los force-complete.
+**Corrección 30.7b — TTL activo:**
+Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, configurable por elemento en `_buildPendingConfig()`). Un `setInterval` global (`globalThis.__VV_PENDING_CLEANUP`, [codigo-padre.html:11487](codigo-padre.html#L11487)) corre cada 60 segundos, solo en modo AVENTURA: recorre `estado.pendingCompleciones`, y para cada uno cuyo `Date.now() - pending.timestamp > pending.ttlMs`, fuerza `audio = true` y `llegada = true` y llama a `intentarCompletarElemento()`. El intervalo se limpia (`clearInterval`) junto con el resto de limpieza global del padre ([codigo-padre.html:11696](codigo-padre.html#L11696)).
 
 **Nota sobre tramos:** los tramos requieren `pending.audio && pending.llegada`. Si el audio no carga pero el GPS sí confirma llegada, el tramo sigue bloqueado hasta que se resuelva el audio. La solución del punto 1 (AUDIO.ERROR → pending.audio = true) también desbloquea este caso.
 
@@ -11107,7 +11117,7 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 
 **Pendiente de decisión — timeout de seguridad en el padre:** si tanto `AUDIO.ERROR` como el TTL activo fallan por algún motivo, el padre podría implementar un timeout de seguridad de último recurso que fuerce la progresión tras un tiempo máximo configurable. Este mecanismo es más agresivo que el TTL (no distingue entre audio fallido y audio simplemente largo) y requiere decisión de diseño antes de implementarse.
 
-**Estado de implementación:** ❌ ambos bugs pendientes de corrección.
+**Estado de implementación:** ✅ ambas correcciones aplicadas (30.7a y 30.7b).
 
 ---
 
@@ -11239,7 +11249,7 @@ Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle
 
 ```javascript
 if (retoActual !== null || estado.retoActualId !== null) {
-    logger.warn(`${logPrefix} CAMBIO_MODO con reto activo (${estado.retoActualId}) — omitiendo limpieza`);
+    logger.warn(`${logPrefix} CAMBIO_MODO recibido con reto activo (${estado.retoActualId}) — omitiendo limpieza`);
 } else {
     estado.retoActualId = null;
     retoActual = null;
@@ -11262,7 +11272,7 @@ actualizarInterfazModo(modo);
 ```text
 _enviarDesdePadre(mensaje, 'padre')
   → iframesRegistrados.get('padre')   // undefined
-  → logger.warn('Iframe no encontrado: padre')
+  → logger.warn('[mensajeria] Iframe no encontrado o sin contentWindow: padre')
   → return false
   // la función objetivo nunca se llama
 ```
@@ -11384,7 +11394,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje)
 
 `limpiarControladoresAntiguos` comprueba `!c.opciones?.permanente` antes de eliminar — los marcados con `permanente: true` se conservan indefinidamente.
 
-**Alcance total:** 8 handlers en Script 1 (incluidos los 3 inline HEARTBEAT, HEARTBEAT_RESPONSE, HIJO_FALLIDO), 36 en Script 2, 2 en `app.js`, 4 en `controladores-padre.js` = **50 handlers** permanentes.
+**Alcance total:** 9 handlers en Script 1 (incluidos los 3 inline HEARTBEAT, HEARTBEAT_RESPONSE, HIJO_FALLIDO), 38 en Script 2, 3 en el bloque final de `codigo-padre.html` (Script 4, tras el TTL de pending), 2 en `app.js`, 3 en `controladores-padre.js` = **55 handlers** permanentes en total (recuento por `grep -c "permanente: *true"` sobre los 4 archivos).
 
 **Excepción:** El handler de `COORDENADAS_PARADAS_RESPONSE` (~línea 5351) se registra dinámicamente dentro de una función específica (no en la inicialización general) y no lleva `permanente: true` para no interferir con su ciclo de vida propio.
 
@@ -11644,7 +11654,7 @@ Al pulsarlo (`_skipVideoIntro`):
 
 Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** — solo los dos globos sin texto.
 
-### 32.6 Las 20 escenas de video-intro.html
+### 32.6 Las 19 escenas de video-intro.html
 
 | # run() | Función | Contenido | `JAIME_SCENES[i]` |
 |---------|---------|-----------|-------------------|
@@ -11678,7 +11688,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
 - `sceneVid` tiene atributo `loop` — el vídeo demo de 3 s se repite indefinidamente; la escena avanza cuando el usuario pulsa el botón siguiente (`waitForNextBtn`), no por el evento `ended`. Los handlers `stalled` y `waiting` reintentan `play()` para recuperar la reproducción en GitHub Pages.
-- `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 3 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
+- `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 4 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
 
 ---
@@ -11709,7 +11719,7 @@ Esta sección define el protocolo estándar para pedir una auditoría exhaustiva
 
 ### 35.2 EJE 2 — Scope de funciones entre scripts (codigo-padre.html)
 
-`codigo-padre.html` tiene 4 `<script type="module">` con scope completamente separado. Una función definida en Script 2 (líneas ~7583–11609) es **invisible** en Script 1 (líneas ~2574–7582) a menos que esté expuesta via `globalThis.fn = fn`.
+`codigo-padre.html` tiene 4 `<script type="module">` con scope completamente separado: Script 1 (2577–7521), Script 2 (7522–11515), Script 3 (11516–11712), Script 4 (11713–fin). Una función definida en Script 2 es **invisible** en Script 1 a menos que esté expuesta via `globalThis.fn = fn`.
 
 1. Para cada función llamada en Script 1 que no está definida en Script 1: verifica que el acceso usa `globalThis.fn(...)`. Una bare call sin `globalThis.` lanza `ReferenceError` en runtime (aunque puede quedar silenciada en un `catch`).
 2. Para cada `globalThis.fn = fn` al final de un script: verifica que `fn` está efectivamente definida en ese mismo script y no viene de otro módulo sin re-exposición explícita.
