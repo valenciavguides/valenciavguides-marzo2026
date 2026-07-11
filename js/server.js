@@ -10,7 +10,17 @@ const port = 8080;
 // En producción (PROTECT_DATA=true), bloquear acceso directo a ficheros
 // que contienen datos de aventuras (coordenadas, respuestas, textos, audios).
 // El frontend debe obtener estos datos a través de la API autenticada.
+//
+// ADVERTENCIA — PROTECT_DATA=true requiere BACKEND_READY=true en js/data-loader.js:
+// mientras el frontend siga en DATA_MODE='local' (BACKEND_READY=false, el valor por
+// defecto — ver js/data-loader.js), el propio arranque del padre importa directamente
+// estos mismos ficheros protegidos (Fase 2, codigo-padre.html). Si PROTECT_DATA=true
+// se activa sin que exista y esté probado un backend real, la app entera deja de
+// arrancar (403 en vez de JavaScript válido). Ver docs/GUIA-COMPLETA.md §16.
 const PROTECT_DATA = process.env.PROTECT_DATA === 'true';
+if (PROTECT_DATA) {
+    console.warn('⚠️  PROTECT_DATA=true — asegúrate de que BACKEND_READY=true en js/data-loader.js y que el backend real está desplegado. Si no, la app no arrancará (ver comentario arriba).');
+}
 
 const PROTECTED_FILES = [
     '/js/coordenadas-aventuras.js',
@@ -120,6 +130,6 @@ server.listen(port, () => {
   console.log(`🚀 Servidor HTTP corriendo en http://localhost:${port}`);
   console.log(`📁 Sirviendo archivos desde: ${process.cwd()}`);
   console.log(`\n🌐 Abre en tu navegador:`);
-  console.log(`   http://localhost:${port}/test-codigo-padre.html`);
+  console.log(`   http://localhost:${port}/tests/test-codigo-padre.html`);
   console.log(`   http://localhost:${port}/codigo-padre.html`);
 });

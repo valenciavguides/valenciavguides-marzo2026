@@ -362,26 +362,35 @@
     </style>
 </head>
 <body class="modo-aventura hijo3-container">
-    <!-- ARRAY DE AUDIOS - NO ELIMINAR NI MODIFICAR SIN REVISIÃ“N: Este array es esencial para mapear audioId a archivos MP3. Cualquier cambio debe coordinarse con el padre. -->
+    <!-- CACHÉ DE AUDIOS - NO ELIMINAR NI MODIFICAR SIN REVISIÓN: __vv_audioCache mapea audioId a los datos del audio (file, title). Cualquier cambio debe coordinarse con el padre. -->
     <script type="module">
-        // â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
-        // â•‘ ARRAY VACÃO - Los audios se cargan desde el PADRE via mensaje CARGAR_AUDIOS â•‘
-        // â•‘ El array de backup estÃ¡ comentado abajo por si necesitamos restaurar        â•‘
-        // â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        const audioFiles = [];
+        // Protección pasiva por parada: no se precarga la aventura completa. El padre
+        // envía el audio de cada parada en línea dentro de AUDIO.REPRODUCIR_REQUEST
+        // (campo audioData). Se retienen como máximo los 2 últimos ids distintos
+        // recibidos (parada actual + 1 anterior); al llegar un tercero se descarta el
+        // más antiguo. Ver docs/GUIA-COMPLETA.md §16.
+        const AUDIO_CACHE_MAX = 2;
+        globalThis.__vv_audioCache = globalThis.__vv_audioCache || new Map();
 
-        // FunciÃ³n getter que prioriza datos del padre sobre datos locales
-        function obtenerAudioFiles() {
-            // Prioridad 1: Datos recibidos del padre
-            if (globalThis.__vv_audioFiles && Array.isArray(globalThis.__vv_audioFiles) && globalThis.__vv_audioFiles.length > 0) {
-                return globalThis.__vv_audioFiles;
+        function _guardarAudioEnCache(audioId, audioData) {
+            if (!audioId || !audioData) return;
+            const cache = globalThis.__vv_audioCache;
+            cache.delete(audioId); // reinsertar al final si ya existía (marca como reciente)
+            cache.set(audioId, audioData);
+            while (cache.size > AUDIO_CACHE_MAX) {
+                const masAntiguo = cache.keys().next().value;
+                cache.delete(masAntiguo);
             }
-            // Prioridad 2: Array local como fallback de emergencia
-            console.warn('[hijo3] âš ï¸ Usando audioFiles local vacÃ­o - Â¿Se cargaron los audios desde el padre?');
-            return audioFiles;
+        }
+        globalThis._guardarAudioEnCache = _guardarAudioEnCache;
+
+        // Función getter: array derivado de la caché acotada (mismo contrato que antes,
+        // .find(a => a.id === audioId), para no tocar los call-sites existentes)
+        function obtenerAudioFiles() {
+            return Array.from(globalThis.__vv_audioCache.values());
         }
 
-        // Exponer funciÃ³n globalmente
+        // Exponer función globalmente
         globalThis.obtenerAudioFiles = obtenerAudioFiles;
 
         /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -397,7 +406,7 @@
 
         // âœ… Exponer funciÃ³n getter globalmente (sustituye la exposiciÃ³n directa del array)
         // La lÃ­nea original era: try { globalThis.__vv_audioFiles = audioFiles; } catch (e) { /* ignore */ }
-        // Ahora los audios llegan desde el padre via CARGAR_AUDIOS
+        // Ahora los audios llegan desde el padre via AUDIO.REPRODUCIR_REQUEST (campo audioData), resuelto por parada
     </script>
 
     <div class="audio-player-controls">
@@ -432,7 +441,7 @@
     </audio>
 
     <script type="module">
-    import { retryUntilAvailable, resolverIdsParada, resolverIdPadre, ajustarTimeoutPorConexion } from './js/utils.js';
+    import { retryUntilAvailable, resolverIdsParada, resolverIdPadre } from './js/utils.js';
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
 
@@ -457,7 +466,7 @@
                 globalThis.parent.postMessage(payload, globalThis.location.origin);
                 return;
             } catch (e) {
-                console.error('[hijo3] Error enviando mensaje via postMessage:', e);
+                logger.error('[hijo3] Error enviando mensaje via postMessage:', e);
                 throw e;
             }
         } else {
@@ -491,49 +500,6 @@
         }
     };
 
-    const enviarMensajeConConfirmacion = async (...args) => {
-        // Similar a enviarMensaje pero esperando confirmaciÃ³n
-        if (globalThis.parent && globalThis.parent !== globalThis) {
-            const mensaje = args[0];
-            return new Promise((resolve, reject) => {
-                const idMensaje = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-                const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmaciÃ³n')),
-                    ajustarTimeoutPorConexion(5000));
-
-                const confirmListener = (event) => {
-                    if (event.source === globalThis.parent && event.data && event.data.tipo === 'SISTEMA.CONFIRMACION' && event.data.idOriginal === idMensaje) {
-                        clearTimeout(timeout);
-                        globalThis.removeEventListener('message', confirmListener);
-                        resolve();
-                    }
-                };
-
-                globalThis.addEventListener('message', confirmListener);
-
-                try {
-                    globalThis.parent.postMessage({
-                        tipo: mensaje.tipo,
-                        origen: mensaje.origen || 'hijo3',
-                        destino: mensaje.destino,
-                        datos: mensaje.datos,
-                        timestamp: Date.now(),
-                        id: idMensaje,
-                        requiereConfirmacion: true
-                    }, globalThis.location.origin);
-                } catch (e) {
-                    clearTimeout(timeout);
-                    globalThis.removeEventListener('message', confirmListener);
-                    reject(e);
-                }
-            });
-        } else {
-            return await retryUntilAvailable(
-                () => globalThis.mensajeria.enviarMensajeConConfirmacion(...args),
-                () => globalThis.mensajeria && globalThis.mensajeria.enviarMensajeConConfirmacion,
-                10, 500, (...a) => (globalThis.logger || console).error(...a)
-            );
-        }
-    };
 
     async function _enviarAutoConfirmacion(event, iframeId, resultado) {
         if (!event.data.requiereConfirmacion || !event.data.id || resultado === undefined) return;
@@ -717,8 +683,18 @@
         }
         const audioData = files.find(audio => audio.id === audioId || audio.id === `audio-${audioId}`);
         if (!audioData) {
-            logger.error(`Audio no encontrado: ${audioId}`);
-            return { exito: false, error: 'audio_not_found' };
+            logger.warn(`[hijo3] Audio ${audioId} no está en caché local — solicitando al padre`);
+            try {
+                await enviarMensaje({
+                    tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS,
+                    origen: CONFIG_HIJO.IFRAME_ID,
+                    destino: resolverIdPadre(),
+                    datos: { audioId, motivo: 'cache_miss', timestamp: Date.now() }
+                });
+            } catch (err) {
+                logger.error('[hijo3] Error solicitando audio faltante al padre:', err);
+            }
+            return { exito: false, error: 'audio_not_found_requesting' };
         }
 
         // Guard: si el archivo de audio no estÃ¡ configurado aÃºn (file vacÃ­o), devolver
@@ -1119,7 +1095,7 @@
     // FunciÃ³n para actualizar la interfaz segÃºn el modo
     function actualizarInterfazModo(modo) {
         const modoSeguro = normalizarModo(modo);
-        console.log(`[AUDIO] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
+        logger.info(`[AUDIO] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
         const body = document.body;
 
         // Actualizar clases CSS (sÃ³lo si hay un modo vÃ¡lido)
@@ -1136,12 +1112,12 @@
         const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
         try { if (document.body) document.body.style.display = 'none'; } catch (e) { logger.debug('[hijo3] no se pudo ocultar UI inicial', e && e.message); }
         function mostrarUI() {
-            if (!_uiConfirmado) { console.warn('[hijo3] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
+            if (!_uiConfirmado) { logger.warn('[hijo3] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
             try {
                 if (document.body) {
                     document.body.style.display = _originalDisplay || 'block';
                 }
-                console.log('[hijo3] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
+                logger.info('[hijo3] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
             } catch (e) {
                 logger.debug('[hijo3] no se pudo mostrar UI', e && e.message);
             }
@@ -1242,7 +1218,7 @@
             const logPrefix = `[hijo3][PADRE_CONFIRMA_HIJO_LISTO][${mensaje?.origen || 'desconocido'}]`;
 
             try {
-                console.log('[hijo3] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
+                logger.info('[hijo3] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
                 if (!mensaje?.origen) {
                     logger.error(`${logPrefix} Mensaje sin origen vÃ¡lido`, mensaje);
                     return;
@@ -1298,93 +1274,9 @@
                 // Preparado para futuras solicitudes de datos adicionales del padre
                 logger.debug(`${logPrefix} Componente listo para recibir datos adicionales si es necesario`);
 
-                // VerificaciÃ³n diferida: si CARGAR_AUDIOS no llegÃ³ en 3s, solicitarlo al padre
-                setTimeout(() => {
-                    if (!globalThis.__vv_audioFiles || !Array.isArray(globalThis.__vv_audioFiles) || globalThis.__vv_audioFiles.length === 0) {
-                        logger.debug('[hijo3] Audios no recibidos tras 3s â€” solicitando al padre');
-                        enviarMensaje({
-                            tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: resolverIdPadre(),
-                            datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
-                        }).catch(err => logger.error('[hijo3] Error solicitando audios:', err));
-                    }
-                }, 3000);
 
             } catch (error) {
                 logger.error(`${logPrefix} Error procesando confirmaciÃ³n del padre:`, error);
-            }
-        });
-
-        // ============================================================
-        // CONTROLADOR: DATOS.CARGAR_AUDIOS
-        // Recibe audios centralizados del padre al iniciar aventura
-        // ============================================================
-
-        /**
-         * Controlador: DATOS.CARGAR_AUDIOS
-         * DescripciÃ³n: Recibe y almacena los audios de la aventura seleccionada
-         * Origen: padre (codigo-padre.html)
-         * Datos recibidos: { aventura, idioma, audios: Array, total, timestamp }
-         */
-        registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS, async (mensaje) => {
-            const logPrefix = `[hijo3][CARGAR_AUDIOS]`;
-
-            try {
-                const { aventura, idioma, audios, total } = mensaje.datos || {};
-
-                logger.info(`${logPrefix} ðŸ“¥ Recibiendo audios de ${aventura} (${idioma}): ${total} pistas`);
-
-                if (!audios || !Array.isArray(audios)) {
-                    throw new Error('Datos de audios invÃ¡lidos o no son un array');
-                }
-
-                // Almacenar en estado global para uso en funciones de reproducciÃ³n
-                globalThis.__vv_audioFiles = audios;
-                globalThis.__vv_aventuraActual = aventura;
-                globalThis.__vv_idiomaActual = idioma;
-
-                // TambiÃ©n exponer como variable local si audioFiles estaba definida
-                if (typeof audioFiles !== 'undefined') {
-                    // audioFiles ya existe como const, no se puede reasignar
-                    // Los audios estÃ¡n disponibles en globalThis.__vv_audioFiles
-                }
-
-                logger.info(`${logPrefix} âœ… ${audios.length} audios almacenados en globalThis.__vv_audioFiles`);
-
-                await enviarMensajeConConfirmacion({
-                    tipo: TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: resolverIdPadre(),
-                    datos: {
-                        exito: true,
-                        aventura: aventura,
-                        idioma: idioma,
-                        totalCargados: audios.length,
-                        timestamp: Date.now()
-                    }
-                });
-
-                logger.success(`${logPrefix} âœ… ConfirmaciÃ³n AUDIOS_CARGADOS enviada al padre`);
-
-            } catch (error) {
-                logger.error(`${logPrefix} Error cargando audios:`, error);
-
-                // Enviar error al padre
-                try {
-                    await enviarMensaje({
-                        tipo: TIPOS_MENSAJE.DATOS.AUDIOS_CARGADOS,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        destino: resolverIdPadre(),
-                        datos: {
-                            exito: false,
-                            error: error.message,
-                            timestamp: Date.now()
-                        }
-                    });
-                } catch (sendError) {
-                    logger.error(`${logPrefix} Error enviando confirmaciÃ³n de error:`, sendError);
-                }
             }
         });
 
@@ -1393,6 +1285,13 @@
             try {
                 logger.debug(`[hijo3] REPRODUCIR_REQUEST recibido:`, mensaje.datos);
                 const { audioId, autoplay = false } = mensaje.datos || {};
+
+                const { audioData } = mensaje.datos || {};
+                if (audioData) {
+                    globalThis._guardarAudioEnCache(audioId, audioData);
+                } else {
+                    logger.warn(`[hijo3] REPRODUCIR_REQUEST sin audioData para ${audioId} — se intentará resolver desde caché local`);
+                }
 
                 if (!audioId) {
                     throw new Error('audioId no proporcionado');
@@ -1485,7 +1384,7 @@
                         CONFIG_HIJO_exists: globalThis.CONFIG_HIJO !== undefined,
                         mensaje_origen: mensaje?.origen
                     };
-                    console.error('[hijo3][CAMBIO_MODO] ðŸ”´ DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
+                    logger.error('[hijo3][CAMBIO_MODO] ðŸ”´ DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
                     logger.error(`${logPrefix} âŒ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                     throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
                 }
@@ -1671,115 +1570,6 @@
             }
         });
 
-        // Controlador para solicitud de audio del padre
-        registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.SOLICITAR_AUDIO, async (mensaje) => {
-            const logPrefix = `[hijo3][AUDIO.SOLICITAR_AUDIO][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                const { paradaId, tipoConsulta, audioIdEsperado } = mensaje.datos;
-
-                // Validar datos requeridos
-                if (!paradaId) {
-                    logger.error(`${logPrefix} paradaId requerido faltante`);
-                    return { exito: false, error: 'paradaId requerido faltante' };
-                }
-                if (!tipoConsulta) {
-                    logger.error(`${logPrefix} tipoConsulta requerido faltante`);
-                    return { exito: false, error: 'tipoConsulta requerido faltante' };
-                }
-                if (tipoConsulta !== 'AUDIO') {
-                    logger.error(`${logPrefix} tipoConsulta invÃ¡lido: ${tipoConsulta}, esperado: AUDIO`);
-                    return { exito: false, error: `tipoConsulta invÃ¡lido: ${tipoConsulta}` };
-                }
-
-                logger.debug(`${logPrefix} Solicitud de audio para ${paradaId}`);
-
-                const files = obtenerAudioFiles();
-                if (!Array.isArray(files) || files.length === 0) {
-                    const errorData = { exito: false, error: 'audioFiles_missing', paradaId };
-                    await enviarMensaje({
-                        destino: mensaje.origen || resolverIdPadre(),
-                        tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                        idOriginal: mensaje.id,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        timestamp: Date.now(),
-                        datos: errorData
-                    });
-                    return errorData;
-                }
-
-                const paradaNorm = String(paradaId || '').replace(/^padre-/i, '').toUpperCase();
-                const paradaCompacta = paradaNorm.replaceAll('-', '');
-                let audioEncontrado = null;
-
-                // Prioridad 1: ID explÃ­cito esperado desde el padre (fuente de verdad)
-                if (audioIdEsperado) {
-                    audioEncontrado = files.find(a => a && a.id === audioIdEsperado) || null;
-                }
-
-                // Prioridad 2: fallback dinÃ¡mico por parada/tramo compatible con todos los idiomas
-                if (!audioEncontrado) {
-                    audioEncontrado = files.find(a => {
-                        const id = String(a?.id || '').toUpperCase();
-                        if (!id) return false;
-
-                        // Compatibilidad con formato simple legacy: audio-P-0 / audio-TR-1 / audio-intro
-                        if (id === `AUDIO-${paradaNorm}`) return true;
-
-                        // Formato actual: audio-AvX-P0-es, audio-AvX-TR1-en, etc.
-                        // Se compara por token compacto delimitado por guiones para evitar falsos positivos.
-                        return id.includes(`-${paradaCompacta}-`) || id.endsWith(`-${paradaCompacta}`);
-                    }) || null;
-                }
-
-                if (!audioEncontrado) {
-                    const errorData = {
-                        exito: false,
-                        error: 'audio_not_found_for_parada',
-                        paradaId,
-                        audioIdEsperado: audioIdEsperado || null
-                    };
-                    await enviarMensaje({
-                        destino: mensaje.origen || resolverIdPadre(),
-                        tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                        idOriginal: mensaje.id,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        timestamp: Date.now(),
-                        datos: errorData
-                    });
-                    return errorData;
-                }
-
-                const audioData = {
-                    paradaId,
-                    audioId: audioEncontrado.id,
-                    url: audioEncontrado.file || null,
-                    title: audioEncontrado.title || null,
-                    exito: true
-                };
-
-                // Enviar confirmaciÃ³n con formato correcto para que enviarMensajeConConfirmacion resuelva
-                // Debe tener: tipo=SISTEMA.CONFIRMACION, idOriginal=mensaje.id, datos=resultado
-                await enviarMensaje({
-                    destino: mensaje.origen || resolverIdPadre(),
-                    tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-                    idOriginal: mensaje.id, // CLAVE: permite resolver la promesa pendiente
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    timestamp: Date.now(),
-                    datos: audioData
-                });
-
-                logger.info(`${logPrefix} ConfirmaciÃ³n de audio enviada para ${paradaId}`);
-
-                // Return para auto-confirmaciÃ³n del messagingAdapter
-                return audioData;
-
-            } catch (error) {
-                logger.error(`${logPrefix} Error respondiendo audio:`, error);
-                return { exito: false, error: error.message };
-            }
-        });
-
         function _resetearProgresoVisual() {
             if (progressBar) progressBar.style.width = '0%';
             if (progressContainer) { progressContainer.setAttribute('aria-valuenow', 0); progressContainer.style.setProperty('--bar-w', 0); }
@@ -1857,12 +1647,6 @@
             } catch (error) {
                 logger.error(`${logPrefix} Error respondiendo ACK:`, error);
             }
-        });
-
-        // Fase 3 del patrón bidireccional: padre confirma recepción de datos cargados
-        registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, async (mensaje) => {
-            const { subtipo } = mensaje.datos || {};
-            logger.info(`[hijo3][DATOS.CARGADOS_RECIBIDO] Padre confirmó recepción de ${subtipo}`);
         });
 
         // ============================================================

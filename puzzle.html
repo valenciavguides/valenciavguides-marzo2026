@@ -144,7 +144,7 @@ if (!aventuraActual) {
         }
     } catch (e) {
         // Si hay error de acceso cross-origin, usar predeterminado
-        console.warn('No se pudo acceder a la aventura del padre:', e.message);
+        console.warn('No se pudo acceder a la aventura del padre:', e.message); // logger.js no se importa en este archivo
     }
 }
 // Default to Aventura1 if no aventura specified
@@ -234,7 +234,7 @@ puzzleWrapper.appendChild(effectCanvas);
 img.onload = () => {
     // Verificar que la imagen tiene dimensiones válidas
     if (!img.width || !img.height) {
-        console.error('La imagen cargó pero tiene dimensiones inválidas:', img.width, img.height);
+        logger.error('La imagen cargó pero tiene dimensiones inválidas:', img.width, img.height);
         const errorMsg = document.getElementById("errorMsg");
         const errorText = document.getElementById("errorText");
         errorText.textContent = `❌ Error: La imagen del puzzle no tiene dimensiones válidas`;
@@ -471,7 +471,7 @@ function endPuzzle(success) {
             globalThis.location.origin
         );
     } catch (e) {
-        console.warn('[puzzle] No se pudo enviar estado al padre:', e && e.message);
+        logger.warn('[puzzle] No se pudo enviar estado al padre:', e && e.message);
     }
 
     if (success) {

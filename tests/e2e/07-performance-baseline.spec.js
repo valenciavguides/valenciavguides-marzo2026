@@ -1,28 +1,19 @@
 /**
  * 07-performance-baseline.spec.js
  *
- * Establece la línea base de rendimiento del arranque de FASE 1 ANTES de la
- * extracción a js/controladores-padre.js (DT-1 Opción B).
- *
- * Criterio de aceptación del refactor (DT-1):
- *   "El tiempo de arranque medido en performance.now() no aumenta más de 50ms
- *    respecto al baseline del script inline actual."
+ * Mide el rendimiento de arranque de FASE 1 (extracción de controladores a
+ * js/controladores-padre.js, ya completada) como referencia de regresión.
  *
  * Qué mide este spec:
  *   - Tiempo de navegación a __MENSAJERIA_INICIADA=true (T_boot)
  *   - Número de handlers registrados en state-manager (baseline handler count)
  *   - Número de entradas en __CONTROLADOR_REGISTRADOS (baseline Set size)
- *   - Número de entradas en __vv_manejadoresLocales (debe ser 0 — DT-1 criterio #5)
- *
- * Cómo usar los resultados:
- *   1. Ejecutar ANTES del refactor → guardar los valores en un comentario
- *      o en la sección "BASELINE" de DEUDA-TECNICA-PRODUCCION.md
- *   2. Ejecutar DESPUÉS del refactor → comparar contra ese baseline
- *   3. Si T_boot aumenta más de 50ms → investigar antes de mergear
+ *   - Número de entradas en __vv_manejadoresLocales (debe ser 0)
  *
  * Los thresholds de este spec son conservadores (el boot no debe superar
  * BOOT_TIMEOUT_THRESHOLD). El objetivo no es que este spec falle en producción,
- * sino que LOS VALORES REGISTRADOS en el log sirvan como referencia comparativa.
+ * sino que LOS VALORES REGISTRADOS en el log sirvan como referencia comparativa
+ * si se detecta una regresión de rendimiento en el futuro.
  */
 'use strict';
 

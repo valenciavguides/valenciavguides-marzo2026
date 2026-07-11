@@ -201,7 +201,7 @@
         globalThis.parent.cerrarChatSoporte();
       }
     } catch (error_) {
-      console.debug('[hijo6] cerrarChatSoporte no disponible', error_ && error_.message);
+      console.debug('[hijo6] cerrarChatSoporte no disponible', error_ && error_.message); // script clásico pre-módulo
     }
 
     // 2) Direct DOM fallback for same-origin.
@@ -212,7 +212,7 @@
         iframeChat.style.visibility = 'hidden';
       }
     } catch (error_) {
-      console.debug('[hijo6] No se pudo ocultar iframe por DOM directo', error_ && error_.message);
+      console.debug('[hijo6] No se pudo ocultar iframe por DOM directo', error_ && error_.message); // script clásico pre-módulo
     }
 
     // 3) Messaging fallback.
@@ -220,7 +220,7 @@
       var tipoCerrar = (globalThis.constants && globalThis.constants.TIPOS_MENSAJE && globalThis.constants.TIPOS_MENSAJE.CHAT && globalThis.constants.TIPOS_MENSAJE.CHAT.CERRAR) || 'CHAT.CERRAR';
       globalThis.parent.postMessage({ tipo: tipoCerrar }, obtenerOrigenPadreSeguro());
     } catch (error_) {
-      console.debug('[hijo6] postMessage CHAT.CERRAR falló', error_ && error_.message);
+      console.debug('[hijo6] postMessage CHAT.CERRAR falló', error_ && error_.message); // script clásico pre-módulo
     }
 
     return false;

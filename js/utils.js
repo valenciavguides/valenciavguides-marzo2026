@@ -290,7 +290,7 @@ export function getRegistrarControlador() {
             globalThis.__vv_handlers = new Map();
         }
         globalThis.__vv_handlers.set(tipo, handler);
-        console.log(`[utils] Handler registrado localmente para: ${tipo}`);
+        (globalThis.logger || console).info(`[utils] Handler registrado localmente para: ${tipo}`);
     };
 }
 
@@ -384,7 +384,7 @@ export function retryUntilAvailable(checkFn, optionsOrReadyFn, maxIntentosArg, i
 
             try {
                 if (checkFn()) {
-                    if (mensaje) console.log(`[utils] ${mensaje} - disponible después de ${intentos} intentos`);
+                    if (mensaje) (globalThis.logger || console).info(`[utils] ${mensaje} - disponible después de ${intentos} intentos`);
                     resolve(true);
                     return;
                 }
@@ -393,7 +393,7 @@ export function retryUntilAvailable(checkFn, optionsOrReadyFn, maxIntentosArg, i
             }
 
             if (intentos >= maxIntentos) {
-                if (mensaje) console.warn(`[utils] ${mensaje} - no disponible después de ${maxIntentos} intentos`);
+                if (mensaje) (globalThis.logger || console).warn(`[utils] ${mensaje} - no disponible después de ${maxIntentos} intentos`);
                 resolve(false);
                 return;
             }
@@ -692,7 +692,7 @@ export function manejarError(error, contexto = null, opciones = {}) {
     };
     
     // Log del error
-    console.error('[ERROR]', errorInfo.mensaje, errorInfo);
+    (globalThis.logger || console).error('[ERROR]', errorInfo.mensaje, errorInfo);
     
     // Intentar enviar error al padre si estamos en un iframe
     if (globalThis.parent && globalThis.parent !== globalThis.window) {

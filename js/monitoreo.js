@@ -260,10 +260,7 @@ function enviarHeartbeat() {
                 }
             });
         } catch (e) {
-            // Silenciar errores de heartbeat para no llenar la consola
-            if (typeof console !== 'undefined' && console.debug) {
-                console.debug('[monitoreo] Error enviando heartbeat:', e?.message);
-            }
+            logger.debug('[monitoreo] Error enviando heartbeat:', e?.message);
         }
     }
 }

@@ -18,21 +18,26 @@
  */
 
 // ═══════════════════════════════════════════════════
-// CONFIGURACIÓN — Automático según entorno
-// localhost/127.0.0.1 → 'local' (desarrollo)
-// cualquier otro dominio → 'api' (producción)
+// CONFIGURACIÓN — Automático según entorno, detrás de un interruptor explícito
+// localhost/127.0.0.1 → 'local' (desarrollo) siempre, en cualquier caso.
+// cualquier otro dominio → 'api' SOLO si BACKEND_READY=true.
 // ═══════════════════════════════════════════════════
+//
+// BACKEND_READY debe permanecer en `false` hasta que exista un backend real
+// desplegado y probado (ver docs/GUIA-COMPLETA.md §16 — hoy backend/ está vacío).
+// Con auto-detección sin este interruptor, cualquier despliegue a un dominio
+// real (p.ej. valenciavguides.es) cambiaría a DATA_MODE='api' de inmediato y
+// rompería la app entera (fetchFromAPI contra un backend que no existe).
+// Cuando el backend esté listo: cambiar BACKEND_READY a `true` — no hace falta
+// tocar nada más en este archivo, la detección por hostname ya está lista.
+const BACKEND_READY = false;
 
-// Forzado a modo local para producción estática
-const DATA_MODE = 'local';
-const API_BASE = 'http://localhost:3001/api'; // No se usa en modo local
-
-// --- Detección automática de entorno (comentar/descomentar para revertir) ---
-// const _host = globalThis.location.hostname;
-// const DATA_MODE = (_host === 'localhost' || _host === '127.0.0.1') ? 'local' : 'api';
-// const API_BASE = DATA_MODE === 'local'
-//     ? 'http://localhost:3001/api'
-//     : `${globalThis.location.origin}/api`;
+const _host = globalThis.location?.hostname;
+const _esLocal = _host === 'localhost' || _host === '127.0.0.1' || !_host;
+const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
+const API_BASE = DATA_MODE === 'local'
+    ? 'http://localhost:3001/api'
+    : `${globalThis.location.origin}/api`;
 
 // ═══════════════════════════════════════════════════
 // CACHE EN MEMORIA
@@ -61,7 +66,7 @@ async function fetchFromAPI(endpoint) {
     
     if (!response.ok) {
         if (response.status === 401) {
-            console.warn('[DataLoader] Token inválido o expirado. Se requiere re-activación.');
+            (globalThis.logger || console).warn('[DataLoader] Token inválido o expirado. Se requiere re-activación.');
             if (globalThis.TokenManager) globalThis.TokenManager.clearToken();
         }
         throw new Error(`API error ${response.status}: ${endpoint}`);
@@ -237,26 +242,6 @@ export async function cargarAudios(aventuraId, idioma) {
 }
 
 /**
- * Carga los puzzles de una aventura
- */
-export async function cargarPuzzles(aventuraId) {
-    const key = getCacheKey('puzzles', aventuraId);
-    if (dataCache.has(key)) return dataCache.get(key);
-
-    let result;
-    if (DATA_MODE === 'local') {
-        const { PUZZLES_AVENTURAS } = await import('./puzzles-aventuras.js');
-        result = PUZZLES_AVENTURAS[aventuraId];
-    } else {
-        const data = await fetchFromAPI(`/puzzles/${aventuraId}`);
-        result = data.puzzles;
-    }
-
-    dataCache.set(key, result);
-    return result;
-}
-
-/**
  * Carga el índice de aventuras disponibles
  */
 export async function cargarIndice() {
@@ -282,7 +267,7 @@ export async function cargarIndice() {
  */
 export async function validarRespuesta(aventuraId, idioma, retoId, respuesta) {
     if (DATA_MODE === 'local') {
-        console.warn('[DataLoader] validarRespuesta() no disponible en modo local');
+        (globalThis.logger || console).warn('[DataLoader] validarRespuesta() no disponible en modo local');
         return null;
     }
 

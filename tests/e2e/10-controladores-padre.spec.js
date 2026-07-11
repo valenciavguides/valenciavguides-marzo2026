@@ -10,10 +10,12 @@
  *         (confirma que llegaron al state-manager, no al fallback)
  *   CP-3  El total de tipos en __CONTROLADOR_REGISTRADOS incluye los 4 extraídos
  *         (regresión: el refactor no redujo el número total de controladores)
- *   CP-4  Enviar SOLICITAR_AUDIOS sintético: el padre devuelve CARGAR_AUDIOS
- *         (smoke test de bidireccionalidad del handler)
+ *   CP-4  Enviar SOLICITAR_AUDIOS sintético: el padre responde con
+ *         AUDIO.REPRODUCIR_REQUEST (protección pasiva por parada — ya no
+ *         reenvía CARGAR_AUDIOS con la aventura completa, ver §16 de la guía)
  *   CP-5  Enviar SOLICITAR_TEXTOS sintético: el padre devuelve CARGAR_TEXTOS
- *   CP-6  Enviar SOLICITAR_RETOS sintético: el padre devuelve CARGAR_RETOS
+ *   CP-6  Enviar SOLICITAR_RETOS sintético: el padre responde con RETO.MOSTRAR
+ *         (mismo motivo que CP-4)
  *   CP-7  Enviar SOLICITAR_COORDENADAS sintético: el padre devuelve CARGAR_COORDENADAS
  *   CP-8  Enviar SOLICITAR_DATOS_PARADAS sintético: el padre devuelve
  *         RESPUESTA_DATOS_PARADAS (o maneja la ausencia de datos sin lanzar)
@@ -126,15 +128,17 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
     );
   }
 
-  test('CP-4. SOLICITAR_AUDIOS → el padre responde CARGAR_AUDIOS o maneja sin lanzar', async ({ page }) => {
-    // Con datos no cargados, el handler puede responder con error o vacío — lo importante
-    // es que no lance una excepción no controlada y que el tipo esté registrado (ya verificado en CP-1).
+  test('CP-4. SOLICITAR_AUDIOS → el padre responde AUDIO.REPRODUCIR_REQUEST o maneja sin lanzar', async ({ page }) => {
+    // Protección pasiva por parada: SOLICITAR_AUDIOS ya no reenvía la aventura completa
+    // (CARGAR_AUDIOS retirado) — resuelve un audioId concreto y responde con el mismo
+    // AUDIO.REPRODUCIR_REQUEST que usa el flujo normal de cambio de parada. Este smoke
+    // test corre antes de seleccionar aventura, así que sin audioId/aventura el handler
+    // hace no-op — el timeout es el resultado esperado, no un fallo.
     const result = await enviarSolicitudYEsperarRespuesta(
       page,
       'DATOS.SOLICITAR_AUDIOS',
-      'DATOS.CARGAR_AUDIOS'
+      'AUDIO.REPRODUCIR_REQUEST'
     );
-    // Respuesta o timeout sin lanzar son ambos aceptables cuando los datos no están cargados.
     expect(result.ok || result.razon.includes('timeout')).toBe(true);
   });
 
@@ -148,10 +152,11 @@ test.describe('CP — Controladores de datos extraídos (js/controladores-padre.
   });
 
   test('CP-6. SOLICITAR_RETOS → handler registrado y no lanza', async ({ page }) => {
+    // Mismo motivo que CP-4: CARGAR_RETOS retirado, ahora responde con RETO.MOSTRAR.
     const result = await enviarSolicitudYEsperarRespuesta(
       page,
       'DATOS.SOLICITAR_RETOS',
-      'DATOS.CARGAR_RETOS'
+      'RETO.MOSTRAR'
     );
     expect(result.ok || result.razon.includes('timeout')).toBe(true);
   });

@@ -370,7 +370,7 @@ class ErrorUI {
         
         // Log a consola
         if (ERROR_UI_CONFIG.logToConsole) {
-            console.error(`[ErrorUI] ${codigo}: ${mensaje}`, error);
+            (globalThis.logger || console).error(`[ErrorUI] ${codigo}: ${mensaje}`, error);
         }
         
         return toastEl;
@@ -464,7 +464,7 @@ class ErrorUI {
         
         // Log a consola
         if (ERROR_UI_CONFIG.logToConsole) {
-            console.error(`[ErrorUI Modal] ${codigo}: ${mensaje}`, error);
+            (globalThis.logger || console).error(`[ErrorUI Modal] ${codigo}: ${mensaje}`, error);
         }
         
         return overlay;

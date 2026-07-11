@@ -5,6 +5,7 @@ module.exports = [
   // ── JS modules (js/ y backend/) ──────────────────────────────────────────
   {
     files: ["js/**/*.js", "backend/**/*.js", "tests/**/*.js"],
+    ignores: ["js/vendor/**", "js/server.js", "js/suppress-warnings.js"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
@@ -15,6 +16,47 @@ module.exports = [
     rules: {
       "import/no-unresolved": "error",
       "import/no-cycle": "warn",
+      // Toda comunicación de log debe pasar por el logger centralizado (js/logger.js),
+      // vía import directo o el patrón de fallback (globalThis.logger || console).X(...).
+      // Esta regla NO marca ese patrón porque el objeto del MemberExpression no es
+      // literalmente el identificador "console" (está envuelto en la expresión ||).
+      // Excepciones legítimas (sin logger disponible por diseño): js/server.js (Node,
+      // fuera del navegador), js/vendor/** (código de terceros), js/suppress-warnings.js
+      // (debe ejecutarse antes de que cualquier módulo, incluido logger.js, cargue).
+      // console.assert()/console.clear() son operaciones de consola sin equivalente
+      // en el logger (no son mensajes de log) — permitidas explícitamente.
+      "no-console": ["error", { allow: ["assert", "clear"] }],
+    },
+  },
+
+  // ── Excepciones documentadas a no-console (ver comentario arriba) ─────────
+  {
+    files: ["js/server.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
+    files: ["js/suppress-warnings.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "script",
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
+    // logger.js ES el logger centralizado — su implementación interna necesita
+    // llamar a la consola real. proteccion.js sobrescribe console.table/console.dir
+    // por seguridad (no son llamadas de log de aplicación).
+    files: ["js/logger.js", "js/proteccion.js"],
+    rules: {
+      "no-console": "off",
     },
   },
 
@@ -123,8 +165,6 @@ module.exports = [
         cerrarVideoOverlay: "readonly",
         cerrarChatVentana: "readonly",
         showGpsRestrictedOverlay: "readonly",
-        showRotationMessage: "readonly",
-        hideRotationMessage: "readonly",
         toggleRotationMessage: "readonly",
         updateLoadingStatus: "readonly",
         btnTop: "readonly",
@@ -179,6 +219,10 @@ module.exports = [
         "varsIgnorePattern": "^_",
         "argsIgnorePattern": "^_",
       }],
+      // Mismo criterio que en js/**/*.js — ver comentario en ese bloque.
+      // Excepciones puntuales llevan // eslint-disable-line no-console con el motivo
+      // (típicamente: script clásico pre-módulo, antes de que logger.js se importe).
+      "no-console": ["warn", { allow: ["assert", "clear"] }],
     },
   },
 

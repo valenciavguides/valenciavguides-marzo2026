@@ -27,8 +27,8 @@ import { sleep } from './utils.js';
     
     // Logging en desarrollo
     if (isDevelopment) {
-        console.log('[API Client] Modo: Desarrollo');
-        console.log('[API Client] Base URL:', globalThis.API_CONFIG.baseUrl);
+        (globalThis.logger || console).info('[API Client] Modo: Desarrollo');
+        (globalThis.logger || console).info('[API Client] Base URL:', globalThis.API_CONFIG.baseUrl);
     }
 })();
 
@@ -39,7 +39,7 @@ function safeSessionStorage(action, fallback = null) {
         return action();
     } catch (error) {
         if (API_CONFIG.isDevelopment) {
-            console.warn('[API Client] sessionStorage no disponible:', error.message);
+            (globalThis.logger || console).warn('[API Client] sessionStorage no disponible:', error.message);
         }
         return fallback;
     }
@@ -151,7 +151,7 @@ async function fetchWithRetry(url, options = {}, retriesLeft = API_CONFIG.retrie
             return await response.json();
         } catch (error) {
             if (API_CONFIG.isDevelopment) {
-                console.warn('[API] Respuesta no parseable como JSON:', error.message);
+                (globalThis.logger || console).warn('[API] Respuesta no parseable como JSON:', error.message);
             }
             throw new ApiClientError(
                 'PARSE_ERROR',
@@ -185,7 +185,7 @@ async function fetchWithRetry(url, options = {}, retriesLeft = API_CONFIG.retrie
             // Backoff exponencial: 1s → 2s → 4s → 8s
             const attemptNumber = API_CONFIG.retries - retriesLeft + 1;
             const delay = API_CONFIG.retryDelay * Math.pow(2, attemptNumber - 1);
-            console.log(`[API] Reintentando en ${delay}ms... (${retriesLeft} intentos restantes)`);
+            (globalThis.logger || console).info(`[API] Reintentando en ${delay}ms... (${retriesLeft} intentos restantes)`);
             await sleep(delay);
             return fetchWithRetry(url, options, retriesLeft - 1);
         }
@@ -306,7 +306,7 @@ const ApiClient = {
             return { valido: data.valido };
         } catch (error) {
             if (API_CONFIG.isDevelopment) {
-                console.warn('[API] Error verificando sesion, limpiando token:', error.message);
+                (globalThis.logger || console).warn('[API] Error verificando sesion, limpiando token:', error.message);
             }
             TokenManager.clearToken();
             return { valido: false };

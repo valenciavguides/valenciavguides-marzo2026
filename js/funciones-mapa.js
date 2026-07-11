@@ -25,7 +25,7 @@ import logger from './logger.js';
  * @param {GeolocationPositionError} err - Error de geolocalización
  */
 function handleGeolocationError(err) {
-    console.error('Geolocation error', err);
+    logger.error('Geolocation error', err);
     logger.error('[GPS] Geolocation error:', err.code, err.message);
 }
 
@@ -870,7 +870,7 @@ export async function invalidarTamañoMapa() {
 export async function setMapView(center, zoom, opciones = {}) {
     try {
         if (!_mapaInstance) {
-            console.warn('No se puede establecer vista: mapa no inicializado');
+            logger.warn('No se puede establecer vista: mapa no inicializado');
             return false;
         }
         
@@ -921,7 +921,7 @@ export async function setMapView(center, zoom, opciones = {}) {
         
         return true;
     } catch (error) {
-        console.error('Error al establecer vista del mapa:', error);
+        logger.error('Error al establecer vista del mapa:', error);
         return false;
     }
 }
@@ -1193,7 +1193,7 @@ export function limpiarRecursos() {
             }
         });
 
-        console.debug('Recursos del mapa limpiados completamente');
+        logger.debug('Recursos del mapa limpiados completamente');
 
         // Limpiar listeners globales de actividad para evitar memory leak
         _eventosActividadRegistrados.forEach(evento => {
@@ -1217,7 +1217,7 @@ export function limpiarRecursos() {
         logger.info('[funciones-mapa] Limpieza completa de recursos finalizada');
         return true;
     } catch (error) {
-        console.error('Error al limpiar recursos del mapa:', error);
+        logger.error('Error al limpiar recursos del mapa:', error);
         return false;
     }
 }
@@ -1270,10 +1270,10 @@ export async function mostrarTodasLasParadas(paradasExternas) {
             }
         });
 
-        console.info(`Se han añadido ${marcadoresParadas.size} marcadores al mapa`);
+        logger.info(`Se han añadido ${marcadoresParadas.size} marcadores al mapa`);
         return true;
     } catch (error) {
-        console.error('Error al mostrar todas las paradas:', error);
+        logger.error('Error al mostrar todas las paradas:', error);
         return false;
     }
 }
@@ -1292,10 +1292,10 @@ function dibujarTramo(tramo, destacado = false) {
                 // Clonar para evitar referencias circulares al mostrar
                 let copia = null;
                 try { copia = structuredClone(tramo); } catch (_e) { copia = tramo; } // NOSONAR
-                console.info('[DEBUG-TRAMO] dibujarTramo llamado con:', copia);
+                logger.info('[DEBUG-TRAMO] dibujarTramo llamado con:', copia);
             }
         } catch (dbgErr) {
-            console.debug('[DEBUG-TRAMO] Error al imprimir tramo debug:', dbgErr);
+            logger.debug('[DEBUG-TRAMO] Error al imprimir tramo debug:', dbgErr);
         }
 
         if (!tramo?.inicio || !tramo?.fin) {
@@ -1323,7 +1323,7 @@ function dibujarTramo(tramo, destacado = false) {
 
         return polyline;
     } catch (error) {
-        console.error('Error al dibujar tramo:', error);
+        logger.error('Error al dibujar tramo:', error);
         return null;
     }
 }
@@ -1485,12 +1485,12 @@ function actualizarMarcadorParada(paradaId, coordenadas) {
         const marcador = marcadoresParadas.get(paradaId);
         if (marcador) {
             marcador.setLatLng([coordenadas.lat, coordenadas.lng]);
-            console.info(`Marcador de parada ${paradaId} actualizado`);
+            logger.info(`Marcador de parada ${paradaId} actualizado`);
         } else {
-            console.warn(`No se encontró marcador para la parada ${paradaId}`);
+            logger.warn(`No se encontró marcador para la parada ${paradaId}`);
         }
     } catch (error) {
-        console.error('Error al actualizar marcador de parada:', error);
+        logger.error('Error al actualizar marcador de parada:', error);
     }
 }
 
@@ -2708,7 +2708,7 @@ export function registrarManejadoresMensajes() {
         logger.debug('[funciones-mapa] Manejadores de mensajes del mapa registrados correctamente');
         return true;
     } catch (error) {
-        console.error('Error al registrar manejadores de mensajes:', error);
+        logger.error('Error al registrar manejadores de mensajes:', error);
         throw error; // Propagar el error para que se pueda manejar en la inicialización
     }
 }
@@ -2732,7 +2732,7 @@ try {
         }
     }
 } catch (error) {
-    console.error('Error al registrar manejadores de mensajes del mapa:', error);
+    logger.error('Error al registrar manejadores de mensajes del mapa:', error);
 }
 
 // Bug H fix: actualizar arrayParadasLocal cuando el padre asigna globalThis.AVENTURA_PARADAS
@@ -2750,19 +2750,6 @@ if (globalThis.window !== undefined) {
 // Integration tests removed from production code (was: probarFlujosError)
 
 // Llamar pruebas en inicialización si está en entorno de prueba
-/**
- * Standardize error handling using centralized logger
- * Replace console.error with logger.error throughout
- * (Assuming replacements in functions like actualizarPuntoActual, dibujarTramo, etc.)
- * Example:
- * function actualizarPuntoActual(coordenadas) {
- *     try {
- *         // ...existing code...
- *     } catch (error) {
- *         logger.error('Error al actualizar la posición del usuario:', error);
- *     }
- * }
- */
 
 /**
  * Clean unused markers and routes after state reconciliation
@@ -3203,7 +3190,7 @@ if (globalThis.window !== undefined) {
             logger.info('Limpieza agresiva de globales del mapa completada');
         } catch (error) {
             // Logging mínimo durante pagehide para evitar errores
-            console.warn('Error en limpieza agresiva del mapa:', error.message);
+            logger.warn('Error en limpieza agresiva del mapa:', error.message);
         }
     });
 }

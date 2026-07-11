@@ -562,7 +562,7 @@ const enviarMensaje = async (...args) => {
             }, globalThis.location.origin);
             return;
         } catch (e) {
-            console.error('[hijo2] Error enviando mensaje via postMessage:', e);
+            logger.error('[hijo2] Error enviando mensaje via postMessage:', e);
             throw e;
         }
     } else {
@@ -1520,7 +1520,7 @@ elementosDOM.btnMapaCompleto?.addEventListener('click', async () => {
         // Enviar mensaje al padre para mostrar mapa completo
         const aventuraActual = globalThis.__vv_aventuraActual
             || (globalThis.parent && globalThis.parent !== globalThis && globalThis.parent.aventuraSeleccionada)
-            || (console.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
+            || (logger.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
         const urlMapaCompleto = 'mapa-completo.html?aventura=' + encodeURIComponent(aventuraActual);
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_MAPA_COMPLETO,
@@ -1550,7 +1550,7 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
         // Determinar la aventura actual y obtener el mapa vintage correspondiente
         const aventuraActual = globalThis.__vv_aventuraActual
             || (globalThis.parent && globalThis.parent !== globalThis && globalThis.parent.aventuraSeleccionada)
-            || (console.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
+            || (logger.warn('[hijo2] aventuraActual no disponible, usando Aventura1 como fallback'), 'Aventura1');
         const urlJpg = obtenerMapaVintage(aventuraActual);
 
         if (!urlJpg) {
@@ -1746,17 +1746,17 @@ try {
     const INTERVALO_REINTENTO = 1000; // 1 segundo entre reintentos
     let _intervaloReintento = null;
     const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
-    try { if (document.body) document.body.style.display = 'none'; } catch (e) { console.warn('[hijo2] Error ocultando UI inicial:', e && e.message); }
+    try { if (document.body) document.body.style.display = 'none'; } catch (e) { logger.warn('[hijo2] Error ocultando UI inicial:', e && e.message); }
     function mostrarUI() {
         if (!_uiConfirmado) {
-            console.warn('[hijo2] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO');
+            logger.warn('[hijo2] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO');
             return;
         }
         try {
             if (document.body) document.body.style.display = _originalDisplay || 'block';
-            console.log('[hijo2] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
+            logger.info('[hijo2] UI visible tras PADRE_CONFIRMA_HIJO_LISTO');
         } catch (e) {
-            console.warn('[hijo2] Error mostrando UI:', e && e.message);
+            logger.warn('[hijo2] Error mostrando UI:', e && e.message);
         }
     }
 
@@ -1841,7 +1841,7 @@ try {
         const logPrefix = `[hijo2][PADRE_CONFIRMA_HIJO_LISTO][${mensaje?.origen || 'desconocido'}]`;
 
         try {
-            console.log('[hijo2] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
+            logger.info('[hijo2] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
             if (!mensaje?.origen) {
                 logger.error(`${logPrefix} Mensaje sin origen válido`, mensaje);
                 return;
@@ -1905,8 +1905,8 @@ try {
             }
 
             // Mostrar UI ahora que el padre confirmó
-            try { _uiConfirmado = true; mostrarUI(); } catch (e) { console.warn('[hijo2] Error mostrando UI:', e && e.message); }
-            try { await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(e => logger.warn('[hijo2] Error confirmando UI_VISIBLE:', e && e.message)); } catch (e) { console.warn('[hijo2] Error enviando UI_VISIBLE:', e && e.message); }
+            try { _uiConfirmado = true; mostrarUI(); } catch (e) { logger.warn('[hijo2] Error mostrando UI:', e && e.message); }
+            try { await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }).catch(e => logger.warn('[hijo2] Error confirmando UI_VISIBLE:', e && e.message)); } catch (e) { logger.warn('[hijo2] Error enviando UI_VISIBLE:', e && e.message); }
 
         } catch (error) {
             logger.error(`${logPrefix} Error procesando confirmación del padre:`, error);
@@ -2004,7 +2004,7 @@ try {
                     CONFIG_HIJO_exists: CONFIG_HIJO !== undefined,
                     mensaje_origen: mensaje?.origen
                 };
-                console.error('[hijo2][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
+                logger.error('[hijo2][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
                 logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                 throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
             }

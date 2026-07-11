@@ -25,11 +25,11 @@
         // Definir ejecutarValidacion globalmente lo antes posible para evitar errores de "not defined"
         globalThis.ejecutarValidacion = function(reto, _respuestaUsuario) {
             try {
-                console.log(`[hijo4] ejecutarValidacion: Validación personalizada por defecto para reto ${reto?.id || 'desconocido'}`);
+                console.info(`[hijo4] ejecutarValidacion: Validación personalizada por defecto para reto ${reto?.id || 'desconocido'}`); // script clásico pre-módulo
                 // Validación personalizada por defecto - siempre pasa
                 return true;
             } catch (error) {
-                console.error('Error en ejecutarValidacion:', error);
+                console.error('Error en ejecutarValidacion:', error); // script clásico pre-módulo
                 return false;
             }
         };
@@ -405,7 +405,7 @@
                 }, globalThis.location.origin);
                 return;
             } catch (e) {
-                console.error('[hijo4] Error enviando mensaje via postMessage:', e);
+                logger.error('[hijo4] Error enviando mensaje via postMessage:', e);
                 throw e;
             }
         } else {
@@ -653,20 +653,29 @@
         ,hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
 
-    // ╔════════════════════════════════════════════════════════════════════════════╗
-    // ║ ARRAY VACÍO - Los retos se cargan desde el PADRE via mensaje CARGAR_RETOS   ║
-    // ║ El array de backup está comentado abajo por si necesitamos restaurar        ║
-    // ╚════════════════════════════════════════════════════════════════════════════╝
-    const retosFallbackLocal = [];
+    // Protección pasiva por parada: no se precarga la aventura completa. El padre
+    // envía el reto de cada parada en línea dentro de RETO.MOSTRAR (campo retosArray).
+    // Se retienen como máximo los 2 últimos ids distintos recibidos (parada actual + 1
+    // anterior); al llegar un tercero se descarta el más antiguo. Ver docs/GUIA-COMPLETA.md §16.
+    const RETO_CACHE_MAX = 2;
+    globalThis.__vv_retoCache = globalThis.__vv_retoCache || new Map();
 
-    // Función getter que prioriza datos del padre sobre datos locales
-    function obtenerRetos() {
-        // Prioridad 1: Datos recibidos del padre
-        if (globalThis.__vv_retosAventura && Array.isArray(globalThis.__vv_retosAventura) && globalThis.__vv_retosAventura.length > 0) {
-            return globalThis.__vv_retosAventura;
+    function _guardarRetoEnCache(retoData) {
+        if (!retoData || !retoData.id) return;
+        const cache = globalThis.__vv_retoCache;
+        cache.delete(retoData.id); // reinsertar al final si ya existía (marca como reciente)
+        cache.set(retoData.id, retoData);
+        while (cache.size > RETO_CACHE_MAX) {
+            const masAntiguo = cache.keys().next().value;
+            cache.delete(masAntiguo);
         }
-        // Prioridad 2: Fallback local vacío (silencioso cuando aún no hay retos implementados)
-        return retosFallbackLocal;
+    }
+    globalThis._guardarRetoEnCache = _guardarRetoEnCache;
+
+    // Función getter: array derivado de la caché acotada (mismo contrato que antes,
+    // .find(r => r.id === retoId), para no tocar los call-sites existentes)
+    function obtenerRetos() {
+        return Array.from(globalThis.__vv_retoCache.values());
     }
 
     // Exponer función globalmente
@@ -731,18 +740,6 @@
             // Ocultar div de respuesta correcta
             if (divRespuestaCorrecta) {
                 divRespuestaCorrecta.style.display = 'none';
-            }
-
-            // Ocultar campos de entrada del reto (si existen)
-            const inputRespuesta = document.getElementById('inputRespuesta');
-            if (inputRespuesta) {
-                inputRespuesta.style.display = 'none';
-            }
-
-            // Ocultar contenedores de respuestas de opción múltiple
-            const respuestasContainer = document.getElementById('respuestas-container');
-            if (respuestasContainer) {
-                respuestasContainer.style.display = 'none';
             }
 
             // Limpiar fuegos artificiales si están activos
@@ -864,7 +861,7 @@
 
         // Verificar que todos los elementos necesarios se encontraron
         if (!retoDiv || !btnMostrarRespuesta || !divRespuestaCorrecta || !btnNext || !fuegosDiv) {
-            console.error("ERROR CRÍTICO: No se pudieron encontrar todos los elementos del DOM necesarios. Asegúrate de que los IDs sean correctos en el HTML.");
+            logger.error("ERROR CRÍTICO: No se pudieron encontrar todos los elementos del DOM necesarios. Asegúrate de que los IDs sean correctos en el HTML.");
             return; // Detener la ejecución si faltan elementos clave
         }
 
@@ -875,11 +872,20 @@
             logger.debug(`[hijo4] mostrarReto llamado con retoId: ${retoId}`);
             // Buscar el reto usando función centralizada
             const retosArray = obtenerRetos();
-            console.log(`[hijo4][DEBUG] mostrarReto("${retoId}") — retosArray.length=${retosArray.length}, IDs disponibles:`, retosArray.map(r => r.id));
+            logger.info(`[hijo4][DEBUG] mostrarReto("${retoId}") — retosArray.length=${retosArray.length}, IDs disponibles:`, retosArray.map(r => r.id));
             const reto = retosArray.find(r => r.id === retoId);
             if (!reto) {
-                console.error(`[hijo4] Reto con ID "${retoId}" no encontrado. IDs disponibles: ${retosArray.map(r=>r.id).join(', ')}`);
-                console.error(`[hijo4] body.display=${document.body?.style?.display}, __vv_retosAventura length=${globalThis.__vv_retosAventura?.length || 0}`);
+                logger.warn(`[hijo4] Reto ${retoId} no está en caché local — solicitando al padre`);
+                try {
+                    await enviarMensaje({
+                        tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS,
+                        origen: CONFIG_HIJO.IFRAME_ID,
+                        destino: resolverIdPadre(),
+                        datos: { retoId, motivo: 'cache_miss', timestamp: Date.now() }
+                    });
+                } catch (err) {
+                    logger.error('[hijo4] Error solicitando reto faltante al padre:', err);
+                }
                 return;
             }
             logger.debug(`[hijo4] Reto encontrado:`, reto);
@@ -1017,11 +1023,11 @@
                     validacionPersonalizada = await globalThis.ejecutarValidacion(reto, respuestaUsuario);
                 }
                 if (validacionPersonalizada === false) {
-                    console.warn(`[hijo4] Validación personalizada falló para reto ${reto?.id || 'desconocido'}`);
+                    logger.warn(`[hijo4] Validación personalizada falló para reto ${reto?.id || 'desconocido'}`);
                     throw new Error("Validación personalizada falló");
                 }
             } catch (error) {
-                console.error(`[hijo4] Error en globalThis.ejecutarValidacion para reto ${reto?.id || 'desconocido'}:`, error.message);
+                logger.error(`[hijo4] Error en globalThis.ejecutarValidacion para reto ${reto?.id || 'desconocido'}:`, error.message);
                 // Si la validación personalizada falla, mostrar error y permitir reintentar
                 alert("Error en la validación: " + error.message);
                 btnEnviar.disabled = false;
@@ -1081,7 +1087,7 @@
                 estadoRetos.estadisticas.aciertosConsecutivos++;
 
                 logger.info(`[hijo4] Reto completado: ${reto.id}. Progreso: ${estadoRetos.progreso.completados}/${estadoRetos.progreso.total}`);
-                console.log(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${reto.id}. Enviando al padre...`);
+                logger.info(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${reto.id}. Enviando al padre...`);
 
                 try {
                     // Usar enviarMensajeConConfirmacion si está disponible, sino fallback a enviarMensaje
@@ -1096,7 +1102,7 @@
                                 progreso: estadoRetos.progreso
                             }
                         });
-                        console.log(`[FLUJO-RETO] [HIJO4] ✅ Confirmación recibida del padre para reto ${reto.id}`);
+                        logger.info(`[FLUJO-RETO] [HIJO4] ✅ Confirmación recibida del padre para reto ${reto.id}`);
                     } else {
                         enviarMensaje({
                             tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
@@ -1108,10 +1114,10 @@
                                 progreso: estadoRetos.progreso
                             }
                         });
-                        console.log(`[FLUJO-RETO] [HIJO4] ⚠️ Enviado sin confirmación (función no disponible) para reto ${reto.id}`);
+                        logger.info(`[FLUJO-RETO] [HIJO4] ⚠️ Enviado sin confirmación (función no disponible) para reto ${reto.id}`);
                     }
                 } catch (e) {
-                    console.error(`[FLUJO-RETO] [HIJO4] ❌ Error enviando/confirmando reto completado:`, e);
+                    logger.error(`[FLUJO-RETO] [HIJO4] ❌ Error enviando/confirmando reto completado:`, e);
                     // No bloqueamos el flujo local, el usuario ya ganó visualmente
                 }
             } else {
@@ -1275,7 +1281,7 @@
         */
         function actualizarInterfazModo(modo) {
             const modoSeguro = normalizarModo(modo);
-            console.log(`[RETOS] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
+            logger.info(`[RETOS] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
             const body = document.body;
 
             // Actualizar estado local
@@ -1301,7 +1307,7 @@
 
             // Si hay un reto abierto, actualizar su visualización
             if (estado.retoActualId) {
-                console.log(`[RETOS] Se está mostrando el reto ${estado.retoActualId} en modo ${modoSeguro || modo}`);
+                logger.info(`[RETOS] Se está mostrando el reto ${estado.retoActualId} en modo ${modoSeguro || modo}`);
             }
         }
 
@@ -1313,7 +1319,7 @@
             try { if (document.body) document.body.style.display = 'none'; } catch (_e) { /* ignore */ } // NOSONAR
             function mostrarUI() {
                 if (!_uiConfirmado) { return; }
-                try { if (document.body) { document.body.style.display = _originalDisplay || 'flex'; console.log(`[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO — body.display=${document.body.style.display}`); } } catch (_e) {} // NOSONAR
+                try { if (document.body) { document.body.style.display = _originalDisplay || 'flex'; logger.info(`[hijo4] UI visible tras PADRE_CONFIRMA_HIJO_LISTO — body.display=${document.body.style.display}`); } } catch (_e) {} // NOSONAR
             }
 
             // Sistema de reintentos activos para HIJO_LISTO (solución permanente C2)
@@ -1388,7 +1394,7 @@
 
             // Controlador para confirmación del padre
             registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
-                console.log('[hijo4] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
+                logger.info('[hijo4] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
                 logger.info(`[hijo4] PADRE_CONFIRMA_HIJO_LISTO recibido desde ${mensaje.origen}`);
 
                 // Limpiar intervalo de reintento si existe
@@ -1428,18 +1434,6 @@
                 try { _uiConfirmado = true; mostrarUI(); } catch (_e) { /* ignore */ } // NOSONAR
                 try { await enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { tipo: 'UI_VISIBLE', timestamp: Date.now() } }); } catch (_e) { /* ignore */ } // NOSONAR
 
-                // Verificación diferida: si CARGAR_RETOS no llegó en 3s, solicitarlo al padre
-                setTimeout(() => {
-                    if (!globalThis.__vv_retosAventura || !Array.isArray(globalThis.__vv_retosAventura) || globalThis.__vv_retosAventura.length === 0) {
-                        logger.debug('[hijo4] Retos no recibidos tras 3s — solicitando al padre');
-                        enviarMensaje({
-                            tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: resolverIdPadre(),
-                            datos: { motivo: 'datos_no_recibidos', timestamp: Date.now() }
-                        }).catch(err => logger.error('[hijo4] Error solicitando retos:', err));
-                    }
-                }, 3000);
             });
 
             // Controlador para mostrar reto específico
@@ -1450,7 +1444,7 @@
                         return;
                     }
                     const { retoId, retosArray } = mensaje.datos;
-                    console.log(`[hijo4][DEBUG] RETO.MOSTRAR handler — retoId="${retoId}", retosArray recibido=${retosArray?.length || 0}, local __vv_retosAventura=${globalThis.__vv_retosAventura?.length || 0}`);
+                    logger.info(`[hijo4][DEBUG] RETO.MOSTRAR handler — retoId="${retoId}", retosArray recibido=${retosArray?.length || 0}, caché local=${globalThis.__vv_retoCache?.size || 0}`);
                     logger.info(`[hijo4] RETO.MOSTRAR recibido para reto: ${retoId}`);
 
                     // FIX: Forzar body visible al recibir RETO.MOSTRAR
@@ -1461,13 +1455,13 @@
                         document.body.style.opacity = '1';
                     } catch(_e) { /* ignore */ } // NOSONAR
 
-                    // Si el padre envió el array completo de retos y nosotros no tenemos datos,
-                    // almacenarlos como respaldo (fix: CARGAR_RETOS pudo no haber llegado)
+                    // Protección pasiva por parada: el padre envía el reto en línea; se añade
+                    // a la caché acotada (no se sobrescribe todo el histórico como antes).
                     if (retosArray && Array.isArray(retosArray) && retosArray.length > 0) {
-                        if (!globalThis.__vv_retosAventura || !Array.isArray(globalThis.__vv_retosAventura) || globalThis.__vv_retosAventura.length === 0) {
-                            globalThis.__vv_retosAventura = retosArray;
-                            logger.info(`[hijo4] ✅ ${retosArray.length} retos almacenados desde RETO.MOSTRAR (respaldo)`);
-                        }
+                        retosArray.forEach(r => globalThis._guardarRetoEnCache(r));
+                        logger.info(`[hijo4] ✅ ${retosArray.length} reto(s) añadidos a la caché`);
+                    } else {
+                        logger.warn(`[hijo4] RETO.MOSTRAR sin retosArray para ${retoId} — se intentará resolver desde caché local`);
                     }
 
                     await mostrarReto(retoId);
@@ -1539,7 +1533,7 @@
                             CONFIG_HIJO_exists: globalThis.CONFIG_HIJO !== undefined,
                             mensaje_origen: mensaje?.origen
                         };
-                        console.error('[hijo4][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
+                        logger.error('[hijo4][CAMBIO_MODO] 🔴 DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
                         logger.error(`${logPrefix} ❌ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                         throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
                     }
@@ -1616,75 +1610,6 @@
                 }
             });
 
-            // ============================================================
-            // CONTROLADOR: DATOS.CARGAR_RETOS
-            // Recibe retos centralizados del padre al iniciar aventura
-            // ============================================================
-
-            /**
-             * Controlador: DATOS.CARGAR_RETOS
-             * Descripción: Recibe y almacena los retos de la aventura seleccionada
-             * Origen: padre (codigo-padre.html)
-             * Datos recibidos: { aventura, idioma, retos: Array, total, timestamp }
-             */
-            registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_RETOS, async (mensaje) => {
-                const logPrefix = `[hijo4][CARGAR_RETOS]`;
-
-                try {
-                    const { aventura, idioma, retos, total } = mensaje.datos || {};
-
-                    logger.info(`${logPrefix} 📥 Recibiendo retos de ${aventura} (${idioma}): ${total} retos`);
-
-                    if (!retos || !Array.isArray(retos)) {
-                        throw new Error('Datos de retos inválidos o no son un array');
-                    }
-
-                    // Almacenar en estado global para uso en funciones de retos
-                    globalThis.__vv_retosAventura = retos;
-                    globalThis.__vv_aventuraActual = aventura;
-                    globalThis.__vv_idiomaActual = idioma;
-
-                    // Actualizar el progreso
-                    estadoRetos.progreso.total = retos.length;
-
-                    logger.info(`${logPrefix} ✅ ${retos.length} retos almacenados en globalThis.__vv_retosAventura`);
-
-                    // Enviar confirmación al padre
-                    await enviarMensaje({
-                        tipo: TIPOS_MENSAJE.DATOS.RETOS_CARGADOS,
-                        origen: CONFIG_HIJO.IFRAME_ID,
-                        destino: resolverIdPadre(),
-                        datos: {
-                            exito: true,
-                            aventura: aventura,
-                            idioma: idioma,
-                            totalCargados: retos.length,
-                            timestamp: Date.now()
-                        }
-                    });
-
-                    logger.success(`${logPrefix} ✅ Confirmación RETOS_CARGADOS enviada al padre`);
-
-                } catch (error) {
-                    logger.error(`${logPrefix} Error cargando retos:`, error);
-
-                    // Enviar error al padre
-                    try {
-                        await enviarMensaje({
-                            tipo: TIPOS_MENSAJE.DATOS.RETOS_CARGADOS,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: resolverIdPadre(),
-                            datos: {
-                                exito: false,
-                                error: error.message,
-                                timestamp: Date.now()
-                            }
-                        });
-                    } catch (sendError) {
-                        logger.error(`${logPrefix} Error enviando confirmación de error:`, sendError);
-                    }
-                }
-            });
 
 
             // Controlador para ocultar el reto
@@ -1893,12 +1818,6 @@
             registrarControladorSeguro(TIPOS_MENSAJE.RETO.CONFIRMADO, async (mensaje) => {
                 const { retoId } = mensaje.datos || {};
                 logger.info(`[hijo4][RETO.CONFIRMADO] Padre confirmó recepción del reto mostrado: ${retoId}`);
-            });
-
-            // Fase 3 del patrón bidireccional: padre confirma recepción de DATOS.RETOS_CARGADOS
-            registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGADOS_RECIBIDO, async (mensaje) => {
-                const { subtipo } = mensaje.datos || {};
-                logger.info(`[hijo4][DATOS.CARGADOS_RECIBIDO] Padre confirmó recepción de ${subtipo}`);
             });
 
             // ============================================================

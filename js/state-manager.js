@@ -114,6 +114,7 @@ const state = {
   heartbeat: {
     activo: false,
     intervalo: null,
+    userPaused: false,
     heartbeatsFallidos: new Map(),
     ultimoHeartbeat: new Map(),
     hijosDesconectados: []
@@ -495,14 +496,14 @@ export async function registrarControladorCentral(controladorId, handler, opcion
         const existingTipo = c.opciones?.tipoMensaje ?? '';
         const existingFingerprint = `${existingTipo}|${_hashString(existingSrc)}`;
         if (existingFingerprint === fingerprint) {
-          console.debug(`[STATE-MGR] Controlador lógicamente duplicado detectado (fingerprint). Skipping registration for '${controladorId}' (matches '${id}')`);
+          (globalThis.logger || console).debug(`[STATE-MGR] Controlador lógicamente duplicado detectado (fingerprint). Skipping registration for '${controladorId}' (matches '${id}')`);
           return false;
         }
       } catch (_e) {} // NOSONAR
     }
 
     if (state.controladores.has(controladorId)) {
-      console.debug(`Controlador duplicado: '${controladorId}' ya registrado`);
+      (globalThis.logger || console).debug(`Controlador duplicado: '${controladorId}' ya registrado`);
       return false;
     }
 
@@ -515,7 +516,7 @@ export async function registrarControladorCentral(controladorId, handler, opcion
     });
 
     try {
-      console.debug(`[STATE-MGR] Controlador registrado: '${controladorId}' tipo='${tipo || 'any'}' total=${state.controladores.size}`);
+      (globalThis.logger || console).debug(`[STATE-MGR] Controlador registrado: '${controladorId}' tipo='${tipo || 'any'}' total=${state.controladores.size}`);
     } catch (_e) {} // NOSONAR
 
     return true;
@@ -551,7 +552,7 @@ async function _enviarAControladores(mensaje, resultados) {
       const resultado = await handler(mensaje);
       resultados.push({ controladorId: id, exito: true, resultado });
     } catch (error) {
-      console.error(`Error en controlador '${id}':`, error);
+      (globalThis.logger || console).error(`Error en controlador '${id}':`, error);
       resultados.push({ controladorId: id, exito: false, error: error.message });
     }
   }
@@ -564,7 +565,7 @@ function _broadcastAIframes(mensaje, resultados) {
   for (const iframe of iframes) {
     try {
       if (iframe?.contentWindow) { iframe.contentWindow.postMessage(mensaje, origenSeguro); enviados++; }
-    } catch (err) { console.warn('[STATE-MGR] Error enviando broadcast a iframe:', err?.message); }
+    } catch (err) { (globalThis.logger || console).warn('[STATE-MGR] Error enviando broadcast a iframe:', err?.message); }
   }
   resultados.push({ metodo: 'broadcast', exito: true, enviados });
 }
@@ -579,7 +580,7 @@ function _reenviarAlPadre(mensaje, resultados) {
       resultados.push({ metodo: 'forwardToParent', exito: true });
     }
   } catch (err) {
-    console.warn('[STATE-MGR] Error forward broadcast to parent:', err?.message);
+    (globalThis.logger || console).warn('[STATE-MGR] Error forward broadcast to parent:', err?.message);
     resultados.push({ metodo: 'forwardToParent', exito: false, error: err?.message });
   }
 }
@@ -601,12 +602,12 @@ async function _enviarFallback(mensaje, resultados) {
         globalThis.postMessage(mensaje, globalThis.location.origin);
         resultados.push({ metodo: 'postMessage', exito: true });
       } catch (error) {
-        console.error('Error enviando mensaje via postMessage:', error);
+        (globalThis.logger || console).error('Error enviando mensaje via postMessage:', error);
         resultados.push({ metodo: 'postMessage', exito: false, error: error.message });
       }
     }
   } catch (error) {
-    console.error('Error en fallback de envio en state-manager:', error);
+    (globalThis.logger || console).error('Error en fallback de envio en state-manager:', error);
     resultados.push({ metodo: 'fallback', exito: false, error: error.message });
   }
 }
@@ -618,7 +619,7 @@ export async function enviarMensajeCentral(mensaje) {
   await _assertMensajeValido(mensaje); // NOSONAR
   await mutexes.mensajesEnviados.runExclusive(() => {
     state.mensajesEnviados.add(mensaje.mensajeId);
-    try { console.debug(`[STATE-MGR] Mensaje registrado: ${mensaje.mensajeId} (tipo=${mensaje.tipo}) totalMensajes=${state.mensajesEnviados.size}`); } catch (_e) {} // NOSONAR
+    try { (globalThis.logger || console).debug(`[STATE-MGR] Mensaje registrado: ${mensaje.mensajeId} (tipo=${mensaje.tipo}) totalMensajes=${state.mensajesEnviados.size}`); } catch (_e) {} // NOSONAR
   });
   const resultados = [];
   await _enviarAControladores(mensaje, resultados);
@@ -700,7 +701,7 @@ export async function removerControladorCentral(controladorId) {
   return await mutexes.controladores.runExclusive(() => {
     const removed = state.controladores.delete(controladorId);
     if (removed) {
-      console.log(`Controlador removido: '${controladorId}'`);
+      (globalThis.logger || console).info(`Controlador removido: '${controladorId}'`);
     }
     return removed;
   });
@@ -709,17 +710,17 @@ export async function removerControladorCentral(controladorId) {
 // Proxy for globalThis.estadoPadre to synchronize access
 export function createEstadoPadreProxy() {
   if (globalThis.window === undefined || !globalThis.estadoPadre) {
-    console.warn('globalThis.estadoPadre not available for proxy');
+    (globalThis.logger || console).warn('globalThis.estadoPadre not available for proxy');
     return;
   }
 
-  setEstadoPadre(globalThis.estadoPadre).catch(err => console.error('Error setting initial estadoPadre:', err));
-  console.log('estadoPadre proxy setup completed (minimal intervention)');
+  setEstadoPadre(globalThis.estadoPadre).catch(err => (globalThis.logger || console).error('Error setting initial estadoPadre:', err));
+  (globalThis.logger || console).info('estadoPadre proxy setup completed (minimal intervention)');
 }
 
 // Initialize the state manager
 export async function inicializarStateManager() {
-  console.log('✅ [STATE-MANAGER] Inicializado correctamente');
+  (globalThis.logger || console).info('✅ [STATE-MANAGER] Inicializado correctamente');
   
   if (globalThis.window !== undefined) {
     // Objeto API completo del state-manager
@@ -782,7 +783,7 @@ export async function inicializarStateManager() {
     globalThis.__stateManager = stateManagerAPI;
     globalThis.__vv_stateManager = stateManagerAPI; // Nombre esperado por mensajeria.js
     
-    console.log('[STATE-MANAGER] API expuesta en globalThis.__stateManager y globalThis.__vv_stateManager');
+    (globalThis.logger || console).info('[STATE-MANAGER] API expuesta en globalThis.__stateManager y globalThis.__vv_stateManager');
   }
 
   setInterval(() => limpiarMensajesAntiguos(500), 60000);
@@ -830,7 +831,7 @@ export async function diagnosticarStateManager() {
     }
   };
 
-  console.info('[STATE-MANAGER] Diagnóstico:', diagnostico);
+  (globalThis.logger || console).info('[STATE-MANAGER] Diagnóstico:', diagnostico);
   return diagnostico;
 }
 
@@ -857,7 +858,7 @@ export async function limpiarControladoresAntiguos(maxAgeMs = 30 * 60 * 1000) {
   });
 
   if (limpiados > 0) {
-    console.log(`[STATE-MANAGER] Limpiados ${limpiados} controladores antiguos/inactivos`);
+    (globalThis.logger || console).info(`[STATE-MANAGER] Limpiados ${limpiados} controladores antiguos/inactivos`);
   }
   return limpiados;
 }
@@ -882,7 +883,7 @@ export async function limpiarMensajesAntiguos(maxItems = 1000) {
   });
 
   if (limpiados > 0) {
-    console.log(`[STATE-MANAGER] Limpiados ${limpiados} mensajes antiguos`);
+    (globalThis.logger || console).info(`[STATE-MANAGER] Limpiados ${limpiados} mensajes antiguos`);
   }
   return limpiados;
 }

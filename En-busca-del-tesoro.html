@@ -14,7 +14,7 @@
     if (globalThis.parent === globalThis && globalThis.top === globalThis) {
       const _params = new URLSearchParams(globalThis.location.search);
       if (!_params.get('despedida')) {
-        console.warn('[SELECCION] ⚠️ Archivo abierto directamente. Redirigiendo a codigo-padre.html...'); // NOSONAR
+        console.warn('[SELECCION] ⚠️ Archivo abierto directamente. Redirigiendo a codigo-padre.html...'); // NOSONAR — script clásico pre-módulo, logger.js aún no importado aquí
         globalThis.location.href = 'codigo-padre.html';
       }
     }

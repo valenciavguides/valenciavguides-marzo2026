@@ -1,5 +1,4 @@
 // playwright.config.js — Configuración E2E para Valencia VGuides
-// Ver prerequisitos detallados en docs/DEUDA-TECNICA-PRODUCCION.md (DT-1 Opción B)
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({

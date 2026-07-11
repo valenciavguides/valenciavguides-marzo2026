@@ -311,7 +311,7 @@
 
     // Validar que estamos dentro de un iframe con padre accesible
     if (!globalThis.parent || globalThis.parent === globalThis) {
-        console.error('[hijo5] Este componente debe ejecutarse dentro de un iframe');
+        logger.error('[hijo5] Este componente debe ejecutarse dentro de un iframe');
         document.body.innerHTML = '<div style="padding: 20px; color: red;">Error: Este componente debe cargarse desde la pÃ¡gina principal.</div>';
         throw new Error('Componente debe ejecutarse dentro de un iframe');
     }
@@ -331,7 +331,7 @@
                 }, globalThis.location.origin);
                 return;
             } catch (e) {
-                console.error('[hijo5] Error enviando mensaje via postMessage:', e);
+                logger.error('[hijo5] Error enviando mensaje via postMessage:', e);
                 throw e;
             }
         } else {
@@ -551,7 +551,7 @@
                 const idSinPrefijo = typeof idPadre === 'string' && idPadre.startsWith('padre-')
                     ? idPadre.substring(6)
                     : (punto.parada_id || punto.id || null);
-                console.log(`[hijo5] Click en ${titulo}: idPadre=${idPadre}`);
+                logger.info(`[hijo5] Click en ${titulo}: idPadre=${idPadre}`);
                 logger.debug(`${clickPrefix} Enviando cambio de parada al padre: ${idPadre}`);
                 await enviarMensaje({
                     destino: resolverIdPadre(),
@@ -927,10 +927,10 @@
         const _originalDisplay = (document.body && document.body.style && document.body.style.display) || '';
         if (document.body) document.body.style.display = 'none';
         function mostrarUI() {
-            if (!_uiConfirmado) { console.warn('[hijo5] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
+            if (!_uiConfirmado) { logger.warn('[hijo5] mostrarUI ignorado: esperando PADRE_CONFIRMA_HIJO_LISTO'); return; }
             if (_uiMostrada) return;
             _uiMostrada = true;
-            if (document.body) { document.body.style.display = _originalDisplay || 'block'; console.log('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); }
+            if (document.body) { document.body.style.display = _originalDisplay || 'block'; logger.info('[hijo5] UI visible tras PADRE_CONFIRMA_HIJO_LISTO'); }
         }
 
         // Sistema de reintentos activos para HIJO_LISTO (soluciÃ³n permanente C2)
@@ -946,7 +946,7 @@
         // Ver: "// Enviar HIJO_PREPARADO y esperar PADRE_DATOS antes de enviar HIJO_LISTO"
 
         // INICIALIZACIÃ“N ASÃNCRONA: Esperar datos del padre antes de activar UI
-        console.log(`ðŸ  [hijo5] REGISTRANDO CONTROLADORES ANTES DE ENVIAR HIJO_PREPARADO`);
+        logger.info(`ðŸ  [hijo5] REGISTRANDO CONTROLADORES ANTES DE ENVIAR HIJO_PREPARADO`);
         // No activar modo ni generar botones hasta recibir RESPUESTA_DATOS_PARADAS
 
         // ============================================
@@ -956,7 +956,7 @@
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_DATOS, async (mensaje) => {
             const logPrefix = `[hijo5][PADRE_DATOS]`;
 
-            console.log(`ðŸ”¥ [hijo5] CONTROLADOR PADRE_DATOS EJECUTADO!`, mensaje);
+            logger.info(`ðŸ”¥ [hijo5] CONTROLADOR PADRE_DATOS EJECUTADO!`, mensaje);
 
             try {
                 if (!mensaje || !mensaje.origen) {
@@ -1032,7 +1032,7 @@
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, async (mensaje) => {
             const logPrefix = `[hijo5][PADRE_CONFIRMA_HIJO_LISTO][${mensaje?.origen || 'desconocido'}]`;
             try {
-                console.log('[hijo5] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
+                logger.info('[hijo5] PADRE_CONFIRMA_HIJO_LISTO recibido:', mensaje);
                 logger.info(`${logPrefix} ConfirmaciÃ³n recibida del padre - controladores listos`);
 
                 // Limpiar intervalo de reintento si existe
@@ -1093,7 +1093,7 @@
 
                 if (!destinoEntendido || !tipoEntendido || !origenEntendido) {
                     const debugInfo = { destino: destinoEntendido, tipo: tipoEntendido, origen: origenEntendido, TIPOS_MENSAJE_exists: TIPOS_MENSAJE !== undefined, CONFIG_HIJO_exists: CONFIG_HIJO !== undefined };
-                    console.error('[hijo5][CAMBIO_MODO] ðŸ”´ DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
+                    logger.error('[hijo5][CAMBIO_MODO] ðŸ”´ DEBUG CAMPOS UNDEFINED:', JSON.stringify(debugInfo, null, 2));
                     logger.error(`${logPrefix} âŒ Campos undefined antes de enviar ENTENDIDO:`, debugInfo);
                     throw new Error('Campos undefined en CAMBIO_MODO_ENTENDIDO');
                 }
@@ -1240,7 +1240,7 @@
 
                 estado.aventuraParadas = validas;
                 logger.info(`${logPrefix} ${validas.length} paradas vÃ¡lidas almacenadas`);
-                console.log('[hijo5] Paradas del padre almacenadas:', validas.slice(0, 3), '...');
+                logger.info('[hijo5] Paradas del padre almacenadas:', validas.slice(0, 3), '...');
 
                 // Solo actualizar la UI si estamos en modo casa (en aventura hijo5 está oculto)
                 if (estado.modo !== 'aventura') {

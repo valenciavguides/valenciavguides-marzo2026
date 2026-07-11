@@ -448,7 +448,6 @@ sequenceDiagram
 | `_hdl_SISTEMA_CAMBIO_MODO` | 6019 | `SISTEMA.CAMBIO_MODO` | Recibe petición, delega en `manejarCambioModo()` |
 | Heartbeat handler | 6050 | `SISTEMA.HEARTBEAT` | Responde con `HEARTBEAT_RESPONSE` |
 | `HEARTBEAT_RESPONSE` handler | 6098 | `SISTEMA.HEARTBEAT_RESPONSE` | Resetea contador de fallos del hijo |
-| `CAMBIO_MODO_RESPONSE` handler | 6166 | `SISTEMA.CAMBIO_MODO_RESPONSE` | Actualiza estado del hijo en el padre |
 | `_hdl_NAVEGACION_GPS_ACTIVAR` | 8495 | `NAVEGACION.GPS.ACTIVAR` | Activa watchPosition en modo AVENTURA |
 
 **Funciones internas clave**:
@@ -549,10 +548,10 @@ Los hijos **nunca se hablan entre sí directamente** — toda comunicación pasa
 graph TD
     P["codigo-padre.html\norquestador central\nestado global · lógica de negocio"]
 
-    P <-->|"postMessage\nCOMO_MODO · DATOS.CARGAR_RETOS · HEARTBEAT"| H1["hijo1\nextrainfo-hijo1.html\npanel de opciones"]
+    P <-->|"postMessage\nCAMBIO_MODO · HEARTBEAT"| H1["hijo1\nextrainfo-hijo1.html\npanel de opciones"]
     P <-->|"postMessage\nCAMBIO_PARADA · GPS messages\nCONTROL.HABILITAR/DESHABILITAR"| H2["hijo2\ncoordenadas-hijo2.html\nGPS + botones (sin Leaflet)"]
-    P <-->|"postMessage\nCAMBIO_PARADA · AUDIO.REPRODUCIR_REQUEST\nAUDIO.FIN_REPRODUCCION\nCONTROL retosBtn"| H3["hijo3\naudio-hijo3.html\nreproductor de audio"]
-    P <-->|"postMessage\nCAMBIO_PARADA · RETO.MOSTRAR · RETO.HABILITAR\nRETO.ESTADO_CASA · DATOS.CARGAR_RETOS"| H4["hijo4\nretos-hijo4.html\npantalla de retos"]
+    P <-->|"postMessage\nCAMBIO_PARADA · AUDIO.REPRODUCIR_REQUEST (con audioData en línea)\nAUDIO.FIN_REPRODUCCION\nCONTROL retosBtn"| H3["hijo3\naudio-hijo3.html\nreproductor de audio"]
+    P <-->|"postMessage\nCAMBIO_PARADA · RETO.MOSTRAR (con retosArray de 1 ítem)\nRETO.HABILITAR · RETO.ESTADO_CASA"| H4["hijo4\nretos-hijo4.html\npantalla de retos"]
     P <-->|"postMessage\nSISTEMA.CAMBIO_MODO\nSOLICITAR_PARADAS"| H5["hijo5\nboton-casa-hijo5.html\n(herramienta DEV)"]
     P <-->|"postMessage\nCHAT.ESTADO_PADRE"| H6["hijo6\nchat-hijo6.html\nasistente FAQ"]
     P <-->|"postMessage\nSELECCION.AVENTURA_ACTIVADA\nPREPARAR_HIJOS"| S["seleccion\nEn-busca-del-tesoro.html\npantallas de demo e inicio"]
@@ -578,7 +577,7 @@ flowchart TD
     D --> P13V[P13: usuario introduce código\nPadre recibe CODIGO_VALIDADO]
     P13V --> E[P14_MOSTRADA -> padre carga iframes + datos en paralelo\nluego activa GPS (solo prod) mientras usuario lee normativa]
     E --> F[Handshake HIJO_LISTO\nde cada hijo]
-    F --> G[Padre distribuye datos\nDATOS.CARGAR_RETOS · coordenadas · audios]
+    F --> G[Padre distribuye coordenadas y textos\naudios/retos se resuelven por parada, no en bloque]
     G --> H([MODO CASA\nUsuario ve mapa · GPS activo sin validaciones · heartbeat inactivo])
     C --> H
 
@@ -669,7 +668,7 @@ padre  →  busca parada en DATOS_PADRE
 padre  →  CAMBIO_PARADA { parada, coordenadas, audio_id, reto_id }  →  hijo2, hijo3, hijo4, hijo5
 padre  →  CONTROL.DESHABILITAR { control: 'retosBtn' }  →  hijo3  ← bloqueado hasta audio
 padre  →  CONTROL.DESHABILITAR { control: 'btnAvanzar' }  →  hijo2
-padre  →  AUDIO.REPRODUCIR_REQUEST { audioId }  →  hijo3
+padre  →  AUDIO.REPRODUCIR_REQUEST { audioId, audioData }  →  hijo3   ← audioData resuelto vía cargarAudios()
      ... [usuario escucha audio] ...
 hijo3  →  AUDIO.FIN_REPRODUCCION  →  padre
 padre  →  CONTROL.HABILITAR { control: 'retosBtn' }  →  hijo3    ← ahora sí se habilita
@@ -1369,7 +1368,7 @@ Padre                                Hijo
 **Notas de implementación:**
 
 - El ACK es **best-effort**: solo se envía si `enviarMensaje_S1` ya está disponible. No es crítico para la funcionalidad — PADRE_DATOS sigue igualmente.
-- `PADRE_DATOS` del handshake lleva únicamente `{ modo, timestamp }`. Los datos completos de la aventura (idioma, coordenadas, retos, audios) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_RETOS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo.
+- `PADRE_DATOS` del handshake lleva únicamente `{ modo, timestamp }`. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16).
 - El padre registra los handlers `HIJO_PREPARADO` y `HIJO_LISTO` en Script 1 **antes de asignar `src` a ningún iframe** — esto garantiza que los mensajes tempranos nunca se pierdan.
 - Diseño intencional: el timeout de 30 s en `state-manager.js` es el último recurso si el hijo se cuelga antes de enviar `HIJO_LISTO` (crash total), no como mecanismo normal de espera. El heartbeat continuo detecta hijos caídos tras arrancar y permite reenviar `CAMBIO_MODO` pendiente si llega un `HIJO_LISTO` tardío.
 
@@ -1601,7 +1600,7 @@ Necesita FASE 2 completa. Todo ocurre en el arranque, dentro de `ejecutarInicial
 
 1. `cargarIframeSoloSeleccion()` — asigna `src` a `seleccion` y espera su handshake
 2. `_cargarIframesHijos()` — carga hijo1/hijo2/hijo3/hijo4/hijo5 en **paralelo** (`Promise.all`), todos ocultos (`display:none`). No espera señal alguna de seleccion. El listener `load` de cada iframe incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
-3. Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `SISTEMA.APLICACION_INICIALIZADA` vía `window.postMessage` (origen `'handshake-interno'`), que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus. En este punto no hay aventura seleccionada aún → `ensureDefaultParada()` falla silenciosamente; ningún CAMBIO_PARADA se envía hasta CODIGO_VALIDADO
+3. Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `SISTEMA.APLICACION_INICIALIZADA` vía `window.postMessage` (origen `'handshake-interno'`), que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus. Este handler es puramente informativo (registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
@@ -1647,14 +1646,14 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 
 | Prefijo | Registrado en | Ejemplos |
 |---------|--------------|---------|
-| `SISTEMA.*` | Script 1 | `HIJO_PREPARADO`, `HIJO_LISTO`, `CAMBIO_MODO`, `HEARTBEAT`, `HIJO_FALLIDO`, `CAMBIO_MODO_RESPONSE` |
+| `SISTEMA.*` | Script 1 | `HIJO_PREPARADO`, `HIJO_LISTO`, `CAMBIO_MODO`, `HEARTBEAT`, `HIJO_FALLIDO` |
 | `NAVEGACION.*` | Script 2 | `CAMBIO_PARADA`, `LLEGADA_DETECTADA`¹, `GPS.ACTIVAR`, `GPS.DESACTIVAR` |
 | `RETO.*` | Script 2 | `SOLICITAR_RETO`, `OCULTAR`, `COMPLETADO`, `MOSTRADO` |
 | `SELECCION.*` | Script 2 | `PREPARAR_HIJOS`, `CODIGO_VALIDADO`, `AVENTURA_SELECCIONADA`, `AVENTURA_ACTIVADA`, `IDIOMA_SELECCIONADO` |
 | `SELECCION.DEV_MODE_TOGGLE` | Script 1 (IIFE independiente) | No pasa por `registrarControladorSeguro` — IIFE propio que escucha `message` directamente y pone `globalThis._devModeActivo = true`. Recibido desde la pantalla de selección al activar Factor 1 DEV |
 | `CONTROL.DEV_CINCO_TOQUES` | Script 2 | `_hdl_CONTROL_DEV_CINCO_TOQUES` — muestra modal de código DEV. Con código DEV correcto (verificado por hash SHA-256): `_devModeActivo = true`, hijo5 `display:block`, `_vv_triggerCambioModo(MODOS.CASA)` |
 | `AUDIO.*` | Script 2 | `ESTADO_ACTUALIZADO`, `FIN_REPRODUCCION` |
-| `DATOS.*` | `codigo-padre.html` (`_regCtrl_DatosRespuestas`) + `js/controladores-padre.js` | `COORDENADAS_CARGADAS`, `AUDIOS_CARGADOS`, `RETOS_CARGADOS`, `TEXTOS_CARGADOS`; fallbacks: `SOLICITAR_AUDIOS`, `SOLICITAR_RETOS`, `SOLICITAR_TEXTOS`, `SOLICITAR_DATOS_PARADAS` |
+| `DATOS.*` | `codigo-padre.html` (`_regCtrl_DatosRespuestas`) + `js/controladores-padre.js` | `COORDENADAS_CARGADAS`, `TEXTOS_CARGADOS`; recuperación puntual por cache-miss: `SOLICITAR_AUDIOS`, `SOLICITAR_RETOS` (resuelven un solo id, no reenvían la aventura — ver §16); fallbacks de bloque: `SOLICITAR_TEXTOS`, `SOLICITAR_DATOS_PARADAS` |
 
 ### Modos de la aplicación
 
@@ -1724,7 +1723,7 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **Heartbeat** | Pausado — no se envía `SISTEMA.HEARTBEAT` a los hijos críticos | Activo cada ~5 s (ajustado por calidad de conexión vía `ajustarTimeoutPorConexion`) |
 | **`retosBtn` (hijo3)** | Se envía `CONTROL.HABILITAR { control: 'retosBtn' }` **de inmediato** al entrar en parada con `reto_id` (sin condición de audio) | Arranca con `CONTROL.DESHABILITAR { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }`; se habilita solo cuando llega `AUDIO.FIN_REPRODUCCION` para esa parada |
 | **`btnAvanzar` (hijo2)** | No se gestiona — en CASA el usuario elige libremente cada parada o tramo (sin avance automático por GPS) | Se deshabilita al entrar en parada: `CONTROL.DESHABILITAR { control: 'btnAvanzar', razon: 'parada_pendiente_completar' }`; se habilita cuando la parada está completa (audio + reto) |
-| **Audio al cambiar de parada** | `_solicitarAudioCasa()` — consulta info de audio a hijo3 sin lanzar reproducción automática | `_solicitarAudioParaParada()` — envía `AUDIO.REPRODUCIR_REQUEST` con autoplay |
+| **Audio al cambiar de parada** | `_solicitarAudioParaParada()` — mismo camino unificado que en AVENTURA; resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` (el usuario arranca el audio manualmente en ambos modos) | `_solicitarAudioParaParada()` — resuelve y envía `AUDIO.REPRODUCIR_REQUEST` con `autoplay:false` |
 | **`RETO.ESTADO_CASA` (hijo4)** | Enviado en cada `CAMBIO_PARADA`: `{ habilitado: !esTramo }` — habilita el panel de retos en paradas, lo deshabilita en tramos | No se envía |
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | hijo2 (llegada GPS detectada) o avance programático desde el padre |
 | **Estado del reto (`estado.retoActual`)** | `disponible: true` al entrar en parada con `reto_id` (inmediato) | `disponible: false` al entrar; cambia a `true` solo cuando audio termina |
@@ -1759,11 +1758,11 @@ Los handlers de datos de aventuras están extraídos en el módulo `js/controlad
 
 | Handler | Tipo de mensaje | Responde con |
 |---------|----------------|--------------|
-| Metadatos de audio | `DATOS.SOLICITAR_AUDIOS` | `DATOS.CARGAR_AUDIOS` |
+| Un audio concreto (cache-miss en hijo3) | `DATOS.SOLICITAR_AUDIOS { audioId }` | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` — resuelve solo ese id vía `cargarAudios()`, no reenvía la aventura |
 | Textos narrativos | `DATOS.SOLICITAR_TEXTOS` | `DATOS.CARGAR_TEXTOS` |
-| Retos y respuestas | `DATOS.SOLICITAR_RETOS` | `DATOS.CARGAR_RETOS` |
+| Un reto concreto (cache-miss en hijo4) | `DATOS.SOLICITAR_RETOS { retoId }` | `RETO.MOSTRAR { retoId, retosArray: [reto] }` — resuelve solo ese id vía `cargarRetos()`, no reenvía la aventura |
 
-Los handlers leen de `globalThis.__vv_AUDIOS_AVENTURAS` / `__vv_TEXTOS_AVENTURAS` / `__vv_RETOS_AVENTURAS` (cargados en FASE 2). `controladores-padre.js` también contiene una entrada para `SOLICITAR_DATOS_PARADAS`, pero es **dead code**: Script 1 la registra primero (ver §6 handshake) y `registrarControladorSeguro` deduplicates — la de controladores-padre.js se ignora. El handler activo de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
+El handler de textos lee de `globalThis.__vv_TEXTOS_AVENTURAS` (cargado en FASE 2, vía `cargarTextos()`). Los handlers de audio y retos ya no leen un array bulk precargado del hijo — resuelven el id solicitado bajo demanda vía `cargarAudios()`/`cargarRetos()` de `js/data-loader.js` (protección pasiva por parada, ver §16). `controladores-padre.js` también contiene una entrada para `SOLICITAR_DATOS_PARADAS`, pero es **dead code**: Script 1 la registra primero (ver §6 handshake) y `registrarControladorSeguro` deduplicates — la de controladores-padre.js se ignora. El handler activo de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
 
 ### Reconexión de hijos fallidos
 
@@ -1895,7 +1894,7 @@ graph TD
     P <-->|"UI.NAVEGACION_EXTERNA\nTEMPORIZADOR.TOGGLE\nAVENTURA.INICIADA/FINALIZADA"| H1
     P <-->|"CAMBIO_PARADA · GPS.ACTUALIZAR\nCONTROL btnAvanzar\nLLEGADA_DETECTADA"| H2
     P <-->|"CAMBIO_PARADA\nAUDIO.REPRODUCIR_REQUEST\nFIN_REPRODUCCION\nCONTROL retosBtn"| H3
-    P <-->|"CAMBIO_PARADA\nRETO.MOSTRAR · RETO.COMPLETADO\nRETO.ESTADO_CASA\nDATA.CARGAR_RETOS"| H4
+    P <-->|"CAMBIO_PARADA\nRETO.MOSTRAR (con retosArray de 1 ítem) · RETO.COMPLETADO\nRETO.ESTADO_CASA"| H4
     P <-->|"CAMBIO_MODO · CAMBIO_PARADA\nRESPUESTA_DATOS_PARADAS"| H5
     P <-->|"CHAT.ESTADO_PADRE\nhandshake"| H6
     H4 -.-|"PUZZLE.COMPLETADO\nPUZZLE.TIMEOUT"| PZ
@@ -2407,8 +2406,7 @@ hijo3 responde con `SISTEMA.CONFIRMACION { accion:'audio_control', comando, exit
 |---|---|
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza clase CSS del body; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
-| `DATOS.CARGAR_AUDIOS` | Carga catálogo de audios de la aventura/idioma |
-| `AUDIO.REPRODUCIR_REQUEST` | Asigna `src`, actualiza título; `.play()` solo si `autoplay===true` (padre siempre envía `autoplay:false`) |
+| `AUDIO.REPRODUCIR_REQUEST` | Si trae `audioData` en línea, lo añade a la caché acotada (máx. 2 ids); asigna `src`, actualiza título; `.play()` solo si `autoplay===true` (padre siempre envía `autoplay:false`). Si el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS { audioId }` al padre |
 | `CONTROL.HABILITAR` | Si `datos.control === 'retosBtn'`: `disabled = false` |
 | `CONTROL.DESHABILITAR` | Si `datos.control === 'retosBtn'`: `disabled = true` |
 | `NAVEGACION.CAMBIO_PARADA` | Quita clase `.activo` del `#retosBtn` y resetea spin si hay animación activa |
@@ -2435,15 +2433,15 @@ sequenceDiagram
 
     Note over P,H3: Al cambiar de parada (modo AVENTURA)
     P->>H3: CONTROL.DESHABILITAR { control: 'retosBtn' }
-    P->>H3: AUDIO.REPRODUCIR_REQUEST { urlAudio, parada_id }
-    H3->>H3: audio.src = url (no auto-play — padre envía autoplay:false)
+    P->>H3: AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false }
+    H3->>H3: audio.src = audioData.file (no auto-play — padre envía autoplay:false)
     Note over H3: usuario pulsa play en overlay del padre para reproducir...
     H3-->>P: AUDIO.FIN_REPRODUCCION { parada_id, completado: true }
     P->>H3: CONTROL.HABILITAR { control: 'retosBtn' }
     Note over H3: retosBtn.disabled = false
     Note over H3: Usuario pulsa retosBtn
     H3-->>P: RETO.SOLICITAR_RETO { parada_id }
-    P->>H4: RETO.MOSTRAR { reto_id, pregunta, opciones... }
+    P->>H4: RETO.MOSTRAR { retoId, retosArray: [reto] }
 
     Note over P,H3: Al cambiar de parada (modo CASA)
     P->>H3: CONTROL.HABILITAR { control: 'retosBtn' }
@@ -2583,15 +2581,13 @@ globalThis.addEventListener('message', async (event) => {
 |---|---|
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza interfaz según modo; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
-| `RETO.MOSTRAR` | Renderiza el reto; muestra el overlay; deshabilita `#btnNextAfterReto` |
+| `RETO.MOSTRAR` | Si trae `retosArray` en línea, añade su(s) reto(s) a la caché acotada (máx. 2 ids); renderiza el reto; muestra el overlay; deshabilita `#btnNextAfterReto`. Si el id no está en caché, pide `DATOS.SOLICITAR_RETOS { retoId }` al padre |
 | `RETO.OCULTAR` | Oculta el overlay; limpia el contenido |
 | `RETO.HABILITAR` | Muestra `#botonRetos-wrapper` y habilita `#botonRetos` (`disabled=false`, quita clase `deshabilitado`) |
 | `RETO.ESTADO_CASA` | Modo CASA: gestiona habilitación del panel según tipo de elemento activo |
-| `DATOS.CARGAR_RETOS` | Carga catálogo de retos |
 | `RETO.CONFIRMADO` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO |
-| `DATOS.CARGADOS_RECIBIDO` | Padre confirma recepción de retos — fase 3 del protocolo 3 fases |
 | `SISTEMA.CAMBIO_MODO` | Cambia clase CSS del body |
-| `NAVEGACION.CAMBIO_PARADA` | Pre-carga el reto de la nueva parada |
+| `NAVEGACION.CAMBIO_PARADA` | No precarga el reto (comentario propio en el código: "placeholder") — solo actualiza `estado.retoActualId`/`paradaIdActual`. El reto real llega después vía `RETO.MOSTRAR`, disparado por `RETO.SOLICITAR_RETO` |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Muestra/oculta el iframe |
 | `SISTEMA.HEARTBEAT` / `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | Gestión del latido |
 
@@ -2601,8 +2597,8 @@ globalThis.addEventListener('message', async (event) => {
 |------|--------|-------------------|
 | `RETO.MOSTRADO` | Tras renderizar correctamente el reto | `{ retoId }` |
 | `RETO.COMPLETADO` | Usuario envía respuesta | `{ reto_id, tipo_reto, correcto, respuesta_usuario, tiempo_resolucion, intentos }` |
-| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Tras procesar `CAMBIO_PARADA` — pre-carga reto de la nueva parada | `{ paradaId }` |
-| `DATOS.SOLICITAR_RETOS` | Si `RETO.MOSTRAR` llega pero `__vv_retosAventura` no está cargado | `{ aventura }` |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Tras procesar `CAMBIO_PARADA` (no precarga el reto, ver fila `NAVEGACION.CAMBIO_PARADA` arriba) | `{ paradaId }` |
+| `DATOS.SOLICITAR_RETOS { retoId }` | Cache-miss: `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) | `{ retoId, motivo:'cache_miss', timestamp }` |
 | `RETO.SOLICITAR_RETO` | Click en `#botonRetos` (botón secundario "Iniciar reto") | `{ contexto: 'hijo4-botonRetos' }` |
 | Estándar | Handshake + heartbeat + modo | — |
 
@@ -2615,8 +2611,8 @@ sequenceDiagram
 
     Note over P,H4: Flujo completo de un reto
     H3-->>P: RETO.SOLICITAR_RETO { parada_id }
-    P->>H4: RETO.MOSTRAR { reto_id, pregunta, opciones, tipo }
-    H4->>H4: renderiza el reto; deshabilita btnNextAfterReto
+    P->>H4: RETO.MOSTRAR { retoId, retosArray: [reto] }
+    H4->>H4: guarda el reto en caché local acotada; renderiza; deshabilita btnNextAfterReto
 
     alt tipo = 'puzzle'
         H4->>PZ: asigna src puzzle.html?id=...
@@ -3251,7 +3247,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Hijo → Padre | ACK semántico: "entendido el cambio" |
 | | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Hijo → Padre | "Cambio aplicado en mi UI" |
 | | `SISTEMA.CAMBIO_MODO_APLICADO` | Padre → Hijos | Broadcast de confirmación global del modo |
-| | `SISTEMA.CAMBIO_MODO_RESPONSE` | Hijo → Padre | Respuesta consolidada del cambio |
 | | `SISTEMA.HEARTBEAT` | Padre → Hijos | Latido "¿sigues vivo?" (solo AVENTURA) |
 | | `SISTEMA.HEARTBEAT_START` | Padre → Hijos | Iniciar ciclo de heartbeat |
 | | `SISTEMA.HEARTBEAT_PAUSE` | Padre → Hijos | Pausar ciclo de heartbeat |
@@ -3294,26 +3289,21 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `NAVEGACION.SUPRIMIR_ROTACION` | Tesoro → Padre | Suprimir/restaurar el aviso `#rotation-message` del padre para que no bloquee el mapa vintage cuando el usuario gira el dispositivo |
 | **DATOS** | `DATOS.CARGAR_COORDENADAS` | Padre → Hijo2 | Carga coordenadas de paradas |
 | | `DATOS.COORDENADAS_CARGADAS` | Hijo2 → Padre | Coordenadas cargadas OK |
-| | `DATOS.CARGAR_AUDIOS` | Padre → Hijo3 | Carga lista de audios |
-| | `DATOS.AUDIOS_CARGADOS` | Hijo3 → Padre | Audios cargados OK |
-| | `DATOS.CARGAR_RETOS` | Padre → Hijo4 | Carga lista de retos |
-| | `DATOS.RETOS_CARGADOS` | Hijo4 → Padre | Retos cargados OK |
 | | `DATOS.CARGAR_TEXTOS` | Padre → Hijo2 | Carga textos descriptivos de paradas |
 | | `DATOS.TEXTOS_CARGADOS` | Hijo2 → Padre | Textos cargados OK |
-| | `DATOS.SOLICITAR_AUDIOS` | Hijo3 → Padre | Solicita audios si no los recibió en handshake |
-| | `DATOS.SOLICITAR_RETOS` | Hijo4 → Padre | Solicita retos si no los recibió en handshake |
+| | `DATOS.SOLICITAR_AUDIOS` | Hijo3 → Padre | Cache-miss: pide un `audioId` concreto (no la aventura completa); el padre responde con `AUDIO.REPRODUCIR_REQUEST` |
+| | `DATOS.SOLICITAR_RETOS` | Hijo4 → Padre | Cache-miss: pide un `retoId` concreto; el padre responde con `RETO.MOSTRAR` |
 | | `DATOS.SOLICITAR_TEXTOS` | Hijo2 → Padre | Solicita textos si no los recibió en handshake |
 | | `DATOS.SOLICITAR_PARADAS` | Hijo → Padre | Solicitar paradas (handler activo; sin callers en prod — ruta activa usa `NAVEGACION.SOLICITAR_DATOS_PARADAS`) |
 | | ~~`DATOS.RESPUESTA_PARADAS`~~ | ❌ Eliminado | Constante muerta — nunca hubo handler activo. El mecanismo real es `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas) |
 | | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Hijo2 → Padre | Devuelve `{ coordenadas[], total, exito, paradaId? }` — padre lo procesa y dibuja en mapa |
 | | `DATOS.SOLICITAR_COORDENADAS` | Hijo2 → Padre | Fallback: hijo2 solicita sus coordenadas si no las recibió en handshake; padre responde con `DATOS.CARGAR_COORDENADAS` |
-| **AUDIO** | `AUDIO.REPRODUCIR_REQUEST` | Padre → Hijo3 | Reproduce este audio (`{ audioId, autoplay }`) |
+| **AUDIO** | `AUDIO.REPRODUCIR_REQUEST` | Padre → Hijo3 | Reproduce este audio (`{ audioId, audioData, autoplay }`) — `audioData` resuelto en línea vía `cargarAudios()`, protección pasiva por parada (ver §16) |
 | | `AUDIO.REPRODUCIR_RESPONSE` | Hijo3 → Padre | Confirmación de carga/inicio de audio |
 | | `AUDIO.FIN_REPRODUCCION` | Hijo3 → Padre | Audio terminó de forma natural |
 | | `AUDIO.ESTADO_ACTUALIZADO` | Hijo3 → Padre | Cambio de estado (play/pause/stop) |
 | | `AUDIO.ERROR` | Hijo3 → Padre | Error durante reproducción |
-| | `AUDIO.SOLICITAR_AUDIO` | Padre → Hijo3 | Pedir metadatos del audio de una parada (`paradaId`) sin reproducir — solo CASA; padre coordina la reproducción con la respuesta |
 | **CONTROL** | `CONTROL.HABILITAR` | Padre → Hijo2/Hijo3 | Habilitar un control concreto (`btnAvanzar`, `retosBtn`, botones de mapa) |
 | | `CONTROL.DESHABILITAR` | Padre → Hijo2/Hijo3 | Deshabilitar un control concreto |
 | | `CONTROL.DEV_CINCO_TOQUES` | Hijo1 → Padre | 5 taps o `Ctrl+Alt+clic` sobre `#icono-temporizador` — activa Factor 2 DEV; el padre abre modal de código y con código DEV correcto (verificado por hash SHA-256) pone `_devModeActivo = true` y cambia a modo CASA |
@@ -3323,8 +3313,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `RETO.SOLICITAR_RETO` | Hijo3/Hijo4 → Padre | Usuario pulsó `#retosBtn` (hijo3) o `#botonRetos` (hijo4) — payloads distintos pero padre usa solo `mensaje.origen` y `estado.paradaActual` |
 | | `RETO.HABILITAR` | Padre → Hijo4 | Habilitar panel de retos (solo AVENTURA) |
 | | `RETO.ESTADO_CASA` | Padre → Hijo4 | Estado del panel según posición (solo CASA) |
-| **UI** | `UI.NOTIFICACION` | Padre → Hijos | Notificación visual |
-| | `UI.ACCION_USUARIO` | Bidireccional | Hijo2 → Padre: acción en el mapa (`accion:'video'/'imagen'`) · Padre → Hijo3: controles de audio del overlay (`accion:'audio_control'`) y simulación de clicks en botones horizontales (`accion:'simular_click'`) |
+| **UI** | `UI.ACCION_USUARIO` | Bidireccional | Hijo2 → Padre: acción en el mapa (`accion:'video'/'imagen'`) · Padre → Hijo3: controles de audio del overlay (`accion:'audio_control'`) y simulación de clicks en botones horizontales (`accion:'simular_click'`) |
 | | `UI.CLOSE_MENUS` | Hijo1 ↔ Padre | Colapsar todos los menús |
 | | `UI.NAVEGACION_EXTERNA` | Hijo1 → Padre | Apertura de enlace externo |
 | **AVENTURA** | `AVENTURA.INICIADA` | Padre → Hijo1 | Iniciar temporizador con `tiempoEstimado` |
@@ -3337,7 +3326,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | **CHAT** | `CHAT.CERRAR` | Hijo6 → Padre | Usuario cierra el chat |
 | | `CHAT.ESTADO_PADRE` | Padre → Hijo6 | Contexto actual para el FAQ |
 | **PARADAS** | `VV:PARADAS:READY` | Hijo5 → Padre | UI de paradas lista (enviado pre-módulos) |
-| | `VV:PARADAS:SHOWN` | Hijo5 → Padre | Paradas visibles al usuario |
 | **PUZZLE** | `PUZZLE.COMPLETADO` / `puzzle-state-completed` | Iframe puzzle → Hijo4 | Puzzle resuelto (ambos formatos soportados) |
 | | `PUZZLE.TIMEOUT` / `puzzle-state-timeout` | Iframe puzzle → Hijo4 | Puzzle sin resolver por tiempo |
 | | `PUZZLE.LEGACY_COMPLETADO` | Iframe puzzle → Hijo4 | Variante legacy de PUZZLE.COMPLETADO (compatibilidad puzzles antiguos) |
@@ -3525,8 +3513,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `AUDIO.ERROR` | `{ audioId, error }` | Error durante reproducción |
 | `RETO.SOLICITAR_RETO` | `{ contexto:'manual', audioId }` | Usuario pulsa `#retosBtn` (cuando está habilitado) |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, parada_id, padreId, timestamp }` | Confirmación de haber procesado el cambio de parada |
-| `DATOS.SOLICITAR_AUDIOS` | `{ motivo:'datos_no_recibidos', timestamp }` | Si no recibió `DATOS.CARGAR_AUDIOS` en el handshake |
-| `DATOS.AUDIOS_CARGADOS` | `{ exito, aventura, idioma, totalCargados }` | Tras procesar `DATOS.CARGAR_AUDIOS` — fase 2 del protocolo 3 fases |
+| `DATOS.SOLICITAR_AUDIOS` | `{ audioId, motivo:'cache_miss', timestamp }` | Cuando `cargarYReproducirAudio()` no encuentra ese `audioId` en la caché local acotada (máx. 2 entradas) |
 | `SISTEMA.CONFIRMACION` | `{ tipo:'inicializacion'/'UI_VISIBLE' }` | Confirmaciones de estado |
 
 #### Mensajes que hijo3 recibe del padre
@@ -3538,18 +3525,17 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza clase CSS `modo-casa`/`modo-aventura` en body | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
-| `DATOS.CARGAR_AUDIOS` | `{ aventura, idioma, audios[], total, timestamp }` | Almacena mapa audioId → URL | ✓ | ✓ |
-| `AUDIO.REPRODUCIR_REQUEST` | `{ audioId, autoplay:false }` | Asigna `audio.src`; el padre siempre envía `autoplay:false` — el usuario reproduce desde los controles del padre | ✓ (manual) | ✓ (automático al entrar en parada) |
+| `AUDIO.REPRODUCIR_REQUEST` | `{ audioId, audioData:{id,title,file}, autoplay:false }` | Guarda `audioData` en la caché local acotada (máx. 2 ids: parada actual + 1 anterior); asigna `audio.src`; el padre siempre envía `autoplay:false` — el usuario reproduce desde los controles del padre. Si `audioData` viene ausente (p. ej. respuesta a `SOLICITAR_AUDIOS` desde `js/controladores-padre.js`, que sí lo incluye) o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | ✓ (manual) | ✓ (automático al entrar en parada) |
 | `CONTROL.HABILITAR` | `{ control:'retosBtn' }` | `retosBtn.disabled=false`, opacity 1 | ✓ inmediato si reto_id | ✓ tras FIN_REPRODUCCION |
 | `CONTROL.DESHABILITAR` | `{ control:'retosBtn', razon }` | `retosBtn.disabled=true`, opacity 0.5 | ✓ tramos/sin reto | ✓ al entrar en parada |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId }` | Reset spin + quita clase `.activo` del `#retosBtn` | ✓ | ✓ |
-| `AUDIO.SOLICITAR_AUDIO` | `{ paradaId, audioIdEsperado, padreId, tipoConsulta:'AUDIO' }` | Devuelve metadatos del audio de esa parada (audioId, url, title) sin reproducir — padre lo usa para coordinar la reproducción | ✓ | — |
 | `UI.ACCION_USUARIO` | `{ accion:'audio_control', comando, audioId }` ó `{ accion:'simular_click', elemento, contexto:'boton_horizontal' }` | Controles de audio del overlay del padre (play/pause/stop/replay) y simulación de clicks en botones horizontales | ✓ | ✓ |
-| `DATOS.CARGADOS_RECIBIDO` | `{ subtipo:'AUDIOS', exito }` | Padre confirma recepción de audios — fase 3 del protocolo 3 fases | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
 | `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 
-> **Diferencia clave CASA/AVENTURA**: `AUDIO.REPRODUCIR_REQUEST` llega siempre con `autoplay:false` — tanto en CASA como en AVENTURA. El audio se carga en el `<audio>` interno pero no se inicia automáticamente; el usuario usa los controles del padre para reproducir. La diferencia es el *disparador*: en AVENTURA el REQUEST se envía automáticamente al entrar en cada parada; en CASA lo dispara una acción del usuario. Los controles globales (play/pause/stop/replay/volumen) viven en el padre; hijo3 solo mueve el `<audio>` interno.
+> **Protección pasiva por parada** (ver §16): hijo3 nunca recibe la aventura completa. `AUDIO.REPRODUCIR_REQUEST` trae el audio de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
+>
+> **Diferencia clave CASA/AVENTURA**: `AUDIO.REPRODUCIR_REQUEST` llega siempre con `autoplay:false` — tanto en CASA como en AVENTURA. El audio se carga en el `<audio>` interno pero no se inicia automáticamente; el usuario usa los controles del padre para reproducir. La diferencia es el *disparador*: en AVENTURA el REQUEST se envía automáticamente al entrar en cada parada; en CASA lo dispara una acción del usuario (mismo mensaje, mismo handler — ya no hay una ruta CASA distinta vía `AUDIO.SOLICITAR_AUDIO`). Los controles globales (play/pause/stop/replay/volumen) viven en el padre; hijo3 solo mueve el `<audio>` interno.
 
 ---
 
@@ -3569,8 +3555,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `RETO.COMPLETADO` | `{ retoId, correcto:bool, progreso }` | Usuario responde el reto |
 | `RETO.OCULTAR` | `{ retoId }` | Usuario pulsa "siguiente" / cierra el reto |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | `{ paradaId, parada_id, padreId, timestamp }` | Confirmación de haber procesado el cambio de parada |
-| `DATOS.SOLICITAR_RETOS` | `{ motivo:'datos_no_recibidos', timestamp }` | Si no recibió `DATOS.CARGAR_RETOS` |
-| `DATOS.RETOS_CARGADOS` | `{ exito, aventura, idioma, totalCargados }` | Tras procesar `DATOS.CARGAR_RETOS` — fase 2 del protocolo 3 fases |
+| `DATOS.SOLICITAR_RETOS` | `{ retoId, motivo:'cache_miss', timestamp }` | Cuando `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) |
 | `RETO.MOSTRADO` | `{ retoId }` | Tras renderizar correctamente el reto — fase 2 del protocolo RETO |
 | `SISTEMA.CONFIRMACION` | `{ tipo }` | ACK de init |
 
@@ -3583,11 +3568,9 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza modo interno | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
-| `DATOS.CARGAR_RETOS` | `{ aventura, idioma, retos[], total, timestamp }` | Almacena retos por ID para acceso rápido | ✓ | ✓ |
-| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, retoId }` | Actualiza estado interno de parada activa; responde con `CAMBIO_PARADA_CONFIRMADO` | ✓ | ✓ |
-| `RETO.MOSTRAR` | `{ retoId, retosArray[] }` | Renderiza el reto, muestra overlay; responde con `RETO.MOSTRADO` | ✓ | ✓ |
+| `NAVEGACION.CAMBIO_PARADA` | `{ paradaId, parada_id, padreId, retoId }` | Actualiza estado interno de parada activa (no precarga el reto — ver nota abajo); responde con `CAMBIO_PARADA_CONFIRMADO` | ✓ | ✓ |
+| `RETO.MOSTRAR` | `{ retoId, retosArray:[reto] }` | Guarda el reto en la caché local acotada (máx. 2 ids); renderiza el reto, muestra overlay; responde con `RETO.MOSTRADO`. Si `retosArray` viene vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | ✓ | ✓ |
 | `RETO.CONFIRMADO` | `{ retoId }` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO | ✓ | ✓ |
-| `DATOS.CARGADOS_RECIBIDO` | `{ subtipo:'RETOS', exito }` | Padre confirma recepción de retos — fase 3 del protocolo 3 fases | ✓ | ✓ |
 | `RETO.HABILITAR` | `{ paradaId, razon:'audio_escuchado_1vez'/'sin_audio' }` | Muestra y habilita `#botonRetos-wrapper` | — | ✓ |
 | `RETO.ESTADO_CASA` | `{ tipo:'parada'/'tramo', habilitado:bool }` | Muestra/oculta `#botonRetos-wrapper` según posición | ✓ | — |
 | `CONTROL.HABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
@@ -3596,6 +3579,8 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
 | `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Detecta `AVENTURA_ACTIVADA` para limpiar estado de reto anterior | ✓ | ✓ |
+
+> **Protección pasiva por parada** (ver §16): hijo4 nunca recibe la aventura completa. `RETO.MOSTRAR` trae el reto de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
 
 **Mensajes internos del iframe de puzzle** (hijo4 escucha mensajes del iframe de puzzle embebido en él):
 
@@ -3627,7 +3612,6 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `{ incluirTramos, incluirInicio, incluirMetadatos, ubicacionUsuario }` | Al arrancar o al necesitar actualizar la lista |
 | `SISTEMA.ERROR` | `{ error, contexto, timestamp }` | Notificación de error interno |
 | `PARADAS.READY` | `{ count:botonesGenerados }` | UI de paradas lista (enviado pre-módulos) |
-| `PARADAS.SHOWN` | `{ }` | Paradas visibles al usuario |
 | `SISTEMA.CONFIRMACION` | `{ tipo:'UI_VISIBLE'/'DATOS_RECIBIDOS' }` | ACK de handshake y datos |
 
 #### Mensajes que hijo5 recibe del padre
@@ -3691,11 +3675,11 @@ flowchart LR
     H2 -->|"HIJO_PREPARADO/LISTO\nLLEGADA_DETECTADA\nUSUARIO_FUERA_RANGO\nUI.ACCION_USUARIO\nCOORDS_PARADAS_RESPONSE\nDAT.COORDENADAS/TEXTOS_CARGADOS"| P
     P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nDATA.CARGAR_COORDS/TEXTOS\nNAVEG.CAMBIO_PARADA\nCONTROL.HAB/DESHAB\nGPS.ESTADO_ACTUALIZADO/ERROR\nDAT.CARGADOS_RECIBIDO"| H2
 
-    H3 -->|"HIJO_PREPARADO/LISTO\nAUDIO.FIN_REPRODUCCION\nAUDIO.ESTADO_ACTUALIZADO\nAUDIO.ERROR\nRETO.SOLICITAR_RETO\nDAT.AUDIOS_CARGADOS"| P
-    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nDATA.CARGAR_AUDIOS\nAUDIO.REPRODUCIR_REQUEST\nCONTROL.HAB/DESHAB retosBtn\nCAMBIO_PARADA\nDAT.CARGADOS_RECIBIDO"| H3
+    H3 -->|"HIJO_PREPARADO/LISTO\nAUDIO.FIN_REPRODUCCION\nAUDIO.ESTADO_ACTUALIZADO\nAUDIO.ERROR\nRETO.SOLICITAR_RETO\nDAT.SOLICITAR_AUDIOS (cache-miss)"| P
+    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nAUDIO.REPRODUCIR_REQUEST (con audioData)\nCONTROL.HAB/DESHAB retosBtn\nCAMBIO_PARADA"| H3
 
-    H4 -->|"HIJO_PREPARADO/LISTO\nRETO.COMPLETADO/OCULTAR\nRETO.SOLICITAR_RETO\nRETO.MOSTRADO\nDAT.RETOS_CARGADOS"| P
-    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nDATA.CARGAR_RETOS\nNAVEG.CAMBIO_PARADA\nRETO.MOSTRAR/OCULTAR/CONFIRMADO\nRETO.HABILITAR\nRETO.ESTADO_CASA\nDAT.CARGADOS_RECIBIDO"| H4
+    H4 -->|"HIJO_PREPARADO/LISTO\nRETO.COMPLETADO/OCULTAR\nRETO.SOLICITAR_RETO\nRETO.MOSTRADO\nDAT.SOLICITAR_RETOS (cache-miss)"| P
+    P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nNAVEG.CAMBIO_PARADA\nRETO.MOSTRAR (con retosArray de 1 ítem)/OCULTAR/CONFIRMADO\nRETO.HABILITAR\nRETO.ESTADO_CASA"| H4
 
     H5 -->|"HIJO_PREPARADO/LISTO\nSISTEMA.CAMBIO_MODO\nNAVEG.CAMBIO_PARADA\nSOLICITAR_DATOS_PARADAS\nPARADAS.READY"| P
     P -->|"PADRE_DATOS/CONFIRMA/CAMBIO_MODO\nHEARTBEAT\nRESPUESTA_DATOS_PARADAS\nCAMBIO_PARADA_CONFIRMADO\nCAMBIO_PARADA"| H5
@@ -3975,23 +3959,23 @@ El comportamiento externo es idéntico al anterior — la extracción es puramen
 
 ### 9.6 distribuirDatosAventura — distribución fire-and-forget de datos
 
-`distribuirDatosAventura(aventura, idioma)` distribuye los datos de la aventura a los hijos que los necesitan. La distribución es **fire-and-forget**: envía a cada hijo solo si ya está en `hijosInicializados`; si no lo está, omite ese hijo sin esperar — el hijo activará su fallback `SOLICITAR_*` a los 3 s de su propia inicialización.
+`distribuirDatosAventura(aventura, idioma)` distribuye coordenadas y textos a los hijos que los necesitan. La distribución es **fire-and-forget**: envía a cada hijo solo si ya está en `hijosInicializados`; si no lo está, omite ese hijo sin esperar — el hijo activará su fallback `SOLICITAR_*` a los 3 s de su propia inicialización.
+
+Audios y retos **no se distribuyen aquí** — protección pasiva por parada (ver §16): se resuelven y envían uno a uno, en el momento en que cada parada se activa, vía `_hdl_NAVEGACION_CAMBIO_PARADA` (`AUDIO.REPRODUCIR_REQUEST` / `RETO.MOSTRAR`, cada uno con el contenido de esa única parada en línea).
 
 | Paso | Destino | Mensaje | Datos enviados |
 |------|---------|---------|----------------|
-| 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` — array de paradas/tramos con coords GPS |
-| 2 | hijo3 | `DATOS.CARGAR_AUDIOS` | `{ aventura, idioma, audios[], total, timestamp }` — array de metadatos de audio desde `__vv_AUDIOS_AVENTURAS[aventura][idioma]` |
-| 3 | hijo4 | `DATOS.CARGAR_RETOS` | `{ aventura, idioma, retos[], total, timestamp }` — array de retos desde `__vv_RETOS_AVENTURAS[aventura][idioma]` |
-| 4 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` — array `[{id, title, content}]` ensamblado por `cargarTextos(aventura, idioma)` desde `data-loader.js` (combina `TEXTOS_AVENTURAS[aventura]` + parrafos JSON del idioma + títulos de `AUDIOS_AVENTURAS[aventura][idioma]`) |
-| 5 | hijo5 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], aventura, timestamp }` — paradas normalizadas con campos `id`, `parada_id`, `tipo`, `nombre`, `coordenadas` |
+| 1 | hijo2 | `DATOS.CARGAR_COORDENADAS` | `{ aventura, idioma, coordenadas[], total, timestamp }` — array de paradas/tramos con coords GPS (bulk: hijo2 necesita la ruta completa para el mapa y el cálculo de proximidad GPS) |
+| 2 | hijo2 | `DATOS.CARGAR_TEXTOS` | `{ aventura, idioma, textos[], total, timestamp }` — array `[{id, title, content}]` ensamblado por `cargarTextos(aventura, idioma)` desde `data-loader.js` (combina `TEXTOS_AVENTURAS[aventura]` + parrafos JSON del idioma + títulos de `AUDIOS_AVENTURAS[aventura][idioma]`) |
+| 3 | hijo5 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | `{ paradas[], aventura, timestamp }` — paradas normalizadas con campos `id`, `parada_id`, `tipo`, `nombre`, `coordenadas` |
 
 Además, el padre asigna `globalThis.AVENTURA_PARADAS` con el array de paradas para uso de `js/funciones-mapa.js` y emite el evento `vv:paradas-disponibles`.
 
 **Fallback por hijo** (patrón request-response automático):
 - hijo2: tras 3 s sin `CARGAR_COORDENADAS` → envía `DATOS.SOLICITAR_COORDENADAS` → padre responde (`_hdl_DATOS_SOLICITAR_COORDENADAS`, Script 2 de `codigo-padre.html`)
 - hijo2: tras 3 s sin `CARGAR_TEXTOS` → envía `DATOS.SOLICITAR_TEXTOS` → padre responde (`js/controladores-padre.js`)
-- hijo3: tras 3 s sin `CARGAR_AUDIOS` → envía `DATOS.SOLICITAR_AUDIOS` → padre responde (`js/controladores-padre.js`)
-- hijo4: tras 3 s sin `CARGAR_RETOS` → envía `DATOS.SOLICITAR_RETOS` → padre responde (`js/controladores-padre.js`)
+- hijo3: si `cargarYReproducirAudio()` no encuentra un `audioId` en su caché local acotada → envía `DATOS.SOLICITAR_AUDIOS { audioId }` → padre resuelve solo ese audio y responde `AUDIO.REPRODUCIR_REQUEST` (`js/controladores-padre.js`)
+- hijo4: si `mostrarReto()` no encuentra un `retoId` en su caché local acotada → envía `DATOS.SOLICITAR_RETOS { retoId }` → padre resuelve solo ese reto y responde `RETO.MOSTRAR` (`js/controladores-padre.js`)
 - hijo5: solicita paradas vía `NAVEGACION.SOLICITAR_DATOS_PARADAS` → padre responde desde Script 1 de `codigo-padre.html`
 
 ---
@@ -4057,8 +4041,8 @@ sequenceDiagram
 
     P->>H2: DATOS.COORDENADAS_PARADAS_REQUEST { paradaId, padreId, incluirRutas }
     H2-->>P: DATOS.COORDENADAS_PARADAS_RESPONSE { coordenadas }
-    P->>H3: AUDIO.REPRODUCIR_REQUEST { audioId, autoplay:false }
-    Note over H3: Solo en modo AVENTURA (en CASA usa AUDIO.SOLICITAR_AUDIO)
+    P->>H3: AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false }
+    Note over H3: Mismo camino en CASA y AVENTURA — audioData resuelto vía cargarAudios()
 
     P->>H5: NAVEGACION.CAMBIO_PARADA { paradaId, parada_id, padreId, padreid }
     Note over H5: Solo si mensaje.origen ≠ 'hijo5'
@@ -4206,7 +4190,7 @@ Si el usuario elige **nueva aventura**, se limpia todo el localStorage, se reset
 
 ### 9.11 Por qué AVENTURA_ACTIVADA espera el handshake HIJO_LISTO
 
-Cuando el handler de `AVENTURA_ACTIVADA` recarga los iframes hijo1-hijo5, esperar el evento nativo `load` no es suficiente. El navegador emite `load` al terminar de parsear el HTML, pero los módulos ES se evalúan de forma asíncrona en microtasks posteriores. En conexiones lentas, los mensajes `CARGAR_COORDENADAS`, `CARGAR_AUDIOS`, etc. pueden llegar antes de que los receptores existan y se descartan silenciosamente.
+Cuando el handler de `AVENTURA_ACTIVADA` recarga los iframes hijo1-hijo5, esperar el evento nativo `load` no es suficiente. El navegador emite `load` al terminar de parsear el HTML, pero los módulos ES se evalúan de forma asíncrona en microtasks posteriores. En conexiones lentas, mensajes como `CARGAR_COORDENADAS` o `AUDIO.REPRODUCIR_REQUEST` pueden llegar antes de que los receptores existan y se descartan silenciosamente.
 
 Por eso, tras el `await Promise.all` de carga de iframes, el código:
 
@@ -4557,23 +4541,23 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 | Acción | Almacena coordenadas, responde DATOS.COORDENADAS_CARGADAS |
 | Respuesta | `DATOS.COORDENADAS_CARGADAS` → padre `_hdl_DATOS_COORDENADAS_CARGADAS` L10112 |
 
-**DATOS.CARGAR_AUDIOS** (padre → hijo3)
+**AUDIO.REPRODUCIR_REQUEST** (padre → hijo3) — protección pasiva por parada, ver §16
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ aventura, idioma, audios[], total, timestamp }` |
-| Handler en hijo3 | L1364 |
-| Acción | Almacena metadatos de audio, responde DATOS.AUDIOS_CARGADOS |
-| Respuesta | `DATOS.AUDIOS_CARGADOS` → padre `_hdl_DATOS_AUDIOS_CARGADOS` L10142 |
+| Payload | `{ audioId, audioData:{id,title,file}, autoplay:false, contexto }` |
+| Handler en hijo3 | `registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, ...)` |
+| Acción | Guarda `audioData` en la caché local acotada (máx. 2 ids); reproduce el audio de esa única parada |
+| Cuándo se envía | Por cada parada activada, dentro de `_hdl_NAVEGACION_CAMBIO_PARADA` → `_solicitarAudioParaParada()` → `_resolverAudioData()` (resuelve vía `cargarAudios()`) — no hay un mensaje "cargar toda la aventura" |
 
-**DATOS.CARGAR_RETOS** (padre → hijo4)
+**RETO.MOSTRAR** (padre → hijo4) — protección pasiva por parada, ver §16
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ aventura, idioma, retos[], total, timestamp }` |
-| Handler en hijo4 | L1624 |
-| Acción | Almacena retos, responde DATOS.RETOS_CARGADOS |
-| Respuesta | `DATOS.RETOS_CARGADOS` → padre `_hdl_DATOS_RETOS_CARGADOS` L10162 |
+| Payload | `{ retoId, retosArray:[reto], contexto }` |
+| Handler en hijo4 | `registrarControladorSeguro(TIPOS_MENSAJE.RETO.MOSTRAR, ...)` |
+| Acción | Añade el reto a la caché local acotada (máx. 2 ids); renderiza el reto |
+| Cuándo se envía | Cuando hijo4 pide el reto activo (`RETO.SOLICITAR_RETO`) o al completar un reto con más en cola — siempre resuelto vía `cargarRetos()`, nunca con la aventura completa |
 
 **DATOS.CARGAR_TEXTOS** (padre → hijo2)
 
@@ -4584,27 +4568,27 @@ Cuando el padre tiene aventura e idioma, distribuye los datos a cada hijo.
 | Acción | hijo2 almacena los textos en `globalThis.__vv_textosAventura` para acceso durante la navegación GPS |
 | Respuesta | `DATOS.TEXTOS_CARGADOS` → padre `_hdl_DATOS_TEXTOS_CARGADOS` L10182 |
 
-**DATOS.CARGADOS_RECIBIDO** (padre → hijo2 / hijo3 / hijo4) — fase 3 del protocolo de datos
+**DATOS.CARGADOS_RECIBIDO** (padre → hijo2) — fase 3 del protocolo de datos
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre en `_hdl_DATOS_COORDENADAS_CARGADAS`, `_hdl_DATOS_AUDIOS_CARGADOS`, `_hdl_DATOS_RETOS_CARGADOS`, `_hdl_DATOS_TEXTOS_CARGADOS` (codigo-padre.html) |
+| Emitido por | Padre en `_hdl_DATOS_COORDENADAS_CARGADAS`, `_hdl_DATOS_TEXTOS_CARGADOS` (codigo-padre.html) |
 | Destino | El hijo que envió el `*_CARGADOS` correspondiente |
-| Payload | `{ subtipo: 'COORDENADAS'\|'AUDIOS'\|'RETOS'\|'TEXTOS', exito: bool }` |
-| Handler en hijos | hijo2 L1908 (`COORDENADAS`, `TEXTOS`), hijo3 L1911 (`AUDIOS`), hijo4 L1900 (`RETOS`) |
+| Payload | `{ subtipo: 'COORDENADAS'\|'TEXTOS', exito: bool }` |
+| Handler en hijos | hijo2 L1908 (`COORDENADAS`, `TEXTOS`) |
 | Acción | Hijo registra la confirmación — logging; no desbloquea ningún flujo adicional |
-| Nota | Fase 3 del protocolo 3-fases: `CARGAR_*` (padre→hijo) → `*_CARGADOS` (hijo→padre) → `CARGADOS_RECIBIDO` (padre→hijo) |
+| Nota | Fase 3 del protocolo 3-fases: `CARGAR_*` (padre→hijo) → `*_CARGADOS` (hijo→padre) → `CARGADOS_RECIBIDO` (padre→hijo). Audio y retos no participan de este protocolo — se resuelven por parada, no en bloque (ver §16) |
 
 **Mecanismo de reintento (hijo → padre):**
 
-Si un hijo no recibe sus datos en ~3 segundos, solicita activamente al padre:
+Si hijo2 no recibe sus datos en ~3 segundos, solicita activamente al padre. Hijo3/hijo4 usan el mismo patrón de mensaje, pero con semántica distinta: piden un `audioId`/`retoId` concreto cuando su caché local no lo tiene, no "todo lo que falte".
 
 | Mensaje | Emitido por | Handler en padre |
 |---------|------------|-----------------|
-| `DATOS.SOLICITAR_AUDIOS` | hijo3 | `controladores-padre.js` L129 → reenvía CARGAR_AUDIOS |
-| `DATOS.SOLICITAR_RETOS` | hijo4 L1427 | `controladores-padre.js` L183 → reenvía CARGAR_RETOS |
+| `DATOS.SOLICITAR_AUDIOS { audioId }` | hijo3, en cache-miss dentro de `cargarYReproducirAudio()` | `controladores-padre.js` → resuelve ese audio vía `cargarAudios()`, responde `AUDIO.REPRODUCIR_REQUEST` |
+| `DATOS.SOLICITAR_RETOS { retoId }` | hijo4, en cache-miss dentro de `mostrarReto()` | `controladores-padre.js` → resuelve ese reto vía `cargarRetos()`, responde `RETO.MOSTRAR` |
 | `DATOS.SOLICITAR_COORDENADAS` | hijo2 | `codigo-padre.html` L10365 |
-| `DATOS.SOLICITAR_TEXTOS` | hijo2 | `controladores-padre.js` L156 → reenvía CARGAR_TEXTOS |
+| `DATOS.SOLICITAR_TEXTOS` | hijo2 | `controladores-padre.js` → reenvía CARGAR_TEXTOS |
 
 **NAVEGACION.SOLICITAR_DATOS_PARADAS** (hijo5 → padre)
 
@@ -4674,9 +4658,8 @@ El mensaje más importante de la app. Se emite al iniciar una aventura, al avanz
 padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
   ├── _actualizarEstadoParada → actualiza estado.paradaActual, indiceProgreso, elementoActual
   ├── _solicitarParadaAHijo2 → DATOS.COORDENADAS_PARADAS_REQUEST → hijo2 responde vía DATOS.COORDENADAS_PARADAS_RESPONSE
-  ├── _solicitarAudioParaParada
-  │     ├── (modo CASA) → AUDIO.SOLICITAR_AUDIO → hijo3 → AUDIO.REPRODUCIR_REQUEST (autoplay:false)
-  │     └── (modo AVENTURA) → AUDIO.REPRODUCIR_REQUEST (autoplay:false) → hijo3
+  ├── _solicitarAudioParaParada → resuelve el audio de la parada vía cargarAudios() (mismo camino CASA/AVENTURA)
+  │     └── AUDIO.REPRODUCIR_REQUEST { audioId, audioData, autoplay:false } → hijo3
   ├── _notificarCambioParadaHijos → NAVEGACION.CAMBIO_PARADA a hijo2, hijo3, hijo4, hijo5 (hijo5 excluido si origen==='hijo5')
   ├── _configurarRetoBtn → CONTROL.DESHABILITAR/HABILITAR retosBtn → hijo3
   │                     → RETO.HABILITAR → hijo4 (si sin audio)
@@ -4833,20 +4816,10 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre vía `_solicitarAudioParaParada` (CAMBIO_PARADA pipeline) |
-| Payload | `{ audioId, autoplay: false, contexto: { parada, tipo } }` |
+| Emitido por | Padre vía `_solicitarAudioParaParada` (CAMBIO_PARADA pipeline, mismo camino en CASA y AVENTURA); también `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_AUDIOS`) |
+| Payload | `{ audioId, audioData:{id,title,file}, autoplay: false, contexto: { parada, tipo } }` — `audioData` resuelto vía `cargarAudios()`, protección pasiva por parada (ver §16) |
 | Handler en hijo3 | L1426 |
-| Acción | Carga el audio, NO lo reproduce automáticamente. Muestra controles. |
-
-**AUDIO.SOLICITAR_AUDIO** (padre → hijo3) — solo modo CASA
-
-| Campo | Valor |
-|-------|-------|
-| Emitido por | Padre vía `_solicitarAudioCasa` |
-| Payload | `{ paradaId, audioIdEsperado, padreId, tipoConsulta:'AUDIO' }` |
-| Handler en hijo3 | L1723 |
-| Acción | Hijo3 consulta si tiene el audio, responde con `{ audioId, url }` |
-| Seguimiento | Padre envía REPRODUCIR_REQUEST con el audioId confirmado |
+| Acción | Guarda `audioData` en su caché local acotada (máx. 2 ids); carga el audio, NO lo reproduce automáticamente. Muestra controles. |
 
 **AUDIO.ESTADO_ACTUALIZADO** (hijo3 → padre)
 
@@ -4898,8 +4871,10 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
+| Emitido por | Padre en `_hdl_RETO_SOLICITAR`, al avanzar al siguiente reto de una cola, y en `js/controladores-padre.js` como respuesta a un cache-miss (`DATOS.SOLICITAR_RETOS`) |
+| Payload | `{ retoId, retosArray:[retoData] }` — `retoData` resuelto vía `cargarRetos()`, protección pasiva por parada (ver §16) |
 | Handler en hijo4 | L1438 |
-| Acción | Muestra el panel de reto al usuario |
+| Acción | Guarda el reto en su caché local acotada (máx. 2 ids); muestra el panel de reto al usuario |
 
 **RETO.MOSTRADO** (hijo4 → padre)
 
@@ -5100,13 +5075,13 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 Algunos mensajes son procesados por listeners raw `window.addEventListener('message')` que se registran **antes** de que los módulos JS carguen. Estos mensajes NO pasan por `mensajeria.js` ni `registrarControladorSeguro`. No tienen garantías de dedup, logging ni routing estándar.
 
-#### PARADAS.READY / PARADAS.SHOWN (hijo5 → padre)
+#### PARADAS.READY (hijo5 → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `boton-casa-hijo5.html` — `TIPOS_MENSAJE.PARADAS.READY` = `'VV:PARADAS:READY'`. Solo READY se envía activamente. `PARADAS.SHOWN` está definido en `js/constants.js` y el listener del padre lo maneja, pero hijo5 **nunca lo envía** (emisor muerto). |
-| Tipo | `'VV:PARADAS:READY'` — hijo5 usa la constante; padre compara string literal en el raw listener pre-módulo. `'VV:PARADAS:SHOWN'` preparado pero sin emisor activo. |
-| Listener en padre | `_handlePreModuleMessage` (función pre-módulo); ambos tipos son capturados por el mismo handler |
+| Emitido por | `boton-casa-hijo5.html` — `TIPOS_MENSAJE.PARADAS.READY` = `'VV:PARADAS:READY'`, tras generar todos los botones |
+| Tipo | `'VV:PARADAS:READY'` — hijo5 usa la constante; padre compara string literal en el raw listener pre-módulo |
+| Listener en padre | `_handlePreModuleMessage` (función pre-módulo) |
 | Acción | Padre llama `_injectParadasStyle(iframe)` — inyecta CSS de fondo transparente en hijo5 |
 | Canal | Raw `window.postMessage` a `parent`, no pasa por `mensajeria.js` |
 
@@ -5268,8 +5243,6 @@ setInterval app.js L1633 (background retry loop)
 
 **Quién envía NACK**: hijo1 L726/743, hijo2 L2005/2023, hijo3 L1490/1508, hijo4 L1495/1513/1594, `En-busca-del-tesoro.html` (seleccion) L2414/2420, `boton-casa-hijo5.html` (dev-only) L696/714, padre L8153/8188 (a otros componentes).
 
-**SISTEMA.CAMBIO_MODO_RESPONSE** (handler huérfano): ningún hijo envía actualmente este mensaje. El handler está registrado en el padre (~L6696) y actualiza `estado.estadoHijos.get(origen).modo.actual`. Fue usado históricamente como confirmación alternativa antes de que el protocolo migrara a ENTENDIDO/EFECTUADO. Ver §25.11 para contexto completo.
-
 ---
 
 ### 10.12 Flujos de solicitud de paradas — dos mecanismos paralelos
@@ -5330,19 +5303,25 @@ padre → solicitante   DATOS.RESPUESTA_PARADAS
 
 #### SISTEMA.APLICACION_INICIALIZADA ✅ implementado
 
-Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake. El emisor usa `window.postMessage` con `origen: 'handshake-interno'` para que fluya por la mensajería centralizada (un origen distinto al propio padre evita el filtro anti-bucle). Handler `_hdl_APLICACION_INICIALIZADA` restaura sesión guardada o espera selección de aventura. Guard interno evita doble inicialización si la aventura ya fue activada vía `SELECCION.AVENTURA_ACTIVADA`.
+Emitido por `_hijoListo_onTodosListos` en padre cuando hijo2 + hijo3 + hijo4 completan el handshake. El emisor usa `window.postMessage` con `origen: 'handshake-interno'` para que fluya por la mensajería centralizada (un origen distinto al propio padre evita el filtro anti-bucle). El handler `_hdl_APLICACION_INICIALIZADA` es informativo: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura — eso lo hacen exclusivamente `_hdl_SELECCION_AVENTURA_ACTIVADA` (flujo normal P1→P16) o `ejecutarRestauracionAventura()` (modal "continuar aventura", ver `_comprobarReanudacionAventura()`), ambos completamente independientes de este handler.
 
 #### DATOS.SOLICITAR_RETOS
 
-`DATOS.SOLICITAR_RETOS` — hijo4 pide recargar todos los retos (retry de CARGAR_RETOS). Padre responde con CARGAR_RETOS completo. **Flujo activo.**
+`DATOS.SOLICITAR_RETOS { retoId }` — hijo4 pide un reto concreto que no encontró en su caché local acotada. El padre resuelve solo ese id vía `cargarRetos()` y responde `RETO.MOSTRAR { retoId, retosArray:[reto] }` — nunca reenvía la aventura completa (protección pasiva por parada, ver §16). **Flujo activo.**
 
-#### SISTEMA.HEARTBEAT_ESTADO (padre → hijos)
+#### SISTEMA.HEARTBEAT_ESTADO / HEARTBEAT_START / HEARTBEAT_PAUSE (auto-mensajes del padre)
 
-| Campo | Valor |
-|-------|-------|
-| Emitido por | Padre script 4 L11583 (tipo en `enviarMensaje`) |
-| Destino | Todos |
-| Acción | Broadcast periódico del estado global del sistema (versión, modos activos, errores). Complementa HEARTBEAT que solo verifica vida. |
+Los tres son auto-mensajes que el padre se envía a sí mismo (`origen === destino === CONFIG_PADRE.ID`), no broadcasts a los hijos (los hijos tienen sus propios handlers de `HEARTBEAT_START`/`HEARTBEAT_PAUSE`, que solo registran en su log local que el padre cambió de fase — no arrancan ni paran nada por su cuenta).
+
+Los 3 handlers reales viven en Script 4, registrados justo antes del bloque de arranque que envía el HEARTBEAT_START/PAUSE inicial (para garantizar que el handler ya existe cuando ese primer auto-mensaje se envía):
+
+- `SISTEMA.HEARTBEAT_START` → llama a `globalThis.mensajeria.iniciarHeartbeat(intervalo)`.
+- `SISTEMA.HEARTBEAT_PAUSE` → llama a `globalThis.mensajeria.pausarHeartbeat()`.
+- `SISTEMA.HEARTBEAT_ESTADO` → lee `state-manager.getHeartbeat()` y devuelve `{ estado: { activo, userPaused, intervaloActivo } }`.
+
+`globalThis.consultarHeartbeat()` (definido dentro de `globalThis.diagnosticarGPS()`, disponible solo tras invocar esa función una vez desde la consola) envía `HEARTBEAT_ESTADO` y devuelve la respuesta — es una herramienta de diagnóstico para desarrolladores, no algo que el usuario final vea. `globalThis._testHeartbeatPauseResume()` (misma ubicación) ejercita el ciclo pausa/reanudación completo con `console.assert`.
+
+**`userPaused`** — campo de `state.heartbeat` en `state-manager.js`. Se pone a `true` en `pausarHeartbeat()` (llamado desde `_pausarHeartbeatCasa` en `app.js` al entrar en modo CASA) y bloquea `iniciarHeartbeat()`: si `userPaused` es `true`, un intento de arrancar el heartbeat se ignora (log + `return false`) en vez de reiniciarlo. Solo `preiniciarHeartbeat()` y `reanudarHeartbeat()` (las vías legítimas de reanudación, llamadas desde `app.js` al entrar en modo AVENTURA) limpian `userPaused` antes de arrancar. Esto evita que un `HEARTBEAT_START` fuera de secuencia reactive el heartbeat mientras la app sigue en modo CASA.
 
 ---
 
@@ -5669,8 +5648,6 @@ hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel d
 | GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | CARGAR_COORDENADAS | — | ✅ | — | — | — | — |
-| CARGAR_AUDIOS | — | — | ✅ | — | — | — |
-| CARGAR_RETOS | — | — | — | ✅ | — | — |
 | CARGAR_TEXTOS | — | ✅ | — | — | — | — |
 | AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — | — |
 | RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — | — |
@@ -6175,27 +6152,17 @@ export const AUDIOS_AVENTURAS = {
 
 ### Cómo funciona el flujo completo
 
-**Inicialización** — al cargar la aventura:
+**Protección pasiva por parada** (ver §16): no hay una fase de "inicialización" que precargue todos los audios de la aventura en hijo3. Cada audio se resuelve y se envía individualmente cuando su parada se activa.
 
-1. Padre carga `AUDIOS_AVENTURAS[aventura][idioma]` y empuja el array completo a hijo3 vía `DATOS.CARGAR_AUDIOS` con `{ aventura, idioma, audios[], total, timestamp }`.
-2. hijo3 almacena el array en `globalThis.__vv_audioFiles` y confirma con `DATOS.AUDIOS_CARGADOS`.
-3. Si hijo3 no recibe los datos en 3 s, los solicita él mismo vía `DATOS.SOLICITAR_AUDIOS`.
+**Reproducción** — al activar cada parada o tramo, un único camino sirve tanto CASA como AVENTURA: no existe una consulta previa de metadatos separada para CASA — `_solicitarAudioParaParada()` resuelve y envía el audio directamente en ambos modos:
 
-**Reproducción** — al llegar a cada parada o tramo:
+1. `_hdl_NAVEGACION_CAMBIO_PARADA` (padre) resuelve `parada.audio_id` en `DATOS_PADRE` y llama a `_solicitarAudioParaParada()`, que resuelve el contenido real (`{id, title, file}`) vía `_resolverAudioData()` → `cargarAudios(aventura, idioma)`.
+2. Padre envía `AUDIO.REPRODUCIR_REQUEST` a hijo3 con `{ audioId, audioData, autoplay: false }`. hijo3 guarda `audioData` en su caché local acotada (máx. 2 ids) y carga `audioPlayer.src = audioData.file`, actualiza el título visible — **no intenta reproducir nada todavía**.
+3. hijo3 envía `AUDIO.REPRODUCIR_RESPONSE` al padre confirmando que el audio está pre-cargado.
+4. El usuario pulsa `#audio-main-toggle-btn` (botón overlay en el padre) → padre envía `UI.ACCION_USUARIO { accion: 'audio_control', comando: 'play' }` a hijo3 → hijo3 llama `audioPlayer.play()`.
+5. Al terminar la reproducción: hijo3 envía `AUDIO.FIN_REPRODUCCION` al padre → padre habilita `retosBtn` en hijo3 (`CONTROL.HABILITAR`) y `#botonRetos` en hijo4 (`RETO.HABILITAR { razon: 'audio_escuchado_1vez' }`).
 
-Los dos modos tienen caminos distintos para llegar al mismo punto (audio pre-cargado, esperando gesto del usuario):
-
-**MODO AVENTURA** (directo):
-
-1. Padre envía `AUDIO.REPRODUCIR_REQUEST` a hijo3 con `{ audioId, autoplay: false }`. hijo3 carga `audioPlayer.src = entry.file`, actualiza el título visible en la interfaz — **no intenta reproducir nada**.
-2. hijo3 envía `AUDIO.REPRODUCIR_RESPONSE` al padre confirmando que el audio está pre-cargado.
-3. El usuario pulsa `#audio-main-toggle-btn` (botón overlay en el padre) → padre envía `UI.ACCION_USUARIO { accion: 'audio_control', comando: 'play' }` a hijo3 → hijo3 llama `audioPlayer.play()`.
-4. Al terminar la reproducción: hijo3 envía `AUDIO.FIN_REPRODUCCION` al padre → padre habilita `retosBtn` en hijo3 (`CONTROL.HABILITAR`) y `#botonRetos` en hijo4 (`RETO.HABILITAR { razon: 'audio_escuchado_1vez' }`).
-
-**MODO CASA** (con consulta de metadatos previa):
-
-1. Padre envía `AUDIO.SOLICITAR_AUDIO` a hijo3 con `{ paradaId, audioIdEsperado, padreId, tipoConsulta:'AUDIO' }`. hijo3 responde con los metadatos (`audioId`, `url`, `title`) vía `SISTEMA.CONFIRMACION` — **aún no reproduce nada**.
-2. Padre envía `AUDIO.REPRODUCIR_REQUEST` a hijo3 con `{ audioId, autoplay: false }` → mismo flujo que AVENTURA desde el paso 1.
+Si `cargarYReproducirAudio()` recibe un `audioId` que no está en la caché local (p. ej. el usuario retrocede a una parada visitada hace más de un salto), hijo3 pide `DATOS.SOLICITAR_AUDIOS { audioId }` al padre, que resuelve solo ese audio y responde con el mismo `AUDIO.REPRODUCIR_REQUEST`.
 
 > **Cómo añadir un audio:** crear la carpeta `audios-aventuras/[idioma]/`, añadir el MP3 y actualizar el campo `file` en `audios-aventuras.js`. Todo lo demás funciona automáticamente.
 
@@ -6261,7 +6228,7 @@ RETOS_AVENTURAS.Aventura1.en[...]   // Retos de Aventura1 en inglés
 
 #### Inicialización
 
-Al activar una aventura, padre envía `DATOS.CARGAR_RETOS` a hijo4 con `{ aventura, idioma, retos[], total, timestamp }`. hijo4 almacena los retos en `globalThis.__vv_retosAventura` y confirma con `DATOS.RETOS_CARGADOS`. Si tras 3 segundos hijo4 no ha recibido los retos, los solicita con `DATOS.SOLICITAR_RETOS`.
+Protección pasiva por parada (ver §16): no hay una carga masiva de retos al activar la aventura. Cada vez que hijo4 necesita mostrar un reto (`RETO.SOLICITAR_RETO` o al completar uno con más en cola), el padre resuelve ese `retoId` concreto vía `cargarRetos()` y envía `RETO.MOSTRAR { retoId, retosArray:[reto] }`. hijo4 añade el reto a su caché local acotada (máx. 2 ids). Si un `retoId` no está en esa caché, hijo4 lo solicita con `DATOS.SOLICITAR_RETOS { retoId }`.
 
 #### MODO AVENTURA
 
@@ -6492,11 +6459,29 @@ videos-aventuras/
 **Vídeo introductorio (P8 de `En-busca-del-tesoro.html`):**  
 Vídeo de apertura que se muestra antes de empezar la aventura. Actualmente es un placeholder ("Próximamente"). Se carga desde la función `cargarVideoIntro()`.
 
-**Vídeos de paradas/tramos (overlay del padre):**  
-Cada parada o tramo puede tener un vídeo asociado mediante el campo `video` en `coordenadas-aventuras.js`. Estos vídeos se reproducen en el **overlay de vídeo de `codigo-padre.html`** (elemento `<video controls autoplay>` dentro de un overlay flotante), no en `En-busca-del-tesoro.html`.
+**Vídeos de paradas/tramos (overlay del padre, botón dron de hijo2):**  
+Cada parada o tramo puede tener un vídeo asociado mediante el campo `video` en `coordenadas-aventuras.js`. El botón `#btn-video` de `coordenadas-hijo2.html` (icono dron) lee ese campo y pide al padre `UI.ACCION_USUARIO { accion: 'reproducir-video', urlVideo }`; el padre lo reproduce en su **overlay de vídeo** (`globalThis.mostrarVideoOverlay()`, elemento `<video controls autoplay preload="metadata">` dentro de un overlay flotante), no en `En-busca-del-tesoro.html`. Actualmente el campo `video` está vacío (`""`) en todas las paradas de todas las aventuras — el botón muestra el mensaje de "sin contenido" (`_mostrarVideoSinUrl`) porque todavía no hay ningún vídeo de dron cargado en producción.
 
 **Galería general:**  
 También hay una galería de vídeos independiente en `videos-valencia-historica.html`.
+
+### Requisito de codificación: `faststart` obligatorio en todo MP4 servido progresivamente
+
+Todo archivo `.mp4` servido en producción por HTTP (los de `videos-aventuras/`, y en el futuro los de los campos `video` de paradas/tramos) debe exportarse con el átomo `moov` (índice/metadatos: duración, tabla de muestras, códecs) **al principio del archivo**, inmediatamente después de `ftyp` — lo que se conoce como "faststart" o "vídeo optimizado para streaming web". Sin esto, el `moov` queda al final del archivo (después de todo el `mdat`, es decir, después de los megabytes de vídeo/audio real).
+
+**Por qué importa:** en local, con latencia ~0 y disco/red prácticamente instantáneos, un navegador puede llegar al `moov` del final sin que se note. En un hosting real (latencia y ancho de banda finitos), el reproductor puede quedarse esperando los metadatos o el resto de datos sin que haya ningún error visible — el vídeo se queda "pensando" (estado `waiting` del elemento `<video>`) de forma indefinida. Es una causa extremadamente común y bien documentada de "el vídeo funciona en local pero se cuelga en producción a los pocos segundos". Safari/iOS es particularmente estricto con esto: puede llegar a no arrancar la reproducción en absoluto sin `moov` al principio.
+
+**Cómo verificar un archivo ya existente:** los primeros átomos top-level del archivo deben empezar por `ftyp` y `moov` (en cualquier orden entre ellos, pero ambos antes que `mdat`). Si `mdat` aparece antes que `moov`, el archivo NO está optimizado para streaming.
+
+**Cómo arreglarlo (remux sin pérdida, no hace falta recodificar):**
+
+```bash
+ffmpeg -i entrada.mp4 -c copy -movflags +faststart salida.mp4
+```
+
+Es una operación de copia de streams (`-c copy`): reordena el índice del contenedor, no toca ni un fotograma del vídeo ni del audio — mismo tamaño (± unos cientos de bytes), misma duración, mismos fotogramas, sin recodificación.
+
+**Estado actual:** `videos-aventuras/video_intro_ejemplo.mp4` (usado en la escena `sceneVid` de `video-intro.html`, §32.6) tiene el `moov` al principio — confirmado por inspección directa de la estructura de átomos del archivo. Cuando se incorporen los primeros vídeos reales de dron para las paradas (campo `video` en `coordenadas-aventuras.js`, hoy vacío), deben exportarse ya con `faststart` antes de commitearse — o pasarse por el comando de arriba antes de subirlos.
 
 ---
 
@@ -6515,7 +6500,9 @@ El directorio `backend/` existe pero está vacío. El backend con API REST auten
 - Endpoints para coordenadas, retos (sin respuestas), textos, audios
 - Validación de código de activación
 
-El módulo `js/data-loader.js` ya gestiona la transición entre modo local (`DATA_MODE='local'`) y modo API (`DATA_MODE='api'`), y está listo para conectarse al backend cuando exista.
+El módulo `js/data-loader.js` implementa las dos ramas (`DATA_MODE='local'` / `DATA_MODE='api'`) para `cargarTextos`, `cargarCoordenadas`, `cargarAudios`, `cargarRetos` e `cargarIndice`, pero el arranque real del padre no las usa todas por igual: `globalThis.__cargarDatosAventuraDiferidos` (Fase 2, `codigo-padre.html`) sigue importando `coordenadas-aventuras.js`, `audios-aventuras.js`, `retos-aventuras.js` y `textos-aventuras.js` de forma incondicional para el índice bulk de coordenadas y textos — cambiar a `DATA_MODE='api'` hoy no tiene ningún efecto sobre esa carga inicial de coordenadas. `cargarTextos()` está conectada al flujo real (usada para ensamblar `{id,title,content}` a partir de los párrafos, ver `distribuirDatosAventura()`). **`cargarAudios()` y `cargarRetos()` sí están conectadas**, como parte de la protección pasiva por parada (ver arriba): `_solicitarAudioParaParada()` (`codigo-padre.html`) y los handlers `SOLICITAR_AUDIOS`/`SOLICITAR_RETOS` (`js/controladores-padre.js`) las llaman para resolver el contenido de cada parada individualmente en el momento en que se activa — el mismo código ya funciona en ambos `DATA_MODE`, sin cambios pendientes cuando exista backend. `cargarCoordenadas()` sigue sin ningún call site (la carga de coordenadas sigue siendo bulk por import directo, no forma parte de esta protección).
+
+**Puzzles — mecanismo aparte, sin pasar por `data-loader.js`:** los retos de `tipo:'puzzle'` (`retos-aventuras.js`) llevan un campo `src` hardcodeado (p.ej. `"puzzle.html?id=PZ-01"`). hijo4 crea un `<iframe src="puzzle.html?id=PZ-01">`; `puzzle.html` importa `js/puzzles-aventuras.js` **directamente** (bypass total de `data-loader.js`/`DATA_MODE`) y busca el id primero en `PUZZLES_AVENTURAS[aventuraActual]` (siempre vacío — los puzzles no están organizados por aventura) y si no lo encuentra escanea todas las entradas de `PUZZLES_AVENTURAS` (hoy solo existe la clave compartida `INTRO`), que es la búsqueda que realmente tiene éxito. `data-loader.js` no tiene ninguna función para puzzles: la forma real de los datos (pool compartido bajo `INTRO`, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)` que usan `cargarAudios`/`cargarRetos`/`cargarCoordenadas`/`cargarTextos`. El mecanismo real sigue siendo el import directo de `puzzle.html`, que queda **fuera de la protección pasiva por parada**: siempre carga el pool completo de puzzles, y no se adaptará solo cuando `BACKEND_READY=true`. Si se quiere proteger, hace falta una función que resuelva un único puzzle por id (ver §22.12).
 
 ### 16.2 Flujo completo de compra y activación (diseño para producción)
 
@@ -6621,10 +6608,15 @@ En producción añadir: `datos: { aventura, idioma, timestamp, email, token }`. 
 
 ## 17. Seguridad y protección
 
-El módulo `js/data-loader.js` gestiona la transición local/producción mediante la variable `DATA_MODE`:
+El módulo `js/data-loader.js` gestiona la transición local/producción mediante la variable `DATA_MODE`, calculada así:
 
-- `'local'`: carga desde ficheros JS directamente. **Activo ahora** (hardcodeado en línea 27; la autodetección por hostname está comentada).
-- `'api'`: carga desde el backend con token. Se activa al descomentar la detección automática y desplegar el backend.
+```js
+const BACKEND_READY = false; // ← único interruptor manual
+const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
+```
+
+- `'local'`: carga desde ficheros JS directamente. **Activo ahora**, siempre, porque `BACKEND_READY = false`. La detección automática por hostname (`localhost`/`127.0.0.1` → `'local'`, cualquier otro dominio → `'api'`) ya está implementada y activa, pero queda anulada mientras `BACKEND_READY` sea `false` — es la salvaguarda: desplegar a un dominio real sin backend probado no activa `'api'` por accidente.
+- `'api'`: carga desde el backend con token. Se activa cambiando `BACKEND_READY` a `true` una vez el backend esté implementado y probado — no hace falta tocar la lógica de detección, ya está lista.
 
 > **¿Puede alguien acceder a `data-loader.js` y cambiar `DATA_MODE`?** No. `js/server.js` sirve ficheros solo en lectura (GET); no existe ningún endpoint de escritura. Un atacante puede leer el fichero pero no modificarlo en el servidor. En producción, los datos sensibles están protegidos por `PROTECT_DATA=true` independientemente del valor de `DATA_MODE`. Si el atacante tuviera acceso de escritura al servidor, el problema sería de otra magnitud.
 
@@ -7136,7 +7128,7 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 8 | Protección del código JavaScript (minificación/obfuscación) | §22.8 | ⏳ pendiente |
 | 9 | Eliminar archivos sensibles del `APP_SHELL` del SW | §22.9 | ⏳ pendiente |
 | 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
-| 11 | `DATA_MODE = 'api'` en `js/data-loader.js` | §22.11 | ⏳ pendiente |
+| 11 | `BACKEND_READY = true` en `js/data-loader.js` (activa `DATA_MODE='api'` en dominios no locales) | §22.11 | ⏳ pendiente |
 | 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
 
 ---
@@ -7214,6 +7206,8 @@ node js/server.js
 #### Protección de datos en producción: `PROTECT_DATA=true`
 
 Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier petición GET directa a los ficheros sensibles. El frontend debe obtener esos datos a través de una API autenticada (pendiente de implementar).
+
+> ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, `DATA_MODE` seguirá siendo `'local'` y la Fase 2 del padre (`codigo-padre.html`) seguirá importando directamente los ficheros que `PROTECT_DATA` bloquearía, rompiendo la carga de aventuras con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Ver también §22.12 para los imports directos aún pendientes de migrar.
 
 **Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 15–23):
 
@@ -7440,30 +7434,30 @@ const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 
 ---
 
-### 22.11 `DATA_MODE`: cambiar de `'local'` a `'api'`
+### 22.11 `DATA_MODE`: activar el modo `'api'`
 
-En `js/data-loader.js` el modo de carga de datos está hardcodeado como `'local'` (línea 27):
+En `js/data-loader.js` la detección automática por hostname ya está implementada, gobernada por un único interruptor manual:
 
 ```javascript
 // js/data-loader.js — estado actual
-const DATA_MODE = 'local'; // ← forzado a modo local para producción estática
-
-// Versión correcta para producción (ya preparada, comentada en líneas 32–35):
-// const DATA_MODE = (_host === 'localhost' || _host === '127.0.0.1') ? 'local' : 'api';
-// const API_BASE = DATA_MODE === 'local'
-//     ? 'http://localhost:3001/api'
-//     : `${globalThis.location.origin}/api`;
+const BACKEND_READY = false; // ← cambiar a true cuando el backend esté implementado Y probado
+const _host = globalThis.location?.hostname;
+const _esLocal = _host === 'localhost' || _host === '127.0.0.1' || !_host;
+const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
+const API_BASE = DATA_MODE === 'local'
+    ? 'http://localhost:3001/api'
+    : `${globalThis.location.origin}/api`;
 ```
 
 En modo `'local'`, los datos de aventura se importan como módulos JS — el navegador los descarga y el SW los cachea. En modo `'api'`, los datos se obtienen mediante llamadas autenticadas al backend y nunca se almacenan en caché del SW.
 
-**Este cambio es bloqueante** junto con §22.4 (backend con JWT) y §22.9 (revisión de `APP_SHELL`). Los tres deben implementarse conjuntamente.
+Mientras `BACKEND_READY = false`, `DATA_MODE` es siempre `'local'` sin importar el hostname — es la salvaguarda contra desplegar a un dominio real antes de tener backend. **El único cambio pendiente** es poner `BACKEND_READY = true`, y solo debe hacerse junto con §22.4 (backend con JWT) y §22.9 (revisión de `APP_SHELL`) ya implementados y probados — los tres deben estar listos conjuntamente antes de voltear el interruptor.
 
 ---
 
 ### 22.12 Imports directos a migrar antes de activar `PROTECT_DATA=true`
 
-`js/data-loader.js` ya tiene funciones para todos los archivos de datos sensibles excepto uno. La tabla siguiente lista cada import directo que romperá con `PROTECT_DATA=true` y su equivalente en data-loader:
+`js/data-loader.js` ya tiene funciones para la mayoría de los archivos de datos sensibles, salvo dos. La tabla siguiente lista cada import directo que romperá con `PROTECT_DATA=true` y su equivalente en data-loader:
 
 | Archivo importado | Dónde se importa | Función en data-loader | Estado |
 |---|---|---|---|
@@ -7471,7 +7465,7 @@ En modo `'local'`, los datos de aventura se importan como módulos JS — el nav
 | `audios-aventuras.js` | `codigo-padre.html` ~L3052, `En-busca-del-tesoro.html` ~L1135,1679 | `cargarAudios(aventuraId, idioma)` | ✅ existe |
 | `retos-aventuras.js` | `codigo-padre.html` ~L3053, `En-busca-del-tesoro.html` ~L1781 | `cargarRetos(aventuraId, idioma)` | ✅ existe |
 | `textos-aventuras.js` | `codigo-padre.html` ~L3054 | `cargarTextos(aventuraId, idioma)` | ✅ existe |
-| `puzzles-aventuras.js` | `En-busca-del-tesoro.html` ~L1040,1292, `puzzle.html` ~L130 | `cargarPuzzles(aventuraId)` | ✅ existe |
+| `puzzles-aventuras.js` | `En-busca-del-tesoro.html` ~L1040,1292, `puzzle.html` ~L130 | ninguna — la forma real de los datos (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`; mecanismo real sigue siendo el import directo en `puzzle.html`, ver §16.1 | ❌ **falta** |
 | `indice-aventuras.js` | `codigo-padre.html` ~L3055, `En-busca-del-tesoro.html` ~L1773 | `cargarIndice()` | ✅ existe |
 | **`aventuras-ID-padre.js`** | **`codigo-padre.html` ~L2661 (import estático)** | **ninguna — `cargarDatosPadre()` no existe** | ❌ **falta** |
 
@@ -7483,7 +7477,8 @@ En modo `'local'`, los datos de aventura se importan como módulos JS — el nav
 2. Reemplazar el import estático `import { DATOS_PADRE } from './js/aventuras-ID-padre.js'` en `codigo-padre.html` ~L2661 por una llamada async a `cargarDatosPadre()`.
 3. Para los demás archivos: reemplazar los `import()` dinámicos por llamadas a las funciones de data-loader ya existentes (que ya gestionan la bifurcación local/api internamente).
 4. Añadir `aventuras-ID-padre.js` a la lista de archivos protegidos en `js/server.js` (§22.4).
-5. Verificar que `En-busca-del-tesoro.html` y `puzzle.html` tampoco hacen imports directos de los archivos protegidos restantes.
+5. Decidir si los puzzles necesitan protección: hoy `puzzle.html` importa `puzzles-aventuras.js` directamente y siempre carga el pool completo, sin pasar por `data-loader.js`/`DATA_MODE` (ver §16.1). Si se decide proteger, hace falta (a) una función `cargarPuzzle(puzzleId)` en `data-loader.js` que resuelva un único id — análoga a `cargarAudios()`/`cargarRetos()` — y (b) reescribir `puzzle.html` para pedir solo ese id en vez de importar el archivo completo.
+6. Verificar que `En-busca-del-tesoro.html` tampoco hace imports directos de los archivos protegidos restantes.
 
 > **Nota:** `mapa-completo.html` importa directamente `coordenadas-aventuras.js` (~L144). Es una herramienta de visualización auxiliar — evaluar si necesita autenticación o si puede permanecer pública.
 
@@ -7617,7 +7612,8 @@ Propiedades añadidas en la sesión de julio 2026:
 | Término | Significado |
 |---------|-------------|
 | **PROTECT_DATA** | Variable de entorno (`PROTECT_DATA=true`) en `js/server.js` que bloquea el acceso HTTP directo a los archivos de pago (coordenadas, textos, audios, retos). En desarrollo está desactivada |
-| **DATA_MODE** | Modo de carga de datos, hardcodeado como `'local'` en `js/data-loader.js`. En producción se cambiaría a `'api'` para servir los datos vía API autenticada |
+| **DATA_MODE** | Modo de carga de datos en `js/data-loader.js`, calculado como `(BACKEND_READY && !_esLocal) ? 'api' : 'local'`. Siempre `'local'` mientras `BACKEND_READY = false` |
+| **BACKEND_READY** | Interruptor manual (`js/data-loader.js`) que gobierna si `DATA_MODE` puede ser `'api'`. `false` por defecto — salvaguarda para no activar peticiones a un backend que aún no existe/no está probado al desplegar a un dominio real |
 | **Pass-through** | Comportamiento de `js/server.js` cuando `PROTECT_DATA=false`: todos los archivos son accesibles directamente. Modo de desarrollo local |
 | **localStorage** | Almacenamiento del navegador donde se persisten las preferencias del usuario: `vv_idioma` (idioma), `vv_aventura` (aventura elegida), `vv_aventura_iniciada` (flag de inicio) |
 
@@ -8978,13 +8974,13 @@ Esto evita que dos mensajes concurrentes del mismo tipo resuelvan el listener de
 
 #### ACK garantizado aunque no haya handler
 
-Los hijos 2, 3 y 4 usan `enviarMensajeConConfirmacion` para notificar al padre cuando terminan de cargar sus datos:
+hijo2 usa `enviarMensajeConConfirmacion` para notificar al padre cuando termina de cargar sus datos:
 
 | Hijo | Mensaje enviado | Espera confirmación de |
 |------|----------------|----------------------|
 | hijo2 (`coordenadas-hijo2.html`) | `DATOS.COORDENADAS_CARGADAS` | padre |
-| hijo3 (`audio-hijo3.html`) | `DATOS.AUDIOS_CARGADOS` | padre |
-| hijo4 (`retos-hijo4.html`) | `DATOS.RETOS_CARGADOS` | padre |
+
+hijo3 y hijo4 ya no confirman una carga masiva — no la reciben. La protección pasiva por parada (ver §16) reemplaza ese protocolo por resolución bajo demanda, sin fase de confirmación de bloque.
 
 **Regla importante:** `mensajeria.js` envía `SISTEMA.CONFIRMACION` para **cualquier** mensaje con `requiereConfirmacion: true`, aunque no haya un handler registrado en el mapa de controladores. Esto evita que los hijos sufran timeout (5 s) por un fallo de registro del handler en el padre. La confirmación significa "mensaje recibido", no "mensaje procesado".
 
@@ -9052,7 +9048,7 @@ USUARIO pulsa "Parada 5" en hijo5
   - Obtiene datos de P-5 desde DATOS_PADRE[aventura][idioma]
   - Envía en paralelo a los hijos afectados:
       padre → hijo2: NAVEGACION.CAMBIO_PARADA  { coordenadas, imagen }
-      padre → hijo3: AUDIO.REPRODUCIR_REQUEST  { audioId: 'P-5', autoplay: false }
+      padre → hijo3: AUDIO.REPRODUCIR_REQUEST  { audioId: 'P-5', audioData, autoplay: false }
       (RETO.MOSTRAR NO se envía aquí — solo cuando el usuario pulsa el botón de retos)
 │
 ▼ mensajeria.js padre — enviarMensajeInterno() para cada hijo:
@@ -9187,8 +9183,8 @@ Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada es
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
-| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con la lista de URLs de audio de la aventura |
-| Padre → Hijo | `AUDIO.REPRODUCIR_REQUEST` | Con la URL del MP3 de la parada actual |
+| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — sin audio; el contenido llega parada a parada (ver §16) |
+| Padre → Hijo | `AUDIO.REPRODUCIR_REQUEST` | Con el audio resuelto (`audioData`) de la parada actual, en línea |
 | Padre → Hijo | `UI.ACCION_USUARIO` | Comandos `audio_control` para `play`, `pause`, `stop` y `replay` |
 | Hijo → Padre | `AUDIO.REPRODUCIR_RESPONSE` | Confirmando que el audio ha empezado |
 | Hijo → Padre | `AUDIO.FIN_REPRODUCCION` | Cuando el audio termina |
@@ -9202,8 +9198,8 @@ Muestra el reto de cada parada y valida la respuesta del usuario. El padre decid
 | Dirección | Tipo de mensaje | Cuándo |
 |-----------|----------------|--------|
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
-| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Con todos los retos de la aventura en el idioma activo |
-| Padre → Hijo | `RETO.MOSTRAR` | Con el objeto reto de la parada actual |
+| Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — sin retos; el contenido llega parada a parada (ver §16) |
+| Padre → Hijo | `RETO.MOSTRAR` | Con el objeto reto resuelto (`retosArray`) de la parada actual, en línea |
 | Hijo → Padre | `RETO.COMPLETADO` | Cuando el usuario responde correctamente |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Para ocultar el reto al volver al modo CASA |
 
@@ -9261,13 +9257,10 @@ El marcador es una píldora blanca con borde naranja (`#ff8c00`), emoji 🏛 a l
 - **Cola de mensajes**: mensajes que llegan antes de que el destino esté registrado esperan y se procesan en orden.
 - **Heartbeat**: el padre detecta hijos sin respuesta y puede recargar el iframe.
 - **puzzleListener lifecycle**: `window._puzzleListener` almacena el listener activo; se elimina y sustituye en cada re-inicialización para evitar acumulación de listeners.
-
-**Deuda técnica activa (ver `docs/DEUDA-TECNICA-PRODUCCION.md` para detalle completo):**
-
-- **B3 — Arquitectura relay `correlacionesMensajes`** ✅ eliminada (Junio 2026): véase §25.14 para el análisis completo. Código muerto: el Map nunca tuvo `.set()`, los handlers siempre salían en el primer guard. Eliminados: 3 handlers, el Map de estado, el interval de limpieza y la función `_limpiarCorrelacionesPendientes`. Padre ahora maneja `DATOS.SOLICITAR_PARADAS` directamente desde `DATOS_PADRE` en memoria.
-- **DT-2 — Sistema de registro de handlers con fallbacks** ✅ investigado, cerrado: la apariencia de "triple sistema paralelo" (`registrarControlador_S1` → `sm.registrarManejador`, fallback `__vv_manejadoresLocales`, cola `__CONTROLADORES_PENDIENTES`) es una cadena de fallbacks defensiva e intencional. Las Vías 1 y 2 apuntan al mismo export; el Set `__CONTROLADOR_REGISTRADOS` evita dobles registros; la cola se drena con garantía tras `mensajeriaReady`. No requiere cambios de código.
-- **DT-1 — Lógica dividida entre `app.js` y Scripts inline** ✅ Opción A y Opción B completadas: comentarios de referencia cruzada añadidos; 4 handlers de datos extraídos a `js/controladores-padre.js` (importación dinámica al final de Script 1). Suite Playwright E2E montada con 11 specs (105 tests en chromium). 105/105 tests pasan.
-- **Handler huérfano `SISTEMA.CAMBIO_MODO_RESPONSE`** — registrado en el padre (~L6696) pero ningún hijo lo emite desde que el protocolo de modo migró a ENTENDIDO/EFECTUADO. El handler actualiza `estado.estadoHijos.get(origen).modo.actual`, es informativo y no bloquea ningún flujo. Puede eliminarse en una limpieza futura junto con la constante en `constants.js` L76.
+- **Registro de handlers con fallbacks en cadena**: `registrarControlador_S1` → `sm.registrarManejador` es la vía primaria; si mensajería no está lista, cae a `__vv_manejadoresLocales` y encola en `__CONTROLADORES_PENDIENTES`, que se drena garantizadamente tras `mensajeriaReady`. El Set `__CONTROLADOR_REGISTRADOS` evita dobles registros. Diseño defensivo intencional, no una duplicación accidental.
+- **`DATOS.SOLICITAR_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
+- **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
+- **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor, o sin ninguno de los dos. Es una heurística con falsos positivos conocidos (indirección vía variable, handlers registrados en una línea posterior a su definición) — cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
 
 ---
 
@@ -9288,7 +9281,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Cualquier hijo tras recibir `SISTEMA.CAMBIO_MODO` | Registra en un `Map` interno que ese hijo recibió y entendió el cambio de modo | (ninguna respuesta directa; el padre espera a `EFECTUADO`) | — | 2.ª fase del protocolo de cambio de modo; confirmar que el mensaje llegó |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Cualquier hijo tras aplicar el modo visualmente | Registra que el hijo aplicó el modo; cuando todos los hijos confirman, cierra la transición | `SISTEMA.CAMBIO_MODO_APLICADO` | **Broadcast a todos los hijos** | 4.ª y última fase del protocolo; el padre emite broadcast (no solo al emisor) para que todos completen la transición |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Cualquier hijo en respuesta al heartbeat | Resetea el contador de `heartbeatsFallidos` para ese hijo | (ninguna) | — | Confirmar que el hijo está vivo; si el contador supera `MAX_HEARTBEATS_FALLIDOS=3`, el padre recarga el iframe |
-| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente via `__triggerCambioParadaInterno` (progresión automática / restauración) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; solicita coords a hijo2 (`DATOS.COORDENADAS_PARADAS_REQUEST`); solicita audio a hijo3; fan-out `CAMBIO_PARADA` a todos los hijos | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4; `AUDIO.REPRODUCIR_REQUEST` → Hijo 3 (AVENTURA) / `AUDIO.SOLICITAR_AUDIO` (CASA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada |
+| `NAVEGACION.CAMBIO_PARADA` | Hijo 5 (lista de paradas) — o internamente via `__triggerCambioParadaInterno` (progresión automática / restauración) | Actualiza `estadoActual.paradaActual` en state-manager; calcula el índice; solicita coords a hijo2 (`DATOS.COORDENADAS_PARADAS_REQUEST`); resuelve el `audio_id` de la parada vía `cargarAudios()` (`_solicitarAudioParaParada` → `_resolverAudioData`, protección pasiva por parada, ver §16); fan-out `CAMBIO_PARADA` a todos los hijos | `NAVEGACION.CAMBIO_PARADA` → Hijo 5 (si origen ≠ 'hijo5'), Hijo 2, Hijo 3, Hijo 4; `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` → Hijo 3 (mismo camino en CASA y AVENTURA); `CONTROL.HABILITAR`/`DESHABILITAR` `retosBtn` → Hijo 3 | Hijo 2, Hijo 3, Hijo 4, Hijo 5 (condicional) | Orquestar la transición completa a una nueva parada, incluida la entrega del audio de esa parada — no de la aventura completa |
 | `AUDIO.FIN_REPRODUCCION` | Hijo 3 al terminar el audio | Registra que el audio completó en `audioEscuchadoPorParada`; delega la habilitación del reto a `_procesarFinAudioElemento` | `RETO.HABILITAR` → Hijo 4 (solo en AVENTURA y solo si la parada tiene retos, vía `_procesarFinAudioElemento`) | Hijo 4 (condicional) | El reto solo se puede intentar después de escuchar el audio de la parada y únicamente si esa parada tiene reto |
 | `RETO.COMPLETADO` | Hijo 4 cuando el usuario resuelve el reto | Actualiza el progreso en state-manager; marca la parada como completada; habilita el GPS para avanzar; si es la última parada, dispara el flujo de fin de aventura | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
 | `NAVEGACION.LLEGADA_DETECTADA` | Hijo 2 al entrar en radio de parada o tramo | Se dispara para **ambos tipos**: paradas (`RADIO_PARADA=20 m` hardcodeado en `_detectarLlegadaParada()`) y tramos (`toleranciaGPS` dinámica ≥ 50 m desde `calcularToleranciaGPS()`). El mensaje incluye `tipoParada` ('parada'/'tramo'). El padre distingue por `estado.elementoActual.tipo`: para tramos → solicita audio (`AUDIO.REPRODUCIR_REQUEST`) + llama `_marcarPendingPorLlegada()`; para paradas → solo llama `_marcarPendingPorLlegada()` (audio ya cargado en `CAMBIO_PARADA`). Ambos caminos marcan `pending.llegada=true`, condición necesaria junto con `pending.audio` y `retosOk` para completar la parada/tramo. | — | — | Condición GPS de llegada — aplica a paradas Y tramos; sin ella la parada nunca se completa aunque el usuario escuche el audio y resuelva el reto |
@@ -9296,8 +9289,8 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.GPS.DESACTIVAR` | Hijo 2 (al pulsar botón GPS off) | Detiene `watchPosition` en el padre (`_hdl_NAVEGACION_GPS_DESACTIVAR`); limpia watchId | (ninguna) | — | Ídem — el padre gestiona el ciclo completo de GPS |
 | `NAVEGACION.GPS.RESTRINGIDO` | Hijo 2 (cuando el usuario deniega el permiso de geolocalización) | Registra GPS restringido; puede notificar al usuario (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) | (ninguna) | — | Caso de permiso denegado; el padre maneja la UI de error |
 | `DATOS.SOLICITAR_COORDENADAS` | Hijo 2 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].coordenadas` | `DATOS.CARGAR_COORDENADAS` (array de elementos: paradas, tramos, referencias) | Hijo 2 | Hijo 2 no tiene datos propios; los pide al padre que los tiene en memoria |
-| `DATOS.SOLICITAR_AUDIOS` | Hijo 3 como fallback diferido (3 s tras `PADRE_CONFIRMA_HIJO_LISTO` si `CARGAR_AUDIOS` no llegó) | Lee `DATOS_PADRE[aventura][idioma].audios` | `DATOS.CARGAR_AUDIOS` (mapa id→ruta de archivo) | Hijo 3 | Ídem para audio |
-| `DATOS.SOLICITAR_RETOS` | Hijo 4 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].retos` | `DATOS.CARGAR_RETOS` (array de objetos reto) | Hijo 4 | Ídem para retos |
+| `DATOS.SOLICITAR_AUDIOS` | Hijo 3, cuando `cargarYReproducirAudio()` no encuentra un `audioId` en su caché local acotada (miss — parada visitada hace más de 1 salto, o el `AUDIO.REPRODUCIR_REQUEST` original no incluyó `audioData`) | `js/controladores-padre.js`: resuelve ese `audioId` concreto vía `cargarAudios(aventura, idioma)` — no reenvía la aventura completa | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` — el mismo mensaje que usa el flujo normal, no un tipo aparte | Hijo 3 | Recuperación puntual de un audio fuera de la caché de 2 entradas, sin reexponer el resto de la aventura |
+| `DATOS.SOLICITAR_RETOS` | Hijo 4, cuando `mostrarReto()` no encuentra un `retoId` en su caché local acotada | `js/controladores-padre.js`: resuelve ese `retoId` concreto vía `cargarRetos(aventura, idioma)` | `RETO.MOSTRAR { retoId, retosArray: [reto] }` — el mismo mensaje que usa el flujo normal | Hijo 4 | Ídem para retos |
 | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo 5 | Lee la lista completa de paradas con sus nombres localizados | `NAVEGACION.RESPUESTA_DATOS_PARADAS` (array de paradas con nombre, número y estado) | Hijo 5 | Hijo 5 necesita los nombres de las paradas para renderizar los botones de la barra de navegación |
 | `CHAT.CERRAR` | Hijo 6 (asistente) | Oculta el panel del asistente en el padre; libera el iframe | (ninguna) | — | El usuario pulsó el botón de cerrar dentro del iframe de soporte |
 | `UI.NAVEGACION_EXTERNA` | Cualquier hijo | Registra en log la URL que el hijo abrió en una pestaña externa; no bloquea ni modifica nada | (ninguna) | — | Trazabilidad de navegación externa; el hijo avisa al padre antes de hacer `window.open()` |
@@ -9321,8 +9314,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `UI.ACCION_USUARIO` | Hijo 2 (click en botones de mapa: imagen, vídeo) | `_hdl_UI_ACCION_USUARIO`: abre el overlay correspondiente en el padre según `datos.accion` (`'video'`/`'imagen'`) | (ninguna directa — abre overlay interno) | — | El padre gestiona todos los overlays; hijo2 solo avisa de la acción del usuario |
 | `UI.CLOSE_MENUS` | Hijo 1 ↔ Padre | `_hdl_UI_CLOSE_MENUS_PADRE`: colapsa todos los menús desplegables del padre | (ninguna) | — | Sincronizar el estado de menús cuando hijo1 o el padre mismo solicitan cerrarlos |
 | `SISTEMA.HIJO_FALLIDO` | Cualquier hijo que no pudo inicializar | Registra en log el error con código y origen; el padre puede intentar recargar el iframe | (ninguna) | — | Gestión de errores de carga de iframes |
-| `SISTEMA.CAMBIO_MODO_RESPONSE` | Cualquier hijo (handler huérfano — sin emisores activos) | Actualiza `estadoHijos.get(origen).modo.actual`; no tiene efecto funcional real | (ninguna) | — | Legado del protocolo previo; mantenido para retrocompatibilidad. Ver §25.11 |
-| `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: finaliza la inicialización global; activa overlays de UI, estado de reanudación y otros post-inits | (ninguna) | — | Punto de activación de la app: se dispara una sola vez cuando todos los hijos están listos |
+| `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: registra la confirmación por hijo; cuando ambos confirman, el padre puede habilitar el botón de avance | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2 (usuario salió del radio de la parada) | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: inicia el contador de gracia (`outOfRangeGrace`); si expira sin volver → penalización | (ninguna directa) | — | Gestionar el caso de que el usuario se aleje del recorrido |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa Leaflet desde la posición actual del usuario hasta la parada objetivo | (ninguna) | — | Feedback visual de dirección al usuario |
@@ -9332,8 +9324,6 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AUDIO.REPRODUCIR_RESPONSE` | Hijo 3 (confirmación de inicio de reproducción) | `_hdl_AUDIO_REPRODUCIR_RESPONSE`: registra que el audio empezó; sin acción adicional | (ninguna) | — | ACK del comando `REPRODUCIR_REQUEST` |
 | `AUDIO.ERROR` | Hijo 3 (error durante reproducción) | `_hdl_AUDIO_ERROR`: registra en log; habilita el reto igualmente si la parada tiene reto (el audio no es bloqueante ante error) | `RETO.HABILITAR` condicional | Hijo 4 | El error de audio no debe impedir al usuario completar el reto |
 | `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: marca coordenadas como listas en el estado de carga | (ninguna) | — | Tracking de completitud de carga de datos |
-| `DATOS.AUDIOS_CARGADOS` | Hijo 3 (confirmación de carga) | `_hdl_DATOS_AUDIOS_CARGADOS`: marca audios como listos | (ninguna) | — | Ídem |
-| `DATOS.RETOS_CARGADOS` | Hijo 4 (confirmación de carga) | `_hdl_DATOS_RETOS_CARGADOS`: marca retos como listos | (ninguna) | — | Ídem |
 | `DATOS.TEXTOS_CARGADOS` | Hijo 2 (confirmación de carga de textos descriptivos) | `_hdl_DATOS_TEXTOS_CARGADOS`: marca textos como listos | (ninguna) | — | Ídem |
 | `DATOS.SOLICITAR_PARADAS` | Hijo → Padre (fallback legacy) | `_hdl_DATOS_SOLICITAR_PARADAS`: responde con array de paradas; ruta activa usa `NAVEGACION.SOLICITAR_DATOS_PARADAS` | `DATOS.RESPUESTA_PARADAS` | Hijo solicitante | Handler activo pero sin callers en producción — ruta legacy |
 | `MONITOREO.METRICA` | Hijo 1 (errores de geolocalización detectados) | `_hdl_MONITOREO_METRICA`: registra la métrica en log; sin reenvío | (ninguna) | — | Telemetría interna de calidad de GPS |
@@ -9357,9 +9347,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `RETO.HABILITAR` | Hijo 4 | Cuando hijo 3 notifica `FIN_REPRODUCCION` y la parada tiene retos (vía `_procesarFinAudioElemento`) | Desbloquear el botón del reto para que el usuario pueda intentarlo; no se envía si la parada no tiene reto |
 | `RETO.ESTADO_CASA` | Hijo 4 | Al cambiar de parada en modo CASA | Mostrar y habilitar el botón de retos solo en paradas que tienen reto; ocultar en tramos y en paradas sin reto |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Hijo 5 | En respuesta a `SOLICITAR_DATOS_PARADAS` | Entregar la lista de paradas para que hijo 5 la renderice en la barra de navegación |
-| `DATOS.CARGAR_COORDENADAS` | Hijo 2 | En respuesta a `SOLICITAR_COORDENADAS` | Entregar el array de elementos del recorrido al mapa |
-| `DATOS.CARGAR_AUDIOS` | Hijo 3 | En respuesta a `SOLICITAR_AUDIOS` (o enviado proactivamente en el paquete de inicialización) | Entregar el mapa id→ruta de archivo de audio |
-| `DATOS.CARGAR_RETOS` | Hijo 4 | En respuesta a `SOLICITAR_RETOS` | Entregar el array de retos |
+| `DATOS.CARGAR_COORDENADAS` | Hijo 2 | En respuesta a `SOLICITAR_COORDENADAS`, o al iniciar la aventura | Entregar el array de elementos del recorrido al mapa |
 | `CONTROL.HABILITAR` | Hijo específico | Al mostrar una pantalla | Activar el iframe (visible, interactivo) |
 | `CONTROL.DESHABILITAR` | Hijo específico | Al ocultar una pantalla | Desactivar el iframe (oculto, sin eventos) |
 
@@ -9462,13 +9450,12 @@ Gestiona la reproducción del audio de guía de cada parada. Invisible para el u
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos de aventura; prepara el elemento `<audio>`; si `DATOS.CARGAR_AUDIOS` no llega en 3 s tras `PADRE_CONFIRMA_HIJO_LISTO`, envía `DATOS.SOLICITAR_AUDIOS` como fallback | `SISTEMA.HIJO_LISTO` | Padre | Sin el mapa de rutas de audio no puede reproducir nada |
-| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; activa fallback diferido para `DATOS.SOLICITAR_AUDIOS` si aún no llegaron los audios | (ninguna) | — | Handshake |
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos de aventura; prepara el elemento `<audio>` | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el audio en sí llega después, parada a parada |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | En `CASA` pausa o para el audio en curso | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | No tiene sentido que el audio continúe si el usuario volvió al menú principal |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `AUDIO.REPRODUCIR_REQUEST` | Padre (al cambiar parada) | Recibe `{ audioId, autoplay: false }`; localiza la ruta del audio para esa parada; carga el audio pero NO inicia reproducción automáticamente — el usuario arranca el audio con los controles del desplegable del padre | (el evento `ended` del `<audio>` dispara `FIN_REPRODUCCION`) | — | Preparar la audioguía de la parada activa lista para reproducción |
+| `AUDIO.REPRODUCIR_REQUEST` | Padre (al activar cada parada — inicio, avance o reanudación, vía `_hdl_NAVEGACION_CAMBIO_PARADA`) | Recibe `{ audioId, audioData:{id,title,file}, autoplay:false }`; guarda `audioData` en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); carga el audio pero NO inicia reproducción automáticamente — el usuario arranca el audio con los controles del desplegable del padre. Si `audioData` falta o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | (el evento `ended` del `<audio>` dispara `FIN_REPRODUCCION`) | — | Protección pasiva por parada (§16): entregar solo el audio de la parada activa, no la aventura completa |
 | `UI.ACCION_USUARIO` `{ accion:'audio_control', comando:'play'\|'pause'\|'stop'\|'replay' }` | Padre (botones del desplegable overlay) | Ejecuta el comando sobre el `<audio>`: play inicia reproducción, pause la pausa, stop para y resetea `currentTime=0`, replay vuelve al inicio y reproduce | `AUDIO.ESTADO_ACTUALIZADO` (implícito via evento `pause`/`ended`) | — | El padre centraliza el control de audio; hijo3 expone únicamente el elemento `<audio>` |
-| `DATOS.CARGAR_AUDIOS` | Padre | Guarda el mapa `{idParada → rutaArchivo}` en memoria | (ninguna) | — | Recibir el índice completo de archivos de audio |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida del iframe |
 
 **Mensajes salientes de Hijo 3:**
@@ -9476,11 +9463,11 @@ Gestiona la reproducción del audio de guía de cada parada. Invisible para el u
 | Mensaje | Va a | Cuándo | Propósito |
 |---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
-| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir mapa de audios | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras `PADRE_DATOS` | Handshake |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
-| `DATOS.SOLICITAR_AUDIOS` | Padre | Fallback diferido: 3 s tras `PADRE_CONFIRMA_HIJO_LISTO` si `CARGAR_AUDIOS` aún no llegó | Pedir el mapa de rutas de audio |
+| `DATOS.SOLICITAR_AUDIOS { audioId }` | Padre | Cache-miss: `cargarYReproducirAudio()` no encuentra ese id en la caché local acotada | Pedir un audio concreto — el padre lo resuelve y responde con `AUDIO.REPRODUCIR_REQUEST`, no con un reenvío masivo |
 | `AUDIO.FIN_REPRODUCCION` | Padre | Al finalizar el audio (`ended` event) | Notificar al padre; si la parada tiene retos y el modo es AVENTURA, el padre enviará `RETO.HABILITAR` a hijo 4 vía `_procesarFinAudioElemento` |
 
 ---
@@ -9491,14 +9478,13 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos; solicita `DATOS.SOLICITAR_RETOS`; prepara la UI | `SISTEMA.HIJO_LISTO` | Padre | Sin los datos de retos no puede mostrar nada |
+| `SISTEMA.PADRE_DATOS` | Padre | Guarda datos; prepara la UI | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el reto en sí llega después, parada a parada |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Oculta/muestra el reto según el modo | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Adaptar la visibilidad del reto al modo activo |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `RETO.MOSTRAR` | Padre (cuando el usuario solicita el reto pulsando el botón, en respuesta a `RETO.SOLICITAR_RETO`; también al avanzar al siguiente reto de una cola) | Renderiza el reto de la parada: pregunta, opciones (si las hay); el reto queda interactivo en este punto | `RETO.MOSTRADO` | Padre | El usuario solicitó resolver el reto; el padre recupera el objeto reto y lo envía para que hijo 4 lo muestre |
+| `RETO.MOSTRAR` | Padre (al activar cada parada vía `_hdl_NAVEGACION_CAMBIO_PARADA`; cuando el usuario solicita el reto pulsando el botón, en respuesta a `RETO.SOLICITAR_RETO`; también al avanzar al siguiente reto de una cola) | Recibe `{ retoId, retosArray:[retoData] }` con el objeto reto ya resuelto; lo guarda en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); renderiza pregunta y opciones — el reto queda interactivo en este punto. Si `retosArray` llega vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | `RETO.MOSTRADO` | Padre | Protección pasiva por parada (§16): entregar solo el reto de la parada activa, no la aventura completa |
 | `RETO.HABILITAR` | Padre (tras `FIN_REPRODUCCION` en modo AVENTURA, solo si la parada tiene retos) | Habilita el botón `#botonRetos`; activa la interacción del usuario | (ninguna) | — | El botón de retos solo se activa después de escuchar el audio completo y solo en paradas con reto |
 | `RETO.ESTADO_CASA` | Padre (en `_hdl_NAVEGACION_CAMBIO_PARADA`) | Muestra y habilita `#botonRetos` si `habilitado: true` (parada con reto); lo oculta si `habilitado: false` (tramo o parada sin reto) | (ninguna) | — | Controla la visibilidad del botón de retos en modo CASA según si el elemento actual tiene reto o no |
-| `DATOS.CARGAR_RETOS` | Padre | Guarda el array de retos `[{idParada, tipo, pregunta, opciones, respuestaCorrecta}]` | (ninguna) | — | Recibir todos los retos de la aventura |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
 **Mensajes salientes de Hijo 4:**
@@ -9506,11 +9492,11 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | Mensaje | Va a | Cuándo | Propósito |
 |---|---|---|---|
 | `SISTEMA.HIJO_PREPARADO` | Padre | Al cargarse | Handshake |
-| `SISTEMA.HIJO_LISTO` | Padre | Tras recibir datos de retos | Handshake |
+| `SISTEMA.HIJO_LISTO` | Padre | Tras `PADRE_DATOS` | Handshake |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | Padre | Fase 2 protocolo modo | Sincronización |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
-| `DATOS.SOLICITAR_RETOS` | Padre | Tras `PADRE_DATOS` | Pedir el array de retos |
+| `DATOS.SOLICITAR_RETOS { retoId }` | Padre | Cache-miss: `mostrarReto()` no encuentra ese id en la caché local acotada | Pedir un reto concreto — el padre lo resuelve y responde con `RETO.MOSTRAR`, no con un reenvío masivo |
 | `RETO.COMPLETADO` | Padre | Cuando el usuario responde correctamente | Notificar al padre para avanzar el recorrido |
 
 ---
@@ -9579,7 +9565,7 @@ Usuario pulsa parada Nº3 en hijo 5 (barra de navegación)
         ├─▶ PADRE envía NAVEGACION.CAMBIO_PARADA (coords P3) → HIJO 2
         │     └─ Hijo 2 actualiza idParadaActual, resetea estado GPS local y botones
         │
-        ├─▶ PADRE envía AUDIO.REPRODUCIR_REQUEST (audioId=P3, autoplay=false) → HIJO 3
+        ├─▶ PADRE envía AUDIO.REPRODUCIR_REQUEST (audioId=P3, audioData resuelto en línea, autoplay=false) → HIJO 3
         │     └─ Audio cargado pero NO reproducido automáticamente
         │           El usuario arranca la reproducción con el desplegable del padre
         │           Al terminar el audio:
@@ -9739,19 +9725,6 @@ Para el GPS: padre emite `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` **hacia hijo2** 
 El tipo ad-hoc `SOLICITAR_PARADAS_RESPONSE_<uuid>` era frágil por diseño: si el emisor y el receptor construían el string de forma diferente (distintas versiones del código, refactors parciales), la respuesta desaparecería sin error. La forma robusta de request-response es la de `mensajeria.js`: el receptor resuelve la Promise por `idOriginal`, sin depender de que ambas partes generen el mismo string.
 
 ---
-
-### 25.15 Eliminación de handlers muertos (Julio 2026)
-
-Se eliminaron 4 handlers registrados en `codigo-padre.html` que no tenían ningún emisor activo en producción. Su función original había sido absorbida por otras vías o quedado obsoleta.
-
-| Handler eliminado | Mensaje | Ubicación previa | Por qué era código muerto |
-|---|---|---|---|
-| `SISTEMA.CAMBIO_MODO_RESPONSE` | `SISTEMA.CAMBIO_MODO_RESPONSE` | Script 1, inline | Los ACKs se envían ahora desde `app.js`. Ningún hijo envía este tipo al padre. |
-| `_hdl_NAVEGACION_CENTRAR_EN_UBICACION` | `NAVEGACION.CENTRAR_EN_UBICACION` | Script 2, `_regCtrl_NavegacionMovimiento` | Ningún hijo envía este tipo. El centrado GPS lo gestiona padre directamente vía heartbeat/GPS. |
-| `_hdl_NAVEGACION_ACTUALIZAR_MARCADOR_USUARIO` | `NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO` | Script 2, `_regCtrl_NavegacionMovimiento` | Ningún hijo envía este tipo. El marcador de usuario lo actualiza padre directamente desde su GPS. |
-| `_hdl_DATOS_SOLICITAR_PARADAS` | `DATOS.SOLICITAR_PARADAS` | Script 2, `_regCtrl_DatosSolicitudes` | El diseño actual entrega paradas vía `PADRE_DATOS` + `RESPUESTA_DATOS_PARADAS` en el handshake. Ningún hijo solicita paradas de esta forma. |
-
-El count de handlers permanentes baja de 54 a **50** (ver §25.12).
 
 ---
 
@@ -11411,7 +11384,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje)
 
 `limpiarControladoresAntiguos` comprueba `!c.opciones?.permanente` antes de eliminar — los marcados con `permanente: true` se conservan indefinidamente.
 
-**Alcance total:** 8 handlers en Script 1 (incluidos los 3 inline HEARTBEAT, HEARTBEAT_RESPONSE, HIJO_FALLIDO; eliminado CAMBIO_MODO_RESPONSE), 36 en Script 2 (eliminados CENTRAR_EN_UBICACION, ACTUALIZAR_MARCADOR_USUARIO, SOLICITAR_PARADAS), 2 en `app.js`, 4 en `controladores-padre.js` = **50 handlers** permanentes.
+**Alcance total:** 8 handlers en Script 1 (incluidos los 3 inline HEARTBEAT, HEARTBEAT_RESPONSE, HIJO_FALLIDO), 36 en Script 2, 2 en `app.js`, 4 en `controladores-padre.js` = **50 handlers** permanentes.
 
 **Excepción:** El handler de `COORDENADAS_PARADAS_RESPONSE` (~línea 5351) se registra dinámicamente dentro de una función específica (no en la inicialización general) y no lleva `permanente: true` para no interferir con su ciclo de vida propio.
 
@@ -11684,7 +11657,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 | 7 | `scene9` | b2 zoom-showcase + overlay `Av1_mapa.jpg` fullscreen | [6] |
 | 8 | `scene10` | b-av activo → polyline → `Knight.walk()` ruta RA (6,5 s) | [7] |
 | 9 | `sceneImg` | b4 zoom-showcase + ventana flotante imagen Torres de Serranos | [8] |
-| 10 | `sceneVid` | b3 zoom-showcase + overlay vídeo `video_intro_ejemplo.mp4` · vídeo con `loop`; usuario avanza con botón siguiente | [9] |
+| 10 | `sceneVid` | b3 zoom-showcase + overlay vídeo `video_intro_ejemplo.mp4` · vídeo con `loop`; usuario avanza con botón siguiente. Requiere `faststart` (§15) para reproducirse sin cuelgues en hosting real | [9] |
 | 11 | `scene11` | amain zoom-showcase + `astrip` vertical · `animAP` 0→87 % | [10] |
 | 12 | `scene12` | Panel puzzle 2×2 · 2 piezas scattered · drag gauntlet · Knight thumbs-up | [11] |
 | 13 | `sceneRetoMCQ` | Imagen reto 3 s + overlay MCQ · opción 0 errónea → opción 1 correcta | [12] |
@@ -11712,9 +11685,14 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 
 ## 35. Metodología de auditoría completa
 
-Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 20 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 22 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
 
-**Preparación antes de empezar:** ejecuta `npm run inventory` para tener el inventario de funciones actualizado y `npm run inventory:dupes` para detectar duplicados de nombre.
+**Preparación antes de empezar:**
+1. Ejecuta `npm run inventory` para tener el inventario de funciones actualizado y `npm run inventory:dupes` para detectar duplicados de nombre.
+2. Ejecuta `npm run test:e2e` (Playwright) y anota qué specs pasan y cuáles fallan. Usa el resultado como base para EJE 22 y para no re-auditar a mano lo que la suite ya cubre y confirma (EJE 5 ↔ `01-fase1-boot`, EJE 6 ↔ `09-mode-change`, EJE 8 ↔ `06-race-conditions`, EJE 18 ↔ `08-children-handshake`).
+3. Ejecuta `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) como punto de partida para EJE 4 y EJE 13 — señala tipos de `TIPOS_MENSAJE` sin receptor, sin emisor o sin ninguno de los dos. Tiene falsos positivos conocidos (indirección vía variable, handler registrado en una línea posterior a su definición): cada hallazgo se verifica leyendo el código real, nunca se actúa solo con esta salida.
+
+**Nota de contexto (2026-07-10):** el proyecto se desarrolla actualmente en local y el flujo de pago aún no está implementado. Los hallazgos de EJE 21 (servidor) relacionados con hardening de producción son informativos mientras dure esta etapa — no bloquean el trabajo salvo que representen pérdida de datos o crash en local.
 
 ---
 
@@ -11771,6 +11749,8 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 4. Para mensajes bidireccionales (los que esperan ENTENDIDO / EFECTUADO / respuesta): verifica que la respuesta existe, viaja al `origen` correcto y se procesa dentro del timeout esperado.
 5. Resultado en tabla: `Tipo | Emisor | Receptor | Payload | Estado (✅/⚠️/❌/🕳️)`.
 6. **Call-chain deduplication:** para cada `enviarMensaje(tipo=X)`, sube el call-stack completo hacia el caller y el segundo nivel. Verifica si alguna función ancestora también emite `tipo=X` a destinatarios solapados. Si hay solapamiento, el receptor recibe el mismo mensaje dos veces en una sola acción de usuario; determina si los side effects del handler son idempotentes o dañinos. Ejemplo real: `manejarCambioModo` → `actualizarInterfazModo` envía `SISTEMA.CAMBIO_MODO` a todos los hijos; luego `_hdl_SISTEMA_CAMBIO_MODO` llama `_propagarCambioModoAHijos` que lo envía de nuevo a hijo2/3/4/5, provocando doble ejecución de side effects.
+7. **Auto-mensajes (origen === destino):** cuando el padre se envía un mensaje a sí mismo (p.ej. `SISTEMA.HEARTBEAT_START`/`HEARTBEAT_PAUSE`/`HEARTBEAT_ESTADO`), comprueba la existencia del handler con el mismo rigor que un mensaje cruzado entre archivos — no la des por sentada solo porque emisor y receptor "deberían" vivir en el mismo scope. Un auto-mensaje sin handler no lanza ningún error visible: el `postMessage` se dispara, nadie lo procesa, y la ausencia de handler no bloquea el arranque ni aparece en ningún log. Es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
+8. **Descentralización:** cualquier `window.addEventListener('message', ...)` que NO sea el listener central de `mensajeria.js` es una señal de alerta, no un patrón válido más. Localízalo, identifica qué tipos de mensaje procesa y por qué no pasa por `registrarControladorSeguro`/`registrarControlador`. Si no hay una razón documentada (p.ej. necesidad de capturar mensajes antes de que `mensajeria.js` esté listo), repórtalo como ⚠️ y propone migrarlo al canal centralizado.
 
 ---
 
@@ -11839,6 +11819,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 4. Verifica las imágenes de error del sistema GPS: que existen en la ruta exacta que el código referencia.
 5. Detecta `src=""` o `src="about:blank"` que deberían tener contenido real pero se han quedado sin asignar.
 6. Verifica coherencia de rutas relativas vs. absolutas (no mezclar `/imagenes/` con `../imagenes/` sin motivo).
+7. **Estructura de átomos MP4 (`faststart`):** para cada archivo `.mp4` en `videos-aventuras/`, verifica que el átomo `moov` está antes que `mdat` (ver script de inspección y explicación completa en §15). Un `moov` al final del archivo funciona en local (latencia ~0) pero puede colgar la reproducción en hosting real — no lanza ningún error, el vídeo se queda en estado `waiting` indefinidamente. Reporta como ❌ CRÍTICO cualquier `.mp4` sin faststart si ya está en uso en un flujo activo del usuario; como ⚠️ MEDIO si el campo que lo referenciaría todavía está vacío (sin uso activo todavía, pero bloqueará en cuanto se cargue contenido real).
 
 ---
 
@@ -11856,7 +11837,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 ### 35.12 EJE 12 — Duplicidades
 
 1. **IDs DOM duplicados** en el mismo HTML → `getElementById` devuelve el primero en silencio.
-2. **Funciones duplicadas** → `npm run inventory:dupes`. Para cada duplicado: ¿son versiones distintas? ¿Una está obsoleta?
+2. **Funciones duplicadas** → `npm run inventory:dupes`. Para cada duplicado: ¿son versiones distintas? ¿Una está obsoleta? No te quedes en "¿existen las dos?": compara sus garantías de comportamiento real (¿usa mutex/lock? ¿deduplica por fingerprint? ¿es idempotente ante llamadas repetidas? ¿en qué orden ejecuta sus efectos?). Dos funciones con el mismo nombre y propósito declarado pueden diferir precisamente en la garantía que importa — la que no tiene mutex es la que falla bajo concurrencia, no bajo uso normal.
 3. **Constantes de mensaje duplicadas** → dos keys distintas en `TIPOS_MENSAJE` con el mismo valor string → los handlers se confunden.
 4. **Handlers duplicados** para el mismo tipo de mensaje en el mismo contexto → el último registrado sobrescribe al anterior.
 5. **Imports duplicados** del mismo módulo en el mismo archivo → posible inconsistencia de instancias.
@@ -11892,13 +11873,13 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 
 ### 35.15 EJE 15 — Journey completo end-to-end
 
-Traza cada flujo completo verificando que cada paso tiene emisor, receptor, manejo de error y feedback al usuario:
+**Paso previo — rutas competidoras hacia el mismo estado final:** antes de trazar cada flujo abajo, para cada estado final relevante (aventura activa, modo AVENTURA, modo CASA, GPS activado) enumera **todos** los caminos de código que pueden producirlo — no solo el camino "normal" documentado. Un mismo estado final alcanzable por dos disparadores independientes (p.ej. flujo normal de selección vs. reanudación de sesión vs. un segundo sistema legacy) es un riesgo aunque cada camino individualmente funcione: verifica que no compiten por la misma condición de guarda, que no se disparan ambos en la misma acción de usuario, y que cada uno comprueba el flag correcto antes de actuar (un camino que lee un flag que el otro camino nunca setea es indetectable en pruebas manuales porque nunca llegan a colisionar en el mismo test, pero sí en producción). Traza cada flujo completo verificando que cada paso tiene emisor, receptor, manejo de error y feedback al usuario:
 
 **Flujo A — Inicio de aventura:**
-P1 selecciona aventura e idioma → emite `AVENTURA_ACTIVADA` → P2 recibe → valida código de acceso → carga iframes hijos secuencialmente → `globalThis.distribuirDatosAventura()` envía `CARGAR_AUDIOS` / `CARGAR_TEXTOS` / `CARGAR_RETOS` / `CARGAR_COORDENADAS` a cada hijo → cada hijo confirma con `HIJO_LISTO` → padre cambia a modo AVENTURA → GPS se activa.
+P1 selecciona aventura e idioma → emite `AVENTURA_ACTIVADA` → P2 recibe → valida código de acceso → carga iframes hijos secuencialmente → `globalThis.distribuirDatosAventura()` resuelve y envía solo `CARGAR_TEXTOS` / `CARGAR_COORDENADAS` a cada hijo (bulk; audio y retos ya NO se distribuyen aquí, ver §16 "protección pasiva por parada") → cada hijo confirma con `HIJO_LISTO` → padre cambia a modo AVENTURA → GPS se activa → `ensureDefaultParada()` dispara `__triggerCambioParadaInterno()` para la primera parada, que resuelve y envía su `audio_id`/`reto_id` individualmente (mismo mecanismo que el Flujo B).
 
 **Flujo B — Parada:**
-GPS detecta posición dentro del radio de una parada → calcula parada más cercana → emite `NUEVA_PARADA` → hijo2 muestra marcador activo → padre muestra overlay de texto (via `cargarTextos`) → hijo3 reproduce audio de la parada → hijo4 muestra reto → usuario resuelve → hijo4 emite `RETO_COMPLETADO` → padre marca parada y actualiza progreso.
+GPS detecta posición dentro del radio de una parada → calcula parada más cercana → dispara `_hdl_NAVEGACION_CAMBIO_PARADA` (vía `__triggerCambioParadaInterno`, el mismo handler único usado en avance manual y en reanudación de sesión) → hijo2 muestra marcador activo → padre muestra overlay de texto (via `cargarTextos`) → padre resuelve el audio de esa parada vía `cargarAudios()` y envía `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` a hijo3, que lo reproduce → padre resuelve el reto vía `cargarRetos()` y envía `RETO.MOSTRAR { retoId, retosArray:[retoData] }` a hijo4 (queda habilitado tras `FIN_REPRODUCCION` del audio) → usuario resuelve → hijo4 emite `RETO_COMPLETADO` → padre marca parada y actualiza progreso.
 
 **Flujo C — Fin de aventura:**
 Todas las paradas completadas O tiempo agotado → `globalThis.mostrarModalFinalizacion()` → modal en 12 idiomas → "otra aventura" (vuelve a P2 sin limpiar SW) O "terminar" (`?despedida=1` → página de despedida P5 → `limpiarDatosAventura()`).
@@ -11996,7 +11977,49 @@ Para cada sección de `docs/GUIA-COMPLETA.md` que haga afirmaciones concretas so
 
 ---
 
-### 35.21 Formato del reporte de auditoría
+### 35.21 EJE 21 — Servidor y protección de datos (`js/server.js`)
+
+Los ejes 1-20 cubren exclusivamente el cliente (padre, hijos, postMessage, GPS). El único servidor real del proyecto es `js/server.js` — un `http.createServer` plano de Node, sin Express, sin carpeta `backend/`.
+
+1. Lee `js/server.js` completo: mapeo MIME, `PROTECT_DATA`/`isProtectedFile`, cabeceras CORS, `Permissions-Policy`.
+2. Para `isProtectedFile`: comprueba bypasses de path traversal (`../`), encoding URL (`%2e%2e`), variantes de mayúsculas/unicode, barra final, trucos de query string. Verifica si `normalized = urlPath.split('?')[0].toLowerCase()` cubre todos los casos o si hay una forma de acceder a `/audios-aventuras/` o `/js/textos-aventuras.js` sin pasar el filtro.
+3. Verifica si `PROTECT_DATA` está realmente activo en el entorno donde se está probando (variable de entorno) — documenta el estado real, no asumas.
+4. CORS: `Access-Control-Allow-Origin: '*'` — verifica que ningún endpoint sensible depende de cookies/credenciales junto con ese wildcard (serían incompatibles y inseguros combinados).
+5. Manejo de errores del servidor: ¿un 404/500 filtra rutas absolutas del sistema de archivos en el cuerpo de la respuesta?
+
+**Prioridad actual:** mientras el proyecto esté en fase local y sin el flujo de pago implementado (ver memoria de proyecto), clasifica los hallazgos de hardening de este eje como informativos (⚠️ MEDIO como máximo), salvo que representen pérdida de datos o crash reproducible en local, que sí serían ❌ CRÍTICO.
+
+---
+
+### 35.22 EJE 22 — Higiene de la suite de tests
+
+El propio directorio `tests/` puede acumular archivos huérfanos que documentan una arquitectura que ya no existe, dando una falsa sensación de cobertura.
+
+1. Para cada archivo en `tests/*.test.js` y `tests/e2e/*.spec.js`: identifica sus `require`/`import`. Si referencia un módulo que no existe en el repo actual (p.ej. `require('../server')`, `require('backend/middleware/...')` cuando no hay `server.js` en la raíz ni carpeta `backend/`), márcalo como huérfano.
+2. Verifica que `package.json` tiene los `devDependencies` y el script npm necesarios para ejecutar cada suite de test presente en `tests/`. Un archivo de test que ningún script puede ejecutar (falta `jest`, falta `"test"` en `scripts`) es candidato a actualizar o eliminar — está documentando comportamiento que nadie verifica.
+3. Para la suite Playwright real (`npm run test:e2e`, la única con ejecución confirmada): usa sus resultados como entrada de la preparación (ver arriba) — no reproduzcas a mano lo que ya cubre y pasa.
+4. Reporta los archivos de test huérfanos con veredicto 🕳️ HUÉRFANO o 💀 MUERTO y recomienda actualizarlos (si documentan intención real futura) o eliminarlos (si documentan una arquitectura descartada, como una API Express que ya no existe).
+
+**Por qué hace falta este eje:** EJE 13 busca huérfanos en el código de producción, pero nunca se aplicó a la propia suite de tests. En la auditoría de 2026-07-10 se encontraron ~10 archivos (`health.test.js`, `middleware.test.js`, `dataService.test.js`, `errors.test.js`, etc.) que hacen `require('../server')` y `require('backend/middleware/validation')` sin que exista ni `server.js` en la raíz ni carpeta `backend/` — restos de una API Express ya reemplazada por el `js/server.js` estático actual. La memoria de proyecto los describía como tests activos (Jest+supertest) hasta que se verificó lo contrario.
+
+---
+
+### 35.23 Checklist de cierre pre-producción
+
+El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 22 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
+
+1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 22 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
+2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
+3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium.
+4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado como sin emisor o sin receptor por la herramienta ha sido verificado a mano y clasificado (huérfano real → eliminado; falso positivo de la heurística → descartado con motivo).
+5. **`npm run inventory:dupes` sin duplicados sin resolver** — cada nombre duplicado tiene una decisión explícita (una versión es la única real y la otra se eliminó, o ambas coexisten por una razón documentada).
+6. Contraste guía vs. código (EJE 20) ejecutado sobre la totalidad de `docs/GUIA-COMPLETA.md`, no solo sobre las secciones tocadas en la última ronda de cambios.
+
+**Por qué hace falta esta lista:** los ejes 1-22 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
+
+---
+
+### 35.24 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 

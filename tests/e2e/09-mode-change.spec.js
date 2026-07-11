@@ -317,7 +317,7 @@ test.describe('Protocolo de cambio de modo — escenario 1e', () => {
         cambioModo: !!tm.SISTEMA.CAMBIO_MODO,
         entendido: !!tm.SISTEMA.CAMBIO_MODO_ENTENDIDO,
         efectuado: !!tm.SISTEMA.CAMBIO_MODO_EFECTUADO,
-        response: !!tm.SISTEMA.CAMBIO_MODO_RESPONSE,
+        response: !!tm.SISTEMA.CAMBIO_MODO_APLICADO,
       };
     });
     expect(tipos).not.toBeNull();

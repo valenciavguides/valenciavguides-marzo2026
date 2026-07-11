@@ -11,8 +11,6 @@
  * (HIJO_PREPARADO, HIJO_LISTO, CAMBIO_PARADA, RETO.COMPLETADO, GPS.*, AUDIO.*…)
  * están registrados en el script type="module" de codigo-padre.html,
  * a partir de la línea ~2087 (buscar el comentario «Script 1 — controladores»).
- *
- * Ver deuda técnica DT-1 en docs/DEUDA-TECNICA-PRODUCCION.md.
  */
 
 // Esperar a que mensajeria esté lista antes de ejecutar lógica crítica
@@ -58,7 +56,7 @@ const enviarMensaje = (...args) => {
     if (mensajeriaReady && globalThis.mensajeria) {
         return globalThis.mensajeria.enviarMensaje(...args);
     } else {
-        console.error('mensajeria not loaded', args);
+        logger.error('mensajeria not loaded', args);
         return Promise.reject(new Error('mensajeria not ready'));
     }
 };
@@ -66,7 +64,7 @@ const registrarControlador = (...args) => {
     if (mensajeriaReady && globalThis.mensajeria) {
         return globalThis.mensajeria.registrarControlador(...args);
     } else {
-        console.error('mensajeria not loaded', args);
+        logger.error('mensajeria not loaded', args);
         return Promise.reject(new Error('mensajeria not ready'));
     }
 };
@@ -74,7 +72,7 @@ const enviarMensajeConConfirmacion = (...args) => {
     if (mensajeriaReady && globalThis.mensajeria) {
         return globalThis.mensajeria.enviarMensajeConConfirmacion(...args);
     } else {
-        console.error('mensajeria not loaded', args);
+        logger.error('mensajeria not loaded', args);
         return Promise.reject(new Error('mensajeria not ready'));
     }
 };

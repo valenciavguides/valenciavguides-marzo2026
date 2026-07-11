@@ -214,9 +214,8 @@ function exponerAPIGlobal() {
         obtenerIframe,
         getIframesRegistrados: () => new Map(iframesRegistrados),
 
-        // Funciones centralizadas (delegan a state-manager)
+        // Función centralizada (delega a state-manager)
         registrarControladorCentral,
-        enviarMensajeCentral,
 
         // Utilidades
         generarIdMensaje: () => generarIdUnico('msg'),
@@ -296,6 +295,10 @@ export async function registrarControlador(tipo, handler, opciones = {}) {
  * @returns {Promise<boolean>}
  */
 export async function registrarControladorCentral(tipo, handler) {
+    const sm = obtenerStateManager();
+    if (sm && typeof sm.registrarControladorCentral === 'function') {
+        return sm.registrarControladorCentral(tipo, handler, { tipoMensaje: tipo });
+    }
     return registrarControlador(tipo, handler, { centralizado: true });
 }
 
@@ -383,21 +386,6 @@ export function enviarMensaje(tipoOrMensaje, datos, destino) {
     if (!String(tipoOrMensaje).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipoOrMensaje}`, { destino: destino || 'broadcast' }); // NOSONAR
     
     return enviarMensajeInterno(mensaje, destino);
-}
-
-/**
- * Envía un mensaje centralizado (delega a state-manager)
- * @param {string} tipo - Tipo de mensaje
- * @param {*} datos - Datos
- * @param {string} destino - Destino
- * @returns {boolean}
- */
-export function enviarMensajeCentral(tipo, datos, destino) {
-    const sm = obtenerStateManager();
-    if (sm && typeof sm.enviarMensajeCentral === 'function') {
-        return sm.enviarMensajeCentral(tipo, datos, destino);
-    }
-    return enviarMensaje(tipo, datos, destino);
 }
 
 /**
@@ -854,6 +842,10 @@ export async function iniciarHeartbeat(intervalo = 5000) {
 
     try {
         const estado = await sm.getHeartbeat();
+        if (estado?.userPaused) {
+            logger.debug('[mensajeria] Heartbeat en pausa (modo CASA) — no se reinicia. Usar reanudarHeartbeat()/preiniciarHeartbeat() para reanudar explícitamente.');
+            return false;
+        }
         if (estado?.activo) {
             logger.debug('[mensajeria] Heartbeat ya está activo');
             return true;
@@ -876,15 +868,23 @@ export async function iniciarHeartbeat(intervalo = 5000) {
     }
 }
 
-// Alias para pre-warm: inicia el heartbeat antes de que empiece la aventura.
+// Pre-warm: inicia el heartbeat antes de que empiece la aventura.
 // app.js lo llama en modo CASA para tenerlo listo; pausarHeartbeat() lo pausa a continuación.
+// Reanudación explícita: limpia userPaused antes de arrancar, porque es una intención
+// activa de tener el heartbeat listo, no un reinicio accidental durante una pausa.
 export async function preiniciarHeartbeat(intervalo) {
+    const sm = obtenerStateManager();
+    if (sm) await sm.updateHeartbeat({ userPaused: false });
     return iniciarHeartbeat(intervalo);
 }
 
-// Alias para reanudar el heartbeat tras una pausa (llamado desde _reanudarSubsistemasTrasPrewarm).
-// pausarHeartbeat() pone activo=false y limpia el intervalo; llamar iniciarHeartbeat() de nuevo lo relanza.
+// Reanuda el heartbeat tras una pausa (llamado desde _reanudarSubsistemasTrasPrewarm
+// al completar la transición a modo AVENTURA). Limpia userPaused por el mismo motivo
+// que preiniciarHeartbeat: es una reanudación intencional, no debe quedar bloqueada
+// por la guarda de userPaused en iniciarHeartbeat().
 export async function reanudarHeartbeat(intervalo) {
+    const sm = obtenerStateManager();
+    if (sm) await sm.updateHeartbeat({ userPaused: false });
     return iniciarHeartbeat(intervalo);
 }
 
@@ -919,7 +919,11 @@ export async function pausarHeartbeat() {
     try {
         const estado = await sm.getHeartbeat();
         if (!estado?.activo) {
-            logger.debug('[mensajeria] Heartbeat ya está pausado');
+            // Ya estaba inactivo, pero igualmente se marca userPaused=true: quien llama a
+            // pausarHeartbeat() expresa la intención de que el heartbeat NO debe reiniciarse
+            // solo, sin pasar por reanudarHeartbeat()/preiniciarHeartbeat().
+            await sm.updateHeartbeat({ userPaused: true });
+            logger.debug('[mensajeria] Heartbeat ya estaba pausado; userPaused confirmado');
             return true;
         }
 
@@ -928,8 +932,8 @@ export async function pausarHeartbeat() {
             clearInterval(estado.intervalo);
         }
 
-        // Marcar como inactivo
-        await sm.updateHeartbeat({ activo: false, intervalo: null });
+        // Marcar como inactivo y bloquear reinicios accidentales (ver iniciarHeartbeat)
+        await sm.updateHeartbeat({ activo: false, intervalo: null, userPaused: true });
         logger.debug('[mensajeria] Heartbeat pausado');
         return true;
     } catch (error) {
@@ -1171,7 +1175,6 @@ export default {
     getControladoresRegistrados,
     getControladoresPorTipo,
     registrarControladorCentral,
-    enviarMensajeCentral,
     registrarIframe,
     obtenerIframe,
     registrarCapacidades,
@@ -1185,10 +1188,10 @@ export default {
 // para que globalThis.mensajeria esté disponible antes de inicializar
 // =====================================================
 exponerAPIGlobal();
-console.log('[mensajeria] API expuesta globalmente (pre-inicialización)');
+logger.info('[mensajeria] API expuesta globalmente (pre-inicialización)');
 
 // Dispatch mensajeriaReady event to signal that the API is available
 if (globalThis.window !== undefined) {
     globalThis.dispatchEvent(new Event('mensajeriaReady'));
-    console.log('[mensajeria] mensajeriaReady event dispatched');
+    logger.info('[mensajeria] mensajeriaReady event dispatched');
 }

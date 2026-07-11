@@ -50,30 +50,40 @@ export function registrarControladoresDatos({
     // El padre responde reenviando el mismo CARGAR_* con los datos de la aventura actual
     // ============================================================
 
+    // Protección pasiva por parada (ver docs/GUIA-COMPLETA.md §16): SOLICITAR_AUDIOS ya no
+    // reenvía la aventura completa. El hijo pide un audioId concreto (cache-miss local) y el
+    // padre resuelve solo ese audio, respondiendo con el mismo AUDIO.REPRODUCIR_REQUEST que usa
+    // el flujo normal de cambio de parada — un único camino para entregar audio, no dos.
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_AUDIOS, async (mensaje) => {
         const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_AUDIOS][${mensaje?.origen || 'desconocido'}]`;
         try {
-            logger.info(`${logPrefix} Hijo solicita audios — reenviando CARGAR_AUDIOS`);
+            const { audioId } = mensaje.datos || {};
+            if (!audioId) {
+                logger.debug(`${logPrefix} Solicitud sin audioId, omitiendo`);
+                return;
+            }
             const aventura = globalThis.aventuraSeleccionada;
             const idioma = globalThis.idiomaSeleccionado;
             if (!aventura || !idioma) {
                 logger.debug(`${logPrefix} Contexto no listo (aventura/idioma), omitiendo envío`);
                 return;
             }
-            const audios = globalThis.__vv_AUDIOS_AVENTURAS?.[aventura]?.[idioma] || [];
-            if (audios.length === 0) {
-                logger.debug(`${logPrefix} Sin audios disponibles para ${aventura}/${idioma}`);
+            const { cargarAudios } = await import('./data-loader.js');
+            const audios = await cargarAudios(aventura, idioma) || [];
+            const encontrado = audios.find(a => a && a.id === audioId) || null;
+            if (!encontrado) {
+                logger.warn(`${logPrefix} Audio ${audioId} no encontrado en ${aventura}/${idioma}`);
                 return;
             }
             await enviarMensaje({
-                tipo: TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS,
+                tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
                 origen: getPadreId(),
                 destino: mensaje.origen,
-                datos: { aventura, idioma, audios, total: audios.length, timestamp: Date.now() }
+                datos: { audioId, audioData: { id: encontrado.id, title: encontrado.title || null, file: encontrado.file || null }, autoplay: false, contexto: { motivo: 'solicitud_hijo' } }
             });
-            logger.info(`${logPrefix} ✅ ${audios.length} audios reenviados a ${mensaje.origen}`);
+            logger.info(`${logPrefix} ✅ Audio ${audioId} reenviado a ${mensaje.origen}`);
         } catch (error) {
-            logger.error(`${logPrefix} Error reenviando audios:`, error);
+            logger.error(`${logPrefix} Error reenviando audio:`, error);
         }
     }, { permanente: true });
 
@@ -107,30 +117,40 @@ export function registrarControladoresDatos({
         }
     }, { permanente: true });
 
+    // Protección pasiva por parada (ver docs/GUIA-COMPLETA.md §16): SOLICITAR_RETOS ya no
+    // reenvía la aventura completa. El hijo pide un retoId concreto (cache-miss local) y el
+    // padre resuelve solo ese reto, respondiendo con el mismo RETO.MOSTRAR que usa el flujo
+    // normal — un único camino para entregar retos, no dos.
     registrarControladorSeguro(TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS, async (mensaje) => {
         const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[SOLICITAR_RETOS][${mensaje?.origen || 'desconocido'}]`;
         try {
-            logger.info(`${logPrefix} Hijo solicita retos — reenviando CARGAR_RETOS`);
+            const { retoId } = mensaje.datos || {};
+            if (!retoId) {
+                logger.debug(`${logPrefix} Solicitud sin retoId, omitiendo`);
+                return;
+            }
             const aventura = globalThis.aventuraSeleccionada;
             const idioma = globalThis.idiomaSeleccionado;
             if (!aventura || !idioma) {
                 logger.debug(`${logPrefix} Contexto no listo (aventura/idioma), omitiendo envío`);
                 return;
             }
-            const retos = globalThis.__vv_RETOS_AVENTURAS?.[aventura]?.[idioma] || [];
-            if (retos.length === 0) {
-                logger.debug(`${logPrefix} Sin retos disponibles para ${aventura}/${idioma}`);
+            const { cargarRetos } = await import('./data-loader.js');
+            const retos = await cargarRetos(aventura, idioma) || [];
+            const encontrado = retos.find(r => r && r.id === retoId) || null;
+            if (!encontrado) {
+                logger.warn(`${logPrefix} Reto ${retoId} no encontrado en ${aventura}/${idioma}`);
                 return;
             }
             await enviarMensaje({
-                tipo: TIPOS_MENSAJE.DATOS.CARGAR_RETOS,
+                tipo: TIPOS_MENSAJE.RETO.MOSTRAR,
                 origen: getPadreId(),
                 destino: mensaje.origen,
-                datos: { aventura, idioma, retos, total: retos.length, timestamp: Date.now() }
+                datos: { retoId, retosArray: [encontrado], contexto: 'solicitud_hijo' }
             });
-            logger.info(`${logPrefix} ✅ ${retos.length} retos reenviados a ${mensaje.origen}`);
+            logger.info(`${logPrefix} ✅ Reto ${retoId} reenviado a ${mensaje.origen}`);
         } catch (error) {
-            logger.error(`${logPrefix} Error reenviando retos:`, error);
+            logger.error(`${logPrefix} Error reenviando reto:`, error);
         }
     }, { permanente: true });
 
