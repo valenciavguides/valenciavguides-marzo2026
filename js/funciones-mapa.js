@@ -959,14 +959,6 @@ export function isMapInitialized() {
 }
 
 /**
- * Get current user position from GPS
- * @returns {Promise<{lat: number, lng: number, accuracy?: number, timestamp?: number} | null>}
- */
-export async function getPosicionUsuario() {
-    return estadoMapa.posicionUsuario;
-}
-
-/**
  * Wait for Leaflet (L) to be available globally
  * @returns {Promise<void>}
  */

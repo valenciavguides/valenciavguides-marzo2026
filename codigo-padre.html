@@ -10839,7 +10839,12 @@ await _comprobarReanudacionAventura(logPrefix);
                     setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
                     (globalThis.logger || console).info(`${logPrefix} 🗺️ Modo AVENTURA activo (producción) → hijo5 oculto, proximidad ON`);
                     if (typeof globalThis._vv_triggerCambioModo === 'function') {
-                        globalThis._vv_triggerCambioModo(MODOS.AVENTURA);
+                        // Fire-and-forget intencional (no bloquear el registro de aventura
+                        // hasta 15s por el protocolo CAMBIO_MODO) — pero un error no debe
+                        // quedar como unhandled rejection silencioso.
+                        globalThis._vv_triggerCambioModo(MODOS.AVENTURA).catch(err => {
+                            (globalThis.logger || console).error(`${logPrefix} Error en _vv_triggerCambioModo(AVENTURA):`, err?.message || err);
+                        });
                     }
                 }
                 (globalThis.logger || console).success(`${logPrefix} ✅ Aventura ${aventura} registrada correctamente`);

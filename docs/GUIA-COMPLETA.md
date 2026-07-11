@@ -7146,6 +7146,7 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
 | 11 | `BACKEND_READY = true` en `js/data-loader.js` (activa `DATA_MODE='api'` en dominios no locales) | §22.11 | ⏳ pendiente |
 | 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
+| 13 | Arreglar bypass de `isProtectedFile()` (normalización de ruta) antes de activar `PROTECT_DATA=true` | §22.4 | ❌ pendiente |
 
 ---
 
@@ -7270,9 +7271,26 @@ Las cabeceras CORS están abiertas para todos los orígenes (`Access-Control-All
 res.setHeader('Access-Control-Allow-Origin', 'https://valenciavguides.es');
 ```
 
+#### ❌ Bug conocido: `isProtectedFile()` evadible por normalización de ruta (arreglar antes de activar `PROTECT_DATA=true`)
+
+`isProtectedFile()` (`js/server.js` líneas 36-40) compara `req.url` **sin normalizar** contra `PROTECTED_FILES` con `startsWith()`. La resolución real del fichero servido (línea 94, `path.resolve('.', '.' + urlPath)`) sí normaliza `..` y barras duplicadas — y ese normalizado ocurre **después** de que `isProtectedFile()` ya haya dejado pasar la petición.
+
+**Confirmado en runtime** (Node, comparando `isProtectedFile()` contra la resolución real de `path.resolve`) — las 4 URLs siguientes evaden el bloqueo pero resuelven al mismo fichero protegido real:
+
+```text
+/js/../js/coordenadas-aventuras.js   → isProtectedFile()=false, resuelve a js/coordenadas-aventuras.js
+/js//coordenadas-aventuras.js        → isProtectedFile()=false, resuelve a js/coordenadas-aventuras.js
+/./js/coordenadas-aventuras.js       → isProtectedFile()=false, resuelve a js/coordenadas-aventuras.js
+/js/./coordenadas-aventuras.js       → isProtectedFile()=false, resuelve a js/coordenadas-aventuras.js
+```
+
+**Por qué no es explotable hoy:** `PROTECT_DATA=false` por defecto (fase local, sin backend — ver [[project-per-parada-protection]] en memoria). El fichero completo está accesible igualmente sin protección activa, así que esta ruta alternativa no añade ningún acceso que no exista ya.
+
+**Fix pendiente:** normalizar la ruta (`path.normalize`/`path.resolve` relativo a la raíz, igual que ya hace la comprobación de path traversal de la línea 94) **antes** de compararla contra `PROTECTED_FILES` — no comparar el `req.url` crudo.
+
 #### Otras características del servidor
 
-- **Path traversal:** Cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) recibe `403 Forbidden`.
+- **Path traversal (fuera del directorio raíz):** Cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) recibe `403 Forbidden`. Esta protección es distinta de la de `isProtectedFile()` de arriba: cubre salir de la raíz del proyecto, no evadir la lista de ficheros protegidos dentro de la raíz.
 - **MIME types:** Soporta `.html`, `.js`, `.css`, `.json`, `.png`, `.jpg`, `.gif`, `.svg`, `.mp3`, `.wav`, `.mp4`, `.woff`, `.ttf`, `.eot`, `.otf`, `.wasm`.
 - **Página por defecto:** `GET /` sirve `index.html`.
 - **Sin SSL:** En desarrollo se usa HTTP. En producción el SSL debe gestionarse mediante un proxy inverso (Nginx, Caddy, etc.) delante del servidor Node.
