@@ -1986,6 +1986,15 @@
                 vbtn.addEventListener('touchstart', _stopPropEvent, { passive: true });
                 vbtn.addEventListener('pointerdown', _stopPropEvent);
             }
+            // Recuperación de micro-cortes de red (mismo patrón que sceneVid en video-intro.html,
+            // §15/§32.7 de la guía). Registrado aquí (una sola vez, en la creación del elemento —
+            // el overlay se reutiliza entre llamadas a mostrarVideoOverlay) para no acumular
+            // listeners duplicados en cada vídeo mostrado.
+            const vEl = overlay.querySelector('video');
+            if (vEl) {
+                vEl.addEventListener('stalled', function () { setTimeout(() => this.play().catch(() => {}), 300); });
+                vEl.addEventListener('waiting', function () { setTimeout(() => this.play().catch(() => {}), 500); });
+            }
             return overlay;
         }
 

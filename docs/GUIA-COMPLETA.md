@@ -4338,7 +4338,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-gps-watch-fix-jul12c'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-bitrate-fix-jul12e'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6490,6 +6490,28 @@ Es una operación de copia de streams (`-c copy`): reordena el índice del conte
 
 **Estado actual:** `videos-aventuras/video_intro_ejemplo.mp4` (usado en la escena `sceneVid` de `video-intro.html`, §32.6) tiene el `moov` al principio — confirmado por inspección directa de la estructura de átomos del archivo. Cuando se incorporen los primeros vídeos reales de dron para las paradas (campo `video` en `coordenadas-aventuras.js`, hoy vacío), deben exportarse ya con `faststart` antes de commitearse — o pasarse por el comando de arriba antes de subirlos.
 
+### `faststart` es necesario pero NO suficiente — el bitrate importa igual o más
+
+**Caso real (2026-07-12):** tras aplicar el faststart de arriba, el vídeo de `sceneVid` seguía cortándose a los ~2s en el hosting real (GitHub Pages). La causa raíz no era el faststart (ya corregido) sino que el archivo pesaba **20,9 MB a ~9,5 Mbps** (1080×1920, con pista de audio AAC innecesaria — el `<video>` de `sceneVid` siempre lleva `muted`) para un clip de 17,6 s mostrado en un modal pequeño (`max-height:60vh`). Un bitrate así requiere una conexión sostenida de >1 MB/s — el navegador consume el buffer inicial (que gracias al faststart carga rápido) y se queda esperando el resto de los datos, que no llegan a tiempo. Los listeners `stalled`/`waiting` que reintentan `.play()` (ver `sceneVid` y `mostrarVideoOverlay`, abajo) **no arreglan esto**: el navegador ya está haciendo todo lo posible por reproducir, el problema es la falta de ancho de banda, no que haya dejado de intentarlo.
+
+**Fix aplicado:** recodificado con `ffmpeg` a 480×854, H.264 CRF 30, preset `slow`, sin pista de audio (`-an`), con `+faststart`:
+
+```bash
+ffmpeg -i entrada.mp4 -vf "scale=480:854" -c:v libx264 -preset slow -crf 30 -an -movflags +faststart salida.mp4
+```
+
+Resultado: 4,3 MB / ~2 Mbps (de 20,9 MB / 9,5 Mbps) — misma duración, calidad visual confirmada suficiente para el tamaño real de renderizado (bajo ~350px de ancho en la mayoría de dispositivos, dado el `DAR 9:16` sobre `max-height:60vh`).
+
+**Checklist obligatoria antes de subir CUALQUIER vídeo nuevo** (el de `sceneVid`, o los futuros de dron por parada en `coordenadas-aventuras.js`):
+
+1. Resolución acorde al tamaño real de renderizado en pantalla — **no** la resolución nativa de la cámara/dron. Para el modal de vídeo del padre (`.video-contenedor`, ancho típico de unos cientos de px) o el de `sceneVid` (`max-height:60vh`), 480-720px de ancho es más que suficiente.
+2. `-crf 28` a `-crf 32` con `libx264 -preset slow` — rango razonable para un clip decorativo, no un archivo maestro.
+3. Sin pista de audio (`-an`) si el `<video>` de destino va a llevar `muted` (es el caso de `sceneVid`; verificar caso a caso para el overlay de vídeo de paradas).
+4. `-movflags +faststart` siempre.
+5. Verificar el resultado: bitrate final por debajo de ~2-3 Mbps para clips de esta duración, y revisar 1-2 fotogramas extraídos para confirmar que la calidad visual sigue siendo aceptable al tamaño real de pantalla.
+
+**Botón dron de hijo2 — mismo riesgo, todavía sin materializar:** el overlay `globalThis.mostrarVideoOverlay()` (`codigo-padre.html`, `_crearVideoOverlayEl`) reproduce el vídeo de cada parada/tramo con `autoplay` igual que `sceneVid`. Ya tiene los mismos listeners `stalled`/`waiting` de recuperación (añadidos 2026-07-12, registrados una sola vez en `_crearVideoOverlayEl` porque el overlay se reutiliza entre llamadas — no se registran en cada `mostrarVideoOverlay()` para no acumular duplicados), pero **eso no evita el problema de bitrate** — solo mitiga micro-cortes puntuales de red. El campo `video` está vacío en todas las paradas hoy, así que el bug no es reproducible todavía — pero en cuanto se suba el primer vídeo real de dron, debe pasar por la checklist de arriba antes de commitearse, o se repetirá exactamente el mismo cuelgue.
+
 ---
 
 ## 16. El backend (servidor)
@@ -6872,7 +6894,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-gps-watch-fix-jul12c'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-video-bitrate-fix-jul12e'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7460,7 +7482,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-gps-watch-fix-jul12c'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-video-bitrate-fix-jul12e'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10909,7 +10931,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-gps-watch-fix-jul12c';
+const CACHE_VERSION = 'v-video-bitrate-fix-jul12e';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11685,7 +11707,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 | 7 | `scene9` | b2 zoom-showcase + overlay `Av1_mapa.jpg` fullscreen | [6] |
 | 8 | `scene10` | b-av activo → polyline → `Knight.walk()` ruta RA (6,5 s) | [7] |
 | 9 | `sceneImg` | b4 zoom-showcase + ventana flotante imagen Torres de Serranos | [8] |
-| 10 | `sceneVid` | b3 zoom-showcase + overlay vídeo `video_intro_ejemplo.mp4` · vídeo con `loop`; usuario avanza con botón siguiente. Requiere `faststart` (§15) para reproducirse sin cuelgues en hosting real | [9] |
+| 10 | `sceneVid` | b3 zoom-showcase + overlay vídeo `video_intro_ejemplo.mp4` (17,6 s) · sin `loop` — usuario puede reproducirlo de nuevo con los controles nativos; la escena avanza cuando el vídeo termina (`ended`) o el usuario pulsa el botón siguiente. Requiere `faststart` (§15) para reproducirse sin cuelgues en hosting real | [9] |
 | 11 | `scene11` | amain zoom-showcase + `astrip` vertical · `animAP` 0→87 % | [10] |
 | 12 | `scene12` | Panel puzzle 2×2 · 2 piezas scattered · drag gauntlet · Knight thumbs-up | [11] |
 | 13 | `sceneRetoMCQ` | Imagen reto 3 s + overlay MCQ · opción 0 errónea → opción 1 correcta | [12] |
@@ -11705,7 +11727,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 - `JAIME_SCENES[15]` es `null` — ninguna escena del array `run()` llama a `showBubble(15)`.
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
-- `sceneVid` tiene atributo `loop` — el vídeo demo de 3 s se repite indefinidamente; la escena avanza cuando el usuario pulsa el botón siguiente (`waitForNextBtn`), no por el evento `ended`. Los handlers `stalled` y `waiting` reintentan `play()` para recuperar la reproducción en GitHub Pages.
+- `sceneVid` **no** tiene atributo `loop` (quitado 2026-07-12: con `loop`, el evento `ended` nunca se dispara por especificación, dejando `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior). El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`. Los handlers `stalled` y `waiting` reintentan `play()`, pero no resuelven cuelgues por ancho de banda insuficiente: el archivo pesa ~20 MB a ~9,5 Mbps, muy por encima de lo razonable para un clip decorativo — pendiente de recodificar a un bitrate menor.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 4 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
 
