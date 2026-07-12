@@ -1331,6 +1331,7 @@ async function sceneVid(){
   spin(b3);
   await zoomBtn(b3, B.b3, 5000);
   await Gauntlet.hover(b3,'R',300);
+  let _vidBlobUrl = null;
   await Gauntlet.tapEl(b3,'R',()=>{
     Knight.hide();
     setOv(`<div class="float-win">
@@ -1339,17 +1340,40 @@ async function sceneVid(){
           <img src="${B.b3}" alt="" style="width:min(14vw,8vh);height:auto;border-radius:1vw">
         </div>
         <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
-        <video class="float-video" style="max-height:60vh" src="videos-aventuras/video_intro_ejemplo.mp4" autoplay muted playsinline controls preload="auto"></video>
+        <div id="vid-loading" style="max-height:60vh;aspect-ratio:9/16;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-size:0.85rem">
+          <div style="width:2.2em;height:2.2em;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spinA .8s linear infinite"></div>
+        </div>
+        <video class="float-video" style="max-height:60vh;display:none" muted playsinline controls></video>
       </div>
     </div>`);
   });
   const _vid = document.querySelector('.float-video');
+  const _vidLoading = document.getElementById('vid-loading');
   if (_vid) {
-    _vid.addEventListener('stalled', function(){ setTimeout(()=>this.play().catch(()=>{}), 300); });
-    _vid.addEventListener('waiting', function(){ setTimeout(()=>this.play().catch(()=>{}), 500); });
-    _vid.play().catch(()=>{});
+    // Descarga el vídeo completo antes de reproducir (el archivo pesa ~4MB) — una vez
+    // que arranca, se reproduce desde memoria y no puede cortarse por red a mitad.
+    try {
+      const resp = await fetch('videos-aventuras/video_intro_ejemplo.mp4');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      _vidBlobUrl = URL.createObjectURL(blob);
+      _vid.src = _vidBlobUrl;
+      if (_vidLoading) _vidLoading.style.display = 'none';
+      _vid.style.display = '';
+      await _vid.play().catch(()=>{});
+    } catch (err) {
+      // Sin conexión o fallo de red: dejar los controles nativos con el src directo
+      // como último recurso (streaming normal) en vez de bloquear la escena.
+      if (_vidLoading) _vidLoading.style.display = 'none';
+      _vid.style.display = '';
+      _vid.src = 'videos-aventuras/video_intro_ejemplo.mp4';
+      _vid.addEventListener('stalled', function(){ setTimeout(()=>this.play().catch(()=>{}), 300); });
+      _vid.addEventListener('waiting', function(){ setTimeout(()=>this.play().catch(()=>{}), 500); });
+      _vid.play().catch(()=>{});
+    }
   }
   await Promise.race([waitForVideoEnd(_vid), waitForNextBtn()]);
+  if (_vidBlobUrl) { URL.revokeObjectURL(_vidBlobUrl); _vidBlobUrl = null; }
   if (!_skipRequested) {
     await Gauntlet.tapEl($('ocvid'),'UR',()=>clearOv());
   } else {

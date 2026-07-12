@@ -4338,7 +4338,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-bitrate-fix-jul12e'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-blob-preload-jul12f'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6512,6 +6512,27 @@ Resultado: 4,3 MB / ~2 Mbps (de 20,9 MB / 9,5 Mbps) — misma duración, calidad
 
 **Botón dron de hijo2 — mismo riesgo, todavía sin materializar:** el overlay `globalThis.mostrarVideoOverlay()` (`codigo-padre.html`, `_crearVideoOverlayEl`) reproduce el vídeo de cada parada/tramo con `autoplay` igual que `sceneVid`. Ya tiene los mismos listeners `stalled`/`waiting` de recuperación (añadidos 2026-07-12, registrados una sola vez en `_crearVideoOverlayEl` porque el overlay se reutiliza entre llamadas — no se registran en cada `mostrarVideoOverlay()` para no acumular duplicados), pero **eso no evita el problema de bitrate** — solo mitiga micro-cortes puntuales de red. El campo `video` está vacío en todas las paradas hoy, así que el bug no es reproducible todavía — pero en cuanto se suba el primer vídeo real de dron, debe pasar por la checklist de arriba antes de commitearse, o se repetirá exactamente el mismo cuelgue.
 
+### Capa adicional en `sceneVid`: descarga completa como blob antes de reproducir (2026-07-12)
+
+Incluso con el bitrate corregido, `sceneVid` descarga el vídeo entero antes de empezar a reproducirlo — no depende de que el streaming progresivo vaya lo bastante rápido en ningún momento:
+
+```javascript
+try {
+  const resp = await fetch('videos-aventuras/video_intro_ejemplo.mp4');
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const blob = await resp.blob();
+  _vidBlobUrl = URL.createObjectURL(blob);
+  _vid.src = _vidBlobUrl;
+  // ...ocultar spinner, mostrar <video>, _vid.play()
+} catch (err) {
+  // fetch falló (sin conexión): fallback a <video src="..."> normal + stalled/waiting
+}
+```
+
+Mientras se descarga, se muestra un spinner (`#vid-loading`) en vez del `<video>` (`display:none` hasta tener el blob listo). Una vez que `_vid.src` apunta al blob, la reproducción es 100% desde memoria local — no puede cortarse por red a mitad, sea cual sea la velocidad de conexión real del usuario. `URL.revokeObjectURL(_vidBlobUrl)` se llama justo después del `Promise.race` de fin de escena para liberar la memoria, tanto si el usuario ve el vídeo completo como si pulsa saltar la intro.
+
+**Por qué no se aplicó el mismo patrón a `mostrarVideoOverlay` (botón dron):** el tamaño de los futuros vídeos reales de dron por parada es una incógnita — si no siguen la checklist de arriba y acaban pesando mucho más que los ~4 MB de `sceneVid`, forzar la descarga completa antes de reproducir introduciría una espera larga y mala experiencia en vez de resolver el problema. Para ese overlay, la mitigación actual (`stalled`/`waiting`) más la checklist de codificación es la combinación correcta; si en el futuro se confirma que esos vídeos también quedan pequeños, aplicar el mismo patrón de blob es sencillo — mismo código, mismo `try/catch` de fallback.
+
 ---
 
 ## 16. El backend (servidor)
@@ -6894,7 +6915,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-video-bitrate-fix-jul12e'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-video-blob-preload-jul12f'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7482,7 +7503,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-video-bitrate-fix-jul12e'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-video-blob-preload-jul12f'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10931,7 +10952,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-video-bitrate-fix-jul12e';
+const CACHE_VERSION = 'v-video-blob-preload-jul12f';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11727,7 +11748,8 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 - `JAIME_SCENES[15]` es `null` — ninguna escena del array `run()` llama a `showBubble(15)`.
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
-- `sceneVid` **no** tiene atributo `loop` (quitado 2026-07-12: con `loop`, el evento `ended` nunca se dispara por especificación, dejando `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior). El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`. Los handlers `stalled` y `waiting` reintentan `play()`, pero no resuelven cuelgues por ancho de banda insuficiente: el archivo pesa ~20 MB a ~9,5 Mbps, muy por encima de lo razonable para un clip decorativo — pendiente de recodificar a un bitrate menor.
+- `sceneVid` **no** tiene atributo `loop` (quitado 2026-07-12: con `loop`, el evento `ended` nunca se dispara por especificación, dejando `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior). El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`.
+- `sceneVid` **descarga el vídeo completo como blob antes de reproducirlo** (añadido 2026-07-12, ver §15): mientras descarga muestra un spinner (`#vid-loading`) en vez del `<video>` (`display:none` hasta que el blob está listo); `fetch()` + `resp.blob()` + `URL.createObjectURL()` → `_vid.src` → `_vid.play()`. El `URL.createObjectURL` se revoca (`revokeObjectURL`) justo después del `Promise.race` de fin de escena, tanto si el usuario ve el vídeo entero como si pulsa saltar. Si el `fetch` falla (sin conexión), cae a un `<video src="...">` normal con los listeners `stalled`/`waiting` como último recurso.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 4 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
 
