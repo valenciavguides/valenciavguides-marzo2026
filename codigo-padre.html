@@ -3464,6 +3464,7 @@
             gps: {
                 activo: false,
                 watchId: null,
+                retryTimeoutId: null, // setTimeout pendiente de _gpsDoRetrySetup — cancelar antes de crear/cerrar otro watch
                 posicionUsuario: null,
                 permisos: null, // null = desconocido, true = concedidos, false = denegados
                 precision: null,
@@ -4862,7 +4863,11 @@
             };
             (globalThis.logger || console).info(`${logPrefix} Reintentando watchPosition (intento ${est.gps.retries}/${maxReintentos}) con opciones:`, newOptions);
             try { if (est.gps.watchId !== null) navigator.geolocation.clearWatch(est.gps.watchId); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            setTimeout(() => _gpsDoRetryWatch(est, newOptions, logPrefix), 500 * est.gps.retries);
+            est.gps.watchId = null; // evitar que quede una referencia obsoleta mientras el reintento está pendiente
+            est.gps.retryTimeoutId = setTimeout(() => {
+                est.gps.retryTimeoutId = null;
+                _gpsDoRetryWatch(est, newOptions, logPrefix);
+            }, 500 * est.gps.retries);
         }
 
         function _gpsRetryOnTimeout(error, est, logPrefix) {
@@ -5097,6 +5102,15 @@
                     globalThis._gpsActivadoEn = Date.now();
                 }
 
+                // Cancelar cualquier reintento de TIMEOUT pendiente (_gpsDoRetrySetup) — si no,
+                // ese reintento crearía más adelante un watch adicional que sobrescribiría
+                // est.gps.watchId, dejando huérfano (sin clearWatch posible) el que creamos aquí.
+                if (est.gps.retryTimeoutId) {
+                    clearTimeout(est.gps.retryTimeoutId);
+                    est.gps.retryTimeoutId = null;
+                }
+                est.gps.retries = 0;
+
                 // Iniciar watchPosition
                 est.gps.watchId = navigator.geolocation.watchPosition(
                     onGpsSuccess,
@@ -5129,6 +5143,13 @@
          */
         function desactivarGPS() {
             const logPrefix = '[PADRE][GPS][DESACTIVAR]';
+
+            // Cancelar cualquier reintento de TIMEOUT pendiente — si no, revive el
+            // watchPosition más tarde aunque el usuario ya haya desactivado el GPS.
+            if (estado.gps.retryTimeoutId) {
+                clearTimeout(estado.gps.retryTimeoutId);
+                estado.gps.retryTimeoutId = null;
+            }
 
             if (estado.gps.watchId !== null) {
                 navigator.geolocation.clearWatch(estado.gps.watchId);

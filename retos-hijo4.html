@@ -1292,19 +1292,6 @@
             body.classList.remove('modo-casa', 'modo-aventura');
             if (modoSeguro) body.classList.add(`modo-${modoSeguro}`);
 
-            // Ajustes específicos según el modo
-            const retoContainer = document.getElementById('reto-container');
-            if (retoContainer) {
-                if (modoSeguro) retoContainer.dataset.modo = modoSeguro;
-
-                // Ajustar estilos según el modo
-                if (modoSeguro === 'casa') {
-                    retoContainer.style.borderColor = '#3498db'; // Azul para modo casa
-                } else if (modoSeguro) {
-                    retoContainer.style.borderColor = '#e67e22'; // Naranja para modo aventura u otros
-                }
-            }
-
             // Si hay un reto abierto, actualizar su visualización
             if (estado.retoActualId) {
                 logger.info(`[RETOS] Se está mostrando el reto ${estado.retoActualId} en modo ${modoSeguro || modo}`);

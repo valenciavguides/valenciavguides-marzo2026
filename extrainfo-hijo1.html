@@ -1201,7 +1201,6 @@
         tiempoRestante: 0,       // Tiempo restante en segundos
         tiempoTotal: 0,          // Tiempo total para calcular porcentaje
         enCuenta: false,         // Si está en cuenta atrás
-        ventanaVisible: false,   // Si la ventana está visible
         modoAventura: false,     // Si está en modo aventura
         intervalId: null         // ID del interval para poder detenerlo
     };
@@ -1361,13 +1360,6 @@
         estadoTemporizador.tiempoTotal = 0;
         estadoTemporizador.modoAventura = false;
 
-        // Ocultar ventana
-        const ventana = document.getElementById('ventana-temporizador');
-        if (ventana) {
-            ventana.style.display = 'none';
-            estadoTemporizador.ventanaVisible = false;
-        }
-
         logger.info('[TEMPORIZADOR] Reseteado a modo casa');
     }
 
@@ -1381,13 +1373,6 @@
 
         // Detener el temporizador
         detenerTemporizador();
-
-        // Mostrar la ventana si no está visible
-        const ventana = document.getElementById('ventana-temporizador');
-        if (ventana) {
-            ventana.style.display = 'block';
-            estadoTemporizador.ventanaVisible = true;
-        }
 
         // Enviar mensaje urgente al padre
         try {
