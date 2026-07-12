@@ -11758,6 +11758,15 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
             if (++_waitMs4 > 200) { (globalThis.logger || console).error('[PADRE Script4] mensajeria no disponible tras 10s'); break; }
             await sleep(50);
         }
+        // Script 1 define globalThis.registrarControladorSeguro en su propio top-level (línea ~4305),
+        // pero sus await tempranos (state-manager, imports…) pueden hacer que Script 4 llegue aquí
+        // antes de que Script 1 la haya alcanzado — visto en producción como
+        // "Uncaught TypeError: globalThis.registrarControladorSeguro is not a function".
+        let _waitRcs4 = 0;
+        while (typeof globalThis.registrarControladorSeguro !== 'function') {
+            if (++_waitRcs4 > 200) { (globalThis.logger || console).error('[PADRE Script4] registrarControladorSeguro no disponible tras 10s'); break; }
+            await sleep(50);
+        }
         const { enviarMensaje: enviarMensaje_S4 } = globalThis.mensajeria;
         const { ajustarTimeoutPorConexion } = await import('./js/utils.js');
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_S4, MODOS: MODOS_S4 } = await import('./js/constants.js');
@@ -11776,6 +11785,9 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         // _testHeartbeatPauseResume). Se registran aquí, ANTES de que el bloque de arranque
         // envíe HEARTBEAT_START/HEARTBEAT_PAUSE, porque sin el handler ya registrado el
         // auto-mensaje no lo procesa nadie.
+        if (typeof globalThis.registrarControladorSeguro !== 'function') {
+            (globalThis.logger || console).error('[PADRE Script4] registrarControladorSeguro sigue sin disponible — handlers de heartbeat NO registrados');
+        } else {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE_S4.SISTEMA.HEARTBEAT_START, async (mensaje) => {
             const intervalo = mensaje?.datos?.intervalo;
             const ok = await globalThis.mensajeria.iniciarHeartbeat(intervalo);
@@ -11803,6 +11815,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 return { estado: { activo: false, userPaused: false, intervaloActivo: false } };
             }
         }, { permanente: true });
+        }
 
         // Iniciar o pausar heartbeat según el modo inicial (si estamos en el padre)
         if (globalThis.parent === globalThis.window && !globalThis.__HEARTBEAT_INICIADO) {

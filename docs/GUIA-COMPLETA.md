@@ -4338,7 +4338,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-blob-preload-jul12f'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-script4-race-fix-jul12g'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6915,7 +6915,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-video-blob-preload-jul12f'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-script4-race-fix-jul12g'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7503,7 +7503,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-video-blob-preload-jul12f'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-script4-race-fix-jul12g'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10952,7 +10952,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-video-blob-preload-jul12f';
+const CACHE_VERSION = 'v-script4-race-fix-jul12g';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -10981,6 +10981,18 @@ function _esperarHijoListo(iframeId) {
 ```
 
 > `TIPOS_MENSAJE_VALIDOS` se actualiza automáticamente en `constants.js`: la función `_flattenTipos()` recorre el árbol de forma recursiva, así que no hay ningún paso adicional al añadir el nuevo namespace.
+
+### 29.6 Cada dependencia cross-script necesita su propio wait explícito
+
+**Bug real de producción (2026-07-12):** Script 4 esperaba correctamente a `globalThis.mensajeria` (`while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') { ... await sleep(50) ... }`, límite de 200 intentos) antes de sus propios `await import(...)` — pero justo después llamaba directamente a `globalThis.registrarControladorSeguro(...)` (expuesta por Script 1 en su propio top-level, ~línea 4305) **sin esperarla también**. Visto en un log de consola de producción real como `Uncaught TypeError: globalThis.registrarControladorSeguro is not a function` en la línea de esa llamada.
+
+**Por qué ocurre:** Script 1 tiene varios `await` tempranos antes de llegar a la línea que define `registrarControladorSeguro` (`inicializarStateManager_S1()`, varios `import()`, `inicializarMonitoreo_S1()`). En local/CI esos imports son consistentemente rápidos y Script 1 siempre gana la carrera contra los `await import()`, más cortos, de Script 4 — pero con latencia de red real esa relación de velocidad puede invertirse, dejando que Script 4 llegue a su línea antes de que Script 1 haya llegado a la suya.
+
+**Efecto en cascada:** el `TypeError` no capturado aborta el resto del bloque `<script>` de Script 4 en ese punto — los handlers de `SISTEMA.HEARTBEAT_START`/`HEARTBEAT_PAUSE`/`HEARTBEAT_ESTADO` (que venían justo después) nunca llegaban a registrarse. Síntoma derivado, visible en el mismo log: `[withTimeout] preiniciarHeartbeat timed out after 5000ms` — el prewarm de heartbeat se envía `HEARTBEAT_START` a sí mismo y nadie responde, porque el handler nunca se registró.
+
+**Fix aplicado:** añadido un segundo `while (typeof globalThis.registrarControladorSeguro !== 'function') { ... await sleep(50) ... }` (mismo límite de 200×50ms, mismo patrón que el de `mensajeria`) inmediatamente después del existente. Las 3 llamadas de registro además quedaron protegidas con `if (typeof globalThis.registrarControladorSeguro !== 'function') { logger.error(...) } else { ...registrar los 3... }` como defensa en profundidad, por si el wait de 10s se agotara sin éxito.
+
+**Regla general:** cada dependencia cross-script (una función expuesta por Script 1 en `globalThis` y usada desde Script 2/3/4) necesita su propio `while(typeof globalThis.fn !== 'function')` — no basta con que exista un wait cercano para OTRA dependencia. El orden de los `<script type="module">` en el documento no garantiza que Script 1 haya terminado de ejecutar todo su top-level cuando Script 4 empieza el suyo, porque los `await` tempranos de Script 1 dejan huecos donde scripts posteriores pueden avanzar antes.
 
 ---
 
