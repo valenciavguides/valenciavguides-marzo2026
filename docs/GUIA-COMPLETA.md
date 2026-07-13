@@ -698,8 +698,7 @@ Estos emojis aparecen durante las 17 pantallas de demo/selección, antes de que 
 |-------|---------------|-----------------|
 | → | Botones de avanzar/confirmar (P1, P4, P5, P9, P11, P12, P16) | Flecha de navegación "ir a la siguiente pantalla" |
 | ➜ | Botón grande del puzzle (P6) | Flecha gruesa para continuar tras completar el puzzle |
-| ✓ | Feedback de código correcto (P13) | Indicar código de activación correcto |
-| ✗ | Botones rojos de rechazo (P3, P9), feedback de código incorrecto (P13) | Cancelar selección o indicar respuesta incorrecta |
+| ✗ | Botones rojos de rechazo (P3, P9), feedback de formato de código insuficiente (P13, <4 caracteres) | Cancelar selección o indicar formato inválido — desde 2026-07-13 P13 ya no muestra ✓ de "código correcto" (no hay nada que validar localmente, ver §16.2) |
 | 🎬 | Pantalla de vídeo stub (P4) | Placeholder fijo de video introductorio |
 | 💳 | Pantalla de pago (P12) | Icono de la pasarela de pago (aún no implementada) |
 | 🔑 | Pantalla de activación (P13) | Indica que se necesita un código de acceso |
@@ -1954,7 +1953,7 @@ graph TD
 | P10 | `#pantalla10` | `#btn-aceptar-terminos` | Scroll hasta el final (`disabled = false`) → `aceptarTerminos()` → P11 | `SELECCION.TERMINOS_ACEPTADOS { aceptados: true }` |
 | P11 | `#pantalla11` | `.btn-mundo-verde` (→) | Ninguna (audio opcional) | — |
 | P12 | `#pantalla12` | `.btn-mundo-verde` (stub pago) | Ninguna (pago no implementado) | — |
-| P13 | `#pantalla13` | `#btn-iniciar-aventura` (deshabilitado hasta código correcto) | Código de compra válido → `disabled = false` → `onclick="_irANormativa()"`. Si el permiso GPS ya está denegado en el navegador, muestra `#gps-denegado-p13` (icono, sin texto) y no avanza — el usuario corrige el permiso y pulsa de nuevo la misma flecha. Si el permiso es `prompt` o `granted`, envía `SELECCION.CODIGO_VALIDADO` al padre y avanza a P14. **En modo DEV (Factor 1)** esta pantalla se salta automáticamente — `mostrar()` intercepta P12/P13 y envía `CODIGO_VALIDADO` directamente sin GPS ni código de compra. | `SELECCION.CODIGO_VALIDADO { aventura, idioma, timestamp }` |
+| P13 | `#pantalla13` | `#btn-iniciar-aventura` (deshabilitado hasta código+email con formato válido) | Botón habilitado = solo formato válido, no "correcto" (ver §16.2). Al pulsar, `_irANormativa()` comprueba contra el backend (`getDataMode()`): en modo `'local'` (hoy, siempre) rechaza y muestra la pantalla flotante de error (`_mostrarErrorAccesoP13()`, 12 idiomas); en modo `'api'` llama a `ApiClient.activar()`. Si GPS ya está denegado en el navegador, muestra `#gps-denegado-p13` (icono, sin texto) y no avanza. Si la activación es válida y el permiso es `prompt` o `granted`, envía `SELECCION.CODIGO_VALIDADO` al padre y avanza a P14. **En modo DEV (Factor 1)** esta pantalla se salta automáticamente — `mostrar()` intercepta P12/P13 y envía `CODIGO_VALIDADO` directamente sin GPS ni código de compra. | `SELECCION.CODIGO_VALIDADO { aventura, idioma, email, timestamp }` |
 | P14 | `#pantalla14` | `#btn-siguiente-normativa` | Scroll hasta el final → `aceptarNormativa()` → `mostrar(15)` | — |
 | P15 | `#pantalla15` | Opciones del reto R-2 | SÍ (`verificarRetoR2()`) → activa aventura; NO → envía `SELECCION.REINICIAR` al padre → `reiniciarSeleccion()` → P1 | SÍ: `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` · NO: `SELECCION.REINICIAR {}` |
 | P16 | `#pantalla16` | `.btn-mundo-verde` (→) | Logos (logo redondo + logo alargado) → `mostrar(17)` | — |
@@ -2084,7 +2083,7 @@ flowchart TD
 | `SELECCION.AVENTURA_SELECCIONADA` | Click en tarjeta de aventura en P7 (via `seleccionarAventura()`) | `{ aventura, idioma }` — el padre solo anota estado; no carga nada |
 | `SELECCION.PREPARAR_HIJOS` | Al confirmar aventura en P9 | `{ idioma, aventura, timestamp }` |
 | `SELECCION.DEV_MODE_TOGGLE` | Al activar Factor 1 DEV con código DEV en el modal de P1 | `{}` — el padre (IIFE Script 1) pone `_devModeActivo = true` |
-| `SELECCION.CODIGO_VALIDADO` | Al pulsar "Iniciar" en P13 con código de compra correcto y GPS no denegado (via `_irANormativa()`). **En modo DEV Factor 1 P13 se salta** — nunca se envía `CODIGO_VALIDADO`; `mostrar()` redirige directamente a P14 sin pasar por `_irANormativa()`. | `{ aventura, idioma, timestamp }` — el handler padre (`_hdl_SELECCION_CODIGO_VALIDADO`) es no-op; la carga real la hace `P14_MOSTRADA` |
+| `SELECCION.CODIGO_VALIDADO` | Al pulsar "Iniciar" en P13 con activación aceptada por el backend (modo `'api'`) o, hoy sin backend (modo `'local'`), nunca — ver §16.2 — y GPS no denegado (via `_irANormativa()`). **En modo DEV Factor 1 P13 se salta** — nunca se envía `CODIGO_VALIDADO`; `mostrar()` redirige directamente a P14 sin pasar por `_irANormativa()`. | `{ aventura, idioma, email, timestamp }` — el handler padre (`_hdl_SELECCION_CODIGO_VALIDADO`) es no-op; la carga real la hace `P14_MOSTRADA` |
 | `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P15 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` — el padre usa fast-path si iframes ya cargados desde P13 |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Al recibir `CAMBIO_MODO` | — |
@@ -3373,7 +3372,7 @@ sequenceDiagram
     Note over P: almacena estado.seleccion — no carga iframes
 
     Note over T,P: P13 — usuario introduce código válido
-    T->>P: SELECCION.CODIGO_VALIDADO { aventura, idioma, timestamp }
+    T->>P: SELECCION.CODIGO_VALIDADO { aventura, idioma, email, timestamp }
     Note over P: _hdl_SELECCION_CODIGO_VALIDADO — handler vacío (solo log en prod)
 
     Note over T,P: P14 — normativa mostrada
@@ -3392,7 +3391,7 @@ sequenceDiagram
 | `SELECCION.IDIOMA_SELECCIONADO` | P2 | `{ idioma:'es'/'en'/... }` | Guarda idioma en `estado.idioma` |
 | `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | Almacena estado; resetea `_codigoValidadoP13`; no carga iframes |
 | `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Almacena `estado.seleccion`; no carga iframes |
-| `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
+| `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, email, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
 | `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `activarGPS()` solo si `!_devModeActivo` |
 | `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
 | `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
@@ -3856,7 +3855,7 @@ El iframe `seleccion` carga `En-busca-del-tesoro.html`. La navegación interna u
 | P10 | Términos y condiciones | `aceptarTerminos()` → `mostrar(11)` | `SELECCION.TERMINOS_ACEPTADOS { aceptados: true, timestamp }` |
 | P11 | Audio intro + texto narrativo | carga audio y texto → `mostrar(12)` | — |
 | P12 | Pantalla de pago (stub) | → `mostrar(13)` | — |
-| P13 | Código de activación (código de compra) | → `_irANormativa()`: verifica permiso GPS con `navigator.permissions.query`; si 'denied' muestra `#gps-denegado-p13`; si ok envía `CODIGO_VALIDADO` y avanza a P14. **En modo DEV (Factor 1)** `mostrar()` intercepta P12 y P13 y redirige a P14 directamente — no se llega aquí | `SELECCION.CODIGO_VALIDADO { aventura, idioma, timestamp }` (solo prod) |
+| P13 | Código de activación + email (código de compra) | → `_irANormativa()`: comprueba contra el backend (`getDataMode()`) — rechaza siempre en modo `'local'` (hoy), llama a `ApiClient.activar()` en modo `'api'`; si falla, pantalla flotante de error (12 idiomas). Si válido, verifica permiso GPS con `navigator.permissions.query`; si 'denied' muestra `#gps-denegado-p13`; si ok envía `CODIGO_VALIDADO` y avanza a P14. **En modo DEV (Factor 1)** `mostrar()` intercepta P12 y P13 y redirige a P14 directamente — no se llega aquí | `SELECCION.CODIGO_VALIDADO { aventura, idioma, email, timestamp }` (solo prod) |
 | P14 | Normativa (botón bloqueado hasta final del texto) | `aceptarNormativa()` → `mostrar(15)` | — |
 | P15 | Reto R-2 | `verificarRetoR2()` → SÍ: activa aventura; NO: `reiniciarSeleccion()` → `mostrar(1)` | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` |
 | P16 | Logos (logo redondo + logo alargado) — da paso oficial a la aventura | → `mostrar(17)` | — |
@@ -3884,8 +3883,8 @@ sequenceDiagram
     S->>P: SELECCION.AVENTURA_SELECCIONADA { aventura, idioma }
     P-->>P: almacena estado — no carga iframes
 
-    U->>S: Introduce código correcto (P13 — solo prod)
-    S->>P: SELECCION.CODIGO_VALIDADO { aventura, idioma, timestamp }
+    U->>S: Introduce código + email aceptados por el backend (P13 — solo prod)
+    S->>P: SELECCION.CODIGO_VALIDADO { aventura, idioma, email, timestamp }
     Note over P: prod: activarGPS(). Dev: no se envía este mensaje.
 
     U->>S: P14 mostrada (prod y dev)
@@ -3912,7 +3911,7 @@ Cuando el padre recibe `SELECCION.AVENTURA_SELECCIONADA`, el handler `_hdl_SELEC
 
 ### 9.4b CODIGO_VALIDADO — registro de validación (P13, solo prod)
 
-El handler `_hdl_SELECCION_CODIGO_VALIDADO` está vacío — solo escribe un log de info. GPS, iframes y datos se activan en P14.
+El handler `_hdl_SELECCION_CODIGO_VALIDADO` está vacío — solo escribe un log de info. GPS, iframes y datos se activan en P14. El payload ya incluye `email` (añadido 2026-07-13, ver §16.2); el handler no lo lee — queda disponible para cuando se necesite (auditoría, soporte).
 
 En prod: valida que P13 completó correctamente y delega todo el trabajo a `_hdl_SELECCION_P14_MOSTRADA`.
 
@@ -4338,7 +4337,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-playback-fixes-jul13b'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-p13-backend-prep-jul14'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4517,7 +4516,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 
 | Campo | Valor |
 |-------|-------|
-| Payload | `{ aventura, idioma, timestamp }` |
+| Payload | `{ aventura, idioma, email, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_CODIGO_VALIDADO` |
 | Acción | Handler vacío — solo escribe un log de info (`✅ Código validado — carga delegada a P14_MOSTRADA`). GPS, iframes y datos se activan en P14. |
 
@@ -6628,7 +6627,7 @@ El acceso de pago tiene tres fases secuenciales. La plataforma de pago concreta 
    - Verifica la firma del webhook (cada plataforma tiene su mecanismo; p.ej. `Stripe-Signature`).
    - Extrae el email del comprador del payload del webhook.
    - Genera un código único de activación (alfanumérico corto, p.ej. `A3X7-K2P9`).
-   - Guarda en base de datos: `{ codigo, email, aventuraId, usado: false, expira: Date.now() + 86400000 }` (24 h).
+   - Guarda en base de datos: `{ codigo, email, aventuraId, usado: false, expira: Date.now() + 31536000000 }` (365 días / 1 año).
    - Envía al email del comprador un correo con el código.
 
 **Fase 3 — Activación (P13, frontend + backend)**
@@ -6669,45 +6668,46 @@ Plataforma de pago ──► POST /api/webhooks/pago
                     SELECCION.CODIGO_VALIDADO → aventura
 ```
 
-> **Estado actual (local):** `validarCodigo()` valida el código de compra contra el backend cuando `DATA_MODE = 'api'`. En modo `'local'` (activo en desarrollo) la validación de compra queda pendiente del backend — el campo acepta cualquier entrada que el frontend libere; no hay código fijo hardcodeado. `SELECCION.CODIGO_VALIDADO` se envía directamente al padre una vez la validación local pasa.
+> **Estado actual:** `validarCodigo()` (`En-busca-del-tesoro.html`) solo valida FORMATO en vivo (código ≥4 caracteres + email con forma de email) para habilitar el botón "Iniciar aventura" — no compara contra ningún código de referencia local. La comprobación real ocurre al pulsar el botón, en `_irANormativa()`, según `getDataMode()` (`js/data-loader.js`):
+>
+> - **Modo `'local'`** (activo siempre hoy, `BACKEND_READY=false`): rechaza *cualquier* código/email, siempre — aún no se ha pagado nada ni se ha emitido ningún código real, así que no hay nada válido contra lo que comparar. Muestra la pantalla flotante de error (ver abajo) y no avanza a P14.
+> - **Modo `'api'`** (cuando `BACKEND_READY=true`): llama a `ApiClient.activar(codigo, email, aventuraId)` (`js/api-client.js`); si la respuesta trae `token`, envía `SELECCION.CODIGO_VALIDADO { aventura, idioma, email, timestamp }` al padre y avanza a P14; si no, muestra la misma pantalla de error.
+>
+> El código distingue mayúsculas/minúsculas (nunca se transforma con `toUpperCase()`/`toLowerCase()` en ningún punto del flujo).
+>
+> **Pantalla flotante de error** (`_mostrarErrorAccesoP13()`, `En-busca-del-tesoro.html`): overlay con título + cuerpo traducidos a los 12 idiomas (`TRADUCCIONES_ACCESO_ERRONEO`, `js/traducciones-ui.js`), según el idioma elegido por el usuario en P1 (`idiomaSeleccionado`, con fallback a `localStorage['vv_idioma']` y luego a `'es'`). Es un overlay superpuesto a P13, no una navegación: el botón OK solo elimina el overlay del DOM (`removeChild`) — la pantalla `#pantalla13` de debajo no se toca, y los valores ya escritos en `#input-codigo`/`#input-email` **no se borran**. El usuario puede corregir y pulsar "Iniciar aventura" de nuevo tantas veces como quiera, sin límite de intentos ni bloqueo temporal.
+>
+> **Hallazgo ya corregido (2026-07-13):** hasta esta fecha, `validarCodigo()` comparaba el código introducido contra un hash SHA-256 hardcodeado (`CODIGO_ACCESO_HASH`) — y ese hash era, byte a byte, el mismo que usa el modo desarrollador (`CODIGO_DEV_HASH` en `codigo-padre.html` y en el modal de 5 toques de `En-busca-del-tesoro.html`), introducidos los tres juntos en el commit `86c707c`. En la práctica, el "código de compra" de P13 era literalmente la contraseña de desarrollador — cualquiera que la conociera podía "comprar" sin pagar, y el campo no distinguía en absoluto un comprador real de un desarrollador. Como el modo DEV (gesto de 5 toques) ya cubre la necesidad de probar la app sin pagar, no había ninguna razón para que P13 aceptara ese mismo secreto. Corregido eliminando por completo la comparación hardcodeada de P13 (comportamiento descrito arriba); el hash del modo DEV permanece intacto en sus dos ubicaciones, sin relación con P13.
 
-### 16.3 Cambios necesarios en el frontend para producción
+### 16.3 Cambios en el frontend para producción — estado
 
-Todos los cambios son en `En-busca-del-tesoro.html` y `js/api-client.js`. Ninguno rompe el flujo local actual.
+Todos los cambios son en `En-busca-del-tesoro.html`, `js/api-client.js` y `js/traducciones-ui.js`.
 
-**1. `validarCodigo()` — doble modo** (`En-busca-del-tesoro.html` ~L1352)
+**1. `validarCodigo()` — doble modo** ✅ hecho (2026-07-13)
 
-Estado actual: en modo `'local'` la validación de compra queda pendiente del backend — no hay código fijo hardcodeado.
+Valida solo formato (código ≥4 caracteres + email con forma de email) para habilitar el botón. La bifurcación real por `DATA_MODE` ocurre en `_irANormativa()`, no en `validarCodigo()` — ver el recuadro "Estado actual" más arriba.
 
-En producción debe bifurcarse según `DATA_MODE`:
-- Modo `'local'`: validar solo el formato del código y del email (sin llamada al servidor). El campo de código no acepta valores fijos hardcodeados.
-- Modo `'api'`: llamar a `ApiClient.activar(email, codigo, aventuraId)` → si recibe JWT → desbloquear botón; si recibe error → mostrar mensaje en `#feedback-codigo`.
+**2. `ApiClient.activar()` — añadir email** ✅ hecho (2026-07-13)
 
-**2. `ApiClient.activar()` — añadir email** (`js/api-client.js` ~L284)
+`ApiClient.activar(codigo, email, aventuraId)` (`js/api-client.js`) envía `POST /api/auth/activar { codigo, email, aventuraId }`.
 
-Estado actual: `POST /api/auth/activar { codigo, aventuraId }` — no envía email.
+**3. Campo `#input-email` — habilitar** ✅ hecho (2026-07-13)
 
-En producción: `POST /api/auth/activar { email, codigo, aventuraId }`.
+`disabled` eliminado; conectado a `validarCodigo()` con validación de formato (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`).
 
-El backend necesita el email para la doble verificación (código pertenece a ese email).
-
-**3. Campo `#input-email` — habilitar** (`En-busca-del-tesoro.html` ~L831)
-
-Estado actual: `<input type="email" id="input-email" disabled ...>` — campo visible pero bloqueado.
-
-En producción: eliminar `disabled` y añadir validación de formato antes de enviar.
-
-**4. P12 — detectar redirect de la plataforma de pago** (`En-busca-del-tesoro.html` ~L802)
+**4. P12 — detectar redirect de la plataforma de pago** — pendiente
 
 Estado actual: P12 es un placeholder con botón que salta a P13 manualmente.
 
 En producción: al cargar P12, comprobar `new URLSearchParams(location.search).get('payment')`. Si es `'ok'`, avanzar automáticamente a P13 con el email prellenado desde el parámetro de la URL o del payload del redirect.
 
-**5. `SELECCION.CODIGO_VALIDADO` — añadir email y token** (`En-busca-del-tesoro.html` ~L1403)
+**5. `SELECCION.CODIGO_VALIDADO` — añadir email** ✅ hecho (2026-07-13); token — pendiente
 
-Estado actual: `datos: { aventura, idioma, timestamp }`.
+`datos: { aventura, idioma, email, timestamp }` — el email viaja ya en el mensaje. El JWT no se añade al payload: `ApiClient.activar()` ya lo guarda en `sessionStorage` (`TokenManager`, `js/api-client.js`) al recibirlo, y padre e iframe de selección comparten `sessionStorage` por ser mismo origen — el padre puede leerlo ahí directamente cuando lo necesite, sin duplicarlo en el mensaje.
 
-En producción añadir: `datos: { aventura, idioma, timestamp, email, token }`. El padre puede ignorar los campos que no usa; tenerlos disponibles permite auditoría y soporte.
+**6. Pantalla flotante "código o email erróneos"** ✅ hecho (2026-07-13)
+
+`_mostrarErrorAccesoP13()` (`En-busca-del-tesoro.html`) + `TRADUCCIONES_ACCESO_ERRONEO` (`js/traducciones-ui.js`, 12 idiomas). Se muestra en cualquier rechazo, tanto en modo `'local'` (siempre) como en modo `'api'` con credenciales inválidas.
 
 ---
 
@@ -6744,7 +6744,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 | **CORS** | Cabeceras `Access-Control-Allow-Origin: *` en el servidor estático. Deberá restringirse al dominio en producción. | `js/server.js` |
 | **Permissions Policy** | Permite solo geolocalización (`self`); bloquea explícitamente cámara, micrófono, pagos, USB y bluetooth. También se envía la cabecera `Feature-Policy` (alias legacy). | `js/server.js` |
 | **`.gitignore`** | Impide que `.env`, certificados SSL y logs lleguen al repositorio | `.gitignore` |
-| **Código de activación local** | Validación del código de compra en pantalla P13. No hay código fijo hardcodeado. Solo tras validación exitosa se envía `SELECCION.CODIGO_VALIDADO` al padre. La validación completa (email + código único + JWT) queda pendiente del backend de producción. | `En-busca-del-tesoro.html` |
+| **Código de activación (P13)** | No hay ningún código de referencia hardcodeado (ni compartido con el modo DEV). En modo `'local'` (sin backend) toda activación se rechaza siempre; en modo `'api'` se valida contra el backend vía `ApiClient.activar()`. Solo tras validación exitosa se envía `SELECCION.CODIGO_VALIDADO` al padre. El mensaje de error (`_mostrarErrorAccesoP13()`, 12 idiomas) es genérico ("código o email incorrectos") — no distingue cuál de los dos campos falló, evitando que se pueda usar el formulario para averiguar si un email concreto tiene una compra asociada. Ver el recuadro "Estado actual" en §16.2. | `En-busca-del-tesoro.html`, `js/api-client.js` |
 | **Pre-comprobación de permiso GPS + activación en P14** | `_irANormativa()` llama a `navigator.permissions.query({name:'geolocation'})` antes de enviar `CODIGO_VALIDADO`. Si el estado es `'denied'`, muestra `#gps-denegado-p13` y bloquea en P13. Si se permite, el padre activa GPS en `_hdl_SELECCION_P14_MOSTRADA` (no en `CODIGO_VALIDADO`). | `En-busca-del-tesoro.html`, `codigo-padre.html` |
 
 ### Seguridad pendiente de implementar (para producción)
@@ -6755,7 +6755,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 | **Rate limiting** | Pendiente — requiere backend |
 | **Helmet (headers HTTP de seguridad)** | Pendiente — requiere backend Express |
 | **Log de seguridad** | Pendiente — requiere backend |
-| **Validación de código de activación real (email + código)** | Pendiente — `validarCodigo()` en `En-busca-del-tesoro.html` (~L1352) no tiene código hardcodeado (eliminado por seguridad). En producción: habilitar `#input-email`, bifurcar `validarCodigo()` para llamar a `ApiClient.activar(email, codigo, aventuraId)` en modo `'api'`, actualizar `ApiClient.activar()` para enviar también el email. Ver §16.3 para la lista completa de cambios. |
+| **Validación de código de activación real (email + código)** | Frontend ya preparado (✅ 2026-07-13: `#input-email` habilitado, `ApiClient.activar()` envía email, `_irANormativa()` ya llama al backend en modo `'api'` — ver §16.2/§16.3). Lo único pendiente es que exista un backend real que responder a `POST /api/auth/activar`; hasta entonces (`BACKEND_READY=false`), toda activación se rechaza siempre en modo `'local'`. |
 | **CORS restringido al dominio** | Pendiente para producción |
 | **Sandboxing de iframes** | Pendiente — añadir `sandbox="allow-scripts allow-same-origin allow-forms"` a los 7 iframes hijo; ver "Pendiente antes del despliegue §4" |
 | **HSTS** | Pendiente — solo activo en producción HTTPS; ver "Pendiente antes del despliegue §5" |
@@ -6977,7 +6977,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-video-playback-fixes-jul13b'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-p13-backend-prep-jul14'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7570,7 +7570,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-video-playback-fixes-jul13b'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-p13-backend-prep-jul14'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9285,7 +9285,7 @@ El iframe más complejo. Gestiona las pantallas del flujo de incorporación (sel
 | Hijo → Padre | `SELECCION.IDIOMA_SELECCIONADO` | Al confirmar idioma |
 | Hijo → Padre | `SELECCION.AVENTURA_SELECCIONADA` | P7: al elegir aventura (padre solo almacena estado) |
 | Hijo → Padre | `SELECCION.PREPARAR_HIJOS` | P9: al confirmar aventura (padre almacena estado) |
-| Hijo → Padre | `SELECCION.CODIGO_VALIDADO` | P13: al introducir código válido con GPS no denegado → padre registra con log; GPS, iframes y datos se activan en P14 |
+| Hijo → Padre | `SELECCION.CODIGO_VALIDADO` | P13: al introducir código+email aceptados por el backend (o dev mode) con GPS no denegado → padre registra con log; GPS, iframes y datos se activan en P14 |
 | Hijo → Padre | `RETO.COMPLETADO` | Al resolver R1 y R2 |
 | Hijo → Padre | `SELECCION.AVENTURA_ACTIVADA` | P15: al confirmar R-2 afirmativo (padre usa fast-path si iframes pre-cargados) |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Para ocultar la pantalla al comenzar la aventura |
@@ -9520,7 +9520,7 @@ Primera pantalla visible para el usuario. Cubre toda la ventana (`z-index:2000`)
 | `SELECCION.AVENTURA_ACTIVADA` | Padre | Al confirmar respuesta afirmativa en P15 (Reto R-2 — pregunta final Sí/No) | Confirmar que la aventura está desbloqueada y lanzar el flujo de activación |
 | `SELECCION.TERMINOS_ACEPTADOS` | Padre | Al aceptar términos en P10 | Registrar aceptación legal |
 | `SELECCION.PREPARAR_HIJOS` | Padre | P9 (confirmación aventura) | Comunicar los datos de pre-selección `{ idioma, aventura, timestamp }` al padre |
-| `SELECCION.CODIGO_VALIDADO` | Padre | Al pulsar → en P13 con código correcto y GPS no denegado (`_irANormativa()`), o automáticamente desde `mostrar()` cuando `_devCasaMode === true` intercepta P12/P13 | Disparar la carga de iframes y activación de GPS en el padre |
+| `SELECCION.CODIGO_VALIDADO` | Padre | Al pulsar → en P13 con activación aceptada por el backend y GPS no denegado (`_irANormativa()`), o automáticamente desde `mostrar()` cuando `_devCasaMode === true` intercepta P12/P13 | Disparar la carga de iframes y activación de GPS en el padre |
 | `SELECCION.DEV_MODE_TOGGLE` | Padre | Al introducir código DEV en el modal DEV de P1 (Factor 1) | Activar `_devModeActivo = true` en el padre antes de navegar P2→P11 |
 
 ---
@@ -11019,7 +11019,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-video-playback-fixes-jul13b';
+const CACHE_VERSION = 'v-p13-backend-prep-jul14';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.

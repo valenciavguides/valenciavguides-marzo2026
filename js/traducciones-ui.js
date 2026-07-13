@@ -258,6 +258,21 @@ export const TRADUCCIONES_DESPEDIDA = {
     uk: 'До побачення! Дякуємо, що досліджували Валенсію разом з нами.'
 };
 
+export const TRADUCCIONES_ACCESO_ERRONEO = {
+    es: { titulo: 'Código o email incorrectos', cuerpo: 'Revisa los datos introducidos e inténtalo de nuevo.' },
+    en: { titulo: 'Incorrect code or email', cuerpo: 'Please check the details you entered and try again.' },
+    fr: { titulo: 'Code ou email incorrect', cuerpo: 'Vérifiez les informations saisies et réessayez.' },
+    it: { titulo: 'Codice o email errati', cuerpo: 'Controlla i dati inseriti e riprova.' },
+    nl: { titulo: 'Onjuiste code of e-mail', cuerpo: 'Controleer de ingevoerde gegevens en probeer het opnieuw.' },
+    de: { titulo: 'Falscher Code oder falsche E-Mail', cuerpo: 'Überprüfen Sie Ihre Angaben und versuchen Sie es erneut.' },
+    ja: { titulo: 'コードまたはメールアドレスが正しくありません', cuerpo: '入力内容を確認して、もう一度お試しください。' },
+    zh: { titulo: '代码或电子邮件不正确', cuerpo: '请检查您输入的信息并重试。' },
+    pl: { titulo: 'Nieprawidłowy kod lub e-mail', cuerpo: 'Sprawdź wprowadzone dane i spróbuj ponownie.' },
+    pt: { titulo: 'Código ou email incorretos', cuerpo: 'Verifique os dados introduzidos e tente novamente.' },
+    ru: { titulo: 'Неверный код или email', cuerpo: 'Проверьте введённые данные и попробуйте снова.' },
+    uk: { titulo: 'Невірний код або email', cuerpo: 'Перевірте введені дані та спробуйте ще раз.' }
+};
+
 export const MSG_RETOS_COMPLETOS = {
     es: '¡Has completado todos los retos!',
     en: "You've completed all the challenges!",

@@ -276,16 +276,18 @@ const ApiClient = {
     // ========================================
 
     /**
-     * Activa una aventura con un código y obtiene un token de sesión.
+     * Activa una aventura con un código y email, y obtiene un token de sesión.
+     * El código distingue mayúsculas/minúsculas — nunca transformar antes de enviarlo.
      * @param {string} codigo - Código de activación
+     * @param {string} email - Email del comprador (debe coincidir con el asociado al código)
      * @param {string} aventuraId - ID de la aventura
      * @returns {Promise<{exito: boolean, token: string}>}
      */
-    async activar(codigo, aventuraId = 'Aventura1') {
+    async activar(codigo, email, aventuraId = 'Aventura1') {
         const url = `${API_CONFIG.baseUrl}/auth/activar`;
         const data = await fetchWithRetry(url, {
             method: 'POST',
-            body: JSON.stringify({ codigo, aventuraId })
+            body: JSON.stringify({ codigo, email, aventuraId })
         });
         if (data.token) {
             TokenManager.setToken(data.token);
