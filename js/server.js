@@ -30,6 +30,8 @@ const PROTECTED_FILES = [
     '/js/audios-aventuras.js',
     '/js/parrafos-textos/',       // En producción se sirve vía GET /api/textos/:idioma
     '/audios-aventuras/',         // MP3 de contenido de pago — acceso solo vía API autenticada
+    '/imagenes/imagenes-aventuras/',   // Fotos de contenido de pago — acceso solo vía API autenticada
+    '/videos-aventuras/',              // Vídeos de contenido de pago (dron por parada) — igual que audio
     '/backend/'
 ];
 

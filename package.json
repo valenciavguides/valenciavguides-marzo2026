@@ -10,6 +10,7 @@
     "inventory:dupes": "node tools/inventory.js --duplicates",
     "inventory:file": "node tools/inventory.js --by-file",
     "verificar-mensajeria": "node tools/verificar-mensajeria.js",
+    "verificar-media": "node tools/verificar-media.js",
     "lint": "eslint \"js/**/*.js\" \"*.html\"",
     "lint:fix": "eslint \"js/**/*.js\" \"*.html\" --fix",
     "test:e2e": "playwright test",

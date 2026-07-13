@@ -6115,6 +6115,8 @@ audios-aventuras/
 
 Actualmente existen carpetas para varios idiomas: `español/` (con intro MP3 + subcarpetas Av1, Av2, Av3), `english/`, `frances/`, `holandes/`, `italiano/`, `japones/`. Solo `español/` contiene audios reales; las demás carpetas existen pero están vacías. Cuando se graben los audios de un idioma, se añaden los MP3 a la subcarpeta correspondiente.
 
+**⚠️ Hallazgo real (2026-07-13):** los dos únicos audios grabados hoy (`01-Intro-ESPAÑOL-1.mp3` y `02-Intro ESPAÑOL-2.mp3`, con música de fondo) están codificados a **320 kbps estéreo** — calidad de masterización musical, no de narración. Para voz + música de fondo (no voz pura, que necesitaría bastante menos), un rango razonable es **128-160 kbps**, preferiblemente VBR (`ffmpeg -c:a libmp3lame -q:a 2`, calidad variable ~164kbps de media) en vez de CBR fijo — VBR reparte más bits a los pasajes con música y menos a la voz sola, mejor calidad por byte que un bitrate constante. **Verificar el resultado de oído antes de adoptarlo como estándar** — a diferencia del vídeo (donde sí pude comprobar la calidad visual con fotogramas extraídos), la calidad de audio no se puede verificar sin escucharla. Con docenas de paradas × 7 aventuras × 12 idiomas por grabar, este es el mayor riesgo de peso total de todo el proyecto si se replica el mismo error a escala — mucho mayor que el de las imágenes. Ver checklist completa (aplica a imagen/audio/vídeo) y `npm run verificar-media` en §15.
+
 ### El fichero de metadatos
 
 `js/audios-aventuras.js` exporta `AUDIOS_AVENTURAS`, que tiene una entrada por cada parada y tramo de cada aventura, para los 12 idiomas. Cada entrada:
@@ -6445,6 +6447,17 @@ Los `title` de cada entrada están traducidos al idioma correspondiente (ej: "Pa
 
 ## 15. Los vídeos
 
+### ⚠️ Antes de subir CUALQUIER archivo de media (imagen, audio o vídeo): `npm run verificar-media`
+
+La checklist de codificación detallada de más abajo (perfil H.264, bitrate, resolución) nació de un problema real de vídeo, pero se aplica igual a imágenes y audio — los tres tipos han tenido el mismo error exacto (archivo sin comprimir ni pensar en el tamaño de renderizado real, ver [[project-video-faststart-fix]] y el hallazgo de audio a 320kbps en §12). En vez de fiarse de recordar la checklist cada vez, `tools/verificar-media.js` la comprueba automáticamente:
+
+```bash
+npm run verificar-media          # informe completo
+npm run verificar-media -- --quiet   # solo lo que excede el límite (para CI)
+```
+
+Recorre `imagenes/imagenes-aventuras/`, `imagenes/imagenes-mapas-vintage/`, `audios-aventuras/` y `videos-aventuras/`, comparando cada archivo contra un límite de tamaño de referencia (imagen: 1,5 MB; audio: 8 MB; vídeo: 12 MB — deliberadamente generosos, para señalar solo el caso claro de "esto no pasó por la checklist"). Si `ffmpeg` está en el `PATH` (no es una dependencia permanente del proyecto — instalar puntualmente si hace falta), añade una comprobación más precisa: bitrate real de audio y perfil H.264/fotogramas de referencia de vídeo, detectando también archivos que están *por debajo* del límite de tamaño pero mal codificados igualmente (caso real: `02-Intro ESPAÑOL-2.mp3`, 320kbps, encontrado así). No bloquea nada automáticamente — es un informe para revisar antes de dar un archivo por bueno, no un hook de commit.
+
 ### Ubicación
 
 Los vídeos están en `videos-aventuras/` organizados por aventura:
@@ -6572,6 +6585,16 @@ El módulo `js/data-loader.js` implementa las dos ramas (`DATA_MODE='local'` / `
 
 **Puzzles — mecanismo aparte, sin pasar por `data-loader.js`:** los retos de `tipo:'puzzle'` (`retos-aventuras.js`) llevan un campo `src` hardcodeado (p.ej. `"puzzle.html?id=PZ-01"`). hijo4 crea un `<iframe src="puzzle.html?id=PZ-01">`; `puzzle.html` importa `js/puzzles-aventuras.js` **directamente** (bypass total de `data-loader.js`/`DATA_MODE`) y busca el id primero en `PUZZLES_AVENTURAS[aventuraActual]` (siempre vacío — los puzzles no están organizados por aventura) y si no lo encuentra escanea todas las entradas de `PUZZLES_AVENTURAS` (hoy solo existe la clave compartida `INTRO`), que es la búsqueda que realmente tiene éxito. `data-loader.js` no tiene ninguna función para puzzles: la forma real de los datos (pool compartido bajo `INTRO`, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)` que usan `cargarAudios`/`cargarRetos`/`cargarCoordenadas`/`cargarTextos`. El mecanismo real sigue siendo el import directo de `puzzle.html`, que queda **fuera de la protección pasiva por parada**: siempre carga el pool completo de puzzles, y no se adaptará solo cuando `BACKEND_READY=true`. Si se quiere proteger, hace falta una función que resuelva un único puzzle por id (ver §22.12).
 
+### 16.1b Prevenir cuellos de botella del backend antes de que exista (2026-07-13)
+
+Ni local ni GitHub Pages pueden revelar problemas de rendimiento específicos de un backend real (latencia de base de datos, coste de autenticación, límites de peticiones) porque ese backend todavía no existe — solo sirven ficheros estáticos. Cuando se implemente, hay que repetir el mismo tipo de verificación que se hizo con el vídeo (medir con datos reales, no asumir), pero hay decisiones de diseño que conviene fijar desde ahora para no heredar problemas:
+
+- **CORS con wildcard (`Access-Control-Allow-Origin: '*'`, `js/server.js`):** inofensivo mientras frontend y backend comparten origen. En cuanto vivan en dominios distintos, restringir al dominio real de producción (ya estaba en el checklist de §22.4 como tarea de seguridad; con arquitectura distribuida deja de ser opcional).
+- **La protección pasiva por parada (`_solicitarAudioParaParada()`, ver §16) ya hace una petición por parada, no una petición bulk por aventura — a propósito, para no exponer todo el contenido de golpe (ver §17).** Esto significa que cuando exista backend real, cada cambio de parada disparará una petición HTTP nueva. Es el diseño correcto para el objetivo de protección, pero implica que la latencia *por petición* del backend (no el volumen total de datos) será lo que el usuario note al caminar de parada en parada — merece medirse específicamente, no asumir que "poco tráfico total" equivale a "rápido".
+- **`js/api-client.js` ya tiene un timeout de 15s** (`API_CONFIG.timeout`) — generoso para latencia de red + procesamiento real de backend, no hace falta tocarlo preventivamente.
+- **Cabeceras de caché en las respuestas del backend:** hoy los ficheros estáticos de media no pasan por caché del Service Worker para vídeo (ver §19) y sí para audio/imágenes (Cache First + LRU-100). Cuando el backend sirva estos mismos recursos vía API autenticada, hay que decidir explícitamente si esa respuesta es cacheable (`Cache-Control`) o si la autenticación por petición lo impide — no dar por hecho que el comportamiento actual se mantiene solo porque la URL cambió de estática a `/api/...`.
+- **Cuando el backend exista, repetir la verificación de red real** (igual que se hizo con `curl` contra GitHub Pages para el vídeo, ver [[project-video-faststart-fix]]) contra el backend real, no solo contra un entorno de desarrollo local del backend — la latencia real entre frontend y backend en producción es la única forma fiable de saber si hace falta CDN delante del backend para media, o si las peticiones por parada son lo bastante rápidas.
+
 ### 16.2 Flujo completo de compra y activación (diseño para producción)
 
 El acceso de pago tiene tres fases secuenciales. La plataforma de pago concreta (Stripe, Paddle, Lemon Squeezy u otra) está pendiente de decidir; el flujo es el mismo independientemente de cuál se elija.
@@ -6690,13 +6713,19 @@ const DATA_MODE = (BACKEND_READY && !_esLocal) ? 'api' : 'local';
 
 Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 (HTTP / fetch — capa de datos)**.
 
+### La protección pasiva por parada (client-side) no sustituye la protección de ficheros (server-side)
+
+**Hallazgo real (2026-07-13):** hasta esa fecha, `PROTECTED_FILES` (`js/server.js`) no incluía `/imagenes/imagenes-aventuras/` ni `/videos-aventuras/` — así que aunque `PROTECT_DATA=true` estuviera activo, cualquiera con la URL directa de una foto o vídeo (deducible por patrón de nombre, o vista en el tráfico de red durante un uso normal) podía descargarla sin pasar por ninguna autenticación. Ya corregido (ver tabla de arriba), pero la lección general importa: la protección pasiva por parada (`_solicitarAudioParaParada()`, resolver solo el contenido de la parada activa, ver §16) es una medida del lado **cliente** — evita que la propia interfaz de la app revele todo el contenido de golpe en la memoria/estado de JavaScript. Eso **nunca sustituyó** la protección real, que ocurre en el servidor (`PROTECT_DATA`/`PROTECTED_FILES`): un fichero estático sin proteger es descargable directamente por su URL sin importar cuán granular sea la lógica de la interfaz que lo referencia. Cualquier tipo de contenido de pago nuevo (imágenes, vídeos, y lo que se añada en el futuro) necesita añadirse explícitamente a `PROTECTED_FILES` — no basta con que la app lo cargue "uno a uno".
+
+**¿El modo CASA expone más contenido que AVENTURA?** No. `coordenadas-aventuras.js` (que contiene las URLs de imagen/vídeo de *toda* la aventura, no solo la parada activa) se carga en Fase 2 del arranque del padre, **antes** de que se decida el modo CASA o AVENTURA — ocurre igual en ambos casos. El resto del contenido (audio, retos, imágenes mostradas) se resuelve por el mismo camino único (`_hdl_NAVEGACION_CAMBIO_PARADA`) tanto en CASA como en AVENTURA (ver §16, "mismo camino para CASA y AVENTURA"). CASA solo cambia cómo se dispara el cambio de parada (navegación manual vía hijo5 en vez de detección GPS) — no qué datos hay disponibles en cada momento. Además, hijo5 (la barra de navegación de CASA) es una herramienta de desarrollo que no aparece en la PWA real (ver §7.6).
+
 ### Seguridad actualmente implementada
 
 | Capa | Qué hace | Dónde |
 |------|---------|--------|
 | **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) acepta también `event.origin === 'null'` (file:// en local) y `event.source === window` (auto-mensajes). Los listeners raw fuera del bus que validan origin son: `_handlePreModuleMessage` (padre, origin+source hijo5), CHAT.CERRAR (padre:1660), SUPRIMIR_ROTACION (padre:3394), NAVEGACION_PANTALLA (En-busca-del-tesoro.html:2749), `_onPuzzleMessage` (En-busca-del-tesoro.html:1271), listener puzzle (retos-hijo4.html:1188). Los messagingAdapters de todos los hijos validan `event.source === globalThis.parent`. | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
 | **confirmListener por ID único** | Cada mensaje con confirmación genera un `idMensaje` único; el listener filtra por `event.data.idOriginal === idMensaje` para evitar resoluciones cruzadas | `js/mensajeria.js` |
-| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3 de contenido de pago), `backend/`. | `js/server.js` |
+| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos, añadido 2026-07-13), `videos-aventuras/` (vídeos, añadido 2026-07-13), `backend/` — todos son contenido de pago. | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
 | **CORS** | Cabeceras `Access-Control-Allow-Origin: *` en el servidor estático. Deberá restringirse al dominio en producción. | `js/server.js` |
 | **Permissions Policy** | Permite solo geolocalización (`self`); bloquea explícitamente cámara, micrófono, pagos, USB y bluetooth. También se envía la cabecera `Feature-Policy` (alias legacy). | `js/server.js` |
@@ -7289,7 +7318,7 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 
 > ⚠️ **Dependencia cruzada con `BACKEND_READY`**: `PROTECT_DATA=true` solo tiene sentido junto con `BACKEND_READY=true` en `js/data-loader.js` (§22.11) — si `BACKEND_READY` sigue en `false`, `DATA_MODE` seguirá siendo `'local'` y la Fase 2 del padre (`codigo-padre.html`) seguirá importando directamente los ficheros que `PROTECT_DATA` bloquearía, rompiendo la carga de aventuras con 403. `js/server.js` emite un `console.warn` al arrancar con `PROTECT_DATA=true` recordando esta dependencia. Ver también §22.12 para los imports directos aún pendientes de migrar.
 
-**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 15–23):
+**Ficheros actualmente protegidos** (definidos en `js/server.js` líneas 25–35):
 
 ```text
 /js/coordenadas-aventuras.js    ← coordenadas GPS de paradas y tramos
@@ -7299,8 +7328,12 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 /js/audios-aventuras.js         ← índice de archivos de audio
 /js/parrafos-textos/            ← directorio completo (JSON por idioma)
 /audios-aventuras/              ← MP3 del contenido de pago (directorio completo)
+/imagenes/imagenes-aventuras/   ← fotos del contenido de pago (directorio completo, añadido 2026-07-13)
+/videos-aventuras/               ← vídeos del contenido de pago — dron por parada (directorio completo, añadido 2026-07-13)
 /backend/                       ← directorio completo (reservado)
 ```
+
+**Nota sobre la incorporación de imágenes y vídeos (2026-07-13):** hasta esta fecha, `PROTECTED_FILES` solo cubría audio/texto/retos/coordenadas — las carpetas de imágenes y vídeos de las aventuras quedaban fuera de la lista, así que **ni siquiera con `PROTECT_DATA=true` activo** habrían estado protegidas: cualquiera con la URL directa (deducible o vista en el tráfico de red) podía descargar cualquier foto o vídeo de pago sin pasar por ninguna autenticación. La protección "pasiva por parada" del lado cliente (§16) evita que la app *revele* todo el contenido de golpe en su propia interfaz, pero eso nunca sustituyó la protección real a nivel de servidor — un usuario que conociera o adivinara las rutas de los ficheros estáticos podía saltársela por completo. Corregido añadiendo ambas carpetas a la lista.
 
 **Pendiente añadir a `PROTECTED_FILES` antes de producción:**
 
