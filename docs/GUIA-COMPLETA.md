@@ -6115,7 +6115,21 @@ audios-aventuras/
 
 Actualmente existen carpetas para varios idiomas: `español/` (con intro MP3 + subcarpetas Av1, Av2, Av3), `english/`, `frances/`, `holandes/`, `italiano/`, `japones/`. Solo `español/` contiene audios reales; las demás carpetas existen pero están vacías. Cuando se graben los audios de un idioma, se añaden los MP3 a la subcarpeta correspondiente.
 
-**⚠️ Hallazgo real (2026-07-13):** los dos únicos audios grabados hoy (`01-Intro-ESPAÑOL-1.mp3` y `02-Intro ESPAÑOL-2.mp3`, con música de fondo) están codificados a **320 kbps estéreo** — calidad de masterización musical, no de narración. Para voz + música de fondo (no voz pura, que necesitaría bastante menos), un rango razonable es **128-160 kbps**, preferiblemente VBR (`ffmpeg -c:a libmp3lame -q:a 2`, calidad variable ~164kbps de media) en vez de CBR fijo — VBR reparte más bits a los pasajes con música y menos a la voz sola, mejor calidad por byte que un bitrate constante. **Verificar el resultado de oído antes de adoptarlo como estándar** — a diferencia del vídeo (donde sí pude comprobar la calidad visual con fotogramas extraídos), la calidad de audio no se puede verificar sin escucharla. Con docenas de paradas × 7 aventuras × 12 idiomas por grabar, este es el mayor riesgo de peso total de todo el proyecto si se replica el mismo error a escala — mucho mayor que el de las imágenes. Ver checklist completa (aplica a imagen/audio/vídeo) y `npm run verificar-media` en §15.
+### ✅ Estándar de codificación de audio: 128 kbps CBR (fijado 2026-07-13)
+
+**Hallazgo real:** los dos únicos audios grabados hasta esa fecha (`01-Intro-ESPAÑOL-1.mp3` y `02-Intro ESPAÑOL-2.mp3`, con música de fondo) estaban codificados a **320 kbps estéreo** — calidad de masterización musical, no de narración. Se generaron archivos de prueba a 128kbps CBR y VBR Q2 (~164kbps) para comparar; el usuario los escuchó con auriculares y confirmó que la música y la voz suenan bien incluso a 128kbps.
+
+**Estándar fijado y ya aplicado:**
+
+```bash
+ffmpeg -i entrada.mp3 -c:a libmp3lame -b:a 128k salida.mp3
+```
+
+**128 kbps CBR (bitrate constante, no variable)** — se eligió CBR sobre VBR porque el tamaño resultante es predecible de antemano, útil para estimar el volumen total con docenas de paradas × 7 aventuras × 12 idiomas por grabar. Ya aplicado a los 2 audios reales existentes (`01-Intro-ESPAÑOL-1.mp3`: 15,4MB→6,0MB; `02-Intro ESPAÑOL-2.mp3`: 5,2MB→2,0MB).
+
+**No hay compresión automática:** subir un audio nuevo al proyecto no lo recodifica — hay que aplicar este comando (o pedírselo a Claude) sobre cada archivo antes de darlo por bueno en producción. `npm run verificar-media` (ver más abajo) detecta los que no cumplen el estándar, pero no los corrige.
+
+Con docenas de paradas × 7 aventuras × 12 idiomas por grabar, este era el mayor riesgo de peso total de todo el proyecto si se replicaba el error de 320kbps a escala — mayor que el de las imágenes. Ver checklist completa (aplica a imagen/audio/vídeo) y `npm run verificar-media` en §15.
 
 ### El fichero de metadatos
 
