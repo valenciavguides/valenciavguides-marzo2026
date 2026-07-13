@@ -4338,7 +4338,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-playback-utils-jul13a'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-playback-fixes-jul13b'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6540,6 +6540,11 @@ export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
 
 Este mecanismo **no depende del tamaño total del archivo** — solo espera a que el navegador confirme que tiene buffer suficiente para arrancar, igual para un clip de 17s que para uno de 5 minutos. Es host-agnóstico: funciona igual sirviendo desde GitHub Pages hoy que desde un backend/CDN futuro, siempre que el servidor soporte Range requests (estándar en prácticamente cualquier hosting HTTP).
 
+**Dos casos borde corregidos tras revisión del flujo completo:**
+
+- **Acumulación de listeners `stalled`/`waiting` en `<video>` reutilizados:** `mostrarVideoOverlay()` reutiliza el mismo elemento `<video>` entre paradas distintas dentro de una misma aventura (no lo recrea cada vez). Los handlers `stalled`/`waiting` están definidos como funciones **con nombre a nivel de módulo** (no closures anónimas creadas en cada llamada) precisamente por esto: `addEventListener` con la misma referencia de función es un no-op la segunda vez (deduplica según especificación DOM), así que `reproducirVideoConBuffer()` puede llamarse muchas veces sobre el mismo elemento sin acumular listeners duplicados.
+- **`canplaythrough`/`error` llegando después de cerrar el overlay:** si el usuario cierra el vídeo (`cerrarVideoOverlay()` en el padre, o `clearOv()` tras pulsar "saltar intro" en `sceneVid`) mientras `reproducirVideoConBuffer()` todavía está esperando el buffer, el elemento se pausa y se elimina del DOM ~400ms después — pero la promesa pendiente seguía viva. Si el evento llegaba tarde, `arrancar()` volvía a llamar `.play()` sobre un `<video>` ya desconectado, reanudando la reproducción en memoria de forma invisible. Fix: `arrancar()` comprueba `videoEl.isConnected` antes de llamar `.play()` — si el elemento ya no está en el DOM, no hace nada.
+
 **Uso en `sceneVid`:** el `<video>` se crea con `display:none` y un spinner (`#vid-loading`) visible encima; al resolver `reproducirVideoConBuffer()`, se oculta el spinner y se muestra el vídeo ya reproduciéndose.
 
 **Uso en `mostrarVideoOverlay`:** tras `video.load()` (recargar con la nueva fuente), se llama a `globalThis.reproducirVideoConBuffer(video)` en vez de depender del atributo `autoplay` (quitado del `<video>` de `_crearVideoOverlayEl`). Guard defensivo: si `globalThis.reproducirVideoConBuffer` no está disponible por algún motivo, cae a `video.play()` directo.
@@ -6869,19 +6874,20 @@ Define cómo se ve la app cuando se instala en el móvil (`manifest.json` en la 
 
 ### El Service Worker (sw.js)
 
-Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cachés separadas** y **tres estrategias** según el tipo de recurso:
+Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cachés separadas** y **cuatro estrategias** según el tipo de recurso:
 
 | Caché | Nombre | Estrategia | Contenido |
 |-------|--------|-----------|-----------|
 | Shell | `vvguides-shell-{CACHE_VERSION}` | **Network First** | HTML, JS, manifest, iconos — contenido versionado |
-| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Audios MP3, vídeos MP4, imágenes de aventuras y mapas vintage |
+| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Audios MP3, imágenes de aventuras y mapas vintage — **NO vídeos** |
+| Vídeos (`/videos-aventuras/`) | — | **Network Only (sin interceptar)** | El `fetch` handler devuelve sin gestionar la petición (`return` en el listener, antes de llegar a `esMedia()`) para que las peticiones `Range` del `<video>` vayan directas a red — cachear respuestas `206 Partial Content` es una fuente conocida de bugs |
 | API | — | **Network Only** | Peticiones a `/api/*` — sin caché, 503 si sin conexión |
 
 #### Estrategia detallada
 
 **Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión.
 
-**Cache First con LRU (media):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de los audios y vídeos ya escuchados/vistos.
+**Cache First con LRU (media, sin vídeos):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de los audios ya escuchados y las imágenes ya vistas. **Los vídeos quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) incluye textualmente `/videos-aventuras/` en su lista, pero es código inerte para ese caso — el `fetch` handler tiene un `return` explícito para esa ruta *antes* de consultar `esMedia()`, así que nunca llega a esa lógica. Los vídeos siempre van directos a red, sin caché SW en absoluto (ver §15 para el mecanismo de reproducción, `reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`).
 
 **Network Only (API):** las llamadas a la API nunca se cachean; si no hay red, devuelve 503 con mensaje legible.
 
@@ -6928,7 +6934,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-video-playback-utils-jul13a'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-video-playback-fixes-jul13b'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7031,7 +7037,7 @@ proyecto/
 ├── paginas-oficiales-valencia.html
 │
 ├── manifest.json                     ← Configuración PWA (iconos, shortcuts, categorías)
-├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100)
+├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos — esos van siempre directos a red)
 ├── CNAME                             ← Dominio para GitHub Pages (valenciavguides.es)
 ├── package.json                      ← Dependencias y scripts (lint, test, dev)
 ├── eslint.config.js                  ← Configuración ESLint
@@ -7062,6 +7068,7 @@ proyecto/
 │   ├── proteccion.js                 ← Protección de datos sensibles
 │   ├── traducciones-ui.js            ← Textos de interfaz en 12 idiomas (JAIME_SCENES, modales, retos, etc.)
 │   ├── reciclaje-digital.js          ← Limpieza total al finalizar aventura (localStorage, caché, SW)
+│   ├── video-playback-utils.js       ← reproducirVideoConBuffer() — espera buffer suficiente antes de reproducir cualquier <video>, sirve para clips de segundos o minutos (ver §15)
 │   │
 │   ├── ── DATOS ──
 │   ├── data-loader.js                ← Cargador de datos (modo 'local' actual / 'api' futuro)
@@ -7516,7 +7523,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-video-playback-utils-jul13a'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-video-playback-fixes-jul13b'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -7710,7 +7717,7 @@ La única solución es un **paso de compilación con Babel** que transpile la si
 | Término | Significado |
 |---------|-------------|
 | **PWA** | Progressive Web App — aplicación web instalable como app nativa en el dispositivo |
-| **Service Worker** | Script registrado en el navegador (`sw.js`) que gestiona dos niveles de caché: shell (Network First) y media/audios (Cache First + LRU‑100 entradas) |
+| **Service Worker** | Script registrado en el navegador (`sw.js`) que gestiona dos niveles de caché: shell (Network First) y media/audios (Cache First + LRU‑100 entradas, no incluye vídeos — siempre directos a red) |
 | **Sanitización** | Limpieza de datos de entrada para evitar ataques (XSS, inyección) |
 | **Mutex** | Patrón de promesa compartida usado en `codigo-padre.html` para evitar que operaciones críticas (como `activarGPS()`) se ejecuten en paralelo |
 | **ESLint** | Herramienta de análisis estático de código configurada en `eslint.config.js`. Se ejecuta con `npm run lint` |
@@ -10965,7 +10972,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-video-playback-utils-jul13a';
+const CACHE_VERSION = 'v-video-playback-fixes-jul13b';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.

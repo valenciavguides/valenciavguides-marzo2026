@@ -12,6 +12,17 @@
  * asignado (nunca un blob: eso obliga a descargar el archivo entero antes
  * de reproducir, lo cual no escala a vídeos largos).
  */
+// Handlers de recuperación de micro-cortes, definidos una sola vez a nivel de
+// módulo (no dentro de reproducirVideoConBuffer). Si un mismo <video> se
+// reutiliza entre llamadas — es el caso de mostrarVideoOverlay() en
+// codigo-padre.html, que reutiliza el overlay/elemento para cada vídeo de
+// parada que el usuario abre en una misma sesión — addEventListener con la
+// MISMA referencia de función es un no-op la segunda vez (deduplica según
+// especificación), así que nunca se acumulan listeners duplicados aunque
+// reproducirVideoConBuffer se llame muchas veces sobre el mismo elemento.
+function _onStalled() { setTimeout(() => this.play().catch(() => {}), 300); }
+function _onWaiting() { setTimeout(() => this.play().catch(() => {}), 500); }
+
 export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
     return new Promise((resolve) => {
         if (!videoEl) { resolve(); return; }
@@ -29,6 +40,11 @@ export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
             if (resuelto) return;
             resuelto = true;
             limpiar();
+            // Si el usuario ya cerró el overlay (p.ej. mostrarVideoOverlay/
+            // cerrarVideoOverlay en codigo-padre.html quita el elemento del DOM
+            // ~400ms después de cerrar), no reanudar la reproducción de un
+            // <video> pausado y desconectado solo porque canplaythrough llegó tarde.
+            if (videoEl.isConnected === false) { resolve(); return; }
             videoEl.play().catch(() => {});
             resolve();
         };
@@ -49,7 +65,7 @@ export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
         // Recuperación de micro-cortes de red durante la reproducción — no
         // resuelve un bitrate inviable (eso se arregla en la codificación,
         // ver docs/GUIA-COMPLETA.md §15), pero sí cortes puntuales.
-        videoEl.addEventListener('stalled', function () { setTimeout(() => this.play().catch(() => {}), 300); });
-        videoEl.addEventListener('waiting', function () { setTimeout(() => this.play().catch(() => {}), 500); });
+        videoEl.addEventListener('stalled', _onStalled);
+        videoEl.addEventListener('waiting', _onWaiting);
     });
 }
