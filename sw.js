@@ -63,6 +63,7 @@ const APP_SHELL = [
   '/js/reciclaje-digital.js',
   '/js/traducciones-ui.js',
   '/js/data-loader.js',
+  '/js/video-playback-utils.js',
   // Datos de aventuras (se actualizan con Network First en runtime)
   '/js/indice-aventuras.js',
   '/js/coordenadas-aventuras.js',
@@ -86,7 +87,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-script4-race-fix-jul12g';
+const CACHE_VERSION = 'v-video-playback-utils-jul13a';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';

@@ -1973,7 +1973,7 @@
             overlay.innerHTML = `
                 <div class="media-contenedor video-contenedor">
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar video">×</button>
-                    <video controls autoplay preload="metadata">
+                    <video controls preload="auto">
                         <source type="video/mp4">
                         Tu navegador no soporta el elemento video.
                     </video>
@@ -1985,15 +1985,6 @@
                 vbtn.addEventListener('click', cerrarVideoOverlay);
                 vbtn.addEventListener('touchstart', _stopPropEvent, { passive: true });
                 vbtn.addEventListener('pointerdown', _stopPropEvent);
-            }
-            // Recuperación de micro-cortes de red (mismo patrón que sceneVid en video-intro.html,
-            // §15/§32.7 de la guía). Registrado aquí (una sola vez, en la creación del elemento —
-            // el overlay se reutiliza entre llamadas a mostrarVideoOverlay) para no acumular
-            // listeners duplicados en cada vídeo mostrado.
-            const vEl = overlay.querySelector('video');
-            if (vEl) {
-                vEl.addEventListener('stalled', function () { setTimeout(() => this.play().catch(() => {}), 300); });
-                vEl.addEventListener('waiting', function () { setTimeout(() => this.play().catch(() => {}), 500); });
             }
             return overlay;
         }
@@ -2042,6 +2033,15 @@
             overlay.classList.add('visible');
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                 globalThis.actualizarVisibilidadSelectorMapa();
+            }
+
+            // reproducirVideoConBuffer (js/video-playback-utils.js) espera a canplaythrough
+            // antes de arrancar — mismo mecanismo para cualquier duración de vídeo, sin
+            // depender del tamaño del archivo. Ver docs/GUIA-COMPLETA.md §15.
+            if (typeof globalThis.reproducirVideoConBuffer === 'function') {
+                globalThis.reproducirVideoConBuffer(video);
+            } else {
+                video.play().catch(() => {});
             }
 
             (globalThis.logger || console).info('Video mostrado en overlay:', urlVideo);
@@ -2701,6 +2701,8 @@
         globalThis.verificarTimeoutAventura = verificarTimeoutAventura;
         import { TRADUCCIONES_REANUDACION, TRADUCCIONES_FINALIZACION, TRADUCCIONES_SW_UPDATE } from './js/traducciones-ui.js';
         globalThis.TRADUCCIONES_SW_UPDATE = TRADUCCIONES_SW_UPDATE;
+        import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
+        globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
 
         // Initialize map after Leaflet is loaded
         // Variable para guardar la instancia del mapa y evitar reinicialización

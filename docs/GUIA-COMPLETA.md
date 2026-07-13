@@ -4338,7 +4338,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-script4-race-fix-jul12g'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-video-playback-utils-jul13a'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6494,44 +6494,57 @@ Es una operación de copia de streams (`-c copy`): reordena el índice del conte
 
 **Caso real (2026-07-12):** tras aplicar el faststart de arriba, el vídeo de `sceneVid` seguía cortándose a los ~2s en el hosting real (GitHub Pages). La causa raíz no era el faststart (ya corregido) sino que el archivo pesaba **20,9 MB a ~9,5 Mbps** (1080×1920, con pista de audio AAC innecesaria — el `<video>` de `sceneVid` siempre lleva `muted`) para un clip de 17,6 s mostrado en un modal pequeño (`max-height:60vh`). Un bitrate así requiere una conexión sostenida de >1 MB/s — el navegador consume el buffer inicial (que gracias al faststart carga rápido) y se queda esperando el resto de los datos, que no llegan a tiempo. Los listeners `stalled`/`waiting` que reintentan `.play()` (ver `sceneVid` y `mostrarVideoOverlay`, abajo) **no arreglan esto**: el navegador ya está haciendo todo lo posible por reproducir, el problema es la falta de ancho de banda, no que haya dejado de intentarlo.
 
-**Fix aplicado:** recodificado con `ffmpeg` a 480×854, H.264 CRF 30, preset `slow`, sin pista de audio (`-an`), con `+faststart`:
+**Fix de bitrate aplicado:** recodificado con `ffmpeg` a 480×854, sin pista de audio (`-an`), con `+faststart`. Resultado inicial: 4,3 MB / ~2 Mbps (de 20,9 MB / 9,5 Mbps) — misma duración, calidad visual suficiente para el tamaño real de renderizado (bajo ~350px de ancho en la mayoría de dispositivos, dado el `DAR 9:16` sobre `max-height:60vh`).
+
+### El bitrate no era la única causa: complejidad de decodificación en móvil (2026-07-13)
+
+**Caso real:** con el bitrate ya corregido, el vídeo se reproducía completo mejor pero seguía yendo a tirones específicamente en móvil (PC, tanto local como en GitHub Pages, iba perfecto). La causa: el primer re-encode usaba perfil H.264 **High** con hasta **5 fotogramas de referencia** (`-preset slow` sin restricciones explícitas de perfil/refs) — confirmado leyendo la cabecera SPS del archivo con `ffmpeg -bsf:v trace_headers`. El perfil High (transformada 8×8) y varios fotogramas de referencia son más costosos de decodificar que Main/Baseline con pocos refs; en desktop el hardware/software de decodificación tiene margen de sobra, pero en muchos móviles (sobre todo gama media/baja) puede forzar decodificación por software o simplemente no ir fluido, aunque el archivo entero ya esté en el dispositivo.
+
+**Fix aplicado:** recodificado con parámetros explícitos orientados a compatibilidad de hardware de decodificación, no solo a tamaño de archivo:
 
 ```bash
-ffmpeg -i entrada.mp4 -vf "scale=480:854" -c:v libx264 -preset slow -crf 30 -an -movflags +faststart salida.mp4
+ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
+  -c:v libx264 -profile:v main -level 3.1 -refs 1 -bf 0 \
+  -preset medium -crf 27 -an -movflags +faststart salida.mp4
 ```
 
-Resultado: 4,3 MB / ~2 Mbps (de 20,9 MB / 9,5 Mbps) — misma duración, calidad visual confirmada suficiente para el tamaño real de renderizado (bajo ~350px de ancho en la mayoría de dispositivos, dado el `DAR 9:16` sobre `max-height:60vh`).
+Verificado con `ffmpeg -bsf:v trace_headers`: `profile_idc=77` (Main, no High), `max_num_ref_frames=1`. Tamaño resultante para el clip de 17,6s: ~6 MB (algo más que la versión High/CRF30 de 4,3 MB, pero sigue siendo pequeño) — el objetivo aquí es fluidez de decodificación, no el mínimo tamaño posible.
 
-**Checklist obligatoria antes de subir CUALQUIER vídeo nuevo** (el de `sceneVid`, o los futuros de dron por parada en `coordenadas-aventuras.js`):
+**Checklist obligatoria antes de subir CUALQUIER vídeo nuevo** (el de `sceneVid`, los futuros de dron por parada en `coordenadas-aventuras.js`, o cualquier vídeo que se aloje en el futuro backend/CDN — la checklist no depende de dónde se sirva el archivo):
 
 1. Resolución acorde al tamaño real de renderizado en pantalla — **no** la resolución nativa de la cámara/dron. Para el modal de vídeo del padre (`.video-contenedor`, ancho típico de unos cientos de px) o el de `sceneVid` (`max-height:60vh`), 480-720px de ancho es más que suficiente.
-2. `-crf 28` a `-crf 32` con `libx264 -preset slow` — rango razonable para un clip decorativo, no un archivo maestro.
-3. Sin pista de audio (`-an`) si el `<video>` de destino va a llevar `muted` (es el caso de `sceneVid`; verificar caso a caso para el overlay de vídeo de paradas).
-4. `-movflags +faststart` siempre.
-5. Verificar el resultado: bitrate final por debajo de ~2-3 Mbps para clips de esta duración, y revisar 1-2 fotogramas extraídos para confirmar que la calidad visual sigue siendo aceptable al tamaño real de pantalla.
+2. **Perfil `main`, no `high`** (`-profile:v main`), **`-refs 1` o `2`, `-bf 0` o `2`** — prioriza compatibilidad de decodificación en hardware móvil sobre el mínimo tamaño de archivo. Un archivo algo más grande que se reproduce fluido es mejor que uno más pequeño que va a tirones.
+3. `-crf 27` a `-crf 30` con `-preset medium` (o `slow` si se controlan explícitamente `-refs`/`-bf`, para no perder el control de la complejidad de decodificación que el preset añade por su cuenta).
+4. Sin pista de audio (`-an`) si el `<video>` de destino va a llevar `muted` (es el caso de `sceneVid`; verificar caso a caso para el overlay de vídeo de paradas).
+5. `-movflags +faststart` siempre.
+6. Verificar el resultado: `ffmpeg -bsf:v trace_headers -f null -` sobre el archivo final para confirmar `profile_idc=77` (Main) y `max_num_ref_frames` bajo (1-2) — no basta con mirar el tamaño o el bitrate. Revisar también 1-2 fotogramas extraídos para confirmar que la calidad visual sigue siendo aceptable al tamaño real de pantalla.
 
-**Botón dron de hijo2 — mismo riesgo, todavía sin materializar:** el overlay `globalThis.mostrarVideoOverlay()` (`codigo-padre.html`, `_crearVideoOverlayEl`) reproduce el vídeo de cada parada/tramo con `autoplay` igual que `sceneVid`. Ya tiene los mismos listeners `stalled`/`waiting` de recuperación (añadidos 2026-07-12, registrados una sola vez en `_crearVideoOverlayEl` porque el overlay se reutiliza entre llamadas — no se registran en cada `mostrarVideoOverlay()` para no acumular duplicados), pero **eso no evita el problema de bitrate** — solo mitiga micro-cortes puntuales de red. El campo `video` está vacío en todas las paradas hoy, así que el bug no es reproducible todavía — pero en cuanto se suba el primer vídeo real de dron, debe pasar por la checklist de arriba antes de commitearse, o se repetirá exactamente el mismo cuelgue.
+### Arquitectura de reproducción: una sola solución para cualquier duración de vídeo
 
-### Capa adicional en `sceneVid`: descarga completa como blob antes de reproducir (2026-07-12)
+**Por qué no se descarga el archivo entero antes de reproducir:** un primer intento (2026-07-12) hacía `fetch()` + `blob()` + `URL.createObjectURL()` del vídeo completo antes de asignarlo al `<video>`, garantizando que la reproducción fuera 100% desde memoria. Funcionaba para el clip de ~4-6 MB de `sceneVid`, pero **no escala** a los vídeos de 1-5 minutos previstos para el futuro (a varios Mbps, eso son decenas o cientos de MB) — forzar la descarga completa antes de reproducir introduciría una espera larga y mala experiencia, y habría que implementar una solución distinta para cada duración de vídeo. Se abandonó ese enfoque.
 
-Incluso con el bitrate corregido, `sceneVid` descarga el vídeo entero antes de empezar a reproducirlo — no depende de que el streaming progresivo vaya lo bastante rápido en ningún momento:
+**Solución global adoptada — `js/video-playback-utils.js`, función `reproducirVideoConBuffer(videoEl)`:** un único helper compartido, usado tanto por `sceneVid` (`video-intro.html`) como por `mostrarVideoOverlay()`/`_crearVideoOverlayEl()` (`codigo-padre.html`, botón dron de hijo2). El `<video>` mantiene su `src` apuntando directamente a la URL de red (nunca un blob) y `preload="auto"`, sin `autoplay`:
 
 ```javascript
-try {
-  const resp = await fetch('videos-aventuras/video_intro_ejemplo.mp4');
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const blob = await resp.blob();
-  _vidBlobUrl = URL.createObjectURL(blob);
-  _vid.src = _vidBlobUrl;
-  // ...ocultar spinner, mostrar <video>, _vid.play()
-} catch (err) {
-  // fetch falló (sin conexión): fallback a <video src="..."> normal + stalled/waiting
+export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
+  return new Promise((resolve) => {
+    // arranca en el primer evento que llegue: 'canplaythrough' (buffer suficiente
+    // para reproducir sin cortes, según el propio navegador), 'error' (fallo real
+    // de carga — no tiene sentido esperar más), o el timeout de seguridad (15s)
+    // si ninguno de los dos anteriores llega.
+    // Tras arrancar: listeners 'stalled'/'waiting' reintentan play() para
+    // recuperar de micro-cortes de red puntuales durante la reproducción.
+  });
 }
 ```
 
-Mientras se descarga, se muestra un spinner (`#vid-loading`) en vez del `<video>` (`display:none` hasta tener el blob listo). Una vez que `_vid.src` apunta al blob, la reproducción es 100% desde memoria local — no puede cortarse por red a mitad, sea cual sea la velocidad de conexión real del usuario. `URL.revokeObjectURL(_vidBlobUrl)` se llama justo después del `Promise.race` de fin de escena para liberar la memoria, tanto si el usuario ve el vídeo completo como si pulsa saltar la intro.
+Este mecanismo **no depende del tamaño total del archivo** — solo espera a que el navegador confirme que tiene buffer suficiente para arrancar, igual para un clip de 17s que para uno de 5 minutos. Es host-agnóstico: funciona igual sirviendo desde GitHub Pages hoy que desde un backend/CDN futuro, siempre que el servidor soporte Range requests (estándar en prácticamente cualquier hosting HTTP).
 
-**Por qué no se aplicó el mismo patrón a `mostrarVideoOverlay` (botón dron):** el tamaño de los futuros vídeos reales de dron por parada es una incógnita — si no siguen la checklist de arriba y acaban pesando mucho más que los ~4 MB de `sceneVid`, forzar la descarga completa antes de reproducir introduciría una espera larga y mala experiencia en vez de resolver el problema. Para ese overlay, la mitigación actual (`stalled`/`waiting`) más la checklist de codificación es la combinación correcta; si en el futuro se confirma que esos vídeos también quedan pequeños, aplicar el mismo patrón de blob es sencillo — mismo código, mismo `try/catch` de fallback.
+**Uso en `sceneVid`:** el `<video>` se crea con `display:none` y un spinner (`#vid-loading`) visible encima; al resolver `reproducirVideoConBuffer()`, se oculta el spinner y se muestra el vídeo ya reproduciéndose.
+
+**Uso en `mostrarVideoOverlay`:** tras `video.load()` (recargar con la nueva fuente), se llama a `globalThis.reproducirVideoConBuffer(video)` en vez de depender del atributo `autoplay` (quitado del `<video>` de `_crearVideoOverlayEl`). Guard defensivo: si `globalThis.reproducirVideoConBuffer` no está disponible por algún motivo, cae a `video.play()` directo.
+
+`js/video-playback-utils.js` está en `APP_SHELL` (`sw.js`) — se importa como módulo ES tanto en Script 1 de `codigo-padre.html` como en el `<script type="module">` de `video-intro.html` (que expone la función en `globalThis` para que el resto del archivo, que es un `<script>` clásico, pueda usarla).
 
 ---
 
@@ -6915,7 +6928,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-script4-race-fix-jul12g'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-video-playback-utils-jul13a'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7503,7 +7516,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-script4-race-fix-jul12g'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-video-playback-utils-jul13a'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10952,7 +10965,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-script4-race-fix-jul12g';
+const CACHE_VERSION = 'v-video-playback-utils-jul13a';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11761,7 +11774,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
 - `sceneVid` **no** tiene atributo `loop` (quitado 2026-07-12: con `loop`, el evento `ended` nunca se dispara por especificación, dejando `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior). El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`.
-- `sceneVid` **descarga el vídeo completo como blob antes de reproducirlo** (añadido 2026-07-12, ver §15): mientras descarga muestra un spinner (`#vid-loading`) en vez del `<video>` (`display:none` hasta que el blob está listo); `fetch()` + `resp.blob()` + `URL.createObjectURL()` → `_vid.src` → `_vid.play()`. El `URL.createObjectURL` se revoca (`revokeObjectURL`) justo después del `Promise.race` de fin de escena, tanto si el usuario ve el vídeo entero como si pulsa saltar. Si el `fetch` falla (sin conexión), cae a un `<video src="...">` normal con los listeners `stalled`/`waiting` como último recurso.
+- `sceneVid` usa `reproducirVideoConBuffer()` (`js/video-playback-utils.js`, ver §15) para arrancar la reproducción: el `<video>` tiene `src` de red desde el principio (`display:none` hasta que hay buffer suficiente) con un spinner (`#vid-loading`) visible encima; al resolver la promesa (evento `canplaythrough`, `error`, o timeout de 15s) se oculta el spinner y se muestra el vídeo ya reproduciéndose. Mismo helper que usa `mostrarVideoOverlay()` en `codigo-padre.html` — no hay descarga completa previa (blob), el mecanismo escala igual a vídeos de segundos que de minutos.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 4 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
 
