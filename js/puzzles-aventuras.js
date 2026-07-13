@@ -82,6 +82,10 @@ export const PUZZLES_AVENTURAS = {
         id: "PZ-19",
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
     },
+    {
+        id: "PZ-20",
+        imagen: "imagenes/imagenes-aventuras/mercado_de_colon_2.jpg",
+    },
       ]
     }
   }
