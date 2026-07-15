@@ -15796,7 +15796,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-es",
         title: "Parada 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -16252,7 +16252,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-en",
         title: "Stop 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -16708,7 +16708,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-fr",
         title: "Étape 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -17164,7 +17164,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-it",
         title: "Tappa 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -17620,7 +17620,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-nl",
         title: "Stop 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -18076,7 +18076,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-ja",
         title: "停留所 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -18532,7 +18532,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-de",
         title: "Halt 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -18988,7 +18988,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-zh",
         title: "站 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -19444,7 +19444,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-pl",
         title: "Przystanek 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -19900,7 +19900,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-pt",
         title: "Parada 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -20356,7 +20356,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-ru",
         title: "Остановка 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -20812,7 +20812,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
+      // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-uk",
         title: "Зупинка 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
@@ -21628,7 +21628,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-es",
         title: "Parada 34: Iglesia de la Milagrosa",
@@ -22063,7 +22063,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-en",
         title: "Stop 34: Iglesia de la Milagrosa",
@@ -22498,7 +22498,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-fr",
         title: "Étape 34: Iglesia de la Milagrosa",
@@ -22933,7 +22933,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-it",
         title: "Tappa 34: Iglesia de la Milagrosa",
@@ -23368,7 +23368,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-nl",
         title: "Stop 34: Iglesia de la Milagrosa",
@@ -23803,7 +23803,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-ja",
         title: "停留所 34: Iglesia de la Milagrosa",
@@ -24238,7 +24238,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-de",
         title: "Halt 34: Iglesia de la Milagrosa",
@@ -24673,7 +24673,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-zh",
         title: "站 34: Iglesia de la Milagrosa",
@@ -25108,7 +25108,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-pl",
         title: "Przystanek 34: Iglesia de la Milagrosa",
@@ -25543,7 +25543,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-pt",
         title: "Parada 34: Iglesia de la Milagrosa",
@@ -25978,7 +25978,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-ru",
         title: "Остановка 34: Iglesia de la Milagrosa",
@@ -26413,7 +26413,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
+      // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-uk",
         title: "Зупинка 34: Iglesia de la Milagrosa",

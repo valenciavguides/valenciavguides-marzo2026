@@ -588,8 +588,8 @@
     // Parada 2 - Parroquia de la Santísima Cruz (Iglesia del Carmen) (Reto 5) (Párrafos: 534, 535, 536, 537, 538) (mapa 3)
     { id: "txt-Av4-P2", parrafos: [534, 535, 536, 537, 538] },
 
-    // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541) (mapa 3)
-    { id: "txt-Av4-P3", parrafos: [539, 540, 541] },
+    // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
+    { id: "txt-Av4-P3", parrafos: [539, 541, 540] },
 
     // Tramo 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo "El Carmen" (Párrafos: 542, 7) (mapa 3→4)
     { id: "txt-Av4-TR3", parrafos: [542, 7] },
@@ -939,8 +939,8 @@
     // Tramo 22: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 31) (mapa 18/19→20)
     { id: "txt-Av5-TR22", parrafos: [567, 31] },
 
-    // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127) (mapa 20)
-    { id: "txt-Av5-P34", parrafos: [568, 569, 127] },
+    // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
+    { id: "txt-Av5-P34", parrafos: [568, 127, 569] },
 
     // Tramo 23: Iglesia de la Milagrosa → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 564, 563-B) (mapa 20→21)
     { id: "txt-Av5-TR23", parrafos: [564, "563-B"] },
