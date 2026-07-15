@@ -4054,7 +4054,7 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.378590') },
         imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
     },
-    // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541)
+    // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540)
     {
         id: "Av4-P-3",
         tipo: "parada",
@@ -6298,7 +6298,7 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
         video: "",
     },
-    // Parada 36: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127)
+    // Parada 36: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569)
     {
         id: "Av5-P-34",
         tipo: "parada",
@@ -7236,9 +7236,9 @@ export const DATOS_AVENTURAS = {
                  // Coordenadas completas Aventura 34km
     // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228)
     {
-        id: "Av34km-P-2",
+        id: "Av34km-P-0",
         tipo: "inicio",
-        parada: 2, // mapa número 1
+        parada: 0, // mapa número 1
         mapa_numero: 1,
         nombre: "Torres de Serranos (start)",
         coordenadas: { lat: Number('39.478760'), lng: Number('-0.376260') },
@@ -7264,11 +7264,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
         video: "",
     },
-    // Parada 3: Plaza de la Crída (Torres de Serranos Front) (Reto4Puzzle PZ-19) (Párrafos: 126)
+    // Parada 1: Plaza de la Crída (Torres de Serranos Front) (Reto4Puzzle PZ-19) (Párrafos: 126)
     {
-        id: "Av34km-P-3",
+        id: "Av34km-P-1",
         tipo: "parada",
-        parada: 3, // mapa número 2
+        parada: 1, // mapa número 2
         mapa_numero: 2,
         nombre: "Plaza de la Crída",
         coordenadas: { lat: Number('39.480620'), lng: Number('-0.375350') },
@@ -7293,11 +7293,11 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/puente_serranos_3.jpg",
         video: "",
     },
-    // Parada 4: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224)
+    // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224)
     {
-        id: "Av34km-P-4",
+        id: "Av34km-P-2",
         tipo: "parada",
-        parada: 4, // Sin número de mapa
+        parada: 2, // Sin número de mapa
         mapa_numero: "-",
         nombre: "Centro Puente Serranos",
         coordenadas: { lat: Number('39.480640'), lng: Number('-0.375340') },
@@ -7358,11 +7358,11 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/pont_de_la_exposicio.jpg",
         video: "",
     },
-    // Parada 5: Puente de la Exposición (Peineta) (Reto 5) (Párrafos: 237, 238, 70, 480, 240, 239)
+    // Parada 3: Puente de la Exposición (Peineta) (Reto 5) (Párrafos: 237, 238, 70, 480, 240, 239)
     {
-        id: "Av34km-P-5",
+        id: "Av34km-P-3",
         tipo: "parada",
-        parada: 5, // mapa número 4
+        parada: 3, // mapa número 4
         mapa_numero: 4,
         nombre: "Puente de la Exposición",
         coordenadas: { lat: Number('39.473375'), lng: Number('-0.366101') },
@@ -7389,11 +7389,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
         video: "",
     },
-    // Parada 6: Puente de las Flores (Párrafos: 241, 570)
+    // Parada 4: Puente de las Flores (Párrafos: 241, 570)
     {
-        id: "Av34km-P-6",
+        id: "Av34km-P-4",
         tipo: "parada",
-        parada: 6, // mapa número 5
+        parada: 4, // mapa número 5
         mapa_numero: 5,
         nombre: "Puente de las Flores",
         coordenadas: { lat: Number('39.470800'), lng: Number('-0.365070') },
@@ -7429,11 +7429,11 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/puente_aragon_top.jpg",
         video: "",
     },
-    // Parada 7: Puente de Aragón (Reto 6) (Párrafos: 244, 246)
+    // Parada 5: Puente de Aragón (Reto 6) (Párrafos: 244, 246)
     {
-        id: "Av34km-P-7",
+        id: "Av34km-P-5",
         tipo: "parada",
-        parada: 7, // mapa número 7
+        parada: 5, // mapa número 7
         mapa_numero: 7,
         nombre: "Puente de Aragón",
         coordenadas: { lat: Number('39.468910'), lng: Number('-0.362860') },
@@ -7459,11 +7459,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/pont_de_la_mar_top.jpg",
         video: "",
     },
-    // Parada 8: Puente de la Mar (Parte Superior) (Reto 7) (Párrafos: 248, 249)
+    // Parada 6: Puente de la Mar (Parte Superior) (Reto 7) (Párrafos: 248, 249)
     {
-        id: "Av34km-P-8",
+        id: "Av34km-P-6",
         tipo: "parada",
-        parada: 8, // mapa número 6
+        parada: 6, // mapa número 6
         mapa_numero: 6,
         nombre: "Puente de la Mar",
         coordenadas: { lat: Number('39.470010'), lng: Number('-0.364770') },
@@ -7493,11 +7493,11 @@ export const DATOS_AVENTURAS = {
         imagen3:"imagenes/imagenes-aventuras/palau_de_la_musica.jpg",
         video: "",
     },
-    // Parada 9: Palacio de la Música (Reto 8) (Párrafos: 252, 253)
+    // Parada 7: Palacio de la Música (Reto 8) (Párrafos: 252, 253)
     {
-        id: "Av34km-P-9",
+        id: "Av34km-P-7",
         tipo: "parada",
-        parada: 9, // mapa número 8
+        parada: 7, // mapa número 8
         mapa_numero: 8,
         nombre: "Palacio de la Música",
         coordenadas:  { lat: Number('39.465800'), lng: Number('-0.361490') },
@@ -7527,11 +7527,11 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/gulliver.jpg",
         video: "",
     },
-    // Parada 10: Gulliver (Reto 9) (Párrafos: 258, 260, 259)
+    // Parada 8: Gulliver (Reto 9) (Párrafos: 258, 260, 259)
     {
-        id: "Av34km-P-10",
+        id: "Av34km-P-8",
         tipo: "parada",
-        parada: 10, // mapa número 10
+        parada: 8, // mapa número 10
         mapa_numero: 10,
         nombre: "Gulliver",
         coordenadas:  { lat: Number('39.462980'), lng: Number('-0.359720') },
@@ -7571,11 +7571,11 @@ export const DATOS_AVENTURAS = {
         imagen5:"imagenes/imagenes-aventuras/CAC_patinaje.jpg",
         video: "",
     },
-    // Parada 11: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19)
+    // Parada 9: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19)
     {
-        id: "Av34km-P-11",
+        id: "Av34km-P-9",
         tipo: "parada",
-        parada: 11, // mapa número 11
+        parada: 9, // mapa número 11
         mapa_numero: 11,
         nombre: "Pistas de Patinaje",
         coordenadas:  { lat: Number('39.459850'), lng: Number('-0.357590') },
@@ -7681,22 +7681,22 @@ export const DATOS_AVENTURAS = {
         imagen3:"imagenes/imagenes-aventuras/pano_CAC.jpg",
         video: "",
     },
-    // Parada 12: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271)
+    // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271)
     {
-        id: "Av34km-P-12",
+        id: "Av34km-P-10",
         tipo: "parada",
-        parada: 12, // mapa número 12
+        parada: 10, // mapa número 12
         mapa_numero: 12,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
         coordenadas:  { lat: Number('39.456730'), lng: Number('-0.349399') },
         imagen: "imagenes/imagenes-aventuras/pano_CAC.jpg",
         imagen2: "imagenes/imagenes-aventuras/reina_sofia_side.jpg"
     },
-    // Parada 13: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275)
+    // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275)
     {
-        id: "Av34km-P-13",
+        id: "Av34km-P-11",
         tipo: "parada",
-        parada: 13, // mapa número 14
+        parada: 11, // mapa número 14
         mapa_numero: 14,
         nombre: "Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
         coordenadas:  { lat: Number('39.456689'), lng: Number('-0.349407') },
@@ -7733,11 +7733,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/puente_Assut_2.jpg",
         video: "",
     },
-    // Parada 14: Puente l'Assut de l'Or (Reto10puzzle PZ-09) (Párrafos: 277, 278)
+    // Parada 12: Puente l'Assut de l'Or (Reto10puzzle PZ-09) (Párrafos: 277, 278)
     {
-        id: "Av34km-P-14",
+        id: "Av34km-P-12",
         tipo: "parada",
-        parada: 14, // mapa número 15
+        parada: 12, // mapa número 15
         mapa_numero: 15,
         nombre: "Puente l'Assut de l'Or",
         coordenadas:  { lat: Number('39.455825'), lng: Number('-0.348149') },
@@ -7766,11 +7766,11 @@ export const DATOS_AVENTURAS = {
         imagen4:"imagenes/imagenes-aventuras/agora_oceanografic.jpg",
         video: "",
     },
-    // Parada 15: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284)
+    // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284)
     {
-        id: "Av34km-P-15",
+        id: "Av34km-P-13",
         tipo: "parada",
-        parada: 15, // mapa número 16/17
+        parada: 13, // mapa número 16/17
         mapa_numero: "16/17",
         nombre: "Ágora y Oceanogràfic",
         coordenadas:  { lat: Number('39.453520'), lng: Number('-0.350810') },
@@ -7805,11 +7805,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/umbracle.jpg",
         video: "",
     },
-    // Parada 16: Umbracle (Reto 11) (Párrafos: 286, 292)
+    // Parada 14: Umbracle (Reto 11) (Párrafos: 286, 292)
     {
-        id: "Av34km-P-16",
+        id: "Av34km-P-14",
         tipo: "parada",
-        parada: 16, // mapa número 18
+        parada: 14, // mapa número 18
         mapa_numero: "18",
         nombre: "Umbracle",
         coordenadas:  { lat: Number('39.455635'), lng: Number('-0.353670') },
@@ -7839,11 +7839,11 @@ export const DATOS_AVENTURAS = {
         imagen3:"imagenes/imagenes-aventuras/hemisferic.jpg",
         video: "",
     },
-    // Parada 17: Hemisféric (Reto 12) (Párrafos: 291, 707)
+    // Parada 15: Hemisféric (Reto 12) (Párrafos: 291, 707)
     {
-        id: "Av34km-P-17",
+        id: "Av34km-P-15",
         tipo: "parada",
-        parada: 17, // mapa número 19
+        parada: 15, // mapa número 19
         mapa_numero: "19",
         nombre: "Hemisféric",
         coordenadas:  { lat: Number('39.457675'), lng: Number('-0.353992') },
@@ -7887,11 +7887,11 @@ export const DATOS_AVENTURAS = {
         imagen8: "imagenes/imagenes-aventuras/pont_de_la_mar_down.jpg",
         video: "",
     },
-    // Parada 18: Puente de la Mar (Reto 13) (Párrafos: 294, 295)
+    // Parada 16: Puente de la Mar (Reto 13) (Párrafos: 294, 295)
     {
-        id: "Av34km-P-18",
+        id: "Av34km-P-16",
         tipo: "parada",
-        parada: 18, // mapa número 6
+        parada: 16, // mapa número 6
         mapa_numero: "6",
         nombre: "Puente de la Mar",
         coordenadas:  { lat: Number('39.470617'), lng: Number('-0.363887') },
@@ -7936,11 +7936,11 @@ export const DATOS_AVENTURAS = {
         imagen7: "imagenes/imagenes-aventuras/puerta_mar.jpg",
         video: "",
     },
-    // Parada 19: Puerta de la Mar (Reto 14) (Párrafos: 300, 227, 301, 302)
+    // Parada 17: Puerta de la Mar (Reto 14) (Párrafos: 300, 227, 301, 302)
     {
-        id: "Av34km-P-19",
+        id: "Av34km-P-17",
         tipo: "parada",
-        parada: 19, // mapa número 21
+        parada: 17, // mapa número 21
         mapa_numero: "21",
         nombre: "Puerta de la Mar",
         coordenadas:  { lat: Number('39.472081'), lng: Number('-0.368912') },
@@ -7973,11 +7973,11 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/casa_dragones.jpg",
         video: "",
     },
-    // Parada 20: Casa de los Dragones (Reto: 15) (Párrafos: 304, 305)
+    // Parada 18: Casa de los Dragones (Reto: 15) (Párrafos: 304, 305)
     {
-        id: "Av34km-P-20",
+        id: "Av34km-P-18",
         tipo: "parada",
-        parada: 20, // mapa número 22
+        parada: 18, // mapa número 22
         mapa_numero: "22",
         nombre: "Casa de los Dragones",
         coordenadas: { lat: Number('39.470192'), lng: Number('-0.369919') },
@@ -8004,31 +8004,31 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/mercado_colon.jpg",
         video: "",
     },
-    // Parada 21: Mercado de Colón 1 (Reto: 16) (Párrafos: 308, 309, 310)
+    // Parada 19: Mercado de Colón 1 (Reto: 16) (Párrafos: 308, 309, 310)
     {
-        id: "Av34km-P-21",
+        id: "Av34km-P-19",
         tipo: "parada",
-        parada: 21, // mapa número 23
+        parada: 19, // mapa número 23
         mapa_numero: "23",
         nombre: "Mercado de Colón",
         coordenadas: { lat: Number('39.468727'), lng: Number('-0.368908') },
         imagen: "imagenes/imagenes-aventuras/mercado_colon.jpg",
     },
-    // Parada 22: Mercado de Colón 2 (Reto: 17) (Párrafos: 311, 312)
+    // Parada 20: Mercado de Colón 2 (Reto: 17) (Párrafos: 311, 312)
     {
-        id: "Av34km-P-22",
+        id: "Av34km-P-20",
         tipo: "parada",
-        parada: 22, // mapa número 23
+        parada: 20, // mapa número 23
         mapa_numero: "23",
         nombre: "Mercado de Colón",
         coordenadas: { lat: Number('39.468722'), lng: Number('-0.368902') },
         imagen: "imagenes/imagenes-aventuras/mercado_colon.jpg",
     },
-    // Parada 23: Mercado de Colón 3 (Reto: 18) (Párrafos: 313)
+    // Parada 21: Mercado de Colón 3 (Reto: 18) (Párrafos: 313)
     {
-        id: "Av34km-P-23",
+        id: "Av34km-P-21",
         tipo: "parada",
-        parada: 23, // mapa número 23
+        parada: 21, // mapa número 23
         mapa_numero: "23",
         nombre: "Mercado de Colón",
         coordenadas: { lat: Number('39.468712'), lng: Number('-0.368897') },
@@ -8055,11 +8055,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/mercado_de_colon_2.jpg",
         video: "",
     },
-    // Parada 24: Mercado de Colón Back (Reto19Puzzle PZ-20) (Párrafos: 315, 316)
+    // Parada 22: Mercado de Colón Back (Reto19Puzzle PZ-20) (Párrafos: 315, 316)
     {
-        id: "Av34km-P-24",
+        id: "Av34km-P-22",
         tipo: "parada",
-        parada: 24, // mapa número 23
+        parada: 22, // mapa número 23
         mapa_numero: "23",
         nombre: "Mercado de Colón",
         coordenadas: { lat: Number('39.469161'), lng: Number('-0.367874') },
@@ -8092,11 +8092,11 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/ruinas_calle_colon.jpg",
         video: "",
     },
-    // Parada 25: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318)
+    // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318)
     {
-        id: "Av34km-P-25",
+        id: "Av34km-P-23",
         tipo: "parada",
-        parada: 25, // mapa número 24
+        parada: 23, // mapa número 24
         mapa_numero: 24,
         nombre: "Antigua Puerta Judía de la Muralla en Calle Colón",
         coordenadas: { lat: Number('39.470209'), lng: Number('-0.370656') },
@@ -8140,11 +8140,11 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/Plaza_Toros.jpg",
         video: "",
     },
-    // Parada 26: Plaza de Toros(Reto: 20) (Párrafos: 320, 321, 323, 322)
+    // Parada 24: Plaza de Toros(Reto: 20) (Párrafos: 320, 321, 323, 322)
     {
-        id: "Av34km-P-26",
+        id: "Av34km-P-24",
         tipo: "parada",
-        parada: 26, // mapa número 25
+        parada: 24, // mapa número 25
         mapa_numero: 25,
         nombre: "Plaza de Toros",
         coordenadas: { lat: Number('39.467031'), lng: Number('-0.375683') },
@@ -8169,11 +8169,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/Estacion_Norte.jpg",
         video: "",
     },
-    // Parada 27: (Reto: 21) (Párrafos: 325, 326)
+    // Parada 25: (Reto: 21) (Párrafos: 325, 326)
     {
-        id: "Av34km-P-27",
+        id: "Av34km-P-25",
         tipo: "parada",
-        parada: 27, // mapa número 26
+        parada: 25, // mapa número 26
         mapa_numero: 26,
         nombre: "Estación del Norte (Tren)",
         coordenadas: { lat: Number('39.467381'), lng: Number('-0.377117') },
@@ -8196,11 +8196,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/estacion_interior_2.jpeg",
         video: "",
     },
-    // Parada 28: Estación del Norte (interior) (Reto: 22) (Párrafos: 328, 329)
+    // Parada 26: Estación del Norte (interior) (Reto: 22) (Párrafos: 328, 329)
     {
-        id: "Av34km-P-28",
+        id: "Av34km-P-26",
         tipo: "parada",
-        parada: 28, // mapa número 26
+        parada: 26, // mapa número 26
         mapa_numero: 26,
         nombre: "Estación del Norte",
         coordenadas: { lat: Number('39.467000'), lng: Number('-0.377270') },
@@ -8233,21 +8233,21 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
         video: "",
     },
-    // Parada 29: Plaza del Ayuntamiento y Edificio Ayuntamiento (Exterior) (reto 23) (Párrafos:  38,  263, 217,  40,  334,  336,  337, 338)
+    // Parada 27: Plaza del Ayuntamiento y Edificio Ayuntamiento (Exterior) (reto 23) (Párrafos:  38,  263, 217,  40,  334,  336,  337, 338)
     {
-        id: "Av34km-P-29",
+        id: "Av34km-P-27",
         tipo: "parada",
-        parada: 29, // mapa número 27 y 28
+        parada: 27, // mapa número 27 y 28
         mapa_numero: "27/28",
         nombre: "Plaza del Ayuntamiento",
         coordenadas: { lat: Number('39.469710'), lng: Number('-0.376930') },
         imagen: "imagenes/imagenes-aventuras/ayuntamiento.jpg",
     },
-    // Parada 30: Edificio del Ayuntamiento (Fábula del Murciélago e interior del Ayuntamiento) (Párrafos: 339, 340, 341, 113)
+    // Parada 28: Edificio del Ayuntamiento (Fábula del Murciélago e interior del Ayuntamiento) (Párrafos: 339, 340, 341, 113)
     {
-        id: "Av34km-P-30",
+        id: "Av34km-P-28",
         tipo: "parada",
-        parada: 30, // mapa número 28
+        parada: 28, // mapa número 28
         mapa_numero: 28,
         nombre: "Edificio del Ayuntamiento",
         coordenadas: { lat: Number('39.469610'), lng: Number('-0.376870') },
@@ -8273,22 +8273,22 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/correos.jpg",
         video: "",
     },
-    // Parada 31: Palacio de Comunicaciones (Correos) (Reto 24) (Párrafos: 343, 344)
+    // Parada 29: Palacio de Comunicaciones (Correos) (Reto 24) (Párrafos: 343, 344)
     {
-        id: "Av34km-P-31",
+        id: "Av34km-P-29",
         tipo: "parada",
-        parada: 31, // mapa número 29
+        parada: 29, // mapa número 29
         mapa_numero: 29,
         nombre: "Palacio de Comunicaciones (Correos)",
         coordenadas: { lat: Number('39.469420'), lng: Number('-0.375590') },
         imagen: "imagenes/imagenes-aventuras/correos.jpg",
     },
 
-    // Parada 32: Edificio Suay - La Equitativa (Reto 25) (Párrafos: 693, 693-B)
+    // Parada 30: Edificio Suay - La Equitativa (Reto 25) (Párrafos: 693, 693-B)
     {
-        id: "Av34km-P-32",
+        id: "Av34km-P-30",
         tipo: "parada",
-        parada: 32, // mapa número 29 a sin número de mapa
+        parada: 30, // mapa número 29 a sin número de mapa
         mapa_numero: "29→-",
         nombre: "Edificio Suay - La Equitativa",
         coordenadas: { lat: Number('39.469610'), lng: Number('-0.375680') },
@@ -8315,11 +8315,11 @@ export const DATOS_AVENTURAS = {
         video: "",
     },
 
-    // Parada 33: Banco de Valencia (Reto: 26) (Párrafos: 349, 350)
+    // Parada 31: Banco de Valencia (Reto: 26) (Párrafos: 349, 350)
     {
-        id: "Av34km-P-33",
+        id: "Av34km-P-31",
         tipo: "parada",
-        parada: 33, // mapa número 30
+        parada: 31, // mapa número 30
         mapa_numero: 30,
         nombre: "Banco de Valencia",
         coordenadas: { lat: Number('39.470610'), lng: Number('-0.374080') },
@@ -8346,11 +8346,11 @@ export const DATOS_AVENTURAS = {
         video: "",
     },
 
-    // Parada 34: Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" (Párrafos: 356, 357)
+    // Parada 32: Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" (Párrafos: 356, 357)
     {
-        id: "Av34km-P-34",
+        id: "Av34km-P-32",
         tipo: "parada",
-        parada: 34, // mapa número 31
+        parada: 32, // mapa número 31
         mapa_numero: 31,
         nombre: "Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
         coordenadas: { lat: Number('39.472760'), lng: Number('-0.374670') },
@@ -8383,11 +8383,11 @@ export const DATOS_AVENTURAS = {
         video: "",
     },
 
-    // Parada 35: Mercado central (Reto 27) (Párrafos: 701, 44, 361, 362, 363, 364)
+    // Parada 33: Mercado central (Reto 27) (Párrafos: 701, 44, 361, 362, 363, 364)
     {
-        id: "Av34km-P-35",
+        id: "Av34km-P-33",
         tipo: "parada",
-        parada: 35, // mapa número 32
+        parada: 33, // mapa número 32
         mapa_numero: 32,
         nombre: "Mercado central",
         coordenadas: { lat: Number('39.473770'), lng: Number('-0.378320') },
@@ -8411,22 +8411,22 @@ export const DATOS_AVENTURAS = {
         video: "",
     },
 
-    // Parada 36: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 28) (Párrafos: 45, 365, 366)
+    // Parada 34: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 28) (Párrafos: 45, 365, 366)
     {
-        id: "Av34km-P-36",
+        id: "Av34km-P-34",
         tipo: "parada",
-        parada: 36, // mapa número 33
+        parada: 34, // mapa número 33
         mapa_numero: 33,
         nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)",
         coordenadas: { lat: Number('39.474250'), lng: Number('-0.378950') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_juan_del_mercado.jpg",
     },
 
-    // Parada 37: Iglesia de los Santos Juanes 2 (San Juan del Mercado) (Reto 29) (Párrafos: 368, 367)
+    // Parada 35: Iglesia de los Santos Juanes 2 (San Juan del Mercado) (Reto 29) (Párrafos: 368, 367)
     {
-        id: "Av34km-P-37",
+        id: "Av34km-P-35",
         tipo: "parada",
-        parada: 37, // mapa número 33
+        parada: 35, // mapa número 33
         mapa_numero: 33,
         nombre: "Iglesia de los Santos Juanes (San Juan del Mercado)",
         coordenadas: { lat: Number('39.474240'), lng: Number('-0.378890') },
@@ -8448,22 +8448,22 @@ export const DATOS_AVENTURAS = {
         video: "",
     },
 
-    // Parada 38: Lonja (Mercado de la Seda) historia (Reto30Puzzle PZ-04) (Párrafos: 370, 371, 372, 373, 374)
+    // Parada 36: Lonja (Mercado de la Seda) historia (Reto30Puzzle PZ-04) (Párrafos: 370, 371, 372, 373, 374)
     {
-        id: "Av34km-P-38",
+        id: "Av34km-P-36",
         tipo: "parada",
-        parada: 38, // mapa número 34
+        parada: 36, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474220'), lng: Number('-0.378750') },
         imagen: "imagenes/imagenes-aventuras/lonja.jpg",
     },
 
-    // Parada 39: Lonja (Mercado de la Seda) Puerta de Los Pecados 1 (Reto 31) (Párrafos: 375, 376, 377, 378, 379)
+    // Parada 37: Lonja (Mercado de la Seda) Puerta de Los Pecados 1 (Reto 31) (Párrafos: 375, 376, 377, 378, 379)
     {
-        id: "Av34km-P-39",
+        id: "Av34km-P-37",
         tipo: "parada",
-        parada: 39, // mapa número 34
+        parada: 37, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474170'), lng: Number('-0.378600') },
@@ -8471,44 +8471,44 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/lonja4.jpg",
     },
 
-    // Parada 40: Lonja (Mercado de la Seda) Puerta de Los Pecados 2 (Reto 32) (Párrafos: 380, 381)
+    // Parada 38: Lonja (Mercado de la Seda) Puerta de Los Pecados 2 (Reto 32) (Párrafos: 380, 381)
     {
-        id: "Av34km-P-40",
+        id: "Av34km-P-38",
         tipo: "parada",
-        parada: 40, // mapa número 34
+        parada: 38, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474160'), lng: Number('-0.378570') },
         imagen: "imagenes/imagenes-aventuras/lonja5.jpg",
     },
 
-    // Parada 41: Lonja (Mercado de la Seda) Gárgolas 1 (Reto 33) (Párrafos: 383, 384)
+    // Parada 39: Lonja (Mercado de la Seda) Gárgolas 1 (Reto 33) (Párrafos: 383, 384)
     {
-        id: "Av34km-P-41",
+        id: "Av34km-P-39",
         tipo: "parada",
-        parada: 41, // mapa número 34
+        parada: 39, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474170'), lng: Number('-0.378680') },
         imagen: "imagenes/imagenes-aventuras/lonja3.jpg",
     },
 
-    // Parada 42: Lonja (Mercado de la Seda) Gárgolas 2 (Reto 34) (Párrafos: 385)
+    // Parada 40: Lonja (Mercado de la Seda) Gárgolas 2 (Reto 34) (Párrafos: 385)
     {
-        id: "Av34km-P-42",
+        id: "Av34km-P-40",
         tipo: "parada",
-        parada: 42, // mapa número 34
+        parada: 40, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474190'), lng: Number('-0.378710') },
         imagen: "imagenes/imagenes-aventuras/lonja.jpg",
     },
 
-    // Parada 43: Lonja (Mercado de la Seda) Fornicador (Reto 35) (Párrafos: 386, 387)
+    // Parada 41: Lonja (Mercado de la Seda) Fornicador (Reto 35) (Párrafos: 386, 387)
     {
-        id: "Av34km-P-43",
+        id: "Av34km-P-41",
         tipo: "parada",
-        parada: 43, // mapa número 34
+        parada: 41, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474340'), lng: Number('-0.378780') },
@@ -8533,11 +8533,11 @@ export const DATOS_AVENTURAS = {
         video: "",
     },
 
-    // Parada 44: Lonja (Mercado de la Seda) - Gárgola Torre (Párrafos: 390, 391)
+    // Parada 42: Lonja (Mercado de la Seda) - Gárgola Torre (Párrafos: 390, 391)
     {
-        id: "Av34km-P-44",
+        id: "Av34km-P-42",
         tipo: "parada",
-        parada: 44, // mapa número 34
+        parada: 42, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         coordenadas: { lat: Number('39.474560'), lng: Number('-0.378700') },
@@ -8577,11 +8577,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/lonja2.jpg",
         video: "",
     },
-    // Parada 45: Puerta Gótica Lonja (Mercado de la Seda) (Párrafos: 394)
+    // Parada 43: Puerta Gótica Lonja (Mercado de la Seda) (Párrafos: 394)
     {
-        id: "Av34km-P-45",
+        id: "Av34km-P-43",
         tipo: "parada",
-        parada: 45, // mapa número 34
+        parada: 43, // mapa número 34
         mapa_numero: 34,
         nombre: "Lonja (Mercado de la Seda)",
         fin: { lat: Number('39.474391'), lng: Number('-0.378047') },
@@ -8603,11 +8603,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/Plaza_collado.jpg",
         video: "",
     },
-    // Parada 46: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402)
+    // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402)
     {
-        id: "Av34km-P-46",
+        id: "Av34km-P-44",
         tipo: "parada",
-        parada: 46, // mapa número 35
+        parada: 44, // mapa número 35
         mapa_numero: 35,
         nombre: "Plaza Doctor López Collado",
         coordenadas: { lat: Number('39.474440'), lng: Number('-0.377900') },
@@ -8638,9 +8638,9 @@ export const DATOS_AVENTURAS = {
     },
     // Parada 45 - Plaza Redonda (Reto36Puzzle PZ-07) (Párrafos: 406)
     {
-        id: "Av34km-P-47",
+        id: "Av34km-P-45",
         tipo: "parada",
-        parada: 47, // mapa número 36
+        parada: 45, // mapa número 36
         mapa_numero: 36,
         nombre: "Plaza Redonda",
         coordenadas: { lat: Number('39.473690'), lng: Number('-0.376680') },
@@ -8664,41 +8664,41 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/edificio_estrecho.jpg",
         video: "",
     },
-    // Parada 48: Plaza Lope de Vega - Edificio estrecho (Reto 37) (Párrafos: 408, 409, 410)
+    // Parada 46: Plaza Lope de Vega - Edificio estrecho (Reto 37) (Párrafos: 408, 409, 410)
     {
-        id: "Av34km-P-48",
+        id: "Av34km-P-46",
         tipo: "parada",
-        parada: 48, // mapa número 37
+        parada: 46, // mapa número 37
         mapa_numero: 37,
         nombre: "Plaza Lope de Vega - Edificio estrecho",
         coordenadas: { lat: Number('39.474040'), lng: Number('-0.376750') },
         imagen: "imagenes/imagenes-aventuras/edificio_estrecho.jpg",
     },
-    // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412)
+    // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412)
     {
-        id: "Av34km-P-49",
+        id: "Av34km-P-47",
         tipo: "parada",
-        parada: 49, // mapa número 37
+        parada: 47, // mapa número 37
         mapa_numero: 37,
         nombre: "Plaza Lope de Vega - Iglesia de Santa Catalina",
         coordenadas: { lat: Number('39.474040'), lng: Number('-0.376740') },
         imagen: "imagenes/imagenes-aventuras/iglesia_santa_catalina.jpg",
     },
-    // Parada 50: Plaza Lope de Vega - Iglesia de Santa Catalina 2 (Párrafos: 413, 414)
+    // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina 2 (Párrafos: 413, 414)
     {
-        id: "Av34km-P-50",
+        id: "Av34km-P-48",
         tipo: "parada",
-        parada: 50, // mapa número 37
+        parada: 48, // mapa número 37
         mapa_numero: 37,
         nombre: "Plaza Lope de Vega - Iglesia de Santa Catalina",
         coordenadas: { lat: Number('39.474040'), lng: Number('-0.376750') },
         imagen: "imagenes/imagenes-aventuras/iglesia_santa_catalina.jpg",
     },
-    // Parada 51: Plaza Lope de Vega - Iglesia de Santa Catalina 3 (Reto 38) (Párrafos: 417, 416)
+    // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina 3 (Reto 38) (Párrafos: 417, 416)
     {
-        id: "Av34km-P-51",
+        id: "Av34km-P-49",
         tipo: "parada",
-        parada: 51, // mapa número 37
+        parada: 49, // mapa número 37
         mapa_numero: 37,
         nombre: "Plaza Lope de Vega - Iglesia de Santa Catalina",
         coordenadas: { lat: Number('39.474040'), lng: Number('-0.376750') },
@@ -8722,21 +8722,21 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
         video: "",
     },
-    // Parada 52: Torre Barroca de Santa Catalina (Reto 39) (Párrafos: 420, 423)
+    // Parada 50: Torre Barroca de Santa Catalina (Reto 39) (Párrafos: 420, 423)
     {
-        id: "Av34km-P-52",
+        id: "Av34km-P-50",
         tipo: "parada",
-        parada: 52, // mapa número 38
+        parada: 50, // mapa número 38
         mapa_numero: 38,
         nombre: "Torre Barroca de Santa Catalina",
         coordenadas: { lat: Number('39.473830'), lng: Number('-0.375720') },
         imagen: "imagenes/imagenes-aventuras/torre_santa_catalina.jpg",
     },
-    // Parada 53: Torre Barroca de Santa Catalina (Reto 40) (Párrafos: 421, 422, 423)
+    // Parada 51: Torre Barroca de Santa Catalina (Reto 40) (Párrafos: 421, 422, 423)
     {
-        id: "Av34km-P-53",
+        id: "Av34km-P-51",
         tipo: "parada",
-        parada: 53, // mapa número 38
+        parada: 51, // mapa número 38
         mapa_numero: 38,
         nombre: "Torre Barroca de Santa Catalina",
         coordenadas: { lat: Number('39.473830'), lng: Number('-0.375710') },
@@ -8765,9 +8765,9 @@ export const DATOS_AVENTURAS = {
     },
     // Parada 52 - Torre del Miguelete (reto 41) (Párrafos: 11-C, 427)
     {
-        id: "Av34km-P-54",
+        id: "Av34km-P-52",
         tipo: "parada",
-        parada: 54, // mapa número 39
+        parada: 52, // mapa número 39
         mapa_numero: 39,
         nombre: "Torre del Miguelete",
         coordenadas: { lat: Number('39.475230'), lng: Number('-0.375670') },
@@ -8775,9 +8775,9 @@ export const DATOS_AVENTURAS = {
     },
     // Parada 53 - Torre del Miguelete 2 (reto 42) (Párrafos: 428)
     {
-        id: "Av34km-P-55",
+        id: "Av34km-P-53",
         tipo: "parada",
-        parada: 55, // mapa número 39
+        parada: 53, // mapa número 39
         mapa_numero: 39,
         nombre: "Torre del Miguelete",
         coordenadas: { lat: Number('39.475224'), lng: Number('-0.375609') },
@@ -8786,9 +8786,9 @@ export const DATOS_AVENTURAS = {
 
     // Parada 54 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Reto 42) (Párrafos: 429, 430, 432, 431)
     {
-        id: "Av34km-P-56",
+        id: "Av34km-P-54",
         tipo: "parada",
-        parada: 56, // mapa número 39
+        parada: 54, // mapa número 39
         mapa_numero: 39,
         nombre: "Puerta de los Hierros (Barroca) de la Catedral de Valencia",
         coordenadas: { lat: Number('39.475210'), lng: Number('-0.375610') },
@@ -8814,11 +8814,11 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/puerta_romanica_catedral.jpg",
         video: ""
     },
-    // Parada 57: Catedral de Valencia (Puerta Románica) (Reto 44) (Párrafos: 437, 439, 438)
+    // Parada 55: Catedral de Valencia (Puerta Románica) (Reto 44) (Párrafos: 437, 439, 438)
     {
-        id: "Av34km-P-57",
+        id: "Av34km-P-55",
         tipo: "parada",
-        parada: 57, // mapa número 40
+        parada: 55, // mapa número 40
         mapa_numero: "40",
         nombre: "Catedral de Valencia (Puerta Románica)",
         coordenadas:  { lat: Number('39.475552'), lng: Number('-0.374557') },
@@ -8841,11 +8841,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/plaza_de_la_almoina.jpg",
         video: "",
     },
-    // Parada 58: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 1, Panel cerámico (reto 45) (Párrafos: 441, 442)
+    // Parada 56: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 1, Panel cerámico (reto 45) (Párrafos: 441, 442)
     {
-        id: "Av34km-P-58",
+        id: "Av34km-P-56",
         tipo: "parada",
-        parada: 58, // mapa número 42
+        parada: 56, // mapa número 42
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto",
         coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
@@ -8853,31 +8853,31 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/catedral_almoina.jpg",
         imagen3: "imagenes/imagenes-aventuras/panel_ceramico_muro_norte_catedral.jpg",
     },
-    // Parada 59: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 2, Capilla exterior (reto 46) (Párrafos: 443, 444)
+    // Parada 57: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 2, Capilla exterior (reto 46) (Párrafos: 443, 444)
     {
-        id: "Av34km-P-59",
+        id: "Av34km-P-57",
         tipo: "parada",
-        parada: 59, // mapa número 42
+        parada: 57, // mapa número 42
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto",
         coordenadas:  { lat: Number('39.476012'), lng: Number('-0.374604') },
         imagen: "imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg",
     },
-    // Parada 60: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 3, Capilla exterior (reto 47) (Párrafos: 445)
+    // Parada 58: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 3, Capilla exterior (reto 47) (Párrafos: 445)
     {
-        id: "Av34km-P-60",
+        id: "Av34km-P-58",
         tipo: "parada",
-        parada: 60, // mapa número 42
+        parada: 58, // mapa número 42
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto",
         coordenadas:  { lat: Number('39.476025'), lng: Number('-0.374600') },
         imagen: "imagenes/imagenes-aventuras/capilla_exterior_catedral.jpg",
     },
-     // Parada 61: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia (Párrafos: 446, 447, 50, 452, 51-B)
+     // Parada 59: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia (Párrafos: 446, 447, 50, 452, 51-B)
     {
-        id: "Av34km-P-61",
+        id: "Av34km-P-59",
         tipo: "parada",
-        parada: 61, // mapa número 42/41
+        parada: 59, // mapa número 42/41
         mapa_numero: "42/41",
         nombre: "Plaza Décimo Junio Bruto (Basílica de Valencia)",
         coordenadas:  { lat: Number('39.476046'), lng: Number('-0.374656') },
@@ -8885,31 +8885,31 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/puerta_negra_relieve_basilica.jpg",
         imagen3: "imagenes/imagenes-aventuras/basilica_almoina.jpg",
     },
-    // Parada 62: Plaza Décimo Junio Bruto (Plaza de la Almoína) Historia Basílica (Párrafos: 450, 451)
+    // Parada 60: Plaza Décimo Junio Bruto (Plaza de la Almoína) Historia Basílica (Párrafos: 450, 451)
     {
-        id: "Av34km-P-62",
+        id: "Av34km-P-60",
         tipo: "parada",
-        parada: 62, // mapa número 42
+        parada: 60, // mapa número 42
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto",
         coordenadas:  { lat: Number('39.476000'), lng: Number('-0.374533') },
         imagen: "",
     },
-    // Parada 63: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo (Reto 48) (Párrafos: 51, 454, 455-B, 456)
+    // Parada 61: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo (Reto 48) (Párrafos: 51, 454, 455-B, 456)
     {
-        id: "Av34km-P-63",
+        id: "Av34km-P-61",
         tipo: "parada",
-        parada: 63, // mapa número 42
+        parada: 61, // mapa número 42
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
         coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
         imagen: "imagenes/imagenes-aventuras/casa_del_punt_de_gantxo.jpg",
     },
-    // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo (Reto 49) (Párrafos: 455-C, 455-D)
+    // Parada 62: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de Gantxo (Reto 49) (Párrafos: 455-C, 455-D)
     {
-        id: "Av34km-P-64",
+        id: "Av34km-P-62",
         tipo: "parada",
-        parada: 64, // mapa número 42
+        parada: 62, // mapa número 42
         mapa_numero: "42",
         nombre: "Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
         coordenadas:  { lat: Number('39.475986'), lng: Number('-0.374472') },
@@ -8987,34 +8987,45 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/Paso_Plaza_Almoina.jpg",
         video: "",
     },
-    // Parada 66: Plaza de la Virgen (Fuente de Neptuno) (Reto 26) (Párrafos: 466, 467)
+    // Parada 66: Plaza de la Virgen (intro) (Párrafos: 346, 143)
     {
         id: "Av34km-P-66",
         tipo: "parada",
-        parada: 66, // mapa número 35
-        mapa_numero: "35",
-        nombre: "Plaza de la Virgen (Fuente de Neptuno)",
+        parada: 66, // mapa número 43
+        mapa_numero: "43",
+        nombre: "Plaza de la Virgen",
         coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375270') },
         imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
-    // Parada 67: Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia) (Reto 27) (Párrafos: 477-B, 479, 141, 468)
+    // Parada 67: Plaza de la Virgen (Fuente de Neptuno) (Reto 53) (Párrafos: 466, 467)
     {
         id: "Av34km-P-67",
         tipo: "parada",
-        parada: 67, // mapa número 35
-        mapa_numero: "35",
-        nombre: "Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia)",
+        parada: 67, // mapa número 43
+        mapa_numero: "43",
+        nombre: "Plaza de la Virgen",
         coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375290') },
         imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
         imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
     },
-    // Tramo 43: Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia) → Palacio de la Generalitat Valenciana (Párrafos: )
+    // Parada 68: Plaza de la Virgen (Fallas y Basílica, Arco Novo Catedral, Puerta Gótica Catedral, reto fuente neptuno) (Reto 54) (Párrafos: 469, 470, 471, 472, 473, 474, 476, 477, 478, 479, 478)
+    {
+        id: "Av34km-P-68",
+        tipo: "parada",
+        parada: 68, // mapa número 43
+        mapa_numero: "43",
+        nombre: "Plaza de la Virgen",
+        coordenadas:  { lat: Number('39.476600'), lng: Number('-0.375290') },
+        imagen: "imagenes/imagenes-aventuras/puerta_gotica_catedral_2.jpg",
+        imagen2: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
+    },
+    // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60)
     {
         id: "Av34km-TR-43",
         tipo: "tramo",
-        tramo: 43, // De mapa número  a mapa número
-        mapa_numero: "33→35",
-        nombre: "Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen",
+        tramo: 43, // De mapa número 43 a mapa número 44
+        mapa_numero: "43→44",
+        nombre: "Plaza de la Virgen → Palacio de la Generalitat Valenciana",
         inicio: { lat: Number('39.476600'), lng: Number('-0.375290') },
         waypoints:
         [
@@ -9027,23 +9038,23 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
         video: "",
     },
-    // Parada 68 - Palau de la Generalitat (Reto 5) (Párrafos: 481, 482, 482-B, 483)
+    // Parada 69 - Palacio de la Generalitat Valenciana (Reto 55) (Párrafos: 481, 482, 482-B, 483)
     {
-        id: "Av34km-P-68",
+        id: "Av34km-P-69",
         tipo: "parada",
-        parada: 68, // mapa número 3
-        mapa_numero: 3,
-        nombre: "Palau de la Generalitat",
+        parada: 69, // mapa número 44
+        mapa_numero: "44",
+        nombre: "Palacio de la Generalitat Valenciana",
         coordenadas: { lat: Number('39.476680'), lng: Number('-0.376710') },
         imagen: "imagenes/imagenes-aventuras/palau_de_la_generalitat.jpg",
     },
-    // Tramo 44 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104)
+    // Tramo 44 - Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 485, 486)
     {
         id: "Av34km-TR-44",
         tipo: "tramo",
-        tramo: 44, // De mapa número 3 a mapa número 4
-        mapa_numero: "3→4",
-        nombre: "Palau de la Generalitat → Calle Caballeros",
+        tramo: 44, // De mapa número 44 a mapa número 45
+        mapa_numero: "44→45",
+        nombre: "Palacio de la Generalitat Valenciana → Calle Caballeros",
         inicio: { lat: Number('39.476680'), lng: Number('-0.376710') },
         waypoints: [],
         fin: { lat: Number('39.476590'), lng: Number('-0.376940') },
@@ -9052,12 +9063,12 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Tramo 45 - Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487-B)
+    // Tramo 45 - Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487)
     {
         id: "Av34km-TR-45",
         tipo: "tramo",
-        tramo: 45, // De mapa número 4 a mapa número 5
-        mapa_numero: "4→5",
+        tramo: 45, // De mapa número 45 a mapa número 46
+        mapa_numero: "45→46",
         nombre: "Calle Caballeros → Iglesia de San Nicolás",
         inicio: { lat: Number('39.476590'), lng: Number('-0.376940') },
         waypoints:
@@ -9073,13 +9084,13 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 69 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490)
+    // Parada 70 - Iglesia de San Nicolás FRONT (Reto56puzzle PZ-06) (Párrafos: 488, 489, 490)
     {
-        id: "Av34km-P-69",
+        id: "Av34km-P-70",
         tipo: "parada",
-        parada: 69, // mapa número 5
-        mapa_numero: 5,
-        nombre: "Iglesia de San Nicolás FRONT",
+        parada: 70, // mapa número 46
+        mapa_numero: 46,
+        nombre: "Iglesia de San Nicolás",
         coordenadas: { lat: Number('39.476570'), lng: Number('-0.378830') },
         imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_front.jpg",
     },
@@ -9088,9 +9099,9 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-TR-46",
         tipo: "tramo",
-        tramo: 46, // De mapa número 5 a mapa número 6
-        mapa_numero: "5→6",
-        nombre: "Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
+        tramo: 46, // De mapa número 46 a mapa número 47
+        mapa_numero: "46→47",
+        nombre: "Iglesia de San Nicolás → Iglesia de San Nicolás",
         inicio: { lat: Number('39.476570'), lng: Number('-0.378830') },
         waypoints:
         [
@@ -9103,46 +9114,34 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 70 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496)
+    // Parada 71 - Iglesia de San Nicolás BACK (Reto 57) (Párrafos: 493, 494, 495, 496)
     {
-        id: "Av34km-P-70",
+        id: "Av34km-P-71",
         tipo: "parada",
-        parada: 70, // mapa número 6
-        mapa_numero: 6,
-        nombre: "Iglesia de San Nicolás BACK",
+        parada: 71, // mapa número 47
+        mapa_numero: 47,
+        nombre: "Iglesia de San Nicolás",
         coordenadas: { lat: Number('39.476100'), lng: Number('-0.379180') },
         imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
     },
 
-    // Parada 71 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498)
-    {
-        id: "Av34km-P-71",
-        tipo: "parada",
-        parada: 71, // mapa número 6
-        mapa_numero: 6,
-        nombre: "Iglesia de San Nicolás BACK",
-        coordenadas: { lat: Number('39.476070'), lng: Number('-0.379180') },
-        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg",
-    },
-
-    // Parada 72 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505)
+    // Parada 72 - Iglesia de San Nicolás BACK (Reto 58) (Párrafos: 497, 498)
     {
         id: "Av34km-P-72",
         tipo: "parada",
-        parada: 72, // mapa número 6
-        mapa_numero: 6,
-        nombre: "Iglesia de San Nicolás BACK",
-        coordenadas: { lat: Number('39.476050'), lng: Number('-0.379150') },
-        imagen: "imagenes/imagenes-aventuras/Iglesia_San_Nicolas_esquina_back.jpg",
+        parada: 72, // mapa número 47
+        mapa_numero: 47,
+        nombre: "Iglesia de San Nicolás",
+        coordenadas: { lat: Number('39.476070'), lng: Number('-0.379180') },
+        imagen: "imagenes/imagenes-aventuras/iglesia_san_nicolas_back.jpg",
     },
-
-    // Tramo 47 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B)
+    // Tramo 47 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500)
     {
         id: "Av34km-TR-47",
         tipo: "tramo",
-        tramo: 47, // De mapa número 6 a mapa número 7
-        mapa_numero: "6→7",
-        nombre: "Iglesia de San Nicolás BACK → Plaza del Negrito",
+        tramo: 47, // De mapa número 47 a mapa número 48
+        mapa_numero: "47→48",
+        nombre: "Iglesia de San Nicolás → Plaza del Negrito",
         inicio: { lat: Number('39.476050'), lng: Number('-0.379150') },
         waypoints:
         [
@@ -9162,24 +9161,24 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 73 - Plaza del Negrito (Reto 10) (Párrafos: 382, 501)
+    // Parada 73 - Plaza del Negrito (Reto 59) (Párrafos: 382, 501)
     {
         id: "Av34km-P-73",
         tipo: "parada",
-        parada: 73, // mapa número 7
-        mapa_numero: 7,
+        parada: 73, // mapa número 48
+        mapa_numero: 48,
         nombre: "Plaza del Negrito",
         coordenadas: { lat: Number('39.476110'), lng: Number('-0.377410') },
         imagen: "imagenes/imagenes-aventuras/Plaza_negrito.jpg",
         imagen2: "imagenes/imagenes-aventuras/fuente_del_negrito.jpg",
     },
 
-    // Tramo 48 - Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502-B, 506, 12)
+    // Tramo 48 - Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65)
     {
         id: "Av34km-TR-48",
         tipo: "tramo",
-        tramo: 48, // De mapa número 7 a mapa número 4 y mapa número 8
-        mapa_numero: "7→4→8",
+        tramo: 48, // De mapa número 48 a mapa número 45 y mapa número 49
+        mapa_numero: "48→45→49",
         nombre: "Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
         inicio: { lat: Number('39.476110'), lng: Number('-0.377410') },
         waypoints:
@@ -9202,12 +9201,12 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 74 - Plaza del Tossal (Reto 11) (Párrafos: 12-C, 508, 509)
+    // Parada 74 - Plaza del Tossal (Reto 60) (Párrafos: 53, 508, 509)
     {
         id: "Av34km-P-74",
         tipo: "parada",
-        parada: 74, // mapa número 8
-        mapa_numero: 8,
+        parada: 74, // mapa número 49
+        mapa_numero: 49,
         nombre: "Plaza del Tossal",
         coordenadas: { lat: Number('39.476390'), lng: Number('-0.380010') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
@@ -9217,19 +9216,19 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-P-75",
         tipo: "parada",
-        parada: 75, // mapa número 8
-        mapa_numero: 8,
+        parada: 75, // mapa número 49
+        mapa_numero: 49,
         nombre: "Plaza del Tossal",
         coordenadas: { lat: Number('39.476360'), lng: Number('-0.379990') },
         imagen: "imagenes/imagenes-aventuras/plaza_del_tossal.jpg",
     },
 
-    // Tramo 49 - Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 13-C)
+    // Tramo 49 - Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66)
     {
         id: "Av34km-TR-49",
         tipo: "tramo",
-        tramo: 49, // De mapa número 8 a mapa número 9
-        mapa_numero: "8→9",
+        tramo: 49, // De mapa número 49 a mapa número 50
+        mapa_numero: "49→50",
         nombre: "Plaza del Tossal → Portal de la Valldigna",
         inicio: { lat: Number('39.476360'), lng: Number('-0.379990') },
         waypoints:
@@ -9248,23 +9247,23 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 76 - Portal de la Valldigna (Párrafos: 513, 589, 144)
+    // Parada 76 - Portal de la Valldigna (Párrafos: 513)
     {
         id: "Av34km-P-76",
         tipo: "parada",
-        parada: 76, // mapa número 9
-        mapa_numero: 9,
+        parada: 76, // mapa número 50
+        mapa_numero: 50,
         nombre: "Portal de la Valldigna",
         coordenadas: { lat: Number('39.477550'), lng: Number('-0.378600') },
         imagen: "imagenes/imagenes-aventuras/portal-de-la_valldigna.jpg",
     },
 
-    // Tramo 50 - Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 560, 514, 14-C)
+    // Tramo 50 - Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67)
     {
         id: "Av34km-TR-50",
         tipo: "tramo",
-        tramo: 50, // De mapa número 9 a mapa número 10
-        mapa_numero: "9→10",
+        tramo: 50, // De mapa número 50 a mapa número 51
+        mapa_numero: "50→51",
         nombre: "Portal de la Valldigna → Torre del Ángel (Torre árabe)",
         inicio: { lat: Number('39.477550'), lng: Number('-0.378600') },
         waypoints:
@@ -9281,24 +9280,24 @@ export const DATOS_AVENTURAS = {
         video: ""
     },
 
-    // Parada 77 - Torre del Ángel (Torre árabe) (Reto 12) (Párrafos: 515, 516, 517, 518, 519)
+    // Parada 77 - Torre del Ángel (Torre árabe) (Reto 61) (Párrafos: 515, 516, 517, 518, 520, 519)
     {
         id: "Av34km-P-77",
         tipo: "parada",
-        parada: 77, // mapa número 10
-        mapa_numero: 10,
+        parada: 77, // mapa número 51
+        mapa_numero: 51,
         nombre: "Torre del Ángel (Torre árabe)",
         coordenadas: { lat: Number('39.478030'), lng: Number('-0.377910') },
         imagen: "imagenes/imagenes-aventuras/torre-del_angel_arabe.jpg",
         video: ""
     },
-    // Tramo 51 - Torre del Ángel (Torre árabe) → Plaza de la Virgen (Párrafos: 521, 522, 671, 520, 105, 15-B)
+    // Tramo 51 - Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523)
     {
         id: "Av34km-TR-51",
         tipo: "tramo",
-        tramo: 51, // De mapa número 10 a mapa número 11
-        mapa_numero: "10→11",
-        nombre: "Torre del Ángel (Torre árabe) → Plaza de la Virgen",
+        tramo: 51, // De mapa número 51 a mapa número 52
+        mapa_numero: "51→52",
+        nombre: "Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
         inicio: { lat: Number('39.478030'), lng: Number('-0.377910') },
         waypoints:
         [
@@ -9318,18 +9317,18 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-P-78",
         tipo: "parada",
-        parada: 78, // mapa número 3
-        mapa_numero: 3,
+        parada: 78, // mapa número 52
+        mapa_numero: 52,
         nombre: "Refugio Guerra Civil",
         coordenadas: { lat: Number('39.478290'), lng: Number('-0.376475') },
         imagen: "imagenes/imagenes-aventuras/refugio_guerra_civil.jpg",
     },
-    // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: )
+    // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529)
     {
         id: "Av34km-TR-52",
         tipo: "tramo",
-        tramo: 52, // De mapa número  a mapa número
-        mapa_numero: "33→35",
+        tramo: 52, // De mapa número 52 a mapa número 53
+        mapa_numero: "52→53",
         nombre: "Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
         inicio: { lat: Number('39.478290'), lng: Number('-0.376475') },
         waypoints:
@@ -9343,22 +9342,22 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/casa_rocas.jpg",
         video: "",
     },
-    // Parada 79 - Museo de Corpus Christi (Casa de las Rocas) (Reto4Puzzle PZ-18) (Párrafos: 5-B, 530, 531, 532, 396)
+    // Parada 79 - Museo de Corpus Christi (Casa de las Rocas) (Reto62Puzzle PZ-18) (Párrafos: 69, 530, 531, 532, 396)
     {
         id: "Av34km-P-79",
         tipo: "parada",
-        parada: 79, // mapa número 2
-        mapa_numero: 1,
-        nombre: "",
+        parada: 79, // mapa número 53
+        mapa_numero: 53,
+        nombre: "Museo de Corpus Christi (Casa de las Rocas)",
         coordenadas: { lat: Number('39.478960'), lng: Number('-0.376920') },
         imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg",
     },
-    // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 6-B)
+    // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71)
     {
         id: "Av34km-TR-53",
         tipo: "tramo",
-        tramo: 53, // De mapa número 2 a mapa número 3
-        mapa_numero: "2→3",
+        tramo: 53, // De mapa número 53 a mapa número 54
+        mapa_numero: "53→54",
         nombre: "Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
         inicio: { lat: Number('39.478960'), lng: Number('-0.376920') },
          waypoints: [
@@ -9373,32 +9372,32 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
         video: "",
     },
-    // Parada 80 - Parroquia de la Santísima Cruz (Iglesia del Carmen) (Reto 5) (Párrafos: 534, 535, 536, 537, 538)
+    // Parada 80 - Parroquia de la Santísima Cruz (Iglesia del Carmen) (Reto 63) (Párrafos: 534, 535, 536, 537, 538)
     {
         id: "Av34km-P-80",
         tipo: "parada",
-        parada: 80, // mapa número 3
-        mapa_numero: 3,
+        parada: 80, // mapa número 54
+        mapa_numero: 54,
         nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)",
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.378590') },
         imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
     },
-    // Parada 81 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 540, 541)
+    // Parada 81 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 64) (Párrafos: 539, 541, 540)
     {
         id: "Av34km-P-81",
         tipo: "parada",
-        parada: 81, // mapa número 3
-        mapa_numero: 3,
-        nombre: "",
+        parada: 81, // mapa número 54
+        mapa_numero: 54,
+        nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen)",
         coordenadas: { lat: Number('39.479210'), lng: Number('-0.378600') },
         imagen: "imagenes/imagenes-aventuras/iglesia_del_carmen.jpg",
     },
-    // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo "El Carmen" (Párrafos: 542, 7)
+    // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo "El Carmen" (Párrafos: 542, 72)
     {
         id: "Av34km-TR-54",
         tipo: "tramo",
-        tramo: 54, // De mapa número 3 a mapa número 4
-        mapa_numero: "3→4",
+        tramo: 54, // De mapa número 54 a mapa número 55
+        mapa_numero: "54→55",
         nombre: "Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
         inicio: { lat: Number('39.479210'), lng: Number('-0.378600') },
          waypoints: [
@@ -9409,32 +9408,32 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg",
         video: "",
     },
-    // Parada 82 - Centro Cultural Contemporáneo "El Carmen" (Reto 7) (Párrafos: 543, 544-B, 545, 546)
+    // Parada 82 - Centro Cultural Contemporáneo "El Carmen" (Reto 65) (Párrafos: 543, 544, 545, 546)
     {
         id: "Av34km-P-82",
         tipo: "parada",
-        parada: 82, // mapa número 4
-        mapa_numero: 4,
+        parada: 82, // mapa número 55
+        mapa_numero: 55,
         nombre: "Centro Cultural Contemporáneo: El Carmen",
         coordenadas: { lat: Number('39.479340'), lng: Number('-0.378850') },
         imagen: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg",
     },
-    // Parada 83 - Centro Cultural Contemporáneo "El Carmen" 2 (Reto 8) (Párrafos: 547, 548, 549, 550)
+    // Parada 83 - Centro Cultural Contemporáneo "El Carmen" 2 (Reto 66) (Párrafos: 547, 548, 549, 550)
     {
         id: "Av34km-P-83",
         tipo: "parada",
-        parada: 83, // mapa número 4
-        mapa_numero: 4,
+        parada: 83, // mapa número 55
+        mapa_numero: 55,
         nombre: "Centro Cultural Contemporáneo: El Carmen",
         coordenadas: { lat: Number('39.479360'), lng: Number('-0.378880') },
         imagen: "imagenes/imagenes-aventuras/centro_cultural_el_carmen.jpg",
     },
-    // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 8-B, 552)
+    // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552)
     {
         id: "Av34km-TR-55",
         tipo: "tramo",
-        tramo: 55, // De mapa número 4 a mapa número 5
-        mapa_numero: "4→5",
+        tramo: 55, // De mapa número 55 a mapa número 56
+        mapa_numero: "55→56",
         nombre: "Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
         inicio: { lat: Number('39.479360'), lng: Number('-0.378880') },
          waypoints: [
@@ -9446,11 +9445,11 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
         video: "",
     },
-    // Parada 84 - Casa de los Gatos (Reto 9) (Párrafos: 553, 554)
+    // Parada 84 - Casa de los Gatos (Reto 67) (Párrafos: 553, 554)
     {
         id: "Av34km-P-84",
         tipo: "parada",
-        parada: 84, // mapa número 5
+        parada: 84, // mapa número 56
         mapa_numero: 5,
         nombre: "Casa de los Gatos",
         coordenadas: { lat: Number('39.479740'), lng: Number('-0.379500') },
@@ -9460,13 +9459,13 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-P-85",
         tipo: "parada",
-        parada: 85, // mapa número 5
-        mapa_numero: 5,
+        parada: 85, // mapa número 56
+        mapa_numero: 56,
         nombre: "Casa de los Gatos",
         coordenadas: { lat: Number('39.479750'), lng: Number('-0.379510') },
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
     },
-    // Parada 86 - Casa de los Gatos 3 (Reto 10) (Párrafos: 557, 558)
+    // Parada 86 - Casa de los Gatos 3 (Reto 68) (Párrafos: 557, 558)
     {
         id: "Av34km-P-86",
         tipo: "parada",
@@ -9476,22 +9475,22 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.479750'), lng: Number('-0.379500') },
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
     },
-    // Parada 87 - Casa de los Gatos 4 (Reto 11) (Párrafos: 559)
+    // Parada 87 - Casa de los Gatos 4 (Reto 69) (Párrafos: 559)
     {
         id: "Av34km-P-87",
         tipo: "parada",
-        parada: 87, // mapa número 5
-        mapa_numero: 5,
+        parada: 87, // mapa número 56
+        mapa_numero: 56,
         nombre: "Casa de los Gatos",
         coordenadas: { lat: Number('39.479740'), lng: Number('-0.379510') },
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
     },
-    // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 10-C)
+    // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74)
     {
         id: "Av34km-TR-56",
         tipo: "tramo",
-        tramo: 56, // De mapa número 5 a mapa número 6
-        mapa_numero: "5→6",
+        tramo: 56, // De mapa número 56 a mapa número 57
+        mapa_numero: "56→57",
         nombre: "Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
         inicio: { lat: Number('39.479740'), lng: Number('-0.379510') },
          waypoints: [
@@ -9508,33 +9507,33 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/ivam.jpg",
         video: "",
     },
-    // Parada 88: Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas (Párrafos: 562, 562-B)
+    // Parada 88: Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas (Párrafos: 562)
     {
         id: "Av34km-P-88",
         tipo: "parada",
-        parada: 88, // mapa número 6
-        mapa_numero: 6,
+        parada: 88, // mapa número 57
+        mapa_numero: 57,
         nombre: "Instituto Valenciano de Arte Moderno (IVAM)",
         coordenadas: { lat: Number('39.480022'), lng: Number('-0.382899') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
         imagen2:"imagenes/imagenes-aventuras/torres_de_quart.jpg",
     },
-    // Parada 89: Instituto Valenciano de Arte Moderno (IVAM): Museo (Párrafos: 563-C)
+    // Parada 89: Instituto Valenciano de Arte Moderno (IVAM): Museo (Párrafos: 563, 4)
     {
         id: "Av34km-P-89",
         tipo: "parada",
-        parada: 89, // mapa número 6
-        mapa_numero: 6,
+        parada: 89, // mapa número 57
+        mapa_numero: 57,
         nombre: "Instituto Valenciano de Arte Moderno (IVAM)",
         coordenadas: { lat: Number('39.480022'), lng: Number('-0.382899') },
         imagen: "imagenes/imagenes-aventuras/ivam.jpg",
     },
-    // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: )
+    // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75)
     {
         id: "Av34km-TR-57",
         tipo: "tramo",
-        tramo: 57, // De mapa número  a mapa número
-        mapa_numero: "5→6",
+        tramo: 57, // De mapa número 57 a mapa número 58, 59
+        mapa_numero: "57→58/59",
         nombre: "Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
         inicio: { lat: Number('39.480022'), lng: Number('-0.382899') },
          waypoints: [
@@ -9561,18 +9560,18 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-P-90",
         tipo: "parada",
-        parada: 90, // mapa número 18/19
-        mapa_numero: "18/19",
+        parada: 90, // mapa número 58, 59
+        mapa_numero: "58/59",
         nombre: "Museo de Prehistoria y Etnología",
         coordenadas: { lat: Number('39.478248'), lng: Number('-0.383117') },
         imagen: "imagenes/imagenes-aventuras/museo_prehistoria-front.jpg",
     },
-    // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 31)
+    // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218)
     {
         id: "Av34km-TR-58",
         tipo: "tramo",
-        tramo: 58, // De mapa número 18/19 a mapa número 20
-        mapa_numero: "18/19→20",
+        tramo: 58, // De mapa número 58/59 a mapa número 60
+        mapa_numero: "58/59→60",
         nombre: "Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
         inicio: { lat: Number('39.478248'), lng: Number('-0.383117') },
         waypoints:
@@ -9584,22 +9583,22 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
         video: "",
     },
-    // Parada 91: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 569, 127)
+    // Parada 91: Iglesia de la Milagrosa (Reto 70) (Párrafos: 568, 127, 569)
     {
         id: "Av34km-P-91",
         tipo: "parada",
-        parada: 91, // mapa número 20
-        mapa_numero: "20",
+        parada: 91, // mapa número 60
+        mapa_numero: "60",
         nombre: "Iglesia de la Milagrosa",
         coordenadas: { lat: Number('39.478176'), lng: Number('-0.382630') },
         imagen: "imagenes/imagenes-aventuras/iglesia_de_la_milagrosa.jpg",
     },
-    // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 567, 31)
+    // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76)
     {
         id: "Av34km-TR-59",
         tipo: "tramo",
-        tramo: 59, // De mapa número 18/19 a mapa número 20
-        mapa_numero: "18/19→20",
+        tramo: 59, // De mapa número 60 a mapa número 61
+        mapa_numero: "60→61",
         nombre: "Iglesia de la Milagrosa → Torres de Quart",
         inicio: { lat: Number('39.478176'), lng: Number('-0.382630') },
         waypoints:
@@ -9624,33 +9623,33 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
         video: "",
     },
-    // Parada 92: Torres de Quart 1 (Reto 26) (Párrafos: 571, 594, 572, 573)
+    // Parada 92: Torres de Quart 1 (Reto 71) (Párrafos: 571, 572, 573)
     {
         id: "Av34km-P-92",
         tipo: "parada",
-        parada: 92, // mapa número 17
-        mapa_numero: 17,
+        parada: 92, // mapa número 61
+        mapa_numero: "61",
         nombre: "Torres de Quart",
         coordenadas: { lat: Number('39.475797'), lng: Number('-0.384197') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
     },
-    // Parada 93: Torres de Quart 2 (Reto27Puzzle PZ-15) (Párrafos: 574, 575)
+    // Parada 93: Torres de Quart 2 (Reto72Puzzle PZ-15) (Párrafos: 574, 575)
     {
         id: "Av34km-P-93",
         tipo: "parada",
-        parada: 93, // mapa número 17
-        mapa_numero: 17,
+        parada: 93, // mapa número 61
+        mapa_numero: "61",
         nombre: "Torres de Quart",
         coordenadas: { lat: Number('39.475780'), lng: Number('-0.384202') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
     },
-    // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: )
+    // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77)
     {
         id: "Av34km-TR-60",
         tipo: "tramo",
-        tramo: 60, // De mapa número  a mapa número
-        mapa_numero: "18/19→20",
+        tramo: 60, // De mapa número 61 a mapa número 62
+        mapa_numero: "61→62",
         nombre: "Torres de Quart → Biblioteca del Hospital",
         inicio: { lat: Number('39.475780'), lng: Number('-0.384202') },
         waypoints:
@@ -9666,42 +9665,42 @@ export const DATOS_AVENTURAS = {
         imagen2: "imagenes/imagenes-aventuras/biblioteca_hospital_fuente.jpg",
         video: "",
     },
-    // Parada 94: calle del Hospital (Ermita de Santa lucía) (Reto: 17) (Párrafos: 578, 579)
+    // Parada 94: calle del Hospital (Ermita de Santa lucía) (Reto: 73) (Párrafos: 578, 579)
     {
         id: "Av34km-P-94",
         tipo: "parada",
-        parada: 94, // mapa número 13
-        mapa_numero: 13,
+        parada: 94, // mapa número 62
+        mapa_numero: "62",
         nombre: "Calle del Hospital (Ermita de Santa Lucía)",
         coordenadas: { lat: Number('39.470638'), lng: Number('-0.383312') },
         imagen: "imagenes/imagenes-aventuras/biblioteca_hospital_fuente.jpg",
     },
-    // Parada 95: calle del Hospital 2 (Ermita de Santa lucía) (Reto: 18) (Párrafos: 580)
+    // Parada 95: calle del Hospital 2 (Ermita de Santa lucía) (Reto: 74) (Párrafos: 580)
     {
         id: "Av34km-P-95",
         tipo: "parada",
-        parada: 95, // mapa número 13
-        mapa_numero: 13,
+        parada: 95, // mapa número 62
+        mapa_numero: "62",
         nombre: "Calle del Hospital (Ermita de Santa Lucía)",
         coordenadas: { lat: Number('39.470669'), lng: Number('-0.383250') },
         imagen: "imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg",
     },
-    // Parada 96: calle del Hospital 3 (Ermita de Santa lucía) (Reto: 19) (Párrafos: 581, 582, 583)
+    // Parada 96: calle del Hospital 3 (Ermita de Santa lucía) (Reto: 75) (Párrafos: 581, 582, 583)
     {
         id: "Av34km-P-96",
         tipo: "parada",
-        parada: 96, // mapa número 13
-        mapa_numero: 13,
+        parada: 96, // mapa número 62
+        mapa_numero: "62",
         nombre: "Calle del Hospital (Ermita de Santa Lucía)",
         coordenadas: { lat: Number('39.470673'), lng: Number('-0.383215') },
         imagen: "imagenes/imagenes-aventuras/iglesia_calle_hospital.jpg",
     },
-     // Tramo 61: calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 21)
+     // Tramo 61: calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78)
     {
         id: "Av34km-TR-61",
         tipo: "tramo",
-        tramo: 61, // De mapa número 13 a mapa número 14
-        mapa_numero: "13→14",
+        tramo: 61, // De mapa número 62 a mapa número 63
+        mapa_numero: "62→63",
         nombre: "Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
         inicio: { lat: Number('39.470673'), lng: Number('-0.383215') },
         waypoints:
@@ -9721,12 +9720,12 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
         video: "",
     },
-    // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Reto: 20) (Párrafos: 585, 145, 586)
+    // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Reto: 76) (Párrafos: 585, 586)
     {
         id: "Av34km-P-97",
         tipo: "parada",
-        parada: 97, // mapa número 14
-        mapa_numero: 14,
+        parada: 97, // mapa número 63
+        mapa_numero: "63",
         nombre: "Museo y Colegio del Arte Mayor de la Seda",
         coordenadas: { lat: Number('39.470928'), lng: Number('-0.380926') },
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
@@ -9736,8 +9735,8 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-P-98",
         tipo: "parada",
-        parada: 98, // mapa número 14
-        mapa_numero: 14,
+        parada: 98, // mapa número 63
+        mapa_numero: "63",
         nombre: "Museo y Colegio del Arte Mayor de la Seda",
         coordenadas: { lat: Number('39.470925'), lng: Number('-0.380941') },
         imagen: "imagenes/imagenes-aventuras/museo_de_la_seda.jpg",
@@ -9746,8 +9745,8 @@ export const DATOS_AVENTURAS = {
     {
         id: "Av34km-TR-62",
         tipo: "tramo",
-        tramo: 62, // De mapa número 14 a mapa número 13
-        mapa_numero: "14→13",
+        tramo: 62, // De mapa número 63 a mapa número 62
+        mapa_numero: "63→62",
         nombre: "Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
         inicio: { lat: Number('39.470925'), lng: Number('-0.380941') },
         waypoints:
@@ -9769,22 +9768,22 @@ export const DATOS_AVENTURAS = {
         imagen3: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
-    // Parada 99: Biblioteca del Hospital 2 (Reto21Puzzle PZ-14 ) (Párrafos: 592-B)
+    // Parada 99: Biblioteca del Hospital 2 (Reto77Puzzle PZ-14 ) (Párrafos: 592-B)
     {
         id: "Av34km-P-99",
         tipo: "parada",
-        parada: 99, // mapa número 13
-        mapa_numero: 13,
+        parada: 99, // mapa número 62
+        mapa_numero: "62",
         nombre: "Biblioteca del Hospital",
         coordenadas: { lat: Number('39.469930'), lng: Number('-0.381871') },
         imagen: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
     },
-    // Tramo 63:  Biblioteca del Hospital → Torres de Quart (Párrafos:  )
+    // Tramo 63:  Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B)
     {
         id: "Av34km-TR-63",
         tipo: "tramo",
-        tramo: 63, // De mapa número  a mapa número
-        mapa_numero: "14→13",
+        tramo: 63, // De mapa número 62 a mapa número 61
+        mapa_numero: "62→61",
         nombre: "Biblioteca del Hospital → Torres de Quart",
         inicio: { lat: Number('39.469930'), lng: Number('-0.381871') },
         waypoints:
@@ -9823,24 +9822,24 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
-    // Parada 100: Torres de Quart 2 (Reto27Puzzle PZ-15) (Párrafos: 574, 575)
+    // Parada 100: Torres de Quart (Párrafos: 594)
     {
         id: "Av34km-P-100",
         tipo: "parada",
-        parada: 100, // mapa número 17
-        mapa_numero: 17,
+        parada: 100, // mapa número 61
+        mapa_numero: "61",
         nombre: "Torres de Quart",
         coordenadas: { lat: Number('39.475780'), lng: Number('-0.384202') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
     },
-    // Tramo 64: Torres de Quart → jardín Botánico (Párrafos: )
+    // Tramo 64: Torres de Quart 2 → jardín Botánico (Párrafos: 595)
     {
         id: "Av34km-TR-64",
         tipo: "tramo",
-        tramo: 64, // De mapa número  a mapa número
-        mapa_numero: "14→13",
-        nombre: "Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        tramo: 64, // De mapa número 61 a mapa número 64
+        mapa_numero: "61→64",
+        nombre: "Torres de Quart → Jardín Botánico",
         inicio: { lat: Number('39.475780'), lng: Number('-0.384202') },
         waypoints:
         [
@@ -9856,22 +9855,22 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
-    // Parada 101: Jardín Botánico (Párrafos: )
+    // Parada 101: Jardín Botánico (Párrafos: 596)
     {
         id: "Av34km-P-101",
         tipo: "parada",
-        parada: 101, // mapa número 17
-        mapa_numero: 17,
+        parada: 101, // mapa número 64
+        mapa_numero: "64",
         nombre: "Jardín Botánico",
         coordenadas: { lat: Number('39.475395'), lng: Number('-0.386364') },
         imagen: "imagenes/imagenes-aventuras/jardin_botanico.jpg",
     },
-    // Tramo 65 : Jardín Botánico → Jardín de las Hespérides (Párrafos: 588, 589, 590, 591, 592 )
+    // Tramo 65 : Jardín Botánico → Jardín de las Hespérides (Párrafos: 598)
     {
         id: "Av34km-TR-65",
         tipo: "tramo",
-        tramo: 65, // De mapa número 14 a mapa número 13
-        mapa_numero: "14→13",
+        tramo: 65, // De mapa número 64 a mapa número 65
+        mapa_numero: "64→65",
         nombre: "Jardín Botánico → Jardín de las Hespérides",
         inicio: { lat: Number('39.475395'), lng: Number('-0.386364') },
         waypoints:
@@ -9893,23 +9892,23 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
-    // Parada 102: Jardín de las Hespérides (Párrafos: 574, 575)
+    // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600)
     {
         id: "Av34km-P-102",
         tipo: "parada",
-        parada: 102, // mapa número 17
-        mapa_numero: 17,
-        nombre: "Torres de Quart",
+        parada: 102, // mapa número 65
+        mapa_numero: "65",
+        nombre: "Jardín de las Hespérides",
         coordenadas: { lat: Number('39.477646'), lng: Number('-0.388293') },
         imagen: "imagenes/imagenes-aventuras/torres_de_quart.jpg",
         imagen2: "imagenes/imagenes-aventuras/torres-quart-palleter.jpg",
     },
-    // Tramo 66: Jardín de las Hespérides → estadio de Atletismo (Párrafos: 588, 589, 590, 591, 592 )
+    // Tramo 66: Jardín de las Hespérides → estadio de Atletismo (Párrafos: 601)
     {
         id: "Av34km-TR-66",
         tipo: "tramo",
-        tramo: 66, // De mapa número 14 a mapa número 13
-        mapa_numero: "14→13",
+        tramo: 66, // De mapa número 65 a mapa número 66
+        mapa_numero: "65→66",
         nombre: "Jardín de las Hespérides → Estadio de Atletismo",
         inicio: { lat: Number('39.477646'), lng: Number('-0.388293') },
         waypoints:
@@ -9942,12 +9941,12 @@ export const DATOS_AVENTURAS = {
         imagen4: "imagenes/imagenes-aventuras/jardin_de_la_biblioteca.jpg",
         video: "",
     },
-    // Parada 103: Estadio de Atletismo (Reto12puzzle PZ-10) (Párrafos: 603)
+    // Parada 103: Estadio de Atletismo (Reto78puzzle PZ-10) (Párrafos: 602, 603)
     {
         id: "Av34km-P-103",
         tipo: "parada",
-        parada: 103, // mapa número 9
-        mapa_numero: 9,
+        parada: 103, // mapa número 66
+        mapa_numero: 66,
         nombre: "Estadio de Atletismo",
         coordenadas: { lat: Number('39.476680'), lng: Number('-0.394290') },
         imagen: "imagenes/imagenes-aventuras/estadio_atletismo.jpg",
