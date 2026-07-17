@@ -645,8 +645,8 @@
     // Tramo 9: Na Turia → Puente Amarillo (Párrafos: 611, 20) (mapa 11→12)
     { id: "txt-Av4-TR9", parrafos: [611, 20] },
 
-    // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
-    { id: "txt-Av4-P15", parrafos: [128, 312, 613, 614, 615] },
+    // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
+    { id: "txt-Av4-P15", parrafos: [128, 612, 613, 614, 615] },
 
     // Tramo 10: Puente Amarillo → Puente 9 de Octubre  (Párrafos: 3) (mapa 12→13)
     { id: "txt-Av4-TR10", parrafos: [3] },
@@ -825,8 +825,8 @@
     // Parada 9: Casa de los Dragones (Reto: 9) (Párrafos: 304, 305) (mapa 8)
     { id: "txt-Av5-P9", parrafos: [304, 305] },
 
-    // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13) (mapa 8→9)
-    { id: "txt-Av5-TR9", parrafos: [306, 13] },
+    // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13, 307) (mapa 8→9)
+    { id: "txt-Av5-TR9", parrafos: [306, 13, 307] },
 
     // Parada 10: Mercado de Colón 1 (Reto: 10) (Párrafos: 308, 309, 310) (mapa 9)
     { id: "txt-Av5-P10", parrafos: [308, 309, 310] },

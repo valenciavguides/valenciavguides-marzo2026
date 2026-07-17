@@ -15929,7 +15929,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-es",
         title: "Parada 15: Puente Amarillo",
@@ -16385,7 +16385,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-en",
         title: "Stop 15: Puente Amarillo",
@@ -16841,7 +16841,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-fr",
         title: "Étape 15: Puente Amarillo",
@@ -17297,7 +17297,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-it",
         title: "Tappa 15: Puente Amarillo",
@@ -17753,7 +17753,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-nl",
         title: "Stop 15: Puente Amarillo",
@@ -18209,7 +18209,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-ja",
         title: "停留所 15: Puente Amarillo",
@@ -18665,7 +18665,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-de",
         title: "Halt 15: Puente Amarillo",
@@ -19121,7 +19121,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-zh",
         title: "站 15: Puente Amarillo",
@@ -19577,7 +19577,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-pl",
         title: "Przystanek 15: Puente Amarillo",
@@ -20033,7 +20033,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-pt",
         title: "Parada 15: Puente Amarillo",
@@ -20489,7 +20489,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-ru",
         title: "Остановка 15: Puente Amarillo",
@@ -20945,7 +20945,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 15: Puente Amarillo (Párrafos: 128, 312, 613, 614, 615) (mapa 12)
+      // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-uk",
         title: "Зупинка 15: Puente Amarillo",
@@ -26662,7 +26662,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-es",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -26992,7 +26992,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-en",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -27322,7 +27322,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-fr",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -27652,7 +27652,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-it",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -27982,7 +27982,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-nl",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -28312,7 +28312,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-ja",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -28642,7 +28642,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-de",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -28972,7 +28972,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-zh",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -29302,7 +29302,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-pl",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -29632,7 +29632,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-pt",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -29962,7 +29962,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-ru",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
@@ -30292,7 +30292,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central
+      // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-uk",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
