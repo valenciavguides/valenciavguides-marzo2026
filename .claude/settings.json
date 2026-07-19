@@ -85,7 +85,18 @@
       "Bash(node \"C:\\\\Users\\\\gomez\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\\\9323ce8a-b283-426c-be0e-ba2bb34e024a\\\\scratchpad\\\\inspect-mp4.js\" \"videos-aventuras/video_intro_ejemplo.mp4\")",
       "Bash(ffmpeg -version)",
       "Bash(awk 'NR>=213 && /^```/ {print NR\": \"$0; c++; if\\(c>=1\\) exit}' docs/GUIA-COMPLETA.md)",
-      "Bash(grep -c '^```' docs/GUIA-COMPLETA.md)"
+      "Bash(grep -c '^```' docs/GUIA-COMPLETA.md)",
+      "Bash(grep -n \"// Parada 103 \\\\|// Parada 103:\" js/coordenadas-aventuras.js)",
+      "Bash(awk 'NR>=3647 && NR<=5168' js/coordenadas-aventuras.js)",
+      "Bash(grep -n \"// Tramo 24:\\\\|Av4-TR-24\\\\\"\\\\|// Parada 32:\\\\|Av4-P-32\\\\\"\" js/coordenadas-aventuras.js)",
+      "Bash(awk -F: '$1>3647 && $1<5169')",
+      "Bash(/c/Python314/python -c ' *)",
+      "Bash(node --check js/textos-aventuras.js)",
+      "Bash(node --check js/audios-aventuras.js)",
+      "Bash(grep -n \"// Tramo 11:\\\\|// Tramo 11 \\\\|// Parada 51:\\\\|// Parada 51 \\\\|// Parada 61:\\\\|// Parada 61 \\\\|// Parada 68:\\\\|// Parada 68 \\\\|// Tramo 44:\\\\|// Tramo 44 \\\\|// Tramo 46:\\\\|// Tramo 46 \\\\|// Tramo 83:\\\\|// Tramo 83 \\\\|// Parada 104:\\\\|// Parada 104 \\\\|// Parada 122:\\\\|// Parada 122 \\\\|// Parada 135:\\\\|// Parada 135 \" js/coordenadas-aventuras.js)",
+      "Bash(/c/Python314/python \"C:\\\\Users\\\\gomez\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\\\dc05f54b-3a28-4347-ae2a-47e0de9a835d\\\\scratchpad\\\\check_gaps.py\")",
+      "Bash(PYTHONIOENCODING=utf-8 /c/Python314/python -c ' *)",
+      "Bash(/c/Python314/python)"
     ],
     "additionalDirectories": [
       "c:\\Users\\gomez\\.claude\\projects\\c--Users-gomez-Desktop-proyecto-ValenciaVguides-Marzo-2026\\memory"

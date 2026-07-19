@@ -5833,9 +5833,9 @@ Cada parada tiene esta estructura:
 
 ```javascript
 {
-    id: "P-5",                              // Identificador único
+    id: "P-5",                              // Identificador único (0-indexado dentro del array de este archivo)
     tipo: "parada",                         // "inicio", "parada", o "tramo"
-    parada: 5,                              // Número de parada
+    parada: 8,                              // Posición global en la aventura completa (= número del id + 3)
     nombre: "Plaza de la Virgen",           // Nombre del lugar
     coordenadas: { lat: 39.47546, lng: -0.37524 },
     imagen: "imagenes/imagenes-aventuras/plaza_de_la_virgen.jpg",
@@ -5860,7 +5860,11 @@ Los tramos (caminos entre paradas) tienen **waypoints** (puntos intermedios) par
 }
 ```
 
-**Numeración correlativa.** Dentro de cada aventura, las paradas (incluyendo la entrada `tipo: "inicio"`, que cuenta como parada 0) se numeran 0, 1, 2... en el mismo orden en que aparecen en el array; los tramos se numeran 1, 2, 3... también por orden de aparición, en una serie independiente de la de paradas. El comentario que precede a cada entrada, el campo `id` y el campo `parada:`/`tramo:` deben coincidir con ese número: `id: "AvN-P-X"` / `id: "AvN-TR-X"` (la Aventura 34km usa el prefijo `Av34km-` en vez de un número: `Av34km-P-X` / `Av34km-TR-X`). Todas las aventuras (Av1-5, AventuraFallas, Av34km) siguen esta convención de forma completa y verificada — Av34km fue la última en corregirse (137 paradas, 0-137; 98 tramos, 1-98).
+**Numeración correlativa.** Dentro de cada aventura, las paradas (incluyendo la entrada `tipo: "inicio"`, que cuenta como parada 0) se numeran 0, 1, 2... en el mismo orden en que aparecen en el array; los tramos se numeran 1, 2, 3... también por orden de aparición, en una serie independiente de la de paradas. El comentario que precede a cada entrada y el campo `id` deben coincidir con ese número — ambos son 0-indexados dentro de este archivo: `id: "AvN-P-X"` / `id: "AvN-TR-X"` (la Aventura 34km usa el prefijo `Av34km-` en vez de un número: `Av34km-P-X` / `Av34km-TR-X`). El campo `tramo:` coincide siempre con el número del `id` del tramo — sin excepciones en ninguna aventura.
+
+**El campo `parada:` no coincide con el `id` — lleva +3.** Antes de la parada 0 de cada aventura existen 3 elementos que el usuario recorre igualmente pero que no tienen coordenadas y por eso no viven en `coordenadas-aventuras.js`: `pre-intro1`, `pre-intro2` e `intro` (definidos en `aventuras-ID-padre.js`, con `reto_id` "PZ-intro", "R1-AvX" y "R2-AvX" respectivamente). El primer reto real de la parada 0 es, en consecuencia, el reto 3 (ver `retos-aventuras.js`) — ese mismo +3 se traslada al campo `parada:`, que numera la posición global de la parada dentro de la aventura completa (intro incluida): `parada: = número del id + 3`. El comentario `// Parada N:` que precede a cada bloque no lleva este ajuste — numera solo la posición dentro del archivo, igual que el `id`, por eso comentario e `id` coinciden entre sí pero no con `parada:`.
+
+Todas las aventuras (Av1-5, AventuraFallas, Av34km) siguen esta convención de forma completa y verificada: `parada: = id + 3` en las 352 paradas del archivo, sin excepciones. Av34km tiene 139 paradas (id 0-138) y 97 tramos (id 1-97).
 
 ### Tolerancia GPS por tipo de elemento
 

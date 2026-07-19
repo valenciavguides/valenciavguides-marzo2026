@@ -162,8 +162,8 @@
     // Parada 34: Lonja (Mercado de la Seda) Gárgolas 2 (Reto 32) (Párrafos: 385) (mapa 19)
     { id: "txt-Av1-P34", parrafos: [385] },
 
-    // Parada 35: Lonja (Mercado de la Seda) Fornicador (Reto 33) (Párrafos: 386) (mapa 19)
-    { id: "txt-Av1-P35", parrafos: [386] },
+    // Parada 35: Lonja (Mercado de la Seda) Fornicador (Reto 33) (Párrafos: 386, 387) (mapa 19)
+    { id: "txt-Av1-P35", parrafos: [386, 387] },
 
     // Tramo 19: Rodeando la Lonja (Mercado de la Seda)(Párrafos: 388) (mapa 19→19)
     { id: "txt-Av1-TR19", parrafos: [388] },
@@ -225,8 +225,8 @@
     // Parada 4 - Palau de la Generalitat (Reto 5) (Párrafos: 481, 482, 482-B, 483) (mapa 3)
     { id: "txt-Av2-P4", parrafos: [481, 482, "482-B", 483] },
 
-    // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
-    { id: "txt-Av2-TR3", parrafos: [104] },
+    // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
+    { id: "txt-Av2-TR3", parrafos: [104, 484, "485-B", 486] },
 
     // Tramo 4 - Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487-B) (mapa 4→5)
     { id: "txt-Av2-TR4", parrafos: ["487-B"] },
@@ -237,8 +237,8 @@
     // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
     { id: "txt-Av2-TR5", parrafos: [491, 10] },
 
-    // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
-    { id: "txt-Av2-P6", parrafos: [493, "494-B", 496] },
+    // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
+    { id: "txt-Av2-P6", parrafos: [493, "494-B", 495, 496] },
 
     // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
     { id: "txt-Av2-P7", parrafos: [497, 498] },
@@ -561,8 +561,8 @@
     // Parada 38: Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia) (Reto 27) (Párrafos: 477-B, 479, 141, 468) (mapa 35)
     { id: "txt-Av3-P38", parrafos: ["477-B", 479, 141, 468] },
 
-    // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
-    { id: "txt-Av3-TR29", parrafos: [443, "2-F"] },
+    // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+    { id: "txt-Av3-TR29", parrafos: [433, "2-F"] },
 
     // Parada 39 - FINAL: Torres de Serranos Final (Reto28Puzzle PZ-05) (Párrafos: 475, 503, 507, 526) (mapa 1)
     { id: "txt-Av3-P39", parrafos: [475, 503, 507, 526] },
@@ -732,8 +732,8 @@
     // Parada 29: Museo de Ciencias Naturales (Reto 19) (Párrafos: viv6, viv5) (mapa v8)
     { id: "txt-Av4-P29", parrafos: ["viv6", "viv5"] },
 
-    // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
-    { id: "txt-Av4-TR24", parrafos: ["viv7"] },
+    // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+    { id: "txt-Av4-TR24", parrafos: ["viv7", "viv8"] },
 
     // Parada 30: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
     { id: "txt-Av4-P30", parrafos: ["viv9", "viv10"] },
@@ -744,8 +744,8 @@
     // Tramo 25:Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
     { id: "txt-Av4-TR25", parrafos: ["viv11-B"] },
 
-    // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
-    { id: "txt-Av4-P32", parrafos: ["viv11-C"] },
+    // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
+    { id: "txt-Av4-P32", parrafos: ["viv11-C", "viv12"] },
 
     // Tramo 26: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
     { id: "txt-Av4-TR26", parrafos: ["viv13"] },
@@ -841,7 +841,7 @@
     { id: "txt-Av5-TR10", parrafos: [314, 307] },
 
     // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
-    { id: "txt-Av5-P13", parrafos: [315, 316, 339] },
+    { id: "txt-Av5-P13", parrafos: [315, 316] },
 
     // Parada 14: Mercado de Colón Back 2 (Fábula del Murciélago) (Párrafos: 339) (mapa 9)
     { id: "txt-Av5-P14", parrafos: [339] },
@@ -964,7 +964,7 @@
     { id: "txt-AvFallas-P0", parrafos: [223, 226, 228] },
 
     // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
-    { id: "txt-AvFallas-TR1", parrafos: [229, 129, 593, "129-B", 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135] },
+    { id: "txt-AvFallas-TR1", parrafos: [229, 129, 593, "129-B", 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135] },
 
     // Parada 1: Plaza de la Crída (Torres de Serranos Front) (Reto 4) (Párrafos: 137, 126, 141, 470, 404, 138, 139, 153, 233) (mapa 2)
     { id: "txt-AvFallas-P1", parrafos: [137, 126, 141, 470, 404, 138, 139, 153, 233] },
@@ -1104,8 +1104,713 @@
     // Intro
     { id: "txt-intro", parrafos: [200, 201, 202, 203, 204, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 219, 220, 221, 222] },
 
-    // Av34km-P-0
+    // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
     { id: "txt-Av34km-P0", parrafos: [223, 226, 228] },
+
+    // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+    { id: "txt-Av34km-TR1", parrafos: [229, 5] },
+
+    // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+    { id: "txt-Av34km-P1", parrafos: [126] },
+
+    // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+    { id: "txt-Av34km-TR2", parrafos: [230] },
+
+    // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+    { id: "txt-Av34km-P2", parrafos: [231, 232, 234, 6, 235, 224] },
+
+    // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+    { id: "txt-Av34km-TR3", parrafos: ["236-A", "236-B"] },
+
+    // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+    { id: "txt-Av34km-P3", parrafos: [237, 238, 70, 480, 240, 239] },
+
+    // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+    { id: "txt-Av34km-TR4", parrafos: [225, 8] },
+
+    // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+    { id: "txt-Av34km-P4", parrafos: [241, 570] },
+
+    // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+    { id: "txt-Av34km-TR5", parrafos: [242, 10, 243, 11] },
+
+    // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+    { id: "txt-Av34km-P5", parrafos: [244, 246] },
+
+    // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+    { id: "txt-Av34km-TR6", parrafos: [247, 10] },
+
+    // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+    { id: "txt-Av34km-P6", parrafos: [248, 249] },
+
+    // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+    { id: "txt-Av34km-TR7", parrafos: [250, 251, 12] },
+
+    // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+    { id: "txt-Av34km-P7", parrafos: [252, 253] },
+
+    // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+    { id: "txt-Av34km-TR8", parrafos: [254, 255, 13, 256, 257, 14] },
+
+    // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+    { id: "txt-Av34km-P8", parrafos: [258, 260, 259] },
+
+    // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+    { id: "txt-Av34km-TR9", parrafos: [261, 15, 16] },
+
+    // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+    { id: "txt-Av34km-P9", parrafos: [262, 17, 264, 265, 266, 18, 267, 19] },
+
+    // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+    { id: "txt-Av34km-TR10", parrafos: [268, 269] },
+
+    // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+    { id: "txt-Av34km-P10", parrafos: [270, 19, 271] },
+
+    // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+    { id: "txt-Av34km-P11", parrafos: [272, 21, 273, 275] },
+
+    // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+    { id: "txt-Av34km-TR11", parrafos: [276, 22] },
+
+    // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+    { id: "txt-Av34km-P12", parrafos: [277, 278] },
+
+    // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+    { id: "txt-Av34km-TR12", parrafos: [279] },
+
+    // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+    { id: "txt-Av34km-P13", parrafos: [281, "23-D", 282, 283, "24-D", 284] },
+
+    // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+    { id: "txt-Av34km-TR13", parrafos: [285, 27] },
+
+    // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+    { id: "txt-Av34km-P14", parrafos: [286, 292] },
+
+    // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+    { id: "txt-Av34km-TR14", parrafos: [287, 290] },
+
+    // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+    { id: "txt-Av34km-P15", parrafos: [291, 707] },
+
+    // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+    { id: "txt-Av34km-TR15", parrafos: [293, 30] },
+
+    // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+    { id: "txt-Av34km-P16", parrafos: [294, 295] },
+
+    // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+    { id: "txt-Av34km-TR16", parrafos: [296, 297, 8, 298, 31, 299, 245, 32] },
+
+    // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+    { id: "txt-Av34km-P17", parrafos: [300, 227, 301, 302] },
+
+    // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+    { id: "txt-Av34km-TR17", parrafos: [303, 33] },
+
+    // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+    { id: "txt-Av34km-P18", parrafos: [304, 305] },
+
+    // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+    { id: "txt-Av34km-TR18", parrafos: [306, 34] },
+
+    // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+    { id: "txt-Av34km-P19", parrafos: [308, 309, 310] },
+
+    // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+    { id: "txt-Av34km-P20", parrafos: [311, 312] },
+
+    // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+    { id: "txt-Av34km-P21", parrafos: [313] },
+
+    // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+    { id: "txt-Av34km-TR19", parrafos: [314, 307] },
+
+    // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+    { id: "txt-Av34km-P22", parrafos: [315, 316] },
+
+    // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+    { id: "txt-Av34km-TR20", parrafos: [317, 35] },
+
+    // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+    { id: "txt-Av34km-P23", parrafos: [318] },
+
+    // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+    { id: "txt-Av34km-TR21", parrafos: [319, 36] },
+
+    // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+    { id: "txt-Av34km-P24", parrafos: [320, 321, 323, 322] },
+
+    // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+    { id: "txt-Av34km-TR22", parrafos: [324, 37] },
+
+    // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+    { id: "txt-Av34km-P25", parrafos: [325, 326] },
+
+    // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+    { id: "txt-Av34km-TR23", parrafos: [327, 330] },
+
+    // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+    { id: "txt-Av34km-P26", parrafos: [328, 329] },
+
+    // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+    { id: "txt-Av34km-TR24", parrafos: [331] },
+
+    // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+    { id: "txt-Av34km-P27", parrafos: [38, 263, 217, 40, 334, 336, 337, 338] },
+
+    // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+    { id: "txt-Av34km-P28", parrafos: [339, 340, 341, 113] },
+
+    // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+    { id: "txt-Av34km-TR25", parrafos: [692, 342] },
+
+    // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+    { id: "txt-Av34km-P29", parrafos: [343, 344] },
+
+    // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+    { id: "txt-Av34km-P30", parrafos: [693, "693-B"] },
+
+    // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+    { id: "txt-Av34km-TR26", parrafos: [345, 347, 348, 42] },
+
+    // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+    { id: "txt-Av34km-P31", parrafos: [349, 350] },
+
+    // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+    { id: "txt-Av34km-TR27", parrafos: [351, 43, 352, 353, 354] },
+
+    // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+    { id: "txt-Av34km-P32", parrafos: [356, 357] },
+
+    // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+    { id: "txt-Av34km-TR28", parrafos: [358, 359, 360, 44] },
+
+    // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+    { id: "txt-Av34km-P33", parrafos: [701, 44, 361, 362, 363, 364] },
+
+    // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+    { id: "txt-Av34km-TR29", parrafos: [274, 45] },
+
+    // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+    { id: "txt-Av34km-P34", parrafos: [45, 365, 366] },
+
+    // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+    { id: "txt-Av34km-P35", parrafos: [368, 367] },
+
+    // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+    { id: "txt-Av34km-TR30", parrafos: [369, 46] },
+
+    // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+    { id: "txt-Av34km-P36", parrafos: [370, 371, 372, 373, 374] },
+
+    // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+    { id: "txt-Av34km-P37", parrafos: [375, 376, 377, 378, 379] },
+
+    // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+    { id: "txt-Av34km-P38", parrafos: [380, 381] },
+
+    // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+    { id: "txt-Av34km-P39", parrafos: [383, 384] },
+
+    // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+    { id: "txt-Av34km-P40", parrafos: [385] },
+
+    // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+    { id: "txt-Av34km-P41", parrafos: [386, 387] },
+
+    // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+    { id: "txt-Av34km-TR31", parrafos: [388] },
+
+    // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+    { id: "txt-Av34km-P42", parrafos: [390, 391] },
+
+    // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+    { id: "txt-Av34km-TR32", parrafos: [392] },
+
+    // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+    { id: "txt-Av34km-TR33", parrafos: [393] },
+
+    // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+    { id: "txt-Av34km-P43", parrafos: [394] },
+
+    // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+    { id: "txt-Av34km-TR34", parrafos: [397, 47] },
+
+    // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+    { id: "txt-Av34km-P44", parrafos: [398, 399, 400, 401, 402] },
+
+    // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+    { id: "txt-Av34km-TR35", parrafos: [403, 405] },
+
+    // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+    { id: "txt-Av34km-P45", parrafos: [406] },
+
+    // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+    { id: "txt-Av34km-TR36", parrafos: [407] },
+
+    // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+    { id: "txt-Av34km-P46", parrafos: [408, 409, 410] },
+
+    // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+    { id: "txt-Av34km-P47", parrafos: [411, 412] },
+
+    // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+    { id: "txt-Av34km-P48", parrafos: [413, 414] },
+
+    // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+    { id: "txt-Av34km-P49", parrafos: [417, 416] },
+
+    // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+    { id: "txt-Av34km-TR37", parrafos: [418, 419] },
+
+    // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+    { id: "txt-Av34km-P50", parrafos: [420, 423] },
+
+    // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+    { id: "txt-Av34km-P51", parrafos: [421, 422] },
+
+    // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+    { id: "txt-Av34km-TR38", parrafos: ["48-B", 425, 426, 48, 694] },
+
+    // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+    { id: "txt-Av34km-P52", parrafos: ["11-C", 427] },
+
+    // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+    { id: "txt-Av34km-P53", parrafos: [428] },
+
+    // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+    { id: "txt-Av34km-P54", parrafos: [429, 430, 432, 431] },
+
+    // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+    { id: "txt-Av34km-TR39", parrafos: [434, 435, 49] },
+
+    // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+    { id: "txt-Av34km-P55", parrafos: [437, 439, 438] },
+
+    // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+    { id: "txt-Av34km-TR40", parrafos: [714] },
+
+    // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+    { id: "txt-Av34km-P56", parrafos: [441, 442] },
+
+    // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+    { id: "txt-Av34km-P57", parrafos: [443, 444] },
+
+    // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+    { id: "txt-Av34km-P58", parrafos: [445] },
+
+    // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+    { id: "txt-Av34km-P59", parrafos: [446, 447, 50, 452, "51-B"] },
+
+    // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+    { id: "txt-Av34km-P60", parrafos: [450, 451] },
+
+    // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+    { id: "txt-Av34km-P61", parrafos: [51, 454, 455, "455-B", 456] },
+
+    // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+    { id: "txt-Av34km-P62", parrafos: ["455-C", "455-D"] },
+
+    // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+    { id: "txt-Av34km-TR41", parrafos: [457, "51-D"] },
+
+    // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+    { id: "txt-Av34km-P63", parrafos: [458] },
+
+    // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+    { id: "txt-Av34km-P64", parrafos: [459, 460, 461] },
+
+    // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+    { id: "txt-Av34km-P65", parrafos: ["49-B", 464] },
+
+    // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+    { id: "txt-Av34km-TR42", parrafos: [465, 59] },
+
+    // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+    { id: "txt-Av34km-P66", parrafos: [346, 143] },
+
+    // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+    { id: "txt-Av34km-P67", parrafos: [466, 467] },
+
+    // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+    { id: "txt-Av34km-P68", parrafos: [469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478] },
+
+    // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+    { id: "txt-Av34km-TR43", parrafos: [60] },
+
+    // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+    { id: "txt-Av34km-P69", parrafos: [481, 482, "482-B", 483] },
+
+    // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+    { id: "txt-Av34km-TR44", parrafos: [484, 485, 486] },
+
+    // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+    { id: "txt-Av34km-TR45", parrafos: [487] },
+
+    // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+    { id: "txt-Av34km-P70", parrafos: [488, 489, 490] },
+
+    // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+    { id: "txt-Av34km-TR46", parrafos: [491, 63] },
+
+    // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+    { id: "txt-Av34km-P71", parrafos: [493, 494, 495, 496] },
+
+    // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+    { id: "txt-Av34km-P72", parrafos: [497, 498] },
+
+    // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+    { id: "txt-Av34km-TR47", parrafos: [499, 500] },
+
+    // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+    { id: "txt-Av34km-P73", parrafos: [382, 501] },
+
+    // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+    { id: "txt-Av34km-TR48", parrafos: [502, 506, 65] },
+
+    // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+    { id: "txt-Av34km-P74", parrafos: [53, 508, 509] },
+
+    // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+    { id: "txt-Av34km-P75", parrafos: [510, 511] },
+
+    // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+    { id: "txt-Av34km-TR49", parrafos: [512, 66] },
+
+    // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+    { id: "txt-Av34km-P76", parrafos: [513] },
+
+    // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+    { id: "txt-Av34km-TR50", parrafos: [514, 67] },
+
+    // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+    { id: "txt-Av34km-P77", parrafos: [515, 516, 517, 518, 520, 519] },
+
+    // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+    { id: "txt-Av34km-TR51", parrafos: [521, 522, 523] },
+
+    // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+    { id: "txt-Av34km-P78", parrafos: [524, 395] },
+
+    // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+    { id: "txt-Av34km-TR52", parrafos: [525, 527, 528, 529] },
+
+    // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+    { id: "txt-Av34km-P79", parrafos: [69, 530, 531, 532, 396] },
+
+    // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+    { id: "txt-Av34km-TR53", parrafos: [533, 71] },
+
+    // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+    { id: "txt-Av34km-P80", parrafos: [534, 535, 536, 537, 538] },
+
+    // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+    { id: "txt-Av34km-P81", parrafos: [539, 541, 540] },
+
+    // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+    { id: "txt-Av34km-TR54", parrafos: [542, 72] },
+
+    // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+    { id: "txt-Av34km-P82", parrafos: [543, 544, 545, 546] },
+
+    // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+    { id: "txt-Av34km-P83", parrafos: [547, 548, 549, 550] },
+
+    // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+    { id: "txt-Av34km-TR55", parrafos: [551, 73, 552] },
+
+    // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+    { id: "txt-Av34km-P84", parrafos: [553, 554] },
+
+    // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+    { id: "txt-Av34km-P85", parrafos: [555, 556] },
+
+    // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+    { id: "txt-Av34km-P86", parrafos: [557, 558] },
+
+    // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+    { id: "txt-Av34km-P87", parrafos: [559] },
+
+    // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+    { id: "txt-Av34km-TR56", parrafos: [561, 74] },
+
+    // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+    { id: "txt-Av34km-P88", parrafos: [562] },
+
+    // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+    { id: "txt-Av34km-P89", parrafos: [563, 4] },
+
+    // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+    { id: "txt-Av34km-TR57", parrafos: [75] },
+
+    // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+    { id: "txt-Av34km-P90", parrafos: [565, 566] },
+
+    // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+    { id: "txt-Av34km-TR58", parrafos: [567, 218] },
+
+    // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+    { id: "txt-Av34km-P91", parrafos: [568, 127, 569] },
+
+    // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+    { id: "txt-Av34km-TR59", parrafos: [76] },
+
+    // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+    { id: "txt-Av34km-P92", parrafos: [571, 572, 573] },
+
+    // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+    { id: "txt-Av34km-P93", parrafos: [574, 575] },
+
+    // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+    { id: "txt-Av34km-TR60", parrafos: [576, 77] },
+
+    // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+    { id: "txt-Av34km-P94", parrafos: [578, 579] },
+
+    // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+    { id: "txt-Av34km-P95", parrafos: [580] },
+
+    // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+    { id: "txt-Av34km-P96", parrafos: [581, 582, 583] },
+
+    // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+    { id: "txt-Av34km-TR61", parrafos: [584, 78] },
+
+    // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+    { id: "txt-Av34km-P97", parrafos: [585, 586] },
+
+    // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+    { id: "txt-Av34km-P98", parrafos: [587, 396] },
+
+    // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+    { id: "txt-Av34km-TR62", parrafos: [588, 589, 590, 591, 592] },
+
+    // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+    { id: "txt-Av34km-P99", parrafos: ["592-B"] },
+
+    // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+    { id: "txt-Av34km-TR63", parrafos: ["76-B"] },
+
+    // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+    { id: "txt-Av34km-P100", parrafos: [594] },
+
+    // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+    { id: "txt-Av34km-TR64", parrafos: [595] },
+
+    // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+    { id: "txt-Av34km-P101", parrafos: [596] },
+
+    // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+    { id: "txt-Av34km-TR65", parrafos: [598] },
+
+    // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+    { id: "txt-Av34km-P102", parrafos: [599, 600] },
+
+    // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+    { id: "txt-Av34km-TR66", parrafos: [601] },
+
+    // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+    { id: "txt-Av34km-P103", parrafos: [602, 603] },
+
+    // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+    { id: "txt-Av34km-TR67", parrafos: [604] },
+
+    // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+    { id: "txt-Av34km-P104", parrafos: [606, 231, 608, 609, 610] },
+
+    // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+    { id: "txt-Av34km-TR68", parrafos: [711, 712] },
+
+    // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+    { id: "txt-Av34km-P105", parrafos: [713, 54] },
+
+    // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+    { id: "txt-Av34km-TR69", parrafos: [611, 79] },
+
+    // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+    { id: "txt-Av34km-P106", parrafos: [128, 612, 613, 614, 615] },
+
+    // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+    { id: "txt-Av34km-TR70", parrafos: [80] },
+
+    // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+    { id: "txt-Av34km-P107", parrafos: [616, 617] },
+
+    // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+    { id: "txt-Av34km-TR71", parrafos: [618, "81-B", 619] },
+
+    // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+    { id: "txt-Av34km-P108", parrafos: [620, 621, 622] },
+
+    // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+    { id: "txt-Av34km-P109", parrafos: [623, 715, 624, 625] },
+
+    // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+    { id: "txt-Av34km-TR72", parrafos: [82, "628-B"] },
+
+    // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+    { id: "txt-Av34km-P110", parrafos: [627, 628] },
+
+    // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+    { id: "txt-Av34km-TR73", parrafos: [708, 715] },
+
+    // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+    { id: "txt-Av34km-P111", parrafos: [709] },
+
+    // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+    { id: "txt-Av34km-TR74", parrafos: [710, 90] },
+
+    // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+    { id: "txt-Av34km-P112", parrafos: [630, 631, 632] },
+
+    // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+    { id: "txt-Av34km-TR75", parrafos: [633, 91, 415] },
+
+    // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+    { id: "txt-Av34km-P113", parrafos: [634, 635] },
+
+    // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+    { id: "txt-Av34km-TR76", parrafos: [636, 91] },
+
+    // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+    { id: "txt-Av34km-P114", parrafos: [637, 638, 139, 153] },
+
+    // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+    { id: "txt-Av34km-TR77", parrafos: [639] },
+
+    // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+    { id: "txt-Av34km-P115", parrafos: [640, 641, 642, 643, 233] },
+
+    // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+    { id: "txt-Av34km-TR78", parrafos: [644, 92] },
+
+    // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+    { id: "txt-Av34km-P116", parrafos: [706, 703, 645, 646] },
+
+    // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+    { id: "txt-Av34km-TR79", parrafos: [647, 93] },
+
+    // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+    { id: "txt-Av34km-P117", parrafos: [648] },
+
+    // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+    { id: "txt-Av34km-TR80", parrafos: [649] },
+
+    // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+    { id: "txt-Av34km-P118", parrafos: ["viv1", "viv2"] },
+
+    // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+    { id: "txt-Av34km-TR81", parrafos: ["viv3"] },
+
+    // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+    { id: "txt-Av34km-TR82", parrafos: ["viv4"] },
+
+    // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+    { id: "txt-Av34km-P119", parrafos: ["viv6", "viv5"] },
+
+    // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+    { id: "txt-Av34km-TR83", parrafos: ["viv7", "viv8"] },
+
+    // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+    { id: "txt-Av34km-P120", parrafos: ["viv9", "viv10"] },
+
+    // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+    { id: "txt-Av34km-P121", parrafos: ["viv11"] },
+
+    // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+    { id: "txt-Av34km-TR84", parrafos: ["viv11-B"] },
+
+    // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+    { id: "txt-Av34km-P122", parrafos: ["viv11-C", "viv12"] },
+
+    // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+    { id: "txt-Av34km-TR85", parrafos: ["viv13"] },
+
+    // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+    { id: "txt-Av34km-P123", parrafos: ["viv14", "viv15"] },
+
+    // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+    { id: "txt-Av34km-TR86", parrafos: [650, 94] },
+
+    // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+    { id: "txt-Av34km-P124", parrafos: [651, 652, 653] },
+
+    // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+    { id: "txt-Av34km-TR87", parrafos: [654, 655, 656] },
+
+    // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+    { id: "txt-Av34km-P125", parrafos: [657] },
+
+    // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+    { id: "txt-Av34km-TR88", parrafos: [658, 95] },
+
+    // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+    { id: "txt-Av34km-P126", parrafos: [659] },
+
+    // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+    { id: "txt-Av34km-TR89", parrafos: [660, 96] },
+
+    // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+    { id: "txt-Av34km-P127", parrafos: [661, 662] },
+
+    // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+    { id: "txt-Av34km-TR90", parrafos: [663] },
+
+    // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+    { id: "txt-Av34km-P128", parrafos: [664] },
+
+    // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+    { id: "txt-Av34km-TR91", parrafos: [665, 97] },
+
+    // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+    { id: "txt-Av34km-P129", parrafos: [667, 668] },
+
+    // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+    { id: "txt-Av34km-P130", parrafos: [669] },
+
+    // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+    { id: "txt-Av34km-TR92", parrafos: [670] },
+
+    // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+    { id: "txt-Av34km-P131", parrafos: [671, 672] },
+
+    // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+    { id: "txt-Av34km-TR93", parrafos: [453, 98] },
+
+    // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+    { id: "txt-Av34km-P132", parrafos: [673] },
+
+    // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+    { id: "txt-Av34km-TR94", parrafos: [674] },
+
+    // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+    { id: "txt-Av34km-P133", parrafos: ["674-B"] },
+
+    // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+    { id: "txt-Av34km-P134", parrafos: [675] },
+
+    // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+    { id: "txt-Av34km-TR95", parrafos: [676] },
+
+    // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+    { id: "txt-Av34km-P135", parrafos: [678, 677] },
+
+    // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+    { id: "txt-Av34km-TR96", parrafos: [679, 681] },
+
+    // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+    { id: "txt-Av34km-P136", parrafos: [682, 462, 684, 683] },
+
+    // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+    { id: "txt-Av34km-P137", parrafos: [685, 686] },
+
+    // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+    { id: "txt-Av34km-TR97", parrafos: [680] },
+
+    // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+    { id: "txt-Av34km-P138", parrafos: [475, 503, 507, 526] },
 
   ],
 };

@@ -5564,7 +5564,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: ""
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -5616,7 +5616,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-es",
         title: "Tramo 3: Palau de la Generalitat → Calle Caballeros",
@@ -5644,7 +5644,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-es",
         title: "Parada 6: Iglesia de San Nicolás BACK",
@@ -5974,7 +5974,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-en",
         title: "Section 3: Palau de la Generalitat → Calle Caballeros",
@@ -6002,7 +6002,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-en",
         title: "Stop 6: Iglesia de San Nicolás BACK",
@@ -6332,7 +6332,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-fr",
         title: "Section 3: Palau de la Generalitat → Calle Caballeros",
@@ -6360,7 +6360,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-fr",
         title: "Étape 6: Iglesia de San Nicolás BACK",
@@ -6690,7 +6690,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-it",
         title: "Tratto 3: Palau de la Generalitat → Calle Caballeros",
@@ -6718,7 +6718,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-it",
         title: "Tappa 6: Iglesia de San Nicolás BACK",
@@ -7048,7 +7048,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-nl",
         title: "Traject 3: Palau de la Generalitat → Calle Caballeros",
@@ -7076,7 +7076,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-nl",
         title: "Stop 6: Iglesia de San Nicolás BACK",
@@ -7406,7 +7406,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-ja",
         title: "区間 3: Palau de la Generalitat → Calle Caballeros",
@@ -7434,7 +7434,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-ja",
         title: "停留所 6: Iglesia de San Nicolás BACK",
@@ -7764,7 +7764,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-de",
         title: "Abschnitt 3: Palau de la Generalitat → Calle Caballeros",
@@ -7792,7 +7792,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-de",
         title: "Halt 6: Iglesia de San Nicolás BACK",
@@ -8122,7 +8122,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-zh",
         title: "段 3: Palau de la Generalitat → Calle Caballeros",
@@ -8150,7 +8150,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-zh",
         title: "站 6: Iglesia de San Nicolás BACK",
@@ -8480,7 +8480,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-pl",
         title: "Odcinek 3: Palau de la Generalitat → Calle Caballeros",
@@ -8508,7 +8508,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-pl",
         title: "Przystanek 6: Iglesia de San Nicolás BACK",
@@ -8838,7 +8838,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-pt",
         title: "Percurso 3: Palau de la Generalitat → Calle Caballeros",
@@ -8866,7 +8866,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-pt",
         title: "Parada 6: Iglesia de San Nicolás BACK",
@@ -9196,7 +9196,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-ru",
         title: "Участок 3: Palau de la Generalitat → Calle Caballeros",
@@ -9224,7 +9224,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-ru",
         title: "Остановка 6: Iglesia de San Nicolás BACK",
@@ -9554,7 +9554,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104) (mapa 3→4)
+      // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-uk",
         title: "Ділянка 3: Palau de la Generalitat → Calle Caballeros",
@@ -9582,7 +9582,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 496) (mapa 6)
+      // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-uk",
         title: "Зупинка 6: Iglesia de San Nicolás BACK",
@@ -9863,7 +9863,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: ""
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -10335,7 +10335,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-es",
         title: "Tramo 29: Plaza de la Virgen → Torres de Serranos",
@@ -10826,7 +10826,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-en",
         title: "Section 29: Plaza de la Virgen → Torres de Serranos",
@@ -11317,7 +11317,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-fr",
         title: "Section 29: Plaza de la Virgen → Torres de Serranos",
@@ -11808,7 +11808,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-it",
         title: "Tratto 29: Plaza de la Virgen → Torres de Serranos",
@@ -12299,7 +12299,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-nl",
         title: "Traject 29: Plaza de la Virgen → Torres de Serranos",
@@ -12790,7 +12790,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-ja",
         title: "区間 29: Plaza de la Virgen → Torres de Serranos",
@@ -13281,7 +13281,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-de",
         title: "Abschnitt 29: Plaza de la Virgen → Torres de Serranos",
@@ -13772,7 +13772,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-zh",
         title: "段 29: Plaza de la Virgen → Torres de Serranos",
@@ -14263,7 +14263,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-pl",
         title: "Odcinek 29: Plaza de la Virgen → Torres de Serranos",
@@ -14754,7 +14754,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-pt",
         title: "Percurso 29: Plaza de la Virgen → Torres de Serranos",
@@ -15245,7 +15245,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-ru",
         title: "Участок 29: Plaza de la Virgen → Torres de Serranos",
@@ -15736,7 +15736,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 443, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
+      // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-uk",
         title: "Ділянка 29: Plaza de la Virgen → Torres de Serranos",
@@ -16132,7 +16132,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-es",
         title: "Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -16160,7 +16160,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-es",
         title: "Parada 32: Estanque de los patos",
@@ -16588,7 +16588,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-en",
         title: "Section 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -16616,7 +16616,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-en",
         title: "Stop 32: Estanque de los patos",
@@ -17044,7 +17044,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-fr",
         title: "Section 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -17072,7 +17072,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-fr",
         title: "Étape 32: Estanque de los patos",
@@ -17500,7 +17500,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-it",
         title: "Tratto 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -17528,7 +17528,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-it",
         title: "Tappa 32: Estanque de los patos",
@@ -17956,7 +17956,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-nl",
         title: "Traject 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -17984,7 +17984,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-nl",
         title: "Stop 32: Estanque de los patos",
@@ -18412,7 +18412,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-ja",
         title: "区間 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -18440,7 +18440,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-ja",
         title: "停留所 32: Estanque de los patos",
@@ -18868,7 +18868,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-de",
         title: "Abschnitt 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -18896,7 +18896,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-de",
         title: "Halt 32: Estanque de los patos",
@@ -19324,7 +19324,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-zh",
         title: "段 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -19352,7 +19352,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-zh",
         title: "站 32: Estanque de los patos",
@@ -19780,7 +19780,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-pl",
         title: "Odcinek 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -19808,7 +19808,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-pl",
         title: "Przystanek 32: Estanque de los patos",
@@ -20236,7 +20236,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-pt",
         title: "Percurso 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -20264,7 +20264,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-pt",
         title: "Parada 32: Estanque de los patos",
@@ -20692,7 +20692,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-ru",
         title: "Участок 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -20720,7 +20720,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-ru",
         title: "Остановка 32: Estanque de los patos",
@@ -21148,7 +21148,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7) (mapa v8→v10)
+      // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-uk",
         title: "Ділянка 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
@@ -21176,7 +21176,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C) (mapa v11)
+      // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-uk",
         title: "Зупинка 32: Estanque de los patos",
@@ -21397,7 +21397,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-es",
         title: "Parada 13: Mercado de Colón Back",
@@ -21832,7 +21832,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-en",
         title: "Stop 13: Mercado de Colón Back",
@@ -22267,7 +22267,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-fr",
         title: "Étape 13: Mercado de Colón Back",
@@ -22702,7 +22702,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-it",
         title: "Tappa 13: Mercado de Colón Back",
@@ -23137,7 +23137,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-nl",
         title: "Stop 13: Mercado de Colón Back",
@@ -23572,7 +23572,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-ja",
         title: "停留所 13: Mercado de Colón Back",
@@ -24007,7 +24007,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-de",
         title: "Halt 13: Mercado de Colón Back",
@@ -24442,7 +24442,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-zh",
         title: "站 13: Mercado de Colón Back",
@@ -24877,7 +24877,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-pl",
         title: "Przystanek 13: Mercado de Colón Back",
@@ -25312,7 +25312,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-pt",
         title: "Parada 13: Mercado de Colón Back",
@@ -25747,7 +25747,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-ru",
         title: "Остановка 13: Mercado de Colón Back",
@@ -26182,7 +26182,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316, 339) (mapa 9)
+      // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-uk",
         title: "Зупинка 13: Mercado de Colón Back",
@@ -26456,7 +26456,7 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-intro-es",
         title: "Intro",
-        file: ""
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
       },
 
       // Parada 0 - Torres de Serranos (start) (Reto 3) (Párrafos: 223, 226, 228) (mapa 1)
@@ -26466,7 +26466,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -26796,7 +26796,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-en",
         title: "Section 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -27126,7 +27126,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-fr",
         title: "Section 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -27456,7 +27456,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-it",
         title: "Tratto 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -27786,7 +27786,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-nl",
         title: "Traject 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -28116,7 +28116,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-ja",
         title: "区間 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -28446,7 +28446,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-de",
         title: "Abschnitt 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -28776,7 +28776,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-zh",
         title: "段 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -29106,7 +29106,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-pl",
         title: "Odcinek 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -29436,7 +29436,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-pt",
         title: "Percurso 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -29766,7 +29766,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-ru",
         title: "Участок 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -30096,7 +30096,7 @@ export const AUDIOS_AVENTURAS = {
         file: ""
       },
 
-      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-uk",
         title: "Ділянка 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
@@ -30414,17 +30414,19937 @@ export const AUDIOS_AVENTURAS = {
   },
 
   Aventura34km: {
-    es: [],
-    en: [],
-    fr: [],
-    it: [],
-    nl: [],
-    ja: [],
-    de: [],
-    zh: [],
-    pl: [],
-    pt: [],
-    ru: [],
-    uk: [],
+    es: [
+      // Intro
+      {
+        id: "audio-intro-es",
+        title: "Intro",
+        file: "audios-aventuras/español/01-Intro-ESPAÑOL-1.mp3"
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-es",
+        title: "Parada 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-es",
+        title: "Tramo 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-es",
+        title: "Parada 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-es",
+        title: "Tramo 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-es",
+        title: "Parada 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-es",
+        title: "Tramo 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-es",
+        title: "Parada 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-es",
+        title: "Tramo 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-es",
+        title: "Parada 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-es",
+        title: "Tramo 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-es",
+        title: "Parada 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-es",
+        title: "Tramo 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-es",
+        title: "Parada 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-es",
+        title: "Tramo 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-es",
+        title: "Parada 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-es",
+        title: "Tramo 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-es",
+        title: "Parada 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-es",
+        title: "Tramo 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-es",
+        title: "Parada 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-es",
+        title: "Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-es",
+        title: "Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-es",
+        title: "Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-es",
+        title: "Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-es",
+        title: "Parada 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-es",
+        title: "Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-es",
+        title: "Parada 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-es",
+        title: "Tramo 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-es",
+        title: "Parada 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-es",
+        title: "Tramo 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-es",
+        title: "Parada 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-es",
+        title: "Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-es",
+        title: "Parada 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-es",
+        title: "Tramo 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-es",
+        title: "Parada 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-es",
+        title: "Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-es",
+        title: "Parada 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-es",
+        title: "Tramo 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-es",
+        title: "Parada 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-es",
+        title: "Parada 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-es",
+        title: "Parada 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-es",
+        title: "Tramo 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-es",
+        title: "Parada 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-es",
+        title: "Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-es",
+        title: "Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-es",
+        title: "Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-es",
+        title: "Parada 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-es",
+        title: "Tramo 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-es",
+        title: "Parada 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-es",
+        title: "Tramo 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-es",
+        title: "Parada 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-es",
+        title: "Tramo 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-es",
+        title: "Parada 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-es",
+        title: "Parada 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-es",
+        title: "Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-es",
+        title: "Parada 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-es",
+        title: "Parada 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-es",
+        title: "Tramo 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-es",
+        title: "Parada 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-es",
+        title: "Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-es",
+        title: "Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-es",
+        title: "Tramo 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-es",
+        title: "Parada 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-es",
+        title: "Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-es",
+        title: "Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-es",
+        title: "Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-es",
+        title: "Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-es",
+        title: "Parada 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-es",
+        title: "Parada 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-es",
+        title: "Parada 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-es",
+        title: "Parada 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-es",
+        title: "Parada 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-es",
+        title: "Parada 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-es",
+        title: "Tramo 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-es",
+        title: "Parada 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-es",
+        title: "Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-es",
+        title: "Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-es",
+        title: "Parada 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-es",
+        title: "Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-es",
+        title: "Parada 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-es",
+        title: "Tramo 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-es",
+        title: "Parada 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-es",
+        title: "Tramo 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-es",
+        title: "Parada 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-es",
+        title: "Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-es",
+        title: "Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-es",
+        title: "Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-es",
+        title: "Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-es",
+        title: "Parada 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-es",
+        title: "Parada 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-es",
+        title: "Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-es",
+        title: "Parada 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-es",
+        title: "Parada 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-es",
+        title: "Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-es",
+        title: "Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-es",
+        title: "Parada 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-es",
+        title: "Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-es",
+        title: "Parada 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-es",
+        title: "Parada 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-es",
+        title: "Parada 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-es",
+        title: "Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-es",
+        title: "Parada 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-es",
+        title: "Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-es",
+        title: "Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-es",
+        title: "Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-es",
+        title: "Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-es",
+        title: "Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-es",
+        title: "Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-es",
+        title: "Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-es",
+        title: "Parada 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-es",
+        title: "Parada 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-es",
+        title: "Parada 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-es",
+        title: "Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-es",
+        title: "Parada 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-es",
+        title: "Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-es",
+        title: "Tramo 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-es",
+        title: "Parada 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-es",
+        title: "Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-es",
+        title: "Parada 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-es",
+        title: "Parada 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-es",
+        title: "Tramo 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-es",
+        title: "Parada 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-es",
+        title: "Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-es",
+        title: "Parada 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-es",
+        title: "Parada 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-es",
+        title: "Tramo 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-es",
+        title: "Parada 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-es",
+        title: "Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-es",
+        title: "Parada 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-es",
+        title: "Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-es",
+        title: "Parada 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-es",
+        title: "Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-es",
+        title: "Parada 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-es",
+        title: "Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-es",
+        title: "Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-es",
+        title: "Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-es",
+        title: "Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-es",
+        title: "Parada 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-es",
+        title: "Parada 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-es",
+        title: "Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-es",
+        title: "Parada 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-es",
+        title: "Parada 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-es",
+        title: "Parada 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-es",
+        title: "Parada 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-es",
+        title: "Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-es",
+        title: "Parada 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-es",
+        title: "Parada 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-es",
+        title: "Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-es",
+        title: "Parada 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-es",
+        title: "Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-es",
+        title: "Parada 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-es",
+        title: "Tramo 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-es",
+        title: "Parada 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-es",
+        title: "Parada 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-es",
+        title: "Tramo 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-es",
+        title: "Parada 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-es",
+        title: "Parada 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-es",
+        title: "Parada 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-es",
+        title: "Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-es",
+        title: "Parada 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-es",
+        title: "Parada 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-es",
+        title: "Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-es",
+        title: "Parada 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-es",
+        title: "Tramo 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-es",
+        title: "Parada 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-es",
+        title: "Tramo 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-es",
+        title: "Parada 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-es",
+        title: "Tramo 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-es",
+        title: "Parada 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-es",
+        title: "Tramo 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-es",
+        title: "Parada 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-es",
+        title: "Tramo 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-es",
+        title: "Parada 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-es",
+        title: "Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-es",
+        title: "Parada 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-es",
+        title: "Tramo 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-es",
+        title: "Parada 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-es",
+        title: "Tramo 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-es",
+        title: "Parada 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-es",
+        title: "Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-es",
+        title: "Parada 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-es",
+        title: "Parada 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-es",
+        title: "Tramo 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-es",
+        title: "Parada 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-es",
+        title: "Tramo 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-es",
+        title: "Parada 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-es",
+        title: "Tramo 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-es",
+        title: "Parada 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-es",
+        title: "Tramo 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-es",
+        title: "Parada 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-es",
+        title: "Tramo 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-es",
+        title: "Parada 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-es",
+        title: "Tramo 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-es",
+        title: "Parada 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-es",
+        title: "Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-es",
+        title: "Parada 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-es",
+        title: "Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-es",
+        title: "Parada 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-es",
+        title: "Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-es",
+        title: "Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-es",
+        title: "Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-es",
+        title: "Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-es",
+        title: "Parada 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-es",
+        title: "Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-es",
+        title: "Parada 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-es",
+        title: "Parada 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-es",
+        title: "Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-es",
+        title: "Parada 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-es",
+        title: "Tramo 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-es",
+        title: "Parada 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-es",
+        title: "Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-es",
+        title: "Parada 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-es",
+        title: "Tramo 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-es",
+        title: "Parada 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-es",
+        title: "Tramo 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-es",
+        title: "Parada 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-es",
+        title: "Tramo 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-es",
+        title: "Parada 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-es",
+        title: "Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-es",
+        title: "Parada 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-es",
+        title: "Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-es",
+        title: "Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-es",
+        title: "Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-es",
+        title: "Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-es",
+        title: "Parada 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-es",
+        title: "Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-es",
+        title: "Parada 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-es",
+        title: "Tramo 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-es",
+        title: "Parada 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-es",
+        title: "Parada 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-es",
+        title: "Tramo 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-es",
+        title: "Parada 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-es",
+        title: "Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-es",
+        title: "Parada 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-es",
+        title: "Parada 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-es",
+        title: "Tramo 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-es",
+        title: "Parada 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    en: [
+      // Intro
+      {
+        id: "audio-intro-en",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-en",
+        title: "Stop 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-en",
+        title: "Section 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-en",
+        title: "Stop 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-en",
+        title: "Section 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-en",
+        title: "Stop 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-en",
+        title: "Section 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-en",
+        title: "Stop 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-en",
+        title: "Section 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-en",
+        title: "Stop 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-en",
+        title: "Section 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-en",
+        title: "Stop 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-en",
+        title: "Section 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-en",
+        title: "Stop 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-en",
+        title: "Section 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-en",
+        title: "Stop 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-en",
+        title: "Section 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-en",
+        title: "Stop 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-en",
+        title: "Section 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-en",
+        title: "Stop 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-en",
+        title: "Section 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-en",
+        title: "Stop 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-en",
+        title: "Stop 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-en",
+        title: "Section 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-en",
+        title: "Stop 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-en",
+        title: "Section 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-en",
+        title: "Stop 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-en",
+        title: "Section 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-en",
+        title: "Stop 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-en",
+        title: "Section 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-en",
+        title: "Stop 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-en",
+        title: "Section 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-en",
+        title: "Stop 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-en",
+        title: "Section 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-en",
+        title: "Stop 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-en",
+        title: "Section 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-en",
+        title: "Stop 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-en",
+        title: "Section 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-en",
+        title: "Stop 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-en",
+        title: "Stop 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-en",
+        title: "Stop 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-en",
+        title: "Section 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-en",
+        title: "Stop 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-en",
+        title: "Section 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-en",
+        title: "Stop 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-en",
+        title: "Section 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-en",
+        title: "Stop 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-en",
+        title: "Section 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-en",
+        title: "Stop 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-en",
+        title: "Section 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-en",
+        title: "Stop 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-en",
+        title: "Section 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-en",
+        title: "Stop 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-en",
+        title: "Stop 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-en",
+        title: "Section 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-en",
+        title: "Stop 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-en",
+        title: "Stop 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-en",
+        title: "Section 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-en",
+        title: "Stop 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-en",
+        title: "Section 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-en",
+        title: "Stop 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-en",
+        title: "Section 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-en",
+        title: "Stop 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-en",
+        title: "Section 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-en",
+        title: "Stop 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-en",
+        title: "Stop 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-en",
+        title: "Section 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-en",
+        title: "Stop 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-en",
+        title: "Stop 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-en",
+        title: "Stop 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-en",
+        title: "Stop 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-en",
+        title: "Stop 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-en",
+        title: "Stop 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-en",
+        title: "Section 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-en",
+        title: "Stop 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-en",
+        title: "Section 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-en",
+        title: "Section 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-en",
+        title: "Stop 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-en",
+        title: "Section 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-en",
+        title: "Stop 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-en",
+        title: "Section 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-en",
+        title: "Stop 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-en",
+        title: "Section 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-en",
+        title: "Stop 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-en",
+        title: "Stop 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-en",
+        title: "Stop 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-en",
+        title: "Stop 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-en",
+        title: "Section 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-en",
+        title: "Stop 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-en",
+        title: "Stop 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-en",
+        title: "Section 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-en",
+        title: "Stop 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-en",
+        title: "Stop 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-en",
+        title: "Stop 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-en",
+        title: "Section 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-en",
+        title: "Stop 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-en",
+        title: "Section 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-en",
+        title: "Stop 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-en",
+        title: "Stop 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-en",
+        title: "Stop 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-en",
+        title: "Stop 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-en",
+        title: "Stop 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-en",
+        title: "Stop 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-en",
+        title: "Stop 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-en",
+        title: "Section 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-en",
+        title: "Stop 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-en",
+        title: "Stop 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-en",
+        title: "Stop 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-en",
+        title: "Section 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-en",
+        title: "Stop 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-en",
+        title: "Stop 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-en",
+        title: "Stop 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-en",
+        title: "Section 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-en",
+        title: "Stop 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-en",
+        title: "Section 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-en",
+        title: "Section 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-en",
+        title: "Stop 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-en",
+        title: "Section 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-en",
+        title: "Stop 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-en",
+        title: "Stop 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-en",
+        title: "Section 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-en",
+        title: "Stop 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-en",
+        title: "Section 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-en",
+        title: "Stop 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-en",
+        title: "Stop 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-en",
+        title: "Section 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-en",
+        title: "Stop 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-en",
+        title: "Section 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-en",
+        title: "Stop 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-en",
+        title: "Section 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-en",
+        title: "Stop 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-en",
+        title: "Section 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-en",
+        title: "Stop 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-en",
+        title: "Section 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-en",
+        title: "Stop 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-en",
+        title: "Stop 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-en",
+        title: "Section 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-en",
+        title: "Stop 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-en",
+        title: "Stop 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-en",
+        title: "Section 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-en",
+        title: "Stop 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-en",
+        title: "Stop 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-en",
+        title: "Stop 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-en",
+        title: "Stop 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-en",
+        title: "Section 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-en",
+        title: "Stop 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-en",
+        title: "Stop 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-en",
+        title: "Section 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-en",
+        title: "Stop 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-en",
+        title: "Section 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-en",
+        title: "Stop 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-en",
+        title: "Section 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-en",
+        title: "Stop 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-en",
+        title: "Stop 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-en",
+        title: "Section 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-en",
+        title: "Stop 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-en",
+        title: "Stop 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-en",
+        title: "Stop 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-en",
+        title: "Section 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-en",
+        title: "Stop 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-en",
+        title: "Stop 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-en",
+        title: "Section 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-en",
+        title: "Stop 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-en",
+        title: "Section 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-en",
+        title: "Stop 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-en",
+        title: "Section 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-en",
+        title: "Stop 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-en",
+        title: "Section 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-en",
+        title: "Stop 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-en",
+        title: "Section 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-en",
+        title: "Stop 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-en",
+        title: "Section 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-en",
+        title: "Stop 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-en",
+        title: "Section 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-en",
+        title: "Stop 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-en",
+        title: "Section 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-en",
+        title: "Stop 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-en",
+        title: "Section 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-en",
+        title: "Stop 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-en",
+        title: "Section 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-en",
+        title: "Stop 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-en",
+        title: "Stop 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-en",
+        title: "Section 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-en",
+        title: "Stop 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-en",
+        title: "Section 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-en",
+        title: "Stop 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-en",
+        title: "Section 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-en",
+        title: "Stop 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-en",
+        title: "Section 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-en",
+        title: "Stop 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-en",
+        title: "Section 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-en",
+        title: "Stop 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-en",
+        title: "Section 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-en",
+        title: "Stop 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-en",
+        title: "Section 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-en",
+        title: "Stop 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-en",
+        title: "Section 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-en",
+        title: "Stop 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-en",
+        title: "Section 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-en",
+        title: "Stop 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-en",
+        title: "Section 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-en",
+        title: "Section 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-en",
+        title: "Stop 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-en",
+        title: "Section 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-en",
+        title: "Stop 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-en",
+        title: "Stop 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-en",
+        title: "Section 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-en",
+        title: "Stop 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-en",
+        title: "Section 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-en",
+        title: "Stop 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-en",
+        title: "Section 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-en",
+        title: "Stop 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-en",
+        title: "Section 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-en",
+        title: "Stop 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-en",
+        title: "Section 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-en",
+        title: "Stop 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-en",
+        title: "Section 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-en",
+        title: "Stop 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-en",
+        title: "Section 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-en",
+        title: "Stop 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-en",
+        title: "Section 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-en",
+        title: "Stop 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-en",
+        title: "Stop 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-en",
+        title: "Section 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-en",
+        title: "Stop 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-en",
+        title: "Section 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-en",
+        title: "Stop 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-en",
+        title: "Section 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-en",
+        title: "Stop 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-en",
+        title: "Stop 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-en",
+        title: "Section 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-en",
+        title: "Stop 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-en",
+        title: "Section 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-en",
+        title: "Stop 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-en",
+        title: "Stop 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-en",
+        title: "Section 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-en",
+        title: "Stop 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    fr: [
+      // Intro
+      {
+        id: "audio-intro-fr",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-fr",
+        title: "Étape 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-fr",
+        title: "Section 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-fr",
+        title: "Étape 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-fr",
+        title: "Section 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-fr",
+        title: "Étape 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-fr",
+        title: "Section 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-fr",
+        title: "Étape 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-fr",
+        title: "Section 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-fr",
+        title: "Étape 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-fr",
+        title: "Section 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-fr",
+        title: "Étape 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-fr",
+        title: "Section 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-fr",
+        title: "Étape 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-fr",
+        title: "Section 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-fr",
+        title: "Étape 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-fr",
+        title: "Section 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-fr",
+        title: "Étape 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-fr",
+        title: "Section 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-fr",
+        title: "Étape 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-fr",
+        title: "Section 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-fr",
+        title: "Étape 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-fr",
+        title: "Étape 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-fr",
+        title: "Section 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-fr",
+        title: "Étape 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-fr",
+        title: "Section 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-fr",
+        title: "Étape 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-fr",
+        title: "Section 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-fr",
+        title: "Étape 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-fr",
+        title: "Section 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-fr",
+        title: "Étape 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-fr",
+        title: "Section 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-fr",
+        title: "Étape 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-fr",
+        title: "Section 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-fr",
+        title: "Étape 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-fr",
+        title: "Section 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-fr",
+        title: "Étape 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-fr",
+        title: "Section 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-fr",
+        title: "Étape 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-fr",
+        title: "Étape 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-fr",
+        title: "Étape 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-fr",
+        title: "Section 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-fr",
+        title: "Étape 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-fr",
+        title: "Section 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-fr",
+        title: "Étape 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-fr",
+        title: "Section 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-fr",
+        title: "Étape 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-fr",
+        title: "Section 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-fr",
+        title: "Étape 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-fr",
+        title: "Section 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-fr",
+        title: "Étape 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-fr",
+        title: "Section 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-fr",
+        title: "Étape 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-fr",
+        title: "Étape 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-fr",
+        title: "Section 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-fr",
+        title: "Étape 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-fr",
+        title: "Étape 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-fr",
+        title: "Section 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-fr",
+        title: "Étape 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-fr",
+        title: "Section 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-fr",
+        title: "Étape 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-fr",
+        title: "Section 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-fr",
+        title: "Étape 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-fr",
+        title: "Section 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-fr",
+        title: "Étape 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-fr",
+        title: "Étape 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-fr",
+        title: "Section 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-fr",
+        title: "Étape 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-fr",
+        title: "Étape 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-fr",
+        title: "Étape 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-fr",
+        title: "Étape 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-fr",
+        title: "Étape 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-fr",
+        title: "Étape 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-fr",
+        title: "Section 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-fr",
+        title: "Étape 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-fr",
+        title: "Section 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-fr",
+        title: "Section 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-fr",
+        title: "Étape 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-fr",
+        title: "Section 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-fr",
+        title: "Étape 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-fr",
+        title: "Section 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-fr",
+        title: "Étape 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-fr",
+        title: "Section 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-fr",
+        title: "Étape 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-fr",
+        title: "Étape 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-fr",
+        title: "Étape 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-fr",
+        title: "Étape 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-fr",
+        title: "Section 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-fr",
+        title: "Étape 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-fr",
+        title: "Étape 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-fr",
+        title: "Section 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-fr",
+        title: "Étape 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-fr",
+        title: "Étape 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-fr",
+        title: "Étape 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-fr",
+        title: "Section 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-fr",
+        title: "Étape 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-fr",
+        title: "Section 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-fr",
+        title: "Étape 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-fr",
+        title: "Étape 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-fr",
+        title: "Étape 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-fr",
+        title: "Étape 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-fr",
+        title: "Étape 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-fr",
+        title: "Étape 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-fr",
+        title: "Étape 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-fr",
+        title: "Section 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-fr",
+        title: "Étape 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-fr",
+        title: "Étape 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-fr",
+        title: "Étape 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-fr",
+        title: "Section 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-fr",
+        title: "Étape 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-fr",
+        title: "Étape 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-fr",
+        title: "Étape 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-fr",
+        title: "Section 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-fr",
+        title: "Étape 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-fr",
+        title: "Section 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-fr",
+        title: "Section 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-fr",
+        title: "Étape 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-fr",
+        title: "Section 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-fr",
+        title: "Étape 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-fr",
+        title: "Étape 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-fr",
+        title: "Section 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-fr",
+        title: "Étape 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-fr",
+        title: "Section 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-fr",
+        title: "Étape 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-fr",
+        title: "Étape 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-fr",
+        title: "Section 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-fr",
+        title: "Étape 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-fr",
+        title: "Section 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-fr",
+        title: "Étape 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-fr",
+        title: "Section 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-fr",
+        title: "Étape 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-fr",
+        title: "Section 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-fr",
+        title: "Étape 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-fr",
+        title: "Section 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-fr",
+        title: "Étape 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-fr",
+        title: "Étape 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-fr",
+        title: "Section 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-fr",
+        title: "Étape 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-fr",
+        title: "Étape 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-fr",
+        title: "Section 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-fr",
+        title: "Étape 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-fr",
+        title: "Étape 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-fr",
+        title: "Étape 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-fr",
+        title: "Étape 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-fr",
+        title: "Section 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-fr",
+        title: "Étape 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-fr",
+        title: "Étape 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-fr",
+        title: "Section 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-fr",
+        title: "Étape 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-fr",
+        title: "Section 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-fr",
+        title: "Étape 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-fr",
+        title: "Section 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-fr",
+        title: "Étape 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-fr",
+        title: "Étape 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-fr",
+        title: "Section 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-fr",
+        title: "Étape 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-fr",
+        title: "Étape 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-fr",
+        title: "Étape 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-fr",
+        title: "Section 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-fr",
+        title: "Étape 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-fr",
+        title: "Étape 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-fr",
+        title: "Section 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-fr",
+        title: "Étape 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-fr",
+        title: "Section 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-fr",
+        title: "Étape 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-fr",
+        title: "Section 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-fr",
+        title: "Étape 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-fr",
+        title: "Section 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-fr",
+        title: "Étape 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-fr",
+        title: "Section 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-fr",
+        title: "Étape 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-fr",
+        title: "Section 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-fr",
+        title: "Étape 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-fr",
+        title: "Section 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-fr",
+        title: "Étape 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-fr",
+        title: "Section 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-fr",
+        title: "Étape 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-fr",
+        title: "Section 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-fr",
+        title: "Étape 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-fr",
+        title: "Section 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-fr",
+        title: "Étape 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-fr",
+        title: "Étape 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-fr",
+        title: "Section 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-fr",
+        title: "Étape 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-fr",
+        title: "Section 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-fr",
+        title: "Étape 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-fr",
+        title: "Section 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-fr",
+        title: "Étape 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-fr",
+        title: "Section 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-fr",
+        title: "Étape 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-fr",
+        title: "Section 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-fr",
+        title: "Étape 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-fr",
+        title: "Section 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-fr",
+        title: "Étape 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-fr",
+        title: "Section 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-fr",
+        title: "Étape 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-fr",
+        title: "Section 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-fr",
+        title: "Étape 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-fr",
+        title: "Section 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-fr",
+        title: "Étape 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-fr",
+        title: "Section 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-fr",
+        title: "Section 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-fr",
+        title: "Étape 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-fr",
+        title: "Section 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-fr",
+        title: "Étape 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-fr",
+        title: "Étape 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-fr",
+        title: "Section 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-fr",
+        title: "Étape 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-fr",
+        title: "Section 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-fr",
+        title: "Étape 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-fr",
+        title: "Section 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-fr",
+        title: "Étape 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-fr",
+        title: "Section 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-fr",
+        title: "Étape 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-fr",
+        title: "Section 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-fr",
+        title: "Étape 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-fr",
+        title: "Section 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-fr",
+        title: "Étape 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-fr",
+        title: "Section 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-fr",
+        title: "Étape 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-fr",
+        title: "Section 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-fr",
+        title: "Étape 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-fr",
+        title: "Étape 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-fr",
+        title: "Section 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-fr",
+        title: "Étape 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-fr",
+        title: "Section 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-fr",
+        title: "Étape 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-fr",
+        title: "Section 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-fr",
+        title: "Étape 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-fr",
+        title: "Étape 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-fr",
+        title: "Section 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-fr",
+        title: "Étape 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-fr",
+        title: "Section 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-fr",
+        title: "Étape 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-fr",
+        title: "Étape 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-fr",
+        title: "Section 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-fr",
+        title: "Étape 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    it: [
+      // Intro
+      {
+        id: "audio-intro-it",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-it",
+        title: "Tappa 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-it",
+        title: "Tratto 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-it",
+        title: "Tappa 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-it",
+        title: "Tratto 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-it",
+        title: "Tappa 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-it",
+        title: "Tratto 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-it",
+        title: "Tappa 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-it",
+        title: "Tratto 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-it",
+        title: "Tappa 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-it",
+        title: "Tratto 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-it",
+        title: "Tappa 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-it",
+        title: "Tratto 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-it",
+        title: "Tappa 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-it",
+        title: "Tratto 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-it",
+        title: "Tappa 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-it",
+        title: "Tratto 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-it",
+        title: "Tappa 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-it",
+        title: "Tratto 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-it",
+        title: "Tappa 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-it",
+        title: "Tratto 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-it",
+        title: "Tappa 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-it",
+        title: "Tappa 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-it",
+        title: "Tratto 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-it",
+        title: "Tappa 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-it",
+        title: "Tratto 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-it",
+        title: "Tappa 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-it",
+        title: "Tratto 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-it",
+        title: "Tappa 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-it",
+        title: "Tratto 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-it",
+        title: "Tappa 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-it",
+        title: "Tratto 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-it",
+        title: "Tappa 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-it",
+        title: "Tratto 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-it",
+        title: "Tappa 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-it",
+        title: "Tratto 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-it",
+        title: "Tappa 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-it",
+        title: "Tratto 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-it",
+        title: "Tappa 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-it",
+        title: "Tappa 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-it",
+        title: "Tappa 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-it",
+        title: "Tratto 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-it",
+        title: "Tappa 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-it",
+        title: "Tratto 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-it",
+        title: "Tappa 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-it",
+        title: "Tratto 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-it",
+        title: "Tappa 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-it",
+        title: "Tratto 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-it",
+        title: "Tappa 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-it",
+        title: "Tratto 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-it",
+        title: "Tappa 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-it",
+        title: "Tratto 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-it",
+        title: "Tappa 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-it",
+        title: "Tappa 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-it",
+        title: "Tratto 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-it",
+        title: "Tappa 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-it",
+        title: "Tappa 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-it",
+        title: "Tratto 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-it",
+        title: "Tappa 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-it",
+        title: "Tratto 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-it",
+        title: "Tappa 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-it",
+        title: "Tratto 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-it",
+        title: "Tappa 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-it",
+        title: "Tratto 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-it",
+        title: "Tappa 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-it",
+        title: "Tappa 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-it",
+        title: "Tratto 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-it",
+        title: "Tappa 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-it",
+        title: "Tappa 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-it",
+        title: "Tappa 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-it",
+        title: "Tappa 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-it",
+        title: "Tappa 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-it",
+        title: "Tappa 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-it",
+        title: "Tratto 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-it",
+        title: "Tappa 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-it",
+        title: "Tratto 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-it",
+        title: "Tratto 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-it",
+        title: "Tappa 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-it",
+        title: "Tratto 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-it",
+        title: "Tappa 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-it",
+        title: "Tratto 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-it",
+        title: "Tappa 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-it",
+        title: "Tratto 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-it",
+        title: "Tappa 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-it",
+        title: "Tappa 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-it",
+        title: "Tappa 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-it",
+        title: "Tappa 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-it",
+        title: "Tratto 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-it",
+        title: "Tappa 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-it",
+        title: "Tappa 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-it",
+        title: "Tratto 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-it",
+        title: "Tappa 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-it",
+        title: "Tappa 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-it",
+        title: "Tappa 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-it",
+        title: "Tratto 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-it",
+        title: "Tappa 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-it",
+        title: "Tratto 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-it",
+        title: "Tappa 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-it",
+        title: "Tappa 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-it",
+        title: "Tappa 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-it",
+        title: "Tappa 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-it",
+        title: "Tappa 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-it",
+        title: "Tappa 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-it",
+        title: "Tappa 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-it",
+        title: "Tratto 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-it",
+        title: "Tappa 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-it",
+        title: "Tappa 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-it",
+        title: "Tappa 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-it",
+        title: "Tratto 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-it",
+        title: "Tappa 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-it",
+        title: "Tappa 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-it",
+        title: "Tappa 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-it",
+        title: "Tratto 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-it",
+        title: "Tappa 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-it",
+        title: "Tratto 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-it",
+        title: "Tratto 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-it",
+        title: "Tappa 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-it",
+        title: "Tratto 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-it",
+        title: "Tappa 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-it",
+        title: "Tappa 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-it",
+        title: "Tratto 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-it",
+        title: "Tappa 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-it",
+        title: "Tratto 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-it",
+        title: "Tappa 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-it",
+        title: "Tappa 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-it",
+        title: "Tratto 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-it",
+        title: "Tappa 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-it",
+        title: "Tratto 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-it",
+        title: "Tappa 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-it",
+        title: "Tratto 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-it",
+        title: "Tappa 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-it",
+        title: "Tratto 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-it",
+        title: "Tappa 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-it",
+        title: "Tratto 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-it",
+        title: "Tappa 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-it",
+        title: "Tappa 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-it",
+        title: "Tratto 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-it",
+        title: "Tappa 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-it",
+        title: "Tappa 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-it",
+        title: "Tratto 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-it",
+        title: "Tappa 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-it",
+        title: "Tappa 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-it",
+        title: "Tappa 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-it",
+        title: "Tappa 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-it",
+        title: "Tratto 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-it",
+        title: "Tappa 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-it",
+        title: "Tappa 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-it",
+        title: "Tratto 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-it",
+        title: "Tappa 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-it",
+        title: "Tratto 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-it",
+        title: "Tappa 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-it",
+        title: "Tratto 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-it",
+        title: "Tappa 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-it",
+        title: "Tappa 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-it",
+        title: "Tratto 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-it",
+        title: "Tappa 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-it",
+        title: "Tappa 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-it",
+        title: "Tappa 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-it",
+        title: "Tratto 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-it",
+        title: "Tappa 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-it",
+        title: "Tappa 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-it",
+        title: "Tratto 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-it",
+        title: "Tappa 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-it",
+        title: "Tratto 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-it",
+        title: "Tappa 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-it",
+        title: "Tratto 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-it",
+        title: "Tappa 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-it",
+        title: "Tratto 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-it",
+        title: "Tappa 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-it",
+        title: "Tratto 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-it",
+        title: "Tappa 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-it",
+        title: "Tratto 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-it",
+        title: "Tappa 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-it",
+        title: "Tratto 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-it",
+        title: "Tappa 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-it",
+        title: "Tratto 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-it",
+        title: "Tappa 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-it",
+        title: "Tratto 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-it",
+        title: "Tappa 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-it",
+        title: "Tratto 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-it",
+        title: "Tappa 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-it",
+        title: "Tappa 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-it",
+        title: "Tratto 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-it",
+        title: "Tappa 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-it",
+        title: "Tratto 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-it",
+        title: "Tappa 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-it",
+        title: "Tratto 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-it",
+        title: "Tappa 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-it",
+        title: "Tratto 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-it",
+        title: "Tappa 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-it",
+        title: "Tratto 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-it",
+        title: "Tappa 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-it",
+        title: "Tratto 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-it",
+        title: "Tappa 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-it",
+        title: "Tratto 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-it",
+        title: "Tappa 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-it",
+        title: "Tratto 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-it",
+        title: "Tappa 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-it",
+        title: "Tratto 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-it",
+        title: "Tappa 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-it",
+        title: "Tratto 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-it",
+        title: "Tratto 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-it",
+        title: "Tappa 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-it",
+        title: "Tratto 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-it",
+        title: "Tappa 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-it",
+        title: "Tappa 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-it",
+        title: "Tratto 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-it",
+        title: "Tappa 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-it",
+        title: "Tratto 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-it",
+        title: "Tappa 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-it",
+        title: "Tratto 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-it",
+        title: "Tappa 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-it",
+        title: "Tratto 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-it",
+        title: "Tappa 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-it",
+        title: "Tratto 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-it",
+        title: "Tappa 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-it",
+        title: "Tratto 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-it",
+        title: "Tappa 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-it",
+        title: "Tratto 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-it",
+        title: "Tappa 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-it",
+        title: "Tratto 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-it",
+        title: "Tappa 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-it",
+        title: "Tappa 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-it",
+        title: "Tratto 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-it",
+        title: "Tappa 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-it",
+        title: "Tratto 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-it",
+        title: "Tappa 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-it",
+        title: "Tratto 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-it",
+        title: "Tappa 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-it",
+        title: "Tappa 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-it",
+        title: "Tratto 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-it",
+        title: "Tappa 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-it",
+        title: "Tratto 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-it",
+        title: "Tappa 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-it",
+        title: "Tappa 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-it",
+        title: "Tratto 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-it",
+        title: "Tappa 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    nl: [
+      // Intro
+      {
+        id: "audio-intro-nl",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-nl",
+        title: "Stop 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-nl",
+        title: "Traject 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-nl",
+        title: "Stop 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-nl",
+        title: "Traject 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-nl",
+        title: "Stop 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-nl",
+        title: "Traject 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-nl",
+        title: "Stop 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-nl",
+        title: "Traject 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-nl",
+        title: "Stop 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-nl",
+        title: "Traject 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-nl",
+        title: "Stop 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-nl",
+        title: "Traject 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-nl",
+        title: "Stop 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-nl",
+        title: "Traject 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-nl",
+        title: "Stop 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-nl",
+        title: "Traject 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-nl",
+        title: "Stop 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-nl",
+        title: "Traject 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-nl",
+        title: "Stop 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-nl",
+        title: "Traject 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-nl",
+        title: "Stop 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-nl",
+        title: "Stop 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-nl",
+        title: "Traject 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-nl",
+        title: "Stop 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-nl",
+        title: "Traject 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-nl",
+        title: "Stop 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-nl",
+        title: "Traject 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-nl",
+        title: "Stop 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-nl",
+        title: "Traject 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-nl",
+        title: "Stop 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-nl",
+        title: "Traject 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-nl",
+        title: "Stop 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-nl",
+        title: "Traject 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-nl",
+        title: "Stop 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-nl",
+        title: "Traject 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-nl",
+        title: "Stop 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-nl",
+        title: "Traject 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-nl",
+        title: "Stop 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-nl",
+        title: "Stop 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-nl",
+        title: "Stop 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-nl",
+        title: "Traject 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-nl",
+        title: "Stop 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-nl",
+        title: "Traject 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-nl",
+        title: "Stop 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-nl",
+        title: "Traject 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-nl",
+        title: "Stop 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-nl",
+        title: "Traject 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-nl",
+        title: "Stop 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-nl",
+        title: "Traject 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-nl",
+        title: "Stop 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-nl",
+        title: "Traject 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-nl",
+        title: "Stop 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-nl",
+        title: "Stop 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-nl",
+        title: "Traject 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-nl",
+        title: "Stop 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-nl",
+        title: "Stop 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-nl",
+        title: "Traject 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-nl",
+        title: "Stop 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-nl",
+        title: "Traject 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-nl",
+        title: "Stop 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-nl",
+        title: "Traject 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-nl",
+        title: "Stop 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-nl",
+        title: "Traject 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-nl",
+        title: "Stop 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-nl",
+        title: "Stop 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-nl",
+        title: "Traject 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-nl",
+        title: "Stop 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-nl",
+        title: "Stop 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-nl",
+        title: "Stop 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-nl",
+        title: "Stop 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-nl",
+        title: "Stop 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-nl",
+        title: "Stop 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-nl",
+        title: "Traject 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-nl",
+        title: "Stop 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-nl",
+        title: "Traject 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-nl",
+        title: "Traject 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-nl",
+        title: "Stop 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-nl",
+        title: "Traject 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-nl",
+        title: "Stop 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-nl",
+        title: "Traject 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-nl",
+        title: "Stop 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-nl",
+        title: "Traject 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-nl",
+        title: "Stop 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-nl",
+        title: "Stop 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-nl",
+        title: "Stop 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-nl",
+        title: "Stop 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-nl",
+        title: "Traject 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-nl",
+        title: "Stop 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-nl",
+        title: "Stop 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-nl",
+        title: "Traject 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-nl",
+        title: "Stop 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-nl",
+        title: "Stop 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-nl",
+        title: "Stop 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-nl",
+        title: "Traject 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-nl",
+        title: "Stop 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-nl",
+        title: "Traject 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-nl",
+        title: "Stop 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-nl",
+        title: "Stop 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-nl",
+        title: "Stop 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-nl",
+        title: "Stop 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-nl",
+        title: "Stop 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-nl",
+        title: "Stop 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-nl",
+        title: "Stop 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-nl",
+        title: "Traject 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-nl",
+        title: "Stop 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-nl",
+        title: "Stop 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-nl",
+        title: "Stop 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-nl",
+        title: "Traject 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-nl",
+        title: "Stop 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-nl",
+        title: "Stop 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-nl",
+        title: "Stop 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-nl",
+        title: "Traject 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-nl",
+        title: "Stop 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-nl",
+        title: "Traject 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-nl",
+        title: "Traject 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-nl",
+        title: "Stop 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-nl",
+        title: "Traject 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-nl",
+        title: "Stop 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-nl",
+        title: "Stop 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-nl",
+        title: "Traject 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-nl",
+        title: "Stop 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-nl",
+        title: "Traject 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-nl",
+        title: "Stop 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-nl",
+        title: "Stop 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-nl",
+        title: "Traject 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-nl",
+        title: "Stop 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-nl",
+        title: "Traject 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-nl",
+        title: "Stop 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-nl",
+        title: "Traject 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-nl",
+        title: "Stop 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-nl",
+        title: "Traject 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-nl",
+        title: "Stop 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-nl",
+        title: "Traject 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-nl",
+        title: "Stop 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-nl",
+        title: "Stop 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-nl",
+        title: "Traject 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-nl",
+        title: "Stop 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-nl",
+        title: "Stop 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-nl",
+        title: "Traject 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-nl",
+        title: "Stop 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-nl",
+        title: "Stop 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-nl",
+        title: "Stop 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-nl",
+        title: "Stop 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-nl",
+        title: "Traject 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-nl",
+        title: "Stop 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-nl",
+        title: "Stop 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-nl",
+        title: "Traject 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-nl",
+        title: "Stop 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-nl",
+        title: "Traject 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-nl",
+        title: "Stop 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-nl",
+        title: "Traject 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-nl",
+        title: "Stop 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-nl",
+        title: "Stop 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-nl",
+        title: "Traject 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-nl",
+        title: "Stop 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-nl",
+        title: "Stop 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-nl",
+        title: "Stop 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-nl",
+        title: "Traject 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-nl",
+        title: "Stop 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-nl",
+        title: "Stop 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-nl",
+        title: "Traject 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-nl",
+        title: "Stop 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-nl",
+        title: "Traject 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-nl",
+        title: "Stop 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-nl",
+        title: "Traject 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-nl",
+        title: "Stop 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-nl",
+        title: "Traject 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-nl",
+        title: "Stop 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-nl",
+        title: "Traject 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-nl",
+        title: "Stop 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-nl",
+        title: "Traject 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-nl",
+        title: "Stop 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-nl",
+        title: "Traject 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-nl",
+        title: "Stop 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-nl",
+        title: "Traject 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-nl",
+        title: "Stop 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-nl",
+        title: "Traject 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-nl",
+        title: "Stop 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-nl",
+        title: "Traject 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-nl",
+        title: "Stop 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-nl",
+        title: "Stop 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-nl",
+        title: "Traject 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-nl",
+        title: "Stop 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-nl",
+        title: "Traject 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-nl",
+        title: "Stop 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-nl",
+        title: "Traject 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-nl",
+        title: "Stop 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-nl",
+        title: "Traject 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-nl",
+        title: "Stop 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-nl",
+        title: "Traject 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-nl",
+        title: "Stop 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-nl",
+        title: "Traject 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-nl",
+        title: "Stop 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-nl",
+        title: "Traject 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-nl",
+        title: "Stop 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-nl",
+        title: "Traject 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-nl",
+        title: "Stop 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-nl",
+        title: "Traject 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-nl",
+        title: "Stop 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-nl",
+        title: "Traject 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-nl",
+        title: "Traject 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-nl",
+        title: "Stop 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-nl",
+        title: "Traject 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-nl",
+        title: "Stop 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-nl",
+        title: "Stop 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-nl",
+        title: "Traject 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-nl",
+        title: "Stop 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-nl",
+        title: "Traject 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-nl",
+        title: "Stop 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-nl",
+        title: "Traject 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-nl",
+        title: "Stop 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-nl",
+        title: "Traject 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-nl",
+        title: "Stop 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-nl",
+        title: "Traject 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-nl",
+        title: "Stop 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-nl",
+        title: "Traject 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-nl",
+        title: "Stop 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-nl",
+        title: "Traject 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-nl",
+        title: "Stop 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-nl",
+        title: "Traject 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-nl",
+        title: "Stop 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-nl",
+        title: "Stop 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-nl",
+        title: "Traject 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-nl",
+        title: "Stop 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-nl",
+        title: "Traject 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-nl",
+        title: "Stop 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-nl",
+        title: "Traject 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-nl",
+        title: "Stop 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-nl",
+        title: "Stop 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-nl",
+        title: "Traject 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-nl",
+        title: "Stop 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-nl",
+        title: "Traject 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-nl",
+        title: "Stop 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-nl",
+        title: "Stop 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-nl",
+        title: "Traject 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-nl",
+        title: "Stop 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    ja: [
+      // Intro
+      {
+        id: "audio-intro-ja",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-ja",
+        title: "停留所 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-ja",
+        title: "区間 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-ja",
+        title: "停留所 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-ja",
+        title: "区間 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-ja",
+        title: "停留所 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-ja",
+        title: "区間 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-ja",
+        title: "停留所 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-ja",
+        title: "区間 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-ja",
+        title: "停留所 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-ja",
+        title: "区間 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-ja",
+        title: "停留所 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-ja",
+        title: "区間 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-ja",
+        title: "停留所 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-ja",
+        title: "区間 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-ja",
+        title: "停留所 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-ja",
+        title: "区間 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-ja",
+        title: "停留所 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-ja",
+        title: "区間 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-ja",
+        title: "停留所 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-ja",
+        title: "区間 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-ja",
+        title: "停留所 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-ja",
+        title: "停留所 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-ja",
+        title: "区間 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-ja",
+        title: "停留所 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-ja",
+        title: "区間 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-ja",
+        title: "停留所 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-ja",
+        title: "区間 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-ja",
+        title: "停留所 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-ja",
+        title: "区間 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-ja",
+        title: "停留所 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-ja",
+        title: "区間 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-ja",
+        title: "停留所 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-ja",
+        title: "区間 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-ja",
+        title: "停留所 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-ja",
+        title: "区間 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-ja",
+        title: "停留所 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-ja",
+        title: "区間 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-ja",
+        title: "停留所 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-ja",
+        title: "停留所 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-ja",
+        title: "停留所 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-ja",
+        title: "区間 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-ja",
+        title: "停留所 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-ja",
+        title: "区間 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-ja",
+        title: "停留所 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-ja",
+        title: "区間 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-ja",
+        title: "停留所 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-ja",
+        title: "区間 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-ja",
+        title: "停留所 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-ja",
+        title: "区間 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-ja",
+        title: "停留所 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-ja",
+        title: "区間 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-ja",
+        title: "停留所 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-ja",
+        title: "停留所 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-ja",
+        title: "区間 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-ja",
+        title: "停留所 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-ja",
+        title: "停留所 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-ja",
+        title: "区間 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-ja",
+        title: "停留所 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-ja",
+        title: "区間 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-ja",
+        title: "停留所 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-ja",
+        title: "区間 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-ja",
+        title: "停留所 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-ja",
+        title: "区間 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-ja",
+        title: "停留所 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-ja",
+        title: "停留所 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-ja",
+        title: "区間 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-ja",
+        title: "停留所 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-ja",
+        title: "停留所 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-ja",
+        title: "停留所 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-ja",
+        title: "停留所 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-ja",
+        title: "停留所 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-ja",
+        title: "停留所 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-ja",
+        title: "区間 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-ja",
+        title: "停留所 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-ja",
+        title: "区間 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-ja",
+        title: "区間 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-ja",
+        title: "停留所 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-ja",
+        title: "区間 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-ja",
+        title: "停留所 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-ja",
+        title: "区間 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-ja",
+        title: "停留所 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-ja",
+        title: "区間 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-ja",
+        title: "停留所 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-ja",
+        title: "停留所 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-ja",
+        title: "停留所 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-ja",
+        title: "停留所 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-ja",
+        title: "区間 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-ja",
+        title: "停留所 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-ja",
+        title: "停留所 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-ja",
+        title: "区間 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-ja",
+        title: "停留所 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-ja",
+        title: "停留所 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-ja",
+        title: "停留所 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-ja",
+        title: "区間 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-ja",
+        title: "停留所 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-ja",
+        title: "区間 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-ja",
+        title: "停留所 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-ja",
+        title: "停留所 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-ja",
+        title: "停留所 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-ja",
+        title: "停留所 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-ja",
+        title: "停留所 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-ja",
+        title: "停留所 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-ja",
+        title: "停留所 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-ja",
+        title: "区間 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-ja",
+        title: "停留所 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-ja",
+        title: "停留所 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-ja",
+        title: "停留所 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-ja",
+        title: "区間 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-ja",
+        title: "停留所 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-ja",
+        title: "停留所 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-ja",
+        title: "停留所 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-ja",
+        title: "区間 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-ja",
+        title: "停留所 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-ja",
+        title: "区間 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-ja",
+        title: "区間 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-ja",
+        title: "停留所 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-ja",
+        title: "区間 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-ja",
+        title: "停留所 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-ja",
+        title: "停留所 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-ja",
+        title: "区間 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-ja",
+        title: "停留所 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-ja",
+        title: "区間 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-ja",
+        title: "停留所 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-ja",
+        title: "停留所 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-ja",
+        title: "区間 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-ja",
+        title: "停留所 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-ja",
+        title: "区間 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-ja",
+        title: "停留所 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-ja",
+        title: "区間 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-ja",
+        title: "停留所 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-ja",
+        title: "区間 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-ja",
+        title: "停留所 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-ja",
+        title: "区間 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-ja",
+        title: "停留所 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-ja",
+        title: "停留所 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-ja",
+        title: "区間 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-ja",
+        title: "停留所 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-ja",
+        title: "停留所 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-ja",
+        title: "区間 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-ja",
+        title: "停留所 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-ja",
+        title: "停留所 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-ja",
+        title: "停留所 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-ja",
+        title: "停留所 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-ja",
+        title: "区間 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-ja",
+        title: "停留所 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-ja",
+        title: "停留所 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-ja",
+        title: "区間 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-ja",
+        title: "停留所 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-ja",
+        title: "区間 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-ja",
+        title: "停留所 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-ja",
+        title: "区間 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-ja",
+        title: "停留所 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-ja",
+        title: "停留所 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-ja",
+        title: "区間 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-ja",
+        title: "停留所 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-ja",
+        title: "停留所 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-ja",
+        title: "停留所 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-ja",
+        title: "区間 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-ja",
+        title: "停留所 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-ja",
+        title: "停留所 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-ja",
+        title: "区間 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-ja",
+        title: "停留所 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-ja",
+        title: "区間 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-ja",
+        title: "停留所 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-ja",
+        title: "区間 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-ja",
+        title: "停留所 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-ja",
+        title: "区間 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-ja",
+        title: "停留所 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-ja",
+        title: "区間 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-ja",
+        title: "停留所 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-ja",
+        title: "区間 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-ja",
+        title: "停留所 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-ja",
+        title: "区間 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-ja",
+        title: "停留所 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-ja",
+        title: "区間 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-ja",
+        title: "停留所 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-ja",
+        title: "区間 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-ja",
+        title: "停留所 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-ja",
+        title: "区間 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-ja",
+        title: "停留所 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-ja",
+        title: "停留所 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-ja",
+        title: "区間 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-ja",
+        title: "停留所 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-ja",
+        title: "区間 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-ja",
+        title: "停留所 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-ja",
+        title: "区間 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-ja",
+        title: "停留所 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-ja",
+        title: "区間 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-ja",
+        title: "停留所 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-ja",
+        title: "区間 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-ja",
+        title: "停留所 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-ja",
+        title: "区間 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-ja",
+        title: "停留所 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-ja",
+        title: "区間 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-ja",
+        title: "停留所 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-ja",
+        title: "区間 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-ja",
+        title: "停留所 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-ja",
+        title: "区間 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-ja",
+        title: "停留所 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-ja",
+        title: "区間 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-ja",
+        title: "区間 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-ja",
+        title: "停留所 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-ja",
+        title: "区間 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-ja",
+        title: "停留所 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-ja",
+        title: "停留所 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-ja",
+        title: "区間 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-ja",
+        title: "停留所 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-ja",
+        title: "区間 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-ja",
+        title: "停留所 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-ja",
+        title: "区間 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-ja",
+        title: "停留所 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-ja",
+        title: "区間 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-ja",
+        title: "停留所 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-ja",
+        title: "区間 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-ja",
+        title: "停留所 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-ja",
+        title: "区間 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-ja",
+        title: "停留所 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-ja",
+        title: "区間 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-ja",
+        title: "停留所 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-ja",
+        title: "区間 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-ja",
+        title: "停留所 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-ja",
+        title: "停留所 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-ja",
+        title: "区間 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-ja",
+        title: "停留所 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-ja",
+        title: "区間 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-ja",
+        title: "停留所 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-ja",
+        title: "区間 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-ja",
+        title: "停留所 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-ja",
+        title: "停留所 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-ja",
+        title: "区間 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-ja",
+        title: "停留所 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-ja",
+        title: "区間 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-ja",
+        title: "停留所 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-ja",
+        title: "停留所 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-ja",
+        title: "区間 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-ja",
+        title: "停留所 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    de: [
+      // Intro
+      {
+        id: "audio-intro-de",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-de",
+        title: "Halt 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-de",
+        title: "Abschnitt 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-de",
+        title: "Halt 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-de",
+        title: "Abschnitt 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-de",
+        title: "Halt 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-de",
+        title: "Abschnitt 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-de",
+        title: "Halt 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-de",
+        title: "Abschnitt 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-de",
+        title: "Halt 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-de",
+        title: "Abschnitt 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-de",
+        title: "Halt 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-de",
+        title: "Abschnitt 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-de",
+        title: "Halt 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-de",
+        title: "Abschnitt 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-de",
+        title: "Halt 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-de",
+        title: "Abschnitt 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-de",
+        title: "Halt 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-de",
+        title: "Abschnitt 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-de",
+        title: "Halt 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-de",
+        title: "Abschnitt 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-de",
+        title: "Halt 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-de",
+        title: "Halt 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-de",
+        title: "Abschnitt 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-de",
+        title: "Halt 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-de",
+        title: "Abschnitt 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-de",
+        title: "Halt 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-de",
+        title: "Abschnitt 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-de",
+        title: "Halt 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-de",
+        title: "Abschnitt 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-de",
+        title: "Halt 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-de",
+        title: "Abschnitt 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-de",
+        title: "Halt 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-de",
+        title: "Abschnitt 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-de",
+        title: "Halt 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-de",
+        title: "Abschnitt 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-de",
+        title: "Halt 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-de",
+        title: "Abschnitt 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-de",
+        title: "Halt 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-de",
+        title: "Halt 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-de",
+        title: "Halt 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-de",
+        title: "Abschnitt 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-de",
+        title: "Halt 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-de",
+        title: "Abschnitt 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-de",
+        title: "Halt 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-de",
+        title: "Abschnitt 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-de",
+        title: "Halt 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-de",
+        title: "Abschnitt 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-de",
+        title: "Halt 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-de",
+        title: "Abschnitt 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-de",
+        title: "Halt 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-de",
+        title: "Abschnitt 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-de",
+        title: "Halt 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-de",
+        title: "Halt 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-de",
+        title: "Abschnitt 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-de",
+        title: "Halt 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-de",
+        title: "Halt 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-de",
+        title: "Abschnitt 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-de",
+        title: "Halt 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-de",
+        title: "Abschnitt 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-de",
+        title: "Halt 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-de",
+        title: "Abschnitt 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-de",
+        title: "Halt 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-de",
+        title: "Abschnitt 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-de",
+        title: "Halt 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-de",
+        title: "Halt 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-de",
+        title: "Abschnitt 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-de",
+        title: "Halt 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-de",
+        title: "Halt 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-de",
+        title: "Halt 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-de",
+        title: "Halt 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-de",
+        title: "Halt 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-de",
+        title: "Halt 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-de",
+        title: "Abschnitt 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-de",
+        title: "Halt 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-de",
+        title: "Abschnitt 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-de",
+        title: "Abschnitt 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-de",
+        title: "Halt 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-de",
+        title: "Abschnitt 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-de",
+        title: "Halt 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-de",
+        title: "Abschnitt 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-de",
+        title: "Halt 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-de",
+        title: "Abschnitt 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-de",
+        title: "Halt 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-de",
+        title: "Halt 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-de",
+        title: "Halt 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-de",
+        title: "Halt 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-de",
+        title: "Abschnitt 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-de",
+        title: "Halt 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-de",
+        title: "Halt 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-de",
+        title: "Abschnitt 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-de",
+        title: "Halt 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-de",
+        title: "Halt 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-de",
+        title: "Halt 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-de",
+        title: "Abschnitt 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-de",
+        title: "Halt 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-de",
+        title: "Abschnitt 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-de",
+        title: "Halt 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-de",
+        title: "Halt 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-de",
+        title: "Halt 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-de",
+        title: "Halt 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-de",
+        title: "Halt 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-de",
+        title: "Halt 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-de",
+        title: "Halt 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-de",
+        title: "Abschnitt 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-de",
+        title: "Halt 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-de",
+        title: "Halt 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-de",
+        title: "Halt 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-de",
+        title: "Abschnitt 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-de",
+        title: "Halt 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-de",
+        title: "Halt 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-de",
+        title: "Halt 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-de",
+        title: "Abschnitt 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-de",
+        title: "Halt 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-de",
+        title: "Abschnitt 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-de",
+        title: "Abschnitt 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-de",
+        title: "Halt 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-de",
+        title: "Abschnitt 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-de",
+        title: "Halt 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-de",
+        title: "Halt 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-de",
+        title: "Abschnitt 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-de",
+        title: "Halt 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-de",
+        title: "Abschnitt 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-de",
+        title: "Halt 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-de",
+        title: "Halt 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-de",
+        title: "Abschnitt 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-de",
+        title: "Halt 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-de",
+        title: "Abschnitt 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-de",
+        title: "Halt 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-de",
+        title: "Abschnitt 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-de",
+        title: "Halt 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-de",
+        title: "Abschnitt 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-de",
+        title: "Halt 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-de",
+        title: "Abschnitt 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-de",
+        title: "Halt 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-de",
+        title: "Halt 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-de",
+        title: "Abschnitt 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-de",
+        title: "Halt 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-de",
+        title: "Halt 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-de",
+        title: "Abschnitt 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-de",
+        title: "Halt 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-de",
+        title: "Halt 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-de",
+        title: "Halt 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-de",
+        title: "Halt 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-de",
+        title: "Abschnitt 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-de",
+        title: "Halt 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-de",
+        title: "Halt 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-de",
+        title: "Abschnitt 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-de",
+        title: "Halt 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-de",
+        title: "Abschnitt 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-de",
+        title: "Halt 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-de",
+        title: "Abschnitt 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-de",
+        title: "Halt 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-de",
+        title: "Halt 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-de",
+        title: "Abschnitt 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-de",
+        title: "Halt 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-de",
+        title: "Halt 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-de",
+        title: "Halt 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-de",
+        title: "Abschnitt 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-de",
+        title: "Halt 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-de",
+        title: "Halt 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-de",
+        title: "Abschnitt 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-de",
+        title: "Halt 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-de",
+        title: "Abschnitt 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-de",
+        title: "Halt 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-de",
+        title: "Abschnitt 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-de",
+        title: "Halt 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-de",
+        title: "Abschnitt 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-de",
+        title: "Halt 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-de",
+        title: "Abschnitt 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-de",
+        title: "Halt 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-de",
+        title: "Abschnitt 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-de",
+        title: "Halt 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-de",
+        title: "Abschnitt 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-de",
+        title: "Halt 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-de",
+        title: "Abschnitt 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-de",
+        title: "Halt 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-de",
+        title: "Abschnitt 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-de",
+        title: "Halt 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-de",
+        title: "Abschnitt 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-de",
+        title: "Halt 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-de",
+        title: "Halt 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-de",
+        title: "Abschnitt 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-de",
+        title: "Halt 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-de",
+        title: "Abschnitt 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-de",
+        title: "Halt 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-de",
+        title: "Abschnitt 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-de",
+        title: "Halt 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-de",
+        title: "Abschnitt 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-de",
+        title: "Halt 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-de",
+        title: "Abschnitt 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-de",
+        title: "Halt 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-de",
+        title: "Abschnitt 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-de",
+        title: "Halt 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-de",
+        title: "Abschnitt 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-de",
+        title: "Halt 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-de",
+        title: "Abschnitt 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-de",
+        title: "Halt 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-de",
+        title: "Abschnitt 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-de",
+        title: "Halt 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-de",
+        title: "Abschnitt 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-de",
+        title: "Abschnitt 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-de",
+        title: "Halt 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-de",
+        title: "Abschnitt 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-de",
+        title: "Halt 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-de",
+        title: "Halt 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-de",
+        title: "Abschnitt 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-de",
+        title: "Halt 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-de",
+        title: "Abschnitt 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-de",
+        title: "Halt 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-de",
+        title: "Abschnitt 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-de",
+        title: "Halt 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-de",
+        title: "Abschnitt 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-de",
+        title: "Halt 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-de",
+        title: "Abschnitt 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-de",
+        title: "Halt 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-de",
+        title: "Abschnitt 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-de",
+        title: "Halt 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-de",
+        title: "Abschnitt 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-de",
+        title: "Halt 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-de",
+        title: "Abschnitt 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-de",
+        title: "Halt 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-de",
+        title: "Halt 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-de",
+        title: "Abschnitt 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-de",
+        title: "Halt 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-de",
+        title: "Abschnitt 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-de",
+        title: "Halt 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-de",
+        title: "Abschnitt 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-de",
+        title: "Halt 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-de",
+        title: "Halt 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-de",
+        title: "Abschnitt 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-de",
+        title: "Halt 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-de",
+        title: "Abschnitt 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-de",
+        title: "Halt 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-de",
+        title: "Halt 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-de",
+        title: "Abschnitt 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-de",
+        title: "Halt 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    zh: [
+      // Intro
+      {
+        id: "audio-intro-zh",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-zh",
+        title: "站 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-zh",
+        title: "段 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-zh",
+        title: "站 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-zh",
+        title: "段 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-zh",
+        title: "站 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-zh",
+        title: "段 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-zh",
+        title: "站 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-zh",
+        title: "段 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-zh",
+        title: "站 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-zh",
+        title: "段 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-zh",
+        title: "站 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-zh",
+        title: "段 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-zh",
+        title: "站 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-zh",
+        title: "段 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-zh",
+        title: "站 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-zh",
+        title: "段 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-zh",
+        title: "站 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-zh",
+        title: "段 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-zh",
+        title: "站 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-zh",
+        title: "段 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-zh",
+        title: "站 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-zh",
+        title: "站 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-zh",
+        title: "段 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-zh",
+        title: "站 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-zh",
+        title: "段 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-zh",
+        title: "站 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-zh",
+        title: "段 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-zh",
+        title: "站 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-zh",
+        title: "段 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-zh",
+        title: "站 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-zh",
+        title: "段 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-zh",
+        title: "站 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-zh",
+        title: "段 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-zh",
+        title: "站 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-zh",
+        title: "段 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-zh",
+        title: "站 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-zh",
+        title: "段 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-zh",
+        title: "站 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-zh",
+        title: "站 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-zh",
+        title: "站 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-zh",
+        title: "段 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-zh",
+        title: "站 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-zh",
+        title: "段 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-zh",
+        title: "站 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-zh",
+        title: "段 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-zh",
+        title: "站 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-zh",
+        title: "段 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-zh",
+        title: "站 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-zh",
+        title: "段 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-zh",
+        title: "站 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-zh",
+        title: "段 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-zh",
+        title: "站 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-zh",
+        title: "站 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-zh",
+        title: "段 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-zh",
+        title: "站 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-zh",
+        title: "站 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-zh",
+        title: "段 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-zh",
+        title: "站 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-zh",
+        title: "段 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-zh",
+        title: "站 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-zh",
+        title: "段 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-zh",
+        title: "站 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-zh",
+        title: "段 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-zh",
+        title: "站 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-zh",
+        title: "站 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-zh",
+        title: "段 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-zh",
+        title: "站 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-zh",
+        title: "站 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-zh",
+        title: "站 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-zh",
+        title: "站 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-zh",
+        title: "站 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-zh",
+        title: "站 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-zh",
+        title: "段 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-zh",
+        title: "站 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-zh",
+        title: "段 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-zh",
+        title: "段 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-zh",
+        title: "站 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-zh",
+        title: "段 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-zh",
+        title: "站 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-zh",
+        title: "段 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-zh",
+        title: "站 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-zh",
+        title: "段 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-zh",
+        title: "站 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-zh",
+        title: "站 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-zh",
+        title: "站 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-zh",
+        title: "站 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-zh",
+        title: "段 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-zh",
+        title: "站 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-zh",
+        title: "站 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-zh",
+        title: "段 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-zh",
+        title: "站 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-zh",
+        title: "站 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-zh",
+        title: "站 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-zh",
+        title: "段 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-zh",
+        title: "站 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-zh",
+        title: "段 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-zh",
+        title: "站 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-zh",
+        title: "站 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-zh",
+        title: "站 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-zh",
+        title: "站 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-zh",
+        title: "站 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-zh",
+        title: "站 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-zh",
+        title: "站 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-zh",
+        title: "段 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-zh",
+        title: "站 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-zh",
+        title: "站 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-zh",
+        title: "站 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-zh",
+        title: "段 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-zh",
+        title: "站 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-zh",
+        title: "站 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-zh",
+        title: "站 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-zh",
+        title: "段 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-zh",
+        title: "站 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-zh",
+        title: "段 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-zh",
+        title: "段 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-zh",
+        title: "站 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-zh",
+        title: "段 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-zh",
+        title: "站 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-zh",
+        title: "站 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-zh",
+        title: "段 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-zh",
+        title: "站 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-zh",
+        title: "段 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-zh",
+        title: "站 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-zh",
+        title: "站 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-zh",
+        title: "段 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-zh",
+        title: "站 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-zh",
+        title: "段 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-zh",
+        title: "站 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-zh",
+        title: "段 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-zh",
+        title: "站 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-zh",
+        title: "段 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-zh",
+        title: "站 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-zh",
+        title: "段 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-zh",
+        title: "站 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-zh",
+        title: "站 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-zh",
+        title: "段 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-zh",
+        title: "站 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-zh",
+        title: "站 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-zh",
+        title: "段 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-zh",
+        title: "站 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-zh",
+        title: "站 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-zh",
+        title: "站 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-zh",
+        title: "站 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-zh",
+        title: "段 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-zh",
+        title: "站 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-zh",
+        title: "站 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-zh",
+        title: "段 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-zh",
+        title: "站 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-zh",
+        title: "段 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-zh",
+        title: "站 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-zh",
+        title: "段 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-zh",
+        title: "站 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-zh",
+        title: "站 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-zh",
+        title: "段 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-zh",
+        title: "站 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-zh",
+        title: "站 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-zh",
+        title: "站 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-zh",
+        title: "段 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-zh",
+        title: "站 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-zh",
+        title: "站 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-zh",
+        title: "段 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-zh",
+        title: "站 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-zh",
+        title: "段 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-zh",
+        title: "站 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-zh",
+        title: "段 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-zh",
+        title: "站 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-zh",
+        title: "段 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-zh",
+        title: "站 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-zh",
+        title: "段 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-zh",
+        title: "站 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-zh",
+        title: "段 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-zh",
+        title: "站 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-zh",
+        title: "段 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-zh",
+        title: "站 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-zh",
+        title: "段 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-zh",
+        title: "站 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-zh",
+        title: "段 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-zh",
+        title: "站 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-zh",
+        title: "段 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-zh",
+        title: "站 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-zh",
+        title: "站 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-zh",
+        title: "段 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-zh",
+        title: "站 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-zh",
+        title: "段 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-zh",
+        title: "站 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-zh",
+        title: "段 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-zh",
+        title: "站 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-zh",
+        title: "段 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-zh",
+        title: "站 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-zh",
+        title: "段 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-zh",
+        title: "站 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-zh",
+        title: "段 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-zh",
+        title: "站 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-zh",
+        title: "段 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-zh",
+        title: "站 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-zh",
+        title: "段 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-zh",
+        title: "站 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-zh",
+        title: "段 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-zh",
+        title: "站 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-zh",
+        title: "段 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-zh",
+        title: "段 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-zh",
+        title: "站 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-zh",
+        title: "段 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-zh",
+        title: "站 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-zh",
+        title: "站 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-zh",
+        title: "段 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-zh",
+        title: "站 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-zh",
+        title: "段 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-zh",
+        title: "站 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-zh",
+        title: "段 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-zh",
+        title: "站 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-zh",
+        title: "段 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-zh",
+        title: "站 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-zh",
+        title: "段 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-zh",
+        title: "站 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-zh",
+        title: "段 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-zh",
+        title: "站 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-zh",
+        title: "段 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-zh",
+        title: "站 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-zh",
+        title: "段 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-zh",
+        title: "站 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-zh",
+        title: "站 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-zh",
+        title: "段 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-zh",
+        title: "站 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-zh",
+        title: "段 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-zh",
+        title: "站 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-zh",
+        title: "段 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-zh",
+        title: "站 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-zh",
+        title: "站 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-zh",
+        title: "段 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-zh",
+        title: "站 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-zh",
+        title: "段 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-zh",
+        title: "站 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-zh",
+        title: "站 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-zh",
+        title: "段 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-zh",
+        title: "站 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    pl: [
+      // Intro
+      {
+        id: "audio-intro-pl",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-pl",
+        title: "Przystanek 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-pl",
+        title: "Odcinek 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-pl",
+        title: "Przystanek 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-pl",
+        title: "Odcinek 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-pl",
+        title: "Przystanek 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-pl",
+        title: "Odcinek 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-pl",
+        title: "Przystanek 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-pl",
+        title: "Odcinek 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-pl",
+        title: "Przystanek 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-pl",
+        title: "Odcinek 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-pl",
+        title: "Przystanek 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-pl",
+        title: "Odcinek 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-pl",
+        title: "Przystanek 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-pl",
+        title: "Odcinek 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-pl",
+        title: "Przystanek 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-pl",
+        title: "Odcinek 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-pl",
+        title: "Przystanek 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-pl",
+        title: "Odcinek 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-pl",
+        title: "Przystanek 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-pl",
+        title: "Odcinek 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-pl",
+        title: "Przystanek 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-pl",
+        title: "Przystanek 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-pl",
+        title: "Odcinek 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-pl",
+        title: "Przystanek 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-pl",
+        title: "Odcinek 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-pl",
+        title: "Przystanek 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-pl",
+        title: "Odcinek 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-pl",
+        title: "Przystanek 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-pl",
+        title: "Odcinek 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-pl",
+        title: "Przystanek 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-pl",
+        title: "Odcinek 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-pl",
+        title: "Przystanek 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-pl",
+        title: "Odcinek 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-pl",
+        title: "Przystanek 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-pl",
+        title: "Odcinek 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-pl",
+        title: "Przystanek 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-pl",
+        title: "Odcinek 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-pl",
+        title: "Przystanek 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-pl",
+        title: "Przystanek 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-pl",
+        title: "Przystanek 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-pl",
+        title: "Odcinek 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-pl",
+        title: "Przystanek 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-pl",
+        title: "Odcinek 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-pl",
+        title: "Przystanek 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-pl",
+        title: "Odcinek 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-pl",
+        title: "Przystanek 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-pl",
+        title: "Odcinek 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-pl",
+        title: "Przystanek 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-pl",
+        title: "Odcinek 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-pl",
+        title: "Przystanek 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-pl",
+        title: "Odcinek 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-pl",
+        title: "Przystanek 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-pl",
+        title: "Przystanek 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-pl",
+        title: "Odcinek 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-pl",
+        title: "Przystanek 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-pl",
+        title: "Przystanek 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-pl",
+        title: "Odcinek 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-pl",
+        title: "Przystanek 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-pl",
+        title: "Odcinek 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-pl",
+        title: "Przystanek 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-pl",
+        title: "Odcinek 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-pl",
+        title: "Przystanek 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-pl",
+        title: "Odcinek 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-pl",
+        title: "Przystanek 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-pl",
+        title: "Przystanek 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-pl",
+        title: "Odcinek 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-pl",
+        title: "Przystanek 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-pl",
+        title: "Przystanek 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-pl",
+        title: "Przystanek 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-pl",
+        title: "Przystanek 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-pl",
+        title: "Przystanek 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-pl",
+        title: "Przystanek 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-pl",
+        title: "Odcinek 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-pl",
+        title: "Przystanek 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-pl",
+        title: "Odcinek 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-pl",
+        title: "Odcinek 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-pl",
+        title: "Przystanek 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-pl",
+        title: "Odcinek 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-pl",
+        title: "Przystanek 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-pl",
+        title: "Odcinek 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-pl",
+        title: "Przystanek 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-pl",
+        title: "Odcinek 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-pl",
+        title: "Przystanek 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-pl",
+        title: "Przystanek 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-pl",
+        title: "Przystanek 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-pl",
+        title: "Przystanek 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-pl",
+        title: "Odcinek 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-pl",
+        title: "Przystanek 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-pl",
+        title: "Przystanek 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-pl",
+        title: "Odcinek 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-pl",
+        title: "Przystanek 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-pl",
+        title: "Przystanek 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-pl",
+        title: "Przystanek 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-pl",
+        title: "Odcinek 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-pl",
+        title: "Przystanek 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-pl",
+        title: "Odcinek 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-pl",
+        title: "Przystanek 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-pl",
+        title: "Przystanek 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-pl",
+        title: "Przystanek 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-pl",
+        title: "Przystanek 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-pl",
+        title: "Przystanek 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-pl",
+        title: "Przystanek 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-pl",
+        title: "Przystanek 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-pl",
+        title: "Odcinek 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-pl",
+        title: "Przystanek 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-pl",
+        title: "Przystanek 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-pl",
+        title: "Przystanek 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-pl",
+        title: "Odcinek 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-pl",
+        title: "Przystanek 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-pl",
+        title: "Przystanek 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-pl",
+        title: "Przystanek 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-pl",
+        title: "Odcinek 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-pl",
+        title: "Przystanek 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-pl",
+        title: "Odcinek 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-pl",
+        title: "Odcinek 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-pl",
+        title: "Przystanek 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-pl",
+        title: "Odcinek 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-pl",
+        title: "Przystanek 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-pl",
+        title: "Przystanek 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-pl",
+        title: "Odcinek 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-pl",
+        title: "Przystanek 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-pl",
+        title: "Odcinek 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-pl",
+        title: "Przystanek 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-pl",
+        title: "Przystanek 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-pl",
+        title: "Odcinek 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-pl",
+        title: "Przystanek 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-pl",
+        title: "Odcinek 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-pl",
+        title: "Przystanek 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-pl",
+        title: "Odcinek 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-pl",
+        title: "Przystanek 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-pl",
+        title: "Odcinek 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-pl",
+        title: "Przystanek 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-pl",
+        title: "Odcinek 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-pl",
+        title: "Przystanek 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-pl",
+        title: "Przystanek 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-pl",
+        title: "Odcinek 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-pl",
+        title: "Przystanek 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-pl",
+        title: "Przystanek 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-pl",
+        title: "Odcinek 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-pl",
+        title: "Przystanek 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-pl",
+        title: "Przystanek 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-pl",
+        title: "Przystanek 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-pl",
+        title: "Przystanek 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-pl",
+        title: "Odcinek 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-pl",
+        title: "Przystanek 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-pl",
+        title: "Przystanek 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-pl",
+        title: "Odcinek 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-pl",
+        title: "Przystanek 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-pl",
+        title: "Odcinek 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-pl",
+        title: "Przystanek 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-pl",
+        title: "Odcinek 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-pl",
+        title: "Przystanek 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-pl",
+        title: "Przystanek 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-pl",
+        title: "Odcinek 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-pl",
+        title: "Przystanek 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-pl",
+        title: "Przystanek 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-pl",
+        title: "Przystanek 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-pl",
+        title: "Odcinek 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-pl",
+        title: "Przystanek 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-pl",
+        title: "Przystanek 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-pl",
+        title: "Odcinek 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-pl",
+        title: "Przystanek 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-pl",
+        title: "Odcinek 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-pl",
+        title: "Przystanek 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-pl",
+        title: "Odcinek 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-pl",
+        title: "Przystanek 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-pl",
+        title: "Odcinek 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-pl",
+        title: "Przystanek 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-pl",
+        title: "Odcinek 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-pl",
+        title: "Przystanek 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-pl",
+        title: "Odcinek 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-pl",
+        title: "Przystanek 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-pl",
+        title: "Odcinek 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-pl",
+        title: "Przystanek 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-pl",
+        title: "Odcinek 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-pl",
+        title: "Przystanek 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-pl",
+        title: "Odcinek 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-pl",
+        title: "Przystanek 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-pl",
+        title: "Odcinek 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-pl",
+        title: "Przystanek 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-pl",
+        title: "Przystanek 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-pl",
+        title: "Odcinek 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-pl",
+        title: "Przystanek 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-pl",
+        title: "Odcinek 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-pl",
+        title: "Przystanek 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-pl",
+        title: "Odcinek 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-pl",
+        title: "Przystanek 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-pl",
+        title: "Odcinek 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-pl",
+        title: "Przystanek 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-pl",
+        title: "Odcinek 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-pl",
+        title: "Przystanek 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-pl",
+        title: "Odcinek 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-pl",
+        title: "Przystanek 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-pl",
+        title: "Odcinek 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-pl",
+        title: "Przystanek 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-pl",
+        title: "Odcinek 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-pl",
+        title: "Przystanek 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-pl",
+        title: "Odcinek 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-pl",
+        title: "Przystanek 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-pl",
+        title: "Odcinek 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-pl",
+        title: "Odcinek 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-pl",
+        title: "Przystanek 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-pl",
+        title: "Odcinek 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-pl",
+        title: "Przystanek 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-pl",
+        title: "Przystanek 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-pl",
+        title: "Odcinek 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-pl",
+        title: "Przystanek 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-pl",
+        title: "Odcinek 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-pl",
+        title: "Przystanek 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-pl",
+        title: "Odcinek 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-pl",
+        title: "Przystanek 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-pl",
+        title: "Odcinek 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-pl",
+        title: "Przystanek 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-pl",
+        title: "Odcinek 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-pl",
+        title: "Przystanek 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-pl",
+        title: "Odcinek 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-pl",
+        title: "Przystanek 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-pl",
+        title: "Odcinek 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-pl",
+        title: "Przystanek 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-pl",
+        title: "Odcinek 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-pl",
+        title: "Przystanek 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-pl",
+        title: "Przystanek 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-pl",
+        title: "Odcinek 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-pl",
+        title: "Przystanek 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-pl",
+        title: "Odcinek 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-pl",
+        title: "Przystanek 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-pl",
+        title: "Odcinek 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-pl",
+        title: "Przystanek 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-pl",
+        title: "Przystanek 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-pl",
+        title: "Odcinek 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-pl",
+        title: "Przystanek 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-pl",
+        title: "Odcinek 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-pl",
+        title: "Przystanek 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-pl",
+        title: "Przystanek 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-pl",
+        title: "Odcinek 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-pl",
+        title: "Przystanek 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    pt: [
+      // Intro
+      {
+        id: "audio-intro-pt",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-pt",
+        title: "Parada 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-pt",
+        title: "Percurso 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-pt",
+        title: "Parada 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-pt",
+        title: "Percurso 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-pt",
+        title: "Parada 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-pt",
+        title: "Percurso 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-pt",
+        title: "Parada 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-pt",
+        title: "Percurso 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-pt",
+        title: "Parada 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-pt",
+        title: "Percurso 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-pt",
+        title: "Parada 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-pt",
+        title: "Percurso 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-pt",
+        title: "Parada 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-pt",
+        title: "Percurso 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-pt",
+        title: "Parada 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-pt",
+        title: "Percurso 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-pt",
+        title: "Parada 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-pt",
+        title: "Percurso 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-pt",
+        title: "Parada 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-pt",
+        title: "Percurso 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-pt",
+        title: "Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-pt",
+        title: "Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-pt",
+        title: "Percurso 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-pt",
+        title: "Parada 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-pt",
+        title: "Percurso 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-pt",
+        title: "Parada 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-pt",
+        title: "Percurso 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-pt",
+        title: "Parada 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-pt",
+        title: "Percurso 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-pt",
+        title: "Parada 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-pt",
+        title: "Percurso 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-pt",
+        title: "Parada 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-pt",
+        title: "Percurso 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-pt",
+        title: "Parada 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-pt",
+        title: "Percurso 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-pt",
+        title: "Parada 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-pt",
+        title: "Percurso 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-pt",
+        title: "Parada 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-pt",
+        title: "Parada 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-pt",
+        title: "Parada 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-pt",
+        title: "Percurso 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-pt",
+        title: "Parada 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-pt",
+        title: "Percurso 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-pt",
+        title: "Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-pt",
+        title: "Percurso 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-pt",
+        title: "Parada 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-pt",
+        title: "Percurso 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-pt",
+        title: "Parada 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-pt",
+        title: "Percurso 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-pt",
+        title: "Parada 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-pt",
+        title: "Percurso 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-pt",
+        title: "Parada 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-pt",
+        title: "Parada 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-pt",
+        title: "Percurso 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-pt",
+        title: "Parada 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-pt",
+        title: "Parada 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-pt",
+        title: "Percurso 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-pt",
+        title: "Parada 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-pt",
+        title: "Percurso 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-pt",
+        title: "Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-pt",
+        title: "Percurso 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-pt",
+        title: "Parada 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-pt",
+        title: "Percurso 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-pt",
+        title: "Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-pt",
+        title: "Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-pt",
+        title: "Percurso 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-pt",
+        title: "Parada 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-pt",
+        title: "Parada 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-pt",
+        title: "Parada 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-pt",
+        title: "Parada 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-pt",
+        title: "Parada 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-pt",
+        title: "Parada 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-pt",
+        title: "Percurso 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-pt",
+        title: "Parada 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-pt",
+        title: "Percurso 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-pt",
+        title: "Percurso 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-pt",
+        title: "Parada 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-pt",
+        title: "Percurso 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-pt",
+        title: "Parada 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-pt",
+        title: "Percurso 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-pt",
+        title: "Parada 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-pt",
+        title: "Percurso 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-pt",
+        title: "Parada 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-pt",
+        title: "Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-pt",
+        title: "Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-pt",
+        title: "Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-pt",
+        title: "Percurso 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-pt",
+        title: "Parada 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-pt",
+        title: "Parada 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-pt",
+        title: "Percurso 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-pt",
+        title: "Parada 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-pt",
+        title: "Parada 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-pt",
+        title: "Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-pt",
+        title: "Percurso 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-pt",
+        title: "Parada 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-pt",
+        title: "Percurso 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-pt",
+        title: "Parada 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-pt",
+        title: "Parada 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-pt",
+        title: "Parada 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-pt",
+        title: "Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-pt",
+        title: "Parada 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-pt",
+        title: "Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-pt",
+        title: "Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-pt",
+        title: "Percurso 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-pt",
+        title: "Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-pt",
+        title: "Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-pt",
+        title: "Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-pt",
+        title: "Percurso 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-pt",
+        title: "Parada 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-pt",
+        title: "Parada 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-pt",
+        title: "Parada 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-pt",
+        title: "Percurso 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-pt",
+        title: "Parada 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-pt",
+        title: "Percurso 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-pt",
+        title: "Percurso 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-pt",
+        title: "Parada 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-pt",
+        title: "Percurso 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-pt",
+        title: "Parada 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-pt",
+        title: "Parada 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-pt",
+        title: "Percurso 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-pt",
+        title: "Parada 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-pt",
+        title: "Percurso 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-pt",
+        title: "Parada 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-pt",
+        title: "Parada 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-pt",
+        title: "Percurso 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-pt",
+        title: "Parada 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-pt",
+        title: "Percurso 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-pt",
+        title: "Parada 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-pt",
+        title: "Percurso 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-pt",
+        title: "Parada 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-pt",
+        title: "Percurso 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-pt",
+        title: "Parada 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-pt",
+        title: "Percurso 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-pt",
+        title: "Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-pt",
+        title: "Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-pt",
+        title: "Percurso 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-pt",
+        title: "Parada 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-pt",
+        title: "Parada 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-pt",
+        title: "Percurso 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-pt",
+        title: "Parada 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-pt",
+        title: "Parada 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-pt",
+        title: "Parada 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-pt",
+        title: "Parada 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-pt",
+        title: "Percurso 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-pt",
+        title: "Parada 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-pt",
+        title: "Parada 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-pt",
+        title: "Percurso 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-pt",
+        title: "Parada 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-pt",
+        title: "Percurso 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-pt",
+        title: "Parada 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-pt",
+        title: "Percurso 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-pt",
+        title: "Parada 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-pt",
+        title: "Parada 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-pt",
+        title: "Percurso 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-pt",
+        title: "Parada 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-pt",
+        title: "Parada 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-pt",
+        title: "Parada 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-pt",
+        title: "Percurso 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-pt",
+        title: "Parada 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-pt",
+        title: "Parada 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-pt",
+        title: "Percurso 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-pt",
+        title: "Parada 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-pt",
+        title: "Percurso 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-pt",
+        title: "Parada 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-pt",
+        title: "Percurso 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-pt",
+        title: "Parada 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-pt",
+        title: "Percurso 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-pt",
+        title: "Parada 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-pt",
+        title: "Percurso 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-pt",
+        title: "Parada 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-pt",
+        title: "Percurso 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-pt",
+        title: "Parada 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-pt",
+        title: "Percurso 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-pt",
+        title: "Parada 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-pt",
+        title: "Percurso 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-pt",
+        title: "Parada 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-pt",
+        title: "Percurso 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-pt",
+        title: "Parada 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-pt",
+        title: "Percurso 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-pt",
+        title: "Parada 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-pt",
+        title: "Parada 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-pt",
+        title: "Percurso 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-pt",
+        title: "Parada 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-pt",
+        title: "Percurso 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-pt",
+        title: "Parada 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-pt",
+        title: "Percurso 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-pt",
+        title: "Parada 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-pt",
+        title: "Percurso 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-pt",
+        title: "Parada 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-pt",
+        title: "Percurso 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-pt",
+        title: "Parada 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-pt",
+        title: "Percurso 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-pt",
+        title: "Parada 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-pt",
+        title: "Percurso 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-pt",
+        title: "Parada 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-pt",
+        title: "Percurso 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-pt",
+        title: "Parada 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-pt",
+        title: "Percurso 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-pt",
+        title: "Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-pt",
+        title: "Percurso 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-pt",
+        title: "Percurso 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-pt",
+        title: "Parada 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-pt",
+        title: "Percurso 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-pt",
+        title: "Parada 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-pt",
+        title: "Parada 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-pt",
+        title: "Percurso 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-pt",
+        title: "Parada 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-pt",
+        title: "Percurso 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-pt",
+        title: "Parada 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-pt",
+        title: "Percurso 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-pt",
+        title: "Parada 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-pt",
+        title: "Percurso 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-pt",
+        title: "Parada 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-pt",
+        title: "Percurso 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-pt",
+        title: "Parada 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-pt",
+        title: "Percurso 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-pt",
+        title: "Parada 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-pt",
+        title: "Percurso 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-pt",
+        title: "Parada 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-pt",
+        title: "Percurso 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-pt",
+        title: "Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-pt",
+        title: "Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-pt",
+        title: "Percurso 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-pt",
+        title: "Parada 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-pt",
+        title: "Percurso 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-pt",
+        title: "Parada 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-pt",
+        title: "Percurso 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-pt",
+        title: "Parada 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-pt",
+        title: "Parada 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-pt",
+        title: "Percurso 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-pt",
+        title: "Parada 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-pt",
+        title: "Percurso 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-pt",
+        title: "Parada 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-pt",
+        title: "Parada 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-pt",
+        title: "Percurso 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-pt",
+        title: "Parada 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    ru: [
+      // Intro
+      {
+        id: "audio-intro-ru",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-ru",
+        title: "Остановка 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-ru",
+        title: "Участок 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-ru",
+        title: "Остановка 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-ru",
+        title: "Участок 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-ru",
+        title: "Остановка 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-ru",
+        title: "Участок 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-ru",
+        title: "Остановка 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-ru",
+        title: "Участок 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-ru",
+        title: "Остановка 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-ru",
+        title: "Участок 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-ru",
+        title: "Остановка 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-ru",
+        title: "Участок 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-ru",
+        title: "Остановка 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-ru",
+        title: "Участок 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-ru",
+        title: "Остановка 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-ru",
+        title: "Участок 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-ru",
+        title: "Остановка 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-ru",
+        title: "Участок 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-ru",
+        title: "Остановка 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-ru",
+        title: "Участок 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-ru",
+        title: "Остановка 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-ru",
+        title: "Остановка 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-ru",
+        title: "Участок 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-ru",
+        title: "Остановка 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-ru",
+        title: "Участок 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-ru",
+        title: "Остановка 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-ru",
+        title: "Участок 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-ru",
+        title: "Остановка 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-ru",
+        title: "Участок 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-ru",
+        title: "Остановка 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-ru",
+        title: "Участок 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-ru",
+        title: "Остановка 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-ru",
+        title: "Участок 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-ru",
+        title: "Остановка 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-ru",
+        title: "Участок 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-ru",
+        title: "Остановка 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-ru",
+        title: "Участок 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-ru",
+        title: "Остановка 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-ru",
+        title: "Остановка 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-ru",
+        title: "Остановка 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-ru",
+        title: "Участок 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-ru",
+        title: "Остановка 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-ru",
+        title: "Участок 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-ru",
+        title: "Остановка 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-ru",
+        title: "Участок 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-ru",
+        title: "Остановка 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-ru",
+        title: "Участок 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-ru",
+        title: "Остановка 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-ru",
+        title: "Участок 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-ru",
+        title: "Остановка 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-ru",
+        title: "Участок 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-ru",
+        title: "Остановка 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-ru",
+        title: "Остановка 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-ru",
+        title: "Участок 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-ru",
+        title: "Остановка 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-ru",
+        title: "Остановка 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-ru",
+        title: "Участок 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-ru",
+        title: "Остановка 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-ru",
+        title: "Участок 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-ru",
+        title: "Остановка 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-ru",
+        title: "Участок 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-ru",
+        title: "Остановка 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-ru",
+        title: "Участок 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-ru",
+        title: "Остановка 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-ru",
+        title: "Остановка 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-ru",
+        title: "Участок 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-ru",
+        title: "Остановка 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-ru",
+        title: "Остановка 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-ru",
+        title: "Остановка 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-ru",
+        title: "Остановка 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-ru",
+        title: "Остановка 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-ru",
+        title: "Остановка 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-ru",
+        title: "Участок 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-ru",
+        title: "Остановка 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-ru",
+        title: "Участок 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-ru",
+        title: "Участок 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-ru",
+        title: "Остановка 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-ru",
+        title: "Участок 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-ru",
+        title: "Остановка 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-ru",
+        title: "Участок 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-ru",
+        title: "Остановка 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-ru",
+        title: "Участок 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-ru",
+        title: "Остановка 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-ru",
+        title: "Остановка 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-ru",
+        title: "Остановка 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-ru",
+        title: "Остановка 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-ru",
+        title: "Участок 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-ru",
+        title: "Остановка 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-ru",
+        title: "Остановка 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-ru",
+        title: "Участок 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-ru",
+        title: "Остановка 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-ru",
+        title: "Остановка 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-ru",
+        title: "Остановка 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-ru",
+        title: "Участок 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-ru",
+        title: "Остановка 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-ru",
+        title: "Участок 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-ru",
+        title: "Остановка 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-ru",
+        title: "Остановка 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-ru",
+        title: "Остановка 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-ru",
+        title: "Остановка 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-ru",
+        title: "Остановка 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-ru",
+        title: "Остановка 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-ru",
+        title: "Остановка 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-ru",
+        title: "Участок 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-ru",
+        title: "Остановка 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-ru",
+        title: "Остановка 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-ru",
+        title: "Остановка 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-ru",
+        title: "Участок 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-ru",
+        title: "Остановка 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-ru",
+        title: "Остановка 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-ru",
+        title: "Остановка 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-ru",
+        title: "Участок 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-ru",
+        title: "Остановка 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-ru",
+        title: "Участок 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-ru",
+        title: "Участок 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-ru",
+        title: "Остановка 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-ru",
+        title: "Участок 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-ru",
+        title: "Остановка 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-ru",
+        title: "Остановка 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-ru",
+        title: "Участок 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-ru",
+        title: "Остановка 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-ru",
+        title: "Участок 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-ru",
+        title: "Остановка 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-ru",
+        title: "Остановка 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-ru",
+        title: "Участок 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-ru",
+        title: "Остановка 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-ru",
+        title: "Участок 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-ru",
+        title: "Остановка 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-ru",
+        title: "Участок 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-ru",
+        title: "Остановка 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-ru",
+        title: "Участок 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-ru",
+        title: "Остановка 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-ru",
+        title: "Участок 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-ru",
+        title: "Остановка 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-ru",
+        title: "Остановка 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-ru",
+        title: "Участок 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-ru",
+        title: "Остановка 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-ru",
+        title: "Остановка 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-ru",
+        title: "Участок 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-ru",
+        title: "Остановка 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-ru",
+        title: "Остановка 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-ru",
+        title: "Остановка 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-ru",
+        title: "Остановка 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-ru",
+        title: "Участок 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-ru",
+        title: "Остановка 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-ru",
+        title: "Остановка 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-ru",
+        title: "Участок 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-ru",
+        title: "Остановка 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-ru",
+        title: "Участок 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-ru",
+        title: "Остановка 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-ru",
+        title: "Участок 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-ru",
+        title: "Остановка 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-ru",
+        title: "Остановка 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-ru",
+        title: "Участок 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-ru",
+        title: "Остановка 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-ru",
+        title: "Остановка 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-ru",
+        title: "Остановка 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-ru",
+        title: "Участок 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-ru",
+        title: "Остановка 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-ru",
+        title: "Остановка 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-ru",
+        title: "Участок 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-ru",
+        title: "Остановка 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-ru",
+        title: "Участок 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-ru",
+        title: "Остановка 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-ru",
+        title: "Участок 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-ru",
+        title: "Остановка 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-ru",
+        title: "Участок 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-ru",
+        title: "Остановка 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-ru",
+        title: "Участок 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-ru",
+        title: "Остановка 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-ru",
+        title: "Участок 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-ru",
+        title: "Остановка 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-ru",
+        title: "Участок 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-ru",
+        title: "Остановка 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-ru",
+        title: "Участок 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-ru",
+        title: "Остановка 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-ru",
+        title: "Участок 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-ru",
+        title: "Остановка 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-ru",
+        title: "Участок 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-ru",
+        title: "Остановка 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-ru",
+        title: "Остановка 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-ru",
+        title: "Участок 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-ru",
+        title: "Остановка 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-ru",
+        title: "Участок 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-ru",
+        title: "Остановка 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-ru",
+        title: "Участок 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-ru",
+        title: "Остановка 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-ru",
+        title: "Участок 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-ru",
+        title: "Остановка 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-ru",
+        title: "Участок 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-ru",
+        title: "Остановка 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-ru",
+        title: "Участок 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-ru",
+        title: "Остановка 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-ru",
+        title: "Участок 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-ru",
+        title: "Остановка 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-ru",
+        title: "Участок 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-ru",
+        title: "Остановка 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-ru",
+        title: "Участок 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-ru",
+        title: "Остановка 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-ru",
+        title: "Участок 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-ru",
+        title: "Участок 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-ru",
+        title: "Остановка 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-ru",
+        title: "Участок 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-ru",
+        title: "Остановка 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-ru",
+        title: "Остановка 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-ru",
+        title: "Участок 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-ru",
+        title: "Остановка 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-ru",
+        title: "Участок 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-ru",
+        title: "Остановка 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-ru",
+        title: "Участок 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-ru",
+        title: "Остановка 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-ru",
+        title: "Участок 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-ru",
+        title: "Остановка 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-ru",
+        title: "Участок 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-ru",
+        title: "Остановка 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-ru",
+        title: "Участок 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-ru",
+        title: "Остановка 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-ru",
+        title: "Участок 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-ru",
+        title: "Остановка 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-ru",
+        title: "Участок 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-ru",
+        title: "Остановка 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-ru",
+        title: "Остановка 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-ru",
+        title: "Участок 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-ru",
+        title: "Остановка 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-ru",
+        title: "Участок 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-ru",
+        title: "Остановка 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-ru",
+        title: "Участок 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-ru",
+        title: "Остановка 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-ru",
+        title: "Остановка 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-ru",
+        title: "Участок 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-ru",
+        title: "Остановка 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-ru",
+        title: "Участок 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-ru",
+        title: "Остановка 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-ru",
+        title: "Остановка 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-ru",
+        title: "Участок 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-ru",
+        title: "Остановка 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
+    uk: [
+      // Intro
+      {
+        id: "audio-intro-uk",
+        title: "Intro",
+        file: ""
+      },
+
+      // Parada 0: Torres de Serranos (start) (Párrafos: 223, 226, 228) (mapa 1)
+      {
+        id: "audio-Av34km-P-0-uk",
+        title: "Зупинка 0: Torres de Serranos (start)",
+        file: ""
+      },
+
+      // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
+      {
+        id: "audio-Av34km-TR-1-uk",
+        title: "Ділянка 1: Torres de Serranos → Plaza de la Crída",
+        file: ""
+      },
+
+      // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
+      {
+        id: "audio-Av34km-P-1-uk",
+        title: "Зупинка 1: Plaza de la Crída",
+        file: ""
+      },
+
+      // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
+      {
+        id: "audio-Av34km-TR-2-uk",
+        title: "Ділянка 2: Plaza de la Crída → Centro Puente de Serranos",
+        file: ""
+      },
+
+      // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
+      {
+        id: "audio-Av34km-P-2-uk",
+        title: "Зупинка 2: Centro Puente Serranos",
+        file: ""
+      },
+
+      // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
+      {
+        id: "audio-Av34km-TR-3-uk",
+        title: "Ділянка 3: Centro Puente de Serranos → Puente de la Exposición",
+        file: ""
+      },
+
+      // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
+      {
+        id: "audio-Av34km-P-3-uk",
+        title: "Зупинка 3: Puente de la Exposición",
+        file: ""
+      },
+
+      // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
+      {
+        id: "audio-Av34km-TR-4-uk",
+        title: "Ділянка 4: Puente de la Exposición → Puente de las Flores",
+        file: ""
+      },
+
+      // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
+      {
+        id: "audio-Av34km-P-4-uk",
+        title: "Зупинка 4: Puente de las Flores",
+        file: ""
+      },
+
+      // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
+      {
+        id: "audio-Av34km-TR-5-uk",
+        title: "Ділянка 5: Puente de las Flores → Puente de Aragón",
+        file: ""
+      },
+
+      // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
+      {
+        id: "audio-Av34km-P-5-uk",
+        title: "Зупинка 5: Puente de Aragón",
+        file: ""
+      },
+
+      // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
+      {
+        id: "audio-Av34km-TR-6-uk",
+        title: "Ділянка 6: Puente de Aragón → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
+      {
+        id: "audio-Av34km-P-6-uk",
+        title: "Зупинка 6: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
+      {
+        id: "audio-Av34km-TR-7-uk",
+        title: "Ділянка 7: Puente de la Mar → Palacio de la Música",
+        file: ""
+      },
+
+      // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
+      {
+        id: "audio-Av34km-P-7-uk",
+        title: "Зупинка 7: Palacio de la Música",
+        file: ""
+      },
+
+      // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
+      {
+        id: "audio-Av34km-TR-8-uk",
+        title: "Ділянка 8: Palacio de la Música → Gulliver",
+        file: ""
+      },
+
+      // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
+      {
+        id: "audio-Av34km-P-8-uk",
+        title: "Зупинка 8: Gulliver",
+        file: ""
+      },
+
+      // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
+      {
+        id: "audio-Av34km-TR-9-uk",
+        title: "Ділянка 9: Gulliver → Pistas de Patinaje",
+        file: ""
+      },
+
+      // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
+      {
+        id: "audio-Av34km-P-9-uk",
+        title: "Зупинка 9: Pistas de Patinaje",
+        file: ""
+      },
+
+      // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
+      {
+        id: "audio-Av34km-TR-10-uk",
+        title: "Ділянка 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
+        file: ""
+      },
+
+      // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
+      {
+        id: "audio-Av34km-P-10-uk",
+        title: "Зупинка 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
+        file: ""
+      },
+
+      // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
+      {
+        id: "audio-Av34km-P-11-uk",
+        title: "Зупинка 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
+        file: ""
+      },
+
+      // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
+      {
+        id: "audio-Av34km-TR-11-uk",
+        title: "Ділянка 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
+      {
+        id: "audio-Av34km-P-12-uk",
+        title: "Зупинка 12: Puente l'Assut de l'Or",
+        file: ""
+      },
+
+      // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
+      {
+        id: "audio-Av34km-TR-12-uk",
+        title: "Ділянка 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
+      {
+        id: "audio-Av34km-P-13-uk",
+        title: "Зупинка 13: Ágora y Oceanogràfic",
+        file: ""
+      },
+
+      // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
+      {
+        id: "audio-Av34km-TR-13-uk",
+        title: "Ділянка 13: Ágora y Oceanogràfic → Umbracle",
+        file: ""
+      },
+
+      // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
+      {
+        id: "audio-Av34km-P-14-uk",
+        title: "Зупинка 14: Umbracle",
+        file: ""
+      },
+
+      // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
+      {
+        id: "audio-Av34km-TR-14-uk",
+        title: "Ділянка 14: Umbracle → Hemisféric",
+        file: ""
+      },
+
+      // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
+      {
+        id: "audio-Av34km-P-15-uk",
+        title: "Зупинка 15: Hemisféric",
+        file: ""
+      },
+
+      // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
+      {
+        id: "audio-Av34km-TR-15-uk",
+        title: "Ділянка 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
+        file: ""
+      },
+
+      // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
+      {
+        id: "audio-Av34km-P-16-uk",
+        title: "Зупинка 16: Puente de la Mar",
+        file: ""
+      },
+
+      // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
+      {
+        id: "audio-Av34km-TR-16-uk",
+        title: "Ділянка 16: Puente de la Mar → Puerta de la Mar",
+        file: ""
+      },
+
+      // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
+      {
+        id: "audio-Av34km-P-17-uk",
+        title: "Зупинка 17: Puerta de la Mar",
+        file: ""
+      },
+
+      // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
+      {
+        id: "audio-Av34km-TR-17-uk",
+        title: "Ділянка 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
+        file: ""
+      },
+
+      // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
+      {
+        id: "audio-Av34km-P-18-uk",
+        title: "Зупинка 18: Casa de los Dragones",
+        file: ""
+      },
+
+      // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
+      {
+        id: "audio-Av34km-TR-18-uk",
+        title: "Ділянка 18: Casa de los Dragones → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
+      {
+        id: "audio-Av34km-P-19-uk",
+        title: "Зупинка 19: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
+      {
+        id: "audio-Av34km-P-20-uk",
+        title: "Зупинка 20: Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
+      {
+        id: "audio-Av34km-P-21-uk",
+        title: "Зупинка 21: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
+      {
+        id: "audio-Av34km-TR-19-uk",
+        title: "Ділянка 19: Mercado de Colón → Mercado de Colón",
+        file: ""
+      },
+
+      // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
+      {
+        id: "audio-Av34km-P-22-uk",
+        title: "Зупинка 22: Mercado de Colón",
+        file: ""
+      },
+
+      // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
+      {
+        id: "audio-Av34km-TR-20-uk",
+        title: "Ділянка 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
+      {
+        id: "audio-Av34km-P-23-uk",
+        title: "Зупинка 23: Antigua Puerta Judía de la Muralla en Calle Colón",
+        file: ""
+      },
+
+      // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
+      {
+        id: "audio-Av34km-TR-21-uk",
+        title: "Ділянка 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
+        file: ""
+      },
+
+      // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
+      {
+        id: "audio-Av34km-P-24-uk",
+        title: "Зупинка 24: Plaza de Toros",
+        file: ""
+      },
+
+      // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
+      {
+        id: "audio-Av34km-TR-22-uk",
+        title: "Ділянка 22: Plaza de Toros → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
+      {
+        id: "audio-Av34km-P-25-uk",
+        title: "Зупинка 25: Estación del Norte (Tren)",
+        file: ""
+      },
+
+      // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
+      {
+        id: "audio-Av34km-TR-23-uk",
+        title: "Ділянка 23: Estación del Norte → Estación del Norte",
+        file: ""
+      },
+
+      // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
+      {
+        id: "audio-Av34km-P-26-uk",
+        title: "Зупинка 26: Estación del Norte",
+        file: ""
+      },
+
+      // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
+      {
+        id: "audio-Av34km-TR-24-uk",
+        title: "Ділянка 24: Estación del Norte → Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
+      {
+        id: "audio-Av34km-P-27-uk",
+        title: "Зупинка 27: Plaza del Ayuntamiento",
+        file: ""
+      },
+
+      // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
+      {
+        id: "audio-Av34km-P-28-uk",
+        title: "Зупинка 28: Edificio del Ayuntamiento",
+        file: ""
+      },
+
+      // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-25-uk",
+        title: "Ділянка 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
+      {
+        id: "audio-Av34km-P-29-uk",
+        title: "Зупинка 29: Palacio de Comunicaciones (Correos)",
+        file: ""
+      },
+
+      // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
+      {
+        id: "audio-Av34km-P-30-uk",
+        title: "Зупинка 30: Edificio Suay - La Equitativa",
+        file: ""
+      },
+
+      // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
+      {
+        id: "audio-Av34km-TR-26-uk",
+        title: "Ділянка 26: Palacio de Comunicaciones → Banco de València",
+        file: ""
+      },
+
+      // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
+      {
+        id: "audio-Av34km-P-31-uk",
+        title: "Зупинка 31: Banco de Valencia",
+        file: ""
+      },
+
+      // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
+      {
+        id: "audio-Av34km-TR-27-uk",
+        title: "Ділянка 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
+      {
+        id: "audio-Av34km-P-32-uk",
+        title: "Зупинка 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
+        file: ""
+      },
+
+      // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
+      {
+        id: "audio-Av34km-TR-28-uk",
+        title: "Ділянка 28: Palacio del Marqués → Mercado Central",
+        file: ""
+      },
+
+      // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
+      {
+        id: "audio-Av34km-P-33-uk",
+        title: "Зупинка 33: Mercado central",
+        file: ""
+      },
+
+      // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
+      {
+        id: "audio-Av34km-TR-29-uk",
+        title: "Ділянка 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
+      {
+        id: "audio-Av34km-P-34-uk",
+        title: "Зупинка 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
+      {
+        id: "audio-Av34km-P-35-uk",
+        title: "Зупинка 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
+        file: ""
+      },
+
+      // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
+      {
+        id: "audio-Av34km-TR-30-uk",
+        title: "Ділянка 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
+      {
+        id: "audio-Av34km-P-36-uk",
+        title: "Зупинка 36: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
+      {
+        id: "audio-Av34km-P-37-uk",
+        title: "Зупинка 37: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
+      {
+        id: "audio-Av34km-P-38-uk",
+        title: "Зупинка 38: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
+      {
+        id: "audio-Av34km-P-39-uk",
+        title: "Зупинка 39: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
+      {
+        id: "audio-Av34km-P-40-uk",
+        title: "Зупинка 40: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
+      {
+        id: "audio-Av34km-P-41-uk",
+        title: "Зупинка 41: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-31-uk",
+        title: "Ділянка 31: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
+      {
+        id: "audio-Av34km-P-42-uk",
+        title: "Зупинка 42: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
+      {
+        id: "audio-Av34km-TR-32-uk",
+        title: "Ділянка 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
+        file: ""
+      },
+
+      // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-33-uk",
+        title: "Ділянка 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
+      {
+        id: "audio-Av34km-P-43-uk",
+        title: "Зупинка 43: Lonja (Mercado de la Seda)",
+        file: ""
+      },
+
+      // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
+      {
+        id: "audio-Av34km-TR-34-uk",
+        title: "Ділянка 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
+      {
+        id: "audio-Av34km-P-44-uk",
+        title: "Зупинка 44: Plaza Doctor López Collado",
+        file: ""
+      },
+
+      // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
+      {
+        id: "audio-Av34km-TR-35-uk",
+        title: "Ділянка 35: Plaza Doctor López Collado → Plaza Redonda",
+        file: ""
+      },
+
+      // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
+      {
+        id: "audio-Av34km-P-45-uk",
+        title: "Зупинка 45: Plaza Redonda",
+        file: ""
+      },
+
+      // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
+      {
+        id: "audio-Av34km-TR-36-uk",
+        title: "Ділянка 36: Plaza Redonda → Plaza Lope de Vega",
+        file: ""
+      },
+
+      // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
+      {
+        id: "audio-Av34km-P-46-uk",
+        title: "Зупинка 46: Plaza Lope de Vega - Edificio estrecho",
+        file: ""
+      },
+
+      // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
+      {
+        id: "audio-Av34km-P-47-uk",
+        title: "Зупинка 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
+      {
+        id: "audio-Av34km-P-48-uk",
+        title: "Зупинка 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
+      {
+        id: "audio-Av34km-P-49-uk",
+        title: "Зупинка 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
+      {
+        id: "audio-Av34km-TR-37-uk",
+        title: "Ділянка 37: Plaza Lope de Vega → Torre de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
+      {
+        id: "audio-Av34km-P-50-uk",
+        title: "Зупинка 50: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
+      {
+        id: "audio-Av34km-P-51-uk",
+        title: "Зупинка 51: Torre Barroca de Santa Catalina",
+        file: ""
+      },
+
+      // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
+      {
+        id: "audio-Av34km-TR-38-uk",
+        title: "Ділянка 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
+      {
+        id: "audio-Av34km-P-52-uk",
+        title: "Зупинка 52: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
+      {
+        id: "audio-Av34km-P-53-uk",
+        title: "Зупинка 53: Torre del Miguelete",
+        file: ""
+      },
+
+      // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
+      {
+        id: "audio-Av34km-P-54-uk",
+        title: "Зупинка 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
+      {
+        id: "audio-Av34km-TR-39-uk",
+        title: "Ділянка 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
+        file: ""
+      },
+
+      // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
+      {
+        id: "audio-Av34km-P-55-uk",
+        title: "Зупинка 55: Catedral de Valencia (Puerta Románica)",
+        file: ""
+      },
+
+      // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
+      {
+        id: "audio-Av34km-TR-40-uk",
+        title: "Ділянка 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
+        file: ""
+      },
+
+      // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
+      {
+        id: "audio-Av34km-P-56-uk",
+        title: "Зупинка 56: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
+      {
+        id: "audio-Av34km-P-57-uk",
+        title: "Зупинка 57: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
+      {
+        id: "audio-Av34km-P-58-uk",
+        title: "Зупинка 58: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
+      {
+        id: "audio-Av34km-P-59-uk",
+        title: "Зупинка 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
+        file: ""
+      },
+
+      // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
+      {
+        id: "audio-Av34km-P-60-uk",
+        title: "Зупинка 60: Plaza Décimo Junio Bruto",
+        file: ""
+      },
+
+      // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
+      {
+        id: "audio-Av34km-P-61-uk",
+        title: "Зупинка 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
+      {
+        id: "audio-Av34km-P-62-uk",
+        title: "Зупинка 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
+        file: ""
+      },
+
+      // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
+      {
+        id: "audio-Av34km-TR-41-uk",
+        title: "Ділянка 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
+      {
+        id: "audio-Av34km-P-63-uk",
+        title: "Зупинка 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
+        file: ""
+      },
+
+      // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
+      {
+        id: "audio-Av34km-P-64-uk",
+        title: "Зупинка 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
+        file: ""
+      },
+
+      // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
+      {
+        id: "audio-Av34km-P-65-uk",
+        title: "Зупинка 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
+        file: ""
+      },
+
+      // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
+      {
+        id: "audio-Av34km-TR-42-uk",
+        title: "Ділянка 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
+      {
+        id: "audio-Av34km-P-66-uk",
+        title: "Зупинка 66: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
+      {
+        id: "audio-Av34km-P-67-uk",
+        title: "Зупинка 67: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
+      {
+        id: "audio-Av34km-P-68-uk",
+        title: "Зупинка 68: Plaza de la Virgen",
+        file: ""
+      },
+
+      // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
+      {
+        id: "audio-Av34km-TR-43-uk",
+        title: "Ділянка 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
+      {
+        id: "audio-Av34km-P-69-uk",
+        title: "Зупинка 69: Palacio de la Generalitat Valenciana",
+        file: ""
+      },
+
+      // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
+      {
+        id: "audio-Av34km-TR-44-uk",
+        title: "Ділянка 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
+        file: ""
+      },
+
+      // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
+      {
+        id: "audio-Av34km-TR-45-uk",
+        title: "Ділянка 45: Calle Caballeros → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
+      {
+        id: "audio-Av34km-P-70-uk",
+        title: "Зупинка 70: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
+      {
+        id: "audio-Av34km-TR-46-uk",
+        title: "Ділянка 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
+      {
+        id: "audio-Av34km-P-71-uk",
+        title: "Зупинка 71: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
+      {
+        id: "audio-Av34km-P-72-uk",
+        title: "Зупинка 72: Iglesia de San Nicolás",
+        file: ""
+      },
+
+      // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
+      {
+        id: "audio-Av34km-TR-47-uk",
+        title: "Ділянка 47: Iglesia de San Nicolás → Plaza del Negrito",
+        file: ""
+      },
+
+      // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
+      {
+        id: "audio-Av34km-P-73-uk",
+        title: "Зупинка 73: Plaza del Negrito",
+        file: ""
+      },
+
+      // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
+      {
+        id: "audio-Av34km-TR-48-uk",
+        title: "Ділянка 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
+      {
+        id: "audio-Av34km-P-74-uk",
+        title: "Зупинка 74: Plaza del Tossal",
+        file: ""
+      },
+
+      // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
+      {
+        id: "audio-Av34km-P-75-uk",
+        title: "Зупинка 75: Plaza del Tossal",
+        file: ""
+      },
+
+      // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
+      {
+        id: "audio-Av34km-TR-49-uk",
+        title: "Ділянка 49: Plaza del Tossal → Portal de la Valldigna",
+        file: ""
+      },
+
+      // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
+      {
+        id: "audio-Av34km-P-76-uk",
+        title: "Зупинка 76: Portal de la Valldigna",
+        file: ""
+      },
+
+      // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
+      {
+        id: "audio-Av34km-TR-50-uk",
+        title: "Ділянка 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
+      {
+        id: "audio-Av34km-P-77-uk",
+        title: "Зупинка 77: Torre del Ángel (Torre árabe)",
+        file: ""
+      },
+
+      // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
+      {
+        id: "audio-Av34km-TR-51-uk",
+        title: "Ділянка 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
+        file: ""
+      },
+
+      // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
+      {
+        id: "audio-Av34km-P-78-uk",
+        title: "Зупинка 78: Refugio Guerra Civil",
+        file: ""
+      },
+
+      // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
+      {
+        id: "audio-Av34km-TR-52-uk",
+        title: "Ділянка 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
+      {
+        id: "audio-Av34km-P-79-uk",
+        title: "Зупинка 79: Museo de Corpus Christi (Casa de las Rocas)",
+        file: ""
+      },
+
+      // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
+      {
+        id: "audio-Av34km-TR-53-uk",
+        title: "Ділянка 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
+      {
+        id: "audio-Av34km-P-80-uk",
+        title: "Зупинка 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
+      {
+        id: "audio-Av34km-P-81-uk",
+        title: "Зупинка 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
+        file: ""
+      },
+
+      // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
+      {
+        id: "audio-Av34km-TR-54-uk",
+        title: "Ділянка 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
+      {
+        id: "audio-Av34km-P-82-uk",
+        title: "Зупинка 82: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
+      {
+        id: "audio-Av34km-P-83-uk",
+        title: "Зупинка 83: Centro Cultural Contemporáneo: El Carmen",
+        file: ""
+      },
+
+      // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
+      {
+        id: "audio-Av34km-TR-55-uk",
+        title: "Ділянка 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
+      {
+        id: "audio-Av34km-P-84-uk",
+        title: "Зупинка 84: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
+      {
+        id: "audio-Av34km-P-85-uk",
+        title: "Зупинка 85: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
+      {
+        id: "audio-Av34km-P-86-uk",
+        title: "Зупинка 86: Casa de los Gatos",
+        file: ""
+      },
+
+      // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
+      {
+        id: "audio-Av34km-P-87-uk",
+        title: "Зупинка 87: Casa de los Gatos",
+        file: ""
+      },
+
+      // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
+      {
+        id: "audio-Av34km-TR-56-uk",
+        title: "Ділянка 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
+      {
+        id: "audio-Av34km-P-88-uk",
+        title: "Зупинка 88: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
+      {
+        id: "audio-Av34km-P-89-uk",
+        title: "Зупинка 89: Instituto Valenciano de Arte Moderno (IVAM)",
+        file: ""
+      },
+
+      // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
+      {
+        id: "audio-Av34km-TR-57-uk",
+        title: "Ділянка 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
+        file: ""
+      },
+
+      // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
+      {
+        id: "audio-Av34km-P-90-uk",
+        title: "Зупинка 90: Museo de Prehistoria y Etnología",
+        file: ""
+      },
+
+      // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
+      {
+        id: "audio-Av34km-TR-58-uk",
+        title: "Ділянка 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
+      {
+        id: "audio-Av34km-P-91-uk",
+        title: "Зупинка 91: Iglesia de la Milagrosa",
+        file: ""
+      },
+
+      // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
+      {
+        id: "audio-Av34km-TR-59-uk",
+        title: "Ділянка 59: Iglesia de la Milagrosa → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
+      {
+        id: "audio-Av34km-P-92-uk",
+        title: "Зупинка 92: Torres de Quart",
+        file: ""
+      },
+
+      // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
+      {
+        id: "audio-Av34km-P-93-uk",
+        title: "Зупинка 93: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
+      {
+        id: "audio-Av34km-TR-60-uk",
+        title: "Ділянка 60: Torres de Quart → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
+      {
+        id: "audio-Av34km-P-94-uk",
+        title: "Зупинка 94: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
+      {
+        id: "audio-Av34km-P-95-uk",
+        title: "Зупинка 95: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
+      {
+        id: "audio-Av34km-P-96-uk",
+        title: "Зупинка 96: Calle del Hospital (Ermita de Santa Lucía)",
+        file: ""
+      },
+
+      // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
+      {
+        id: "audio-Av34km-TR-61-uk",
+        title: "Ділянка 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
+      {
+        id: "audio-Av34km-P-97-uk",
+        title: "Зупинка 97: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
+      {
+        id: "audio-Av34km-P-98-uk",
+        title: "Зупинка 98: Museo y Colegio del Arte Mayor de la Seda",
+        file: ""
+      },
+
+      // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
+      {
+        id: "audio-Av34km-TR-62-uk",
+        title: "Ділянка 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
+      {
+        id: "audio-Av34km-P-99-uk",
+        title: "Зупинка 99: Biblioteca del Hospital",
+        file: ""
+      },
+
+      // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
+      {
+        id: "audio-Av34km-TR-63-uk",
+        title: "Ділянка 63: Biblioteca del Hospital → Torres de Quart",
+        file: ""
+      },
+
+      // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
+      {
+        id: "audio-Av34km-P-100-uk",
+        title: "Зупинка 100: Torres de Quart",
+        file: ""
+      },
+
+      // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
+      {
+        id: "audio-Av34km-TR-64-uk",
+        title: "Ділянка 64: Torres de Quart → Jardín Botánico",
+        file: ""
+      },
+
+      // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
+      {
+        id: "audio-Av34km-P-101-uk",
+        title: "Зупинка 101: Jardín Botánico",
+        file: ""
+      },
+
+      // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
+      {
+        id: "audio-Av34km-TR-65-uk",
+        title: "Ділянка 65: Jardín Botánico → Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
+      {
+        id: "audio-Av34km-P-102-uk",
+        title: "Зупинка 102: Jardín de las Hespérides",
+        file: ""
+      },
+
+      // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
+      {
+        id: "audio-Av34km-TR-66-uk",
+        title: "Ділянка 66: Jardín de las Hespérides → Estadio de Atletismo",
+        file: ""
+      },
+
+      // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
+      {
+        id: "audio-Av34km-P-103-uk",
+        title: "Зупинка 103: Estadio de Atletismo",
+        file: ""
+      },
+
+      // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
+      {
+        id: "audio-Av34km-TR-67-uk",
+        title: "Ділянка 67: Estadio de Atletismo → Na Turia",
+        file: ""
+      },
+
+      // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
+      {
+        id: "audio-Av34km-P-104-uk",
+        title: "Зупинка 104: Na Turia",
+        file: ""
+      },
+
+      // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
+      {
+        id: "audio-Av34km-TR-68-uk",
+        title: "Ділянка 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
+        file: ""
+      },
+
+      // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
+      {
+        id: "audio-Av34km-P-105-uk",
+        title: "Зупинка 105: Na Turia",
+        file: ""
+      },
+
+      // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
+      {
+        id: "audio-Av34km-TR-69-uk",
+        title: "Ділянка 69: Na Turia → Puente Amarillo",
+        file: ""
+      },
+
+      // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
+      {
+        id: "audio-Av34km-P-106-uk",
+        title: "Зупинка 106: Puente Amarillo",
+        file: ""
+      },
+
+      // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
+      {
+        id: "audio-Av34km-TR-70-uk",
+        title: "Ділянка 70: Puente Amarillo → Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
+      {
+        id: "audio-Av34km-P-107-uk",
+        title: "Зупинка 107: Puente 9 de Octubre",
+        file: ""
+      },
+
+      // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
+      {
+        id: "audio-Av34km-TR-71-uk",
+        title: "Ділянка 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
+      {
+        id: "audio-Av34km-P-108-uk",
+        title: "Зупинка 108: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
+      {
+        id: "audio-Av34km-P-109-uk",
+        title: "Зупинка 109: Parque de Cabecera (El Morro)",
+        file: ""
+      },
+
+      // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
+      {
+        id: "audio-Av34km-TR-72-uk",
+        title: "Ділянка 72: Parque de Cabecera (El Morro) → Bioparc",
+        file: ""
+      },
+
+      // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
+      {
+        id: "audio-Av34km-P-110-uk",
+        title: "Зупинка 110: Bioparc",
+        file: ""
+      },
+
+      // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
+      {
+        id: "audio-Av34km-TR-73-uk",
+        title: "Ділянка 73: Bioparc → Molino del Sol",
+        file: ""
+      },
+
+      // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
+      {
+        id: "audio-Av34km-P-111-uk",
+        title: "Зупинка 111: Molino del Sol",
+        file: ""
+      },
+
+      // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
+      {
+        id: "audio-Av34km-TR-74-uk",
+        title: "Ділянка 74: Molino de Sol → Museo de Historia",
+        file: ""
+      },
+
+      // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
+      {
+        id: "audio-Av34km-P-112-uk",
+        title: "Зупинка 112: Museo de Historia",
+        file: ""
+      },
+
+      // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
+      {
+        id: "audio-Av34km-TR-75-uk",
+        title: "Ділянка 75: Museo de Historia → Pechina en el Turia",
+        file: ""
+      },
+
+      // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
+      {
+        id: "audio-Av34km-P-113-uk",
+        title: "Зупинка 113: Pechina en el Turia",
+        file: ""
+      },
+
+      // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
+      {
+        id: "audio-Av34km-TR-76-uk",
+        title: "Ділянка 76: Pechina en el Turia → Puente de San José",
+        file: ""
+      },
+
+      // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
+      {
+        id: "audio-Av34km-P-114-uk",
+        title: "Зупинка 114: Puente de San José",
+        file: ""
+      },
+
+      // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
+      {
+        id: "audio-Av34km-TR-77-uk",
+        title: "Ділянка 77: Puente de San José → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
+      {
+        id: "audio-Av34km-P-115-uk",
+        title: "Зупинка 115: Torres de Serranos",
+        file: ""
+      },
+
+      // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
+      {
+        id: "audio-Av34km-TR-78-uk",
+        title: "Ділянка 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
+      {
+        id: "audio-Av34km-P-116-uk",
+        title: "Зупинка 116: Ruinas del Jardín del Turia",
+        file: ""
+      },
+
+      // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
+      {
+        id: "audio-Av34km-TR-79-uk",
+        title: "Ділянка 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
+      {
+        id: "audio-Av34km-P-117-uk",
+        title: "Зупинка 117: Jardines del Real (Viveros)",
+        file: ""
+      },
+
+      // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
+      {
+        id: "audio-Av34km-TR-80-uk",
+        title: "Ділянка 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
+        file: ""
+      },
+
+      // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
+      {
+        id: "audio-Av34km-P-118-uk",
+        title: "Зупинка 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
+        file: ""
+      },
+
+      // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
+      {
+        id: "audio-Av34km-TR-81-uk",
+        title: "Ділянка 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
+        file: ""
+      },
+
+      // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
+      {
+        id: "audio-Av34km-TR-82-uk",
+        title: "Ділянка 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
+      {
+        id: "audio-Av34km-P-119-uk",
+        title: "Зупинка 119: Museo de Ciencias Naturales",
+        file: ""
+      },
+
+      // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
+      {
+        id: "audio-Av34km-TR-83-uk",
+        title: "Ділянка 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
+      {
+        id: "audio-Av34km-P-120-uk",
+        title: "Зупинка 120: Jardín de la Rosaleda",
+        file: ""
+      },
+
+      // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
+      {
+        id: "audio-Av34km-P-121-uk",
+        title: "Зупинка 121: Jardines del Real (Viveros) 2",
+        file: ""
+      },
+
+      // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
+      {
+        id: "audio-Av34km-TR-84-uk",
+        title: "Ділянка 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
+        file: ""
+      },
+
+      // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
+      {
+        id: "audio-Av34km-P-122-uk",
+        title: "Зупинка 122: Estanque de los patos",
+        file: ""
+      },
+
+      // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
+      {
+        id: "audio-Av34km-TR-85-uk",
+        title: "Ділянка 85: Estanque de los patos → Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
+      {
+        id: "audio-Av34km-P-123-uk",
+        title: "Зупинка 123: Portón del Convento de San Julián",
+        file: ""
+      },
+
+      // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
+      {
+        id: "audio-Av34km-TR-86-uk",
+        title: "Ділянка 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
+        file: ""
+      },
+
+      // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
+      {
+        id: "audio-Av34km-P-124-uk",
+        title: "Зупинка 124: Puente del Real",
+        file: ""
+      },
+
+      // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
+      {
+        id: "audio-Av34km-TR-87-uk",
+        title: "Ділянка 87: Puente del Real → Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
+      {
+        id: "audio-Av34km-P-125-uk",
+        title: "Зупинка 125: Jardín de la Glorieta",
+        file: ""
+      },
+
+      // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
+      {
+        id: "audio-Av34km-TR-88-uk",
+        title: "Ділянка 88: Jardin de la Glorieta → Palacio de Justicia",
+        file: ""
+      },
+
+      // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
+      {
+        id: "audio-Av34km-P-126-uk",
+        title: "Зупинка 126: Palacio de Justicia",
+        file: ""
+      },
+
+      // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
+      {
+        id: "audio-Av34km-TR-89-uk",
+        title: "Ділянка 89: Palacio de Justicia → Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
+      {
+        id: "audio-Av34km-P-127-uk",
+        title: "Зупинка 127: Fundación Bancaja 1",
+        file: ""
+      },
+
+      // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
+      {
+        id: "audio-Av34km-TR-90-uk",
+        title: "Ділянка 90: Fundación Bancaja 1 → Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
+      {
+        id: "audio-Av34km-P-128-uk",
+        title: "Зупинка 128: Fundación Bancaja 2",
+        file: ""
+      },
+
+      // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
+      {
+        id: "audio-Av34km-TR-91-uk",
+        title: "Ділянка 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
+      {
+        id: "audio-Av34km-P-129-uk",
+        title: "Зупинка 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
+        file: ""
+      },
+
+      // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
+      {
+        id: "audio-Av34km-P-130-uk",
+        title: "Зупинка 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
+        file: ""
+      },
+
+      // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
+      {
+        id: "audio-Av34km-TR-92-uk",
+        title: "Ділянка 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
+      {
+        id: "audio-Av34km-P-131-uk",
+        title: "Зупинка 131: Iglesia San Juan del Hospital",
+        file: ""
+      },
+
+      // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
+      {
+        id: "audio-Av34km-TR-93-uk",
+        title: "Ділянка 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
+        file: ""
+      },
+
+      // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
+      {
+        id: "audio-Av34km-P-132-uk",
+        title: "Зупинка 132: Palacio Arzobispal",
+        file: ""
+      },
+
+      // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
+      {
+        id: "audio-Av34km-TR-94-uk",
+        title: "Ділянка 94: Palacio Arzobispal → Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
+      {
+        id: "audio-Av34km-P-133-uk",
+        title: "Зупинка 133: Museo de la Ciudad",
+        file: ""
+      },
+
+      // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
+      {
+        id: "audio-Av34km-P-134-uk",
+        title: "Зупинка 134: Cripta de San Vicente Mártir",
+        file: ""
+      },
+
+      // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
+      {
+        id: "audio-Av34km-TR-95-uk",
+        title: "Ділянка 95: Cripta de San Vicente Mártir → Amudín",
+        file: ""
+      },
+
+      // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
+      {
+        id: "audio-Av34km-P-135-uk",
+        title: "Зупинка 135: Almudín",
+        file: ""
+      },
+
+      // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
+      {
+        id: "audio-Av34km-TR-96-uk",
+        title: "Ділянка 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
+        file: ""
+      },
+
+      // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
+      {
+        id: "audio-Av34km-P-136-uk",
+        title: "Зупинка 136: Iglesia de San Lorenzo",
+        file: ""
+      },
+
+      // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
+      {
+        id: "audio-Av34km-P-137-uk",
+        title: "Зупинка 137: Palacio de los Borgia",
+        file: ""
+      },
+
+      // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
+      {
+        id: "audio-Av34km-TR-97-uk",
+        title: "Ділянка 97: Palacio de los Borgia → Torres de Serranos",
+        file: ""
+      },
+
+      // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
+      {
+        id: "audio-Av34km-P-138-uk",
+        title: "Зупинка 138: Torres de Serranos Final",
+        file: ""
+      },
+
+    ],
   },
 };
