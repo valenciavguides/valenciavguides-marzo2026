@@ -91,12 +91,12 @@ La aplicación soporta **12 idiomas**: español, inglés, francés, italiano, ne
 
 Actualmente hay **7 aventuras** definidas en `js/indice-aventuras.js`, todas con `disponible: true` (aparecen en la pantalla de selección): **Aventuras 1, 2, 3, 4, 5, Fallas y 34km**. `disponible: true` solo controla si la aventura es seleccionable — no garantiza que el contenido esté completo, y el nivel de completitud varía mucho según el tipo de contenido:
 
-- **Rutas GPS** (`coordenadas-aventuras.js`): completas en las 7 aventuras.
+- **Rutas GPS** (`coordenadas-aventuras.js`): completas en las 7 aventuras, incluidas las referencias visuales (una entrada `tipo:"referencia"` por cada pin numerado del mapa de cada aventura — ver §25.10).
 - **Audios narrados** (`audios-aventuras.js`, campo `file`): prácticamente vacíos en **las 7 aventuras y los 12 idiomas** — la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma, pero el campo `file` (ruta al MP3) está sin rellenar en casi todas las entradas, incluido el español (p. ej. Aventura1: 1 de 66 con archivo real; Aventura2/3/Fallas: 0 de todas). El sistema lo gestiona sin romper el flujo (`file:''` → sin reproducción, ver §7.4) — es un estado de producción de contenido pendiente, no un bug. Ver §12 para el detalle completo por aventura.
-- **Textos narrativos** (párrafos): sí completos en 1-5 y Fallas en los 12 idiomas (870 párrafos/idioma) — ver §14. **Aventura34km** es la excepción real: solo 2 textos definidos, ruta real de 232 puntos pero prácticamente sin narrativa.
-- **Retos**: completos en 1-5 y Fallas en los 12 idiomas; Aventura34km solo tiene retos en 6 de los 12 idiomas (es/en/fr/it/nl/ja, 3 retos).
+- **Textos narrativos** (párrafos): completos en las 7 aventuras y los 12 idiomas — ver §14.
+- **Retos**: completos en las 7 aventuras y los 12 idiomas.
 
-Aventura34km es la más incompleta en conjunto (ruta sin apenas texto ni reto), pero ningún idioma de ninguna aventura tiene hoy audio narrado grabado de verdad más allá de un puñado de entradas de prueba.
+La grabación de audio narrado es el único hueco real de contenido en las 7 aventuras; el resto de estructura de datos (rutas, referencias, textos, retos) está completo.
 
 ---
 
@@ -698,7 +698,7 @@ Estos emojis aparecen durante las 17 pantallas de demo/selección, antes de que 
 |-------|---------------|-----------------|
 | → | Botones de avanzar/confirmar (P1, P4, P5, P9, P11, P12, P16) | Flecha de navegación "ir a la siguiente pantalla" |
 | ➜ | Botón grande del puzzle (P6) | Flecha gruesa para continuar tras completar el puzzle |
-| ✗ | Botones rojos de rechazo (P3, P9), feedback de formato de código insuficiente (P13, <4 caracteres) | Cancelar selección o indicar formato inválido — desde 2026-07-13 P13 ya no muestra ✓ de "código correcto" (no hay nada que validar localmente, ver §16.2) |
+| ✗ | Botones rojos de rechazo (P3, P9), feedback de formato de código insuficiente (P13, <4 caracteres) | Cancelar selección o indicar formato inválido — P13 no muestra ✓ de "código correcto" porque no hay nada que validar localmente (ver §16.2) |
 | 🎬 | Pantalla de vídeo stub (P4) | Placeholder fijo de video introductorio |
 | 💳 | Pantalla de pago (P12) | Icono de la pasarela de pago (aún no implementada) |
 | 🔑 | Pantalla de activación (P13) | Indica que se necesita un código de acceso |
@@ -1769,7 +1769,7 @@ Los handlers de datos de aventuras están extraídos en el módulo `js/controlad
 | Textos narrativos | `DATOS.SOLICITAR_TEXTOS` | `DATOS.CARGAR_TEXTOS` |
 | Un reto concreto (cache-miss en hijo4) | `DATOS.SOLICITAR_RETOS { retoId }` | `RETO.MOSTRAR { retoId, retosArray: [reto] }` — resuelve solo ese id vía `cargarRetos()`, no reenvía la aventura |
 
-El handler de textos lee de `globalThis.__vv_TEXTOS_AVENTURAS` (cargado en FASE 2, vía `cargarTextos()`). Los handlers de audio y retos ya no leen un array bulk precargado del hijo — resuelven el id solicitado bajo demanda vía `cargarAudios()`/`cargarRetos()` de `js/data-loader.js` (protección pasiva por parada, ver §16). `controladores-padre.js` también contiene una entrada para `SOLICITAR_DATOS_PARADAS`, pero es **dead code**: Script 1 la registra primero (ver §6 handshake) y `registrarControladorSeguro` deduplicates — la de controladores-padre.js se ignora. El handler activo de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
+El handler de textos lee de `globalThis.__vv_TEXTOS_AVENTURAS` (cargado en FASE 2, vía `cargarTextos()`). Los handlers de audio y retos resuelven el id solicitado bajo demanda vía `cargarAudios()`/`cargarRetos()` de `js/data-loader.js`, sin precargar ningún array bulk del hijo (protección pasiva por parada, ver §16). `controladores-padre.js` también contiene una entrada para `SOLICITAR_DATOS_PARADAS`, pero es **dead code**: Script 1 la registra primero (ver §6 handshake) y `registrarControladorSeguro` deduplicates — la de controladores-padre.js se ignora. El handler activo de `SOLICITAR_DATOS_PARADAS` está en Script 1: lee de `DATOS_PADRE[av][id].elementosIDpadre` con `normalizarParadas_S1`, usando `globalThis.aventuraSeleccionada` e `idiomaSeleccionado || 'es'`. Responde solo a `hijo5`.
 
 ### Reconexión de hijos fallidos
 
@@ -3543,7 +3543,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 
 > **Protección pasiva por parada** (ver §16): hijo3 nunca recibe la aventura completa. `AUDIO.REPRODUCIR_REQUEST` trae el audio de una sola parada en cada mensaje, y la caché local descarta el id más antiguo en cuanto llega un tercero.
 >
-> **Diferencia clave CASA/AVENTURA**: `AUDIO.REPRODUCIR_REQUEST` llega siempre con `autoplay:false` — tanto en CASA como en AVENTURA. El audio se carga en el `<audio>` interno pero no se inicia automáticamente; el usuario usa los controles del padre para reproducir. La diferencia es el *disparador*: en AVENTURA el REQUEST se envía automáticamente al entrar en cada parada; en CASA lo dispara una acción del usuario (mismo mensaje, mismo handler — ya no hay una ruta CASA distinta vía `AUDIO.SOLICITAR_AUDIO`). Los controles globales (play/pause/stop/replay/volumen) viven en el padre; hijo3 solo mueve el `<audio>` interno.
+> **Diferencia clave CASA/AVENTURA**: `AUDIO.REPRODUCIR_REQUEST` llega siempre con `autoplay:false` — tanto en CASA como en AVENTURA. El audio se carga en el `<audio>` interno pero no se inicia automáticamente; el usuario usa los controles del padre para reproducir. La diferencia es el *disparador*: en AVENTURA el REQUEST se envía automáticamente al entrar en cada parada; en CASA lo dispara una acción del usuario — ambos modos comparten el mismo mensaje y el mismo handler, sin ruta separada. Los controles globales (play/pause/stop/replay/volumen) viven en el padre; hijo3 solo mueve el `<audio>` interno.
 
 ---
 
@@ -3911,7 +3911,7 @@ Cuando el padre recibe `SELECCION.AVENTURA_SELECCIONADA`, el handler `_hdl_SELEC
 
 ### 9.4b CODIGO_VALIDADO — registro de validación (P13, solo prod)
 
-El handler `_hdl_SELECCION_CODIGO_VALIDADO` está vacío — solo escribe un log de info. GPS, iframes y datos se activan en P14. El payload ya incluye `email` (añadido 2026-07-13, ver §16.2); el handler no lo lee — queda disponible para cuando se necesite (auditoría, soporte).
+El handler `_hdl_SELECCION_CODIGO_VALIDADO` está vacío — solo escribe un log de info. GPS, iframes y datos se activan en P14. El payload incluye `email` (ver §16.2); el handler no lo lee — queda disponible para cuando se necesite (auditoría, soporte).
 
 En prod: valida que P13 completó correctamente y delega todo el trabajo a `_hdl_SELECCION_P14_MOSTRADA`.
 
@@ -4219,8 +4219,8 @@ Esto garantiza que los handlers están registrados antes de recibir los datos, i
 | Aventura3 | Ciudad de las Artes y las Ciencias | ~10 | 🚲🛴 | ✅ | Disponible |
 | Aventura4 | Parque de Cabecera y Viveros | ~10 | 🚲🛴 | ✅ | Disponible |
 | Aventura5 | València murallas | ~6 | 🚲🛴 | ✅ | Disponible |
-| AventuraFallas | València en Fallas | ~4 | 👣 | ✅ | Desbloqueada 2026-05-21 |
-| Aventura34km | València 34 kilómetros | ~34 | 🚲🛴👣 | ⚠️ | Seleccionable, contenido incompleto |
+| AventuraFallas | València en Fallas | ~4 | 👣 | ✅ | Disponible |
+| Aventura34km | València 34 kilómetros | ~34 | 🚲🛴👣 | ✅ | Disponible |
 
 Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P6 se calculan dinámicamente importando los módulos fuente, sin valores hardcoded en el índice.
 
@@ -6118,17 +6118,15 @@ audios-aventuras/
 
 Actualmente existen carpetas para varios idiomas: `español/` (con intro MP3 + subcarpetas Av1, Av2, Av3), `english/`, `frances/`, `holandes/`, `italiano/`, `japones/`. Solo `español/` contiene audios reales; las demás carpetas existen pero están vacías. Cuando se graben los audios de un idioma, se añaden los MP3 a la subcarpeta correspondiente.
 
-### ✅ Estándar de codificación de audio: 128 kbps CBR (fijado 2026-07-13)
+### ✅ Estándar de codificación de audio: 128 kbps CBR
 
-**Hallazgo real:** los dos únicos audios grabados hasta esa fecha (`01-Intro-ESPAÑOL-1.mp3` y `02-Intro ESPAÑOL-2.mp3`, con música de fondo) estaban codificados a **320 kbps estéreo** — calidad de masterización musical, no de narración. Se generaron archivos de prueba a 128kbps CBR y VBR Q2 (~164kbps) para comparar; el usuario los escuchó con auriculares y confirmó que la música y la voz suenan bien incluso a 128kbps.
-
-**Estándar fijado y ya aplicado:**
+Todo audio narrado del proyecto se codifica a **128 kbps CBR** (bitrate constante, no variable) — calidad suficiente para voz con o sin música de fondo, muy por debajo de los 320 kbps estéreo de calidad de masterización musical que no aporta nada perceptible en narración con auriculares.
 
 ```bash
 ffmpeg -i entrada.mp3 -c:a libmp3lame -b:a 128k salida.mp3
 ```
 
-**128 kbps CBR (bitrate constante, no variable)** — se eligió CBR sobre VBR porque el tamaño resultante es predecible de antemano, útil para estimar el volumen total con docenas de paradas × 7 aventuras × 12 idiomas por grabar. Ya aplicado a los 2 audios reales existentes (`01-Intro-ESPAÑOL-1.mp3`: 15,4MB→6,0MB; `02-Intro ESPAÑOL-2.mp3`: 5,2MB→2,0MB).
+Se usa CBR en vez de VBR porque el tamaño resultante es predecible de antemano, útil para estimar el volumen total con docenas de paradas × 7 aventuras × 12 idiomas por grabar.
 
 **No hay compresión automática:** subir un audio nuevo al proyecto no lo recodifica — hay que aplicar este comando (o pedírselo a Claude) sobre cada archivo antes de darlo por bueno en producción. `npm run verificar-media` (ver más abajo) detecta los que no cumplen el estándar, pero no los corrige.
 
@@ -6473,7 +6471,7 @@ npm run verificar-media          # informe completo
 npm run verificar-media -- --quiet   # solo lo que excede el límite (para CI)
 ```
 
-Recorre `imagenes/imagenes-aventuras/`, `imagenes/imagenes-mapas-vintage/`, `audios-aventuras/` y `videos-aventuras/`, comparando cada archivo contra un límite de tamaño de referencia (imagen: 1,5 MB; audio: 8 MB; vídeo: 12 MB — deliberadamente generosos, para señalar solo el caso claro de "esto no pasó por la checklist"). Si `ffmpeg` está en el `PATH` (no es una dependencia permanente del proyecto — instalar puntualmente si hace falta), añade una comprobación más precisa: bitrate real de audio y perfil H.264/fotogramas de referencia de vídeo, detectando también archivos que están *por debajo* del límite de tamaño pero mal codificados igualmente (caso real: `02-Intro ESPAÑOL-2.mp3`, 320kbps, encontrado así). No bloquea nada automáticamente — es un informe para revisar antes de dar un archivo por bueno, no un hook de commit.
+Recorre `imagenes/imagenes-aventuras/`, `imagenes/imagenes-mapas-vintage/`, `audios-aventuras/` y `videos-aventuras/`, comparando cada archivo contra un límite de tamaño de referencia (imagen: 1,5 MB; audio: 8 MB; vídeo: 12 MB — deliberadamente generosos, para señalar solo el caso claro de "esto no pasó por la checklist"). Si `ffmpeg` está en el `PATH` (no es una dependencia permanente del proyecto — instalar puntualmente si hace falta), añade una comprobación más precisa: bitrate real de audio y perfil H.264/fotogramas de referencia de vídeo, detectando también archivos que están *por debajo* del límite de tamaño pero mal codificados igualmente (p. ej. un MP3 pequeño codificado a 320kbps en vez de los 128kbps del estándar). No bloquea nada automáticamente — es un informe para revisar antes de dar un archivo por bueno, no un hook de commit.
 
 ### Ubicación
 
@@ -6522,15 +6520,11 @@ Es una operación de copia de streams (`-c copy`): reordena el índice del conte
 
 ### `faststart` es necesario pero NO suficiente — el bitrate importa igual o más
 
-**Caso real (2026-07-12):** tras aplicar el faststart de arriba, el vídeo de `sceneVid` seguía cortándose a los ~2s en el hosting real (GitHub Pages). La causa raíz no era el faststart (ya corregido) sino que el archivo pesaba **20,9 MB a ~9,5 Mbps** (1080×1920, con pista de audio AAC innecesaria — el `<video>` de `sceneVid` siempre lleva `muted`) para un clip de 17,6 s mostrado en un modal pequeño (`max-height:60vh`). Un bitrate así requiere una conexión sostenida de >1 MB/s — el navegador consume el buffer inicial (que gracias al faststart carga rápido) y se queda esperando el resto de los datos, que no llegan a tiempo. Los listeners `stalled`/`waiting` que reintentan `.play()` (ver `sceneVid` y `mostrarVideoOverlay`, abajo) **no arreglan esto**: el navegador ya está haciendo todo lo posible por reproducir, el problema es la falta de ancho de banda, no que haya dejado de intentarlo.
+Un vídeo con `faststart` correcto puede seguir colgándose en producción si el bitrate es demasiado alto para una conexión típica: un archivo a ~9,5 Mbps (1080×1920, sin necesidad de pista de audio si el `<video>` lleva `muted`) requiere una conexión sostenida de >1 MB/s — el navegador consume el buffer inicial (que gracias al faststart carga rápido) y se queda esperando el resto de los datos, que no llegan a tiempo. Los listeners `stalled`/`waiting` que reintentan `.play()` (ver `sceneVid` y `mostrarVideoOverlay`, abajo) no resuelven esto: el navegador ya está haciendo todo lo posible por reproducir, el problema es la falta de ancho de banda, no que haya dejado de intentarlo. Por eso todo vídeo debe recodificarse a una resolución acorde a su tamaño real de renderizado en pantalla (para un modal pequeño, 480-720px de ancho es suficiente) y sin pista de audio si va `muted` — reduce el bitrate a un rango que carga con margen incluso en conexiones modestas.
 
-**Fix de bitrate aplicado:** recodificado con `ffmpeg` a 480×854, sin pista de audio (`-an`), con `+faststart`. Resultado inicial: 4,3 MB / ~2 Mbps (de 20,9 MB / 9,5 Mbps) — misma duración, calidad visual suficiente para el tamaño real de renderizado (bajo ~350px de ancho en la mayoría de dispositivos, dado el `DAR 9:16` sobre `max-height:60vh`).
+### El bitrate no es la única variable: complejidad de decodificación en móvil
 
-### El bitrate no era la única causa: complejidad de decodificación en móvil (2026-07-13)
-
-**Caso real:** con el bitrate ya corregido, el vídeo se reproducía completo mejor pero seguía yendo a tirones específicamente en móvil (PC, tanto local como en GitHub Pages, iba perfecto). La causa: el primer re-encode usaba perfil H.264 **High** con hasta **5 fotogramas de referencia** (`-preset slow` sin restricciones explícitas de perfil/refs) — confirmado leyendo la cabecera SPS del archivo con `ffmpeg -bsf:v trace_headers`. El perfil High (transformada 8×8) y varios fotogramas de referencia son más costosos de decodificar que Main/Baseline con pocos refs; en desktop el hardware/software de decodificación tiene margen de sobra, pero en muchos móviles (sobre todo gama media/baja) puede forzar decodificación por software o simplemente no ir fluido, aunque el archivo entero ya esté en el dispositivo.
-
-**Fix aplicado:** recodificado con parámetros explícitos orientados a compatibilidad de hardware de decodificación, no solo a tamaño de archivo:
+Un bitrate bajo no basta si el perfil de codificación es costoso de decodificar. El perfil H.264 **High** (transformada 8×8) con varios fotogramas de referencia decodifica sin problema en desktop, donde el hardware tiene margen de sobra, pero en móviles de gama media/baja puede forzar decodificación por software o ir a tirones aunque el archivo entero ya esté descargado — el cuello de botella no es la red, es la CPU/GPU del dispositivo reproduciendo. Por eso la recodificación usa parámetros explícitos orientados a compatibilidad de hardware, no solo a tamaño de archivo:
 
 ```bash
 ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
@@ -6551,7 +6545,7 @@ Verificado con `ffmpeg -bsf:v trace_headers`: `profile_idc=77` (Main, no High), 
 
 ### Arquitectura de reproducción: una sola solución para cualquier duración de vídeo
 
-**Por qué no se descarga el archivo entero antes de reproducir:** un primer intento (2026-07-12) hacía `fetch()` + `blob()` + `URL.createObjectURL()` del vídeo completo antes de asignarlo al `<video>`, garantizando que la reproducción fuera 100% desde memoria. Funcionaba para el clip de ~4-6 MB de `sceneVid`, pero **no escala** a los vídeos de 1-5 minutos previstos para el futuro (a varios Mbps, eso son decenas o cientos de MB) — forzar la descarga completa antes de reproducir introduciría una espera larga y mala experiencia, y habría que implementar una solución distinta para cada duración de vídeo. Se abandonó ese enfoque.
+**Por qué no se descarga el archivo entero antes de reproducir:** un enfoque de `fetch()` + `blob()` + `URL.createObjectURL()` del vídeo completo garantizaría reproducción 100% desde memoria, pero no escala a los vídeos de 1-5 minutos previstos para el futuro (a varios Mbps, eso son decenas o cientos de MB) — forzar la descarga completa antes de reproducir introduciría una espera larga y mala experiencia, y necesitaría una solución distinta para cada duración de vídeo. El `<video>` mantiene su `src` apuntando directamente a la URL de red por eso: escala igual de bien a un clip de unos segundos que a uno de varios minutos, sin distinción de caso.
 
 **Solución global adoptada — `js/video-playback-utils.js`, función `reproducirVideoConBuffer(videoEl)`:** un único helper compartido, usado tanto por `sceneVid` (`video-intro.html`) como por `mostrarVideoOverlay()`/`_crearVideoOverlayEl()` (`codigo-padre.html`, botón dron de hijo2). El `<video>` mantiene su `src` apuntando directamente a la URL de red (nunca un blob) y `preload="auto"`, sin `autoplay`:
 
@@ -6573,7 +6567,7 @@ Este mecanismo **no depende del tamaño total del archivo** — solo espera a qu
 **Dos casos borde corregidos tras revisión del flujo completo:**
 
 - **Acumulación de listeners `stalled`/`waiting` en `<video>` reutilizados:** `mostrarVideoOverlay()` reutiliza el mismo elemento `<video>` entre paradas distintas dentro de una misma aventura (no lo recrea cada vez). Los handlers `stalled`/`waiting` están definidos como funciones **con nombre a nivel de módulo** (no closures anónimas creadas en cada llamada) precisamente por esto: `addEventListener` con la misma referencia de función es un no-op la segunda vez (deduplica según especificación DOM), así que `reproducirVideoConBuffer()` puede llamarse muchas veces sobre el mismo elemento sin acumular listeners duplicados.
-- **`canplaythrough`/`error` llegando después de cerrar el overlay:** si el usuario cierra el vídeo (`cerrarVideoOverlay()` en el padre, o `clearOv()` tras pulsar "saltar intro" en `sceneVid`) mientras `reproducirVideoConBuffer()` todavía está esperando el buffer, el elemento se pausa y se elimina del DOM ~400ms después — pero la promesa pendiente seguía viva. Si el evento llegaba tarde, `arrancar()` volvía a llamar `.play()` sobre un `<video>` ya desconectado, reanudando la reproducción en memoria de forma invisible. Fix: `arrancar()` comprueba `videoEl.isConnected` antes de llamar `.play()` — si el elemento ya no está en el DOM, no hace nada.
+- **`canplaythrough`/`error` llegando después de cerrar el overlay:** si el usuario cierra el vídeo (`cerrarVideoOverlay()` en el padre, o `clearOv()` tras pulsar "saltar intro" en `sceneVid`) mientras `reproducirVideoConBuffer()` todavía está esperando el buffer, el elemento se pausa y se elimina del DOM ~400ms después, pero la promesa pendiente sigue viva — un evento que llegue tarde podría hacer que `arrancar()` llame `.play()` sobre un `<video>` ya desconectado, reanudando la reproducción en memoria de forma invisible. `arrancar()` comprueba `videoEl.isConnected` antes de llamar `.play()` para evitarlo — si el elemento ya no está en el DOM, no hace nada.
 
 **Uso en `sceneVid`:** el `<video>` se crea con `display:none` y un spinner (`#vid-loading`) visible encima; al resolver `reproducirVideoConBuffer()`, se oculta el spinner y se muestra el vídeo ya reproduciéndose.
 
@@ -6602,9 +6596,9 @@ El módulo `js/data-loader.js` implementa las dos ramas (`DATA_MODE='local'` / `
 
 **Puzzles — mecanismo aparte, sin pasar por `data-loader.js`:** los retos de `tipo:'puzzle'` (`retos-aventuras.js`) llevan un campo `src` hardcodeado (p.ej. `"puzzle.html?id=PZ-01"`). hijo4 crea un `<iframe src="puzzle.html?id=PZ-01">`; `puzzle.html` importa `js/puzzles-aventuras.js` **directamente** (bypass total de `data-loader.js`/`DATA_MODE`) y busca el id primero en `PUZZLES_AVENTURAS[aventuraActual]` (siempre vacío — los puzzles no están organizados por aventura) y si no lo encuentra escanea todas las entradas de `PUZZLES_AVENTURAS` (hoy solo existe la clave compartida `INTRO`), que es la búsqueda que realmente tiene éxito. `data-loader.js` no tiene ninguna función para puzzles: la forma real de los datos (pool compartido bajo `INTRO`, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)` que usan `cargarAudios`/`cargarRetos`/`cargarCoordenadas`/`cargarTextos`. El mecanismo real sigue siendo el import directo de `puzzle.html`, que queda **fuera de la protección pasiva por parada**: siempre carga el pool completo de puzzles, y no se adaptará solo cuando `BACKEND_READY=true`. Si se quiere proteger, hace falta una función que resuelva un único puzzle por id (ver §22.12).
 
-### 16.1b Prevenir cuellos de botella del backend antes de que exista (2026-07-13)
+### 16.1b Prevenir cuellos de botella del backend antes de que exista
 
-Ni local ni GitHub Pages pueden revelar problemas de rendimiento específicos de un backend real (latencia de base de datos, coste de autenticación, límites de peticiones) porque ese backend todavía no existe — solo sirven ficheros estáticos. Cuando se implemente, hay que repetir el mismo tipo de verificación que se hizo con el vídeo (medir con datos reales, no asumir), pero hay decisiones de diseño que conviene fijar desde ahora para no heredar problemas:
+Ni local ni GitHub Pages pueden revelar problemas de rendimiento específicos de un backend real (latencia de base de datos, coste de autenticación, límites de peticiones) porque ese backend todavía no existe — solo sirven ficheros estáticos. Cuando se implemente, hay que medir con datos reales en vez de asumir, pero hay decisiones de diseño que conviene fijar desde ahora para no heredar problemas:
 
 - **CORS con wildcard (`Access-Control-Allow-Origin: '*'`, `js/server.js`):** inofensivo mientras frontend y backend comparten origen. En cuanto vivan en dominios distintos, restringir al dominio real de producción (ya estaba en el checklist de §22.4 como tarea de seguridad; con arquitectura distribuida deja de ser opcional).
 - **La protección pasiva por parada (`_solicitarAudioParaParada()`, ver §16) ya hace una petición por parada, no una petición bulk por aventura — a propósito, para no exponer todo el contenido de golpe (ver §17).** Esto significa que cuando exista backend real, cada cambio de parada disparará una petición HTTP nueva. Es el diseño correcto para el objetivo de protección, pero implica que la latencia *por petición* del backend (no el volumen total de datos) será lo que el usuario note al caminar de parada en parada — merece medirse específicamente, no asumir que "poco tráfico total" equivale a "rápido".
@@ -6681,21 +6675,21 @@ Plataforma de pago ──► POST /api/webhooks/pago
 >
 > **Pantalla flotante de error** (`_mostrarErrorAccesoP13()`, `En-busca-del-tesoro.html`): overlay con título + cuerpo traducidos a los 12 idiomas (`TRADUCCIONES_ACCESO_ERRONEO`, `js/traducciones-ui.js`), según el idioma elegido por el usuario en P1 (`idiomaSeleccionado`, con fallback a `localStorage['vv_idioma']` y luego a `'es'`). Es un overlay superpuesto a P13, no una navegación: el botón OK solo elimina el overlay del DOM (`removeChild`) — la pantalla `#pantalla13` de debajo no se toca, y los valores ya escritos en `#input-codigo`/`#input-email` **no se borran**. El usuario puede corregir y pulsar "Iniciar aventura" de nuevo tantas veces como quiera, sin límite de intentos ni bloqueo temporal.
 >
-> **Hallazgo ya corregido (2026-07-13):** hasta esta fecha, `validarCodigo()` comparaba el código introducido contra un hash SHA-256 hardcodeado (`CODIGO_ACCESO_HASH`) — y ese hash era, byte a byte, el mismo que usa el modo desarrollador (`CODIGO_DEV_HASH` en `codigo-padre.html` y en el modal de 5 toques de `En-busca-del-tesoro.html`), introducidos los tres juntos en el commit `86c707c`. En la práctica, el "código de compra" de P13 era literalmente la contraseña de desarrollador — cualquiera que la conociera podía "comprar" sin pagar, y el campo no distinguía en absoluto un comprador real de un desarrollador. Como el modo DEV (gesto de 5 toques) ya cubre la necesidad de probar la app sin pagar, no había ninguna razón para que P13 aceptara ese mismo secreto. Corregido eliminando por completo la comparación hardcodeada de P13 (comportamiento descrito arriba); el hash del modo DEV permanece intacto en sus dos ubicaciones, sin relación con P13.
+> **Por qué P13 no acepta ningún hash hardcodeado propio:** el modo DEV (gesto de 5 toques) ya cubre la necesidad de probar la app sin pagar, mediante `CODIGO_DEV_HASH` (`codigo-padre.html` y el modal de 5 toques de `En-busca-del-tesoro.html`). Si `validarCodigo()` comparara además el código de P13 contra un hash propio, ese secreto compartido equivaldría a una contraseña de desarrollador universal — cualquiera que la conociera podría "comprar" sin pagar. Por eso P13 no valida el código contra ningún hash local; toda validación real ocurre contra el backend en modo `'api'` (comportamiento descrito arriba). El hash del modo DEV permanece en sus dos ubicaciones, sin relación con P13.
 
 ### 16.3 Cambios en el frontend para producción — estado
 
 Todos los cambios son en `En-busca-del-tesoro.html`, `js/api-client.js` y `js/traducciones-ui.js`.
 
-**1. `validarCodigo()` — doble modo** ✅ hecho (2026-07-13)
+**1. `validarCodigo()` — doble modo** ✅ hecho
 
 Valida solo formato (código ≥4 caracteres + email con forma de email) para habilitar el botón. La bifurcación real por `DATA_MODE` ocurre en `_irANormativa()`, no en `validarCodigo()` — ver el recuadro "Estado actual" más arriba.
 
-**2. `ApiClient.activar()` — añadir email** ✅ hecho (2026-07-13)
+**2. `ApiClient.activar()` — añadir email** ✅ hecho
 
 `ApiClient.activar(codigo, email, aventuraId)` (`js/api-client.js`) envía `POST /api/auth/activar { codigo, email, aventuraId }`.
 
-**3. Campo `#input-email` — habilitar** ✅ hecho (2026-07-13)
+**3. Campo `#input-email` — habilitar** ✅ hecho
 
 `disabled` eliminado; conectado a `validarCodigo()` con validación de formato (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`).
 
@@ -6705,11 +6699,11 @@ Estado actual: P12 es un placeholder con botón que salta a P13 manualmente.
 
 En producción: al cargar P12, comprobar `new URLSearchParams(location.search).get('payment')`. Si es `'ok'`, avanzar automáticamente a P13 con el email prellenado desde el parámetro de la URL o del payload del redirect.
 
-**5. `SELECCION.CODIGO_VALIDADO` — añadir email** ✅ hecho (2026-07-13); token — pendiente
+**5. `SELECCION.CODIGO_VALIDADO` — añadir email** ✅ hecho; token — pendiente
 
 `datos: { aventura, idioma, email, timestamp }` — el email viaja ya en el mensaje. El JWT no se añade al payload: `ApiClient.activar()` ya lo guarda en `sessionStorage` (`TokenManager`, `js/api-client.js`) al recibirlo, y padre e iframe de selección comparten `sessionStorage` por ser mismo origen — el padre puede leerlo ahí directamente cuando lo necesite, sin duplicarlo en el mensaje.
 
-**6. Pantalla flotante "código o email erróneos"** ✅ hecho (2026-07-13)
+**6. Pantalla flotante "código o email erróneos"** ✅ hecho
 
 `_mostrarErrorAccesoP13()` (`En-busca-del-tesoro.html`) + `TRADUCCIONES_ACCESO_ERRONEO` (`js/traducciones-ui.js`, 12 idiomas). Se muestra en cualquier rechazo, tanto en modo `'local'` (siempre) como en modo `'api'` con credenciales inválidas.
 
@@ -6733,7 +6727,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 
 ### La protección pasiva por parada (client-side) no sustituye la protección de ficheros (server-side)
 
-**Hallazgo real (2026-07-13):** hasta esa fecha, `PROTECTED_FILES` (`js/server.js`) no incluía `/imagenes/imagenes-aventuras/` ni `/videos-aventuras/` — así que aunque `PROTECT_DATA=true` estuviera activo, cualquiera con la URL directa de una foto o vídeo (deducible por patrón de nombre, o vista en el tráfico de red durante un uso normal) podía descargarla sin pasar por ninguna autenticación. Ya corregido (ver tabla de arriba), pero la lección general importa: la protección pasiva por parada (`_solicitarAudioParaParada()`, resolver solo el contenido de la parada activa, ver §16) es una medida del lado **cliente** — evita que la propia interfaz de la app revele todo el contenido de golpe en la memoria/estado de JavaScript. Eso **nunca sustituyó** la protección real, que ocurre en el servidor (`PROTECT_DATA`/`PROTECTED_FILES`): un fichero estático sin proteger es descargable directamente por su URL sin importar cuán granular sea la lógica de la interfaz que lo referencia. Cualquier tipo de contenido de pago nuevo (imágenes, vídeos, y lo que se añada en el futuro) necesita añadirse explícitamente a `PROTECTED_FILES` — no basta con que la app lo cargue "uno a uno".
+**Por qué `PROTECTED_FILES` (`js/server.js`) cubre también imágenes y vídeos, no solo audio/texto/retos/coordenadas:** un fichero estático fuera de esa lista es descargable directamente por su URL (deducible por patrón de nombre, o vista en el tráfico de red durante un uso normal) sin pasar por ninguna autenticación, aunque `PROTECT_DATA=true` esté activo — la lista es la única barrera real, no hay protección implícita por tipo de archivo. La protección pasiva por parada (`_solicitarAudioParaParada()`, resolver solo el contenido de la parada activa, ver §16) es una medida del lado **cliente** — evita que la propia interfaz de la app revele todo el contenido de golpe en la memoria/estado de JavaScript. Eso **nunca sustituyó** la protección real, que ocurre en el servidor (`PROTECT_DATA`/`PROTECTED_FILES`): un fichero estático sin proteger es descargable directamente por su URL sin importar cuán granular sea la lógica de la interfaz que lo referencia. Cualquier tipo de contenido de pago nuevo (imágenes, vídeos, y lo que se añada en el futuro) necesita añadirse explícitamente a `PROTECTED_FILES` — no basta con que la app lo cargue "uno a uno".
 
 **¿El modo CASA expone más contenido que AVENTURA?** No. `coordenadas-aventuras.js` (que contiene las URLs de imagen/vídeo de *toda* la aventura, no solo la parada activa) se carga en Fase 2 del arranque del padre, **antes** de que se decida el modo CASA o AVENTURA — ocurre igual en ambos casos. El resto del contenido (audio, retos, imágenes mostradas) se resuelve por el mismo camino único (`_hdl_NAVEGACION_CAMBIO_PARADA`) tanto en CASA como en AVENTURA (ver §16, "mismo camino para CASA y AVENTURA"). CASA solo cambia cómo se dispara el cambio de parada (navegación manual vía hijo5 en vez de detección GPS) — no qué datos hay disponibles en cada momento. Además, hijo5 (la barra de navegación de CASA) es una herramienta de desarrollo que no aparece en la PWA real (ver §7.6).
 
@@ -6743,7 +6737,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 |------|---------|--------|
 | **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) acepta también `event.origin === 'null'` (file:// en local) y `event.source === window` (auto-mensajes). Los listeners raw fuera del bus que validan origin son: `_handlePreModuleMessage` (padre, origin+source hijo5), CHAT.CERRAR (padre:1660), SUPRIMIR_ROTACION (padre:3394), NAVEGACION_PANTALLA (En-busca-del-tesoro.html:2749), `_onPuzzleMessage` (En-busca-del-tesoro.html:1271), listener puzzle (retos-hijo4.html:1188). Los messagingAdapters de todos los hijos validan `event.source === globalThis.parent`. | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
 | **confirmListener por ID único** | Cada mensaje con confirmación genera un `idMensaje` único; el listener filtra por `event.data.idOriginal === idMensaje` para evitar resoluciones cruzadas | `js/mensajeria.js` |
-| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos, añadido 2026-07-13), `videos-aventuras/` (vídeos, añadido 2026-07-13), `backend/` — todos son contenido de pago. | `js/server.js` |
+| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
 | **CORS** | Cabeceras `Access-Control-Allow-Origin: *` en el servidor estático. Deberá restringirse al dominio en producción. | `js/server.js` |
 | **Permissions Policy** | Permite solo geolocalización (`self`); bloquea explícitamente cámara, micrófono, pagos, USB y bluetooth. También se envía la cabecera `Feature-Policy` (alias legacy). | `js/server.js` |
@@ -6759,7 +6753,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 | **Rate limiting** | Pendiente — requiere backend |
 | **Helmet (headers HTTP de seguridad)** | Pendiente — requiere backend Express |
 | **Log de seguridad** | Pendiente — requiere backend |
-| **Validación de código de activación real (email + código)** | Frontend ya preparado (✅ 2026-07-13: `#input-email` habilitado, `ApiClient.activar()` envía email, `_irANormativa()` ya llama al backend en modo `'api'` — ver §16.2/§16.3). Lo único pendiente es que exista un backend real que responder a `POST /api/auth/activar`; hasta entonces (`BACKEND_READY=false`), toda activación se rechaza siempre en modo `'local'`. |
+| **Validación de código de activación real (email + código)** | Frontend preparado: `#input-email` habilitado, `ApiClient.activar()` envía email, `_irANormativa()` llama al backend en modo `'api'` (ver §16.2/§16.3). Lo único pendiente es que exista un backend real que responda a `POST /api/auth/activar`; hasta entonces (`BACKEND_READY=false`), toda activación se rechaza siempre en modo `'local'`. |
 | **CORS restringido al dominio** | Pendiente para producción |
 | **Sandboxing de iframes** | Pendiente — añadir `sandbox="allow-scripts allow-same-origin allow-forms"` a los 7 iframes hijo; ver "Pendiente antes del despliegue §4" |
 | **HSTS** | Pendiente — solo activo en producción HTTPS; ver "Pendiente antes del despliegue §5" |
@@ -7346,12 +7340,12 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 /js/audios-aventuras.js         ← índice de archivos de audio
 /js/parrafos-textos/            ← directorio completo (JSON por idioma)
 /audios-aventuras/              ← MP3 del contenido de pago (directorio completo)
-/imagenes/imagenes-aventuras/   ← fotos del contenido de pago (directorio completo, añadido 2026-07-13)
-/videos-aventuras/               ← vídeos del contenido de pago — dron por parada (directorio completo, añadido 2026-07-13)
+/imagenes/imagenes-aventuras/   ← fotos del contenido de pago (directorio completo)
+/videos-aventuras/               ← vídeos del contenido de pago — dron por parada (directorio completo)
 /backend/                       ← directorio completo (reservado)
 ```
 
-**Nota sobre la incorporación de imágenes y vídeos (2026-07-13):** hasta esta fecha, `PROTECTED_FILES` solo cubría audio/texto/retos/coordenadas — las carpetas de imágenes y vídeos de las aventuras quedaban fuera de la lista, así que **ni siquiera con `PROTECT_DATA=true` activo** habrían estado protegidas: cualquiera con la URL directa (deducible o vista en el tráfico de red) podía descargar cualquier foto o vídeo de pago sin pasar por ninguna autenticación. La protección "pasiva por parada" del lado cliente (§16) evita que la app *revele* todo el contenido de golpe en su propia interfaz, pero eso nunca sustituyó la protección real a nivel de servidor — un usuario que conociera o adivinara las rutas de los ficheros estáticos podía saltársela por completo. Corregido añadiendo ambas carpetas a la lista.
+`PROTECTED_FILES` cubre todo tipo de contenido de pago, no solo audio/texto/retos/coordenadas — imágenes y vídeos están tan expuestos como cualquier otro fichero estático si su carpeta no aparece en la lista (ver razón completa en §16). Cualquier carpeta de contenido de pago que se añada en el futuro debe incorporarse aquí explícitamente; la lista no protege nada por defecto.
 
 **Pendiente añadir a `PROTECTED_FILES` antes de producción:**
 
@@ -9126,7 +9120,7 @@ hijo2 usa `enviarMensajeConConfirmacion` para notificar al padre cuando termina 
 |------|----------------|----------------------|
 | hijo2 (`coordenadas-hijo2.html`) | `DATOS.COORDENADAS_CARGADAS` | padre |
 
-hijo3 y hijo4 ya no confirman una carga masiva — no la reciben. La protección pasiva por parada (ver §16) reemplaza ese protocolo por resolución bajo demanda, sin fase de confirmación de bloque.
+hijo3 y hijo4 no confirman ninguna carga masiva porque no la reciben: la protección pasiva por parada (ver §16) resuelve el contenido bajo demanda, sin fase de confirmación de bloque.
 
 **Regla importante:** `mensajeria.js` envía `SISTEMA.CONFIRMACION` para **cualquier** mensaje con `requiereConfirmacion: true`, aunque no haya un handler registrado en el mapa de controladores. Esto evita que los hijos sufran timeout (5 s) por un fallo de registro del handler en el padre. La confirmación significa "mensaje recibido", no "mensaje procesado".
 
@@ -9369,7 +9363,7 @@ Iframe transparente de pantalla completa. Muestra la lista scrollable de paradas
 
 ### 25.10 Referencias visuales en el mapa (tipo "referencia")
 
-Una referencia visual es el marcador numerado que `mapa-completo.html` dibuja para **cada punto numerado del mapa impreso original** (el guión de cada aventura numera sus monumentos 1, 2, 3…). Las `parada`/`inicio`/`tramo` llevan su propio `mapa_numero` pero **no** se dibujan como píldora numerada en el mapa interactivo — solo son vértices de la polilínea. Por eso **todo punto numerado necesita su propia entrada `referencia`**, sea o no también una parada con audio/reto propio: en Aventura1, las 23 referencias coinciden en coordenadas con 23 paradas ya existentes (mismo monumento, doble entrada). Confirmado empíricamente 2026-07-20 al construir las 89 referencias de Aventura34km (una por cada pin 1-89 del guión, coordenadas/nombre/imagen copiados literalmente de la referencia equivalente en otra aventura cuando el monumento se repite). Excepción: los sub-puntos internos de una zona numerada aparte en el propio guión (p. ej. Viveros v1-v12 dentro de Av34km) no necesitan referencia propia — el conjunto cuenta como un único pin en la secuencia principal.
+Una referencia visual es el marcador numerado que `mapa-completo.html` dibuja para **cada punto numerado del mapa impreso original** (el guión de cada aventura numera sus monumentos 1, 2, 3…). Las `parada`/`inicio`/`tramo` llevan su propio `mapa_numero` pero **no** se dibujan como píldora numerada en el mapa interactivo — solo son vértices de la polilínea. Por eso **todo punto numerado necesita su propia entrada `referencia`**, sea o no también una parada con audio/reto propio: en Aventura1, las 23 referencias coinciden en coordenadas con 23 paradas ya existentes (mismo monumento, doble entrada); Aventura34km sigue la misma regla con sus 89 referencias (una por cada pin 1-89 del guión). Muchos monumentos se repiten entre aventuras con las mismas coordenadas reales — solo cambia el número de pin local, así que la referencia de una aventura puede reutilizarse literalmente (coordenadas, nombre, imagen) en otra. Excepción: los sub-puntos internos de una zona numerada aparte en el propio guión (p. ej. Viveros v1-v12 dentro de Av34km) no necesitan referencia propia — el conjunto cuenta como un único pin en la secuencia principal.
 
 | Tipo | GPS | Audio | Reto | Marcador en mapa | En `elementosIDpadre` |
 |------|-----|-------|------|------------------|-----------------------|
@@ -11055,13 +11049,11 @@ function _esperarHijoListo(iframeId) {
 
 ### 29.6 Cada dependencia cross-script necesita su propio wait explícito
 
-**Bug real de producción (2026-07-12):** Script 4 esperaba correctamente a `globalThis.mensajeria` (`while (!globalThis.mensajeria || typeof globalThis.mensajeria.enviarMensaje !== 'function') { ... await sleep(50) ... }`, límite de 200 intentos) antes de sus propios `await import(...)` — pero justo después llamaba directamente a `globalThis.registrarControladorSeguro(...)` (expuesta por Script 1 en su propio top-level, ~línea 4305) **sin esperarla también**. Visto en un log de consola de producción real como `Uncaught TypeError: globalThis.registrarControladorSeguro is not a function` en la línea de esa llamada.
+**El riesgo:** Script 1 tiene varios `await` tempranos antes de llegar a la línea que define `globalThis.registrarControladorSeguro` (`inicializarStateManager_S1()`, varios `import()`, `inicializarMonitoreo_S1()`). En local/CI esos imports son consistentemente rápidos y Script 1 siempre gana la carrera contra los `await import()`, más cortos, de Script 4 — pero con latencia de red real esa relación de velocidad puede invertirse, dejando que Script 4 llegue a la línea que llama `registrarControladorSeguro` antes de que Script 1 la haya definido. Esperar a `globalThis.mensajeria` no cubre este caso: son dos globals distintos expuestos en momentos distintos del top-level de Script 1, y cada uno necesita su propio wait.
 
-**Por qué ocurre:** Script 1 tiene varios `await` tempranos antes de llegar a la línea que define `registrarControladorSeguro` (`inicializarStateManager_S1()`, varios `import()`, `inicializarMonitoreo_S1()`). En local/CI esos imports son consistentemente rápidos y Script 1 siempre gana la carrera contra los `await import()`, más cortos, de Script 4 — pero con latencia de red real esa relación de velocidad puede invertirse, dejando que Script 4 llegue a su línea antes de que Script 1 haya llegado a la suya.
+**Efecto en cascada si no se espera:** un `TypeError` no capturado en esa línea abortaría el resto del bloque `<script>` de Script 4 — los handlers de `SISTEMA.HEARTBEAT_START`/`HEARTBEAT_PAUSE`/`HEARTBEAT_ESTADO` (que vienen justo después) no llegarían a registrarse, y el prewarm de heartbeat se quedaría esperando una respuesta a `HEARTBEAT_START` que nunca llega (síntoma visible como `[withTimeout] preiniciarHeartbeat timed out after 5000ms`).
 
-**Efecto en cascada:** el `TypeError` no capturado aborta el resto del bloque `<script>` de Script 4 en ese punto — los handlers de `SISTEMA.HEARTBEAT_START`/`HEARTBEAT_PAUSE`/`HEARTBEAT_ESTADO` (que venían justo después) nunca llegaban a registrarse. Síntoma derivado, visible en el mismo log: `[withTimeout] preiniciarHeartbeat timed out after 5000ms` — el prewarm de heartbeat se envía `HEARTBEAT_START` a sí mismo y nadie responde, porque el handler nunca se registró.
-
-**Fix aplicado:** añadido un segundo `while (typeof globalThis.registrarControladorSeguro !== 'function') { ... await sleep(50) ... }` (mismo límite de 200×50ms, mismo patrón que el de `mensajeria`) inmediatamente después del existente. Las 3 llamadas de registro además quedaron protegidas con `if (typeof globalThis.registrarControladorSeguro !== 'function') { logger.error(...) } else { ...registrar los 3... }` como defensa en profundidad, por si el wait de 10s se agotara sin éxito.
+**Guardas activas:** Script 4 espera explícitamente a `globalThis.registrarControladorSeguro` con el mismo patrón que usa para `globalThis.mensajeria` (`while (typeof globalThis.registrarControladorSeguro !== 'function') { ... await sleep(50) ... }`, límite de 200×50ms) antes de llamarlo. Las 3 llamadas de registro están además protegidas con `if (typeof globalThis.registrarControladorSeguro !== 'function') { logger.error(...) } else { ...registrar los 3... }` como defensa en profundidad, por si el wait de 10s se agotara sin éxito.
 
 **Regla general:** cada dependencia cross-script (una función expuesta por Script 1 en `globalThis` y usada desde Script 2/3/4) necesita su propio `while(typeof globalThis.fn !== 'function')` — no basta con que exista un wait cercano para OTRA dependencia. El orden de los `<script type="module">` en el documento no garantiza que Script 1 haya terminado de ejecutar todo su top-level cuando Script 4 empieza el suyo, porque los `await` tempranos de Script 1 dejan huecos donde scripts posteriores pueden avanzar antes.
 
@@ -11831,7 +11823,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 - `JAIME_SCENES[15]` es `null` — ninguna escena del array `run()` llama a `showBubble(15)`.
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
-- `sceneVid` **no** tiene atributo `loop` (quitado 2026-07-12: con `loop`, el evento `ended` nunca se dispara por especificación, dejando `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior). El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`.
+- `sceneVid` **no** tiene atributo `loop`: por especificación, con `loop` el evento `ended` nunca se dispara, lo que dejaría `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior. El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`.
 - `sceneVid` usa `reproducirVideoConBuffer()` (`js/video-playback-utils.js`, ver §15) para arrancar la reproducción: el `<video>` tiene `src` de red desde el principio (`display:none` hasta que hay buffer suficiente) con un spinner (`#vid-loading`) visible encima; al resolver la promesa (evento `canplaythrough`, `error`, o timeout de 15s) se oculta el spinner y se muestra el vídeo ya reproduciéndose. Mismo helper que usa `mostrarVideoOverlay()` en `codigo-padre.html` — no hay descarga completa previa (blob), el mecanismo escala igual a vídeos de segundos que de minutos.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 4 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
@@ -11847,7 +11839,7 @@ Esta sección define el protocolo estándar para pedir una auditoría exhaustiva
 2. Ejecuta `npm run test:e2e` (Playwright) y anota qué specs pasan y cuáles fallan. Usa el resultado como base para EJE 22 y para no re-auditar a mano lo que la suite ya cubre y confirma (EJE 5 ↔ `01-fase1-boot`, EJE 6 ↔ `09-mode-change`, EJE 8 ↔ `06-race-conditions`, EJE 18 ↔ `08-children-handshake`).
 3. Ejecuta `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) como punto de partida para EJE 4 y EJE 13 — señala tipos de `TIPOS_MENSAJE` sin receptor, sin emisor o sin ninguno de los dos. Tiene falsos positivos conocidos (indirección vía variable, handler registrado en una línea posterior a su definición): cada hallazgo se verifica leyendo el código real, nunca se actúa solo con esta salida.
 
-**Nota de contexto (2026-07-10):** el proyecto se desarrolla actualmente en local y el flujo de pago aún no está implementado. Los hallazgos de EJE 21 (servidor) relacionados con hardening de producción son informativos mientras dure esta etapa — no bloquean el trabajo salvo que representen pérdida de datos o crash en local.
+**Nota de contexto:** el proyecto se desarrolla actualmente en local y el flujo de pago aún no está implementado. Los hallazgos de EJE 21 (servidor) relacionados con hardening de producción son informativos mientras dure esta etapa — no bloquean el trabajo salvo que representen pérdida de datos o crash en local.
 
 ---
 
@@ -12021,7 +12013,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 5. Detecta condiciones siempre verdaderas o siempre falsas (dead branches).
 6. Detecta variables `const`/`let` declaradas pero nunca leídas.
 7. Verifica que todos los `await` en Scripts 3/4 están en contexto válido (top-level `await` de módulo ES2022, verificar compatibilidad de target).
-8. **API pública del logger** — el logger solo expone `.info()`, `.warn()`, `.error()`, `.debug()`. NO expone `.log()`. Cualquier `(globalThis.logger || console).log(...)` lanza `TypeError: .log is not a function` cuando el logger está inicializado (truthy pero sin `.log`). Buscar en todos los módulos JS cualquier llamada `.log(` combinada con `(globalThis.logger || console)` y cambiarla a `.info(` o `.debug(`. Ejemplo real (2026-07-06): `data-loader.js` línea 127 lanzaba TypeError en el success-path de `cargarMapaParrafos`, el catch devolvía `{}` y los textos de todas las paradas salían vacíos.
+8. **API pública del logger** — el logger solo expone `.info()`, `.warn()`, `.error()`, `.debug()`. NO expone `.log()`. Cualquier `(globalThis.logger || console).log(...)` lanza `TypeError: .log is not a function` cuando el logger está inicializado (truthy pero sin `.log`). Buscar en todos los módulos JS cualquier llamada `.log(` combinada con `(globalThis.logger || console)` y cambiarla a `.info(` o `.debug(`. Por ejemplo, un `.log()` sin capturar en el success-path de una función que alimenta un `try/catch` puede hacer que el catch devuelva un valor vacío por defecto sin que se note el error real — como ocurriría si `cargarMapaParrafos` lanzara el TypeError y su catch devolviera `{}`, dejando los textos de todas las paradas vacíos.
 9. **Try-block demasiado amplio en cargadores de datos** — si el try engloba tanto la operación de red como la línea de log de éxito, cualquier error en esa línea de log se convierte en fallo silencioso (el catch devuelve el valor por defecto `{}`). Verificar que las llamadas de confirmación de éxito usan únicamente métodos del logger que existen, o moverlas fuera del try.
 
 ---
@@ -12155,7 +12147,7 @@ El propio directorio `tests/` puede acumular archivos huérfanos que documentan 
 3. Para la suite Playwright real (`npm run test:e2e`, la única con ejecución confirmada): usa sus resultados como entrada de la preparación (ver arriba) — no reproduzcas a mano lo que ya cubre y pasa.
 4. Reporta los archivos de test huérfanos con veredicto 🕳️ HUÉRFANO o 💀 MUERTO y recomienda actualizarlos (si documentan intención real futura) o eliminarlos (si documentan una arquitectura descartada, como una API Express que ya no existe).
 
-**Por qué hace falta este eje:** EJE 13 busca huérfanos en el código de producción, pero nunca se aplicó a la propia suite de tests. En la auditoría de 2026-07-10 se encontraron ~10 archivos (`health.test.js`, `middleware.test.js`, `dataService.test.js`, `errors.test.js`, etc.) que hacen `require('../server')` y `require('backend/middleware/validation')` sin que exista ni `server.js` en la raíz ni carpeta `backend/` — restos de una API Express ya reemplazada por el `js/server.js` estático actual. La memoria de proyecto los describía como tests activos (Jest+supertest) hasta que se verificó lo contrario.
+**Por qué hace falta este eje:** EJE 13 busca huérfanos en el código de producción, pero eso no cubre la propia suite de tests. `tests/` contiene ~10 archivos (`health.test.js`, `middleware.test.js`, `dataService.test.js`, `errors.test.js`, etc.) que hacen `require('../server')` y `require('backend/middleware/validation')` sin que exista `server.js` en la raíz ni contenido dentro de `backend/` (el directorio existe pero está vacío) — restos de una API Express ya reemplazada por el `js/server.js` estático actual. La suite de tests puede acumular huérfanos como este sin que ningún otro eje de auditoría los detecte, dando una falsa sensación de cobertura.
 
 ---
 
