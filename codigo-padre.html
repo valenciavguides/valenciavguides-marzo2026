@@ -2757,9 +2757,8 @@
 
                     // ── Capas de mapa + selector desplegable ──────────────────
                     const _THUMB_SAT      = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3115/4088';
-                    const _THUMB_VOYAGER  = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/13/4088/3115.png';
-                    const _THUMB_OSM      = 'https://a.basemaps.cartocdn.com/light_all/13/4088/3115.png';
-                    const _THUMB_NOCTURNO = 'https://a.basemaps.cartocdn.com/dark_all/13/4088/3115.png';
+                    const _THUMB_OSM      = 'https://a.tile.openstreetmap.org/13/4088/3115.png';
+                    const _THUMB_NOCTURNO = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/13/3115/4088';
 
                     const _paneParent = map._rotatePane || map.getPane('mapPane');
 
@@ -2768,10 +2767,6 @@
                     map.getPane('labelsPane').style.filter = 'drop-shadow(0 0 1.5px #FFD700)';
                     map.getPane('labelsPane').style.pointerEvents = 'none';
 
-                    map.createPane('callejeroPane', _paneParent);
-                    map.getPane('callejeroPane').style.zIndex = 200;
-                    map.getPane('callejeroPane').style.filter = 'saturate(1.6) contrast(1.05)';
-
                     const _capaSatelite = L.tileLayer(
                         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                             maxZoom: 21, maxNativeZoom: 19,
@@ -2779,26 +2774,18 @@
                             detectRetina: true
                         }
                     );
-                    const _capaVoyager = L.tileLayer(
-                        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-                            maxZoom: 21, maxNativeZoom: 20,
-                            attribution: '© OpenStreetMap contributors © CARTO',
-                            detectRetina: true
-                        }
-                    );
+                    // Mismo tile OSM estándar que usa mapa-completo.html (botón "mapa moderno" de hijo2) —
+                    // trae los nombres de calle/lugar ya integrados en el propio tile, sin capa de etiquetas aparte.
                     const _capaOSM = L.tileLayer(
-                        'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-                            pane: 'callejeroPane',
-                            maxZoom: 21, maxNativeZoom: 20,
-                            attribution: '© OpenStreetMap contributors © CARTO',
-                            detectRetina: true
+                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '© OpenStreetMap contributors'
                         }
                     );
                     const _capaNocturno = L.tileLayer(
-                        'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-                            maxZoom: 21, maxNativeZoom: 20,
-                            attribution: '© OpenStreetMap contributors © CARTO',
-                            detectRetina: true
+                        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                            maxZoom: 21, maxNativeZoom: 16,
+                            attribution: '© Esri, HERE, Garmin, © OpenStreetMap contributors'
                         }
                     );
                     const _capaEtiquetas = L.tileLayer(
@@ -2810,19 +2797,18 @@
                         }
                     );
                     const _capaEtiquetasNoche = L.tileLayer(
-                        'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+                        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
                             pane: 'labelsPane',
-                            tileSize: 512, zoomOffset: -1,
-                            maxZoom: 21, maxNativeZoom: 20,
-                            attribution: '© OpenStreetMap contributors © CARTO',
-                            detectRetina: true
+                            maxZoom: 21, maxNativeZoom: 16,
+                            attribution: '© Esri, HERE, Garmin, © OpenStreetMap contributors'
                         }
                     );
+                    // Placeholder sin tiles: osm ya lleva las etiquetas integradas en el tile OSM estándar.
+                    const _capaSinEtiquetas = L.layerGroup();
 
                     const _MODOS_MAPA = [
                         { id: 'satelite', nombre: 'Satélite',  thumb: _THUMB_SAT,      capa: _capaSatelite, etiqCapa: _capaEtiquetas,      filtroCss: 'drop-shadow(0 0 1.5px #FFD700)' },
-                        { id: 'voyager',  nombre: 'Mapa',       thumb: _THUMB_VOYAGER,  capa: _capaVoyager,  etiqCapa: _capaEtiquetas,      filtroCss: 'drop-shadow(0 0 1.5px #FFD700)' },
-                        { id: 'osm',      nombre: 'Callejero',  thumb: _THUMB_OSM,      capa: _capaOSM,      etiqCapa: _capaEtiquetas,      filtroCss: 'drop-shadow(0 0 1.5px #FFD700)' },
+                        { id: 'osm',      nombre: 'Callejero',  thumb: _THUMB_OSM,      capa: _capaOSM,      etiqCapa: _capaSinEtiquetas,   filtroCss: 'none' },
                         { id: 'nocturno', nombre: 'Nocturno',   thumb: _THUMB_NOCTURNO, capa: _capaNocturno, etiqCapa: _capaEtiquetasNoche, filtroCss: 'none' },
                     ];
 
