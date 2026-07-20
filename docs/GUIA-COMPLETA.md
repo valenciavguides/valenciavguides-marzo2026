@@ -59,7 +59,7 @@ Cada aventura es un recorrido por distintos puntos de interés (llamados **parad
 
 **Siempre presentes:**
 
-- Ve su posición en un **mapa interactivo** con 4 modos de visualización: satélite, mapa callejero, callejero claro y nocturno.
+- Ve su posición en un **mapa interactivo** con 3 modos de visualización: satélite, callejero y nocturno.
 - Lee un **texto narrativo** con información detallada.
 
 **Presentes cuando la parada los tiene:**
@@ -2236,16 +2236,17 @@ Los 6 botones habilitados muestran una animación de giro cada 5 segundos (`@key
 
 **Invariante de scope**: estas funciones están declaradas a nivel de módulo (antes del bloque `DOMContentLoaded`) porque el controlador de mensajes `NAVEGACION.CAMBIO_PARADA` se registra fuera de `DOMContentLoaded` y necesita llamar a `_resetSpinsAventura()`. Si se mueven dentro de `DOMContentLoaded`, el handler no puede acceder a ellas y lanza `ReferenceError` silencioso.
 
-#### 4 modos de mapa — selector en el PADRE (`#selector-tipo-mapa`)
+#### 3 modos de mapa — selector en el PADRE (`#selector-tipo-mapa`)
 
-> El selector de capa de mapa **no pertenece a hijo2** — está creado dinámicamente en `codigo-padre.html` (línea ~2651) y posicionado encima del mapa Leaflet del padre (`position:fixed; top; left`). hijo2 no lo controla.
+> El selector de capa de mapa **no pertenece a hijo2** — está creado dinámicamente en `codigo-padre.html` (dentro de `inicializarMapa()`, buscar el comentario `// ── Capas de mapa + selector desplegable ──`) y posicionado encima del mapa Leaflet del padre (`position:fixed; top; left`). hijo2 no lo controla.
 
 | Modo | ID capa | Nombre UI | Proveedor tiles |
 |------|---------|-----------|-----------------|
-| Satélite (por defecto) | `'satelite'` | "Satélite" | ArcGIS World Imagery |
-| Mapa | `'voyager'` | "Mapa" | CartoDB Voyager (sin etiquetas) + capa etiquetas superpuesta |
-| Callejero | `'osm'` | "Callejero" | CartoDB Light No Labels (`basemaps.cartocdn.com/light_nolabels`) |
-| Nocturno | `'nocturno'` | "Nocturno" | CartoDB Dark Matter + capa etiquetas noche superpuesta |
+| Satélite (por defecto) | `'satelite'` | "Satélite" | ArcGIS World Imagery, con capa de etiquetas CARTO Voyager superpuesta (resplandor dorado) |
+| Callejero | `'osm'` | "Callejero" | OpenStreetMap estándar (`tile.openstreetmap.org`) — el mismo tile que usa `mapa-completo.html` (botón "mapa moderno" de hijo2). Nombres de calle ya integrados en el tile, sin capa de etiquetas aparte |
+| Nocturno | `'nocturno'` | "Nocturno" | CARTO Dark Matter, con filtro CSS `brightness(1.35) contrast(1.15)` en su propio pane y capa de etiquetas noche superpuesta (texto blanco nativo, sin resplandor) |
+
+Solo hay un modo claro ("Callejero"): dos estilos CARTO claros distintos resultarían visualmente casi indistinguibles como botones separados, así que el selector ofrece uno solo, con el tile OSM estándar que ya usa `mapa-completo.html`.
 
 #### Lógica de proximidad y LLEGADA_DETECTADA
 
@@ -4337,7 +4338,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-selector-mapa-jul20'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-nocturno-carto-jul20'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5893,14 +5894,14 @@ Para los tramos, la tolerancia dinámica se calcula a partir de la distancia ent
 
 El sistema de capas y el selector de mapa están implementados **directamente en el HTML**, no en módulos JS externos:
 
-- **Mapa de aventura**: bloque `<script>` inline de `codigo-padre.html`, dentro de la función `inicializarMapa()` (buscar el comentario `// ── Capas de mapa + selector desplegable ──`). Las variables llevan prefijo `_` para evitar colisiones con el resto del código del padre (`_capaSatelite`, `_capaVoyager`, `_MODOS_MAPA`, etc.).
-- **Mapa completo**: bloque `<script type="module">` de `mapa-completo.html`, justo después de crear la instancia `L.map('map', ...)`.
+- **Mapa de aventura**: bloque `<script>` inline de `codigo-padre.html`, dentro de la función `inicializarMapa()` (buscar el comentario `// ── Capas de mapa + selector desplegable ──`). Las variables llevan prefijo `_` para evitar colisiones con el resto del código del padre (`_capaSatelite`, `_capaOSM`, `_capaNocturno`, `_MODOS_MAPA`, etc.).
+- **Mapa completo**: bloque `<script type="module">` de `mapa-completo.html`, justo después de crear la instancia `L.map('map', ...)`. Usa directamente el tile OSM estándar, sin selector de modos ni capas de etiquetas separadas.
 
 `funciones-mapa.js` **no gestiona las capas de tiles**. Recibe la instancia Leaflet ya configurada y se limita a registrarla. Tampoco `mapa-vintage-aventuras.js` tiene relación con estas capas (ese fichero configura los mapas artísticos JPG que se muestran en overlays).
 
-#### Los 4 modos: origen de los tiles y URLs
+#### Los 3 modos: origen de los tiles y URLs
 
-Cada modo combina una **capa base** (imagen satelital o callejera) con una **capa de etiquetas** (nombres de calles y lugares) superpuesta. Ambas capas son gratuitas y no requieren clave de API.
+Satélite y Nocturno combinan una **capa base** con una **capa de etiquetas** superpuesta; Callejero usa un único tile con los nombres ya integrados. Todas las capas son gratuitas y no requieren clave de API.
 
 ##### Modo Satélite
 
@@ -5911,51 +5912,44 @@ https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/til
 maxNativeZoom: 19  →  a partir de zoom 20-21 Leaflet amplía los tiles del nivel 19
 ```
 
-##### Modo Mapa (Voyager)
+##### Modo Callejero
 
-Capa base: Carto Voyager sin etiquetas — estilo cartográfico limpio y moderno basado en OpenStreetMap.
-
-```text
-https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png
-```
-
-##### Modo Callejero (Positron)
-
-Capa base: Carto Light sin etiquetas — estilo blanco/gris minimalista. Se aplica `filter: saturate(1.6) contrast(1.05)` en el pane `callejeroPane` para compensar la palidez del estilo original. El pane propio evita que el filtro afecte a las capas base de los otros modos.
+Tile único: OpenStreetMap estándar — el mismo que usa `mapa-completo.html` (botón "mapa moderno" de hijo2), con los nombres de calle ya integrados en el propio tile.
 
 ```text
-https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png
-pane: 'callejeroPane'  →  z-index 200, filter saturate(1.6) contrast(1.05)
+https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+maxZoom: 19, sin pane propio (tilePane por defecto), sin capa de etiquetas
 ```
 
-##### Modo Nocturno (Dark Matter)
+##### Modo Nocturno
 
-Capa base: Carto Dark Matter sin etiquetas — fondo oscuro para uso nocturno.
+Capa base: CARTO Dark Matter sin etiquetas. Va en su propio pane (`nocturnoPane`) con un filtro de brillo/contraste para que las calles se distingan bien sobre el fondo oscuro — el estilo original de CARTO resultaba demasiado oscuro para leer sin ese ajuste.
 
 ```text
 https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png
+pane: 'nocturnoPane'  →  z-index 200, filter brightness(1.35) contrast(1.15)
 ```
 
-##### Capa de etiquetas — modos claro (satélite, mapa, callejero)
+##### Capa de etiquetas — modo Satélite
 
 ```text
 https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png
 pane: 'labelsPane'      →  z-index 400, siempre por encima de la capa base
 tileSize: 512           →  tiles del nivel anterior, 2× más grandes → texto más legible
 zoomOffset: -1          →  compensa el nivel de zoom del truco anterior
-filter: drop-shadow(0 0 1.5px #FFD700)  →  borde amarillo alrededor de letras negras
+filter: drop-shadow(0 0 1.5px #FFD700)  →  borde amarillo alrededor de letras negras, legible sobre imagen satelital
 ```
 
-##### Capa de etiquetas — modo nocturno
+##### Capa de etiquetas — modo Nocturno
 
 ```text
 https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png
 pane: 'labelsPane'      →  mismo pane, z-index 400
 tileSize: 512, zoomOffset: -1  →  mismo truco de tamaño
-filter: none            →  el texto ya es blanco de serie; no necesita filtro
+filter: none             →  el texto ya es blanco de serie; un halo de color aquí se difumina y dificulta la lectura
 ```
 
-El `{r}` al final de las URLs de Carto añade `@2x` en pantallas Retina cuando `detectRetina: true`.
+El modo Callejero no activa ninguna capa de `labelsPane` — su `etiqCapa` apunta a un `L.layerGroup()` vacío (`_capaSinEtiquetas`), ya que el tile OSM estándar trae los nombres integrados. El `{r}` al final de las URLs de Carto añade `@2x` en pantallas Retina cuando `detectRetina: true`. Las etiquetas de CARTO son tiles PNG pre-renderizados, no texto real — su tamaño y color no se pueden ajustar con más precisión que el truco `tileSize`/`zoomOffset` de arriba, y su tamaño en pantalla no crece al hacer zoom (comportamiento estándar en mapas raster: el texto se mantiene legible en un tamaño de píxel fijo en vez de escalar, igual que Google Maps u OSM).
 
 #### Arquitectura de panes Leaflet
 
@@ -5963,29 +5957,30 @@ Leaflet gestiona el orden de renderizado mediante **panes** (divs con `z-index` 
 
 | Pane | z-index | Qué contiene | CSS filter |
 |------|---------|--------------|------------|
-| `tilePane` (defecto) | 200 | Capas base de satélite, voyager y dark_nolabels | ninguno |
-| `callejeroPane` (custom) | 200 | Capa base light_nolabels (callejero) | `saturate(1.6) contrast(1.05)` |
-| `labelsPane` (custom) | 400 | Capa de etiquetas (siempre encima) | varía según modo (ver arriba) |
+| `tilePane` (defecto) | 200 | Capas base de satélite y callejero | ninguno |
+| `nocturnoPane` (custom) | 200 | Capa base `dark_nolabels` (nocturno) | `brightness(1.35) contrast(1.15)` |
+| `labelsPane` (custom) | 400 | Capa de etiquetas de satélite y nocturno (siempre encima) | varía según modo (ver arriba) |
 
 El filtro de `labelsPane` se actualiza dinámicamente al cambiar de modo:
 
 ```javascript
 map.getPane('labelsPane').style.filter = nuevo.filtroCss;
-// 'drop-shadow(0 0 1.5px #FFD700)'  para modos claro
-// 'none'                             para nocturno
+// 'drop-shadow(0 0 1.5px #FFD700)'  para satélite
+// 'none'                             para callejero y nocturno
 ```
 
 #### El botón selector desplegable
 
-El selector se construye **íntegramente en JavaScript** (sin HTML adicional en la página) y se añade al DOM con `document.body.appendChild(selectorDiv)`. Esto garantiza que esté en el contexto de apilamiento raíz, no dentro del pane de Leaflet.
+> Este selector **solo existe en el mapa de aventura** (`codigo-padre.html`). `mapa-completo.html` no tiene selector de estilo — usa un único tile OSM estándar fijo, sin alternativas ni miniaturas.
+
+El selector se construye **íntegramente en JavaScript** (sin HTML adicional en la página) y se añade al DOM con `document.body.appendChild(_selectorDiv)`. Esto garantiza que esté en el contexto de apilamiento raíz, no dentro del pane de Leaflet.
 
 Estructura del selector:
 
 ```text
 [Botón principal]   ← miniatura del modo activo, borde naranja
       │
-[Botón Satélite ]   ┐
-[Botón Mapa     ]   │ desplegable (max-height: 0 → 500px, transition 0.35s)
+[Botón Satélite ]   ┐ desplegable (max-height: 0 → 500px, transition 0.35s)
 [Botón Callejero]   │
 [Botón Nocturno ]   ┘
 ```
@@ -5995,32 +5990,31 @@ La miniatura de cada botón es un **tile real** de Valencia descargado directame
 | Modo | URL del thumbnail |
 |------|------------------|
 | Satélite | `https://server.arcgisonline.com/.../tile/13/3115/4088` |
-| Mapa | `https://a.basemaps.cartocdn.com/rastertiles/voyager/13/4088/3115.png` |
-| Callejero | `https://a.basemaps.cartocdn.com/light_all/13/4088/3115.png` |
+| Callejero | `https://a.tile.openstreetmap.org/13/4088/3115.png` |
 | Nocturno | `https://a.basemaps.cartocdn.com/dark_all/13/4088/3115.png` |
 
-Propiedades del botón según contexto:
+Propiedades del botón:
 
-| Propiedad | Mapa de aventura | Mapa completo |
-|-----------|-----------------|---------------|
-| Posición | `position: fixed; top: calc(1vmin + 12px); left: calc(1vmin + 2px)` (esquina sup-izquierda) | `position: fixed; top: 2.5vmin; left: 2.5vmin` |
-| Tamaño botón principal | `clamp(30px, 8.2vmin, 44px)` | `clamp(36px, 11vmin, 60px)` |
-| Tamaño botones desplegables | `clamp(24px, 7vmin, 36px)` | `clamp(36px, 11vmin, 60px)` |
-| Borde | `clamp(3.5px, 0.75vmin, 5px) solid #FF8C00` | `clamp(1.5px, 0.4vmin, 3px) solid #FF8C00` |
-| `z-index` | `1000080` — supera hijo5 (z-index 1000000) | `1000` |
-| Añadido a | `document.body` | `document.body` |
+| Propiedad | Valor |
+|-----------|-------|
+| Posición | `position: fixed; top: calc(1vmin + 12px); left: calc(1vmin + 2px)` (esquina sup-izquierda) |
+| Tamaño botón principal | `clamp(30px, 8.2vmin, 44px)` |
+| Tamaño botones desplegables | `clamp(24px, 7vmin, 36px)` |
+| Borde | `clamp(3.5px, 0.75vmin, 5px) solid #FF8C00` |
+| `z-index` | `1000080` — supera hijo5 (z-index 1000000) |
+| Añadido a | `document.body` |
 
 El botón se añade a `document.body` (no al contenedor de Leaflet) porque el `<div id="mapa">` tiene z-index 500, lo que haría que cualquier `position: absolute` dentro de él quedara por debajo de hijo5 (z-index 1000000). Al usar `position: fixed` sobre `body`, el z-index se resuelve en el contexto raíz del documento.
 
-Además, en el mapa de aventura el selector no permanece siempre visible: una función centralizada (`actualizarVisibilidadSelectorMapa()`) lo oculta temporalmente cuando se abre el chat, un reto (`hijo4`) o cualquiera de los overlays de imagen, vídeo, error o iframe, y lo vuelve a mostrar al cerrarlos.
+Además, el selector no permanece siempre visible: una función centralizada (`actualizarVisibilidadSelectorMapa()`) lo oculta temporalmente cuando se abre el chat, un reto (`hijo4`) o cualquiera de los overlays de imagen, vídeo, error o iframe, y lo vuelve a mostrar al cerrarlos.
 
 **Lógica de cambio de modo:**
 
 ```javascript
-function cambiarModo(nuevoId) {
-    if (nuevoId === modoActivo) return;
-    const actual = MODOS_MAPA.find(m => m.id === modoActivo);
-    const nuevo  = MODOS_MAPA.find(m => m.id === nuevoId);
+function _cambiarModo(nuevoId) {
+    if (nuevoId === _modoActivo) return;
+    const actual = _MODOS_MAPA.find(m => m.id === _modoActivo);
+    const nuevo  = _MODOS_MAPA.find(m => m.id === nuevoId);
     map.removeLayer(actual.capa);                          // quita base actual
     if (actual.etiqCapa !== nuevo.etiqCapa) {             // cambia etiquetas si difieren
         map.removeLayer(actual.etiqCapa);
@@ -6028,18 +6022,18 @@ function cambiarModo(nuevoId) {
     }
     map.getPane('labelsPane').style.filter = nuevo.filtroCss; // actualiza filtro
     nuevo.capa.addTo(map);                                 // añade nueva base
-    modoActivo = nuevoId;
-    actualizarBtnPrincipal();
+    _modoActivo = nuevoId;
+    _actualizarBtnPrincipal();
 }
 ```
 
-Solo hay una capa base activa en cada momento. La capa de etiquetas solo se reemplaza al cambiar entre modos claro ↔ nocturno (las tres variantes claras comparten `capaEtiquetas`). En `codigo-padre.html` las variables llevan prefijo `_` (`_cambiarModo`, `_MODOS_MAPA`, etc.) para no contaminar el ámbito global.
+Solo hay una capa base activa en cada momento. La capa de etiquetas solo se reemplaza al cambiar de modo cuando difiere de la anterior (satélite ↔ nocturno cambian de `_capaEtiquetas` a `_capaEtiquetasNoche`; callejero usa el `layerGroup` vacío `_capaSinEtiquetas`). En `codigo-padre.html` las variables llevan prefijo `_` (`_cambiarModo`, `_MODOS_MAPA`, etc.) para no contaminar el ámbito global.
 
 ---
 
 ### El mapa completo (`mapa-completo.html`)
 
-Página independiente que muestra todas las paradas y la polyline de la aventura en un mapa con el mismo sistema de 4 modos descrito arriba. Se abre desde el botón `#btn-mapa-completo` de hijo2. Recibe la aventura activa por parámetro URL (`?aventura=Aventura1`).
+Página independiente que muestra todas las paradas y la polyline de la aventura sobre un único tile OSM estándar fijo — sin selector de modos ni miniaturas, a diferencia del mapa de aventura descrito arriba. Se abre desde el botón `#btn-mapa-completo` de hijo2. Recibe la aventura activa por parámetro URL (`?aventura=Aventura1`).
 
 **Tipos de elemento que dibuja:**
 
@@ -6975,7 +6969,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-selector-mapa-jul20'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-nocturno-carto-jul20'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7568,7 +7562,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-selector-mapa-jul20'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-nocturno-carto-jul20'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8239,7 +8233,7 @@ En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simu
 
 La pantalla de aventura se compone de varios elementos superpuestos:
 
-**El mapa** (fondo completo): Ocupa toda la pantalla. Muestra la posición del usuario, las paradas y la ruta. Por defecto en modo satélite (ESRI); el botón selector naranja en la esquina superior **izquierda** permite cambiar a Mapa Voyager, Callejero claro o Nocturno.
+**El mapa** (fondo completo): Ocupa toda la pantalla. Muestra la posición del usuario, las paradas y la ruta. Por defecto en modo satélite (ESRI); el botón selector naranja en la esquina superior **izquierda** permite cambiar a Callejero (OSM estándar) o Nocturno.
 
 **Hijo 2 — Coordenadas** (esquina inferior-izquierda): Contiene **6 botones** organizados en 1 fila de 6:
 
@@ -11017,7 +11011,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-selector-mapa-jul20';
+const CACHE_VERSION = 'v-nocturno-carto-jul20';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.

@@ -2758,7 +2758,7 @@
                     // ── Capas de mapa + selector desplegable ──────────────────
                     const _THUMB_SAT      = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3115/4088';
                     const _THUMB_OSM      = 'https://a.tile.openstreetmap.org/13/4088/3115.png';
-                    const _THUMB_NOCTURNO = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/13/3115/4088';
+                    const _THUMB_NOCTURNO = 'https://a.basemaps.cartocdn.com/dark_all/13/4088/3115.png';
 
                     const _paneParent = map._rotatePane || map.getPane('mapPane');
 
@@ -2766,6 +2766,10 @@
                     map.getPane('labelsPane').style.zIndex = 400;
                     map.getPane('labelsPane').style.filter = 'drop-shadow(0 0 1.5px #FFD700)';
                     map.getPane('labelsPane').style.pointerEvents = 'none';
+
+                    map.createPane('nocturnoPane', _paneParent);
+                    map.getPane('nocturnoPane').style.zIndex = 200;
+                    map.getPane('nocturnoPane').style.filter = 'brightness(1.35) contrast(1.15)';
 
                     const _capaSatelite = L.tileLayer(
                         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -2783,9 +2787,11 @@
                         }
                     );
                     const _capaNocturno = L.tileLayer(
-                        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-                            maxZoom: 21, maxNativeZoom: 16,
-                            attribution: '© Esri, HERE, Garmin, © OpenStreetMap contributors'
+                        'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+                            pane: 'nocturnoPane',
+                            maxZoom: 21, maxNativeZoom: 20,
+                            attribution: '© OpenStreetMap contributors © CARTO',
+                            detectRetina: true
                         }
                     );
                     const _capaEtiquetas = L.tileLayer(
@@ -2797,10 +2803,12 @@
                         }
                     );
                     const _capaEtiquetasNoche = L.tileLayer(
-                        'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+                        'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
                             pane: 'labelsPane',
-                            maxZoom: 21, maxNativeZoom: 16,
-                            attribution: '© Esri, HERE, Garmin, © OpenStreetMap contributors'
+                            tileSize: 512, zoomOffset: -1,
+                            maxZoom: 21, maxNativeZoom: 20,
+                            attribution: '© OpenStreetMap contributors © CARTO',
+                            detectRetina: true
                         }
                     );
                     // Placeholder sin tiles: osm ya lleva las etiquetas integradas en el tile OSM estándar.
