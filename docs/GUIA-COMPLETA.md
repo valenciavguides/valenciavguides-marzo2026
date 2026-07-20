@@ -4337,7 +4337,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-av34km-contenido-jul17'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-av34km-referencias-jul20'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6981,7 +6981,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-av34km-contenido-jul17'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-av34km-referencias-jul20'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7574,7 +7574,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-av34km-contenido-jul17'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-av34km-referencias-jul20'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9369,7 +9369,7 @@ Iframe transparente de pantalla completa. Muestra la lista scrollable de paradas
 
 ### 25.10 Referencias visuales en el mapa (tipo "referencia")
 
-Una referencia visual es un monumento que **se menciona en el texto o audio de una parada** pero que el usuario **nunca visita físicamente**.
+Una referencia visual es el marcador numerado que `mapa-completo.html` dibuja para **cada punto numerado del mapa impreso original** (el guión de cada aventura numera sus monumentos 1, 2, 3…). Las `parada`/`inicio`/`tramo` llevan su propio `mapa_numero` pero **no** se dibujan como píldora numerada en el mapa interactivo — solo son vértices de la polilínea. Por eso **todo punto numerado necesita su propia entrada `referencia`**, sea o no también una parada con audio/reto propio: en Aventura1, las 23 referencias coinciden en coordenadas con 23 paradas ya existentes (mismo monumento, doble entrada). Confirmado empíricamente 2026-07-20 al construir las 89 referencias de Aventura34km (una por cada pin 1-89 del guión, coordenadas/nombre/imagen copiados literalmente de la referencia equivalente en otra aventura cuando el monumento se repite). Excepción: los sub-puntos internos de una zona numerada aparte en el propio guión (p. ej. Viveros v1-v12 dentro de Av34km) no necesitan referencia propia — el conjunto cuenta como un único pin en la secuencia principal.
 
 | Tipo | GPS | Audio | Reto | Marcador en mapa | En `elementosIDpadre` |
 |------|-----|-------|------|------------------|-----------------------|
@@ -11023,7 +11023,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-av34km-contenido-jul17';
+const CACHE_VERSION = 'v-av34km-referencias-jul20';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
