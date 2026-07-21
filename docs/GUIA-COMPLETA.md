@@ -8687,7 +8687,7 @@ Hay dos overlays distintos relacionados con GPS que no deben confundirse:
 
 Una imagen a pantalla completa (`imagenes/imagenes-aplicación/fotogpserror.png`) con dos botones:
 
-- **🛰️🔄** — botón de reintento: lanza `getCurrentPosition()` para obtener una nueva lectura inmediata. Si la precisión mejora, procesa la posición y cierra el overlay automáticamente.
+- **🛰️🔄** — botón de reintento: lanza `getCurrentPosition()` para obtener una nueva lectura inmediata. Si la precisión mejora (≤50m), procesa la posición y cierra el overlay automáticamente; si la nueva lectura sigue siendo peor de 50m, se descarta igual que cualquier otra y el overlay permanece.
 - **✖** — botón de cierre: descarta el overlay sin reintentar (el `watchPosition` sigue activo en segundo plano).
 
 El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la señal sea mala.
@@ -8837,7 +8837,7 @@ El botón que aparece depende del motivo:
 
 A veces el GPS funciona, pero la precisión que reporta es peor de 50 metros (por ejemplo, el teléfono está usando torres de telefonía en vez de satélites). En ese caso, la posición no es fiable y la aplicación la descarta para evitar falsos positivos.
 
-El usuario ve el overlay de baja precisión (`fotogpserror.png`) con el botón 🛰️🔄 y una cuenta atrás de 15 segundos. Si en la siguiente lectura la precisión mejora por debajo de 50 m, el overlay desaparece solo. Si el usuario pulsa el botón, se lanza una lectura inmediata.
+El usuario ve el overlay de baja precisión (`fotogpserror.png`) con el botón 🛰️🔄 y una cuenta atrás de 15 segundos. Si en la siguiente lectura la precisión mejora por debajo de 50 m, el overlay desaparece solo. Si el usuario pulsa el botón, se lanza una lectura inmediata — pero esa lectura solo cierra el overlay si su precisión es de verdad suficiente; si sigue siendo peor de 50 m, el overlay permanece (la lectura se descarta y queda registrada en analítica) en vez de desaparecer dando una falsa sensación de que ya se ha resuelto.
 
 Este caso ya estaba documentado en §25.14 con más detalle técnico.
 
@@ -11137,7 +11137,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 **Diferencia entre código 2 y código 3:**
 
 - Código 2 (POSITION_UNAVAILABLE, GPS apagado): sin reintento automático. El `watchPosition` queda registrado y el browser lo retomará cuando el GPS vuelva.
-- Código 3 (TIMEOUT): reintento automático existente en `_gpsRetryOnTimeout()` — hasta 3 intentos con `enableHighAccuracy: false` y backoff exponencial (15s, 30s, 60s).
+- Código 3 (TIMEOUT): reintento automático en `_gpsRetryOnTimeout()` — hasta `Config.GPS.REINTENTOS` intentos (3 por defecto) con `enableHighAccuracy: false` y backoff exponencial. Cada reintento reutiliza `_watchPositionSuccess`/`_watchPositionError` como callbacks del nuevo `watchPosition` (no una copia propia): si ese reintento también agota el tiempo, `_watchPositionError` se ejecuta de nuevo y encadena el siguiente intento hasta agotar el máximo — el conteo de reintentos y el encadenado son consistentes en toda la cadena, no solo en el primer intento.
 
 **Qué ve el usuario:** overlay a pantalla completa con `imagen-no-gps.png`. El botón de reintento distingue visualmente entre los dos códigos — antes usaban el mismo icono y no se podían diferenciar a simple vista:
 
@@ -11153,8 +11153,10 @@ Además, botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que e
 1. Pulsar → botón se deshabilita
 2. Contador descendente de 15 segundos
 3. La app llama a `getCurrentPosition` una vez (reintento manual)
-4. Si GPS vuelve → overlay desaparece, la posición se procesa normalmente con `procesarPosicionGPSParaAventura()`
-5. Si no → botón se habilita de nuevo al llegar a 0
+4. Recibir una posición no basta para dar el reintento por bueno: si su precisión sigue siendo peor de 50m, `procesarPosicionGPSParaAventura()` la descarta por dentro (y registra el evento de analítica `GPS_DESCARTADO` + contador `gps.posicion_descartada`) — el overlay no desaparece, cambia al de "baja precisión" (`showGpsOutOfRangeOverlay`) en vez de ocultarse como si el problema estuviera resuelto
+5. Si la precisión es suficiente → overlay desaparece, la posición ya se procesó normalmente
+6. Si `getCurrentPosition` falla directamente (sin posición en absoluto) → se vuelve a mostrar este mismo overlay con el código de error real, en vez de quedarse congelado sin explicar qué pasó
+7. Si nada de lo anterior ocurre → botón se habilita de nuevo al llegar a 0
 
 **Recuperación automática:** cuando el GPS del dispositivo vuelve, el `watchPosition` registrado (que nunca se eliminó) recibe la nueva posición, `_watchPositionSuccess()` se ejecuta y el overlay desaparece solo.
 
@@ -11257,13 +11259,13 @@ El overlay actual `#gps-out-of-range-overlay` (imagen `fotogpserror.png`) se dis
 
 **Comportamiento actual:**
 
-- Se muestra cuando `accuracy > 50m` en `_watchPositionSuccess()` ([codigo-padre.html:4836](codigo-padre.html#L4836))
-- Contiene botón 🛰️🔄 en esquina inferior derecha que intenta `getCurrentPosition` manual
-- Si el reintento devuelve una posición de buena calidad → overlay desaparece
+- Se muestra cuando `accuracy > 50m` en `_watchPositionSuccess()`
+- Contiene botón 🛰️🔄 con cuenta atrás de 15 segundos que intenta `getCurrentPosition` manual
+- Si el reintento devuelve una posición de buena calidad → overlay desaparece. Si devuelve una posición pero sigue sin precisión suficiente, el overlay permanece (no desaparece dando una falsa sensación de que ya se resolvió) — ver detalle en «¿Y si el GPS tiene poca precisión?», arriba en esta misma sección.
 
-**Integración en la nueva taxonomía:** este overlay se mantiene pero su botón se reposiciona (centrado abajo) y su comportamiento se alinea con los casos 30.2 y 30.5 — usando el mismo patrón de countdown de 15 segundos antes de rehabilitar el botón.
+**Integración en la nueva taxonomía:** este overlay se mantiene, alineado con los casos 30.2 y 30.5 usando el mismo patrón de countdown de 15 segundos antes de rehabilitar el botón.
 
-**Estado de implementación:** ⚠️ parcialmente implementado — el overlay existe y funciona; pendiente de ajustar posición del botón y añadir countdown.
+**Estado de implementación:** ✅ implementado — overlay, botón y countdown funcionan.
 
 ---
 
