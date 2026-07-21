@@ -438,12 +438,12 @@
                 right: 0;
                 width: 3.25rem;
                 height: 3.25rem;
-                background: #ff8c00;
-                border: 0.3125rem solid #ff0000;
+                background: #F28500;
+                border: 0.3125rem solid #50C878;
                 border-radius: 50%;
                 font-size: 3.4375rem;
                 font-weight: bold;
-                color: #000;
+                color: #0F0616;
                 cursor: pointer;
                 z-index: 1000070 !important;
                 display: flex;
@@ -456,8 +456,8 @@
             }
 
             #gps-out-of-range-overlay .btn-cerrar-overlay:hover {
-                background: #ff6600;
-                border-color: #cc0000;
+                background: #d97400;
+                border-color: #3ea862;
                 transform: scale(1.1);
                 box-shadow: 0 0.375rem 1.25rem rgba(0, 0, 0, 0.4);
             }
@@ -682,12 +682,12 @@
             right: 0;
             width: 3.25rem;
             height: 3.25rem;
-            background: #ff8c00;
-            border: 0.3125rem solid #ff0000;
+            background: #F28500;
+            border: 0.3125rem solid #50C878;
             border-radius: 50%;
             font-size: 3.4375rem;
             font-weight: bold;
-            color: #000;
+            color: #0F0616;
             cursor: pointer;
             z-index: 1000070;
             display: flex;
@@ -698,7 +698,7 @@
         }
 
         #gps-restricted-overlay .btn-cerrar-overlay:hover {
-            background: #ff6600;
+            background: #d97400;
             transform: scale(1.1);
         }
 
@@ -943,7 +943,7 @@
             height: calc(95vh - var(--gap-superior) - env(safe-area-inset-bottom, 0px));
             height: calc(95dvh - var(--gap-superior) - env(safe-area-inset-bottom, 0px));
             background: #fff8e7;
-            border: 0.3125rem solid #00ff00; /* Marco verde de 0.3125rem */
+            border: 0.3125rem solid #8FE0A8; /* Marco verde esmeralda claro */
             border-radius: 0.9375rem;
             box-shadow: 0 0.9375rem 3.125rem rgba(0, 0, 0, 0.7);
             overflow: visible; /* Cambiado de hidden a visible para permitir que el botón X sobresalga */
@@ -984,12 +984,12 @@
             right: 0;
             width: 3.25rem;
             height: 3.25rem;
-            background: #ff8c00; /* Fondo naranja */
-            border: 0.3125rem solid #ff0000; /* Borde rojo de 0.3125rem */
+            background: #F28500; /* Fondo naranja clementine */
+            border: 0.3125rem solid #50C878; /* Borde verde esmeralda de 0.3125rem */
             border-radius: 50%;
             font-size: 3.4375rem;
             font-weight: bold;
-            color: #000;
+            color: #0F0616; /* Negro púrpura */
             cursor: pointer;
             z-index: 1000020 !important; /* Z-index especificado */
             display: flex;
@@ -1008,9 +1008,16 @@
             user-select: none;
         }
 
+        .icono-x-cerrar {
+            display: inline-block;
+            transform: scaleY(1.4);
+            text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            -webkit-text-stroke: 1px #0F0616;
+        }
+
         .btn-cerrar-overlay:hover {
-            background: #ff6600; /* Naranja más oscuro en hover */
-            border-color: #cc0000; /* Rojo más oscuro en hover */
+            background: #d97400; /* Naranja clementine más oscuro en hover */
+            border-color: #3ea862; /* Verde esmeralda más oscuro en hover */
             transform: scale(1.1);
             box-shadow: 0 0.375rem 1.25rem rgba(0, 0, 0, 0.4);
         }
@@ -1692,7 +1699,7 @@
             overlay.className = 'media-overlay';
             overlay.innerHTML = `
                     <div class="media-contenedor imagen-contenedor" style="justify-content:center;align-items:center;display:flex;flex-direction:column;gap:1rem;">
-                        <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen">&times;</button>
+                        <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen"><span class="icono-x-cerrar">✗</span></button>
                         <div style="font-size:3rem;opacity:0.3;">🖼️</div>
                         <p style="color:#666;font-size:0.9em;text-align:center;margin:0;padding:0 1rem;">${_galeriaEscaparHTML(mensajeError || 'No hay imagen disponible para esta parada')}</p>
                     </div>
@@ -1724,7 +1731,7 @@
             overlay.className = 'media-overlay';
             overlay.innerHTML = `
                 <div class="media-contenedor imagen-contenedor">
-                    <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen">&times;</button>
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar imagen"><span class="icono-x-cerrar">✗</span></button>
                     <div class="galeria-imagen-wrapper" id="galeria-wrapper">
                         <img id="galeria-img" alt="${_galeriaEscaparHTML(titulo || 'Imagen de la parada')}">
                     </div>
@@ -1946,7 +1953,7 @@
             overlay.className = 'media-overlay';
             overlay.innerHTML = `
                 <div class="media-contenedor video-contenedor" style="justify-content:center;align-items:center;display:flex;flex-direction:column;gap:1rem;">
-                    <button type="button" class="btn-cerrar-overlay" title="Cerrar video">&times;</button>
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar video"><span class="icono-x-cerrar">✗</span></button>
                     <div style="font-size:3rem;opacity:0.3;">🎬</div>
                     <p style="color:#666;font-size:0.9em;text-align:center;margin:0;padding:0 1rem;">${mensajeError || 'No hay video disponible para esta parada'}</p>
                 </div>
@@ -1970,7 +1977,7 @@
             overlay.className = 'media-overlay';
             overlay.innerHTML = `
                 <div class="media-contenedor video-contenedor">
-                    <button type="button" class="btn-cerrar-overlay" title="Cerrar video">×</button>
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar video"><span class="icono-x-cerrar">✗</span></button>
                     <video controls preload="auto">
                         <source type="video/mp4">
                         Tu navegador no soporta el elemento video.
@@ -2110,7 +2117,7 @@
                 overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
                 overlay.innerHTML = `
                     <div class="media-contenedor" style="background: #fff8e7; padding: 40px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                        <button type="button" class="btn-cerrar-overlay" title="Cerrar">×</button>
+                        <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                         <div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">⚠️</div>
                         <h3 style="color: #333; margin: 0 0 15px 0; font-size: 24px;">404</h3>
                         <p id="error-message" style="color: #666; margin: 0; font-size: 14px; line-height: 1.4; max-width: 500px;"></p>
@@ -2168,7 +2175,7 @@
                 overlay.className = 'media-overlay';
                 overlay.innerHTML = `
                     <div class="media-contenedor iframe-contenedor">
-                        <button type="button" class="btn-cerrar-overlay" title="Cerrar">×</button>
+                        <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                         <iframe src="${urlIframe}" frameborder="0" scrolling="no" allowfullscreen style="width:100%; height:100%; display:block; border:0;"></iframe>
                     </div>
                 `;
@@ -2840,8 +2847,8 @@
                             { id: 'callejero-layer', type: 'raster', source: 'callejero-src', layout: { visibility: 'none' } },
                             {
                                 id: 'nocturno-layer', type: 'raster', source: 'nocturno-src', layout: { visibility: 'none' },
-                                // Equivalente al filtro CSS brightness/contrast que se usaba con Leaflet — el
-                                // Dark Matter de CARTO resulta demasiado oscuro para leer bien sin ajustar.
+                                // Ajuste de brillo/contraste del tile nocturno — el Dark Matter de
+                                // CARTO resulta demasiado oscuro para leer bien sin ajustar.
                                 // Verificado directamente contra el shader de MapLibre (js/vendor/maplibre-gl-csp.js):
                                 // output = brightness-min + rgb*(brightness-max - brightness-min). O sea:
                                 // brightness-max es el valor de salida para los blancos (bajarlo OSCURECE los
@@ -2965,7 +2972,7 @@
                     const map = new maplibregl.Map({
                         container: 'mapa',
                         style: _ESTILO_MAPA,
-                        center: [-0.3763, 39.4699], // Valencia — MapLibre usa [lng, lat], al revés que Leaflet
+                        center: [-0.3763, 39.4699], // Valencia — MapLibre espera [lng, lat], no [lat, lng]
                         zoom: 13,
                         minZoom: 12,
                         maxZoom: _MAPA_MAX_ZOOM,
@@ -5588,7 +5595,7 @@
             closeBtnMain.type = 'button';
             closeBtnMain.setAttribute('aria-label', 'Cerrar overlay GPS');
             closeBtnMain.title = 'Cerrar';
-            closeBtnMain.innerHTML = '✖';
+            closeBtnMain.innerHTML = '<span class="icono-x-cerrar">✗</span>';
             closeBtnMain.addEventListener('click', () => {
                 try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             });
@@ -5735,7 +5742,7 @@
             closeBtn.type = 'button';
             closeBtn.setAttribute('aria-label', 'Cerrar');
             closeBtn.title = 'Cerrar';
-            closeBtn.innerHTML = '✖';
+            closeBtn.innerHTML = '<span class="icono-x-cerrar">✗</span>';
             closeBtn.addEventListener('click', () => {
                 try { hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             });
@@ -5858,7 +5865,7 @@
             closeBtn.type = 'button';
             closeBtn.setAttribute('aria-label', 'Cerrar');
             closeBtn.title = 'Cerrar';
-            closeBtn.innerHTML = '✖';
+            closeBtn.innerHTML = '<span class="icono-x-cerrar">✗</span>';
             closeBtn.addEventListener('click', () => {
                 try { hideInternetOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             });
@@ -5959,7 +5966,7 @@
             el.setAttribute('aria-live', 'polite');
             el.innerHTML = `
                 <div class="restricted-inner">
-                    <button class="btn-cerrar-overlay" type="button" aria-label="Cerrar" title="Cerrar">✖</button>
+                    <button class="btn-cerrar-overlay" type="button" aria-label="Cerrar" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
                     <div class="restricted-content">
                         <div class="emoji-row">
                             <span class="emoji-user">🚶‍♂️</span>
@@ -6164,11 +6171,11 @@
                     btnClose.type = 'button';
                     btnClose.setAttribute('aria-label', 'Cerrar');
                     btnClose.title = 'Cerrar';
-                    btnClose.innerHTML = '✖';
+                    btnClose.innerHTML = '<span class="icono-x-cerrar">✗</span>';
                     // Mismo patrón visual que el resto de botones de cerrar de la app
-                    // (naranja + borde rojo + X negra + círculo) — solo la posición
-                    // (centrado bajo el resto del contenido, no esquina superior) es
-                    // propia de este diálogo anidado.
+                    // (naranja clementine + borde verde esmeralda + X negro púrpura + círculo)
+                    // — solo la posición (centrado bajo el resto del contenido, no esquina
+                    // superior) es propia de este diálogo anidado.
                     btnClose.style.marginTop = '12px';
                     btnClose.style.display = 'flex';
                     btnClose.style.alignItems = 'center';
@@ -6178,9 +6185,9 @@
                     btnClose.style.width = '3.25rem';
                     btnClose.style.height = '3.25rem';
                     btnClose.style.borderRadius = '50%';
-                    btnClose.style.border = '0.3125rem solid #ff0000';
-                    btnClose.style.background = '#ff8c00';
-                    btnClose.style.color = '#000';
+                    btnClose.style.border = '0.3125rem solid #50C878';
+                    btnClose.style.background = '#F28500';
+                    btnClose.style.color = '#0F0616';
                     btnClose.style.fontSize = '3.4375rem';
                     btnClose.style.fontWeight = 'bold';
                     btnClose.style.lineHeight = '1';

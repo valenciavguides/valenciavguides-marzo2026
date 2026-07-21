@@ -340,12 +340,12 @@
             right: 0;
             width: 3.25rem;
             height: 3.25rem;
-            background: #ff8c00;
-            border: 0.3125rem solid #ff0000;
+            background: #F28500;
+            border: 0.3125rem solid #50C878;
             border-radius: 50%;
             font-size: 3.4375rem;
             font-weight: bold;
-            color: #000;
+            color: #0F0616;
             cursor: pointer;
             z-index: 1000000;
             display: flex;
@@ -354,6 +354,12 @@
             box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.3);
             pointer-events: auto;
             touch-action: manipulation;
+        }
+        .icono-x-cerrar {
+            display: inline-block;
+            transform: scaleY(1.4);
+            text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            -webkit-text-stroke: 1px #0F0616;
         }
 
         /* Countdown timer fuera de rango — fijo en borde inferior, centrado */
@@ -413,7 +419,7 @@
     <!-- Overlay fuera de rango -->
     <dialog id="fuera-rango-overlay" aria-label="Fuera de rango">
         <div class="fuera-rango-inner">
-            <button class="btn-cerrar-fuera-rango" type="button" aria-label="Cerrar">✖</button>
+            <button class="btn-cerrar-fuera-rango" type="button" aria-label="Cerrar"><span class="icono-x-cerrar">✗</span></button>
             <img src="imagenes/imagenes-aplicación/foto-fuera-rango.png" alt="Estás fuera de rango">
         </div>
     </dialog>

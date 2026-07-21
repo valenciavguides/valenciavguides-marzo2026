@@ -169,7 +169,7 @@ let marcadorHaloUsuario = null;
 let deviceOrientationHeading = 0;
 let flechaActiva = false;
 let compassActiva = false;
-let _mapaInstance = null; // Instancia del mapa Leaflet
+let _mapaInstance = null; // Instancia del mapa MapLibre
 let _mapaOpciones = null; // Opciones del mapa
 let _pulseTimeout = null; // Timeout del efecto de llegada (cancelable)
 
@@ -209,12 +209,12 @@ const estadoMapa = {
 };
 
 // =====================================================
-// HELPERS MAPLIBRE (sustituyen la API de Leaflet: L.marker, L.divIcon,
-// L.polyline, L.circle — usados en todo el resto de este fichero)
+// HELPERS MAPLIBRE (usados en todo el resto de este fichero para
+// marcadores HTML, polylines y círculos geográficos)
 // =====================================================
 
 /**
- * Convierte una coordenada en formato Leaflet ([lat,lng] o {lat,lng}) al [lng,lat]
+ * Convierte una coordenada en formato [lat,lng] o {lat,lng} al [lng,lat]
  * que espera MapLibre GL en todas sus APIs (center, LngLat, coordenadas GeoJSON...).
  * @param {Array<number>|{lat:number,lng:number}} coord
  * @returns {[number,number]}
@@ -226,8 +226,7 @@ function aLngLat(coord) {
 
 /**
  * Caja delimitadora [[minLng,minLat],[maxLng,maxLat]] a partir de un conjunto de
- * puntos — formato que espera map.fitBounds() en MapLibre (equivalente a
- * L.latLngBounds(puntos) en Leaflet).
+ * puntos — formato que espera map.fitBounds() en MapLibre.
  * @param {Array<Array<number>|{lat:number,lng:number}>} puntos
  * @returns {[[number,number],[number,number]]|null}
  */
@@ -614,7 +613,7 @@ function _inyectarEstilosReferencia() {
         #referencia-popup .ref-popup-card {
             position: relative;
             background: white;
-            border: 0.3125rem solid #00ff00;
+            border: 0.3125rem solid #8FE0A8;
             border-radius: 0.9375rem;
             box-shadow: 0 0.9375rem 3.125rem rgba(0,0,0,0.7);
             padding: 2.2rem 2rem 1.5rem;
@@ -1096,7 +1095,7 @@ export async function setMapView(center, zoom, opciones = {}) {
                 if (opciones?.animate === false) {
                     mapa.jumpTo({ center, zoom: finalZoom });
                 } else {
-                    // Leaflet expresaba duration en segundos; MapLibre lo espera en ms.
+                    // MapLibre espera duration en milisegundos (opciones.duration llega en segundos).
                     const durationMs = Number.isFinite(opciones?.duration) ? opciones.duration * 1000 : 300;
                     mapa.easeTo({ center, zoom: finalZoom, duration: durationMs });
                 }
@@ -1363,14 +1362,11 @@ export function limpiarRecursos() {
         rutasActivas.forEach(ruta => ruta.remove());
         rutasActivas = [];
 
-        // NOTA: Leaflet permitía que cualquier addTo(map) creara una capa "suelta"
-        // no rastreada por este módulo, por eso hacía falta un barrido eachLayer()
-        // de seguridad al final. En MapLibre toda fuente/capa se crea con un id
-        // explícito a través de los helpers _crearMarcadorHTML/_crearPolyline/
-        // _crearCirculoGeografico de este mismo fichero, y todos quedan en los
-        // registros de arriba — no existe la categoría de "capa huérfana no
-        // rastreada" que este barrido buscaba, ni una API eachLayer con la que
-        // implementarlo si hiciera falta.
+        // Toda fuente/capa se crea con un id explícito a través de los helpers
+        // _crearMarcadorHTML/_crearPolyline/_crearCirculoGeografico de este mismo
+        // fichero, y todos quedan en los registros de arriba — no existe la
+        // categoría de "capa huérfana no rastreada", ni una API eachLayer con la
+        // que barrerla si hiciera falta.
 
         logger.debug('Recursos del mapa limpiados completamente');
 
@@ -1439,9 +1435,8 @@ export async function mostrarTodasLasParadas(paradasExternas) {
 
         arrayParadasLocal.forEach(parada => {
             if (parada.coordenadas && validarCoordenadas(parada.coordenadas)) {
-                // Sin icono personalizado — igual que el L.marker original, que usaba
-                // el pin azul por defecto de Leaflet. Aquí el equivalente es el pin
-                // por defecto de MapLibre (anchor 'bottom': la punta toca el punto).
+                // Sin icono personalizado — usa el pin por defecto de MapLibre
+                // (anchor 'bottom': la punta toca el punto).
                 const marcador = new maplibregl.Marker({ anchor: 'bottom' })
                     .setLngLat(aLngLat(parada.coordenadas))
                     .addTo(_mapaInstance);
@@ -1606,9 +1601,9 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
             try {
                 const bounds = _bboxDesdePuntos(puntos);
                 _mapaInstance.fitBounds(bounds, {
-                    padding: 50, // Leaflet usaba [50,50] (simétrico) — MapLibre acepta un número único
+                    padding: 50, // MapLibre acepta un número único (padding simétrico)
                     maxZoom: 16,
-                    duration: 500 // Leaflet: 0.5s; MapLibre espera milisegundos
+                    duration: 500 // milisegundos
                 });
                 logger.debug('Zoom ajustado para mostrar toda la ruta');
             } catch (boundsError) {
@@ -1773,7 +1768,7 @@ function actualizarOrientacionFlecha(event) {
 }
 
 /**
- * Actualiza solo el CSS transform de la flecha GPS (no recrea el marcador Leaflet).
+ * Actualiza solo el CSS transform de la flecha GPS (no recrea el marcador).
  * Llamada hasta 30 veces/segundo desde DeviceOrientationEvent.
  */
 function actualizarRotacionFlechaGPS(heading) {
@@ -3253,7 +3248,7 @@ globalThis.funcionesMapa = {
     fitMapBounds: async function(puntosLatLng, opciones = {}) {
         return ejecutarOperacionMapa(mapa => {
             const bounds = _bboxDesdePuntos(puntosLatLng);
-            // padding: Leaflet aceptaba [x,y]; MapLibre acepta un número único o {top,bottom,left,right}
+            // padding: MapLibre acepta un número único o {top,bottom,left,right}
             const padding = Array.isArray(opciones.padding) ? Math.max(...opciones.padding) : (opciones.padding || 80);
             mapa.fitBounds(bounds, {
                 padding,

@@ -44,7 +44,7 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
   // desde el inicio de la carga de página en el navegador).
 
   test('PB-1. Tiempo total de boot FASE 1 está dentro del umbral', async ({ page }) => {
-    // Inyectar stub de Leaflet
+    // Inyectar stub de MapLibre
     await page.addInitScript({ path: MAPLIBRE_STUB });
 
     // Inyectar spy de timing — captura performance.now() en mensajeriaReady

@@ -236,12 +236,13 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .ov-close{
   position:absolute;top:10px;right:10px;
   width:3.25rem;height:3.25rem;border-radius:50%;
-  background:#ff8c00;border:0.3125rem solid #ff0000;
-  color:#000;font-size:3.4375rem;font-weight:bold;
+  background:#F28500;border:0.3125rem solid #50C878;
+  color:#0F0616;font-size:3.4375rem;font-weight:bold;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;line-height:1;z-index:50;
   box-shadow:0 2px 8px rgba(0,0,0,.25);
 }
+.icono-x-cerrar{display:inline-block;transform:scaleY(1.4);text-shadow:0 0 15px rgba(0,0,0,.5);-webkit-text-stroke:1px #0F0616}
 .ov-img{width:min(340px,82vw);border-radius:10px;object-fit:cover;max-height:64vh}
 .drone-frame{width:min(340px,82vw);background:#000;border-radius:10px;overflow:hidden}
 .drone-frame img{width:100%;max-height:40vh;object-fit:cover}
@@ -318,7 +319,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .chat-panel{position:absolute;top:0;right:-100%;bottom:0;width:min(310px,86vw);background:#fff;z-index:500;box-shadow:-5px 0 20px rgba(0,0,0,.27);transition:right .4s ease;display:flex;flex-direction:column}
 .chat-panel.open{right:0}
 .chat-hdr{background:#1a6ea8;height:48px;display:flex;align-items:center;justify-content:flex-end;padding:0 11px;flex-shrink:0}
-.chat-x{width:3.25rem;height:3.25rem;border-radius:50%;background:#ff8c00;border:0.3125rem solid #ff0000;color:#000;font-size:3.4375rem;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold}
+.chat-x{width:3.25rem;height:3.25rem;border-radius:50%;background:#F28500;border:0.3125rem solid #50C878;color:#0F0616;font-size:3.4375rem;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold}
 .chat-body{padding:9px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
 .acc1{background:#ff8c00;border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 .acc1-text{width:53%;height:8px;background:rgba(255,255,255,.7);border-radius:3px;filter:blur(1.5px)}
@@ -1115,7 +1116,7 @@ async function scene3(){
 async function scene4(){
   setCounter(4); MC.hide(); Knight2.show(K.up);
   setScene(`<div class="sc" style="gap:0;padding:18px 14px 18px 0;position:relative;align-items:flex-end">
-    <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px">✕</div>
+    <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px"><span class="icono-x-cerrar">✗</span></div>
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
   </div>`);
   const hideBubble = showBubble(3);
@@ -1202,7 +1203,7 @@ async function scene8(){
   await Gauntlet.hover(b1,'R',350);
   await Gauntlet.tapEl(b1,'R',()=>{ spin(b1); MC.showAll();
     setOv(`<div style="position:absolute;inset:0;pointer-events:none">
-      <div class="ov-close" id="oc8" style="pointer-events:auto">✕</div>
+      <div class="ov-close" id="oc8" style="pointer-events:auto"><span class="icono-x-cerrar">✗</span></div>
       <div class="or-panel">
         <div class="or-panel-header" style="display:flex;align-items:center;justify-content:center;padding:2.5vw;gap:1.5vw">
           <img src="${B.b1}" alt="" style="width:min(14vw,8vh);height:auto;border-radius:1vw">
@@ -1274,7 +1275,7 @@ async function scene9(){
       <div style="width:100%;background:#28a745;display:flex;align-items:center;justify-content:center;padding:2vw;flex-shrink:0">
         <img src="${B.b2}" alt="" style="width:min(14vw,8vh);height:auto;border-radius:1vw">
       </div>
-      <div class="ov-close" id="oc9">✕</div>
+      <div class="ov-close" id="oc9"><span class="icono-x-cerrar">✗</span></div>
       <img class="ov-img" src="${MV}Av1_mapa.jpg" alt="" style="margin-top:10px">
     </div>`);
   });
@@ -1300,7 +1301,7 @@ async function sceneImg(){
         <div style="display:flex;align-items:center;justify-content:center;padding:2.5vw;background:#28a745">
           <img src="${B.b4}" alt="" style="width:min(14vw,8vh);height:auto;border-radius:1vw">
         </div>
-        <div class="ov-close" id="ocimg" style="pointer-events:auto">✕</div>
+        <div class="ov-close" id="ocimg" style="pointer-events:auto"><span class="icono-x-cerrar">✗</span></div>
         <img class="float-img" src="${IM}00_ torres_de serranos_back.jpg" alt="">
         <div class="float-text">Blah, bla, blah, bla, blah, bla, blah, bla, blah, bla.</div>
       </div>
@@ -1340,7 +1341,7 @@ async function sceneVid(){
         <div style="display:flex;align-items:center;justify-content:center;padding:2.5vw;background:#28a745">
           <img src="${B.b3}" alt="" style="width:min(14vw,8vh);height:auto;border-radius:1vw">
         </div>
-        <div class="ov-close" id="ocvid" style="pointer-events:auto">✕</div>
+        <div class="ov-close" id="ocvid" style="pointer-events:auto"><span class="icono-x-cerrar">✗</span></div>
         <div id="vid-loading" style="max-height:60vh;aspect-ratio:9/16;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-size:0.85rem">
           <div style="width:2.2em;height:2.2em;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spinA .8s linear infinite"></div>
         </div>
@@ -1545,7 +1546,7 @@ async function scene18(){
   await wait(700);
   await Gauntlet.tapEl($('chat-btn'),'DL',()=>{
     setOv(`<div class="chat-panel" id="cpanel">
-      <div class="chat-hdr"><div class="chat-x">✕</div></div>
+      <div class="chat-hdr"><div class="chat-x"><span class="icono-x-cerrar">✗</span></div></div>
       <div class="chat-body">
         <div class="acc1" id="a1"><div class="acc1-text"></div><span class="arr" id="ar1">▶</span></div>
         <div class="acc2-wrap" id="a2w">
@@ -1710,7 +1711,7 @@ async function scene17(){
         clearInterval(iv);
         setTimeout(()=>{
           const ov=$('tov');
-          if(ov) ov.innerHTML=`<div class="ov-close" id="lcls">✕</div>
+          if(ov) ov.innerHTML=`<div class="ov-close" id="lcls"><span class="icono-x-cerrar">✗</span></div>
             <img src="${K.llorando}" alt="" style="height:min(62vh,62%);object-fit:contain;filter:drop-shadow(0 4px 22px rgba(0,0,0,.65))">`;
         },500);
       }

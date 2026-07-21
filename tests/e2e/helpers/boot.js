@@ -58,7 +58,7 @@ async function injectInitSpy(page) {
  * tests no dependan de internet ni de un contexto WebGL real.
  *
  * MapLibre GL JS real es reemplazado por el stub de maplibre-stub.js inyectado
- * con addInitScript — pero a diferencia de Leaflet (servido antes desde CDN),
+ * con addInitScript — pero a diferencia de los recursos CDN de arriba,
  * `codigo-padre.html` carga MapLibre desde un <script> local
  * (js/vendor/maplibre-gl-csp.js), que no pasa por unpkg/cdnjs. Por eso esta
  * función intercepta también esa ruta local: si el script real llegara a
@@ -139,12 +139,12 @@ async function gotoAndWaitForFase1(page) {
   await stripCSPForTesting(page);
 
   // Suprimir errores de consola que no son relevantes para los tests
-  // (p. ej. warnings de serviceworker, Leaflet stub, etc.)
+  // (p. ej. warnings de serviceworker, stub de MapLibre, etc.)
   page.on('console', msg => {
     if (msg.type() === 'error') {
       // Solo loguear errores reales, no los esperables del stub
       const text = msg.text();
-      if (!text.includes('leaflet') && !text.includes('stub') && !text.includes('Service Worker')) {
+      if (!text.includes('maplibre') && !text.includes('stub') && !text.includes('Service Worker')) {
         // No lanzamos excepción — dejamos que los tests fallen por sus propias aserciones
         // console.error('[PAGE ERROR]', text);
       }

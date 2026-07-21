@@ -8,7 +8,7 @@
  * Race conditions testeadas aquí:
  *
  *   Race #1 — Map init concurrente: `_mapInitializing` evita que dos llamadas
- *             simultáneas a inicializarServicioMapa() creen dos instancias Leaflet.
+ *             simultáneas a inicializarServicioMapa() creen dos instancias de mapa.
  *
  *   Race #3 — Doble registro de handlers de modo: `registrarControladorSeguro`
  *             con el Set `__CONTROLADOR_REGISTRADOS` impide que el mismo tipo
@@ -52,7 +52,7 @@ test.describe('Race conditions documentadas — DT-1 Opción B', () => {
   // ── Race #1: Map init concurrente ─────────────────────────────────────
   //
   // El flag `_mapInitializing` (local en Script 1) impide que dos llamadas
-  // concurrentes a initializeMap() creen dos instancias Leaflet.
+  // concurrentes a initializeMap() creen dos instancias de mapa.
   // No podemos acceder a _mapInitializing (es local), pero sí podemos verificar:
   //   a) que globalThis.funcionesMapa expone la API de mapa
   //   b) que llamar a isMapInitialized() (ahora síncrona) no lanza error
@@ -75,14 +75,14 @@ test.describe('Race conditions documentadas — DT-1 Opción B', () => {
     expect(api.hasIsMapInitialized).toBe(true);
   });
 
-  test('Race #1b. isMapInitialized() no lanza error al llamarse sin instancia Leaflet real', async ({ page }) => {
+  test('Race #1b. isMapInitialized() no lanza error al llamarse sin instancia de mapa real', async ({ page }) => {
     const result = await page.evaluate(() => {
       try {
         const fm = globalThis.funcionesMapa;
         if (!fm || typeof fm.isMapInitialized !== 'function') {
           return { ok: false, reason: 'API no disponible' };
         }
-        // En headless con stub de Leaflet el mapa no se inicializa realmente;
+        // En headless con stub de MapLibre el mapa no se inicializa realmente;
         // isMapInitialized() debe devolver false (o un booleano) sin lanzar.
         const val = fm.isMapInitialized();
         return { ok: true, type: typeof val };

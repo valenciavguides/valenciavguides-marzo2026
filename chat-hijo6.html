@@ -62,20 +62,26 @@
       letter-spacing: 0.02em;
     }
     #btn-cerrar {
-      background: #ff8c00;
-      border: 0.3125rem solid #ff0000;
+      background: #F28500;
+      border: 0.3125rem solid #50C878;
       border-radius: 50%;
       width: 3.25rem;
       height: 3.25rem;
       font-size: 3.4375rem;
       font-weight: bold;
-      color: #000;
+      color: #0F0616;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       touch-action: manipulation;
       flex-shrink: 0;
+    }
+    .icono-x-cerrar {
+      display: inline-block;
+      transform: scaleY(1.4);
+      text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      -webkit-text-stroke: 1px #0F0616;
     }
     #btn-cerrar:hover { background: #ff6600; }
 
@@ -184,7 +190,7 @@
 <div id="contenedor">
   <div id="header">
     <h1 id="titulo-header">Soporte</h1>
-    <button id="btn-cerrar" aria-label="Cerrar chat" onclick="return cerrarChatVentana();">✕</button>
+    <button id="btn-cerrar" aria-label="Cerrar chat" onclick="return cerrarChatVentana();"><span class="icono-x-cerrar">✗</span></button>
   </div>
   <div id="faq" aria-label="Preguntas frecuentes"></div>
 </div>

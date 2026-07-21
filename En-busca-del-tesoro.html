@@ -444,6 +444,12 @@
       overflow: hidden;
     }
     #pantalla9 .btn-mundo-verde, #pantalla9 .btn-mundo-rojo { margin-top: 0; }
+    .icono-x-cerrar {
+      display: inline-block;
+      transform: scaleY(1.4);
+      text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      -webkit-text-stroke: 1px #0F0616;
+    }
     /* ===== BOTÓN GLOBO VERDE ===== */
     .btn-mundo-verde {
       position: relative;
@@ -939,8 +945,8 @@
 
   <!-- Overlay: Mapa vintage de la aventura (se muestra al seleccionar aventura en P7) -->
   <div id="mapa-vintage-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:9999; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; padding: var(--gap-superior) 0 var(--gap-inferior) 0; box-sizing:border-box;">
-    <div style="position:relative; width:min(95vw, 92vmin); height:calc(95vh - var(--gap-superior) - env(safe-area-inset-bottom, 0px)); background:#fff8e7; border:0.3125rem solid #00ff00; border-radius:0.9375rem; box-shadow:0 0.9375rem 3.125rem rgba(0,0,0,0.7); overflow:hidden;">
-      <button onclick="cerrarMapaVintage()" title="Cerrar mapa" style="position:absolute; top:0; right:0; width:3.25rem; height:3.25rem; background:#ff8c00; border:0.3125rem solid #ff0000; border-radius:50%; font-size:3.4375rem; font-weight:bold; color:#000; cursor:pointer; z-index:10000; display:flex; align-items:center; justify-content:center;">&times;</button>
+    <div style="position:relative; width:min(95vw, 92vmin); height:calc(95vh - var(--gap-superior) - env(safe-area-inset-bottom, 0px)); background:#fff8e7; border:0.3125rem solid #8FE0A8; border-radius:0.9375rem; box-shadow:0 0.9375rem 3.125rem rgba(0,0,0,0.7); overflow:hidden;">
+      <button onclick="cerrarMapaVintage()" title="Cerrar mapa" style="position:absolute; top:0; right:0; width:3.25rem; height:3.25rem; background:#F28500; border:0.3125rem solid #50C878; border-radius:50%; font-size:3.4375rem; font-weight:bold; color:#0F0616; cursor:pointer; z-index:10000; display:flex; align-items:center; justify-content:center;"><span class="icono-x-cerrar">✗</span></button>
       <img id="mapa-vintage-img" src="" alt="Mapa vintage" style="width:100%; height:100%; object-fit:fill; border-radius:0.625rem;">
     </div>
   </div>
