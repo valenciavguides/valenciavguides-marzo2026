@@ -18,7 +18,7 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
-const LEAFLET_STUB = path.join(__dirname, 'helpers/leaflet-stub.js');
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 // IDs definidos en el HTML de codigo-padre.html
 // Cada uno corresponde a un hijo con rol específico
@@ -34,7 +34,7 @@ const IFRAMES = [
 
 test.describe('DOM de iframes — estructura antes de selección de aventura', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript({ path: LEAFLET_STUB });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);

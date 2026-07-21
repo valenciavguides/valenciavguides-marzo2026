@@ -7,7 +7,7 @@
  *   const path = require('path');
  *
  *   test.beforeEach(async ({ page }) => {
- *     await page.addInitScript({ path: path.join(__dirname, 'helpers/leaflet-stub.js') });
+ *     await page.addInitScript({ path: path.join(__dirname, 'helpers/maplibre-stub.js') });
  *     await injectInitSpy(page);
  *     await stubCDNResources(page);
  *     await gotoAndWaitForFase1(page);
@@ -53,22 +53,27 @@ async function injectInitSpy(page) {
 }
 
 /**
- * Intercepta los recursos CDN (unpkg.com, cdnjs.cloudflare.com) y los reemplaza
- * con stubs vacíos para que los tests no dependan de internet.
+ * Intercepta los recursos CDN (unpkg.com, cdnjs.cloudflare.com) y el motor de
+ * mapas vendorizado localmente, y los reemplaza con stubs vacíos para que los
+ * tests no dependan de internet ni de un contexto WebGL real.
  *
- * Leaflet real es reemplazado por el stub de leaflet-stub.js inyectado con addInitScript.
- * Los CSS de CDN se retornan vacíos (no son necesarios para los tests).
+ * MapLibre GL JS real es reemplazado por el stub de maplibre-stub.js inyectado
+ * con addInitScript — pero a diferencia de Leaflet (servido antes desde CDN),
+ * `codigo-padre.html` carga MapLibre desde un <script> local
+ * (js/vendor/maplibre-gl-csp.js), que no pasa por unpkg/cdnjs. Por eso esta
+ * función intercepta también esa ruta local: si el script real llegara a
+ * ejecutarse, sobrescribiría globalThis.maplibregl y anularía el stub.
+ * Los CSS se retornan vacíos (no son necesarios para los tests).
  *
  * DEBE llamarse ANTES de page.goto().
  */
 async function stubCDNResources(page) {
-  // unpkg.com — Leaflet y plugins
+  // unpkg.com — histórico (plugins servidos por CDN)
   await page.route('**/unpkg.com/**', async route => {
     const url = route.request().url();
     if (url.match(/\.(css)(\?|$)/)) {
       await route.fulfill({ contentType: 'text/css', body: '/* stubbed by E2E */' });
     } else {
-      // JS de Leaflet y plugins — vacío; globalThis.L ya está definido por leaflet-stub.js
       await route.fulfill({ contentType: 'text/javascript', body: '/* stubbed by E2E */' });
     }
   });
@@ -81,6 +86,17 @@ async function stubCDNResources(page) {
     } else {
       await route.fulfill({ contentType: 'text/javascript', body: '/* stubbed */' });
     }
+  });
+
+  // js/vendor/maplibre-gl-csp.js — vendorizado localmente (no CDN). Sin esta
+  // intercepción se ejecutaría de verdad y sobrescribiría globalThis.maplibregl
+  // ya definido por maplibre-stub.js; nunca se solicita el worker porque el
+  // stub no llega a crear un Map real que lo necesite.
+  await page.route('**/js/vendor/maplibre-gl-csp.js', async route => {
+    await route.fulfill({ contentType: 'text/javascript', body: '/* stubbed by E2E */' });
+  });
+  await page.route('**/js/vendor/maplibre-gl.css', async route => {
+    await route.fulfill({ contentType: 'text/css', body: '/* stubbed by E2E */' });
   });
 }
 

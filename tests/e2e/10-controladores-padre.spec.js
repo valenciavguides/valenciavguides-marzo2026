@@ -26,7 +26,7 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
-const LEAFLET_STUB = path.join(__dirname, 'helpers/leaflet-stub.js');
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 /** Los 4 tipos extraídos a js/controladores-padre.js */
 const TIPOS_EXTRAIDOS = [
@@ -38,7 +38,7 @@ const TIPOS_EXTRAIDOS = [
 
 test.describe('CP — Controladores de datos extraídos (js/controladores-padre.js)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript({ path: LEAFLET_STUB });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);

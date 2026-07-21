@@ -38,7 +38,7 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
-const LEAFLET_STUB = path.join(__dirname, 'helpers/leaflet-stub.js');
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 /** IDs de los 5 iframes hijos críticos */
 const HIJOS_CRITICOS = ['hijo1-opciones', 'hijo2', 'hijo3', 'hijo4', 'hijo5'];
@@ -51,7 +51,7 @@ const TIPOS_HANDSHAKE = [
 
 test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript({ path: LEAFLET_STUB });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);

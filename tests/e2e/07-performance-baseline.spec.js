@@ -21,7 +21,7 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 const { BOOT_TIMEOUT, stubCDNResources, stripCSPForTesting } = require('./helpers/boot');
 
-const LEAFLET_STUB = path.join(__dirname, 'helpers/leaflet-stub.js');
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 // Umbral conservador: el boot no debe exceder este tiempo en total
 // (incluye servidor, red local, parse de módulos). No es el delta — es el absoluto.
@@ -45,7 +45,7 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
 
   test('PB-1. Tiempo total de boot FASE 1 está dentro del umbral', async ({ page }) => {
     // Inyectar stub de Leaflet
-    await page.addInitScript({ path: LEAFLET_STUB });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
 
     // Inyectar spy de timing — captura performance.now() en mensajeriaReady
     await page.addInitScript(() => {
@@ -111,7 +111,7 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
   //   - local_leak_count debe seguir siendo 0
 
   test('PB-2. Baseline: conteo de handlers registrados en state-manager', async ({ page }) => {
-    await page.addInitScript({ path: LEAFLET_STUB });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await stubCDNResources(page);
     await stripCSPForTesting(page);
     await page.goto('/codigo-padre.html');
@@ -186,7 +186,7 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
   // como guardia de regresión explícita para la extracción.
 
   test('PB-3. Baseline: variables globales críticas presentes y con los tipos correctos', async ({ page }) => {
-    await page.addInitScript({ path: LEAFLET_STUB });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await stubCDNResources(page);
     await stripCSPForTesting(page);
     await page.goto('/codigo-padre.html');
@@ -240,7 +240,7 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
   // Lo que podemos verificar en E2E: que el Map local está vacío DESPUÉS del boot.
 
   test('PB-4. DT-1 criterio #5: __vv_manejadoresLocales está vacío (handlers en state-manager, no en local)', async ({ page }) => {
-    await page.addInitScript({ path: LEAFLET_STUB });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await stubCDNResources(page);
     await stripCSPForTesting(page);
     await page.goto('/codigo-padre.html');
