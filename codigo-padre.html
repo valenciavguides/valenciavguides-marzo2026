@@ -2744,7 +2744,11 @@
                         center: [39.4699, -0.3763], // Valencia
                         zoom: 13,
                         minZoom: 12,
-                        maxZoom: 21,
+                        // 19 porque el modo Callejero (OSM estándar) tiene maxZoom:19 sin
+                        // maxNativeZoom — pasado ese nivel esa capa deja de dibujar tiles y el
+                        // mapa se queda en blanco. Satélite/Nocturno sí soportan más (19/20
+                        // nativos con estiramiento hasta 21), pero el tope lo marca el más corto.
+                        maxZoom: 19,
                         zoomControl: false,
                         rotate: true,
                         rotateControl: false,
@@ -2794,10 +2798,18 @@
                             detectRetina: true
                         }
                     );
+                    // tileSize/zoomOffset: truco para agrandar el texto sin salir del raster (nada de
+                    // MapLibre — se probó y se descartó por problemas de rotación/rendimiento, ver
+                    // memoria de sesión). Con zoomOffset:-1 el tile pedido es del nivel de zoom
+                    // anterior, estirado sobre un área 2× mayor → texto ~2× más grande de lo normal.
+                    // Aquí se lleva a zoomOffset:-2/tileSize:1024 → pide 2 niveles por debajo,
+                    // estirado sobre 4× el área → texto notablemente más grande todavía. Sigue siendo
+                    // el mismo PNG plano que ya rota perfectamente con el resto del mapa (sin los
+                    // problemas de las capas vectoriales).
                     const _capaEtiquetas = L.tileLayer(
                         'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
-                            pane: 'labelsPane', tileSize: 512, zoomOffset: -1,
-                            maxZoom: 21, maxNativeZoom: 20,
+                            pane: 'labelsPane', tileSize: 1024, zoomOffset: -2,
+                            maxZoom: 19, maxNativeZoom: 17,
                             attribution: '© OpenStreetMap contributors © CARTO',
                             detectRetina: true
                         }
@@ -2805,8 +2817,8 @@
                     const _capaEtiquetasNoche = L.tileLayer(
                         'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
                             pane: 'labelsPane',
-                            tileSize: 512, zoomOffset: -1,
-                            maxZoom: 21, maxNativeZoom: 20,
+                            tileSize: 1024, zoomOffset: -2,
+                            maxZoom: 19, maxNativeZoom: 17,
                             attribution: '© OpenStreetMap contributors © CARTO',
                             detectRetina: true
                         }

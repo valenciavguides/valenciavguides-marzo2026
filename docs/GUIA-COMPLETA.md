@@ -4338,7 +4338,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-nocturno-carto-jul20'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-maxzoom-texto-grande-jul21'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5909,8 +5909,10 @@ Capa base: ESRI World Imagery — imágenes de satélite de alta resolución (Ma
 
 ```text
 https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
-maxNativeZoom: 19  →  a partir de zoom 20-21 Leaflet amplía los tiles del nivel 19
+maxNativeZoom: 19
 ```
+
+El mapa completo tiene `maxZoom: 19` (el propio `L.map(...)`, no solo esta capa) — lo marca el modo Callejero, que no tiene margen de estiramiento como Satélite/Nocturno (ver más abajo). Sin este tope, subir de zoom en Callejero dejaba el mapa en blanco al no existir tiles OSM más allá de su `maxZoom`.
 
 ##### Modo Callejero
 
@@ -5934,9 +5936,10 @@ pane: 'nocturnoPane'  →  z-index 200, filter brightness(1.35) contrast(1.15)
 
 ```text
 https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png
-pane: 'labelsPane'      →  z-index 400, siempre por encima de la capa base
-tileSize: 512           →  tiles del nivel anterior, 2× más grandes → texto más legible
-zoomOffset: -1          →  compensa el nivel de zoom del truco anterior
+pane: 'labelsPane'       →  z-index 400, siempre por encima de la capa base
+tileSize: 1024, zoomOffset: -2  →  pide el tile de 2 niveles de zoom por debajo, estirado
+                                    sobre un área 4× mayor → texto notablemente más grande
+maxZoom: 19, maxNativeZoom: 17  →  coherente con el maxZoom:19 del mapa
 filter: drop-shadow(0 0 1.5px #FFD700)  →  borde amarillo alrededor de letras negras, legible sobre imagen satelital
 ```
 
@@ -5944,12 +5947,13 @@ filter: drop-shadow(0 0 1.5px #FFD700)  →  borde amarillo alrededor de letras 
 
 ```text
 https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png
-pane: 'labelsPane'      →  mismo pane, z-index 400
-tileSize: 512, zoomOffset: -1  →  mismo truco de tamaño
+pane: 'labelsPane'       →  mismo pane, z-index 400
+tileSize: 1024, zoomOffset: -2  →  mismo truco de tamaño que Satélite
+maxZoom: 19, maxNativeZoom: 17
 filter: none             →  el texto ya es blanco de serie; un halo de color aquí se difumina y dificulta la lectura
 ```
 
-El modo Callejero no activa ninguna capa de `labelsPane` — su `etiqCapa` apunta a un `L.layerGroup()` vacío (`_capaSinEtiquetas`), ya que el tile OSM estándar trae los nombres integrados. El `{r}` al final de las URLs de Carto añade `@2x` en pantallas Retina cuando `detectRetina: true`. Las etiquetas de CARTO son tiles PNG pre-renderizados, no texto real — su tamaño y color no se pueden ajustar con más precisión que el truco `tileSize`/`zoomOffset` de arriba, y su tamaño en pantalla no crece al hacer zoom (comportamiento estándar en mapas raster: el texto se mantiene legible en un tamaño de píxel fijo en vez de escalar, igual que Google Maps u OSM).
+El modo Callejero no activa ninguna capa de `labelsPane` — su `etiqCapa` apunta a un `L.layerGroup()` vacío (`_capaSinEtiquetas`), ya que el tile OSM estándar trae los nombres integrados, y por eso no se beneficia del truco `tileSize`/`zoomOffset` de arriba (no hay una capa de etiquetas separada que agrandar). El `{r}` al final de las URLs de Carto añade `@2x` en pantallas Retina cuando `detectRetina: true`. Las etiquetas de CARTO son tiles PNG pre-renderizados, no texto real — su tamaño y color no se pueden ajustar con más precisión que ese truco, y su tamaño en pantalla no crece al hacer zoom dentro de un mismo nivel (comportamiento estándar en mapas raster: el texto se mantiene legible en un tamaño de píxel fijo en vez de escalar, igual que Google Maps u OSM). El texto vectorial real (que escalaría de forma continua con el zoom, vía MapLibre GL) no es viable como capa añadida sobre este mapa Leaflet: al rotar con la brújula el texto queda mal alineado y el redibujado es lento incluso en equipos potentes — un riesgo que no compensa, dado que esta app rota el mapa de forma continua mientras el usuario camina, no puntualmente. Solo sería viable migrando el motor de mapa entero a MapLibre (sustituyendo Leaflet por completo), no como capa añadida a Leaflet.
 
 #### Arquitectura de panes Leaflet
 
@@ -6969,7 +6973,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-nocturno-carto-jul20'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-maxzoom-texto-grande-jul21'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7562,7 +7566,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-nocturno-carto-jul20'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-maxzoom-texto-grande-jul21'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11011,7 +11015,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-nocturno-carto-jul20';
+const CACHE_VERSION = 'v-maxzoom-texto-grande-jul21';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
