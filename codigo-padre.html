@@ -4956,79 +4956,6 @@
             (globalThis.logger || console).info('%cLlama diagnosticarGPS() de nuevo para actualizar el estado', 'color: #888888; font-style: italic');
         }
 
-
-        function _gpsOnFreshDiagnostic(fresh, gpsCfg, est, logPrefix) {
-            const a2 = fresh?.coords?.accuracy;
-            (globalThis.logger || console).info(`${logPrefix} getCurrentPosition diagnostico: [${fresh.coords.latitude.toFixed(6)}, ${fresh.coords.longitude.toFixed(6)}] (±${Math.round(a2)}m)`);
-            if (typeof a2 === 'number' && a2 < gpsCfg.REJECT_ACCURACY_M) {
-                const fLat = fresh.coords.latitude;
-                const fLng = fresh.coords.longitude;
-                est.gps.posicionUsuario = { lat: fLat, lng: fLng, accuracy: a2, timestamp: fresh.timestamp };
-                est.gps.ultimaUbicacion = { lat: fLat, lng: fLng, accuracy: a2, timestamp: fresh.timestamp };
-                est.gps.precision = a2;
-                (globalThis.logger || console).debug(`${logPrefix} ✅ Posición fresca aceptada y procesada`);
-                try {
-                    if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.procesarPosicionGPSParaAventura === 'function') {
-                        globalThis.funcionesMapa.procesarPosicionGPSParaAventura(fresh);
-                    }
-                } catch (procErr) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error procesando posición fresca:`, procErr);
-                }
-                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.diagnostico_ok'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            } else {
-                (globalThis.logger || console).warn(`${logPrefix} getCurrentPosition tampoco mejoró precisión: ±${Math.round(a2)}m`);
-                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.diagnostico_no_mejoro'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            }
-        }
-
-        function _gpsOnDiagnosticError(err, logPrefix) {
-            (globalThis.logger || console).warn(`${logPrefix} getCurrentPosition diagnóstico falló:`, err && err.message ? err.message : err);
-            try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.diagnostico_fallo'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-        }
-
-        function _gpsDiagnosticGetFreshPosition(position, accuracy, est, logPrefix, gpsCfg) {
-            try {
-                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.diagnostico_iniciado'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                navigator.geolocation.getCurrentPosition(
-                    (fresh) => _gpsOnFreshDiagnostic(fresh, gpsCfg, est, logPrefix),
-                    (err) => _gpsOnDiagnosticError(err, logPrefix),
-                    { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(30000), maximumAge: 0 }
-                );
-            } catch (error_) {
-                (globalThis.logger || console).warn(`${logPrefix} Error invocando getCurrentPosition diagnóstico:`, error_);
-            }
-        }
-
-        function _gpsHandleRejectAccuracy(position, accuracy, gpsCfg, est, logPrefix) {
-            (globalThis.logger || console).warn(`${logPrefix} Posición descartada por precisión (±${Math.round(accuracy)}m >= REJECT ${gpsCfg.REJECT_ACCURACY_M}m)`);
-            try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.posicion_descartada'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            try {
-                registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_DESCARTADO', {
-                    accuracy: accuracy,
-                    lat: position?.coords?.latitude,
-                    lng: position?.coords?.longitude,
-                    contexto: 'watchPosition_diagnostico',
-                    timestamp: Date.now()
-                });
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(accuracy); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            try { (globalThis.logger || console).debug(`${logPrefix} Posición completa (diagnóstico):`, position); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            _gpsDiagnosticGetFreshPosition(position, accuracy, est, logPrefix, gpsCfg);
-        }
-
-        function _gpsHandleLowAccuracy(position, accuracy, est, logPrefix) {
-            try {
-                const gpsCfg = globalThis.Config?.GPS || null;
-                if (gpsCfg && typeof accuracy === 'number' && accuracy >= gpsCfg.REJECT_ACCURACY_M) {
-                    _gpsHandleRejectAccuracy(position, accuracy, gpsCfg, est, logPrefix);
-                    return true;
-                }
-            } catch (diagErr) {
-                (globalThis.logger || console).warn(`${logPrefix} Error en diagnóstico de precisión GPS:`, diagErr);
-            }
-            return false;
-        }
-
         function _gpsDoRetryWatch(est, newOptions, logPrefix) {
             try {
                 // Reutiliza los mismos handlers que activarGPS() usa para el watch original
@@ -5101,6 +5028,12 @@
 
             if (accuracy > 50) {
                 (globalThis.logger || console).warn(`${logPrefix} Precisión GPS insuficiente (${Math.round(accuracy)}m > 50m), ignorando actualización`);
+                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.posicion_descartada'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                try {
+                    registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_DESCARTADO', {
+                        accuracy: accuracy, lat, lng, contexto: 'watchPosition', timestamp: Date.now()
+                    });
+                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(accuracy); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 return;
             }
@@ -5117,8 +5050,6 @@
 
             // Chequeo anti-piratería: usuario a >5km de la ruta (§30.5) — throttle 3 minutos
             _check5kmFromRoute(lat, lng);
-
-            if (_gpsHandleLowAccuracy(position, accuracy, est, logPrefix)) return;
 
             _gpsProcesarPosicion(position, logPrefix);
         }
@@ -5568,7 +5499,16 @@
                             if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
                                 globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
                             }
-                            hideGpsOutOfRangeOverlay();
+                            // No dar el reintento por bueno solo porque llegó una posición: si sigue
+                            // siendo imprecisa, procesarPosicionGPSParaAventura() la habrá descartado
+                            // por dentro sin avisar — hay que comprobar la precisión aquí también para
+                            // no ocultar el aviso como si el problema ya estuviera resuelto.
+                            const acc = pos?.coords?.accuracy;
+                            if (typeof acc === 'number' && acc > 50) {
+                                showGpsOutOfRangeOverlay(acc);
+                            } else {
+                                hideGpsOutOfRangeOverlay();
+                            }
                         }, (err) => {
                             (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] getCurrentPosition desde overlay falló:', err && err.message);
                             // Este overlay es por baja precisión; si el reintento falla del todo
@@ -5732,7 +5672,16 @@
                         if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
                             globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
                         }
-                        hideGpsSignalOverlay();
+                        // Mismo motivo que en el overlay de baja precisión: una posición recibida
+                        // no significa una posición útil. Si sigue sin precisión suficiente, se
+                        // sustituye por el overlay correcto en vez de ocultar el aviso sin más.
+                        const acc = pos?.coords?.accuracy;
+                        if (typeof acc === 'number' && acc > 50) {
+                            hideGpsSignalOverlay();
+                            showGpsOutOfRangeOverlay(acc);
+                        } else {
+                            hideGpsSignalOverlay();
+                        }
                     }, (err) => {
                         (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] getCurrentPosition falló en reintento:', err && err.message);
                         // Antes esto quedaba en silencio: el usuario pulsaba reintentar, veía la
