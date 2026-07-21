@@ -5029,22 +5029,17 @@
             return false;
         }
 
-        function _gpsRetrySuccess(position, est, logPrefix) {
-            const { latitude: lat, longitude: lng, accuracy } = position.coords;
-            est.gps.posicionUsuario = { lat, lng, accuracy, timestamp: position.timestamp };
-            est.gps.ultimaUbicacion = { lat, lng, accuracy, timestamp: position.timestamp };
-            est.gps.precision = accuracy;
-            est.gps.error = null;
-            est.gps.activo = true;
-            (globalThis.logger || console).info(`${logPrefix} watchPosition reintento exitoso (intento ${est.gps.retries})`);
-            try { if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.procesarPosicionGPSParaAventura === 'function') globalThis.funcionesMapa.procesarPosicionGPSParaAventura(position); } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error procesando posición tras reintento:`, e); }
-        }
-
         function _gpsDoRetryWatch(est, newOptions, logPrefix) {
             try {
+                // Reutiliza los mismos handlers que activarGPS() usa para el watch original
+                // (no una copia divergente): así el reintento hereda automáticamente el
+                // ocultar overlay al recuperar señal, el chequeo de precisión/5km, el reset
+                // de est.gps.retries en éxito, y — vía _watchPositionError — el encadenado
+                // correcto del siguiente reintento si este también falla (antes se cortaba
+                // aquí y nunca se volvía a intentar aunque quedaran reintentos disponibles).
                 est.gps.watchId = navigator.geolocation.watchPosition(
-                    (position) => _gpsRetrySuccess(position, est, logPrefix),
-                    (e2) => { (globalThis.logger || console).warn(`${logPrefix} Reintento watchPosition falló (intento ${est.gps.retries}):`, e2?.message ?? e2); },
+                    (position) => _watchPositionSuccess(position, est, logPrefix),
+                    (e2) => _watchPositionError(e2, est, logPrefix),
                     newOptions
                 );
             } catch (retryErr) {
