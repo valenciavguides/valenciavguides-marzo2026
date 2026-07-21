@@ -408,8 +408,8 @@ async function _activarParadaDefectoAventura() {
     try {
         const { elementosIDpadre } = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado];
         if (elementosIDpadre && elementosIDpadre.length > 0) {
-            const paradaDefecto = elementosIDpadre.find(p => p.padreid === 'padre-P-0') || elementosIDpadre[0];
-            const paradaId = paradaDefecto.parada_id || paradaDefecto.tramo_id || paradaDefecto.id || 'P-0';
+            const paradaDefecto = elementosIDpadre.find(p => p.padreid === 'padre-P0') || elementosIDpadre[0];
+            const paradaId = paradaDefecto.parada_id || paradaDefecto.tramo_id || paradaDefecto.id;
             const padreId = paradaDefecto.padreid || `padre-${paradaId}`;
             const payloadCambioParada = {
                 tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,

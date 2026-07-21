@@ -337,7 +337,10 @@ persistencia. El estado en memoria de `codigo-padre.html` (`estadoPadre.paradaAc
 el usuario no recargue la página, ese estado sigue presente.
 
 **Retorno a AVENTURA (misma sesión)**: al reactivar el GPS,
-`_activarParadaDefectoAventura()` envía `CAMBIO_PARADA` para padre-P-0. El GPS
+`_activarParadaDefectoAventura()` busca en `elementosIDpadre` la entrada con
+`padreid === 'padre-P0'` (parada de inicio — este `padreid` es idéntico en las
+7 aventuras, a diferencia de `parada_id`, que sí lleva el prefijo de cada una:
+`"Av1-P-0"`, `"Av34km-P-0"`...) y envía `CAMBIO_PARADA` para ella. El GPS
 detectará la posición real del usuario y emitirá el siguiente `CAMBIO_PARADA`
 automáticamente. El progreso visual (`paradasCompletadas`) se mantiene desde memoria.
 
@@ -471,7 +474,7 @@ sequenceDiagram
 | `desactivarGPS()` | 4982 | Llama `clearWatch()` |
 | `ejecutarRestauracionAventura()` | 4152 | Restaura sesión desde `localStorage` |
 | `cambiarModo(modo)` | `js/funciones-mapa.js` | Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
-| `limpiarPorEstado({ modo, resetCompleto })` | `js/funciones-mapa.js` | Elimina capas Leaflet activas (polylines, marcadores, rutas) y restablece la vista a `CENTRO_DEFECTO` / `ZOOM_INICIAL`. `resetCompleto:true` es obligatorio cuando se llama tras un cambio de modo, porque en ese punto `estadoMapa.modo` ya fue actualizado y la comprobación interna fallaría sin el flag explícito. |
+| `limpiarPorEstado({ modo, resetCompleto })` | `js/funciones-mapa.js` | Elimina capas activas del mapa (polylines, marcadores, rutas) y restablece la vista a `CENTRO_DEFECTO` / `ZOOM_INICIAL`. `resetCompleto:true` es obligatorio cuando se llama tras un cambio de modo, porque en ese punto `estadoMapa.modo` ya fue actualizado y la comprobación interna fallaría sin el flag explícito. |
 
 ---
 
@@ -480,7 +483,7 @@ sequenceDiagram
 | Hijo | MODO CASA | MODO AVENTURA |
 |------|-----------|---------------|
 | **hijo1** `extrainfo-hijo1.html` | Disponible, sin cambios. | Disponible, sin cambios. No tiene lógica específica de modo. |
-| **hijo2** `coordenadas-hijo2.html` | Sin Leaflet — el mapa lo gestiona el padre. 6 botones de navegación activos. Sin validaciones de distancia. Sin overlay fuera de rango. Sin `CAMBIO_PARADA` automático. | Sin Leaflet — el mapa lo gestiona el padre. Detecta proximidad GPS a paradas/tramos. Overlay `#fuera-rango-overlay` activo si el usuario se aleja. `CAMBIO_PARADA` automático cuando `distancia ≤ RADIO_PARADA`. |
+| **hijo2** `coordenadas-hijo2.html` | Sin mapa propio — lo gestiona el padre. 6 botones de navegación activos. Sin validaciones de distancia. Sin overlay fuera de rango. Sin `CAMBIO_PARADA` automático. | Sin mapa propio — lo gestiona el padre. Detecta proximidad GPS a paradas/tramos. Overlay `#fuera-rango-overlay` activo si el usuario se aleja. `CAMBIO_PARADA` automático cuando `distancia ≤ RADIO_PARADA`. |
 | **hijo3** `audio-hijo3.html` | Reproducción bajo demanda. `retosBtn` **habilitado inmediatamente** si la parada tiene `reto_id`; deshabilitado en tramos o paradas sin reto. | Audio enviado automáticamente al llegar a cada parada (`AUDIO.REPRODUCIR_REQUEST`). `retosBtn` habilitado tras `FIN_REPRODUCCION` (o inmediatamente si sin audio). |
 | **hijo4** `retos-hijo4.html` | `#botonRetos-wrapper` visible. Habilitado en paradas, deshabilitado en tramos, controlado por `RETO.ESTADO_CASA`. | `#botonRetos-wrapper` oculto al llegar a una parada. Aparece y se habilita al recibir `RETO.HABILITAR` (tras audio o `razon: sin_audio`). |
 | **hijo5** `boton-casa-hijo5.html` *(desarrollo)* | Botón GPS en rojo "OFF". Lista de paradas navegable manualmente. | Botón GPS en verde "ON". Lista de paradas actualizada automáticamente según progresión GPS. |
@@ -557,7 +560,7 @@ graph TD
     P["codigo-padre.html\norquestador central\nestado global · lógica de negocio"]
 
     P <-->|"postMessage\nCAMBIO_MODO · HEARTBEAT"| H1["hijo1\nextrainfo-hijo1.html\npanel de opciones"]
-    P <-->|"postMessage\nCAMBIO_PARADA · GPS messages\nCONTROL.HABILITAR/DESHABILITAR"| H2["hijo2\ncoordenadas-hijo2.html\nGPS + botones (sin Leaflet)"]
+    P <-->|"postMessage\nCAMBIO_PARADA · GPS messages\nCONTROL.HABILITAR/DESHABILITAR"| H2["hijo2\ncoordenadas-hijo2.html\nGPS + botones (sin mapa propio)"]
     P <-->|"postMessage\nCAMBIO_PARADA · AUDIO.REPRODUCIR_REQUEST (con audioData en línea)\nAUDIO.FIN_REPRODUCCION\nCONTROL retosBtn"| H3["hijo3\naudio-hijo3.html\nreproductor de audio"]
     P <-->|"postMessage\nCAMBIO_PARADA · RETO.MOSTRAR (con retosArray de 1 ítem)\nRETO.HABILITAR · RETO.ESTADO_CASA"| H4["hijo4\nretos-hijo4.html\npantalla de retos"]
     P <-->|"postMessage\nSISTEMA.CAMBIO_MODO\nSOLICITAR_PARADAS"| H5["hijo5\nboton-casa-hijo5.html\n(herramienta DEV)"]
@@ -836,9 +839,9 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 | ● (círculo CSS) | Círculo sólido con borde blanco y sombra | `#F44336` rojo | Marcador de inicio alternativo |
 | ● (círculo CSS) | Círculo sólido con borde blanco y sombra | `#4CAF50` verde | Marcador de parada alternativo |
 | ▲ (flecha GPS) | Triángulo CSS con borde blanco y punto central pulsante | `#4285F4` azul Google | **Posición real del usuario** en tiempo real (modo AVENTURA). Rota con la brújula del dispositivo vía `DeviceOrientationEvent` (hasta 30 veces/segundo sin recrear el marcador). En modo CASA aparece como 🛸 |
-| ↑ (flecha snap-to-route) | Carácter `↑` rotado según brújula | `#0066cc` azul oscuro | **Posición del usuario proyectada sobre la polyline del tramo activo.** Solo aparece durante un tramo (no en paradas). Usa `L.GeometryUtil.closest()` para buscar el punto de la polyline más cercano al usuario y pone la flecha exactamente ahí — efecto "sigues el camino". Se activa en `completarCambioParada()` al detectar `tipo === 'tramo'` y se desactiva al volver a una parada. Se actualiza en cada posición GPS y en cada cambio de brújula |
-| ○ (círculo 21 m) | Círculo `L.circle` radio 21 m | Borde rojo, relleno amarillo semitransparente | Acompaña siempre a la flecha snap-to-route. Indica la zona de tolerancia visual alrededor del punto proyectado |
-| 🏛️ (píldora referencia) | Div CSS: píldora blanca con borde naranja | `#ff8c00` naranja | **Referencias visuales** — monumentos mencionados en el texto que el usuario nunca visita físicamente. Muestra el emoji 🏛️ a la izquierda y el número de `mapa_numero` a la derecha. Al pulsar abre un popup con el nombre del monumento. Escala dinámicamente con el zoom. `zIndexOffset: 400` (por debajo de paradas visitadas). Gestionado por `crearIconoReferencia()` y `dibujarReferencias()` en `funciones-mapa.js` |
+| ↑ (flecha snap-to-route) | Carácter `↑` rotado según brújula | `#0066cc` azul oscuro | **Posición del usuario proyectada sobre la polyline del tramo activo.** Solo aparece durante un tramo (no en paradas). El mapa de aventura usa `puntoMasCercanoEnLinea()` (`js/utils.js`) para buscar el punto de la polyline más cercano al usuario y pone la flecha exactamente ahí — efecto "sigues el camino"; es una proyección plana local sin dependencias externas, precisión de sobra para las distancias de un tramo. Se activa en `completarCambioParada()` al detectar `tipo === 'tramo'` y se desactiva al volver a una parada. Se actualiza en cada posición GPS y en cada cambio de brújula |
+| ○ (círculo 21 m) | Polígono geográfico (radio constante en metros, no en píxeles) | Borde rojo, relleno amarillo semitransparente | Acompaña siempre a la flecha snap-to-route. Indica la zona de tolerancia visual alrededor del punto proyectado. MapLibre no tiene una capa `circle` con radio en metros (su `circle-radius` es en píxeles de pantalla, cambiaría de tamaño real al hacer zoom), así que el círculo se genera como un polígono real (32 puntos a distancia/rumbo fijo del centro) que se recalcula cada vez que el centro se mueve |
+| 🏛️ (píldora referencia) | Div CSS: píldora blanca con borde naranja | `#ff8c00` naranja | **Referencias visuales** — monumentos mencionados en el texto que el usuario nunca visita físicamente. Muestra el emoji 🏛️ a la izquierda y el número de `mapa_numero` a la derecha. Al pulsar abre un popup con el nombre del monumento. Escala dinámicamente con el zoom. Apilado visual `zIndex: 400` (por debajo de paradas visitadas, 600) vía CSS sobre el elemento del marcador. Gestionado por `crearIconoReferencia()` y `dibujarReferencias()` en `funciones-mapa.js` — implementación independiente de la de `mapa-completo.html`, que dibuja sus propias referencias con `L.divIcon`/`L.marker` sobre los mismos datos |
 
 ```mermaid
 flowchart TD
@@ -850,7 +853,7 @@ flowchart TD
 
     E --> G{¿Elemento actual?}
     G -- Parada --> H["Solo ▲ triángulo\n↑ flecha y círculo 21m desactivados"]
-    G -- Tramo --> I["↑ Flecha snap-to-route\n+ ○ Círculo 21m amarillo\nambos proyectados sobre la polyline\nmediante L.GeometryUtil.closest()"]
+    G -- Tramo --> I["↑ Flecha snap-to-route\n+ ○ Círculo 21m amarillo\nambos proyectados sobre la polyline\nmediante puntoMasCercanoEnLinea()"]
 
     J([Usuario pulsa referencia 🏛️]) --> K["Popup con nombre del monumento\n(no genera CAMBIO_PARADA)"]
 ```
@@ -873,7 +876,7 @@ Las polylines son las líneas que se dibujan en el mapa para mostrar rutas, tram
 - La **polyline de navegación** aparece automáticamente cuando el usuario se aleja más de 50 metros de la ruta. Incluye los waypoints intermedios del tramo para guiar al usuario por el camino correcto (no en línea recta).
 - Se **elimina automáticamente** cuando el usuario vuelve a estar dentro de los 50 metros.
 - También se puede activar **manualmente**: el usuario pulsa `btn-ubicacion` en hijo2, que envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` `{ ubicacionUsuario, proximoElemento, centrar: true, zoom: 16 }` al padre. El padre dibuja la misma polyline discontinua desde la posición actual hasta la próxima parada.
-- Todas las polylines se posicionan con `zIndex 500` para aparecer por encima del mapa base pero por debajo de los marcadores.
+- Todas las polylines se dibujan como capas `line` dentro del array `layers` del estilo de MapLibre — el orden de aparición en ese array decide qué polyline o capa de calle queda por encima de cuál (MapLibre no tiene una propiedad `zIndex` numérica independiente). Los marcadores (paradas, referencias, flecha del usuario) son elementos DOM aparte, superpuestos sobre el lienzo del mapa — quedan por encima de cualquier polyline sin necesidad de ordenarlos en ese array.
 
 **Snap-to-route (flecha sobre la polyline):**
 
@@ -883,7 +886,7 @@ Cuando el padre cambia a un **tramo** (via `CAMBIO_PARADA` con `tipo === 'tramo'
 2. Setea `estadoMapa.tramoActual` con el ID del tramo.
 3. Llama a `activarFlechaUsuario()`, que registra un listener `zoomend` y pone `flechaActiva = true` (solo si el modo es `AVENTURA`).
 
-Con `flechaActiva = true`, `actualizarPosicionFlecha()` se ejecuta en cada actualización GPS y en cada cambio de brújula. Calcula con `L.GeometryUtil.closest()` el punto de `estadoMapa.tramoWaypoints` más cercano al usuario y mueve la flecha `↑` y el círculo de 21 m exactamente a ese punto.
+Con `flechaActiva = true`, `actualizarPosicionFlecha()` se ejecuta en cada actualización GPS y en cada cambio de brújula. Calcula con `puntoMasCercanoEnLinea()` (`js/utils.js`) el punto de `estadoMapa.tramoWaypoints` más cercano al usuario y mueve la flecha `↑` y el círculo de 21 m exactamente a ese punto.
 
 Cuando el padre cambia a una **parada**, `completarCambioParada()` llama a `desactivarFlechaUsuario()`: borra la flecha y el círculo del mapa, desregistra el listener `zoomend` y pone `flechaActiva = false`.
 
@@ -1327,7 +1330,7 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 |--------|----|---------|-----------|--------------|---------|
 | Pantalla selección | `seleccion` | `En-busca-del-tesoro.html` | No | Al arrancar `codigo-padre.html` (único iframe con `src` desde el inicio) | Pantalla de incorporación: selección de idioma, aventura, retos previos y código de activación. Se oculta al iniciar la aventura. |
 | Hijo 1 | `hijo1-opciones` | `extrainfo-hijo1.html` | No | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Panel lateral izquierdo con botón "Más opciones". Despliega iconos de acceso a contenido complementario (temporizador, vídeos, etc.). |
-| Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Gestiona 6 botones de navegación. Recibe `distanciaAlDestino` de `funciones-mapa.js` (el Haversine lo hace el padre), compara contra umbral, envía `LLEGADA_DETECTADA` y gestiona overlay "fuera de rango". Sin Leaflet — el mapa lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
+| Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Gestiona 6 botones de navegación. Recibe `distanciaAlDestino` de `funciones-mapa.js` (el Haversine lo hace el padre), compara contra umbral, envía `LLEGADA_DETECTADA` y gestiona overlay "fuera de rango". Sin mapa propio — lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
 | Hijo 3 | `hijo3` | `audio-hijo3.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Reproductor de audio. Recibe del padre qué audio reproducir y lo controla. |
 | Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()`. **No** forma parte del `Promise.all` de `AVENTURA_ACTIVADA` | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
 | Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | `SELECCION.P14_MOSTRADA` → `cargarHijoCasa()` (si ya está cargado, solo espera `HIJO_LISTO`) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`); permanece oculto (`display:none`) en todo momento normal. |
@@ -1919,7 +1922,7 @@ graph TD
 |------|------------------|------------------------|
 | `seleccion` | Onboarding: recoge idioma, aventura, código. Dispara el arranque | Solo al inicio (o al reiniciar) |
 | `hijo1` | Contenido extra + temporizador. Sin impacto en la lógica de navegación | Cualquier momento que el usuario lo pida |
-| `hijo2` | Recibe `distanciaAlDestino` de `funciones-mapa.js` y compara contra umbral (el Haversine lo hace el padre). Gestiona 6 botones de navegación, envía `LLEGADA_DETECTADA`. Sin Leaflet — el mapa lo renderiza padre vía `funciones-mapa.js` | Continuamente en AVENTURA; visible en CASA |
+| `hijo2` | Recibe `distanciaAlDestino` de `funciones-mapa.js` y compara contra umbral (el Haversine lo hace el padre). Gestiona 6 botones de navegación, envía `LLEGADA_DETECTADA`. Sin mapa propio — lo renderiza padre vía `funciones-mapa.js` | Continuamente en AVENTURA; visible en CASA |
 | `hijo3` | Reproduce los audios. Notifica al padre cuando terminan → desencadena habilitar retos | En cada CAMBIO_PARADA con audio |
 | `hijo4` | Muestra y valida el reto de la parada activa. Notifica resultado | Cuando padre envía RETO.MOSTRAR |
 | `hijo5` | Permite navegar en CASA sin GPS y togglear el modo | Solo en modo CASA o al activar AVENTURA |
@@ -2199,7 +2202,7 @@ sequenceDiagram
 
 ### 7.3 coordenadas-hijo2.html — mapa interactivo (iframe `id="hijo2"`)
 
-**Propósito**: gestiona los 6 botones de navegación, el overlay fuera-de-rango y envía `LLEGADA_DETECTADA` cuando recibe confirmación de proximidad. **No contiene código Leaflet** — el mapa con tiles y marcadores vive exclusivamente en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
+**Propósito**: gestiona los 6 botones de navegación, el overlay fuera-de-rango y envía `LLEGADA_DETECTADA` cuando recibe confirmación de proximidad. **No contiene código de mapa propio** — el mapa con tiles y marcadores vive exclusivamente en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
 
 **Importante**: hijo2 **no tiene `watchPosition` propio**. El único `navigator.geolocation.watchPosition()` está en `activarGPS()` del padre. Las posiciones GPS van: padre → `funciones-mapa.js` → calcula Haversine → envía `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, lat, lng }` a hijo2. `_aplicarDatosEstado()` almacena `{ lat, lng }` en `estadoComponente.posicionActualUsuario`, lo que activa `verificarDistanciaYActualizarBotones()` para la lógica de fuera-de-rango 5 min y el botón ubicación.
 
@@ -2238,7 +2241,7 @@ Los 6 botones habilitados muestran una animación de giro cada 5 segundos (`@key
 
 #### 3 modos de mapa — selector en el PADRE (`#selector-tipo-mapa`)
 
-> El selector de capa de mapa **no pertenece a hijo2** — está creado dinámicamente en `codigo-padre.html` (dentro de `inicializarMapa()`, buscar el comentario `// ── Capas de mapa + selector desplegable ──`) y posicionado encima del mapa Leaflet del padre (`position:fixed; top; left`). hijo2 no lo controla.
+> El selector de capa de mapa **no pertenece a hijo2** — está creado dinámicamente en `codigo-padre.html` (dentro de `initializeMap()`, buscar el comentario `// ── Capas de mapa + selector desplegable ──`) y posicionado encima del mapa del padre (`position:fixed; top; left`). hijo2 no lo controla.
 
 | Modo | ID capa | Nombre UI | Proveedor tiles |
 |------|---------|-----------|-----------------|
@@ -3339,7 +3342,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `PUZZLE.TIMEOUT` / `puzzle-state-timeout` | Iframe puzzle → Hijo4 | Puzzle sin resolver por tiempo |
 | | `PUZZLE.LEGACY_COMPLETADO` | Iframe puzzle → Hijo4 | Variante legacy de PUZZLE.COMPLETADO (compatibilidad puzzles antiguos) |
 | | `PUZZLE.LEGACY_TIMEOUT` | Iframe puzzle → Hijo4 | Variante legacy de PUZZLE.TIMEOUT (compatibilidad puzzles antiguos) |
-| **MAPA** | `MAPA.INVALIDAR_TAMAÑO` | Padre (interno) | Forzar recálculo del tamaño del mapa Leaflet — handler en `funciones-mapa.js`; sin emisor activo (ver §10.9) |
+| **MAPA** | `MAPA.INVALIDAR_TAMAÑO` | Padre (interno) | Forzar recálculo del tamaño del mapa — handler en `funciones-mapa.js`; sin emisor activo (ver §10.9) |
 | | `MAPA.SET_VIEW` | Padre (interno) | Centrar vista del mapa — handler en `funciones-mapa.js`; sin emisor activo |
 | | `MAPA.GET_CENTER` | Padre (interno) | Obtener centro actual del mapa — handler en `funciones-mapa.js`; sin emisor activo |
 | | `MAPA.ADD_MARKER` / `REMOVE_MARKER` | Padre (interno) | Añadir/quitar marcador — handler en `funciones-mapa.js`; sin emisor activo |
@@ -3448,7 +3451,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 
 ### 8.6 hijo2 — coordenadas-hijo2.html (GPS + botones)
 
-Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `distanciaAlDestino` (calculada por `funciones-mapa.js`) y la compara contra el umbral para detectar llegada (`LLEGADA_DETECTADA`) o activar el countdown de 5 min. **No calcula Haversine** y **no tiene código Leaflet** — el mapa vive en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
+Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `distanciaAlDestino` (calculada por `funciones-mapa.js`) y la compara contra el umbral para detectar llegada (`LLEGADA_DETECTADA`) o activar el countdown de 5 min. **No calcula Haversine** y **no tiene código de mapa propio** — el mapa vive en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
 
 #### Mensajes que hijo2 envía al padre
 
@@ -4247,7 +4250,7 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P6 se c
 > - *HTTP fetch / API backend*: `js/api-client.js`, `js/data-loader.js`
 > - *localStorage / sessionStorage*: `js/api-client.js` (token sesión), `En-busca-del-tesoro.html` (lee `vv_idioma` en modo despedida), `js/suppress-warnings.js` (flag debug), `js/reciclaje-digital.js` (clear total + caché SW)
 >
-> **Sin comunicación entre componentes** (solo eventos DOM internos propios): `js/device-detection.js`, `js/error-handler-ui.js`, `js/proteccion.js`, `js/config.js`, `consejos-valencia.html`, `gastronomia.html`, `paginas-oficiales-valencia.html`, `videos-valencia-historica.html`, `verify-all.js`.
+> **Sin comunicación entre componentes** (solo eventos DOM internos propios): `js/device-detection.js`, `js/proteccion.js`, `js/config.js`, `consejos-valencia.html`, `gastronomia.html`, `paginas-oficiales-valencia.html`, `videos-valencia-historica.html`, `verify-all.js`.
 
 ---
 
@@ -4313,7 +4316,7 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 |------|---------|------|-----|
 | `padre` | `codigo-padre.html` | Orquestador | Coordina todo el ciclo de aventura |
 | `hijo1` | `extrainfo-hijo1.html` | Iframe | Temporizador, créditos, textos extra |
-| `hijo2` | `coordenadas-hijo2.html` | Iframe | Recibe `distanciaAlDestino` del padre (Haversine en `funciones-mapa.js`), 6 botones navegación, overlay fuera de rango. Sin Leaflet — mapa en padre |
+| `hijo2` | `coordenadas-hijo2.html` | Iframe | Recibe `distanciaAlDestino` del padre (Haversine en `funciones-mapa.js`), 6 botones navegación, overlay fuera de rango. Sin mapa propio — mapa en padre |
 | `hijo3` | `audio-hijo3.html` | Iframe | Reproductor de audio y botón de retos |
 | `hijo4` | `retos-hijo4.html` | Iframe | Retos interactivos |
 | `hijo5` | `boton-casa-hijo5.html` | Iframe | Botón GPS (CASA/AVENTURA) + lista de paradas (scroll horizontal) |
@@ -4338,7 +4341,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-maxzoom-texto-grande-jul21'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-limpieza-doc-jul21'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5196,7 +5199,7 @@ Los mensajes `MAPA.*` son del contexto interno del padre. Los handlers están en
 
 | Mensaje | Handler | Acción |
 |---------|---------|--------|
-| `MAPA.INVALIDAR_TAMAÑO` | `manejarInvalidarTamanio` L2804 | Llama `invalidarTamañoMapa()` — recalcula dimensiones Leaflet al cambiar contenedor |
+| `MAPA.INVALIDAR_TAMAÑO` | `manejarInvalidarTamanio` L2804 | Llama `invalidarTamañoMapa()` — recalcula el tamaño del lienzo del mapa al cambiar el contenedor (`map.resize()` de MapLibre) |
 | `MAPA.SET_VIEW` | `manejarSetView` L2863 | Centra y hace zoom a coordenadas dadas |
 | `MAPA.GET_CENTER` | `manejarGetCenter` L2929 | Devuelve centro actual del mapa en la respuesta |
 | `MAPA.ADD_MARKER` | `manejarAddMarker` L2998 | Añade marcador con popup al mapa |
@@ -5708,11 +5711,14 @@ export const MAPEO_IDIOMAS = {
 
 ### Tecnología usada
 
-- **Leaflet 1.9.4**: biblioteca JavaScript de mapas interactivos de código abierto.
-- **leaflet-rotate 0.2.8**: permite rotar el mapa (para brújula).
-- **leaflet-geometryutil 0.10.1**: cálculos geométricos (distancias, puntos cercanos).
+El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la herramienta que encaja con lo que necesita:
 
-> **Servicio local (sin CDN):** los tres archivos anteriores se sirven desde `js/vendor/` (leaflet.css, leaflet.js, leaflet-rotate-src.js, leaflet.geometryutil.js). No hay dependencia de red en tiempo de carga — funciona sin conexión desde el primer render. Versiones fijadas.
+- **Mapa de aventura** (`codigo-padre.html` + `js/funciones-mapa.js`): **MapLibre GL JS**, motor de mapas vectoriales por WebGL. Rota nativamente (brújula del dispositivo) y dibuja texto/líneas de calle como geometría vectorial real que escala con el zoom — justo lo que este mapa necesita, porque rota de forma continua mientras el usuario camina.
+- **Mapa completo** (`mapa-completo.html`) y el mapa decorativo de **`video-intro.html`**: **Leaflet 1.9.4**, biblioteca de mapas basada en tiles raster. Ninguno de los dos rota ni tiene snap-to-route — para un mapa estático con tiles fijos, Leaflet es más simple que levantar un motor WebGL.
+
+> **Servicio local (sin CDN):** ambos motores se sirven desde `js/vendor/` (MapLibre: `maplibre-gl-csp.js` — build sin `blob:` workers, compatible con la CSP estricta del proyecto — + `maplibre-gl-csp-worker.js` + `maplibre-gl.css`; Leaflet: `leaflet.js` + `leaflet.css`). No hay dependencia de red en tiempo de carga — funciona sin conexión desde el primer render. Versiones fijadas.
+
+`js/utils.js` incluye `puntoMasCercanoEnLinea()`, una función propia sin dependencias que sustituye a `leaflet-geometryutil` para el snap-to-route del mapa de aventura (proyección plana local sobre un punto y una polilínea — ver «Marcadores en el mapa», más arriba). El mapa de aventura no necesitó nunca un plugin de rotación de terceros: al usar MapLibre, la rotación es una capacidad nativa del motor.
 
 ### Cuándo se activa el GPS por primera vez
 
@@ -5720,12 +5726,24 @@ export const MAPEO_IDIOMAS = {
 
 Antes de mostrar P14, `En-busca-del-tesoro.html` comprueba el permiso GPS con `navigator.permissions.query` en P13 — si ya está `'denied'`, muestra un aviso local y el usuario no avanza. Si el permiso es `'prompt'` o `'granted'`, el padre recibe `CODIGO_VALIDADO`, avanza a P14 y activa GPS ahí. Durante la aventura, el botón `#btn-avanzar` en hijo2 puede volver a llamar a `activarGPS()` si el usuario lo desactivó (`NAVEGACION.GPS.ACTIVAR`).
 
+#### Si la posición inicial no llega a tiempo: fallback al punto de inicio
+
+`activarGPS()` intenta obtener una posición inicial de alta precisión con `_obtenerPosicionInicialGPS()`: hasta `CONFIG.GPS.HIGH_ACC_INIT_ATTEMPTS` intentos (por defecto 2) de `getCurrentPosition()`, cada uno con timeout creciente (`INIT_ATTEMPT_TIMEOUT_MS × 1.8^intento`). `CONFIG.GPS.REJECT_ACCURACY_M` no está definido, así que el umbral de precisión equivale a `Infinity` en la práctica — este fallback solo se activa cuando `getCurrentPosition()` **falla** en todos los intentos (permiso denegado, sin señal, timeout), no por baja precisión.
+
+Cuando eso ocurre, `_aplicarFallbackCoordenadasGPS()` centra al usuario en el **punto de inicio real** de la aventura activa (Torres de Serranos u homólogo), nunca en un identificador fijo:
+
+1. Pide a hijo2 las coordenadas del id de inicio real, resuelto dinámicamente con `_idParadaInicioAventura()` (busca `tipo === 'inicio'` en los datos de la aventura activa).
+2. Si hijo2 no responde a tiempo o falla, cae a `_obtenerCoordenadasP0Fallback()` — versión local sin round-trip: busca el mismo `tipo === 'inicio'` directamente en `globalThis.__vv_coordenadasAventura` / `AVENTURA_PARADAS`.
+3. Si ni siquiera eso encuentra datos (aventura aún sin cargar), usa una coordenada fija de Valencia como último recurso.
+
+Los nombres de ambas funciones conservan el sufijo histórico "P0"/"P-0", pero ninguna compara ya contra ese literal — buscan `tipo === 'inicio'` en los datos reales de la aventura. Comparar contra el string `'P-0'` nunca puede funcionar: el id real de la parada de inicio siempre lleva el prefijo de la aventura (`Av1-P-0`, `Av34km-P-0`...); `padreid` usa `'padre-P0'` sin guion, y tampoco coincide con `'P-0'` a secas.
+
 ### Cómo funciona el mapa
 
 Los pasos 1-3 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 4-5 solo ocurren en **modo AVENTURA** — en CASA el GPS no fuerza ningún avance automático.
 
 1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` puede detenerse: `desactivarGPS()` llama a `clearWatch()` para cancelarlo.
-2. Cada nueva posición GPS llega al handler `procesarPosicionGPSParaAventura()` en `funciones-mapa.js` (cargado en padre). El mapa Leaflet (`<div id="mapa">`) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage.
+2. Cada nueva posición GPS llega al handler `procesarPosicionGPSParaAventura()` en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage.
 3. `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`.
 4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`.
 5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 20 m hardcodeado en hijo2).
@@ -5894,90 +5912,88 @@ Para los tramos, la tolerancia dinámica se calcula a partir de la distancia ent
 
 El sistema de capas y el selector de mapa están implementados **directamente en el HTML**, no en módulos JS externos:
 
-- **Mapa de aventura**: bloque `<script>` inline de `codigo-padre.html`, dentro de la función `inicializarMapa()` (buscar el comentario `// ── Capas de mapa + selector desplegable ──`). Las variables llevan prefijo `_` para evitar colisiones con el resto del código del padre (`_capaSatelite`, `_capaOSM`, `_capaNocturno`, `_MODOS_MAPA`, etc.).
-- **Mapa completo**: bloque `<script type="module">` de `mapa-completo.html`, justo después de crear la instancia `L.map('map', ...)`. Usa directamente el tile OSM estándar, sin selector de modos ni capas de etiquetas separadas.
+- **Mapa de aventura**: bloque `<script>` inline de `codigo-padre.html`, dentro de la función `initializeMap()` (buscar el comentario `// ── Capas de mapa + selector desplegable ──`). Las variables llevan prefijo `_` para evitar colisiones con el resto del código del padre (`_ESTILO_MAPA`, `_MODOS_MAPA`, `_CAPAS_TEXTO_CALLES`, `_CAPAS_LINEA_CALLES`, etc.).
+- **Mapa completo**: bloque `<script type="module">` de `mapa-completo.html`, justo después de crear la instancia `L.map('map', ...)`. Usa directamente el tile OSM estándar, sin selector de modos.
 
-`funciones-mapa.js` **no gestiona las capas de tiles**. Recibe la instancia Leaflet ya configurada y se limita a registrarla. Tampoco `mapa-vintage-aventuras.js` tiene relación con estas capas (ese fichero configura los mapas artísticos JPG que se muestran en overlays).
+`funciones-mapa.js` **no gestiona las capas de tiles**. Recibe la instancia MapLibre ya configurada y se limita a registrarla. Tampoco `mapa-vintage-aventuras.js` tiene relación con estas capas (ese fichero configura los mapas artísticos JPG que se muestran en overlays).
 
-#### Los 3 modos: origen de los tiles y URLs
+#### Un único estilo MapLibre, tres capas base alternadas por visibilidad
 
-Satélite y Nocturno combinan una **capa base** con una **capa de etiquetas** superpuesta; Callejero usa un único tile con los nombres ya integrados. Todas las capas son gratuitas y no requieren clave de API.
+El mapa de aventura no cambia de estilo al cambiar de modo — construye **un único objeto `style` de MapLibre** con las tres capas base ya definidas desde el arranque, y alterna cuál está `visible` mediante `map.setLayoutProperty(id, 'visibility', ...)`. Cambiar de estilo completo (`map.setStyle()`) recargaría todas las fuentes y produciría un parpadeo visible; alternar visibilidad dentro del mismo estilo es instantáneo. Todas las fuentes son gratuitas y no requieren clave de API.
 
 ##### Modo Satélite
 
-Capa base: ESRI World Imagery — imágenes de satélite de alta resolución (Maxar/Earthstar Geographics).
-
 ```text
+source 'satelite-src': ESRI World Imagery (Maxar/Earthstar Geographics)
 https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
-maxNativeZoom: 19
+maxzoom: 19
 ```
-
-El mapa completo tiene `maxZoom: 19` (el propio `L.map(...)`, no solo esta capa) — lo marca el modo Callejero, que no tiene margen de estiramiento como Satélite/Nocturno (ver más abajo). Sin este tope, subir de zoom en Callejero dejaba el mapa en blanco al no existir tiles OSM más allá de su `maxZoom`.
 
 ##### Modo Callejero
 
-Tile único: OpenStreetMap estándar — el mismo que usa `mapa-completo.html` (botón "mapa moderno" de hijo2), con los nombres de calle ya integrados en el propio tile.
-
 ```text
-https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
-maxZoom: 19, sin pane propio (tilePane por defecto), sin capa de etiquetas
+source 'callejero-src': OpenStreetMap estándar — el mismo que usa mapa-completo.html
+https://a.tile.openstreetmap.org/{z}/{x}/{y}.png  (+ b. y c. — MapLibre reparte la carga entre las 3 URLs)
+maxzoom: 19
 ```
+
+El mapa entero tiene `maxZoom: 19` (`_MAPA_MAX_ZOOM`, pasado al constructor `new maplibregl.Map(...)`, no solo a esta fuente) — lo marca el modo Callejero, el único de los tres sin margen de estiramiento por encima de su `maxzoom` nativo. Sin este tope, subir de zoom en Callejero dejaba el mapa en blanco al no existir tiles OSM más allá de ese nivel.
 
 ##### Modo Nocturno
 
-Capa base: CARTO Dark Matter sin etiquetas. Va en su propio pane (`nocturnoPane`) con un filtro de brillo/contraste para que las calles se distingan bien sobre el fondo oscuro — el estilo original de CARTO resultaba demasiado oscuro para leer sin ese ajuste.
-
 ```text
-https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png
-pane: 'nocturnoPane'  →  z-index 200, filter brightness(1.35) contrast(1.15)
+source 'nocturno-src': CARTO Dark Matter sin etiquetas
+https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png  (+ b./c./d.)
+maxzoom: 20
+paint: { 'raster-brightness-min': 0.2, 'raster-contrast': 0.15 }
 ```
 
-##### Capa de etiquetas — modo Satélite
+El shader de MapLibre calcula `color_final = brightness-min + color_original × (brightness-max − brightness-min)` (`raster-brightness-max` no se toca aquí, se queda en su valor por defecto, 1). Subir `brightness-min` desde su valor por defecto (0) es lo que aclara los negros del tile sin quemar los blancos — es el valor de salida que recibe un píxel que originalmente era negro puro. El Dark Matter de CARTO, sin este ajuste, resulta demasiado oscuro para distinguir las calles.
+
+##### Nombres de calle — solo Satélite y Nocturno
+
+Callejero ya trae los nombres de calle integrados en su propio tile OSM; Satélite y Nocturno no tienen ningún texto de serie, así que el mapa añade una fuente vectorial propia:
 
 ```text
-https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png
-pane: 'labelsPane'       →  z-index 400, siempre por encima de la capa base
-tileSize: 1024, zoomOffset: -2  →  pide el tile de 2 niveles de zoom por debajo, estirado
-                                    sobre un área 4× mayor → texto notablemente más grande
-maxZoom: 19, maxNativeZoom: 17  →  coherente con el maxZoom:19 del mapa
-filter: drop-shadow(0 0 1.5px #FFD700)  →  borde amarillo alrededor de letras negras, legible sobre imagen satelital
+source 'openmaptiles' (vector): https://tiles.openfreemap.org/planet  (OpenFreeMap — gratis, sin clave de API, datos OSM actualizados semanalmente)
+glyphs: https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf
 ```
 
-##### Capa de etiquetas — modo Nocturno
+Tres capas `symbol` sobre `source-layer: 'transportation_name'` (`calles-texto-mayor`/`-menor`/`-sendero`), con `symbol-placement:'line'` y `text-rotation-alignment:'map'` — el texto sigue el ángulo real de la calle y rota junto con el mapa, sin el desajuste que tendría una etiqueta de tile PNG fijo. Los filtros de clase de vía (qué cuenta como "mayor", "menor" o "sendero") y los umbrales de zoom a los que aparece cada nivel están calcados del estilo Liberty oficial de OpenFreeMap, que ya resuelve correctamente esa jerarquía; el color (`#ffffff` con halo negro, legible tanto sobre foto de satélite como sobre el basemap oscuro) y el tamaño son propios de esta app.
+
+El tamaño del texto se calcula en JavaScript (`_calcularTextSizeCalles()`) con el mismo espíritu que el resto de la app (`clamp()` + vmin de pantalla), como una expresión `interpolate` por zoom que va de 13→16→19 (el tope de zoom del propio mapa, que actúa como techo de crecimiento del texto — más allá de 18px el texto con `symbol-placement:'line'` deja de encajar bien siguiendo la curva de la calle). Se recalcula en cada evento `resize` de la ventana.
+
+##### Líneas de calle — solo Nocturno
+
+Satélite ya muestra las calles en la propia fotografía (dibujar líneas encima sería ruido y podría desalinearse); Callejero las trae en su tile. Solo Nocturno se beneficia de verdad, así que estas capas se mantienen ocultas (`visibility:'none'`) en los otros dos modos:
 
 ```text
-https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png
-pane: 'labelsPane'       →  mismo pane, z-index 400
-tileSize: 1024, zoomOffset: -2  →  mismo truco de tamaño que Satélite
-maxZoom: 19, maxNativeZoom: 17
-filter: none             →  el texto ya es blanco de serie; un halo de color aquí se difumina y dificulta la lectura
+misma fuente 'openmaptiles', source-layer: 'transportation'
+3 niveles: mayor (motorway/trunk/primary/secondary/tertiary), menor (minor/service/track), peatonal (path/pedestrian)
+mayor y menor: casing (línea negra, más ancha, debajo) + fill (línea clara, más estrecha, encima)
+peatonal: solo línea discontinua gris, sin casing (ya es fina de por sí)
 ```
 
-El modo Callejero no activa ninguna capa de `labelsPane` — su `etiqCapa` apunta a un `L.layerGroup()` vacío (`_capaSinEtiquetas`), ya que el tile OSM estándar trae los nombres integrados, y por eso no se beneficia del truco `tileSize`/`zoomOffset` de arriba (no hay una capa de etiquetas separada que agrandar). El `{r}` al final de las URLs de Carto añade `@2x` en pantallas Retina cuando `detectRetina: true`. Las etiquetas de CARTO son tiles PNG pre-renderizados, no texto real — su tamaño y color no se pueden ajustar con más precisión que ese truco, y su tamaño en pantalla no crece al hacer zoom dentro de un mismo nivel (comportamiento estándar en mapas raster: el texto se mantiene legible en un tamaño de píxel fijo en vez de escalar, igual que Google Maps u OSM). El texto vectorial real (que escalaría de forma continua con el zoom, vía MapLibre GL) no es viable como capa añadida sobre este mapa Leaflet: al rotar con la brújula el texto queda mal alineado y el redibujado es lento incluso en equipos potentes — un riesgo que no compensa, dado que esta app rota el mapa de forma continua mientras el usuario camina, no puntualmente. Solo sería viable migrando el motor de mapa entero a MapLibre (sustituyendo Leaflet por completo), no como capa añadida a Leaflet.
+No distinguen puentes ni túneles (se dibujan igual que una vía a nivel de calle) ni ferrocarril — simplificación deliberada frente a las ~20 capas de línea que usa el estilo oficial de OpenFreeMap para esa jerarquía completa, innecesaria para un mapa de paseo a pie.
 
-#### Arquitectura de panes Leaflet
+#### Rotación: solo plana, sin inclinación 3D
 
-Leaflet gestiona el orden de renderizado mediante **panes** (divs con `z-index` controlados). El sistema usa tres panes:
-
-| Pane | z-index | Qué contiene | CSS filter |
-|------|---------|--------------|------------|
-| `tilePane` (defecto) | 200 | Capas base de satélite y callejero | ninguno |
-| `nocturnoPane` (custom) | 200 | Capa base `dark_nolabels` (nocturno) | `brightness(1.35) contrast(1.15)` |
-| `labelsPane` (custom) | 400 | Capa de etiquetas de satélite y nocturno (siempre encima) | varía según modo (ver arriba) |
-
-El filtro de `labelsPane` se actualiza dinámicamente al cambiar de modo:
+MapLibre activa por defecto un gesto combinado de rotación+inclinación (arrastrar con el botón derecho, o Ctrl+arrastrar, tanto rota el mapa como lo inclina en perspectiva 3D — igual que Google Maps en modo edificios). Esta app solo quiere la rotación plana (seguir la brújula del dispositivo), nunca la inclinación, así que el mapa se crea con:
 
 ```javascript
-map.getPane('labelsPane').style.filter = nuevo.filtroCss;
-// 'drop-shadow(0 0 1.5px #FFD700)'  para satélite
-// 'none'                             para callejero y nocturno
+pitchWithRotate: false,  // el gesto de rotación no debe intentar inclinar
+maxPitch: 0,             // cinturón de seguridad: el pitch no puede moverse de 0 venga de donde venga
 ```
+
+#### Arquitectura de capas MapLibre
+
+MapLibre no tiene panes ni una propiedad `zIndex` numérica — el orden de renderizado lo decide la posición de cada capa dentro del array `layers` del `style` (las últimas se dibujan encima de las primeras). El estilo del mapa de aventura ordena sus capas así: 3 capas raster base (una visible a la vez) → 5 capas de línea de calle (solo visibles en Nocturno) → 3 capas de texto de calle (visibles en Satélite/Nocturno). Cambiar de modo nunca reordena el array — solo alterna qué capas están `visible` vía `layout.visibility`.
 
 #### El botón selector desplegable
 
 > Este selector **solo existe en el mapa de aventura** (`codigo-padre.html`). `mapa-completo.html` no tiene selector de estilo — usa un único tile OSM estándar fijo, sin alternativas ni miniaturas.
 
-El selector se construye **íntegramente en JavaScript** (sin HTML adicional en la página) y se añade al DOM con `document.body.appendChild(_selectorDiv)`. Esto garantiza que esté en el contexto de apilamiento raíz, no dentro del pane de Leaflet.
+El selector se construye **íntegramente en JavaScript** (sin HTML adicional en la página) y se añade al DOM con `document.body.appendChild(_selectorDiv)`. Esto garantiza que esté en el contexto de apilamiento raíz, no dentro del lienzo WebGL del mapa.
 
 Estructura del selector:
 
@@ -6008,7 +6024,7 @@ Propiedades del botón:
 | `z-index` | `1000080` — supera hijo5 (z-index 1000000) |
 | Añadido a | `document.body` |
 
-El botón se añade a `document.body` (no al contenedor de Leaflet) porque el `<div id="mapa">` tiene z-index 500, lo que haría que cualquier `position: absolute` dentro de él quedara por debajo de hijo5 (z-index 1000000). Al usar `position: fixed` sobre `body`, el z-index se resuelve en el contexto raíz del documento.
+El botón se añade a `document.body` (no al contenedor del mapa) porque el `<div id="mapa">` tiene z-index 500, lo que haría que cualquier `position: absolute` dentro de él quedara por debajo de hijo5 (z-index 1000000). Al usar `position: fixed` sobre `body`, el z-index se resuelve en el contexto raíz del documento.
 
 Además, el selector no permanece siempre visible: una función centralizada (`actualizarVisibilidadSelectorMapa()`) lo oculta temporalmente cuando se abre el chat, un reto (`hijo4`) o cualquiera de los overlays de imagen, vídeo, error o iframe, y lo vuelve a mostrar al cerrarlos.
 
@@ -6019,19 +6035,29 @@ function _cambiarModo(nuevoId) {
     if (nuevoId === _modoActivo) return;
     const actual = _MODOS_MAPA.find(m => m.id === _modoActivo);
     const nuevo  = _MODOS_MAPA.find(m => m.id === nuevoId);
-    map.removeLayer(actual.capa);                          // quita base actual
-    if (actual.etiqCapa !== nuevo.etiqCapa) {             // cambia etiquetas si difieren
-        map.removeLayer(actual.etiqCapa);
-        nuevo.etiqCapa.addTo(map);
-    }
-    map.getPane('labelsPane').style.filter = nuevo.filtroCss; // actualiza filtro
-    nuevo.capa.addTo(map);                                 // añade nueva base
+
+    map.setLayoutProperty(actual.capaId, 'visibility', 'none');
+    map.setLayoutProperty(nuevo.capaId, 'visibility', 'visible');
+
+    // Nombres de calle vectoriales: solo donde la base no trae texto propio
+    // (Callejero ya lo tiene integrado en su tile OSM estándar).
+    const mostrarTextoCalles = nuevoId !== 'osm';
+    _CAPAS_TEXTO_CALLES.forEach(id => {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', mostrarTextoCalles ? 'visible' : 'none');
+    });
+
+    // Líneas de calle vectoriales: solo en Nocturno.
+    const mostrarLineaCalles = nuevoId === 'nocturno';
+    _CAPAS_LINEA_CALLES.forEach(id => {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', mostrarLineaCalles ? 'visible' : 'none');
+    });
+
     _modoActivo = nuevoId;
     _actualizarBtnPrincipal();
 }
 ```
 
-Solo hay una capa base activa en cada momento. La capa de etiquetas solo se reemplaza al cambiar de modo cuando difiere de la anterior (satélite ↔ nocturno cambian de `_capaEtiquetas` a `_capaEtiquetasNoche`; callejero usa el `layerGroup` vacío `_capaSinEtiquetas`). En `codigo-padre.html` las variables llevan prefijo `_` (`_cambiarModo`, `_MODOS_MAPA`, etc.) para no contaminar el ámbito global.
+Solo hay una capa base activa en cada momento; las capas de texto y de línea de calle se activan o desactivan como grupo según el modo destino. En `codigo-padre.html` las variables llevan prefijo `_` (`_cambiarModo`, `_MODOS_MAPA`, etc.) para no contaminar el ámbito global.
 
 ---
 
@@ -6072,7 +6098,7 @@ Distinto — muestra la imagen (`ref.imagen`) y compone el número+nombre en `#m
 
 ### Rendimiento del zoom (`js/funciones-mapa.js`)
 
-La animación de zoom al cambiar de parada usa Leaflet `flyTo` con la constante `durFase`:
+La animación de zoom al cambiar de parada usa `flyTo` de MapLibre con la constante `durFase`:
 
 | Fase | Duración | Descripción |
 |---|---|---|
@@ -6080,7 +6106,7 @@ La animación de zoom al cambiar de parada usa Leaflet `flyTo` con la constante 
 | Zoom in (acercar) | `durFase × 1.5` = **0.525 s** | Acerca al destino al máximo de zoom |
 | Timeout fallback | `durFase × 1000 + 600 ms` = **950 ms** | Si `moveend` no dispara, continúa tras este tiempo |
 
-Con `durFase = 0.35 s`, el tiempo total de la animación de zoom (out + in) es ~1.45 s.
+Con `durFase = 0.35 s`, el tiempo total de la animación de zoom (out + in) es ~1.45 s. MapLibre expresa `duration` en milisegundos (Leaflet lo hacía en segundos) — `durFase` sigue escrita en segundos en el código y se multiplica por 1000 en cada llamada a `flyTo`. La curva de aceleración usa el easing por defecto de MapLibre — Leaflet tenía un parámetro con nombre (`easeLinearity`) para controlarla; MapLibre no tiene un equivalente directo con nombre, así que esa afinación fina de la curva no se replica, solo la duración.
 
 ### Optimización CAMBIO_PARADA (`codigo-padre.html`)
 
@@ -6097,7 +6123,7 @@ if (solicitudes.audio) {
 }
 ```
 
-Antes se usaba `Promise.all([paradaData, audio])`, que podía bloquear hasta 10 s si hijo3 tardaba en responder (especialmente en modo CASA con doble `enviarMensajeConConfirmacion`).
+El `.catch` es solo para logging — nunca bloquea. `audio` se excluye deliberadamente del `await` porque hijo3 puede tardar hasta 10 s en responder (especialmente en modo CASA, donde `enviarMensajeConConfirmacion` se invoca dos veces); esperarlo con `Promise.all([paradaData, audio])` haría perceptible ese retraso en cada cambio de parada.
 
 ---
 
@@ -6841,8 +6867,8 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 
 Todos los specs comparten la misma infraestructura (`tests/e2e/helpers/`):
 
-- **`boot.js`** — `gotoAndWaitForFase1()`: navega a `codigo-padre.html` e inyecta un spy que espera a que `globalThis.__MENSAJERIA_INICIADA === true` antes de continuar. `stubCDNResources()` intercepta los CDN externos para que los tests no dependan de red.
-- **`leaflet-stub.js`** — stub de Leaflet que expone la API mínima necesaria (`L.map`, `L.tileLayer`, `L.marker`, etc.) sin renderizar nada real. Permite que `funciones-mapa.js` se inicialice sin un mapa real.
+- **`boot.js`** — `gotoAndWaitForFase1()`: navega a `codigo-padre.html` e inyecta un spy que espera a que `globalThis.__MENSAJERIA_INICIADA === true` antes de continuar. `stubCDNResources()` intercepta los CDN externos (histórico) y también `js/vendor/maplibre-gl-csp.js` — vendorizado localmente, no CDN — para que el motor de mapas real nunca se ejecute ni los tests dependan de red o de un contexto WebGL real.
+- **`maplibre-stub.js`** — stub de MapLibre GL JS que expone la API mínima necesaria (`Map`, `Marker`, `.on/.flyTo/.addSource/.addLayer/...`) sin renderizar nada real. Permite que `funciones-mapa.js` e `initializeMap()` se ejecuten sin un mapa real.
 
 #### ¿Qué detectan los E2E que Jest no puede?
 
@@ -6973,7 +6999,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-maxzoom-texto-grande-jul21'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-limpieza-doc-jul21'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7089,7 +7115,7 @@ proyecto/
 │   ├── state-manager.js              ← Estado centralizado con mutex
 │   ├── mensajeria.js                 ← Sistema postMessage padre↔hijos
 │   ├── controladores-padre.js        ← Handlers de mensajes del padre
-│   ├── funciones-mapa.js             ← Lógica del mapa Leaflet (rutas, marcadores, GPS visual)
+│   ├── funciones-mapa.js             ← Lógica del mapa de aventura — MapLibre GL (rutas, marcadores, GPS visual)
 │   ├── monitoreo.js                  ← Heartbeat y métricas de hijos
 │   │
 │   ├── ── CONFIGURACIÓN ──
@@ -7101,7 +7127,6 @@ proyecto/
 │   ├── logger.js                     ← Sistema de logging con niveles
 │   ├── utils.js                      ← Utilidades generales (sleep, resolverIdsParada…)
 │   ├── device-detection.js           ← Detección móvil/desktop
-│   ├── error-handler-ui.js           ← Overlays visuales de error
 │   ├── suppress-warnings.js          ← Filtrado de avisos de consola irrelevantes
 │   ├── validacion.js                 ← Validación de datos de entrada
 │   ├── proteccion.js                 ← Protección de datos sensibles
@@ -7144,10 +7169,11 @@ proyecto/
 │   │   └── parrafos-texto-ucraniano.json
 │   │
 │   └── vendor/                       ← Librerías externas (sin npm)
-│       ├── leaflet.js                ← Leaflet — mapas interactivos
-│       ├── leaflet.css
-│       ├── leaflet.geometryutil.js   ← Utilidades geométricas para Leaflet
-│       └── leaflet-rotate-src.js     ← Extensión: rotación de mapa según orientación
+│       ├── maplibre-gl-csp.js        ← MapLibre GL JS (build CSP-safe) — motor del mapa de aventura
+│       ├── maplibre-gl-csp-worker.js ← Worker de MapLibre (sin blob:, compatible con la CSP estricta)
+│       ├── maplibre-gl.css
+│       ├── leaflet.js                ← Leaflet — motor de mapa-completo.html y video-intro.html
+│       └── leaflet.css
 │
 ├── audios-aventuras/                 ← MP3 organizados por idioma (protegidos por PROTECT_DATA)
 │   ├── español/
@@ -7566,7 +7592,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-maxzoom-texto-grande-jul21'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-limpieza-doc-jul21'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -7740,10 +7766,11 @@ La única solución es un **paso de compilación con Babel** que transpile la si
 
 | Término | Significado |
 |---------|-------------|
-| **Leaflet** | Biblioteca JavaScript de código abierto para mapas interactivos |
-| **Polyline** | Línea dibujada en Leaflet que conecta los waypoints de un tramo. En modo AVENTURA permanece oculta (opacity 0) hasta que el usuario activa la navegación |
+| **MapLibre GL JS** | Motor de mapas vectoriales por WebGL. Renderiza el mapa de aventura (`codigo-padre.html` + `js/funciones-mapa.js`) — rota nativamente y dibuja texto/líneas de calle como geometría vectorial real |
+| **Leaflet** | Biblioteca JavaScript de mapas basada en tiles raster. Renderiza `mapa-completo.html` y el mapa decorativo de `video-intro.html` — ninguno de los dos rota ni tiene snap-to-route |
+| **Polyline** | Línea que conecta los waypoints de un tramo. En el mapa de aventura es una capa `line` de MapLibre sobre una fuente GeoJSON; en `mapa-completo.html` es un objeto `L.polyline` de Leaflet. En modo AVENTURA permanece oculta (opacity 0) hasta que el usuario activa la navegación |
 | **Waypoints** | Puntos intermedios de un tramo almacenados en `js/coordenadas-aventuras.js`. Definen la ruta a pie entre paradas |
-| **Marcador** | Icono de Leaflet (`L.marker`) colocado en el mapa para representar una parada o los extremos de un tramo. Se gestiona internamente mediante `marcadoresParadas` en `js/funciones-mapa.js` |
+| **Marcador** | Elemento que representa una parada o los extremos de un tramo. En el mapa de aventura es un `maplibregl.Marker` (elemento DOM real); en `mapa-completo.html` es un icono de Leaflet (`L.marker`). Se gestiona internamente mediante `marcadoresParadas` en `js/funciones-mapa.js` |
 
 ### Datos y configuración
 
@@ -8128,7 +8155,7 @@ En segundo plano, el padre:
 
 - Registra el Service Worker para que la app funcione como PWA.
 - Carga el sistema de mensajería entre iframes.
-- Prepara el mapa base (Leaflet).
+- Prepara el mapa base (MapLibre GL).
 - Carga el iframe de selección (`En-busca-del-tesoro.html`).
 
 La aplicación arranca en **modo CASA** — el estado "neutro" donde aún no hay aventura activa.
@@ -8706,7 +8733,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │                                      │                 │
 │    │  GPS activo (event-driven, alta prec.)│                 │
 │    │  Heartbeat (cada 5s)                 │                 │
-│    │  Mapa Leaflet con posición GPS en vivo│                 │
+│    │  Mapa MapLibre con posición GPS en vivo│                │
 │    │                                      │                 │
 │    │  ┌──── DENTRO 20m ────┐              │                 │
 │    │  │ Imagen ✅ Vídeo ✅  │              │                 │
@@ -8865,7 +8892,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 ~30 ms   suppress-warnings.js  ← defer
 
-~100 ms  js/vendor/: leaflet.js + leaflet-rotate-src.js + leaflet.geometryutil.js  (local, sin CDN)
+~100 ms  js/vendor/: maplibre-gl-csp.js + maplibre-gl.css  (local, sin CDN)
 
 ~200 ms  state-manager.js      ← primer módulo ES6 en ejecutarse
          → Crea el objeto state con todos sus campos
@@ -8957,8 +8984,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | `utils.js` | Funciones sin efectos secundarios: `generarIdUnico(prefijo)` → `prefijo-timestamp-base36`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `getPadreId()`, `normalizarParadas()`. | Named exports |
 | `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Usado en `constants.js` (TTLs) y en `mensajeria.js` (intervalo heartbeat). | `esMovil()`, `esIOS()`, `esAndroid()`, etc. |
 | `validacion.js` | Registro de validadores por tipo con soporte de opciones (`requerido`, `defecto`, `min`, `max`, `transformar`). Tipos incluidos: string, number, boolean, array, object, coordenadas (lat/lng en rango), tipoMensaje, idUnico. | `validarDato()` |
-| `error-handler-ui.js` | Muestra errores al usuario como toasts (máximo 3 simultáneos, duración 5 s) o modales. No interfiere con la lógica de negocio. Todos los valores dinámicos inyectados en `innerHTML` (título, código de error) pasan por `_escapeHtml()` para prevenir XSS. | `mostrarError()` |
-| `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (Leaflet). Se carga con `defer` justo tras `proteccion.js`. | — |
+| `suppress-warnings.js` | Silencia advertencias de consola de librerías de terceros (MapLibre, Leaflet). Se carga con `defer` justo tras `proteccion.js`. | — |
 
 #### Módulos de comunicación y datos
 
@@ -8987,7 +9013,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | `retos-aventuras.js` | Preguntas, opciones y respuestas correctas por aventura e idioma. |
 | `puzzles-aventuras.js` | Definición de cada puzzle (tipo, piezas, solución). |
 | `aventuras-ID-padre.js` | Arrays `elementosIDpadre`: la secuencia ordenada de elementos que el padre usa para saber en qué punto del recorrido está. |
-| `mapa-vintage-aventuras.js` | Configuración de los mapas artísticos en formato JPG que se muestran en los overlays de `En-busca-del-tesoro.html` y `coordenadas-hijo2.html`. No gestiona tiles Leaflet — esos los configura directamente `codigo-padre.html`. |
+| `mapa-vintage-aventuras.js` | Configuración de los mapas artísticos en formato JPG que se muestran en los overlays de `En-busca-del-tesoro.html` y `coordenadas-hijo2.html`. No gestiona tiles del mapa interactivo — esos los configura directamente `codigo-padre.html`. |
 | `indice-aventuras.js` | Metadatos de cada aventura: nombre, distancia, vehículo, disponibilidad. |
 
 ---
@@ -9008,7 +9034,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 
 La API `performance.memory` solo existe en Chrome/Chromium. En Safari y Firefox la métrica no se recoge y la alerta nunca se dispara.
 
-El umbral está fijado en **50 MB** (`UMBRAL_MEMORIA: 52428800` bytes en `config.js`). En una sesión normal el heap de la app puede superar este valor con facilidad (Leaflet + tiles en caché + iframes activos); la alerta es indicativa, no crítica. Si aparece de forma sostenida (varias mediciones consecutivas), los focos habituales son listeners acumulados o historial interno sin límite de tamaño.
+El umbral está fijado en **50 MB** (`UMBRAL_MEMORIA: 52428800` bytes en `config.js`). En una sesión normal el heap de la app puede superar este valor con facilidad (motor del mapa + tiles en caché + iframes activos); la alerta es indicativa, no crítica. Si aparece de forma sostenida (varias mediciones consecutivas), los focos habituales son listeners acumulados o historial interno sin límite de tamaño.
 
 Si aparece `MEMORIA_ALTA` de forma sostenida (varias mediciones consecutivas, no solo una), los focos habituales son:
 
@@ -9057,7 +9083,7 @@ Todo el tráfico entre padre e hijos pasa por `js/mensajeria.js` usando `window.
 | `UI` | Notificaciones visuales, navegación externa |
 | `MONITOREO` | Métricas y eventos internos |
 | `TEMPORIZADOR` | Control del temporizador de aventura (TOGGLE) |
-| `MAPA` | Operaciones sobre el mapa Leaflet |
+| `MAPA` | Operaciones sobre el mapa de aventura |
 | `SELECCION` | Cambios de idioma y aventura en la pantalla de selección |
 | `AVENTURA` | Inicio, finalización y eventos de la aventura activa |
 
@@ -9260,7 +9286,7 @@ Un mensaje de una página externa maliciosa es descartado sin dejar rastro.
 - Solo permite conexiones a `'self'` (`connect-src 'self'`) — sin CDNs externos
 - Convierte HTTP → HTTPS (`upgrade-insecure-requests`)
 
-> **Sin CDN externos:** Leaflet y sus plugins se sirven desde `js/vendor/`, lo que permite eliminar `https://unpkg.com` y `https://cdnjs.cloudflare.com` de `script-src`, `style-src` y `connect-src`, reduciendo la superficie de ataque de supply-chain.
+> **Sin CDN externos:** MapLibre GL, Leaflet y sus plugins se sirven desde `js/vendor/`, lo que permite eliminar `https://unpkg.com` y `https://cdnjs.cloudflare.com` de `script-src`, `style-src` y `connect-src`, reduciendo la superficie de ataque de supply-chain.
 
 #### Cuarta capa: token JWT en API (cliente implementado; backend pendiente)
 
@@ -9361,7 +9387,7 @@ Iframe transparente de pantalla completa. Muestra la lista scrollable de paradas
 
 ### 25.10 Referencias visuales en el mapa (tipo "referencia")
 
-Una referencia visual es el marcador numerado que `mapa-completo.html` dibuja para **cada punto numerado del mapa impreso original** (el guión de cada aventura numera sus monumentos 1, 2, 3…). Las `parada`/`inicio`/`tramo` llevan su propio `mapa_numero` pero **no** se dibujan como píldora numerada en el mapa interactivo — solo son vértices de la polilínea. Por eso **todo punto numerado necesita su propia entrada `referencia`**, sea o no también una parada con audio/reto propio: en Aventura1, las 23 referencias coinciden en coordenadas con 23 paradas ya existentes (mismo monumento, doble entrada); Aventura34km sigue la misma regla con sus 89 referencias (una por cada pin 1-89 del guión). Muchos monumentos se repiten entre aventuras con las mismas coordenadas reales — solo cambia el número de pin local, así que la referencia de una aventura puede reutilizarse literalmente (coordenadas, nombre, imagen) en otra. Excepción: los sub-puntos internos de una zona numerada aparte en el propio guión (p. ej. Viveros v1-v12 dentro de Av34km) no necesitan referencia propia — el conjunto cuenta como un único pin en la secuencia principal.
+Una referencia visual es el marcador numerado que se dibuja para **cada punto numerado del mapa impreso original**, sobre los mismos datos de `coordenadas-aventuras.js` pero con dos implementaciones independientes: `mapa-completo.html` las dibuja con su propio código Leaflet (`L.divIcon`/`L.marker`); el mapa de aventura las dibuja con `crearIconoReferencia()` y `dibujarReferencias()` en `js/funciones-mapa.js` (MapLibre) (el guión de cada aventura numera sus monumentos 1, 2, 3…). Las `parada`/`inicio`/`tramo` llevan su propio `mapa_numero` pero **no** se dibujan como píldora numerada en el mapa interactivo — solo son vértices de la polilínea. Por eso **todo punto numerado necesita su propia entrada `referencia`**, sea o no también una parada con audio/reto propio: en Aventura1, las 23 referencias coinciden en coordenadas con 23 paradas ya existentes (mismo monumento, doble entrada); Aventura34km sigue la misma regla con sus 89 referencias (una por cada pin 1-89 del guión). Muchos monumentos se repiten entre aventuras con las mismas coordenadas reales — solo cambia el número de pin local, así que la referencia de una aventura puede reutilizarse literalmente (coordenadas, nombre, imagen) en otra. Excepción: los sub-puntos internos de una zona numerada aparte en el propio guión (p. ej. Viveros v1-v12 dentro de Av34km) no necesitan referencia propia — el conjunto cuenta como un único pin en la secuencia principal.
 
 | Tipo | GPS | Audio | Reto | Marcador en mapa | En `elementosIDpadre` |
 |------|-----|-------|------|------------------|-----------------------|
@@ -9380,7 +9406,7 @@ Una referencia visual es el marcador numerado que `mapa-completo.html` dibuja pa
 { tipo: "tramo",      id: "TR-6", ... }
 ```
 
-El marcador es una píldora blanca con borde naranja (`#ff8c00`), emoji 🏛 a la izquierda y número de `mapa_numero` a la derecha. `zIndexOffset: 400`, por debajo de paradas visitadas (600).
+El marcador es una píldora blanca con borde naranja (`#ff8c00`), emoji 🏛 a la izquierda y número de `mapa_numero` a la derecha. Apilado visual 400, por debajo de paradas visitadas (600) — en `mapa-completo.html` es `zIndexOffset: 400` (opción de Leaflet); en el mapa de aventura es `zIndex: 400` fijado por CSS sobre el elemento del marcador.
 
 ---
 
@@ -9455,7 +9481,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: registra la confirmación por hijo; cuando ambos confirman, el padre puede habilitar el botón de avance | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
 | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2 (usuario salió del radio de la parada) | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: inicia el contador de gracia (`outOfRangeGrace`); si expira sin volver → penalización | (ninguna directa) | — | Gestionar el caso de que el usuario se aleje del recorrido |
-| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa Leaflet desde la posición actual del usuario hasta la parada objetivo | (ninguna) | — | Feedback visual de dirección al usuario |
+| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa de aventura desde la posición actual del usuario hasta la parada objetivo | (ninguna) | — | Feedback visual de dirección al usuario |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo 2 (botón de mapa completo) | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO`: abre `mapa-completo.html` en overlay de pantalla completa | (ninguna) | — | Vista interactiva del mapa Leaflet con todas las paradas |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo 2 (botón de mapa vintage) | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE`: muestra imagen JPG del mapa vintage en overlay | (ninguna) | — | Vista alternativa del mapa con estética histórica |
 | `AUDIO.ESTADO_ACTUALIZADO` | Hijo 3 (cambio de estado play/pause/stop) | `_hdl_AUDIO_ESTADO_ACTUALIZADO`: actualiza `estadoAudio` interno; sin reenvío | (ninguna) | — | Tracking del estado de reproducción para lógica de pending |
@@ -9548,7 +9574,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 
 #### 25.12.5 Handlers del HIJO 2 — coordenadas-hijo2.html (controles GPS y botones)
 
-Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y tramos, gestiona los 6 botones de acción y el overlay fuera-de-rango. **No tiene mapa Leaflet propio** — el mapa principal vive en `codigo-padre.html`, gestionado por `funciones-mapa.js`.
+Control GPS y botones de acción. Detecta la proximidad del usuario a paradas y tramos, gestiona los 6 botones de acción y el overlay fuera-de-rango. **No tiene mapa propio** — el mapa principal vive en `codigo-padre.html`, gestionado por `funciones-mapa.js`.
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
@@ -11015,7 +11041,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-maxzoom-texto-grande-jul21';
+const CACHE_VERSION = 'v-limpieza-doc-jul21';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11069,7 +11095,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Qué ocurre:** el dispositivo pierde la conexión a internet durante la aventura. Se detecta de forma reactiva — solo cuando una petición real falla (no con el evento `offline` del browser, que puede dar falsos positivos porque el SW cachea los recursos principales).
 
-**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png`. En la parte inferior centrada, botón único sin texto: 🌐🔄. El overlay **no tiene botón de cierre** — el usuario debe resolver el problema o esperar.
+**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png`. En la parte inferior centrada, botón de reintento sin texto: 🌐🔄. Botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha — cerrarlo manualmente no soluciona la falta de conexión, solo oculta el aviso; si la conexión sigue caída, el overlay puede volver a aparecer en el siguiente fallo de red.
 
 **Comportamiento del botón:**
 
@@ -11092,7 +11118,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 - Carga de nuevos MP3 si no están en caché del SW → `FIN_REPRODUCCION` nunca llega → la parada queda bloqueada (ver §30.7)
 - Cualquier llamada a la API del backend
 
-**Estado de implementación:** ❌ pendiente — el overlay, la detección y el mecanismo de reintento deben implementarse.
+**Estado de implementación:** ✅ implementado. El overlay se muestra vía `showInternetOverlay()` / se oculta vía `hideInternetOverlay()` en `codigo-padre.html`; se autooculta además con el evento `online` del navegador sin necesidad de que el usuario pulse nada.
 
 ---
 
@@ -11111,14 +11137,19 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Diferencia entre código 2 y código 3:**
 
-- Código 2 (GPS apagado): sin reintento automático. El `watchPosition` queda registrado y el browser lo retomará cuando el GPS vuelva.
+- Código 2 (POSITION_UNAVAILABLE, GPS apagado): sin reintento automático. El `watchPosition` queda registrado y el browser lo retomará cuando el GPS vuelva.
 - Código 3 (TIMEOUT): reintento automático existente en `_gpsRetryOnTimeout()` — hasta 3 intentos con `enableHighAccuracy: false` y backoff exponencial (15s, 30s, 60s).
 
-**Qué ve el usuario actualmente:** **nada** — la app se congela en silencio. No hay overlay, no hay mensaje.
+**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-gps.png`. El botón de reintento distingue visualmente entre los dos códigos — antes usaban el mismo icono y no se podían diferenciar a simple vista:
 
-**Qué debería ver (a implementar):** overlay con `imagen-no-gps.png` y botón 🛰️🔄 centrado abajo.
+| Código | Icono del botón | Motivo del icono |
+|---|---|---|
+| 2 (POSITION_UNAVAILABLE) | 🛰️🔄 | GPS sin más contexto — reintento genérico |
+| 3 (TIMEOUT) | 🛰️⏳ | El reloj de arena marca específicamente "se agotó el tiempo de espera (30s)", no "no disponible" |
 
-**Comportamiento del botón 🛰️🔄:**
+Además, botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha, independiente del botón de reintento.
+
+**Comportamiento del botón de reintento (🛰️🔄 o 🛰️⏳, misma lógica para ambos):**
 
 1. Pulsar → botón se deshabilita
 2. Contador descendente de 15 segundos
@@ -11179,6 +11210,17 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 4. `mostrarOverlayFueraRango()` muestra el overlay `#fuera-rango-overlay` con `foto-fuera-rango.png` en hijo2
 
 **Qué ve el usuario:** overlay en hijo2 (no en el padre) con `foto-fuera-rango.png`. Botón de cierre ✖ para cerrar el overlay. El botón `btn-ubicacion` queda habilitado para que el usuario pueda ver su posición en el mapa y orientarse.
+
+**Qué ocurre al pulsar `btn-ubicacion`:**
+
+1. hijo2 construye `elementoId = estadoComponente.idParadaActual || _idParadaInicio()` — usa la parada/tramo activo si ya hay uno; si todavía no hay ninguno (aventura recién empezada, antes del primer `CAMBIO_PARADA`), `_idParadaInicio()` busca en `globalThis.__vv_coordenadasAventura` (ya cargado localmente en hijo2) la entrada con `tipo: "inicio"` y devuelve su `id` real — `"Av1-P-0"`, `"Av34km-P-0"`, etc., siempre con el prefijo de la aventura activa.
+2. hijo2 envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` al padre con `{ ubicacionUsuario, proximoElemento, elementoId, centrar: true, zoom: 16 }`.
+3. El padre (`_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`) resuelve las coordenadas del destino en orden: `proximoElemento` si ya trae `lat`/`lng` → `_resolverCoordenadasElemento(elementoId, ...)` (busca en `DATOS_PADRE`, y si no encuentra coordenadas ahí pregunta a hijo2 vía `solicitarCoordenadasHijo`) → `_obtenerCoordenadasFallbackP0()` como último recurso si todo lo anterior falla.
+4. Con las coordenadas del usuario y del destino, `dibujarPolylineNavegacion()` (`js/funciones-mapa.js`) traza una línea recta (sin waypoints intermedios — este flujo no los tiene) entre ambos puntos.
+
+**Por qué `_obtenerCoordenadasFallbackP0()` no busca en `DATOS_PADRE`:** `DATOS_PADRE` (`js/aventuras-ID-padre.js`) es el registro de IDs y secuencia de la aventura — `padreid`, `parada_id`, `reto_id`... — pero ninguna de sus entradas tiene nunca `lat`/`lng`. Las coordenadas reales viven en `js/coordenadas-aventuras.js`, cacheadas en `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` (mismo patrón ya usado en el resto de `codigo-padre.html`, ver por ejemplo la construcción de datos para hijo5). La función filtra esa lista por `tipo === 'inicio'` y devuelve `coordenadas.lat`/`coordenadas.lng` de esa entrada.
+
+**Por qué ninguna de estas funciones compara contra un ID fijo tipo `'P-0'`:** el `padreid` de la parada de inicio es idéntico en las 7 aventuras (`"padre-P0"`), pero su `parada_id` varía por aventura (`"Av1-P-0"`, `"Av2-P-0"`, `"AvFallas-P-0"`, `"Av34km-P-0"`...). Un literal `'P-0'` a secas no coincide con el `parada_id` real de ninguna aventura. Por eso el ID de la parada de inicio siempre se resuelve desde los datos ya cargados de la aventura activa (`_idParadaInicio()` en hijo2, el filtro por `tipo:'inicio'` en `_obtenerCoordenadasFallbackP0()`), nunca se construye a mano con un prefijo adivinado.
 
 **Recuperación:** cuando el usuario vuelve a estar dentro de tolerancia de algún punto del elemento actual, `fueraDeRango5min` se desactiva y los botones se restauran.
 

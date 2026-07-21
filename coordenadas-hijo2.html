@@ -235,93 +235,8 @@
             animation: spin-btn 0.9s cubic-bezier(0.2,0.8,0.4,1) forwards !important;
         }
 
-        /* Estilos del Modal para imagen/video */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(0.3125rem);
-            padding: env(safe-area-inset-top, 0px) 0 var(--gap-inferior) 0;
-            box-sizing: border-box;
-        }
-        .modal-content {
-            background-color: #fff8e7;
-            padding: 1.25rem;
-            border-radius: 0.625rem;
-            width: min(95vw, 92vmin);
-            max-width: min(95vw, 92vmin);
-            height: calc(95vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-            position: relative;
-            overflow: hidden;
-            font-size: clamp(16px, 5vmin, 18px);
-        }
-        .modal-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 3.4375rem;
-            color: #000;
-            cursor: pointer;
-            background: #ff8c00; /* fondo naranja */
-            width: 3.25rem;
-            height: 3.25rem;
-            border-radius: 50%;
-            border: 0.3125rem solid #00ff00; /* mismo verde que la ventana flotante, ahora 0.3125rem */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 4;
-            z-index: 1000020 !important;
-            box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.15);
-            transition: background 0.12s ease, transform 0.12s ease;
-        }
-
-        .modal-close:hover,
-        .modal-close:focus,
-        .modal-close:focus-visible {
-            background: #ff4500; /* naranja-rojizo (casi rojo) */
-            transform: scale(1.06);
-            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.25);
-            outline: none;
-        }
-
-        /* Ensure touch devices get a consistent active feedback */
-        .modal-close:active {
-            background: #ff2b00; /* slightly more red on press */
-            transform: scale(1.04);
-            box-shadow: 0 0.1875rem 0.625rem rgba(0,0,0,0.20);
-        }
-
-        @media (hover: none) {
-            .modal-close {
-                -webkit-tap-highlight-color: rgba(0,0,0,0);
-                touch-action: manipulation;
-            }
-            .modal-close:active {
-                background: #ff2b00;
-                transform: scale(1.04);
-            }
-        }
-        .modal-title {
-            margin-top: 0;
-            margin-bottom: 0.9375rem;
-            font-size: clamp(16px, 5vmin, 18px);
-            color: #333;
-        }
-        .media-container img, .media-container video {
-            max-width: 65vw;
-            max-height: 65vh;
-            display: block;
-            margin: 0 auto;
-            border-radius: 0.3125rem;
-        }
+        /* (bloque .modal/.modal-content/.modal-close/.modal-title/.media-container
+           eliminado — CSS muerto, ningún elemento del archivo usaba esas clases) */
 
         /* Estilo para la línea de ruta */
         .ruta-polyline {
@@ -1157,6 +1072,20 @@ function _obtenerPuntosTramo(elemento) {
     return puntosAValidar;
 }
 
+/**
+ * ID real de la parada de inicio ("Torres de Serranos") de la aventura activa.
+ * Se usa como destino por defecto cuando todavía no hay ninguna parada/tramo
+ * activo (estadoComponente.idParadaActual vacío). El ID lleva siempre el
+ * prefijo de la aventura (p.ej. "Av1-P-0", "Av34km-P-0") — nunca el literal
+ * "P-0" a secas, que no coincide con ningún id real en ninguna aventura.
+ * Se busca en el array ya cargado localmente, así que sirve para cualquier
+ * aventura sin necesitar saber su prefijo de antemano.
+ */
+function _idParadaInicio() {
+    const paradas = globalThis.__vv_coordenadasAventura || [];
+    return paradas.find(p => p.tipo === 'inicio')?.id || null;
+}
+
 function _procesarDentroDeRango(btn, logPrefix) {
     btn.disabled = true;
     btn.style.backgroundColor = '#f44336';
@@ -1192,7 +1121,7 @@ function _procesarFueraDeRango5min(btn, logPrefix, distanciaMinima, elementoMasC
             destino: resolverIdPadre(),
             datos: { distancia: distanciaMinima, tiempoFuera, elementoMasCercano: elementoMasCercano?.id || null, timestamp: Date.now() }
         }).catch(e => logger.debug(`${logPrefix} Error notificando usuario fuera de rango:`, e.message));
-        const elementoId = estadoComponente.idParadaActual || 'P-0';
+        const elementoId = estadoComponente.idParadaActual || _idParadaInicio();
         enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
             origen: CONFIG_HIJO.IFRAME_ID,
@@ -1481,13 +1410,13 @@ elementosDOM.btnUbicacion?.addEventListener('click', async () => {
         let elementoId = null;
 
         try {
-            elementoId = estadoComponente.idParadaActual || 'P-0';
+            elementoId = estadoComponente.idParadaActual || _idParadaInicio();
             const paradas = globalThis.__vv_coordenadasAventura || [];
             elementoDestino = paradas.find(p => p.id === elementoId || p.parada_id === elementoId || p.tramo_id === elementoId);
             logger.debug(`${logPrefix} Elemento destino: ${elementoId}`);
         } catch (e) {
             logger.warn(`${logPrefix} Error obteniendo elemento destino:`, e);
-            elementoId = 'P-0';
+            elementoId = _idParadaInicio();
         }
 
         // Solicitar al padre que muestre polyline desde ubicación actual hasta destino

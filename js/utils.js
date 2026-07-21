@@ -468,6 +468,49 @@ export function calcularDistancia(lat1, lon1, lat2, lon2) {
 }
 
 /**
+ * Punto más cercano sobre una polilínea a un punto dado (sustituye a L.GeometryUtil.closest).
+ * Proyección plana local (aplanando la longitud por cos(latitud)) — precisión suficiente
+ * para las distancias de un tramo de aventura (decenas/cientos de metros); no válida para
+ * líneas de muchos kilómetros.
+ * @param {{lat:number,lng:number}} punto - Punto de referencia (ej. posición GPS del usuario)
+ * @param {Array<{lat:number,lng:number}>} puntosLinea - Vértices consecutivos de la polilínea
+ * @returns {{lat:number,lng:number}|null} Punto más cercano sobre algún segmento de la línea
+ */
+export function puntoMasCercanoEnLinea(punto, puntosLinea) {
+    if (!punto || !Number.isFinite(punto.lat) || !Number.isFinite(punto.lng)) return null;
+    if (!Array.isArray(puntosLinea) || puntosLinea.length < 2) return null;
+
+    const cosLat = Math.cos(punto.lat * Math.PI / 180);
+    const toXY = p => ({ x: p.lng * cosLat, y: p.lat });
+    const p = toXY(punto);
+
+    let mejor = null;
+    let mejorDistSq = Infinity;
+
+    for (let i = 0; i < puntosLinea.length - 1; i++) {
+        const a = toXY(puntosLinea[i]);
+        const b = toXY(puntosLinea[i + 1]);
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const lenSq = dx * dx + dy * dy;
+
+        let t = lenSq > 0 ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq : 0;
+        t = Math.max(0, Math.min(1, t));
+
+        const cx = a.x + t * dx;
+        const cy = a.y + t * dy;
+        const distSq = (p.x - cx) ** 2 + (p.y - cy) ** 2;
+
+        if (distSq < mejorDistSq) {
+            mejorDistSq = distSq;
+            mejor = { lat: cy, lng: cx / cosLat };
+        }
+    }
+
+    return mejor;
+}
+
+/**
  * Clona un objeto de forma profunda
  * @param {*} obj - Objeto a clonar
  * @returns {*} Clon del objeto

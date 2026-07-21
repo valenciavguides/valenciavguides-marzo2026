@@ -109,7 +109,8 @@ module.exports = [
         module: "writable",
 
         // ── Librerías externas ────────────────────────────────────────────
-        L: "readonly",           // Leaflet
+        L: "readonly",           // Leaflet — mapa-completo.html y video-intro.html lo usan de forma permanente (mapas independientes, no rotan, sin snap-to-route)
+        maplibregl: "readonly",  // MapLibre GL JS — motor del mapa de aventura (codigo-padre.html + js/funciones-mapa.js)
 
         // ── Globals propios — constantes/config ──────────────────────────
         TIPOS_MENSAJE: "readonly",

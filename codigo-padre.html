@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VGuides">
     <link rel="apple-touch-icon" sizes="180x180" href="imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; upgrade-insecure-requests" />
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(self)" />
     <title>Aventura 1 - Padre</title>
@@ -28,11 +28,9 @@
     </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🗺️%3C/text%3E%3C/svg%3E">
 
-    <!-- Leaflet y plugins — servidos localmente desde js/vendor/ (sin dependencia CDN) -->
-    <link rel="stylesheet" href="js/vendor/leaflet.css" />
-    <script src="js/vendor/leaflet.js"></script>
-    <script src="js/vendor/leaflet-rotate-src.js"></script>
-    <script src="js/vendor/leaflet.geometryutil.js"></script>
+    <!-- MapLibre GL JS — servido localmente desde js/vendor/ (build CSP-safe, sin dependencia CDN) -->
+    <link rel="stylesheet" href="js/vendor/maplibre-gl.css" />
+    <script src="js/vendor/maplibre-gl-csp.js"></script>
 
     <!-- Compatibilidad: navegadores sin soporte de módulos ES (Chrome <61, Safari <10.1, Firefox <60) -->
     <script nomodule>
@@ -2692,7 +2690,7 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
         import { DATOS_PADRE } from './js/aventuras-ID-padre.js';
         // DATOS_PADRE is now imported from module
@@ -2704,7 +2702,7 @@
         import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
         globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
 
-        // Initialize map after Leaflet is loaded
+        // Initialize map after MapLibre is loaded
         // Variable para guardar la instancia del mapa y evitar reinicialización
         let _mapInstance = null;
         let _mapInitializing = false; // Flag para evitar inicializaciones concurrentes
@@ -2733,103 +2731,261 @@
                 // Marcar ANTES de cualquier operación async para evitar race condition
                 _mapInitializing = true;
 
-                if (globalThis.L === undefined) {
+                if (globalThis.maplibregl === undefined) {
                     _mapInitializing = false;
-                    reject(new Error('Leaflet not loaded'));
+                    reject(new Error('MapLibre GL not loaded'));
                     return;
                 }
 
                 try {
-                    const map = L.map('mapa', {
-                        center: [39.4699, -0.3763], // Valencia
-                        zoom: 13,
-                        minZoom: 12,
-                        // 19 porque el modo Callejero (OSM estándar) tiene maxZoom:19 sin
-                        // maxNativeZoom — pasado ese nivel esa capa deja de dibujar tiles y el
-                        // mapa se queda en blanco. Satélite/Nocturno sí soportan más (19/20
-                        // nativos con estiramiento hasta 21), pero el tope lo marca el más corto.
-                        maxZoom: 19,
-                        zoomControl: false,
-                        rotate: true,
-                        rotateControl: false,
-                        bearing: 0,
-                        touchRotate: true
-                    });
-
-                    // Guardar instancia INMEDIATAMENTE después de crear el mapa
-                    _mapInstance = map;
+                    if (typeof maplibregl.setWorkerUrl === 'function') {
+                        maplibregl.setWorkerUrl('js/vendor/maplibre-gl-csp-worker.js');
+                    }
 
                     // ── Capas de mapa + selector desplegable ──────────────────
                     const _THUMB_SAT      = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3115/4088';
                     const _THUMB_OSM      = 'https://a.tile.openstreetmap.org/13/4088/3115.png';
                     const _THUMB_NOCTURNO = 'https://a.basemaps.cartocdn.com/dark_all/13/4088/3115.png';
 
-                    const _paneParent = map._rotatePane || map.getPane('mapPane');
+                    // 19 porque el modo Callejero (OSM estándar) no tiene tiles más allá de ese
+                    // nivel — pasado ese punto esa capa deja de dibujar y el mapa se queda en
+                    // blanco. Satélite/Nocturno sí soportan más, pero el tope lo marca el más corto.
+                    const _MAPA_MAX_ZOOM = 19;
 
-                    map.createPane('labelsPane', _paneParent);
-                    map.getPane('labelsPane').style.zIndex = 400;
-                    map.getPane('labelsPane').style.filter = 'drop-shadow(0 0 1.5px #FFD700)';
-                    map.getPane('labelsPane').style.pointerEvents = 'none';
+                    // ── Nombres de calle (texto vectorial, OpenFreeMap) ────────
+                    // Solo Satélite y Nocturno los necesitan — Callejero ya trae los nombres
+                    // integrados en su propio tile OSM estándar (duplicarlos ahí sería ruido).
+                    const _CAPAS_TEXTO_CALLES = ['calles-texto-mayor', 'calles-texto-menor', 'calles-texto-sendero'];
 
-                    map.createPane('nocturnoPane', _paneParent);
-                    map.getPane('nocturnoPane').style.zIndex = 200;
-                    map.getPane('nocturnoPane').style.filter = 'brightness(1.35) contrast(1.15)';
+                    // Tamaño responsivo: mismo espíritu que el clamp()+vmin del resto de la app
+                    // (ver getEscalaMapa() en funciones-mapa.js — PANTALLA_REF=400 igual que aquí).
+                    // 19 es el zoom máximo del mapa (_MAPA_MAX_ZOOM): al no haber parada de zoom
+                    // más allá, el texto deja de crecer ahí — ese es el tope de crecimiento.
+                    // 18px de techo porque en pruebas anteriores con symbol-placement:'line' el
+                    // texto dejaba de dibujarse bien (colisionaba consigo mismo) pasado ese tamaño.
+                    function _calcularTextSizeCalles() {
+                        const vmin = Math.min(globalThis.innerWidth || 400, globalThis.innerHeight || 400);
+                        const escala = Math.max(0.8, Math.min(vmin / 400, 1.6));
+                        return ['interpolate', ['linear'], ['zoom'],
+                            13, 11 * escala,
+                            16, 14 * escala,
+                            19, 18 * escala,
+                        ];
+                    }
 
-                    const _capaSatelite = L.tileLayer(
-                        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                            maxZoom: 21, maxNativeZoom: 19,
-                            attribution: '© Esri, Maxar, Earthstar Geographics',
-                            detectRetina: true
-                        }
-                    );
-                    // Mismo tile OSM estándar que usa mapa-completo.html (botón "mapa moderno" de hijo2) —
-                    // trae los nombres de calle/lugar ya integrados en el propio tile, sin capa de etiquetas aparte.
-                    const _capaOSM = L.tileLayer(
-                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            maxZoom: 19,
-                            attribution: '© OpenStreetMap contributors'
-                        }
-                    );
-                    const _capaNocturno = L.tileLayer(
-                        'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-                            pane: 'nocturnoPane',
-                            maxZoom: 21, maxNativeZoom: 20,
-                            attribution: '© OpenStreetMap contributors © CARTO',
-                            detectRetina: true
-                        }
-                    );
-                    // tileSize/zoomOffset: truco para agrandar el texto sin salir del raster (nada de
-                    // MapLibre — se probó y se descartó por problemas de rotación/rendimiento, ver
-                    // memoria de sesión). Con zoomOffset:-1 el tile pedido es del nivel de zoom
-                    // anterior, estirado sobre un área 2× mayor → texto ~2× más grande de lo normal.
-                    // Aquí se lleva a zoomOffset:-2/tileSize:1024 → pide 2 niveles por debajo,
-                    // estirado sobre 4× el área → texto notablemente más grande todavía. Sigue siendo
-                    // el mismo PNG plano que ya rota perfectamente con el resto del mapa (sin los
-                    // problemas de las capas vectoriales).
-                    const _capaEtiquetas = L.tileLayer(
-                        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
-                            pane: 'labelsPane', tileSize: 1024, zoomOffset: -2,
-                            maxZoom: 19, maxNativeZoom: 17,
-                            attribution: '© OpenStreetMap contributors © CARTO',
-                            detectRetina: true
-                        }
-                    );
-                    const _capaEtiquetasNoche = L.tileLayer(
-                        'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-                            pane: 'labelsPane',
-                            tileSize: 1024, zoomOffset: -2,
-                            maxZoom: 19, maxNativeZoom: 17,
-                            attribution: '© OpenStreetMap contributors © CARTO',
-                            detectRetina: true
-                        }
-                    );
-                    // Placeholder sin tiles: osm ya lleva las etiquetas integradas en el tile OSM estándar.
-                    const _capaSinEtiquetas = L.layerGroup();
+                    // Texto compartido por las 3 capas — misma expresión que usa OpenFreeMap:
+                    // nombre en escritura local, con el nombre latino añadido si el original no lo es.
+                    const _TEXT_FIELD_CALLE = ['case',
+                        ['has', 'name:nonlatin'],
+                        ['concat', ['get', 'name:latin'], ' ', ['get', 'name:nonlatin']],
+                        ['coalesce', ['get', 'name_en'], ['get', 'name']],
+                    ];
+                    const _PAINT_TEXTO_CALLE = {
+                        // Blanco + halo negro: legible tanto sobre foto de satélite como sobre el
+                        // basemap oscuro de Nocturno — a diferencia del estilo Liberty de OpenFreeMap
+                        // (texto gris + halo claro), pensado para un mapa claro tipo Positron.
+                        'text-color': '#ffffff',
+                        'text-halo-color': '#000000',
+                        'text-halo-width': 1.2,
+                        'text-halo-blur': 0.4,
+                    };
+
+                    // ── Líneas de calle vectoriales (solo Nocturno) ─────────────
+                    // Satélite ya muestra las calles en la propia foto — dibujarlas encima
+                    // sería ruido/desalineación. Callejero ya las trae en su tile OSM. Solo
+                    // Nocturno (CARTO Dark Matter sin etiquetas) se beneficia de verdad.
+                    // Filtros de clase de vía calcados del estilo Liberty de OpenFreeMap
+                    // (misma fuente/source-layer que el texto); simplificado a 3 niveles en
+                    // vez de sus ~20 capas — no se distinguen puentes/túneles (se dibujan
+                    // como vía normal) ni ferrocarril, que no aportan a un mapa de paseo a pie.
+                    const _CAPAS_LINEA_CALLES = ['calles-linea-mayor-casing', 'calles-linea-mayor', 'calles-linea-menor-casing', 'calles-linea-menor', 'calles-linea-peatonal'];
+                    const _FILTRO_VIA_MAYOR = ['match', ['get', 'class'], ['motorway', 'trunk', 'primary', 'secondary', 'tertiary'], true, false];
+                    const _FILTRO_VIA_MENOR = ['match', ['get', 'class'], ['minor', 'service', 'track'], true, false];
+                    const _FILTRO_VIA_PEATONAL = ['match', ['get', 'class'], ['path', 'pedestrian'], true, false];
+
+                    const _ESTILO_MAPA = {
+                        version: 8,
+                        glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+                        sources: {
+                            'openmaptiles': { type: 'vector', url: 'https://tiles.openfreemap.org/planet' },
+                            'satelite-src': {
+                                type: 'raster',
+                                tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                                tileSize: 256,
+                                maxzoom: 19,
+                                attribution: '© Esri, Maxar, Earthstar Geographics',
+                            },
+                            'callejero-src': {
+                                type: 'raster',
+                                tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', 'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png', 'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                                tileSize: 256,
+                                maxzoom: 19,
+                                attribution: '© OpenStreetMap contributors',
+                            },
+                            'nocturno-src': {
+                                type: 'raster',
+                                tiles: [
+                                    'https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+                                    'https://b.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+                                    'https://c.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+                                    'https://d.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+                                ],
+                                tileSize: 256,
+                                maxzoom: 20,
+                                attribution: '© OpenStreetMap contributors © CARTO',
+                            },
+                        },
+                        layers: [
+                            { id: 'satelite-layer', type: 'raster', source: 'satelite-src', layout: { visibility: 'visible' } },
+                            { id: 'callejero-layer', type: 'raster', source: 'callejero-src', layout: { visibility: 'none' } },
+                            {
+                                id: 'nocturno-layer', type: 'raster', source: 'nocturno-src', layout: { visibility: 'none' },
+                                // Equivalente al filtro CSS brightness/contrast que se usaba con Leaflet — el
+                                // Dark Matter de CARTO resulta demasiado oscuro para leer bien sin ajustar.
+                                // Verificado directamente contra el shader de MapLibre (js/vendor/maplibre-gl-csp.js):
+                                // output = brightness-min + rgb*(brightness-max - brightness-min). O sea:
+                                // brightness-max es el valor de salida para los blancos (bajarlo OSCURECE los
+                                // brillos, no aclara nada) — los intentos anteriores (0.8, luego 0.35) tocaban
+                                // la propiedad equivocada. brightness-min es el valor de salida para los negros:
+                                // subirlo es lo que realmente levanta las sombras sin quemar los blancos.
+                                // Pendiente de afinar visualmente en el navegador real.
+                                paint: { 'raster-brightness-min': 0.2, 'raster-contrast': 0.15 },
+                            },
+                            // ── Líneas de calle vectoriales (OpenFreeMap, source-layer transportation) ──
+                            // Cada nivel es casing (borde oscuro, más ancho, debajo) + fill (línea clara,
+                            // más estrecha, encima) — mismo patrón que usa OpenFreeMap para dar la
+                            // sensación de calle "bordeada" en vez de una línea plana.
+                            {
+                                id: 'calles-linea-mayor-casing', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
+                                filter: _FILTRO_VIA_MAYOR,
+                                layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
+                                paint: {
+                                    'line-color': '#000000',
+                                    'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 16, 4, 19, 7],
+                                },
+                            },
+                            {
+                                id: 'calles-linea-mayor', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
+                                filter: _FILTRO_VIA_MAYOR,
+                                layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
+                                paint: {
+                                    'line-color': '#e8e8e8',
+                                    'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.8, 16, 2.5, 19, 4.5],
+                                },
+                            },
+                            {
+                                id: 'calles-linea-menor-casing', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
+                                minzoom: 14,
+                                filter: _FILTRO_VIA_MENOR,
+                                layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
+                                paint: {
+                                    'line-color': '#000000',
+                                    'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 1.5, 19, 4],
+                                },
+                            },
+                            {
+                                id: 'calles-linea-menor', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
+                                minzoom: 14,
+                                filter: _FILTRO_VIA_MENOR,
+                                layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
+                                paint: {
+                                    'line-color': '#b0b0b0',
+                                    'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 0.8, 19, 2.5],
+                                },
+                            },
+                            {
+                                // Senderos/zonas peatonales: solo línea discontinua, sin casing (son
+                                // finas de por sí, un borde restaría claridad en vez de sumarla).
+                                id: 'calles-linea-peatonal', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
+                                minzoom: 14,
+                                filter: _FILTRO_VIA_PEATONAL,
+                                layout: { visibility: 'none', 'line-join': 'round' },
+                                paint: {
+                                    'line-color': '#888888',
+                                    'line-dasharray': [2, 1.5],
+                                    'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 1, 19, 3],
+                                },
+                            },
+                            // ── Nombres de calle vectoriales (OpenFreeMap, source-layer transportation_name) ──
+                            // Mismos filtros/minzoom/symbol-placement que el estilo Liberty de OpenFreeMap
+                            // (agrupación por importancia de vía ya correcta); color, halo y tamaño son
+                            // propios de esta app. symbol-placement:'line' + text-rotation-alignment:'map'
+                            // es lo que hace que el texto siga el ángulo de la calle y rote con el mapa.
+                            {
+                                id: 'calles-texto-mayor', type: 'symbol', source: 'openmaptiles', 'source-layer': 'transportation_name',
+                                minzoom: 12.2,
+                                filter: ['match', ['get', 'class'], ['primary', 'secondary', 'tertiary', 'trunk'], true, false],
+                                layout: {
+                                    visibility: 'visible',
+                                    'symbol-placement': 'line',
+                                    'symbol-spacing': 600,
+                                    'text-field': _TEXT_FIELD_CALLE,
+                                    'text-font': ['Noto Sans Regular'],
+                                    'text-rotation-alignment': 'map',
+                                    'text-size': _calcularTextSizeCalles(),
+                                },
+                                paint: _PAINT_TEXTO_CALLE,
+                            },
+                            {
+                                id: 'calles-texto-menor', type: 'symbol', source: 'openmaptiles', 'source-layer': 'transportation_name',
+                                minzoom: 15,
+                                filter: ['all',
+                                    ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false],
+                                    ['match', ['get', 'class'], ['minor', 'service', 'track'], true, false],
+                                ],
+                                layout: {
+                                    visibility: 'visible',
+                                    'symbol-placement': 'line',
+                                    'symbol-spacing': 600,
+                                    'text-field': _TEXT_FIELD_CALLE,
+                                    'text-font': ['Noto Sans Regular'],
+                                    'text-rotation-alignment': 'map',
+                                    'text-size': _calcularTextSizeCalles(),
+                                },
+                                paint: _PAINT_TEXTO_CALLE,
+                            },
+                            {
+                                id: 'calles-texto-sendero', type: 'symbol', source: 'openmaptiles', 'source-layer': 'transportation_name',
+                                minzoom: 15.5,
+                                filter: ['==', ['get', 'class'], 'path'],
+                                layout: {
+                                    visibility: 'visible',
+                                    'symbol-placement': 'line',
+                                    'symbol-spacing': 600,
+                                    'text-field': _TEXT_FIELD_CALLE,
+                                    'text-font': ['Noto Sans Regular'],
+                                    'text-rotation-alignment': 'map',
+                                    'text-size': _calcularTextSizeCalles(),
+                                },
+                                paint: _PAINT_TEXTO_CALLE,
+                            },
+                        ],
+                    };
+
+                    const map = new maplibregl.Map({
+                        container: 'mapa',
+                        style: _ESTILO_MAPA,
+                        center: [-0.3763, 39.4699], // Valencia — MapLibre usa [lng, lat], al revés que Leaflet
+                        zoom: 13,
+                        minZoom: 12,
+                        maxZoom: _MAPA_MAX_ZOOM,
+                        bearing: 0,
+                        // Solo rotación plana (bearing) — MapLibre por defecto inclina el mapa en 3D
+                        // (pitch) con el mismo gesto de arrastre. pitchWithRotate:false evita que el
+                        // gesto intente inclinar; maxPitch:0 es el cinturón de seguridad que garantiza
+                        // que el pitch nunca se mueva de 0 venga de donde venga (táctil, teclado, API).
+                        pitchWithRotate: false,
+                        maxPitch: 0,
+                        attributionControl: { compact: true },
+                    });
+
+                    // Guardar instancia INMEDIATAMENTE después de crear el mapa
+                    _mapInstance = map;
 
                     const _MODOS_MAPA = [
-                        { id: 'satelite', nombre: 'Satélite',  thumb: _THUMB_SAT,      capa: _capaSatelite, etiqCapa: _capaEtiquetas,      filtroCss: 'drop-shadow(0 0 1.5px #FFD700)' },
-                        { id: 'osm',      nombre: 'Callejero',  thumb: _THUMB_OSM,      capa: _capaOSM,      etiqCapa: _capaSinEtiquetas,   filtroCss: 'none' },
-                        { id: 'nocturno', nombre: 'Nocturno',   thumb: _THUMB_NOCTURNO, capa: _capaNocturno, etiqCapa: _capaEtiquetasNoche, filtroCss: 'none' },
+                        { id: 'satelite', nombre: 'Satélite',  thumb: _THUMB_SAT,      capaId: 'satelite-layer' },
+                        { id: 'osm',      nombre: 'Callejero',  thumb: _THUMB_OSM,      capaId: 'callejero-layer' },
+                        { id: 'nocturno', nombre: 'Nocturno',   thumb: _THUMB_NOCTURNO, capaId: 'nocturno-layer' },
                     ];
 
                     let _modoActivo = 'satelite';
@@ -2879,21 +3035,39 @@
                         const actual = _MODOS_MAPA.find(m => m.id === _modoActivo);
                         const nuevo  = _MODOS_MAPA.find(m => m.id === nuevoId);
 
-                        map.removeLayer(actual.capa);
-                        if (actual.etiqCapa !== nuevo.etiqCapa) {
-                            map.removeLayer(actual.etiqCapa);
-                            nuevo.etiqCapa.addTo(map);
-                        }
-                        map.getPane('labelsPane').style.filter = nuevo.filtroCss;
-                        nuevo.capa.addTo(map);
+                        map.setLayoutProperty(actual.capaId, 'visibility', 'none');
+                        map.setLayoutProperty(nuevo.capaId, 'visibility', 'visible');
+
+                        // Nombres de calle vectoriales: solo donde la base no trae texto propio
+                        // (Callejero ya lo tiene integrado en su tile OSM estándar).
+                        const mostrarTextoCalles = nuevoId !== 'osm';
+                        _CAPAS_TEXTO_CALLES.forEach(id => {
+                            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', mostrarTextoCalles ? 'visible' : 'none');
+                        });
+
+                        // Líneas de calle vectoriales: solo en Nocturno — en Satélite la propia
+                        // foto ya muestra las calles (dibujarlas encima sería ruido/desalineación)
+                        // y Callejero ya las trae en su tile OSM.
+                        const mostrarLineaCalles = nuevoId === 'nocturno';
+                        _CAPAS_LINEA_CALLES.forEach(id => {
+                            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', mostrarLineaCalles ? 'visible' : 'none');
+                        });
+
                         _modoActivo = nuevoId;
                         _actualizarBtnPrincipal();
                     }
 
-                    _capaSatelite.addTo(map);
-                    _capaEtiquetas.addTo(map);
                     _actualizarBtnPrincipal();
                     document.body.appendChild(_selectorDiv);
+
+                    // Recalcular tamaño del texto de calles al cambiar el tamaño de ventana/pantalla
+                    // (mismo espíritu responsivo que el resto de la app — ver _calcularTextSizeCalles).
+                    globalThis.addEventListener('resize', debounce(() => {
+                        const expr = _calcularTextSizeCalles();
+                        _CAPAS_TEXTO_CALLES.forEach(id => {
+                            if (map.getLayer(id)) map.setLayoutProperty(id, 'text-size', expr);
+                        });
+                    }, 250));
 
                     // Initialize map service - wait for funciones-mapa to be available
                     const initializeMapService = () => {
@@ -3261,7 +3435,7 @@
 
         // Inicialización de servicios
         // NOTA: inicializarServicioMapa se llama desde initializeMap() con la instancia del mapa
-        // No llamar aquí para evitar doble inicialización del contenedor Leaflet
+        // No llamar aquí para evitar doble inicialización del contenedor del mapa
         // NOTA: inicializarMensajeria ya se llamó en línea 1862, no duplicar
         await inicializarMonitoreo_S1();
 
@@ -3741,7 +3915,7 @@
         }
         globalThis.findIndexByPadreIdOrId = findIndexByPadreIdOrId;
 
-        // Asegurar parada por defecto: usar P-0, primer inicio o primer parada
+        // Asegurar parada por defecto: primer inicio o primera parada
         async function ensureDefaultParada() {
             const logPrefix = '[PADRE][PROGRESO][DEFAULT]';
             try {
@@ -3750,15 +3924,10 @@
                     return;
                 }
 
-                let defaultIndex = -1;
                 const paradas = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre || [];
                 if (paradas.length === 0) return; // nothing to do
 
-                // Prefer explicit P-0 matching if available
-                defaultIndex = findIndexByPadreIdOrId('P-0');
-                if (defaultIndex === -1) {
-                    defaultIndex = paradas.findIndex(p => p.tipo === 'inicio');
-                }
+                let defaultIndex = paradas.findIndex(p => p.tipo === 'inicio');
                 if (defaultIndex === -1) {
                     defaultIndex = paradas.findIndex(p => p.tipo === 'parada');
                 }
@@ -4457,24 +4626,29 @@
         globalThis.calcularDistancia = calcularDistancia;
 
         /**
-         * Helper: obtener coordenadas P-0 de la aventura actual (evita hardcodear lat/lng).
-         * Accesible desde activarGPS.
+         * Helper: obtener coordenadas del punto de inicio de la aventura actual
+         * (evita hardcodear lat/lng). Accesible desde activarGPS. Devuelve siempre
+         * algo válido: el punto de inicio real o, si no está disponible, una
+         * coordenada fija de Valencia como último recurso.
          */
         function _obtenerCoordenadasP0Fallback() {
             try {
                 const coords = globalThis.__vv_coordenadasAventura || (globalThis.AVENTURA_PARADAS);
                 if (Array.isArray(coords)) {
-                    const p0 = coords.find(e => e.id === 'P-0' && e.coordenadas);
-                    if (p0 && p0.coordenadas) {
-                        return { lat: p0.coordenadas.lat, lng: p0.coordenadas.lng };
-                    }
-                    const primera = coords.find(e => e.tipo === 'parada' && e.coordenadas);
-                    if (primera && primera.coordenadas) {
-                        return { lat: primera.coordenadas.lat, lng: primera.coordenadas.lng };
+                    const inicio = coords.find(e => e.tipo === 'inicio' && e.coordenadas);
+                    if (inicio && inicio.coordenadas) {
+                        return { lat: inicio.coordenadas.lat, lng: inicio.coordenadas.lng };
                     }
                 }
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             return { lat: 39.47876, lng: -0.37626 };
+        }
+
+        // ID real de la parada de inicio de la aventura activa (nunca el literal 'P-0',
+        // que no coincide con ningún id real — ver _obtenerCoordenadasP0Fallback).
+        function _idParadaInicioAventura() {
+            const coords = globalThis.__vv_coordenadasAventura || globalThis.AVENTURA_PARADAS || [];
+            return Array.isArray(coords) ? (coords.find(e => e.tipo === 'inicio')?.id || null) : null;
         }
 
         /**
@@ -4519,7 +4693,7 @@
                     if (allowAttr.includes('geolocation')) {
                         (globalThis.logger || console).debug(`${logPrefix} Iframe 'hijo2' tiene allow="geolocation"`);
                     } else {
-                        (globalThis.logger || console).warn(`${logPrefix} Iframe 'hijo2' no expone 'geolocation' en allow attribute; fallback P-0 puede fallar`);
+                        (globalThis.logger || console).warn(`${logPrefix} Iframe 'hijo2' no expone 'geolocation' en allow attribute; fallback de inicio puede fallar`);
                     }
                 }
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
@@ -4542,10 +4716,11 @@
         }
 
         async function _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts) {
-            (globalThis.logger || console).warn(`${logPrefix} No se obtuvo posición inicial aceptable tras ${maxAttempts} intentos; intentando fallback a coordenadas de inicio (P-0)`);
+            (globalThis.logger || console).warn(`${logPrefix} No se obtuvo posición inicial aceptable tras ${maxAttempts} intentos; intentando fallback a coordenadas de inicio`);
             _gpsInc('gps.fallback_intento_hijo2');
             try {
-                const coordenadasResponse = await solicitarCoordenadasHijo('hijo2', { paradaId: 'P-0', incluirMetadatos: false, contexto: 'gps_fallback' }, ajustarTimeoutPorConexionSafe(5000));
+                const idInicio = _idParadaInicioAventura();
+                const coordenadasResponse = await solicitarCoordenadasHijo('hijo2', { paradaId: idInicio, incluirMetadatos: false, contexto: 'gps_fallback' }, ajustarTimeoutPorConexionSafe(5000));
                 const primerCoord = coordenadasResponse?.coordenadas?.[0]?.coordenadas;
                 if (coordenadasResponse?.exito && primerCoord) {
                     const c = primerCoord;
@@ -4561,7 +4736,7 @@
                     est.gps.ultimaUbicacion = est.gps.posicionUsuario;
                     est.gps.precision = 1000;
                     _gpsInc('gps.fallback_p0');
-                    (globalThis.logger || console).info(`${logPrefix} Fallback a inicio (P-0) aplicado: [${est.gps.posicionUsuario.lat}, ${est.gps.posicionUsuario.lng}]`);
+                    (globalThis.logger || console).info(`${logPrefix} Fallback a inicio aplicado: [${est.gps.posicionUsuario.lat}, ${est.gps.posicionUsuario.lng}]`);
                 }
             } catch (err) {
                 const fallbackCoords = _obtenerCoordenadasP0Fallback();
@@ -4569,7 +4744,7 @@
                 est.gps.ultimaUbicacion = est.gps.posicionUsuario;
                 est.gps.precision = 1000;
                 _gpsInc('gps.fallback_p0');
-                (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas a hijo2 para fallback (${err.message}); fallback a inicio (P-0)`);
+                (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas a hijo2 para fallback (${err.message}); fallback a inicio`);
             }
         }
 
@@ -5486,7 +5661,7 @@
 
         // ──────────────────────────────────────────────────────────────
         // Overlay GPS sin señal / sin permiso (§30.2 y §30.3)
-        // imagen-no-gps.png · sin botón de cierre
+        // imagen-no-gps.png
         // ──────────────────────────────────────────────────────────────
         function _ensureGpsSignalOverlay() {
             if (document.getElementById('gps-signal-overlay')) return;
@@ -5554,9 +5729,21 @@
                 } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] Error en reintento:', e?.message); }
             });
 
+            // Cierre manual — mismo patrón que el resto de overlays de la app.
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn-cerrar-overlay';
+            closeBtn.type = 'button';
+            closeBtn.setAttribute('aria-label', 'Cerrar');
+            closeBtn.title = 'Cerrar';
+            closeBtn.innerHTML = '✖';
+            closeBtn.addEventListener('click', () => {
+                try { hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            });
+
             inner.appendChild(img);
             inner.appendChild(countdown);
             inner.appendChild(btn);
+            inner.appendChild(closeBtn);
             el.appendChild(inner);
             document.body.appendChild(el);
         }
@@ -5590,7 +5777,14 @@
                                 status.addEventListener('change', onChange);
                             }).catch(() => {});
                         }
+                    } else if (errorCode === 3) {
+                        // TIMEOUT (30s sin respuesta) — mismo icono base que POSITION_UNAVAILABLE
+                        // (código 2) más ⏳ para distinguir "tardó demasiado" de "no disponible".
+                        btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️⏳</span>';
+                        btn.setAttribute('aria-label', 'Reintentar GPS (tiempo agotado)');
+                        btn.title = 'GPS tardó demasiado en responder — reintentar';
                     } else {
+                        // POSITION_UNAVAILABLE (código 2) u otro código no contemplado.
                         btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
                         btn.setAttribute('aria-label', 'Reintentar GPS');
                         btn.title = 'Reintentar GPS';
@@ -5619,8 +5813,9 @@
 
         // ──────────────────────────────────────────────────────────────
         // Overlay sin internet (§30.1)
-        // imagen-no-internet.png · sin botón de cierre
-        // Se oculta automáticamente con el evento online del browser
+        // imagen-no-internet.png
+        // Se oculta automáticamente con el evento online del browser; también
+        // se puede cerrar manualmente con el botón ✖.
         // ──────────────────────────────────────────────────────────────
         function _ensureInternetOverlay() {
             if (document.getElementById('internet-overlay')) return;
@@ -5657,9 +5852,21 @@
                 } catch (e) { (globalThis.logger || console).warn('[PADRE][INET] Error en click:', e?.message); }
             });
 
+            // Cierre manual — mismo patrón que el resto de overlays de la app.
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn-cerrar-overlay';
+            closeBtn.type = 'button';
+            closeBtn.setAttribute('aria-label', 'Cerrar');
+            closeBtn.title = 'Cerrar';
+            closeBtn.innerHTML = '✖';
+            closeBtn.addEventListener('click', () => {
+                try { hideInternetOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            });
+
             inner.appendChild(img);
             inner.appendChild(countdown);
             inner.appendChild(btn);
+            inner.appendChild(closeBtn);
             el.appendChild(inner);
             document.body.appendChild(el);
 
@@ -5958,21 +6165,26 @@
                     btnClose.setAttribute('aria-label', 'Cerrar');
                     btnClose.title = 'Cerrar';
                     btnClose.innerHTML = '✖';
-                    // Make close button larger and in soft green palette
+                    // Mismo patrón visual que el resto de botones de cerrar de la app
+                    // (naranja + borde rojo + X negra + círculo) — solo la posición
+                    // (centrado bajo el resto del contenido, no esquina superior) es
+                    // propia de este diálogo anidado.
                     btnClose.style.marginTop = '12px';
-                    btnClose.style.display = 'block';
+                    btnClose.style.display = 'flex';
+                    btnClose.style.alignItems = 'center';
+                    btnClose.style.justifyContent = 'center';
                     btnClose.style.marginLeft = 'auto';
                     btnClose.style.marginRight = 'auto';
-                    btnClose.style.padding = '12px 14px';
-                    btnClose.style.width = '64px';
-                    btnClose.style.height = '64px';
-                    btnClose.style.borderRadius = '12px';
-                    btnClose.style.border = 'none';
-                    btnClose.style.background = 'linear-gradient(135deg, #e6fbef, #cff5df)';
-                    btnClose.style.color = '#0b5f3a';
-                    btnClose.style.fontSize = '20px';
+                    btnClose.style.width = '3.25rem';
+                    btnClose.style.height = '3.25rem';
+                    btnClose.style.borderRadius = '50%';
+                    btnClose.style.border = '0.3125rem solid #ff0000';
+                    btnClose.style.background = '#ff8c00';
+                    btnClose.style.color = '#000';
+                    btnClose.style.fontSize = '3.4375rem';
+                    btnClose.style.fontWeight = 'bold';
+                    btnClose.style.lineHeight = '1';
                     btnClose.style.cursor = 'pointer';
-                    btnClose.style.boxShadow = '0 8px 24px rgba(11,95,58,0.12)';
 
                     btnRow.appendChild(btnShowMap);
                     btnRow.appendChild(btnCopy);
@@ -7008,17 +7220,17 @@
             (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🏁 Sistema de reconexión finalizado`);
         }
 
-        // Wait for Leaflet to load and initialize map
-        function waitForLeafletAndInitialize() {
+        // Wait for MapLibre GL to load and initialize map
+        function waitForMapLibreAndInitialize() {
             return new Promise((resolve) => {
-                const checkLeaflet = () => {
-                    if (globalThis.L !== undefined && L.map) {
+                const checkMapLibre = () => {
+                    if (globalThis.maplibregl !== undefined && maplibregl.Map) {
                         initializeMap().then(resolve).catch(resolve); // Resolve even on error to continue app init
                     } else {
-                        setTimeout(checkLeaflet, 100);
+                        setTimeout(checkMapLibre, 100);
                     }
                 };
-                checkLeaflet();
+                checkMapLibre();
             });
         }
 
@@ -7170,9 +7382,9 @@ await _comprobarReanudacionAventura(logPrefix);
             try {
                 (globalThis.logger || console).info(`${logPrefix} 🚀 Iniciando sistema completo...`);
 
-                // 1. Esperar a que Leaflet y el mapa estén listos
-                (globalThis.logger || console).info(`${logPrefix} Esperando Leaflet y mapa...`);
-                await waitForLeafletAndInitialize();
+                // 1. Esperar a que MapLibre GL y el mapa estén listos
+                (globalThis.logger || console).info(`${logPrefix} Esperando MapLibre GL y mapa...`);
+                await waitForMapLibreAndInitialize();
                 (globalThis.logger || console).success(`${logPrefix} ✅ Mapa inicializado`);
 
                 // 2. Pequeña pausa para asegurar que el mapa esté completamente renderizado
@@ -7308,7 +7520,7 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.cargarRestoDeiframes = cargarRestoDeiframes;
         globalThis.cargarIframeSecuencial = cargarIframeSoloSeleccion; // Backward compatibility
         globalThis.cargarHijoCasa = cargarHijoCasa;
-        globalThis.waitForLeafletAndInitialize = waitForLeafletAndInitialize;
+        globalThis.waitForMapLibreAndInitialize = waitForMapLibreAndInitialize;
 
         // FUNCIÓN DE DIAGNÓSTICO PARA HIJO4
         globalThis.diagnosticarHijo4 = function() {
@@ -9166,10 +9378,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
                 (globalThis.logger || console).warn(`${logPrefix} Respuesta inválida de coordenadas para ${paradaActual}:`, coordenadasResponse);
             } catch (error) {
-                (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas a hijo2 (${error.message}); fallback a inicio (P-0)`);
+                (globalThis.logger || console).warn(`${logPrefix} Error solicitando coordenadas a hijo2 (${error.message}); fallback a inicio`);
             }
             const fallback = _obtenerCoordenadasP0Fallback();
-            (globalThis.logger || console).info(`${logPrefix} No se obtuvieron coordenadas de hijo2; fallback a inicio (P-0): [${fallback.lat}, ${fallback.lng}]`);
+            (globalThis.logger || console).info(`${logPrefix} No se obtuvieron coordenadas de hijo2; fallback a inicio: [${fallback.lat}, ${fallback.lng}]`);
             return fallback;
         }
 
@@ -9202,7 +9414,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 return { lat: posicionUsuario.lat, lng: posicionUsuario.lng };
             }
             const fallback = _obtenerCoordenadasP0Fallback();
-            (globalThis.logger || console).info(`${logPrefix} No hay ubicación GPS disponible, centrando en inicio (P-0): [${fallback.lat}, ${fallback.lng}]`);
+            (globalThis.logger || console).info(`${logPrefix} No hay ubicación GPS disponible, centrando en inicio: [${fallback.lat}, ${fallback.lng}]`);
             return fallback;
         }
 
@@ -9303,12 +9515,14 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         function _obtenerCoordenadasFallbackP0(logPrefix) {
-            const paradaP0 = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p =>
-                p.parada_id === 'P-0' || p.padreid === 'padre-P-0'
-            );
-            if (paradaP0?.lat && paradaP0?.lng) {
-                (globalThis.logger || console).info(`${logPrefix} Usando P-0 como destino por defecto`);
-                return { lat: paradaP0.lat, lng: paradaP0.lng };
+            // DATOS_PADRE (aventuras-ID-padre.js) nunca tiene lat/lng — son solo IDs de
+            // secuencia. Las coordenadas reales viven en __vv_DATOS_AVENTURAS (mismo
+            // patrón ya usado en el resto de este fichero, ver líneas 4329/6599/7916/etc.).
+            const coords = globalThis.__vv_DATOS_AVENTURAS?.[globalThis.aventuraSeleccionada]?.['coordenadas-hijo2.html']?.coordenadas || [];
+            const paradaInicio = coords.find(p => p.tipo === 'inicio');
+            if (paradaInicio?.coordenadas?.lat && paradaInicio?.coordenadas?.lng) {
+                (globalThis.logger || console).info(`${logPrefix} Usando parada de inicio (${paradaInicio.id}) como destino por defecto`);
+                return { lat: paradaInicio.coordenadas.lat, lng: paradaInicio.coordenadas.lng };
             }
             return null;
         }
@@ -9333,7 +9547,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (!coordenadasDestino) {
                     coordenadasDestino = _obtenerCoordenadasFallbackP0(logPrefix);
                     if (!coordenadasDestino) {
-                        (globalThis.logger || console).error(`${logPrefix} No se pudieron obtener coordenadas ni del destino ni de P-0`);
+                        (globalThis.logger || console).error(`${logPrefix} No se pudieron obtener coordenadas ni del destino ni del inicio`);
                         return { exito: false, error: 'No se pudieron obtener coordenadas del destino' };
                     }
                 }
@@ -11503,7 +11717,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                 clearTimeout(timeoutSeguridad);
 
                 // ℹ️ NOTA: El overlay se removerá DESPUÉS de cargar todos los iframes
-                // (ver waitForLeafletAndInitialize() donde se llama a cargarIframeSecuencial())
+                // (ver waitForMapLibreAndInitialize() donde se llama a cargarIframeSecuencial())
 
             } catch (error) {
                 (globalThis.logger || console).error('[SCRIPT2][SINCRONIZACIÓN] Error en finalización:', error);

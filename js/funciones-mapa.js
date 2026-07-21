@@ -17,7 +17,7 @@ import {
 import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
-import { generarIdUnico, manejarError, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, resolverIdPadre } from './utils.js';
+import { generarIdUnico, manejarError, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, resolverIdPadre, puntoMasCercanoEnLinea } from './utils.js';
 import logger from './logger.js';
 
 /**
@@ -209,6 +209,217 @@ const estadoMapa = {
 };
 
 // =====================================================
+// HELPERS MAPLIBRE (sustituyen la API de Leaflet: L.marker, L.divIcon,
+// L.polyline, L.circle — usados en todo el resto de este fichero)
+// =====================================================
+
+/**
+ * Convierte una coordenada en formato Leaflet ([lat,lng] o {lat,lng}) al [lng,lat]
+ * que espera MapLibre GL en todas sus APIs (center, LngLat, coordenadas GeoJSON...).
+ * @param {Array<number>|{lat:number,lng:number}} coord
+ * @returns {[number,number]}
+ */
+function aLngLat(coord) {
+    if (Array.isArray(coord)) return [coord[1], coord[0]];
+    return [coord.lng, coord.lat];
+}
+
+/**
+ * Caja delimitadora [[minLng,minLat],[maxLng,maxLat]] a partir de un conjunto de
+ * puntos — formato que espera map.fitBounds() en MapLibre (equivalente a
+ * L.latLngBounds(puntos) en Leaflet).
+ * @param {Array<Array<number>|{lat:number,lng:number}>} puntos
+ * @returns {[[number,number],[number,number]]|null}
+ */
+function _bboxDesdePuntos(puntos) {
+    if (!Array.isArray(puntos) || puntos.length === 0) return null;
+    const lngLats = puntos.map(aLngLat);
+    const lngs = lngLats.map(p => p[0]);
+    const lats = lngLats.map(p => p[1]);
+    return [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]];
+}
+
+/**
+ * True si el estilo del mapa ya terminó de cargar y admite addSource/addLayer.
+ * MapLibre lanza "Style is not done loading" si se llama antes de tiempo.
+ * En la práctica esto solo podría ocurrir en los primeros instantes tras crear
+ * el mapa; el primer dibujo real (tras seleccionar aventura) ocurre segundos
+ * después, así que es una comprobación defensiva, no una espera activa.
+ */
+function _estiloListo() {
+    try { return !!_mapaInstance && typeof _mapaInstance.isStyleLoaded === 'function' && _mapaInstance.isStyleLoaded(); } catch (_e) { return false; } // NOSONAR
+}
+
+/** Wrapper no-op seguro: mismo shape que _crearPolyline/_crearCirculoGeografico, para cuando el estilo no está listo. */
+function _capaVacia(tipo) {
+    return { _tipo: tipo, sourceId: null, setLatLngs() {}, setLatLng() {}, setStyle() {}, remove() {} };
+}
+
+function _normalizarDashArray(d) {
+    if (!d) return null;
+    if (Array.isArray(d)) return d;
+    return String(d).split(/[\s,]+/).map(Number).filter(n => Number.isFinite(n));
+}
+
+/**
+ * Crea un marcador MapLibre a partir de HTML, equivalente a L.marker+L.divIcon.
+ * Todo icono divIcon de este proyecto usa anchor centrado (iconAnchor = mitad de
+ * iconSize) — por eso el helper fija anchor:'center' siempre, sin parámetro.
+ * Los Marker de MapLibre son overlays DOM puros (no dependen del estilo del
+ * mapa), por lo que no necesitan la comprobación de _estiloListo().
+ * @param {{lat:number,lng:number}} coords
+ * @param {string} html - Contenido HTML del icono
+ * @param {Object} [opciones]
+ * @param {string} [opciones.className]
+ * @param {string} [opciones.title] - Tooltip nativo (title attribute)
+ * @param {number} [opciones.zIndex] - Orden de apilado (equivalente a zIndexOffset)
+ * @returns {maplibregl.Marker}
+ */
+function _crearMarcadorHTML(coords, html, opciones = {}) {
+    const el = document.createElement('div');
+    if (opciones.className) el.className = opciones.className;
+    el.innerHTML = html;
+    if (opciones.title) el.title = opciones.title;
+    if (Number.isFinite(opciones.zIndex)) el.style.zIndex = String(opciones.zIndex);
+    return new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat(aLngLat(coords))
+        .addTo(_mapaInstance);
+}
+
+let _capaSeq = 0;
+
+/**
+ * Crea una polilínea MapLibre (fuente GeoJSON + capa 'line') envuelta en un objeto
+ * con la pequeña API de L.Polyline que usa este fichero (setLatLngs/setStyle/remove),
+ * para minimizar los cambios en el código que la consume.
+ * @param {Array<{lat:number,lng:number}|[number,number]>} puntos
+ * @param {Object} [estilo]
+ * @param {string} [estilo.color='#3388ff']
+ * @param {number} [estilo.weight=4]
+ * @param {number} [estilo.opacity=0.8]
+ * @param {string|Array<number>|null} [estilo.dashArray]
+ */
+function _crearPolyline(puntos, estilo = {}) {
+    if (!_estiloListo()) {
+        logger.warn('[MAPA] _crearPolyline: estilo aún no cargado, polilínea omitida');
+        return _capaVacia('polyline');
+    }
+    const id = `vv-polyline-${_capaSeq++}`;
+    const sourceId = `${id}-src`;
+    const layerId = `${id}-layer`;
+    const aCoords = pts => pts.map(aLngLat);
+    const dash = _normalizarDashArray(estilo.dashArray);
+
+    _mapaInstance.addSource(sourceId, {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: aCoords(puntos) } }
+    });
+    _mapaInstance.addLayer({
+        id: layerId,
+        type: 'line',
+        source: sourceId,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+            'line-color': estilo.color || '#3388ff',
+            'line-width': estilo.weight || 4,
+            'line-opacity': estilo.opacity ?? 0.8,
+            ...(dash ? { 'line-dasharray': dash } : {})
+        }
+    });
+
+    return {
+        _tipo: 'polyline',
+        sourceId,
+        layerId,
+        setLatLngs(nuevosPuntos) {
+            const src = _mapaInstance?.getSource(sourceId);
+            if (src) src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: aCoords(nuevosPuntos) } });
+        },
+        setStyle(nuevoEstilo = {}) {
+            if (!_mapaInstance?.getLayer(layerId)) return;
+            if (nuevoEstilo.opacity !== undefined) _mapaInstance.setPaintProperty(layerId, 'line-opacity', nuevoEstilo.opacity);
+            if (nuevoEstilo.weight !== undefined) _mapaInstance.setPaintProperty(layerId, 'line-width', nuevoEstilo.weight);
+            if (nuevoEstilo.color !== undefined) _mapaInstance.setPaintProperty(layerId, 'line-color', nuevoEstilo.color);
+        },
+        remove() {
+            if (!_mapaInstance) return;
+            if (_mapaInstance.getLayer(layerId)) _mapaInstance.removeLayer(layerId);
+            if (_mapaInstance.getSource(sourceId)) _mapaInstance.removeSource(sourceId);
+        }
+    };
+}
+
+/** Punto geográfico a distancia/rumbo dado — usado para construir el polígono de un círculo geográfico real. */
+function _destinoDesde(lat, lng, distanciaM, bearingDeg) {
+    const R = 6371000;
+    const brng = bearingDeg * Math.PI / 180;
+    const lat1 = lat * Math.PI / 180;
+    const lng1 = lng * Math.PI / 180;
+    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(distanciaM / R) + Math.cos(lat1) * Math.sin(distanciaM / R) * Math.cos(brng));
+    const lng2 = lng1 + Math.atan2(Math.sin(brng) * Math.sin(distanciaM / R) * Math.cos(lat1), Math.cos(distanciaM / R) - Math.sin(lat1) * Math.sin(lat2));
+    return { lat: lat2 * 180 / Math.PI, lng: lng2 * 180 / Math.PI };
+}
+
+function _poligonoCirculo(lat, lng, radioM, lados = 32) {
+    const coords = [];
+    for (let i = 0; i <= lados; i++) {
+        const pt = _destinoDesde(lat, lng, radioM, (360 / lados) * i);
+        coords.push([pt.lng, pt.lat]);
+    }
+    return coords;
+}
+
+/**
+ * Crea un círculo geográfico (radio CONSTANTE en metros, no en píxeles) como
+ * polígono MapLibre — equivalente visual de L.circle. MapLibre no tiene un tipo
+ * de capa con radio en metros («circle-radius» es en píxeles de pantalla), por
+ * eso el círculo se genera como polígono real que se recalcula al moverse.
+ * @param {{lat:number,lng:number}} coords
+ * @param {number} radioM - Radio en metros
+ * @param {Object} [estilo]
+ */
+function _crearCirculoGeografico(coords, radioM, estilo = {}) {
+    if (!_estiloListo()) {
+        logger.warn('[MAPA] _crearCirculoGeografico: estilo aún no cargado, círculo omitido');
+        return _capaVacia('circulo');
+    }
+    const id = `vv-circulo-${_capaSeq++}`;
+    const sourceId = `${id}-src`;
+    const fillId = `${id}-fill`;
+    const lineId = `${id}-line`;
+
+    const build = (c) => ({
+        type: 'Feature', properties: {},
+        geometry: { type: 'Polygon', coordinates: [_poligonoCirculo(c.lat, c.lng, radioM)] }
+    });
+
+    _mapaInstance.addSource(sourceId, { type: 'geojson', data: build(coords) });
+    _mapaInstance.addLayer({
+        id: fillId, type: 'fill', source: sourceId,
+        paint: { 'fill-color': estilo.fillColor || estilo.color || '#000', 'fill-opacity': estilo.fillOpacity ?? 0.2 }
+    });
+    _mapaInstance.addLayer({
+        id: lineId, type: 'line', source: sourceId,
+        paint: { 'line-color': estilo.color || '#000', 'line-width': estilo.weight ?? 1 }
+    });
+
+    return {
+        _tipo: 'circulo',
+        sourceId,
+        setLatLng(nuevasCoords) {
+            const src = _mapaInstance?.getSource(sourceId);
+            if (src) src.setData(build(nuevasCoords));
+        },
+        remove() {
+            if (!_mapaInstance) return;
+            if (_mapaInstance.getLayer(fillId)) _mapaInstance.removeLayer(fillId);
+            if (_mapaInstance.getLayer(lineId)) _mapaInstance.removeLayer(lineId);
+            if (_mapaInstance.getSource(sourceId)) _mapaInstance.removeSource(sourceId);
+        }
+    };
+}
+
+// =====================================================
 // SISTEMA DE ESCALADO DINÁMICO PARA MAPA
 // =====================================================
 // Los tamaños de polylines, marcadores e iconos escalan según:
@@ -250,7 +461,7 @@ let _escalaCache = {
 
 /**
  * Calcula la escala combinada según pantalla y zoom del mapa
- * @param {L.Map} [mapaInstance] - Instancia del mapa (opcional, usa _mapaInstance si no se proporciona)
+ * @param {maplibregl.Map} [mapaInstance] - Instancia del mapa (opcional, usa _mapaInstance si no se proporciona)
  * @returns {number} Factor de escala (1.0 = tamaño base)
  */
 function getEscalaMapa(mapaInstance = null) {
@@ -326,16 +537,16 @@ let _elementosParaReescalar = [];
  */
 function reescalarMarcadoresEmoji() {
     const iconos = getIconoEscalado();
-    
+
     // Re-escalar marcadores en marcadoresParadas (ruta, inicio, fin, paradas)
     marcadoresParadas.forEach((marker) => {
         try {
-            const icon = marker.options?.icon;
-            if (!icon?.options?.className) return;
-            
-            const clase = icon.options.className;
+            const el = marker.getElement?.();
+            const clase = el?.className;
+            if (!clase) return;
+
             let size, emoji, shadow;
-            
+
             if (clase === 'custom-marker-emoji' || clase === 'finish-flag-icon' || clase === 'tramo-fin-icon') {
                 size = iconos.parada;
                 emoji = '🎯';
@@ -347,13 +558,8 @@ function reescalarMarcadoresEmoji() {
             } else {
                 return;
             }
-            
-            marker.setIcon(L.divIcon({
-                className: clase,
-                html: `<div style="font-size:${size}px;line-height:${size}px;${shadow}">${emoji}</div>`,
-                iconSize: [size, size],
-                iconAnchor: [Math.round(size / 2), Math.round(size / 2)]
-            }));
+
+            el.innerHTML = `<div style="font-size:${size}px;line-height:${size}px;${shadow}">${emoji}</div>`;
         } catch (_e) { /* ignore individual marker errors */ } // NOSONAR
     });
 
@@ -361,7 +567,7 @@ function reescalarMarcadoresEmoji() {
     marcadoresReferencias.forEach((marker) => {
         try {
             if (marker._refData) {
-                marker.setIcon(crearIconoReferencia(marker._refData));
+                marker.getElement().innerHTML = crearIconoReferencia(marker._refData);
             }
         } catch (_e) { /* ignore individual marker errors */ } // NOSONAR
     });
@@ -370,12 +576,8 @@ function reescalarMarcadoresEmoji() {
     if (marcadorDestinoNavegacion) {
         try {
             const size = iconos.destino;
-            marcadorDestinoNavegacion.setIcon(L.divIcon({
-                className: 'marcador-destino-navegacion',
-                html: `<div style="font-size:${size}px;text-align:center;line-height:${size}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
-                iconSize: [size, size],
-                iconAnchor: [Math.round(size / 2), Math.round(size / 2)]
-            }));
+            marcadorDestinoNavegacion.getElement().innerHTML =
+                `<div style="font-size:${size}px;text-align:center;line-height:${size}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`;
         } catch (_e) { /* ignore */ } // NOSONAR
     }
 }
@@ -476,11 +678,11 @@ function mostrarPopupReferencia(referencia) {
 }
 
 /**
- * Crea el L.divIcon para un marcador de referencia visual.
+ * Genera el HTML del icono de un marcador de referencia visual.
  * Círculo/pill blanco con borde naranja, 🏛️ y número de mapa.
  * Se escala dinámicamente con el sistema de escalado del mapa.
  * @param {Object} referencia - Objeto referencia con mapa_numero
- * @returns {L.DivIcon}
+ * @returns {string} HTML del icono, listo para _crearMarcadorHTML
  */
 function crearIconoReferencia(referencia) {
     const escala = getEscalaMapa();
@@ -494,7 +696,7 @@ function crearIconoReferencia(referencia) {
     const numStr = String(referencia.mapa_numero);
     const w = Math.round(h + numStr.length * numPx * 0.62 + px * 2);
 
-    const html = `<div style="
+    return `<div style="
         width:${w}px;height:${h}px;
         background:white;
         border:${borde}px solid #ff8c00;
@@ -504,13 +706,6 @@ function crearIconoReferencia(referencia) {
         box-shadow:0 2px 6px rgba(0,0,0,0.35);
         cursor:pointer;
     "><span style="font-size:${emojiPx}px;line-height:1;">🏛️</span><span style="font-size:${numPx}px;font-weight:bold;color:#ff8c00;line-height:1;">${numStr}</span></div>`;
-
-    return L.divIcon({
-        className: 'referencia-visual-marker',
-        html,
-        iconSize: [w, h],
-        iconAnchor: [Math.round(w / 2), Math.round(h / 2)]
-    });
 }
 
 /**
@@ -537,14 +732,14 @@ export function dibujarReferencias(coordenadasBrutas) {
             return;
         }
         const icono = crearIconoReferencia(ref);
-        const marcador = L.marker([coords.lat, coords.lng], {
-            icon: icono,
+        const marcador = _crearMarcadorHTML(coords, icono, {
+            className: 'referencia-visual-marker',
             title: ref.nombre || `Referencia ${ref.mapa_numero}`,
-            zIndexOffset: 400  // Por debajo de paradas (600) pero visible
-        }).addTo(_mapaInstance);
+            zIndex: 400  // Por debajo de paradas (600) pero visible
+        });
 
         marcador._refData = ref; // Guardamos para poder re-escalar
-        marcador.on('click', () => mostrarPopupReferencia(ref));
+        marcador.getElement().addEventListener('click', () => mostrarPopupReferencia(ref));
 
         marcadoresReferencias.set(ref.id, marcador);
         logger.debug(`[MAPA] Referencia visual dibujada: ${ref.id} (${ref.nombre})`);
@@ -560,7 +755,7 @@ export function dibujarReferencias(coordenadasBrutas) {
  */
 function limpiarReferencias() {
     marcadoresReferencias.forEach(m => {
-        try { if (_mapaInstance) _mapaInstance.removeLayer(m); } catch (_e) { /* ignore */ } // NOSONAR
+        try { m.remove(); } catch (_e) { /* ignore */ } // NOSONAR
     });
     marcadoresReferencias.clear();
 }
@@ -718,7 +913,7 @@ if (typeof document !== 'undefined') {
 
 /**
  * Inicializa el servicio del mapa.
- * @param {Object} mapaInstance - Instancia del mapa de Leaflet.
+ * @param {Object} mapaInstance - Instancia del mapa de MapLibre GL.
  * @param {Object} [opciones={}] - Opciones de configuración.
  * @returns {boolean} True si la inicialización fue exitosa.
  */
@@ -733,8 +928,8 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
         return true;
     }
 
-    // Intentar crear la instancia internamente si Leaflet ya está disponible
-    if (typeof L !== 'undefined' && L.map) {
+    // Intentar crear la instancia internamente si MapLibre GL ya está disponible
+    if (typeof maplibregl !== 'undefined' && maplibregl.Map) {
         try {
             const containerId = opciones?.containerId || 'mapa';
             const container = document.getElementById(containerId);
@@ -743,30 +938,26 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
                 return false;
             }
 
-            // Si el contenedor ya tiene una instancia de Leaflet asociada, asumir que
-            // el mapa ya fue inicializado por otra llamada y tratar como éxito.
-            // Leaflet marca el contenedor con _leaflet_id cuando ya existe un mapa.
-            try {
-                if (container._leaflet_id) {
-                    logger.info(`[MAPA] Contenedor #${containerId} ya inicializado (leaflet id=${container._leaflet_id}); asumiendo mapa listo`);
-                    return true;
-                }
-            } catch (_err) { // NOSONAR
-                // Ignorar cualquier error al inspeccionar el contenedor.
-            }
-
-            // Crear la instancia de mapa con la configuración por defecto
-            const mapa = L.map(containerId, {
-                center: CONFIG.MAPA?.CENTER || [39.4699, -0.3763],
+            const centro = CONFIG.MAPA?.CENTER || [39.4699, -0.3763]; // [lat, lng]
+            const mapa = new maplibregl.Map({
+                container: containerId,
+                style: {
+                    version: 8,
+                    sources: {
+                        'osm-src': {
+                            type: 'raster',
+                            tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                            tileSize: 256,
+                            attribution: '© OpenStreetMap contributors',
+                        },
+                    },
+                    layers: [{ id: 'osm-layer', type: 'raster', source: 'osm-src' }],
+                },
+                center: [centro[1], centro[0]], // MapLibre usa [lng, lat]
                 zoom: CONFIG.MAPA?.ZOOM || 13,
                 minZoom: CONFIG.MAPA?.MIN_ZOOM || 12,
                 maxZoom: CONFIG.MAPA?.MAX_ZOOM || 18,
-                zoomControl: CONFIG.MAPA?.ZOOM_CONTROL ?? false
             });
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(mapa);
 
             _mapaInstance = mapa;
             _mapaOpciones = { ...opciones };
@@ -776,18 +967,6 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
             logger.info('Servicio de mapa inicializado correctamente (instancia creada internamente)');
             return true;
         } catch (error) {
-            // Si el error corresponde a un contenedor ya inicializado, no lo tratamos
-            // como fallo crítico: significa que otra llamada ya creó el mapa.
-            try {
-                const msg = error?.message ?? '';
-                if (msg.includes('Map container is already initialized')) {
-                    logger.warn('[MAPA] Intento de crear mapa pero el contenedor ya está inicializado; usando mapa existente');
-                    return true;
-                }
-            } catch (_e) { // NOSONAR
-                // ignore
-            }
-
             logger.error('[MAPA] Error creando instancia del mapa internamente:', error);
             return false;
         }
@@ -796,7 +975,7 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
     // Si no se puede crear la instancia ahora, emitir advertencia y devolver false.
     // Esto evita lanzar un error en tiempo de inicialización externo y permite que
     // el llamador reintente cuando la API/instancia esté disponible.
-    logger.warn('No se proporcionó instancia del mapa y Leaflet no está listo; espere a volver a llamar con la instancia');
+    logger.warn('No se proporcionó instancia del mapa y MapLibre GL no está listo; espere a volver a llamar con la instancia');
     return false;
 }
 
@@ -845,7 +1024,7 @@ export async function invalidarTamañoMapa() {
         }
         
         await ejecutarOperacionMapa(mapa => {
-            mapa.invalidateSize();
+            mapa.resize();
             return true;
         });
         
@@ -898,8 +1077,6 @@ export async function setMapView(center, zoom, opciones = {}) {
                 return false;
             }
 
-            const centerPoint = [coordObj.lat, coordObj.lng];
-
             // Determinar zoom válido: preferir parámetro, luego opciones.zoom, luego estado del mapa
             let finalZoom = zoom;
             if (finalZoom === undefined || finalZoom === null || !Number.isFinite(finalZoom)) {
@@ -915,7 +1092,14 @@ export async function setMapView(center, zoom, opciones = {}) {
             }
 
             await ejecutarOperacionMapa(mapa => {
-                mapa.setView(centerPoint, finalZoom, opciones);
+                const center = aLngLat(coordObj);
+                if (opciones?.animate === false) {
+                    mapa.jumpTo({ center, zoom: finalZoom });
+                } else {
+                    // Leaflet expresaba duration en segundos; MapLibre lo espera en ms.
+                    const durationMs = Number.isFinite(opciones?.duration) ? opciones.duration * 1000 : 300;
+                    mapa.easeTo({ center, zoom: finalZoom, duration: durationMs });
+                }
                 return true;
             });
         
@@ -959,25 +1143,25 @@ export function isMapInitialized() {
 }
 
 /**
- * Wait for Leaflet (L) to be available globally
+ * Wait for MapLibre GL (maplibregl) to be available globally
  * @returns {Promise<void>}
  */
-function waitForLeaflet() {
+function waitForMapLibre() {
     return new Promise((resolve, reject) => {
-        const checkLeaflet = () => {
-            if (typeof L !== 'undefined' && L.map) {
+        const checkMapLibre = () => {
+            if (typeof maplibregl !== 'undefined' && maplibregl.Map) {
                 resolve();
             } else {
-                setTimeout(checkLeaflet, 100);
+                setTimeout(checkMapLibre, 100);
             }
         };
-        
+
         // Timeout after 10 seconds
         setTimeout(() => {
-            reject(new Error('Leaflet no se cargó en el tiempo esperado'));
+            reject(new Error('MapLibre GL no se cargó en el tiempo esperado'));
         }, 10000);
-        
-        checkLeaflet();
+
+        checkMapLibre();
     });
 }
 
@@ -1008,11 +1192,11 @@ export function verificarContenedorMapa(containerId = 'mapa') {
 /**
  * Inicializa el mapa y verifica el contenedor.
  * @param {Object} config - Configuración del mapa.
- * @returns {Promise<L.Map>} - Instancia del mapa.
+ * @returns {Promise<maplibregl.Map>} - Instancia del mapa.
  */
 export async function inicializarMapa(config = {}) {
-    // Wait for Leaflet to be available
-    await waitForLeaflet();
+    // Wait for MapLibre GL to be available
+    await waitForMapLibre();
 
     logger.info('Inicializando mapa...');
     const containerId = config.containerId || 'mapa';
@@ -1030,18 +1214,27 @@ export async function inicializarMapa(config = {}) {
     }
 
     // Create new map instance
-    const mapa = L.map(containerId, {
-        center: CONFIG.MAPA.CENTRO_DEFECTO,
+    const centro = CONFIG.MAPA.CENTRO_DEFECTO; // [lat, lng]
+    const mapa = new maplibregl.Map({
+        container: containerId,
+        style: {
+            version: 8,
+            sources: {
+                'osm-src': {
+                    type: 'raster',
+                    tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                    tileSize: 256,
+                    attribution: '© OpenStreetMap contributors',
+                    maxzoom: 19,
+                },
+            },
+            layers: [{ id: 'osm-layer', type: 'raster', source: 'osm-src' }],
+        },
+        center: aLngLat(centro),
         zoom: CONFIG.MAPA.ZOOM_INICIAL,
         minZoom: CONFIG.MAPA.ZOOM_MIN,
         maxZoom: CONFIG.MAPA.ZOOM_MAX,
-        zoomControl: CONFIG.MAPA.ZOOM_CONTROL
     });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(mapa);
 
     // Registrar la instancia en el servicio
     inicializarServicioMapa(mapa, config);
@@ -1145,18 +1338,18 @@ export function limpiarRecursos() {
 
         // Limpiar marcadores de usuario
         if (marcadorUsuario) {
-            _mapaInstance.removeLayer(marcadorUsuario);
+            marcadorUsuario.remove();
             marcadorUsuario = null;
         }
 
         // Limpiar marcador de destino
         if (marcadorDestino) {
-            _mapaInstance.removeLayer(marcadorDestino);
+            marcadorDestino.remove();
             marcadorDestino = null;
         }
 
         // Limpiar marcadores de paradas
-        marcadoresParadas.forEach(marcador => _mapaInstance.removeLayer(marcador));
+        marcadoresParadas.forEach(marcador => marcador.remove());
         marcadoresParadas.clear();
 
         // Limpiar referencias visuales
@@ -1164,26 +1357,20 @@ export function limpiarRecursos() {
 
         // Limpiar rutas
         logger.debug(`[funciones-mapa] Eliminando ${rutasTramos.length} rutas de tramos y ${rutasActivas.length} rutas activas`);
-        rutasTramos.forEach(ruta => _mapaInstance.removeLayer(ruta));
+        rutasTramos.forEach(ruta => ruta.remove());
         rutasTramos = [];
 
-        rutasActivas.forEach(ruta => _mapaInstance.removeLayer(ruta));
+        rutasActivas.forEach(ruta => ruta.remove());
         rutasActivas = [];
 
-        // Limpiar TODAS las polylines del mapa (por si alguna no está en los arrays)
-        _mapaInstance.eachLayer((layer) => {
-            if (layer instanceof L.Polyline) {
-                logger.debug('[funciones-mapa] Eliminando polyline adicional encontrada en el mapa');
-                _mapaInstance.removeLayer(layer);
-            }
-        });
-
-        // Limpiar todas las capas adicionales del mapa (excepto la base)
-        _mapaInstance.eachLayer((layer) => {
-            if (layer !== _mapaInstance.getPane('tilePane') && layer !== _mapaInstance.getPane('overlayPane') && layer.options && !layer.options.attribution) {
-                _mapaInstance.removeLayer(layer);
-            }
-        });
+        // NOTA: Leaflet permitía que cualquier addTo(map) creara una capa "suelta"
+        // no rastreada por este módulo, por eso hacía falta un barrido eachLayer()
+        // de seguridad al final. En MapLibre toda fuente/capa se crea con un id
+        // explícito a través de los helpers _crearMarcadorHTML/_crearPolyline/
+        // _crearCirculoGeografico de este mismo fichero, y todos quedan en los
+        // registros de arriba — no existe la categoría de "capa huérfana no
+        // rastreada" que este barrido buscaba, ni una API eachLayer con la que
+        // implementarlo si hiciera falta.
 
         logger.debug('Recursos del mapa limpiados completamente');
 
@@ -1247,16 +1434,19 @@ export async function mostrarTodasLasParadas(paradasExternas) {
             logger.info('mostrarTodasLasParadas: mapa inicializado, procediendo con la visualización');
         }
 
-        marcadoresParadas.forEach(marcador => _mapaInstance.removeLayer(marcador));
+        marcadoresParadas.forEach(marcador => marcador.remove());
         marcadoresParadas.clear();
 
         arrayParadasLocal.forEach(parada => {
             if (parada.coordenadas && validarCoordenadas(parada.coordenadas)) {
-                const marcador = L.marker([parada.coordenadas.lat, parada.coordenadas.lng], {
-                    title: parada.nombre || `Parada ${parada.id}`
-                }).addTo(_mapaInstance);
-
-                marcador.setZIndexOffset(600);
+                // Sin icono personalizado — igual que el L.marker original, que usaba
+                // el pin azul por defecto de Leaflet. Aquí el equivalente es el pin
+                // por defecto de MapLibre (anchor 'bottom': la punta toca el punto).
+                const marcador = new maplibregl.Marker({ anchor: 'bottom' })
+                    .setLngLat(aLngLat(parada.coordenadas))
+                    .addTo(_mapaInstance);
+                marcador.getElement().title = parada.nombre || `Parada ${parada.id}`;
+                marcador.getElement().style.zIndex = '600';
 
                 marcadoresParadas.set(parada.id, marcador);
             }
@@ -1274,7 +1464,7 @@ export async function mostrarTodasLasParadas(paradasExternas) {
  * Dibuja un tramo específico en el mapa.
  * @param {Object} tramo - Objeto tramo con inicio, fin y waypoints.
  * @param {boolean} destacado - Si es true, se muestra con énfasis.
- * @returns {L.Polyline} La polyline creada.
+ * @returns {Object} La polilínea creada (wrapper de _crearPolyline).
  */
 function dibujarTramo(tramo, destacado = false) {
     try {
@@ -1297,7 +1487,7 @@ function dibujarTramo(tramo, destacado = false) {
         validarCoordenadas(tramo.inicio);
         validarCoordenadas(tramo.fin);
 
-        const puntos = [tramo.inicio, ...(tramo.waypoints || []), tramo.fin].map(p => [p.lat, p.lng]);
+        const puntos = [tramo.inicio, ...(tramo.waypoints || []), tramo.fin];
 
         if (!_mapaInstance) {
             throw new Error('Mapa no inicializado');
@@ -1305,15 +1495,11 @@ function dibujarTramo(tramo, destacado = false) {
 
         // Usar valores escalados según pantalla y zoom
         const peso = getPolylineEscalado();
-        const polyline = L.polyline(puntos, {
+        return _crearPolyline(puntos, {
             color: destacado ? '#ff4500' : '#3388ff',
             weight: destacado ? peso.destacado : peso.tramo,
             opacity: destacado ? 0.9 : 0.7
-        }).addTo(_mapaInstance);
-
-        polyline.setZIndexOffset(500);
-
-        return polyline;
+        });
     } catch (error) {
         logger.error('Error al dibujar tramo:', error);
         return null;
@@ -1350,11 +1536,11 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
         // Dibujar polyline de la ruta solo si está habilitado
         if (dibujarRuta) {
             const peso = getPolylineEscalado();
-            const polyline = L.polyline(puntos, {
+            const polyline = _crearPolyline(puntos, {
                 color: '#0077ff',
                 weight: peso.ruta,
                 opacity: 0.8
-            }).addTo(_mapaInstance);
+            });
 
             rutasActivas.push(polyline);
             logger.debug('Polyline de ruta dibujada');
@@ -1367,20 +1553,10 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
             const iconos = getIconoEscalado();
             // Para marcadores verdes (paradas), usar emoji 🎯
             if (color === '#4CAF50') {
-                return L.divIcon({
-                    className: 'custom-marker-emoji',
-                    html: `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;">🎯</div>`,
-                    iconSize: [iconos.parada, iconos.parada],
-                    iconAnchor: [Math.round(iconos.parada / 2), Math.round(iconos.parada / 2)]
-                });
+                return `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;">🎯</div>`;
             }
             // Para otros colores, usar círculos coloreados
-            return L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="background-color: ${color}; width: ${iconos.inicio}px; height: ${iconos.inicio}px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-                iconSize: [iconos.inicio, iconos.inicio],
-                iconAnchor: [Math.round(iconos.inicio / 2), Math.round(iconos.inicio / 2)]
-            });
+            return `<div style="background-color: ${color}; width: ${iconos.inicio}px; height: ${iconos.inicio}px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`;
         };
 
         // Agregar marcadores SOLO para inicio, parada y fin (omitir waypoints intermedios)
@@ -1397,14 +1573,8 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
             if (isLast) {
                 markerTitle = coord.nombre || 'Fin de ruta';
                 const iconos = getIconoEscalado();
-                const flagDivIcon = L.divIcon({
-                    className: 'finish-flag-icon',
-                    html: `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
-                    iconSize: [iconos.parada, iconos.parada],
-                    iconAnchor: [Math.round(iconos.parada / 2), Math.round(iconos.parada / 2)]
-                });
-                const markerFin = L.marker([coord.lat, coord.lng], { icon: flagDivIcon, title: markerTitle }).addTo(_mapaInstance);
-                markerFin.setZIndexOffset(700);
+                const flagHtml = `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`;
+                const markerFin = _crearMarcadorHTML(coord, flagHtml, { className: 'finish-flag-icon', title: markerTitle, zIndex: 700 });
                 marcadoresParadas.set(`ruta-fin`, markerFin);
                 return;
             }
@@ -1415,38 +1585,30 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
                 markerTitle = coord.nombre || 'Inicio';
                 // Usar emoji 📌 para punto de inicio
                 const iconosInicio = getIconoEscalado();
-                const startIcon = L.divIcon({
-                    className: 'start-flag-icon',
-                    html: `<div style="font-size:${iconosInicio.inicio}px;line-height:${iconosInicio.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`,
-                    iconSize: [iconosInicio.inicio, iconosInicio.inicio],
-                    iconAnchor: [Math.round(iconosInicio.inicio / 2), Math.round(iconosInicio.inicio / 2)]
-                });
-                const markerInicio = L.marker([coord.lat, coord.lng], { icon: startIcon, title: markerTitle }).addTo(_mapaInstance);
-                markerInicio.setZIndexOffset(700);
+                const startHtml = `<div style="font-size:${iconosInicio.inicio}px;line-height:${iconosInicio.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`;
+                const markerInicio = _crearMarcadorHTML(coord, startHtml, { className: 'start-flag-icon', title: markerTitle, zIndex: 700 });
                 marcadoresParadas.set(`ruta-${index}`, markerInicio);
                 return;
             } else if (coord.tipo === 'parada') {
                 markerTitle = coord.nombre || `Parada ${coord.id}`;
             }
 
-            const marker = L.marker([coord.lat, coord.lng], {
-                icon: crearIconoColoreado(markerColor),
-                title: markerTitle
-            }).addTo(_mapaInstance);
-
-            marker.setZIndexOffset(600);
+            const marker = _crearMarcadorHTML(coord, crearIconoColoreado(markerColor), {
+                className: markerColor === '#4CAF50' ? 'custom-marker-emoji' : 'custom-marker',
+                title: markerTitle,
+                zIndex: 600
+            });
             marcadoresParadas.set(`ruta-${index}`, marker);
         });
 
         // Ajustar zoom para mostrar toda la ruta (fitBounds)
         if (puntos.length > 0 && _mapaInstance && opciones.ajustarZoom !== false) {
             try {
-                const bounds = L.latLngBounds(puntos);
+                const bounds = _bboxDesdePuntos(puntos);
                 _mapaInstance.fitBounds(bounds, {
-                    padding: [50, 50],
+                    padding: 50, // Leaflet usaba [50,50] (simétrico) — MapLibre acepta un número único
                     maxZoom: 16,
-                    animate: true,
-                    duration: 0.5
+                    duration: 500 // Leaflet: 0.5s; MapLibre espera milisegundos
                 });
                 logger.debug('Zoom ajustado para mostrar toda la ruta');
             } catch (boundsError) {
@@ -1476,7 +1638,7 @@ function actualizarMarcadorParada(paradaId, coordenadas) {
 
         const marcador = marcadoresParadas.get(paradaId);
         if (marcador) {
-            marcador.setLatLng([coordenadas.lat, coordenadas.lng]);
+            marcador.setLngLat(aLngLat(coordenadas));
             logger.info(`Marcador de parada ${paradaId} actualizado`);
         } else {
             logger.warn(`No se encontró marcador para la parada ${paradaId}`);
@@ -1529,8 +1691,8 @@ export function limpiarPorEstado(nuevoEstado) {
             if (paradaActual !== estadoMapa.paradaActual && paradaActual !== null) {
                 // Limpiar marcadores de rutas anteriores (mantener marcadores de paradas)
                 marcadoresParadas.forEach((marcador, id) => {
-                    if (id.startsWith('ruta-') && _mapaInstance?.removeLayer) {
-                        _mapaInstance.removeLayer(marcador);
+                    if (id.startsWith('ruta-')) {
+                        marcador.remove();
                         marcadoresParadas.delete(id);
                     }
                 });
@@ -1541,11 +1703,7 @@ export function limpiarPorEstado(nuevoEstado) {
             // Limpieza por cambio de tramo
             if (tramoActual !== estadoMapa.tramoActual && tramoActual !== null) {
                 // Limpiar rutas activas anteriores
-                rutasActivas.forEach(ruta => {
-                    if (_mapaInstance?.removeLayer) {
-                        _mapaInstance.removeLayer(ruta);
-                    }
-                });
+                rutasActivas.forEach(ruta => ruta.remove());
                 rutasActivas = [];
                 limpiado = true;
                 logger.debug(`Limpieza automática: Cambio de tramo a ${tramoActual}, rutas limpiadas`);
@@ -1588,12 +1746,12 @@ function desactivarFlechaUsuario() {
     if (_mapaInstance) {
         _mapaInstance.off('zoomend', actualizarPosicionFlecha);
     }
-    if (marcadorFlechaUsuario && _mapaInstance) {
-        _mapaInstance.removeLayer(marcadorFlechaUsuario);
+    if (marcadorFlechaUsuario) {
+        marcadorFlechaUsuario.remove();
         marcadorFlechaUsuario = null;
     }
-    if (marcadorHaloUsuario && _mapaInstance) {
-        _mapaInstance.removeLayer(marcadorHaloUsuario);
+    if (marcadorHaloUsuario) {
+        marcadorHaloUsuario.remove();
         marcadorHaloUsuario = null;
     }
     logger.info('Flecha de ruta desactivada');
@@ -1668,11 +1826,8 @@ function actualizarPosicionFlecha() {
     const waypointsRaw = estadoMapa.tramoWaypoints;
     if (!waypointsRaw?.length) return;
 
-    // Calcular punto más cercano en la polyline
-    const userLatLng = L.latLng(estadoMapa.posicionUsuario.lat, estadoMapa.posicionUsuario.lng);
-    const waypointsLatLng = waypointsRaw.map(wp => L.latLng(wp.lat, wp.lng));
-    const polyline = L.polyline(waypointsLatLng);
-    const closestPoint = L.GeometryUtil.closest(_mapaInstance, userLatLng, polyline);
+    // Calcular punto más cercano en la polilínea (sustituye a L.GeometryUtil.closest)
+    const closestPoint = puntoMasCercanoEnLinea(estadoMapa.posicionUsuario, waypointsRaw);
 
     if (closestPoint) {
         // Calcular tamaño basado en zoom
@@ -1682,31 +1837,25 @@ function actualizarPosicionFlecha() {
         const size = Math.round(baseSize * sizeMultiplier);
 
         // Crear o actualizar marcador
-        const arrowIcon = L.divIcon({
-            html: `<div style="font-size: ${size}px; color: #0066cc; text-shadow: 1px 1px 2px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.3); transform: rotate(${deviceOrientationHeading}deg); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));">↑</div>`,
-            className: 'user-direction-arrow',
-            iconSize: [size, size],
-            iconAnchor: [size / 2, size / 2]
-        });
+        const arrowHtml = `<div style="font-size: ${size}px; color: #0066cc; text-shadow: 1px 1px 2px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.3); transform: rotate(${deviceOrientationHeading}deg); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));">↑</div>`;
 
         if (marcadorFlechaUsuario) {
-            marcadorFlechaUsuario.setLatLng(closestPoint);
-            marcadorFlechaUsuario.setIcon(arrowIcon);
+            marcadorFlechaUsuario.setLngLat(aLngLat(closestPoint));
+            marcadorFlechaUsuario.getElement().innerHTML = arrowHtml;
         } else {
-            marcadorFlechaUsuario = L.marker(closestPoint, { icon: arrowIcon }).addTo(_mapaInstance);
+            marcadorFlechaUsuario = _crearMarcadorHTML(closestPoint, arrowHtml, { className: 'user-direction-arrow' });
         }
 
         // Actualizar o crear halo (círculo de 21m)
         if (marcadorHaloUsuario) {
             marcadorHaloUsuario.setLatLng(closestPoint);
         } else {
-            marcadorHaloUsuario = L.circle(closestPoint, {
-                radius: 21, // 21 metros
+            marcadorHaloUsuario = _crearCirculoGeografico(closestPoint, 21, {
                 color: 'red',
                 fillColor: 'yellow',
                 fillOpacity: 0.2,
                 weight: 1
-            }).addTo(_mapaInstance);
+            });
         }
     }
 }
@@ -2012,29 +2161,21 @@ async function completarCambioParada() {
 
             // Limpiar marcador anterior si existía
             if (marcadorParadaActual) {
-                ejecutarOperacionMapa(mapa => {
-                    try { mapa.removeLayer(marcadorParadaActual); } catch (_e) { /* ignore */ } // NOSONAR
-                    return true;
-                }).catch(() => {});
+                try { marcadorParadaActual.remove(); } catch (_e) { /* ignore */ } // NOSONAR
                 marcadorParadaActual = null;
             }
 
             // Limpiar polylines/rutas activas antes de dibujar la nueva
-            await ejecutarOperacionMapa(mapa => {
-                rutasActivas.forEach(r => { try { mapa.removeLayer(r); } catch (_e){} }); // NOSONAR
-                rutasActivas = [];
-                rutasTramos.forEach(r => { try { mapa.removeLayer(r); } catch (_e){} }); // NOSONAR
-                rutasTramos = [];
-                return true;
-            }).catch(() => {});
+            rutasActivas.forEach(r => { try { r.remove(); } catch (_e){} }); // NOSONAR
+            rutasActivas = [];
+            rutasTramos.forEach(r => { try { r.remove(); } catch (_e){} }); // NOSONAR
+            rutasTramos = [];
 
             // Limpiar marcadores de tramo anteriores (siempre, no solo al dibujar tramo nuevo)
-            if (_mapaInstance) {
-                ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
-                    const old = marcadoresParadas.get(k);
-                    if (old) { try { _mapaInstance.removeLayer(old); } catch (_e) {} marcadoresParadas.delete(k); } // NOSONAR
-                });
-            }
+            ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
+                const old = marcadoresParadas.get(k);
+                if (old) { try { old.remove(); } catch (_e) {} marcadoresParadas.delete(k); } // NOSONAR
+            });
 
             // Determinar si es tramo o parada
             const esTramo = coordenadas.tipo === 'tramo' || !!coordenadas.coordenadasFin;
@@ -2049,7 +2190,7 @@ async function completarCambioParada() {
             const durFase = 0.35; // segundos por fase (reducido para respuesta más ágil)
             const tieneParadaAnterior = !!estadoMapa.paradaActual;
 
-            // Helper compartido: espera moveend de Leaflet con timeout de seguridad
+            // Helper compartido: espera moveend del mapa con timeout de seguridad
             const esperarMoveEnd = (extraMs = 0) => new Promise(r => {
                 let resuelto = false;
                 const resolver = () => { if (!resuelto) { resuelto = true; r(); } };
@@ -2077,37 +2218,26 @@ async function completarCambioParada() {
                     const _ic = getIconoEscalado();
                     ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
                         const old = marcadoresParadas.get(k);
-                        if (old) { try { _mapaInstance.removeLayer(old); } catch (_e) {} marcadoresParadas.delete(k); } // NOSONAR
+                        if (old) { try { old.remove(); } catch (_e) {} marcadoresParadas.delete(k); } // NOSONAR
                     });
                     if (tramoData.inicio) {
-                        const mI = L.marker([tramoData.inicio.lat, tramoData.inicio.lng], {
-                            icon: L.divIcon({
-                                className: 'tramo-inicio-icon',
-                                html: `<div style="font-size:${_ic.inicio}px;line-height:${_ic.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`,
-                                iconSize: [_ic.inicio, _ic.inicio],
-                                iconAnchor: [Math.round(_ic.inicio / 2), Math.round(_ic.inicio / 2)]
-                            })
-                        }).addTo(_mapaInstance);
-                        mI.setZIndexOffset(600);
+                        const mI = _crearMarcadorHTML(tramoData.inicio,
+                            `<div style="font-size:${_ic.inicio}px;line-height:${_ic.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`,
+                            { className: 'tramo-inicio-icon', zIndex: 600 }
+                        );
                         marcadoresParadas.set('tramo-inicio-ruta', mI);
                     }
                     if (tramoData.fin) {
-                        const mF = L.marker([tramoData.fin.lat, tramoData.fin.lng], {
-                            icon: L.divIcon({
-                                className: 'tramo-fin-icon',
-                                html: `<div style="font-size:${_ic.parada}px;line-height:${_ic.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
-                                iconSize: [_ic.parada, _ic.parada],
-                                iconAnchor: [Math.round(_ic.parada / 2), Math.round(_ic.parada / 2)]
-                            })
-                        }).addTo(_mapaInstance);
-                        mF.setZIndexOffset(600);
+                        const mF = _crearMarcadorHTML(tramoData.fin,
+                            `<div style="font-size:${_ic.parada}px;line-height:${_ic.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
+                            { className: 'tramo-fin-icon', zIndex: 600 }
+                        );
                         marcadoresParadas.set('tramo-fin-ruta', mF);
                     }
                 } catch(e) { logger.warn(`${logPrefix} Error añadiendo marcadores tramo:`, e); } // NOSONAR
 
                 const puntos = [tramoData.inicio, ...tramoData.waypoints, tramoData.fin]
-                    .filter(p => p?.lat && p?.lng)
-                    .map(p => [p.lat, p.lng]);
+                    .filter(p => p?.lat && p?.lng);
 
                 if (puntos.length > 1) {
                     logger.info(`${logPrefix} 🎬 Iniciando zoom para TRAMO ${paradaId} (${puntos.length} puntos)`);
@@ -2117,7 +2247,7 @@ async function completarCambioParada() {
                     if (tieneParadaAnterior) {
                         logger.debug(`${logPrefix} 📤 Zoom-out a nivel ${zoomOut} desde parada anterior`);
                         await ejecutarOperacionMapa(mapa => {
-                            mapa.flyTo(mapa.getCenter(), zoomOut, { duration: durFase, easeLinearity: 0.5 });
+                            mapa.flyTo({ center: mapa.getCenter(), zoom: zoomOut, duration: durFase * 1000 });
                             return true;
                         }).catch(err => logger.error(`${logPrefix} ❌ Error en zoom-out tramo:`, err));
                         await esperarMoveEnd();
@@ -2127,7 +2257,7 @@ async function completarCambioParada() {
                     const centroInicio = [tramoData.inicio.lat, tramoData.inicio.lng];
                     logger.debug(`${logPrefix} 📥 Zoom-in a ${centroInicio} nivel ${zoomMax}`);
                     await ejecutarOperacionMapa(mapa => {
-                        mapa.flyTo(centroInicio, zoomMax, { duration: durFase * 1.5, easeLinearity: 0.25 });
+                        mapa.flyTo({ center: aLngLat(centroInicio), zoom: zoomMax, duration: durFase * 1.5 * 1000 });
                         return true;
                     }).catch(err => logger.error(`${logPrefix} ❌ Error en flyTo inicio tramo:`, err));
 
@@ -2143,16 +2273,10 @@ async function completarCambioParada() {
                 // Emoji 🎯 en la parada actual
                 try {
                     const _ic = getIconoEscalado();
-                    const mP = L.marker(destino, {
-                        icon: L.divIcon({
-                            className: 'custom-marker-emoji',
-                            html: `<div style="font-size:${_ic.parada}px;line-height:${_ic.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
-                            iconSize: [_ic.parada, _ic.parada],
-                            iconAnchor: [Math.round(_ic.parada / 2), Math.round(_ic.parada / 2)]
-                        }),
-                        title: paradaId
-                    }).addTo(_mapaInstance);
-                    mP.setZIndexOffset(600);
+                    const mP = _crearMarcadorHTML(coordenadas,
+                        `<div style="font-size:${_ic.parada}px;line-height:${_ic.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
+                        { className: 'custom-marker-emoji', title: paradaId, zIndex: 600 }
+                    );
                     marcadorParadaActual = mP;
                 } catch(e) { logger.warn(`${logPrefix} Error añadiendo marcador parada:`, e); } // NOSONAR
 
@@ -2163,7 +2287,7 @@ async function completarCambioParada() {
                 if (tieneParadaAnterior) {
                     logger.debug(`${logPrefix} 📤 Zoom-out a nivel ${zoomOut} desde parada anterior`);
                     await ejecutarOperacionMapa(mapa => {
-                        mapa.flyTo(mapa.getCenter(), zoomOut, { duration: durFase, easeLinearity: 0.5 });
+                        mapa.flyTo({ center: mapa.getCenter(), zoom: zoomOut, duration: durFase * 1000 });
                         return true;
                     }).catch(err => logger.error(`${logPrefix} ❌ Error en zoom-out parada:`, err));
                     await esperarMoveEnd();
@@ -2172,7 +2296,7 @@ async function completarCambioParada() {
                 // Zoom-in al destino
                 logger.debug(`${logPrefix} 📥 Zoom-in a ${destino} nivel ${zoomMax}`);
                 await ejecutarOperacionMapa(mapa => {
-                    mapa.flyTo(destino, zoomMax, { duration: durFase * 1.5, easeLinearity: 0.25 });
+                    mapa.flyTo({ center: aLngLat(destino), zoom: zoomMax, duration: durFase * 1.5 * 1000 });
                     return true;
                 }).catch(err => logger.error(`${logPrefix} ❌ Error en flyTo parada:`, err));
 
@@ -2259,13 +2383,19 @@ async function completarCambioParada() {
     }
 }
 
+/** MapLibre Marker no tiene setOpacity — se ajusta el estilo CSS del elemento directamente. */
+function _setOpacidadMarcador(marcador, opacidad) {
+    const el = marcador?.getElement?.();
+    if (el) el.style.opacity = String(opacidad);
+}
+
 function _ocultarNavegacion() {
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0 }); } catch(e) {} }); // NOSONAR
     ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
         const m = marcadoresParadas.get(k);
-        if (m) { try { m.setOpacity(0); } catch(e) {} } // NOSONAR
+        if (m) { try { _setOpacidadMarcador(m, 0); } catch(e) {} } // NOSONAR
     });
-    if (marcadorParadaActual) { try { marcadorParadaActual.setOpacity(0); } catch(e) {} } // NOSONAR
+    if (marcadorParadaActual) { try { _setOpacidadMarcador(marcadorParadaActual, 0); } catch(e) {} } // NOSONAR
     estadoMapa.gpsVisualActivo = false;
     sincronizarEstadoGPSConPadre();
 }
@@ -2274,9 +2404,9 @@ export function revelarNavegacion() {
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0.7 }); } catch(e) {} }); // NOSONAR
     ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
         const m = marcadoresParadas.get(k);
-        if (m) { try { m.setOpacity(1); } catch(e) {} } // NOSONAR
+        if (m) { try { _setOpacidadMarcador(m, 1); } catch(e) {} } // NOSONAR
     });
-    if (marcadorParadaActual) { try { marcadorParadaActual.setOpacity(1); } catch(e) {} } // NOSONAR
+    if (marcadorParadaActual) { try { _setOpacidadMarcador(marcadorParadaActual, 1); } catch(e) {} } // NOSONAR
     estadoMapa.gpsVisualActivo = true;
     sincronizarEstadoGPSConPadre();
 }
@@ -2510,8 +2640,8 @@ export async function manejarGPSDesactivar(mensaje) {
                 estadoMapa.posicionUsuario = null;
                 estadoMapa.ultimaUbicacion = null;
                 sincronizarEstadoGPSConPadre();
-                if (_mapaInstance && marcadorUsuario) {
-                    _mapaInstance.removeLayer(marcadorUsuario);
+                if (marcadorUsuario) {
+                    marcadorUsuario.remove();
                     marcadorUsuario = null;
                 }
                 return { exito: true };
@@ -2542,8 +2672,8 @@ export async function manejarGPSDesactivar(mensaje) {
         estadoMapa.posicionUsuario = null;
 
         // Limpiar marcador de usuario si existe
-        if (_mapaInstance && marcadorUsuario) {
-            _mapaInstance.removeLayer(marcadorUsuario);
+        if (marcadorUsuario) {
+            marcadorUsuario.remove();
             marcadorUsuario = null;
         }
 
@@ -2993,16 +3123,12 @@ async function procesarPosicionGPSParaAventura(posicion) {
             logger.info(`${logPrefix} 🗺️ Distancia ≤50m, removiendo polylines automáticamente`);
             try {
                 // Limpiar todas las rutas activas
-                rutasActivas.forEach(ruta => {
-                    if (_mapaInstance && ruta) {
-                        _mapaInstance.removeLayer(ruta);
-                    }
-                });
+                rutasActivas.forEach(ruta => ruta?.remove());
                 rutasActivas = [];
-                
+
                 // Limpiar polylineNavegacion
-                if (_mapaInstance && polylineNavegacion) {
-                    _mapaInstance.removeLayer(polylineNavegacion);
+                if (polylineNavegacion) {
+                    polylineNavegacion.remove();
                     polylineNavegacion = null;
                 }
                 
@@ -3037,15 +3163,12 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     puntosPolyline.push([coordsSiguiente.lat, coordsSiguiente.lng]);
                 }
                 
-                polylineNavegacion = L.polyline(
-                    puntosPolyline,
-                    {
-                        color: '#3388ff',
-                        weight: peso.tramo,
-                        opacity: 0.7,
-                        dashArray: '10, 10'
-                    }
-                ).addTo(_mapaInstance);
+                polylineNavegacion = _crearPolyline(puntosPolyline, {
+                    color: '#3388ff',
+                    weight: peso.tramo,
+                    opacity: 0.7,
+                    dashArray: '10, 10'
+                });
                 
                 logger.debug(`${logPrefix} ✅ Polyline automática dibujada (${puntosPolyline.length} puntos) hasta ${siguienteParada.padreid}`);
             } catch (error_) {
@@ -3129,12 +3252,14 @@ globalThis.funcionesMapa = {
     // API para ajustar vista a un rectángulo de coordenadas
     fitMapBounds: async function(puntosLatLng, opciones = {}) {
         return ejecutarOperacionMapa(mapa => {
-            const bounds = L.latLngBounds(puntosLatLng);
+            const bounds = _bboxDesdePuntos(puntosLatLng);
+            // padding: Leaflet aceptaba [x,y]; MapLibre acepta un número único o {top,bottom,left,right}
+            const padding = Array.isArray(opciones.padding) ? Math.max(...opciones.padding) : (opciones.padding || 80);
             mapa.fitBounds(bounds, {
-                padding: opciones.padding || [80, 80],
+                padding,
                 maxZoom: opciones.maxZoom || 18,
                 animate: opciones.animate !== false,
-                duration: opciones.duration || 0.8
+                duration: (opciones.duration || 0.8) * 1000
             });
             return true;
         });
@@ -3216,20 +3341,20 @@ export function dibujarPolylineNavegacion(opciones = {}) {
     try {
         // Limpiar polyline anterior si existe
         if (polylineNavegacion) {
-            _mapaInstance.removeLayer(polylineNavegacion);
+            polylineNavegacion.remove();
             polylineNavegacion = null;
         }
-        
+
         // Limpiar marcador de destino anterior si existe
         if (marcadorDestinoNavegacion) {
-            _mapaInstance.removeLayer(marcadorDestinoNavegacion);
+            marcadorDestinoNavegacion.remove();
             marcadorDestinoNavegacion = null;
         }
-        
+
         // Usar valores escalados según pantalla y zoom
         const peso = getPolylineEscalado();
         const iconos = getIconoEscalado();
-        
+
         // Construir puntos: origen → [waypoints] → destino
         const puntosNav = [[origen.lat, origen.lng]];
         if (Array.isArray(waypoints)) {
@@ -3238,26 +3363,20 @@ export function dibujarPolylineNavegacion(opciones = {}) {
             });
         }
         puntosNav.push([destino.lat, destino.lng]);
-        
+
         // Crear nueva polyline
-        polylineNavegacion = L.polyline(puntosNav, {
+        polylineNavegacion = _crearPolyline(puntosNav, {
             color: color,
             weight: weight || peso.navegacion,
             opacity: opcionesEstilo.opacity || 0.7,
             dashArray: opcionesEstilo.dashArray || null
-        }).addTo(_mapaInstance);
-        
+        });
+
         // Crear marcador de destino con emoji 🎯
-        marcadorDestinoNavegacion = L.marker([destino.lat, destino.lng], {
-            icon: L.divIcon({
-                className: 'marcador-destino-navegacion',
-                html: `<div style="font-size:${iconos.destino}px;text-align:center;line-height:${iconos.destino}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
-                iconSize: [iconos.destino, iconos.destino],
-                iconAnchor: [Math.round(iconos.destino / 2), Math.round(iconos.destino / 2)]
-            }),
-            title: 'Tu destino',
-            zIndexOffset: 500
-        }).addTo(_mapaInstance);
+        marcadorDestinoNavegacion = _crearMarcadorHTML(destino,
+            `<div style="font-size:${iconos.destino}px;text-align:center;line-height:${iconos.destino}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
+            { className: 'marcador-destino-navegacion', title: 'Tu destino', zIndex: 500 }
+        );
         
         logger.debug(`Polyline de navegación dibujada desde [${origen.lat}, ${origen.lng}] hasta [${destino.lat}, ${destino.lng}] con marcador 🎯`);
         return polylineNavegacion;
@@ -3301,7 +3420,7 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
 
         // Limpiar marcador anterior si existe
         if (marcadorUsuarioGPS) {
-            _mapaInstance.removeLayer(marcadorUsuarioGPS);
+            marcadorUsuarioGPS.remove();
             marcadorUsuarioGPS = null;
         }
         
@@ -3346,26 +3465,21 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             </div>`;
         }
         
-        const tamIcono = modo === 'casa' ? tamCasa : tamAventura;
-        marcadorUsuarioGPS = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: modo === 'casa' ? 'marcador-usuario-gps-ovni' : 'marcador-usuario-gps-flecha',
-                html: iconHtml + `
+        const htmlCompleto = iconHtml + `
                 <style>
                     @keyframes gpsPulse {
                         0%, 100% { box-shadow: 0 0 12px rgba(66,133,244,0.8), 0 0 0 0 rgba(66,133,244,0.4); }
                         50% { box-shadow: 0 0 12px rgba(66,133,244,0.8), 0 0 0 8px rgba(66,133,244,0); }
                     }
-                </style>`,
-                iconSize: [tamIcono, tamIcono],
-                iconAnchor: [Math.round(tamIcono / 2), Math.round(tamIcono / 2)]
-            }),
-            title: modo === 'casa' 
-                ? `🛸 Tu ubicación ±${Math.round(accuracy)}m` 
+                </style>`;
+        marcadorUsuarioGPS = _crearMarcadorHTML({ lat, lng }, htmlCompleto, {
+            className: modo === 'casa' ? 'marcador-usuario-gps-ovni' : 'marcador-usuario-gps-flecha',
+            title: modo === 'casa'
+                ? `🛸 Tu ubicación ±${Math.round(accuracy)}m`
                 : `Tu ubicación ±${Math.round(accuracy)}m (${Math.round(heading || 0)}°)`,
-            zIndexOffset: 400  // ✅ CORREGIDO: 400 en lugar de 1000 para NO tapar iframes (z-index final: 900 < 1500)
-        }).addTo(_mapaInstance);
-        
+            zIndex: 400  // ✅ CORREGIDO: 400 en lugar de 1000 para NO tapar iframes (z-index final: 900 < 1500)
+        });
+
         const iconoLog = modo === 'casa' ? '🛸' : '➤';
         logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, heading: ${Math.round(heading || 0)}°)`);
 
@@ -3376,20 +3490,19 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
         // Brújula activada en el mismo branch para evitar condición duplicada.
         if (modo !== 'casa') {
             if (circuloActivacion) {
-                circuloActivacion.setLatLng([lat, lng]);
+                circuloActivacion.setLatLng({ lat, lng });
             } else {
-                circuloActivacion = L.circle([lat, lng], {
-                    radius: 20,
+                circuloActivacion = _crearCirculoGeografico({ lat, lng }, 20, {
                     color: '#ff8c00',
                     weight: 2,
                     fillColor: '#ff8c00',
                     fillOpacity: 0.12
-                }).addTo(_mapaInstance);
+                });
             }
             // Activar brújula para rotación en tiempo real (si no está ya activa)
             activarBrujula();
         } else if (circuloActivacion) {
-            _mapaInstance.removeLayer(circuloActivacion);
+            circuloActivacion.remove();
             circuloActivacion = null;
         }
 
@@ -3409,10 +3522,10 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
 export function limpiarMarcadorUsuario() {
     if (!_mapaInstance || !marcadorUsuarioGPS) return;
     try {
-        _mapaInstance.removeLayer(marcadorUsuarioGPS);
+        marcadorUsuarioGPS.remove();
         marcadorUsuarioGPS = null;
         if (circuloActivacion) {
-            _mapaInstance.removeLayer(circuloActivacion);
+            circuloActivacion.remove();
             circuloActivacion = null;
         }
         desactivarBrujula();
@@ -3429,11 +3542,11 @@ export function limpiarPolylineNavegacion() {
     if (!_mapaInstance) return;
     try {
         if (polylineNavegacion) {
-            _mapaInstance.removeLayer(polylineNavegacion);
+            polylineNavegacion.remove();
             polylineNavegacion = null;
         }
         if (marcadorDestinoNavegacion) {
-            _mapaInstance.removeLayer(marcadorDestinoNavegacion);
+            marcadorDestinoNavegacion.remove();
             marcadorDestinoNavegacion = null;
         }
         logger.debug('Polyline y marcador de destino eliminados');
