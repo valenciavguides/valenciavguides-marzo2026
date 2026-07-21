@@ -5576,6 +5576,14 @@
                             hideGpsOutOfRangeOverlay();
                         }, (err) => {
                             (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] getCurrentPosition desde overlay falló:', err && err.message);
+                            // Este overlay es por baja precisión; si el reintento falla del todo
+                            // (sin posición en absoluto, no solo imprecisa) el problema real es
+                            // "sin señal" — cambiamos al overlay correcto en vez de dejar este
+                            // congelado sin explicar qué pasó.
+                            try {
+                                hideGpsOutOfRangeOverlay();
+                                if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2);
+                            } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                         }, { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 0 });
                     } catch (gerr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error invocando getCurrentPosition:', gerr); }
 
@@ -5731,7 +5739,12 @@
                         }
                         hideGpsSignalOverlay();
                     }, (err) => {
-                        (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] getCurrentPosition falló:', err && err.message);
+                        (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] getCurrentPosition falló en reintento:', err && err.message);
+                        // Antes esto quedaba en silencio: el usuario pulsaba reintentar, veía la
+                        // cuenta atrás y, si volvía a fallar, la pantalla no cambiaba ni avisaba.
+                        // Volvemos a mostrar el overlay con el código real para que quede claro
+                        // que sí se reintentó y cuál es el motivo actual.
+                        try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2); } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
                 } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] Error en reintento:', e?.message); }
             });
