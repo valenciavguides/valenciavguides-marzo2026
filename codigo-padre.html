@@ -2556,6 +2556,7 @@
         style="display: none;"></iframe>
 
     <script>
+        /* global handleIframeLoad, handleIframeError */
         (function () {
             let iframes = [
                 { id: 'seleccion',      loadId: 'seleccion' },
@@ -3329,9 +3330,6 @@
         }
 
         const logger_S1 = loggerModule.default;
-
-        // Safe alias for logger in Script 1: prefer imported logger, fall back to global or console
-        var logger = logger_S1 || globalThis.logger || console;
 
         // Alias locales para compatibilidad
         const TIPOS_MENSAJE = TIPOS_MENSAJE_S1;
@@ -7025,7 +7023,7 @@
             }
             // Fallback simple sin sleep (solo verificar estado actual)
             return new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
+                setTimeout(() => {
                     if (globalThis.estadoPadre.hijosInicializados.has(iframeId)) {
                         resolve();
                     } else {
@@ -7132,7 +7130,7 @@
             }
         }
 
-        async function _reconectarHijoIndividual(hijoFallido, timeout) {
+        async function _reconectarHijoIndividual(hijoFallido) {
             const MAX_REINTENTOS = 3;
             const { id, src } = hijoFallido;
             let reconectado = false;
@@ -7734,6 +7732,7 @@ await _comprobarReanudacionAventura(logPrefix);
     <!-- Este script maneja inicialización del mapa y diagnósticos    -->
     <!-- ============================================================ -->
     <script type="module">
+        /* global showGpsSignalOverlay, limpiarDatosAventura */
         // Promesa que se resuelve cuando distribuirDatosAventura está lista.
         // Se crea aquí (síncrono, antes de cualquier await) para que Script 1
         // pueda awaitar sin polling ni timeout fijo.
@@ -7818,20 +7817,18 @@ await _comprobarReanudacionAventura(logPrefix);
         }
         const { registrarControlador: registrarControlador_S2, enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
         await import('./js/app.js');
-        const { invalidarTamañoMapa, diagnosticarMapa, setMapView, dibujarPolylineNavegacion, actualizarMarcadorUsuario } = await import('./js/funciones-mapa.js');
+        const { invalidarTamañoMapa, diagnosticarMapa, setMapView, dibujarPolylineNavegacion } = await import('./js/funciones-mapa.js');
 
         // ============================================================
         // USAR ESTADO GLOBAL DEL SCRIPT 1
         // ============================================================
         // CONFIG_PADRE, estado, y registrarEvento están definidos en Script 1
         // Crear referencias con nombres diferentes para evitar conflicto del linter
-        const estadoGlobal = globalThis.estadoPadre;
         // Make resolverIdsParada available under the simple name used in handlers
         const resolverIdsParada = resolverIdsParada_S2;
         const registrarEventoGlobal = globalThis.registrarEvento;
 
         // Aliases locales que no chocan con Script 1
-        const estadoScript2 = estadoGlobal || globalThis.estadoPadre || {};
         // NOTE: CONFIG_PADRE_LOCAL alias intentionally avoided; use getPadreId()/CONFIG_PADRE where possible
         // const CONFIG_PADRE_LOCAL = configGlobal;
         const registrarEventoScript2 = registrarEventoGlobal;
@@ -8864,35 +8861,6 @@ await _comprobarReanudacionAventura(logPrefix);
         // DOMContentLoaded has ALREADY fired - execute immediately
         // ============================================================
 
-
-        // Función para invalidar tamaño de mapa con reintentos
-        async function invalidarTamañoMapaConRetry(maxIntentos = 10) {
-            let delay = 100;
-            for (let intento = 1; intento <= maxIntentos; intento++) {
-                try {
-                    await globalThis.funcionesMapa.invalidarTamañoMapa();
-                    (globalThis.logger || console).debug(`Mapa invalidado correctamente (intento ${intento})`);
-                    return;
-                } catch (e) {
-                    if (intento < maxIntentos) {
-                        (globalThis.logger || console).debug(`Error invalidando mapa (intento ${intento}/${maxIntentos}), reintentando en ${delay}ms:`, e?.message);
-                        await sleep(delay);
-                        delay = Math.min(delay * 1.5, 500);
-                    } else {
-                        (globalThis.logger || console).error('Error crítico: no se pudo invalidar el mapa tras reintentos, intentando recargar:', e);
-                        // Recargar mapa usando inicializarMapa
-                        if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.inicializarMapa === 'function') {
-                            try {
-                                await globalThis.funcionesMapa.inicializarMapa();
-                                (globalThis.logger || console).info('Mapa recargado tras error de invalidación');
-                            } catch (reloadError) {
-                                (globalThis.logger || console).error('Error recargando mapa:', reloadError);
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         async function _setupRegistrarControladores() {
             // Wait a tick to ensure Script 1's DOMContentLoaded has run
@@ -10089,7 +10057,7 @@ await _comprobarReanudacionAventura(logPrefix);
             try {
                 const resolved = resolverIdsParada(mensaje.datos || {});
                 const paradaId = resolved.paradaId || mensaje.datos?.paradaId || mensaje.datos?.parada_id || null;
-                const { coordenadas, distancia, timestamp } = mensaje.datos || {};
+                const { coordenadas, distancia } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Llegada detectada por ${mensaje.origen}`, { paradaId, distancia, coordenadas });
 
@@ -10571,10 +10539,6 @@ await _comprobarReanudacionAventura(logPrefix);
 
         function _regCtrl_DatosRespuestas(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.COORDENADAS_CARGADAS, _hdl_DATOS_COORDENADAS_CARGADAS, { permanente: true });
-
-        // AUDIOS_CARGADOS/RETOS_CARGADOS retirados: protección pasiva por parada, ver §16
-        // de la guía — hijo3/hijo4 ya no confirman una carga masiva porque ya no la reciben.
-
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS, _hdl_DATOS_TEXTOS_CARGADOS, { permanente: true });
         }
 
@@ -10904,22 +10868,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).info(`${logPrefix} ✅ Hijos cargados (sistema de eventos), ${tiempoTotal}ms`);
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error esperando hijos:`, error);
-            }
-        }
-
-        function _aplicarInterfazAventuraActivada(logPrefix) {
-            const iframeSeleccion = document.getElementById('seleccion');
-            if (iframeSeleccion) iframeSeleccion.style.display = 'none';
-            for (const iframeId of ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte']) {
-                const el = document.getElementById(iframeId);
-                if (el) { el.style.display = 'block'; el.style.visibility = 'visible'; }
-            }
-            const _selMapa2 = document.getElementById('selector-tipo-mapa');
-            if (_selMapa2) _selMapa2.style.display = 'flex';
-            globalThis.actualizarVisibilidadSelectorMapa?.();
-            for (const _id of ['logo-aventura', 'fondo-blanco', 'fondo-blanco-inferior']) {
-                const el = document.getElementById(_id);
-                if (el) el.style.display = 'block';
             }
         }
 
@@ -11578,7 +11526,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE, _hdl_TEMPORIZADOR_TOGGLE, { permanente: true });
         }
 
-        function _regCtrl_UI(TIPOS_MENSAJE) {
+        function _regCtrl_UI(_TIPOS_MENSAJE) {
         }
 
         (async function registrarControladoresScript2() {

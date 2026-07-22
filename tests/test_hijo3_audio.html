@@ -53,14 +53,10 @@
                 HEARTBEAT_PAUSE: 'SISTEMA.HEARTBEAT_PAUSE',
                 ACK: 'SISTEMA.ACK'
             },
-            DATOS: {
-                CARGAR_AUDIOS: 'DATOS.CARGAR_AUDIOS'
-            },
             AUDIO: {
                 REPRODUCIR_REQUEST: 'AUDIO.REPRODUCIR_REQUEST',
                 PAUSA_REQUEST: 'AUDIO.PAUSA_REQUEST',
-                CONTROL_REQUEST: 'AUDIO.CONTROL_REQUEST',
-                SOLICITAR_AUDIO: 'AUDIO.SOLICITAR_AUDIO'
+                CONTROL_REQUEST: 'AUDIO.CONTROL_REQUEST'
             },
             NAVEGACION: {
                 CAMBIO_PARADA: 'NAVEGACION.CAMBIO_PARADA',
@@ -101,12 +97,6 @@
             document.body.style.display = 'block';
         }
 
-        function handleCargarAudios(mensaje) {
-            if (mensaje.datos && mensaje.datos.audioFiles) {
-                globalThis.__vv_audioFiles = mensaje.datos.audioFiles;
-            }
-        }
-
         function handleCambioParada(mensaje) {
             const datos = mensaje.datos || {};
             // hijo3 resets audio state on parada change
@@ -129,17 +119,8 @@
         }
 
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO, handlePadreConfirmaHijoListo);
-        registrarControladorSeguro(TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS, handleCargarAudios);
         registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, handleCambioParada);
         registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, handleCambioModo);
-
-        // ── Mock audio data ──
-        const mockAudioFiles = {
-            'audio-Av1-P0-es': 'audios-aventuras/español/Av1-P0-es.mp3',
-            'audio-Av1-P1-es': 'audios-aventuras/español/Av1-P1-es.mp3',
-            'audio-Av1-TR1-es': 'audios-aventuras/español/Av1-TR1-es.mp3',
-            'audio-Av1-P2-es': 'audios-aventuras/español/Av1-P2-es.mp3'
-        };
 
         // ── Tests ──
         function runTest() {
@@ -159,19 +140,11 @@
                 addResult('❌ _uiConfirmado debería ser false', 'error');
             }
 
-            // Test 3: Audio files not loaded initially
-            if (!globalThis.__vv_audioFiles) {
-                addResult('✅ __vv_audioFiles no existe al inicio', 'success');
-            } else {
-                addResult('❌ __vv_audioFiles no debería existir al inicio', 'error');
-            }
-
             addResult('── Handlers registrados ──', 'info');
 
             // Test 4: Key handlers registered
             const expected = [
                 TIPOS_MENSAJE.SISTEMA.PADRE_CONFIRMA_HIJO_LISTO,
-                TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS,
                 TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
                 TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO
             ];
@@ -183,7 +156,7 @@
                 }
             }
             if (allOk) {
-                addResult('✅ 4 handlers clave registrados', 'success');
+                addResult('✅ 3 handlers clave registrados', 'success');
             }
 
             addResult('── Pending mode change ──', 'info');
@@ -219,27 +192,6 @@
                 addResult('✅ body visible (display: block)', 'success');
             } else {
                 addResult('❌ body debería ser visible', 'error');
-            }
-
-            addResult('── CARGAR_AUDIOS ──', 'info');
-
-            // Test 7: CARGAR_AUDIOS stores files
-            capturedHandlers[TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS]({
-                datos: { audioFiles: mockAudioFiles }
-            });
-
-            if (globalThis.__vv_audioFiles && Object.keys(globalThis.__vv_audioFiles).length === 4) {
-                addResult('✅ __vv_audioFiles almacenado con ' + Object.keys(globalThis.__vv_audioFiles).length + ' audios', 'success');
-            } else {
-                addResult('❌ __vv_audioFiles no almacenado correctamente', 'error');
-            }
-
-            // Test 8: Audio file format check
-            const audioP1 = globalThis.__vv_audioFiles['audio-Av1-P1-es'];
-            if (audioP1 && audioP1.includes('español') && audioP1.endsWith('.mp3')) {
-                addResult('✅ audio-Av1-P1-es → ruta correcta: ' + audioP1, 'success');
-            } else {
-                addResult('❌ audio-Av1-P1-es ruta incorrecta: ' + audioP1, 'error');
             }
 
             addResult('── CAMBIO_PARADA reset audio ──', 'info');

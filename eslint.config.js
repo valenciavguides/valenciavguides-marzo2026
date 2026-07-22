@@ -1,4 +1,4 @@
-const importPlugin = require("eslint-plugin-import");
+const importPlugin = require("eslint-plugin-import-x");
 const htmlPlugin = require("eslint-plugin-html");
 
 module.exports = [
@@ -105,6 +105,7 @@ module.exports = [
         Image: "readonly",
         Audio: "readonly",
         NodeFilter: "readonly",
+        TextEncoder: "readonly",
         // CommonJS detection pattern: typeof module !== 'undefined'
         module: "writable",
 

@@ -45,12 +45,10 @@
                 if (check('TIPOS_MENSAJE exportado', !!TIPOS_MENSAJE)) passed++; else failed++;
                 if (check('TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA', typeof TIPOS_MENSAJE?.NAVEGACION?.CAMBIO_PARADA === 'string')) passed++; else failed++;
                 if (check('TIPOS_MENSAJE.DATOS.CARGAR_COORDENADAS', typeof TIPOS_MENSAJE?.DATOS?.CARGAR_COORDENADAS === 'string')) passed++; else failed++;
-                if (check('TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS', typeof TIPOS_MENSAJE?.DATOS?.CARGAR_AUDIOS === 'string')) passed++; else failed++;
-                if (check('TIPOS_MENSAJE.DATOS.CARGAR_RETOS', typeof TIPOS_MENSAJE?.DATOS?.CARGAR_RETOS === 'string')) passed++; else failed++;
                 if (check('TIPOS_MENSAJE.SISTEMA.HEARTBEAT', typeof TIPOS_MENSAJE?.SISTEMA?.HEARTBEAT === 'string')) passed++; else failed++;
             } catch (e) {
                 addResult('❌ constants.js import falló: ' + e.message, 'error');
-                failed += 6;
+                failed += 4;
             }
 
             // ── utils.js ──

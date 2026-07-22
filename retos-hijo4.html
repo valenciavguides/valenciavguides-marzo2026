@@ -556,7 +556,7 @@
     // Wrapper seguro para evitar doble registro de controladores en hijos
     if (globalThis.window !== undefined && globalThis.registrarControladorSeguro === undefined) {
         globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
-        globalThis.registrarControladorSeguro = async function(tipo, handler, opciones) {
+        globalThis.registrarControladorSeguro = async function(tipo, handler, _opciones) {
             try {
                 (globalThis.logger || console).info && (globalThis.logger || console).info(`[HIJO] registrarControladorSeguro called: ${tipo}`);
                 if (!tipo || typeof handler !== 'function') {

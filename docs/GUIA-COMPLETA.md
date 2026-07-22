@@ -4340,7 +4340,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-flip-y-arreglos-jul22'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-b65265eeea99'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5717,7 +5717,7 @@ El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la h
 
 > **MapLibre, servido en local (sin CDN):** `codigo-padre.html` carga MapLibre desde `js/vendor/` (`maplibre-gl-csp.js` — build sin `blob:` workers, compatible con la CSP estricta del proyecto — + `maplibre-gl-csp-worker.js` + `maplibre-gl.css`). No hay dependencia de red en tiempo de carga para el mapa de aventura — funciona sin conexión desde el primer render.
 >
-> **Leaflet, servido por CDN:** `mapa-completo.html` y `video-intro.html` cargan Leaflet desde CDNs externos — `cdnjs.cloudflare.com` (con `integrity`/`crossorigin`) el primero, `unpkg.com` el segundo — no desde `js/vendor/`. Ambos ficheros carecen de cabecera CSP propia (a diferencia de `codigo-padre.html`), así que no hay restricción que lo impida. `js/vendor/leaflet.js`/`leaflet.css` existen en el repositorio, pero ningún HTML los referencia actualmente.
+> **Leaflet, servido por CDN:** `mapa-completo.html` y `video-intro.html` cargan Leaflet desde CDNs externos — `cdnjs.cloudflare.com` (con `integrity`/`crossorigin`) el primero, `unpkg.com` el segundo — no desde `js/vendor/`. Ambos ficheros carecen de cabecera CSP propia (a diferencia de `codigo-padre.html`), así que no hay restricción que lo impida. `js/vendor/` solo contiene los ficheros que sí se usan: MapLibre (mapa de aventura) y StPageFlip (`video-intro.html`, ver §32.6b).
 
 `js/utils.js` incluye `puntoMasCercanoEnLinea()`, una función propia sin dependencias para el snap-to-route del mapa de aventura (proyección plana local sobre un punto y una polilínea — ver «Marcadores en el mapa», más arriba). El mapa de aventura no necesita ningún plugin de rotación de terceros: al usar MapLibre, la rotación es una capacidad nativa del motor.
 
@@ -6825,7 +6825,6 @@ Para ejecutarlos: `http://localhost:8080/tests/master-test.html` (panel de orque
 | `master-test.html` | Panel de orquestación: lanza y agrega resultados de múltiples tests |
 | `test_hijo_handshake.html` | Protocolo de arranque padre↔hijo (HIJO_PREPARADO / HIJO_LISTO) |
 | `test-iframe-basico.html` | Comunicación postMessage básica entre iframes |
-| `test_audio_distribution.html` | Carga y distribución de datos de audio a hijos |
 | `test_cambio_modo.html` | Transición CASA ↔ AVENTURA y limpieza de handlers |
 | `test_cambio_parada.html` | Cambio entre paradas y envío de CAMBIO_PARADA |
 | `test_auditoria_completa.html` | Auditoría global de handlers, race conditions y estado |
@@ -7000,7 +6999,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-flip-y-arreglos-jul22'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-b65265eeea99'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`; el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, no del disco — necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes`, así que el working tree en Windows tiene CRLF y el blob que git guarda tiene LF; hashear el disco daría un resultado distinto por sistema operativo) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7169,12 +7168,11 @@ proyecto/
 │   │   ├── parrafos-texto-ruso.json
 │   │   └── parrafos-texto-ucraniano.json
 │   │
-│   └── vendor/                       ← Librerías externas (sin npm)
+│   └── vendor/                       ← Librerías externas (sin npm) — solo lo que realmente se usa localmente; Leaflet lo cargan mapa-completo.html/video-intro.html por CDN, no desde aquí (ver §11)
 │       ├── maplibre-gl-csp.js        ← MapLibre GL JS (build CSP-safe) — motor del mapa de aventura
 │       ├── maplibre-gl-csp-worker.js ← Worker de MapLibre (sin blob:, compatible con la CSP estricta)
 │       ├── maplibre-gl.css
-│       ├── leaflet.js                ← Leaflet — motor de mapa-completo.html y video-intro.html
-│       └── leaflet.css
+│       └── page-flip.browser.js      ← StPageFlip (MIT) — efecto de pasar página en video-intro.html, ver §32.6b
 │
 ├── audios-aventuras/                 ← MP3 organizados por idioma (protegidos por PROTECT_DATA)
 │   ├── español/
@@ -7217,7 +7215,7 @@ Solo hace falta una vez al clonar el proyecto:
 npm install
 ```
 
-Instala Playwright y ESLint. (El `package.json` tiene un `postinstall` que intentaría instalar git hooks vía `tools/install-hooks.js`, pero ese fichero aún no existe — el paso falla silenciosamente sin afectar a la instalación de dependencias.)
+Instala Playwright y ESLint. El `postinstall` (`tools/install-hooks.js`) instala automáticamente el hook de pre-commit que mantiene `CACHE_VERSION` al día — ver §21.
 
 ### 2. Arrancar el servidor
 
@@ -7248,10 +7246,30 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run inventory:dupes` | Solo nombres de función que aparecen en más de un archivo |
 | `npm run inventory:file` | Inventario de funciones agrupado por archivo |
 | `npm run verificar-mensajeria` | Detecta tipos de `TIPOS_MENSAJE` sin emisor, sin receptor, o sin ninguna referencia (`tools/verificar-mensajeria.js`) — tiene falsos positivos documentados, verificar cada hallazgo en el código real |
-| `npm run build:sw` | Recompilar el Service Worker — **pendiente:** `tools/build-sw.js` aún no existe |
-| `npm run dev:watch` | Watch del SW en desarrollo — **pendiente:** `tools/watch-sw.js` aún no existe |
+| `npm run verificar-docs` | Señala qué secciones de esta guía mencionan ficheros HTML/JS/CSS cambiados en la sesión/rama actual (`tools/verificar-docs.js`) — no verifica que el texto sea correcto, solo evita el fallo de no pararse a mirar. Admite `--since=REF` para comparar contra un punto concreto |
+| `npm run build:sw` | Recalcula `CACHE_VERSION` a mano desde el working tree (`tools/build-sw.js`) — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
+| `npm run dev:watch` | Vigila `sw.js` y `APP_SHELL` y recalcula `CACHE_VERSION` en vivo mientras se desarrolla (`tools/watch-sw.js`) |
 
-> `postinstall` (`node tools/install-hooks.js`) se ejecuta automáticamente tras `npm install`, pero ese fichero tampoco existe todavía — falla silenciosamente sin afectar a la instalación de dependencias. `tools/` hoy solo contiene `inventory.js`, `verificar-mensajeria.js` y `renumber-pantallas.js` (utilidad de renumeración de pantallas de `En-busca-del-tesoro.html`, sin script npm asociado).
+> `postinstall` (`tools/install-hooks.js`) instala el hook de pre-commit que mantiene `CACHE_VERSION` al día automáticamente — se ejecuta solo tras `npm install`, sin acción manual. Ver §21.1 para el sistema completo.
+
+### 21.1 Sistema de auto-actualización de `CACHE_VERSION`
+
+Antes de este sistema, `CACHE_VERSION` se actualizaba a mano: editar el string en `sw.js` línea 89 y sus 4 apariciones en este documento cada vez que cambiaba algún fichero de `APP_SHELL`. Es un proceso fácil de dejar a medias (olvidar una de las referencias). El sistema real, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
+
+**`tools/build-sw.js`** es el núcleo — expone `computeCacheVersion({staged})` y `aplicarCacheVersion(valor)`, reusadas por los otros dos scripts (ninguna lógica de hash duplicada):
+
+1. Localiza el array `APP_SHELL` dentro del propio `sw.js` (regex sobre el fichero, no hay un JSON separado).
+2. Calcula SHA-256 de `sw.js` completo (con la línea `const CACHE_VERSION = '...'` sustituida por un placeholder fijo, para que el valor no se autorreferencie) concatenado con el contenido de cada fichero de `APP_SHELL`, en el orden del array.
+3. El nuevo valor es `'v-' + hash.slice(0, 12)` — un slug de 12 caracteres hexadecimales, no un nombre descriptivo escrito a mano como antes de automatizarlo.
+4. Si difiere del valor actual, sustituye el string exacto (no una regex por contexto) en `sw.js` y en todas sus apariciones dentro de este documento — el mismo mecanismo simple usado a mano antes de existir el script, ahora automático.
+
+**Por qué el modo `--staged` lee con `git show :ruta` y no con `fs.readFileSync`:** este proyecto no tiene `.gitattributes` y tiene `core.autocrlf=true` — el working tree en Windows normaliza a CRLF, pero el blob que git realmente guarda (y el working tree en Linux/Mac) tiene LF. Confirmado con una prueba directa: el mismo `video-intro.html` mide 93.086 caracteres leído del disco en Windows y 91.155 vía `git show :video-intro.html` — una diferencia real, no cosmética. Hashear el disco daría un `CACHE_VERSION` distinto en cada sistema operativo. `git show :ruta` lee el contenido indexado, estable entre plataformas — el modo correcto para el hook de pre-commit, que debe reflejar exactamente lo que se va a commitear.
+
+**`tools/install-hooks.js`** se ejecuta solo desde `postinstall`. Crea `.git/hooks/` si no existe (este repositorio no lo trae por defecto — ni siquiera los ficheros `.sample` habituales de `git init`), y escribe `.git/hooks/pre-commit` marcado con el comentario `vvguides-managed-hook` — la marca permite reinstalarlo de forma idempotente en cada `npm install` sin duplicar nada, y evita pisar un hook de otra herramienta (Husky u otra) si no lleva esa marca, avisando en su lugar. El hook en sí es un envoltorio mínimo: llama a `build-sw.js` en modo `--staged` dentro de un `try/catch` que nunca bloquea el commit (es auto-fix, no un gate de validación) y termina siempre con código 0. Si se ejecuta fuera de un repositorio git (sin `.git`), se omite en silencio — no debe romper `npm install` en ese contexto.
+
+**`tools/watch-sw.js`** (`npm run dev:watch`) usa `fs.watch` sobre `sw.js` y cada fichero de `APP_SHELL`, con un debounce de 300ms para no recalcular en cada evento suelto del filesystem. Llama al mismo núcleo en modo working-tree (sin `--staged`, no tiene sentido leer del índice de git en modo desarrollo) y no hace `git add` — el usuario decide cuándo commitear.
+
+**Verificado end-to-end antes de dar el sistema por bueno** (no solo que compile): `computeCacheVersion` es determinista (mismo resultado en dos llamadas sin cambios); `npm run build:sw` actualiza `sw.js` y las 4 referencias de este documento a la vez, con el mismo valor; `install-hooks.js` es idempotente y no pisa un hook ajeno; una prueba real con un cambio staged y el hook ejecutado directamente confirmó que recalcula y vuelve a hacer `git add` correctamente — durante esa prueba se encontró y corrigió un bug real: `execFileSync` tiene un límite por defecto de 1MB de buffer, que ficheros reales de `APP_SHELL` como `audios-aventuras.js` o `aventuras-ID-padre.js` (~1,8MB cada uno) superan sin problema, lanzando `ENOBUFS` en silencio (capturado como "fichero no se pudo leer"); corregido con un `maxBuffer` explícito de 64MB.
 
 ---
 
@@ -7589,15 +7607,15 @@ Actualmente en APP_SHELL (sw.js):
 
 ### 22.10 `CACHE_VERSION` al desplegar
 
-Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.js` (línea 89) para que el Service Worker invalide la caché antigua y fuerce la recarga de todos los recursos:
+`CACHE_VERSION` en `sw.js` (línea 89) se actualiza sola en cada commit que toca algún fichero de `APP_SHELL`, vía el hook de pre-commit instalado por `tools/install-hooks.js` (`postinstall`, automático tras `npm install`) — ver §21.1 para el mecanismo completo. No requiere ninguna acción manual antes de desplegar.
 
 ```javascript
-// sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-flip-y-arreglos-jul22'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+// sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
+const CACHE_VERSION = 'v-b65265eeea99';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
-**⚠️ Nota:** El comentario de `sw.js` menciona generación automática vía `tools/build-sw.js`, pero ese script **no existe todavía** — la actualización es manual hasta que se implemente.
+**Si el hook no está instalado** (p.ej. `.git/hooks/pre-commit` pertenece a otra herramienta y `install-hooks.js` se negó a sobreescribirlo — ver §21.1), `CACHE_VERSION` se queda desactualizada en silencio. `npm run build:sw` lo recalcula a mano en cualquier momento.
 
 ---
 
@@ -9426,6 +9444,7 @@ El marcador es una píldora blanca con borde naranja (`#ff8c00`), emoji 🏛 a l
 - **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia (`DATOS.SOLICITAR_PARADAS` es una constante distinta, sin ninguna referencia en el código — ver §10.12).
 - **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
 - **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor, o sin ninguno de los dos. Es una heurística con falsos positivos conocidos (indirección vía variable, handlers registrados en una línea posterior a su definición) — cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
+- **Verificación automática de documentación desactualizada**: `npm run verificar-docs` (`tools/verificar-docs.js`) calcula qué ficheros HTML/JS/CSS cambiaron (working tree + commits sin empujar, o un rango con `--since=REF`) y señala, agrupadas por sección, las menciones de esos ficheros en esta guía — incluye ficheros borrados que sigan mencionados (el caso real que motivó la herramienta: `js/vendor/leaflet.js`/`leaflet.css` quedaron citados en el árbol de carpetas de §20 varias ediciones después de borrarse). Busca por nombre de fichero, no por función/mensaje concreto, y no verifica que el texto sea correcto — solo evita el fallo de no pararse a mirar. Pensado para correr antes de cada `git push` que toque código de producción.
 
 ---
 
@@ -11042,10 +11061,10 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-flip-y-arreglos-jul22';
+const CACHE_VERSION = 'v-b65265eeea99';
 ```
 
-El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
+El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
 
 ### 29.5 Sistema HIJO_LISTO
 
@@ -12236,6 +12255,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado como sin emisor o sin receptor por la herramienta ha sido verificado a mano y clasificado (huérfano real → eliminado; falso positivo de la heurística → descartado con motivo).
 5. **`npm run inventory:dupes` sin duplicados sin resolver** — cada nombre duplicado tiene una decisión explícita (una versión es la única real y la otra se eliminó, o ambas coexisten por una razón documentada).
 6. Contraste guía vs. código (EJE 20) ejecutado sobre la totalidad de `docs/GUIA-COMPLETA.md`, no solo sobre las secciones tocadas en la última ronda de cambios.
+7. **`npm run verificar-docs` revisado** — cada fichero que aparece en su salida se ha comprobado a mano en la guía; las secciones que necesitaban actualizarse ya lo están.
 
 **Por qué hace falta esta lista:** los ejes 1-22 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
 

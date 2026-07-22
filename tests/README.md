@@ -36,10 +36,7 @@ Abre directamente cualquier archivo `test_*.html` en el navegador (requiere serv
 | Test | Archivo | Descripción |
 |------|---------|-------------|
 | CARGAR_COORDENADAS | `test_cargar_coordenadas.html` | Verifica que hijo2 reciba y procese coordenadas |
-| CARGAR_AUDIOS | `test_cargar_audios.html` | Verifica que hijo3 reciba y procese audios |
-| CARGAR_RETOS | `test_cargar_retos.html` | Verifica que hijo4 reciba y procese retos |
-| Distribución Audio | `test_audio_distribution.html` | Test completo de distribución de datos de audio |
-| Distribuir Datos | `test_integracion_distribuir_datos.html` | Integración de distribución de datos a todos los hijos |
+| Distribuir Datos | `test_integracion_distribuir_datos.html` | Integración de distribución de coordenadas (audios/retos ya no se distribuyen en bulk — protección pasiva por parada) |
 
 ### 🔄 Comunicación Padre ↔ Hijos
 

@@ -30,14 +30,6 @@
                 { id: 'P-0', tipo: 'inicio', nombre: "Torres de Serranos", lat: 39.4789, lng: -0.3756 },
                 { id: 'P-1', tipo: 'parada', nombre: "Plaza de la crída", lat: 39.4799, lng: -0.3760 }
             ],
-            audios: [
-                { id: 'audio-Av1-P0-es', parada_id: 'P-0', nombre: "Audio P0", url: "audio-p0.mp3" },
-                { id: 'audio-Av1-P1-es', parada_id: 'P-1', nombre: "Audio P1", url: "audio-p1.mp3" }
-            ],
-            retos: [
-                { id: 'R3-Av1-es', parada_id: 'P-0', tipo: 'opcion', pregunta: '¿De qué siglo?', opciones: ['XIV','XVI'], correctas: ['XIV'] },
-                { id: 'R4-Av1-es', parada_id: 'P-1', tipo: 'opcion', pregunta: '¿Color bandera?', opciones: ['Azul','Verde'], correctas: ['Azul'] }
-            ],
             elementosIDpadre: [
                 { tipo: 'inicio', nombre: 'Torres de Serranos', padreid: 'padre-P0', parada_id: 'P-0', audio_id: 'audio-Av1-P0-es', reto_id: 'R3-Av1-es' },
                 { tipo: 'parada', nombre: 'Plaza de la crída', padreid: 'padre-P1', parada_id: 'P-1', audio_id: 'audio-Av1-P1-es', reto_id: 'R4-Av1-es' }
@@ -48,8 +40,6 @@
         const TIPOS_MENSAJE = {
             DATOS: {
                 CARGAR_COORDENADAS: 'DATOS.CARGAR_COORDENADAS',
-                CARGAR_AUDIOS: 'DATOS.CARGAR_AUDIOS',
-                CARGAR_RETOS: 'DATOS.CARGAR_RETOS',
                 CARGAR_TEXTOS: 'DATOS.CARGAR_TEXTOS'
             }
         };
@@ -62,14 +52,6 @@
         // Funciones getter (simulando las implementadas en los componentes)
         function obtenerCoordenadasParadas() {
             return globalThis.estadoComponente.arrayCoordenadasLocal || [];
-        }
-
-        function obtenerAudioFiles() {
-            return globalThis.estadoComponente.arrayAudiosLocal || [];
-        }
-
-        function obtenerRetos() {
-            return globalThis.estadoComponente.arrayRetosLocal || [];
         }
 
         // Simular handlers de mensajes (como los implementados en los componentes)
@@ -86,24 +68,15 @@
                     globalThis.estadoComponente.arrayCoordenadasLocal = data.coordenadas;
                     return `Coordenadas almacenadas: ${data.coordenadas.length}`;
 
-                case TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS:
-                    if (!globalThis.estadoComponente) globalThis.estadoComponente = {};
-                    globalThis.estadoComponente.arrayAudiosLocal = data.audios;
-                    return `Audios almacenados: ${data.audios.length}`;
-
-                case TIPOS_MENSAJE.DATOS.CARGAR_RETOS:
-                    if (!globalThis.estadoComponente) globalThis.estadoComponente = {};
-                    globalThis.estadoComponente.arrayRetosLocal = data.retos;
-                    return `Retos almacenados: ${data.retos.length}`;
-
                 default:
                     return 'Tipo de mensaje desconocido';
             }
         }
 
-        // Simular distribuirDatosAventura
+        // Simular distribuirDatosAventura (audios/retos ya no se distribuyen en bulk —
+        // protección pasiva por parada, se resuelven uno a uno al activar cada parada)
         async function simulateDistribuirDatosAventura(aventura, idioma) {
-            const resultados = { coordenadas: false, audios: false, retos: false };
+            const resultados = { coordenadas: false };
 
             try {
                 // Simular envío a hijo2 (coordenadas)
@@ -112,20 +85,6 @@
                 });
                 resultados.coordenadas = true;
                 console.log('Coordenadas:', coordResult);
-
-                // Simular envío a hijo3 (audios)
-                const audioResult = simulateMessageHandler(TIPOS_MENSAJE.DATOS.CARGAR_AUDIOS, {
-                    aventura, idioma, audios: testData.audios, total: testData.audios.length, timestamp: Date.now()
-                });
-                resultados.audios = true;
-                console.log('Audios:', audioResult);
-
-                // Simular envío a hijo4 (retos)
-                const retoResult = simulateMessageHandler(TIPOS_MENSAJE.DATOS.CARGAR_RETOS, {
-                    aventura, idioma, retos: testData.retos, total: testData.retos.length, timestamp: Date.now()
-                });
-                resultados.retos = true;
-                console.log('Retos:', retoResult);
 
                 // Nuevo: Asignar AVENTURA_PARADAS (como hace el código real)
                 if (Array.isArray(testData.elementosIDpadre) && testData.elementosIDpadre.length > 0) {
@@ -156,9 +115,7 @@
 
                 // Paso 1: Verificar estado inicial
                 addTestResult('Estado Inicial',
-                    `Coordenadas: ${obtenerCoordenadasParadas().length}\n` +
-                    `Audios: ${obtenerAudioFiles().length}\n` +
-                    `Retos: ${obtenerRetos().length}`,
+                    `Coordenadas: ${obtenerCoordenadasParadas().length}`,
                     'info'
                 );
 
@@ -167,36 +124,24 @@
 
                 // Paso 3: Verificar que los datos se almacenaron correctamente
                 const coordCount = obtenerCoordenadasParadas().length;
-                const audioCount = obtenerAudioFiles().length;
-                const retoCount = obtenerRetos().length;
 
                 addTestResult('Después de Distribución',
                     `Coordenadas: ${coordCount} (esperado: ${testData.coordenadas.length})\n` +
-                    `Audios: ${audioCount} (esperado: ${testData.audios.length})\n` +
-                    `Retos: ${retoCount} (esperado: ${testData.retos.length})\n` +
                     `Resultados: ${JSON.stringify(resultados)}`,
-                    (coordCount === testData.coordenadas.length &&
-                     audioCount === testData.audios.length &&
-                     retoCount === testData.retos.length) ? 'success' : 'error'
+                    (coordCount === testData.coordenadas.length) ? 'success' : 'error'
                 );
 
                 // Paso 4: Verificar contenido de los datos
                 const coordData = obtenerCoordenadasParadas();
-                const audioData = obtenerAudioFiles();
-                const retoData = obtenerRetos();
 
                 addTestResult('Validación de Datos',
-                    `Primera coordenada: ${coordData[0]?.nombre || 'N/A'}\n` +
-                    `Primer audio: ${audioData[0]?.nombre || 'N/A'}\n` +
-                    `Primer reto: ${retoData[0]?.pregunta || 'N/A'}`,
-                    (coordData[0]?.nombre && audioData[0]?.nombre && retoData[0]?.pregunta) ? 'success' : 'error'
+                    `Primera coordenada: ${coordData[0]?.nombre || 'N/A'}`,
+                    coordData[0]?.nombre ? 'success' : 'error'
                 );
 
-                // Paso 5: Verificar que los getters funcionan
+                // Paso 5: Verificar que el getter funciona
                 addTestResult('Validación de Getters',
-                    `obtenerCoordenadasParadas() funciona: ${typeof obtenerCoordenadasParadas === 'function'}\n` +
-                    `obtenerAudioFiles() funciona: ${typeof obtenerAudioFiles === 'function'}\n` +
-                    `obtenerRetos() funciona: ${typeof obtenerRetos === 'function'}`,
+                    `obtenerCoordenadasParadas() funciona: ${typeof obtenerCoordenadasParadas === 'function'}`,
                     'success'
                 );
 

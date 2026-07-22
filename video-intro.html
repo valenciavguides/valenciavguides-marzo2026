@@ -1726,21 +1726,6 @@ async function scene14(){
   Knight.hide();
 }
 
-/* ── P18: Caballero camina la polyline discontinua hasta chincheta ── */
-async function scene15(){
-  setCounter(16);
-  setScene(mainHTML('disabled'));
-  const offPt=[39.4748,-0.3815];
-  const retPath={path:[offPt,[39.4762,-0.3800],[39.4780,-0.3792],[39.4796,-0.3785],RA.path[0]]};
-  await Knight.walk(retPath, 8000);
-  Knight.hide(); await wait(200);
-  Knight.show(K.up, true);
-  const hideBubble = showBubble(15);
-  await waitForNextBtn();
-  hideBubble();
-  Knight.hide();
-}
-
 /* ── P19: Error GPS + caballero_durmiendo ── */
 async function scene16(){
   setCounter(16);

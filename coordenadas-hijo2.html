@@ -669,7 +669,7 @@ if (globalThis !== undefined && globalThis.registrarControladorSeguro === undefi
         return false;
     }
 
-    async function _intentarRegistroMensajeria(tipo, handler, opciones) {
+    async function _intentarRegistroMensajeria(tipo, handler, _opciones) {
         if (typeof registrarControlador === 'function') {
             try {
                 const res = await registrarControlador(tipo, handler);
