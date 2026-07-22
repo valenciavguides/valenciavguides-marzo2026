@@ -14,11 +14,10 @@ Documento para revisar y editar las preguntas del asistente de soporte (`chat-hi
 ### Conectividad / Internet
 | Clave | Pregunta (es) | Respuesta conocida (es) | Estado | Texto sugerido |
 |---|---|---:|---:|---|
-| `SUG_INTERNET_PORQUE` | ¿Por qué necesito conexión a Internet durante la aventura? | (vacío) | SUGERIDA | |
+| `SUG_INTERNET_PORQUE` | ¿Por qué necesito conexión a Internet durante la aventura? | (vacío) | SUGERIDA | |internet es necesario para que funcionen los audios, videos, imagenes, ect. Para evitar una sobrecarga de descargas en su teléfono usamos nuestra base de datos para que usted descargue lo mínimo posible y de esta manera contribuimos al reciclaje digital 
 | `SUG_INTERNET_PORQUE` | ¿Por qué necesito conexión a Internet durante la aventura? | La aplicación carga datos dinámicos (textos, audios, índices) y recursos multimedia desde los módulos/servidor al iniciar la aventura; además algunos componentes se cargan "lazy" (p. ej. `hijo6` chat). Por eso requiere conexión para descargar esos recursos y reproducir audios/vídeos. | SUGERIDA | |
-| `SUG_INTERNET_CAES` | ¿Qué pasa si pierdo la conexión en mitad de la aventura? | Si la conexión falla, la app intenta seguir con los datos ya cargados en memoria/localStorage; sin embargo, audios o vídeos que no estén precargados no se reproducirán y algunos recursos pueden fallar al cargarse. La app muestra overlays de error para recursos faltantes y mantiene el estado en `localStorage` cuando sea posible. | SUGERIDA | |
-| `SUG_INTERNET_DATOS` | ¿Consume muchos datos móviles la app? | No hay un valor exacto en la guía; el mayor consumo proviene de audios y vídeos. | SUGERIDA | |
-| `SUG_INTERNET_PRECARGA` | ¿Puedo precargar contenido antes de salir para ahorrar datos? | La guía describe que los módulos de datos se cargan en la fase de inicio (`FASE 2`) cuando el usuario avanza en el onboarding, pero no documenta una opción de precarga manual por el usuario. No hay indicación clara de una función de "precarga offline" accesible al usuario en la versión actual. | SUGERIDA | |
+| `SUG_INTERNET_CAES` | ¿Qué pasa si pierdo la conexión en mitad de la aventura? | Si la conexión falla, la app intenta seguir con los datos ya cargados en memoria/localStorage; sin embargo, audios o vídeos que no estén precargados no se reproducirán y algunos recursos pueden fallar al cargarse. La app muestra overlays de error para recursos faltantes y mantiene el estado en `localStorage` cuando sea posible. | SUGERIDA | Su aventura se pausará hasta que tenga internet de nuvo, internet es esencial para el correcto funcionamiento de la aplicación
+
 
 ## Instrucciones
 - Marca con ✅ las preguntas que quieras mantener.
