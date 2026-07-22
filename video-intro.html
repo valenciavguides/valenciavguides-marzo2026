@@ -16,10 +16,27 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 #map{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:1;display:none}
 #map.on{display:block}
 
-/* ── LAYERS ── */
-#scene-layer{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:2;pointer-events:none}
-#overlay-layer{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:300;pointer-events:none}
+/* ── LAYERS ──
+   transition:bottom en sincronía con la opacidad de #jaime-band (.4s): cuando --band-h
+   cambia, el hueco se abre o cierra a la misma velocidad que la banda aparece/desaparece,
+   en vez de saltar de golpe al nuevo tamaño. */
+#scene-layer{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:2;pointer-events:none;transition:bottom .4s ease}
+#overlay-layer{position:absolute;top:0;left:0;right:0;bottom:var(--band-h,0px);z-index:300;pointer-events:none;transition:bottom .4s ease}
 #overlay-layer.active{pointer-events:auto}
+
+/* ── FLIP — transición decorativa de pasar página entre escenas (StPageFlip) ──
+   StPageFlip inyecta su propia hoja de estilos con ".stf__parent{position:relative}"
+   sobre el propio contenedor que le pasamos; como empata en especificidad con una
+   regla de clase simple y se inyecta después, ganaría el pulso. #stage > .vv-flip-container
+   sube la especificidad para que el posicionamiento absoluto sea siempre el nuestro.
+   bottom:0 (no var(--band-h)) y z-index por encima de #jaime-band (350): varias escenas
+   llaman a showBubble() justo después de setScene(), sin esperar, así que la banda puede
+   crecer y hacerse visible mientras la hoja todavía está girando. Cubriendo también esa
+   franja y tapando la banda real mientras dura el giro, la banda solo se revela al
+   terminar — llega "con" la página en vez de aparecer a media vuelta. */
+#stage>.vv-flip-container{position:absolute;top:0;left:0;right:0;bottom:0;z-index:355;pointer-events:none}
+.vv-flip-page{background:linear-gradient(160deg,#fffdf7,#f5e6c8);border:1px solid #8b5e1a;overflow:hidden}
+.vv-flip-page>div{width:100%;height:100%;overflow:hidden}
 
 /* ── KNIGHT ── */
 /* ── KNIGHT principal (abajo-izquierda por defecto) ── */
@@ -237,7 +254,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
   position:absolute;top:10px;right:10px;
   width:3.25rem;height:3.25rem;border-radius:50%;
   background:#F28500;border:0.3125rem solid #50C878;
-  color:#0F0616;font-size:3.4375rem;font-weight:bold;
+  color:#0F0616;font-size:1.5rem;font-weight:bold;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;line-height:1;z-index:50;
   box-shadow:0 2px 8px rgba(0,0,0,.25);
@@ -319,7 +336,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 .chat-panel{position:absolute;top:0;right:-100%;bottom:0;width:min(310px,86vw);background:#fff;z-index:500;box-shadow:-5px 0 20px rgba(0,0,0,.27);transition:right .4s ease;display:flex;flex-direction:column}
 .chat-panel.open{right:0}
 .chat-hdr{background:#1a6ea8;height:48px;display:flex;align-items:center;justify-content:flex-end;padding:0 11px;flex-shrink:0}
-.chat-x{width:3.25rem;height:3.25rem;border-radius:50%;background:#F28500;border:0.3125rem solid #50C878;color:#0F0616;font-size:3.4375rem;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold}
+.chat-x{width:3.25rem;height:3.25rem;border-radius:50%;background:#F28500;border:0.3125rem solid #50C878;color:#0F0616;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:bold}
 .chat-body{padding:9px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
 .acc1{background:#ff8c00;border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 .acc1-text{width:53%;height:8px;background:rgba(255,255,255,.7);border-radius:3px;filter:blur(1.5px)}
@@ -569,6 +586,7 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 <button id="restart" onclick="location.reload()">↺</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/vendor/page-flip.browser.js"></script>
 <script type="module">
   import { JAIME_SCENES } from './js/traducciones-ui.js';
   import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
@@ -669,11 +687,73 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const $    = id => document.getElementById(id);
 const stageR = () => $('stage').getBoundingClientRect();
 const setScene = h => {
+  _flushBandHide();
   const sl=$('scene-layer');
+  const prevHTML = sl.innerHTML;
   sl.innerHTML=h; sl.style.pointerEvents='auto';
   sl.style.transition='none'; sl.style.opacity='0';
   requestAnimationFrame(()=>{ sl.style.transition='opacity .22s ease-in'; sl.style.opacity='1' });
+  _flipTransition(prevHTML, h);
 };
+/* Capa decorativa StPageFlip por encima del fundido de #scene-layer: no gestiona el
+   contenido real (que ya se intercambió arriba de forma síncrona), solo simula el giro
+   con una foto del antes/después y se autodestruye. Cualquier fallo degrada en silencio
+   al fundido CSS de siempre. */
+let _activeFlipCleanup = null;
+function _flipTransition(prevHTML, nextHTML) {
+  try {
+    if (!prevHTML || !globalThis.St?.PageFlip) return;
+    const rect = $('scene-layer').getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    /* Algunas escenas se encadenan sin esperar clic (avance automático). Si el giro
+       anterior sigue activo cuando arranca uno nuevo, se corta ya mismo — dos giros
+       a la vez, superpuestos, es lo que se veía "desacompasado". */
+    if (_activeFlipCleanup) { const prev = _activeFlipCleanup; _activeFlipCleanup = null; prev(); }
+
+    const container = document.createElement('div');
+    container.className = 'vv-flip-container';
+    $('stage').appendChild(container);
+
+    const pageA = document.createElement('div');
+    pageA.className = 'vv-flip-page'; pageA.innerHTML = `<div>${prevHTML}</div>`;
+    const pageB = document.createElement('div');
+    pageB.className = 'vv-flip-page'; pageB.innerHTML = `<div>${nextHTML}</div>`;
+    container.appendChild(pageA); container.appendChild(pageB);
+
+    const pf = new St.PageFlip(container, {
+      width: Math.round(rect.width), height: Math.round(rect.height),
+      size: 'fixed', autoSize: false, showCover: false,
+      usePortrait: true, drawShadow: true, maxShadowOpacity: 0.35,
+      flippingTime: 1400, useMouseEvents: true,
+      disableFlipByClick: true, showPageCorners: false,
+      mobileScrollSupport: true,
+    });
+    pf.loadFromHTML(container.querySelectorAll('.vv-flip-page'));
+
+    let done = false;
+    const cleanup = () => {
+      if (done) return; done = true;
+      if (_activeFlipCleanup === cleanup) _activeFlipCleanup = null;
+      try { pf.destroy(); } catch (e) { /* no-op */ }
+      container.remove();
+    };
+    _activeFlipCleanup = cleanup;
+    /* El estado 'read' de StPageFlip llega antes de flippingTime (~1000-1100ms de los
+       1400 configurados) — si se limpiara ahí, no queda margen garantizado para que la
+       banda (--band-h, con su propia transición de .4s) y las imágenes nuevas (sin
+       decodificar todavía si es su primera aparición) terminen de asentarse detrás del
+       giro. Por eso se ignora 'read' y se limpia siempre a los flippingTime completos:
+       la hoja se queda asentada un instante de más en vez de arriesgar una revelación
+       prematura con la banda o las imágenes a medio ajustar. */
+    setTimeout(cleanup, 1400);
+    requestAnimationFrame(() => {
+      try { pf.flipNext(); } catch (e) { cleanup(); }
+    });
+  } catch (e) {
+    (globalThis.logger || console).warn('[INTRO][FLIP] efecto de pasar página falló, se usa el fundido normal:', e && e.message);
+  }
+}
 const setOv     = h => { $('overlay-layer').innerHTML=h; $('overlay-layer').classList.add('active') };
 const clearOv   = () => { $('overlay-layer').innerHTML=''; $('overlay-layer').classList.remove('active') };
 function ajustarScena() {
@@ -692,6 +772,12 @@ globalThis._onBandNext = function() {
   const band=$('jaime-band'); if(band) band.classList.remove('next-ready');
   if (_bandResolve) { _bandResolve(); _bandResolve = null; }
 };
+let _bandHidePending = null;
+let _bandHideTimer = null;
+function _flushBandHide() {
+  if (_bandHideTimer) { clearTimeout(_bandHideTimer); _bandHideTimer = null; }
+  if (_bandHidePending) { const fn = _bandHidePending; _bandHidePending = null; fn(); }
+}
 function showBubble(idx) {
   const scenes = globalThis.JAIME_SCENES;
   const entry = scenes && scenes[idx];
@@ -702,12 +788,20 @@ function showBubble(idx) {
   band.classList.add('on');
   requestAnimationFrame(ajustarScena);
   return () => {
-    band.classList.remove('on');
-    txt.textContent = '';
-    $('stage').style.setProperty('--band-h', '0px');
-    requestAnimationFrame(() => {
-      if (MC && MC.map) MC.map.invalidateSize({ animate: false });
-    });
+    /* La ocultación real se difiere hasta que arranca la siguiente transición
+       (setScene → _flushBandHide), para que el cuadro de texto desaparezca a la
+       vez que pasa la página, no como un paso previo y suelto. Temporizador de
+       seguridad por si esta es la última escena y no llega otro setScene(). */
+    _bandHidePending = () => {
+      band.classList.remove('on');
+      txt.textContent = '';
+      $('stage').style.setProperty('--band-h', '0px');
+      requestAnimationFrame(() => {
+        if (MC && MC.map) MC.map.invalidateSize({ animate: false });
+      });
+    };
+    if (_bandHideTimer) clearTimeout(_bandHideTimer);
+    _bandHideTimer = setTimeout(_flushBandHide, 2000);
   };
 }
 const setCounter = (n,t=19) => $('counter').textContent=`${n} / ${t}`;
@@ -1131,7 +1225,6 @@ async function scene4(){
 async function scene5(){
   setCounter(5); MC.hide();
   Knight2.show(M.posa);
-  const hideBubble = showBubble(4);
   setScene(`<div class="sc" style="background:#f8f9fa;padding:0 14px 0 0;align-items:flex-end;justify-content:center">
     <div style="display:flex;flex-direction:row;align-items:flex-start;gap:8px">
       <!-- columna izquierda (6) -->
@@ -1164,6 +1257,7 @@ async function scene5(){
       </div>
     </div>
   </div>`);
+  const hideBubble = showBubble(4);
   await waitForNextBtn();
   hideBubble();
   Knight2.hide();

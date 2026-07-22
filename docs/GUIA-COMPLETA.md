@@ -4340,7 +4340,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-fix-overlay-precision-retry-jul21'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
+- `CACHE_VERSION` se actualiza en cada commit (valor actual: `'v-flip-y-arreglos-jul22'`). El sistema de auto-generación por SHA-256 vía `tools/build-sw.js` está descrito en los comentarios del SW pero el archivo no existe todavía.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5715,7 +5715,9 @@ El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la h
 - **Mapa de aventura** (`codigo-padre.html` + `js/funciones-mapa.js`): **MapLibre GL JS**, motor de mapas vectoriales por WebGL. Rota nativamente (brújula del dispositivo) y dibuja texto/líneas de calle como geometría vectorial real que escala con el zoom — justo lo que este mapa necesita, porque rota de forma continua mientras el usuario camina.
 - **Mapa completo** (`mapa-completo.html`) y el mapa decorativo de **`video-intro.html`**: **Leaflet 1.9.4**, biblioteca de mapas basada en tiles raster. Ninguno de los dos rota ni tiene snap-to-route — para un mapa estático con tiles fijos, Leaflet es más simple que levantar un motor WebGL.
 
-> **Servicio local (sin CDN):** ambos motores se sirven desde `js/vendor/` (MapLibre: `maplibre-gl-csp.js` — build sin `blob:` workers, compatible con la CSP estricta del proyecto — + `maplibre-gl-csp-worker.js` + `maplibre-gl.css`; Leaflet: `leaflet.js` + `leaflet.css`). No hay dependencia de red en tiempo de carga — funciona sin conexión desde el primer render. Versiones fijadas.
+> **MapLibre, servido en local (sin CDN):** `codigo-padre.html` carga MapLibre desde `js/vendor/` (`maplibre-gl-csp.js` — build sin `blob:` workers, compatible con la CSP estricta del proyecto — + `maplibre-gl-csp-worker.js` + `maplibre-gl.css`). No hay dependencia de red en tiempo de carga para el mapa de aventura — funciona sin conexión desde el primer render.
+>
+> **Leaflet, servido por CDN:** `mapa-completo.html` y `video-intro.html` cargan Leaflet desde CDNs externos — `cdnjs.cloudflare.com` (con `integrity`/`crossorigin`) el primero, `unpkg.com` el segundo — no desde `js/vendor/`. Ambos ficheros carecen de cabecera CSP propia (a diferencia de `codigo-padre.html`), así que no hay restricción que lo impida. `js/vendor/leaflet.js`/`leaflet.css` existen en el repositorio, pero ningún HTML los referencia actualmente.
 
 `js/utils.js` incluye `puntoMasCercanoEnLinea()`, una función propia sin dependencias para el snap-to-route del mapa de aventura (proyección plana local sobre un punto y una polilínea — ver «Marcadores en el mapa», más arriba). El mapa de aventura no necesita ningún plugin de rotación de terceros: al usar MapLibre, la rotación es una capacidad nativa del motor.
 
@@ -6998,7 +7000,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-fix-overlay-precision-retry-jul21'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
+`CACHE_VERSION` (actualmente `'v-flip-y-arreglos-jul22'`, línea 89 de `sw.js`) debe cambiarse en cada deploy para forzar que el navegador descarte la caché antigua. El encabezado de `sw.js` describe un sistema automático basado en SHA-256 (`tools/build-sw.js`) que calcularía la versión a partir del contenido de los ficheros de APP_SHELL, pero ese script no está implementado — el directorio `tools/` contiene scripts de traducción e inventario, pero no `build-sw.js`.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7591,7 +7593,7 @@ Cada vez que se despliega una nueva versión, actualizar `CACHE_VERSION` en `sw.
 
 ```javascript
 // sw.js línea 89 — actualizar en cada despliegue
-const CACHE_VERSION = 'v-fix-overlay-precision-retry-jul21'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
+const CACHE_VERSION = 'v-flip-y-arreglos-jul22'; // ← cambiar a un identificador de la versión (p.ej. 'v-1.0.0')
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9285,7 +9287,7 @@ Un mensaje de una página externa maliciosa es descartado sin dejar rastro.
 - Solo permite conexiones a `'self'` (`connect-src 'self'`) — sin CDNs externos
 - Convierte HTTP → HTTPS (`upgrade-insecure-requests`)
 
-> **Sin CDN externos:** MapLibre GL y Leaflet se sirven desde `js/vendor/`, lo que permite eliminar `https://unpkg.com` y `https://cdnjs.cloudflare.com` de `script-src`, `style-src` y `connect-src`, reduciendo la superficie de ataque de supply-chain.
+> **Sin CDN externos:** MapLibre GL (el único motor de mapas que usa `codigo-padre.html` — no carga Leaflet) se sirve desde `js/vendor/`, lo que permite que `script-src`, `style-src` y `connect-src` no necesiten `https://unpkg.com` ni `https://cdnjs.cloudflare.com`, reduciendo la superficie de ataque de supply-chain. Esos dos orígenes sí los usan `mapa-completo.html` y `video-intro.html` para su propio Leaflet — pero ninguno de los dos tiene cabecera CSP propia, así que no aplica.
 
 #### Cuarta capa: token JWT en API (cliente implementado; backend pendiente)
 
@@ -11040,7 +11042,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-fix-overlay-precision-retry-jul21';
+const CACHE_VERSION = 'v-flip-y-arreglos-jul22';
 ```
 
 El valor se actualiza manualmente en cada commit que requiere invalidar la caché del shell. El directorio `tools/` existe pero `tools/build-sw.js` (auto-generación por SHA-256 mencionada en el comentario de `sw.js`) **no está implementado** — es aspiracional.
@@ -11163,6 +11165,8 @@ Además, botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que e
 **Qué parada muestra el padre durante la pérdida:** la última parada activa antes de la pérdida — el padre no cambia de parada sin confirmación GPS de llegada. No hay reinicio.
 
 **Estado de implementación:** ✅ implementado. El overlay se muestra vía `showGpsSignalOverlay(code)` desde `_watchPositionError`. El mecanismo de reintento para código 3 usa `_gpsRetryOnTimeout`.
+
+**Por qué el reintento de TIMEOUT guarda su propio `setTimeout` ID:** `_gpsDoRetrySetup` programa el siguiente intento de `watchPosition` vía `setTimeout`, guardado en `est.gps.retryTimeoutId`. Sin esto, si `activarGPS()` se llamara de nuevo mientras ese reintento sigue pendiente (por ejemplo, un `CAMBIO_MODO` durante el bucle de reintento de `pendingModeChanges`), se crearían dos `watchPosition` simultáneos — el segundo quedaría huérfano al perder su referencia, sin `clearWatch()` posible, corriendo indefinidamente en segundo plano (desgaste de batería, no un crash visible). `activarGPS()` y `desactivarGPS()` cancelan cualquier reintento pendiente (`clearTimeout(est.gps.retryTimeoutId)`) antes de crear un watch nuevo o apagar el GPS.
 
 ---
 
@@ -11854,6 +11858,36 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 | 17 | `scene17` | bl-timer zoom-showcase + overlay timer → caballero llorando · Knight completo | [17] |
 | 18 | `scene18` | Panel FAQ lateral → acordeón 2 niveles → cierre ✕ · Knight completo | [18] |
 | 19 | `scene19` | Ruta RB + fuegos artificiales canvas (7 s) + modal fin · fade blanco→negro | [19] |
+
+### 32.6b Transición entre escenas — efecto de pasar página (StPageFlip)
+
+Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma, no como un simple fundido. El mecanismo es enteramente decorativo y desacoplado del cambio de contenido real: `setScene(h)` sigue intercambiando `#scene-layer.innerHTML` de forma síncrona e inmediata, exactamente igual que antes de tener el efecto — ninguna de las 19 funciones de escena cambia su forma de usar `setScene()`. Por encima, `_flipTransition(prevHTML, nextHTML)` monta una capa StPageFlip de usar-y-tirar que fotografía el antes/después, gira, y se autodestruye, revelando el `#scene-layer` real que lleva rato listo debajo.
+
+**Librería**: [StPageFlip](https://nodlik.github.io/StPageFlip/) (paquete npm `page-flip`, licencia MIT — sin restricción de uso comercial), vendorizada en `js/vendor/page-flip.browser.js` (bundle UMD, expone `globalThis.St.PageFlip`), cargada con `<script src="js/vendor/page-flip.browser.js">` justo después del `<script>` de Leaflet y antes del `<script type="module">`. `eslint.config.js` declara `St: "readonly"` en los globals externos.
+
+**Mecánica de `_flipTransition`** (`video-intro.html`, dentro del `<script>` clásico, junto a `setScene`):
+
+1. Se salta el efecto en dos casos, sin generar error: `!prevHTML` (primera escena — no hay nada de qué venir) y `!globalThis.St?.PageFlip` (la librería no cargó). En ambos, el fundido CSS de 220ms que ya existía sigue como red de seguridad.
+2. Snapshot del contenido saliente como **string** de `innerHTML` (nunca `cloneNode()`), para no duplicar `id`s mientras la capa decorativa convive brevemente con el DOM real.
+3. Construye `.vv-flip-container` (con dos `.vv-flip-page`, uno por cara) y lo añade a `#stage`.
+4. Instancia `new St.PageFlip(container, opts)` con `width`/`height` medidos en vivo vía `#scene-layer.getBoundingClientRect()` (nunca cacheados — la altura cambia con `--band-h`), y llama a `loadFromHTML()` + `flipNext()` en el siguiente `requestAnimationFrame`.
+5. Limpieza: `pf.destroy()` + `container.remove()`, siempre a los **1400 ms completos** (el propio `flippingTime` configurado), nunca antes. El evento `changeState` con dato `'read'` de la librería llega antes (~1000-1100 ms de los 1400 configurados) pero **no** dispara la limpieza — hacerlo cortaría el margen que necesitan la transición de `--band-h` (0,4 s) y la decodificación de imágenes que aparecen por primera vez (sin caché de una escena anterior) para asentarse detrás del giro antes de revelarse.
+
+**Opciones de StPageFlip**: `size:'fixed'`, `autoSize:false`, `showCover:false`, `usePortrait:true` (una sola página visible, no un libro de doble página), `drawShadow:true`, `maxShadowOpacity:0.35`, `flippingTime:1400`, `useMouseEvents:true`, `disableFlipByClick:true`, `showPageCorners:false`, `mobileScrollSupport:true`.
+
+**Por qué `useMouseEvents:true` en una capa puramente decorativa**: la propia librería añade un listener de `resize` a `window` en cada instancia; `destroy()` solo lo intenta limpiar si `useMouseEvents:true`. Con `false` se acumularía un listener muerto por transición, sin ninguna vía de limpiarlo. La no-interactividad real se fuerza por CSS (`pointer-events:none` en `.vv-flip-container`) y por las opciones `disableFlipByClick`/`showPageCorners:false`, no desactivando `useMouseEvents`.
+
+**Imperfección conocida, aceptada**: incluso con `useMouseEvents:true`, `destroy()` solo retira uno de los dos listeners de `resize` que la librería registra internamente por instancia — queda un listener muerto (`() => this.update()` sobre una instancia ya destruida) por cada transición. Confirmado que no lanza error al dispararse tras el `resize` (no hace nada visible, no toca DOM eliminado de forma que rompa). Acotado a un máximo de 18 listeners muertos para toda la vida de la página (una intro de una sola pasada, no un bucle) — se acepta en vez de parchear los internos minificados de la librería.
+
+**Posición y capas** (`#stage>.vv-flip-container`, no `.vv-flip-container` a secas): StPageFlip inyecta su propia hoja de estilos con `.stf__parent{position:relative}` sobre el contenedor que se le pasa; esa regla empata en especificidad con una clase simple y gana por orden de inserción (se inyecta después que el `<style>` del propio archivo). El selector `#stage>.vv-flip-container` sube la especificidad para que `position:absolute;inset:0` sea siempre el que gana. `z-index:355` — por encima de `#jaime-band` (350) y `#overlay-layer` (300), por debajo de `#knight`/`#knight2` (400) — para que la hoja cubra también la franja donde vive la banda de texto mientras gira, sin depender de a qué velocidad relativa terminan sus respectivas animaciones.
+
+**Sincronización con la banda de texto (`#jaime-band`)**: varias escenas llaman a `showBubble()` inmediatamente después de `setScene()`, sin esperar — así que, si la banda se ocultara en el instante en que cada escena llama a `hideBubble()`, desaparecería como un paso previo y suelto, antes incluso de que arrancara el giro. En su lugar, `hideBubble()` solo arma un flag diferido (`_bandHidePending`), con un temporizador de seguridad a los 2000 ms por si esta es la última escena y ningún `setScene()` posterior llega a consumirlo. `setScene()` aplica ese flag (`_flushBandHide()`) como lo primero que hace, en el mismo instante en que arranca el giro — la banda desaparece y la página empieza a girar en el mismo tick de JS. `#scene-layer`/`#overlay-layer` tienen `transition:bottom .4s ease` (antes saltaban de golpe al cambiar `--band-h`) para que cualquier reajuste de tamaño posterior sea una animación suave, sincronizada con la propia transición de opacidad de la banda, no un salto — aunque en la práctica esto casi siempre ocurre oculto detrás del giro, dado el margen de 1400 ms del punto anterior.
+
+**Escenas encadenadas sin clic**: algunas escenas avanzan automáticamente (sin esperar a que el usuario pulse el botón de la banda). Si una escena nueva llama a `setScene()` mientras el giro de la escena anterior sigue activo, `_activeFlipCleanup` fuerza la limpieza inmediata del giro anterior antes de montar el nuevo — sin esta guarda, dos hojas girarían a la vez, superpuestas, con contenidos distintos.
+
+**Paleta**: degradado pergamino `#fffdf7 → #f5e6c8` con borde `#8b5e1a` — la propia paleta de "papel viejo" que ya usan `.s3-ov` (pantalla de aviso vintage) y `.s5-map` (borde del mapa vintage) en este mismo archivo, no la paleta de otros archivos de la sesión.
+
+**Degradación**: todo el cuerpo de `_flipTransition` está envuelto en `try/catch`; cualquier fallo se registra con `(globalThis.logger || console).warn('[INTRO][FLIP] ...')` y no interrumpe nada — el fundido CSS de 220ms de `setScene()` sigue funcionando igual, con o sin la capa decorativa encima.
 
 ### 32.7 Invariantes
 
