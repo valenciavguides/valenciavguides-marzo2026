@@ -4897,15 +4897,15 @@
                     est.gps.permisos = true;
                     _gpsInc('gps.inicial_intentos_exitosos');
                     (globalThis.logger || console).debug(`${logPrefix} ✅ Posición inicial de alta precisión aceptada (±${Math.round(a2)}m)`);
-                    return true;
+                    return { ok: true, error: null };
                 }
                 (globalThis.logger || console).warn(`${logPrefix} Posición inicial obtenida pero precisión insuficiente: ±${Math.round(a2)}m`);
                 _gpsInc('gps.inicial_intentos_precision_insuficiente');
-                return false;
+                return { ok: false, error: null };
             } catch (error_) {
                 (globalThis.logger || console).debug(`${logPrefix} getCurrentPosition intento ${i + 1} falló:`, error_?.message ?? error_);
                 _gpsInc('gps.inicial_intentos_fallidos');
-                return false;
+                return { ok: false, error: error_ };
             }
         }
 
@@ -4923,11 +4923,24 @@
                     const baseTimeout = Number(gpsCfg.INIT_ATTEMPT_TIMEOUT_MS || 8000);
                     const acceptThreshold = gpsCfg.REJECT_ACCURACY_M || Infinity;
                     let initialAccepted = false;
+                    let ultimoError = null;
                     for (let i = 0; i < maxAttempts; i++) {
-                        initialAccepted = await _gpsIntentarPosicion(i, maxAttempts, baseTimeout, acceptThreshold, est, logPrefix);
+                        const resultado = await _gpsIntentarPosicion(i, maxAttempts, baseTimeout, acceptThreshold, est, logPrefix);
+                        initialAccepted = resultado.ok;
+                        if (resultado.error) ultimoError = resultado.error;
                         if (initialAccepted) break;
                     }
                     if (!initialAccepted) {
+                        // El usuario ve el fallback a coordenadas de inicio como si "el GPS
+                        // hubiera encontrado" un sitio equivocado, sin ninguna explicación —
+                        // este era el hueco real: _aplicarFallbackCoordenadasGPS nunca avisaba
+                        // de nada. Mostrar el motivo real (o un mensaje genérico si todos los
+                        // intentos fallaron por precisión insuficiente, no por error del navegador).
+                        try {
+                            if (typeof showGpsSignalOverlay === 'function') {
+                                showGpsSignalOverlay(ultimoError?.code || 2, ultimoError?.message || 'No se obtuvo una posición con precisión suficiente tras varios intentos.');
+                            }
+                        } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         await _aplicarFallbackCoordenadasGPS(est, logPrefix, maxAttempts);
                     }
                 }

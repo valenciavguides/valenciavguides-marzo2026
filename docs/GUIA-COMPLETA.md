@@ -4353,7 +4353,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-9be470cc5467'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-2c4c060be4f0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5742,13 +5742,17 @@ Antes de mostrar P14, `En-busca-del-tesoro.html` comprueba el permiso GPS con `n
 
 #### Si la posición inicial no llega a tiempo: fallback al punto de inicio
 
-`activarGPS()` intenta obtener una posición inicial de alta precisión con `_obtenerPosicionInicialGPS()`: hasta `CONFIG.GPS.HIGH_ACC_INIT_ATTEMPTS` intentos (por defecto 2) de `getCurrentPosition()`, cada uno con timeout creciente (`INIT_ATTEMPT_TIMEOUT_MS × 1.8^intento`). `CONFIG.GPS.REJECT_ACCURACY_M` no está definido, así que el umbral de precisión equivale a `Infinity` en la práctica — este fallback solo se activa cuando `getCurrentPosition()` **falla** en todos los intentos (permiso denegado, sin señal, timeout), no por baja precisión.
+`activarGPS()` intenta obtener una posición inicial de alta precisión con `_obtenerPosicionInicialGPS()`: hasta `CONFIG.GPS.HIGH_ACC_INIT_ATTEMPTS` intentos (por defecto 3) de `getCurrentPosition()`, cada uno con timeout creciente (`INIT_ATTEMPT_TIMEOUT_MS × 1.8^intento`, por defecto 8000ms base — ≈8s/14s/26s, ≈48s en el peor caso). `CONFIG.GPS.REJECT_ACCURACY_M` no está definido, así que el umbral de precisión equivale a `Infinity` en la práctica — este fallback solo se activa cuando `getCurrentPosition()` **falla** en todos los intentos (permiso denegado, sin señal, timeout), no por baja precisión.
 
-Cuando eso ocurre, `_aplicarFallbackCoordenadasGPS()` centra al usuario en el **punto de inicio real** de la aventura activa (Torres de Serranos u homólogo), nunca en un identificador fijo:
+**`globalThis.Config` no se asigna en ningún archivo del proyecto** (verificado 2026-07-23, grep exhaustivo sin resultados) — ni tampoco existen `HIGH_ACC_INIT_ATTEMPTS`/`INIT_ATTEMPT_TIMEOUT_MS`/`REJECT_ACCURACY_M` en `js/config.js`. Los valores de arriba son, en la práctica, los únicos que se usan — no hay ningún sitio real donde configurarlos salvo editando directamente los `||` por defecto en `_obtenerPosicionInicialGPS()`. Subidos desde 2/5000ms tras confirmar en producción real (móvil, centro histórico de Valencia) que el presupuesto anterior (~14s totales) era insuficiente para un GPS en frío al aire libre.
 
-1. Pide a hijo2 las coordenadas del id de inicio real, resuelto dinámicamente con `_idParadaInicioAventura()` (busca `tipo === 'inicio'` en los datos de la aventura activa).
-2. Si hijo2 no responde a tiempo o falla, cae a `_obtenerCoordenadasP0Fallback()` — versión local sin round-trip: busca el mismo `tipo === 'inicio'` directamente en `globalThis.__vv_coordenadasAventura` / `AVENTURA_PARADAS`.
-3. Si ni siquiera eso encuentra datos (aventura aún sin cargar), usa una coordenada fija de Valencia como último recurso.
+Cuando eso ocurre, dos cosas pasan ahora (antes del 2026-07-23 solo la segunda):
+
+1. **`showGpsSignalOverlay()` se dispara con el error real** (código + `GeolocationPositionError.message` del último intento fallido, o un mensaje genérico si todos los intentos fallaron por precisión insuficiente sin error de navegador). Antes de este fix, este camino era completamente silencioso: el usuario no tenía ninguna pista de que su posición real no se había podido determinar — solo veía que el mapa lo centraba en un sitio que podía no ser el suyo. El mensaje del navegador es temporal (ver §22.14) — quitar antes de clientes reales.
+2. `_aplicarFallbackCoordenadasGPS()` centra al usuario en el **punto de inicio real** de la aventura activa (Torres de Serranos u homólogo), nunca en un identificador fijo:
+   1. Pide a hijo2 las coordenadas del id de inicio real, resuelto dinámicamente con `_idParadaInicioAventura()` (busca `tipo === 'inicio'` en los datos de la aventura activa).
+   2. Si hijo2 no responde a tiempo o falla, cae a `_obtenerCoordenadasP0Fallback()` — versión local sin round-trip: busca el mismo `tipo === 'inicio'` directamente en `globalThis.__vv_coordenadasAventura` / `AVENTURA_PARADAS`. Expuesta en `globalThis` desde el 2026-07-23 (antes solo era visible desde Script 1; llamarla desde Script 2 lanzaba `ReferenceError` — ver auditoría GPS de esa fecha).
+   3. Si ni siquiera eso encuentra datos (aventura aún sin cargar), usa una coordenada fija de Valencia como último recurso.
 
 Los nombres de ambas funciones conservan el sufijo histórico "P0"/"P-0", pero ninguna compara ya contra ese literal — buscan `tipo === 'inicio'` en los datos reales de la aventura. Comparar contra el string `'P-0'` nunca puede funcionar: el id real de la parada de inicio siempre lleva el prefijo de la aventura (`Av1-P-0`, `Av34km-P-0`...); `padreid` usa `'padre-P0'` sin guion, y tampoco coincide con `'P-0'` a secas.
 
@@ -7056,7 +7060,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-9be470cc5467'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2c4c060be4f0'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7684,7 +7688,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-9be470cc5467';
+const CACHE_VERSION = 'v-2c4c060be4f0';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11143,7 +11147,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-9be470cc5467';
+const CACHE_VERSION = 'v-2c4c060be4f0';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
