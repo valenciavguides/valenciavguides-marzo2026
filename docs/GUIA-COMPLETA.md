@@ -6599,7 +6599,7 @@ ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
 
 Verificado con `ffmpeg -bsf:v trace_headers`: `profile_idc=77` (Main, no High), `max_num_ref_frames=1`.
 
-**El CRF solo no basta para acotar el bitrate real.** La primera recodificación de `video_intro_ejemplo.mp4` con este perfil (`-crf 27`, sin límite explícito de bitrate) resolvió la fluidez de decodificación pero terminó en ~6 MB / **2,75 Mbps** de media — un vídeo con mucho movimiento de cámara, donde CRF (calidad constante) sube el bitrate en los tramos complejos sin techo. Verificado con throttle de red sostenido (Chrome DevTools Protocol, 700 kbps, latencia 200ms): el archivo se atasca a los ~4s de reproducción y no se recupera dentro de la ventana de espera del helper — un bitrate medio ya alto empeora más en los picos. La solución es acotar el bitrate explícitamente además del CRF, con `-maxrate`/`-bufsize` (encoding con techo, no solo con calidad objetivo):
+**El CRF solo no basta para acotar el bitrate real.** Con este perfil pero solo `-crf 27` (sin límite explícito de bitrate), un vídeo con mucho movimiento de cámara como `video_intro_ejemplo.mp4` sube de bitrate en los tramos complejos sin techo — CRF apunta a calidad constante, no a un bitrate máximo — y puede terminar en varios Mbps de media pese al perfil de decodificación ligera. Bajo throttle de red sostenido (Chrome DevTools Protocol, 700 kbps, latencia 200ms), un archivo así se atasca en los primeros segundos de reproducción y no se recupera dentro de la ventana de espera del helper: un bitrate medio ya alto empeora más en los picos. La solución es acotar el bitrate explícitamente además del CRF, con `-maxrate`/`-bufsize` (encoding con techo, no solo con calidad objetivo):
 
 ```bash
 ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
@@ -6608,7 +6608,7 @@ ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
   -an -movflags +faststart salida.mp4
 ```
 
-Con este comando, `video_intro_ejemplo.mp4` bajó a ~2,4 MB / ~1,1 Mbps (duración idéntica, 17,57s) manteniendo `profile_idc=77`/`max_num_ref_frames=1`. Repetido el mismo throttle de 700 kbps: el vídeo ya no se atasca sin recuperación — sufre pausas breves de buffer (`waiting`→`playing` en bien menos de 1s cada vez, vía los listeners de `js/video-playback-utils.js`) pero termina de reproducirse hasta el final (`ended`). `-bufsize` en torno al doble de `-maxrate` es el valor de partida recomendado (controla cuánto puede ráfaga el encoder por encima de la media antes de que el limitador actúe).
+Con este comando, `video_intro_ejemplo.mp4` pesa ~2,4 MB / ~1,1 Mbps (17,57s de duración) manteniendo `profile_idc=77`/`max_num_ref_frames=1`. Bajo el mismo throttle de 700 kbps, el vídeo no se atasca sin recuperación — sufre pausas breves de buffer (`waiting`→`playing` en bien menos de 1s cada vez, vía los listeners de `js/video-playback-utils.js`) pero termina de reproducirse hasta el final (`ended`). `-bufsize` en torno al doble de `-maxrate` es el valor de partida recomendado (controla cuánto puede ráfaga el encoder por encima de la media antes de que el limitador actúe).
 
 **Checklist obligatoria antes de subir CUALQUIER vídeo nuevo** (el de `sceneVid`, los futuros de dron por parada en `coordenadas-aventuras.js`, o cualquier vídeo que se aloje en el futuro backend/CDN — la checklist no depende de dónde se sirva el archivo):
 
@@ -6637,8 +6637,8 @@ export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000, maxReinte
     // agotar los reintentos.
     // Tras arrancar: listeners 'stalled'/'waiting' reintentan play() para
     // recuperar de micro-cortes de red puntuales durante la reproducción, y
-    // cualquier rechazo de .play() se registra vía logger (antes se tragaba
-    // en silencio, imposible de diagnosticar sin depuración remota).
+    // cualquier rechazo de .play() se registra vía logger — sin este log
+    // sería imposible diagnosticar el fallo sin depuración remota.
   });
 }
 ```
@@ -7323,7 +7323,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 
 ### 21.1 Sistema de auto-actualización de `CACHE_VERSION`
 
-Antes de este sistema, `CACHE_VERSION` se actualizaba a mano: editar el string en `sw.js` línea 89 y sus 4 apariciones en este documento cada vez que cambiaba algún fichero de `APP_SHELL`. Es un proceso fácil de dejar a medias (olvidar una de las referencias). El sistema real, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
+`CACHE_VERSION` se actualiza sola cada vez que cambia algún fichero de `APP_SHELL` — nunca a mano. Actualizarla manualmente (editar el string en `sw.js` línea 89 y sus 4 apariciones en este documento) sería un proceso fácil de dejar a medias, con el riesgo real de olvidar una de las referencias. El sistema, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
 
 **`tools/build-sw.js`** es el núcleo — expone `computeCacheVersion({staged})` y `aplicarCacheVersion(valor)`, reusadas por los otros dos scripts (ninguna lógica de hash duplicada):
 
@@ -7334,7 +7334,7 @@ Antes de este sistema, `CACHE_VERSION` se actualizaba a mano: editar el string e
 
 **Por qué el modo `--staged` lee con `git show :ruta` y no con `fs.readFileSync`:** este proyecto no tiene `.gitattributes` y tiene `core.autocrlf=true` — el working tree en Windows normaliza a CRLF, pero el blob que git realmente guarda (y el working tree en Linux/Mac) tiene LF. Confirmado con una prueba directa: el mismo `video-intro.html` mide 93.086 caracteres leído del disco en Windows y 91.155 vía `git show :video-intro.html` — una diferencia real, no cosmética. `git show :ruta` lee el contenido indexado, estable entre plataformas — el modo correcto para el hook de pre-commit, que debe reflejar exactamente lo que se va a commitear.
 
-**Por qué `computeCacheVersion` normaliza CRLF→LF explícitamente en los DOS modos (no solo al leer vía `git show`):** al menos un fichero de `APP_SHELL` tiene el propio blob de git con CRLF embebido (no todo el historial del repositorio se commiteó con `core.autocrlf` ya activo), así que "`git show` ya da LF" no era cierto al 100% — sin normalizar explícitamente, el modo `--staged` y el modo working-tree podían calcular hashes distintos para el mismo contenido lógico, no solo durante una condición de carrera puntual sino de forma consistente. Esto se manifestaba así: `npm run dev:watch` reescribía `CACHE_VERSION` nada más arrancar tras cualquier commit (sin ningún cambio real de por medio), y el siguiente commit lo revertía vía el hook — un vaivén perpetuo entre dos valores igual de "correctos" para el mismo contenido. La función `normalizarFinalesLinea()` (`contenido.replace(/\r\n/g, '\n')`) se aplica a `sw.js` y a cada fichero de `APP_SHELL` justo antes de alimentar el hash, en ambos modos — así los dos convergen siempre al mismo valor mientras el contenido lógico no cambie, sin importar qué modo se ejecutó último ni qué SO escribió el blob originalmente.
+**Por qué `computeCacheVersion` normaliza CRLF→LF explícitamente en los DOS modos (no solo al leer vía `git show`):** al menos un fichero de `APP_SHELL` tiene el propio blob de git con CRLF embebido (no todo el historial del repositorio se commiteó con `core.autocrlf` ya activo), así que "`git show` ya da LF" no es cierto al 100% — sin normalizar explícitamente, el modo `--staged` y el modo working-tree podrían calcular hashes distintos para el mismo contenido lógico, de forma consistente y no solo en una condición de carrera puntual: `npm run dev:watch` reescribiría `CACHE_VERSION` nada más arrancar tras cualquier commit (sin ningún cambio real de por medio), y el siguiente commit lo revertiría vía el hook — un vaivén perpetuo entre dos valores igual de "correctos" para el mismo contenido. La función `normalizarFinalesLinea()` (`contenido.replace(/\r\n/g, '\n')`) se aplica a `sw.js` y a cada fichero de `APP_SHELL` justo antes de alimentar el hash, en ambos modos — así los dos convergen siempre al mismo valor mientras el contenido lógico no cambie, sin importar qué modo se ejecute último ni qué SO haya escrito el blob originalmente.
 
 **`tools/install-hooks.js`** se ejecuta solo desde `postinstall`. Crea `.git/hooks/` si no existe (este repositorio no lo trae por defecto — ni siquiera los ficheros `.sample` habituales de `git init`), y escribe `.git/hooks/pre-commit` marcado con el comentario `vvguides-managed-hook` — la marca permite reinstalarlo de forma idempotente en cada `npm install` sin duplicar nada, y evita pisar un hook de otra herramienta (Husky u otra) si no lleva esa marca, avisando en su lugar. El hook en sí es un envoltorio mínimo: llama a `build-sw.js` en modo `--staged` dentro de un `try/catch` que nunca bloquea el commit (es auto-fix, no un gate de validación) y termina siempre con código 0. Si se ejecuta fuera de un repositorio git (sin `.git`), se omite en silencio — no debe romper `npm install` en ese contexto.
 
@@ -9992,7 +9992,7 @@ El diseño nunca llegó a completarse. **El Map se inicializaba en la línea ~42
 | `_hdl_NAVEGACION_GPS_ERROR` | `NAVEGACION.GPS.ERROR` desde hijos | Ídem |
 | `_hdl_DATOS_RESPUESTA_PARADAS` | `DATOS.RESPUESTA_PARADAS` desde hijo2 | Ídem |
 
-Además, el flujo ya había cambiado hacia un mecanismo distinto y sin relación con este: `NAVEGACION.SOLICITAR_DATOS_PARADAS` (nótese el prefijo `NAVEGACION`, no `DATOS`), manejado en Script 1 de `codigo-padre.html` directamente desde los datos en memoria (`DATOS_PADRE`), sin reenviar a hijo2. Nadie envía ya `RESPUESTA_PARADAS` a padre; de hecho, hoy `DATOS.SOLICITAR_PARADAS` y `DATOS.RESPUESTA_PARADAS` no tienen ninguna referencia en el código — ni la constante, ni ningún handler (ver §10.12).
+Además, el mecanismo real de datos de paradas es otro, sin relación con este: `NAVEGACION.SOLICITAR_DATOS_PARADAS` (nótese el prefijo `NAVEGACION`, no `DATOS`), manejado en Script 1 de `codigo-padre.html` directamente desde los datos en memoria (`DATOS_PADRE`), sin reenviar a hijo2. Nadie envía `RESPUESTA_PARADAS` a padre; `DATOS.SOLICITAR_PARADAS` y `DATOS.RESPUESTA_PARADAS` no tienen ninguna referencia en el código — ni la constante, ni ningún handler (ver §10.12).
 
 Para el GPS: padre emite `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` **hacia hijo2** vía `enviarMensaje_S1({destino:'hijo2',...})` — directo, no broadcast. La dirección inversa (hijo2 → padre) no existe.
 
@@ -11258,7 +11258,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 - Código 2 (POSITION_UNAVAILABLE, GPS apagado): sin reintento automático. El `watchPosition` queda registrado y el browser lo retomará cuando el GPS vuelva.
 - Código 3 (TIMEOUT): reintento automático en `_gpsRetryOnTimeout()` — hasta `Config.GPS.REINTENTOS` intentos (3 por defecto) con `enableHighAccuracy: false` y backoff exponencial. Cada reintento reutiliza `_watchPositionSuccess`/`_watchPositionError` como callbacks del nuevo `watchPosition` (no una copia propia): si ese reintento también agota el tiempo, `_watchPositionError` se ejecuta de nuevo y encadena el siguiente intento hasta agotar el máximo — el conteo de reintentos y el encadenado son consistentes en toda la cadena, no solo en el primer intento.
 
-**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-gps.png`. El botón de reintento distingue visualmente entre los dos códigos — antes usaban el mismo icono y no se podían diferenciar a simple vista:
+**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-gps.png`. El botón de reintento distingue visualmente entre los dos códigos, cada uno con su propio icono:
 
 | Código | Icono del botón | Motivo del icono |
 |---|---|---|
@@ -12014,7 +12014,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 - Las escenas `sceneImg` y `sceneVid` (posiciones 9-10) aparecen DESPUÉS de `scene10` (avanzar) en el array `scenes[]` de `run()`.
 - `JAIME_SCENES[15]` es `null` — ninguna escena del array `run()` llama a `showBubble(15)`.
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
-- `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
+- `scene2` gestiona GPS/internet (el nombre no lo sugiere) y ocupa la posición 2 del array `run()`, consistente con el orden de display.
 - `sceneVid` **no** tiene atributo `loop`: por especificación, con `loop` el evento `ended` nunca se dispara, lo que dejaría `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior. El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`.
 - `sceneVid` usa `reproducirVideoConBuffer()` (`js/video-playback-utils.js`, ver §15) para arrancar la reproducción, sobre un `<video>` que no se crea en esta escena: `run()` lo precarga oculto desde el arranque de la intro (`globalThis._vidPreload`, ver §15) y `sceneVid` lo reutiliza moviéndolo a un hueco (`#vid-slot`) dentro de su overlay — para cuando el usuario llega aquí (escena 10 de 19) suele estar ya bufferizado del todo. Spinner (`#vid-loading`) visible mientras `reproducirVideoConBuffer()` resuelve (evento `canplaythrough`, `error` tras agotar reintentos, o timeout de 15s); al resolver se oculta el spinner y se muestra el vídeo ya reproduciéndose. Mismo helper que usa `mostrarVideoOverlay()` en `codigo-padre.html` — no hay descarga completa previa (blob), el mecanismo escala igual a vídeos de segundos que de minutos.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 4 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
