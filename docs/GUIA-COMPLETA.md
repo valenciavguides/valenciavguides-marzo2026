@@ -4340,7 +4340,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-b65265eeea99'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-103c04ac8368'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6999,7 +6999,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-b65265eeea99'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`; el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, no del disco — necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes`, así que el working tree en Windows tiene CRLF y el blob que git guarda tiene LF; hashear el disco daría un resultado distinto por sistema operativo) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-103c04ac8368'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`; el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, no del disco — necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes`, así que el working tree en Windows tiene CRLF y el blob que git guarda tiene LF; hashear el disco daría un resultado distinto por sistema operativo) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7611,7 +7611,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-b65265eeea99';
+const CACHE_VERSION = 'v-103c04ac8368';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11061,7 +11061,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-b65265eeea99';
+const CACHE_VERSION = 'v-103c04ac8368';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

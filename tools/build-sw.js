@@ -34,6 +34,17 @@
  *   es el modo correcto para el hook de pre-commit, que debe reflejar
  *   exactamente lo que se va a commitear, no el disco.
  *
+ * Por qué se normaliza CRLF→LF antes de hashear en los DOS modos (no solo en
+ * --staged): sin esto, el modo working tree (CRLF en Windows) y el modo
+ * --staged (siempre LF) calculan hashes distintos para el mismo contenido
+ * lógico — no por una condición de carrera puntual, sino siempre. Eso
+ * provocaría que `npm run dev:watch` reescribiera CACHE_VERSION nada más
+ * arrancar después de cualquier commit, sin que hubiera ningún cambio real,
+ * y que el hook lo revirtiera en el siguiente commit — un vaivén perpetuo
+ * entre dos valores "correctos" para el mismo contenido. Normalizando ambos
+ * modos a LF antes de hashear, dan el mismo resultado siempre que el
+ * contenido lógico no cambie, sin importar qué modo se ejecutó último.
+ *
  * Si APP_SHELL referencia un fichero que no se puede leer (no existe, o
  * `git show` falla porque no está trackeado/staged), se avisa y se continúa
  * con el resto — no aborta con un stack trace críptico.
@@ -63,6 +74,10 @@ function normalizarSwParaHash(swContent) {
     return swContent.replace(/const CACHE_VERSION = '[^']*';/, `const CACHE_VERSION = '${PLACEHOLDER}';`);
 }
 
+function normalizarFinalesLinea(contenido) {
+    return contenido.replace(/\r\n/g, '\n');
+}
+
 function leerWorkingTree(rutaRelativa) {
     const abs = path.join(ROOT, rutaRelativa.replace(/^\//, ''));
     if (!fs.existsSync(abs)) return null;
@@ -85,8 +100,9 @@ function leerStaged(rutaRelativa) {
 
 function computeCacheVersion({ staged = false, quiet = false } = {}) {
     const leer = staged ? leerStaged : leerWorkingTree;
-    const swRaw = leer('sw.js');
-    if (swRaw == null) throw new Error('No se pudo leer sw.js para calcular el hash');
+    const swRawSinNormalizar = leer('sw.js');
+    if (swRawSinNormalizar == null) throw new Error('No se pudo leer sw.js para calcular el hash');
+    const swRaw = normalizarFinalesLinea(swRawSinNormalizar);
 
     const appShell = parsearAppShell(swRaw);
     const hash = crypto.createHash('sha256');
@@ -96,7 +112,7 @@ function computeCacheVersion({ staged = false, quiet = false } = {}) {
     for (const ruta of appShell) {
         const contenido = leer(ruta);
         if (contenido == null) { faltantes.push(ruta); continue; }
-        hash.update(contenido);
+        hash.update(normalizarFinalesLinea(contenido));
     }
 
     if (faltantes.length && !quiet) {
