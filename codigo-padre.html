@@ -250,7 +250,7 @@
         /* Estilos generales, mapa, debug, logo, iframes, etc. */
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: transparent; }
         iframe { background: transparent; border: none; }
-        #mapa { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; z-index: 500; background-color: #e0f7fa; /* Azul claro para ver si está visible antes de cargar tiles */ }
+        #mapa { position: fixed; top: 0; left: 0; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; z-index: 500; background-color: #e0f7fa; /* Azul claro para ver si está visible antes de cargar tiles */ }
         .user-direction-arrow { pointer-events: none; }
         #map-debug { position: fixed; top: 0.625rem; left: 0.625rem; background: rgba(255, 255, 255, 0.9); padding: 0.3125rem 0.5rem; border-radius: 0.3125rem; z-index: 5000; font-size: 0.75rem; font-family: monospace; display: none; transition: opacity 0.5s; }
 
@@ -389,6 +389,7 @@
                     top: 0;
                     left: 0;
                     width: 100vw;
+                    width: 100dvw;
                     height: 100vh;
                     height: 100dvh;
                     bottom: auto; /* clear any previous bottom:1.25rem declarations */
@@ -539,7 +540,7 @@
         #gps-signal-overlay {
             position: fixed;
             top: 0; left: 0;
-            width: 100vw; height: 100vh; height: 100dvh;
+            width: 100vw; width: 100dvw; height: 100vh; height: 100dvh;
             z-index: 1000041;
             background: transparent;
             display: none;
@@ -591,7 +592,7 @@
         #internet-overlay {
             position: fixed;
             top: 0; left: 0;
-            width: 100vw; height: 100vh; height: 100dvh;
+            width: 100vw; width: 100dvw; height: 100vh; height: 100dvh;
             z-index: 1000042;
             background: transparent;
             display: none;
@@ -645,6 +646,7 @@
             top: 0;
             left: 0;
             width: 100vw;
+            width: 100dvw;
             height: 100vh;
             height: 100dvh;
             z-index: 1000045;
@@ -882,6 +884,7 @@
             top: 0;
             left: 0;
             width: 100vw;
+            width: 100dvw;
             height: 100vh;
             height: 100dvh;
             background-color: rgba(0, 0, 0, 0.7);
@@ -907,6 +910,7 @@
             top: 0;
             left: 0;
             width: 100vw;
+            width: 100dvw;
             height: 100vh;
             height: 100dvh;
             z-index: 1000010 !important; /* Por encima de hijo5 (1000000) */
@@ -11591,6 +11595,7 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
                         top: 0;
                         left: 0;
                         width: 100vw;
+                        width: 100dvw;
                         height: 100vh;
                         height: 100dvh;
                         background: rgba(0, 0, 0, 0.9);
