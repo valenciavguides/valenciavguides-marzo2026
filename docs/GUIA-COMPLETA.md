@@ -6588,16 +6588,27 @@ ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
   -preset medium -crf 27 -an -movflags +faststart salida.mp4
 ```
 
-Verificado con `ffmpeg -bsf:v trace_headers`: `profile_idc=77` (Main, no High), `max_num_ref_frames=1`. Tamaño resultante para el clip de 17,6s: ~6 MB (algo más que la versión High/CRF30 de 4,3 MB, pero sigue siendo pequeño) — el objetivo aquí es fluidez de decodificación, no el mínimo tamaño posible.
+Verificado con `ffmpeg -bsf:v trace_headers`: `profile_idc=77` (Main, no High), `max_num_ref_frames=1`.
+
+**El CRF solo no basta para acotar el bitrate real.** La primera recodificación de `video_intro_ejemplo.mp4` con este perfil (`-crf 27`, sin límite explícito de bitrate) resolvió la fluidez de decodificación pero terminó en ~6 MB / **2,75 Mbps** de media — un vídeo con mucho movimiento de cámara, donde CRF (calidad constante) sube el bitrate en los tramos complejos sin techo. Verificado con throttle de red sostenido (Chrome DevTools Protocol, 700 kbps, latencia 200ms): el archivo se atasca a los ~4s de reproducción y no se recupera dentro de la ventana de espera del helper — un bitrate medio ya alto empeora más en los picos. La solución es acotar el bitrate explícitamente además del CRF, con `-maxrate`/`-bufsize` (encoding con techo, no solo con calidad objetivo):
+
+```bash
+ffmpeg -i entrada.mp4 -vf "scale=ANCHOxALTO" \
+  -c:v libx264 -profile:v main -level 3.1 -refs 1 -bf 0 \
+  -preset medium -crf 30 -maxrate 1100k -bufsize 2200k \
+  -an -movflags +faststart salida.mp4
+```
+
+Con este comando, `video_intro_ejemplo.mp4` bajó a ~2,4 MB / ~1,1 Mbps (duración idéntica, 17,57s) manteniendo `profile_idc=77`/`max_num_ref_frames=1`. Repetido el mismo throttle de 700 kbps: el vídeo ya no se atasca sin recuperación — sufre pausas breves de buffer (`waiting`→`playing` en bien menos de 1s cada vez, vía los listeners de `js/video-playback-utils.js`) pero termina de reproducirse hasta el final (`ended`). `-bufsize` en torno al doble de `-maxrate` es el valor de partida recomendado (controla cuánto puede ráfaga el encoder por encima de la media antes de que el limitador actúe).
 
 **Checklist obligatoria antes de subir CUALQUIER vídeo nuevo** (el de `sceneVid`, los futuros de dron por parada en `coordenadas-aventuras.js`, o cualquier vídeo que se aloje en el futuro backend/CDN — la checklist no depende de dónde se sirva el archivo):
 
 1. Resolución acorde al tamaño real de renderizado en pantalla — **no** la resolución nativa de la cámara/dron. Para el modal de vídeo del padre (`.video-contenedor`, ancho típico de unos cientos de px) o el de `sceneVid` (`max-height:60vh`), 480-720px de ancho es más que suficiente.
 2. **Perfil `main`, no `high`** (`-profile:v main`), **`-refs 1` o `2`, `-bf 0` o `2`** — prioriza compatibilidad de decodificación en hardware móvil sobre el mínimo tamaño de archivo. Un archivo algo más grande que se reproduce fluido es mejor que uno más pequeño que va a tirones.
-3. `-crf 27` a `-crf 30` con `-preset medium` (o `slow` si se controlan explícitamente `-refs`/`-bf`, para no perder el control de la complejidad de decodificación que el preset añade por su cuenta).
+3. `-crf 27` a `-crf 30` con `-preset medium` (o `slow` si se controlan explícitamente `-refs`/`-bf`, para no perder el control de la complejidad de decodificación que el preset añade por su cuenta) **junto con** `-maxrate`/`-bufsize` — el CRF solo no acota el bitrate en tramos de mucho movimiento; sin techo explícito, un clip con cámara en mano puede superar los 2,5 Mbps de media aunque el CRF sea moderado. Punto de partida: `-maxrate 1000k` a `1200k` para clips decorativos cortos en un modal pequeño; ajustar al alza solo si la calidad resultante no es aceptable.
 4. Sin pista de audio (`-an`) si el `<video>` de destino va a llevar `muted` (es el caso de `sceneVid`; verificar caso a caso para el overlay de vídeo de paradas).
 5. `-movflags +faststart` siempre.
-6. Verificar el resultado: `ffmpeg -bsf:v trace_headers -f null -` sobre el archivo final para confirmar `profile_idc=77` (Main) y `max_num_ref_frames` bajo (1-2) — no basta con mirar el tamaño o el bitrate. Revisar también 1-2 fotogramas extraídos para confirmar que la calidad visual sigue siendo aceptable al tamaño real de pantalla.
+6. Verificar el resultado: `ffmpeg -bsf:v trace_headers -f null -` sobre el archivo final para confirmar `profile_idc=77` (Main) y `max_num_ref_frames` bajo (1-2) — no basta con mirar el tamaño o el bitrate declarado. Revisar también 1-2 fotogramas extraídos para confirmar que la calidad visual sigue siendo aceptable al tamaño real de pantalla, y probar la reproducción bajo throttle de red (DevTools → Network → Slow 3G/velocidad personalizada baja) antes de dar el archivo por bueno — el bitrate medio que reporta `ffprobe` no revela por sí solo si el archivo se comporta bien en una conexión lenta real.
 
 ### Arquitectura de reproducción: una sola solución para cualquier duración de vídeo
 
