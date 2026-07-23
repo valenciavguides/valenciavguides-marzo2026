@@ -4340,7 +4340,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-103c04ac8368'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-746a772c870b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6520,7 +6520,7 @@ videos-aventuras/
 Vídeo de apertura que se muestra antes de empezar la aventura. Actualmente es un placeholder ("Próximamente"). Se carga desde la función `cargarVideoIntro()`.
 
 **Vídeos de paradas/tramos (overlay del padre, botón dron de hijo2):**  
-Cada parada o tramo puede tener un vídeo asociado mediante el campo `video` en `coordenadas-aventuras.js`. El botón `#btn-video` de `coordenadas-hijo2.html` (icono dron) lee ese campo y pide al padre `UI.ACCION_USUARIO { accion: 'reproducir-video', urlVideo }`; el padre lo reproduce en su **overlay de vídeo** (`globalThis.mostrarVideoOverlay()`, elemento `<video controls autoplay preload="metadata">` dentro de un overlay flotante), no en `En-busca-del-tesoro.html`. Actualmente el campo `video` está vacío (`""`) en todas las paradas de todas las aventuras — el botón muestra el mensaje de "sin contenido" (`_mostrarVideoSinUrl`) porque todavía no hay ningún vídeo de dron cargado en producción.
+Cada tramo puede tener un vídeo asociado mediante el campo `video` en `coordenadas-aventuras.js` — es una vista previa del camino (inicio→waypoints→fin) que el usuario recorrerá a continuación, pensada para verse antes de empezar a andar el tramo, no a mitad. El botón `#btn-video` de `coordenadas-hijo2.html` (icono dron) se activa cuando el tramo está activo y, al pulsarlo, lee ese campo y pide al padre `UI.ACCION_USUARIO { accion: 'reproducir-video', urlVideo }`; el padre lo reproduce en su **overlay de vídeo** (`globalThis.mostrarVideoOverlay()`, elemento `<video controls preload="auto">` dentro de un overlay flotante, sin `autoplay`), no en `En-busca-del-tesoro.html`. Actualmente el campo `video` está vacío (`""`) en todas las paradas de todas las aventuras — el botón muestra el mensaje de "sin contenido" (`_mostrarVideoSinUrl`) porque todavía no hay ningún vídeo de dron cargado en producción, pero toda la tubería (botón, mensaje, overlay, precarga — ver más abajo) ya está construida y funcionando en espera de que el campo deje de estar vacío.
 
 **Galería general:**  
 También hay una galería de vídeos independiente en `videos-valencia-historica.html`.
@@ -6572,31 +6572,46 @@ Verificado con `ffmpeg -bsf:v trace_headers`: `profile_idc=77` (Main, no High), 
 
 **Por qué no se descarga el archivo entero antes de reproducir:** un enfoque de `fetch()` + `blob()` + `URL.createObjectURL()` del vídeo completo garantizaría reproducción 100% desde memoria, pero no escala a los vídeos de 1-5 minutos previstos para el futuro (a varios Mbps, eso son decenas o cientos de MB) — forzar la descarga completa antes de reproducir introduciría una espera larga y mala experiencia, y necesitaría una solución distinta para cada duración de vídeo. El `<video>` mantiene su `src` apuntando directamente a la URL de red por eso: escala igual de bien a un clip de unos segundos que a uno de varios minutos, sin distinción de caso.
 
-**Solución global adoptada — `js/video-playback-utils.js`, función `reproducirVideoConBuffer(videoEl)`:** un único helper compartido, usado tanto por `sceneVid` (`video-intro.html`) como por `mostrarVideoOverlay()`/`_crearVideoOverlayEl()` (`codigo-padre.html`, botón dron de hijo2). El `<video>` mantiene su `src` apuntando directamente a la URL de red (nunca un blob) y `preload="auto"`, sin `autoplay`:
+**Solución global adoptada — `js/video-playback-utils.js`, función `reproducirVideoConBuffer(videoEl, { timeoutMs, maxReintentos })`:** un único helper compartido, usado tanto por `sceneVid` (`video-intro.html`) como por `mostrarVideoOverlay()`/`_crearVideoOverlayEl()` (`codigo-padre.html`, botón dron de hijo2). El `<video>` mantiene su `src` apuntando directamente a la URL de red (nunca un blob) y `preload="auto"`, sin `autoplay`:
 
 ```javascript
-export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
+export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000, maxReintentos = 2 } = {}) {
   return new Promise((resolve) => {
     // arranca en el primer evento que llegue: 'canplaythrough' (buffer suficiente
-    // para reproducir sin cortes, según el propio navegador), 'error' (fallo real
-    // de carga — no tiene sentido esperar más), o el timeout de seguridad (15s)
-    // si ninguno de los dos anteriores llega.
+    // para reproducir sin cortes, según el propio navegador) o el timeout de
+    // seguridad (15s, se reinicia en cada reintento) si no llega.
+    // 'error' (corte de red real, no un simple parón): en vez de rendirse,
+    // recarga el mismo src con video.load() hasta maxReintentos veces (backoff
+    // simple 600ms×intento) — solo se rinde y arranca con lo que haya tras
+    // agotar los reintentos.
     // Tras arrancar: listeners 'stalled'/'waiting' reintentan play() para
-    // recuperar de micro-cortes de red puntuales durante la reproducción.
+    // recuperar de micro-cortes de red puntuales durante la reproducción, y
+    // cualquier rechazo de .play() se registra vía logger (antes se tragaba
+    // en silencio, imposible de diagnosticar sin depuración remota).
   });
 }
 ```
 
 Este mecanismo **no depende del tamaño total del archivo** — solo espera a que el navegador confirme que tiene buffer suficiente para arrancar, igual para un clip de 17s que para uno de 5 minutos. Es host-agnóstico: funciona igual sirviendo desde GitHub Pages hoy que desde un backend/CDN futuro, siempre que el servidor soporte Range requests (estándar en prácticamente cualquier hosting HTTP).
 
+**Por qué reintenta en vez de solo informar del fallo:** un corte momentáneo de cobertura móvil (caminando por la calle, que es el uso real de esta app) es habitual y transitorio — verificado con una prueba real (dos fallos de red simulados seguidos de un tercer intento exitoso): el vídeo termina reproduciéndose con normalidad tras los reintentos, en vez de quedarse roto para siempre a la primera desconexión.
+
 **Dos casos borde corregidos tras revisión del flujo completo:**
 
-- **Acumulación de listeners `stalled`/`waiting` en `<video>` reutilizados:** `mostrarVideoOverlay()` reutiliza el mismo elemento `<video>` entre paradas distintas dentro de una misma aventura (no lo recrea cada vez). Los handlers `stalled`/`waiting` están definidos como funciones **con nombre a nivel de módulo** (no closures anónimas creadas en cada llamada) precisamente por esto: `addEventListener` con la misma referencia de función es un no-op la segunda vez (deduplica según especificación DOM), así que `reproducirVideoConBuffer()` puede llamarse muchas veces sobre el mismo elemento sin acumular listeners duplicados.
+- **Acumulación de listeners `stalled`/`waiting` en `<video>` reutilizados:** `mostrarVideoOverlay()` reutiliza el mismo elemento `<video>` entre paradas distintas dentro de una misma aventura (no lo recrea cada vez). Los handlers `stalled`/`waiting` están definidos como funciones **con nombre a nivel de módulo** (no closures anónimas creadas en cada llamada) precisamente por esto: `addEventListener` con la misma referencia de función es un no-op la segunda vez (deduplica según especificación DOM), así que `reproducirVideoConBuffer()` puede llamarse muchas veces sobre el mismo elemento sin acumular listeners duplicados. El listener de `error`, en cambio, se registra sin `{once:true}` a propósito: cada `video.load()` de reintento puede volver a disparar `error`, y hace falta seguir escuchándolo para reintentar de nuevo.
 - **`canplaythrough`/`error` llegando después de cerrar el overlay:** si el usuario cierra el vídeo (`cerrarVideoOverlay()` en el padre, o `clearOv()` tras pulsar "saltar intro" en `sceneVid`) mientras `reproducirVideoConBuffer()` todavía está esperando el buffer, el elemento se pausa y se elimina del DOM ~400ms después, pero la promesa pendiente sigue viva — un evento que llegue tarde podría hacer que `arrancar()` llame `.play()` sobre un `<video>` ya desconectado, reanudando la reproducción en memoria de forma invisible. `arrancar()` comprueba `videoEl.isConnected` antes de llamar `.play()` para evitarlo — si el elemento ya no está en el DOM, no hace nada.
 
-**Uso en `sceneVid`:** el `<video>` se crea con `display:none` y un spinner (`#vid-loading`) visible encima; al resolver `reproducirVideoConBuffer()`, se oculta el spinner y se muestra el vídeo ya reproduciéndose.
+### Precarga en segundo plano — el vídeo ya debe estar listo cuando el usuario lo pide
 
-**Uso en `mostrarVideoOverlay`:** tras `video.load()` (recargar con la nueva fuente), se llama a `globalThis.reproducirVideoConBuffer(video)` en vez de depender del atributo `autoplay` (quitado del `<video>` de `_crearVideoOverlayEl`). Guard defensivo: si `globalThis.reproducirVideoConBuffer` no está disponible por algún motivo, cae a `video.play()` directo.
+Esperar a `canplaythrough` resuelve la reproducción, pero no el tiempo de espera si la descarga solo empieza en el momento en que el usuario pulsa el botón. Los dos usos de `reproducirVideoConBuffer()` precargan el vídeo de fondo, en segundo plano, **antes** de que el usuario tenga forma de pedirlo — así el buffer ya existe (parcial o completo) cuando de verdad hace falta, y `reproducirVideoConBuffer()` en ese momento reutiliza ese buffer en vez de partir de cero.
+
+**En `codigo-padre.html` — `_precargarVideoParada(elementosIDpadre, parada, logPrefix)`:** llamada dentro de `_hdl_NAVEGACION_CAMBIO_PARADA`, junto a `_solicitarAudioParaParada` (mismo patrón, ya existente, que precarga el audio de cada elemento activado). El vídeo de un tramo es una vista previa del camino que hay que ver *antes* de empezar a andarlo, así que se precarga cuando se activa la **parada anterior** (no el tramo mismo — para entonces ya sería tarde): busca en `elementosIDpadre` el elemento siguiente al que se acaba de activar, y si es un tramo con `.video`, pone ese `src` en el `<video>` persistente de `#video-overlay` (creándolo si no existe, vía `_crearVideoOverlayEl()`) y llama a `video.load()` — sin mostrar el overlay, sin `.play()`. Preload nunca implica reproducción: nada en este camino llama a `.play()` hasta que el usuario pulsa el botón de verdad. El `<video>` lleva `fetchpriority="low"` durante la precarga, para no competir por ancho de banda con el audio de la parada actual (que el usuario está escuchando en ese momento, y sí es urgente); `mostrarVideoOverlay()` lo devuelve a `"auto"` en cuanto el usuario lo pide de verdad.
+
+`mostrarVideoOverlay()` comprueba si el `src` que se le pide ya coincide con lo que `_precargarVideoParada` dejó cargándose — si coincide, **no** vuelve a llamar `video.load()` (eso reiniciaría la descarga y tiraría el buffer ya conseguido), solo continúa directo a `reproducirVideoConBuffer()`. Si no coincide (el usuario pidió un vídeo que no se había precargado, o no había `.video` en el tramo siguiente), se comporta como antes: `source.src` nuevo + `video.load()`.
+
+**En `video-intro.html` — `_vidPreload`:** `sceneVid` es la escena 10 de 19, precedida por 9 escenas con varios segundos de animación deliberada cada una (zoom de botones, el guante recorriendo la pantalla). `run()` crea un `<video muted playsinline preload="auto">` oculto (`opacity:0`, `0×0`, sin mostrarlo) con el mismo `src` nada más arrancar, dándole toda la duración de esas 9 escenas para descargarse en segundo plano — en la práctica, para cuando el usuario llega a `sceneVid` suele estar ya bufferizado del todo. `sceneVid` deja un `<div id="vid-slot">` como marcador en su plantilla de overlay en vez de crear un `<video src=...>` nuevo, y tras `setOv(...)` mueve el elemento precargado a ese hueco con `slot.replaceWith(globalThis._vidPreload)` — `replaceWith` mueve el nodo real (no lo clona), así que conserva el buffer y el estado ya conseguidos. Si la precarga no llegó a crearse por algún motivo, cae al comportamiento anterior (crear el `<video>` ahí mismo).
+
+Verificado end-to-end con Playwright, no solo por lectura de código: el `<video>` de precarga alcanza `readyState 4` (buffer completo) en ~3s sobre una conexión local normal sin haberse mostrado ni reproducido nunca (`paused:true` durante toda la precarga); mover el elemento con `replaceWith` conserva `readyState`/buffer intactos; y pedir el mismo `src` que ya se estaba precargando no vuelve a disparar el evento `loadstart` (confirmando que no se reinicia la descarga).
 
 `js/video-playback-utils.js` está en `APP_SHELL` (`sw.js`) — se importa como módulo ES tanto en Script 1 de `codigo-padre.html` como en el `<script type="module">` de `video-intro.html` (que expone la función en `globalThis` para que el resto del archivo, que es un `<script>` clásico, pueda usarla).
 
@@ -6999,7 +7014,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-103c04ac8368'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-746a772c870b'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7613,7 +7628,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-103c04ac8368';
+const CACHE_VERSION = 'v-746a772c870b';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11063,7 +11078,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-103c04ac8368';
+const CACHE_VERSION = 'v-746a772c870b';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11920,7 +11935,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 - `showBubble(idx)` debe llamarse desde el `<script>` clásico, no desde el módulo ES, porque `_lang` y `$` son locales al clásico.
 - `scene2` (GPS/internet) ocupa la posición 2 del array `run()` — renombrada desde `scene7` para consistencia con el orden de display.
 - `sceneVid` **no** tiene atributo `loop`: por especificación, con `loop` el evento `ended` nunca se dispara, lo que dejaría `waitForVideoEnd()` muerto y la única salida real dependiendo de tocar la banda inferior. El vídeo dura 17,6 s reales; la escena avanza cuando termina (`ended`) o el usuario pulsa el botón siguiente (`waitForNextBtn`) — lo que ocurra primero (`Promise.race`). Si el usuario quiere volver a verlo, usa los controles nativos del `<video>`.
-- `sceneVid` usa `reproducirVideoConBuffer()` (`js/video-playback-utils.js`, ver §15) para arrancar la reproducción: el `<video>` tiene `src` de red desde el principio (`display:none` hasta que hay buffer suficiente) con un spinner (`#vid-loading`) visible encima; al resolver la promesa (evento `canplaythrough`, `error`, o timeout de 15s) se oculta el spinner y se muestra el vídeo ya reproduciéndose. Mismo helper que usa `mostrarVideoOverlay()` en `codigo-padre.html` — no hay descarga completa previa (blob), el mecanismo escala igual a vídeos de segundos que de minutos.
+- `sceneVid` usa `reproducirVideoConBuffer()` (`js/video-playback-utils.js`, ver §15) para arrancar la reproducción, sobre un `<video>` que no se crea en esta escena: `run()` lo precarga oculto desde el arranque de la intro (`globalThis._vidPreload`, ver §15) y `sceneVid` lo reutiliza moviéndolo a un hueco (`#vid-slot`) dentro de su overlay — para cuando el usuario llega aquí (escena 10 de 19) suele estar ya bufferizado del todo. Spinner (`#vid-loading`) visible mientras `reproducirVideoConBuffer()` resuelve (evento `canplaythrough`, `error` tras agotar reintentos, o timeout de 15s); al resolver se oculta el spinner y se muestra el vídeo ya reproduciéndose. Mismo helper que usa `mostrarVideoOverlay()` en `codigo-padre.html` — no hay descarga completa previa (blob), el mecanismo escala igual a vídeos de segundos que de minutos.
 - `#btn-skip` tiene dos niveles de activación: existe en DOM desde el inicio (`opacity:0.3 grayscale`) y pasa a `.on` (`opacity:1 sin filtro, pointer-events:auto`) solo al terminar la escena 4 (mapa vintage). Al pulsarlo, muestra `#end-btns` en lugar de llamar a `_continuarVideo()` directamente.
 - Los globos de `#end-btns` (rojo ↺ y verde ›) no tienen etiqueta de texto debajo — el área `.end-col` solo contiene el botón.
 

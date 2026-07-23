@@ -635,6 +635,8 @@ const G = {
   UR:VI+'guantelete_mira_oblicuo_arriba_derecha.png',
   UL:VI+'guantelete_mira_oblicuo_arriba_izquierda.png',
 };
+const VIDEO_INTRO_SRC = 'videos-aventuras/video_intro_ejemplo.mp4';
+
 const B = {
   b1:   AI+'H2-fotomapa-moderno.png',
   b2:   AI+'H2-fotomapa-vintage.png',
@@ -1439,11 +1441,31 @@ async function sceneVid(){
         <div id="vid-loading" style="max-height:60vh;aspect-ratio:9/16;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-size:0.85rem">
           <div style="width:2.2em;height:2.2em;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spinA .8s linear infinite"></div>
         </div>
-        <video class="float-video" style="max-height:60vh;display:none" src="videos-aventuras/video_intro_ejemplo.mp4" muted playsinline controls preload="auto"></video>
+        <div id="vid-slot"></div>
       </div>
     </div>`);
   });
-  const _vid = document.querySelector('.float-video');
+  // _vidPreload (creado al arrancar run(), ver más abajo) lleva descargándose de
+  // fondo desde el principio de la intro — para cuando el usuario llega aquí (9
+  // escenas después) ya suele estar bufferizado del todo. Reutilizarlo en vez de
+  // crear un <video src=...> nuevo evita tirar ese buffer y empezar de cero.
+  const _vidSlot = document.getElementById('vid-slot');
+  let _vid = globalThis._vidPreload;
+  if (_vidSlot && _vid) {
+    _vid.controls = true;
+    _vid.className = 'float-video';
+    _vid.style.cssText = 'max-height:60vh;display:none';
+    _vidSlot.replaceWith(_vid);
+  } else if (_vidSlot) {
+    // Fallback si la precarga no llegó a crearse (p.ej. error de arranque):
+    // mismo comportamiento que antes, crear el <video> desde cero aquí.
+    _vid = document.createElement('video');
+    _vid.className = 'float-video';
+    _vid.style.cssText = 'max-height:60vh;display:none';
+    _vid.muted = true; _vid.playsInline = true; _vid.controls = true; _vid.preload = 'auto';
+    _vid.src = VIDEO_INTRO_SRC;
+    _vidSlot.replaceWith(_vid);
+  }
   const _vidLoading = document.getElementById('vid-loading');
   if (_vid) {
     // reproducirVideoConBuffer (js/video-playback-utils.js, expuesta en globalThis
@@ -1893,6 +1915,21 @@ globalThis._skipVideoIntro = function() {
 
 async function run(){
   MC.init(); await wait(350);
+  // Precarga en segundo plano desde el arranque de la intro: sceneVid (P10) es
+  // la escena 10 de 19, así que el vídeo tiene 9 escenas de animación (varios
+  // segundos cada una) para descargarse antes de que el usuario llegue a verlo.
+  // Oculto y sin autoplay — preload solo descarga, nunca reproduce por sí solo.
+  try {
+    globalThis._vidPreload = document.createElement('video');
+    globalThis._vidPreload.muted = true;
+    globalThis._vidPreload.playsInline = true;
+    globalThis._vidPreload.preload = 'auto';
+    globalThis._vidPreload.style.cssText = 'position:fixed;width:0;height:0;opacity:0;pointer-events:none';
+    globalThis._vidPreload.src = VIDEO_INTRO_SRC;
+    document.body.appendChild(globalThis._vidPreload);
+  } catch (e) {
+    (globalThis.logger || console).warn('[video-intro] No se pudo precargar el vídeo de sceneVid:', e);
+  }
   const scenes=[scene1,scene2,scene3,scene4,scene5,scene8,scene9,
     scene10,sceneImg,sceneVid,
     scene11,scene12,sceneRetoMCQ,

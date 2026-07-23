@@ -2027,12 +2027,21 @@
             // Configurar video
             const video = overlay.querySelector('video');
             const source = video.querySelector('source');
-            source.src = urlVideo;
 
             // Manejar error de carga de video - Sin acción, mantener ventana abierta
             video.onerror = _videoLoadError.bind(null, urlVideo);
 
-            video.load(); // Recargar el video con la nueva fuente
+            // Si _precargarVideoParada (ver _hdl_NAVEGACION_CAMBIO_PARADA) ya dejó
+            // este mismo vídeo cargándose de fondo, reutilizar ese buffer en vez de
+            // reiniciar la descarga con video.load() — y devolver la prioridad a
+            // normal ahora que el usuario lo está pidiendo de verdad, no solo precargando.
+            const urlAbsoluta = new URL(urlVideo, globalThis.location.href).href;
+            if (source.src === urlAbsoluta) {
+                video.setAttribute('fetchpriority', 'auto');
+            } else {
+                source.src = urlVideo;
+                video.load(); // Recargar el video con la nueva fuente
+            }
 
             // Mostrar overlay
             overlay.classList.add('visible');
@@ -7732,7 +7741,7 @@ await _comprobarReanudacionAventura(logPrefix);
     <!-- Este script maneja inicialización del mapa y diagnósticos    -->
     <!-- ============================================================ -->
     <script type="module">
-        /* global showGpsSignalOverlay, limpiarDatosAventura */
+        /* global showGpsSignalOverlay, limpiarDatosAventura, _crearVideoOverlayEl, _videoLoadError */
         // Promesa que se resuelve cuando distribuirDatosAventura está lista.
         // Se crea aquí (síncrono, antes de cualquier await) para que Script 1
         // pueda awaitar sin polling ni timeout fijo.
@@ -9611,6 +9620,39 @@ await _comprobarReanudacionAventura(logPrefix);
             });
         }
 
+        // El vídeo de un tramo es una vista previa del camino (inicio→waypoints→fin)
+        // que el usuario debe poder ver ANTES de empezar a andarlo, no a mitad —
+        // así que se precarga en cuanto se activa la PARADA anterior (mientras el
+        // usuario escucha su audio y resuelve su reto), no cuando el tramo mismo
+        // se activa (para entonces ya sería tarde). fetchPriority:'low' evita que
+        // compita por ancho de banda con el audio de esa parada, que sí es urgente
+        // ahora mismo. Reutiliza el mismo <video> persistente de mostrarVideoOverlay
+        // (#video-overlay) sin mostrarlo — mostrarVideoOverlay reutiliza este mismo
+        // buffer si el usuario llega a pulsar el botón, en vez de reiniciar la descarga.
+        function _precargarVideoParada(elementosIDpadre, parada, logPrefix) {
+            if (!parada || parada.tipo !== 'parada' || !Array.isArray(elementosIDpadre)) return;
+            try {
+                const idx = elementosIDpadre.indexOf(parada);
+                const siguiente = idx >= 0 ? elementosIDpadre[idx + 1] : null;
+                if (!siguiente || siguiente.tipo !== 'tramo' || !siguiente.video || !siguiente.video.trim()) return;
+
+                let overlay = document.getElementById('video-overlay');
+                if (!overlay) overlay = _crearVideoOverlayEl();
+                const video = overlay.querySelector('video');
+                const source = video.querySelector('source');
+                const urlAbsoluta = new URL(siguiente.video, globalThis.location.href).href;
+                if (source.src === urlAbsoluta) return; // ya precargado/precargándose
+
+                video.setAttribute('fetchpriority', 'low');
+                video.onerror = _videoLoadError.bind(null, siguiente.video);
+                source.src = siguiente.video;
+                video.load();
+                (globalThis.logger || console).debug(`${logPrefix} Precargando vídeo del siguiente tramo (${siguiente.tramo_id || siguiente.id}): ${siguiente.video}`);
+            } catch (e) {
+                (globalThis.logger || console).warn(`${logPrefix} Error precargando vídeo del siguiente tramo:`, e);
+            }
+        }
+
         function _normalizarParadaDataResponse(paradaData, logPrefix) {
             try {
                 if (paradaData && paradaData.parada) return paradaData.parada;
@@ -9875,6 +9917,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const solicitudes = {};
                 const paradaDataPromise = _solicitarParadaAHijo2(parada, logPrefix);
                 _solicitarAudioParaParada(parada, estado, solicitudes, logPrefix);
+                _precargarVideoParada(_elementosIDpadre, parada, logPrefix);
                 const paradaData = await (paradaDataPromise || Promise.resolve(null));
                 solicitudes.audio?.catch(e => (globalThis.logger || console).warn(`${logPrefix} Audio fire-and-forget error:`, e));
                 const reto = null;

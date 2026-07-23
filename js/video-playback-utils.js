@@ -8,9 +8,17 @@
  * `stalled`/`waiting` reintentan `play()` para recuperar de micro-cortes de
  * red puntuales.
  *
- * Uso: reproducirVideoConBuffer(videoEl) — videoEl ya debe tener `src`
- * asignado (nunca un blob: eso obliga a descargar el archivo entero antes
- * de reproducir, lo cual no escala a vídeos largos).
+ * Si la carga falla del todo (evento `error` — corte de cobertura móvil,
+ * timeout de red), reintenta recargar el mismo `src` hasta `maxReintentos`
+ * veces con backoff simple, en vez de dejar el vídeo roto para siempre. Cada
+ * intento de recuperación (rechazo de `.play()`, error final tras agotar
+ * reintentos) se registra vía `logger` para poder diagnosticar fallos reales
+ * sin necesidad de depuración remota en el dispositivo.
+ *
+ * Uso: reproducirVideoConBuffer(videoEl, { timeoutMs, maxReintentos }) —
+ * videoEl ya debe tener `src` asignado (nunca un blob: eso obliga a
+ * descargar el archivo entero antes de reproducir, lo cual no escala a
+ * vídeos largos).
  */
 // Handlers de recuperación de micro-cortes, definidos una sola vez a nivel de
 // módulo (no dentro de reproducirVideoConBuffer). Si un mismo <video> se
@@ -23,12 +31,13 @@
 function _onStalled() { setTimeout(() => this.play().catch(() => {}), 300); }
 function _onWaiting() { setTimeout(() => this.play().catch(() => {}), 500); }
 
-export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
+export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000, maxReintentos = 2 } = {}) {
     return new Promise((resolve) => {
         if (!videoEl) { resolve(); return; }
 
         let resuelto = false;
         let timeoutId = null;
+        let reintentos = 0;
 
         const limpiar = () => {
             videoEl.removeEventListener('canplaythrough', onCanPlayThrough);
@@ -45,22 +54,48 @@ export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000 } = {}) {
             // ~400ms después de cerrar), no reanudar la reproducción de un
             // <video> pausado y desconectado solo porque canplaythrough llegó tarde.
             if (videoEl.isConnected === false) { resolve(); return; }
-            videoEl.play().catch(() => {});
+            videoEl.play().catch(err => {
+                (globalThis.logger || console).warn(`[video-playback-utils] .play() rechazado (${videoEl.currentSrc || videoEl.src}): ${err.name} — ${err.message}`);
+            });
             resolve();
         };
 
+        // Cada reintento reinicia el timeout de seguridad — un corte de red que
+        // se recupera a la primera o segunda no debe perder su ventana de espera
+        // solo porque el timeout original ya estaba corriendo desde antes del corte.
+        const rearmarTimeout = () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(arrancar, timeoutMs);
+        };
+
         const onCanPlayThrough = () => arrancar();
-        // Fallo real de carga (404, sin conexión, formato no soportado): no tiene
-        // sentido esperar los 15s completos — resolver ya para que la escena
-        // continúe y el usuario no se quede mirando el spinner.
-        const onError = () => arrancar();
+
+        // Fallo real de carga (404, corte de red, formato no soportado): un corte
+        // momentáneo de cobertura en móvil es habitual y no debe dejar el vídeo
+        // roto para siempre — reintentar recargando el mismo src (con backoff)
+        // antes de rendirse. Tras agotar los reintentos, arrancar igualmente
+        // (mismo comportamiento de antes) para no bloquear la escena indefinidamente.
+        const onError = () => {
+            if (resuelto) return;
+            if (reintentos >= maxReintentos) {
+                (globalThis.logger || console).warn(`[video-playback-utils] error de carga tras ${maxReintentos} reintentos, se arranca con lo que haya: ${videoEl.currentSrc || videoEl.src}`);
+                arrancar();
+                return;
+            }
+            reintentos++;
+            (globalThis.logger || console).warn(`[video-playback-utils] error de carga, reintento ${reintentos}/${maxReintentos}: ${videoEl.currentSrc || videoEl.src}`);
+            setTimeout(() => {
+                if (resuelto) return;
+                videoEl.load(); // reinicia la descarga desde el mismo src
+                rearmarTimeout();
+            }, 600 * reintentos);
+        };
 
         videoEl.addEventListener('canplaythrough', onCanPlayThrough, { once: true });
-        videoEl.addEventListener('error', onError, { once: true });
-        // Fallback: si canplaythrough no llega (algunos navegadores no lo disparan
-        // de forma fiable), arrancar de todos modos tras el timeout en vez de
-        // dejar la escena bloqueada indefinidamente.
-        timeoutId = setTimeout(arrancar, timeoutMs);
+        // NOT { once: true }: tras cada video.load() de reintento puede volver a
+        // dispararse 'error', y hace falta seguir escuchándolo para reintentar de nuevo.
+        videoEl.addEventListener('error', onError);
+        rearmarTimeout();
 
         // Recuperación de micro-cortes de red durante la reproducción — no
         // resuelve un bitrate inviable (eso se arregla en la codificación,
