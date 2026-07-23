@@ -4770,6 +4770,9 @@
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             return { lat: 39.47876, lng: -0.37626 };
         }
+        // Expuesta para Script 2 (_centrarEnParada/_centrarEnGPS la llaman bare;
+        // sin esto lanzaban ReferenceError — ver auditoría EJE 2).
+        globalThis._obtenerCoordenadasP0Fallback = _obtenerCoordenadasP0Fallback;
 
         // ID real de la parada de inicio de la aventura activa (nunca el literal 'P-0',
         // que no coincide con ningún id real — ver _obtenerCoordenadasP0Fallback).
@@ -4909,9 +4912,15 @@
         async function _obtenerPosicionInicialGPS(est, logPrefix) {
             try {
                 if (navigator.geolocation && typeof navigator.geolocation.getCurrentPosition === 'function') {
+                    // globalThis.Config nunca se asigna en ningún archivo del proyecto (ni
+                    // tampoco existen estos 3 campos en js/config.js) — gpsCfg es siempre {}
+                    // y estos valores por defecto son, en la práctica, los únicos que se usan.
+                    // Subidos tras confirmar en producción real (móvil, centro histórico) que
+                    // 2 intentos/~14s totales eran insuficientes para un GPS en frío al aire
+                    // libre — ver auditoría GPS 2026-07-23.
                     const gpsCfg = (globalThis.Config && globalThis.Config.GPS) ? globalThis.Config.GPS : {};
-                    const maxAttempts = Number(gpsCfg.HIGH_ACC_INIT_ATTEMPTS || 2);
-                    const baseTimeout = Number(gpsCfg.INIT_ATTEMPT_TIMEOUT_MS || 5000);
+                    const maxAttempts = Number(gpsCfg.HIGH_ACC_INIT_ATTEMPTS || 3);
+                    const baseTimeout = Number(gpsCfg.INIT_ATTEMPT_TIMEOUT_MS || 8000);
                     const acceptThreshold = gpsCfg.REJECT_ACCURACY_M || Infinity;
                     let initialAccepted = false;
                     for (let i = 0; i < maxAttempts; i++) {
@@ -5270,7 +5279,7 @@
             _gpsRetryOnTimeout(error, est, logPrefix);
 
             // Mostrar overlay de GPS sin señal / sin permiso (solo en modo AVENTURA) (§30.2/§30.3)
-            try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(error.code); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(error.code, error.message); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
             // Notificar error a hijos con capability 'gps' (si existen)
             try {
@@ -5401,7 +5410,7 @@
                 rejectActivacion && rejectActivacion(error);
                 // Si los permisos fueron denegados antes de iniciar watchPosition,
                 // _watchPositionError nunca se llama → mostrar overlay manualmente.
-                try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(1); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(1, error.message); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 throw error;
             } finally {
                 // Limpiar bandera de activación en curso
@@ -5664,7 +5673,7 @@
                             // congelado sin explicar qué pasó.
                             try {
                                 hideGpsOutOfRangeOverlay();
-                                if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2);
+                                if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2, err?.message);
                             } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                         }, { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 0 });
                     } catch (gerr) { (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error invocando getCurrentPosition:', gerr); }
@@ -5775,6 +5784,17 @@
             img.src = 'imagenes/imagenes-aplicación/imagen-no-gps.png';
             img.alt = 'GPS sin señal';
 
+            // TEMPORAL — diagnóstico para depurar fallos reales de GPS en producción
+            // (2026-07-23). Mensaje real del navegador (GeolocationPositionError.message)
+            // — el icono ya distingue la categoría (permiso/timeout/no disponible), esto
+            // añade el texto exacto que reporta el SO, para diagnosticar sin depender de
+            // que alguien tenga la consola abierta en el móvil. QUITAR antes de que la
+            // app tenga clientes reales — un cliente de pago no debe ver un mensaje de
+            // error técnico en inglés de la API del navegador. Ver GUIA-COMPLETA §22.0.
+            const detalle = document.createElement('div');
+            detalle.id = 'gps-signal-detalle';
+            detalle.style.cssText = 'font-size:0.75rem;color:rgba(0,0,0,0.55);text-align:center;margin-top:0.25rem;word-break:break-word;max-width:90vw;';
+
             const countdown = document.createElement('div');
             countdown.className = 'vv-overlay-countdown';
             countdown.id = 'gps-signal-countdown';
@@ -5835,7 +5855,7 @@
                         // cuenta atrás y, si volvía a fallar, la pantalla no cambiaba ni avisaba.
                         // Volvemos a mostrar el overlay con el código real para que quede claro
                         // que sí se reintentó y cuál es el motivo actual.
-                        try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2); } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
+                        try { if (typeof showGpsSignalOverlay === 'function') showGpsSignalOverlay(err?.code || 2, err?.message); } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
                     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
                 } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] Error en reintento:', e?.message); }
             });
@@ -5852,6 +5872,7 @@
             });
 
             inner.appendChild(img);
+            inner.appendChild(detalle);
             inner.appendChild(countdown);
             inner.appendChild(btn);
             inner.appendChild(closeBtn);
@@ -5859,7 +5880,7 @@
             document.body.appendChild(el);
         }
 
-        function showGpsSignalOverlay(errorCode) {
+        function showGpsSignalOverlay(errorCode, mensajeError) {
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
                 // Mostrar en AVENTURA o cuando el código ya fue validado en P13 (fase previa a aventura)
@@ -5867,6 +5888,8 @@
                 _ensureGpsSignalOverlay();
                 const el = document.getElementById('gps-signal-overlay');
                 if (!el) return;
+                const detalleEl = document.getElementById('gps-signal-detalle');
+                if (detalleEl) detalleEl.textContent = mensajeError ? String(mensajeError) : '';
                 const btn = document.getElementById('gps-signal-action');
                 if (btn) {
                     if (errorCode === 1) {
@@ -6856,6 +6879,14 @@
                 // progreso de la aventura. Se restaura al volver a AVENTURA, más abajo.
                 if (modo === MODOS.CASA) {
                     estado.paradaRealCongelada = estado.paradaActual || null;
+                    // _codigoValidadoP13 se pone a true justo antes de activarGPS() en P14
+                    // (guard para que showGpsSignalOverlay() no se calle si el GPS falla ahí,
+                    // antes de que el modo esté decidido) y nunca se resetea después — sin
+                    // esto, el overlay de "sin señal GPS" se sigue mostrando en CASA para
+                    // siempre, aunque CASA no necesite GPS. Al confirmar CASA, se resetea:
+                    // protege al cliente real durante la ventana de P14, sin seguir
+                    // interfiriendo una vez se sabe con certeza que estamos en CASA.
+                    globalThis._codigoValidadoP13 = false;
                 }
 
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
@@ -7966,7 +7997,10 @@ await _comprobarReanudacionAventura(logPrefix);
                     logger.info(`[PADRE][SNAPSHOT] ✅ Temporizador restaurado para hijo1: ${snap.tiempoRestante}s`);
                 }
                 if (hijoId === 'hijo2' && snap.paradaActual) {
-                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, origen: getPadreId(), destino: 'hijo2', datos: { paradaActual: snap.paradaActual, timestamp: Date.now() } });
+                    // parada_id (no paradaActual): el handler de hijo2 lee
+                    // datos.parada_id || datos.paradaId — con el nombre viejo
+                    // resolvía a null y la restauración no hacía nada (ver auditoría EJE 17).
+                    await enviarMensajePadre({ tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA, origen: getPadreId(), destino: 'hijo2', datos: { parada_id: snap.paradaActual, timestamp: Date.now() } });
                     logger.info(`[PADRE][SNAPSHOT] ✅ Parada restaurada para hijo2: ${snap.paradaActual}`);
                 }
                 if (hijoId === 'hijo3' && snap.audioActual) {
@@ -11004,7 +11038,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     await activarGPS();
                 } catch (gpsErr) {
                     (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
-                    showGpsSignalOverlay(1);
+                    showGpsSignalOverlay(1, gpsErr?.message);
                     return;
                 }
                 globalThis._iframesPreCargadosP14 = true;
