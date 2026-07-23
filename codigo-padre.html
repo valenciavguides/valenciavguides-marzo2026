@@ -5804,9 +5804,15 @@
             // que alguien tenga la consola abierta en el móvil. QUITAR antes de que la
             // app tenga clientes reales — un cliente de pago no debe ver un mensaje de
             // error técnico en inglés de la API del navegador. Ver GUIA-COMPLETA §22.0.
+            // La imagen de fondo (#gps-signal-overlay img) es position:absolute con
+            // width/height:100% y z-index:1000 — cubre toda la tarjeta y tapa
+            // cualquier elemento en flujo normal detrás suyo. Igual que el countdown
+            // y el botón de reintento (ambos position:absolute con z-index>1000),
+            // este texto necesita el mismo tratamiento o queda invisible detrás de
+            // la imagen aunque exista en el DOM.
             const detalle = document.createElement('div');
             detalle.id = 'gps-signal-detalle';
-            detalle.style.cssText = 'font-size:0.75rem;color:rgba(0,0,0,0.55);text-align:center;margin-top:0.25rem;word-break:break-word;max-width:90vw;';
+            detalle.style.cssText = 'position:absolute;top:0.75rem;left:50%;transform:translateX(-50%);z-index:1015;font-size:0.75rem;color:#fff;text-shadow:0 0.125rem 0.25rem rgba(0,0,0,0.9);background:rgba(0,0,0,0.55);padding:0.25rem 0.625rem;border-radius:0.5rem;text-align:center;word-break:break-word;max-width:85%;';
 
             const countdown = document.createElement('div');
             countdown.className = 'vv-overlay-countdown';
