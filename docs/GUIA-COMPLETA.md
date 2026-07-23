@@ -5742,16 +5742,16 @@ Antes de mostrar P14, `En-busca-del-tesoro.html` comprueba el permiso GPS con `n
 
 #### Si la posición inicial no llega a tiempo: fallback al punto de inicio
 
-`activarGPS()` intenta obtener una posición inicial de alta precisión con `_obtenerPosicionInicialGPS()`: hasta `CONFIG.GPS.HIGH_ACC_INIT_ATTEMPTS` intentos (por defecto 3) de `getCurrentPosition()`, cada uno con timeout creciente (`INIT_ATTEMPT_TIMEOUT_MS × 1.8^intento`, por defecto 8000ms base — ≈8s/14s/26s, ≈48s en el peor caso). `CONFIG.GPS.REJECT_ACCURACY_M` no está definido, así que el umbral de precisión equivale a `Infinity` en la práctica — este fallback solo se activa cuando `getCurrentPosition()` **falla** en todos los intentos (permiso denegado, sin señal, timeout), no por baja precisión.
+`activarGPS()` intenta obtener una posición inicial de alta precisión con `_obtenerPosicionInicialGPS()`: hasta `CONFIG.GPS.HIGH_ACC_INIT_ATTEMPTS` intentos (por defecto 3) de `getCurrentPosition()`, cada uno con timeout creciente (`INIT_ATTEMPT_TIMEOUT_MS × 1.8^intento`, por defecto 8000ms base — ≈8s/14s/26s, ≈48s en el peor caso: presupuesto pensado para un GPS en frío al aire libre en el centro histórico de Valencia, donde calles estrechas y edificios altos retrasan la primera adquisición de posición). `CONFIG.GPS.REJECT_ACCURACY_M` no está definido, así que el umbral de precisión equivale a `Infinity` en la práctica — este fallback solo se activa cuando `getCurrentPosition()` **falla** en todos los intentos (permiso denegado, sin señal, timeout), no por baja precisión.
 
-**`globalThis.Config` no se asigna en ningún archivo del proyecto** (verificado 2026-07-23, grep exhaustivo sin resultados) — ni tampoco existen `HIGH_ACC_INIT_ATTEMPTS`/`INIT_ATTEMPT_TIMEOUT_MS`/`REJECT_ACCURACY_M` en `js/config.js`. Los valores de arriba son, en la práctica, los únicos que se usan — no hay ningún sitio real donde configurarlos salvo editando directamente los `||` por defecto en `_obtenerPosicionInicialGPS()`. Subidos desde 2/5000ms tras confirmar en producción real (móvil, centro histórico de Valencia) que el presupuesto anterior (~14s totales) era insuficiente para un GPS en frío al aire libre.
+**`globalThis.Config` no se asigna en ningún archivo del proyecto**, ni tampoco existen `HIGH_ACC_INIT_ATTEMPTS`/`INIT_ATTEMPT_TIMEOUT_MS`/`REJECT_ACCURACY_M` en `js/config.js`. Los valores de arriba son, en la práctica, los únicos que se usan — no hay ningún sitio real donde configurarlos salvo editando directamente los `||` por defecto en `_obtenerPosicionInicialGPS()`.
 
-Cuando eso ocurre, dos cosas pasan ahora (antes del 2026-07-23 solo la segunda):
+Cuando el fallback se activa, pasan dos cosas:
 
-1. **`showGpsSignalOverlay()` se dispara con el error real** (código + `GeolocationPositionError.message` del último intento fallido, o un mensaje genérico si todos los intentos fallaron por precisión insuficiente sin error de navegador). Antes de este fix, este camino era completamente silencioso: el usuario no tenía ninguna pista de que su posición real no se había podido determinar — solo veía que el mapa lo centraba en un sitio que podía no ser el suyo. El mensaje del navegador es temporal (ver §22.14) — quitar antes de clientes reales.
+1. **`showGpsSignalOverlay()` se dispara con el error real** (código + `GeolocationPositionError.message` del último intento fallido, o un mensaje genérico si todos los intentos fallaron por precisión insuficiente sin error de navegador) — así el usuario tiene una pista de por qué su posición real no se pudo determinar, en vez de solo ver que el mapa lo centra en un sitio que puede no ser el suyo. El mensaje del navegador es temporal (ver §22.14) — quitar antes de clientes reales.
 2. `_aplicarFallbackCoordenadasGPS()` centra al usuario en el **punto de inicio real** de la aventura activa (Torres de Serranos u homólogo), nunca en un identificador fijo:
    1. Pide a hijo2 las coordenadas del id de inicio real, resuelto dinámicamente con `_idParadaInicioAventura()` (busca `tipo === 'inicio'` en los datos de la aventura activa).
-   2. Si hijo2 no responde a tiempo o falla, cae a `_obtenerCoordenadasP0Fallback()` — versión local sin round-trip: busca el mismo `tipo === 'inicio'` directamente en `globalThis.__vv_coordenadasAventura` / `AVENTURA_PARADAS`. Expuesta en `globalThis` desde el 2026-07-23 (antes solo era visible desde Script 1; llamarla desde Script 2 lanzaba `ReferenceError` — ver auditoría GPS de esa fecha).
+   2. Si hijo2 no responde a tiempo o falla, cae a `_obtenerCoordenadasP0Fallback()` — versión local sin round-trip: busca el mismo `tipo === 'inicio'` directamente en `globalThis.__vv_coordenadasAventura` / `AVENTURA_PARADAS`. Expuesta en `globalThis` para ser accesible desde cualquiera de los 4 scripts de `codigo-padre.html`, no solo desde el script donde se declara.
    3. Si ni siquiera eso encuentra datos (aventura aún sin cargar), usa una coordenada fija de Valencia como último recurso.
 
 Los nombres de ambas funciones conservan el sufijo histórico "P0"/"P-0", pero ninguna compara ya contra ese literal — buscan `tipo === 'inicio'` en los datos reales de la aventura. Comparar contra el string `'P-0'` nunca puede funcionar: el id real de la parada de inicio siempre lleva el prefijo de la aventura (`Av1-P-0`, `Av34km-P-0`...); `padreid` usa `'padre-P0'` sin guion, y tampoco coincide con `'P-0'` a secas.
@@ -6454,17 +6454,22 @@ Todas las ventanas flotantes con texto (`.reto-box`, cuadro P6, P12, P13, mapa v
 - **Safe area inferior — cobertura completa:** la variable `--gap-inferior` (definida como `calc(1.5rem + env(safe-area-inset-bottom, 0px))` en `En-busca-del-tesoro.html` y en `codigo-padre.html`) está aplicada en **todos** los elementos que llegan al borde inferior: `.pantalla` base (cubre las 17 pantallas de una vez), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay`, `#audio-warning-overlay`, `#gps-restricted-overlay` (`codigo-padre.html`), `#monumento-overlay` (`mapa-completo.html`) y el botón de continuar del puzzle P6.
 - **Ancho de botones/pestañas de selección de aventura:** `width: 95vw; max-width: 95vw` para aprovechar toda la pantalla del móvil.
 
-#### Viewport dinámico — `100dvh` en pantallas de entrada y puzzle
+#### Viewport dinámico — `100dvh`/`100dvw` en pantallas de entrada, puzzle y overlays de pantalla completa
 
 iOS Safari calcula `100vh` incluyendo la barra del navegador (dirección + controles), lo que provoca que el contenido quede cortado o desborde en pantalla completa. La solución es declarar `height: 100dvh` inmediatamente después de `height: 100vh` — los navegadores modernos usan el segundo valor (viewport dinámico que excluye la UI del navegador); los antiguos ignoran `dvh` y usan `100vh`.
 
-Este patrón está aplicado en:
+**El mismo problema existe en el eje horizontal, y no es solo cosa de iOS.** En Chrome Android, cuando la barra de direcciones cambia de tamaño al hacer scroll, `width: 100vw` puede calcularse más ancho que el área realmente visible — el centrado flexbox de un overlay a pantalla completa queda entonces empujado fuera de lo visible (solo se ve una tira estrecha de uno de los bordes, con cualquier botón que viva ahí dentro — fácil de confundir con "el botón está mal colocado" cuando en realidad todo el overlay está desplazado). La solución es la misma que para la altura: declarar `width: 100dvw` inmediatamente después de `width: 100vw`.
+
+Este patrón (`100vh`+`100dvh`, y donde aplica también `100vw`+`100dvw`) está aplicado en:
 
 - **`En-busca-del-tesoro.html`**: `.pantalla` (cubre las 17 pantallas de entrada), `#pantalla11 .audio-overlay`, `#mapa-vintage-overlay` y `#audio-warning-overlay`.
 - **`puzzle.html`** (`body`): además de la doble declaración de altura, añade `padding-bottom: env(safe-area-inset-bottom, 0px)` y `box-sizing: border-box` para que el puzzle no quede bajo el indicador de inicio de iOS cuando se carga como iframe a pantalla completa desde `retos-hijo4.html`.
+- **`codigo-padre.html`** (ambos ejes, `100dvw` y `100dvh`): `#mapa`, `#gps-out-of-range-overlay`, `#gps-signal-overlay`, `#internet-overlay`, `#gps-restricted-overlay`, `.backdrop`, `.media-overlay`, `#modal-tiempo-agotado`.
 
 ```css
-/* Patrón correcto — no simplificar a solo uno de los dos valores */
+/* Patrón correcto — no simplificar a solo uno de los dos valores por eje */
+width: 100vw;
+width: 100dvw;
 height: 100vh;
 height: 100dvh;
 ```
@@ -7816,9 +7821,16 @@ La única solución es un **paso de compilación con Babel** que transpile la si
 
 ### 22.14 Quitar el mensaje de error real de GPS del overlay (diagnóstico temporal)
 
-`showGpsSignalOverlay(errorCode, mensajeError)` pinta el `GeolocationPositionError.message` real del navegador en `#gps-signal-detalle`, dentro del overlay de "sin señal GPS". Se añadió el 2026-07-23 para diagnosticar en producción un caso real (permiso concedido, modo de ubicación en alta precisión, y aun así fallos repetidos de `getCurrentPosition` al aire libre) sin depender de que alguien tenga la consola del navegador abierta en el móvil.
+`showGpsSignalOverlay(errorCode, mensajeError)` pinta el `GeolocationPositionError.message` real del navegador en `#gps-signal-detalle`, dentro del overlay de "sin señal GPS". Es una ayuda de diagnóstico para producción — permite ver la causa exacta de un fallo de GPS real (permiso concedido, modo de ubicación en alta precisión, y aun así fallos repetidos de `getCurrentPosition`) sin depender de que alguien tenga la consola del navegador abierta en el móvil.
 
 Es diagnóstico, no una pantalla pensada para un cliente final: expone un mensaje técnico en inglés de la API del navegador (p.ej. "Timeout expired"), que no aporta nada útil a un usuario de pago y rompe el tono del resto de la interfaz. **Quitar antes de que la app tenga clientes reales**: en `_ensureGpsSignalOverlay()` eliminar la creación de `#gps-signal-detalle`, y en cada llamada a `showGpsSignalOverlay(...)` quitar el segundo argumento (el propio parámetro `mensajeError` puede quedarse sin usar o retirarse también, según se prefiera).
+
+**Dónde se dispara:** en dos sitios, cubriendo tanto la pérdida de señal durante la aventura como el fallo de la primera búsqueda de posición.
+
+1. Desde `_watchPositionError` (el `watchPosition` continuo) y los botones de reintento manual del propio overlay — la señal se pierde mientras el usuario ya está en marcha.
+2. Desde `_obtenerPosicionInicialGPS()`: si los `HIGH_ACC_INIT_ATTEMPTS` intentos de `getCurrentPosition()` fallan todos, dispara el overlay con el error real del último intento (o un mensaje genérico si el fallo fue por precisión insuficiente, sin error de navegador propiamente dicho) antes de aplicar el fallback a coordenadas de inicio en `_aplicarFallbackCoordenadasGPS()`. `_gpsIntentarPosicion()` devuelve `{ok, error}` en vez de un booleano suelto precisamente para que este segundo punto tenga acceso al error real de cada intento.
+
+**Posicionamiento del texto:** `#gps-signal-overlay img` es `position:absolute; width:100%; height:100%; z-index:1000` — cubre toda la tarjeta. Por eso `#gps-signal-detalle`, igual que el botón de reintentar y la cuenta atrás, necesita su propio `position:absolute` con `z-index` por encima de la imagen (1015, entre la imagen y el resto de controles) para ser visible — cualquier elemento en flujo normal sin ese tratamiento queda pintado detrás de la imagen aunque exista en el DOM. Se muestra como píldora oscura semitransparente con texto blanco en la parte superior de la tarjeta, mismo tratamiento visual que la cuenta atrás, para leerse encima de cualquier imagen de fondo.
 
 ---
 
@@ -8121,7 +8133,7 @@ Aparece el overlay de carga (`#overlay-carga-aventura`) con el logo giratorio na
 2. Distribuye datos de aventura a los hijos (`distribuirDatosAventura()`)
 3. Hace visible hijo5 (`display:block; visibility:visible`)
 4. Llama `await _vv_triggerCambioModo(MODOS.CASA)` — todos los hijos reciben `CAMBIO_MODO(CASA)` y responden con `ENTENDIDO` + `EFECTUADO`
-5. ⚠️ **Pendiente:** resetea `globalThis._codigoValidadoP13 = false` — a partir de aquí el overlay de GPS solo se mostrará en modo AVENTURA (ver estado GPS más abajo)
+5. `_hdl_SISTEMA_CAMBIO_MODO` resetea `globalThis._codigoValidadoP13 = false` al confirmar CASA — a partir de aquí el overlay de GPS solo se muestra en modo AVENTURA (ver estado GPS más abajo)
 6. Oculta el overlay de carga (`hideParentLoadingOverlay()`)
 
 El spin dura lo que necesite — no hay timeout fijo. Solo desaparece cuando todos los pasos anteriores han completado. Esto garantiza que cuando el desarrollador ve la UI, el estado está completamente inicializado.
