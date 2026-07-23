@@ -7253,6 +7253,7 @@ proyecto/
 │   └── e2e/                          ← Tests Playwright (11 suites)
 │
 └── docs/                             ← Esta documentación
+    └── aventuras_ordenado/           ← Guiones legibles por aventura + tramos-para-videos.md — generados, no se editan a mano (ver §21)
 ```
 
 ---
@@ -7306,6 +7307,8 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run verificar-docs` | Señala qué secciones de esta guía mencionan ficheros HTML/JS/CSS cambiados en la sesión/rama actual (`tools/verificar-docs.js`) — no verifica que el texto sea correcto, solo evita el fallo de no pararse a mirar. Admite `--since=REF` para comparar contra un punto concreto |
 | `npm run build:sw` | Recalcula `CACHE_VERSION` a mano desde el working tree (`tools/build-sw.js`) — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
 | `npm run dev:watch` | Vigila `sw.js` y `APP_SHELL` y recalcula `CACHE_VERSION` en vivo mientras se desarrolla (`tools/watch-sw.js`) |
+| `npm run generar-guiones` | Regenera `docs/aventuras_ordenado/AventuraN.md` (`tools/generar-guiones-aventuras.mjs`) — cruza coordenadas, textos y párrafos de las 7 aventuras en un guión legible. Ver §21.2 |
+| `npm run generar-tramos-video` | Regenera `docs/aventuras_ordenado/tramos-para-videos.md` (`tools/generar-tramos-para-videos.mjs`) — lista los recorridos físicos únicos de todas las aventuras, para planificar dónde grabar. Ver §21.2 |
 
 > `postinstall` (`tools/install-hooks.js`) instala el hook de pre-commit que mantiene `CACHE_VERSION` al día automáticamente — se ejecuta solo tras `npm install`, sin acción manual. Ver §21.1 para el sistema completo.
 
@@ -7329,6 +7332,16 @@ Antes de este sistema, `CACHE_VERSION` se actualizaba a mano: editar el string e
 **`tools/watch-sw.js`** (`npm run dev:watch`) usa `fs.watch` sobre `sw.js` y cada fichero de `APP_SHELL`, con un debounce de 300ms para no recalcular en cada evento suelto del filesystem. Llama al mismo núcleo en modo working-tree (sin `--staged`, no tiene sentido leer del índice de git en modo desarrollo) y no hace `git add` — el usuario decide cuándo commitear.
 
 **Verificado end-to-end antes de dar el sistema por bueno** (no solo que compile): `computeCacheVersion` es determinista (mismo resultado en dos llamadas sin cambios); tras la normalización CRLF→LF, el modo `--staged` y el modo working-tree dan el mismo hash sobre el mismo estado del repositorio; `npm run build:sw` actualiza `sw.js` y las 4 referencias de este documento a la vez, con el mismo valor, y una segunda ejecución sin cambios reporta "ya está al día" sin reescribir nada; `install-hooks.js` es idempotente y no pisa un hook ajeno; una prueba real con un cambio staged y el hook ejecutado directamente confirmó que recalcula y vuelve a hacer `git add` correctamente — durante esa prueba se encontró y corrigió un bug real: `execFileSync` tiene un límite por defecto de 1MB de buffer, que ficheros reales de `APP_SHELL` como `audios-aventuras.js` o `aventuras-ID-padre.js` (~1,8MB cada uno) superan sin problema, lanzando `ENOBUFS` en silencio (capturado como "fichero no se pudo leer"); corregido con un `maxBuffer` explícito de 64MB. Prueba adicional para el vaivén dev:watch/hook: con `tools/watch-sw.js` corriendo en segundo plano, se ejecutó un commit real y se esperó a que pasara el debounce de 300ms — `git status` quedó limpio, confirmando que la normalización lo cierra incluso con los dos procesos activos a la vez.
+
+---
+
+### 21.2 `docs/aventuras_ordenado/` — guiones legibles y planificación de vídeo, generados
+
+Los ficheros de `docs/aventuras_ordenado/` no son fuente de verdad — se generan cruzando `coordenadas-aventuras.js`, `textos-aventuras.js`, `indice-aventuras.js` y `parrafos-textos/parrafos-texto-espanol.json`, y se regeneran con `npm run generar-guiones`/`npm run generar-tramos-video` cada vez que cambia algún dato de aventuras (nueva parada, párrafo reescrito, imagen distinta). Editarlos a mano no tiene efecto la próxima vez que se regeneran.
+
+**`AventuraN.md`** (uno por aventura: `Aventura1` a `Aventura5`, `AventuraFallas`, `Aventura34km`) — el guión completo de esa aventura en orden real de recorrido: cada Parada y Tramo con su nombre, sus imágenes y el texto en español de cada párrafo que usa (buscado por número, incluidas variantes con sufijo como `682-B`). `tools/generar-guiones-aventuras.mjs` empareja los IDs de `coordenadas-aventuras.js` (`Av1-P-0`, `Av1-TR-1`) con los de `textos-aventuras.js` (`txt-Av1-P0`, `txt-Av1-TR1`) quitando el guion antes del número — el mismo patrón vale para las 7 aventuras, incluidas `AvFallas-P-0`/`Av34km-P-0`. No incluye los marcadores `referencia` del mapa completo ni los párrafos de intro (no pertenecen a ninguna parada/tramo concreto).
+
+**`tramos-para-videos.md`** — un único documento con los tramos de las 7 aventuras, deduplicados por recorrido físico real (mismo `inicio` + `waypoints` + `fin`, comparados como números — no como texto, porque el mismo punto puede estar escrito `'39.47921'` en una aventura y `'39.479210'` en otra). Si dos tramos son geométricamente idénticos, el usuario ve exactamente lo mismo yendo de A a B, así que un solo vídeo sirve para ambos — se listan una sola vez, con todas las aventuras/tramos donde aparecen. Pensado para decidir dónde grabar: de los 239 tramos de las 7 aventuras, 153 son recorridos físicos únicos (86 duplicados). Ordenado por número de reutilizaciones — los recorridos que cubren más aventuras de golpe van primero. Ningún tramo tiene aún vídeo asignado (`video: ""` en las 239 entradas de `coordenadas-aventuras.js`); este documento es el punto de partida para grabarlos.
 
 ---
 
