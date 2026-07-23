@@ -2331,6 +2331,18 @@
         text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
     }
 
+    #loading-frase-carga {
+        font-size: clamp(0.85rem, 3.2vmin, 1.05rem);
+        font-style: italic;
+        color: #fff;
+        text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+        text-align: center;
+        min-height: 1.4em;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        max-width: 90vw;
+    }
+
     #loading-details {
         font-size: 0.9375rem;
         color: rgba(255, 255, 255, 0.85);
@@ -2461,6 +2473,7 @@
         <div id="loading-progress-wrap" aria-label="Progreso de carga">
             <progress id="loading-progress-bar" max="100" value="0" aria-label="Carga"></progress>
             <div id="loading-progress-percent">0%</div>
+            <div id="loading-frase-carga"></div>
         </div>
         <div id="loading-text" style="display:none;"></div>
         <div id="loading-details" style="display:none;"></div>
@@ -2659,6 +2672,7 @@
                     <div id="loading-progress-wrap" aria-label="Progreso de carga">
                         <progress id="loading-progress-bar" max="100" value="0" aria-label="Carga"></progress>
                         <div id="loading-progress-percent">0%</div>
+                        <div id="loading-frase-carga"></div>
                     </div>
                     <div id="loading-text" style="display:none;"></div>
                     <div id="loading-details" style="display:none;"></div>
@@ -2668,7 +2682,53 @@
             return overlay;
         };
 
-        globalThis.showParentLoadingOverlay = (message = '', details = '', progress = 8) => {
+        // Mismas frases rotatorias que la pantalla de reanudación (ver
+        // mostrarDialogoReanudacion/ejecutarReanudacion) — es el mismo componente
+        // visual (logo redondo + barra fake) en distintos momentos de espera, así
+        // que comparte el mismo banco de frases en vez de tener uno propio.
+        let _loadingFraseTimer = null;
+        let _loadingUltimaFraseIdx = -1;
+        const _resolverIdiomaLoadingOverlay = (idioma) => {
+            if (idioma) return idioma;
+            if (globalThis.idiomaSeleccionado) return globalThis.idiomaSeleccionado;
+            try { return localStorage.getItem('vv_idioma') || 'es'; } catch (_e) { return 'es'; }
+        };
+        const _iniciarFrasesLoadingOverlay = (idioma) => {
+            if (_loadingFraseTimer) { clearInterval(_loadingFraseTimer); _loadingFraseTimer = null; }
+            const t = TRADUCCIONES_REANUDACION[_resolverIdiomaLoadingOverlay(idioma)] || TRADUCCIONES_REANUDACION['es'];
+            const frasesCarga = Array.isArray(t.frasesCarga) ? t.frasesCarga : [];
+            const fraseEl = document.getElementById('loading-frase-carga');
+            if (!fraseEl || frasesCarga.length === 0) return;
+            _loadingUltimaFraseIdx = -1;
+            const mostrarFraseAleatoria = () => {
+                let idx = Math.floor(Math.random() * frasesCarga.length);
+                if (frasesCarga.length > 1 && idx === _loadingUltimaFraseIdx) {
+                    idx = (idx + 1) % frasesCarga.length;
+                }
+                _loadingUltimaFraseIdx = idx;
+                fraseEl.style.opacity = '0';
+                setTimeout(() => {
+                    fraseEl.textContent = frasesCarga[idx];
+                    fraseEl.style.opacity = '1';
+                }, 400);
+            };
+            mostrarFraseAleatoria();
+            _loadingFraseTimer = setInterval(mostrarFraseAleatoria, 5000);
+        };
+        const _detenerFrasesLoadingOverlay = () => {
+            if (_loadingFraseTimer) { clearInterval(_loadingFraseTimer); _loadingFraseTimer = null; }
+            const fraseEl = document.getElementById('loading-frase-carga');
+            if (fraseEl) { fraseEl.style.opacity = '0'; fraseEl.textContent = ''; }
+        };
+
+        // El overlay de carga inicial (arranque en frío) ya está visible en el
+        // HTML desde el primer pintado, sin pasar por showParentLoadingOverlay —
+        // así que sus frases arrancan aquí mismo. Aún no hay idioma elegido por el
+        // usuario en esta sesión; _resolverIdiomaLoadingOverlay cae al último
+        // idioma guardado en localStorage o a español.
+        _iniciarFrasesLoadingOverlay();
+
+        globalThis.showParentLoadingOverlay = (message = '', details = '', progress = 8, idioma = null) => {
             const overlay = ensureLoadingOverlay();
             if (overlay) {
                 overlay.style.display = 'flex';
@@ -2677,10 +2737,12 @@
             if (document.body) document.body.classList.add('loading');
             _setLoadingProgress(progress);
             _setLoadingTexts(message, details);
+            _iniciarFrasesLoadingOverlay(idioma);
         };
 
         globalThis.hideParentLoadingOverlay = () => {
             const overlay = document.getElementById('loading-overlay');
+            _detenerFrasesLoadingOverlay();
             if (overlay) {
                 overlay.style.transition = 'opacity 0.5s';
                 overlay.style.opacity = '0';
@@ -11089,7 +11151,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 if (!aventura) { (globalThis.logger || console).error(`${logPrefix} No se especificó aventura`); _aventuraEnProceso = false; return; }
 
-                globalThis.showParentLoadingOverlay?.('Preparando aventura...', 'Cargando componentes principales', 12);
+                globalThis.showParentLoadingOverlay?.('Preparando aventura...', 'Cargando componentes principales', 12, idioma || 'es');
 
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.aventura = aventura;

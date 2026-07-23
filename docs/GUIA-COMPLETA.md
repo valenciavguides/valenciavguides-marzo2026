@@ -4194,7 +4194,15 @@ Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre mue
 
 Verificado end-to-end con Playwright (GPS simulado, `vv_aventura_iniciada`/`vv_progreso` en `localStorage` antes de cargar la página): tras pulsar "continuar", el modo, `indiceProgreso` y el GPS (`watchId` real) quedan exactamente como estaban antes de cerrar la app. Verificado también con vigilancia continua por `requestAnimationFrame` (2779 muestras a lo largo de todo el proceso) que hijo5 nunca llega a hacerse visible en ningún instante — para un cliente real (`_devModeActivo` nunca activo tras un cierre/reapertura, es una variable en memoria que no sobrevive a la recarga), `_activarModoRest` calcula siempre `MODOS.AVENTURA`, nunca `MODOS.CASA`.
 
-**Frases aleatorias durante la espera** — bajo la barra de progreso (`#restore-frase-carga`), una frase ambientada ("Abriendo portales al pasado...", etc.) cambia cada 5 segundos mientras dura la restauración, para entretener al usuario durante una espera de duración impredecible. El texto sale de `TRADUCCIONES_REANUDACION[idioma].frasesCarga` (13 frases × 12 idiomas, `js/traducciones-ui.js`) — el mismo idioma que el resto del diálogo de reanudación. La selección es aleatoria pero nunca repite la misma frase dos veces seguidas. `font-size` usa `clamp(0.85rem,3.2vmin,1.05rem)` — nunca un tamaño fijo, se adapta a la pantalla. El `setInterval` de rotación se limpia en el mismo `finally` que ya limpiaba el de la barra de progreso, así que no sigue corriendo tras cerrar el overlay.
+**Frases aleatorias durante la espera — todas las pantallas de carga (logo redondo + barra fake)**
+
+El padre solo tiene un diseño de "pantalla de carga": círculo naranja con el logo girando, barra de progreso que nunca es un porcentaje real, y una frase ambientada rotando debajo. Ese mismo componente visual aparece en tres momentos, y los tres muestran las frases con idéntico mecanismo:
+
+1. **Arranque en frío** (`#loading-overlay`, visible desde el primer pintado del HTML, antes de que exista ningún idioma elegido en la sesión) — sus frases arrancan con `_iniciarFrasesLoadingOverlay()` invocado directamente en el cuerpo del módulo (Script 1), justo después de definir el mecanismo.
+2. **Preparación de aventura tras P15** (`showParentLoadingOverlay('Preparando aventura...', ..., idioma)`, ver diagrama §9.5) — aquí el idioma ya se conoce (viene en `mensaje.datos.idioma` de `SELECCION.AVENTURA_ACTIVADA`) y se pasa explícitamente.
+3. **Reanudación de sesión** (`#restore-frase-carga`, dentro de `ejecutarReanudacion()`, ver más arriba) — implementación propia porque este overlay vive en un `Promise` anidado distinto, no en `showParentLoadingOverlay`, pero comparte el mismo banco de frases.
+
+El texto sale siempre de `TRADUCCIONES_REANUDACION[idioma].frasesCarga` (13 frases × 12 idiomas, `js/traducciones-ui.js`). Cuando no hay idioma explícito (caso 1), `_resolverIdiomaLoadingOverlay()` cae a `globalThis.idiomaSeleccionado`, luego a `localStorage['vv_idioma']` (el último idioma que el usuario eligió en una sesión anterior), y por último a español. La selección de frase es aleatoria pero nunca repite la misma dos veces seguidas, cambia cada 5 segundos, y `font-size` usa `clamp(0.85rem,3.2vmin,1.05rem)` — nunca un tamaño fijo, se adapta a la pantalla. `showParentLoadingOverlay()` arranca la rotación (reiniciándola si ya había una corriendo) y `hideParentLoadingOverlay()` la detiene junto con el resto del estado visual del overlay — igual que la reanudación limpia su propio `setInterval` en el `finally` que envuelve la restauración.
 
 **`_restoreBroadcast` y el pipeline CAMBIO_PARADA en restauración**
 
@@ -4345,7 +4353,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5e87e08d7934'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3942a82d0829'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7037,7 +7045,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5e87e08d7934'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3942a82d0829'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7651,7 +7659,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5e87e08d7934';
+const CACHE_VERSION = 'v-3942a82d0829';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11102,7 +11110,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-5e87e08d7934';
+const CACHE_VERSION = 'v-3942a82d0829';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

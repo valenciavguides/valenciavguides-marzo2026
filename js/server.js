@@ -79,9 +79,23 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Decodificar %XX (rutas con tildes/ñ, p.ej. imagenes-aplicación) ANTES de
+  // cualquier comprobación. Sin esto, isProtectedFile y fs.readFile comparan/abren
+  // la cadena codificada literal (que nunca coincide con el nombre real en disco
+  // → 404 en ficheros que sí existen, y es además un posible bypass de protección
+  // vía %2e%2e si PROTECT_DATA=true).
+  let urlPath;
+  try {
+    urlPath = decodeURIComponent(req.url.split('?')[0]);
+  } catch (e) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: true, codigo: 'RUTA_INVALIDA', mensaje: 'URL mal formada.' }));
+    return;
+  }
+
   // Bloquear acceso a archivos sensibles en producción
-  if (isProtectedFile(req.url)) {
-    console.warn(`🚫 Acceso bloqueado a archivo protegido: ${req.url}`);
+  if (isProtectedFile(urlPath)) {
+    console.warn(`🚫 Acceso bloqueado a archivo protegido: ${urlPath}`);
     res.writeHead(403, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       error: true,
@@ -92,7 +106,6 @@ const server = http.createServer((req, res) => {
   }
 
   // Determine file path — con protección contra path traversal
-  const urlPath = req.url.split('?')[0]; // eliminar query string antes de resolver
   const safePath = path.resolve('.', '.' + urlPath);
   const rootPath = path.resolve('.');
   if (!safePath.startsWith(rootPath + path.sep) && safePath !== rootPath) {
