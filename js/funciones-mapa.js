@@ -2610,78 +2610,6 @@ export async function manejarGPSActivar(mensaje) {
 }
 
 /**
- * Maneja la desactivación del GPS real
- * @param {Object} mensaje - Mensaje de desactivación GPS
- * @returns {Object} Resultado de la operación
- */
-export async function manejarGPSDesactivar(mensaje) {
-    const logPrefix = `[GPS.DESACTIVAR][${mensaje?.origen || 'desconocido'}]`;
-
-    try {
-        // Si ya estamos en el contexto del padre, delegar a la implementación centralizada
-        if (globalThis.parent === globalThis.window) {
-            logger.info(`${logPrefix} En contexto padre: delegando desactivación a globalThis.desactivarGPS()`);
-            try {
-                if (typeof globalThis.desactivarGPS === 'function') {
-                    const res = await globalThis.desactivarGPS();
-                    sincronizarEstadoGPSConPadre();
-                    return { exito: true, detalle: res };
-                }
-                // Fallback: limpiar estado local
-                estadoMapa.gpsActivo = false;
-                estadoMapa.gpsPermisos = null;
-                estadoMapa.gpsPrecision = null;
-                estadoMapa.gpsError = null;
-                estadoMapa.posicionUsuario = null;
-                estadoMapa.ultimaUbicacion = null;
-                sincronizarEstadoGPSConPadre();
-                if (marcadorUsuario) {
-                    marcadorUsuario.remove();
-                    marcadorUsuario = null;
-                }
-                return { exito: true };
-            } catch (err) {
-                logger.error(`${logPrefix} Error delegando desactivación al padre:`, err);
-                return { exito: false, error: err.message || String(err) };
-            }
-        }
-
-        // Si estamos en un iframe, delegar al padre
-        logger.info(`${logPrefix} Delegando desactivación GPS al padre`);
-
-        enviarMensaje({
-            destino: resolverIdPadre(),
-            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR,
-            origen: 'funciones-mapa',
-            datos: {
-                timestamp: Date.now(),
-                razon: 'delegacion_desde_iframe'
-            }
-        });
-
-        // Actualizar estado local para compatibilidad
-        estadoMapa.gpsActivo = false;
-        estadoMapa.gpsPermisos = null;
-        estadoMapa.gpsPrecision = null;
-        estadoMapa.gpsError = null;
-        estadoMapa.posicionUsuario = null;
-
-        // Limpiar marcador de usuario si existe
-        if (marcadorUsuario) {
-            marcadorUsuario.remove();
-            marcadorUsuario = null;
-        }
-
-        logger.info(`${logPrefix} Solicitud de desactivación GPS enviada al padre`);
-        return { exito: true };
-
-    } catch (error) {
-        logger.error(`${logPrefix} Error en desactivación GPS: ${error.message}`, error);
-        return { exito: false, error: error.message };
-    }
-}
-
-/**
  * Maneja el cambio de modo del sistema (casa/aventura).
  * @param {Object} mensaje - Mensaje con datos del cambio de modo
  */
@@ -2710,9 +2638,13 @@ async function manejarCambioModoMapa(mensaje) {
 
         logger.info(`${logPrefix} Cambiando modo: ${modoAnterior} → ${modo}`);
 
-        // Si cambia a AVENTURA, iniciar GPS para detección secuencial
+        // Si cambia a AVENTURA, asegurar que el GPS esté activo (normalmente ya lo
+        // está desde P14 — ver codigo-padre.html:_hdl_SELECCION_P14_MOSTRADA — esto
+        // es red de seguridad si se desactivó por algún motivo). manejarGPSActivar()
+        // es el adaptador real: delega a activarGPS() (el hub, en codigo-padre.html),
+        // nunca finge el estado.
         if (modo === MODOS.AVENTURA) {
-            await iniciarGPSAventura();
+            await manejarGPSActivar({ origen: 'cambio-modo-aventura' });
         }
         // En modo CASA, el GPS permanece activo pero sin validaciones de distancia
 
@@ -2911,33 +2843,6 @@ export async function diagnosticarMapa() {
             error: error.message,
             timestamp: new Date().toISOString()
         };
-    }
-}
-
-/**
- * Inicia GPS para modo aventura secuencial
- */
-async function iniciarGPSAventura() {
-    const logPrefix = '[funciones-mapa][GPS-AVENTURA]';
-
-    try {
-        logger.info(`${logPrefix} Activando GPS centralizado del padre para modo aventura`);
-
-        // Always start GPS via the parent's central activation flow; do not reuse any
-        // observaciones de precalentamiento de baja potencia — eliminamos la implementación de precalentamiento.
-
-        // Actualizar estado GPS directamente (estadoMapa es la única fuente de verdad)
-        estadoMapa.gpsActivo = true;
-        estadoMapa.gpsPermisos = true;
-        estadoMapa.gpsError = null;
-
-        // Sincronizar con el estado global del padre
-        sincronizarEstadoGPSConPadre();
-
-        logger.info(`${logPrefix} GPS activado para modo aventura`);
-
-    } catch (error) {
-        logger.error(`${logPrefix} Error al activar GPS para aventura:`, error);
     }
 }
 
@@ -3204,25 +3109,6 @@ async function procesarPosicionGPSParaAventura(posicion) {
     }
 }
 
-/**
- * Maneja errores GPS del navegador
- */
-function manejarErrorGPSNavegador(error) {
-    const logPrefix = '[funciones-mapa][GPS-ERROR]';
-    
-    logger.error(`${logPrefix} Error GPS:`, {
-        code: error.code,
-        message: error.message
-    });
-    
-    // Actualizar estado (estadoMapa es la única fuente de verdad)
-    estadoMapa.gpsError = error.message;
-    estadoMapa.gpsActivo = false;
-    
-    // Sincronizar con el estado global del padre
-    sincronizarEstadoGPSConPadre();
-}
-
 // Asignar funciones al objeto global para compatibilidad con código existente
 globalThis.funcionesMapa = {
     inicializarServicioMapa,
@@ -3240,7 +3126,6 @@ globalThis.funcionesMapa = {
     calcularToleranciaGPS,
     verificarLlegadaADestino,
     procesarPosicionGPSParaAventura,
-    iniciarGPSAventura,
     manejarCambioModoMapa,
     // Exponer la API pública centralizada para cambiar la vista
     setMapView,

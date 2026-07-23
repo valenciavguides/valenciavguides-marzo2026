@@ -22,7 +22,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Perderás todo el progreso de tu aventura actual:',
         advertenciaTexto2: 'Además, necesitarás adquirir una nueva aventura.',
         volver: 'Volver a mi aventura',
-        confirmarOtra: 'Sí, elegir otra aventura'
+        confirmarOtra: 'Sí, elegir otra aventura',
+        frasesCarga: [
+            'Abriendo portales al pasado...',
+            'Cargando la brújula secreta...',
+            'Despertando la historia...',
+            'Preparando el terreno para la aventura...',
+            'Encendiendo las antorchas del camino...',
+            'Siguiendo el hilo de las leyendas...',
+            'Trazando el camino de los antiguos...',
+            'Afinando el compás de los siglos...',
+            'Trazando la ruta de los enigmas...',
+            'Descorriendo el velo de la historia...',
+            'Siguiendo el rastro de los mitos...',
+            'Despertando memorias dormidas...',
+            'Trazando mapas de otra época...'
+        ]
     },
     en: {
         titulo: 'Adventure in progress!',
@@ -39,7 +54,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'You will lose all progress in your current adventure:',
         advertenciaTexto2: 'You will also need to purchase a new adventure.',
         volver: 'Return to my adventure',
-        confirmarOtra: 'Yes, choose another adventure'
+        confirmarOtra: 'Yes, choose another adventure',
+        frasesCarga: [
+            'Opening portals to the past...',
+            'Loading the secret compass...',
+            'Awakening history...',
+            'Preparing the ground for adventure...',
+            'Lighting the torches along the way...',
+            'Following the thread of legends...',
+            'Tracing the path of the ancients...',
+            'Calibrating the compass of centuries...',
+            'Mapping the route of enigmas...',
+            'Lifting the veil of history...',
+            'Following the trail of myths...',
+            'Awakening sleeping memories...',
+            'Charting maps of another era...'
+        ]
     },
     fr: {
         titulo: 'Aventure en cours !',
@@ -56,7 +86,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Vous perdrez toute la progression de votre aventure actuelle :',
         advertenciaTexto2: 'De plus, vous devrez acheter une nouvelle aventure.',
         volver: 'Retourner à mon aventure',
-        confirmarOtra: 'Oui, choisir une autre aventure'
+        confirmarOtra: 'Oui, choisir une autre aventure',
+        frasesCarga: [
+            'Ouverture des portails vers le passé...',
+            'Chargement de la boussole secrète...',
+            'Réveil de l\'histoire...',
+            'Préparation du terrain pour l\'aventure...',
+            'Allumage des torches du chemin...',
+            'Suivant le fil des légendes...',
+            'Traçant le chemin des anciens...',
+            'Réglage du compas des siècles...',
+            'Traçant la route des énigmes...',
+            'Levant le voile de l\'histoire...',
+            'Suivant la trace des mythes...',
+            'Réveil des souvenirs endormis...',
+            'Traçant des cartes d\'une autre époque...'
+        ]
     },
     it: {
         titulo: 'Avventura in corso!',
@@ -73,7 +118,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Perderai tutto il progresso della tua avventura attuale:',
         advertenciaTexto2: 'Inoltre, dovrai acquistare una nuova avventura.',
         volver: 'Torna alla mia avventura',
-        confirmarOtra: 'Sì, scegli un\'altra avventura'
+        confirmarOtra: 'Sì, scegli un\'altra avventura',
+        frasesCarga: [
+            'Aprendo portali verso il passato...',
+            'Caricando la bussola segreta...',
+            'Risvegliando la storia...',
+            'Preparando il terreno per l\'avventura...',
+            'Accendendo le torce del cammino...',
+            'Seguendo il filo delle leggende...',
+            'Tracciando il cammino degli antichi...',
+            'Sintonizzando la bussola dei secoli...',
+            'Tracciando la rotta degli enigmi...',
+            'Sollevando il velo della storia...',
+            'Seguendo le tracce dei miti...',
+            'Risvegliando ricordi assopiti...',
+            'Tracciando mappe di un\'altra epoca...'
+        ]
     },
     nl: {
         titulo: 'Avontuur aan de gang!',
@@ -90,7 +150,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'U verliest alle voortgang van uw huidige avontuur:',
         advertenciaTexto2: 'Bovendien moet u een nieuw avontuur aanschaffen.',
         volver: 'Terug naar mijn avontuur',
-        confirmarOtra: 'Ja, kies een ander avontuur'
+        confirmarOtra: 'Ja, kies een ander avontuur',
+        frasesCarga: [
+            'Portalen naar het verleden openen...',
+            'Het geheime kompas laden...',
+            'De geschiedenis wekken...',
+            'Het terrein voorbereiden voor het avontuur...',
+            'De fakkels langs de weg aansteken...',
+            'De draad van legendes volgen...',
+            'Het pad van de ouden uitstippelen...',
+            'Het kompas van de eeuwen afstemmen...',
+            'De route van raadsels uitstippelen...',
+            'De sluier van de geschiedenis oplichten...',
+            'Het spoor van mythes volgen...',
+            'Slapende herinneringen wekken...',
+            'Kaarten van een ander tijdperk tekenen...'
+        ]
     },
     ja: {
         titulo: '冒険が進行中です！',
@@ -107,7 +182,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: '現在の冒険のすべての進捗を失います：',
         advertenciaTexto2: 'また、新しい冒険を購入する必要があります。',
         volver: '冒険に戻る',
-        confirmarOtra: 'はい、別の冒険を選びます'
+        confirmarOtra: 'はい、別の冒険を選びます',
+        frasesCarga: [
+            '過去への扉を開放中…',
+            '秘密のコンパスを準備中…',
+            '歴史を呼び覚ます…',
+            '冒険の舞台を用意中…',
+            '道々の松明に灯をともす…',
+            '伝説の糸をたどる…',
+            '古の道をたどる…',
+            '世紀を超えたコンパスを調整中…',
+            '謎に満ちたルートを描く…',
+            '歴史のヴェールをめくる…',
+            '神話の足跡をたどる…',
+            '眠れる記憶を呼び覚ます…',
+            '異なる時代の地図を描く…'
+        ]
     },
     ru: {
         titulo: 'Приключение в процессе!',
@@ -124,7 +214,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Вы потеряете весь прогресс текущего приключения:',
         advertenciaTexto2: 'Кроме того, вам нужно будет приобрести новое приключение.',
         volver: 'Вернуться к приключению',
-        confirmarOtra: 'Да, выбрать другое приключение'
+        confirmarOtra: 'Да, выбрать другое приключение',
+        frasesCarga: [
+            'Открываем порталы в прошлое...',
+            'Загружаем секретный компас...',
+            'Пробуждаем историю...',
+            'Готовим почву для приключения...',
+            'Зажигаем факелы вдоль пути...',
+            'Следуем за нитью легенд...',
+            'Прокладываем путь древних...',
+            'Настраиваем компас веков...',
+            'Прокладываем маршрут загадок...',
+            'Приоткрываем завесу истории...',
+            'Идём по следу мифов...',
+            'Пробуждаем спящие воспоминания...',
+            'Составляем карты другой эпохи...'
+        ]
     },
     zh: {
         titulo: '冒险进行中！',
@@ -141,7 +246,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: '您将失去当前冒险的所有进度：',
         advertenciaTexto2: '此外，您还需要购买新的冒险。',
         volver: '返回我的冒险',
-        confirmarOtra: '是，选择其他冒险'
+        confirmarOtra: '是，选择其他冒险',
+        frasesCarga: [
+            '正在开启通往过去的门户…',
+            '正在加载神秘罗盘…',
+            '正在唤醒历史…',
+            '正在为冒险铺路…',
+            '正在点燃沿途的火把…',
+            '正在追寻传说的线索…',
+            '正在描绘古人的道路…',
+            '正在校准世纪的罗盘…',
+            '正在勾勒谜题的路线…',
+            '正在揭开历史的面纱…',
+            '正在追寻神话的踪迹…',
+            '正在唤醒沉睡的记忆…',
+            '正在绘制另一个时代的地图…'
+        ]
     },
     pl: {
         titulo: 'Przygoda w toku!',
@@ -158,7 +278,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Stracisz cały postęp swojej obecnej przygody:',
         advertenciaTexto2: 'Ponadto będziesz musiał zakupić nową przygodę.',
         volver: 'Wróć do mojej przygody',
-        confirmarOtra: 'Tak, wybierz inną przygodę'
+        confirmarOtra: 'Tak, wybierz inną przygodę',
+        frasesCarga: [
+            'Otwieranie portali do przeszłości...',
+            'Wczytywanie tajemniczego kompasu...',
+            'Budzenie historii...',
+            'Przygotowywanie gruntu pod przygodę...',
+            'Zapalanie pochodni na drodze...',
+            'Podążanie za nicią legend...',
+            'Wytyczanie szlaku dawnych...',
+            'Nastrajanie kompasu wieków...',
+            'Wytyczanie trasy zagadek...',
+            'Uchylanie zasłony historii...',
+            'Podążanie tropem mitów...',
+            'Budzenie uśpionych wspomnień...',
+            'Kreślenie map innej epoki...'
+        ]
     },
     uk: {
         titulo: 'Пригода триває!',
@@ -175,7 +310,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Ви втратите весь прогрес поточної пригоди:',
         advertenciaTexto2: 'Крім того, вам потрібно буде придбати нову пригоду.',
         volver: 'Повернутися до пригоди',
-        confirmarOtra: 'Так, вибрати іншу пригоду'
+        confirmarOtra: 'Так, вибрати іншу пригоду',
+        frasesCarga: [
+            'Відкриваємо портали в минуле...',
+            'Завантажуємо секретний компас...',
+            'Пробуджуємо історію...',
+            'Готуємо ґрунт для пригоди...',
+            'Запалюємо смолоскипи вздовж шляху...',
+            'Ідемо за ниткою легенд...',
+            'Прокладаємо шлях давніх...',
+            'Налаштовуємо компас століть...',
+            'Прокладаємо маршрут загадок...',
+            'Прочиняємо завісу історії...',
+            'Йдемо слідами міфів...',
+            'Пробуджуємо приспані спогади...',
+            'Складаємо карти іншої епохи...'
+        ]
     },
     pt: {
         titulo: 'Aventura em curso!',
@@ -192,7 +342,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Perderá todo o progresso da sua aventura atual:',
         advertenciaTexto2: 'Além disso, precisará adquirir uma nova aventura.',
         volver: 'Voltar à minha aventura',
-        confirmarOtra: 'Sim, escolher outra aventura'
+        confirmarOtra: 'Sim, escolher outra aventura',
+        frasesCarga: [
+            'A abrir portais para o passado...',
+            'A carregar a bússola secreta...',
+            'A despertar a história...',
+            'A preparar o terreno para a aventura...',
+            'A acender as tochas do caminho...',
+            'A seguir o fio das lendas...',
+            'A traçar o caminho dos antigos...',
+            'A afinar a bússola dos séculos...',
+            'A traçar a rota dos enigmas...',
+            'A erguer o véu da história...',
+            'A seguir o rasto dos mitos...',
+            'A despertar memórias adormecidas...',
+            'A traçar mapas de outra época...'
+        ]
     },
     de: {
         titulo: 'Abenteuer läuft!',
@@ -209,7 +374,22 @@ export const TRADUCCIONES_REANUDACION = {
         advertenciaTexto1: 'Sie verlieren den gesamten Fortschritt Ihres aktuellen Abenteuers:',
         advertenciaTexto2: 'Außerdem müssen Sie ein neues Abenteuer erwerben.',
         volver: 'Zurück zu meinem Abenteuer',
-        confirmarOtra: 'Ja, ein anderes Abenteuer wählen'
+        confirmarOtra: 'Ja, ein anderes Abenteuer wählen',
+        frasesCarga: [
+            'Öffne Portale in die Vergangenheit...',
+            'Lade den geheimen Kompass...',
+            'Erwecke die Geschichte...',
+            'Bereite den Boden für das Abenteuer...',
+            'Entzünde die Fackeln entlang des Weges...',
+            'Folge dem Faden der Legenden...',
+            'Zeichne den Pfad der Alten...',
+            'Justiere den Kompass der Jahrhunderte...',
+            'Zeichne die Route der Rätsel...',
+            'Lüfte den Schleier der Geschichte...',
+            'Folge der Spur der Mythen...',
+            'Wecke schlafende Erinnerungen...',
+            'Zeichne Karten einer anderen Epoche...'
+        ]
     }
 };
 

@@ -16,7 +16,7 @@ Documento para revisar y editar las preguntas del asistente de soporte (`chat-hi
 |---|---|---:|---:|---|
 | `SUG_INTERNET_PORQUE` | ¿Por qué necesito conexión a Internet durante la aventura? | (vacío) | SUGERIDA | |internet es necesario para que funcionen los audios, videos, imagenes, ect. Para evitar una sobrecarga de descargas en su teléfono usamos nuestra base de datos para que usted descargue lo mínimo posible y de esta manera contribuimos al reciclaje digital 
 | `SUG_INTERNET_PORQUE` | ¿Por qué necesito conexión a Internet durante la aventura? | La aplicación carga datos dinámicos (textos, audios, índices) y recursos multimedia desde los módulos/servidor al iniciar la aventura; además algunos componentes se cargan "lazy" (p. ej. `hijo6` chat). Por eso requiere conexión para descargar esos recursos y reproducir audios/vídeos. | SUGERIDA | |
-| `SUG_INTERNET_CAES` | ¿Qué pasa si pierdo la conexión en mitad de la aventura? | Si la conexión falla, la app intenta seguir con los datos ya cargados en memoria/localStorage; sin embargo, audios o vídeos que no estén precargados no se reproducirán y algunos recursos pueden fallar al cargarse. La app muestra overlays de error para recursos faltantes y mantiene el estado en `localStorage` cuando sea posible. | SUGERIDA | Su aventura se pausará hasta que tenga internet de nuvo, internet es esencial para el correcto funcionamiento de la aplicación
+| `SUG_INTERNET_CAES` | ¿Qué pasa si pierdo la conexión en mitad de la aventura? | El audio/imagen de la parada donde ya estás sigue funcionando si ya se cargó (el Service Worker los guarda en caché). Lo que no funciona: cargar contenido nuevo no visitado todavía. El aviso de "sin conexión" en pantalla no siempre aparece al instante — solo se muestra cuando algo intenta cargar y falla por falta de red, no en el momento exacto en que se pierde la señal. | SUGERIDA | Su aventura se pausará hasta que tenga internet de nuvo, internet es esencial para el correcto funcionamiento de la aplicación |
 
 
 ## Instrucciones
@@ -32,7 +32,7 @@ Documento para revisar y editar las preguntas del asistente de soporte (`chat-hi
 | Clave | Pregunta (es) | Respuesta conocida (es) | Estado | Texto sugerido |
 |---|---|---:|---:|---|
 | `GPS_NO_DETECTA` | (sin texto) | (vacío) | PENDIENTE | |
-| `GPS_NO_DETECTA` | ¿Por qué no se detecta mi ubicación? | Si el navegador o el dispositivo no devuelven posición, la app muestra un aviso y no puede avanzar la lógica de paradas. Comprueba que el GPS esté activo, que el navegador tenga permiso y que el dispositivo tenga vista al cielo para mejor recepción. | PENDIENTE | |
+| `GPS_NO_DETECTA` | ¿Por qué no se detecta mi ubicación? | La app reintenta sola hasta 3 veces si pierde la señal (con precisión cada vez más relajada, para adaptarse a interiores o zonas con poca cobertura). Si los 3 reintentos fallan, aparece un aviso en pantalla con un botón para reintentar manualmente en cuanto recuperes señal — mientras tanto, puedes seguir escuchando el audio y resolviendo el reto de la parada donde ya estás, eso no depende del GPS. | PENDIENTE | |
 | `GPS_FUERA_RANGO` | ¿Qué significa "fuera de rango" en una parada? | Significa que la posición actual está a más distancia de la `parada` que el umbral de proximidad. La app indica visualmente cuándo estás fuera del rango y muestra cómo volver a la ruta. | PENDIENTE | |
 | `GPS_PERMISO_DENEGADO` | ¿Qué hago si denegué el permiso de ubicación? | Debes habilitar permiso de ubicación en los ajustes del navegador o del sistema; sin permiso la función AVENTURA no puede seguir la posición y varias funcionalidades quedan deshabilitadas. | PENDIENTE | |
 | `SUG_GPS_PORQUE` | ¿Por qué necesita la app el GPS siempre? | (vacío) | SUGERIDA | |
@@ -76,7 +76,7 @@ Documento para revisar y editar las preguntas del asistente de soporte (`chat-hi
 |---|---|---:|---:|---|
 | `PROGRESO_GUARDAR` | (sin texto) | (vacío) | PENDIENTE | |
 | `PROGRESO_GUARDAR` | ¿Se guarda mi progreso automáticamente? | Sí: el padre mantiene estado en `localStorage` durante la aventura para restaurar la sesión (variables como `vv_aventura_iniciada`, `vv_paradas_completadas`). | PENDIENTE | |
-| `PROGRESO_RETOMAR` | ¿Cómo retomo una aventura desde donde la dejé? | Al abrir la app el padre lee `localStorage` y, si hay una aventura en curso, ofrece restaurarla mediante los datos guardados en el navegador. | PENDIENTE | |
+| `PROGRESO_RETOMAR` | ¿Cómo retomo una aventura desde donde la dejé? | Al abrir la app de nuevo, si hay una aventura en curso, aparece un aviso para continuarla. Al aceptar, te lleva exactamente a la misma parada o tramo donde lo dejaste — no hace falta rehacer nada. | PENDIENTE | |
 | `AVENTURA_COMPLETADA` | ¿Qué sucede cuando completo la aventura? | Al completar todas las paradas el estado de la aventura se marca como finalizado y el padre puede mostrar una pantalla de resumen; el manejo exacto depende de la aventura concreta. | PENDIENTE | |
 | `SUG_PROGRESO_COMO_GUARDA` | ¿Cómo se guarda mi progreso y cuándo se sincroniza? | (vacío) | SUGERIDA | |
 | `SUG_PROGRESO_OTRO_DISP` | ¿Puedo retomar la aventura en otro dispositivo? | (vacío) | SUGERIDA | |

@@ -4065,6 +4065,7 @@
                         <div style="width:min(92vw,30rem);display:flex;flex-direction:column;align-items:center;gap:0.4rem;margin:0.25rem auto 0.25rem auto;">
                             <progress id="restore-progress-bar" max="100" value="0" class="loading-progress-bar" style="width:100%;height:clamp(0.9rem,2.6vmin,1.1rem);border:none;border-radius:999px;overflow:hidden;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,0.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.25);"></progress>
                             <div id="restore-progress-percent" style="font-size:clamp(1rem,3vmin,1.18rem);font-weight:800;color:#ffffff;text-shadow:0 0.125rem 0.25rem rgba(0,0,0,0.2);">0%</div>
+                            <div id="restore-frase-carga" style="font-size:clamp(0.85rem,3.2vmin,1.05rem);font-style:italic;color:#fff;text-shadow:0 0.125rem 0.25rem rgba(0,0,0,0.2);text-align:center;min-height:1.4em;opacity:0;transition:opacity 0.4s ease;max-width:90vw;"></div>
                         </div>
                     `;
                     document.body.appendChild(cargandoEl);
@@ -4085,6 +4086,30 @@
                         actualizarRestoreProgress(restoreProgress);
                     }, 700);
 
+                    // Frases aleatorias bajo la barra de progreso, para entretener al
+                    // usuario durante una espera de duración impredecible. Nunca repite
+                    // la misma frase dos veces seguidas. Se apoya en el mismo fundido de
+                    // opacidad que ya usa #restore-progress-bar/percent — no bloquea nada
+                    // si la lista de frases faltara en algún idioma (guard defensivo).
+                    const fraseEl = cargandoEl.querySelector('#restore-frase-carga');
+                    const frasesCarga = Array.isArray(t.frasesCarga) ? t.frasesCarga : [];
+                    let ultimaFraseIdx = -1;
+                    const mostrarFraseAleatoria = () => {
+                        if (!fraseEl || frasesCarga.length === 0) return;
+                        let idx = Math.floor(Math.random() * frasesCarga.length);
+                        if (frasesCarga.length > 1 && idx === ultimaFraseIdx) {
+                            idx = (idx + 1) % frasesCarga.length;
+                        }
+                        ultimaFraseIdx = idx;
+                        fraseEl.style.opacity = '0';
+                        setTimeout(() => {
+                            fraseEl.textContent = frasesCarga[idx];
+                            fraseEl.style.opacity = '1';
+                        }, 400);
+                    };
+                    mostrarFraseAleatoria();
+                    const restoreFraseTimer = setInterval(mostrarFraseAleatoria, 5000);
+
                     (globalThis.logger || console).info(`${logPrefix} ✅ Usuario eligió CONTINUAR aventura`);
                     try {
                         await ejecutarRestauracionAventura(datosGuardados);
@@ -4093,6 +4118,7 @@
                         try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
                     } finally {
                         clearInterval(restoreProgressTimer);
+                        clearInterval(restoreFraseTimer);
                         cargandoEl.style.opacity = '0';
                         setTimeout(() => cargandoEl.remove(), 500);
                     }
@@ -4387,6 +4413,20 @@
                     if (!gracia && !cambioModoResuelto) { (globalThis.logger || console).warn(`${logPrefix} ⏱ CAMBIO_MODO sigue pendiente en reanudación; continuando sin bloquear la carga`); }
                     else { (globalThis.logger || console).debug(`${logPrefix} CAMBIO_MODO confirmó justo tras timeout inicial; warning omitido`); }
                 }
+                // Esta función fija estado.modo.actual directamente (arriba) y difunde
+                // CAMBIO_MODO solo hacia fuera, a los hijos — nunca pasa por
+                // _hdl_SISTEMA_CAMBIO_MODO en el propio padre, que es el único sitio que
+                // normalmente activa el GPS al entrar en AVENTURA (_gestionarGpsSegunModo).
+                // Sin esto, una sesión restaurada directamente en AVENTURA se queda con el
+                // modo correcto pero sin watchPosition corriendo.
+                if (_modoRest === MODOS.AVENTURA) {
+                    try {
+                        await activarGPS();
+                    } catch (gpsErr) {
+                        (globalThis.logger || console).warn(`${logPrefix} GPS no pudo activarse tras reanudación:`, gpsErr?.message);
+                    }
+                }
+
                 (globalThis.logger || console).success(`${logPrefix} 🎉 AVENTURA REANUDADA: ${datosGuardados.aventura} (${datosGuardados.idioma})`);
             } catch (modoErr) { (globalThis.logger || console).error(`${logPrefix} Error activando modo aventura:`, modoErr); }
         }
@@ -4460,6 +4500,17 @@
                 if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
                     await globalThis.__cargarDatosAventuraDiferidos();
                 }
+
+                // La restauración de sesión nunca pasa por P14 — _hdl_SELECCION_P14_MOSTRADA
+                // es el ÚNICO otro sitio que carga hijo1-5 (los iframes hijo contienen lógica
+                // de pago y no se cargan antes). Sin esto, ningún iframe tiene src asignado
+                // aquí y _esperarHijosCriticosRest() esperaría para siempre a que confirmen
+                // HIJO_LISTO sin que nadie les haya dicho que carguen — un interbloqueo
+                // determinista en cualquier reapertura de la app con una aventura guardada.
+                // cargarRestoDeiframes()/cargarHijoCasa() son idempotentes (comprueban el
+                // src actual antes de reasignarlo), así que no interfieren si algún iframe
+                // ya estuviera cargado por otra vía.
+                await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()]);
 
                 await _esperarHijosCriticosRest(logPrefix);
                 await _distribuirDatosRest(logPrefix, datosGuardados);
@@ -5187,6 +5238,19 @@
                 return est.gps.activandoPromise;
             }
 
+            // Si ya está activo, no hacer nada — comprobación barata AL PRINCIPIO,
+            // antes de esperar a hijo2 o comprobar permisos. activarGPS() puede
+            // llamarse desde varios sitios que no se coordinan entre sí en tiempo real
+            // (P14, botón de hijo2, _gestionarGpsSegunModo como red de seguridad tras
+            // CAMBIO_MODO) — si dos de ellos coinciden, que la segunda llamada resuelva
+            // en el acto en vez de repetir 5s de espera de hijo2 y la comprobación de
+            // permisos para nada. No depende de que el orden de ejecución sea exacto:
+            // funciona igual pase lo que pase antes.
+            if (est.gps.activo && est.gps.watchId !== null) {
+                (globalThis.logger || console).info(`${logPrefix} GPS ya activo`);
+                return true;
+            }
+
             // Marcar como en progreso y guardar la promesa para otras llamadas concurrentes
             let resolveActivacion, rejectActivacion;
             const activacionPromise = new Promise((resolve, reject) => { resolveActivacion = resolve; rejectActivacion = reject; });
@@ -5217,13 +5281,6 @@
                     throw new Error(est.gps.error);
                 }
 
-                // Si ya está activo, no hacer nada
-                if (est.gps.activo && est.gps.watchId !== null) {
-                    (globalThis.logger || console).info(`${logPrefix} GPS ya activo`);
-                    resolveActivacion(true);
-                    return true;
-                }
-
                 (globalThis.logger || console).debug(`${logPrefix} Iniciando watchPosition...`);
 
                 await _obtenerPosicionInicialGPS(est, logPrefix);
@@ -5243,12 +5300,33 @@
                 }
                 est.gps.retries = 0;
 
+                // Si ya había un watchId de un intento previo que no llegó a marcarse
+                // "activo" (p.ej. un reintento por TIMEOUT en curso — _gpsDoRetryWatch ya
+                // creó su propio watch, pero aún no tuvo éxito), limpiarlo antes de crear
+                // uno nuevo. La comprobación de "ya activo" de arriba no cubre este caso
+                // (activo sigue false mientras el reintento no ha tenido éxito) — sin este
+                // clearWatch, quedaría un watch huérfano corriendo en paralelo, imposible
+                // de limpiar después porque su id ya se habría sobrescrito.
+                if (est.gps.watchId !== null && est.gps.watchId !== undefined) {
+                    try { navigator.geolocation.clearWatch(est.gps.watchId); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                }
+
                 // Iniciar watchPosition
                 est.gps.watchId = navigator.geolocation.watchPosition(
                     onGpsSuccess,
                     onGpsError,
                     { enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }
                 );
+
+                // El watch ya está registrado de verdad en este punto — marcarlo activo
+                // aquí, síncrono, en vez de esperar a que llegue la primera posición
+                // (asíncrono, puede tardar o fallar puntualmente). Sin esto, cualquier
+                // código que compruebe estado.gps.activo justo después de activarGPS()
+                // (p.ej. _gestionarGpsSegunModo al cambiar a AVENTURA) puede ver todavía
+                // `false` y disparar una segunda activación redundante.
+                est.gps.activo = true;
+                est.gps.permisos = true;
+                est.gps.error = null;
 
                 await _finalizarActivacionGPS(est, logPrefix, resolveActivacion);
 
@@ -6709,6 +6787,15 @@
 
                 const { origen, modo } = mensaje.datos || {};
 
+                // Al entrar en CASA: congelar el progreso real actual. El usuario puede
+                // navegar libremente a otras paradas/tramos en CASA (hijo5) para "verlos"
+                // en pantalla — eso reutiliza el mismo NAVEGACION.CAMBIO_PARADA que un
+                // avance real, así que sin esto, "ver" algo en CASA movería de verdad el
+                // progreso de la aventura. Se restaura al volver a AVENTURA, más abajo.
+                if (modo === MODOS.CASA) {
+                    estado.paradaRealCongelada = estado.paradaActual || null;
+                }
+
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
                 // de manejarCambioModo (puede tardar hasta 15s si algún hijo no responde)
                 if (modo === MODOS.AVENTURA) {
@@ -6730,6 +6817,21 @@
                 const resultado = await manejarCambioModo(estado, mensaje);
                 if (resultado.exito) {
                     (globalThis.logger || console).success(`${logPrefix} Cambio de modo exitoso: ${resultado.modoActual}`);
+
+                    // Restaurar el progreso real si la navegación libre en CASA lo movió —
+                    // ver estado.paradaRealCongelada más arriba. Solo actúa si de verdad
+                    // cambió (evita un CAMBIO_PARADA interno redundante en el caso normal
+                    // de no haber tocado nada en CASA).
+                    if (modo === MODOS.AVENTURA && estado.paradaRealCongelada && estado.paradaRealCongelada !== estado.paradaActual) {
+                        (globalThis.logger || console).info(`${logPrefix} Restaurando progreso real tras navegación en CASA: ${estado.paradaActual} → ${estado.paradaRealCongelada}`);
+                        try {
+                            await globalThis.__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada });
+                        } catch (restErr) {
+                            (globalThis.logger || console).warn(`${logPrefix} Error restaurando progreso real tras CASA:`, restErr?.message);
+                        }
+                    }
+                    if (modo === MODOS.AVENTURA) estado.paradaRealCongelada = null;
+
                     const hijosCriticos = ['hijo2', 'hijo3', 'hijo4', 'hijo5'].filter(
                         h => globalThis.estadoPadre?.hijosInicializados?.has(h)
                     );
@@ -10830,16 +10932,18 @@ await _comprobarReanudacionAventura(logPrefix);
                     cargarRestoDeiframes(),
                     cargarHijoCasa()
                 ]);
-                // GPS se activa DESPUÉS de los iframes solo en prod — en dev (CASA) no es necesario
+                // GPS se activa DESPUÉS de los iframes, en prod y en dev por igual: una vez
+                // encendido nunca se apaga al cambiar de modo (ver estadoMapa.modo !== AVENTURA
+                // en funciones-mapa.js:procesarPosicionGPSParaAventura — esa es la barrera real,
+                // no el watch), así que encenderlo ya en P14 evita el coste de reingresar
+                // GPS más tarde y deja el dev mode fiel al comportamiento de producción.
                 globalThis._codigoValidadoP13 = true; // guard para showGpsSignalOverlay
-                if (!globalThis._devModeActivo) {
-                    try {
-                        await activarGPS();
-                    } catch (gpsErr) {
-                        (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
-                        showGpsSignalOverlay(1);
-                        return;
-                    }
+                try {
+                    await activarGPS();
+                } catch (gpsErr) {
+                    (globalThis.logger || console).error(`${logPrefix} ❌ GPS denegado:`, gpsErr?.message);
+                    showGpsSignalOverlay(1);
+                    return;
                 }
                 globalThis._iframesPreCargadosP14 = true;
                 (globalThis.logger || console).info(`${logPrefix} ✅ Iframes + datos + GPS listos para AVENTURA_ACTIVADA`);
