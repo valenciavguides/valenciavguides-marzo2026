@@ -70,7 +70,7 @@ function aplanarTipos(obj, prefijo = []) {
     return out;
 }
 
-const EMIT_KEYWORDS = ['enviarMensajeConConfirmacion', 'enviarMensaje', 'postMessage', 'broadcastToCapability'];
+const EMIT_KEYWORDS = ['enviarMensajeConConfirmacion', 'enviarMensaje', 'postMessage'];
 const RECV_KEYWORDS = ['registrarControladorSeguro', 'registrarControlador', "addEventListener('message'", 'addEventListener("message"'];
 
 function nearestKeywordBefore(text, idx, keywords) {

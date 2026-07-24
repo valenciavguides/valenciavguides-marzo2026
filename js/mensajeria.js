@@ -62,14 +62,15 @@ let ventanaPadre = null;
 const iframesRegistrados = new Map();
 
 /**
- * Registro dinámico de hijos: id → { tipo, capacidades }
- * Poblado por registrarHijo() cuando cada hijo envía HIJO_PREPARADO.
- * @type {Map<string, {tipo: string, capacidades: string[]}>}
+ * Registro dinámico de hijos: id → { tipo }
+ * Poblado por registrarHijo() cuando cada hijo envía HIJO_PREPARADO. Sus claves
+ * son también la lista de hijos activos que usa el heartbeat (ver iniciarHeartbeat).
+ * @type {Map<string, {tipo: string}>}
  */
 const _hijosRegistrados = new Map();
 
-function registrarHijo(id, tipo = 'DESCONOCIDO', capacidades = []) {
-    _hijosRegistrados.set(id, { tipo, capacidades });
+function registrarHijo(id, tipo = 'DESCONOCIDO') {
+    _hijosRegistrados.set(id, { tipo });
 }
 
 function getHijoTipo(id) {
@@ -100,12 +101,6 @@ let _heartbeatIniciando = false;
  * @type {Array}
  */
 const colaMensajes = [];
-
-/**
- * Capacidades registradas de los hijos
- * @type {Map<string, Set<string>>}
- */
-const capacidadesHijos = new Map();
 
 /**
  * Control de throttling para logs de heartbeat
@@ -184,8 +179,6 @@ function exponerAPIGlobal() {
         registrarControlador,
         enviarMensaje,
         enviarMensajeConConfirmacion,
-        broadcastToCapability,
-        hijosConCapability,
         marcarScript2Listo,
         migrarManejadoresTempranos,
 
@@ -663,10 +656,9 @@ function enviarConfirmacion(mensajeOriginal, resultado, destino) {
  * Registra un iframe
  * @param {string} id - ID del iframe
  * @param {HTMLIFrameElement} iframe - Elemento iframe
- * @param {Object} [opciones] - Opciones adicionales
  * @returns {boolean} True si se registró
  */
-export function registrarIframe(id, iframe, opciones = {}) {
+export function registrarIframe(id, iframe) {
     if (!id || !iframe) {
         logger.error('[mensajeria] registrarIframe: id e iframe son requeridos');
         return false;
@@ -675,7 +667,6 @@ export function registrarIframe(id, iframe, opciones = {}) {
     iframesRegistrados.set(id, {
         elemento: iframe,
         contentWindow: iframe.contentWindow,
-        capacidades: new Set(opciones.capacidades || []),
         estado: 'registrado',
         timestamp: Date.now()
     });
@@ -692,71 +683,6 @@ export function registrarIframe(id, iframe, opciones = {}) {
 export function obtenerIframe(id) {
     const iframe = iframesRegistrados.get(id);
     return iframe ? iframe.elemento : null;
-}
-
-/**
- * Registra capacidades para un hijo
- * @param {string} hijoId - ID del hijo
- * @param {Array<string>} capacidades - Capacidades
- */
-export function registrarCapacidades(hijoId, capacidades) {
-    if (!capacidadesHijos.has(hijoId)) {
-        capacidadesHijos.set(hijoId, new Set());
-    }
-    
-    const caps = capacidadesHijos.get(hijoId);
-    capacidades.forEach(cap => caps.add(cap));
-    
-    // Actualizar en iframe registrado si existe
-    const iframe = iframesRegistrados.get(hijoId);
-    if (iframe) {
-        capacidades.forEach(cap => iframe.capacidades.add(cap));
-    }
-}
-
-/**
- * Obtiene los hijos que tienen una capacidad específica
- * @param {string} capacidad - Capacidad a buscar
- * @returns {Array<string>} IDs de hijos con la capacidad
- */
-export function hijosConCapability(capacidad) {
-    const hijos = [];
-    
-    for (const [id, caps] of capacidadesHijos) {
-        if (caps.has(capacidad)) {
-            hijos.push(id);
-        }
-    }
-    
-    // También buscar en iframes registrados
-    for (const [id, iframe] of iframesRegistrados) {
-        if (iframe.capacidades?.has(capacidad) && !hijos.includes(id)) {
-            hijos.push(id);
-        }
-    }
-    
-    return hijos;
-}
-
-/**
- * Envía un mensaje broadcast a todos los hijos con una capacidad
- * @param {string} capacidad - Capacidad requerida
- * @param {string} tipo - Tipo de mensaje
- * @param {*} datos - Datos del mensaje
- * @returns {number} Número de mensajes enviados
- */
-export function broadcastToCapability(capacidad, tipo, datos) {
-    const hijos = hijosConCapability(capacidad);
-    let enviados = 0;
-    
-    for (const hijoId of hijos) {
-        if (enviarMensaje(tipo, datos, hijoId)) {
-            enviados++;
-        }
-    }
-    
-    logger.debug(`[mensajeria] Broadcast a ${enviados}/${hijos.length} hijos con capacidad: ${capacidad}`);
-    return enviados;
 }
 
 // =====================================================
@@ -810,9 +736,6 @@ export function getDiagnostico() {
         controladoresRegistrados: Array.from(obtenerMapaManejadores().keys()),
         confirmacionesPendientes: confirmacionesPendientes.size,
         colaMensajes: colaMensajes.length,
-        capacidadesHijos: Object.fromEntries(
-            Array.from(capacidadesHijos.entries()).map(([k, v]) => [k, Array.from(v)])
-        ),
         stateManagerDisponible: !!stateManager
     };
 }
@@ -1169,15 +1092,12 @@ export default {
     registrarControlador,
     enviarMensaje,
     enviarMensajeConConfirmacion,
-    broadcastToCapability,
-    hijosConCapability,
     marcarScript2Listo,
     getControladoresRegistrados,
     getControladoresPorTipo,
     registrarControladorCentral,
     registrarIframe,
     obtenerIframe,
-    registrarCapacidades,
     getDiagnostico,
     limpiar
 };

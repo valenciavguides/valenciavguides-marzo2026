@@ -295,102 +295,8 @@
             display: none; /* ocultar texto si existe */
         }
 
-        /* Overlay fuera de rango — pantalla completa */
-        #fuera-rango-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 999999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding-bottom: var(--gap-inferior);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        #fuera-rango-overlay.visible {
-            display: flex;
-            opacity: 1;
-        }
-        #fuera-rango-overlay .fuera-rango-inner {
-            position: relative;
-            width: 90vw;
-            height: 100%;
-            max-width: 96vw;
-            background: #fff8e7;
-            border-radius: 0.75rem;
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: auto;
-        }
-        #fuera-rango-overlay .fuera-rango-inner img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        #fuera-rango-overlay .btn-cerrar-fuera-rango {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 3.25rem;
-            height: 3.25rem;
-            background: #F28500;
-            border: 0.3125rem solid #50C878;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #0F0616;
-            cursor: pointer;
-            z-index: 1000000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.3);
-            pointer-events: auto;
-            touch-action: manipulation;
-        }
-        .icono-x-cerrar {
-            display: inline-block;
-            transform: scaleY(1.4);
-            text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            -webkit-text-stroke: 1px #0F0616;
-        }
-
-        /* Countdown timer fuera de rango — fijo en borde inferior, centrado */
-        #fuera-rango-countdown {
-            position: fixed;
-            bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 999999;
-            background: rgba(0, 0, 0, 0.88);
-            border: 0.25rem solid #ff0000;
-            border-radius: 0.75rem;
-            padding: 0.4rem 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 1.5rem rgba(255, 0, 0, 0.4), 0 0.3rem 1rem rgba(0, 0, 0, 0.5);
-            pointer-events: none;
-            transition: opacity 0.3s ease-in-out;
-        }
-        #fuera-rango-countdown.countdown-hidden {
-            display: none;
-        }
-        #countdown-timer {
-            font-family: 'Courier New', monospace;
-            font-size: 2.8rem;
-            font-weight: bold;
-            color: #ff0000;
-            text-shadow: 0 0 0.625rem rgba(255, 0, 0, 0.6);
-            letter-spacing: 0.2rem;
-        }
+        /* El overlay de fuera de rango y su cuenta atrás viven en el padre a pantalla completa
+           (#foto-fuera-rango-overlay), no en este iframe — ver GUIA-COMPLETA §30. */
     </style>
 </head>
 <body class="modo-casa hijo2-container">
@@ -414,19 +320,6 @@
         <button id="btn-ubicacion" class="boton" title="Centrar en Ubicación">
             <img src="imagenes/imagenes-aplicación/H2-fotodistancia.png" alt="Ubicación">
         </button>
-    </div>
-
-    <!-- Overlay fuera de rango -->
-    <dialog id="fuera-rango-overlay" aria-label="Fuera de rango">
-        <div class="fuera-rango-inner">
-            <button class="btn-cerrar-fuera-rango" type="button" aria-label="Cerrar"><span class="icono-x-cerrar">✗</span></button>
-            <img src="imagenes/imagenes-aplicación/foto-fuera-rango.png" alt="Estás fuera de rango">
-        </div>
-    </dialog>
-
-    <!-- Countdown timer fuera de rango (borde inferior centrado) -->
-    <div id="fuera-rango-countdown" class="countdown-hidden">
-        <span id="countdown-timer">05:00</span>
     </div>
 
     <!-- ARRAY DE COORDENADAS - COMENTADO: Los datos ahora vienen centralizados del padre via CARGAR_COORDENADAS -->
@@ -769,10 +662,9 @@ const estadoComponente = {
     ubicacionActiva: false, // Flag para saber si ubicación está activa
     paradaPendiente: false, // Flag para saber si la parada tiene pending en el padre
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
-    timestampSalioDeRango: null, // Timestamp cuando salió >50m (null si está <50m)
-    tiempoFueraRequerido: 5 * 60 * 1000, // 5 minutos en milisegundos
-    fueraDeRango5min: false, // Flag: true cuando usuario lleva >5min fuera de rango (>50m)
-    countdownInterval: null, // Interval ID para el countdown visual fuera de rango
+    timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 20m parada / toleranciaGPS tramo)
+    tiempoFueraRequerido: 5 * 60 * 1000, // 5 minutos en milisegundos — solo aplica a la franja 21-50m
+    fueraDeRangoActivo: false, // Flag: true cuando btn-ubicacion ya está habilitado por estar fuera de rango real
     ultimoHeading: 0, // Última dirección del usuario (0-360 grados)
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
 };
@@ -823,79 +715,9 @@ function activarBoton(boton, titulo = '') {
     }
 }
 
-// ============================================================
-// OVERLAY FUERA DE RANGO (imagen visual en vez de tooltip)
-// ============================================================
-function mostrarOverlayFueraRango() {
-    const overlay = document.getElementById('fuera-rango-overlay');
-    if (!overlay) return;
-    overlay.style.display = 'flex';
-    // Forzar reflow para que la transición funcione
-    overlay.getBoundingClientRect(); // force reflow for CSS transition
-    overlay.classList.add('visible');
-    // Botón cerrar
-    const btnCerrar = overlay.querySelector('.btn-cerrar-fuera-rango');
-    if (btnCerrar && !btnCerrar._listenerAdded) {
-        btnCerrar._listenerAdded = true;
-        btnCerrar.addEventListener('click', () => ocultarOverlayFueraRango());
-    }
-}
-
-function ocultarOverlayFueraRango() {
-    const overlay = document.getElementById('fuera-rango-overlay');
-    if (!overlay) return;
-    overlay.classList.remove('visible');
-    setTimeout(() => { overlay.style.display = 'none'; }, 300);
-    detenerCountdown();
-}
-
-function iniciarCountdown() {
-    const countdownEl = document.getElementById('countdown-timer');
-    const countdownContainer = document.getElementById('fuera-rango-countdown');
-    if (!countdownEl || !countdownContainer) return;
-
-    countdownContainer.classList.remove('countdown-hidden');
-
-    if (estadoComponente.countdownInterval) {
-        clearInterval(estadoComponente.countdownInterval);
-    }
-
-    // Actualización inmediata
-    const elapsedNow = Date.now() - estadoComponente.timestampSalioDeRango;
-    const remainingNow = Math.max(0, estadoComponente.tiempoFueraRequerido - elapsedNow);
-    const minsNow = Math.floor(remainingNow / 60000);
-    const secsNow = Math.floor((remainingNow % 60000) / 1000);
-    countdownEl.textContent = `${String(minsNow).padStart(2, '0')}:${String(secsNow).padStart(2, '0')}`;
-
-    estadoComponente.countdownInterval = setInterval(() => {
-        if (estadoComponente.timestampSalioDeRango === null) {
-            detenerCountdown();
-            return;
-        }
-        const elapsed = Date.now() - estadoComponente.timestampSalioDeRango;
-        const remaining = Math.max(0, estadoComponente.tiempoFueraRequerido - elapsed);
-        const mins = Math.floor(remaining / 60000);
-        const secs = Math.floor((remaining % 60000) / 1000);
-        countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-        if (remaining <= 0) {
-            clearInterval(estadoComponente.countdownInterval);
-            estadoComponente.countdownInterval = null;
-            countdownEl.textContent = '00:00';
-        }
-    }, 1000);
-}
-
-function detenerCountdown() {
-    if (estadoComponente.countdownInterval) {
-        clearInterval(estadoComponente.countdownInterval);
-        estadoComponente.countdownInterval = null;
-    }
-    const countdownContainer = document.getElementById('fuera-rango-countdown');
-    if (countdownContainer) {
-        countdownContainer.classList.add('countdown-hidden');
-    }
-}
+// Las pantallas de fuera de rango (foto-fuera-rango / foto_lejos_ubicación / fotogpserror)
+// y su cuenta atrás viven en el padre a pantalla completa — este iframe solo calcula
+// la distancia y decide sus propios botones; ver GUIA-COMPLETA §30.
 
 // Actualizar los estados de todos los botones según reglas específicas
 // ARQUITECTURA TOLERANCIA GPS:
@@ -954,16 +776,10 @@ function _actualizarGpsEnModoAventura(btnAvanzar, esTramo, idParadaActual, dista
     } else {
         desactivarBoton(btnAvanzar);
         logger.debug(`🛰️ Botón GPS DESACTIVADO: distancia ${distanciaAlDestino?.toFixed(1) || 'desconocida'}m fuera de rango ${rangoMinimo}-${rangoMaximo}m`);
-        if (!idParadaActual) {
-            logger.debug('[hijo2] GPS.RESTRINGIDO omitido — idParadaActual no disponible aún');
-        } else {
-            enviarMensaje({
-                tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
-                origen: CONFIG_HIJO.IFRAME_ID,
-                destino: resolverIdPadre(),
-                datos: { idParada: idParadaActual, distancia: distanciaAlDestino, disponible: 'solo_imagen' }
-            }).catch(e => logger.debug('[hijo2] Error notificando GPS restringido:', e.message));
-        }
+        // GPS.RESTRINGIDO (con la distancia real, para las pantallas del padre) lo envía
+        // verificarDistanciaYActualizarBotones() en cada posición, no esta función — así
+        // sigue enviándose aunque btn-ubicacion ya esté habilitado y este bloque deje de
+        // ejecutarse (actualizarEstadoBotones() corta antes de llegar aquí en ese caso).
     }
 }
 
@@ -990,7 +806,7 @@ function _desactivarBotonesRangoExcedido(elementosDOM) {
     if (elementosDOM.btnMapaCompleto) desactivarBoton(elementosDOM.btnMapaCompleto);
     if (elementosDOM.btnMapaJpg) desactivarBoton(elementosDOM.btnMapaJpg);
     if (elementosDOM.btnUbicacion) activarBoton(elementosDOM.btnUbicacion);
-    logger.debug('⚠️ Fuera de rango >5min: solo btn-ubicacion habilitado, resto deshabilitado');
+    logger.debug('⚠️ Fuera de rango real: solo btn-ubicacion habilitado, resto deshabilitado');
 }
 
 function actualizarEstadoBotones() {
@@ -1014,7 +830,7 @@ function actualizarEstadoBotones() {
         return;
     }
 
-    if (estadoComponente.fueraDeRango5min) {
+    if (estadoComponente.fueraDeRangoActivo) {
         _desactivarBotonesRangoExcedido(elementosDOM);
         return;
     }
@@ -1097,63 +913,66 @@ function _procesarDentroDeRango(btn, logPrefix) {
     btn.style.backgroundColor = '#f44336';
     btn.style.opacity = '0.6';
     if (estadoComponente.timestampSalioDeRango !== null) {
-        logger.info(`${logPrefix} ✅ Usuario volvió DENTRO de rango (timer reseteado)`);
+        logger.info(`${logPrefix} ✅ Usuario volvió DENTRO de rango`);
         estadoComponente.timestampSalioDeRango = null;
         estadoComponente._notificacionFueraRangoEnviada = false;
-        ocultarOverlayFueraRango();
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.DENTRO_DE_RANGO,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: resolverIdPadre(),
+            datos: { timestamp: Date.now() }
+        }).catch(e => logger.debug(`${logPrefix} Error notificando dentro de rango:`, e.message));
     }
-    if (estadoComponente.fueraDeRango5min) {
-        estadoComponente.fueraDeRango5min = false;
-        logger.info(`${logPrefix} ✅ Fuera de rango 5min DESACTIVADO: usuario volvió a ruta`);
+    if (estadoComponente.fueraDeRangoActivo) {
+        estadoComponente.fueraDeRangoActivo = false;
+        logger.info(`${logPrefix} ✅ Fuera de rango DESACTIVADO: usuario volvió a ruta`);
         actualizarEstadoBotones();
     }
 }
 
-function _procesarFueraDeRango5min(btn, logPrefix, distanciaMinima, elementoMasCercano, tiempoFuera) {
+function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja) {
     btn.disabled = false;
     btn.style.backgroundColor = '#4CAF50';
     btn.style.opacity = '1';
-    if (!estadoComponente.fueraDeRango5min) {
-        estadoComponente.fueraDeRango5min = true;
+    if (!estadoComponente.fueraDeRangoActivo) {
+        estadoComponente.fueraDeRangoActivo = true;
         actualizarEstadoBotones();
-        logger.info(`${logPrefix} ✅ Fuera de rango 5min ACTIVADO: GPS/video deshabilitados`);
+        logger.info(`${logPrefix} ✅ Fuera de rango ACTIVADO (franja: ${franja}): GPS/video/mapas/avanzar deshabilitados`);
     }
-    logger.info(`${logPrefix} ✅ btn-ubicacion HABILITADO: Usuario >5min fuera de rango`);
     if (!estadoComponente._notificacionFueraRangoEnviada) {
         estadoComponente._notificacionFueraRangoEnviada = true;
+        logger.info(`${logPrefix} ✅ btn-ubicacion HABILITADO (franja: ${franja})`);
         enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO,
             origen: CONFIG_HIJO.IFRAME_ID,
             destino: resolverIdPadre(),
-            datos: { distancia: distanciaMinima, tiempoFuera, elementoMasCercano: elementoMasCercano?.id || null, timestamp: Date.now() }
+            datos: { distancia: estadoComponente.distanciaAlDestino, franja, elementoMasCercano: estadoComponente.idParadaActual || null, timestamp: Date.now() }
         }).catch(e => logger.debug(`${logPrefix} Error notificando usuario fuera de rango:`, e.message));
-        const elementoId = estadoComponente.idParadaActual || _idParadaInicio();
-        enviarMensaje({
-            tipo: TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
-            origen: CONFIG_HIJO.IFRAME_ID,
-            destino: resolverIdPadre(),
-            datos: { ubicacionUsuario: estadoComponente.posicionActualUsuario, elementoId, centrar: true, zoom: 16 }
-        }).catch(e => logger.debug(`${logPrefix} Error solicitando polyline:`, e.message));
-        logger.info(`${logPrefix} 📢 Notificación USUARIO_FUERA_RANGO + polyline enviadas al padre`);
+        // La polyline NO se envía sola aquí — solo al pulsar btn-ubicacion (ver su listener
+        // de click): así el GPS tiene tiempo de asentarse mientras el usuario reacciona.
     }
 }
 
 /**
- * Verifica si el usuario está dentro/fuera del radio de paradas/tramos
- * y actualiza el estado visual del botón de ubicación
- * LÓGICA: Verde habilitado si >50m durante >5min, Rojo deshabilitado si <50m
- * Solo se ejecuta en modo aventura
+ * Verifica si el usuario está dentro/fuera del rango real de la parada/tramo actual
+ * (20m parada / toleranciaGPS tramo — el mismo umbral que btn-avanzar) y actualiza
+ * el botón de ubicación. Fuera de ese rango, informa al padre de la distancia real
+ * en cada posición (GPS.RESTRINGIDO) para que decida qué pantalla de aviso mostrar
+ * (§30 de la guía) — la franja 21-50m además espera 5 minutos antes de habilitar
+ * ubicación; las franjas 51-2000m y >2000m lo hacen al instante.
+ * Solo se ejecuta en modo aventura.
  */
 function verificarDistanciaYActualizarBotones() {
     const logPrefix = '[hijo2][verificarDistanciaYActualizarBotones]';
-    const { distanciaAlDestino, idParadaActual } = estadoComponente;
+    const { distanciaAlDestino, idParadaActual, tipoParadaActual, toleranciaGPS } = estadoComponente;
     if (distanciaAlDestino === undefined || distanciaAlDestino === null) {
         logger.warn(`${logPrefix} No hay distancia a parada actual disponible`);
         return;
     }
 
-    const RADIO_PERMITIDO = 50;
-    const dentroDeRango = distanciaAlDestino <= RADIO_PERMITIDO;
+    const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    const rangoMaximo = esTramo ? toleranciaGPS : 20; // mismo umbral real que usa btn-avanzar
+    const dentroDeRango = distanciaAlDestino <= rangoMaximo;
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
     if (!btn) {
@@ -1168,13 +987,34 @@ function verificarDistanciaYActualizarBotones() {
 
     if (estadoComponente.timestampSalioDeRango === null) {
         estadoComponente.timestampSalioDeRango = ahora;
-        logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango de parada ${idParadaActual} (mostrando overlay + countdown 5min)`);
-        mostrarOverlayFueraRango();
-        iniciarCountdown();
+        logger.info(`${logPrefix} ⚠️ Usuario SALIÓ de rango real (${rangoMaximo}m) de ${idParadaActual}`);
     }
+
+    // Informar al padre de la distancia real en cada posición fuera de rango — mantiene
+    // el número visible en pantalla actualizado y decide qué pantalla mostrar (§30).
+    if (idParadaActual) {
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: resolverIdPadre(),
+            datos: { idParada: idParadaActual, distancia: distanciaAlDestino, rangoMaximo, timestampSalioDeRango: estadoComponente.timestampSalioDeRango }
+        }).catch(e => logger.debug(`${logPrefix} Error notificando GPS restringido:`, e.message));
+    }
+
+    let franja;
+    if (distanciaAlDestino > 2000) franja = 'muylejos';
+    else if (distanciaAlDestino > 50) franja = 'lejos';
+    else franja = 'fuera';
+
+    if (franja !== 'fuera') {
+        // 51-2000m y >2000m: habilitación inmediata, sin cuenta atrás
+        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja);
+        return;
+    }
+
     const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
     if (tiempoFuera >= estadoComponente.tiempoFueraRequerido) {
-        _procesarFueraDeRango5min(btn, logPrefix, distanciaAlDestino, { id: idParadaActual }, tiempoFuera);
+        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja);
     } else {
         btn.disabled = true;
         btn.style.backgroundColor = '#f44336';
@@ -1406,9 +1246,9 @@ elementosDOM.btnVideo?.addEventListener('click', async () => {
 elementosDOM.btnUbicacion?.addEventListener('click', async () => {
     const logPrefix = '[hijo2][btnUbicacion.click]';
     try {
-        // Cerrar overlay fuera de rango si está visible
-        ocultarOverlayFueraRango();
-
+        // La pantalla de aviso (foto-fuera-rango / foto_lejos_ubicación / fotogpserror) vive
+        // en el padre — al recibir MOSTRAR_UBICACION_POLYLINE más abajo, el propio padre la
+        // oculta (no hace falta pedirlo aparte).
         logger.info(`${logPrefix} 📍 Usuario solicita volver a la ruta`);
 
         // Obtener elemento actual/próximo del padre

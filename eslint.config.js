@@ -140,7 +140,6 @@ module.exports = [
         registrarControladorSeguro: "readonly",
         desregistrarControlador: "readonly",
         registrarIframe_S1: "readonly",
-        broadcastToCapability: "readonly",
 
         // ── Globals propios — funciones de utilidad ───────────────────────
         logger: "readonly",
@@ -167,7 +166,10 @@ module.exports = [
         cerrarImagenOverlay: "readonly",
         cerrarVideoOverlay: "readonly",
         cerrarChatVentana: "readonly",
-        showGpsRestrictedOverlay: "readonly",
+        showFotoLejosOverlay: "readonly",
+        hideFotoLejosOverlay: "readonly",
+        showFotoFueraRangoOverlay: "readonly",
+        hideFotoFueraRangoOverlay: "readonly",
         toggleRotationMessage: "readonly",
         updateLoadingStatus: "readonly",
         btnTop: "readonly",
@@ -177,7 +179,8 @@ module.exports = [
         // ── Globals propios — funciones de mapa/GPS ──────────────────────
         activarGPS: "readonly",
         desactivarGPS: "readonly",
-        getPosicionUsuario: "readonly",
+        showGpsOutOfRangeOverlay: "readonly",
+        _ocultarTodasPantallasDistanciaGPS: "readonly",
         updatePendingDistances: "readonly",
         _obtenerCoordenadasP0Fallback: "readonly",
         solicitarCoordenadasHijo: "readonly",

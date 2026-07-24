@@ -433,14 +433,14 @@ const ESCALA_BASE = {
     POLYLINE_RUTA: 6,           // Grosor ruta principal
     POLYLINE_TRAMO: 4,          // Grosor tramo normal
     POLYLINE_DESTACADO: 6,      // Grosor tramo destacado
-    POLYLINE_NAVEGACION: 2,     // Grosor línea navegación
-    
+    POLYLINE_NAVEGACION: 7,     // Grosor línea navegación
+
     // Marcadores
     ICONO_PARADA: 20,           // Tamaño emoji parada 🎯
     ICONO_INICIO: 16,           // Tamaño círculo inicio
     ICONO_DESTINO: 26,          // Tamaño emoji destino 🎯
     ICONO_USUARIO_CASA: 48,     // Tamaño emoji 🛸 modo casa
-    ICONO_USUARIO_AVENTURA: 32, // Tamaño flecha modo aventura
+    ICONO_USUARIO_AVENTURA: 44, // Tamaño flecha + punto modo aventura
     ICONO_REFERENCIA: 36,        // Tamaño base marcador referencia visual 🏛️ (pill)
 
     // Referencia de escala
@@ -3290,7 +3290,7 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
         // ── CRÍTICO: Actualizar estadoMapa.posicionUsuario ──────────────
         // Esta es la ÚNICA ruta viva que recibe posiciones GPS — NAVEGACION.ACTUALIZAR_ESTADO
         // llega directo desde padre. Actualizamos el estado interno aquí para que
-        // actualizarPosicionFlecha() y getPosicionUsuario() funcionen.
+        // actualizarPosicionFlecha() funcione.
         estadoMapa.posicionUsuario = {
             lat,
             lng,

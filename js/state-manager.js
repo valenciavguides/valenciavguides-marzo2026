@@ -734,8 +734,7 @@ export async function inicializarStateManager() {
       getMapaControladoresSync,
       getManejadores: getMapaControladoresSync, // Alias SÍNCRONO para compatibilidad con mensajeria.js
       removerControladorCentral,
-      limpiarControladoresAntiguos,
-      
+
       // Funciones de mensajes
       enviarMensajeCentral,
       limpiarMensajesAntiguos,
@@ -833,34 +832,6 @@ export async function diagnosticarStateManager() {
 
   (globalThis.logger || console).info('[STATE-MANAGER] Diagnóstico:', diagnostico);
   return diagnostico;
-}
-
-/**
- * Limpia controladores inactivos o antiguos
- * @param {number} maxAgeMs - Edad máxima en ms (default: 30 minutos)
- * @returns {number} - Cantidad de controladores limpiados
- */
-export async function limpiarControladoresAntiguos(maxAgeMs = 30 * 60 * 1000) {
-  const ahora = Date.now();
-  let limpiados = 0;
-
-  await mutexes.controladores.runExclusive(() => {
-    const aEliminar = [];
-    for (const [id, c] of state.controladores) {
-      if (!c.activo || (ahora - c.registradoEn > maxAgeMs && !c.opciones?.permanente)) {
-        aEliminar.push(id);
-      }
-    }
-    for (const id of aEliminar) {
-      state.controladores.delete(id);
-      limpiados++;
-    }
-  });
-
-  if (limpiados > 0) {
-    (globalThis.logger || console).info(`[STATE-MANAGER] Limpiados ${limpiados} controladores antiguos/inactivos`);
-  }
-  return limpiados;
 }
 
 /**
