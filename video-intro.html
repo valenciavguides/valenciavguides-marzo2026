@@ -1769,8 +1769,8 @@ async function scene16(){
   const b6p16=$('b6');
   b6p16.classList.remove('disabled'); b6p16.classList.add('activo'); spin(b6p16);
   await zoomBtn(b6p16, B.b6, 5000);
-  await Gauntlet.hover(b6p16,'L',320);
-  await Gauntlet.tapEl(b6p16,'L',()=>{ spin(b6p16); MC.showSec(farOff, RA.path[0]) });
+  await Gauntlet.hover(b6p16,'R',320);
+  await Gauntlet.tapEl(b6p16,'R',()=>{ spin(b6p16); MC.showSec(farOff, RA.path[0]) });
   // Pin de usuario más grande
   setTimeout(()=>{ const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='44px' },300);
   await wait(600);
@@ -1919,12 +1919,16 @@ async function run(){
   // la escena 10 de 19, así que el vídeo tiene 9 escenas de animación (varios
   // segundos cada una) para descargarse antes de que el usuario llegue a verlo.
   // Oculto y sin autoplay — preload solo descarga, nunca reproduce por sí solo.
+  // width/height:1px (no 0) — con tamaño real cero, varios navegadores móviles
+  // tratan el vídeo como "no visible de verdad" y pausan o ralentizan mucho su
+  // precarga para ahorrar datos; con opacity:0 sigue siendo invisible al ojo,
+  // 1px no se percibe.
   try {
     globalThis._vidPreload = document.createElement('video');
     globalThis._vidPreload.muted = true;
     globalThis._vidPreload.playsInline = true;
     globalThis._vidPreload.preload = 'auto';
-    globalThis._vidPreload.style.cssText = 'position:fixed;width:0;height:0;opacity:0;pointer-events:none';
+    globalThis._vidPreload.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';
     globalThis._vidPreload.src = VIDEO_INTRO_SRC;
     document.body.appendChild(globalThis._vidPreload);
   } catch (e) {

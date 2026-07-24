@@ -1105,14 +1105,40 @@ function _detenerSpinBtn(btn) {
 function _resetSpinsAventura() {
     [
         elementosDOM.btnVideo, elementosDOM.btnAvanzar, elementosDOM.btnUbicacion,
-        elementosDOM.btnMapaCompleto, elementosDOM.btnMapaJpg, elementosDOM.btnImagen
+        elementosDOM.btnImagen
     ].forEach(btn => _iniciarSpinBtn(btn));
+}
+
+// Mapa vintage y mapa completo: habilitados no molestan a la vista con el spin
+// periódico — solo giran cuando el usuario los pulsa de verdad (mismo patrón que
+// #mas-opciones en extrainfo-hijo1.html: gira en cada click, no solo el primero).
+// No basta con animationend: el mismo click también dispara setBotonActivo(), que
+// añade/quita la clase .activo en TODOS los botones — eso cambia qué regla CSS de
+// animación coincide con el elemento (glow-suave depende de :not(.activo)) y hace
+// que Chromium cancele el spin en curso sin disparar animationend nunca. El
+// setTimeout es la red de seguridad real; animationend solo adelanta la limpieza
+// si por lo que sea sí llega a dispararse.
+function _spinAlPulsar(btn) {
+    if (!btn || btn.dataset.spinAlPulsarInit === 'true') return;
+    btn.dataset.spinAlPulsarInit = 'true';
+    let spinTimeoutId = null;
+    const quitarSpin = () => { btn.classList.remove('spinning'); clearTimeout(spinTimeoutId); spinTimeoutId = null; };
+    btn.addEventListener('animationend', quitarSpin);
+    btn.addEventListener('click', () => {
+        btn.classList.remove('spinning');
+        void btn.offsetWidth; // forzar reflow para reiniciar animación
+        btn.classList.add('spinning');
+        clearTimeout(spinTimeoutId);
+        spinTimeoutId = setTimeout(quitarSpin, 950); // duración de spin-btn (0.9s) + margen
+    });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     actualizarEstadoBotones();
 
     _resetSpinsAventura();
+    _spinAlPulsar(elementosDOM.btnMapaCompleto);
+    _spinAlPulsar(elementosDOM.btnMapaJpg);
 
     // Event listeners para los botones
     elementosDOM.btnAvanzar?.addEventListener('click', async () => {

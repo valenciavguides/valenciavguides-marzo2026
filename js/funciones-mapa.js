@@ -18,6 +18,7 @@ import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
 import { generarIdUnico, manejarError, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, resolverIdPadre, puntoMasCercanoEnLinea } from './utils.js';
+import { DATOS_PADRE } from './aventuras-ID-padre.js';
 import logger from './logger.js';
 
 /**
@@ -167,6 +168,8 @@ let marcadorUsuario = null;
 let marcadorFlechaUsuario = null;
 let marcadorHaloUsuario = null;
 let deviceOrientationHeading = 0;
+let _flechaGpsAnguloAcumulado = null; // ángulo continuo sin acotar a 0-360, para que rotate() siempre gire por el camino corto
+let _flechaGpsUltimaEscritura = 0;
 let flechaActiva = false;
 let compassActiva = false;
 let _mapaInstance = null; // Instancia del mapa MapLibre
@@ -1768,15 +1771,45 @@ function actualizarOrientacionFlecha(event) {
 }
 
 /**
+ * Delta angular más corto entre dos ángulos, en (-180, 180] — evita que rotate()
+ * gire por el camino largo al cruzar el límite 0°/360°.
+ */
+function _anguloDeltaCorto(actual, objetivo) {
+    let diff = (objetivo - actual) % 360;
+    if (diff > 180) diff -= 360;
+    if (diff <= -180) diff += 360;
+    return diff;
+}
+
+/**
  * Actualiza solo el CSS transform de la flecha GPS (no recrea el marcador).
- * Llamada hasta 30 veces/segundo desde DeviceOrientationEvent.
+ * DeviceOrientationEvent llama a esta función indirectamente hasta 30 veces/segundo;
+ * el sensor de rumbo es ruidoso (sobre todo en Android bajo techo), así que aquí se
+ * aplican tres correcciones para evitar una flecha "loca": (1) suavizado exponencial,
+ * solo se aplica una fracción del salto detectado en vez del valor crudo; (2) ángulo
+ * acumulado sin acotar a 0-360, para que la CSS transition siempre gire por el camino
+ * corto en vez de dar la vuelta larga al cruzar 359°→0°; (3) throttle a ~10Hz, ya que
+ * escribir al DOM a 30Hz no aporta nada visible con una transition de 0.3s.
  */
 function actualizarRotacionFlechaGPS(heading) {
     if (!marcadorUsuarioGPS) return;
     const el = marcadorUsuarioGPS.getElement();
     if (!el) return;
     const div = el.querySelector('.gps-arrow-heading');
-    if (div) div.style.transform = `translate(-50%,-50%) rotate(${heading}deg)`;
+    if (!div) return;
+
+    const ahora = Date.now();
+    if (ahora - _flechaGpsUltimaEscritura < 100) return;
+    _flechaGpsUltimaEscritura = ahora;
+
+    if (_flechaGpsAnguloAcumulado === null) {
+        _flechaGpsAnguloAcumulado = heading;
+    } else {
+        const delta = _anguloDeltaCorto(_flechaGpsAnguloAcumulado, heading);
+        _flechaGpsAnguloAcumulado += delta * 0.25;
+    }
+
+    div.style.transform = `translate(-50%,-50%) rotate(${_flechaGpsAnguloAcumulado}deg)`;
 }
 
 /**
@@ -2888,6 +2921,37 @@ function detenerGPS() {
     }
 }
 
+const _TIPOS_ELEMENTO_NAVEGABLE = ['inicio', 'parada', 'tramo'];
+
+/**
+ * Determina el id (parada_id o tramo_id, formato "Av1-P-0"/"Av1-TR-1") del siguiente
+ * elemento navegable de la aventura tras `paradaActualId`.
+ *
+ * Camina `DATOS_PADRE[aventura][idioma].elementosIDpadre` — la secuencia oficial,
+ * ya ordenada y sin las entradas `tipo:"referencia"` que sí mezcla el array de
+ * coordenadas (`AVENTURA_PARADAS`). Ahí es donde vive el orden real; las coordenadas
+ * de destino se resuelven aparte, en `AVENTURA_PARADAS`, buscando por `.id`.
+ *
+ * `paradaActualId` llega en formato "Av1-P-0" (el mismo que usa `estadoMapa.paradaActual`),
+ * así que compara contra `parada_id`/`tramo_id` — nunca contra `padreid`, que en
+ * `elementosIDpadre` tiene otro formato ("padre-P0") y en `AVENTURA_PARADAS` no existe.
+ */
+function _siguienteIdElementoNavegable(aventura, idioma, paradaActualId) {
+    const elementos = DATOS_PADRE?.[aventura]?.[idioma]?.elementosIDpadre;
+    if (!Array.isArray(elementos) || elementos.length === 0) return null;
+
+    const indiceActual = paradaActualId
+        ? elementos.findIndex(e => e.parada_id === paradaActualId || e.tramo_id === paradaActualId)
+        : -1;
+
+    for (let i = indiceActual + 1; i < elementos.length; i++) {
+        if (_TIPOS_ELEMENTO_NAVEGABLE.includes(elementos[i].tipo)) {
+            return elementos[i].parada_id || elementos[i].tramo_id || null;
+        }
+    }
+    return null;
+}
+
 /**
  * Procesa posición GPS para detección secuencial en modo aventura
  */
@@ -2932,17 +2996,13 @@ async function procesarPosicionGPSParaAventura(posicion) {
         }
 
         const paradas = globalThis.AVENTURA_PARADAS;
-        const paradaActualIndex = estadoMapa.paradaActual ?
-            paradas.findIndex(p => p.padreid === estadoMapa.paradaActual) : -1;
-
-        // Buscar la siguiente parada en secuencia
-        const siguienteIndex = paradaActualIndex + 1;
-        if (siguienteIndex >= paradas.length) {
-            logger.info(`${logPrefix} Ruta completada`);
+        const siguienteId = _siguienteIdElementoNavegable(globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado, estadoMapa.paradaActual);
+        if (!siguienteId) {
+            logger.info(`${logPrefix} Ruta completada o secuencia de la aventura no disponible`);
             return;
         }
 
-        const siguienteParada = paradas[siguienteIndex];
+        const siguienteParada = paradas.find(p => p.id === siguienteId);
         // Obtener coordenadas: paradas usan .coordenadas, tramos usan .inicio/.fin
         const coordsSiguiente = siguienteParada 
             ? (siguienteParada.coordenadas || siguienteParada.inicio || siguienteParada.fin || null)
@@ -2959,7 +3019,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // Calcular tolerancia GPS dinámica para el elemento actual
         const toleranciaGPS = calcularToleranciaGPS(siguienteParada);
 
-        logger.debug(`${logPrefix} Distancia a ${siguienteParada.padreid}: ${Math.ceil(distancia)}m (tolerancia: ${toleranciaGPS}m)`);
+        logger.debug(`${logPrefix} Distancia a ${siguienteParada.id}: ${Math.ceil(distancia)}m (tolerancia: ${toleranciaGPS}m)`);
 
         // ✅ CRÍTICO: Actualizar marcador visual del usuario en el mapa (flecha azul)
         // DEBE llamarse ANTES de enviar mensajes para que el usuario vea su posición en tiempo real
@@ -2980,7 +3040,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 origen: 'funciones-mapa',
                 datos: {
                     distanciaAlDestino: Math.ceil(distancia),
-                    idParada: siguienteParada.padreid,
+                    idParada: siguienteParada.id,
                     tipoParada: siguienteParada.tipo || 'parada',
                     toleranciaGPS: toleranciaGPS,
                     lat: latitude,
@@ -3070,7 +3130,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     dashArray: '10, 10'
                 });
                 
-                logger.debug(`${logPrefix} ✅ Polyline automática dibujada (${puntosPolyline.length} puntos) hasta ${siguienteParada.padreid}`);
+                logger.debug(`${logPrefix} ✅ Polyline automática dibujada (${puntosPolyline.length} puntos) hasta ${siguienteParada.id}`);
             } catch (error_) {
                 logger.warn(`${logPrefix} Error dibujando polyline automática:`, error_);
             }
@@ -3082,7 +3142,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
             if (estadoMapa.modo !== MODOS.AVENTURA) {
                 logger.debug(`${logPrefix} Llegada detectada en modo ${estadoMapa.modo} — sin avance automático por GPS`);
             } else {
-                logger.info(`${logPrefix} 🎯 Activando parada secuencial: ${siguienteParada.padreid}`);
+                logger.info(`${logPrefix} 🎯 Activando parada secuencial: ${siguienteParada.id}`);
 
                 // Derivar ids para compatibilidad (padreId vs paradaId)
                 const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);

@@ -442,21 +442,33 @@
                 z-index: 1000070 !important;
             }
 
-        /* Inner layout: image + button overlay (comparten clase .gps-overlay-img) */
+        /* Inner layout: imagen arriba (flexible) + banda inferior fija con el botón de
+           reintento — así el botón nunca tapa parte de la foto (ver GUIA-COMPLETA §30.4). */
         .gps-overlay-distancia .gps-overlay-img {
-            /* Ensure the full image is visible while fitting inside the container */
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
             width: 100%;
-            height: 100%;
             object-fit: contain; /* use contain so the whole image is visible without cropping */
             background-position: center center;
             background-color: #222;
             border-radius: 0.5rem;
             display: block;
             box-shadow: 0 0.5rem 1.875rem rgba(0,0,0,0.2);
-            z-index: 1000; /* behind controls */
+        }
+
+        /* Banda inferior fija, propio espacio real para el botón de reintento — no flota
+           sobre la imagen. Compartida por las 3 pantallas de distancia. */
+        .gps-overlay-distancia .gps-banda-inferior {
+            flex: 0 0 auto;
+            width: 100%;
+            min-height: 5.5rem;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 0 0.4rem 0.4rem;
+            margin-top: 0.5rem;
         }
             /* Responsive adjustments for smaller viewports */
             @media (max-width: 600px) {
@@ -475,43 +487,38 @@
                 }
             }
 
-        /* Botón de reintento 🛰️🔄, compartido por las 3 pantallas de distancia */
+        /* Botón de reintento 🛰️🔄, compartido por las 3 pantallas de distancia — vive
+           dentro de .gps-banda-inferior, ya no flota encima de la imagen. */
         .gps-overlay-distancia .gps-overlay-retry-btn {
-            /* Action button centrado en la parte inferior del inner box */
-            position: absolute !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            bottom: 1rem;
-            background: rgba(0,0,0,0.95) !important;
+            position: static !important;
+            background: transparent !important;
             color: #fff !important;
-            border: none !important;
-            padding: 1.625rem 1.875rem !important;
+            border: 0.125rem solid rgba(255,255,255,0.35) !important;
+            padding: 0.875rem 1.5rem !important;
             border-radius: 0.875rem !important;
             font-size: 1.25rem !important;
             cursor: pointer !important;
-            box-shadow: 0 0.75rem 2.25rem rgba(0,0,0,0.5) !important;
             display: inline-flex !important;
             align-items: center !important;
             gap: 0.5rem !important;
             text-align: center !important;
-            z-index: 1020 !important;
         }
 
-        .gps-overlay-distancia .gps-overlay-retry-btn:active { transform: translateX(-50%) scale(0.98); }
+        .gps-overlay-distancia .gps-overlay-retry-btn:active { transform: scale(0.96); }
 
-        /* Cuenta atrás más pequeña en foto-fuera-rango (21-50m) para no solaparse con el
-           botón de reintento — las otras 2 pantallas no tienen cuenta atrás. */
+        /* Cuenta atrás más pequeña en foto-fuera-rango (21-50m) — flota sobre la parte
+           baja de la imagen, justo encima de la banda inferior donde vive el botón. */
         #foto-fuera-rango-overlay .vv-overlay-countdown {
             font-size: clamp(1.25rem, 5vmin, 2rem);
-            bottom: 5.5rem;
         }
 
-        /* Contador descendente dentro de los overlays GPS e internet */
+        /* Contador descendente dentro de los overlays GPS e internet — bottom deja libre
+           el alto de .gps-banda-inferior (5.5rem + 0.5rem de margen) para no solaparse. */
         .vv-overlay-countdown {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            bottom: 4.5rem;
+            bottom: 6.5rem;
             font-size: clamp(2rem, 8vmin, 3.5rem);
             font-weight: bold;
             color: #fff;
@@ -1078,6 +1085,36 @@
             background: black; /* Fallback while loading */
         }
 
+        /* _precargarVideoParada() deja el <video> de este overlay cargando de fondo
+           en cuanto llegas a la parada anterior al tramo (ver GUIA-COMPLETA §15) —
+           pero .media-overlay por defecto es display:none, y varios navegadores
+           móviles pausan o ralentizan mucho la precarga de un <video> dentro de un
+           antepasado display:none (lo tratan como "no es real, no me molesto").
+           Se sobrescribe aquí a un estado presente-pero-imperceptible (1px,
+           opacity:0, sin interacción) en vez de display:none — el navegador sigue
+           tratando el vídeo como parte real de la página y continúa precargándolo.
+           Mismo criterio que el vídeo de precarga de video-intro.html. */
+        #video-overlay {
+            display: flex !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important; /* .media-overlay es box-sizing:border-box — con su padding
+                                       normal (var(--gap-superior)/--gap-inferior) el navegador
+                                       no puede bajar de esa suma aunque height sea 1px */
+            opacity: 0 !important;
+            pointer-events: none !important;
+            overflow: hidden !important;
+        }
+        #video-overlay.visible {
+            width: 100vw !important;
+            width: 100dvw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            padding: var(--gap-superior) 0 var(--gap-inferior) 0 !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
         /* Responsive para móviles */
         @media (max-width: 480px) {
             .media-contenedor {
@@ -1376,6 +1413,11 @@
         #audio-main-toggle-btn.spinning {
             animation: spin-audio-main 0.9s cubic-bezier(0.2,0.8,0.4,1) forwards !important;
         }
+        /* Chat de soporte (hijo6): gira en cada pulsación, sin nag periódico —
+           reutiliza el mismo keyframe que audio-main-toggle-btn. */
+        #btn-chat-soporte.spinning {
+            animation: spin-audio-main 0.9s cubic-bezier(0.2,0.8,0.4,1) forwards !important;
+        }
 
         #audio-control-dropdown {
             position: absolute;
@@ -1542,7 +1584,21 @@
                 // Expose a global hard-close API so child can always close chat even if messaging fails.
                 globalThis.cerrarChatSoporte = cerrarChat;
 
-                btnChat.addEventListener('click', abrirChat);
+                // setTimeout como red de seguridad real (no solo animationend): un
+                // classList.toggle concurrente en el mismo click puede hacer que el
+                // navegador cancele la animación en curso sin disparar animationend —
+                // ver el mismo caso documentado en coordenadas-hijo2.html/_spinAlPulsar.
+                let _btnChatSpinTimeoutId = null;
+                const _quitarSpinBtnChat = () => { btnChat.classList.remove('spinning'); clearTimeout(_btnChatSpinTimeoutId); _btnChatSpinTimeoutId = null; };
+                btnChat.addEventListener('animationend', _quitarSpinBtnChat);
+                btnChat.addEventListener('click', () => {
+                    btnChat.classList.remove('spinning');
+                    void btnChat.offsetWidth; // forzar reflow para reiniciar animación
+                    btnChat.classList.add('spinning');
+                    clearTimeout(_btnChatSpinTimeoutId);
+                    _btnChatSpinTimeoutId = setTimeout(_quitarSpinBtnChat, 950); // duración de spin-audio-main (0.9s) + margen
+                    abrirChat();
+                });
 
                 globalThis.addEventListener('message', function(ev) {
                     if (ev.origin !== globalThis.location.origin) return;
@@ -3316,16 +3372,17 @@
             if (globalThis.ajustarTimeoutPorConexion === undefined && ajustarTimeoutPorConexion_S1 !== undefined) {
                 globalThis.ajustarTimeoutPorConexion = ajustarTimeoutPorConexion_S1;
             }
-            // Provide a safe wrapper to avoid ReferenceErrors when code references ajustarTimeoutPorConexionSafe
-            if (globalThis.ajustarTimeoutPorConexionSafe === undefined) {
-                globalThis.ajustarTimeoutPorConexionSafe = function(ms) {
-                    try {
-                        if (typeof globalThis.ajustarTimeoutPorConexion === 'function') return globalThis.ajustarTimeoutPorConexion(ms);
-                        if (typeof ajustarTimeoutPorConexion_S1 === 'function') return ajustarTimeoutPorConexion_S1(ms);
-                        return ms;
-                    } catch { return ms; }
-                };
-            }
+            // Única definición de ajustarTimeoutPorConexionSafe — expuesta lo antes posible en
+            // Script 1 para que Script 2+ (que no tiene declaración local propia) pueda llamarla
+            // sin ReferenceError incluso si aún no ha llegado el timeout real (línea 3316-3318
+            // ya deja globalThis.ajustarTimeoutPorConexion listo antes de esta línea, así que no
+            // hace falta comprobar ajustarTimeoutPorConexion_S1 aparte).
+            globalThis.ajustarTimeoutPorConexionSafe = function ajustarTimeoutPorConexionSafe(ms) {
+                try {
+                    if (typeof globalThis.ajustarTimeoutPorConexion === 'function') return globalThis.ajustarTimeoutPorConexion(ms);
+                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                return ms;
+            };
         }
 
         // 🔥 PROCESAR DISTRIBUCIONES PENDIENTES
@@ -3715,13 +3772,6 @@
                 globalThis.getEstadoSafe = getEstadoSafe;
             }
         } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-        // Definir early fallback seguro para ajustarTimeoutPorConexion si no está presente
-        if (globalThis.window !== undefined && globalThis.ajustarTimeoutPorConexionSafe === undefined) {
-            // Función segura que devuelve un timeout en ms (comportamiento por defecto)
-            globalThis.ajustarTimeoutPorConexionSafe = function(ms) {
-                return Number(ms) || 10000;
-            };
-        }
 
         // Persistencia del progreso de la aventura
         function persistProgressState() {
@@ -3738,6 +3788,7 @@
                     elementoActualId: estado.elementoActual ? (() => { const v = estado.elementoActual.parada_id || estado.elementoActual.tramo_id || estado.elementoActual.padreid; return (v && v !== 'null' && v !== 'undefined') ? v : null; })() : null,
                     audioActual: estado.audioActual || null,
                     totalParadas: totalParadas,
+                    tiempoRestante: typeof estado.tiempoRestante === 'number' ? estado.tiempoRestante : null,
                     aventura: globalThis.aventuraSeleccionada || null,
                     idioma: globalThis.idiomaSeleccionado || null,
                     timestamp: Date.now()
@@ -3807,6 +3858,10 @@
             if (obj.paradaActual) {
                 estado.paradaActual = obj.paradaActual;
                 (globalThis.logger || console).info(`${logPrefix} paradaActual restaurada: ${estado.paradaActual}`);
+            }
+            if (typeof obj.tiempoRestante === 'number' && obj.tiempoRestante > 0) {
+                estado.tiempoRestante = obj.tiempoRestante;
+                (globalThis.logger || console).info(`${logPrefix} tiempoRestante restaurado: ${estado.tiempoRestante}s`);
             }
             const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
             if (obj.elementoActualId && Array.isArray(elementos)) {
@@ -5323,17 +5378,6 @@
         // entre distintos bloques <script> que puedan ejecutarse en otro scope.
 
         /**
-         * Ajusta timeout por conexión de manera segura
-         * to avoid runtime errors and to provide a sensible default.
-         */
-        function ajustarTimeoutPorConexionSafe(ms) {
-            try {
-                if (typeof globalThis.ajustarTimeoutPorConexion === 'function') return globalThis.ajustarTimeoutPorConexion(ms);
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-            return ms;
-        }
-
-        /**
          * NOTA: Se usa globalThis.registrarControladorSeguro directamente.
          * La antigua función registrarControladorSafe ha sido eliminada
          * para mantener consistencia de nombres en español.
@@ -5471,7 +5515,6 @@
                 globalThis.activarGPS = activarGPS;
                 globalThis.desactivarGPS = desactivarGPS;
                 globalThis.desregistrarControladorSeguro = desregistrarControladorSeguro;
-                globalThis.ajustarTimeoutPorConexionSafe = ajustarTimeoutPorConexionSafe;
             }
         } catch (e) {
             (globalThis.logger || console).warn('[PADRE] No fue posible exponer funciones GPS en window:', e && e.message);
@@ -5497,7 +5540,6 @@
             const img = document.createElement('img');
             img.id = 'gps-error-img';
             img.className = 'gps-overlay-img';
-            // default image path (can be overwritten via setGpsErrorImage)
             img.src = 'imagenes/imagenes-aplicación/fotogpserror.png';
             img.alt = 'Error GPS - baja precisión';
 
@@ -5569,13 +5611,17 @@
             closeBtnMain.title = 'Cerrar';
             closeBtnMain.innerHTML = '<span class="icono-x-cerrar">✗</span>';
             closeBtnMain.addEventListener('click', () => {
-                try { hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                try { _snoozearOverlayDistancia('gps-out-of-range-overlay'); hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
             });
+
+            const bandaInferior = document.createElement('div');
+            bandaInferior.className = 'gps-banda-inferior';
+            bandaInferior.appendChild(btn);
 
             inner.appendChild(img);
             inner.appendChild(distanciaRow);
             inner.appendChild(countdown);
-            inner.appendChild(btn);
+            inner.appendChild(bandaInferior);
             inner.appendChild(closeBtnMain);
             el.appendChild(inner);
             document.body.appendChild(el);
@@ -5590,6 +5636,7 @@
                     hideGpsOutOfRangeOverlay();
                     return;
                 }
+                if (_overlayDistanciaEnSnooze('gps-out-of-range-overlay')) return;
                 _ensureGpsOverlay();
                 const el = document.getElementById('gps-out-of-range-overlay');
                 const img = document.getElementById('gps-error-img');
@@ -5647,6 +5694,32 @@
 
         // Asegura que solo una de las 3 pantallas de distancia esté visible a la vez
         // (evita el problema original de dos overlays superpuestos).
+        // Al cerrar manualmente una pantalla de distancia (✖), no vuelve a aparecer hasta
+        // pasado este tiempo — así el usuario puede ver el mapa/polyline tranquilo, y la
+        // pantalla reaparece periódicamente como recordatorio (y ocasión de pulsar reintentar).
+        // Más lejos del objetivo → menos urgencia → intervalo más largo.
+        const _SNOOZE_DURACION_MS = {
+            'gps-out-of-range-overlay': 150000, // muy lejos / posición no fiable — 150s
+            'foto-lejos-overlay': 120000,       // lejos (51-2000m) — 120s
+            'foto-fuera-rango-overlay': 60000   // fuera de rango real (21-50m) — 60s
+        };
+
+        function _snoozearOverlayDistancia(id) {
+            try {
+                if (!globalThis.__VV_GPS_OVERLAY_SNOOZE) globalThis.__VV_GPS_OVERLAY_SNOOZE = {};
+                globalThis.__VV_GPS_OVERLAY_SNOOZE[id] = Date.now() + (_SNOOZE_DURACION_MS[id] || 60000);
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+
+        function _overlayDistanciaEnSnooze(id) {
+            const hasta = globalThis.__VV_GPS_OVERLAY_SNOOZE?.[id];
+            return typeof hasta === 'number' && Date.now() < hasta;
+        }
+
+        function _limpiarSnoozeOverlaysDistancia() {
+            globalThis.__VV_GPS_OVERLAY_SNOOZE = {};
+        }
+
         function _ocultarOtrasPantallasDistanciaGPS(idQueSeMuestra) {
             try {
                 ['gps-out-of-range-overlay', 'foto-lejos-overlay', 'foto-fuera-rango-overlay'].forEach(id => {
@@ -5660,6 +5733,7 @@
         function _ocultarTodasPantallasDistanciaGPS() {
             _ocultarOtrasPantallasDistanciaGPS(null);
             _detenerCountdownFueraRango();
+            _limpiarSnoozeOverlaysDistancia();
         }
         globalThis._ocultarTodasPantallasDistanciaGPS = _ocultarTodasPantallasDistanciaGPS;
 
@@ -5754,11 +5828,15 @@
             closeBtn.setAttribute('aria-label', 'Cerrar overlay');
             closeBtn.title = 'Cerrar';
             closeBtn.innerHTML = '<span class="icono-x-cerrar">✗</span>';
-            closeBtn.addEventListener('click', () => hideFotoLejosOverlay());
+            closeBtn.addEventListener('click', () => { _snoozearOverlayDistancia('foto-lejos-overlay'); hideFotoLejosOverlay(); });
+
+            const bandaInferior = document.createElement('div');
+            bandaInferior.className = 'gps-banda-inferior';
+            bandaInferior.appendChild(btn);
 
             inner.appendChild(img);
             inner.appendChild(distanciaRow);
-            inner.appendChild(btn);
+            inner.appendChild(bandaInferior);
             inner.appendChild(closeBtn);
             el.appendChild(inner);
             document.body.appendChild(el);
@@ -5768,6 +5846,7 @@
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
                 if (modoActual !== MODOS.AVENTURA) { hideFotoLejosOverlay(); return; }
+                if (_overlayDistanciaEnSnooze('foto-lejos-overlay')) return;
                 _ensureFotoLejosOverlay();
                 const el = document.getElementById('foto-lejos-overlay');
                 if (!el) return;
@@ -5826,12 +5905,16 @@
             closeBtn.setAttribute('aria-label', 'Cerrar overlay');
             closeBtn.title = 'Cerrar';
             closeBtn.innerHTML = '<span class="icono-x-cerrar">✗</span>';
-            closeBtn.addEventListener('click', () => hideFotoFueraRangoOverlay());
+            closeBtn.addEventListener('click', () => { _snoozearOverlayDistancia('foto-fuera-rango-overlay'); hideFotoFueraRangoOverlay(); });
+
+            const bandaInferior = document.createElement('div');
+            bandaInferior.className = 'gps-banda-inferior';
+            bandaInferior.appendChild(btn);
 
             inner.appendChild(img);
             inner.appendChild(distanciaRow);
             inner.appendChild(countdown);
-            inner.appendChild(btn);
+            inner.appendChild(bandaInferior);
             inner.appendChild(closeBtn);
             el.appendChild(inner);
             document.body.appendChild(el);
@@ -5841,6 +5924,7 @@
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
                 if (modoActual !== MODOS.AVENTURA) { hideFotoFueraRangoOverlay(); return; }
+                if (_overlayDistanciaEnSnooze('foto-fuera-rango-overlay')) return;
                 _ensureFotoFueraRangoOverlay();
                 const el = document.getElementById('foto-fuera-rango-overlay');
                 if (!el) return;
@@ -6157,37 +6241,6 @@
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
-        // API: cambiar imagen del overlay (acepta URL absoluta o relativa)
-        function setGpsErrorImage(url) {
-            try {
-                _ensureGpsOverlay();
-                const img = document.getElementById('gps-error-img');
-                if (!img) return;
-                img.src = url;
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error seteando imagen:', e && e.message);
-            }
-        }
-
-        // API: cambiar texto y callback del botón
-        function setGpsErrorButton(text, callback) {
-            try {
-                _ensureGpsOverlay();
-                const btn = document.getElementById('gps-error-action');
-                if (!btn) return;
-                if (typeof text === 'string') btn.innerText = text;
-                if (typeof callback === 'function') {
-                    globalThis._gpsOverlayButtonCallback = callback;
-                } else {
-                    globalThis._gpsOverlayButtonCallback = null;
-                }
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] Error seteando boton:', e && e.message);
-            }
-        }
-
-        // Exponer API en window
-        try { globalThis.setGpsErrorImage = setGpsErrorImage; globalThis.setGpsErrorButton = setGpsErrorButton; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         // Exponer overlays de problemas (§30) para que Script 2 pueda llamarlos desde sus handlers
         try { globalThis.showInternetOverlay = showInternetOverlay; globalThis.hideInternetOverlay = hideInternetOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         try { globalThis.showGpsSignalOverlay = showGpsSignalOverlay; globalThis.hideGpsSignalOverlay = hideGpsSignalOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
@@ -6834,14 +6887,26 @@
                 await _enviarHeartbeatStartAHijo(h, mensaje.origen, logPrefix);
             }
             try { await ensureDefaultParada(); } catch (err) { (globalThis.logger || console).warn('[CAMBIO_MODO] ensureDefaultParada error', err); }
+            try {
+                if (typeof globalThis._iniciarTemporizadorAventura === 'function' && globalThis.aventuraSeleccionada) {
+                    await globalThis._iniciarTemporizadorAventura(globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado, estado, logPrefix, estado.tiempoRestante);
+                }
+            } catch (err) { (globalThis.logger || console).warn(`${logPrefix} Error iniciando temporizador de aventura:`, err); }
         }
 
         async function _transicionarAModoCasa(hijosCriticos, mensaje, logPrefix) {
-            try {
-                localStorage.removeItem('vv_aventura_iniciada');
-                localStorage.removeItem('vv_progreso');
-                localStorage.removeItem('vv_paradas_completadas');
-            } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+            // En modo dev, la propia activación entra en CASA como paso de bootstrap
+            // (atajo para saltar pago/código) — no es un abandono real, así que no debe
+            // borrar el progreso. El flujo de abandono/fin real (limpiarDatosAventura(),
+            // js/reciclaje-digital.js) es independiente de esto y sigue limpiando todo
+            // igual, en dev o no.
+            if (!globalThis._devModeActivo) {
+                try {
+                    localStorage.removeItem('vv_aventura_iniciada');
+                    localStorage.removeItem('vv_progreso');
+                    localStorage.removeItem('vv_paradas_completadas');
+                } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+            }
             try {
                 // padre no está en iframesRegistrados — enviarMensaje a sí mismo no funciona.
                 // Llamar directamente a pausarHeartbeat a través de globalThis.mensajeria.
@@ -9554,7 +9619,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const destinoCoords = coord0.coordenadas || coord0.inicio || coord0.fin;
                 const waypointsTramo = coord0.waypoints || [];
                 if (destinoCoords) {
-                    await dibujarPolylineNavegacion({ origen: coordenadasObjetivo, destino: coord0.fin || destinoCoords, waypoints: waypointsTramo, color: '#3eff3f', opacity: 0.8, dashArray: '10, 10' });
+                    await dibujarPolylineNavegacion({ origen: coordenadasObjetivo, destino: coord0.fin || destinoCoords, waypoints: waypointsTramo, opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' } });
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} No se encontraron coordenadas válidas en respuesta para ${siguienteParada.padreid}`);
                 }
@@ -9694,7 +9759,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
 
                 try {
-                    await dibujarPolylineNavegacion({ origen: coordenadasUsuario, destino: coordenadasDestino, opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '10, 10' } });
+                    await dibujarPolylineNavegacion({ origen: coordenadasUsuario, destino: coordenadasDestino, opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' } });
                     (globalThis.logger || console).info(`${logPrefix} ✅ Polyline dibujada desde ubicación del usuario hasta ${elementoId || 'destino'}`);
                 } catch (error) {
                     (globalThis.logger || console).error(`${logPrefix} Error dibujando polyline: ${error.message}`);
@@ -11339,7 +11404,7 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix) {
+        async function _iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix, tiempoRestanteOverride) {
             const modoActual = estado.modo?.actual || MODOS.CASA;
             if (modoActual !== MODOS.AVENTURA) {
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA detectado → Timer NO iniciado (desarrollo sin tiempo límite)`);
@@ -11355,15 +11420,22 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ No se encontró tiempoEstimado para ${aventura}, usando default: ${tiempoEstimado}s`);
                 }
+                // Si ya había un tiempo restante conocido (se vuelve a AVENTURA tras pasar
+                // por CASA, o se reanuda tras recargar la página), se envía ese en vez de
+                // reiniciar al máximo — hijo1 resetea su propio reloj visible en cada
+                // entrada a CASA (extrainfo-hijo1.html, resetearTemporizador()), así que
+                // hay que decirle el tiempo restante real cada vez que vuelve a AVENTURA.
+                const tieneRestante = typeof tiempoRestanteOverride === 'number' && tiempoRestanteOverride > 0;
+                const tiempoAEnviar = tieneRestante ? tiempoRestanteOverride : tiempoEstimado;
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones && iframeOpciones.contentWindow) {
                     iframeOpciones.contentWindow.postMessage({
                         tipo: TIPOS_MENSAJE.AVENTURA.INICIADA,
                         origen: getPadreId(),
                         destino: 'hijo1-opciones',
-                        datos: { aventuraId: aventura, tiempoEstimado, idioma: idioma || 'es', timestamp: Date.now() }
+                        datos: { aventuraId: aventura, tiempoEstimado: tiempoAEnviar, idioma: idioma || 'es', timestamp: Date.now() }
                     }, globalThis.location.origin);
-                    (globalThis.logger || console).info(`${logPrefix} ⏱️ Mensaje AVENTURA.INICIADA enviado al temporizador`);
+                    (globalThis.logger || console).info(`${logPrefix} ⏱️ Mensaje AVENTURA.INICIADA enviado al temporizador (${tiempoAEnviar}s${tieneRestante ? ', reanudado' : ''})`);
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} ⚠️ Iframe hijo1-opciones no disponible para temporizador`);
                 }
@@ -11371,6 +11443,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error iniciando temporizador:`, temporizadorError);
             }
         }
+        // Expuesta para Script 1 — _activarHeartbeatAventura la llama en cada transición
+        // a modo AVENTURA (activación inicial, reanudación, o retorno desde CASA en dev).
+        try { globalThis._iniciarTemporizadorAventura = _iniciarTemporizadorAventura; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
 async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
             const inicioTotal = Date.now();
@@ -11656,6 +11731,14 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
         }
 
         async function _hdl_AVENTURA_TIEMPO_ACTUALIZADO(mensaje) {
+            // Recordar el tiempo restante en el estado del padre — independiente de si la
+            // ventana del temporizador está visible — para que sobreviva a un retorno desde
+            // CASA (dev) o a persistProgressState()/_restoreApplyState() en un reload real.
+            try {
+                const tr = mensaje.datos?.tiempoRestante;
+                if (typeof tr === 'number') estado.tiempoRestante = tr;
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
             // Actualizar el display del temporizador si está visible
             try {
                 const ventana = document.getElementById('ventana-temporizador-padre');

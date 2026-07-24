@@ -623,6 +623,23 @@
       padding: 10px 0 0 0;
       overflow-x: hidden;
       overflow-y: hidden;
+      position: relative;
+    }
+    /* Guante que recuerda periódicamente pulsar play, hasta que el usuario lo pulse */
+    .guante-play-hint {
+      position: absolute;
+      width: clamp(3.5rem, 12vw, 5.5rem);
+      top: clamp(4.5rem, 14vh, 6.5rem);
+      right: -20vw;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+      filter: drop-shadow(0 0.25rem 0.5rem rgba(0,0,0,0.35));
+      transition: right 0.6s ease-out, opacity 0.3s ease-out;
+    }
+    .guante-play-hint.show {
+      right: 80vw; /* aproximado: junto al botón play nativo del reproductor, ajustar a ojo si hace falta */
+      opacity: 1;
     }
     #pantalla11 .logo-alargado {
       margin-top: 0;
@@ -814,6 +831,7 @@
   <div class="pantalla" id="pantalla11">
     <div class="free-demo">FREE DEMO</div>
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="" style="display:block; margin-left:auto; margin-right:auto; margin-top:0; margin-bottom:0;">
+    <img id="guante-play-hint" class="guante-play-hint" src="imagenes/imagenes video intro/guantelete_mira_arriba.png" alt="">
     <div class="audio-btn-row" style="margin-top:0; margin-bottom:0.7rem;">
       <div class="audio-player-container" style="background:#fff8e7; border-radius:1.25rem; box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.3); margin-top:0; margin-bottom:0;">
         <audio id="audio-intro-player" controls controlsList="nodownload">
@@ -821,7 +839,7 @@
           Tu navegador no soporta el audio.
         </audio>
       </div>
-      <button class="btn btn-mundo-verde" onclick="void mostrar(12)" title="Siguiente" style="align-self:center; flex-shrink:0; margin-right:7.5vw; margin-top:0;">
+      <button class="btn btn-mundo-verde" id="btn-siguiente-audio-intro" onclick="void mostrar(12)" title="Siguiente" disabled style="align-self:center; flex-shrink:0; margin-right:7.5vw; margin-top:0;">
         <div class="contenedor-flecha"><span class="flecha-v">➣</span></div>
         <div class="contenedor-flecha segunda"><span class="flecha-v">➣</span></div>
       </button>
@@ -1087,6 +1105,36 @@
       checkAgradecimientosScroll();
     }
 
+    // P10 (pantalla11): recuerda periódicamente al usuario pulsar play con el guante
+    // guantelete_mira_arriba — entra desde la derecha, apunta al botón play nativo del
+    // reproductor, y se retira. Se repite hasta que el usuario pulsa play de verdad;
+    // btn-siguiente-audio-intro permanece deshabilitado hasta ese mismo instante.
+    let _audioIntroYaReproducido = false;
+    let _guanteHintIntervalId = null;
+    function _iniciarGuantePlayHint() {
+      if (_audioIntroYaReproducido) return;
+      const guante = document.getElementById('guante-play-hint');
+      const audioPlayer = document.getElementById('audio-intro-player');
+      if (!guante || !audioPlayer) return;
+
+      const ciclo = () => {
+        if (_audioIntroYaReproducido) { clearInterval(_guanteHintIntervalId); guante.classList.remove('show'); return; }
+        guante.classList.add('show');
+        setTimeout(() => guante.classList.remove('show'), 1800);
+      };
+      clearInterval(_guanteHintIntervalId);
+      ciclo();
+      _guanteHintIntervalId = setInterval(ciclo, 5000);
+
+      audioPlayer.addEventListener('play', () => {
+        _audioIntroYaReproducido = true;
+        clearInterval(_guanteHintIntervalId);
+        guante.classList.remove('show');
+        const btn = document.getElementById('btn-siguiente-audio-intro');
+        if (btn) btn.disabled = false;
+      }, { once: true });
+    }
+
     function _accionPantalla15() {
       // Notificar al padre que P14 es visible → precarga de datos e iframes
       if (globalThis.parent && globalThis.parent !== globalThis) {
@@ -1109,7 +1157,7 @@
       7:  () => void cargarAventurasDinamicamente(),
       8:  () => { if (!retoCargadoR1) void cargarRetoR1(); },
       10: () => { if (!terminosCargados) void cargarTerminos(); },
-      11: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } },
+      11: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } _iniciarGuantePlayHint(); },
       14: () => _accionPantalla15(),
       15: () => { if (!retoCargadoR2) void cargarRetoR2(); },
       17: () => _accionPantalla5(),

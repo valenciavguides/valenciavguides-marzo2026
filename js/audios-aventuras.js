@@ -12,455 +12,455 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-Av1-P-0-es",
         title: "Parada 0: Torres de Serranos (start)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 1: Torres de Serranos → Plaza de la crida (Puente de Serranos)(Párrafos: 229, 2) (mapa 1→1)
       {
         id: "audio-Av1-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Plaza de la crida (Puente de Serranos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 1: Plaza de la crída (Puente de Serranos) (Reto 4) (Párrafos: 126, 233) (mapa 1)
       {
         id: "audio-Av1-P-1-es",
         title: "Parada 1: Plaza de la crída (Puente de Serranos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 2: Plaza de la crída → Calle Muro de Santa Ana (Párrafos: 81) (mapa 1→-)
       {
         id: "audio-Av1-TR-2-es",
         title: "Tramo 2: Plaza de la crída → Calle Muro de Santa Ana",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 2: calle Muro Santa Ana (Reto 5) (Párrafos: 68)
       {
         id: "audio-Av1-P-2-es",
         title: "Parada 2: calle Muro Santa Ana",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia (Párrafos: 52, 686) (mapa -→2)
       {
         id: "audio-Av1-TR-3-es",
         title: "Tramo 3: Calle Muro de Santa Ana → Palacio de los Borgia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 3: Iglesia de San Lorenzo (Reto 6) (Párrafos: 682-B, 462, 684, 683)
       {
         id: "audio-Av1-P-3-es",
         title: "Parada 3: Iglesia de San Lorenzo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 4: Iglesia de San Lorenzo → Plaza de la Virgen (Párrafos: 465-B) (mapa -→3)
       {
         id: "audio-Av1-TR-4-es",
         title: "Tramo 4: Iglesia de San Lorenzo → Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 4: Plaza de la Virgen (Reto 7) (Párrafos: 466, 467) (mapa 3)
       {
         id: "audio-Av1-P-4-es",
         title: "Parada 4: Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 5: Plaza de la Virgen (Reto 8) (Párrafos: 477-B, 479, 141, 468) (mapa 3)
       {
         id: "audio-Av1-P-5-es",
         title: "Parada 5: Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 6: Plaza de la Virgen (Reto9Puzzle PZ-01) (mapa 3)
       {
         id: "audio-Av1-P-6-es",
         title: "Parada 6: Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 5: Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína) (Párrafos: 83) (mapa 3→4)
       {
         id: "audio-Av1-TR-5-es",
         title: "Tramo 5: Plaza de la Virgen → Plaza Décimo Junio Bruto (Almoína)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 7: Panel cerámico muro Catedral (Reto 10) (Párrafos: 8-C, 434, 440, 441, 442 ) (mapa 5)
       {
         id: "audio-Av1-P-7-es",
         title: "Parada 7: Panel cerámico muro Catedral",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 8: Capilla exterior catedral (Reto 11) (Párrafos: 443, 444) (mapa 5)
       {
         id: "audio-Av1-P-8-es",
         title: "Parada 8: Capilla exterior catedral",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 9: Capilla exterior catedral (Reto 12) (Párrafos: 445) (mapa 5)
       {
         id: "audio-Av1-P-9-es",
         title: "Parada 9: Capilla exterior catedral",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 10: Arco Novo Catedral y Puerta Negra Basílica (Párrafos: 446, 355, 447, 11-B, 451, 452) (mapa 5,9)
       {
         id: "audio-Av1-P-10-es",
         title: "Parada 10: Arco Novo Catedral y Puerta Negra Basílica",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 11: Casa del Punt de Gantxo (Reto 13) (Párrafos: 51-C, 454, 455, 455-B, 148, 456)
       {
         id: "audio-Av1-P-11-es",
         title: "Parada 11: Casa del Punt de Gantxo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 6: Plaza de la Almoína → Museo Arqueológico (Párrafos: 457, 10-B) (mapa -→6)
       {
         id: "audio-Av1-TR-6-es",
         title: "Tramo 6: Plaza de la Almoína → Museo Arqueológico",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 12: Museo arqueológico La Almoína (Reto 14) (Párrafos: 458) (mapa 6)
       {
         id: "audio-Av1-P-12-es",
         title: "Parada 12: Museo arqueológico La Almoína",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 13: Museo arqueológico La Almoína (segunda parte) (Reto15Puzzle: PZ-02) (Párrafos: 459, 460, 461) (mapa 6)
       {
         id: "audio-Av1-P-13-es",
         title: "Parada 13: Museo arqueológico La Almoína (segunda parte)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 14: Vista de la Catedral, Cimborrio (Reto: 16) (Párrafos: 8-C, 464) (mapa 5)
       {
         id: "audio-Av1-P-14-es",
         title: "Parada 14: Vista de la Catedral, Cimborrio",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal (Párrafos: 85) (mapa 6→8)
       {
         id: "audio-Av1-TR-7-es",
         title: "Tramo 7: Museo arqueológico La Almoína → Palacio Arzobispal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 15: Palacio Arzobispal, Puerta Románica de la Catedral y Torre del Miguelete (Reto 17) (Párrafos: 673, 86, 426-B, 141, 437, 438) (mapa 8)
       {
         id: "audio-Av1-P-15-es",
         title: "Parada 15: Palacio Arzobispal, Puerta Románica de la Catedral y Torre del Miguelete",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 16: Puerta Románica de la Catedral (Párrafos: 439) (mapa 5)
       {
         id: "audio-Av1-P-16-es",
         title: "Parada 16: Puerta Románica de la Catedral",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 8: Puerta Románica de la Catedral → Plaza del Ayuntamiento (Párrafos: 125) (mapa 8→9)
       {
         id: "audio-Av1-TR-8-es",
         title: "Tramo 8: Puerta Románica de la Catedral → Plaza del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 17: Plaza del Ayuntamiento (Párrafos: 13-B, 263) (mapa 9)
       {
         id: "audio-Av1-P-17-es",
         title: "Parada 17: Plaza del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València (Párrafos: 332, 14-C, 334, 335) (mapa 9→10)
       {
         id: "audio-Av1-TR-9-es",
         title: "Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 18: Edificio del Ayuntamiento (Reto 18) (Párrafos: 336, 337, 338) (mapa 10)
       {
         id: "audio-Av1-P-18-es",
         title: "Parada 18: Edificio del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 19: Edificio del Ayuntamiento (segunda parte) (Párrafos: 339, 340, 341, 54) (mapa 10)
       {
         id: "audio-Av1-P-19-es",
         title: "Parada 19: Edificio del Ayuntamiento (segunda parte)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 10: Edificio del Ayuntamiento → Estación del Norte - Tren (Párrafos: 87, 15-C) (mapa 10→11)
       {
         id: "audio-Av1-TR-10-es",
         title: "Tramo 10: Edificio del Ayuntamiento → Estación del Norte: Tren",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 20: Estación del Norte - Tren (Reto 19) (Párrafos: 326) (mapa 11)
       {
         id: "audio-Av1-P-20-es",
         title: "Parada 20: Estación del Norte: Tren",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 11: Estación del Norte - Tren → Plaza de Toros de València (Párrafos: 20-C) (mapa 11→12)
       {
         id: "audio-Av1-TR-11-es",
         title: "Tramo 11: Estación del Norte: Tren → Plaza de Toros de València",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 21: Plaza de Toros (Reto20Puzzle: PZ-03) (Párrafos: 323-B, 88) (mapa 12)
       {
         id: "audio-Av1-P-21-es",
         title: "Parada 21: Plaza de Toros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 12: Plaza de Toros → Casa estilo Árabe (Párrafos: 89, 3-D) (mapa 12→13)
       {
         id: "audio-Av1-TR-12-es",
         title: "Tramo 12: Plaza de Toros → Casa estilo Árabe",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 22: Casa estilo Árabe (mitad Aventura) (Reto: 21) (Párrafos: 100, 99) (mapa 13)
       {
         id: "audio-Av1-P-22-es",
         title: "Parada 22: Casa estilo Árabe (mitad Aventura)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos) (Párrafos: 21-B) (mapa 13→14)
       {
         id: "audio-Av1-TR-13-es",
         title: "Tramo 13: Casa estilo Árabe → Palacio de Comunicaciones (Correos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 23: Palacio de Comunicaciones (Correos) (Reto 22) (Párrafos: 700, 343, 344) (mapa 14)
       {
         id: "audio-Av1-P-23-es",
         title: "Parada 23: Palacio de Comunicaciones (Correos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 24: Edificio Suay - La Equitativa (Reto 23) (Párrafos: 693, 693-B)
       {
         id: "audio-Av1-P-24-es",
         title: "Parada 24: Edificio Suay: La Equitativa",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 14: Palacio de Comunicaciones (Correos) → Banco de Valencia (Párrafos: 345, 347, 348, 22) (mapa 14→15)
       {
         id: "audio-Av1-TR-14-es",
         title: "Tramo 14: Palacio de Comunicaciones (Correos) → Banco de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 25: Banco de Valencia (Reto: 24) (Párrafos: 349, 350) (mapa 15)
       {
         id: "audio-Av1-P-25-es",
         title: "Parada 25: Banco de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 15: Banco de Valencia → Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" (Párrafos: 351, 23-B, 352, 354) (mapa 15→16)
       {
         id: "audio-Av1-TR-15-es",
         title: "Tramo 15: Banco de Valencia → Palacio del Marqués de Dos Aguas \"Museo Nacional de Cerámica\"",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 26: Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" (Párrafos: 356, 357) (mapa 16)
       {
         id: "audio-Av1-P-26-es",
         title: "Parada 26: Palacio del Marqués de Dos Aguas \"Museo Nacional de Cerámica\"",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 16: Palacio del Marqués de Dos Aguas "Museo Nacional de Cerámica" → Mercado Central (Párrafos: 358, 359-B, 101) (mapa 16→17)
       {
         id: "audio-Av1-TR-16-es",
         title: "Tramo 16: Palacio del Marqués de Dos Aguas \"Museo Nacional de Cerámica\" → Mercado Central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 27: Mercado central (Reto 25) (Párrafos: 701, 24-D, 361, 362, 363, 364) (mapa 17)
       {
         id: "audio-Av1-P-27-es",
         title: "Parada 27: Mercado central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 17: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 274, 27-C) (mapa 17→18)
       {
         id: "audio-Av1-TR-17-es",
         title: "Tramo 17: Mercado Central → Iglesia de los Santos Juanes",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 28: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 26) (Párrafos: 27-C, 365, 366) (mapa 18)
       {
         id: "audio-Av1-P-28-es",
         title: "Parada 28: Iglesia de los Santos Juanes o San Juan del Mercado 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 29: Iglesia de los Santos Juanes 2 (San Juan del Mercado) (Reto 27) (Párrafos: 368, 367) (mapa 18)
       {
         id: "audio-Av1-P-29-es",
         title: "Parada 29: Iglesia de los Santos Juanes 2 (San Juan del Mercado)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 18: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 28) (mapa 18→19)
       {
         id: "audio-Av1-TR-18-es",
         title: "Tramo 18: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 30: Lonja (Mercado de la Seda) historia (Reto28Puzzle PZ-04) (Párrafos: 370, 371, 372, 373, 374) (mapa 19)
       {
         id: "audio-Av1-P-30-es",
         title: "Parada 30: Lonja (Mercado de la Seda) historia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 31: Lonja (Mercado de la Seda) Puerta de Los Pecados 1 (Reto 29) (Párrafos: 375, 376, 377, 378, 379) (mapa 19)
       {
         id: "audio-Av1-P-31-es",
         title: "Parada 31: Lonja (Mercado de la Seda) Puerta de Los Pecados 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 32: Lonja (Mercado de la Seda) Puerta de Los Pecados 2 (Reto 30) (Párrafos: 380, 381) (mapa 19)
       {
         id: "audio-Av1-P-32-es",
         title: "Parada 32: Lonja (Mercado de la Seda) Puerta de Los Pecados 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 33: Lonja (Mercado de la Seda) Gárgolas 1 (Reto 31) (Párrafos: 383, 384) (mapa 19)
       {
         id: "audio-Av1-P-33-es",
         title: "Parada 33: Lonja (Mercado de la Seda) Gárgolas 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 34: Lonja (Mercado de la Seda) Gárgolas 2 (Reto 32) (Párrafos: 385) (mapa 19)
       {
         id: "audio-Av1-P-34-es",
         title: "Parada 34: Lonja (Mercado de la Seda) Gárgolas 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 35: Lonja (Mercado de la Seda) Fornicador (Reto 33) (Párrafos: 386) (mapa 19)
       {
         id: "audio-Av1-P-35-es",
         title: "Parada 35: Lonja (Mercado de la Seda) Fornicador",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 19: Rodeando la Lonja (Mercado de la Seda)(Párrafos: 388) (mapa 19→19)
       {
         id: "audio-Av1-TR-19-es",
         title: "Tramo 19: Rodeando la Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 36: Lonja (Mercado de la Seda) - Gárgola Torre (Párrafos: 390, 391) (mapa 19)
       {
         id: "audio-Av1-P-36-es",
         title: "Parada 36: Lonja (Mercado de la Seda): Gárgola Torre",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 20: Lonja (Mercado de la Seda) - Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 19→19)
       {
         id: "audio-Av1-TR-20-es",
         title: "Tramo 20: Lonja (Mercado de la Seda): Patio de los naranjos → Lonja entrada visitantes",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 21: Lonja (Mercado de la Seda) -entrada visitantes →  Plaza Doctor López Collado (Párrafos: 333, 397, 31) (mapa 19→20)
       {
         id: "audio-Av1-TR-21-es",
         title: "Tramo 21: Lonja (Mercado de la Seda) -entrada visitantes →  Plaza Doctor López Collado",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 37: Plaza Doctor López Collado (Párrafos: 398) (mapa 20)
       {
         id: "audio-Av1-P-37-es",
         title: "Parada 37: Plaza Doctor López Collado",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 22: Plaza del Doctor López Collado → Plaza del Negrito (Párrafos: 198, 671, 522, 32-C) (mapa 20→21)
       {
         id: "audio-Av1-TR-22-es",
         title: "Tramo 22: Plaza del Doctor López Collado → Plaza del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 38: Fuente del Negrito (Reto 34) (Párrafos: 382, 501) (mapa 21)
       {
         id: "audio-Av1-P-38-es",
         title: "Parada 38: Fuente del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 23: Plaza del Negrito → Calle Caballeros (Párrafos: 33-B, 486, 480-B) (mapa 21→22)
       {
         id: "audio-Av1-TR-23-es",
         title: "Tramo 23: Plaza del Negrito → Calle Caballeros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 39: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 23)
       {
         id: "audio-Av1-P-39-es",
         title: "Parada 39: Palau de la Generalitat",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 24: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D) (mapa 23→1)
       {
         id: "audio-Av1-TR-24-es",
         title: "Tramo 24: Palacio de la Generalitat → Calle de los Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 40 - FINAL: Torres de Serranos Final (Reto35Puzzle PZ-05) (Párrafos: 475, 503, 507, 526,) (mapa 1)
       {
         id: "audio-Av1-P-40-es",
         title: "Parada 40: FINAL: Torres de Serranos Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
     ],
     en: [
@@ -5571,350 +5571,350 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-Av2-P-0-es",
         title: "Parada 0: Torres de Serranos (start)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 1 - Torres de Serranos (Reto 4) (Reto de la Bandera) (Párrafos: 229, 233) (mapa 1)
       {
         id: "audio-Av2-P-1-es",
         title: "Parada 1: Torres de Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 2 - Torres de Serranos (Historia de la bandera) (Párrafos: 641, 642, 643) (mapa 1)
       {
         id: "audio-Av2-P-2-es",
         title: "Parada 2: Torres de Serranos (Historia de la bandera)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 1 - Torres de Serranos → Refugio Guerra Civil (Párrafos: 103) (mapa 1→2)
       {
         id: "audio-Av2-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Refugio Guerra Civil",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 3 - Refugio Guerra Civil (Párrafos: 524, 395) (mapa 2)
       {
         id: "audio-Av2-P-3-es",
         title: "Parada 3: Refugio Guerra Civil",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 2 - Refugio Guerra Civil → Palau de la Generalitat (Párrafos: 104) (mapa 2→3)
       {
         id: "audio-Av2-TR-2-es",
         title: "Tramo 2: Refugio Guerra Civil → Palau de la Generalitat",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 4 - Palau de la Generalitat (Reto 5) (Párrafos: 481, 482, 482-B, 483) (mapa 3)
       {
         id: "audio-Av2-P-4-es",
         title: "Parada 4: Palau de la Generalitat",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 3 - Palau de la Generalitat → Calle Caballeros (Párrafos: 104, 484, 485-B, 486) (mapa 3→4)
       {
         id: "audio-Av2-TR-3-es",
         title: "Tramo 3: Palau de la Generalitat → Calle Caballeros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 4 - Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487-B) (mapa 4→5)
       {
         id: "audio-Av2-TR-4-es",
         title: "Tramo 4: Calle Caballeros → Iglesia de San Nicolás",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 5 - Iglesia de San Nicolás FRONT (Reto6puzzle PZ-06) (Párrafos: 488, 489, 490) (mapa 5)
       {
         id: "audio-Av2-P-5-es",
         title: "Parada 5: Iglesia de San Nicolás FRONT",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 5 - Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK (Párrafos: 491, 10) (mapa 5→6)
       {
         id: "audio-Av2-TR-5-es",
         title: "Tramo 5: Iglesia de San Nicolás FRONT → Iglesia de San Nicolás BACK",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 6 - Iglesia de San Nicolás BACK (Reto 7) (Párrafos: 493, 494-B, 495, 496) (mapa 6)
       {
         id: "audio-Av2-P-6-es",
         title: "Parada 6: Iglesia de San Nicolás BACK",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 7 - Iglesia de San Nicolás BACK (Reto 8) (Párrafos: 497, 498) (mapa 6)
       {
         id: "audio-Av2-P-7-es",
         title: "Parada 7: Iglesia de San Nicolás BACK",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 8 - Iglesia de San Nicolás BACK (Reto 9) (Párrafos: 504, 505) (mapa 6)
       {
         id: "audio-Av2-P-8-es",
         title: "Parada 8: Iglesia de San Nicolás BACK",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 6 - Iglesia de San Nicolás BACK → Plaza del Negrito (Párrafos: 499, 500-B) (mapa 6→7)
       {
         id: "audio-Av2-TR-6-es",
         title: "Tramo 6: Iglesia de San Nicolás BACK → Plaza del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 9 - Plaza del Negrito (Reto 10) (Párrafos: 382, 501) (mapa 7)
       {
         id: "audio-Av2-P-9-es",
         title: "Parada 9: Plaza del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 7 - Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502-B, 506, 12) (mapa 7→4→8)
       {
         id: "audio-Av2-TR-7-es",
         title: "Tramo 7: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 10 - Plaza del Tossal (Reto 11) (Párrafos: 12-C, 508, 509) (mapa 8)
       {
         id: "audio-Av2-P-10-es",
         title: "Parada 10: Plaza del Tossal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 11 - Plaza del Tossal 2 (Párrafos: 510, 511) (mapa 8)
       {
         id: "audio-Av2-P-11-es",
         title: "Parada 11: Plaza del Tossal 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 8 - Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 13-C) (mapa 8→9)
       {
         id: "audio-Av2-TR-8-es",
         title: "Tramo 8: Plaza del Tossal → Portal de la Valldigna",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 12 - Portal de la Valldigna (Párrafos: 513, 589, 144) (mapa 9)
       {
         id: "audio-Av2-P-12-es",
         title: "Parada 12: Portal de la Valldigna",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 9 - Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 560, 514, 14-C) (mapa 9→10)
       {
         id: "audio-Av2-TR-9-es",
         title: "Tramo 9: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 13 - Torre del Ángel (Torre árabe) (Reto 12) (Párrafos: 515, 516, 517, 518, 519) (mapa 10)
       {
         id: "audio-Av2-P-13-es",
         title: "Parada 13: Torre del Ángel (Torre árabe)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 10 - Torre del Ángel (Torre árabe) → Plaza de la Virgen (Párrafos: 521, 522, 671, 520, 105, 15-B) (mapa 10→11)
       {
         id: "audio-Av2-TR-10-es",
         title: "Tramo 10: Torre del Ángel (Torre árabe) → Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 14 - Plaza de la Virgen - Introducción (Reto13Puzzle PZ-01) (Párrafos: 702, 346, 143) (mapa 11)
       {
         id: "audio-Av2-P-14-es",
         title: "Parada 14: Plaza de la Virgen - Introducción",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 15 - Plaza de la Virgen - Fuente Neptuno (Reto 14) (Párrafos: 466, 467) (mapa 11)
       {
         id: "audio-Av2-P-15-es",
         title: "Parada 15: Plaza de la Virgen - Fuente Neptuno",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 16 - Plaza de la Virgen - Ofrenda (Reto 15) (Párrafos: 469, 472, 473, 690, 468) (mapa 11)
       {
         id: "audio-Av2-P-16-es",
         title: "Parada 16: Plaza de la Virgen - Ofrenda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 17 - Plaza de la Virgen - Basílica (Párrafos: 146, 450, 451, 452) (mapa 11)
       {
         id: "audio-Av2-P-17-es",
         title: "Parada 17: Plaza de la Virgen - Basílica",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 18 - Plaza de la Virgen - Cimborrio Catedral de Valencia (Reto 16) (Párrafos: 476, 355, 464) (mapa 11)
       {
         id: "audio-Av2-P-18-es",
         title: "Parada 18: Plaza de la Virgen - Cimborrio Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 19 - Plaza de la Virgen - Historia de la Catedral de Valencia (Párrafos: 147, 149, 150) (mapa 11)
       {
         id: "audio-Av2-P-19-es",
         title: "Parada 19: Plaza de la Virgen - Historia de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 11 - Plaza de la Virgen → Puerta Gótica de la Catedral de Valencia (Párrafos: 477, 478, 479) (mapa 11→-)
       {
         id: "audio-Av2-TR-11-es",
         title: "Tramo 11: Plaza de la Virgen → Puerta Gótica de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 12 - Puerta Gótica de la Catedral de Valencia → Torre del Miguelete y Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 440, 426, 19, 695) (mapa -→12→13)
       {
         id: "audio-Av2-TR-12-es",
         title: "Tramo 12: Puerta Gótica de la Catedral de Valencia → Torre del Miguelete y Puerta de los Hierros (Barroca) de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 20 - Torre del Miguelete (Reto 17) (Párrafos: 427) (mapa 12)
       {
         id: "audio-Av2-P-20-es",
         title: "Parada 20: Torre del Miguelete",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 21 - Torre del Miguelete 2 (Reto 18) (Párrafos: 428) (mapa 12)
       {
         id: "audio-Av2-P-21-es",
         title: "Parada 21: Torre del Miguelete 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 22 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Reto 19) (Párrafos: 430, 432, 431) (mapa 13)
       {
         id: "audio-Av2-P-22-es",
         title: "Parada 22: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 13 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-C, 694, 419) (mapa 13→14)
       {
         id: "audio-Av2-TR-13-es",
         title: "Tramo 13: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 23 - Torre Barroca de Santa Catalina (Reto 20) (Párrafos: 425, 420, 423) (mapa 14)
       {
         id: "audio-Av2-P-23-es",
         title: "Parada 23: Torre Barroca de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 24 - Torre Barroca de Santa Catalina 2 (Reto 21) (Párrafos: 421, 422) (mapa 14)
       {
         id: "audio-Av2-P-24-es",
         title: "Parada 24: Torre Barroca de Santa Catalina 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 14 - Torre Barroca de la Iglesia de Santa Catalina → Plaza Lope de Vega (Párrafos: 119, 22-B, 411, 412) (mapa 14→15)
       {
         id: "audio-Av2-TR-14-es",
         title: "Tramo 14: Torre Barroca de la Iglesia de Santa Catalina → Plaza Lope de Vega",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 25 - Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 15)
       {
         id: "audio-Av2-P-25-es",
         title: "Parada 25: Plaza Lope de Vega - Iglesia de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 26 - Plaza Lope de Vega - Iglesia de Santa Catalina 2 (Reto 22) (Párrafos: 417, 416) (mapa 15)
       {
         id: "audio-Av2-P-26-es",
         title: "Parada 26: Plaza Lope de Vega - Iglesia de Santa Catalina 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 27 - Plaza Lope de Vega - Edificio estrecho (Reto 23) (Párrafos: 408, 409, 410) (mapa 15)
       {
         id: "audio-Av2-P-27-es",
         title: "Parada 27: Plaza Lope de Vega - Edificio estrecho",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 15 - Plaza Lope de Vega → Plaza Redonda (Párrafos: 405-B, 151) (mapa 15→16)
       {
         id: "audio-Av2-TR-15-es",
         title: "Tramo 15: Plaza Lope de Vega → Plaza Redonda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 28 - Plaza Redonda (Reto24Puzzle PZ-07) (Párrafos: 406) (mapa 16)
       {
         id: "audio-Av2-P-28-es",
         title: "Parada 28: Plaza Redonda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 16 - Plaza Redonda → Plaza Milagro del Mocaoret (Párrafos: 24-E) (mapa 16→17)
       {
         id: "audio-Av2-TR-16-es",
         title: "Tramo 16: Plaza Redonda → Plaza Milagro del Mocaoret",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 29 - Plaza Milagro del Mocaoret (Párrafos: 394, 399, 152, 400, 401-B, 402) (mapa 17)
       {
         id: "audio-Av2-P-29-es",
         title: "Parada 29: Plaza Milagro del Mocaoret",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 17 - Plaza Milagro del Mocaoret → Tapinería (Párrafos: 333, 424, 492) (mapa 17→-)
       {
         id: "audio-Av2-TR-17-es",
         title: "Tramo 17: Plaza Milagro del Mocaoret → Tapinería",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 18 - Tapinería → Palau de la Generalitat (Párrafos: 6-C) (mapa -→3)
       {
         id: "audio-Av2-TR-18-es",
         title: "Tramo 18: Tapinería → Palau de la Generalitat",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 19 - Palau de la Generalitat → Torres de Serranos - Final (Párrafos: 2-B)               // Parada 29 - FINAL: Torres de Serranos - Final (Reto24Puzzle PZ-05) (Párrafos: 475, 503, 507, 526) (mapa 3→1)
       {
         id: "audio-Av2-TR-19-es",
         title: "Tramo 19: Palau de la Generalitat → Torres de Serranos - Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 30 - FINAL: Torres de Serranos - Final (Reto25Puzzle PZ-05) (Párrafos: 475, 503, 507, 526) (mapa 1)
       {
         id: "audio-Av2-P-30-es",
         title: "Parada 30: FINAL: Torres de Serranos - Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
     ],
     en: [
@@ -9870,483 +9870,483 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-Av3-P-0-es",
         title: "Parada 0: Torres de Serranos (start)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 5) (mapa 1→2)
       {
         id: "audio-Av3-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 1: Plaza de la Crída (Torres de Serranos Front) (Reto 4) (Párrafos: 126, 233) (mapa 2)
       {
         id: "audio-Av3-P-1-es",
         title: "Parada 1: Plaza de la Crída (Torres de Serranos Front)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1 (Párrafos: 230, 231) (mapa 1→2)
       {
         id: "audio-Av3-TR-2-es",
         title: "Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 2: Centro Puente Serranos 1 (Reto 5) (Párrafos: 608, 609, 610)
       {
         id: "audio-Av3-P-2-es",
         title: "Parada 2: Centro Puente Serranos 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 3: Centro Puente Serranos 2 (Párrafos: 602, 232, 234, 8, 235, 224)
       {
         id: "audio-Av3-P-3-es",
         title: "Parada 3: Centro Puente Serranos 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia (Párrafos: 236, 644, 7-B) (mapa -→6)
       {
         id: "audio-Av3-TR-3-es",
         title: "Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 6)
       {
         id: "audio-Av3-P-4-es",
         title: "Parada 4: Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 11-D) (mapa 6→7)
       {
         id: "audio-Av3-TR-4-es",
         title: "Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08) (Párrafos: 648-B, 649-B) (mapa 7)
       {
         id: "audio-Av3-P-5-es",
         title: "Parada 5: Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición (Peineta) (Párrafos: 12-D) (mapa 7→9)
       {
         id: "audio-Av3-TR-5-es",
         title: "Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición (Peineta)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 6: Puente de la Exposición (Peineta) (Reto 7) (Párrafos: 237, 1, 145, 239) (mapa 9)
       {
         id: "audio-Av3-P-6-es",
         title: "Parada 6: Puente de la Exposición (Peineta)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 225, 14-B) (mapa 9→10)
       {
         id: "audio-Av3-TR-6-es",
         title: "Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 7: Puente de las Flores (Párrafos: 241, 570) (mapa 10)
       {
         id: "audio-Av3-P-7-es",
         title: "Parada 7: Puente de las Flores",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 7: Puente de las Flores → Puente de Aragón (parte superior) (Párrafos: 242, 15, 243, 20-B) (mapa 10→12)
       {
         id: "audio-Av3-TR-7-es",
         title: "Tramo 7: Puente de las Flores → Puente de Aragón (parte superior)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 8: Puente de Aragón 1 (Reto 8) (Párrafos: 244, 246) (mapa 12)
       {
         id: "audio-Av3-P-8-es",
         title: "Parada 8: Puente de Aragón 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 9: Puente de Aragón 2 (Párrafos: 339) (mapa 12)
       {
         id: "audio-Av3-P-9-es",
         title: "Parada 9: Puente de Aragón 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior) (Párrafos: 247, 15) (mapa 12→11)
       {
         id: "audio-Av3-TR-8-es",
         title: "Tramo 8: Puente de Aragón (parte superior) → Puente de la Mar (Parte Superior)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 10: Puente de la Mar (Parte Superior) (Reto 9) (Párrafos: 248, 249) (mapa 11)
       {
         id: "audio-Av3-P-10-es",
         title: "Parada 10: Puente de la Mar (Parte Superior)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música (Párrafos: 250, 251, 3-B) (mapa 11→13)
       {
         id: "audio-Av3-TR-9-es",
         title: "Tramo 9: Puente de la Mar (Parte Superior) → Palau de la música",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 11: Palau de la Música (Reto 10) (Párrafos: 252, 253) (mapa 13)
       {
         id: "audio-Av3-P-11-es",
         title: "Parada 11: Palau de la Música",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 10: Palau de la música → Gulliver (Párrafos: 254, 255, 21, 256, 257, 22-E) (mapa 13→15)
       {
         id: "audio-Av3-TR-10-es",
         title: "Tramo 10: Palau de la música → Gulliver",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 12: Gulliver (Reto 11) (Párrafos: 258, 260, 259) (mapa 15)
       {
         id: "audio-Av3-P-12-es",
         title: "Parada 12: Gulliver",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 261, 24-D, 113) (mapa 15→17)
       {
         id: "audio-Av3-TR-11-es",
         title: "Tramo 11: Gulliver → Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias (Párrafos: 262, 17-B, 264, 265, 266, 18-B, 267, 27-B) (mapa 17)
       {
         id: "audio-Av3-P-13-es",
         title: "Parada 13: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 12: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 17→-)
       {
         id: "audio-Av3-TR-12-es",
         title: "Tramo 12: Pistas de Patinaje: Introducción a la Ciudad de las Artes y las Ciencias → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 27-B, 271) (mapa 18)
       {
         id: "audio-Av3-P-14-es",
         title: "Parada 14: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 31, 273, 275) (mapa 20)
       {
         id: "audio-Av3-P-15-es",
         title: "Parada 15: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or (Párrafos: 276, 32-B) (mapa 20→21)
       {
         id: "audio-Av3-TR-13-es",
         title: "Tramo 13: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe → Puente l'Assut de l'Or",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 16: Puente l'Assut de l'Or (Reto12puzzle PZ-09) (Párrafos: 277, 278) (mapa 21)
       {
         id: "audio-Av3-P-16-es",
         title: "Parada 16: Puente l'Assut de l'Or",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 14: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 116) (mapa 21→22/23)
       {
         id: "audio-Av3-TR-14-es",
         title: "Tramo 14: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 17: Ágora y Oceanogràfic (Párrafos: 281, 33, 282, 283, 34-B, 284) (mapa 22/23)
       {
         id: "audio-Av3-P-17-es",
         title: "Parada 17: Ágora y Oceanogràfic",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 15: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 35-B) (mapa 22/23→24)
       {
         id: "audio-Av3-TR-15-es",
         title: "Tramo 15: Ágora y Oceanogràfic → Umbracle",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 18: Umbracle (Reto 13) (Párrafos: 286, 292) (mapa 24)
       {
         id: "audio-Av3-P-18-es",
         title: "Parada 18: Umbracle",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 16: Umbracle → Hemisféric (Párrafos: 287-B, 290) (mapa 24→25)
       {
         id: "audio-Av3-TR-16-es",
         title: "Tramo 16: Umbracle → Hemisféric",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 19: Hemisféric (Reto 14) (Párrafos: 291, 707) (mapa 25)
       {
         id: "audio-Av3-P-19-es",
         title: "Parada 19: Hemisféric",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 17: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30-B) (mapa 25→11)
       {
         id: "audio-Av3-TR-17-es",
         title: "Tramo 17: Ciudad de las Artes y las Ciencias → Puente de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 20: Puente de la Mar (Reto 15) (Párrafos: 294, 295) (mapa 25)
       {
         id: "audio-Av3-P-20-es",
         title: "Parada 20: Puente de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 18: Puente de la Mar → Puerta de la Mar (Párrafos: 296-C, 297, 14-B, 298, 299, 245-B, 37) (mapa 11→26)
       {
         id: "audio-Av3-TR-18-es",
         title: "Tramo 18: Puente de la Mar → Puerta de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 21: Puerta de la Mar (Reto 16) (Párrafos: 300, 84, 301, 302) (mapa 26)
       {
         id: "audio-Av3-P-21-es",
         title: "Parada 21: Puerta de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 19: Puerta de la Mar → Palacio de Justicia (Párrafos: 657, 658, 39, 577) (mapa 26→27)
       {
         id: "audio-Av3-TR-19-es",
         title: "Tramo 19: Puerta de la Mar → Palacio de Justicia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 22: Palacio de Justicia (Párrafos: 659) (mapa 26)
       {
         id: "audio-Av3-P-22-es",
         title: "Parada 22: Palacio de Justicia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 20: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 40-B) (mapa 27→28)
       {
         id: "audio-Av3-TR-20-es",
         title: "Tramo 20: Palacio de Justicia → Fundación Bancaja 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 23: Fundación Bancaja 1 (Reto 17) (Párrafos: 661, 662) (mapa 28)
       {
         id: "audio-Av3-P-23-es",
         title: "Parada 23: Fundación Bancaja 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 21: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 28→28)
       {
         id: "audio-Av3-TR-21-es",
         title: "Tramo 21: Fundación Bancaja 1 → Fundación Bancaja 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 24: Fundación Bancaja 2 (Párrafos: 664) (mapa 28)
       {
         id: "audio-Av3-P-24-es",
         title: "Parada 24: Fundación Bancaja 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 22: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 41) (mapa 28→29)
       {
         id: "audio-Av3-TR-22-es",
         title: "Tramo 22: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 25: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Reto 18) (Párrafos: 667-B, 668) (mapa 29)
       {
         id: "audio-Av3-P-25-es",
         title: "Parada 25: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 26: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 29)
       {
         id: "audio-Av3-P-26-es",
         title: "Parada 26: Iglesia Santo Tomás Apostol y San Felipe Neri",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 23: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670-B) (mapa 29→30)
       {
         id: "audio-Av3-TR-23-es",
         title: "Tramo 23: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 27: Iglesia San Juan del Hospital (Párrafos: 671, 522, 672) (mapa 30)
       {
         id: "audio-Av3-P-27-es",
         title: "Parada 27: Iglesia San Juan del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 24: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 43-B) (mapa 30→31)
       {
         id: "audio-Av3-TR-24-es",
         title: "Tramo 24: Iglesia San Juan del Hospital → Palacio Arzobispal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 28: Palacio Arzobispal (Párrafos: 673) (mapa 31)
       {
         id: "audio-Av3-P-28-es",
         title: "Parada 28: Palacio Arzobispal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 25: Palacio Arzobispal → Catedral de Valencia (Puerta Románica) (Párrafos: 44-B, 426-B, 141) (mapa 31→32)
       {
         id: "audio-Av3-TR-25-es",
         title: "Tramo 25: Palacio Arzobispal → Catedral de Valencia (Puerta Románica)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 29: Catedral de Valencia (Puerta Románica) (Reto 19) (Párrafos: 437, 439, 438) (mapa 32)
       {
         id: "audio-Av3-P-29-es",
         title: "Parada 29: Catedral de Valencia (Puerta Románica)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 26: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 45-B) (mapa 32→33)
       {
         id: "audio-Av3-TR-26-es",
         title: "Tramo 26: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 30: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 1, Panel cerámico (reto 20) (Párrafos: 441, 442) (mapa 33)
       {
         id: "audio-Av3-P-30-es",
         title: "Parada 30: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 1, Panel cerámico",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 31: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 2, Capilla exterior (reto 21) (Párrafos: 443, 444) (mapa 33)
       {
         id: "audio-Av3-P-31-es",
         title: "Parada 31: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 2, Capilla exterior",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 32: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 3, Capilla exterior (reto 22) (Párrafos: 445) (mapa 33)
       {
         id: "audio-Av3-P-32-es",
         title: "Parada 32: Plaza Décimo Junio Bruto (Plaza de la Almoína) Muro Norte de la Catedral de Valencia 3, Capilla exterior",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia (Párrafos: 446, 447, 46-B, 452, 45-C) (mapa 33/34)
       {
         id: "audio-Av3-P-33-es",
         title: "Parada 33: Plaza Décimo Junio Bruto (Plaza de la Almoína) Basílica de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo (Reto 23) (Párrafos: 45-D, 454, 455, 455-B, 456) (mapa 33)
       {
         id: "audio-Av3-P-34-es",
         title: "Parada 34: Plaza Décimo Junio Bruto (Plaza de la Almoína) Modernismo, Casa del Punt de gantxo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 457, 45-E) (mapa 33→33)
       {
         id: "audio-Av3-TR-27-es",
         title: "Tramo 27: Plaza Décimo Junio Bruto (Plaza de la Almoína) → Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Reto 24) (Párrafos: 458) (mapa 33)
       {
         id: "audio-Av3-P-35-es",
         title: "Parada 35: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 36: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico 2 (Reto25puzzle PZ-02) (Párrafos: 459, 460, 461) (mapa 33)
       {
         id: "audio-Av3-P-36-es",
         title: "Parada 36: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 28: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen (Párrafos: 465, 47-B) (mapa 33→35)
       {
         id: "audio-Av3-TR-28-es",
         title: "Tramo 28: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico → Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 37: Plaza de la Virgen (Fuente de Neptuno) (Reto 26) (Párrafos: 466, 467) (mapa 35)
       {
         id: "audio-Av3-P-37-es",
         title: "Parada 37: Plaza de la Virgen (Fuente de Neptuno)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 38: Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia) (Reto 27) (Párrafos: 477-B, 479, 141, 468) (mapa 35)
       {
         id: "audio-Av3-P-38-es",
         title: "Parada 38: Plaza de la Virgen (Puerta Gótica de la Catedral de Valencia)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 29: Plaza de la Virgen → Torres de Serranos (Párrafos: 433, 2-F) (pausa muy larga con música de al menos 2min 30seg) (mapa 35→1)
       {
         id: "audio-Av3-TR-29-es",
         title: "Tramo 29: Plaza de la Virgen → Torres de Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 39 - FINAL: Torres de Serranos Final (Reto28Puzzle PZ-05) (Párrafos: 475, 503, 507, 526) (mapa 1)
       {
         id: "audio-Av3-P-39-es",
         title: "Parada 39: FINAL: Torres de Serranos Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
     ],
     en: [
@@ -15765,448 +15765,448 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-Av4-P-0-es",
         title: "Parada 0: Torres de Serranos (start)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 1: Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 229, 525-B, 527, 528, 529) (mapa 1→2)
       {
         id: "audio-Av4-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Museo de Corpus Christi (Casa de las Rocas)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 1 - Museo de Corpus Christi (Casa de las Rocas) (Reto4Puzzle PZ-18) (Párrafos: 5-B, 530, 531, 532, 396) (mapa 1)
       {
         id: "audio-Av4-P-1-es",
         title: "Parada 1: Museo de Corpus Christi (Casa de las Rocas)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 2: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 6-B) (mapa 2→3)
       {
         id: "audio-Av4-TR-2-es",
         title: "Tramo 2: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 2 - Parroquia de la Santísima Cruz (Iglesia del Carmen) (Reto 5) (Párrafos: 534, 535, 536, 537, 538) (mapa 3)
       {
         id: "audio-Av4-P-2-es",
         title: "Parada 2: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 3 - Parroquia de la Santísima Cruz (Iglesia del Carmen) 2 (Reto 6) (Párrafos: 539, 541, 540) (mapa 3)
       {
         id: "audio-Av4-P-3-es",
         title: "Parada 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo "El Carmen" (Párrafos: 542, 7) (mapa 3→4)
       {
         id: "audio-Av4-TR-3-es",
         title: "Tramo 3: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo \"El Carmen\"",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 4 - Centro Cultural Contemporáneo "El Carmen" (Reto 7) (Párrafos: 543, 544-B, 545, 546) (mapa 4)
       {
         id: "audio-Av4-P-4-es",
         title: "Parada 4: Centro Cultural Contemporáneo \"El Carmen\"",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 5 - Centro Cultural Contemporáneo "El Carmen" 2 (Reto 8) (Párrafos: 547, 548, 549, 550) (mapa 4)
       {
         id: "audio-Av4-P-5-es",
         title: "Parada 5: Centro Cultural Contemporáneo \"El Carmen\" 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 4: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 8-B, 552) (mapa 4→5)
       {
         id: "audio-Av4-TR-4-es",
         title: "Tramo 4: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 6 - Casa de los Gatos (Reto 9) (Párrafos: 553, 554) (mapa 5)
       {
         id: "audio-Av4-P-6-es",
         title: "Parada 6: Casa de los Gatos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 7 - Casa de los Gatos 2 (Párrafos: 555, 556) (mapa 5)
       {
         id: "audio-Av4-P-7-es",
         title: "Parada 7: Casa de los Gatos 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 8 - Casa de los Gatos 3 (Reto 10) (Párrafos: 557, 558) (mapa 5)
       {
         id: "audio-Av4-P-8-es",
         title: "Parada 8: Casa de los Gatos 3",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 9 - Casa de los Gatos 4 (Reto 11) (Párrafos: 559) (mapa 5)
       {
         id: "audio-Av4-P-9-es",
         title: "Parada 9: Casa de los Gatos 4",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 5: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 10-C) (mapa 5→6)
       {
         id: "audio-Av4-TR-5-es",
         title: "Tramo 5: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 10: Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas (Párrafos: 562, 562-B) (mapa 6)
       {
         id: "audio-Av4-P-10-es",
         title: "Parada 10: Instituto Valenciano de Arte Moderno (IVAM): Trazado de las Murallas",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 11: Instituto Valenciano de Arte Moderno (IVAM): Museo (Párrafos: 563-C) (mapa 6)
       {
         id: "audio-Av4-P-11-es",
         title: "Parada 11: Instituto Valenciano de Arte Moderno (IVAM): Museo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 6: Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo (Párrafos: 11-E, 232) (mapa 6→9)
       {
         id: "audio-Av4-TR-6-es",
         title: "Tramo 6: Instituto Valenciano de Arte Moderno (IVAM) → Estadio de Atletismo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 12: Estadio de Atletismo (Reto12puzzle PZ-10) (Párrafos: 603) (mapa 9)
       {
         id: "audio-Av4-P-12-es",
         title: "Parada 12: Estadio de Atletismo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 7: Estadio de Atletismo → Na Turia (Plataforma elevada) (Párrafos: 604-B) (mapa 9→11)
       {
         id: "audio-Av4-TR-7-es",
         title: "Tramo 7: Estadio de Atletismo → Na Turia (Plataforma elevada)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 13: Na Turia (Plataforma elevada) (Reto 13) (Párrafos: 606, 231, 608, 609, 602, 610) (mapa 11)
       {
         id: "audio-Av4-P-13-es",
         title: "Parada 13: Na Turia (Plataforma elevada)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 21) (mapa 11→11)
       {
         id: "audio-Av4-TR-8-es",
         title: "Tramo 8: Na Turia (Plataforma elevada) → Na Turia (Museo)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 14: Na Turia (Museo) (Párrafos: 713, 54) (mapa 11)
       {
         id: "audio-Av4-P-14-es",
         title: "Parada 14: Na Turia (Museo)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 9: Na Turia → Puente Amarillo (Párrafos: 611, 20) (mapa 11→12)
       {
         id: "audio-Av4-TR-9-es",
         title: "Tramo 9: Na Turia → Puente Amarillo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 15: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 12)
       {
         id: "audio-Av4-P-15-es",
         title: "Parada 15: Puente Amarillo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 10: Puente Amarillo → Puente 9 de Octubre  (Párrafos: 3) (mapa 12→13)
       {
         id: "audio-Av4-TR-10-es",
         title: "Tramo 10: Puente Amarillo → Puente 9 de Octubre",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 16: Puente 9 de Octubre (Párrafos: 616, 616-B, 617) (mapa 13)
       {
         id: "audio-Av4-P-16-es",
         title: "Parada 16: Puente 9 de Octubre",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 11: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 21, 619) (mapa 13→14)
       {
         id: "audio-Av4-TR-11-es",
         title: "Tramo 11: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 17: Parque de Cabecera (El Morro) (Reto14puzzle PZ-11 ) (Párrafos: 621, 622) (mapa 14)
       {
         id: "audio-Av4-P-17-es",
         title: "Parada 17: Parque de Cabecera (El Morro)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 18: Parque de Cabecera (El Morro) (Párrafos: 623, 624, 625) (mapa 14)
       {
         id: "audio-Av4-P-18-es",
         title: "Parada 18: Parque de Cabecera (El Morro)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 12: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 22-E, 628-B) (mapa 14→15)
       {
         id: "audio-Av4-TR-12-es",
         title: "Tramo 12: Parque de Cabecera (El Morro) → Bioparc",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 19: Bioparc (Reto15puzzle PZ-12) (Párrafos: 627, 628) (mapa 15)
       {
         id: "audio-Av4-P-19-es",
         title: "Parada 19: Bioparc",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 13: Bioparc → Molino del Sol (Párrafos: 708, 23-C) (mapa 15→16)
       {
         id: "audio-Av4-TR-13-es",
         title: "Tramo 13: Bioparc → Molino del Sol",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 20: Molino del Sol (Párrafos: 709) (mapa 16)
       {
         id: "audio-Av4-P-20-es",
         title: "Parada 20: Molino del Sol",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 14: Molino de Sol → Museo de Historia (Párrafos: 710, 24-D) (mapa 16→17)
       {
         id: "audio-Av4-TR-14-es",
         title: "Tramo 14: Molino de Sol → Museo de Historia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 21: Museo de Historia (Párrafos: 630, 631, 632) (mapa 17)
       {
         id: "audio-Av4-P-21-es",
         title: "Parada 21: Museo de Historia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 15: Museo de Historia → Pechina en el Turia (Párrafos: 633, 28-B, 415, 27-B) (mapa 17→18)
       {
         id: "audio-Av4-TR-15-es",
         title: "Tramo 15: Museo de Historia → Pechina en el Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 22: Pechina en el Turia (Reto 16) (Párrafos: 634, 635) (mapa 18)
       {
         id: "audio-Av4-P-22-es",
         title: "Parada 22: Pechina en el Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 16: Pechina en el Turia → Puente de San José (Párrafos: 636, 28-B) (mapa 18→19)
       {
         id: "audio-Av4-TR-16-es",
         title: "Tramo 16: Pechina en el Turia → Puente de San José",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 23: Puente de San José (Párrafos: 637, 638, 472) (mapa 19)
       {
         id: "audio-Av4-P-23-es",
         title: "Parada 23: Puente de San José",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 17: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 19→1)
       {
         id: "audio-Av4-TR-17-es",
         title: "Tramo 17: Puente de San José → Torres de Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 24: Torres de Serranos Front (Reto 17) (Párrafos: 471, 687, 145, 126, 233 ) (mapa 1)
       {
         id: "audio-Av4-P-24-es",
         title: "Parada 24: Torres de Serranos Front",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 18: Torres de Serranos Front → Centro Puente de Serranos 1 (Párrafos: 688) (mapa 1→-)
       {
         id: "audio-Av4-TR-18-es",
         title: "Tramo 18: Torres de Serranos Front → Centro Puente de Serranos 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 25: Centro Puente Serranos (Párrafos: 234, 34-B, 235)
       {
         id: "audio-Av4-P-25-es",
         title: "Parada 25: Centro Puente Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 19: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 33-C) (mapa -→24)
       {
         id: "audio-Av4-TR-19-es",
         title: "Tramo 19: Centro Puente de Serranos → Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 26: Ruinas del Jardín del Turia (Reto18puzzle PZ-13) (Párrafos: 705, 703, 645, 646) (mapa 24)
       {
         id: "audio-Av4-P-26-es",
         title: "Parada 26: Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 20: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 36) (mapa 24→25)
       {
         id: "audio-Av4-TR-20-es",
         title: "Tramo 20: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 27: Jardines del Real (Viveros) (Párrafos: 648) (mapa 25)
       {
         id: "audio-Av4-P-27-es",
         title: "Parada 27: Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 21: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos:649 ) (mapa 25→v1)
       {
         id: "audio-Av4-TR-21-es",
         title: "Tramo 21: Jardines del Real (Viveros) → Paseo de las Palmeras",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 28: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2→v3)
       {
         id: "audio-Av4-P-28-es",
         title: "Parada 28: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 22: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
       {
         id: "audio-Av4-TR-22-es",
         title: "Tramo 22: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 23: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
       {
         id: "audio-Av4-TR-23-es",
         title: "Tramo 23: Circuito urbano de educación vial → Museo de Ciencias Naturales",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 29: Museo de Ciencias Naturales (Reto 19) (Párrafos: viv6, viv5) (mapa v8)
       {
         id: "audio-Av4-P-29-es",
         title: "Parada 29: Museo de Ciencias Naturales",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av4-TR-24-es",
         title: "Tramo 24: Museo de Ciencias Naturales → Jardín de la Rosaleda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 30: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
       {
         id: "audio-Av4-P-30-es",
         title: "Parada 30: Jardín de la Rosaleda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 31: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
       {
         id: "audio-Av4-P-31-es",
         title: "Parada 31: Jardines del Real (Viveros) 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 25:Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
       {
         id: "audio-Av4-TR-25-es",
         title: "Tramo 25:Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 32: Estanque de los patos (Reto 20) (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av4-P-32-es",
         title: "Parada 32: Estanque de los patos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 26: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
       {
         id: "audio-Av4-TR-26-es",
         title: "Tramo 26: Estanque de los patos → Portón del Convento de San Julián",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 33: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
       {
         id: "audio-Av4-P-33-es",
         title: "Parada 33: Portón del Convento de San Julián",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 27: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 37) (mapa 25→26)
       {
         id: "audio-Av4-TR-27-es",
         title: "Tramo 27: Entrada Jardínes del Real (Viveros) → Puente del Real",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 34: Puente del Real (Párrafos: 651, 652, 653) (mapa 26)
       {
         id: "audio-Av4-P-34-es",
         title: "Parada 34: Puente del Real",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 28: Puente del Real → Torres de Serranos (Final) (Párrafos: 2-E ) (mapa 26→1)
       {
         id: "audio-Av4-TR-28-es",
         title: "Tramo 28: Puente del Real → Torres de Serranos (Final)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 35 - FINAL: Torres de Serranos Final (Reto21Puzzle PZ-05) (Párrafos: 475, 503, 507, 526,) (mapa 1)
       {
         id: "audio-Av4-P-35-es",
         title: "Parada 35: FINAL: Torres de Serranos Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
     ],
     en: [
@@ -21240,427 +21240,427 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-Av5-P-0-es",
         title: "Parada 0: Torres de Serranos (start)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 5) (mapa 1→2)
       {
         id: "audio-Av5-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 1: Plaza de la Crída (Torres de Serranos Front) (Reto 4) (Párrafos: 126, 233, 641, 642, 643, 562, 689) (mapa 2)
       {
         id: "audio-Av5-P-1-es",
         title: "Parada 1: Plaza de la Crída (Torres de Serranos Front)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1 (Párrafos: 230, 231) (mapa 2→-)
       {
         id: "audio-Av5-TR-2-es",
         title: "Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 2: Centro Puente Serranos 1 (Reto 5) (Párrafos: 608, 609, 610)
       {
         id: "audio-Av5-P-2-es",
         title: "Parada 2: Centro Puente Serranos 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 3: Centro Puente Serranos 2 (Párrafos: 602, 232-B, 234, 235, 224)
       {
         id: "audio-Av5-P-3-es",
         title: "Parada 3: Centro Puente Serranos 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia (Párrafos: 236, 644, 6) (mapa -→3)
       {
         id: "audio-Av5-TR-3-es",
         title: "Tramo 3: Centro Puente de Serranos 2 → Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 4: Ruinas del Jardín del Turia (Párrafos: 704, 703, 645, 646-A) (mapa 3)
       {
         id: "audio-Av5-P-4-es",
         title: "Parada 4: Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 7) (mapa 3→4)
       {
         id: "audio-Av5-TR-4-es",
         title: "Tramo 4: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 5: Jardines del Real (Viveros) (Reto6puzzle PZ-08) (Párrafos: 648-B, 649-B) (mapa 4)
       {
         id: "audio-Av5-P-5-es",
         title: "Parada 5: Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición (Peineta) (Párrafos: 7-C) (mapa 4→5)
       {
         id: "audio-Av5-TR-5-es",
         title: "Tramo 5: Jardines del Real (Viveros) → Puente de la Exposición (Peineta)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 6: Puente de la Exposición (Peineta) (Reto 7) (Párrafos: 237, 1, 145, 239) (mapa 5)
       {
         id: "audio-Av5-P-6-es",
         title: "Parada 6: Puente de la Exposición (Peineta)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores (Párrafos: 605, 225, 10) (mapa 5→6)
       {
         id: "audio-Av5-TR-6-es",
         title: "Tramo 6: Puente de la Exposición (Peineta) → Puente de las Flores",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 7: Puente de las Flores (Párrafos: 241, 298,) (mapa 6)
       {
         id: "audio-Av5-P-7-es",
         title: "Parada 7: Puente de las Flores",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 7: Puente de las Flores → Puerta de la Mar (Párrafos: 296-B, 299, 245, 11-D) (mapa 6→7)
       {
         id: "audio-Av5-TR-7-es",
         title: "Tramo 7: Puente de las Flores → Puerta de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 8: Puerta de la Mar (Reto 8) (Párrafos: 300, 84, 301, 148, 117) (mapa 7)
       {
         id: "audio-Av5-P-8-es",
         title: "Parada 8: Puerta de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 12-B) (mapa 7→8)
       {
         id: "audio-Av5-TR-8-es",
         title: "Tramo 8: Puerta de la Mar → Calle Colón → Casa de los Dragones",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 9: Casa de los Dragones (Reto: 9) (Párrafos: 304, 305) (mapa 8)
       {
         id: "audio-Av5-P-9-es",
         title: "Parada 9: Casa de los Dragones",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 9: Casa de los Dragones → Mercado de Colón (Front) (Párrafos: 306, 13, 307) (mapa 8→9)
       {
         id: "audio-Av5-TR-9-es",
         title: "Tramo 9: Casa de los Dragones → Mercado de Colón (Front)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 10: Mercado de Colón 1 (Reto: 10) (Párrafos: 308, 309, 310) (mapa 9)
       {
         id: "audio-Av5-P-10-es",
         title: "Parada 10: Mercado de Colón 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 11: Mercado de Colón 2 (Reto: 11) (Párrafos: 311, 312) (mapa 9)
       {
         id: "audio-Av5-P-11-es",
         title: "Parada 11: Mercado de Colón 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 12: Mercado de Colón 3 (Reto: 12) (Párrafos: 313) (mapa 9)
       {
         id: "audio-Av5-P-12-es",
         title: "Parada 12: Mercado de Colón 3",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 10: Mercado de Colón Front → Mercado de Colón Back (Párrafos: 314, 307) (mapa 9→9)
       {
         id: "audio-Av5-TR-10-es",
         title: "Tramo 10: Mercado de Colón Front → Mercado de Colón Back",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 13: Mercado de Colón Back (Reto: 13) (Párrafos: 315, 316) (mapa 9)
       {
         id: "audio-Av5-P-13-es",
         title: "Parada 13: Mercado de Colón Back",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 14: Mercado de Colón Back 2 (Fábula del Murciélago) (Párrafos: 339) (mapa 9)
       {
         id: "audio-Av5-P-14-es",
         title: "Parada 14: Mercado de Colón Back 2 (Fábula del Murciélago)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 11: Mercado de Colón Back → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 14-B) (mapa 9→10)
       {
         id: "audio-Av5-TR-11-es",
         title: "Tramo 11: Mercado de Colón Back → Antigua Puerta Judía de la Muralla en Calle Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 15: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 10)
       {
         id: "audio-Av5-P-15-es",
         title: "Parada 15: Antigua Puerta Judía de la Muralla en Calle Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 12: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 15) (mapa 10→11)
       {
         id: "audio-Av5-TR-12-es",
         title: "Tramo 12: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 16: Plaza de Toros(Reto: 14) (Párrafos: 320, 321, 323, 322) (mapa 11)
       {
         id: "audio-Av5-P-16-es",
         title: "Parada 16: Plaza de Toros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 13: Plaza de Toros → Estación del Norte (Párrafos: 324, 20) (mapa 11→12)
       {
         id: "audio-Av5-TR-13-es",
         title: "Tramo 13: Plaza de Toros → Estación del Norte",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 17: (Reto: 15) (Párrafos: 325, 326) (mapa 12)
       {
         id: "audio-Av5-P-17-es",
         title: "Parada 17:",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 14: Estación del Norte (exterior) → Estación del Norte (interior) (Párrafos: 327, 330) (mapa 12→12)
       {
         id: "audio-Av5-TR-14-es",
         title: "Tramo 14: Estación del Norte (exterior) → Estación del Norte (interior)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 18: (Reto: 16) (Párrafos: 328, 329) (mapa 12)
       {
         id: "audio-Av5-P-18-es",
         title: "Parada 18:",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 15: Estación del Norte → Calle del Hospital (Párrafos: 576, 3-E, 3-B) (mapa 12→13)
       {
         id: "audio-Av5-TR-15-es",
         title: "Tramo 15: Estación del Norte → Calle del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 19: calle del Hospital (Ermita de Santa lucía) (Reto: 17) (Párrafos: 578, 579) (mapa 13)
       {
         id: "audio-Av5-P-19-es",
         title: "Parada 19: calle del Hospital (Ermita de Santa lucía)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 20: calle del Hospital 2 (Ermita de Santa lucía) (Reto: 18) (Párrafos: 580) (mapa 13)
       {
         id: "audio-Av5-P-20-es",
         title: "Parada 20: calle del Hospital 2 (Ermita de Santa lucía)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 21: calle del Hospital 3 (Ermita de Santa lucía) (Reto: 19) (Párrafos: 581, 582, 583) (mapa 13)
       {
         id: "audio-Av5-P-21-es",
         title: "Parada 21: calle del Hospital 3 (Ermita de Santa lucía)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 16: calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 21) (mapa 13→14)
       {
         id: "audio-Av5-TR-16-es",
         title: "Tramo 16: calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 22: Museo y Colegio del Arte Mayor de la Seda (Reto: 20) (Párrafos: 585, 145, 586) (mapa 14)
       {
         id: "audio-Av5-P-22-es",
         title: "Parada 22: Museo y Colegio del Arte Mayor de la Seda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 23: Museo y Colegio del Arte Mayor de la Seda 2 (Párrafos: 587, 396) (mapa 14)
       {
         id: "audio-Av5-P-23-es",
         title: "Parada 23: Museo y Colegio del Arte Mayor de la Seda 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 17 : Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592 ) (mapa 14→13)
       {
         id: "audio-Av5-TR-17-es",
         title: "Tramo 17 : Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 24: Biblioteca del Hospital 2 (Reto21Puzzle PZ-14 ) (Párrafos: 592-B) (mapa 13)
       {
         id: "audio-Av5-P-24-es",
         title: "Parada 24: Biblioteca del Hospital 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 18: Biblioteca del Hospital → Mercado Central (Párrafos: 691) (mapa 13→15)
       {
         id: "audio-Av5-TR-18-es",
         title: "Tramo 18: Biblioteca del Hospital → Mercado Central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 25: Mercado central (Reto 22 ) (Párrafos: 701,22-B, 361, 362, 363, 364) (mapa 15)
       {
         id: "audio-Av5-P-25-es",
         title: "Parada 25: Mercado central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 26: Mercado central 2 (Reto23Puzzle PZ-16) (Párrafos: 274-B) (mapa 15)
       {
         id: "audio-Av5-P-26-es",
         title: "Parada 26: Mercado central 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 19: Mercado Central → Lonja (Mercado de la Seda) (Párrafos: 155) (mapa 15→16)
       {
         id: "audio-Av5-TR-19-es",
         title: "Tramo 19: Mercado Central → Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 27: Lonja (Mercado de la Seda) 1 (Párrafos: 372, 373, 374) (mapa 16)
       {
         id: "audio-Av5-P-27-es",
         title: "Parada 27: Lonja (Mercado de la Seda) 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 28: Lonja (Mercado de la Seda) Puerta de Los Pecados 1 (Reto 24) (Párrafos: 375, 376, 377, 378, 379) (mapa 16)
       {
         id: "audio-Av5-P-28-es",
         title: "Parada 28: Lonja (Mercado de la Seda) Puerta de Los Pecados 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 29: Lonja (Mercado de la Seda) Puerta de Los Pecados 2 (Reto 25) (Párrafos: 380, 381) (mapa 16)
       {
         id: "audio-Av5-P-29-es",
         title: "Parada 29: Lonja (Mercado de la Seda) Puerta de Los Pecados 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 30: Lonja (Mercado de la Seda) 2 (Párrafos: 140, 274-C, 24-B) (mapa 16)
       {
         id: "audio-Av5-P-30-es",
         title: "Parada 30: Lonja (Mercado de la Seda) 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 20: Lonja (Mercado de la Seda) → Torres de Quart (Párrafos: 24-C) (mapa 16→17)
       {
         id: "audio-Av5-TR-20-es",
         title: "Tramo 20: Lonja (Mercado de la Seda) → Torres de Quart",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 31: Torres de Quart 1 (Reto 26) (Párrafos: 571, 594, 572, 573) (mapa 17)
       {
         id: "audio-Av5-P-31-es",
         title: "Parada 31: Torres de Quart 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 32: Torres de Quart 2 (Reto27Puzzle PZ-15) (Párrafos: 574, 575) (mapa 17)
       {
         id: "audio-Av5-P-32-es",
         title: "Parada 32: Torres de Quart 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 21: Torres de Quart → Museo de Prehistoria y Etnología (Párrafos: 333, 27-D) (mapa 17→18)
       {
         id: "audio-Av5-TR-21-es",
         title: "Tramo 21: Torres de Quart → Museo de Prehistoria y Etnología",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 33: Museo de prehistoria y Etnología (Párrafos: 565, 566) (mapa 18/19)
       {
         id: "audio-Av5-P-33-es",
         title: "Parada 33: Museo de prehistoria y Etnología",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 22: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 31) (mapa 18/19→20)
       {
         id: "audio-Av5-TR-22-es",
         title: "Tramo 22: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 34: Iglesia de la Milagrosa (Reto 28) (Párrafos: 568, 127, 569) (mapa 20)
       {
         id: "audio-Av5-P-34-es",
         title: "Parada 34: Iglesia de la Milagrosa",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 23: Iglesia de la Milagrosa → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 564, 563-B) (mapa 20→21)
       {
         id: "audio-Av5-TR-23-es",
         title: "Tramo 23: Iglesia de la Milagrosa → Instituto Valenciano de Arte Moderno (IVAM)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 35: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 4) (mapa 21)
       {
         id: "audio-Av5-P-35-es",
         title: "Parada 35: Instituto Valenciano de Arte Moderno (IVAM)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 24: Instituto Valenciano de Arte Moderno (IVAM)  → Torres de Serranos Final (Párrafos: 2-C) (mapa 21→1)
       {
         id: "audio-Av5-TR-24-es",
         title: "Tramo 24: Instituto Valenciano de Arte Moderno (IVAM)  → Torres de Serranos Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 36 - FINAL: Torres de Serranos Final (Reto35Puzzle PZ-05) (Párrafos: 475, 503, 507, 526,) (mapa 1)
       {
         id: "audio-Av5-P-36-es",
         title: "Parada 36: FINAL: Torres de Serranos Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
     ],
     en: [
@@ -26463,322 +26463,322 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-AvFallas-P-0-es",
         title: "Parada 0: Torres de Serranos (start)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)(Párrafos: 229, 129, 593, 129-B, 471, 5, 607, 626, 629, 697, 698, 118, 130, 666, 696, 131, 132, 133, 134, 135) (mapa 1→-)
       {
         id: "audio-AvFallas-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Plaza de la Crída (Torres de Serranos Front)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 1: Plaza de la Crída (Torres de Serranos Front) (Reto 4) (Párrafos: 137, 126, 141, 470, 404, 138, 139, 153, 233) (mapa 2)
       {
         id: "audio-AvFallas-P-1-es",
         title: "Parada 1: Plaza de la Crída (Torres de Serranos Front)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1 (Párrafos: 230, 5-B) (mapa 1→2)
       {
         id: "audio-AvFallas-TR-2-es",
         title: "Tramo 2: Plaza de la Crída (Torres de Serranos Front) → Centro Puente de Serranos 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 2: Centro Puente Serranos (Párrafos: 231, 234, 235, 148, 480, 240, 638) (mapa 2)
       {
         id: "audio-AvFallas-P-2-es",
         title: "Parada 2: Centro Puente Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 3: Plaza de la Crída → Calle Muro de Santa Ana (Párrafos: 81, 6-B) (mapa 1→3)
       {
         id: "audio-AvFallas-TR-3-es",
         title: "Tramo 3: Plaza de la Crída → Calle Muro de Santa Ana",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 3: calle Muro Santa Ana (Reto 5) (Párrafos: 68) (mapa 3)
       {
         id: "audio-AvFallas-P-3-es",
         title: "Parada 3: calle Muro Santa Ana",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 4: Calle Muro de Santa Ana → Iglesia de San Lorenzo (Párrafos: 156, 682-B, 7, ) (mapa 3→4)
       {
         id: "audio-AvFallas-TR-4-es",
         title: "Tramo 4: Calle Muro de Santa Ana → Iglesia de San Lorenzo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 4: Iglesia de San Lorenzo (Reto 6) (Párrafos: 684, 157, 683) (mapa 4)
       {
         id: "audio-AvFallas-P-4-es",
         title: "Parada 4: Iglesia de San Lorenzo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 5: Iglesia de San Lorenzo → Plaza de la Virgen (Párrafos: 159, 8) (mapa 4→5)
       {
         id: "audio-AvFallas-TR-5-es",
         title: "Tramo 5: Iglesia de San Lorenzo → Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 5: Plaza de la Virgen (Reto 7) (Párrafos: 466, 467) (mapa 5)
       {
         id: "audio-AvFallas-P-5-es",
         title: "Parada 5: Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 6: Plaza de la Virgen 2 (Ofrenda) (Párrafos: 469, 473, 474, 62, 146, 10-B) (mapa 5)
       {
         id: "audio-AvFallas-P-6-es",
         title: "Parada 6: Plaza de la Virgen 2 (Ofrenda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 7: Plaza de la Virgen 3 (Basílica) (Reto8Puzzle PZ-01) (Párrafos: 451, 452, 160) (mapa 6)
       {
         id: "audio-AvFallas-P-7-es",
         title: "Parada 7: Plaza de la Virgen 3 (Basílica)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 6 - Plaza de la Virgen → Torre del Miguelete (Párrafos: 161, 477-B, 147, 141, 150, 426, 11-B) (mapa 6→7)
       {
         id: "audio-AvFallas-TR-6-es",
         title: "Tramo 6: Plaza de la Virgen → Torre del Miguelete",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 8 - Torre del Miguelete (Reto 9) (Párrafos: 427) (mapa 7)
       {
         id: "audio-AvFallas-P-8-es",
         title: "Parada 8: Torre del Miguelete",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 9 - Torre del Miguelete 2 (Reto 10) (Párrafos: 428) (mapa 7)
       {
         id: "audio-AvFallas-P-9-es",
         title: "Parada 9: Torre del Miguelete 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 10 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 216, 12, 432, 141) (mapa 8)
       {
         id: "audio-AvFallas-P-10-es",
         title: "Parada 10: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 11 - Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 163, 164, 165, 166, 167) (mapa 8)
       {
         id: "audio-AvFallas-P-11-es",
         title: "Parada 11: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 7 - Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina (Párrafos: 21-D, 694, 13-C, 307, 699) (mapa 8→10)
       {
         id: "audio-AvFallas-TR-7-es",
         title: "Tramo 7: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Torre Barroca de la Iglesia de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 12 - Torre Barroca de Santa Catalina (Reto11Puzzle PZ-17) (Párrafos: 169, 419, 14-C, 420, 425, 141) (mapa 10)
       {
         id: "audio-AvFallas-P-12-es",
         title: "Parada 12: Torre Barroca de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento (Párrafos: 170, 15) (mapa 10→11)
       {
         id: "audio-AvFallas-TR-8-es",
         title: "Tramo 8: Torre Barroca de Santa Catalina → Plaza del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 13: Plaza del Ayuntamiento (Párrafos: 263, 346, 143) (mapa 11)
       {
         id: "audio-AvFallas-P-13-es",
         title: "Parada 13: Plaza del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 14: Plaza del Ayuntamiento 2 (Mascletà) (Párrafos: 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181) (mapa 11)
       {
         id: "audio-AvFallas-P-14-es",
         title: "Parada 14: Plaza del Ayuntamiento 2 (Mascletà)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València (Párrafos: 187, 332, 334, 340, 19) (mapa 11→12)
       {
         id: "audio-AvFallas-TR-9-es",
         title: "Tramo 9: Plaza del Ayuntamiento → Edificio del Ayuntamiento de València",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 15: Edificio del Ayuntamiento (reto 12) (Párrafos: 336, 337, 144, 338) (mapa 12)
       {
         id: "audio-AvFallas-P-15-es",
         title: "Parada 15: Edificio del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 16: Edificio del Ayuntamiento 2 (Creación de una Falla) (Párrafos: 182, 183, 184, 185) (mapa 12)
       {
         id: "audio-AvFallas-P-16-es",
         title: "Parada 16: Edificio del Ayuntamiento 2 (Creación de una Falla)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 10: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 188) (mapa 12→13)
       {
         id: "audio-AvFallas-TR-10-es",
         title: "Tramo 10: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 17: Palacio de Comunicaciones (Correos) (Reto 13) (Párrafos: 343, 344) (mapa 13)
       {
         id: "audio-AvFallas-P-17-es",
         title: "Parada 17: Palacio de Comunicaciones (Correos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 18: Edificio Suay - La Equitativa (Reto 14) (Párrafos: 693-C, 455, 693-B) (mapa 14)
       {
         id: "audio-AvFallas-P-18-es",
         title: "Parada 18: Edificio Suay: La Equitativa",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central (Párrafos: 189)
       {
         id: "audio-AvFallas-TR-11-es",
         title: "Tramo 11: Palacio de Comunicaciones (Correos) → Mercado Central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 19: Mercado central (Reto 15) (Párrafos: 701, 22-B, 361, 362, 363, 190, 364) (mapa 15)
       {
         id: "audio-AvFallas-P-19-es",
         title: "Parada 19: Mercado central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 12: Mercado Central → Iglesia de los Santos Juanes (Párrafos: 463) (mapa 15→16)
       {
         id: "audio-AvFallas-TR-12-es",
         title: "Tramo 12: Mercado Central → Iglesia de los Santos Juanes",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1 (Reto 16) (Párrafos: 365, 366) (mapa 16)
       {
         id: "audio-AvFallas-P-20-es",
         title: "Parada 20: Iglesia de los Santos Juanes o San Juan del Mercado 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 21: Iglesia de los Santos Juanes 2 (San Juan del Mercado) (Reto 17) (Párrafos: 368, 367) (mapa 16)
       {
         id: "audio-AvFallas-P-21-es",
         title: "Parada 21: Iglesia de los Santos Juanes 2 (San Juan del Mercado)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 13: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 24-D) (mapa 16→17)
       {
         id: "audio-AvFallas-TR-13-es",
         title: "Tramo 13: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 22: Lonja (Mercado de la Seda) historia (Reto18Puzzle PZ-04) (Párrafos: 370, 371, 372, 373, 374, 140) (mapa 17)
       {
         id: "audio-AvFallas-P-22-es",
         title: "Parada 22: Lonja (Mercado de la Seda) historia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 23: Lonja (Mercado de la Seda) historia palabra Fallas (Párrafos: 191, 192, 193, 194, 195, 196, ) (mapa 17)
       {
         id: "audio-AvFallas-P-23-es",
         title: "Parada 23: Lonja (Mercado de la Seda) historia palabra Fallas",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 14: Rodeando la Lonja (Mercado de la Seda) (Párrafos: 388, 392, 333) (mapa 14→14)
       {
         id: "audio-AvFallas-TR-14-es",
         title: "Tramo 14: Rodeando la Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 15: Lonja (Mercado de la Seda) -entrada visitantes →  Plaza Doctor López Collado (Párrafos: 197, 397, 27-B) (mapa 17→18)
       {
         id: "audio-AvFallas-TR-15-es",
         title: "Tramo 15: Lonja (Mercado de la Seda) -entrada visitantes →  Plaza Doctor López Collado",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 24: Plaza Doctor López Collado (Párrafos: 398) (mapa 18)
       {
         id: "audio-AvFallas-P-24-es",
         title: "Parada 24: Plaza Doctor López Collado",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 16: Plaza del Doctor López Collado → Plaza del Negrito (Párrafos: 198, 671, 522, 199) (mapa 18→19)
       {
         id: "audio-AvFallas-TR-16-es",
         title: "Tramo 16: Plaza del Doctor López Collado → Plaza del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 25: Fuente del Negrito (Reto 19) (Párrafos: 382, 501) (mapa 19)
       {
         id: "audio-AvFallas-P-25-es",
         title: "Parada 25: Fuente del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat (Párrafos: 280, 486, 288) (mapa 19→21)
       {
         id: "audio-AvFallas-TR-17-es",
         title: "Tramo 17: Plaza del Negrito → Calle Caballeros → Palacio de la Generalitat",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 26: Palau de la Generalitat (Párrafos: 481-B, 482-B) (mapa 21)
       {
         id: "audio-AvFallas-P-26-es",
         title: "Parada 26: Palau de la Generalitat",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 18: Palacio de la Generalitat → Calle de los Serranos (Párrafos: 2-D, 289, 436, 448, 449) (mapa 21→1)
       {
         id: "audio-AvFallas-TR-18-es",
         title: "Tramo 18: Palacio de la Generalitat → Calle de los Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 27 - FINAL: Torres de Serranos Final (Reto20Puzzle PZ-05) (Párrafos: 475, 503, 507, 526,) (mapa 1)
       {
         id: "audio-AvFallas-P-27-es",
         title: "Parada 27: FINAL: Torres de Serranos Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
     ],
     en: [
@@ -30426,1652 +30426,1652 @@ export const AUDIOS_AVENTURAS = {
       {
         id: "audio-Av34km-P-0-es",
         title: "Parada 0: Torres de Serranos (start)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 1: Torres de Serranos → Plaza de la Crída (Párrafos: 229, 5) (mapa 1→2)
       {
         id: "audio-Av34km-TR-1-es",
         title: "Tramo 1: Torres de Serranos → Plaza de la Crída",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 1: Plaza de la Crída (Párrafos: 126) (mapa 2)
       {
         id: "audio-Av34km-P-1-es",
         title: "Parada 1: Plaza de la Crída",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 2: Plaza de la Crída → Centro Puente de Serranos (Párrafos: 230) (mapa 2→-)
       {
         id: "audio-Av34km-TR-2-es",
         title: "Tramo 2: Plaza de la Crída → Centro Puente de Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 2: Centro Puente Serranos (Párrafos: 231, 232, 234, 6, 235, 224) (mapa -)
       {
         id: "audio-Av34km-P-2-es",
         title: "Parada 2: Centro Puente Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 3: Centro Puente de Serranos → Puente de la Exposición (Párrafos: 236-A, 236-B) (mapa -→4)
       {
         id: "audio-Av34km-TR-3-es",
         title: "Tramo 3: Centro Puente de Serranos → Puente de la Exposición",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 3: Puente de la Exposición (Párrafos: 237, 238, 70, 480, 240, 239) (mapa 4)
       {
         id: "audio-Av34km-P-3-es",
         title: "Parada 3: Puente de la Exposición",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 4: Puente de la Exposición → Puente de las Flores (Párrafos: 225, 8) (mapa 4→5)
       {
         id: "audio-Av34km-TR-4-es",
         title: "Tramo 4: Puente de la Exposición → Puente de las Flores",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 4: Puente de las Flores (Párrafos: 241, 570) (mapa 5)
       {
         id: "audio-Av34km-P-4-es",
         title: "Parada 4: Puente de las Flores",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 5: Puente de las Flores → Puente de Aragón (Párrafos: 242, 10, 243, 11) (mapa 5→7)
       {
         id: "audio-Av34km-TR-5-es",
         title: "Tramo 5: Puente de las Flores → Puente de Aragón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 5: Puente de Aragón (Párrafos: 244, 246) (mapa 7)
       {
         id: "audio-Av34km-P-5-es",
         title: "Parada 5: Puente de Aragón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 6: Puente de Aragón → Puente de la Mar (Párrafos: 247, 10) (mapa 7→6)
       {
         id: "audio-Av34km-TR-6-es",
         title: "Tramo 6: Puente de Aragón → Puente de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 6: Puente de la Mar (Párrafos: 248, 249) (mapa 6)
       {
         id: "audio-Av34km-P-6-es",
         title: "Parada 6: Puente de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 7: Puente de la Mar → Palacio de la Música (Párrafos: 250, 251, 12) (mapa 6→8)
       {
         id: "audio-Av34km-TR-7-es",
         title: "Tramo 7: Puente de la Mar → Palacio de la Música",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 7: Palacio de la Música (Párrafos: 252, 253) (mapa 8)
       {
         id: "audio-Av34km-P-7-es",
         title: "Parada 7: Palacio de la Música",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 8: Palacio de la Música → Gulliver (Párrafos: 254, 255, 13, 256, 257, 14) (mapa 8→10)
       {
         id: "audio-Av34km-TR-8-es",
         title: "Tramo 8: Palacio de la Música → Gulliver",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 8: Gulliver (Párrafos: 258, 260, 259) (mapa 10)
       {
         id: "audio-Av34km-P-8-es",
         title: "Parada 8: Gulliver",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 9: Gulliver → Pistas de Patinaje (Párrafos: 261, 15, 16) (mapa 10→11)
       {
         id: "audio-Av34km-TR-9-es",
         title: "Tramo 9: Gulliver → Pistas de Patinaje",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 9: Pistas de Patinaje (Párrafos: 262, 17, 264, 265, 266, 18, 267, 19) (mapa 11)
       {
         id: "audio-Av34km-P-9-es",
         title: "Parada 9: Pistas de Patinaje",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe (Párrafos: 268, 269) (mapa 11→-)
       {
         id: "audio-Av34km-TR-10-es",
         title: "Tramo 10: Pistas de Patinaje → Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía y Museo Principe Felipe",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía (Párrafos: 270, 19, 271) (mapa 12)
       {
         id: "audio-Av34km-P-10-es",
         title: "Parada 10: Mirador de la Ciudad de las Artes y de las Ciencias: Opera Reina Sofía",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe (Párrafos: 272, 21, 273, 275) (mapa 14)
       {
         id: "audio-Av34km-P-11-es",
         title: "Parada 11: Mirador de la Ciudad de las Artes y de las Ciencias: Museo Principe Felipe",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or (Párrafos: 276, 22) (mapa -→15)
       {
         id: "audio-Av34km-TR-11-es",
         title: "Tramo 11: Mirador de la Ciudad de las Artes y de las Ciencias → Puente l'Assut de l'Or",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 12: Puente l'Assut de l'Or (Párrafos: 277, 278) (mapa 15)
       {
         id: "audio-Av34km-P-12-es",
         title: "Parada 12: Puente l'Assut de l'Or",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic (Párrafos: 279) (mapa 15→16/17)
       {
         id: "audio-Av34km-TR-12-es",
         title: "Tramo 12: Puente l'Assut de l'Or → Ágora y Oceanogràfic",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 13: Ágora y Oceanogràfic (Párrafos: 281, 23-D, 282, 283, 24-D, 284) (mapa 16/17)
       {
         id: "audio-Av34km-P-13-es",
         title: "Parada 13: Ágora y Oceanogràfic",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 13: Ágora y Oceanogràfic → Umbracle (Párrafos: 285, 27) (mapa 16/17→18)
       {
         id: "audio-Av34km-TR-13-es",
         title: "Tramo 13: Ágora y Oceanogràfic → Umbracle",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 14: Umbracle (Párrafos: 286, 292) (mapa 18)
       {
         id: "audio-Av34km-P-14-es",
         title: "Parada 14: Umbracle",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 14: Umbracle → Hemisféric (Párrafos: 287, 290) (mapa 18→19)
       {
         id: "audio-Av34km-TR-14-es",
         title: "Tramo 14: Umbracle → Hemisféric",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 15: Hemisféric (Párrafos: 291, 707) (mapa 19)
       {
         id: "audio-Av34km-P-15-es",
         title: "Parada 15: Hemisféric",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar (Párrafos: 293, 30) (mapa 19→6)
       {
         id: "audio-Av34km-TR-15-es",
         title: "Tramo 15: Ciudad de las Artes y las Ciencias → Puente de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 16: Puente de la Mar (Párrafos: 294, 295) (mapa 6)
       {
         id: "audio-Av34km-P-16-es",
         title: "Parada 16: Puente de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 16: Puente de la Mar → Puerta de la Mar (Párrafos: 296, 297, 8, 298, 31, 299, 245, 32) (mapa 6→21)
       {
         id: "audio-Av34km-TR-16-es",
         title: "Tramo 16: Puente de la Mar → Puerta de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 17: Puerta de la Mar (Párrafos: 300, 227, 301, 302) (mapa 21)
       {
         id: "audio-Av34km-P-17-es",
         title: "Parada 17: Puerta de la Mar",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones (Párrafos: 303, 33) (mapa 21→22)
       {
         id: "audio-Av34km-TR-17-es",
         title: "Tramo 17: Puerta de la Mar → Calle Colón → Casa de los Dragones",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 18: Casa de los Dragones (Párrafos: 304, 305) (mapa 22)
       {
         id: "audio-Av34km-P-18-es",
         title: "Parada 18: Casa de los Dragones",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 18: Casa de los Dragones → Mercado de Colón (Párrafos: 306, 34) (mapa 22→23)
       {
         id: "audio-Av34km-TR-18-es",
         title: "Tramo 18: Casa de los Dragones → Mercado de Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 19: Mercado de Colón (Párrafos: 308, 309, 310) (mapa 23)
       {
         id: "audio-Av34km-P-19-es",
         title: "Parada 19: Mercado de Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 20: Mercado de Colón (Párrafos: 311, 312) (mapa 23)
       {
         id: "audio-Av34km-P-20-es",
         title: "Parada 20: Mercado de Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 21: Mercado de Colón (Párrafos: 313) (mapa 23)
       {
         id: "audio-Av34km-P-21-es",
         title: "Parada 21: Mercado de Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 19: Mercado de Colón → Mercado de Colón (Párrafos: 314, 307) (mapa 23→23)
       {
         id: "audio-Av34km-TR-19-es",
         title: "Tramo 19: Mercado de Colón → Mercado de Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 22: Mercado de Colón (Párrafos: 315, 316) (mapa 23)
       {
         id: "audio-Av34km-P-22-es",
         title: "Parada 22: Mercado de Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 317, 35) (mapa 23→24)
       {
         id: "audio-Av34km-TR-20-es",
         title: "Tramo 20: Mercado de Colón → Antigua Puerta Judía de la Muralla en Calle Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón (Párrafos: 318) (mapa 24)
       {
         id: "audio-Av34km-P-23-es",
         title: "Parada 23: Antigua Puerta Judía de la Muralla en Calle Colón",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros (Párrafos: 319, 36) (mapa 24→25)
       {
         id: "audio-Av34km-TR-21-es",
         title: "Tramo 21: Antigua Puerta Judía de la Muralla en Calle Colón → Plaza de Toros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 24: Plaza de Toros (Párrafos: 320, 321, 323, 322) (mapa 25)
       {
         id: "audio-Av34km-P-24-es",
         title: "Parada 24: Plaza de Toros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 22: Plaza de Toros → Estación del Norte (Párrafos: 324, 37) (mapa 25→26)
       {
         id: "audio-Av34km-TR-22-es",
         title: "Tramo 22: Plaza de Toros → Estación del Norte",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 25: Estación del Norte (Tren) (Párrafos: 325, 326) (mapa 26)
       {
         id: "audio-Av34km-P-25-es",
         title: "Parada 25: Estación del Norte (Tren)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 23: Estación del Norte → Estación del Norte (Párrafos: 327, 330) (mapa 26→26)
       {
         id: "audio-Av34km-TR-23-es",
         title: "Tramo 23: Estación del Norte → Estación del Norte",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 26: Estación del Norte (Párrafos: 328, 329) (mapa 26)
       {
         id: "audio-Av34km-P-26-es",
         title: "Parada 26: Estación del Norte",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 24: Estación del Norte → Plaza del Ayuntamiento (Párrafos: 331) (mapa 26→27)
       {
         id: "audio-Av34km-TR-24-es",
         title: "Tramo 24: Estación del Norte → Plaza del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 27: Plaza del Ayuntamiento (Párrafos: 38, 263, 217, 40, 334, 336, 337, 338) (mapa 27/28)
       {
         id: "audio-Av34km-P-27-es",
         title: "Parada 27: Plaza del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 28: Edificio del Ayuntamiento (Párrafos: 339, 340, 341, 113) (mapa 28)
       {
         id: "audio-Av34km-P-28-es",
         title: "Parada 28: Edificio del Ayuntamiento",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos) (Párrafos: 692, 342) (mapa 28→29)
       {
         id: "audio-Av34km-TR-25-es",
         title: "Tramo 25: Edificio del Ayuntamiento → Palacio de Comunicaciones (Correos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 29: Palacio de Comunicaciones (Correos) (Párrafos: 343, 344) (mapa 29)
       {
         id: "audio-Av34km-P-29-es",
         title: "Parada 29: Palacio de Comunicaciones (Correos)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 30: Edificio Suay - La Equitativa (Párrafos: 693, 693-B) (mapa -)
       {
         id: "audio-Av34km-P-30-es",
         title: "Parada 30: Edificio Suay - La Equitativa",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 26: Palacio de Comunicaciones → Banco de València (Párrafos: 345, 347, 348, 42) (mapa 29→30)
       {
         id: "audio-Av34km-TR-26-es",
         title: "Tramo 26: Palacio de Comunicaciones → Banco de València",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 31: Banco de Valencia (Párrafos: 349, 350) (mapa 30)
       {
         id: "audio-Av34km-P-31-es",
         title: "Parada 31: Banco de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 351, 43, 352, 353, 354) (mapa 30→31)
       {
         id: "audio-Av34km-TR-27-es",
         title: "Tramo 27: Banco de València → Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica) (Párrafos: 356, 357) (mapa 31)
       {
         id: "audio-Av34km-P-32-es",
         title: "Parada 32: Palacio del Marqués de Dos Aguas (Museo Nacional de Cerámica)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 28: Palacio del Marqués → Mercado Central (Párrafos: 358, 359, 360, 44) (mapa 31→32)
       {
         id: "audio-Av34km-TR-28-es",
         title: "Tramo 28: Palacio del Marqués → Mercado Central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 33: Mercado central (Párrafos: 701, 44, 361, 362, 363, 364) (mapa 32)
       {
         id: "audio-Av34km-P-33-es",
         title: "Parada 33: Mercado central",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 274, 45) (mapa 32→33)
       {
         id: "audio-Av34km-TR-29-es",
         title: "Tramo 29: Mercado Central → Iglesia de los Santos Juanes (San Juan del Mercado)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 45, 365, 366) (mapa 33)
       {
         id: "audio-Av34km-P-34-es",
         title: "Parada 34: Iglesia de los Santos Juanes (San Juan del Mercado)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado) (Párrafos: 368, 367) (mapa 33)
       {
         id: "audio-Av34km-P-35-es",
         title: "Parada 35: Iglesia de los Santos Juanes (San Juan del Mercado)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda) (Párrafos: 369, 46) (mapa 33→34)
       {
         id: "audio-Av34km-TR-30-es",
         title: "Tramo 30: Iglesia Santos Juanes (San Juan del Mercado) → Lonja de Valencia (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 36: Lonja (Mercado de la Seda) (Párrafos: 370, 371, 372, 373, 374) (mapa 34)
       {
         id: "audio-Av34km-P-36-es",
         title: "Parada 36: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 37: Lonja (Mercado de la Seda) (Párrafos: 375, 376, 377, 378, 379) (mapa 34)
       {
         id: "audio-Av34km-P-37-es",
         title: "Parada 37: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 38: Lonja (Mercado de la Seda) (Párrafos: 380, 381) (mapa 34)
       {
         id: "audio-Av34km-P-38-es",
         title: "Parada 38: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 39: Lonja (Mercado de la Seda) (Párrafos: 383, 384) (mapa 34)
       {
         id: "audio-Av34km-P-39-es",
         title: "Parada 39: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 40: Lonja (Mercado de la Seda) (Párrafos: 385) (mapa 34)
       {
         id: "audio-Av34km-P-40-es",
         title: "Parada 40: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 41: Lonja (Mercado de la Seda) (Párrafos: 386, 387) (mapa 34)
       {
         id: "audio-Av34km-P-41-es",
         title: "Parada 41: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 31: Lonja (Mercado de la Seda) (Párrafos: 388) (mapa 34→34)
       {
         id: "audio-Av34km-TR-31-es",
         title: "Tramo 31: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 42: Lonja (Mercado de la Seda) (Párrafos: 390, 391) (mapa 34)
       {
         id: "audio-Av34km-P-42-es",
         title: "Parada 42: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes (Párrafos: 392) (mapa 34→34)
       {
         id: "audio-Av34km-TR-32-es",
         title: "Tramo 32: Lonja Patio de los naranjos → Lonja entrada visitantes",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda) (Párrafos: 393) (mapa 34→35)
       {
         id: "audio-Av34km-TR-33-es",
         title: "Tramo 33: Lonja entrada visitantes → Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 43: Lonja (Mercado de la Seda) (Párrafos: 394) (mapa 34)
       {
         id: "audio-Av34km-P-43-es",
         title: "Parada 43: Lonja (Mercado de la Seda)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado (Párrafos: 397, 47) (mapa 34→35)
       {
         id: "audio-Av34km-TR-34-es",
         title: "Tramo 34: Puerta Gótica Lonja (Mercado de la Seda) → Plaza Doctor López Collado",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 44: Plaza Doctor López Collado (Párrafos: 398, 399, 400, 401, 402) (mapa 35)
       {
         id: "audio-Av34km-P-44-es",
         title: "Parada 44: Plaza Doctor López Collado",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 35: Plaza Doctor López Collado → Plaza Redonda (Párrafos: 403, 405) (mapa 35→36)
       {
         id: "audio-Av34km-TR-35-es",
         title: "Tramo 35: Plaza Doctor López Collado → Plaza Redonda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 45: Plaza Redonda (Párrafos: 406) (mapa 36)
       {
         id: "audio-Av34km-P-45-es",
         title: "Parada 45: Plaza Redonda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 36: Plaza Redonda → Plaza Lope de Vega (Párrafos: 407) (mapa 36→37)
       {
         id: "audio-Av34km-TR-36-es",
         title: "Tramo 36: Plaza Redonda → Plaza Lope de Vega",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 46: Plaza Lope de Vega - Edificio estrecho (Párrafos: 408, 409, 410) (mapa 37)
       {
         id: "audio-Av34km-P-46-es",
         title: "Parada 46: Plaza Lope de Vega - Edificio estrecho",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 411, 412) (mapa 37)
       {
         id: "audio-Av34km-P-47-es",
         title: "Parada 47: Plaza Lope de Vega - Iglesia de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 413, 414) (mapa 37)
       {
         id: "audio-Av34km-P-48-es",
         title: "Parada 48: Plaza Lope de Vega - Iglesia de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina (Párrafos: 417, 416) (mapa 37)
       {
         id: "audio-Av34km-P-49-es",
         title: "Parada 49: Plaza Lope de Vega - Iglesia de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina (Párrafos: 418, 419) (mapa 37→38)
       {
         id: "audio-Av34km-TR-37-es",
         title: "Tramo 37: Plaza Lope de Vega → Torre de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 50: Torre Barroca de Santa Catalina (Párrafos: 420, 423) (mapa 38)
       {
         id: "audio-Av34km-P-50-es",
         title: "Parada 50: Torre Barroca de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 51: Torre Barroca de Santa Catalina (Párrafos: 421, 422) (mapa 38)
       {
         id: "audio-Av34km-P-51-es",
         title: "Parada 51: Torre Barroca de Santa Catalina",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete (Párrafos: 48-B, 425, 426, 48, 694) (mapa 38→39)
       {
         id: "audio-Av34km-TR-38-es",
         title: "Tramo 38: Torre Barroca de la Iglesia de Santa Catalina → Torre del Miguelete",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 52: Torre del Miguelete (Párrafos: 11-C, 427) (mapa 39)
       {
         id: "audio-Av34km-P-52-es",
         title: "Parada 52: Torre del Miguelete",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 53: Torre del Miguelete (Párrafos: 428) (mapa 39)
       {
         id: "audio-Av34km-P-53-es",
         title: "Parada 53: Torre del Miguelete",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia (Párrafos: 429, 430, 432, 431) (mapa 39)
       {
         id: "audio-Av34km-P-54-es",
         title: "Parada 54: Puerta de los Hierros (Barroca) de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia (Párrafos: 434, 435, 49) (mapa 39→40)
       {
         id: "audio-Av34km-TR-39-es",
         title: "Tramo 39: Puerta de los Hierros (Barroca) de la Catedral de Valencia → Puerta Románica de la Catedral de Valencia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 55: Catedral de Valencia (Puerta Románica) (Párrafos: 437, 439, 438) (mapa 40)
       {
         id: "audio-Av34km-P-55-es",
         title: "Parada 55: Catedral de Valencia (Puerta Románica)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína) (Párrafos: 714) (mapa 40→42)
       {
         id: "audio-Av34km-TR-40-es",
         title: "Tramo 40: Catedral de Valencia (Puerta Románica) → Plaza Décimo Junio Bruto (Plaza de la Almoína)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 56: Plaza Décimo Junio Bruto (Párrafos: 441, 442) (mapa 42)
       {
         id: "audio-Av34km-P-56-es",
         title: "Parada 56: Plaza Décimo Junio Bruto",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 57: Plaza Décimo Junio Bruto (Párrafos: 443, 444) (mapa 42)
       {
         id: "audio-Av34km-P-57-es",
         title: "Parada 57: Plaza Décimo Junio Bruto",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 58: Plaza Décimo Junio Bruto (Párrafos: 445) (mapa 42)
       {
         id: "audio-Av34km-P-58-es",
         title: "Parada 58: Plaza Décimo Junio Bruto",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia) (Párrafos: 446, 447, 50, 452, 51-B) (mapa 42/41)
       {
         id: "audio-Av34km-P-59-es",
         title: "Parada 59: Plaza Décimo Junio Bruto (Basílica de Valencia)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 60: Plaza Décimo Junio Bruto (Párrafos: 450, 451) (mapa 42)
       {
         id: "audio-Av34km-P-60-es",
         title: "Parada 60: Plaza Décimo Junio Bruto",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 51, 454, 455, 455-B, 456) (mapa 42)
       {
         id: "audio-Av34km-P-61-es",
         title: "Parada 61: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo) (Párrafos: 455-C, 455-D) (mapa 42)
       {
         id: "audio-Av34km-P-62-es",
         title: "Parada 62: Plaza Décimo Junio Bruto (Casa del Punt de Gantxo)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 457, 51-D) (mapa 42→42)
       {
         id: "audio-Av34km-TR-41-es",
         title: "Tramo 41: Plaza Décimo Junio Bruto → Plaza Décimo Junio Bruto (Museo Arqueológico)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico) (Párrafos: 458) (mapa 42)
       {
         id: "audio-Av34km-P-63-es",
         title: "Parada 63: Plaza Décimo Junio Bruto (Museo Arqueológico)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico (Párrafos: 459, 460, 461) (mapa 33)
       {
         id: "audio-Av34km-P-64-es",
         title: "Parada 64: Plaza Décimo Junio Bruto (Plaza de la Almoína) Museo Arqueológico",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia) (Párrafos: 49-B, 464) (mapa 42)
       {
         id: "audio-Av34km-P-65-es",
         title: "Parada 65: Plaza Décimo Junio Bruto (Cimborrio de la Catedral de Valencia)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen (Párrafos: 465, 59) (mapa 42→43)
       {
         id: "audio-Av34km-TR-42-es",
         title: "Tramo 42: Plaza Décimo Junio Bruto (Museo Arqueológico) → Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 66: Plaza de la Virgen (Párrafos: 346, 143) (mapa 43)
       {
         id: "audio-Av34km-P-66-es",
         title: "Parada 66: Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 67: Plaza de la Virgen (Párrafos: 466, 467) (mapa 43)
       {
         id: "audio-Av34km-P-67-es",
         title: "Parada 67: Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 68: Plaza de la Virgen (Párrafos: 469, 470, 471, 472, 473, 474, 476, 355, 477, 478, 479, 478) (mapa 43)
       {
         id: "audio-Av34km-P-68-es",
         title: "Parada 68: Plaza de la Virgen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana (Párrafos: 60) (mapa 43→44)
       {
         id: "audio-Av34km-TR-43-es",
         title: "Tramo 43: Plaza de la Virgen → Palacio de la Generalitat Valenciana",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 69: Palacio de la Generalitat Valenciana (Párrafos: 481, 482, 482-B, 483) (mapa 44)
       {
         id: "audio-Av34km-P-69-es",
         title: "Parada 69: Palacio de la Generalitat Valenciana",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros (Párrafos: 484, 485, 486) (mapa 44→45)
       {
         id: "audio-Av34km-TR-44-es",
         title: "Tramo 44: Palacio de la Generalitat Valenciana → Calle Caballeros",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 45: Calle Caballeros → Iglesia de San Nicolás (Párrafos: 487) (mapa 45→46)
       {
         id: "audio-Av34km-TR-45-es",
         title: "Tramo 45: Calle Caballeros → Iglesia de San Nicolás",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 70: Iglesia de San Nicolás (Párrafos: 488, 489, 490) (mapa 46)
       {
         id: "audio-Av34km-P-70-es",
         title: "Parada 70: Iglesia de San Nicolás",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás (Párrafos: 491, 63) (mapa 46→47)
       {
         id: "audio-Av34km-TR-46-es",
         title: "Tramo 46: Iglesia de San Nicolás → Iglesia de San Nicolás",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 71: Iglesia de San Nicolás (Párrafos: 493, 494, 495, 496) (mapa 47)
       {
         id: "audio-Av34km-P-71-es",
         title: "Parada 71: Iglesia de San Nicolás",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 72: Iglesia de San Nicolás (Párrafos: 497, 498) (mapa 47)
       {
         id: "audio-Av34km-P-72-es",
         title: "Parada 72: Iglesia de San Nicolás",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 47: Iglesia de San Nicolás → Plaza del Negrito (Párrafos: 499, 500) (mapa 47→48)
       {
         id: "audio-Av34km-TR-47-es",
         title: "Tramo 47: Iglesia de San Nicolás → Plaza del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 73: Plaza del Negrito (Párrafos: 382, 501) (mapa 48)
       {
         id: "audio-Av34km-P-73-es",
         title: "Parada 73: Plaza del Negrito",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal (Párrafos: 502, 506, 65) (mapa 48→45→49)
       {
         id: "audio-Av34km-TR-48-es",
         title: "Tramo 48: Plaza del Negrito → Calle Caballeros → Plaza del Tossal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 74: Plaza del Tossal (Párrafos: 53, 508, 509) (mapa 49)
       {
         id: "audio-Av34km-P-74-es",
         title: "Parada 74: Plaza del Tossal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 75: Plaza del Tossal (Párrafos: 510, 511) (mapa 49)
       {
         id: "audio-Av34km-P-75-es",
         title: "Parada 75: Plaza del Tossal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 49: Plaza del Tossal → Portal de la Valldigna (Párrafos: 512, 66) (mapa 49→50)
       {
         id: "audio-Av34km-TR-49-es",
         title: "Tramo 49: Plaza del Tossal → Portal de la Valldigna",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 76: Portal de la Valldigna (Párrafos: 513) (mapa 50)
       {
         id: "audio-Av34km-P-76-es",
         title: "Parada 76: Portal de la Valldigna",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe) (Párrafos: 514, 67) (mapa 50→51)
       {
         id: "audio-Av34km-TR-50-es",
         title: "Tramo 50: Portal de la Valldigna → Torre del Ángel (Torre árabe)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 77: Torre del Ángel (Torre árabe) (Párrafos: 515, 516, 517, 518, 520, 519) (mapa 51)
       {
         id: "audio-Av34km-P-77-es",
         title: "Parada 77: Torre del Ángel (Torre árabe)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española (Párrafos: 521, 522, 523) (mapa 51→52)
       {
         id: "audio-Av34km-TR-51-es",
         title: "Tramo 51: Torre del Ángel (Torre árabe) → refugio de la Guerra Civil Española",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 78: Refugio Guerra Civil (Párrafos: 524, 395) (mapa 52)
       {
         id: "audio-Av34km-P-78-es",
         title: "Parada 78: Refugio Guerra Civil",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 525, 527, 528, 529) (mapa 52→53)
       {
         id: "audio-Av34km-TR-52-es",
         title: "Tramo 52: Refugio Guerra Civil → Museo de Corpus Christi (Casa de las Rocas)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 79: Museo de Corpus Christi (Casa de las Rocas) (Párrafos: 69, 530, 531, 532, 396) (mapa 53)
       {
         id: "audio-Av34km-P-79-es",
         title: "Parada 79: Museo de Corpus Christi (Casa de las Rocas)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 533, 71) (mapa 53→54)
       {
         id: "audio-Av34km-TR-53-es",
         title: "Tramo 53: Museo de Corpus Christi (Casa de las Rocas) → Parroquia de la Santísima Cruz (Iglesia del Carmen)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 534, 535, 536, 537, 538) (mapa 54)
       {
         id: "audio-Av34km-P-80-es",
         title: "Parada 80: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen) (Párrafos: 539, 541, 540) (mapa 54)
       {
         id: "audio-Av34km-P-81-es",
         title: "Parada 81: Parroquia de la Santísima Cruz (Iglesia del Carmen)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen (Párrafos: 542, 72) (mapa 54→55)
       {
         id: "audio-Av34km-TR-54-es",
         title: "Tramo 54: Parroquia de la Santísima Cruz (Iglesia del Carmen) → Centro Cultural Contemporáneo: El Carmen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 82: Centro Cultural Contemporáneo: El Carmen (Párrafos: 543, 544, 545, 546) (mapa 55)
       {
         id: "audio-Av34km-P-82-es",
         title: "Parada 82: Centro Cultural Contemporáneo: El Carmen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 83: Centro Cultural Contemporáneo: El Carmen (Párrafos: 547, 548, 549, 550) (mapa 55)
       {
         id: "audio-Av34km-P-83-es",
         title: "Parada 83: Centro Cultural Contemporáneo: El Carmen",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos (Párrafos: 551, 73, 552) (mapa 55→56)
       {
         id: "audio-Av34km-TR-55-es",
         title: "Tramo 55: Centro Cultural Contemporáneo: El Carmen → Casa de los Gatos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 84: Casa de los Gatos (Párrafos: 553, 554) (mapa 5)
       {
         id: "audio-Av34km-P-84-es",
         title: "Parada 84: Casa de los Gatos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 85: Casa de los Gatos (Párrafos: 555, 556) (mapa 56)
       {
         id: "audio-Av34km-P-85-es",
         title: "Parada 85: Casa de los Gatos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 86: Casa de los Gatos (Párrafos: 557, 558) (mapa 5)
       {
         id: "audio-Av34km-P-86-es",
         title: "Parada 86: Casa de los Gatos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 87: Casa de los Gatos (Párrafos: 559) (mapa 56)
       {
         id: "audio-Av34km-P-87-es",
         title: "Parada 87: Casa de los Gatos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 561, 74) (mapa 56→57)
       {
         id: "audio-Av34km-TR-56-es",
         title: "Tramo 56: Casa de los Gatos → Instituto Valenciano de Arte Moderno (IVAM)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 88: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 562) (mapa 57)
       {
         id: "audio-Av34km-P-88-es",
         title: "Parada 88: Instituto Valenciano de Arte Moderno (IVAM)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 89: Instituto Valenciano de Arte Moderno (IVAM) (Párrafos: 563, 4) (mapa 57)
       {
         id: "audio-Av34km-P-89-es",
         title: "Parada 89: Instituto Valenciano de Arte Moderno (IVAM)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología (Párrafos: 75) (mapa 57→58/59)
       {
         id: "audio-Av34km-TR-57-es",
         title: "Tramo 57: Instituto Valenciano de Arte Moderno (IVAM) → Museo de prehistoria y Etnología",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 90: Museo de Prehistoria y Etnología (Párrafos: 565, 566) (mapa 58/59)
       {
         id: "audio-Av34km-P-90-es",
         title: "Parada 90: Museo de Prehistoria y Etnología",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa (Párrafos: 567, 218) (mapa 58/59→60)
       {
         id: "audio-Av34km-TR-58-es",
         title: "Tramo 58: Museo de Prehistoria y Etnología → Iglesia de la Milagrosa",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 91: Iglesia de la Milagrosa (Párrafos: 568, 127, 569) (mapa 60)
       {
         id: "audio-Av34km-P-91-es",
         title: "Parada 91: Iglesia de la Milagrosa",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 59: Iglesia de la Milagrosa → Torres de Quart (Párrafos: 76) (mapa 60→61)
       {
         id: "audio-Av34km-TR-59-es",
         title: "Tramo 59: Iglesia de la Milagrosa → Torres de Quart",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 92: Torres de Quart (Párrafos: 571, 572, 573) (mapa 61)
       {
         id: "audio-Av34km-P-92-es",
         title: "Parada 92: Torres de Quart",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 93: Torres de Quart (Párrafos: 574, 575) (mapa 61)
       {
         id: "audio-Av34km-P-93-es",
         title: "Parada 93: Torres de Quart",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 60: Torres de Quart → Biblioteca del Hospital (Párrafos: 576, 77) (mapa 61→62)
       {
         id: "audio-Av34km-TR-60-es",
         title: "Tramo 60: Torres de Quart → Biblioteca del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 94: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 578, 579) (mapa 62)
       {
         id: "audio-Av34km-P-94-es",
         title: "Parada 94: Calle del Hospital (Ermita de Santa Lucía)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 95: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 580) (mapa 62)
       {
         id: "audio-Av34km-P-95-es",
         title: "Parada 95: Calle del Hospital (Ermita de Santa Lucía)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 96: Calle del Hospital (Ermita de Santa Lucía) (Párrafos: 581, 582, 583) (mapa 62)
       {
         id: "audio-Av34km-P-96-es",
         title: "Parada 96: Calle del Hospital (Ermita de Santa Lucía)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda (Párrafos: 584, 78) (mapa 62→63)
       {
         id: "audio-Av34km-TR-61-es",
         title: "Tramo 61: Calle del Hospital (Ermita de Santa Lucía) → Museo y Colegio del Arte Mayor de la Seda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 97: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 585, 586) (mapa 63)
       {
         id: "audio-Av34km-P-97-es",
         title: "Parada 97: Museo y Colegio del Arte Mayor de la Seda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 98: Museo y Colegio del Arte Mayor de la Seda (Párrafos: 587, 396) (mapa 63)
       {
         id: "audio-Av34km-P-98-es",
         title: "Parada 98: Museo y Colegio del Arte Mayor de la Seda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital (Párrafos: 588, 589, 590, 591, 592) (mapa 63→62)
       {
         id: "audio-Av34km-TR-62-es",
         title: "Tramo 62: Museo y Colegio del Arte Mayor de la Seda → Biblioteca del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 99: Biblioteca del Hospital (Párrafos: 592-B) (mapa 62)
       {
         id: "audio-Av34km-P-99-es",
         title: "Parada 99: Biblioteca del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 63: Biblioteca del Hospital → Torres de Quart (Párrafos: 76-B) (mapa 62→61)
       {
         id: "audio-Av34km-TR-63-es",
         title: "Tramo 63: Biblioteca del Hospital → Torres de Quart",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 100: Torres de Quart (Párrafos: 594) (mapa 61)
       {
         id: "audio-Av34km-P-100-es",
         title: "Parada 100: Torres de Quart",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 64: Torres de Quart → Jardín Botánico (Párrafos: 595) (mapa 61→64)
       {
         id: "audio-Av34km-TR-64-es",
         title: "Tramo 64: Torres de Quart → Jardín Botánico",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 101: Jardín Botánico (Párrafos: 596) (mapa 64)
       {
         id: "audio-Av34km-P-101-es",
         title: "Parada 101: Jardín Botánico",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 65: Jardín Botánico → Jardín de las Hespérides (Párrafos: 598) (mapa 64→65)
       {
         id: "audio-Av34km-TR-65-es",
         title: "Tramo 65: Jardín Botánico → Jardín de las Hespérides",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 102: Jardín de las Hespérides (Párrafos: 599, 600) (mapa 65)
       {
         id: "audio-Av34km-P-102-es",
         title: "Parada 102: Jardín de las Hespérides",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 66: Jardín de las Hespérides → Estadio de Atletismo (Párrafos: 601) (mapa 65→66)
       {
         id: "audio-Av34km-TR-66-es",
         title: "Tramo 66: Jardín de las Hespérides → Estadio de Atletismo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 103: Estadio de Atletismo (Párrafos: 602, 603) (mapa 66)
       {
         id: "audio-Av34km-P-103-es",
         title: "Parada 103: Estadio de Atletismo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 67: Estadio de Atletismo → Na Turia (Párrafos: 604) (mapa 66→68)
       {
         id: "audio-Av34km-TR-67-es",
         title: "Tramo 67: Estadio de Atletismo → Na Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 104: Na Turia (Párrafos: 606, 231, 608, 609, 610) (mapa 68)
       {
         id: "audio-Av34km-P-104-es",
         title: "Parada 104: Na Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo) (Párrafos: 711, 712) (mapa 68→68)
       {
         id: "audio-Av34km-TR-68-es",
         title: "Tramo 68: Na Turia (Plataforma elevada) → Na Turia (Museo)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 105: Na Turia (Párrafos: 713, 54) (mapa 68)
       {
         id: "audio-Av34km-P-105-es",
         title: "Parada 105: Na Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 69: Na Turia → Puente Amarillo (Párrafos: 611, 79) (mapa 68→69)
       {
         id: "audio-Av34km-TR-69-es",
         title: "Tramo 69: Na Turia → Puente Amarillo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 106: Puente Amarillo (Párrafos: 128, 612, 613, 614, 615) (mapa 69)
       {
         id: "audio-Av34km-P-106-es",
         title: "Parada 106: Puente Amarillo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 70: Puente Amarillo → Puente 9 de Octubre (Párrafos: 80) (mapa 69→70)
       {
         id: "audio-Av34km-TR-70-es",
         title: "Tramo 70: Puente Amarillo → Puente 9 de Octubre",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 107: Puente 9 de Octubre (Párrafos: 616, 617) (mapa 70)
       {
         id: "audio-Av34km-P-107-es",
         title: "Parada 107: Puente 9 de Octubre",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro) (Párrafos: 618, 81-B, 619) (mapa 70→71)
       {
         id: "audio-Av34km-TR-71-es",
         title: "Tramo 71: Puente 9 de Octubre → Parque de Cabecera (El Morro)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 108: Parque de Cabecera (El Morro) (Párrafos: 620, 621, 622) (mapa 71)
       {
         id: "audio-Av34km-P-108-es",
         title: "Parada 108: Parque de Cabecera (El Morro)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 109: Parque de Cabecera (El Morro) (Párrafos: 623, 715, 624, 625) (mapa 71)
       {
         id: "audio-Av34km-P-109-es",
         title: "Parada 109: Parque de Cabecera (El Morro)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 72: Parque de Cabecera (El Morro) → Bioparc (Párrafos: 82, 628-B) (mapa 71→73)
       {
         id: "audio-Av34km-TR-72-es",
         title: "Tramo 72: Parque de Cabecera (El Morro) → Bioparc",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 110: Bioparc (Párrafos: 627, 628) (mapa 73)
       {
         id: "audio-Av34km-P-110-es",
         title: "Parada 110: Bioparc",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 73: Bioparc → Molino del Sol (Párrafos: 708, 715) (mapa 73→72)
       {
         id: "audio-Av34km-TR-73-es",
         title: "Tramo 73: Bioparc → Molino del Sol",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 111: Molino del Sol (Párrafos: 709) (mapa 72)
       {
         id: "audio-Av34km-P-111-es",
         title: "Parada 111: Molino del Sol",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 74: Molino de Sol → Museo de Historia (Párrafos: 710, 90) (mapa 72→74)
       {
         id: "audio-Av34km-TR-74-es",
         title: "Tramo 74: Molino de Sol → Museo de Historia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 112: Museo de Historia (Párrafos: 630, 631, 632) (mapa 74)
       {
         id: "audio-Av34km-P-112-es",
         title: "Parada 112: Museo de Historia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 75: Museo de Historia → Pechina en el Turia (Párrafos: 633, 91, 415) (mapa 74→75)
       {
         id: "audio-Av34km-TR-75-es",
         title: "Tramo 75: Museo de Historia → Pechina en el Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 113: Pechina en el Turia (Párrafos: 634, 635) (mapa -)
       {
         id: "audio-Av34km-P-113-es",
         title: "Parada 113: Pechina en el Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 76: Pechina en el Turia → Puente de San José (Párrafos: 636, 91) (mapa -→75)
       {
         id: "audio-Av34km-TR-76-es",
         title: "Tramo 76: Pechina en el Turia → Puente de San José",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 114: Puente de San José (Párrafos: 637, 638, 139, 153) (mapa 75)
       {
         id: "audio-Av34km-P-114-es",
         title: "Parada 114: Puente de San José",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 77: Puente de San José → Torres de Serranos (Párrafos: 639) (mapa 75→1)
       {
         id: "audio-Av34km-TR-77-es",
         title: "Tramo 77: Puente de San José → Torres de Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 115: Torres de Serranos (Párrafos: 640, 641, 642, 643, 233) (mapa 1)
       {
         id: "audio-Av34km-P-115-es",
         title: "Parada 115: Torres de Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia (Párrafos: 644, 92) (mapa 1→76)
       {
         id: "audio-Av34km-TR-78-es",
         title: "Tramo 78: Centro Puente de Serranos → Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 116: Ruinas del Jardín del Turia (Párrafos: 706, 703, 645, 646) (mapa 76)
       {
         id: "audio-Av34km-P-116-es",
         title: "Parada 116: Ruinas del Jardín del Turia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros) (Párrafos: 647, 93) (mapa 76→77)
       {
         id: "audio-Av34km-TR-79-es",
         title: "Tramo 79: Ruinas del Jardín del Turia → Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 117: Jardines del Real (Viveros) (Párrafos: 648) (mapa 77)
       {
         id: "audio-Av34km-P-117-es",
         title: "Parada 117: Jardines del Real (Viveros)",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras (Párrafos: 649) (mapa 77→v1)
       {
         id: "audio-Av34km-TR-80-es",
         title: "Tramo 80: Jardines del Real (Viveros) → Paseo de las Palmeras",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio (Párrafos: viv1, viv2) (mapa v2/v3)
       {
         id: "audio-Av34km-P-118-es",
         title: "Parada 118: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial (Párrafos: viv3) (mapa v3→v5)
       {
         id: "audio-Av34km-TR-81-es",
         title: "Tramo 81: Ruinas del Palacio real de Valencia y Montículo del General Javier Elio → Circuito urbano de educación vial",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales (Párrafos: viv4) (mapa v5→v8)
       {
         id: "audio-Av34km-TR-82-es",
         title: "Tramo 82: Circuito urbano de educación vial → Museo de Ciencias Naturales",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 119: Museo de Ciencias Naturales (Párrafos: viv6, viv5) (mapa v8)
       {
         id: "audio-Av34km-P-119-es",
         title: "Parada 119: Museo de Ciencias Naturales",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda (Párrafos: viv7, viv8) (mapa v8→v10)
       {
         id: "audio-Av34km-TR-83-es",
         title: "Tramo 83: Museo de Ciencias Naturales → Jardín de la Rosaleda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 120: Jardín de la Rosaleda (Párrafos: viv9, viv10) (mapa v10)
       {
         id: "audio-Av34km-P-120-es",
         title: "Parada 120: Jardín de la Rosaleda",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 121: Jardines del Real (Viveros) 2 (Párrafos: viv11) (mapa v7-v8)
       {
         id: "audio-Av34km-P-121-es",
         title: "Parada 121: Jardines del Real (Viveros) 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos (Párrafos: viv11-B) (mapa v7-v8→v11)
       {
         id: "audio-Av34km-TR-84-es",
         title: "Tramo 84: Alquería de Canet y Museo de Ciencias Naturales → Estanque de los patos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 122: Estanque de los patos (Párrafos: viv11-C, viv12) (mapa v11)
       {
         id: "audio-Av34km-P-122-es",
         title: "Parada 122: Estanque de los patos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 85: Estanque de los patos → Portón del Convento de San Julián (Párrafos: viv13) (mapa v11→v12)
       {
         id: "audio-Av34km-TR-85-es",
         title: "Tramo 85: Estanque de los patos → Portón del Convento de San Julián",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 123: Portón del Convento de San Julián (Párrafos: viv14, viv15) (mapa v12)
       {
         id: "audio-Av34km-P-123-es",
         title: "Parada 123: Portón del Convento de San Julián",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real (Párrafos: 650, 94) (mapa 77→78)
       {
         id: "audio-Av34km-TR-86-es",
         title: "Tramo 86: Entrada Jardínes del Real (Viveros) → Puente del Real",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 124: Puente del Real (Párrafos: 651, 652, 653) (mapa 78)
       {
         id: "audio-Av34km-P-124-es",
         title: "Parada 124: Puente del Real",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 87: Puente del Real → Jardín de la Glorieta (Párrafos: 654, 655, 656) (mapa 78→79)
       {
         id: "audio-Av34km-TR-87-es",
         title: "Tramo 87: Puente del Real → Jardín de la Glorieta",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 125: Jardín de la Glorieta (Párrafos: 657) (mapa 79)
       {
         id: "audio-Av34km-P-125-es",
         title: "Parada 125: Jardín de la Glorieta",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 88: Jardin de la Glorieta → Palacio de Justicia (Párrafos: 658, 95) (mapa 79→80)
       {
         id: "audio-Av34km-TR-88-es",
         title: "Tramo 88: Jardin de la Glorieta → Palacio de Justicia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 126: Palacio de Justicia (Párrafos: 659) (mapa 80)
       {
         id: "audio-Av34km-P-126-es",
         title: "Parada 126: Palacio de Justicia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 89: Palacio de Justicia → Fundación Bancaja 1 (Párrafos: 660, 96) (mapa 80→81)
       {
         id: "audio-Av34km-TR-89-es",
         title: "Tramo 89: Palacio de Justicia → Fundación Bancaja 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 127: Fundación Bancaja 1 (Párrafos: 661, 662) (mapa 81)
       {
         id: "audio-Av34km-P-127-es",
         title: "Parada 127: Fundación Bancaja 1",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2 (Párrafos: 663) (mapa 81→81)
       {
         id: "audio-Av34km-TR-90-es",
         title: "Tramo 90: Fundación Bancaja 1 → Fundación Bancaja 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 128: Fundación Bancaja 2 (Párrafos: 664) (mapa 81)
       {
         id: "audio-Av34km-P-128-es",
         title: "Parada 128: Fundación Bancaja 2",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 665, 97) (mapa 28→29)
       {
         id: "audio-Av34km-TR-91-es",
         title: "Tramo 91: Fundación Bancaja 2 → Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente (Párrafos: 667, 668) (mapa 82)
       {
         id: "audio-Av34km-P-129-es",
         title: "Parada 129: Iglesia Santo Tomás Apostol y San Felipe Neri, Fuente",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri (Párrafos: 669) (mapa 82)
       {
         id: "audio-Av34km-P-130-es",
         title: "Parada 130: Iglesia Santo Tomás Apostol y San Felipe Neri",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital (Párrafos: 670) (mapa 82→83)
       {
         id: "audio-Av34km-TR-92-es",
         title: "Tramo 92: Iglesia Santo Tomás Apostol y San Felipe Neri → Iglesia San Juan del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 131: Iglesia San Juan del Hospital (Párrafos: 671, 672) (mapa 83)
       {
         id: "audio-Av34km-P-131-es",
         title: "Parada 131: Iglesia San Juan del Hospital",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal (Párrafos: 453, 98) (mapa 83→84)
       {
         id: "audio-Av34km-TR-93-es",
         title: "Tramo 93: Iglesia San Juan del Hospital → Palacio Arzobispal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 132: Palacio Arzobispal (Párrafos: 673) (mapa 84)
       {
         id: "audio-Av34km-P-132-es",
         title: "Parada 132: Palacio Arzobispal",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 94: Palacio Arzobispal → Museo de la Ciudad (Párrafos: 674) (mapa 84→85)
       {
         id: "audio-Av34km-TR-94-es",
         title: "Tramo 94: Palacio Arzobispal → Museo de la Ciudad",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 133: Museo de la Ciudad (Párrafos: 674-B) (mapa 85)
       {
         id: "audio-Av34km-P-133-es",
         title: "Parada 133: Museo de la Ciudad",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 134: Cripta de San Vicente Mártir (Párrafos: 675) (mapa 86)
       {
         id: "audio-Av34km-P-134-es",
         title: "Parada 134: Cripta de San Vicente Mártir",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 95: Cripta de San Vicente Mártir → Amudín (Párrafos: 676) (mapa 86→87)
       {
         id: "audio-Av34km-TR-95-es",
         title: "Tramo 95: Cripta de San Vicente Mártir → Amudín",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 135: Almudín (Párrafos: 678, 677) (mapa 87)
       {
         id: "audio-Av34km-P-135-es",
         title: "Parada 135: Almudín",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas (Párrafos: 679, 681) (mapa 87→88/89)
       {
         id: "audio-Av34km-TR-96-es",
         title: "Tramo 96: Almudín → Iglesia de San Lorenzo y Cortes Valencianas",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 136: Iglesia de San Lorenzo (Párrafos: 682, 462, 684, 683) (mapa 88)
       {
         id: "audio-Av34km-P-136-es",
         title: "Parada 136: Iglesia de San Lorenzo",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 137: Palacio de los Borgia (Párrafos: 685, 686) (mapa 89)
       {
         id: "audio-Av34km-P-137-es",
         title: "Parada 137: Palacio de los Borgia",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Tramo 97: Palacio de los Borgia → Torres de Serranos (Párrafos: 680) (mapa 89→1)
       {
         id: "audio-Av34km-TR-97-es",
         title: "Tramo 97: Palacio de los Borgia → Torres de Serranos",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
       // Parada 138: Torres de Serranos Final (Párrafos: 475, 503, 507, 526) (mapa 1)
       {
         id: "audio-Av34km-P-138-es",
         title: "Parada 138: Torres de Serranos Final",
-        file: ""
+        file: "audios-aventuras/español/02-Intro ESPAÑOL-2.mp3"
       },
 
     ],

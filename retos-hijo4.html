@@ -1068,15 +1068,18 @@
                     btnEnviar.disabled = true;
                 }
 
-                // Habilitar btnNext y ponerlo verde (solo si hay siguiente reto)
+                // Habilitar btnNext y ponerlo verde: el padre es quien decide si hay más
+                // retos en la parada (estado.retoActual.cola, codigo-padre.html) y empuja
+                // el siguiente automáticamente vía RETO.MOSTRAR sin que el usuario tenga
+                // que pulsar nada — retosArray que recibe hijo4 siempre trae un único
+                // reto (ver _enviarRetoMostrar/_procesarResultadoReto), así que calcular
+                // "hayMasRetos" localmente aquí siempre daba false y dejaba btnNext
+                // deshabilitado también en el último reto — el único botón que cierra la
+                // ventana flotante, dejándola atascada. btnNext siempre significa "cerrar":
+                // se habilita en cuanto la respuesta es correcta, sin condición.
                 if (btnNext) {
-                    const retosArray = obtenerRetos();
-                    const hayMasRetos = indiceReto < retosArray.length - 1;
-                    btnNext.disabled = !hayMasRetos;
-                    btnNext.style.backgroundColor = hayMasRetos ? "#28a745" : "#999";
-                    if (!hayMasRetos) {
-                        logger.info('[hijo4] ✅ Último reto completado — botón Next deshabilitado');
-                    }
+                    btnNext.disabled = false;
+                    btnNext.style.backgroundColor = "#28a745";
                 }
 
                 // Enviar mensaje al padre indicando que el reto se completó

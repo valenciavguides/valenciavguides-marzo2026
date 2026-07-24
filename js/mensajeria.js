@@ -717,8 +717,8 @@ export function marcarScript2Listo() {
     script2Listo = true;
     logger.info('[mensajeria] Script2 marcado como listo');
     const sm = obtenerStateManager();
-    if (sm && typeof sm.setFlag === 'function') {
-        sm.setFlag('script2Listo', true).catch(e => logger.debug('[mensajeria] Error sincronizando script2Listo:', e?.message));
+    if (sm && typeof sm.setScript2Listo === 'function') {
+        sm.setScript2Listo(true).catch(e => logger.debug('[mensajeria] Error sincronizando script2Listo:', e?.message));
     }
 }
 

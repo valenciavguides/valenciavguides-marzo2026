@@ -357,64 +357,6 @@ export async function setEstadoMenuAbierto(value) {
   await mutexes.estadoMenuAbierto.runExclusive(() => { state.estadoMenuAbierto = value; });
 }
 
-// ==================== GENERIC FLAG ACCESSORS ====================
-
-/**
- * Valid flag names that can be accessed via getFlag/setFlag
- * @type {Set<string>}
- */
-const VALID_FLAGS = new Set([
-  'heartbeatPrewarmed',
-  'procesandoCola',
-  'script2Listo',
-  'listenerRegistrado',
-  'mensajeriaReady',
-  'coordenadasCargadas',
-  'audiosCargados',
-  'retosCargados',
-  'estadoComponenteInicializado',
-  'estadoMenuAbierto',
-  'uiConfirmado'
-]);
-
-/**
- * Generic getter for state flags
- * @param {string} flagName - Name of the flag to get
- * @returns {Promise<*>} The flag value
- * @throws {Error} If flag name is invalid
- */
-export async function getFlag(flagName) {
-  if (!VALID_FLAGS.has(flagName)) {
-    throw new Error(`Flag inválido: '${flagName}'. Flags válidos: ${Array.from(VALID_FLAGS).join(', ')}`);
-  }
-  
-  const mutex = mutexes[flagName];
-  if (!mutex) {
-    throw new Error(`No existe mutex para flag: '${flagName}'`);
-  }
-  
-  return await mutex.runExclusive(() => state[flagName]);
-}
-
-/**
- * Generic setter for state flags
- * @param {string} flagName - Name of the flag to set
- * @param {*} value - Value to set
- * @returns {Promise<void>}
- * @throws {Error} If flag name is invalid
- */
-export async function setFlag(flagName, value) {
-  if (!VALID_FLAGS.has(flagName)) {
-    throw new Error(`Flag inválido: '${flagName}'. Flags válidos: ${Array.from(VALID_FLAGS).join(', ')}`);
-  }
-  
-  const mutex = mutexes[flagName];
-  if (!mutex) {
-    throw new Error(`No existe mutex para flag: '${flagName}'`);
-  }
-  
-  await mutex.runExclusive(() => { state[flagName] = value; });
-}
 
 // ==================== CENTRALIZED CONTROLLER AND MESSAGE MANAGEMENT ====================
 
@@ -743,8 +685,8 @@ export async function inicializarStateManager() {
       getEstadoPadre,
       setEstadoPadre,
       updateEstadoPadre,
-      getFlag,
-      setFlag,
+      getScript2Listo,
+      setScript2Listo,
       getHeartbeat,
       setHeartbeat,
       updateHeartbeat,
