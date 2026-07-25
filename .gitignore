@@ -56,3 +56,6 @@ codigo-padre-current.html
 # Herramientas de análisis local
 .sixth/
 .trunk/
+
+# Documentos de negocio — solo local, NUNCA a GitHub (infraestructura, pagos, legal/fiscal)
+docs/plan-produccion-infraestructura.md

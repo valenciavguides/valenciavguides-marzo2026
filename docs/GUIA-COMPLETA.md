@@ -7404,12 +7404,30 @@ El fichero `CNAME` en la raíz ya contiene `valenciavguides.es`. Basta con activ
 - **Limitación crítica:** sin `js/server.js` en ejecución, `PROTECT_DATA` no funciona — todos los archivos JS son públicos y accesibles directamente.
 - Solo viable si se acepta que los datos de aventuras sean accesibles sin autenticación.
 
-**Opción B — VPS propio con Node.js (recomendada):**
+**Opción B — VPS propio con Node.js (recomendada, plan elegido para este proyecto):**
 
-Eliminar o ignorar el fichero `CNAME`. Desplegar el proyecto en un VPS, arrancar `node js/server.js` (o con PM2) y apuntar el DNS de `valenciavguides.es` a la IP del servidor. HTTPS mediante proxy inverso (Nginx, Caddy o Cloudflare).
+Eliminar o ignorar el fichero `CNAME`. Desplegar el proyecto en un VPS, arrancar `js/server.js` gestionado con PM2 (no `node js/server.js` suelto — ver por qué abajo) y apuntar el DNS de `valenciavguides.es` a la IP del servidor. HTTPS mediante proxy inverso (Nginx, Caddy o Cloudflare).
 
 - Permite `PROTECT_DATA=true` y, cuando esté implementado, el backend autenticado con JWT.
 - Es la opción correcta para proteger los datos de pago.
+- **Proveedor elegido: Contabo**, plan más barato (~4,50-4,95 €/mes, ~55-60 €/año con pago anual). Contabo no sube el precio al renovar, a diferencia de otros proveedores que enganchan con un precio bajo el primer año y suben después — verificar esto sigue siendo así al contratar, los precios cambian.
+
+**Por qué PM2 y no `node js/server.js` a secas:** al conectar por SSH y lanzar `node js/server.js` directamente, el proceso queda ligado a esa sesión de terminal. En cuanto se cierra la conexión SSH (se cierra la ventana, se pierde la conexión, o simplemente se hace logout), el sistema manda `SIGHUP` a los procesos hijos de esa sesión — y `node` muere con ella. El backend deja de responder sin ningún aviso, aunque el VPS siga encendido. `nohup`/`disown`/`screen`/`tmux` son parches parciales para el mismo problema; PM2 lo resuelve de forma completa porque arranca el proceso como un daemon independiente de la sesión de terminal, y además:
+
+- **Reinicia el proceso solo si crashea** — relevante aquí porque el backend va a seguir cambiando con cada mejora/fix; un fallo tras un despliegue no tumba el servicio de forma permanente sin que nadie se entere.
+- **`pm2 logs vv-static`** centraliza la salida de consola sin tener que dejar una sesión SSH abierta mirando la terminal.
+- **`pm2 status`** confirma de un vistazo si el proceso sigue vivo, cuánta memoria usa, y cuántas veces se ha reiniciado (número alto de reinicios = señal de que algo está crasheando en bucle y merece revisión).
+
+**Flujo real de despliegue en este proyecto** (backend cambiando con el tiempo, redeploys frecuentes al principio):
+
+```bash
+ssh usuario@ip-del-vps
+cd valenciavguides
+git pull
+pm2 restart vv-static
+```
+
+`pm2 restart` corta el proceso viejo y arranca el nuevo con el código actualizado — unos segundos de caída, irrelevante mientras no haya usuarios reales conectados en ese instante exacto. El comando de arranque inicial (una sola vez, o tras reiniciar el VPS) es el mismo `pm2 start js/server.js --name vv-static --env PROTECT_DATA=true` de §22.4 — `pm2 restart` en despliegues posteriores reutiliza ese mismo nombre de proceso (`vv-static`), no hace falta repetir el `pm2 start` completo cada vez.
 
 **SSL:**
 - GitHub Pages: gestionado automáticamente.
