@@ -7389,6 +7389,7 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
 | 13 | Arreglar bypass de `isProtectedFile()` (normalización de ruta) antes de activar `PROTECT_DATA=true` | §22.4 | ❌ pendiente |
 | 14 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | §22.14 | ⏳ pendiente |
+| 15 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ pendiente |
 
 ---
 
@@ -7844,6 +7845,30 @@ Es diagnóstico, no una pantalla pensada para un cliente final: expone un mensaj
 2. Desde `_obtenerPosicionInicialGPS()`: si los `HIGH_ACC_INIT_ATTEMPTS` intentos de `getCurrentPosition()` fallan todos, dispara el overlay con el error real del último intento (o un mensaje genérico si el fallo fue por precisión insuficiente, sin error de navegador propiamente dicho) antes de aplicar el fallback a coordenadas de inicio en `_aplicarFallbackCoordenadasGPS()`. `_gpsIntentarPosicion()` devuelve `{ok, error}` en vez de un booleano suelto precisamente para que este segundo punto tenga acceso al error real de cada intento.
 
 **Posicionamiento del texto:** `#gps-signal-overlay img` es `position:absolute; width:100%; height:100%; z-index:1000` — cubre toda la tarjeta. Por eso `#gps-signal-detalle`, igual que el botón de reintentar y la cuenta atrás, necesita su propio `position:absolute` con `z-index` por encima de la imagen (1015, entre la imagen y el resto de controles) para ser visible — cualquier elemento en flujo normal sin ese tratamiento queda pintado detrás de la imagen aunque exista en el DOM. Se muestra como píldora oscura semitransparente con texto blanco en la parte superior de la tarjeta, mismo tratamiento visual que la cuenta atrás, para leerse encima de cualquier imagen de fondo.
+
+---
+
+### 22.15 Gap de seguridad: `docs/` completo es público en GitHub
+
+⚠️ **Más urgente que §22.9 — no requiere ni siquiera acceder a la app en ejecución.**
+
+El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitHub, y `docs/` está versionado dentro de él sin ninguna restricción. Esto expone:
+
+- `docs/aventuras_ordenado/*.md` — el texto completo de las 7 aventuras, el producto de pago en sí, consultable por cualquiera sin activar ni pagar ninguna aventura.
+- `docs/GUIA-COMPLETA.md` — arquitectura interna completa de la aplicación.
+- `docs/chat-preguntas-revision.md` — contenido interno del asistente de chat.
+
+**El problema:** a diferencia del gap de §22.9 (que exige instalar la app y acceder a la caché del Service Worker), este contenido es visible navegando el repositorio directamente en github.com — sin ejecutar la app ni descargar nada. Y persiste en el **historial de git** aunque se elimine del árbol actual: un `git rm` normal no borra las versiones antiguas de esos ficheros, siguen siendo accesibles en cualquier commit previo.
+
+**Por qué sigue siendo público ahora:** GitHub Pages en el plan gratuito solo sirve HTTPS a repositorios públicos; poner el repo en privado rompería el HTTPS del despliegue actual en `valenciavguides.es` sin una alternativa ya montada.
+
+**La solución (pendiente de planificar como parte de la migración a frontend/backend/PWA real):**
+
+1. Sacar `docs/` (como mínimo `aventuras_ordenado/`) del repositorio que sirve GitHub Pages — a un repo privado aparte, o directamente al backend, nunca en el árbol público.
+2. Si hace falta purgar el contenido ya expuesto en el historial, reescribir el historial de git (`git filter-repo` o equivalente) — operación destructiva que requiere planificación y confirmación explícita, no una tarea de rutina de una sesión cualquiera.
+3. Evaluar si el despliegue de producción debe pasar de GitHub Pages a un VPS propio (§22.1, Opción B) para poder tener el repositorio en privado sin perder HTTPS.
+
+**Mientras tanto:** no bloquea el desarrollo local. Pero mientras el repositorio sea público, cualquier commit a `docs/aventuras_ordenado/` publica ese contenido de inmediato.
 
 ---
 
