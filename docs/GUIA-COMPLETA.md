@@ -1166,6 +1166,25 @@ completarCambioParada() para la siguiente Parada M:
 | URL de video mal formada | ~1989/1998 | `No se pudo cargar el video: ${urlVideo}` |
 | URL de iframe inválida o vacía | ~2135 | `No se pudo cargar el contenido HTML: URL inválida` |
 
+### 4.7f. Galería de imágenes con navegación (`#imagen-overlay`)
+
+Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="module"`, así que sus funciones son globales de verdad — no necesitan `globalThis.x = x` para que otro bloque las llame) junto con los sistemas de vídeo, error e iframe (§4.7e). `globalThis.mostrarImagenOverlay(urlImagen, titulo, mensajeError, textoParada, opciones)` es el punto de entrada — `opciones.imagenes` puede traer un array de varias imágenes (galería con navegación) en vez de una sola URL.
+
+**Sin imágenes:** si `opciones.imagenes` está vacío y `urlImagen` tampoco es una URL usable, `_mostrarOverlaySinImagenes(mensajeError)` muestra un icono 🖼️ atenuado con el texto de aviso — nunca `mostrarErrorOverlay` (ese es para fallos técnicos reales, no para "esta parada no tiene foto").
+
+**Con imágenes — `_mostrarOverlayGaleria()` + `_galeriaEstado`** (`{ imagenes, indice, tipo, mapa_numero, objectFit, fullHeight }`, módulo-scoped, se resetea en cada apertura y al cerrar):
+
+- **Flechas** (`_galeriaRenderizarFlechas`) — solo aparecen si `imagenes.length > 1`. `◀`/`▶` con opacidad reducida (`.inactiva`) y sin listener en el extremo correspondiente cuando `indice` ya está en el primer/último elemento — no hacen wrap-around.
+- **Badges de posición** (`_galeriaRenderizarBadges`) — su lógica depende de `tipo`: para una **parada** (o una galería de una sola imagen) solo muestra el número de mapa (`mapa_numero`) si existe, sin emoji. Para un **tramo** con varias imágenes, la primera lleva 📌 (inicio) y la última 🎯 (fin), cada una con su propio número de mapa — `mapa_numero` de un tramo viene como cadena `"1→2"`, y el badge parte esa cadena por `→` para mostrar solo el número que corresponde a esa imagen concreta (inicio: `partes[0]`; fin: `partes[1]`).
+- **Texto de parada** (`textoParada = {title, content}`, opcional) — se muestra en un panel bajo la imagen. El título pasa por `_galeriaEscaparHTML()` (equivalente a `textContent`, sin HTML). El contenido pasa por `_galeriaSanitizarHTML()` — permite un conjunto reducido de etiquetas (`p, br, strong, b, em, i, u, h1-h4, span, ul, ol, li, img, mark`) y solo el atributo `style` en general más `src`/`alt` en `img`; cualquier otra etiqueta se desenvuelve conservando su contenido (no se borra el texto de dentro). Las imágenes inline solo se permiten si `src` empieza por `imagenes/` — cualquier otra ruta se elimina y se sustituye por `alt="[imagen no permitida]"`.
+- **`objectFit`/`fullHeight`** (`opciones`, ambos opcionales) — el mapa vintage (§6487) es el único caso que pasa `objectFit:'fill'`, para que la imagen cubra el 100% sin recortar ni dejar barras.
+
+**Botón de cierre protegido contra doble disparo táctil:** `_galeriaProtegerBoton(overlay)` añade `stopPropagation()` en `touchstart`/`pointerdown` del botón `×` — sin esto, en pantallas táctiles el mismo toque puede disparar tanto el evento táctil como el de puntero synthetic y ejecutar el cierre dos veces.
+
+**Cierre:** `globalThis.cerrarImagenOverlay()` (también con tecla Escape, ver más abajo) quita `.visible`, elimina el nodo tras 400ms, resetea `_galeriaEstado`, y notifica a hijo2 (`CONTROL.HABILITAR { motivo: 'vista_cerrada' }`) para que reactive los botones que había desactivado al abrir la imagen.
+
+**Tecla Escape:** un único listener global (`document.addEventListener('keydown', ...)`, definido junto a los 4 sistemas de overlay) cierra el que esté `.visible` en ese momento — imagen, video, error o iframe — comprobando cada uno por turno.
+
 ### 4.8. Código de colores de estado en botones
 
 | Color | Hex | Dónde aparece | Cuándo |
@@ -1176,8 +1195,7 @@ completarCambioParada() para la siguiente Parada M:
 | 🔵 Azul | `#0077cc` (inline) | `btnEnviar`, `btnNext` en hijo4 | Estado inicial/neutro de los botones de respuesta y continuar |
 | 🟢 Verde | `#28a745` (inline) | `btnEnviar` en hijo4 | Respuesta correcta introducida |
 | 🔴 Rojo | `#dc3545` (inline, 3 s) | `btnEnviar` en hijo4 | Respuesta incorrecta — vuelve a azul `#0077cc` tras 3 s |
-| 🟢 Verde | `#28a745` (inline) | `btnNext` en hijo4 | Hay más retos en la cola tras acertar |
-| ⬜ Gris | `#999` (inline) | `btnNext` en hijo4 | Último reto completado — ya no hay siguiente |
+| 🟢 Verde | `#28a745` (inline) | `btnNext` en hijo4 | Se habilita sin condición en cuanto la respuesta es correcta — es el único botón que cierra la ventana flotante, así que nunca depende de si quedan más retos en la parada (ver §31 y la nota junto a `#btnNextAfterReto` más abajo) |
 
 ```mermaid
 flowchart TD
@@ -1192,8 +1210,7 @@ flowchart TD
         D["🔵 Azul #0077cc\n(estado inicial)"] -- respuesta correcta --> E["🟢 Verde #28a745"]
         D -- respuesta incorrecta --> F["🔴 Rojo #dc3545"]
         F -- tras 3 s --> D
-        E -- más retos: btnNext habilitado --> G["🟢 Verde #28a745\nbtnNext pulsable"]
-        E -- último reto: btnNext final --> H["⬜ Gris #999\nbtnNext deshabilitado"]
+        E -- respuesta correcta --> G["🟢 Verde #28a745\nbtnNext pulsable (cierra la ventana)"]
     end
 ```
 
@@ -1672,7 +1689,7 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 
 La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MODOS.CASA = 'casa'` y `MODOS.AVENTURA = 'aventura'` de `js/constants.js`:
 
-- **`'casa'`**: menú principal — selección de aventura, vídeos, consejos. Heartbeat pausado; localStorage de progreso limpiado (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`).
+- **`'casa'`**: menú principal — selección de aventura, vídeos, consejos. Heartbeat pausado; localStorage de progreso limpiado (`vv_aventura_iniciada`, `vv_progreso`, `vv_paradas_completadas`) — **excepto en modo dev** (`globalThis._devModeActivo === true`), donde no se borra nada, porque la propia activación entra en CASA como paso de bootstrap (atajo para saltar pago/código), no como abandono real. Ver §9.9.
 - **`'aventura'`**: recorrido activo — mapa, GPS, retos. Heartbeat activo cada ~5 s (ajustado por calidad de conexión vía `ajustarTimeoutPorConexion`).
 
 **Quién inicia un cambio de modo:**
@@ -4187,7 +4204,7 @@ Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv
 
 ### 9.10 Reanudación de sesión (ejecutarRestauracionAventura)
 
-Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre muestra un overlay "Continuar / Nueva aventura". Si el usuario elige **continuar**, se ejecuta `ejecutarRestauracionAventura(datosGuardados)`:
+Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre muestra un overlay "Continuar / Nueva aventura" — pero antes comprueba su antigüedad: `_comprobarReanudacionAventura()` descarta la clave (junto con `vv_progreso`) y no muestra el overlay si `Date.now() - datosGuardados.timestamp` supera 7 días (`_TTL_AVENTURA`). Pasado ese plazo, la app arranca como si no hubiera nada guardado. Si el usuario elige **continuar**, se ejecuta `ejecutarRestauracionAventura(datosGuardados)`:
 
 1. Restaura `globalThis.aventuraSeleccionada`, `idiomaSeleccionado`, `estado.seleccion`
 2. Restaura `estado.paradasCompletadas` desde `localStorage['vv_paradas_completadas']`
@@ -4196,7 +4213,7 @@ Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre mue
 5. `_esperarHijosCriticosRest` — espera que hijo2, hijo3 y hijo4 estén en `estado.hijosInicializados` (polling cada 200 ms sin timeout). Con el paso 4 ya hecho, esto resuelve en cuanto los `HIJO_LISTO` reales llegan — antes de tener el paso 4, esta espera no tenía nada real que esperar y se quedaba colgada para siempre.
 6. `_distribuirDatosRest` — redistribuye coordenadas/audios/retos/textos vía `distribuirDatosAventura()`
 7. `_enviarRespuestaParadasHijosRest` — envía `NAVEGACION.RESPUESTA_DATOS_PARADAS` a hijo2 (array normalizado de `elementosIDpadre`) y a hijo5 (array mapeado desde coordenadas)
-8. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()` → `_restoreApplyState()` (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`.
+8. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`.
 9. `_activarModoRest` — fija `estado.modo.actual = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA` (no siempre CASA — depende de si quedó activo el flag dev antes de recargar, que normalmente no) y emite `SISTEMA.CAMBIO_MODO` a todos los hijos. Este envío es un broadcast saliente puro — nunca pasa por `_hdl_SISTEMA_CAMBIO_MODO` en el propio padre, que es el único sitio que normalmente llama a `activarGPS()` al entrar en AVENTURA. Por eso, si el modo restaurado es AVENTURA, `_activarModoRest` llama a `activarGPS()` explícitamente al final — sin esto, una sesión restaurada en AVENTURA se quedaba con el modo correcto pero sin `watchPosition` corriendo. Si el modo restaurado es AVENTURA, el mismo broadcast acaba pasando por `_activarHeartbeatAventura` en cada hijo/padre relevante, que ya trae el paso 8 aplicado — así el temporizador de hijo1 arranca desde el `tiempoRestante` real, no desde el máximo de la aventura (ver §7.2).
 10. `_solicitarRecursosRest` — solicita coordenadas a hijo2 vía S2 para el elemento actual. El audio ya llegó en el paso 8 vía `_restoreBroadcast` → pipeline CAMBIO_PARADA.
 
@@ -4361,7 +4378,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-637f983d7041'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-e3c2ec85fbca'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7061,7 +7078,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-637f983d7041'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-e3c2ec85fbca'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7689,7 +7706,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-637f983d7041';
+const CACHE_VERSION = 'v-e3c2ec85fbca';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11168,7 +11185,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-637f983d7041';
+const CACHE_VERSION = 'v-e3c2ec85fbca';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

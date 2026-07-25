@@ -713,7 +713,7 @@
             height: 22vh;
             width: 99vw;
             z-index: 1000000 !important;
-            /* display y visibility se controlan via JS en INICIAR_AVENTURA */
+            /* display y visibility se controlan via JS en _mostrarUIActivada() */
             pointer-events: auto;
             background: transparent;
             border: none;
@@ -4913,111 +4913,6 @@
             }
             if (!globalThis.estadoPadre.gps) globalThis.estadoPadre.gps = {};
             Object.assign(globalThis.estadoPadre.gps, est.gps);
-        }
-
-        function _gpsAccuracyFuente(accuracy) {
-            if (accuracy < 20) return '🛰️ GPS Satelital';
-            if (accuracy < 50) return '📡 GPS (buena señal)';
-            if (accuracy < 100) return '📶 Cell/WiFi (precisión media)';
-            return '📶 Cell/WiFi (baja precisión)';
-        }
-
-        function _gpsAccuracyCalidad(accuracy) {
-            if (accuracy < 20) return '🟢 EXCELENTE';
-            if (accuracy < 50) return '🟡 BUENA';
-            if (accuracy < 100) return '🟠 MEDIA';
-            return '🔴 BAJA';
-        }
-
-        function _gpsAccuracyFuenteCompacta(accuracy) {
-            if (accuracy < 20) return 'GPS🛰️';
-            if (accuracy < 50) return 'GPS📡';
-            if (accuracy < 100) return 'Cell📶';
-            return 'WiFi📶';
-        }
-
-        function _gpsDiagHistorial() {
-            if (!(globalThis._gpsHistorial && globalThis._gpsHistorial.length > 0)) {
-                (globalThis.logger || console).info('%c📜 HISTORIAL: ❌ Sin datos', 'color: #ff0000; font-weight: bold');
-                return;
-            }
-            (globalThis.logger || console).info('%c📜 HISTORIAL (últimas posiciones):', 'color: #aa00ff; font-weight: bold');
-            const hist = globalThis._gpsHistorial;
-            const precisionMedia = hist.reduce((sum, p) => sum + p.accuracy, 0) / hist.length;
-            const precisionMin = Math.min(...hist.map(p => p.accuracy));
-            const precisionMax = Math.max(...hist.map(p => p.accuracy));
-            const aceptadas = hist.filter(p => p.accuracy <= 50).length;
-            const rechazadas = hist.filter(p => p.accuracy > 50).length;
-            (globalThis.logger || console).info(`   Total recibidas: ${hist.length}`);
-            (globalThis.logger || console).info(`   Aceptadas (<50m): ${aceptadas} (${Math.round(aceptadas * 100 / hist.length)}%)`);
-            (globalThis.logger || console).info(`   Rechazadas (>50m): ${rechazadas} (${Math.round(rechazadas * 100 / hist.length)}%)`);
-            (globalThis.logger || console).info(`   Precisión promedio: ±${Math.round(precisionMedia)}m`);
-            (globalThis.logger || console).info(`   Mejor precisión: ±${Math.round(precisionMin)}m`);
-            (globalThis.logger || console).info(`   Peor precisión: ±${Math.round(precisionMax)}m`);
-            (globalThis.logger || console).info('');
-            const ultimas5 = hist.slice(-5);
-            const tendencia = ultimas5.map((p, i) => {
-                const fuente = _gpsAccuracyFuenteCompacta(p.accuracy);
-                const estado = p.accuracy <= 50 ? '✅' : '❌';
-                const tiempo = new Date(p.timestamp).toLocaleTimeString();
-                return `   ${i + 1}. ${estado} ±${Math.round(p.accuracy).toString().padStart(6)}m [${fuente}] - ${tiempo}`;
-            });
-            (globalThis.logger || console).info('%c🔄 TENDENCIA (últimas 5):', 'color: #ff00ff; font-weight: bold');
-            tendencia.forEach(t => (globalThis.logger || console).info(t));
-            (globalThis.logger || console).info('');
-            if (ultimas5.length >= 2) {
-                const mejora = ultimas5[0].accuracy - ultimas5[ultimas5.length - 1].accuracy;
-                if (mejora > 0) {
-                    (globalThis.logger || console).info(`%c✅ MEJORANDO: Precisión mejoró ${Math.round(mejora)}m en últimas ${ultimas5.length} lecturas`, 'color: #00ff00; font-weight: bold');
-                } else if (mejora < 0) {
-                    (globalThis.logger || console).info(`%c⚠️ EMPEORANDO: Precisión empeoró ${Math.round(-mejora)}m en últimas ${ultimas5.length} lecturas`, 'color: #ff6600; font-weight: bold');
-                } else {
-                    (globalThis.logger || console).info(`%c➡️ ESTABLE: Precisión sin cambios significativos`, 'color: #ffaa00; font-weight: bold');
-                }
-            }
-        }
-
-        function _diagnosticarGPS_impl(est) {
-            console.clear();
-            (globalThis.logger || console).info('%c╔══════════════════════════════════════════════════════════════╗', 'color: #00ff00; font-weight: bold');
-            (globalThis.logger || console).info('%c║         🛰️  DIAGNÓSTICO GPS - Valencia Guides              ║', 'color: #00ff00; font-weight: bold');
-            (globalThis.logger || console).info('%c╚══════════════════════════════════════════════════════════════╝', 'color: #00ff00; font-weight: bold');
-            (globalThis.logger || console).info('');
-            const ahora = Date.now();
-            const tiempoActivo = globalThis._gpsActivadoEn ? Math.round((ahora - globalThis._gpsActivadoEn) / 1000) : 0;
-            (globalThis.logger || console).info('%c📊 ESTADO ACTUAL:', 'color: #ffaa00; font-weight: bold');
-            (globalThis.logger || console).info(`   GPS Activo: ${tiempoActivo}s (${Math.floor(tiempoActivo / 60)}m ${tiempoActivo % 60}s)`);
-            (globalThis.logger || console).info(`   WatchID: ${est.gps.watchId || 'N/A'}`);
-            (globalThis.logger || console).info(`   Permisos: ${est.gps.permisos ? '✅ Concedidos' : '❌ Denegados'}`);
-            (globalThis.logger || console).info('');
-            if (est.gps.posicionUsuario) {
-                const pos = est.gps.posicionUsuario;
-                const edad = pos.timestamp ? Math.round((ahora - pos.timestamp) / 1000) : '?';
-                (globalThis.logger || console).info('%c📍 POSICIÓN ACTUAL:', 'color: #00aaff; font-weight: bold');
-                (globalThis.logger || console).info(`   Coordenadas: [${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}]`);
-                (globalThis.logger || console).info(`   Precisión: ±${Math.round(pos.accuracy)}m ${_gpsAccuracyCalidad(pos.accuracy)}`);
-                (globalThis.logger || console).info(`   Fuente estimada: ${_gpsAccuracyFuente(pos.accuracy)}`);
-                (globalThis.logger || console).info(`   Edad: ${edad}s`);
-                (globalThis.logger || console).info(`   Timestamp: ${new Date(pos.timestamp).toLocaleTimeString()}`);
-            } else {
-                (globalThis.logger || console).info('%c📍 POSICIÓN ACTUAL: ❌ No disponible', 'color: #ff0000; font-weight: bold');
-            }
-            (globalThis.logger || console).info('');
-            _gpsDiagHistorial();
-            (globalThis.logger || console).info('');
-            if (est.gps.posicionUsuario && est.gps.posicionUsuario.accuracy > 50) {
-                (globalThis.logger || console).info('%c💡 RECOMENDACIONES:', 'color: #ffff00; font-weight: bold');
-                (globalThis.logger || console).info('   • Espera 30-60 segundos para lock satelital GPS');
-                (globalThis.logger || console).info('   • Asegúrate de estar en exterior o cerca de ventana');
-                (globalThis.logger || console).info('   • El GPS necesita "ver el cielo" para precisión <50m');
-                (globalThis.logger || console).info('   • Las primeras posiciones suelen ser WiFi/Cell (imprecisas)');
-            } else if (est.gps.posicionUsuario && est.gps.posicionUsuario.accuracy <= 50) {
-                (globalThis.logger || console).info('%c✅ GPS FUNCIONANDO CORRECTAMENTE', 'color: #00ff00; font-weight: bold');
-                (globalThis.logger || console).info('   Lock satelital conseguido - precisión aceptable');
-            }
-            (globalThis.logger || console).info('');
-            (globalThis.logger || console).info('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #00ff00');
-            (globalThis.logger || console).info('%cLlama diagnosticarGPS() de nuevo para actualizar el estado', 'color: #888888; font-style: italic');
         }
 
         function _gpsDoRetryWatch(est, newOptions, logPrefix) {
@@ -9612,54 +9507,6 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.DENTRO_DE_RANGO, _hdl_NAVEGACION_GPS_DENTRO_DE_RANGO, { permanente: true });
         }
 
-        async function _solicitarYDibujarPolyline(siguienteParada, coordenadasObjetivo, logPrefix) {
-            const coordenadasResponse = await solicitarCoordenadasHijo('hijo2', { paradaId: siguienteParada.parada_id || siguienteParada.tramo_id, padreId: siguienteParada.padreid || `padre-${siguienteParada.parada_id || siguienteParada.tramo_id || siguienteParada.id}`, incluirMetadatos: false }, ajustarTimeoutPorConexionSafe(5000));
-            if (coordenadasResponse && coordenadasResponse.exito && coordenadasResponse.coordenadas && Array.isArray(coordenadasResponse.coordenadas) && coordenadasResponse.coordenadas.length > 0) {
-                const coord0 = coordenadasResponse.coordenadas[0];
-                const destinoCoords = coord0.coordenadas || coord0.inicio || coord0.fin;
-                const waypointsTramo = coord0.waypoints || [];
-                if (destinoCoords) {
-                    await dibujarPolylineNavegacion({ origen: coordenadasObjetivo, destino: coord0.fin || destinoCoords, waypoints: waypointsTramo, opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' } });
-                } else {
-                    (globalThis.logger || console).warn(`${logPrefix} No se encontraron coordenadas válidas en respuesta para ${siguienteParada.padreid}`);
-                }
-                (globalThis.logger || console).info(`${logPrefix} Polyline dibujada desde ubicación actual hasta ${siguienteParada.padreid}`);
-            } else {
-                (globalThis.logger || console).warn(`${logPrefix} Respuesta inválida de coordenadas para ${siguienteParada.padreid}:`, coordenadasResponse);
-            }
-        }
-
-        async function _dibujarPolylineHaciaProxParada(coordenadasObjetivo, logPrefix) {
-            try {
-                const paradas = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre;
-                if (!paradas || paradas.length === 0) {
-                    (globalThis.logger || console).warn(`${logPrefix} No hay paradas disponibles para dibujar ruta`);
-                    return;
-                }
-                const paradaActualId = estadoMapa.paradaActual;
-                let siguienteParada = null;
-                if (paradaActualId) {
-                    const indexActual = paradas.findIndex(p => p.padreid === paradaActualId);
-                    if (indexActual >= 0 && indexActual + 1 < paradas.length) {
-                        siguienteParada = paradas[indexActual + 1];
-                    }
-                } else {
-                    siguienteParada = paradas[0];
-                }
-                if (!siguienteParada) {
-                    (globalThis.logger || console).info(`${logPrefix} No hay siguiente parada para dibujar ruta`);
-                    return;
-                }
-                try {
-                    await _solicitarYDibujarPolyline(siguienteParada, coordenadasObjetivo, logPrefix);
-                } catch (error) {
-                    (globalThis.logger || console).error(`${logPrefix} Error obteniendo coordenadas para polyline: ${error.message}`);
-                }
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error dibujando polyline:`, error);
-            }
-        }
-
         async function _obtenerUbicacionUsuario(ubicacionUsuario, logPrefix) {
             if (ubicacionUsuario && ubicacionUsuario.lat && ubicacionUsuario.lng) return ubicacionUsuario;
             (globalThis.logger || console).debug(`${logPrefix} Obteniendo ubicación GPS del usuario...`);
@@ -10845,64 +10692,6 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.DATOS.TEXTOS_CARGADOS, _hdl_DATOS_TEXTOS_CARGADOS, { permanente: true });
         }
 
-        function _combinarCoordenadas(paradaCompleta, item) {
-            if (!globalThis.__vv_DATOS_AVENTURAS || !globalThis.aventuraSeleccionada) return;
-            const datosAventura = globalThis.__vv_DATOS_AVENTURAS[globalThis.aventuraSeleccionada];
-            if (!datosAventura?.['coordenadas-hijo2']?.coordenadas) return;
-            const coordEncontrada = datosAventura['coordenadas-hijo2'].coordenadas.find(c =>
-                c.id === item.parada_id || c.id === item.tramo_id || c.padreid === item.padreid
-            );
-            if (!coordEncontrada) return;
-            paradaCompleta.ubicacion = coordEncontrada.coordenadas || coordEncontrada.ubicacion;
-            paradaCompleta.waypoints = coordEncontrada.waypoints;
-            paradaCompleta.nombre = coordEncontrada.nombre || paradaCompleta.nombre;
-            paradaCompleta.imagen = coordEncontrada.imagen;
-            paradaCompleta.video = coordEncontrada.video;
-        }
-        function _combinarAudio(paradaCompleta, item) {
-            if (!globalThis.__vv_AUDIOS_AVENTURAS || !globalThis.aventuraSeleccionada || !globalThis.idiomaSeleccionado) return;
-            const audiosAventura = globalThis.__vv_AUDIOS_AVENTURAS[globalThis.aventuraSeleccionada];
-            if (!audiosAventura?.[globalThis.idiomaSeleccionado]) return;
-            const audioEncontrado = audiosAventura[globalThis.idiomaSeleccionado].find(a =>
-                a.id === item.audio_id || a.id === `audio-${item.parada_id}` || a.id === `audio-${item.tramo_id}`
-            );
-            if (audioEncontrado) paradaCompleta.audio = audioEncontrado;
-        }
-        function _combinarReto(paradaCompleta, item, retosParadas) {
-            if (!retosParadas.length || !item.reto_id) return;
-            const retoEncontrado = retosParadas.find(r => r.id === item.reto_id);
-            if (retoEncontrado) paradaCompleta.reto = retoEncontrado;
-        }
-        function _combinarDatosParada(item, retosParadas) {
-            const paradaCompleta = { ...item };
-            _combinarCoordenadas(paradaCompleta, item);
-            _combinarAudio(paradaCompleta, item);
-            _combinarReto(paradaCompleta, item, retosParadas);
-            return paradaCompleta;
-        }
-        function _construirParadaParaEnviar(p, paradaCompleta) {
-            return {
-                padreid: p.padreid || `padre-${p.id}`,
-                paradaId: p.paradaId || p.parada_id || p.id,
-                id: p.id,
-                tipo: p.tipo,
-                nombre: p.nombre || p.nombreCompleto || p.id,
-                ubicacion: p.ubicacion || ((p.lat !== undefined && p.lng !== undefined) ? { lat: p.lat, lng: p.lng } : undefined),
-                waypoints: Array.isArray(p.waypoints) ? p.waypoints.map(w => ({ lat: w.lat, lng: w.lng })) : undefined,
-                rutas: p.rutas || [],
-                metadatos: p.metadatos || {},
-                estado: p.estado || 'activa',
-                audio_id: p.audio_id,
-                reto_id: p.reto_id,
-                coordenadas: paradaCompleta.ubicacion,
-                waypointsCompletos: paradaCompleta.waypoints,
-                imagen: paradaCompleta.imagen,
-                video: paradaCompleta.video,
-                audio: paradaCompleta.audio,
-                reto: paradaCompleta.reto
-            };
-        }
-
         async function _hdl_DATOS_SOLICITAR_COORDENADAS(mensaje) {
             const av = globalThis.aventuraSeleccionada;
             const id = globalThis.idiomaSeleccionado || 'es';
@@ -10981,32 +10770,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
             } catch (cargaError) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error en carga diferida:`, cargaError);
-            }
-        }
-
-        async function _distribuirConEspera(aventura, idioma, logPrefix) {
-            try {
-                (globalThis.logger || console).info(`${logPrefix} Distribuyendo datos de aventura ${aventura} (${idioma}) a los hijos...`);
-                await new Promise((resolve) => {
-                    const check = () => {
-                        if (typeof globalThis.enviarMensaje === 'function') { resolve(); } else { setTimeout(check, 50); }
-                    };
-                    check();
-                });
-                (globalThis.logger || console).debug(`${logPrefix} enviarMensaje disponible, procediendo con distribución`);
-                const resultados = await distribuirDatosAventura(aventura, idioma);
-                if (resultados.pospuesto) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ ${resultados.mensaje}, marcando como pendiente`);
-                    globalThis.__pendingDistribucion = { aventura, idioma };
-                } else {
-                    (globalThis.logger || console).success(`${logPrefix} ✅ Distribución completada:`, resultados);
-                }
-            } catch (distribucionError) {
-                if (distribucionError.message.includes('Datos centralizados no disponibles')) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Datos aún no disponibles, se distribuirán cuando se complete la carga inicial`);
-                } else {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error distribuyendo datos:`, distribucionError);
-                }
             }
         }
 
@@ -11330,58 +11093,6 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _esperarConfirmacionesCarga(seleccion, logPrefix, timeoutMs = 10000) {
-            const startTime = Date.now();
-            while (Date.now() - startTime < timeoutMs) {
-                const coordenadasOk = seleccion.coordenadasCargadas !== false;
-                const audiosOk = seleccion.audiosCargados !== false;
-                const retosOk = seleccion.retosCargados !== false;
-                if (coordenadasOk && audiosOk && retosOk) {
-                    (globalThis.logger || console).success(`${logPrefix} ✅ Todas las confirmaciones recibidas`);
-                    return true;
-                }
-                await sleep(100);
-            }
-            (globalThis.logger || console).warn(`${logPrefix} ⚠️ Timeout esperando confirmaciones (${timeoutMs}ms)`);
-            return false;
-        }
-
-        function _mostrarComponentesAventura(logPrefix) {
-            const iframesToShow = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
-            for (const iframeId of iframesToShow) {
-                const iframe = document.getElementById(iframeId);
-                if (iframe) {
-                    iframe.style.display = 'block';
-                    iframe.style.visibility = 'visible';
-                }
-            }
-            const _selMapa2 = document.getElementById('selector-tipo-mapa');
-            if (_selMapa2) _selMapa2.style.display = 'flex';
-            if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                globalThis.actualizarVisibilidadSelectorMapa();
-            }
-            ['logo-aventura', 'fondo-blanco', 'fondo-blanco-inferior'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = 'block';
-            });
-            (globalThis.logger || console).info(`${logPrefix} Logo y fondo blanco mostrados`);
-        }
-
-        async function _broadcastAventuraIniciada(aventura, idioma, logPrefix) {
-            const datosInicio = { aventura, idioma: idioma || 'es', timestamp: Date.now() };
-            try {
-                await enviarMensaje_S2({
-                    tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION,
-                    origen: getPadreId(),
-                    destino: 'broadcast',
-                    datos: { evento: 'AVENTURA_INICIADA', ...datosInicio }
-                });
-                (globalThis.logger || console).debug(`${logPrefix} Notificación de inicio enviada a todos los hijos`);
-            } catch (broadcastError) {
-                (globalThis.logger || console).warn(`${logPrefix} Error en broadcast de inicio:`, broadcastError);
-            }
-        }
-
         function _cancelarTimerAnteriorSiCambia(aventura, logPrefix) {
             const aventuraAnterior = localStorage.getItem('vv_aventura_iniciada');
             if (!aventuraAnterior) return;
@@ -11447,50 +11158,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // a modo AVENTURA (activación inicial, reanudación, o retorno desde CASA en dev).
         try { globalThis._iniciarTemporizadorAventura = _iniciarTemporizadorAventura; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
-async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
-            const inicioTotal = Date.now();
-            if (!iframesHijos || iframesHijos.length === 0) {
-                (globalThis.logger || console).warn(`${logPrefix} ⚠️ No hay iframes para recargar`);
-                return;
-            }
-            await Promise.all(iframesHijos.map(c => _cargarSoloIframeActivacion(c, logPrefix)));
-            (globalThis.logger || console).success(`${logPrefix} ✅ Iframes hijos cargados`);
-            const idsRecargados = iframesHijos.map(c => c.id);
-            const promesas = idsRecargados.map(id => {
-                if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
-                    return globalThis.__stateManager.crearPromiseHijoListo(id);
-                }
-                return new Promise((resolve) => {
-                    const check = () => {
-                        if (estado.hijosInicializados.has(id)) resolve();
-                        else setTimeout(check, 200);
-                    };
-                    check();
-                });
-            });
-            try {
-                await Promise.all(promesas);
-                const tiempoTotal = Date.now() - inicioTotal;
-                (globalThis.logger || console).info(`${logPrefix} ✅ Iframes recargados (sistema de eventos), ${tiempoTotal}ms`);
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error esperando iframes:`, error);
-            }
-        }
-
-        async function _distribuirDatosConLog(aventura, idioma, logPrefix) {
-            try {
-                const resultadosDistribucion = await distribuirDatosAventura(aventura, idioma);
-                if (resultadosDistribucion.pospuesto) {
-                    (globalThis.logger || console).warn(`${logPrefix} ⚠️ Distribución pospuesta: ${resultadosDistribucion.mensaje}`);
-                } else {
-                    (globalThis.logger || console).success(`${logPrefix} ✅ Distribución completada:`, resultadosDistribucion);
-                }
-            } catch (distribucionError) {
-                (globalThis.logger || console).error(`${logPrefix} ❌ Error distribuyendo datos:`, distribucionError);
-            }
-        }
-
-        async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
+async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.TERMINOS]`;
 
             try {
@@ -12057,18 +11725,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
             });
         }
 
-        // Función para cargar todos los hijos de forma segura (esperando onload real)
-        globalThis.cargarTodosLosHijosConDatos = async function(hijosConfig, datosPadre) {
-            // hijosConfig: [{ id: 'hijo2', src: 'coordenadas-hijo2.html' }, ...]
-            for (const hijo of hijosConfig) {
-                try {
-                    await cargarIframeConDatos(hijo.id, hijo.src, datosPadre);
-                } catch (err) {
-                    loggerIframe.error(`[PADRE] Error cargando hijo ${hijo.id}:`, err);
-                }
-            }
-        };
-
         // Functions to manage hijo4 visibility through the centralized messaging system
         globalThis.mostrarHijo4 = async function() {
             const hijo4 = document.getElementById('hijo4');
@@ -12102,30 +11758,6 @@ async function _cargarIframesHijosConEspera(iframesHijos, estado, logPrefix) {
 
                 if (globalThis.logger?.info) {
                     globalThis.logger.info('Hijo4 (challenges) shown');
-                }
-            }
-        };
-
-        globalThis.ocultarHijo4 = async function() {
-            const hijo4 = document.getElementById('hijo4');
-            const backdrop = document.getElementById('backdrop');
-
-            if (hijo4 && backdrop) {
-                // Remove visible class first
-                hijo4.classList.remove('visible');
-                backdrop.classList.remove('visible');
-
-                // Hide completely after transition - reset inline styles
-                setTimeout(() => {
-                    hijo4.style.cssText = 'display:none;';
-                    backdrop.style.cssText = 'display:none;';
-                    if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
-                        globalThis.actualizarVisibilidadSelectorMapa();
-                    }
-                }, 300);
-
-                if (globalThis.logger?.info) {
-                    globalThis.logger.info('Hijo4 (challenges) hidden');
                 }
             }
         };

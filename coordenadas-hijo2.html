@@ -359,7 +359,7 @@
 // ==================== INICIALIZACIÓN DE MENSAJERÍA ====================
 
 import { obtenerMapaVintage } from './js/mapa-vintage-aventuras.js';
-import { ajustarTimeoutPorConexion, calcularDistancia } from './js/utils.js';
+import { ajustarTimeoutPorConexion } from './js/utils.js';
 
 // Fallbacks que esperan a que globalThis.mensajeria esté disponible
 const enviarMensaje = async (...args) => {
@@ -857,42 +857,6 @@ function actualizarEstadoBotones() {
 // ============================================================
 // FUNCIONES HELPER PARA VALIDACIÓN GPS
 // ============================================================
-
-function _calcularProximidadParadas(posicion, paradas, RADIO_PERMITIDO, logPrefix) {
-    let dentroDeRango = false;
-    let elementoMasCercano = null;
-    let distanciaMinima = Infinity;
-
-    paradas.forEach(elemento => {
-        if (elemento.tipo === 'parada' && elemento.coordenadas) {
-            const dist = calcularDistancia(posicion.lat, posicion.lng, elemento.coordenadas.lat, elemento.coordenadas.lng);
-            logger.debug(`${logPrefix} Distancia a parada ${elemento.id}: ${dist.toFixed(1)}m`);
-            if (dist < distanciaMinima) { distanciaMinima = dist; elementoMasCercano = elemento; }
-            if (dist <= RADIO_PERMITIDO) dentroDeRango = true;
-        }
-        if (elemento.tipo === 'tramo') {
-            const puntosAValidar = _obtenerPuntosTramo(elemento);
-            puntosAValidar.forEach(punto => {
-                const dist = calcularDistancia(posicion.lat, posicion.lng, punto.lat, punto.lng);
-                logger.debug(`${logPrefix} Distancia a ${elemento.id}[${punto.tipo}]: ${dist.toFixed(1)}m`);
-                if (dist < distanciaMinima) { distanciaMinima = dist; elementoMasCercano = elemento; }
-                if (dist <= RADIO_PERMITIDO) dentroDeRango = true;
-            });
-        }
-    });
-
-    return { dentroDeRango, elementoMasCercano, distanciaMinima };
-}
-
-function _obtenerPuntosTramo(elemento) {
-    const puntosAValidar = [];
-    if (elemento.inicio) puntosAValidar.push({ ...elemento.inicio, tipo: 'inicio' });
-    if (elemento.waypoints && Array.isArray(elemento.waypoints)) {
-        elemento.waypoints.forEach((wp, idx) => puntosAValidar.push({ ...wp, tipo: `waypoint-${idx}` }));
-    }
-    if (elemento.fin) puntosAValidar.push({ ...elemento.fin, tipo: 'fin' });
-    return puntosAValidar;
-}
 
 /**
  * ID real de la parada de inicio ("Torres de Serranos") de la aventura activa.
@@ -2336,34 +2300,6 @@ try {
     // ============================================================
     // HANDLERS GPS
     // ============================================================
-    function _calcularHeadingMovimiento(lat, lng, posicionPrevia) {
-        if (posicionPrevia && posicionPrevia.lat && posicionPrevia.lng) {
-            const deltaLat = lat - posicionPrevia.lat;
-            const deltaLng = lng - posicionPrevia.lng;
-            if (Math.abs(deltaLat) > 0.00001 || Math.abs(deltaLng) > 0.00001) {
-                let h = Math.atan2(deltaLng, deltaLat) * (180 / Math.PI);
-                if (h < 0) h += 360;
-                estadoComponente.ultimoHeading = h;
-            }
-        }
-    }
-
-    function _actualizarBotonesSegunModo(modoActual, logPrefix) {
-        if (modoActual === 'aventura') {
-            logger.debug(`${logPrefix} 📏 Modo AVENTURA: verificando distancias a paradas`);
-            verificarDistanciaYActualizarBotones();
-        } else {
-            logger.debug(`${logPrefix} 🏠 Modo CASA: GPS activo pero botón siempre rojo deshabilitado`);
-            const btn = elementosDOM.btnUbicacion;
-            if (btn) {
-                btn.disabled = true;
-                btn.style.backgroundColor = '#f44336';
-                btn.style.opacity = '0.6';
-                btn.title = 'Ubicación no disponible en modo casa';
-            }
-        }
-    }
-
     registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, async (mensaje) => {
         const logPrefix = '[hijo2][GPS.ESTADO_ACTUALIZADO]';
         try {

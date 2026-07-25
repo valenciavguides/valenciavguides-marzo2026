@@ -101,28 +101,6 @@ function almacenarEnBuffer(entrada) {
 }
 
 /**
- * Formatea los argumentos adicionales para el log
- * @param {Array} args - Argumentos adicionales
- * @returns {string} Argumentos formateados
- */
-function formatearArgs(args) {
-    if (!args || args.length === 0) return '';
-    
-    return args.map(arg => {
-        if (arg === null) return 'null';
-        if (arg === undefined) return 'undefined';
-        if (typeof arg === 'object') {
-            try {
-                return JSON.stringify(arg, null, 2);
-            } catch {
-                return String(arg);
-            }
-        }
-        return String(arg);
-    }).join(' | ');
-}
-
-/**
  * Función principal de logging
  * @param {string} nivel - Nivel del log
  * @param {string} mensaje - Mensaje principal

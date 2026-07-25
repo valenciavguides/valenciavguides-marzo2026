@@ -2104,23 +2104,6 @@
     }
     globalThis.habilitarBotonRetoR2 = habilitarBotonRetoR2;
 
-    // ============================================================
-    // P12: VERIFICAR RESPUESTA DEL RETO R-2
-    // opciones[0] = afirmativa (Sí/Yes/Oui/Sì/Ja/はい) → P12
-    // opciones[1] = negativa (No/NO/Non/Nee/いいえ) → P1
-    // correctas: ["?"] = cualquier respuesta aceptada, la navegación depende de cuál
-    // ============================================================
-    async function _procesarAfirmativaR2() {
-      const codigoIngresado = document.getElementById('input-codigo')?.value.trim();
-      if (codigoIngresado) {
-        _log.info(`[SELECCION][P16] 🔑 Código "${codigoIngresado}" siendo marcado como USADO`);
-      }
-      _log.info('[SELECCION][P16] 🚀 Iniciando aventura y timer...');
-      if (!aventuraIniciando && typeof globalThis.iniciarAventura === 'function') {
-        await globalThis.iniciarAventura();
-      }
-    }
-
     function verificarRetoR2() {
       if (!retoActualR2) return;
       const seleccion = document.querySelector('input[name="reto-r2"]:checked');

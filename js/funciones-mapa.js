@@ -22,16 +22,6 @@ import { DATOS_PADRE } from './aventuras-ID-padre.js';
 import logger from './logger.js';
 
 /**
- * Maneja errores de geolocalización
- * @param {GeolocationPositionError} err - Error de geolocalización
- */
-function handleGeolocationError(err) {
-    logger.error('Geolocation error', err);
-    logger.error('[GPS] Geolocation error:', err.code, err.message);
-}
-
-
-/**
  * Extrae {lat, lng} de los distintos tipos de entrada de coordenadas-aventuras.js.
  *
  * Formatos en uso activo:
@@ -178,9 +168,6 @@ let _pulseTimeout = null; // Timeout del efecto de llegada (cancelable)
 
 // Array de paradas locales
 let arrayParadasLocal = [];
-
-// Flag para evitar solicitudes duplicadas de datos de paradas
-let datosParadasSolicitados = false;
 
 // Estado del mapa (ÚNICA FUENTE DE VERDAD para GPS)
 // ARQUITECTURA: funciones-mapa.js mantiene estadoMapa como estado local.
@@ -819,44 +806,6 @@ function sincronizarEstadoGPSConPadre() {
 let ultimaActividad = Date.now();
 let intervaloLimpiezaAutomatica;
 
-/**
- * Solicita los datos de paradas al padre si no están disponibles localmente
- * Evita solicitudes duplicadas usando la flag datosParadasSolicitados
- * @returns {Promise<void>}
- */
-async function solicitarDatosParadas() {
-    if (datosParadasSolicitados) {
-        logger.debug('Datos de paradas ya solicitados anteriormente, omitiendo');
-        return;
-    }
-
-    if (arrayParadasLocal.length > 0) {
-        logger.debug('Datos de paradas ya disponibles localmente, omitiendo solicitud');
-        return;
-    }
-
-    try {
-        logger.info('Solicitando datos de paradas al padre...');
-        datosParadasSolicitados = true;
-
-        enviarMensaje({
-            destino: resolverIdPadre(),
-            tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS,
-            origen: 'funciones-mapa',
-            datos: {
-                timestamp: Date.now(),
-                razon: 'inicializacion_mapa'
-            }
-        });
-
-        logger.debug('Solicitud de datos de paradas enviada exitosamente');
-    } catch (error) {
-        logger.error('Error al solicitar datos de paradas:', error);
-        // Reset flag on error to allow retry
-        datosParadasSolicitados = false;
-    }
-}
-
 function actualizarUltimaActividad() {
     ultimaActividad = Date.now();
 }
@@ -1142,188 +1091,6 @@ export async function getMapCenter() {
  */
 export function isMapInitialized() {
     return _mapaInstance !== null;
-}
-
-/**
- * Wait for MapLibre GL (maplibregl) to be available globally
- * @returns {Promise<void>}
- */
-function waitForMapLibre() {
-    return new Promise((resolve, reject) => {
-        const checkMapLibre = () => {
-            if (typeof maplibregl !== 'undefined' && maplibregl.Map) {
-                resolve();
-            } else {
-                setTimeout(checkMapLibre, 100);
-            }
-        };
-
-        // Timeout after 10 seconds
-        setTimeout(() => {
-            reject(new Error('MapLibre GL no se cargó en el tiempo esperado'));
-        }, 10000);
-
-        checkMapLibre();
-    });
-}
-
-/**
- * Verifica y corrige problemas comunes con el contenedor del mapa.
- * @param {string} containerId - ID del contenedor del mapa.
- * @returns {HTMLElement|null} - El contenedor corregido o null si no se puede arreglar.
- */
-export function verificarContenedorMapa(containerId = 'mapa') {
-    let contenedor = document.getElementById(containerId);
-    if (!contenedor) {
-        logger.warn(`Contenedor con ID "${containerId}" no encontrado. Creando uno nuevo.`);
-        contenedor = document.createElement('div');
-        contenedor.id = containerId;
-        contenedor.style.cssText = 'width: 100%; height: 400px; position: relative;';
-        document.body.appendChild(contenedor);
-    }
-
-    if (contenedor.offsetWidth === 0 || contenedor.offsetHeight === 0) {
-        contenedor.style.width = '100%';
-        contenedor.style.height = '400px';
-        logger.debug('Dimensiones del contenedor corregidas');
-    }
-
-    return contenedor;
-}
-
-/**
- * Inicializa el mapa y verifica el contenedor.
- * @param {Object} config - Configuración del mapa.
- * @returns {Promise<maplibregl.Map>} - Instancia del mapa.
- */
-export async function inicializarMapa(config = {}) {
-    // Wait for MapLibre GL to be available
-    await waitForMapLibre();
-
-    logger.info('Inicializando mapa...');
-    const containerId = config.containerId || 'mapa';
-
-    // Verificar y corregir el contenedor del mapa
-    const mapContainer = verificarContenedorMapa(containerId);
-    if (!mapContainer) {
-        throw new Error(`No se pudo verificar/reparar el contenedor #${containerId}`);
-    }
-
-    // Verificar si el mapa ya está inicializado a través del servicio
-    if (estaInicializado()) {
-        logger.info('Usando instancia existente del mapa');
-        return await ejecutarOperacionMapa(mapa => mapa);
-    }
-
-    // Create new map instance
-    const centro = CONFIG.MAPA.CENTRO_DEFECTO; // [lat, lng]
-    const mapa = new maplibregl.Map({
-        container: containerId,
-        style: {
-            version: 8,
-            sources: {
-                'osm-src': {
-                    type: 'raster',
-                    tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    attribution: '© OpenStreetMap contributors',
-                    maxzoom: 19,
-                },
-            },
-            layers: [{ id: 'osm-layer', type: 'raster', source: 'osm-src' }],
-        },
-        center: aLngLat(centro),
-        zoom: CONFIG.MAPA.ZOOM_INICIAL,
-        minZoom: CONFIG.MAPA.ZOOM_MIN,
-        maxZoom: CONFIG.MAPA.ZOOM_MAX,
-    });
-
-    // Registrar la instancia en el servicio
-    inicializarServicioMapa(mapa, config);
-
-    logger.info('Mapa inicializado correctamente');
-    return mapa;
-}
-
-/**
- * Espera a que un elemento sea visible en el DOM
- * @param {string} selector - Selector del elemento a esperar
- * @param {number} [timeout=5000] - Tiempo máximo de espera en ms
- * @returns {Promise<HTMLElement>} El elemento cuando esté visible
- */
-async function esperarElementoVisible(selector, timeout = 5000) {
-    const startTime = Date.now();
-    
-    return new Promise((resolve, reject) => {
-            // First check if element already exists
-        const checkNow = document.querySelector(selector);
-        if (checkNow && checkNow.offsetParent !== null) {
-            logger.debug(`Elemento ${selector} ya está disponible en el DOM`);
-            return resolve(checkNow);
-        }
-        
-        logger.debug(`Esperando elemento ${selector} (timeout: ${timeout}ms)...`);
-        
-        // Create a more robust checking mechanism
-        const checkElement = () => {
-            const element = document.querySelector(selector);
-            const elapsed = Date.now() - startTime;
-            
-            // Element exists and is visible
-            if (element && element.offsetParent !== null) {
-                logger.debug(`Elemento ${selector} encontrado después de ${elapsed}ms`);
-                return resolve(element);
-            }
-            
-            // Element exists but may not be visible yet - force visibility
-            if (element && elapsed > timeout / 2) {
-                logger.warn(`Elemento ${selector} existe pero podría no ser visible. Forzando visibilidad...`);
-                element.style.display = 'block';
-                element.style.visibility = 'visible';
-                element.style.opacity = '1';
-                element.style.height = element.style.height || '400px';
-                element.style.width = element.style.width || '100%';
-                
-                // Dar un breve retraso para aplicar estilos y luego resolver
-                setTimeout(() => resolve(element), 100);
-                return;
-            }
-            
-            // Timeout reached
-            if (elapsed >= timeout) {
-                // Last chance: if element exists at all, force it and resolve
-                const lastChance = document.querySelector(selector);
-                if (lastChance) {
-                    logger.warn(`Tiempo agotado pero elemento ${selector} existe. Forzando visibilidad como último recurso.`);
-                    lastChance.style.display = 'block';
-                    lastChance.style.visibility = 'visible';
-                    lastChance.style.opacity = '1';
-                    lastChance.style.height = lastChance.style.height || '400px';
-                    lastChance.style.width = lastChance.style.width || '100%';
-                    return resolve(lastChance);
-                }
-                
-                // Create element as last resort if it doesn't exist at all
-                if (selector === '#mapa') {
-                    logger.warn(`Creando elemento ${selector} ya que no existe después de ${elapsed}ms`);
-                    const newMap = document.createElement('div');
-                    newMap.id = 'mapa';
-                    newMap.style.width = '100%';
-                    newMap.style.height = '400px';
-                    newMap.style.display = 'block';
-                    document.body.insertBefore(newMap, document.body.firstChild);
-                    return resolve(newMap);
-                }
-                
-                return reject(new Error(`Tiempo de espera agotado para el selector: ${selector} (${elapsed}ms)`));
-            }
-            
-            // Continue checking
-            requestAnimationFrame(checkElement);
-        };
-        
-        checkElement();
-    });
 }
 
 /**
@@ -1622,29 +1389,6 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
     }
 }
 
-
-/**
- * Actualiza el marcador de una parada específica en el mapa.
- * @param {string} paradaId - ID de la parada a actualizar.
- * @param {Object} coordenadas - Nuevas coordenadas {lat, lng}.
- */
-function actualizarMarcadorParada(paradaId, coordenadas) {
-    try {
-        if (!_mapaInstance) {
-            throw new Error('Mapa no inicializado');
-        }
-
-        const marcador = marcadoresParadas.get(paradaId);
-        if (marcador) {
-            marcador.setLngLat(aLngLat(coordenadas));
-            logger.info(`Marcador de parada ${paradaId} actualizado`);
-        } else {
-            logger.warn(`No se encontró marcador para la parada ${paradaId}`);
-        }
-    } catch (error) {
-        logger.error('Error al actualizar marcador de parada:', error);
-    }
-}
 
 /**
  * Limpia recursos del mapa basándose en el estado actual
@@ -2879,48 +2623,6 @@ export async function diagnosticarMapa() {
     }
 }
 
-/**
- * Inicia un watchPosition de bajo coste para 'precalentar' el GPS (no marca gpsActivo)
- * @returns {Promise<{started:boolean, watchId:number|null}>}
- */
-// Precalentamiento GPS eliminado: implementación omitida intencionalmente
-
-/**
- * Pausa (sin destruir) el warmup GPS: detiene el watch pero marca el warmup
- * como inicializado para permitir un reinicio rápido cuando se reanude.
- */
-// pausarPrecalentarGPS removed
-
-/**
- * Detiene cualquier warmup GPS activo
- */
-// detenerPrecalentarGPS removed
-
-/**
- * Detiene GPS
- */
-function detenerGPS() {
-    const logPrefix = '[funciones-mapa][GPS]';
-
-    try {
-        logger.info(`${logPrefix} Desactivando GPS centralizado del padre`);
-
-        // Actualizar estado GPS directamente (estadoMapa es la única fuente de verdad)
-        estadoMapa.gpsActivo = false;
-        estadoMapa.gpsPermisos = null;
-        estadoMapa.gpsError = null;
-        estadoMapa.ultimaUbicacion = null;
-        
-        // Sincronizar con el estado global del padre
-        sincronizarEstadoGPSConPadre();
-
-        logger.info(`${logPrefix} GPS desactivado`);
-
-    } catch (error) {
-        logger.error(`${logPrefix} Error al detener GPS:`, error);
-    }
-}
-
 const _TIPOS_ELEMENTO_NAVEGABLE = ['inicio', 'parada', 'tramo'];
 
 /**
@@ -3453,25 +3155,6 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
     } catch (error) {
         logger.error('Error actualizando marcador de usuario:', error);
         return null;
-    }
-}
-
-/**
- * Elimina el marcador del usuario del mapa
- */
-export function limpiarMarcadorUsuario() {
-    if (!_mapaInstance || !marcadorUsuarioGPS) return;
-    try {
-        marcadorUsuarioGPS.remove();
-        marcadorUsuarioGPS = null;
-        if (circuloActivacion) {
-            circuloActivacion.remove();
-            circuloActivacion = null;
-        }
-        desactivarBrujula();
-        logger.debug('Marcador de usuario eliminado');
-    } catch (error) {
-        logger.error('Error eliminando marcador de usuario:', error);
     }
 }
 

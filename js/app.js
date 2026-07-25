@@ -299,25 +299,6 @@ async function esperarRespuestas(mapaRespuestas, hijosEsperados, timeoutMs, tipo
     logger.warn(`[esperarRespuestas] Timeout esperando ${tipoRespuesta} de: ${noRespondieron.join(', ')}`);
 }
 
-// Añadir función auxiliar para reintentos con confirmación
-async function enviarMensajeConReintento(mensaje, maxReintentos = 3) {
-    for (let intento = 1; intento <= maxReintentos; intento++) {
-        try {
-            return await enviarMensajeConConfirmacion({
-                tipo: mensaje.tipo,
-                origen: mensaje.origen,
-                destino: mensaje.destino,
-                datos: mensaje.datos,
-                timeout: 15000  // Aumentar timeout a 15 segundos
-            });
-        } catch (error) {
-            if (intento === maxReintentos) throw error;
-            logger.warn(`[APP] Reintento ${intento} para mensaje ${mensaje.tipo} a ${mensaje.destino}:`, error);
-            await new Promise(resolve => setTimeout(resolve, 1000 * intento));  // Backoff exponencial
-        }
-    }
-}
-
 /**
  * Notifica un error al sistema.
  * @param {string} codigo - Código de error.
@@ -345,31 +326,6 @@ export function notificarError(codigo, error, contexto = {}) {
     } catch (err) {
         logger.error('Error al notificar error:', err);
     }
-}
-
-/**
- * Valida el mensaje de cambio de modo.
- * @param {Object} mensaje - Mensaje recibido.
- * @returns {boolean} - True si el mensaje es válido, lanza un error si no lo es.
- */
-function validarCambioModoMensaje(mensaje) {
-    if (!mensaje || typeof mensaje !== 'object') {
-        throw new Error('Mensaje de cambio de modo no válido: debe ser un objeto.');
-    }
-
-    const { modo } = mensaje.datos || {};
-
-    if (!modo) {
-        throw new Error(`Modo no válido: ${modo}`);
-    }
-    
-    // Compara con constantes para mayor compatibilidad
-    const modoCanonical = canonicalizarModo(modo);
-    if (!modoCanonical) {
-        throw new Error(`Modo no válido: ${modo}`);
-    }
-
-    return true;
 }
 
 // Constantes para los modos de operación del sistema (diferentes a MODOS de constants.js que son 'casa'/'aventura')
@@ -1162,27 +1118,6 @@ globalThis.addEventListener('load', () => {
         userAgent: navigator.userAgent
     });
 });
-
-/**
- * Envía una confirmación a un hijo específico.
- * @param {string} hijoId - ID del hijo al que se enviará la confirmación.
- * @returns {Promise<void>}
- */
-export async function enviarConfirmacionAHijo(hijoId, mensajeId) {
-    try {
-        await enviarMensaje({
-            destino: hijoId,
-            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
-            origen: resolverIdPadre(),
-            datos: {
-                mensajeId,
-                timestamp: new Date().toISOString()
-            }
-        });
-    } catch (error) {
-        logger.error('Error enviando confirmación', error);
-    }
-}
 
 // Controladores AUDIO implementados en audio-hijo3.html (hijo3)
 // Controladores NAVEGACIóN en funciones-mapa.js

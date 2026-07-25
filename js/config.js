@@ -309,41 +309,6 @@ export function getConfig(ruta, defecto = null) {
     return valor;
 }
 
-/**
- * Función para actualizar configuración en runtime
- * @param {string} ruta - Ruta de la configuración
- * @param {*} nuevoValor - Nuevo valor
- * @returns {boolean} True si se actualizó correctamente
- */
-export function setConfig(ruta, nuevoValor) {
-    const partes = ruta.split('.');
-    let obj = CONFIG;
-    
-    for (let i = 0; i < partes.length - 1; i++) {
-        if (obj && typeof obj === 'object' && partes[i] in obj) {
-            obj = obj[partes[i]];
-        } else {
-            return false;
-        }
-    }
-    
-    const ultimaParte = partes.at(-1);
-    if (obj && typeof obj === 'object' && ultimaParte in obj) {
-        obj[ultimaParte] = nuevoValor;
-        return true;
-    }
-    
-    return false;
-}
-
-/**
- * Exporta la configuración para depuración
- * @returns {string} Configuración en formato JSON
- */
-export function exportarConfig() {
-    return JSON.stringify(CONFIG, null, 2);
-}
-
 // Hacer CONFIG disponible globalmente para debug
 if (globalThis.window !== undefined) {
     globalThis.__vv_config = CONFIG;
