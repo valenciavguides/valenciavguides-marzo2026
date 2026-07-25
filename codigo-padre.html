@@ -4138,7 +4138,7 @@
                         try {
                             iframeSeleccion.contentWindow.postMessage({
                                 tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA,
-                                datos: { pantalla: 2 }
+                                datos: { pantalla: 1 }
                             }, globalThis.location.origin);
                         } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                     }
@@ -4213,7 +4213,7 @@
                         iframeSeleccion.style.visibility = 'visible';
                         try {
                             iframeSeleccion.contentWindow.postMessage(
-                                { tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA, datos: { pantalla: 2 } },
+                                { tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA, datos: { pantalla: 1 } },
                                 globalThis.location.origin
                             );
                         } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
