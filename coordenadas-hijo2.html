@@ -641,7 +641,6 @@ const estadoComponente = {
     ultimaActualizacionGPS: 0,
     intervaloMinimo: 5000, // 5 segundos entre actualizaciones para ahorrar batería
     posicionUsuario: null,
-    paradaActual: null,
     distanciaAlDestino: null,
     tipoParadaActual: null, // 'parada' o 'tramo'
     idParadaActual: null,  // 'P-X' o 'TR-X'
@@ -1680,7 +1679,6 @@ try {
 
     function _resetarEstadoParaModo(modo, logPrefix) {
         estadoComponente.modo = modo;
-        estadoComponente.paradaActual = null;
         estadoComponente.tipoParadaActual = null;
         estadoComponente.retoActivo = false;
         estadoComponente.ubicacionActiva = false;
@@ -2090,7 +2088,7 @@ try {
                     timestamp: Date.now(),
                     estado: estadoComponente.inicializado ? 'activo' : 'inicializando',
                     gpsActivo: estadoComponente.gpsActivo,
-                    paradaActual: estadoComponente.paradaActual,
+                    paradaActual: estadoComponente.idParadaActual,
                     coordenadasCargadas: obtenerCoordenadasParadas().length
                 }
             });

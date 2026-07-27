@@ -3732,8 +3732,8 @@ Los mensajes que se comportan distinto según el modo activo:
 
 | Mensaje | MODO CASA | MODO AVENTURA |
 |---------|-----------|---------------|
-| Origen de `NAVEGACION.CAMBIO_PARADA` | hijo5 — clic manual del usuario en lista de paradas | hijo2 (`LLEGADA_DETECTADA`, ≤20 m), funciones-mapa (`gps-automatico`, ≤50 m) o programático desde padre |
-| `NAVEGACION.LLEGADA_DETECTADA` | **No ocurre** — hijo2 no valida distancias | Hijo2 → Padre cuando usuario entra en radio ≤ 20 m |
+| Origen de `NAVEGACION.CAMBIO_PARADA` | hijo5 — clic manual del usuario en lista de paradas | Siempre programático desde el padre — `progresarSiguienteElemento()`, disparado por `intentarCompletarElemento()` cuando `pending.llegada` + `pending.audio` (+ retos si los hay) se cumplen |
+| `NAVEGACION.LLEGADA_DETECTADA` | **No ocurre** — hijo2 no valida distancias | Hijo2 → Padre (≤20 m parada / `toleranciaGPS` tramo) **y** funciones-mapa → Padre (≤50 m / tolerancia dinámica) — dos sensores independientes, ninguno avanza por sí mismo, solo marcan `pending.llegada` (ver §"Tolerancia GPS por tipo de elemento") |
 | `AUDIO.REPRODUCIR_REQUEST` | Disparado por acción manual del usuario; `autoplay:false` | Enviado automáticamente al entrar en cada parada; `autoplay:false` (el usuario reproduce desde los controles del padre) |
 | `CONTROL.HABILITAR { control:'retosBtn' }` | Enviado **inmediatamente** si la parada tiene `reto_id` | Enviado solo tras `AUDIO.FIN_REPRODUCCION` para esa parada |
 | `CONTROL.DESHABILITAR { control:'retosBtn' }` | Enviado si tramo o parada sin `reto_id` | Enviado siempre al entrar en nueva parada (bloqueado hasta audio) |
@@ -4378,7 +4378,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-bce5aa60d756'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-25626cc628d6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4793,14 +4793,14 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 
 Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funciones-mapa.js`.
 
-**NAVEGACION.LLEGADA_DETECTADA** (hijo2 → padre)
+**NAVEGACION.LLEGADA_DETECTADA** (hijo2 → padre, y funciones-mapa → padre)
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo2 (cuando usuario está a < umbral metros del objetivo) |
-| Payload | `{ paradaId: 'padre-P-X', coordenadas, distancia }` |
-| Handler en padre | `_hdl_NAVEGACION_LLEGADA_DETECTADA` L9659 |
-| Acción | Normaliza ID (quita prefijo `padre-`), llama `_marcarPendingPorLlegada` → `pending.llegada = true` → `intentarCompletarElemento` |
+| Emitido por | hijo2 (`_detectarLlegadaParada`/`_detectarLlegadaTramo`, ≤20 m parada / `toleranciaGPS` tramo) **y** `js/funciones-mapa.js` (`procesarPosicionGPSParaAventura`, ≤50 m / tolerancia dinámica, con dedup propio vía `estadoMapa._llegadaNotificada` para no reenviar en cada lectura GPS mientras el usuario permanece en el sitio) — dos sensores independientes para el mismo hecho, ninguno avanza la aventura por sí solo |
+| Payload | `{ paradaId, parada_id, distancia, ... }` (funciones-mapa añade `tipoParada`, `coordenadas`) |
+| Handler en padre | `_hdl_NAVEGACION_LLEGADA_DETECTADA` |
+| Acción | Normaliza ID, llama `_marcarPendingPorLlegada` → `pending.llegada = true` → `intentarCompletarElemento` (que solo avanza si además `pending.audio` y, si hay retos, `pending.reto` ya están a `true`) |
 | Nota | Audio NO se envía aquí — ya fue enviado en CAMBIO_PARADA |
 
 **NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO** ⚠️ sin emisor activo
@@ -5608,10 +5608,23 @@ bus aún no ha transmitido el dato.
 
 ### 10.6 Comportamientos notables del sistema de mensajería
 
+#### El despachador serializa por tipo de mensaje
+
+- **Dónde**: `js/mensajeria.js`, función `manejarMensajeEntrante` → `_encolarEjecucionHandler` (usa el `Map` module-scope `_colaPorTipo`).
+- Cada `message` event del navegador es una tarea independiente del event loop. Sin esto, dos mensajes del **mismo tipo** que llegan con pocos milisegundos de diferencia (típico con `NAVEGACION.CAMBIO_PARADA` durante lecturas GPS seguidas) se procesaban en paralelo, sin garantía de terminar en el orden en que llegaron — la causa real de que actualizaciones de mapa se perdieran en carreras silenciosas.
+- Cada tipo de mensaje se encadena detrás de la ejecución anterior del **mismo tipo**; tipos distintos siguen siendo completamente concurrentes entre sí (un `CAMBIO_PARADA` lento no bloquea un `HEARTBEAT`). Un handler que falla no rompe la cola — el error se loguea y confirma, y el siguiente mensaje del mismo tipo se procesa igual.
+
+#### `manejarCambiarParada` (funciones-mapa.js) encola, no descarta
+
+- **Dónde**: `js/funciones-mapa.js`, función `manejarCambiarParada` — guard de `estadoMapa.consultaParadaPendiente`, y `_procesarSiguienteEnCola()`.
+- Mientras la animación de zoom de `completarCambioParada()` está en curso (puede tardar 1-2,5 s reales: zoom-out + espera `moveend` + zoom-in), `estadoMapa.consultaParadaPendiente` permanece ocupado. Si llega otro `CAMBIO_PARADA` en esa ventana, se guarda en el slot único `estadoMapa._cambioParadaEncolado` (solo importa el más reciente) en vez de descartarse — así el marcador/polyline del mapa siempre terminan reflejando la última llegada real, aunque coincida con la animación de la anterior.
+- Se drena desde los tres sitios donde `consultaParadaPendiente` se libera: el timeout de seguridad de 8 s, el `catch` de error, y el `finally` de `completarCambioParada()`.
+
 #### `procesarPosicionGPSParaAventura` — guard de modo AVENTURA
 
 - **Dónde**: `js/funciones-mapa.js` función `procesarPosicionGPSParaAventura` — bloque `if (llegadaDetectada)`
-- El guard `if (estadoMapa.modo !== MODOS.AVENTURA)` impide que se envíe `CAMBIO_PARADA` en modo CASA. El marcador, el polyline y `ACTUALIZAR_ESTADO` a hijo2 siguen funcionando en ambos modos; solo el avance automático de parada queda desactivado fuera de AVENTURA.
+- El guard `if (estadoMapa.modo !== MODOS.AVENTURA)` impide que se envíe `NAVEGACION.LLEGADA_DETECTADA` en modo CASA. El marcador, el polyline y `ACTUALIZAR_ESTADO` a hijo2 siguen funcionando en ambos modos; solo la notificación de llegada queda desactivada fuera de AVENTURA.
+- `LLEGADA_DETECTADA` no avanza la parada por sí sola — solo marca `pending.llegada = true` en el padre (`_marcarPendingPorLlegada`). El avance real lo decide `intentarCompletarElemento()` cuando también se cumplen audio (y retos, si los hay). `estadoMapa._llegadaNotificada` deduplica el envío mientras la distancia se mantenga ≤ tolerancia; se resetea con histéresis (`distancia > toleranciaGPS * 1.5`) para permitir renotificar si el usuario se aleja y vuelve.
 
 #### `RETO.SOLICITAR_RETO` — handler en Script 2
 
@@ -5938,7 +5951,7 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 
 | Quién | Radio | Cómo se calcula | Efecto |
 | --- | --- | --- | --- |
-| **funciones-mapa.js** `calcularToleranciaGPS()` — parada | **50 m** | Valor constante — enviado a hijo2 como `toleranciaGPS` en `ACTUALIZAR_ESTADO` | Umbral de auto-avance secuencial (`verificarLlegadaADestino`). Hijo2 lo ignora para paradas. |
+| **funciones-mapa.js** `calcularToleranciaGPS()` — parada | **50 m** | Valor constante — enviado a hijo2 como `toleranciaGPS` en `ACTUALIZAR_ESTADO` | Umbral de la detección propia de funciones-mapa (`verificarLlegadaADestino`), que notifica `LLEGADA_DETECTADA` — nunca avanza por sí sola. Hijo2 lo ignora para paradas. |
 | **funciones-mapa.js** `calcularToleranciaGPS()` — tramo | **dinámica** | Distancia máxima entre waypoints + 20 m buffer | Enviado a hijo2 como `toleranciaGPS`; hijo2 lo usa para activar botón GPS en tramos |
 | **hijo2** `rangoMaximo` — parada | **20 m** (hardcoded) | Fijo — hijo2 ignora el `toleranciaGPS` recibido para paradas | Activa botón GPS cuando usuario está a ≤20 m de la parada |
 | **hijo2** `rangoMaximo` — tramo | **= toleranciaGPS** | Recibido de funciones-mapa | Activa botón GPS cuando usuario está a ≤toleranciaGPS m del waypoint final |
@@ -5947,11 +5960,11 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 | **hijo2** `_detectarLlegadaParada()` | **20 m** (`RADIO_PARADA` local) | Fijo | ✅ Genera `LLEGADA_DETECTADA` → padre |
 | **hijo2** `_detectarLlegadaTramo()` | **= toleranciaGPS** | Recibido de funciones-mapa | ✅ Genera `LLEGADA_DETECTADA` → padre |
 
-> **Dos sistemas paralelos de detección (solo en modo AVENTURA)**: funciones-mapa usa 50 m para su propia detección (`verificarLlegadaADestino`) y envía `CAMBIO_PARADA` directamente con `origen:'gps-automatico'`. Hijo2 usa 20 m para la detección que genera `LLEGADA_DETECTADA` → padre → `progresarSiguienteElemento`. Ambos son independientes. En modo CASA ninguno activa el avance — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` bloquea el envío de `CAMBIO_PARADA`.
+> **Dos sensores independientes, un único camino de avance (solo en modo AVENTURA)**: funciones-mapa usa 50 m/tolerancia dinámica para su propia detección (`verificarLlegadaADestino`) y hijo2 usa 20 m/`toleranciaGPS` para la suya (`_detectarLlegadaParada`/`_detectarLlegadaTramo`). Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplieron las demás condiciones (audio terminado, y retos si los hay) y llama a `progresarSiguienteElemento()`. Que funciones-mapa notifique por su cuenta es redundante con hijo2 (dos sensores para el mismo hecho, con radios distintos) pero nunca salta el gate: ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente, ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y `_detectarLlegadaParada`/`_detectarLlegadaTramo` de hijo2 solo corren cuando `ACTUALIZAR_ESTADO` trae `tipoParada`, que solo llega en AVENTURA.
 
-Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada. El destino de un tramo es siempre su **último waypoint**.
+Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada. El destino de un tramo es siempre su **punto `.fin`** — no el último waypoint del array, que puede quedar corto o largo del punto de llegada real definido en los datos.
 
-> **Los waypoints intermedios no son checkpoints obligatorios.** La app no comprueba si el usuario pasó por cada punto intermedio. Solo verifica si llegó al radio del último waypoint. Los waypoints intermedios sirven para dibujar la polyline en el mapa y para calcular la tolerancia dinámica.
+> **Los waypoints intermedios no son checkpoints obligatorios.** La app no comprueba si el usuario pasó por cada punto intermedio. Solo verifica si llegó al radio de `.fin`. Los waypoints intermedios sirven para dibujar la polyline en el mapa y para calcular la tolerancia dinámica.
 
 ### Capas de mapa y selector de estilo
 
@@ -6939,6 +6952,8 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `09-mode-change.spec.js` | 17 | Protocolo CAMBIO_MODO↔ENTENDIDO↔EFECTUADO; unicidad de handlers; heartbeat solo en AVENTURA |
 | `10-controladores-padre.spec.js` | 8 | Handlers extraídos a `js/controladores-padre.js`; smoke tests de SOLICITAR_AUDIOS/TEXTOS/RETOS/COORDENADAS |
 | `11-constants-integrity.spec.js` | 8 | Integridad de TIPOS_MENSAJE: constantes GPS funcionales, eliminación de handlers huérfanos GPS.VISUAL_*, presencia de CHAT.ESTADO_PADRE, exposición de reciclaje-digital |
+| `12-carga-por-parada.spec.js` | 3 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo |
+| `13-gps-tramo-fix.spec.js` | 5 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) con dedup |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7078,7 +7093,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-bce5aa60d756'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-25626cc628d6'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama en `visibilitychange → hidden`. Esto asegura que el browser comprueba actualizaciones del SW cada vez que el usuario cambia de app. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7725,7 +7740,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-bce5aa60d756';
+const CACHE_VERSION = 'v-25626cc628d6';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8257,9 +8272,11 @@ Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por 
 1. hijo2 ejecuta `_resetarEstadoParaModo('aventura')`:
    - `timestampSalioDeRango` sigue a `null` — el countdown de 5 min **arranca desde cero**
    - Si `posicionActualUsuario` está poblado, llama `verificarDistanciaYActualizarBotones()` con el `distanciaAlDestino` del último mensaje recibido antes de ir a CASA (puede ser ligeramente desactualizado)
+   - `idParadaActual` (la única variable de "parada actual" de hijo2) **no se toca** aquí — se resincroniza en el paso 5
 2. `funciones-mapa.js` reanuda: `estadoMapa.modo = MODOS.AVENTURA` → el siguiente pulso GPS genera un `ACTUALIZAR_ESTADO` fresco con la distancia real a la siguiente parada no completada
 3. Si el desarrollador está fuera de rango (>50m) al volver: el overlay aparece y el countdown arranca desde 00:00 (sin penalización por el tiempo en CASA)
-4. **`estado.indiceProgreso` sigue apuntando a la parada correcta** — `siguienteParada` en funciones-mapa usa este índice, por lo que el cálculo de distancia se hace a la parada que tocaba antes de ir a CASA
+4. `estado.indiceProgreso`/`estado.paradaActual` (los del **padre**) nunca se tocan al cambiar de modo — solo cambian si de verdad se avanza una parada. Lo que SÍ se vacía en cada cambio de modo, incondicionalmente, es la copia local de "parada actual" de **funciones-mapa** (`estadoMapa.paradaActual`, vía `limpiarPorEstado`) y la de **hijo2** (`idParadaActual`, indirectamente) — ninguna de las dos es la misma variable que `estado.paradaActual` del padre.
+5. Por eso `_hdl_SISTEMA_CAMBIO_MODO` (ver §8.12/§10.6) resincroniza SIEMPRE que hay progreso real, no solo si `estado.paradaActual` cambió en CASA: llama a `__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada })`, que dispara el pipeline completo de `NAVEGACION.CAMBIO_PARADA` (notifica a hijo2, y dispara `vv-parada-cambiada` para que funciones-mapa fije `estadoMapa.paradaActual` de nuevo). Sin este paso, `_siguienteIdElementoNavegable()` en funciones-mapa (que calcula la "siguiente parada" a partir de `estadoMapa.paradaActual`, no de `estado.indiceProgreso`) arrancaría siempre desde el principio de la aventura tras cualquier vuelta a AVENTURA — la causa real detrás del bug donde la polyline discontinua siempre apuntaba a la parada 0.
 
 Repetir desde el paso 8 para volver a AVENTURA.
 
@@ -11228,7 +11245,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-bce5aa60d756';
+const CACHE_VERSION = 'v-25626cc628d6';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

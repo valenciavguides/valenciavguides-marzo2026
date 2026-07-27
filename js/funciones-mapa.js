@@ -111,16 +111,20 @@ function verificarLlegadaADestino(posicionUsuario, elementoActual) {
 
     const tolerancia = calcularToleranciaGPS(elementoActual);
     
-    // Determinar coordenadas del destino
+    // Determinar coordenadas del destino.
+    // 'parada' e 'inicio' (la parada 0 de cada aventura, ver coordenadas-aventuras.js)
+    // comparten forma de datos: coordenadas directas en .coordenadas/.lat/.lng.
+    // Tratarlos igual aquí — antes solo se reconocía 'parada', así que la parada 0
+    // de las 7 aventuras nunca podía detectar su propia llegada por este camino.
     let coordenadasDestino;
-    if (elementoActual.tipo === 'parada') {
+    if (elementoActual.tipo === 'parada' || elementoActual.tipo === 'inicio') {
         const c = _getLatLng(elementoActual.ubicacion || elementoActual);
         coordenadasDestino = c || { lat: elementoActual.lat, lng: elementoActual.lng };
-    } else if (elementoActual.waypoints && elementoActual.waypoints.length > 0) {
-        // Para tramos, usar el último waypoint como destino
-        const ultimoWaypoint = elementoActual.waypoints[elementoActual.waypoints.length - 1];
-        const c = _getLatLng(ultimoWaypoint);
-        coordenadasDestino = c || { lat: ultimoWaypoint.lat, lng: ultimoWaypoint.lng };
+    } else if (elementoActual.fin) {
+        // Para tramos, el destino real es .fin — nunca el último waypoint, que puede
+        // quedarse corto o largo del punto de llegada real definido en los datos.
+        const c = _getLatLng(elementoActual.fin);
+        coordenadasDestino = c || { lat: elementoActual.fin.lat, lng: elementoActual.fin.lng };
     } else {
         logger.error('❌ verificarLlegadaADestino: elemento sin coordenadas válidas', elementoActual);
         return false;
@@ -192,10 +196,19 @@ const estadoMapa = {
     consultaParadaPendiente: null,
     esperandoCoordenadas: false,
     datosRecopilados: {},
+    // Único slot de "siguiente petición" — si llega un CAMBIO_PARADA mientras hay uno en
+    // curso, se guarda aquí en vez de descartarse (solo interesa la más reciente; una
+    // intermedia ya está obsoleta en cuanto llega otra más nueva). Se procesa en cuanto
+    // el que está en curso libera consultaParadaPendiente.
+    _cambioParadaEncolado: null,
     // Control de zoom: evitar múltiples operaciones y respetar interacción del usuario
     zoomEnCurso: false,       // true mientras una animación de zoom está en progreso
     usuarioMovioMapa: false,  // true si el usuario hizo pan/drag manualmente
-    ultimoZoomAuto: 0         // timestamp del último zoom automático aplicado
+    ultimoZoomAuto: 0,        // timestamp del último zoom automático aplicado
+    // id del elemento para el que ya se envió LLEGADA_DETECTADA — evita reenviar el
+    // mismo aviso en cada lectura GPS mientras el usuario permanece parado en el sitio
+    // (misma idea que estadoComponente._llegadaNotificada en coordenadas-hijo2.html)
+    _llegadaNotificada: null
 };
 
 // =====================================================
@@ -1633,6 +1646,22 @@ function actualizarPosicionFlecha() {
 }
 
 /**
+ * Si quedó una petición de cambio de parada encolada mientras la anterior estaba en
+ * curso (ver el guard de consultaParadaPendiente en manejarCambiarParada), la procesa
+ * ahora. Se llama desde los tres sitios donde consultaParadaPendiente se libera: el
+ * timeout de seguridad de 8s, el catch de error, y el finally de completarCambioParada.
+ */
+function _procesarSiguienteEnCola() {
+    const siguiente = estadoMapa._cambioParadaEncolado;
+    if (!siguiente) return;
+    estadoMapa._cambioParadaEncolado = null;
+    logger.info('[funciones-mapa] Procesando cambio de parada que quedó encolado');
+    manejarCambiarParada(siguiente).catch(err => {
+        logger.error('[funciones-mapa] Error procesando cambio de parada encolado:', err);
+    });
+}
+
+/**
  * Maneja el cambio de parada en la navegación.
  * @param {Object} mensaje - Mensaje con datos de la nueva parada
  * @param {string} mensaje.origen - Origen del mensaje
@@ -1676,10 +1705,15 @@ async function manejarCambiarParada(mensaje) {
             throw new Error('Mapa no inicializado');
         }
 
-        // Verificar si ya hay una consulta pendiente
+        // Verificar si ya hay una consulta pendiente — no se descarta: se guarda como
+        // "siguiente" y se procesa en cuanto la actual libere el lock (ver
+        // _procesarSiguienteEnCola). Antes esto simplemente ignoraba la solicitud nueva,
+        // así que una llegada real que coincidiera con la animación de la anterior se
+        // perdía sin dejar rastro visual (marcador/polyline que nunca se actualizaban).
         if (estadoMapa.consultaParadaPendiente) {
-            logger.warn(`${logPrefix} Ya hay una consulta de parada pendiente, ignorando nueva solicitud`);
-            return { exito: false, error: 'Consulta pendiente' };
+            logger.warn(`${logPrefix} Ya hay una consulta de parada pendiente, encolando esta para procesarla después`);
+            estadoMapa._cambioParadaEncolado = mensaje;
+            return { exito: false, error: 'Consulta pendiente, encolada' };
         }
 
         // Validar que la parada existe en AVENTURA_PARADAS (soporta both padreId and paradaId)
@@ -1750,6 +1784,7 @@ async function manejarCambiarParada(mensaje) {
                 estadoMapa.consultaParadaPendiente = null;
                 estadoMapa.esperandoCoordenadas = false;
                 estadoMapa.datosRecopilados = {};
+                _procesarSiguienteEnCola();
             }
         }, 8000);
 
@@ -1796,7 +1831,8 @@ async function manejarCambiarParada(mensaje) {
         estadoMapa.consultaParadaPendiente = null;
         estadoMapa.esperandoCoordenadas = false;
         estadoMapa.datosRecopilados = {};
-        
+        _procesarSiguienteEnCola();
+
         enviarMensaje({
             destino: mensaje.origen,
             tipo: TIPOS_MENSAJE.SISTEMA.ERROR,
@@ -2152,6 +2188,7 @@ async function completarCambioParada() {
         // Limpiar estado SIEMPRE, incluso si hay error
         estadoMapa.consultaParadaPendiente = null;
         estadoMapa.datosRecopilados = {};
+        _procesarSiguienteEnCola();
     }
 }
 
@@ -2705,9 +2742,11 @@ async function procesarPosicionGPSParaAventura(posicion) {
         }
 
         const siguienteParada = paradas.find(p => p.id === siguienteId);
-        // Obtener coordenadas: paradas usan .coordenadas, tramos usan .inicio/.fin
-        const coordsSiguiente = siguienteParada 
-            ? (siguienteParada.coordenadas || siguienteParada.inicio || siguienteParada.fin || null)
+        // Obtener coordenadas del DESTINO: paradas/inicio usan .coordenadas; tramos usan
+        // .fin (el punto de llegada real) — nunca .inicio, que es el punto de partida y
+        // mediría "cuánto falta para llegar" contra el sitio del que ya te fuiste.
+        const coordsSiguiente = siguienteParada
+            ? (siguienteParada.coordenadas || siguienteParada.fin || siguienteParada.inicio || null)
             : null;
         if (!siguienteParada || !coordsSiguiente?.lat || !coordsSiguiente?.lng) {
             logger.info(`${logPrefix} Siguiente parada no válida o sin coordenadas`);
@@ -2780,21 +2819,21 @@ async function procesarPosicionGPSParaAventura(posicion) {
             siguienteParada
         );
 
-        // 🗺️ Gestión automática de polylines: remover si distancia ≤50m
-        if (distancia <= 50 && (rutasActivas.length > 0 || polylineNavegacion)) {
-            logger.info(`${logPrefix} 🗺️ Distancia ≤50m, removiendo polylines automáticamente`);
+        // 🗺️ Gestión automática de la polyline de navegación (guía discontinua
+        // usuario→destino): remover solo ESA si distancia ≤50m. NO tocar rutasActivas
+        // aquí — ahí vive la polyline sólida y persistente del propio tramo (dibujada
+        // por dibujarTramo() en completarCambioParada), que debe seguir visible durante
+        // todo el trayecto y solo se limpia al cambiar de elemento o de modo. Antes esta
+        // limpieza borraba las dos juntas: como la distancia a un tramo podía medirse
+        // (bug ya corregido) contra su propio punto de inicio, la ruta del tramo
+        // desaparecía prácticamente nada más empezar a caminarlo.
+        if (distancia <= 50 && polylineNavegacion) {
+            logger.info(`${logPrefix} 🗺️ Distancia ≤50m, removiendo polyline de navegación automáticamente`);
             try {
-                // Limpiar todas las rutas activas
-                rutasActivas.forEach(ruta => ruta?.remove());
-                rutasActivas = [];
+                polylineNavegacion.remove();
+                polylineNavegacion = null;
 
-                // Limpiar polylineNavegacion
-                if (polylineNavegacion) {
-                    polylineNavegacion.remove();
-                    polylineNavegacion = null;
-                }
-                
-                logger.debug(`${logPrefix} ✅ Polylines removidas automáticamente`);
+                logger.debug(`${logPrefix} ✅ Polyline de navegación removida automáticamente`);
             } catch (error_) {
                 logger.warn(`${logPrefix} Error removiendo polylines:`, error_);
             }
@@ -2838,32 +2877,47 @@ async function procesarPosicionGPSParaAventura(posicion) {
             }
         }
 
-        // Si está dentro de tolerancia, activar la parada — SOLO en modo AVENTURA
-        // En CASA el usuario elige libremente tramo/parada; el GPS nunca fuerza el avance
+        // Si está dentro de tolerancia, notificar la llegada — SOLO en modo AVENTURA.
+        // En CASA el usuario elige libremente tramo/parada; el GPS nunca fuerza el avance.
+        //
+        // IMPORTANTE: esto ya NO envía CAMBIO_PARADA directamente. Antes lo hacía, y eso
+        // saltaba por completo el sistema de "pending" (audio + llegada [+ retos]) que
+        // hijo2 alimenta con su propia detección (_detectarLlegadaTramo/_detectarLlegadaParada
+        // → LLEGADA_DETECTADA → _marcarPendingPorLlegada → intentarCompletarElemento). Dos
+        // caminos de avance independientes, sin coordinación entre ellos, permitían avanzar
+        // de parada sin haber completado audio/retos. Ahora este camino manda la misma señal
+        // que hijo2 (LLEGADA_DETECTADA) y deja que sea el único sistema de finalización el
+        // que decida cuándo avanzar de verdad — es redundante con la detección de hijo2 (dos
+        // sensores para el mismo hecho), pero nunca la sustituye ni la salta.
+        const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
+
         if (llegadaDetectada) {
             if (estadoMapa.modo !== MODOS.AVENTURA) {
-                logger.debug(`${logPrefix} Llegada detectada en modo ${estadoMapa.modo} — sin avance automático por GPS`);
+                logger.debug(`${logPrefix} Llegada detectada en modo ${estadoMapa.modo} — sin notificación automática por GPS`);
+            } else if (estadoMapa._llegadaNotificada === derivedParadaId) {
+                logger.debug(`${logPrefix} Llegada a ${derivedParadaId} ya notificada — sin reenviar`);
             } else {
-                logger.info(`${logPrefix} 🎯 Activando parada secuencial: ${siguienteParada.id}`);
-
-                // Derivar ids para compatibilidad (padreId vs paradaId)
-                const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
-                const derivedPadreId = siguienteParada.padreid || (derivedParadaId ? `padre-${derivedParadaId}` : null);
+                estadoMapa._llegadaNotificada = derivedParadaId;
+                logger.info(`${logPrefix} 🎯 Llegada GPS a ${siguienteParada.id} — notificando (pending decide si avanza)`);
                 enviarMensaje({
                     destino: resolverIdPadre(),
-                    tipo: TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA,
+                    tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
                     origen: 'funciones-mapa',
                     datos: {
                         paradaId: derivedParadaId,
                         parada_id: derivedParadaId,
-                        padreId: derivedPadreId,
-                        padreid: derivedPadreId,
-                        origen: 'gps-automatico',
+                        tipoParada: siguienteParada.tipo,
+                        coordenadas: coordsSiguiente,
                         distancia: distancia,
                         timestamp: Date.now()
                     }
                 });
             }
+        } else if (estadoMapa._llegadaNotificada === derivedParadaId && distancia > toleranciaGPS * 1.5) {
+            // Usuario se alejó de nuevo del destino ya notificado — permitir renotificar
+            // si vuelve a entrar en rango (mismo criterio de histéresis que hijo2).
+            logger.debug(`${logPrefix} Usuario salió del rango de ${derivedParadaId}, reseteando flag de llegada`);
+            estadoMapa._llegadaNotificada = null;
         }
 
     } catch (error) {

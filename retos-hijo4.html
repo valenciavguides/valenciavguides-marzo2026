@@ -647,8 +647,7 @@
         retoActualId: null,
         inicializado: false,
         modo: { actual: 'aventura' }
-        ,padreIdActual: null,
-        paradaIdActual: null
+        ,padreIdActual: null
         ,paradaPendiente: false
         ,hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
@@ -1731,7 +1730,6 @@
                         // No-op: placeholder for actual reto prefetch logic
                         estado.retoActualId = mensaje.datos?.retoId || null;
                         estado.padreIdActual = padreId || null;
-                        estado.paradaIdActual = paradaId;
                     }
                     // Send confirmation back to parent
                     await enviarMensaje({

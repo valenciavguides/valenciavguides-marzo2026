@@ -488,25 +488,6 @@ async function _flujoPrewarmModo(estado, modoKey, modoNormalized) {
     }
 }
 
-async function _limpiarMapaTrasMode(modoNormalized, logPrefix) {
-    try {
-        if (globalThis.funcionesMapa) {
-            if (typeof globalThis.funcionesMapa.limpiarPorEstado === 'function') {
-                await globalThis.funcionesMapa.limpiarPorEstado({ modo: modoNormalized });
-                logger.debug(`${logPrefix} Capas del mapa limpiadas para modo ${modoNormalized}`);
-            }
-            if (typeof globalThis.funcionesMapa.setMapView === 'function') {
-                const defaultCenter = CONFIG?.MAPA?.CENTRO_DEFECTO || [39.4699, -0.3763];
-                const defaultZoom = (typeof CONFIG?.MAPA?.ZOOM_INICIAL === 'number') ? CONFIG.MAPA.ZOOM_INICIAL : 13;
-                await globalThis.funcionesMapa.setMapView(defaultCenter, defaultZoom, { animate: true, duration: 0.6 });
-                logger.debug(`${logPrefix} Vista del mapa restaurada a zoom ${defaultZoom}`);
-            }
-        }
-    } catch (mapaErr) {
-        logger.warn(`${logPrefix} Error limpiando mapa tras cambio de modo:`, mapaErr?.message);
-    }
-}
-
 async function _notificarErrorCambioModo(mensaje, errorMsg, error, modo, logPrefix) {
     try {
         await enviarMensaje({
@@ -671,9 +652,12 @@ export async function manejarCambioModo(estado, mensaje) {
             logger.info(`${logPrefix} Iniciando actualización de interfaz para ${hijosInicializados.length} hijos: ${hijosInicializados.join(', ')}`);
             await withTimeout(actualizarInterfazModo(estado, modoNormalized), 15000, 'actualizarInterfazModo');
 
-            // 10b. Limpiar capas del mapa y restaurar vista por defecto según modo
-            // (funciones-mapa no recibe CAMBIO_MODO por conflicto de handler, así que lo hacemos directamente)
-            await _limpiarMapaTrasMode(modoNormalized, logPrefix);
+            // La limpieza de capas del mapa y la restauración de vista por defecto ya
+            // ocurrió antes de llamar a esta función — ver _hdl_SISTEMA_CAMBIO_MODO en
+            // codigo-padre.html, que llama a funcionesMapa.manejarCambioModoMapa()
+            // directamente (no puede registrarse como handler CAMBIO_MODO por la carrera
+            // de inserción en getMapaControladoresSync). Repetirlo aquí sería la misma
+            // limpieza dos veces por cada cambio de modo.
 
             // 11. Notificar a los componentes del cambio completado (no bloquear>5s)
             await withTimeout(notificarCambioModoCompletado(modoActual, modoNormalized, motivo), 15000, 'notificarCambioModoCompletado');

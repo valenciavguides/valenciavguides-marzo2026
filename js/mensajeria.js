@@ -521,6 +521,51 @@ function enviarMensajeInterno(mensaje, destino) {
 // =====================================================
 
 /**
+ * Cola de ejecución por tipo de mensaje: cada `message` event dispara su handler en
+ * una tarea separada del event loop, así que sin esto dos mensajes del mismo tipo que
+ * llegan con pocos milisegundos de diferencia (típico en el flujo de GPS/CAMBIO_PARADA)
+ * se procesan en paralelo, sin ninguna garantía de que terminen en el orden en que
+ * llegaron. Aquí se encadena cada ejecución detrás de la anterior DEL MISMO TIPO —
+ * tipos distintos siguen siendo completamente concurrentes entre sí (un CAMBIO_PARADA
+ * lento no bloquea un HEARTBEAT), solo se serializa lo que comparte tipo.
+ * @type {Map<string, Promise>}
+ */
+const _colaPorTipo = new Map();
+
+/**
+ * Encola la ejecución de `handler` para que corra después de cualquier ejecución previa
+ * pendiente del mismo `mensaje.tipo`, preservando el orden de llegada real.
+ * @param {Object} mensaje
+ * @param {MessageEvent} event
+ * @param {Function} handler
+ */
+function _encolarEjecucionHandler(mensaje, event, handler) {
+    const tipo = mensaje.tipo;
+    const colaAnterior = _colaPorTipo.get(tipo) || Promise.resolve();
+
+    const ejecucion = colaAnterior.then(async () => {
+        try {
+            // Pass full message as first arg to match state-manager and handler signatures
+            const resultado = await Promise.resolve(handler(mensaje, event));
+
+            if (mensaje.requiereConfirmacion) {
+                enviarConfirmacion(mensaje, resultado, event.source);
+            }
+        } catch (error) {
+            logger.error(`[mensajeria] Error en handler para ${mensaje.tipo}: ${error.message}`);
+
+            if (mensaje.requiereConfirmacion) {
+                enviarConfirmacion(mensaje, { error: error.message }, event.source);
+            }
+        }
+        // No relanzar: un handler que falla no debe romper la cola para el siguiente
+        // mensaje del mismo tipo (ya se logueó y confirmó el error arriba).
+    });
+
+    _colaPorTipo.set(tipo, ejecucion);
+}
+
+/**
  * Manejador principal de mensajes entrantes
  * @param {MessageEvent} event - Evento de mensaje
  */
@@ -583,25 +628,7 @@ function manejarMensajeEntrante(event) {
     }
     
     if (handler) {
-        // Ejecutar handler de forma async para soportar handlers async/await
-        (async () => {
-            try {
-                // Pass full message as first arg to match state-manager and handler signatures
-                // Usar await para soportar handlers async y síncronos
-                const resultado = await Promise.resolve(handler(mensaje, event));
-
-                // Enviar confirmación si se requiere
-                if (mensaje.requiereConfirmacion) {
-                    enviarConfirmacion(mensaje, resultado, event.source);
-                }
-            } catch (error) {
-                logger.error(`[mensajeria] Error en handler para ${mensaje.tipo}: ${error.message}`);
-
-                if (mensaje.requiereConfirmacion) {
-                    enviarConfirmacion(mensaje, { error: error.message }, event.source);
-                }
-            }
-        })();
+        _encolarEjecucionHandler(mensaje, event, handler);
     } else if (mensaje.requiereConfirmacion) {
         // Sin handler pero el emisor espera confirmación de recepción — ACK igualmente
         enviarConfirmacion(mensaje, null, event.source);

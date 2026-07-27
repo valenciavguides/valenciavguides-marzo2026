@@ -3970,6 +3970,27 @@
             return '';
         }
 
+        // Inversa de _mostrarUIActivada() (Script 2, ~línea 10955) — esa función nunca se
+        // revierte por sí sola. Necesaria en "elegir otra aventura" (ambos diálogos, este
+        // Script) porque hijo2/hijo3/hijo1-opciones/hijo5/chat/selector de mapa pueden
+        // llegar ya visibles: de una aventura realmente activa (mostrarDialogoVueltaRapida)
+        // o de una restauración de bfcache del navegador al reabrir la pestaña.
+        function _ocultarUIActivada() {
+            const idsAOcultar = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
+            for (const id of idsAOcultar) {
+                const el = document.getElementById(id);
+                if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
+            }
+            const selMapa = document.getElementById('selector-tipo-mapa');
+            if (selMapa) selMapa.style.display = 'none';
+            const logoElement = document.getElementById('logo-aventura');
+            const fondoElement = document.getElementById('fondo-blanco');
+            const fondoInferiorElement = document.getElementById('fondo-blanco-inferior');
+            if (logoElement) logoElement.style.display = 'none';
+            if (fondoElement) fondoElement.style.display = 'none';
+            if (fondoInferiorElement) fondoInferiorElement.style.display = 'none';
+        }
+
         async function mostrarDialogoReanudacion(datosGuardados) {
             const logPrefix = '[PADRE][DIALOGO_REANUDACION]';
             const idioma = datosGuardados.idioma || 'es';
@@ -4129,12 +4150,17 @@
                         estado.seleccion.idioma = null;
                         estado.seleccion.iniciada = false;
                     }
-                    // Mostrar iframe de selección y navegar a P2
+                    // Ocultar la UI de "aventura activada" (hijo2/hijo3/hijo1-opciones/hijo5/
+                    // chat/selector de mapa) por si ya estaba visible — de una restauración
+                    // de bfcache al reabrir la pestaña, o de una aventura realmente activa en
+                    // el caso de mostrarDialogoVueltaRapida — _mostrarUIActivada() (Script 2)
+                    // es quien las muestra y nunca se revierte por sí sola.
+                    _ocultarUIActivada();
+                    // Mostrar iframe de selección y navegar a P1
                     const iframeSeleccion = document.getElementById('seleccion');
                     if (iframeSeleccion) {
                         iframeSeleccion.style.display = 'block';
                         iframeSeleccion.style.visibility = 'visible';
-                        // Enviar mensaje para que navegue a P2 (idioma)
                         try {
                             iframeSeleccion.contentWindow.postMessage({
                                 tipo: TIPOS_MENSAJE.NAVEGACION_PANTALLA,
@@ -4207,6 +4233,10 @@
                         estado.seleccion.idioma = null;
                         estado.seleccion.iniciada = false;
                     }
+                    // Esta aventura SÍ estaba realmente activa (por eso mostrarDialogoVueltaRapida
+                    // se disparó) — hijo2/hijo3/chat/selector están visibles de verdad y hay que
+                    // ocultarlos al volver a selección, ver _ocultarUIActivada().
+                    _ocultarUIActivada();
                     const iframeSeleccion = document.getElementById('seleccion');
                     if (iframeSeleccion) {
                         iframeSeleccion.style.display = 'block';
@@ -4352,7 +4382,7 @@
                     return;
                 }
                 if (typeof enviarMensaje_S1 === 'function') {
-                    const pH5 = coords.map(c => ({ id: `padre-${c.id}`, parada_id: c.id, tipo: c.tipo, parada: c.parada, tramo: c.tramo, nombre: c.nombre, padreid: `padre-${c.id}`, coordenadas: c.coordenadas || c.inicio || null }));
+                    const pH5 = coords.map(c => ({ id: `padre-${c.id}`, parada_id: c.id, tipo: c.tipo, parada: c.parada, tramo: c.tramo, nombre: c.nombre, padreid: `padre-${c.id}`, coordenadas: c.coordenadas || c.fin || c.inicio || null }));
                     await enviarMensaje_S1({ destino: 'hijo5', tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pH5, aventura: av, timestamp: Date.now() } });
                     (globalThis.logger || console).info(`${logPrefix} ✅ RESPUESTA_DATOS_PARADAS → hijo5 (${pH5.length} paradas)`);
                 }
@@ -6729,7 +6759,7 @@
                         tramo: coord.tramo,
                         nombre: coord.nombre,
                         padreid: `padre-${coord.id}`,
-                        coordenadas: coord.coordenadas || coord.inicio || null
+                        coordenadas: coord.coordenadas || coord.fin || coord.inicio || null
                     }));
                     if (typeof enviarMensaje_S1 === 'function') {
                         await enviarMensaje_S1({ destino, tipo: TIPOS_MENSAJE_S1.NAVEGACION.RESPUESTA_DATOS_PARADAS, origen: getPadreId(), datos: { paradas: pFallback, aventura: av, timestamp: Date.now() } });
@@ -6904,12 +6934,19 @@
                 if (resultado.exito) {
                     (globalThis.logger || console).success(`${logPrefix} Cambio de modo exitoso: ${resultado.modoActual}`);
 
-                    // Restaurar el progreso real si la navegación libre en CASA lo movió —
-                    // ver estado.paradaRealCongelada más arriba. Solo actúa si de verdad
-                    // cambió (evita un CAMBIO_PARADA interno redundante en el caso normal
-                    // de no haber tocado nada en CASA).
-                    if (modo === MODOS.AVENTURA && estado.paradaRealCongelada && estado.paradaRealCongelada !== estado.paradaActual) {
-                        (globalThis.logger || console).info(`${logPrefix} Restaurando progreso real tras navegación en CASA: ${estado.paradaActual} → ${estado.paradaRealCongelada}`);
+                    // Restaurar el progreso real al volver a AVENTURA — ver
+                    // estado.paradaRealCongelada más arriba. Se dispara SIEMPRE que hay un
+                    // progreso real congelado, no solo cuando estado.paradaActual cambió:
+                    // manejarCambioModoMapa() (arriba) ya vació estadoMapa.paradaActual
+                    // (funciones-mapa) y hijo2 vació su propio idParadaActual de forma
+                    // incondicional en CADA cambio de modo, hayas tocado algo en CASA o no.
+                    // Si esta restauración solo actuara cuando estado.paradaActual (el del
+                    // padre) cambió, el caso más común — entrar y salir de CASA sin tocar
+                    // nada — nunca volvería a sincronizar mapa/hijo2, que se quedarían con
+                    // el progreso a null hasta la siguiente llegada real por GPS (así se
+                    // explicaba que la polyline discontinua apuntara siempre a la parada 0).
+                    if (modo === MODOS.AVENTURA && estado.paradaRealCongelada) {
+                        (globalThis.logger || console).info(`${logPrefix} Resincronizando mapa/hijo2 con el progreso real tras CASA: ${estado.paradaActual} → ${estado.paradaRealCongelada}`);
                         try {
                             await globalThis.__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada });
                         } catch (restErr) {
@@ -8150,7 +8187,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         tramo: c.tramo,
                         nombre: c.nombre,
                         padreid: `padre-${c.id}`,
-                        coordenadas: c.coordenadas || c.inicio || null
+                        coordenadas: c.coordenadas || c.fin || c.inicio || null
                     }));
                     await enviarMensaje_S2({
                         tipo: TIPOS_MENSAJE_S2.NAVEGACION.RESPUESTA_DATOS_PARADAS,
