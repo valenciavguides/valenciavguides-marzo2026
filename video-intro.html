@@ -88,7 +88,6 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 #end-fade.w{background:#fff}#end-fade.b{background:#000}#end-fade.on{opacity:1}
 
 /* ── HUD ── */
-#counter{position:absolute;bottom:calc(20vh + 9px);left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);color:#fff;font-size:11px;padding:4px 13px;border-radius:20px;z-index:5000;pointer-events:none;letter-spacing:.3px}
 #restart{position:absolute;bottom:calc(20vh + 7px);right:9px;background:rgba(0,0,0,.38);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:4px 11px;font-size:11px;cursor:pointer;z-index:5000}
 
 /* ═══════════════════════════════
@@ -582,7 +581,6 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
     </div>
   </div>
 </div>
-<div id="counter">1 / 22</div>
 <button id="restart" onclick="location.reload()">↺</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -806,8 +804,6 @@ function showBubble(idx) {
     _bandHideTimer = setTimeout(_flushBandHide, 2000);
   };
 }
-const setCounter = (n,t=19) => $('counter').textContent=`${n} / ${t}`;
-
 function interp(pts,steps){
   const out=[]; const per=Math.ceil(steps/(pts.length-1));
   for(let i=0;i<pts.length-1;i++){
@@ -1162,7 +1158,7 @@ function mainHTML(avState='disabled'){
 
 /* ── P1: Pantalla de bienvenida ── */
 async function scene1(){
-  setCounter(1); MC.hide();
+  MC.hide();
   Knight.show(K.saluda);
   Knight2.show(M.saluda);
   $('knight2').style.left = 'auto';
@@ -1182,7 +1178,7 @@ async function scene1(){
 
 /* ── P3: Selección de aventura (7 tabs, como la app real) ── */
 async function scene3(){
-  setCounter(3); MC.hide();
+  MC.hide();
   Knight2.show(M.up);
   const AVS=[
     ['Aventura 1','4 km','👣'],['Aventura 2','4 km','👣'],['Aventura 3','10 km','🚲🛴'],
@@ -1210,7 +1206,7 @@ async function scene3(){
 
 /* ── P4: Mapa vintage de la aventura ── */
 async function scene4(){
-  setCounter(4); MC.hide(); Knight2.show(K.up);
+  MC.hide(); Knight2.show(K.up);
   setScene(`<div class="sc" style="gap:0;padding:18px 14px 18px 0;position:relative;align-items:flex-end">
     <div class="ov-close" id="oc5" style="position:absolute;top:8px;right:8px"><span class="icono-x-cerrar">✗</span></div>
     <img class="s5-map" src="${MV}Av1_mapa.jpg" alt="">
@@ -1225,7 +1221,7 @@ async function scene4(){
 
 /* ── P5 (NUEVA): Grid de todos los botones (estático 10 s) ── */
 async function scene5(){
-  setCounter(5); MC.hide();
+  MC.hide();
   Knight2.show(M.posa);
   setScene(`<div class="sc" style="background:#f8f9fa;padding:0 14px 0 0;align-items:flex-end;justify-content:center">
     <div style="display:flex;flex-direction:row;align-items:flex-start;gap:8px">
@@ -1267,7 +1263,7 @@ async function scene5(){
 
 /* ── P2: Sin GPS / Sin internet ── */
 async function scene2(){
-  setCounter(2); MC.hide();
+  MC.hide();
   setScene(`<div class="sc" style="background:#f9f9f9;padding:0">
     <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between;overflow:hidden">
       <img src="${K.mapaPerdido}" alt=""
@@ -1288,7 +1284,6 @@ async function scene2(){
 
 /* ── P8: Botón mapa-completo (b1) ── */
 async function scene8(){
-  setCounter(6);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const hideBubble = showBubble(5);
@@ -1357,7 +1352,6 @@ async function scene8(){
 
 /* ── P9: Botón mapa-vintage (b2) ── */
 async function scene9(){
-  setCounter(7);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const hideBubble = showBubble(6);
@@ -1382,7 +1376,6 @@ async function scene9(){
 
 /* ── P11: Botón imagen próximo monumento (b4 hijo2) ── */
 async function sceneImg(){
-  setCounter(9);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const hideBubble = showBubble(8);
@@ -1421,7 +1414,6 @@ function waitForVideoEnd(videoEl) {
 
 /* ── P10 (dron): Botón dron (b3 hijo2) ── */
 async function sceneVid(){
-  setCounter(10);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const hideBubble = showBubble(9);
@@ -1487,7 +1479,6 @@ async function sceneVid(){
 
 /* ── P10: Botón avanzar (b-av) ── */
 async function scene10(){
-  setCounter(8);
   setScene(mainHTML('disabled'));
   MC.showInset(RA);
   const hideBubble = showBubble(7);
@@ -1506,7 +1497,6 @@ async function scene10(){
 
 /* ── P13: Botón audio principal (amain) ── */
 async function scene11(){
-  setCounter(11);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const amain=$('amain');
@@ -1528,7 +1518,6 @@ async function scene11(){
 
 /* ── P14: Reto — puzzle ── */
 async function scene12(){
-  setCounter(12);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   setAP(87);
@@ -1601,7 +1590,6 @@ async function scene12(){
 
 /* ── P15: Reto — preguntas de opción múltiple ── */
 async function sceneRetoMCQ(){
-  setCounter(13);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   setAP(87);
@@ -1654,7 +1642,6 @@ async function sceneRetoMCQ(){
 
 /* ── P21: Chat (hijo6) ── */
 async function scene18(){
-  setCounter(18);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   Knight.show(K.cerca);
@@ -1689,7 +1676,6 @@ async function scene18(){
 
 /* ── P16: Mapa + caballero_camara + cuenta atrás 5 min ── */
 async function scene13(){
-  setCounter(14);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const offPt=[39.4748,-0.3815];
@@ -1713,7 +1699,6 @@ async function scene13(){
 
 /* ── P15: Usuario fuera de rango → camina hasta ruta → maria thumbsup ── */
 async function scene14(){
-  setCounter(15);
   setScene(mainHTML('disabled'));
   const offPt=[39.4748,-0.3815];
   const retPath={path:[offPt,[39.4762,-0.3800],[39.4780,-0.3792],[39.4796,-0.3785],RA.path[0]]};
@@ -1750,7 +1735,6 @@ async function scene14(){
 
 /* ── P19: Error GPS + caballero_durmiendo ── */
 async function scene16(){
-  setCounter(16);
   setScene(mainHTML('disabled'));
   const farOff=[39.4685,-0.3858];  // muy lejos: ~1.8 km al suroeste
   $('map').classList.add('on');
@@ -1788,7 +1772,6 @@ async function scene16(){
 
 /* ── P20: Botón temporizador ── */
 async function scene17(){
-  setCounter(17);
   setScene(mainHTML('disabled'));
   MC.showInset(RA); MC.showFull(RA);
   const hideBubble = showBubble(17);
@@ -1828,7 +1811,6 @@ async function scene17(){
 
 /* ── P22: Pantalla de fin ── */
 async function scene19(){
-  setCounter(19);
   setScene(mainHTML('enabled'));
   MC.showInset(RB); MC.showFull(RB);
   Knight.show(K.completo, true);

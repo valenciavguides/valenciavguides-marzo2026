@@ -2995,18 +2995,35 @@
                     let _modoActivo = 'satelite';
                     let _dropdownAbierto = false;
 
-                    const _BTN_STYLE_DROPDOWN = 'width:clamp(24px,7vmin,36px);height:clamp(24px,7vmin,36px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
-                    const _BTN_STYLE_MAIN = 'width:clamp(30px,8.2vmin,44px);height:clamp(30px,8.2vmin,44px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
+                    // box-sizing:border-box en los dos — así el "width" del clamp() es el ancho
+                    // total realmente renderizado (borde incluido), y el cálculo de `right` del
+                    // contenedor (más abajo) que centra este botón contra #btn-chat-soporte no
+                    // tiene que compensar el borde aparte.
+                    const _BTN_STYLE_DROPDOWN = 'box-sizing:border-box;width:clamp(24px,7vmin,36px);height:clamp(24px,7vmin,36px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
+                    const _BTN_STYLE_MAIN = 'box-sizing:border-box;width:clamp(30px,8.2vmin,44px);height:clamp(30px,8.2vmin,44px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
 
+                    // Posición: encima del botón de chat (#btn-chat-soporte, right:4px,
+                    // width/height:var(--franja-lateral)), con el centro horizontal de este
+                    // botón coincidiendo exactamente con el centro horizontal de aquel —
+                    // right = (distancia al borde del chat + su mitad) - la mitad de este botón.
+                    // bottom = bottom del chat + su altura + un hueco, para quedar justo encima.
+                    // Así nunca puede quedar por delante del fondo blanco/logo superior (ver
+                    // más abajo el cálculo del hueco disponible para el desplegable).
                     const _selectorDiv = document.createElement('div');
                     _selectorDiv.id = 'selector-tipo-mapa';
-                    _selectorDiv.style.cssText = 'position:fixed;top:calc(1vmin + 12px);left:calc(1vmin + 2px);z-index:1000080;display:none;flex-direction:column;align-items:flex-start;gap:clamp(3px,0.8vmin,6px);';
+                    _selectorDiv.style.cssText = 'position:fixed;' +
+                        'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px);' +
+                        'right:calc(4px + (var(--franja-lateral) / 2) - (clamp(30px,8.2vmin,44px) / 2));' +
+                        'z-index:1000080;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
                     const _btnPrincipal = document.createElement('div');
                     _btnPrincipal.style.cssText = _BTN_STYLE_MAIN;
                     _btnPrincipal.title = 'Cambiar tipo de mapa';
                     _selectorDiv.appendChild(_btnPrincipal);
 
+                    // El desplegable se abre HACIA ARRIBA (column-reverse en el contenedor: el
+                    // botón principal, añadido primero, queda visualmente abajo; este div,
+                    // añadido después, queda arriba y crece hacia arriba al expandirse).
                     const _dropdownDiv = document.createElement('div');
                     _dropdownDiv.style.cssText = 'display:flex;flex-direction:column;gap:clamp(3px,0.8vmin,6px);max-height:0;overflow:hidden;transition:max-height 0.35s ease;';
                     _selectorDiv.appendChild(_dropdownDiv);
@@ -3019,11 +3036,30 @@
                         _dropdownDiv.appendChild(btn);
                     });
 
+                    // Hueco real disponible entre el botón principal (su posición ANTES de
+                    // expandirse, con el desplegable aún colapsado) y el borde inferior del
+                    // fondo blanco del logo — medido con getBoundingClientRect(), no calc()
+                    // en cascada, para que el límite sea exacto pase lo que pase con el alto
+                    // real de la ventana (orientación, teclado en pantalla, notch, etc.).
+                    function _alturaDisponibleParaDropdown() {
+                        const MARGEN_SEGURIDAD = 8;
+                        const fondoBlanco = document.getElementById('fondo-blanco');
+                        const limiteSuperior = fondoBlanco ? fondoBlanco.getBoundingClientRect().bottom : 0;
+                        const topBotonPrincipal = _selectorDiv.getBoundingClientRect().top;
+                        return Math.max(0, topBotonPrincipal - limiteSuperior - MARGEN_SEGURIDAD);
+                    }
+
                     _btnPrincipal.addEventListener('click', (e) => {
                         e.stopPropagation();
                         _dropdownAbierto = !_dropdownAbierto;
-                        _dropdownDiv.style.maxHeight = _dropdownAbierto ? '500px' : '0';
+                        _dropdownDiv.style.maxHeight = _dropdownAbierto ? `${_alturaDisponibleParaDropdown()}px` : '0';
                     });
+
+                    // Si la ventana cambia de tamaño/orientación con el desplegable abierto,
+                    // recalcular — el hueco disponible pudo cambiar.
+                    globalThis.addEventListener('resize', debounce(() => {
+                        if (_dropdownAbierto) _dropdownDiv.style.maxHeight = `${_alturaDisponibleParaDropdown()}px`;
+                    }, 200));
 
                     document.addEventListener('click', () => { if (_dropdownAbierto) _cerrarDropdown(); });
 
@@ -8769,7 +8805,12 @@ await _comprobarReanudacionAventura(logPrefix);
 
             const mainBtn = document.getElementById('audio-main-toggle-btn');
             const actionButtons = overlay.querySelectorAll('.audio-action-btn');
-            const hayAudio = !!obtenerAudioIdActivoPadre();
+            // Fuera de rango en AVENTURA: no tiene sentido escuchar el audio de un
+            // monumento al que no se ha llegado — mismo criterio que el resto de
+            // botones de hijo2 (_desactivarBotonesRangoExcedido), aplicado aquí porque
+            // el control de audio vive en el padre, no en hijo2.
+            const fueraDeRango = estado.modo?.actual === MODOS.AVENTURA && estado.usuarioFueraRango?.activo === true;
+            const hayAudio = !fueraDeRango && !!obtenerAudioIdActivoPadre();
 
             if (mainBtn) mainBtn.disabled = !hayAudio;
             actionButtons.forEach((btn) => {
@@ -9531,6 +9572,28 @@ await _comprobarReanudacionAventura(logPrefix);
                 _ocultarTodasPantallasDistanciaGPS();
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error ocultando pantallas de distancia:`, error);
+            }
+
+            // Contrapartida de USUARIO_FUERA_RANGO: limpiar el flag y reconfigurar
+            // audio/retosBtn con las reglas normales (no un HABILITAR ciego — reto
+            // sigue dependiendo de si el audio ya terminó, igual que siempre).
+            try {
+                estado.usuarioFueraRango = { activo: false };
+                if (typeof actualizarEstadoControlesAudioPadre === 'function') actualizarEstadoControlesAudioPadre();
+
+                const paradaParaConfigurar = estado.elementoActual || (
+                    estado.paradaActual && typeof globalThis._buscarParadaEnDatos === 'function' ? globalThis._buscarParadaEnDatos(
+                        estado.paradaActual,
+                        estado.paradaActual.startsWith('padre-') ? estado.paradaActual.substring(6) : estado.paradaActual,
+                        DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || []
+                    ) : null
+                );
+                if (paradaParaConfigurar && typeof globalThis.obtenerRetosIds === 'function' && typeof globalThis._configurarRetoBtn === 'function') {
+                    const retosDeParada = globalThis.obtenerRetosIds(paradaParaConfigurar);
+                    await globalThis._configurarRetoBtn(paradaParaConfigurar, retosDeParada, estado, logPrefix);
+                }
+            } catch (error) {
+                (globalThis.logger || console).warn(`${logPrefix} Error reconfigurando audio/retosBtn al volver dentro de rango:`, error);
             }
         }
 
@@ -10321,6 +10384,21 @@ await _comprobarReanudacionAventura(logPrefix);
                     elementoMasCercano: elementoMasCercano,
                     timestamp: timestamp || Date.now()
                 };
+
+                // Deshabilitar audio (padre) y retosBtn (hijo3) — mismo criterio que
+                // _desactivarBotonesRangoExcedido en hijo2 para btn-video/avanzar/mapas:
+                // no tiene sentido interactuar con el contenido de una parada/tramo al
+                // que no se ha llegado. hijo1 (extrainfo), chat y btn-imagen quedan fuera
+                // a propósito — no dependen de la proximidad real.
+                try { actualizarEstadoControlesAudioPadre(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                try {
+                    await enviarMensajePadre({
+                        tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                        origen: getPadreId(),
+                        destino: 'hijo3',
+                        datos: { control: 'retosBtn', razon: 'fuera_de_rango' }
+                    });
+                } catch (e) { (globalThis.logger || console).warn(`${logPrefix} Error deshabilitando retosBtn:`, e); }
 
                 (globalThis.logger || console).info(`${logPrefix} Estado actualizado: usuario fuera de rango (franja: ${franja || 'desconocida'})`);
 
@@ -12146,6 +12224,14 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
             navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
                 .then(registration => {
+                    // Comprobar actualización también en cada carga, no solo al ocultar la
+                    // pestaña. El navegador SÍ revisa sw.js en cada navegación por su cuenta,
+                    // pero con un throttle interno (~24h) fuera del control de la app — sin
+                    // esta llamada explícita, abrir la PWA varias veces seguidas en la misma
+                    // sesión de pruebas podía seguir sirviendo la versión vieja durante horas
+                    // aunque ya hubiera una nueva en el servidor, dando la sensación de que la
+                    // app "vuelve a un estado anterior" al azar entre recargas.
+                    try { registration.update(); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'hidden') {
                             try { registration.update(); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR

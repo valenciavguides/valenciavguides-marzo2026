@@ -25,6 +25,11 @@
  *         notificación de llegada (dedup).
  *   GT-5  verificarLlegadaADestino() reconoce tipo:"inicio" (la parada 0 de cada
  *         aventura) igual que tipo:"parada" — antes caía siempre a false.
+ *   GT-6  _siguienteIdElementoNavegable() apunta al elemento ACTIVO (paradaActual
+ *         mismo), no al siguiente en el array — antes buscaba desde
+ *         indiceActual+1, así que mientras una parada/tramo estaba activo pero
+ *         aún no alcanzado físicamente, el GPS ya apuntaba al que venía después
+ *         (nunca se detectaba la llegada real, incluida la parada 0 al empezar).
  */
 'use strict';
 
@@ -78,11 +83,14 @@ async function prepararEscenarioTramo(page) {
     }
 
     const fm = globalThis.funcionesMapa;
-    // Modo AVENTURA (reset completo) y luego fijar paradaActual='Av1-P-0' para que
-    // _siguienteIdElementoNavegable() resuelva el tramo Av1-TR-1 como "siguiente".
+    // Modo AVENTURA (reset completo) y luego fijar paradaActual='Av1-TR-1' — el
+    // tramo YA es el elemento activo (su audio ya se habría pedido a hijo3 en un
+    // CAMBIO_PARADA real), así que _siguienteIdElementoNavegable() debe resolverlo
+    // a sí mismo, no al que viene después (ver el fix del off-by-one en
+    // _siguienteIdElementoNavegable, js/funciones-mapa.js).
     if (typeof fm?.limpiarPorEstado === 'function') {
       fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
-      fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-P-0' });
+      fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-TR-1' });
     }
 
     return {
@@ -151,6 +159,11 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     expect(resultado.enFin, 'Debe detectar llegada en el punto .fin real, aunque esté lejos del último waypoint').toBe(true);
   });
 
+  // NOTA: GT-3/GT-4 usan paradaActual='Av1-TR-1' (el tramo ya activo). No discriminan
+  // por sí solas el fix del off-by-one de _siguienteIdElementoNavegable (GT-6 sí lo
+  // hace): Av1-P-1.coordenadas coincide exactamente con Av1-TR-1.fin en los datos
+  // reales, así que apuntar al tramo o "de más" a la parada siguiente da la misma
+  // posición física en este caso concreto — comprobado, no es casualidad asumida.
   test('GT-3. procesarPosicionGPSParaAventura en .fin notifica LLEGADA_DETECTADA, nunca CAMBIO_PARADA directo', async ({ page }) => {
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
@@ -213,5 +226,45 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     test.skip(!resultado.p0Encontrado, 'No se encontró ningún elemento tipo:"inicio" en AVENTURA_PARADAS');
     expect(resultado.enSuPropioSitio, 'Debe detectar llegada a la parada 0 estando en su propia ubicación').toBe(true);
     expect(resultado.lejos, 'No debe detectar llegada a la parada 0 estando lejos').toBe(false);
+  });
+
+  test('GT-6. El GPS apunta al elemento activo (paradaActual), no al siguiente en el array', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    await esperarPipelineListo(page);
+    const prep = await page.evaluate(async () => {
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.idiomaSeleccionado = 'es';
+      if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
+        await globalThis.__cargarDatosAventuraDiferidos();
+      }
+      if (!globalThis.AVENTURA_PARADAS?.length && globalThis.__vv_DATOS_AVENTURAS?.Aventura1) {
+        const coords = globalThis.__vv_DATOS_AVENTURAS.Aventura1['coordenadas-hijo2.html']?.coordenadas;
+        if (coords?.length) globalThis.AVENTURA_PARADAS = coords;
+      }
+      const fm = globalThis.funcionesMapa;
+      // paradaActual = 'Av1-P-0' simula el estado real nada más empezar la aventura:
+      // la parada 0 ya es el elemento activo (su audio ya se pidió a hijo3), pero el
+      // usuario todavía no ha llegado físicamente. El GPS debe apuntar a P-0 mismo.
+      if (typeof fm?.limpiarPorEstado === 'function') {
+        fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
+        fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-P-0' });
+      }
+      return { tieneFunciones: !!(fm?.procesarPosicionGPSParaAventura), totalParadas: globalThis.AVENTURA_PARADAS?.length || 0 };
+    });
+    test.skip(!prep.tieneFunciones || !prep.totalParadas, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Posición lejana (no importa la exacta, solo que dispare el log de distancia)
+    await page.evaluate(async () => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: 39.4750, longitude: -0.3750, accuracy: 5 },
+      });
+    });
+    await page.waitForTimeout(300);
+
+    const logDistancia = logs.find(l => l.includes('Distancia a Av1-'));
+    expect(logDistancia, `No se encontró ningún log de distancia. Logs GPS: ${JSON.stringify(logs.filter(l => /GPS|Distancia/i.test(l)))}`).toBeTruthy();
+    expect(logDistancia, `El GPS debía apuntar a Av1-P-0 (el elemento activo), no al siguiente en el array: "${logDistancia}"`).toContain('Distancia a Av1-P-0');
   });
 });

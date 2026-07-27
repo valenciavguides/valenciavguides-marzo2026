@@ -2675,6 +2675,15 @@ const _TIPOS_ELEMENTO_NAVEGABLE = ['inicio', 'parada', 'tramo'];
  * así que compara contra `parada_id`/`tramo_id` — nunca contra `padreid`, que en
  * `elementosIDpadre` tiene otro formato ("padre-P0") y en `AVENTURA_PARADAS` no existe.
  */
+// El nombre dice "siguiente", pero busca DESDE (incluyendo) paradaActualId, no
+// después de él. estadoMapa.paradaActual/estado.paradaActual (padre) representan
+// "el elemento activo ahora mismo" — se les asigna ese valor en el mismo instante
+// en que su audio se solicita a hijo3 (_solicitarAudioParaParada, dentro de
+// _hdl_NAVEGACION_CAMBIO_PARADA), ANTES de que el usuario llegue físicamente. Por
+// tanto ese es el destino GPS correcto mientras esté activo: buscar desde el
+// siguiente índice saltaba ese elemento entero y apuntaba siempre al que venía
+// después (nunca se detectaba la llegada real a lo que estaba activo, incluida la
+// parada 0 al empezar la aventura).
 function _siguienteIdElementoNavegable(aventura, idioma, paradaActualId) {
     const elementos = DATOS_PADRE?.[aventura]?.[idioma]?.elementosIDpadre;
     if (!Array.isArray(elementos) || elementos.length === 0) return null;
@@ -2683,7 +2692,7 @@ function _siguienteIdElementoNavegable(aventura, idioma, paradaActualId) {
         ? elementos.findIndex(e => e.parada_id === paradaActualId || e.tramo_id === paradaActualId)
         : -1;
 
-    for (let i = indiceActual + 1; i < elementos.length; i++) {
+    for (let i = Math.max(indiceActual, 0); i < elementos.length; i++) {
         if (_TIPOS_ELEMENTO_NAVEGABLE.includes(elementos[i].tipo)) {
             return elementos[i].parada_id || elementos[i].tramo_id || null;
         }
@@ -2837,13 +2846,17 @@ async function procesarPosicionGPSParaAventura(posicion) {
             } catch (error_) {
                 logger.warn(`${logPrefix} Error removiendo polylines:`, error_);
             }
-        } else if (distancia > 50 && !polylineNavegacion) {
-            // ✅ DIBUJAR POLYLINE AUTOMÁTICAMENTE cuando usuario está lejos (>50m)
-            logger.info(`${logPrefix} 🗺️ Distancia >50m, dibujando polyline automáticamente desde usuario hasta siguiente parada`);
+        } else if (distancia > 50) {
+            // ✅ DIBUJAR/REFRESCAR POLYLINE AUTOMÁTICAMENTE cuando usuario está lejos (>50m)
+            // Se redibuja en CADA lectura GPS válida, no solo la primera vez — el extremo
+            // "usuario" de la línea es la posición actual, así que si solo se dibujara una
+            // vez (guard !polylineNavegacion) se quedaría anclada a la posición de cuando
+            // se dibujó, sin seguir al usuario mientras camina, aunque la distancia mostrada
+            // en la ventana flotante sí se siguiera actualizando (se calcula aparte).
             try {
                 // Usar valores escalados según pantalla y zoom
                 const peso = getPolylineEscalado();
-                
+
                 // Construir array de puntos: usuario → [waypoints si es tramo] → destino
                 const puntosPolyline = [[latitude, longitude]];
                 if (siguienteParada.tipo === 'tramo' && siguienteParada.waypoints && Array.isArray(siguienteParada.waypoints)) {
@@ -2863,15 +2876,19 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     // Para paradas: línea directa
                     puntosPolyline.push([coordsSiguiente.lat, coordsSiguiente.lng]);
                 }
-                
+
+                if (polylineNavegacion) {
+                    polylineNavegacion.remove();
+                    polylineNavegacion = null;
+                }
                 polylineNavegacion = _crearPolyline(puntosPolyline, {
                     color: '#3388ff',
                     weight: peso.tramo,
                     opacity: 0.7,
                     dashArray: '10, 10'
                 });
-                
-                logger.debug(`${logPrefix} ✅ Polyline automática dibujada (${puntosPolyline.length} puntos) hasta ${siguienteParada.id}`);
+
+                logger.debug(`${logPrefix} ✅ Polyline automática refrescada (${puntosPolyline.length} puntos) hasta ${siguienteParada.id}`);
             } catch (error_) {
                 logger.warn(`${logPrefix} Error dibujando polyline automática:`, error_);
             }
@@ -3144,20 +3161,26 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             const flechaBorde = Math.round(tamAventura * 0.325);  // ~13px a 40px
             const flechaInterior = Math.round(tamAventura * 0.275); // ~11px a 40px
             const flechaAltura = Math.round(tamAventura * 0.8);    // ~32px a 40px
-            const puntoSize = Math.round(tamAventura * 0.35);      // ~14px a 40px
-            
+
+            // Sin punto central: la flecha sola representa posición + rumbo. Cada triángulo
+            // lleva su propio translate(-50%,-50%) ANTES del pequeño offset de sombreado —
+            // con la técnica de bordes CSS, un triángulo width:0;height:0 se renderiza con
+            // su vértice en la esquina superior izquierda de su caja, no en el centro; sin
+            // este -50%/-50% el vértice quedaba en el punto GPS real y la base colgaba hacia
+            // abajo, así que al rotar la flecha entera ORBITABA alrededor del punto en vez de
+            // girar sobre sí misma (efecto "flecha loca" con cualquier variación de rumbo,
+            // por pequeña que fuera). Centrando cada triángulo en su propia caja, el giro
+            // queda anclado en el centro geométrico real de la flecha.
             iconHtml = `<div style="width:${tamAventura}px;height:${tamAventura}px;position:relative;">
                 <!-- Flecha principal estilo Google Maps — clase gps-arrow-heading para rotación en tiempo real -->
                 <div class="gps-arrow-heading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(${rotation}deg);transition:transform 0.3s ease-out;">
                     <!-- Sombra de la flecha -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.94)}px solid rgba(0,0,0,0.2);filter:blur(3px);transform:translate(2px,2px);"></div>
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.94)}px solid rgba(0,0,0,0.2);filter:blur(3px);transform:translate(-50%,-50%) translate(2px,2px);"></div>
                     <!-- Borde blanco de la flecha -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaBorde}px solid transparent;border-right:${flechaBorde}px solid transparent;border-bottom:${flechaAltura}px solid white;"></div>
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaBorde}px solid transparent;border-right:${flechaBorde}px solid transparent;border-bottom:${flechaAltura}px solid white;transform:translate(-50%,-50%);"></div>
                     <!-- Flecha azul principal (Google Maps style) -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.875)}px solid #4285F4;transform:translate(1px,2px);"></div>
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.875)}px solid #4285F4;transform:translate(-50%,-50%) translate(1px,2px);"></div>
                 </div>
-                <!-- Punto central azul con pulso -->
-                <div style="position:absolute;top:50%;left:50%;width:${puntoSize}px;height:${puntoSize}px;background:#4285F4;border:3px solid white;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px rgba(66,133,244,0.8), 0 0 0 0 rgba(66,133,244,0.4);animation:gpsPulse 2s infinite;"></div>
             </div>`;
         }
         

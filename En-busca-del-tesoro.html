@@ -628,14 +628,14 @@
     /* Guante que recuerda periódicamente pulsar play, hasta que el usuario lo pulse */
     .guante-play-hint {
       position: absolute;
-      width: clamp(3.5rem, 12vw, 5.5rem);
+      width: clamp(5rem, 16vw, 7.5rem);
       top: clamp(4.5rem, 14vh, 6.5rem);
       right: -20vw;
       opacity: 0;
       pointer-events: none;
       z-index: 50;
       filter: drop-shadow(0 0.25rem 0.5rem rgba(0,0,0,0.35));
-      transition: right 0.6s ease-out, opacity 0.3s ease-out;
+      transition: right 1.2s ease-out, opacity 0.6s ease-out;
     }
     .guante-play-hint.show {
       right: 80vw; /* aproximado: junto al botón play nativo del reproductor, ajustar a ojo si hace falta */
@@ -1117,10 +1117,16 @@
       const audioPlayer = document.getElementById('audio-intro-player');
       if (!guante || !audioPlayer) return;
 
+      // Tiempos: 1200ms en entrar (transition 'right' de .guante-play-hint) + 2000ms
+      // quieto ya sobre el botón play, antes de empezar a retirarse (que tarda otros
+      // 1200ms) — los 2s de pausa se cuentan desde que termina de llegar, no desde que
+      // empieza a moverse.
+      const DURACION_ENTRADA_MS = 1200;
+      const PAUSA_SOBRE_PLAY_MS = 2000;
       const ciclo = () => {
         if (_audioIntroYaReproducido) { clearInterval(_guanteHintIntervalId); guante.classList.remove('show'); return; }
         guante.classList.add('show');
-        setTimeout(() => guante.classList.remove('show'), 1800);
+        setTimeout(() => guante.classList.remove('show'), DURACION_ENTRADA_MS + PAUSA_SOBRE_PLAY_MS);
       };
       clearInterval(_guanteHintIntervalId);
       ciclo();
