@@ -25,15 +25,15 @@
       "purpose": "any"
     },
     {
-      "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg",
+      "src": "imagenes/imagenes-aplicación/logo-redondo.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg",
+      "src": "imagenes/imagenes-aplicación/logo-redondo.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
