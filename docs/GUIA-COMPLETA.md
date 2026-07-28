@@ -4380,7 +4380,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-a405e46916ab'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-e05d575d3965'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5877,11 +5877,11 @@ watchPosition (padre)
 | `#btn-mapa-jpg` | verde | verde | ❌ rojo |
 
 **Respuesta del padre a `NAVEGACION.USUARIO_FUERA_RANGO`** (se envía una sola vez, al confirmarse fuera de rango en cualquier franja):
-- Limpia polylines de navegación activas (`limpiarPolylineNavegacion()`)
 - Registra `estado.usuarioFueraRango = { activo: true, distancia, franja, elementoMasCercano }`
-- No envía mensajes a hijo3 ni hijo4 — sus controles no cambian
+- Deshabilita audio (propio padre) vía `actualizarEstadoControlesAudioPadre()` y envía `CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango' }` a hijo3 — detalle completo en §25.7
+- No toca la polyline guía automática (la que dibuja `procesarPosicionGPSParaAventura()` en `funciones-mapa.js` mientras `distancia > 50m`, ver §4.6): ese redibujado corre con su propio umbral en cada posición GPS, independiente del ~20m/`toleranciaGPS` de este mensaje — limpiarla aquí competía con ese redibujado y la hacía parpadear/desaparecer
 
-**Hijo3 e hijo4 no se ven afectados** por el mecanismo de fuera de rango. El audio sigue reproduciéndose; el reto sigue accesible.
+**Hijo4 no se ve afectado** por el mecanismo de fuera de rango — el reto sigue accesible si ya estaba abierto.
 
 **Recuperación:** cuando `distanciaAlDestino` vuelve a ≤ `rangoMaximo`, `_procesarDentroDeRango()` resetea `timestampSalioDeRango = null`, `fueraDeRangoActivo = false`, envía `GPS.DENTRO_DE_RANGO` (que oculta las pantallas de aviso en el padre) y restaura los botones.
 
@@ -6079,10 +6079,10 @@ Propiedades del botón:
 | Propiedad | Valor |
 |-----------|-------|
 | Posición | `position: fixed; bottom: …; right: …` — ver cálculo de alineación más abajo |
-| Tamaño botón principal | `clamp(30px, 8.2vmin, 44px)`, `box-sizing: border-box` |
-| Tamaño botones desplegables | `clamp(24px, 7vmin, 36px)`, `box-sizing: border-box` |
+| Tamaño botón principal | `clamp(36px, 9.8vmin, 52px)`, `box-sizing: border-box` |
+| Tamaño botones desplegables | `clamp(29px, 8.4vmin, 43px)`, `box-sizing: border-box` |
 | Borde | `clamp(3.5px, 0.75vmin, 5px) solid #FF8C00` |
-| `z-index` | `1000080` — supera hijo5 (z-index 1000000) |
+| `z-index` | `1000030` — por encima de hijo5 (1000000) y de los overlays de imagen/vídeo/chat (1000010-1000020), pero por debajo de las tarjetas de distancia fuera de rango (`foto-fuera-rango-overlay` 1000038, `foto-lejos-overlay` 1000039, `gps-out-of-range-overlay` 1000040) y del aviso de señal GPS (`gps-signal-overlay` 1000041) — así nunca las tapa mientras están activas |
 | Añadido a | `document.body` |
 
 El botón se añade a `document.body` (no al contenedor del mapa) porque el `<div id="mapa">` tiene z-index 500, lo que haría que cualquier `position: absolute` dentro de él quedara por debajo de hijo5 (z-index 1000000). Al usar `position: fixed` sobre `body`, el z-index se resuelve en el contexto raíz del documento.
@@ -6090,7 +6090,7 @@ El botón se añade a `document.body` (no al contenedor del mapa) porque el `<di
 **Alineación con `#btn-chat-soporte`:** el botón principal queda centrado horizontalmente sobre el botón de chat, justo encima de él. El cálculo de `right` replica el centro horizontal del chat (`right: 4px; width: var(--franja-lateral)`, sin borde) y le resta la mitad del propio ancho del selector:
 
 ```css
-right: calc(4px + (var(--franja-lateral) / 2) - (clamp(30px,8.2vmin,44px) / 2));
+right: calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));
 ```
 
 `box-sizing: border-box` en los botones del selector es imprescindible aquí — sin él, el `clamp(...)` declarado en `width` no incluye el borde naranja (`clamp(3.5px,0.75vmin,5px)` por lado), así que la mitad de ancho usada en el cálculo de `right` quedaría corta y el centro no coincidiría con el del chat (desalineación de unos pocos píxeles, más notable cuanto más grueso el borde en pantallas pequeñas).
@@ -7106,7 +7106,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-a405e46916ab'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-e05d575d3965'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7753,7 +7753,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-a405e46916ab';
+const CACHE_VERSION = 'v-e05d575d3965';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8565,7 +8565,7 @@ A partir de ahí, la distancia se reparte en tres franjas — detalle completo, 
 | `#btn-mapa-completo` (mapa moderno) | ❌ deshabilitado (rojo) |
 | `#btn-mapa-jpg` (mapa vintage) | ❌ deshabilitado (rojo) |
 
-**El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO`** (`_hdl_NAVEGACION_USUARIO_FUERA_RANGO`) y, además de limpiar las polylines de navegación y actualizar `estado.usuarioFueraRango`, propaga la restricción a los dos sitios que no dependen de hijo2:
+**El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO`** (`_hdl_NAVEGACION_USUARIO_FUERA_RANGO`) y, además de actualizar `estado.usuarioFueraRango`, propaga la restricción a los dos sitios que no dependen de hijo2 (no toca la polyline guía automática de `procesarPosicionGPSParaAventura()`, con su propio umbral de 50m — ver §4.6):
 
 - **Audio (propio padre)**: `actualizarEstadoControlesAudioPadre()` deshabilita `#audio-main-toggle-btn` y los botones de acción del overlay de audio mientras `estado.usuarioFueraRango.activo` sea `true` en modo AVENTURA — no tiene sentido escuchar el audio de un monumento al que no se ha llegado.
 - **Retos (hijo3)**: se envía `CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango' }`.
@@ -11263,7 +11263,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-a405e46916ab';
+const CACHE_VERSION = 'v-e05d575d3965';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

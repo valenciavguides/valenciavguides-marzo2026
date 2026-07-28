@@ -2999,8 +2999,8 @@
                     // total realmente renderizado (borde incluido), y el cálculo de `right` del
                     // contenedor (más abajo) que centra este botón contra #btn-chat-soporte no
                     // tiene que compensar el borde aparte.
-                    const _BTN_STYLE_DROPDOWN = 'box-sizing:border-box;width:clamp(24px,7vmin,36px);height:clamp(24px,7vmin,36px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
-                    const _BTN_STYLE_MAIN = 'box-sizing:border-box;width:clamp(30px,8.2vmin,44px);height:clamp(30px,8.2vmin,44px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
+                    const _BTN_STYLE_DROPDOWN = 'box-sizing:border-box;width:clamp(29px,8.4vmin,43px);height:clamp(29px,8.4vmin,43px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
+                    const _BTN_STYLE_MAIN = 'box-sizing:border-box;width:clamp(36px,9.8vmin,52px);height:clamp(36px,9.8vmin,52px);border-radius:4px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
 
                     // Posición: encima del botón de chat (#btn-chat-soporte, right:4px,
                     // width/height:var(--franja-lateral)), con el centro horizontal de este
@@ -3013,8 +3013,8 @@
                     _selectorDiv.id = 'selector-tipo-mapa';
                     _selectorDiv.style.cssText = 'position:fixed;' +
                         'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px);' +
-                        'right:calc(4px + (var(--franja-lateral) / 2) - (clamp(30px,8.2vmin,44px) / 2));' +
-                        'z-index:1000080;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
+                        'right:calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));' +
+                        'z-index:1000030;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
                     const _btnPrincipal = document.createElement('div');
                     _btnPrincipal.style.cssText = _BTN_STYLE_MAIN;
@@ -10366,15 +10366,11 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 (globalThis.logger || console).warn(`${logPrefix} Usuario fuera de rango: ${Math.ceil(distancia)}m (franja: ${franja || 'desconocida'}, elemento más cercano: ${elementoMasCercano || 'desconocido'})`);
 
-                // Limpiar polylines de navegación activas
-                if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.limpiarPolylineNavegacion === 'function') {
-                    try {
-                        await globalThis.funcionesMapa.limpiarPolylineNavegacion();
-                        (globalThis.logger || console).info(`${logPrefix} Polylines de navegación limpiadas`);
-                    } catch (err) {
-                        (globalThis.logger || console).warn(`${logPrefix} Error limpiando polylines:`, err);
-                    }
-                }
+                // No se limpia la polyline de navegación aquí: procesarPosicionGPSParaAventura()
+                // (js/funciones-mapa.js) la redibuja automáticamente en cada posición GPS mientras
+                // distancia > 50m, con su propio umbral independiente del de "fuera de rango" (~20m/
+                // toleranciaGPS) que dispara este mensaje — limpiarla aquí competía con ese redibujado
+                // y la hacía parpadear/desaparecer.
 
                 // Actualizar estado para indicar que usuario está fuera de rango
                 estado.usuarioFueraRango = {
