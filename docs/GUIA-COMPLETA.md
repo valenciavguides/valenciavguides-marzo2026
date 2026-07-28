@@ -910,6 +910,8 @@ flowchart TD
 
 **La polyline de navegación (`polylineNavegacion`, el tramo H del diagrama) se redibuja en cada lectura GPS válida mientras la distancia siga >50m** — no solo la primera vez. Su extremo "usuario" es la posición actual, así que si solo se dibujara una vez al superar los 50m, se quedaría anclada a la posición de ese instante y dejaría de reflejar dónde está el usuario realmente mientras camina, aunque la distancia mostrada en la ventana flotante sí siguiera actualizándose (se calcula aparte, en cada posición). El redibujado consiste en eliminar la polyline anterior y crear una nueva — `_crearPolyline()` no tiene método de actualización de puntos, así que no hay forma más barata de moverla.
 
+**Esta misma variable (`polylineNavegacion`) es también la que dibuja el botón de ubicación** (línea verde manual, §30.4) — las dos comparten una sola referencia porque solo tiene sentido que exista una guía visible a la vez, nunca dos superpuestas. Sin coordinación entre ambas, pulsar el botón de ubicación mientras la distancia sigue >50m duraría poco: en el siguiente ciclo GPS (~7s, `CONFIG.GPS.INTERVALO_ACTUALIZACION`) el redibujado automático de arriba la sustituiría por la azul, antes de que el usuario llegara a mirar la respuesta que acababa de pedir. `dibujarPolylineNavegacion()` (la función que traza la línea manual) marca `estadoMapa._polylineManualHasta = Date.now() + 90000` al dibujar; mientras ese plazo no haya pasado, el bloque automático de arriba no toca la polyline — la deja tal cual, aunque la distancia siga siendo >50m y en circunstancias normales sí la habría redibujado. Pasados los 90 segundos (margen pensado para que el usuario mire el móvil, se oriente y empiece a andar), el redibujado automático retoma el control sin que nadie tenga que pedirlo de nuevo. La comprobación de llegada real (≤50m, rama G del diagrama) no consulta este plazo — llegar de verdad siempre limpia la polyline, sea cual sea la línea que estuviera mostrándose en ese momento.
+
 ### 4.6b. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
 
 **Estado: parcialmente implementado. Detenido intencionalmente.**
@@ -2287,7 +2289,7 @@ Solo hay un modo claro ("Callejero"): dos estilos CARTO claros distintos resulta
 
 #### Lógica de proximidad y LLEGADA_DETECTADA
 
-El Haversine **no lo calcula hijo2** — lo calcula `funciones-mapa.js` en el padre. Cuando `procesarPosicionGPSParaAventura()` detecta una posición válida (precisión ≤50 m, modo AVENTURA), envía a hijo2 `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, tipoParada, toleranciaGPS }` con la distancia ya calculada. Hijo2 solo compara contra el umbral:
+El Haversine **no lo calcula hijo2** — lo calcula `funciones-mapa.js` en el padre. Cada posición GPS válida en modo AVENTURA, sea cual sea su precisión, hace que `procesarPosicionGPSParaAventura()` envíe a hijo2 `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, tipoParada, toleranciaGPS }` con la distancia ya calculada — la precisión no filtra esta llamada (ver «Precisión GPS: se procesa siempre, la llegada se confirma por repetición» más abajo). Hijo2 solo compara contra el umbral:
 
 **Cómo decide "cuál es el elemento a buscar" antes de calcular la distancia:** dos preguntas distintas, dos fuentes distintas — nunca la misma. "¿Cuál es el elemento GPS actual?" lo responde `_siguienteIdElementoNavegable(aventura, idioma, paradaActualId)`, caminando `DATOS_PADRE[aventura][idioma].elementosIDpadre` (`js/aventuras-ID-padre.js`) **desde la posición de `estadoMapa.paradaActual` incluyéndola** hasta el primer elemento con `tipo` en `['inicio','parada','tramo']` — esta lista está ya en secuencia real y nunca mezcla las entradas `tipo:"referencia"`. El nombre de la función sugiere "el siguiente", pero busca desde `paradaActual` mismo: ese valor representa el elemento ACTIVO ahora (su audio ya se solicitó a hijo3 en el mismo `CAMBIO_PARADA` que lo fijó, antes de que el usuario llegue físicamente), así que es ese elemento — no el que viene después — el destino GPS correcto mientras esté activo. Buscar desde el índice siguiente saltaba el elemento activo entero y apuntaba siempre uno por delante (nunca se detectaba la llegada real, incluida la parada 0 al empezar la aventura). Con el id resuelto, "¿dónde está en el mapa?" se responde buscando ese mismo id en `AVENTURA_PARADAS` (el array `coordenadas` de `js/coordenadas-aventuras.js`, cacheado en `globalThis.AVENTURA_PARADAS`) por `.id`, que sí tiene `lat`/`lng` reales. Buscar la coordenada directamente en `AVENTURA_PARADAS` por posición de array (en vez de por id, y en el array equivocado) es exactamente el bug que hacía que la distancia mostrada apuntara a una referencia visual (`REF-1`) en vez de a la parada o tramo real — corregido resolviendo primero la secuencia en `elementosIDpadre` y las coordenadas después, en dos pasos separados.
 
@@ -3840,6 +3842,8 @@ estado.pendingCompleciones[padreid] = {
 
 Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2, hijo3 e hijo4.
 
+**Por qué la clave siempre es el `padreid` real, nunca el `tramo_id`/`parada_id` con el que llega el evento:** `_marcarPendingPorLlegada` (llamada por `LLEGADA_DETECTADA`) recibe el id tal como lo manda el sensor GPS — para un tramo, eso es su `tramo_id` (p.ej. `"Av1-TR-1"`), no su `padreid` (`"padre-TR1"`). Antes de construir la clave, resuelve el elemento real con `findElementoPorPadreId(paradaId)`, que busca en `elementosIDpadre` comparando contra `padreid`, `parada_id` **y `tramo_id`** — las tres columnas de id que puede traer la entrada. Sin la comparación por `tramo_id`, la búsqueda fallaba para todos los tramos y la clave caía al fallback `` `padre-${paradaId}` `` (`"padre-Av1-TR-1"`, una clave inventada que no coincide con ningún `padreid` real): el `LLEGADA_DETECTADA` de un tramo y su `AUDIO.FIN_REPRODUCCION` (que sí resuelve correctamente vía `findElementoPorAudio`, y sí obtiene `"padre-TR1"`) creaban dos entradas `pendingCompleciones` distintas para el mismo tramo, y `pending.llegada`/`pending.audio` nunca coincidían en la misma — el tramo no se completaba nunca por esta vía, sin importar cuánto GPS o audio llegara. Con `findElementoPorPadreId` resolviendo también por `tramo_id`, ambos caminos convergen en la misma clave real.
+
 #### 9.2.4 estado.paradasCompletadas
 
 `Map<string, Object>` donde la clave es el `parada_id` o `tramo_id` limpio
@@ -4380,7 +4384,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-e05d575d3965'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c87223a92d85'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5786,7 +5790,7 @@ Los nombres de ambas funciones conservan el sufijo histórico "P0"/"P-0", pero n
 Los pasos 1-3 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 4-5 solo ocurren en **modo AVENTURA** — en CASA el GPS no fuerza ningún avance automático.
 
 1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` puede detenerse: `desactivarGPS()` llama a `clearWatch()` para cancelarlo.
-2. Cada posición con precisión suficiente (accuracy ≤50m) pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que comprueba que `funcionesMapa.procesarPosicionGPSParaAventura` existe (si no, solo avisa por log y no lanza), llama a esa función dentro de un try/catch propio, y si tiene éxito llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` que `_watchPositionSuccess()` ya llamó antes: cada overlay de error GPS (sin señal vs. baja precisión) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage.
+2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que comprueba que `funcionesMapa.procesarPosicionGPSParaAventura` existe (si no, solo avisa por log y no lanza), llama a esa función dentro de un try/catch propio, y si tiene éxito llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` que `_watchPositionSuccess()` ya llamó antes: cada overlay de error GPS (sin señal vs. fuera de rango real) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage.
 3. `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`.
 4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`.
 5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 20 m hardcodeado en hijo2).
@@ -6165,8 +6169,8 @@ Distinto — muestra la imagen (`ref.imagen`) y compone el número+nombre en `#m
 | `INTERVALO_ACTUALIZACION` | 7.000 ms | Frecuencia de actualización de posición |
 | `DISTANCIA_MINIMA` | 5 m | Movimiento mínimo para considerar que el usuario se ha movido |
 | `RADIO_PROXIMIDAD` | 20 m | **No leído por el runtime.** `_detectarLlegadaParada()` en hijo2 usa `const RADIO_PARADA = 20` (local, mismo valor). |
-| `RADIO_EXTENDIDO` | 50 m | **No leído por el runtime.** `calcularToleranciaGPS()` en funciones-mapa.js usa `return 50` hardcoded (mismo valor). El overlay GPS (`#gps-out-of-range-overlay`) se activa por baja precisión, no por distancia. |
-| `PRECISION_MINIMA` | 50 m | Si la precisión GPS es peor que 50 m, la posición se ignora. Leído por `funciones-mapa.js` vía `CONFIG.GPS.PRECISION_MINIMA`. |
+| `RADIO_EXTENDIDO` | 50 m | **No leído por el runtime.** `calcularToleranciaGPS()` en funciones-mapa.js usa `return 50` hardcoded (mismo valor). El overlay GPS (`#gps-out-of-range-overlay`) se activa por distancia real (>2.000m del objetivo o >5km de la ruta), no por precisión. |
+| `PRECISION_MINIMA` | 50 m | **No leído por el runtime.** Ninguna posición se descarta por su precisión — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición». |
 | `MUESTRAS_PROMEDIO` | 3 | Número de muestras para promediar la posición GPS |
 
 ### Rendimiento del zoom (`js/funciones-mapa.js`)
@@ -6966,7 +6970,8 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `10-controladores-padre.spec.js` | 8 | Handlers extraídos a `js/controladores-padre.js`; smoke tests de SOLICITAR_AUDIOS/TEXTOS/RETOS/COORDENADAS |
 | `11-constants-integrity.spec.js` | 8 | Integridad de TIPOS_MENSAJE: constantes GPS funcionales, eliminación de handlers huérfanos GPS.VISUAL_*, presencia de CHAT.ESTADO_PADRE, exposición de reciclaje-digital |
 | `12-carga-por-parada.spec.js` | 3 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo |
-| `13-gps-tramo-fix.spec.js` | 6 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6) |
+| `13-gps-tramo-fix.spec.js` | 13 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras 2 lecturas seguidas dentro de radio, con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual manda 90s sobre la automática, salvo que haya llegada real (PM-1..3) |
+| `15-arribo-y-progresion.spec.js` | 2 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo, disparando `progresarSiguienteElemento()` y limpiando el pending anterior antes de fijar el nuevo `elementoActual` |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7106,7 +7111,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-e05d575d3965'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c87223a92d85'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7753,7 +7758,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-e05d575d3965';
+const CACHE_VERSION = 'v-c87223a92d85';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8506,10 +8511,16 @@ Cuando el usuario está **dentro del radio de acción** de la parada o tramo act
 | `RADIO_PARADA` (hardcoded en hijo2) | **20 m** | `_detectarLlegadaParada()` en hijo2 | Radio de llegada para paradas: hijo2 envía `LLEGADA_DETECTADA` cuando el usuario entra en este radio. Condición necesaria para completar una parada. |
 | `rangoMaximo` parada (hardcoded en hijo2) | **20 m** | `_actualizarGpsEnModoAventura()` / `verificarDistanciaYActualizarBotones()` en hijo2 | Controla el botón GPS y el punto donde arrancan las 3 franjas de aviso por distancia del padre (§30.4). Sale del rango → aviso. Entra → se oculta. |
 | `rangoMaximo` tramo (hijo2, recibido de padre) | **~50 m** | `toleranciaGPS` de `calcularToleranciaGPS()` en funciones-mapa.js | Mismo comportamiento para tramos; valor dinámico según distancia entre waypoints. |
-| Precisión mínima GPS | **50 m** | Hardcoded (`accuracy > 50`) en padre + `CONFIG.GPS.PRECISION_MINIMA` en funciones-mapa.js | Si la precisión GPS es peor que 50 m, la posición se descarta y el padre muestra `#gps-out-of-range-overlay` (diferente del overlay de hijo2). |
+| `PRECISION_MINIMA` (config.js) | **50 m** | Solo definición — **no leída por el runtime** | Describe la precisión típica esperable en calle abierta, pero ninguna posición se descarta por su valor — ver el apartado siguiente. |
 | `RADIO_EXTENDIDO` (config.js) | **50 m** | Solo definición — **no leído por el runtime** | Coincide numéricamente con umbrales hardcoded pero no controla ninguna lógica de la aplicación. |
 | `RADIO_PROXIMIDAD` (config.js) | **20 m** | Solo definición — **no leído por el runtime** | Ídem. |
 | `DISTANCIA_MINIMA` (config.js) | **5 m** | Solo definición — **no leída por el runtime** | No hay filtro de movimiento mínimo en el flujo GPS de producción. |
+
+#### Precisión GPS: se procesa siempre, la llegada se confirma por repetición
+
+Ninguna posición GPS se descarta por su precisión. Las paradas y tramos de esta aplicación están en el centro histórico de Valencia — calles estrechas entre fachadas de piedra que degradan la precisión del GPS de forma constante, no ocasional. Un umbral que descartara la lectura entera cada vez que la precisión supera un valor fijo dejaría a la app sin datos de posición justo en el entorno donde más se usa: la distancia dejaría de recalcularse, la polyline guía dejaría de redibujarse y la llegada no se podría detectar mientras la precisión no mejorase — es decir, exactamente donde más se necesita que siga funcionando.
+
+En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmación de llegada. `procesarPosicionGPSParaAventura()` (`funciones-mapa.js`) y `_detectarLlegadaParada()`/`_detectarLlegadaTramo()` (hijo2) — los dos sensores independientes que evalúan la misma llegada — llevan cada uno su propio contador de lecturas consecutivas dentro del radio para el elemento activo (`estadoMapa._llegadaCandidataCount` / `estadoComponente._llegadaCandidataCount`). Una lectura dentro de radio arma la candidata pero no notifica todavía; solo la **segunda lectura seguida** dentro del mismo radio, para el mismo elemento, dispara `NAVEGACION.LLEGADA_DETECTADA`. Cualquier lectura fuera de radio entre medias rompe la racha y el contador vuelve a cero — hacen falta dos lecturas seguidas de nuevo, no basta con acumular dos sueltas en momentos distintos. Así, una lectura puntual con precisión mala que caiga dentro del radio por pura casualidad no basta para confirmar una llegada que no es real: necesitaría dos lecturas seguidas cayendo dentro del mismo radio por casualidad, mucho menos probable dado que el ruido de un GPS no suele repetir el mismo error dos veces seguidas en la misma dirección.
 
 Mientras el usuario está **dentro de los 20 metros** de la parada actual (o dentro del rangoMaximo del tramo):
 
@@ -8552,7 +8563,7 @@ A partir de ahí, la distancia se reparte en tres franjas — detalle completo, 
 
 - **21-50m**: pantalla `foto-fuera-rango.png` con cuenta atrás de 5 minutos antes de habilitar el botón Ubicación (da margen a que el usuario llegue por su cuenta).
 - **51m-2.000m**: pantalla `foto_lejos_ubicacion.png`, botón Ubicación habilitado al instante.
-- **Más de 2.000m, o precisión GPS peor de 50m**: pantalla `fotogpserror.png` (compartida con los avisos de baja precisión y el bloqueo por >5km, §30.5/§30.6), botón Ubicación habilitado al instante.
+- **Más de 2.000m**: pantalla `fotogpserror.png` (compartida con el bloqueo por >5km, §30.5), botón Ubicación habilitado al instante.
 
 **Botones de hijo2 mientras el aviso está activo** (`_desactivarBotonesRangoExcedido()`, igual en las 3 franjas):
 
@@ -8887,16 +8898,16 @@ Hay dos overlays distintos relacionados con GPS que no deben confundirse:
 
 **Overlay A — Fuera del radio físico** (3 pantallas en el padre, según distancia — ya documentado en §25.7/§30.4): se activa cuando el usuario está a más del rango real de la parada o tramo actual (20m parada / `toleranciaGPS` tramo). Es una advertencia de posición, no de señal.
 
-**Overlay B — Señal GPS de baja precisión** (`#gps-out-of-range-overlay` en el padre): se activa cuando el GPS sí funciona pero la precisión reportada es **peor de 50 m** (`CONFIG.GPS.PRECISION_MINIMA`), o cuando la distancia real al objetivo supera 2.000m (§30.4) — en ambos casos la posición no es fiable o el usuario está demasiado lejos para que valga la pena precisar más.
+**Overlay B — Fuera de la zona de la aventura** (`#gps-out-of-range-overlay` en el padre): reutiliza la misma imagen y el mismo componente que el Overlay A, pero para dos comprobaciones de distancia real distintas y más amplias — el usuario está a más de 2.000m del objetivo actual (§30.4), o a más de 5km de la ruta completa de la aventura (§25.17/§30.5, chequeo anti-uso-fraudulento). No se activa por precisión GPS: la precisión de la lectura ya no descarta ninguna posición (ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición») — calles estrechas del centro histórico la degradan constantemente, y un overlay atado a ella se dispararía sin que el usuario hubiera hecho nada raro.
 
 **¿Qué ve el usuario en el Overlay B?**
 
 Una imagen a pantalla completa (`imagenes/imagenes-aplicación/fotogpserror.png`) con dos botones:
 
-- **🛰️🔄** — botón de reintento: lanza `getCurrentPosition()` para obtener una nueva lectura inmediata. Si la precisión mejora (≤50m), procesa la posición y cierra el overlay automáticamente; si la nueva lectura sigue siendo peor de 50m, se descarta igual que cualquier otra y el overlay permanece.
+- **🛰️🔄** — botón de reintento: lanza `getCurrentPosition()`, procesa la nueva lectura (sea cual sea su precisión) y cierra el overlay — la distancia recalculada decide, a través del pipeline normal, si sigue justificando el aviso.
 - **✖** — botón de cierre: descarta el overlay sin reintentar (el `watchPosition` sigue activo en segundo plano).
 
-El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la señal sea mala.
+El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la distancia sea grande.
 
 **Tipos de error GPS y qué hace el sistema:**
 
@@ -8906,9 +8917,9 @@ El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la 
 | Señal no disponible | `POSITION_UNAVAILABLE` | Muestra overlay |
 | Timeout | `TIMEOUT` | Reintenta hasta `MAX_REINTENTOS_GPS` (3) veces con backoff exponencial (500ms × intento). Si agota los reintentos, muestra overlay |
 
-El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }`. En cada reintento por timeout, `enableHighAccuracy` se baja a `false` y el timeout se duplica (máximo 60 s).
+El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }`. En cada reintento por timeout, `enableHighAccuracy` se baja a `false` y el timeout se duplica (máximo 60 s). Estos errores son de **señal** (sin datos de posición en absoluto) — un caso distinto de precisión baja (hay posición, pero con un margen de error grande), que ya no bloquea nada.
 
-> Esta sección cubre el overlay de baja precisión. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§25.17**.
+> Esta sección cubre el Overlay B. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§25.17**.
 
 ---
 
@@ -8999,8 +9010,8 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | `rangoMaximo` tramo (hijo2) | ~50 m dinámico | `toleranciaGPS` recibida de `calcularToleranciaGPS()` en funciones-mapa.js |
 | Franjas de aviso por distancia (padre) | 21-50m / 51-2.000m / >2.000m | `_hdl_NAVEGACION_GPS_RESTRINGIDO` en `codigo-padre.html` — ver §30.4 |
 | Tolerancia de llegada a tramo | dinámica (distancia máx. entre waypoints + 20 m buffer) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo |
-| Precisión mínima GPS aceptada | 50 m | `CONFIG.GPS.PRECISION_MINIMA` en funciones-mapa.js L3487; hardcoded `accuracy > 50` en padre L4834 |
-| `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas) |
+| Confirmación de llegada por lecturas repetidas | 2 lecturas seguidas dentro de radio | `estadoMapa._llegadaCandidataCount` en funciones-mapa.js / `estadoComponente._llegadaCandidataCount` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
+| `PRECISION_MINIMA` / `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas) |
 | Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
 | Frecuencia heartbeat | 5 s | `INTERVALO_HEARTBEAT` en `config.js` |
 | Timeout GPS | 30 s | `TIMEOUT` en `config.js` |
@@ -9043,11 +9054,7 @@ El botón que aparece depende del motivo:
 
 #### ¿Y si el GPS tiene poca precisión?
 
-A veces el GPS funciona, pero la precisión que reporta es peor de 50 metros (por ejemplo, el teléfono está usando torres de telefonía en vez de satélites). En ese caso, la posición no es fiable y la aplicación la descarta para evitar falsos positivos.
-
-El usuario ve el overlay de baja precisión (`fotogpserror.png`) con el botón 🛰️🔄 y una cuenta atrás de 15 segundos. Si en la siguiente lectura la precisión mejora por debajo de 50 m, el overlay desaparece solo. Si el usuario pulsa el botón, se lanza una lectura inmediata — pero esa lectura solo cierra el overlay si su precisión es de verdad suficiente; si sigue siendo peor de 50 m, el overlay permanece (la lectura se descarta y queda registrada en analítica) en vez de desaparecer dando una falsa sensación de que ya se ha resuelto.
-
-Este caso ya estaba documentado en §25.14 con más detalle técnico.
+Nada especial — la aplicación procesa la posición igual, sea cual sea su precisión. Las paradas están en calles estrechas del centro histórico, donde la precisión del GPS fluctúa constantemente por las fachadas de piedra; descartar esas lecturas dejaría a la app sin datos de posición justo donde más se necesita. En vez de eso, la fiabilidad se gana pidiendo dos lecturas seguidas dentro del radio de la parada o tramo antes de confirmar que el usuario ha llegado — una lectura ruidosa suelta no basta para dar una llegada por buena. Detalle técnico completo en §25.5.
 
 ---
 
@@ -9057,7 +9064,7 @@ Alejarse de la parada activa (más allá de 20 m, o de la tolerancia del tramo) 
 
 - **Entre 21 y 50 metros**: aparece la imagen de "fuera de rango" con una cuenta atrás de 5 minutos. Es un margen para que el usuario llegue por su cuenta antes de que la app le ofrezca ayuda.
 - **Entre 51 metros y 2 kilómetros**: aparece la imagen de "lejos de tu objetivo" — la ayuda se ofrece al instante, sin esperar.
-- **Más de 2 kilómetros**: se comparte la misma imagen que la de baja precisión GPS — al usuario le queda claro que algo no cuadra, sin necesidad de un mensaje distinto para cada caso.
+- **Más de 2 kilómetros**: aparece la misma imagen que la comprobación de más de 5 km de la ruta (siguiente apartado) — al usuario le queda claro que algo no cuadra, sin necesidad de un mensaje distinto para cada caso.
 
 En todos los casos, el botón de ubicación se habilita para que el usuario pueda pedir una línea en el mapa hacia su destino — pero esa línea nunca aparece sola: solo se dibuja si el usuario pulsa el botón explícitamente. Mientras el aviso está activo, los botones de vídeo, mapas y avanzar quedan deshabilitados; el botón de imagen sigue disponible.
 
@@ -9069,7 +9076,7 @@ Detalle técnico completo en §30.4.
 
 Esto no es un error técnico sino una comprobación de integridad: si el GPS sitúa al usuario a más de 5 kilómetros de cualquier punto de la aventura, la aplicación entiende que algo no encaja —puede que el teléfono esté dando coordenadas erróneas, o que alguien intente completar la aventura desde casa.
 
-En ese caso aparece la misma imagen de baja precisión GPS, con su propio mensaje, y el **botón de avanzar se bloquea** de forma persistente hasta que el GPS vuelva a situar al usuario dentro del área de la ruta. Esta comprobación se hace con un margen de throttling de 3 minutos para no saturar el procesamiento.
+En ese caso aparece la misma imagen que la del apartado anterior, con su propio mensaje, y el **botón de avanzar se bloquea** de forma persistente hasta que el GPS vuelva a situar al usuario dentro del área de la ruta. Esta comprobación se hace con un margen de throttling de 3 minutos para no saturar el procesamiento.
 
 ---
 
@@ -10575,25 +10582,6 @@ El botón del mapa sigue activo — úsalo para orientarte y ver dónde está ex
 
 ---
 
-##### `GPS_BAJA_PRECISION`
-
-**Pregunta:** ¿La app dice que mi señal GPS es imprecisa?
-
-**Respuesta:**
-Cuando la señal GPS tiene una precisión inferior a 50 metros (por ejemplo en zonas con muchos edificios altos o bajo techo), la app te lo avisa con una pantalla y el botón 🛰️🔄.
-
-Pulsa el botón para reintentar con más precisión. Mientras tanto:
-
-- Sal a un espacio más abierto si es posible.
-- Activa el modo de alta precisión en los ajustes de ubicación del teléfono (usa GPS + WiFi + datos móviles).
-- Espera unos segundos: la señal suele mejorar sola al aire libre.
-
-Si la precisión mejora, el aviso desaparece automáticamente y puedes continuar.
-
-**Imagen:** null
-
----
-
 #### 🔊 Audio
 
 ##### `AUDIO_NO_SUENA`
@@ -11068,9 +11056,11 @@ El código de acceso es para una sola aventura. Puedes hacer la ruta en grupo co
 
 ---
 
-*Total: 7 temas, 35 intenciones.*
+*Total: 7 temas, 34 intenciones.*
 
-*Intenciones nuevas respecto a las 26 originales (pendientes de añadir a `TEMAS_AGRUPADOS`): `GPS_BAJA_PRECISION`, `AUDIO_REPETIR`, `AUDIO_IDIOMA_CAMBIO`, `MAPA_OFFLINE`, `PROGRESO_PERDIDO`, `CODIGO_CADUCIDAD`, `RETO_CUANTOS`, `RETO_SALTAR`, `APP_INSTALAR`, `APP_MULTIPLES_DISPOSITIVOS`, `DURACION_ESTIMADA`, `COMPARTIR_CODIGO`.*
+*Intenciones nuevas respecto a las 26 originales (pendientes de añadir a `TEMAS_AGRUPADOS`): `AUDIO_REPETIR`, `AUDIO_IDIOMA_CAMBIO`, `MAPA_OFFLINE`, `PROGRESO_PERDIDO`, `CODIGO_CADUCIDAD`, `RETO_CUANTOS`, `RETO_SALTAR`, `APP_INSTALAR`, `APP_MULTIPLES_DISPOSITIVOS`, `DURACION_ESTIMADA`, `COMPARTIR_CODIGO`.*
+
+*`GPS_BAJA_PRECISION` (26 originales) se retira del catálogo: la precisión GPS ya no bloquea nada ni muestra ningún aviso — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición».*
 
 ---
 
@@ -11136,7 +11126,7 @@ Esta sección documenta los cambios implementados para las restricciones GPS y e
 
 | Parámetro | Valor | Archivo | Línea |
 |-----------|-------|---------|-------|
-| `PRECISION_MINIMA` | 50 m | `js/config.js` | 99 |
+| `PRECISION_MINIMA` | 50 m — **no leída por el runtime** (§25.5) | `js/config.js` | 99 |
 | `INTERVALO_ACTUALIZACION` | 7.000 ms | `js/config.js` | 87 |
 | `TIMEOUT` | 30.000 ms | `js/config.js` | 81 |
 | `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | ~4957 |
@@ -11263,7 +11253,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-e05d575d3965';
+const CACHE_VERSION = 'v-c87223a92d85';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11376,8 +11366,8 @@ Además, botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que e
 1. Pulsar → botón se deshabilita
 2. Contador descendente de 15 segundos
 3. La app llama a `getCurrentPosition` una vez (reintento manual)
-4. Recibir una posición no basta para dar el reintento por bueno: si su precisión sigue siendo peor de 50m, `procesarPosicionGPSParaAventura()` la descarta por dentro (y registra el evento de analítica `GPS_DESCARTADO` + contador `gps.posicion_descartada`) — el overlay no desaparece, cambia al de "baja precisión" (`showGpsOutOfRangeOverlay`) en vez de ocultarse como si el problema estuviera resuelto
-5. Si la precisión es suficiente → overlay desaparece, la posición ya se procesó normalmente
+4. Recibir cualquier posición basta para dar el reintento por bueno: el problema de este overlay es la ausencia total de datos de posición (código 2/3), no su precisión — `procesarPosicionGPSParaAventura()` procesa la lectura sea cual sea su margen de error (§25.5), así que llegar aquí ya resuelve lo que este overlay avisaba
+5. El overlay desaparece y la posición ya se procesó normalmente
 6. Si `getCurrentPosition` falla directamente (sin posición en absoluto) → se vuelve a mostrar este mismo overlay con el código de error real, en vez de quedarse congelado sin explicar qué pasó
 7. Si nada de lo anterior ocurre → botón se habilita de nuevo al llegar a 0
 
@@ -11429,7 +11419,7 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 |---|---|---|---|---|
 | Fuera de rango | rango real + 1m hasta 50m | `foto-fuera-rango.png` + distancia + cuenta atrás de 5 min | Se habilita al acabar la cuenta atrás | Se deshabilitan al acabar la cuenta atrás |
 | Lejos | 51m – 2.000m | `foto_lejos_ubicacion.png` + distancia | Se habilita al instante | Se deshabilitan al instante |
-| Muy lejos / posición no fiable | > 2.000m, o accuracy GPS > 50m | `fotogpserror.png` + distancia (ver §30.5/§30.6) | Se habilita al instante | Se deshabilitan al instante |
+| Muy lejos | > 2.000m | `fotogpserror.png` + distancia (ver §30.5/§30.6) | Se habilita al instante | Se deshabilitan al instante |
 
 **Quién decide qué:** hijo2 calcula la distancia real en cada posición (`verificarDistanciaYActualizarBotones()`) y decide, de forma independiente y local, el estado de sus propios botones — no espera respuesta del padre para eso. Por separado, envía la distancia al padre vía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }`; el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) reparte esa distancia entre las 3 pantallas según los umbrales fijos de 50 y 2.000 metros. Cuando el usuario vuelve dentro del rango real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta las 3 pantallas a la vez (`_ocultarTodasPantallasDistanciaGPS()`).
 
@@ -11439,7 +11429,7 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 
 **La polyline nunca se dibuja sola:** al cumplirse los 5 minutos (o al instante, en las franjas lejos/muy lejos), solo se habilita el botón de ubicación — la polyline hacia el objetivo se traza únicamente si el usuario pulsa ese botón explícitamente. El tiempo que tarda una persona en reaccionar y pulsar le da margen al GPS para asentarse en una posición mejor antes de dibujar la línea.
 
-**Reintento (🛰️🔄, presente en las 3 pantallas):** pide una posición nueva y la introduce en el pipeline normal (`procesarPosicionGPSParaAventura`) — no decide él mismo a qué pantalla saltar: hijo2 recalcula la distancia con la posición fresca y reenvía `GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO`, lo que hace que la pantalla correcta aparezca sola. Si la posición nueva tiene accuracy > 50m, el propio botón muestra directamente `fotogpserror.png`. Si el intento de geolocalización falla del todo (código 1 permiso, 2 sin señal, 3 timeout), cede el turno a `showGpsSignalOverlay()` — la misma pantalla y lógica que ya cubre esos tres códigos (§30.2/§30.3), sin duplicarla.
+**Reintento (🛰️🔄, presente en las 3 pantallas):** pide una posición nueva y la introduce en el pipeline normal (`procesarPosicionGPSParaAventura`) — no decide él mismo a qué pantalla saltar: hijo2 recalcula la distancia con la posición fresca (sea cual sea su precisión, §25.5) y reenvía `GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO`, lo que hace que la pantalla correcta aparezca sola. Si el intento de geolocalización falla del todo (código 1 permiso, 2 sin señal, 3 timeout), cede el turno a `showGpsSignalOverlay()` — la misma pantalla y lógica que ya cubre esos tres códigos (§30.2/§30.3), sin duplicarla.
 
 **Asimetría intencional del botón de reintento en `fotogpserror.png`:** en esa pantalla concreta (ver §30.6), el mismo click que pide la posición nueva abre además un panel secundario "Próxima parada" (`showNextEntityOverlay()`, nombre/tipo/coordenadas del siguiente elemento de la ruta, con botón 📋 para copiar coordenadas y botón 📍 para centrar el mapa ahí) — funcionalidad propia de ese overlay desde el origen del proyecto, pensada como ayuda de navegación manual mientras el GPS reintenta. Las pantallas `foto_lejos_ubicacion.png` y `foto-fuera-rango.png` no abren este panel — su reintento (`_gpsReintentarDesdeOverlayDistancia()`) solo pide la posición nueva.
 
@@ -11449,13 +11439,13 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 |---|---|
 | `foto-fuera-rango.png` (21-50m) | 60s |
 | `foto_lejos_ubicacion.png` (51-2.000m) | 120s |
-| `fotogpserror.png` (>2.000m / accuracy>50m) | 150s |
+| `fotogpserror.png` (>2.000m) | 150s |
 
 Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de que la app sigue activa) y nueva ocasión de pulsar reintentar — el ciclo se repite mientras el usuario siga fuera de rango. Volver dentro de rango (`GPS.DENTRO_DE_RANGO`) limpia todos los tiempos de espera pendientes (`_limpiarSnoozeOverlaysDistancia()`), para que la próxima salida de rango empiece de cero.
 
 **Banda inferior del botón de reintento:** en las 3 pantallas, la imagen ocupa el espacio flexible superior de `.gps-inner` (`object-fit:contain`, ya no `position:absolute` cubriendo todo el recuadro) y el botón 🛰️🔄 vive dentro de `.gps-banda-inferior`, una franja de fondo oscuro con altura propia (mín. 5.5rem) debajo de la imagen — así el botón nunca tapa parte de la foto. La píldora de distancia (arriba) y el botón de cierre (esquina superior derecha) siguen posicionados en absoluto sobre la imagen, sin cambios.
 
-**Al pulsar el botón de ubicación:** hijo2 construye `elementoId = estadoComponente.idParadaActual || _idParadaInicio()` — usa la parada/tramo activo si ya hay uno; si todavía no hay ninguno (aventura recién empezada, antes del primer `CAMBIO_PARADA`), `_idParadaInicio()` busca en `globalThis.__vv_coordenadasAventura` (ya cargado localmente en hijo2) la entrada con `tipo: "inicio"` y devuelve su `id` real — `"Av1-P-0"`, `"Av34km-P-0"`, etc., siempre con el prefijo de la aventura activa. Envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` al padre con `{ ubicacionUsuario, proximoElemento, elementoId, centrar: true, zoom: 16 }`. El padre oculta las 3 pantallas de aviso (por si alguna seguía abierta) y resuelve las coordenadas del destino en orden: `proximoElemento` si ya trae `lat`/`lng` → `_resolverCoordenadasElemento(elementoId, ...)` (busca en `DATOS_PADRE`, y si no encuentra coordenadas ahí pregunta a hijo2 vía `solicitarCoordenadasHijo`) → `_obtenerCoordenadasFallbackP0()` como último recurso. Con origen y destino resueltos, `dibujarPolylineNavegacion()` (`js/funciones-mapa.js`) traza una línea verde punteada (`#3eff3f`, `line-dasharray:[0,2]` con `line-cap:'round'` — en MapLibre estas unidades son múltiplos del grosor de línea, no píxeles; ese valor da puntos redondos en vez de rayas largas) hasta el destino.
+**Al pulsar el botón de ubicación:** hijo2 construye `elementoId = estadoComponente.idParadaActual || _idParadaInicio()` — usa la parada/tramo activo si ya hay uno; si todavía no hay ninguno (aventura recién empezada, antes del primer `CAMBIO_PARADA`), `_idParadaInicio()` busca en `globalThis.__vv_coordenadasAventura` (ya cargado localmente en hijo2) la entrada con `tipo: "inicio"` y devuelve su `id` real — `"Av1-P-0"`, `"Av34km-P-0"`, etc., siempre con el prefijo de la aventura activa. Envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` al padre con `{ ubicacionUsuario, proximoElemento, elementoId, centrar: true, zoom: 16 }`. El padre oculta las 3 pantallas de aviso (por si alguna seguía abierta) y resuelve las coordenadas del destino en orden: `proximoElemento` si ya trae `lat`/`lng` → `_resolverCoordenadasElemento(elementoId, ...)` (busca en `DATOS_PADRE`, y si no encuentra coordenadas ahí pregunta a hijo2 vía `solicitarCoordenadasHijo`) → `_obtenerCoordenadasFallbackP0()` como último recurso. Con origen y destino resueltos, `dibujarPolylineNavegacion()` (`js/funciones-mapa.js`) traza una línea verde punteada (`#3eff3f`, `line-dasharray:[0,2]` con `line-cap:'round'` — en MapLibre estas unidades son múltiplos del grosor de línea, no píxeles; ese valor da puntos redondos en vez de rayas largas) hasta el destino, y queda protegida 90 segundos frente al redibujado automático de la guía azul (§4.6) — el detalle completo de por qué y cómo vive en esa sección, junto al resto de la lógica de `polylineNavegacion`.
 
 **Por qué `_obtenerCoordenadasFallbackP0()` no busca en `DATOS_PADRE`:** `DATOS_PADRE` (`js/aventuras-ID-padre.js`) es el registro de IDs y secuencia de la aventura — `padreid`, `parada_id`, `reto_id`... — pero ninguna de sus entradas tiene nunca `lat`/`lng`. Las coordenadas reales viven en `js/coordenadas-aventuras.js`, cacheadas en `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` (mismo patrón ya usado en el resto de `codigo-padre.html`, ver por ejemplo la construcción de datos para hijo5). La función filtra esa lista por `tipo === 'inicio'` y devuelve `coordenadas.lat`/`coordenadas.lng` de esa entrada.
 
@@ -11469,37 +11459,27 @@ Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de q
 
 **Qué ocurre:** el GPS del usuario devuelve una posición a más de 5 km de cualquier punto de la ruta (parada, inicio/fin de tramo o waypoint). Esto indica que el usuario no está en Valencia y no puede realizar la aventura de forma legítima.
 
-**Cuándo se chequea:** `_check5kmFromRoute(lat, lng)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición que ya superó el filtro de precisión (accuracy ≤ 50m), y solo si el modo actual es AVENTURA. Throttling de 3 minutos vía `globalThis.__VV_5KM_LAST_CHECK`: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. No requiere timer independiente — usa el GPS que ya está corriendo.
+**Cuándo se chequea:** `_check5kmFromRoute(lat, lng)` (`codigo-padre.html`) se llama desde `_watchPositionSuccess()` en cada posición válida (sea cual sea su precisión, §25.5), y solo si el modo actual es AVENTURA. Throttling de 3 minutos vía `globalThis.__VV_5KM_LAST_CHECK`: si la última comprobación fue hace menos de 3 minutos, la llamada no hace nada. No requiere timer independiente — usa el GPS que ya está corriendo.
 
 **Cómo mide la distancia:** recorre `elementosIDpadre` de la aventura/idioma activos y calcula, con `calcularDistancia()` (`js/utils.js`, fórmula Haversine), la distancia a cada punto candidato de cada elemento (`coordenadas`, `inicio`, `fin`, `waypoints`), quedándose con la mínima encontrada y cortando el recorrido en cuanto encuentra un punto a menos de 5.000m (`LIMIT_M`) — no necesita comprobar el resto de la ruta si ya hay un punto cercano.
 
-**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true`):** overlay `#gps-out-of-range-overlay` (`fotogpserror.png`) con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de 5 km de la ruta") — distinto del texto de baja precisión, para que un lector de pantalla no diga "baja precisión" cuando el problema real es la distancia. El botón de reintento 🛰️🔄 (`#gps-error-action`) se oculta (repetir la lectura GPS no resuelve estar fuera de Valencia); el botón de cierre ✖ sigue visible y solo descarta el aviso en pantalla, sin desbloquear nada. En paralelo, el padre envía `CONTROL.DESHABILITAR` a hijo2 con `{ control: 'btnAvanzar', razon: 'usuario_fuera_zona' }`; hijo2 marca `estadoComponente.btnAvanzarDeshabilitadoExternamente = true`, que `_actualizarBotonGps()` comprueba antes que cualquier otra condición — ninguna actualización de proximidad posterior puede reactivar el botón mientras el flag siga activo.
+**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true`):** overlay `#gps-out-of-range-overlay` (`fotogpserror.png`) con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de 5 km de la ruta") — distinto del texto que usa el disparador de §30.4 ("Ubicación a más de 2 km de tu objetivo"), para que un lector de pantalla diga la causa real y no confunda ambos casos. El botón de reintento 🛰️🔄 (`#gps-error-action`) se oculta (repetir la lectura GPS no resuelve estar fuera de Valencia); el botón de cierre ✖ sigue visible y solo descarta el aviso en pantalla, sin desbloquear nada. En paralelo, el padre envía `CONTROL.DESHABILITAR` a hijo2 con `{ control: 'btnAvanzar', razon: 'usuario_fuera_zona' }`; hijo2 marca `estadoComponente.btnAvanzarDeshabilitadoExternamente = true`, que `_actualizarBotonGps()` comprueba antes que cualquier otra condición — ninguna actualización de proximidad posterior puede reactivar el botón mientras el flag siga activo.
 
 **Recuperación:** en la siguiente posición válida que sí caiga dentro de los 5km, `__VV_5KM_BLOCKED` vuelve a `false`, se restaura el botón de reintento, se llama `hideGpsOutOfRangeOverlay()` y se envía `CONTROL.HABILITAR` a hijo2 (`razon: 'usuario_en_zona'`), que limpia el flag externo y deja que la lógica normal de proximidad vuelva a decidir el estado del botón.
 
-**Relación con los otros disparadores del mismo overlay:** `#gps-out-of-range-overlay` (`fotogpserror.png`) tiene tres motivos independientes para mostrarse, cada uno con su propio texto accesible: accuracy GPS > 50m (§30.6 — la posición no es fiable, sin importar la distancia), más de 2.000m del objetivo actual (§30.4 — vía `GPS.RESTRINGIDO`, distancia real conocida), y más de 5km de toda la ruta (este caso — bloqueo, no solo aviso). Los tres comparten imagen y estructura, pero solo este último deshabilita `btnAvanzar` de forma persistente vía `btnAvanzarDeshabilitadoExternamente`.
+**Relación con el otro disparador del mismo overlay:** `#gps-out-of-range-overlay` (`fotogpserror.png`) tiene dos motivos independientes para mostrarse, cada uno con su propio texto accesible: más de 2.000m del objetivo actual (§30.4 — vía `GPS.RESTRINGIDO`, distancia real conocida) y más de 5km de toda la ruta (este caso — bloqueo, no solo aviso). Los dos comparten imagen y estructura, pero solo este último deshabilita `btnAvanzar` de forma persistente vía `btnAvanzarDeshabilitadoExternamente`. La precisión de la lectura GPS no interviene en ninguno de los dos — ver §25.5.
 
 **Estado de implementación:** ✅ implementado.
 
 ---
 
-### 30.6 Overlay de baja precisión GPS (accuracy >50m)
+### 30.6 Mecánica compartida de `#gps-out-of-range-overlay` y panel "Próxima parada"
 
-El overlay `#gps-out-of-range-overlay` (imagen `fotogpserror.png`) se dispara cuando `watchPosition` devuelve posiciones con accuracy > 50m. Esto ocurre típicamente cuando:
+Los dos disparadores del overlay (§30.4, distancia al objetivo >2.000m; §30.5, distancia a toda la ruta >5km) comparten un mismo botón 🛰️🔄 con cuenta atrás de 15 segundos que llama a `getCurrentPosition()` manualmente. La posición recibida se procesa siempre, sea cual sea su precisión (§25.5): el reintento la introduce en el pipeline normal y dado que ya no hay ningún filtro que pueda descartarla, la única razón para que el overlay siga visible tras el reintento es que la distancia recalculada — real, no de precisión — siga estando fuera de rango.
 
-- El usuario está bajo techo o en zona con mala señal satelital
-- El dispositivo usa Cell/WiFi en vez de GPS real
+**Panel "Próxima parada":** el mismo click que pide la posición nueva abre además `showNextEntityOverlay()` — nombre, tipo y coordenadas del siguiente elemento de la ruta, con botón 📋 para copiar coordenadas y botón 📍 para centrar el mapa ahí. Es funcionalidad propia de este overlay concreto desde el origen del proyecto, pensada como ayuda de navegación manual mientras el GPS reintenta obtener una posición útil. Las pantallas `foto_lejos_ubicacion.png` y `foto-fuera-rango.png` (§30.4, franjas más cercanas) no abren este panel — su reintento (`_gpsReintentarDesdeOverlayDistancia()`) solo pide la posición nueva, porque a esa distancia el usuario ya tiene su objetivo real a la vista en el mapa principal y no necesita la ayuda adicional.
 
-**Comportamiento actual:**
-
-- Se muestra cuando `accuracy > 50m` en `_watchPositionSuccess()`
-- Contiene botón 🛰️🔄 con cuenta atrás de 15 segundos que intenta `getCurrentPosition` manual
-- Si el reintento devuelve una posición de buena calidad → overlay desaparece (o cede a la franja de distancia que corresponda, ver §30.4). Si devuelve una posición pero sigue sin precisión suficiente, el overlay permanece (no desaparece dando una falsa sensación de que ya se resolvió).
-- El mismo click abre además el panel "Próxima parada" (`showNextEntityOverlay()`, nombre/tipo/coordenadas del siguiente elemento con botones de copiar coordenadas y centrar mapa) — este panel es propio de este overlay concreto, ver la nota de asimetría en §30.4.
-
-Este mismo overlay también se dispara cuando la distancia real al objetivo supera 2.000m (§30.4) o la ruta entera queda a más de 5km (§30.5) — comparte imagen y botón de reintento con esos dos casos, cada uno con su propio texto accesible.
-
-**Estado de implementación:** ✅ implementado — overlay, botón y countdown funcionan.
+**Estado de implementación:** ✅ implementado — overlay, botón, countdown y panel funcionan.
 
 ---
 
@@ -11541,8 +11521,9 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 | 30.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
 | 30.4a | Fuera de rango: 21-50m | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
 | 30.4b | Fuera de rango: 51-2000m | `foto_lejos_ubicacion.png` | ídem | ✅ implementado |
+| 30.4c | Fuera de rango: >2000m del objetivo | `fotogpserror.png` | `GPS.RESTRINGIDO` → padre | ✅ implementado |
 | 30.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
-| 30.6 | GPS accuracy >50m, o >2000m del objetivo | `fotogpserror.png` | `_watchPositionSuccess` / `GPS.RESTRINGIDO` | ✅ botón centrado + countdown 15s implementado |
+| 30.6 | Mecánica compartida (reintento + panel "Próxima parada") de 30.4c y 30.5 | `fotogpserror.png` | `_gpsReintentarDesdeOverlayDistancia()` / `showNextEntityOverlay()` | ✅ botón centrado + countdown 15s implementado |
 | 30.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` marca `pending.audio = true` + llama `intentarCompletarElemento` | ✅ corregido |
 | 30.7b | TTL pending nunca ejecutado | — | `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` | ✅ corregido |
 | 30.9 | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |

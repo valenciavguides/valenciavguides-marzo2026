@@ -164,13 +164,25 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
   // hace): Av1-P-1.coordenadas coincide exactamente con Av1-TR-1.fin en los datos
   // reales, así que apuntar al tramo o "de más" a la parada siguiente da la misma
   // posición física en este caso concreto — comprobado, no es casualidad asumida.
-  test('GT-3. procesarPosicionGPSParaAventura en .fin notifica LLEGADA_DETECTADA, nunca CAMBIO_PARADA directo', async ({ page }) => {
+  test('GT-3. procesarPosicionGPSParaAventura en .fin notifica LLEGADA_DETECTADA tras 2 lecturas seguidas, nunca CAMBIO_PARADA directo', async ({ page }) => {
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
 
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
+    // Primera lectura: solo arma la candidata, todavía no notifica (confirmación por
+    // 2 lecturas seguidas — ver PD-2/PD-3 para el detalle de este mecanismo).
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(150);
+    let notifico = logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando'));
+    expect(notifico, 'La primera lectura por sí sola no debe notificar todavía').toBe(false);
+
+    // Segunda lectura seguida en el mismo punto: confirma y notifica.
     await page.evaluate(async (tramo) => {
       await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
         coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
@@ -178,7 +190,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     }, TRAMO);
     await page.waitForTimeout(300);
 
-    const notifico = logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando'));
+    notifico = logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando'));
     expect(notifico, `No se encontró el log de notificación de llegada. Logs GPS: ${JSON.stringify(logs.filter(l => /GPS|Llegada/i.test(l)))}`).toBe(true);
 
     // El atajo antiguo ("Activando parada secuencial") mandaba CAMBIO_PARADA sin pasar
@@ -187,7 +199,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     expect(huboAtajo, 'El atajo GPS→CAMBIO_PARADA directo (sin gate de pending) no debe existir').toBe(false);
   });
 
-  test('GT-4. Segunda lectura GPS en el mismo punto no reenvía la notificación (dedup)', async ({ page }) => {
+  test('GT-4. Una tercera lectura en el mismo punto no reenvía la notificación (dedup tras confirmar)', async ({ page }) => {
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
 
@@ -196,6 +208,8 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
 
     await page.evaluate(async (tramo) => {
       const fm = globalThis.funcionesMapa;
+      // Lecturas 1 y 2: arman la candidata y confirman/notifican. Lectura 3: dedup.
+      await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 } });
       await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 } });
       await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 } });
     }, TRAMO);
@@ -205,7 +219,82 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     expect(vecesNotificado, `Se notificó ${vecesNotificado} veces, se esperaba exactamente 1 (dedup)`).toBe(1);
 
     const huboDedup = logs.some(l => l.includes('ya notificada'));
-    expect(huboDedup, 'Debe aparecer el log de dedup en la segunda lectura').toBe(true);
+    expect(huboDedup, 'Debe aparecer el log de dedup en la tercera lectura').toBe(true);
+  });
+
+  test('PD-1. Precisión GPS mala (>50m) ya no descarta la lectura: la distancia se calcula igual', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 120 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
+    const logDistancia = logs.find(l => l.includes('Distancia a Av1-TR-1'));
+    expect(logDistancia, `Con accuracy=120m la distancia debe seguir calculándose. Logs: ${JSON.stringify(logs.filter(l => /GPS|Distancia|precisión|Precisión/i.test(l)))}`).toBeTruthy();
+  });
+
+  test('PD-2/PD-3. Confirmación por 2 lecturas seguidas dentro de radio (con precisión mala incluida)', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Lectura 1: dentro de radio pero con precisión de 90m — antes se habría descartado
+    // por completo; ahora se procesa y arma la candidata (sin notificar todavía).
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 90 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(150);
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'PD-2: 1 lectura no debe bastar para confirmar').toBe(false);
+
+    // Lectura 2 seguida, también dentro de radio: confirma.
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 90 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'PD-3: 2 lecturas seguidas deben confirmar la llegada, aunque la precisión sea mala').toBe(true);
+  });
+
+  test('PD-4. Salir de radio entre lecturas reinicia el contador de candidata (no basta con 2 no-seguidas)', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.evaluate(async (tramo) => {
+      const fm = globalThis.funcionesMapa;
+      // 1: dentro de radio (arma candidata=1)
+      await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 } });
+      // 2: fuera de radio (rompe la racha, candidata vuelve a 0)
+      await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 } });
+      // 3: dentro de radio otra vez (candidata=1, NO 2 — no debe notificar todavía)
+      await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 } });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'Una racha rota por una lectura fuera de radio no debe notificar con una sola lectura de vuelta').toBe(false);
+
+    // 4ª lectura, seguida de la 3ª, dentro de radio: ahora sí (2 seguidas: la 3ª y la 4ª).
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'La 3ª y 4ª lectura seguidas dentro de radio sí deben confirmar').toBe(true);
   });
 
   test('GT-5. verificarLlegadaADestino reconoce tipo:"inicio" (parada 0) igual que "parada"', async ({ page }) => {
@@ -266,5 +355,98 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     const logDistancia = logs.find(l => l.includes('Distancia a Av1-'));
     expect(logDistancia, `No se encontró ningún log de distancia. Logs GPS: ${JSON.stringify(logs.filter(l => /GPS|Distancia/i.test(l)))}`).toBeTruthy();
     expect(logDistancia, `El GPS debía apuntar a Av1-P-0 (el elemento activo), no al siguiente en el array: "${logDistancia}"`).toContain('Distancia a Av1-P-0');
+  });
+
+  // PM — Prioridad temporal de la polyline manual (botón ubicación) sobre la automática.
+  // Sin esta ventana, el redibujado automático (cada lectura GPS con distancia >50m)
+  // sustituía la línea verde recién pedida por el usuario por la azul en el siguiente
+  // ciclo (~7s), antes de que el usuario llegara a mirarla.
+  test('PM-1. Tras dibujar la polyline manual, una lectura GPS lejana no la sustituye por la automática', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.evaluate(async (tramo) => {
+      const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
+      await dibujarPolylineNavegacion({
+        origen: tramo.inicio,
+        destino: tramo.fin,
+        opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' },
+      });
+    }, TRAMO);
+
+    // Lectura GPS lejana (en .inicio, ~120m de .fin — distancia >50m dispara la automática
+    // si no hubiera ventana de prioridad activa).
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
+    const huboRedibujadoAutomatico = logs.some(l => l.includes('Polyline automática refrescada'));
+    expect(huboRedibujadoAutomatico, 'La ventana de prioridad manual debe impedir el redibujado automático justo después de pulsar ubicación').toBe(false);
+  });
+
+  test('PM-2. Pasada la ventana de prioridad (90s), la siguiente lectura lejana sí redibuja la automática', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.clock.install();
+
+    await page.evaluate(async (tramo) => {
+      const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
+      await dibujarPolylineNavegacion({
+        origen: tramo.inicio,
+        destino: tramo.fin,
+        opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' },
+      });
+    }, TRAMO);
+
+    await page.clock.fastForward('01:31'); // 91s > ventana de 90s
+
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
+    const huboRedibujadoAutomatico = logs.some(l => l.includes('Polyline automática refrescada'));
+    expect(huboRedibujadoAutomatico, 'Pasada la ventana de prioridad, la guía automática debe retomar el control').toBe(true);
+  });
+
+  test('PM-3. Llegar de verdad (≤50m) limpia la polyline aunque la ventana manual siga activa', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.evaluate(async (tramo) => {
+      const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
+      await dibujarPolylineNavegacion({
+        origen: tramo.inicio,
+        destino: tramo.fin,
+        opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' },
+      });
+    }, TRAMO);
+
+    // Lectura en .fin: dentro de radio (≤50m) — debe limpiar la polyline pase lo que
+    // pase con la ventana de prioridad manual, recién armada por el paso anterior.
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
+    const huboLimpieza = logs.some(l => l.includes('Distancia ≤50m, removiendo polyline de navegación automáticamente'));
+    expect(huboLimpieza, 'La llegada real debe limpiar la polyline sin importar la ventana de prioridad manual').toBe(true);
   });
 });

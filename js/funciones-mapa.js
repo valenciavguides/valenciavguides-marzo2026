@@ -208,7 +208,15 @@ const estadoMapa = {
     // id del elemento para el que ya se envió LLEGADA_DETECTADA — evita reenviar el
     // mismo aviso en cada lectura GPS mientras el usuario permanece parado en el sitio
     // (misma idea que estadoComponente._llegadaNotificada en coordenadas-hijo2.html)
-    _llegadaNotificada: null
+    _llegadaNotificada: null,
+    // Contador de lecturas GPS seguidas dentro de radio para el mismo elemento — la
+    // llegada solo se notifica a partir de 2, para no confirmar con una lectura ruidosa
+    // suelta (sin filtro de precisión aguas arriba, ver procesarPosicionGPSParaAventura)
+    _llegadaCandidataId: null,
+    _llegadaCandidataCount: 0,
+    // Timestamp hasta el que la polyline manual (botón ubicación) manda sobre la
+    // automática — ver POLYLINE_MANUAL_PRIORIDAD_MS y dibujarPolylineNavegacion()
+    _polylineManualHasta: null
 };
 
 // =====================================================
@@ -2731,11 +2739,12 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // Sincronizar con el estado global del padre
         sincronizarEstadoGPSConPadre();
 
-        // Solo procesar si precisión disponible y es buena
-        if (typeof accuracy === 'number' && accuracy > CONFIG.GPS.PRECISION_MINIMA) {
-            logger.debug(`${logPrefix} Precisión insuficiente: ${accuracy}m > ${CONFIG.GPS.PRECISION_MINIMA}m`);
-            return;
-        }
+        // La distancia y la llegada se calculan siempre, sea cual sea la precisión —
+        // descartar la lectura entera por precisión (calles estrechas del centro
+        // histórico la degradan constantemente) congelaba a la vez la detección de
+        // llegada, el aviso a hijo2 y el redibujado de la polyline. El resguardo
+        // contra una lectura ruidosa puntual vive en la propia detección de llegada,
+        // más abajo (dos lecturas seguidas dentro de radio, no una sola).
 
         // Obtener paradas del array global (asumiendo que está disponible)
         if (globalThis.AVENTURA_PARADAS === undefined) {
@@ -2846,13 +2855,21 @@ async function procesarPosicionGPSParaAventura(posicion) {
             } catch (error_) {
                 logger.warn(`${logPrefix} Error removiendo polylines:`, error_);
             }
-        } else if (distancia > 50) {
+        } else if (distancia > 50 && !(estadoMapa._polylineManualHasta && Date.now() < estadoMapa._polylineManualHasta)) {
             // ✅ DIBUJAR/REFRESCAR POLYLINE AUTOMÁTICAMENTE cuando usuario está lejos (>50m)
             // Se redibuja en CADA lectura GPS válida, no solo la primera vez — el extremo
             // "usuario" de la línea es la posición actual, así que si solo se dibujara una
             // vez (guard !polylineNavegacion) se quedaría anclada a la posición de cuando
             // se dibujó, sin seguir al usuario mientras camina, aunque la distancia mostrada
             // en la ventana flotante sí se siguiera actualizando (se calcula aparte).
+            //
+            // La ventana de prioridad manual (_polylineManualHasta, ver dibujarPolylineNavegacion)
+            // frena este redibujado mientras esté activa: pulsar el botón de ubicación es una
+            // petición explícita de ayuda, y sustituirla por la azul a los pocos segundos (el
+            // siguiente ciclo GPS, ~7s) le quitaría sentido a la respuesta antes de que el
+            // usuario llegue a mirarla. La comprobación de llegada (bloque de arriba, distancia
+            // ≤50m) no depende de esta ventana — llegar de verdad siempre limpia la polyline,
+            // esté quien esté "al mando" de ella en ese momento.
             try {
                 // Usar valores escalados según pantalla y zoom
                 const peso = getPolylineEscalado();
@@ -2908,7 +2925,22 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // sensores para el mismo hecho), pero nunca la sustituye ni la salta.
         const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
 
+        // Confirmación por dos lecturas seguidas dentro de radio: sin filtro de precisión
+        // aguas arriba, una única lectura ruidosa (posible con mala precisión) podría caer
+        // dentro del radio por casualidad aunque el usuario siga lejos de verdad. Exigir que
+        // la lectura ANTERIOR también estuviera dentro de radio para el mismo elemento evita
+        // ese falso positivo puntual sin depender de la precisión reportada.
         if (llegadaDetectada) {
+            estadoMapa._llegadaCandidataCount = (estadoMapa._llegadaCandidataId === derivedParadaId)
+                ? (estadoMapa._llegadaCandidataCount || 0) + 1
+                : 1;
+            estadoMapa._llegadaCandidataId = derivedParadaId;
+        } else {
+            estadoMapa._llegadaCandidataId = null;
+            estadoMapa._llegadaCandidataCount = 0;
+        }
+
+        if (llegadaDetectada && estadoMapa._llegadaCandidataCount >= 2) {
             if (estadoMapa.modo !== MODOS.AVENTURA) {
                 logger.debug(`${logPrefix} Llegada detectada en modo ${estadoMapa.modo} — sin notificación automática por GPS`);
             } else if (estadoMapa._llegadaNotificada === derivedParadaId) {
@@ -2930,7 +2962,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     }
                 });
             }
-        } else if (estadoMapa._llegadaNotificada === derivedParadaId && distancia > toleranciaGPS * 1.5) {
+        } else if (!llegadaDetectada && estadoMapa._llegadaNotificada === derivedParadaId && distancia > toleranciaGPS * 1.5) {
             // Usuario se alejó de nuevo del destino ya notificado — permitir renotificar
             // si vuelve a entrar en rango (mismo criterio de histéresis que hijo2).
             logger.debug(`${logPrefix} Usuario salió del rango de ${derivedParadaId}, reseteando flag de llegada`);
@@ -3027,6 +3059,11 @@ if (globalThis.window !== undefined) {
 
 // ==================== CONTROLADORES DE NAVEGACIÓN ====================
 
+// Tiempo que la polyline manual (botón ubicación) manda sobre el redibujado automático —
+// margen de sobra para que el usuario mire el móvil, se oriente y empiece a andar antes de
+// que la guía en vivo retome el control (ver el guard en procesarPosicionGPSParaAventura).
+const POLYLINE_MANUAL_PRIORIDAD_MS = 90000;
+
 /**
  * Dibuja una polyline desde la ubicación del usuario hasta la siguiente parada en modo aventura
  * @param {Object} opciones - Opciones para el dibujo
@@ -3091,6 +3128,12 @@ export function dibujarPolylineNavegacion(opciones = {}) {
             { className: 'marcador-destino-navegacion', title: 'Tu destino', zIndex: 500 }
         );
         
+        // Prioridad temporal sobre el redibujado automático (ver procesarPosicionGPSParaAventura):
+        // pulsar el botón de ubicación es una petición explícita de ayuda — sin esta ventana, el
+        // siguiente ciclo GPS (~7s) sustituiría esta línea por la guía azul automática antes de
+        // que el usuario llegue a mirarla.
+        estadoMapa._polylineManualHasta = Date.now() + POLYLINE_MANUAL_PRIORIDAD_MS;
+
         logger.debug(`Polyline de navegación dibujada desde [${origen.lat}, ${origen.lng}] hasta [${destino.lat}, ${destino.lng}] con marcador 🎯`);
         return polylineNavegacion;
     } catch (error) {

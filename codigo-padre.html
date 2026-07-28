@@ -5051,16 +5051,13 @@
             // GPS ha vuelto: ocultar overlay de señal perdida (§30.2/§30.3)
             try { if (typeof hideGpsSignalOverlay === 'function') hideGpsSignalOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
+            // La precisión ya no descarta la lectura: en calles estrechas del centro
+            // histórico se degrada constantemente, y descartar aquí congelaba a la vez
+            // la detección de llegada, el aviso a hijo2 y el redibujado de la polyline.
+            // El resguardo contra una lectura ruidosa vive en la detección de llegada
+            // (dos lecturas seguidas dentro de radio, ver funciones-mapa.js).
             if (accuracy > 50) {
-                (globalThis.logger || console).warn(`${logPrefix} Precisión GPS insuficiente (${Math.round(accuracy)}m > 50m), ignorando actualización`);
-                try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.posicion_descartada'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                try {
-                    registrarEvento && typeof registrarEvento === 'function' && registrarEvento('GPS_DESCARTADO', {
-                        accuracy: accuracy, lat, lng, contexto: 'watchPosition', timestamp: Date.now()
-                    });
-                } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(accuracy); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                return;
+                (globalThis.logger || console).debug(`${logPrefix} Precisión GPS baja (${Math.round(accuracy)}m > 50m), se procesa igualmente`);
             }
 
             est.gps.posicionUsuario = { lat, lng, accuracy, timestamp: position.timestamp };
@@ -5531,16 +5528,11 @@
                             if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
                                 globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
                             }
-                            // No dar el reintento por bueno solo porque llegó una posición: si sigue
-                            // siendo imprecisa, procesarPosicionGPSParaAventura() la habrá descartado
-                            // por dentro sin avisar — hay que comprobar la precisión aquí también para
-                            // no ocultar el aviso como si el problema ya estuviera resuelto.
-                            const acc = pos?.coords?.accuracy;
-                            if (typeof acc === 'number' && acc > 50) {
-                                showGpsOutOfRangeOverlay(acc);
-                            } else {
-                                hideGpsOutOfRangeOverlay();
-                            }
+                            // La posición se procesa siempre, sea cual sea su precisión — este
+                            // overlay ya solo se dispara por distancia real, no por precisión, así
+                            // que basta con ocultarlo y dejar que el pipeline normal lo reabra si
+                            // la distancia recalculada lo sigue justificando.
+                            hideGpsOutOfRangeOverlay();
                         }, (err) => {
                             (globalThis.logger || console).warn('[PADRE][GPS][OVERLAY] getCurrentPosition desde overlay falló:', err && err.message);
                             // Este overlay es por baja precisión; si el reintento falla del todo
@@ -5737,13 +5729,10 @@
                     if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
                         globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
                     }
-                    const acc = pos?.coords?.accuracy;
-                    if (typeof acc === 'number' && acc > 50) {
-                        showGpsOutOfRangeOverlay(acc, `Precisión GPS insuficiente (±${Math.round(acc)}m)`);
-                    }
-                    // Si la precisión es buena, hijo2 recalculará la distancia con esta nueva
-                    // posición y reenviará GPS.RESTRINGIDO/GPS.DENTRO_DE_RANGO — no hace falta
-                    // decidir aquí a qué pantalla saltar.
+                    // La posición se procesa siempre, sea cual sea su precisión — hijo2
+                    // recalculará la distancia con esta nueva posición y reenviará
+                    // GPS.RESTRINGIDO/GPS.DENTRO_DE_RANGO — no hace falta decidir aquí a qué
+                    // pantalla saltar.
                 }, (err) => {
                     (globalThis.logger || console).warn(`${logPrefix} Reintento falló:`, err && err.message);
                     try {
@@ -6005,16 +5994,9 @@
                         if (typeof globalThis.funcionesMapa?.procesarPosicionGPSParaAventura === 'function') {
                             globalThis.funcionesMapa.procesarPosicionGPSParaAventura(pos);
                         }
-                        // Mismo motivo que en el overlay de baja precisión: una posición recibida
-                        // no significa una posición útil. Si sigue sin precisión suficiente, se
-                        // sustituye por el overlay correcto en vez de ocultar el aviso sin más.
-                        const acc = pos?.coords?.accuracy;
-                        if (typeof acc === 'number' && acc > 50) {
-                            hideGpsSignalOverlay();
-                            showGpsOutOfRangeOverlay(acc);
-                        } else {
-                            hideGpsSignalOverlay();
-                        }
+                        // Llegó una posición real (aunque sea de precisión baja) — se procesa
+                        // igualmente, así que el problema de "sin señal" ya está resuelto.
+                        hideGpsSignalOverlay();
                     }, (err) => {
                         (globalThis.logger || console).warn('[PADRE][GPS][SIGNAL] getCurrentPosition falló en reintento:', err && err.message);
                         // Antes esto quedaba en silencio: el usuario pulsaba reintentar, veía la
@@ -8365,7 +8347,12 @@ await _comprobarReanudacionAventura(logPrefix);
         function findElementoPorPadreId(padreIdOrParadaId) {
             if (!padreIdOrParadaId || !DATOS_PADRE[globalThis.aventuraSeleccionada] || !DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado]) return null;
             const idClean = String(padreIdOrParadaId).replace(/^padre-/, '');
-            return DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(e => e.padreid === padreIdOrParadaId || e.padreid === `padre-${idClean}` || e.parada_id === padreIdOrParadaId || e.parada_id === idClean);
+            // tramo_id incluido a propósito: sin él, un tramo buscado por su id real
+            // (p.ej. "Av1-TR-1", el que envía _marcarPendingPorLlegada) nunca se encontraba,
+            // y el pending de llegada quedaba en una clave distinta ("padre-Av1-TR-1") a la
+            // que usa el resto del pipeline (padreid real "padre-TR1") — llegada y audio no
+            // convergían nunca en el mismo pending para tramos.
+            return DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(e => e.padreid === padreIdOrParadaId || e.padreid === `padre-${idClean}` || e.parada_id === padreIdOrParadaId || e.parada_id === idClean || e.tramo_id === padreIdOrParadaId || e.tramo_id === idClean);
         }
 
         function _buildPendingConfig(elemento, globalPendingCfg) {
@@ -8382,7 +8369,7 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!key) return null;
             if (!estado.pendingCompleciones) estado.pendingCompleciones = {};
             if (!estado.pendingCompleciones[key]) {
-                const elemento = findElementoPorPadreId(key) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === key || p.parada_id === key) || {};
+                const elemento = findElementoPorPadreId(key) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === key || p.parada_id === key || p.tramo_id === key) || {};
                 const globalPendingCfg = (globalThis.Config && globalThis.Config.PENDING) ? globalThis.Config.PENDING : {};
                 const { ttlMs, outOfRangeM, outOfRangeGrace, arrivalRequired } = _buildPendingConfig(elemento, globalPendingCfg);
                 const retosIds = obtenerRetosIds(elemento);
@@ -8426,7 +8413,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const pending = estado.pendingCompleciones[pendKey];
                 if (pending.destinoCoords) return pending.destinoCoords;
 
-                const elemento = findElementoPorPadreId(pendKey) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === pendKey || p.parada_id === pendKey);
+                const elemento = findElementoPorPadreId(pendKey) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === pendKey || p.parada_id === pendKey || p.tramo_id === pendKey);
                 const fromElemento = _extractCoordsFromElemento(elemento);
                 if (fromElemento) { pending.destinoCoords = fromElemento; return pending.destinoCoords; }
 
@@ -8503,7 +8490,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const pending = estado.pendingCompleciones?.[key];
                 if (!pending) return;
 
-                const elemento = findElementoPorPadreId(padreId) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.parada_id === key || p.padreid === padreId);
+                const elemento = findElementoPorPadreId(padreId) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.parada_id === key || p.padreid === padreId || p.tramo_id === key);
                 if (!elemento) return;
 
                 const tipo = elemento.tipo;
