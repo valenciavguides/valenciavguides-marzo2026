@@ -111,7 +111,14 @@
       isStyleLoaded: function () { return true; },
       loaded: function () { return true; },
 
-      addSource: function (id, src) { m._sources[id] = src; return m; },
+      addSource: function (id, src) {
+        // setData() replica GeoJSONSource real — algunas funciones del mapa (p.ej. el
+        // círculo de activación de 20m) reposicionan una fuente existente en vez de
+        // recrearla en cada tick de GPS.
+        src.setData = function (data) { src.data = data; return src; };
+        m._sources[id] = src;
+        return m;
+      },
       removeSource: function (id) { delete m._sources[id]; return m; },
       getSource: function (id) { return m._sources[id] || undefined; },
 

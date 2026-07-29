@@ -17,6 +17,10 @@
  *         marca completada y progresarSiguienteElemento() avanza indiceProgreso.
  *   AP-3  El pending del elemento anterior queda limpio y estado.elementoActual ya
  *         apunta al siguiente antes de que termine la progresión — no hay solape.
+ *   AP-4  manejarCambiarParada() (funciones-mapa.js) encuentra el nuevo elemento en
+ *         AVENTURA_PARADAS por paradaId, no por padreId — antes fallaba siempre en la
+ *         progresión automática y dejaba el marcador/diana del elemento anterior sin
+ *         actualizar en el mapa.
  */
 'use strict';
 
@@ -112,6 +116,9 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
   });
 
   test('AP-2/AP-3. Llegada + fin de audio completan el tramo y progresan, limpiando el pending anterior', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
     const prep = await prepararEscenario(page);
     test.skip(!prep.tieneEstado || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
@@ -146,5 +153,15 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
     expect(despues.pendingAnteriorLimpio, 'El pending del tramo completado debe quedar limpio tras progresar').toBe(true);
     expect(despues.completada, `El tramo debe quedar registrado como completado: ${JSON.stringify(despues.completada)}`).toContain(TRAMO_ID);
     expect(despues.nuevoElementoActual, 'estado.elementoActual debe apuntar ya al siguiente elemento, no seguir en el tramo completado').not.toBe(TRAMO_PADREID);
+
+    // AP-4: manejarCambiarParada() (funciones-mapa.js) debe encontrar el nuevo elemento en
+    // AVENTURA_PARADAS y dibujar su marcador/polyline — antes fallaba siempre en este punto
+    // porque priorizaba padreId ("padre-XXX") sobre paradaId ("AvN-XX-N") para buscar en un
+    // array que solo tiene .id en formato paradaId, dejando el mapa con el marcador del
+    // elemento anterior sin actualizar (dos "dianas" visibles a la vez).
+    const errorMapaNoEncontrada = logs.find(l => l.includes('no encontrada en datos base'));
+    expect(errorMapaNoEncontrada, `manejarCambiarParada no debe fallar al buscar el nuevo elemento en AVENTURA_PARADAS: ${errorMapaNoEncontrada}`).toBeFalsy();
+    const huboDibujado = logs.some(l => l.includes('Completando cambio de parada'));
+    expect(huboDibujado, 'El mapa debe procesar el cambio de parada del nuevo elemento activo').toBe(true);
   });
 });

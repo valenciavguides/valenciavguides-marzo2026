@@ -1724,8 +1724,13 @@ async function manejarCambiarParada(mensaje) {
             return { exito: false, error: 'Consulta pendiente, encolada' };
         }
 
-        // Validar que la parada existe en AVENTURA_PARADAS (soporta both padreId and paradaId)
-        const idToMatch = padreId || paradaId;
+        // Validar que la parada existe en AVENTURA_PARADAS (soporta both padreId and paradaId).
+        // paradaId primero: AVENTURA_PARADAS (js/coordenadas-aventuras.js) solo tiene campo
+        // .id, con el formato "Av1-TR-1"/"Av1-P-1" — nunca padreid ("padre-TR1"). Priorizar
+        // padreId aquí hacía que la búsqueda fallara siempre que llegaba junto a paradaId (el
+        // caso normal desde progresarSiguienteElemento()), dejando el mapa sin actualizar
+        // marcador/polyline del elemento activo — la diana anterior se quedaba en pantalla.
+        const idToMatch = paradaId || padreId;
         const idSinPrefijo = idToMatch?.startsWith('padre-') ? idToMatch.substring(6) : idToMatch;
 
         // Lazy-init: si AVENTURA_PARADAS está vacío pero los datos ya están cargados, poblarlo ahora
@@ -3200,7 +3205,21 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             </div>`;
         } else {
             // Modo AVENTURA: Flecha azul estilo Google Maps escalada
-            const rotation = heading || 0;
+            //
+            // El marcador entero se destruye y se recrea en cada posición GPS (unas líneas
+            // más abajo, marcadorUsuarioGPS.remove()) — hace falta para reposicionarlo, pero
+            // de paso reinicia el transform de .gps-arrow-heading. Usar aquí el `heading` de
+            // coords.heading (velocidad/rumbo de desplazamiento del GPS, no la brújula) es la
+            // causa real de la "flecha loca": ese valor es 0 o poco fiable en cuanto el usuario
+            // no camina a buena velocidad (parado leyendo el móvil, andando despacio...), así
+            // que cada recreación (~7s, un tick de GPS) saltaba de golpe al ángulo suavizado que
+            // llevaba la brújula (actualizarRotacionFlechaGPS, más arriba) a este heading GPS
+            // poco fiable — con la transition de 0.3s, se veía como la flecha dando un giro
+            // brusco cada pocos segundos, encima del ruido normal de la brújula entre medias.
+            // Si la brújula está activa y ya tiene un ángulo acumulado, se reutiliza ese mismo
+            // valor como rotación inicial del marcador nuevo — la recreación ya no interrumpe
+            // el suavizado, solo lo continúa desde donde estaba.
+            const rotation = (compassActiva && _flechaGpsAnguloAcumulado !== null) ? _flechaGpsAnguloAcumulado : (heading || 0);
             const flechaBorde = Math.round(tamAventura * 0.325);  // ~13px a 40px
             const flechaInterior = Math.round(tamAventura * 0.275); // ~11px a 40px
             const flechaAltura = Math.round(tamAventura * 0.8);    // ~32px a 40px

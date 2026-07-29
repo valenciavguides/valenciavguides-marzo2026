@@ -802,10 +802,13 @@ function _actualizarBotonUbicacion(elementosDOM, modo, retoActivo) {
 function _desactivarBotonesRangoExcedido(elementosDOM) {
     if (elementosDOM.btnVideo) desactivarBoton(elementosDOM.btnVideo);
     if (elementosDOM.btnAvanzar) desactivarBoton(elementosDOM.btnAvanzar);
-    if (elementosDOM.btnMapaCompleto) desactivarBoton(elementosDOM.btnMapaCompleto);
-    if (elementosDOM.btnMapaJpg) desactivarBoton(elementosDOM.btnMapaJpg);
+    // Los mapas (completo y vintage) ayudan a un usuario perdido a orientarse — el mismo
+    // motivo por el que btn-ubicacion se mantiene activo, no un motivo distinto — así que
+    // se habilitan junto a él en vez de bloquearse con vídeo/avanzar.
+    if (elementosDOM.btnMapaCompleto) activarBoton(elementosDOM.btnMapaCompleto);
+    if (elementosDOM.btnMapaJpg) activarBoton(elementosDOM.btnMapaJpg);
     if (elementosDOM.btnUbicacion) activarBoton(elementosDOM.btnUbicacion);
-    logger.debug('⚠️ Fuera de rango real: solo btn-ubicacion habilitado, resto deshabilitado');
+    logger.debug('⚠️ Fuera de rango real: ubicación y mapas habilitados, vídeo/avanzar deshabilitados');
 }
 
 function actualizarEstadoBotones() {

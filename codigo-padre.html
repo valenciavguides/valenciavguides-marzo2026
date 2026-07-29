@@ -2301,11 +2301,23 @@
         }
     }
 
-    /* Ocultar TODO el contenido hasta que esté listo */
+    /* Ocultar TODO el contenido hasta que esté listo. #selector-tipo-mapa y
+       #btn-chat-soporte están aquí a propósito, no en la lista de iframes: son un
+       <div> creado por JS y un <button> del HTML estático, así que "body.loading
+       iframe" no los cubre — sin esta regla, _mostrarUIActivada()/
+       actualizarVisibilidadSelectorMapa() pueden ponerlos display:flex/block en
+       cualquier momento de la carga (arranque en frío, reanudación de sesión...),
+       y como su z-index (1000000+) es mayor que el de #loading-overlay (999999),
+       se verían por encima del overlay aunque siguiera tapando la pantalla —
+       el problema nunca fue CUÁNDO se revelan, sino que ningún z-index los frena
+       mientras el overlay está activo. Esta regla si corta esa visibilidad de raíz,
+       con !important, sin importar qué JS la dispare ni en qué orden. */
     body.loading #mapa,
     body.loading #map-debug,
     body.loading #info-parada,
     body.loading #logo-aventura,
+    body.loading #selector-tipo-mapa,
+    body.loading #btn-chat-soporte,
     body.loading iframe {
         visibility: hidden !important;
         opacity: 0 !important;
