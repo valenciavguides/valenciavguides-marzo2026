@@ -717,6 +717,11 @@
     let retoActual = null; // Objeto del reto actual
         let indiceReto = 0; // Índice del reto actualmente mostrado (inicializado en 0)
 
+    // Timer del reset visual de btnEnviar tras una respuesta incorrecta (ver verificar()) —
+    // se guarda para poder cancelarlo si llega un reto nuevo o una respuesta nueva antes de
+    // que cumpla sus 3s; si no, pisaría en silencio el estado visual del reto siguiente.
+    let _timeoutResetBtnEnviar = null;
+
 
     /**
      * Función: ocultarControles()
@@ -900,8 +905,14 @@
             const _bRWrapper = document.getElementById('botonRetos-wrapper');
             if (_bRWrapper) _bRWrapper.style.display = 'none';
 
+            // Un reto nuevo puede llegar mientras el timer de "respuesta incorrecta" del
+            // reto anterior seguía pendiente (p. ej. avance por GPS antes de los 3s) — sin
+            // cancelarlo aquí, dispararía más tarde y pisaría en silencio el estado visual
+            // de btnEnviar de este reto nuevo.
+            if (_timeoutResetBtnEnviar) { clearTimeout(_timeoutResetBtnEnviar); _timeoutResetBtnEnviar = null; }
+
             // Los botones están siempre visibles, pero btnNext está deshabilitado hasta respuesta correcta
-            if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#0077cc"; }
+            if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#B22222"; }
             if (btnMostrarRespuesta) btnMostrarRespuesta.disabled = false;
             if (btnEnviar) { btnEnviar.textContent = "🫵"; btnEnviar.style.backgroundColor = "#0077cc"; }
 
@@ -1126,12 +1137,14 @@
                 retoDiv.classList.add("incorrect");
                 vibrar();
                 btnEnviar.textContent = "👎";
-                btnEnviar.style.backgroundColor = "#dc3545";
+                btnEnviar.style.backgroundColor = "#B22222";
                 btnEnviar.disabled = true;
-                setTimeout(() => {
+                if (_timeoutResetBtnEnviar) clearTimeout(_timeoutResetBtnEnviar);
+                _timeoutResetBtnEnviar = setTimeout(() => {
                     btnEnviar.textContent = "🫵";
                     btnEnviar.style.backgroundColor = "#0077cc";
                     btnEnviar.disabled = false;
+                    _timeoutResetBtnEnviar = null;
                 }, 3000);
             }
         }

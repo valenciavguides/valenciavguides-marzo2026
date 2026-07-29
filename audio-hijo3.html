@@ -193,7 +193,7 @@
         }
 
         #retosBtn:disabled {
-            background: linear-gradient(to right, #dc3545, #c82333);
+            background: linear-gradient(to right, #B22222, #8B1A1A);
             cursor: not-allowed;
             opacity: 0.6;
             box-shadow: none;
@@ -342,7 +342,7 @@
 
         /* BotÃ³n deshabilitado: degradado rojo */
         #hijo3 .boton.deshabilitado {
-            background: linear-gradient(to right, #dc3545, #c82333);
+            background: linear-gradient(to right, #B22222, #8B1A1A);
             color: white;
         }
 
@@ -707,6 +707,14 @@
         // Preparar la fuente siempre (permite que el usuario pulse Play mÃ¡s tarde)
         audioPlayer.src = audioData.file;
         currentAudioId = audioId;
+        // La barra de progreso es un <div> propio, no el control nativo del <audio> - solo
+        // se actualiza via el listener de 'timeupdate', que no dispara hasta que empieza la
+        // reproduccion real. Con autoplay:false (siempre, en este flujo) eso no pasa hasta
+        // que el usuario pulsa play, asi que sin este reset la barra se quedaba mostrando el
+        // porcentaje del audio anterior mientras tanto - especialmente notorio al llegar a
+        // una parada nueva tras completar un tramo, donde el audio se pide pero no se
+        // reproduce solo.
+        _resetearProgresoVisual();
 
         // Actualizar tÃ­tulo de la parada con efecto marquee si no cabe
         const tituloEl = document.getElementById('titulo-parada');
@@ -737,6 +745,16 @@
 
         // Si no se debe reproducir automÃ¡ticamente, indicamos que la carga fue correcta
         return { exito: true, reproducido: false };
+    }
+
+    // Nivel de modulo (no dentro de actualizarInterfazModo) para que cargarYReproducirAudio
+    // y los listeners de audioPlayer, ambos tambien de nivel de modulo, puedan llamarla.
+    // progressBar/progressContainer/currentTimeElement se resuelven en el cuerpo de la
+    // funcion, no al definirla, asi que da igual que progressContainer se declare mas abajo.
+    function _resetearProgresoVisual() {
+        if (progressBar) progressBar.style.width = '0%';
+        if (progressContainer) { progressContainer.setAttribute('aria-valuenow', 0); progressContainer.style.setProperty('--bar-w', 0); }
+        if (currentTimeElement) currentTimeElement.textContent = '00:00';
     }
 
     // Elementos DOM
@@ -1049,6 +1067,13 @@
     });
 
     audioPlayer.addEventListener('ended', async () => {
+        // La parada/tramo activo no cambia solo porque termine el audio — eso lo decide
+        // el padre (avanzar, o el tramo se completa solo) y llega como un nuevo
+        // AUDIO.REPRODUCIR_REQUEST aparte. Pero visualmente la barra no debe quedarse
+        // clavada al 100% mientras tanto: se resetea aquí para que, si el usuario
+        // reproduce esta misma pista otra vez antes de avanzar, empiece desde 0 — igual
+        // que al cargar una pista nueva (cargarYReproducirAudio → _resetearProgresoVisual).
+        _resetearProgresoVisual();
         if (currentAudioId) {
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.AUDIO.FIN_REPRODUCCION,
@@ -1569,12 +1594,6 @@
                 logger.warn(`${logPrefix} Error procesando CAMBIO_PARADA:`, error);
             }
         });
-
-        function _resetearProgresoVisual() {
-            if (progressBar) progressBar.style.width = '0%';
-            if (progressContainer) { progressContainer.setAttribute('aria-valuenow', 0); progressContainer.style.setProperty('--bar-w', 0); }
-            if (currentTimeElement) currentTimeElement.textContent = '00:00';
-        }
 
         async function _manejarSimularClick(elemento, msg, logPrefix) {
             const boton = document.getElementById(elemento);

@@ -139,7 +139,7 @@
         }
 
         .boton.disabled {
-            background: linear-gradient(to right, #dc3545, #c82333);
+            background: linear-gradient(to right, #B22222, #8B1A1A);
             cursor: not-allowed;
             opacity: 0.6;
             box-shadow: none;
@@ -875,9 +875,11 @@ function _idParadaInicio() {
 }
 
 function _procesarDentroDeRango(btn, logPrefix) {
-    btn.disabled = true;
-    btn.style.backgroundColor = '#f44336';
-    btn.style.opacity = '0.6';
+    // desactivarBoton() (no un color puesto a mano) porque el fondo base de .boton es
+    // un degradado CSS (background, no background-color) — un background-color inline
+    // queda tapado por él y el botón se ve verde aunque disabled=true lo bloquee de
+    // verdad. La clase .disabled sí gana porque redefine el mismo shorthand `background`.
+    desactivarBoton(btn);
     if (estadoComponente.timestampSalioDeRango !== null) {
         logger.info(`${logPrefix} ✅ Usuario volvió DENTRO de rango`);
         estadoComponente.timestampSalioDeRango = null;
@@ -896,10 +898,8 @@ function _procesarDentroDeRango(btn, logPrefix) {
     }
 }
 
-function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja) {
-    btn.disabled = false;
-    btn.style.backgroundColor = '#4CAF50';
-    btn.style.opacity = '1';
+function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango) {
+    activarBoton(btn);
     if (!estadoComponente.fueraDeRangoActivo) {
         estadoComponente.fueraDeRangoActivo = true;
         actualizarEstadoBotones();
@@ -912,7 +912,7 @@ function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja) {
             tipo: TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO,
             origen: CONFIG_HIJO.IFRAME_ID,
             destino: resolverIdPadre(),
-            datos: { distancia: estadoComponente.distanciaAlDestino, franja, elementoMasCercano: estadoComponente.idParadaActual || null, timestamp: Date.now() }
+            datos: { distancia: distanciaParaRango ?? estadoComponente.distanciaAlDestino, franja, elementoMasCercano: estadoComponente.idParadaActual || null, timestamp: Date.now() }
         }).catch(e => logger.debug(`${logPrefix} Error notificando usuario fuera de rango:`, e.message));
         // La polyline NO se envía sola aquí — solo al pulsar btn-ubicacion (ver su listener
         // de click): así el GPS tiene tiempo de asentarse mientras el usuario reacciona.
@@ -930,15 +930,27 @@ function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja) {
  */
 function verificarDistanciaYActualizarBotones() {
     const logPrefix = '[hijo2][verificarDistanciaYActualizarBotones]';
-    const { distanciaAlDestino, idParadaActual, tipoParadaActual, toleranciaGPS } = estadoComponente;
+    const { distanciaAlDestino, distanciaAlCamino, idParadaActual, tipoParadaActual, toleranciaGPS } = estadoComponente;
     if (distanciaAlDestino === undefined || distanciaAlDestino === null) {
         logger.warn(`${logPrefix} No hay distancia a parada actual disponible`);
         return;
     }
 
     const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    // El aviso de "fuera de rango" mide desviación del CAMINO, no cercanía al destino —
+    // en un tramo, comparar contra el punto de fin marcaba "fuera de rango" nada más
+    // empezar a caminar (el propio punto de inicio ya puede estar a varias decenas de
+    // metros en línea recta del final). distanciaAlCamino (funciones-mapa.js, proyección
+    // sobre inicio->waypoints->fin) es ~0 en el punto de partida y crece solo si el
+    // usuario de verdad se aleja de la ruta. En paradas no hay "camino" que seguir —
+    // ahí distanciaAlCamino llega igual a distanciaAlDestino (mismo valor, ver
+    // procesarPosicionGPSParaAventura), así que el fallback es solo por si el mensaje
+    // aún no lo incluye. La llegada real (_detectarLlegadaTramo/_detectarLlegadaParada)
+    // y el override manual de avanzar siguen midiendo contra distanciaAlDestino, sin
+    // cambios — llegar exige estar cerca del final, no solo del camino.
+    const distanciaParaRango = (esTramo && typeof distanciaAlCamino === 'number') ? distanciaAlCamino : distanciaAlDestino;
     const rangoMaximo = esTramo ? toleranciaGPS : 20; // mismo umbral real que usa btn-avanzar
-    const dentroDeRango = distanciaAlDestino <= rangoMaximo;
+    const dentroDeRango = distanciaParaRango <= rangoMaximo;
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
     if (!btn) {
@@ -963,28 +975,26 @@ function verificarDistanciaYActualizarBotones() {
             tipo: TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO,
             origen: CONFIG_HIJO.IFRAME_ID,
             destino: resolverIdPadre(),
-            datos: { idParada: idParadaActual, distancia: distanciaAlDestino, rangoMaximo, timestampSalioDeRango: estadoComponente.timestampSalioDeRango }
+            datos: { idParada: idParadaActual, distancia: distanciaParaRango, rangoMaximo, timestampSalioDeRango: estadoComponente.timestampSalioDeRango }
         }).catch(e => logger.debug(`${logPrefix} Error notificando GPS restringido:`, e.message));
     }
 
     let franja;
-    if (distanciaAlDestino > 2000) franja = 'muylejos';
-    else if (distanciaAlDestino > 50) franja = 'lejos';
+    if (distanciaParaRango > 2000) franja = 'muylejos';
+    else if (distanciaParaRango > 50) franja = 'lejos';
     else franja = 'fuera';
 
     if (franja !== 'fuera') {
         // 51-2000m y >2000m: habilitación inmediata, sin cuenta atrás
-        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja);
+        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango);
         return;
     }
 
     const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
     if (tiempoFuera >= estadoComponente.tiempoFueraRequerido) {
-        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja);
+        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango);
     } else {
-        btn.disabled = true;
-        btn.style.backgroundColor = '#f44336';
-        btn.style.opacity = '0.6';
+        desactivarBoton(btn);
         const segundosRestantes = Math.ceil(Math.max(0, estadoComponente.tiempoFueraRequerido - tiempoFuera) / 1000);
         logger.debug(`${logPrefix} ⏳ ${idParadaActual}: a ${distanciaAlDestino}m, esperando: ${segundosRestantes}s restantes`);
     }
@@ -1355,8 +1365,13 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 // Ahora se usa ACTUALIZAR_ESTADO que incluye distancia y otros datos
 
 function _aplicarDatosEstado(datos, logPrefix) {
-    const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
+    const { distanciaAlDestino, distanciaAlCamino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
     if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
+    // distanciaAlCamino: distancia al punto más cercano del camino (inicio->waypoints->fin
+    // en tramos), no al destino final — solo la usa verificarDistanciaYActualizarBotones()
+    // para decidir "fuera de rango"; la llegada real sigue midiéndose contra el destino
+    // (distanciaAlDestino), sin cambios, en _detectarLlegadaTramo/_detectarLlegadaParada.
+    if (distanciaAlCamino !== undefined) estadoComponente.distanciaAlCamino = distanciaAlCamino;
     if (idParada !== undefined) estadoComponente.idParadaActual = idParada;
     if (tipoParada !== undefined) estadoComponente.tipoParadaActual = tipoParada;
     if (toleranciaGPS !== undefined) {
@@ -1714,9 +1729,7 @@ try {
         const btn = elementosDOM.btnUbicacion;
         if (btn) {
             if (modo === 'casa') {
-                btn.disabled = true;
-                btn.style.backgroundColor = '#f44336';
-                btn.style.opacity = '0.6';
+                desactivarBoton(btn);
                 btn.title = 'Ubicación no disponible en modo casa';
                 logger.info(`${logPrefix} → Modo CASA: botón rojo deshabilitado`);
             } else {
@@ -2339,9 +2352,7 @@ try {
 
             // MODO CASA: Siempre rojo deshabilitado (ignorar estado GPS)
             if (modoActual === 'casa') {
-                btn.disabled = true;
-                btn.style.backgroundColor = '#f44336'; // Rojo
-                btn.style.opacity = '0.6';
+                desactivarBoton(btn);
                 btn.title = 'Ubicación no disponible en modo casa';
                 logger.debug(`${logPrefix} Modo casa: botón forzado a rojo deshabilitado`);
                 return { exito: true };

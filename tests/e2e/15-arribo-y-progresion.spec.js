@@ -21,6 +21,9 @@
  *         AVENTURA_PARADAS por paradaId, no por padreId — antes fallaba siempre en la
  *         progresión automática y dejaba el marcador/diana del elemento anterior sin
  *         actualizar en el mapa.
+ *   AP-5  Tras completar el tramo, se pide a hijo3 exactamente el audio del siguiente
+ *         elemento (la parada contigua) — una sola solicitud, sin repetir el audio del
+ *         tramo recién completado ni adelantarse al elemento posterior.
  */
 'use strict';
 
@@ -163,5 +166,12 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
     expect(errorMapaNoEncontrada, `manejarCambiarParada no debe fallar al buscar el nuevo elemento en AVENTURA_PARADAS: ${errorMapaNoEncontrada}`).toBeFalsy();
     const huboDibujado = logs.some(l => l.includes('Completando cambio de parada'));
     expect(huboDibujado, 'El mapa debe procesar el cambio de parada del nuevo elemento activo').toBe(true);
+
+    // AP-5: el padre no debe "mezclar" el tramo recien completado con el siguiente
+    // elemento (Av1-P-1, la parada contigua) — se pide exactamente el audio de Av1-P-1,
+    // nunca se repite el de Av1-TR-1 ni se adelanta al de Av1-TR-2 (el tramo siguiente a P-1).
+    const solicitudesAudio = logs.filter(l => l.includes('Solicitando reproducción de audio a hijo3'));
+    expect(solicitudesAudio.length, `Debe haber exactamente 1 solicitud de audio tras esta unica progresion: ${JSON.stringify(solicitudesAudio)}`).toBe(1);
+    expect(solicitudesAudio[0], `La solicitud de audio debe ser la de Av1-P-1 (audio-Av1-P-1-es), no repetir Av1-TR-1 ni adelantarse a otro elemento: ${solicitudesAudio[0]}`).toContain('audio-Av1-P-1-es');
   });
 });

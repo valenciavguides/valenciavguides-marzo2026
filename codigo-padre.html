@@ -1378,7 +1378,7 @@
 
         #audio-main-toggle-btn:disabled,
         .audio-action-btn:disabled {
-            background: linear-gradient(to right, #dc3545, #c82333);
+            background: linear-gradient(to right, #B22222, #8B1A1A);
             opacity: 0.6;
             cursor: not-allowed;
             box-shadow: none;
@@ -4198,6 +4198,10 @@
                         estado.seleccion.idioma = null;
                         estado.seleccion.iniciada = false;
                     }
+                    // El tiempo restante es de ESTA aventura — sin resetearlo, la próxima
+                    // aventura seleccionada arrancaría su temporizador con el tiempo que le
+                    // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
+                    estado.tiempoRestante = null;
                     // Ocultar la UI de "aventura activada" (hijo2/hijo3/hijo1-opciones/hijo5/
                     // chat/selector de mapa) por si ya estaba visible — de una restauración
                     // de bfcache al reabrir la pestaña, o de una aventura realmente activa en
@@ -4281,6 +4285,10 @@
                         estado.seleccion.idioma = null;
                         estado.seleccion.iniciada = false;
                     }
+                    // El tiempo restante es de ESTA aventura — sin resetearlo, la próxima
+                    // aventura seleccionada arrancaría su temporizador con el tiempo que le
+                    // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
+                    estado.tiempoRestante = null;
                     // Esta aventura SÍ estaba realmente activa (por eso mostrarDialogoVueltaRapida
                     // se disparó) — hijo2/hijo3/chat/selector están visibles de verdad y hay que
                     // ocultarlos al volver a selección, ver _ocultarUIActivada().

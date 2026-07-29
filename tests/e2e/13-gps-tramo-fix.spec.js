@@ -30,6 +30,14 @@
  *         indiceActual+1, así que mientras una parada/tramo estaba activo pero
  *         aún no alcanzado físicamente, el GPS ya apuntaba al que venía después
  *         (nunca se detectaba la llegada real, incluida la parada 0 al empezar).
+ *   DC-1  En el punto de INICIO de un tramo, distanciaAlCamino ≈0m mientras
+ *         distanciaAlDestino se mantiene grande (bug 3 del reporte de campo:
+ *         el aviso de "fuera de rango" saltaba nada más empezar a caminar).
+ *   DC-2  Sobre un waypoint intermedio (lejos de .inicio y .fin), distanciaAlCamino
+ *         también da ~0m — la proyección funciona en cualquier tramo del camino,
+ *         no solo en los extremos.
+ *   DC-3  Para una PARADA (no tramo), distanciaAlCamino coincide siempre con
+ *         distanciaAlDestino — la separación de métricas es exclusiva de tramos.
  */
 'use strict';
 
@@ -448,5 +456,112 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
 
     const huboLimpieza = logs.some(l => l.includes('Distancia ≤50m, removiendo polyline de navegación automáticamente'));
     expect(huboLimpieza, 'La llegada real debe limpiar la polyline sin importar la ventana de prioridad manual').toBe(true);
+  });
+
+  // DC — distanciaAlCamino: la distancia al camino real (inicio→waypoints→fin), separada
+  // de distanciaAlDestino (siempre contra .fin), usada solo para decidir el aviso de
+  // "fuera de rango" en tramos. Cubre el bug 3 reportado por el usuario: en Av1-TR-1 el
+  // punto de INICIO ya está a ~99m en línea recta del .fin, muy por encima de la
+  // tolerancia calculada (~61m) — con distanciaAlDestino el usuario aparecía "fuera de
+  // rango" nada más empezar a caminar. distanciaAlCamino, al proyectar sobre el camino
+  // real, debe dar ~0m en ese mismo punto.
+  const LOG_DISTANCIA_RE = /Distancia a ([\w-]+): (\d+)m \(camino: (\d+)m, tolerancia: (\d+)m\)/;
+
+  test('DC-1. En el punto de INICIO de un tramo, distanciaAlCamino ≈0 mientras distanciaAlDestino se mantiene grande', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
+    const logDistancia = logs.find(l => l.includes('Distancia a Av1-TR-1'));
+    expect(logDistancia, `No se encontró el log de distancia. Logs: ${JSON.stringify(logs.filter(l => /Distancia/i.test(l)))}`).toBeTruthy();
+
+    const m = LOG_DISTANCIA_RE.exec(logDistancia);
+    expect(m, `El log no tiene el formato esperado: "${logDistancia}"`).toBeTruthy();
+    const [, , distanciaAlDestino, distanciaAlCamino] = m;
+    expect(Number(distanciaAlCamino), `En el punto de inicio, distanciaAlCamino debe ser ~0m (medido: ${distanciaAlCamino}m)`).toBeLessThan(5);
+    expect(Number(distanciaAlDestino), `distanciaAlDestino en el inicio debe seguir siendo grande, sin tocar (medido: ${distanciaAlDestino}m)`).toBeGreaterThan(80);
+  });
+
+  test('DC-2. Cerca de un waypoint intermedio (lejos de .fin), distanciaAlCamino es pequeña', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Segundo waypoint de Av1-TR-1 — a medio camino, lejos tanto de .inicio como de .fin.
+    const wp = TRAMO.waypoints[1];
+    await page.evaluate(async (coords) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: coords.lat, longitude: coords.lng, accuracy: 5 },
+      });
+    }, wp);
+    await page.waitForTimeout(300);
+
+    const logDistancia = logs.find(l => l.includes('Distancia a Av1-TR-1'));
+    expect(logDistancia, `No se encontró el log de distancia. Logs: ${JSON.stringify(logs.filter(l => /Distancia/i.test(l)))}`).toBeTruthy();
+
+    const m = LOG_DISTANCIA_RE.exec(logDistancia);
+    expect(m, `El log no tiene el formato esperado: "${logDistancia}"`).toBeTruthy();
+    const [, , , distanciaAlCamino] = m;
+    // Se está de pie exactamente sobre un punto del camino: la proyección debe caer ~0m.
+    expect(Number(distanciaAlCamino), `Sobre un waypoint, distanciaAlCamino debe ser ~0m (medido: ${distanciaAlCamino}m)`).toBeLessThan(5);
+  });
+
+  test('DC-3. Para una PARADA (no tramo), distanciaAlCamino coincide siempre con distanciaAlDestino', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    await esperarPipelineListo(page);
+    const prep = await page.evaluate(async () => {
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.idiomaSeleccionado = 'es';
+      if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
+        await globalThis.__cargarDatosAventuraDiferidos();
+      }
+      if (!globalThis.AVENTURA_PARADAS?.length && globalThis.__vv_DATOS_AVENTURAS?.Aventura1) {
+        const coords = globalThis.__vv_DATOS_AVENTURAS.Aventura1['coordenadas-hijo2.html']?.coordenadas;
+        if (coords?.length) globalThis.AVENTURA_PARADAS = coords;
+      }
+      const fm = globalThis.funcionesMapa;
+      // Av1-P-1 es una parada normal (tipo:"parada"), no un tramo — su .coordenadas
+      // coincide con Av1-TR-1.fin en los datos reales (ver nota en GT-3/GT-4 más arriba).
+      if (typeof fm?.limpiarPorEstado === 'function') {
+        fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
+        fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-P-1' });
+      }
+      return {
+        tieneFunciones: !!fm?.procesarPosicionGPSParaAventura,
+        av1P1Encontrada: !!globalThis.AVENTURA_PARADAS?.find(p => p.id === 'Av1-P-1'),
+      };
+    });
+    test.skip(!prep.tieneFunciones || !prep.av1P1Encontrada, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Posición lejana arbitraria (el propio inicio de Av1-TR-1) — lo único que importa
+    // es que NO coincida con Av1-P-1, para que distanciaAlDestino sea > 0 y discrimine.
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
+    const logDistancia = logs.find(l => l.includes('Distancia a Av1-P-1'));
+    expect(logDistancia, `No se encontró el log de distancia. Logs: ${JSON.stringify(logs.filter(l => /Distancia/i.test(l)))}`).toBeTruthy();
+
+    const m = LOG_DISTANCIA_RE.exec(logDistancia);
+    expect(m, `El log no tiene el formato esperado: "${logDistancia}"`).toBeTruthy();
+    const [, , distanciaAlDestino, distanciaAlCamino] = m;
+    expect(Number(distanciaAlDestino), 'La distancia debe ser significativa para que la comparación discrimine').toBeGreaterThan(50);
+    expect(distanciaAlCamino, `En una parada, distanciaAlCamino no debe divergir de distanciaAlDestino (destino=${distanciaAlDestino}m, camino=${distanciaAlCamino}m)`).toBe(distanciaAlDestino);
   });
 });

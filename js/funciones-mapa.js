@@ -2776,14 +2776,40 @@ async function procesarPosicionGPSParaAventura(posicion) {
             return;
         }
 
-        // Calcular distancia a siguiente parada
+        // Calcular distancia a siguiente parada — SIEMPRE contra el destino real (.fin en
+        // tramos), nunca contra el camino: esta es la que decide llegada (más abajo) y la
+        // que activa el override manual de avanzar en hijo2, ambas exigen estar cerca del
+        // final de verdad, no solo en algún punto del trayecto.
         const distancia = calcularDistancia(latitude, longitude,
             coordsSiguiente.lat, coordsSiguiente.lng);
 
         // Calcular tolerancia GPS dinámica para el elemento actual
         const toleranciaGPS = calcularToleranciaGPS(siguienteParada);
 
-        logger.debug(`${logPrefix} Distancia a ${siguienteParada.id}: ${Math.ceil(distancia)}m (tolerancia: ${toleranciaGPS}m)`);
+        // Distancia al CAMINO (no al destino) — solo difiere de `distancia` en tramos, y
+        // solo se usa para decidir si el usuario se ha desviado de la ruta (aviso de fuera
+        // de rango en hijo2/padre). Medir esa desviación contra la distancia al punto de
+        // FIN es lo que hacía saltar el aviso nada más empezar a caminar un tramo largo:
+        // en Av1-TR-1, por ejemplo, el propio punto de inicio ya está a ~99m en línea recta
+        // del punto de fin, muy por encima de los ~61m de tolerancia calculados para ese
+        // tramo — el usuario nunca estaba realmente "fuera de rango", solo lejos del final
+        // porque acababa de empezar. Proyectando sobre el camino real (inicio→waypoints→fin)
+        // con puntoMasCercanoEnLinea(), la distancia en el punto de partida es ~0m: la
+        // tolerancia (que ya tiene en cuenta lo separados que están los waypoints entre sí,
+        // ver calcularToleranciaGPS) sigue aplicando, pero contra la baseline correcta.
+        let distanciaAlCamino = distancia;
+        if (siguienteParada.tipo === 'tramo' && Array.isArray(siguienteParada.waypoints)) {
+            const puntosCamino = [siguienteParada.inicio, ...siguienteParada.waypoints, siguienteParada.fin]
+                .filter(p => p?.lat && p?.lng);
+            if (puntosCamino.length >= 2) {
+                const puntoCercano = puntoMasCercanoEnLinea({ lat: latitude, lng: longitude }, puntosCamino);
+                if (puntoCercano) {
+                    distanciaAlCamino = calcularDistancia(latitude, longitude, puntoCercano.lat, puntoCercano.lng);
+                }
+            }
+        }
+
+        logger.debug(`${logPrefix} Distancia a ${siguienteParada.id}: ${Math.ceil(distancia)}m (camino: ${Math.ceil(distanciaAlCamino)}m, tolerancia: ${toleranciaGPS}m)`);
 
         // ✅ CRÍTICO: Actualizar marcador visual del usuario en el mapa (flecha azul)
         // DEBE llamarse ANTES de enviar mensajes para que el usuario vea su posición en tiempo real
@@ -2804,6 +2830,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 origen: 'funciones-mapa',
                 datos: {
                     distanciaAlDestino: Math.ceil(distancia),
+                    distanciaAlCamino: Math.ceil(distanciaAlCamino),
                     idParada: siguienteParada.id,
                     tipoParada: siguienteParada.tipo || 'parada',
                     toleranciaGPS: toleranciaGPS,
@@ -3225,23 +3252,25 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             const flechaAltura = Math.round(tamAventura * 0.8);    // ~32px a 40px
 
             // Sin punto central: la flecha sola representa posición + rumbo. Cada triángulo
-            // lleva su propio translate(-50%,-50%) ANTES del pequeño offset de sombreado —
-            // con la técnica de bordes CSS, un triángulo width:0;height:0 se renderiza con
-            // su vértice en la esquina superior izquierda de su caja, no en el centro; sin
-            // este -50%/-50% el vértice quedaba en el punto GPS real y la base colgaba hacia
-            // abajo, así que al rotar la flecha entera ORBITABA alrededor del punto en vez de
-            // girar sobre sí misma (efecto "flecha loca" con cualquier variación de rumbo,
-            // por pequeña que fuera). Centrando cada triángulo en su propia caja, el giro
-            // queda anclado en el centro geométrico real de la flecha.
+            // lleva su propio translate(-50%,0%) ANTES del pequeño offset de sombreado — con
+            // la técnica de bordes CSS, un triángulo width:0;height:0 se renderiza con su
+            // vértice (ápice) en el borde superior de su caja y la base colgando hacia abajo.
+            // translate(-50%,0%) centra solo el eje horizontal y deja el vértice exactamente
+            // en el origen local (el punto GPS real, ya que el contenedor .gps-arrow-heading
+            // gira sobre ese mismo punto) — así el ápice, que es el que señala la dirección,
+            // queda clavado sobre la posición real del usuario en cualquier ángulo, y es la
+            // base la que barre un arco al girar (medido: con -50%/-50%, que centra la caja
+            // entera en vez de solo el ápice, la punta oscilaba ±16px alrededor del punto real
+            // en un icono de 40px; con -50%/0% la punta no se mueve ni un píxel al rotar).
             iconHtml = `<div style="width:${tamAventura}px;height:${tamAventura}px;position:relative;">
                 <!-- Flecha principal estilo Google Maps — clase gps-arrow-heading para rotación en tiempo real -->
                 <div class="gps-arrow-heading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(${rotation}deg);transition:transform 0.3s ease-out;">
                     <!-- Sombra de la flecha -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.94)}px solid rgba(0,0,0,0.2);filter:blur(3px);transform:translate(-50%,-50%) translate(2px,2px);"></div>
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.94)}px solid rgba(0,0,0,0.2);filter:blur(3px);transform:translate(-50%,0%) translate(2px,2px);"></div>
                     <!-- Borde blanco de la flecha -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaBorde}px solid transparent;border-right:${flechaBorde}px solid transparent;border-bottom:${flechaAltura}px solid white;transform:translate(-50%,-50%);"></div>
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaBorde}px solid transparent;border-right:${flechaBorde}px solid transparent;border-bottom:${flechaAltura}px solid white;transform:translate(-50%,0%);"></div>
                     <!-- Flecha azul principal (Google Maps style) -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.875)}px solid #4285F4;transform:translate(-50%,-50%) translate(1px,2px);"></div>
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.875)}px solid #4285F4;transform:translate(-50%,0%) translate(1px,2px);"></div>
                 </div>
             </div>`;
         }

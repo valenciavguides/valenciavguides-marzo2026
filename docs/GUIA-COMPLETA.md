@@ -843,6 +843,8 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 | ○ (círculo 21 m) | Polígono geográfico (radio constante en metros, no en píxeles) | Borde rojo, relleno amarillo semitransparente | Acompaña siempre a la flecha snap-to-route. Indica la zona de tolerancia visual alrededor del punto proyectado. MapLibre no tiene una capa `circle` con radio en metros (su `circle-radius` es en píxeles de pantalla, cambiaría de tamaño real al hacer zoom), así que el círculo se genera como un polígono real (32 puntos a distancia/rumbo fijo del centro) que se recalcula cada vez que el centro se mueve |
 | 🏛️ (píldora referencia) | Div CSS: píldora blanca con borde naranja | `#ff8c00` naranja | **Referencias visuales** — monumentos mencionados en el texto que el usuario nunca visita físicamente. Muestra el emoji 🏛️ a la izquierda y el número de `mapa_numero` a la derecha. Al pulsar abre un popup con el nombre del monumento. Escala dinámicamente con el zoom. Apilado visual `zIndex: 400` (por debajo de paradas visitadas, 600) vía CSS sobre el elemento del marcador. Gestionado por `crearIconoReferencia()` y `dibujarReferencias()` en `funciones-mapa.js` — implementación independiente de la de `mapa-completo.html`, que dibuja sus propias referencias con `L.divIcon`/`L.marker` sobre los mismos datos |
 
+**El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
+
 ```mermaid
 flowchart TD
     A([Aventura activada]) --> B["📌 Punto de inicio dibujado\n🎯 Todas las paradas dibujadas\n🏛️ Referencias visuales dibujadas\n(permanentes durante la aventura)"]
@@ -1194,17 +1196,22 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 | Color | Hex | Dónde aparece | Cuándo |
 |-------|-----|---------------|--------|
 | 🟢 Verde | `#1e7e34→#0d3a16` | `.boton` en hijo2, `.boton.habilitado` en hijo3 | Estado por defecto — botón activo y pulsable |
-| 🔴 Rojo | `#dc3545→#c82333` (`opacity: 0.6`) | `.boton.disabled` en hijo2, `.boton.deshabilitado` en hijo3 | Botón bloqueado — GPS deshabilitado o precisión insuficiente |
+| 🔴 Rojo | `#B22222→#8B1A1A` (`opacity: 0.6`) | `.boton.disabled` en hijo2 y en video-intro.html, `#hijo3 .boton.deshabilitado` y `#retosBtn:disabled` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en codigo-padre.html | Botón bloqueado — GPS deshabilitado o precisión insuficiente. Rojo único y estandarizado en toda la app: cualquier botón que se deshabilite, en cualquier hijo, usa este mismo degradado — nunca un rojo distinto |
 | 🔵 Azul | `#007bff→#0056b3` | `.boton.activo` en hijo2 | Navegación revelada — `btn-avanzar` pulsado, polyline y marcadores visibles en el mapa |
-| 🔵 Azul | `#0077cc` (inline) | `btnEnviar`, `btnNext` en hijo4 | Estado inicial/neutro de los botones de respuesta y continuar |
+| 🔵 Azul | `#0077cc` (inline) | `btnEnviar` en hijo4 (estado inicial/neutro) | Botón de respuesta listo para pulsar |
+| 🔴 Rojo | `#B22222` (inline) | `btnNext` en hijo4 | Deshabilitado desde que empieza el reto hasta que la respuesta es correcta — mismo rojo estándar que el resto de la app, aplicado a mano (inline) porque este botón no usa la clase `.disabled` compartida |
 | 🟢 Verde | `#28a745` (inline) | `btnEnviar` en hijo4 | Respuesta correcta introducida |
-| 🔴 Rojo | `#dc3545` (inline, 3 s) | `btnEnviar` en hijo4 | Respuesta incorrecta — vuelve a azul `#0077cc` tras 3 s |
+| 🔴 Rojo | `#B22222` (inline, 3 s) | `btnEnviar` en hijo4 | Respuesta incorrecta — vuelve a azul `#0077cc` tras 3 s |
 | 🟢 Verde | `#28a745` (inline) | `btnNext` en hijo4 | Se habilita sin condición en cuanto la respuesta es correcta — es el único botón que cierra la ventana flotante, así que nunca depende de si quedan más retos en la parada (ver §31 y la nota junto a `#btnNextAfterReto` más abajo) |
+
+El rojo de "deshabilitado" (`#B22222→#8B1A1A`) y el rojo de "respuesta incorrecta" en hijo4 (`#B22222` plano) comparten el mismo tono base a propósito — un único rojo reconocible en toda la app para "esto no se puede pulsar ahora mismo", sin variantes.
+
+**El `setTimeout` de 3s que revierte `btnEnviar` tras una respuesta incorrecta se guarda en `_timeoutResetBtnEnviar`** (variable de módulo en `retos-hijo4.html`) y se cancela explícitamente en dos puntos: al iniciar un nuevo intento de `verificar()` (por si quedaba uno pendiente de una respuesta incorrecta anterior) y al cargar un reto nuevo en `mostrarReto()` — necesario porque el padre puede empujar un reto distinto (avance por GPS, por ejemplo) antes de que se cumplan esos 3s; sin cancelarlo, dispararía más tarde y pisaría en silencio el estado visual (color/`disabled`) de `btnEnviar` para el reto que esté en pantalla en ese momento, sea el mismo u otro distinto.
 
 ```mermaid
 flowchart TD
     subgraph hijo2 ["hijo2 — botones circulares (.boton)"]
-        A["🟢 Verde #1e7e34\n(por defecto)"] -- CONTROL.DESHABILITAR\no GPS sin precisión --> B["🔴 Rojo #dc3545\n(opacity 0.6)"]
+        A["🟢 Verde #1e7e34\n(por defecto)"] -- CONTROL.DESHABILITAR\no GPS sin precisión --> B["🔴 Rojo #B22222\n(opacity 0.6)"]
         B -- CONTROL.HABILITAR\no GPS recupera --> A
         A -- btn-avanzar pulsado\n(navegación revelada) --> C["🔵 Azul #007bff\n(.boton.activo)"]
         C -- CAMBIO_PARADA\n(se resetea) --> A
@@ -1212,7 +1219,7 @@ flowchart TD
 
     subgraph hijo4 ["hijo4 — btnEnviar y btnNext"]
         D["🔵 Azul #0077cc\n(estado inicial)"] -- respuesta correcta --> E["🟢 Verde #28a745"]
-        D -- respuesta incorrecta --> F["🔴 Rojo #dc3545"]
+        D -- respuesta incorrecta --> F["🔴 Rojo #B22222"]
         F -- tras 3 s --> D
         E -- respuesta correcta --> G["🟢 Verde #28a745\nbtnNext pulsable (cierra la ventana)"]
     end
@@ -2390,8 +2397,8 @@ sequenceDiagram
 
 | Elemento | ID / clase | Estado inicial | Cuándo se habilita / qué cambia |
 |----------|-----------|-----------|----|
-| Elemento audio | (interno, sin ID público) | `src = ""`, sin reproducir | Al recibir `AUDIO.REPRODUCIR_REQUEST` → se asigna `src`, se actualiza el título; `.play()` solo si `autoplay===true` (el padre siempre envía `autoplay:false`) |
-| Barra de progreso | `.progress-top-row input[type=range]` | Valor 0 | Se actualiza con evento `timeupdate` del audio cada ~250 ms |
+| Elemento audio | (interno, sin ID público) | `src = ""`, sin reproducir | Al recibir `AUDIO.REPRODUCIR_REQUEST` → se asigna `src`, se actualiza el título, la barra de progreso se resetea a 0 (`_resetearProgresoVisual()`); `.play()` solo si `autoplay===true` (el padre siempre envía `autoplay:false`) |
+| Barra de progreso | `.progress-top-row input[type=range]` | Valor 0 | Se actualiza con evento `timeupdate` del audio cada ~250 ms. Vuelve a 0 en dos momentos: al cargar un audio nuevo (arriba) y al terminar de reproducirse (evento `ended`, antes de notificar `AUDIO.FIN_REPRODUCCION`) — nunca se queda con el progreso del audio anterior mientras el padre resuelve cuál toca a continuación |
 | Título de pista | `#track-title-display` / `.content-left` | Texto vacío | Muestra nombre de la parada/tramo cuando se asigna el audio |
 | Botón retos | `#retosBtn` | `disabled = true`, `opacity: 0.5`, `pointer-events: none` | Ver tabla de habilitación ↓ |
 
@@ -3565,7 +3572,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `SISTEMA.CAMBIO_MODO` | `{ modo, mensajeId }` | Actualiza clase CSS `modo-casa`/`modo-aventura` en body | ✓ | ✓ |
 | `SISTEMA.HEARTBEAT` | `{ timestamp }` | Responde `HEARTBEAT_RESPONSE` | — | ✓ |
 | `SISTEMA.HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | Activa / pausa ciclo | — / ✓ | ✓ / — |
-| `AUDIO.REPRODUCIR_REQUEST` | `{ audioId, audioData:{id,title,file}, autoplay:false }` | Guarda `audioData` en la caché local acotada (máx. 2 ids: parada actual + 1 anterior); asigna `audio.src`; el padre siempre envía `autoplay:false` — el usuario reproduce desde los controles del padre. Si `audioData` viene ausente (p. ej. respuesta a `SOLICITAR_AUDIOS` desde `js/controladores-padre.js`, que sí lo incluye) o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | ✓ (manual) | ✓ (automático al entrar en parada) |
+| `AUDIO.REPRODUCIR_REQUEST` | `{ audioId, audioData:{id,title,file}, autoplay:false }` | Guarda `audioData` en la caché local acotada (máx. 2 ids: parada actual + 1 anterior); asigna `audio.src`; resetea la barra de progreso a 0 (`_resetearProgresoVisual()`, también se llama al terminar el audio anterior — ver §7.4); el padre siempre envía `autoplay:false` — el usuario reproduce desde los controles del padre. Si `audioData` viene ausente (p. ej. respuesta a `SOLICITAR_AUDIOS` desde `js/controladores-padre.js`, que sí lo incluye) o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | ✓ (manual) | ✓ (automático al entrar en parada) |
 | `CONTROL.HABILITAR` | `{ control:'retosBtn' }` | `retosBtn.disabled=false`, opacity 1 | ✓ inmediato si reto_id | ✓ tras FIN_REPRODUCCION |
 | `CONTROL.DESHABILITAR` | `{ control:'retosBtn', razon }` | `retosBtn.disabled=true`, opacity 0.5 | ✓ tramos/sin reto | ✓ al entrar en parada |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId }` | Reset spin + quita clase `.activo` del `#retosBtn` | ✓ | ✓ |
@@ -4390,7 +4397,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-1b18dfe70f6c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-b95254937707'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5863,20 +5870,29 @@ La infraestructura de cola fue preparada pero nunca conectada al emisor real.
 
 ### Sistema "fuera de rango real" — flujo completo y estados de botones
 
-Se activa cuando `distanciaAlDestino > rangoMaximo` respecto a **la parada que le toca al usuario** (la siguiente según `estado.indiceProgreso`) — el mismo umbral real que exige `btn-avanzar`: 20m fijo en paradas, `toleranciaGPS` dinámico en tramos. A partir de ahí, la distancia real se reparte en tres franjas que deciden qué pantalla de aviso muestra el padre (§30.4).
+Se activa cuando la distancia relevante (ver "Dos métricas de distancia" más abajo) supera `rangoMaximo` respecto a **la parada que le toca al usuario** (la siguiente según `estado.indiceProgreso`) — el mismo umbral real que exige `btn-avanzar`: 20m fijo en paradas, `toleranciaGPS` dinámico en tramos. A partir de ahí, la distancia real se reparte en tres franjas que deciden qué pantalla de aviso muestra el padre (§30.4).
+
+**Dos métricas de distancia, dos propósitos distintos.** `procesarPosicionGPSParaAventura()` calcula y envía ambas en cada posición GPS:
+
+- **`distanciaAlDestino`** — línea recta hasta el punto de llegada real (`.coordenadas` en paradas, `.fin` en tramos). Es la que decide **llegada**: la usan `verificarLlegadaADestino()`, `_detectarLlegadaTramo()`/`_detectarLlegadaParada()` de hijo2, y el override manual de `btnAvanzar`. Nunca cambia de criterio — llegar significa estar cerca del punto final de verdad, no de cualquier punto del camino.
+- **`distanciaAlCamino`** — distancia al punto más cercano sobre el camino real del tramo (`inicio` → `waypoints` → `fin`, proyectada con `puntoMasCercanoEnLinea()` de `js/utils.js`). Solo existe para tramos (en paradas coincide siempre con `distanciaAlDestino`, no hay "camino" que proyectar) y es la que decide el aviso de **fuera de rango** en `verificarDistanciaYActualizarBotones()` (hijo2).
+
+Separar ambas métricas evita un falso positivo real: en un tramo largo, el propio punto de `.inicio` puede estar a decenas de metros en línea recta de `.fin` — muy por encima de la tolerancia calculada para ese tramo (`calcularToleranciaGPS()`, basada en el hueco entre waypoints consecutivos, no en la longitud total del tramo). Si el aviso de fuera de rango se midiera contra `distanciaAlDestino`, saltaría "estás lejos" nada más empezar a caminar un tramo largo, aunque el usuario estuviera exactamente sobre la ruta. Proyectando sobre el camino real con `distanciaAlCamino`, la distancia en el punto de partida (y en cualquier punto intermedio sobre la ruta) es ~0m — el aviso solo salta cuando el usuario se desvía de verdad del trazado, no por estar lejos del final. La detección de llegada sigue midiéndose siempre contra `distanciaAlDestino`, sin excepción: seguir el camino no cuenta como "haber llegado" al final.
 
 **Pipeline completo en cada posición GPS:**
 
 ```text
 watchPosition (padre)
   → procesarPosicionGPSParaAventura() [funciones-mapa.js]
-      calcula distancia Haversine a siguienteParada (indiceProgreso + 1)
-  → NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, toleranciaGPS, lat, lng } → hijo2
-      _aplicarDatosEstado() — guarda posicionActualUsuario + distanciaAlDestino
+      calcula distanciaAlDestino (Haversine a siguienteParada.coordenadas/.fin)
+      calcula distanciaAlCamino (proyección sobre inicio→waypoints→fin; = distanciaAlDestino si no es tramo)
+  → NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, distanciaAlCamino, idParada, toleranciaGPS, lat, lng } → hijo2
+      _aplicarDatosEstado() — guarda posicionActualUsuario + ambas distancias
       actualizarEstadoBotones()
       verificarDistanciaYActualizarBotones()  ← solo en modo AVENTURA
-          si distanciaAlDestino ≤ rangoMaximo → _procesarDentroDeRango() → envía GPS.DENTRO_DE_RANGO
-          si distanciaAlDestino > rangoMaximo → envía GPS.RESTRINGIDO { distancia, rangoMaximo, timestampSalioDeRango } al padre
+          distanciaParaRango = distanciaAlCamino si es tramo, distanciaAlDestino si es parada
+          si distanciaParaRango ≤ rangoMaximo → _procesarDentroDeRango() → envía GPS.DENTRO_DE_RANGO
+          si distanciaParaRango > rangoMaximo → envía GPS.RESTRINGIDO { distancia: distanciaParaRango, rangoMaximo, timestampSalioDeRango } al padre
               franja 21-50m → cuenta atrás de 5 min antes de habilitar ubicación
               franja 51m+ → _procesarFueraDeRangoConfirmado() al instante
 ```
@@ -5983,6 +5999,8 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada. El destino de un tramo es siempre su **punto `.fin`** — no el último waypoint del array, que puede quedar corto o largo del punto de llegada real definido en los datos.
 
 > **Los waypoints intermedios no son checkpoints obligatorios.** La app no comprueba si el usuario pasó por cada punto intermedio. Solo verifica si llegó al radio de `.fin`. Los waypoints intermedios sirven para dibujar la polyline en el mapa y para calcular la tolerancia dinámica.
+
+Esta tolerancia se compara siempre contra `distanciaAlDestino` (línea recta a `.fin`) para decidir **llegada** — nunca cambia de criterio. El aviso de **fuera de rango** (usuario desviado del camino, no simplemente lejos del final) usa una métrica de distancia distinta, `distanciaAlCamino`; ver "Dos métricas de distancia" en la sección anterior.
 
 ### Capas de mapa y selector de estilo
 
@@ -6982,10 +7000,12 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `10-controladores-padre.spec.js` | 8 | Handlers extraídos a `js/controladores-padre.js`; smoke tests de SOLICITAR_AUDIOS/TEXTOS/RETOS/COORDENADAS |
 | `11-constants-integrity.spec.js` | 8 | Integridad de TIPOS_MENSAJE: constantes GPS funcionales, eliminación de handlers huérfanos GPS.VISUAL_*, presencia de CHAT.ESTADO_PADRE, exposición de reciclaje-digital |
 | `12-carga-por-parada.spec.js` | 3 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo |
-| `13-gps-tramo-fix.spec.js` | 13 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras 2 lecturas seguidas dentro de radio, con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual manda 90s sobre la automática, salvo que haya llegada real (PM-1..3) |
+| `13-gps-tramo-fix.spec.js` | 15 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras 2 lecturas seguidas dentro de radio, con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual manda 90s sobre la automática, salvo que haya llegada real (PM-1..3); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3) |
 | `15-arribo-y-progresion.spec.js` | 2 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo, disparando `progresarSiguienteElemento()` y limpiando el pending anterior antes de fijar el nuevo `elementoActual`; `manejarCambiarParada()` encuentra el nuevo elemento en `AVENTURA_PARADAS` sin error (fix de `idToMatch`) |
 | `16-loading-overlay-oculta-ui.spec.js` | 2 | Con `body.loading` activo, `#selector-tipo-mapa` y `#btn-chat-soporte` permanecen invisibles (opacity/visibility computados) aunque su `style.display` se fuerce a visible; al quitar la clase, ambos vuelven a mostrarse |
-| `17-flecha-brujula-continuidad.spec.js` | 1 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente) |
+| `17-flecha-brujula-continuidad.spec.js` | 2 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1) |
+| `18-boton-deshabilitado-color.spec.js` | 6 | Un `background-color` inline residual (bypass antiguo) no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#B22222` (BU-2a..e) |
+| `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7125,7 +7145,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-1b18dfe70f6c'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-b95254937707'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7772,7 +7792,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-1b18dfe70f6c';
+const CACHE_VERSION = 'v-b95254937707';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8718,7 +8738,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 Si confirma que quiere otra aventura:
 
 1. Se borran todas las claves `vv_*` del `localStorage`.
-2. Se reinician las variables globales.
+2. Se reinician las variables globales, incluido `estado.tiempoRestante` (el tiempo del temporizador de la aventura que se abandona) — la aventura que se elija a continuación arranca su propio temporizador desde su duración estimada, nunca con el tiempo que le quedaba a la anterior.
 3. Se muestra el iframe de selección.
 4. Se navega a **P1** (logo + botón de continuar).
 5. El usuario comienza el flujo de selección desde cero.
@@ -11269,7 +11289,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-1b18dfe70f6c';
+const CACHE_VERSION = 'v-b95254937707';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11437,7 +11457,9 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 | Lejos | 51m – 2.000m | `foto_lejos_ubicacion.png` + distancia | Se habilita al instante | Se deshabilitan al instante |
 | Muy lejos | > 2.000m | `fotogpserror.png` + distancia (ver §30.5/§30.6) | Se habilita al instante | Se deshabilitan al instante |
 
-**Quién decide qué:** hijo2 calcula la distancia real en cada posición (`verificarDistanciaYActualizarBotones()`) y decide, de forma independiente y local, el estado de sus propios botones — no espera respuesta del padre para eso. Por separado, envía la distancia al padre vía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }`; el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) reparte esa distancia entre las 3 pantallas según los umbrales fijos de 50 y 2.000 metros. Cuando el usuario vuelve dentro del rango real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta las 3 pantallas a la vez (`_ocultarTodasPantallasDistanciaGPS()`).
+**Quién decide qué:** hijo2 calcula la distancia real en cada posición (`verificarDistanciaYActualizarBotones()`) y decide, de forma independiente y local, el estado de sus propios botones — no espera respuesta del padre para eso. En tramos, la distancia usada aquí es `distanciaAlCamino` (proyección sobre la ruta real), no la línea recta al punto de llegada — ver "Dos métricas de distancia" en la sección anterior; en paradas ambas coinciden siempre. Por separado, envía esa distancia al padre vía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }`; el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) reparte esa distancia entre las 3 pantallas según los umbrales fijos de 50 y 2.000 metros. Cuando el usuario vuelve dentro del rango real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta las 3 pantallas a la vez (`_ocultarTodasPantallasDistanciaGPS()`).
+
+**El botón de ubicación siempre cambia de estado a través de `desactivarBoton()`/`activarBoton()`** (helpers compartidos de hijo2, no solo para este botón): además de `disabled`/`aria-disabled`/`title`, alternan la clase CSS `.disabled`, que es la única que controla el color visual (`background` en degradado, ver §4.8). Ningún punto del código toca `style.backgroundColor`/`style.opacity` a mano en este botón — un estilo inline puesto por otra vía no le ganaría necesariamente a la clase (`background-color` inline vs. el `background-image` del degradado de la clase son sub-propiedades distintas que se pintan en capas separadas, la imagen encima del color) y dejaría el botón visualmente verde y activo aunque `disabled` ya fuera `true`.
 
 **Por qué solo la franja "fuera de rango" tiene cuenta atrás:** a 21-50m el usuario probablemente está a punto de llegar por su cuenta — la app espera 5 minutos antes de ofrecer ayuda, para no interrumpir sin necesidad. Más allá de 50m ya no tiene sentido esperar: el botón de ubicación se habilita de inmediato.
 
@@ -11933,7 +11955,7 @@ Cuando el padre recibe `UI.NAVEGACION_EXTERNA` (enviado por hijo1 al abrir un en
 Función hermana de `mostrarDialogoReanudacion` que reutiliza `TRADUCCIONES_REANUDACION` (ya disponibles en 12 idiomas) y el mismo estilo visual (`#1a1a2e`, borde `#f5a623`), pero con callbacks simplificados:
 
 - **"Continuar mi aventura"** → cierra el overlay. Audio queda pausado si lo estaba; el usuario lo reanuda manualmente.
-- **"Elegir otra aventura"** → limpia `localStorage` + globals + `estado.seleccion`, muestra el iframe de selección y lo navega a **P1**.
+- **"Elegir otra aventura"** → limpia `localStorage` + globals + `estado.seleccion` + `estado.tiempoRestante` (ver §25.10 — el mismo reseteo que hace `ejecutarElegirOtra`), muestra el iframe de selección y lo navega a **P1**.
 
 La función NO llama a `ejecutarRestauracionAventura` (no recarga la aventura, no muestra pantalla de carga). Es una intercepción ligera, no una restauración.
 
