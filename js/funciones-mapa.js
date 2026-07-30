@@ -166,6 +166,7 @@ let _flechaGpsAnguloAcumulado = null; // ángulo continuo sin acotar a 0-360, pa
 let _flechaGpsUltimaEscritura = 0;
 let flechaActiva = false;
 let compassActiva = false;
+let _brujulaEventoActivo = null; // 'deviceorientationabsolute' o 'deviceorientation' — cuál se registró de verdad
 let _mapaInstance = null; // Instancia del mapa MapLibre
 let _mapaOpciones = null; // Opciones del mapa
 let _pulseTimeout = null; // Timeout del efecto de llegada (cancelable)
@@ -1522,11 +1523,21 @@ function desactivarFlechaUsuario() {
 
 /**
  * Actualiza la orientación de la flecha según la brújula del dispositivo.
- * iOS devuelve webkitCompassHeading (0=N, sentido horario, ya compensado).
- * Android devuelve alpha (mismo rango, misma referencia cuando el dispositivo está plano).
+ * iOS devuelve webkitCompassHeading: 0=N, YA en sentido horario y ya compensado
+ * respecto al norte real — se usa tal cual.
+ * Android (y el resto de navegadores) devuelven alpha: por especificación, alpha
+ * crece en sentido ANTIHORARIO (mirando el dispositivo desde arriba), justo al
+ * revés que un rumbo de brújula — usar alpha directamente como rumbo giraba la
+ * flecha al revés o a un ángulo incorrecto. La conversión estándar es
+ * rumbo = 360 - alpha.
  */
 function actualizarOrientacionFlecha(event) {
-    const heading = event.webkitCompassHeading ?? event.alpha;
+    let heading;
+    if (event.webkitCompassHeading != null) {
+        heading = event.webkitCompassHeading;
+    } else if (event.alpha != null) {
+        heading = (360 - event.alpha) % 360;
+    }
     if (heading == null) return;
     deviceOrientationHeading = heading;
     // Rotar la flecha GPS en tiempo real sin recrear el marcador
@@ -1580,6 +1591,15 @@ function actualizarRotacionFlechaGPS(heading) {
 /**
  * Activa la brújula del dispositivo para rotar la flecha GPS en tiempo real.
  * En iOS 13+ solicita permiso explícito (requiere gesto del usuario previo).
+ *
+ * 'deviceorientationabsolute' (Chrome/Android) se prefiere sobre 'deviceorientation'
+ * cuando el navegador la soporta: por definición solo entrega valores de alpha ya
+ * referenciados al norte real. 'deviceorientation' normal puede entregar alpha
+ * relativo a la orientación que tuviera el móvil al cargar la página (sin relación
+ * con el norte) — el propio evento trae un flag `absolute` para distinguirlo, pero
+ * muchos navegadores lo dejan sin definir incluso cuando el valor SÍ es fiable, así
+ * que exigirlo rechazaría lecturas válidas en vez de filtrar las malas. Preferir el
+ * evento dedicado evita ese dilema en los navegadores que lo ofrecen.
  */
 async function activarBrujula() {
     if (compassActiva) return;
@@ -1593,9 +1613,10 @@ async function activarBrujula() {
             }
         }
         if (typeof DeviceOrientationEvent !== 'undefined') {
-            globalThis.addEventListener('deviceorientation', actualizarOrientacionFlecha);
+            _brujulaEventoActivo = ('ondeviceorientationabsolute' in globalThis) ? 'deviceorientationabsolute' : 'deviceorientation';
+            globalThis.addEventListener(_brujulaEventoActivo, actualizarOrientacionFlecha);
             compassActiva = true;
-            logger.info('[brujula] Activada — flecha GPS rota en tiempo real');
+            logger.info(`[brujula] Activada (${_brujulaEventoActivo}) — flecha GPS rota en tiempo real`);
         }
     } catch (e) { // NOSONAR
         logger.warn('[brujula] No disponible:', e);
@@ -1604,7 +1625,7 @@ async function activarBrujula() {
 
 function desactivarBrujula() {
     if (!compassActiva) return;
-    globalThis.removeEventListener('deviceorientation', actualizarOrientacionFlecha);
+    globalThis.removeEventListener(_brujulaEventoActivo || 'deviceorientation', actualizarOrientacionFlecha);
     compassActiva = false;
     logger.info('[brujula] Desactivada');
 }
@@ -2129,13 +2150,26 @@ async function completarCambioParada() {
             estadoMapa.ultimoZoomAuto = Date.now();
             logger.info(`${logPrefix} 🎯 Zoom único aplicado para ${paradaId}`);
 
-            // Ocultar navegación por defecto; revelar inmediatamente si btn-avanzar o modo CASA
-            if (globalThis.estadoPadre?.pendingRevealNavegacion) {
-                globalThis.estadoPadre.pendingRevealNavegacion = false;
-                logger.info(`${logPrefix} pendingRevealNavegacion=true — navegación visible inmediatamente`);
-            } else if (globalThis.estadoPadre?.modo?.actual !== 'aventura') {
+            // Ocultar navegación por defecto; revelar inmediatamente si btn-avanzar o modo CASA.
+            // EXCEPCIÓN — tramo en AVENTURA: pendingRevealNavegacion nunca revela un tramo de
+            // golpe, aunque venga de avanzar desde la parada anterior. El trazado completo se
+            // queda oculto hasta que procesarPosicionGPSParaAventura() confirme por GPS que el
+            // usuario está a ≤20m de .inicio (mismo radio que "llegada" en paradas) — antes de
+            // eso, revelarlo mostraba todo el tramo sin que el usuario estuviera cerca de
+            // empezarlo, y si además se alejaba (cerrando la app y reanudando lejos, p. ej.)
+            // el trazado se quedaba visible indefinidamente sin relación con dónde está de
+            // verdad. La revelación real vive en procesarPosicionGPSParaAventura(), no aquí.
+            const _esTramoParaRevelar = coordenadas?.tipo === 'tramo';
+            if (globalThis.estadoPadre?.modo?.actual !== 'aventura') {
                 // En modo CASA (y cualquier otro no-aventura), la navegación es visible al instante
                 logger.info(`${logPrefix} Modo ${globalThis.estadoPadre?.modo?.actual || 'casa'} — navegación visible inmediatamente`);
+            } else if (_esTramoParaRevelar) {
+                _ocultarNavegacion();
+                if (globalThis.estadoPadre) globalThis.estadoPadre.pendingRevealNavegacion = false;
+                logger.info(`${logPrefix} Tramo en AVENTURA — trazado oculto hasta llegar a ≤20m de .inicio`);
+            } else if (globalThis.estadoPadre?.pendingRevealNavegacion) {
+                globalThis.estadoPadre.pendingRevealNavegacion = false;
+                logger.info(`${logPrefix} pendingRevealNavegacion=true — navegación visible inmediatamente`);
             } else {
                 _ocultarNavegacion();
                 logger.info(`${logPrefix} Navegación oculta hasta que el usuario pulse btn-avanzar`);
@@ -2819,6 +2853,19 @@ async function procesarPosicionGPSParaAventura(posicion) {
             logger.debug(`${logPrefix} 🗺️ Marcador de usuario actualizado en mapa: [${latitude.toFixed(6)}, ${longitude.toFixed(6)}]`);
         } catch (error_) {
             logger.warn(`${logPrefix} Error actualizando marcador de usuario:`, error_);
+        }
+
+        // Revelar el trazado de un tramo solo al llegar de verdad a su punto de inicio (≤20m,
+        // mismo radio que "llegada" en paradas — RADIO_PARADA en hijo2). completarCambioParada()
+        // lo deja oculto siempre para tramos (ver ese comentario); este es el único sitio que
+        // lo revela, así que si el usuario se aleja después de haber llegado, el trazado se
+        // queda visible (correcto: ya lo alcanzó, no tiene sentido re-ocultarlo a medio camino).
+        if (siguienteParada.tipo === 'tramo' && siguienteParada.inicio?.lat && siguienteParada.inicio?.lng && !estadoMapa.gpsVisualActivo) {
+            const distanciaAlInicio = calcularDistancia(latitude, longitude, siguienteParada.inicio.lat, siguienteParada.inicio.lng);
+            if (distanciaAlInicio <= 20) {
+                revelarNavegacion();
+                logger.info(`${logPrefix} 🗺️ Trazado del tramo revelado — usuario a ${Math.ceil(distanciaAlInicio)}m de .inicio`);
+            }
         }
 
         // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente

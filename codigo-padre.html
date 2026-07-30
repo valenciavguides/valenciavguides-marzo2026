@@ -4105,7 +4105,14 @@
                     if (timerInterval) clearInterval(timerInterval);
                     overlay.remove();
 
-                    // Pantalla de espera mientras se restaura la aventura
+                    // Pantalla de espera mientras se restaura la aventura. Añade body.loading
+                    // igual que showParentLoadingOverlay — sin esta clase, #selector-tipo-mapa
+                    // y #btn-chat-soporte (z-index 1000000+, por encima de cualquier overlay a
+                    // pantalla completa que no sea 1000000+) pueden quedar visibles ENCIMA de
+                    // esta pantalla si algo los revela mientras restaura (ver el comentario junto
+                    // a la regla CSS "body.loading #selector-tipo-mapa..." — ya preveía este caso,
+                    // pero esta pantalla nunca activaba la clase que la dispara).
+                    document.body.classList.add('loading');
                     const cargandoEl = document.createElement('div');
                     cargandoEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#ff8c00;z-index:999999;display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:opacity 0.5s ease;padding:max(0.875rem, var(--gap-superior)) 1rem max(0.875rem, env(safe-area-inset-bottom, 0));box-sizing:border-box;';
                     cargandoEl.innerHTML = `
@@ -4170,6 +4177,7 @@
                         clearInterval(restoreProgressTimer);
                         clearInterval(restoreFraseTimer);
                         cargandoEl.style.opacity = '0';
+                        document.body.classList.remove('loading');
                         setTimeout(() => cargandoEl.remove(), 500);
                     }
                     resolve('continuar');
@@ -9653,7 +9661,14 @@ await _comprobarReanudacionAventura(logPrefix);
             (globalThis.logger || console).debug(`${logPrefix} Solicitando coordenadas de ${elementoId} a hijo2...`);
             try {
                 const res = await solicitarCoordenadasHijo('hijo2', { paradaId: elementoId, padreId: `padre-${elementoId}`, incluirMetadatos: false }, ajustarTimeoutPorConexionSafe(5000));
-                const coords = res?.coordenadas?.[0]?.coordenadas;
+                // El objeto que devuelve hijo2 es la entrada cruda de coordenadas-aventuras.js:
+                // una parada trae .coordenadas, un tramo nunca tiene ese campo (trae .inicio/
+                // .fin/.waypoints) — sin este fallback, CUALQUIER tramo activo hacía que esta
+                // función devolviera null y cayera siempre al P-0 fijo de
+                // _obtenerCoordenadasFallbackP0(), la línea verde de "ir a ubicación" apuntaba
+                // a Torres de Serranos en vez de al inicio real del tramo.
+                const entrada = res?.coordenadas?.[0];
+                const coords = entrada?.coordenadas || entrada?.inicio;
                 if (coords) return coords;
                 (globalThis.logger || console).warn(`${logPrefix} Respuesta inválida de coordenadas para ${elementoId}:`, res);
             } catch (error) {

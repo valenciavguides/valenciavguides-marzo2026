@@ -845,6 +845,8 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 
 **El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
 
+**El ángulo que rota la flecha (el rumbo, no su geometría) se calcula distinto según la plataforma**, en `actualizarOrientacionFlecha()` (`js/funciones-mapa.js`): iOS entrega `event.webkitCompassHeading`, ya referenciado al norte real y en sentido horario — se usa tal cual. El resto de navegadores (Android incluido) entregan `event.alpha`, que por especificación crece en sentido **antihorario** — justo al revés que un rumbo de brújula — así que se convierte con `rumbo = 360 - alpha` antes de aplicarlo; sin esta conversión la flecha giraba a un ángulo incorrecto y no reflejaba de verdad hacia dónde mira el usuario. `activarBrujula()` además prefiere escuchar `deviceorientationabsolute` en vez de `deviceorientation` cuando el navegador la soporta (Chrome/Android la exponen; WebKit no): por definición solo entrega valores de `alpha` ya referenciados al norte real, evitando el caso — frecuente en la implementación estándar de `deviceorientation` — de que `alpha` sea relativo a la orientación que tuviera el móvil al cargar la página, sin relación alguna con el norte. Cubierto por el test `HD-1` (mismo fichero de test que `GA-1`).
+
 ```mermaid
 flowchart TD
     A([Aventura activada]) --> B["📌 Punto de inicio dibujado\n🎯 Todas las paradas dibujadas\n🏛️ Referencias visuales dibujadas\n(permanentes durante la aventura)"]
@@ -1023,17 +1025,20 @@ flowchart TD
 
 #### Principio de diseño
 
-El comportamiento difiere según el modo:
+El comportamiento difiere según el modo y el tipo de elemento:
 
-- **Modo AVENTURA:** Cuando se avanza a un nuevo elemento, el mapa carga los datos de navegación (polyline azul, marcador 📌 inicio, marcador 🎯 fin) pero los mantiene **invisibles**. La navegación solo se muestra cuando el usuario pulsa `btn-avanzar` explícitamente. **Por qué:** El usuario necesita escuchar el audio y completar el reto antes de saber adónde ir.
-- **Modo CASA:** La navegación se muestra **inmediatamente** tras dibujar los elementos — no hay audio obligatorio ni reto que completar antes de ver la ruta.
+- **Modo AVENTURA, parada:** Cuando se avanza a la parada, el mapa carga el marcador 🎯 pero lo mantiene **invisible**. Se muestra solo cuando el usuario pulsa `btn-avanzar` explícitamente. **Por qué:** el usuario necesita escuchar el audio y completar el reto antes de saber adónde ir.
+- **Modo AVENTURA, tramo:** El trazado completo (polyline azul + marcadores 📌 inicio / 🎯 fin) se mantiene **invisible** siempre al entrar en el tramo, sin excepción — ni siquiera avanzando desde la parada anterior con `btn-avanzar` lo revela. Se revela únicamente cuando el GPS confirma que el usuario está a ≤20m del punto real de `.inicio` (mismo radio que "llegada" en paradas). **Por qué:** revelar el trazado entero nada más avanzar lógicamente al tramo (independientemente de dónde esté el usuario de verdad) mostraba la ruta completa sin que tuviera relación con la posición real — visible y desactualizado si, por ejemplo, el usuario cerraba la app y la reanudaba lejos del punto de inicio real.
+- **Modo CASA:** La navegación se muestra **inmediatamente** tras dibujar los elementos (parada o tramo) — no hay audio obligatorio ni reto que completar antes de ver la ruta, y tampoco tiene sentido exigir proximidad real: en CASA el usuario no está caminando la ruta, solo consultándola.
 
-#### Mecanismo técnico: flag `pendingRevealNavegacion` (solo AVENTURA)
+#### Mecanismo técnico: flag `pendingRevealNavegacion` (paradas, solo AVENTURA) + revelación por GPS (tramos, solo AVENTURA)
 
-El flag `estado.pendingRevealNavegacion` (`boolean`, inicializado a `false` en `codigo-padre.html`) coordina cuándo mostrar la navegación **en modo AVENTURA**:
+El flag `estado.pendingRevealNavegacion` (`boolean`, inicializado a `false` en `codigo-padre.html`) coordina cuándo mostrar la navegación **en modo AVENTURA, solo para paradas**:
 
 - **`false` (valor por defecto):** `completarCambioParada()` en `js/funciones-mapa.js` llama `_ocultarNavegacion()` tras dibujar los elementos.
 - **`true`:** `completarCambioParada()` mantiene los elementos visibles y resetea el flag a `false`.
+
+Para **tramos**, `completarCambioParada()` ignora este flag por completo — siempre llama `_ocultarNavegacion()` en AVENTURA, y lo resetea a `false` sin usarlo, para que no quede pendiente y afecte a una parada posterior. La revelación de un tramo depende únicamente de `procesarPosicionGPSParaAventura()`, que llama `revelarNavegacion()` en cuanto una posición GPS válida cae a ≤20m de `siguienteParada.inicio` (y solo si `estadoMapa.gpsVisualActivo` seguía en `false`, para no repetir la llamada en cada tick una vez ya revelado):
 
 ```text
 CAMBIO_PARADA recibido
@@ -1044,9 +1049,15 @@ completarCambioParada():
   2. Dibuja polyline (si tramo) + marcadores 📌🎯 (o 🎯 si parada)
   3. Hace zoom/flyTo al destino
   4. Decide visibilidad:
-        ├─ pendingRevealNavegacion=true  → visible, resetea flag a false   [AVENTURA, btn-avanzar]
-        ├─ modo ≠ 'aventura'             → visible inmediatamente          [CASA]
-        └─ modo = 'aventura', flag=false → _ocultarNavegacion(): opacity 0 [AVENTURA, recién llegado]
+        ├─ modo ≠ 'aventura'                          → visible inmediatamente     [CASA]
+        ├─ modo = 'aventura', ES TRAMO                → _ocultarNavegacion() SIEMPRE, ignora el flag
+        │                                                (se revela solo por GPS — ver más abajo)
+        ├─ modo = 'aventura', parada, flag=true        → visible, resetea flag a false [btn-avanzar]
+        └─ modo = 'aventura', parada, flag=false        → _ocultarNavegacion(): opacity 0 [recién llegado]
+
+procesarPosicionGPSParaAventura() en cada posición GPS válida (solo si el elemento activo es
+un tramo y sigue oculto):
+        └─ distancia a siguienteParada.inicio ≤20m → revelarNavegacion()
 ```
 
 **Código de `_ocultarNavegacion()`** (`js/funciones-mapa.js`):
@@ -1086,44 +1097,55 @@ Usuario pulsa btn-avanzar
         ▼
 _hdl_NAVEGACION_GPS_ACTIVAR():
   estado.paradaListaParaAvanzar = false
-  estado.pendingRevealNavegacion = true   ← clave
+  estado.pendingRevealNavegacion = true
   await progresarSiguienteElemento()      ← dispara CAMBIO_PARADA para Tramo 1
         │
         ▼
 completarCambioParada() para Tramo 1:
   dibuja polyline azul + 📌 inicio + 🎯 fin
   hace flyTo al inicio del tramo
-  ve pendingRevealNavegacion === true
-  → deja polyline y markers VISIBLES
-  → resetea flag a false
+  ES TRAMO → ignora pendingRevealNavegacion, resetea el flag a false igualmente
+  → _ocultarNavegacion(): polyline y markers OCULTOS
+  → el mapa solo muestra la flecha GPS del usuario, hasta que llegue a ≤20m de .inicio (Caso E)
 ```
 
 **Caso B — Parada → Parada (btn-avanzar en parada completada, sin tramo):**
 
-Mismo flujo que caso A. `pendingRevealNavegacion = true` hace que `completarCambioParada()` deje visible el marcador 🎯 de la siguiente parada inmediatamente.
+```text
+Usuario escucha audio + completa reto en parada N
+        │
+        ▼
+(mismo btn-avanzar / pendingRevealNavegacion = true / progresarSiguienteElemento() que Caso A)
+        │
+        ▼
+completarCambioParada() para Parada M:
+  dibuja marcador 🎯
+  NO es tramo → ve pendingRevealNavegacion === true
+  → deja el marcador VISIBLE inmediatamente
+  → resetea flag a false
+```
 
-**Caso C — Tramo activo (btn-avanzar revela navegación sin avanzar):**
+**Caso C — Tramo activo, usuario pulsa btn-avanzar sin haber llegado aún (vestigial):**
 
 ```text
 CAMBIO_PARADA llega para Tramo N
         │
         ▼
-completarCambioParada():
-  dibuja polyline + 📌🎯
-  pendingRevealNavegacion === false → _ocultarNavegacion()
+completarCambioParada(): ES TRAMO → _ocultarNavegacion() siempre
   → poliline y markers OCULTOS
   → el mapa solo muestra la flecha GPS del usuario
         │
         ▼
-Usuario pulsa btn-avanzar (habilitado por proximidad al inicio del tramo)
+Usuario pulsa btn-avanzar
         │
         ▼
 _hdl_NAVEGACION_GPS_ACTIVAR():
   paradaListaParaAvanzar === false (es tramo)
   → llama revelarNavegacion() DIRECTAMENTE
   → polyline + 📌🎯 se hacen visibles al instante (datos ya cargados)
-  → NO hay progresarSiguienteElemento() — el GPS auto-avanza al llegar
 ```
+
+Este camino sigue existiendo en el código, pero en la práctica queda cubierto por el Caso E antes de que importe: `btn-avanzar` para un tramo activo se habilita por la misma distancia (`distanciaAlDestino`, a `.fin`) que usa `_actualizarBotonGps()` en hijo2 para el resto de su lógica de tramo — no por proximidad a `.inicio` — así que si el botón llega a habilitarse, el usuario ya está mucho más cerca de `.inicio` de lo necesario y el Caso E ya habrá revelado el trazado por GPS.
 
 **Caso D — GPS auto-avanza tramo (llega al final sin pulsar btn-avanzar):**
 
@@ -1137,19 +1159,40 @@ pendingRevealNavegacion === false (nadie pulsó el botón)
         ▼
 completarCambioParada() para la siguiente Parada M:
   dibuja 🎯 de la parada
-  pendingRevealNavegacion === false → _ocultarNavegacion()
+  NO es tramo, pendingRevealNavegacion === false → _ocultarNavegacion()
   → el 🎯 queda OCULTO
   → el usuario escucha el audio, completa el reto
   → btn-avanzar se habilita → usuario pulsa → Caso A o B
 ```
 
-**Resumen de los 4 casos:**
+**Caso E — Revelación de un tramo por GPS (el único camino real para tramos):**
 
-| Transición | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación |
-|---|---|---|---|
-| Parada→Tramo / Parada→Parada (btn-avanzar) | `true` | ✅ inmediata | Automática al cargar |
-| Tramo activo (btn-avanzar) | n/a | — | `revelarNavegacion()` directo |
-| GPS auto-avanza (llegada automática) | `false` | ❌ oculta | Al pulsar btn-avanzar siguiente |
+```text
+Tramo N activo, trazado oculto (Caso A o C)
+        │
+        ▼
+Cada posición GPS válida → procesarPosicionGPSParaAventura():
+  siguienteParada.tipo === 'tramo' && !estadoMapa.gpsVisualActivo
+        │
+        ▼
+  distancia(posición actual, siguienteParada.inicio) ≤ 20m
+        │
+        ▼
+  revelarNavegacion() → polyline + 📌🎯 visibles
+  (idempotente: en ticks posteriores estadoMapa.gpsVisualActivo ya es true, no se repite)
+```
+
+No importa cómo se llegó al tramo (avanzando desde una parada, reanudando una sesión cerrada, o cualquier otro camino) — mientras la posición real del usuario no esté a ≤20m de `.inicio`, el trazado se queda oculto. Si el usuario se aleja después de haber llegado (ya revelado), el trazado no se vuelve a ocultar — llegar una vez es suficiente, no tiene sentido escondérselo a medio tramo.
+
+**Resumen de los 5 casos:**
+
+| Transición | Es tramo | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación |
+|---|---|---|---|---|
+| Parada→Tramo (btn-avanzar) | ✅ | `true` (ignorado) | ❌ oculta siempre | GPS ≤20m de `.inicio` (Caso E) |
+| Parada→Parada (btn-avanzar) | ❌ | `true` | ✅ inmediata | Automática al cargar |
+| Tramo activo, btn-avanzar sin llegar (vestigial) | ✅ | n/a | — | `revelarNavegacion()` directo, normalmente ya cubierto por el Caso E |
+| GPS auto-avanza a una parada (llegada automática) | ❌ | `false` | ❌ oculta | Al pulsar btn-avanzar siguiente |
+| Cualquier entrada a un tramo (avance, reanudación...) | ✅ | — | ❌ oculta siempre | GPS ≤20m de `.inicio` (Caso E), único camino real |
 
 ### 4.7e. Overlay de error de contenido (`#error-overlay`)
 
@@ -4397,7 +4440,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-b95254937707'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-1e5ec1181903'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7003,9 +7046,10 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `13-gps-tramo-fix.spec.js` | 15 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras 2 lecturas seguidas dentro de radio, con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual manda 90s sobre la automática, salvo que haya llegada real (PM-1..3); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3) |
 | `15-arribo-y-progresion.spec.js` | 2 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo, disparando `progresarSiguienteElemento()` y limpiando el pending anterior antes de fijar el nuevo `elementoActual`; `manejarCambiarParada()` encuentra el nuevo elemento en `AVENTURA_PARADAS` sin error (fix de `idToMatch`) |
 | `16-loading-overlay-oculta-ui.spec.js` | 2 | Con `body.loading` activo, `#selector-tipo-mapa` y `#btn-chat-soporte` permanecen invisibles (opacity/visibility computados) aunque su `style.display` se fuerce a visible; al quitar la clase, ambos vuelven a mostrarse |
-| `17-flecha-brujula-continuidad.spec.js` | 2 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1) |
+| `17-flecha-brujula-continuidad.spec.js` | 3 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1); `alpha=90` (Android) se convierte al rumbo `270` (`360-alpha`), nunca se usa crudo (HD-1) |
 | `18-boton-deshabilitado-color.spec.js` | 6 | Un `background-color` inline residual (bypass antiguo) no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#B22222` (BU-2a..e) |
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
+| `20-tramo-inicio-y-revelado.spec.js` | 2 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m (RV-1) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7145,7 +7189,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-b95254937707'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-1e5ec1181903'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7792,7 +7836,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-b95254937707';
+const CACHE_VERSION = 'v-1e5ec1181903';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8718,7 +8762,7 @@ Si el usuario no toca nada, a los **30 segundos** se reanuda automáticamente (p
 7. Se activa el modo AVENTURA y el GPS.
 8. El usuario continúa exactamente donde lo dejó.
 
-> **Pantalla de espera durante la restauración:** en cuanto el usuario pulsa "Continuar" (o se agota el contador de 30 s), el diálogo desaparece y se muestra inmediatamente la misma pantalla de carga con el comecocos (gradiente morado, pac-man animado, texto *"Preparando tu aventura… / Cargando datos, un momento…"*). Esto cubre el tiempo que tarda `distribuirDatosAventura` en enviar los datos a todos los iframes. La pantalla hace fade-out (0.5 s) en cuanto la distribución termina, incluso si ocurre algún error.
+> **Pantalla de espera durante la restauración:** en cuanto el usuario pulsa "Continuar" (o se agota el contador de 30 s), el diálogo desaparece y `ejecutarReanudacion()` (`codigo-padre.html`) crea su propia pantalla de carga — fondo naranja `#ff8c00`, logo circular girando (7s por vuelta), barra de progreso (`#restore-progress-bar`, avanza de 10 en 10 hasta 92% mientras dura la restauración real, salta a 100% al terminar) y una frase motivacional que rota cada 5s sin repetir la misma dos veces seguidas. Esto cubre el tiempo que tarda `ejecutarRestauracionAventura()` en restaurar variables globales, paradas completadas y datos de la aventura. La pantalla hace fade-out (0.5 s) en cuanto termina, incluso si ocurre algún error (bloque `finally`). Añade la clase `body.loading` mientras está visible y la quita al terminar — igual que `showParentLoadingOverlay()`/`hideParentLoadingOverlay()` (ver la regla CSS `body.loading #selector-tipo-mapa, body.loading #btn-chat-soporte` cerca de `#loading-overlay`) — sin esa clase, el selector de mapa o el botón de chat (z-index 1000000+) podían quedar visibles por encima de esta pantalla si algo los revelaba durante la restauración, exactamente el mismo problema que esa regla ya resolvía para `#loading-overlay`, solo que esta pantalla nunca activaba la clase que lo dispara.
 
 **Si elige "Elegir otra aventura"**, aparece un segundo diálogo de advertencia:
 
@@ -11289,7 +11333,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-b95254937707';
+const CACHE_VERSION = 'v-1e5ec1181903';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11484,6 +11528,8 @@ Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de q
 **Banda inferior del botón de reintento:** en las 3 pantallas, la imagen ocupa el espacio flexible superior de `.gps-inner` (`object-fit:contain`, ya no `position:absolute` cubriendo todo el recuadro) y el botón 🛰️🔄 vive dentro de `.gps-banda-inferior`, una franja de fondo oscuro con altura propia (mín. 5.5rem) debajo de la imagen — así el botón nunca tapa parte de la foto. La píldora de distancia (arriba) y el botón de cierre (esquina superior derecha) siguen posicionados en absoluto sobre la imagen, sin cambios.
 
 **Al pulsar el botón de ubicación:** hijo2 construye `elementoId = estadoComponente.idParadaActual || _idParadaInicio()` — usa la parada/tramo activo si ya hay uno; si todavía no hay ninguno (aventura recién empezada, antes del primer `CAMBIO_PARADA`), `_idParadaInicio()` busca en `globalThis.__vv_coordenadasAventura` (ya cargado localmente en hijo2) la entrada con `tipo: "inicio"` y devuelve su `id` real — `"Av1-P-0"`, `"Av34km-P-0"`, etc., siempre con el prefijo de la aventura activa. Envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` al padre con `{ ubicacionUsuario, proximoElemento, elementoId, centrar: true, zoom: 16 }`. El padre oculta las 3 pantallas de aviso (por si alguna seguía abierta) y resuelve las coordenadas del destino en orden: `proximoElemento` si ya trae `lat`/`lng` → `_resolverCoordenadasElemento(elementoId, ...)` (busca en `DATOS_PADRE`, y si no encuentra coordenadas ahí pregunta a hijo2 vía `solicitarCoordenadasHijo`) → `_obtenerCoordenadasFallbackP0()` como último recurso. Con origen y destino resueltos, `dibujarPolylineNavegacion()` (`js/funciones-mapa.js`) traza una línea verde punteada (`#3eff3f`, `line-dasharray:[0,2]` con `line-cap:'round'` — en MapLibre estas unidades son múltiplos del grosor de línea, no píxeles; ese valor da puntos redondos en vez de rayas largas) hasta el destino, y queda protegida 90 segundos frente al redibujado automático de la guía azul (§4.6) — el detalle completo de por qué y cómo vive en esa sección, junto al resto de la lógica de `polylineNavegacion`.
+
+**Por qué `_resolverCoordenadasElemento()` lee `entrada.coordenadas || entrada.inicio`, no solo `entrada.coordenadas`:** la respuesta de hijo2 a `solicitarCoordenadasHijo` es la entrada cruda de `coordenadas-aventuras.js` — una parada trae `.coordenadas`, pero un tramo nunca tiene ese campo (trae `.inicio`/`.fin`/`.waypoints`). Sin el fallback a `.inicio`, cualquier tramo activo hacía que la función devolviera `null` incondicionalmente y cayera siempre a `_obtenerCoordenadasFallbackP0()` — la polyline verde apuntaba a Torres de Serranos en vez de al punto real de inicio del tramo, sin importar a qué tramo o dónde estuviera el usuario. `.inicio` (no `.fin`) es la elección correcta aquí porque el botón de ubicación ayuda al usuario a **llegar** al tramo, no a completarlo — el punto al que debe caminar para poder empezarlo.
 
 **Por qué `_obtenerCoordenadasFallbackP0()` no busca en `DATOS_PADRE`:** `DATOS_PADRE` (`js/aventuras-ID-padre.js`) es el registro de IDs y secuencia de la aventura — `padreid`, `parada_id`, `reto_id`... — pero ninguna de sus entradas tiene nunca `lat`/`lng`. Las coordenadas reales viven en `js/coordenadas-aventuras.js`, cacheadas en `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas` (mismo patrón ya usado en el resto de `codigo-padre.html`, ver por ejemplo la construcción de datos para hijo5). La función filtra esa lista por `tipo === 'inicio'` y devuelve `coordenadas.lat`/`coordenadas.lng` de esa entrada.
 

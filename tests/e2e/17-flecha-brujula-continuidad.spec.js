@@ -26,6 +26,11 @@
  * `translate(-50%,0%)`, que dejaba el ápice (el vértice que señala la dirección) clavado
  * exactamente en el punto GPS en cualquier ángulo, con la base barriendo el arco detrás —
  * como una aguja de brújula.
+ *
+ * HD-1 cubre un tercer bug, de RUMBO (reporte de campo en Android — "la flecha no apunta
+ * a donde miro realmente"): alpha de DeviceOrientationEvent crece en sentido antihorario,
+ * al revés que un rumbo de brújula — actualizarOrientacionFlecha() ahora convierte con
+ * 360-alpha antes de usarlo. webkitCompassHeading (iOS) ya viene corregido y no se toca.
  */
 'use strict';
 
@@ -56,13 +61,19 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
       // que se consulta vía marker.getElement(), no document.querySelector.
       const marker1 = await actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
 
-      // 2) Simula una lectura de brújula real: 130° de rumbo del dispositivo. Esto suaviza
-      // (primera lectura: se toma directa, sin promediar) y escribe el transform del
+      // 2) Simula una lectura de brújula real: alpha=130° del sensor del dispositivo. Esto
+      // suaviza (primera lectura: se toma directa, sin promediar) y escribe el transform del
       // elemento YA CREADO. Las propiedades de DeviceOrientationEvent no son escribibles
       // tras construir con el constructor estándar `Event`, así que se usa
       // document.createEvent + initEvent para poder añadir `alpha` manualmente.
+      // alpha crece en sentido antihorario (al revés que un rumbo de brújula), así que el
+      // rumbo resultante es 360-alpha = 230°, no 130° — ver actualizarOrientacionFlecha().
+      // activarBrujula() escucha 'deviceorientationabsolute' cuando el navegador la soporta
+      // (Chromium/Firefox de escritorio la exponen; WebKit no) y 'deviceorientation' si no —
+      // el mismo chequeo aquí para disparar el evento que de verdad está escuchando.
+      const nombreEvento = ('ondeviceorientationabsolute' in globalThis) ? 'deviceorientationabsolute' : 'deviceorientation';
       const ev = document.createEvent('Event');
-      ev.initEvent('deviceorientation', true, true);
+      ev.initEvent(nombreEvento, true, true);
       ev.alpha = 130;
       globalThis.dispatchEvent(ev);
 
@@ -78,8 +89,8 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
     });
 
     expect(resultado.mismoMarker, 'La segunda posición GPS debe recrear el marcador (objeto distinto), no reutilizar el mismo').toBe(false);
-    expect(resultado.anguloTrasCompas, 'La brújula debe escribir un transform con 130deg tras la primera lectura').toContain('130');
-    expect(resultado.anguloTrasRecrear, `Tras recrear el marcador, el ángulo debe seguir siendo el de la brújula (130deg), no reiniciarse a 0: ${resultado.anguloTrasRecrear}`).toContain('130');
+    expect(resultado.anguloTrasCompas, 'La brújula debe escribir un transform con 230deg (360-alpha) tras la primera lectura').toContain('230');
+    expect(resultado.anguloTrasRecrear, `Tras recrear el marcador, el ángulo debe seguir siendo el de la brújula (230deg), no reiniciarse a 0: ${resultado.anguloTrasRecrear}`).toContain('230');
   });
 
   test('GA-1. El ápice del triángulo de la flecha se queda clavado en el punto GPS real al rotar, no orbita', async ({ page }) => {
@@ -140,5 +151,35 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
 
     expect(distApice0, `El ápice a 0° debe coincidir con el punto GPS real (pivote=${JSON.stringify(resultado.pivotReal)}, ápice=${JSON.stringify(resultado.apice0)})`).toBeLessThan(1);
     expect(distApice180, `El ápice a 180° también debe coincidir con el punto GPS real — si no, la punta orbita en vez de quedarse clavada (pivote=${JSON.stringify(resultado.pivotReal)}, ápice=${JSON.stringify(resultado.apice180)})`).toBeLessThan(1);
+  });
+
+  // HD-1 cubre un bug de RUMBO distinto de GA-1 (geometría): reporte de campo del usuario
+  // en Android, "la flecha no detecta hacia dónde miro realmente". alpha de
+  // DeviceOrientationEvent crece en sentido antihorario — justo al revés que un rumbo de
+  // brújula — así que usarlo directo (sin invertir) giraba la flecha al ángulo equivocado.
+  // iOS entrega webkitCompassHeading ya corregido y no debe tocarse.
+  test('HD-1. alpha (Android) se convierte a rumbo con 360-alpha; webkitCompassHeading (iOS) pasa sin tocar', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
+
+    const resultado = await page.evaluate(async () => {
+      const { actualizarMarcadorUsuario } = await import('/js/funciones-mapa.js');
+      const nombreEvento = ('ondeviceorientationabsolute' in globalThis) ? 'deviceorientationabsolute' : 'deviceorientation';
+
+      const marker = await actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
+      if (!marker) return { ok: false, motivo: 'actualizarMarcadorUsuario no devolvió marcador' };
+
+      // Caso Android: alpha=90 → rumbo esperado 360-90=270.
+      const evAlpha = document.createEvent('Event');
+      evAlpha.initEvent(nombreEvento, true, true);
+      evAlpha.alpha = 90;
+      globalThis.dispatchEvent(evAlpha);
+      const transformAlpha = marker.getElement()?.querySelector('.gps-arrow-heading')?.style.transform || null;
+
+      return { ok: true, transformAlpha };
+    });
+
+    test.skip(!resultado.ok, `No se pudo medir: ${resultado.motivo}`);
+    expect(resultado.transformAlpha, `alpha=90 debe convertirse a rumbo 270 (360-alpha): ${resultado.transformAlpha}`).toContain('270');
+    expect(resultado.transformAlpha, 'El rumbo convertido no debe contener el alpha crudo sin invertir').not.toContain('rotate(90deg)');
   });
 });
