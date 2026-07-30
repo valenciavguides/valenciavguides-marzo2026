@@ -128,10 +128,19 @@ test.describe('PC — Polyline manual a .inicio en tramos (no P-0)', () => {
           },
         }, globalThis.location.origin);
 
-        await new Promise(r => setTimeout(r, 600));
-
-        const mapa = globalThis.__testUltimoMapa;
-        const fuentes = mapa ? Object.entries(mapa._sources).filter(([id]) => id.startsWith('vv-polyline-')) : [];
+        // Sondeo en vez de espera fija: el roundtrip async (postMessage → mock de
+        // solicitarCoordenadasHijo → dibujarPolylineNavegacion) puede tardar más de lo
+        // habitual bajo carga (toda la suite corriendo a la vez) — un delay fijo corto
+        // volvía el test intermitente en proyectos más lentos (pixel5), aunque la función
+        // real fuera correcta. Sondear hasta 3s, devolver en cuanto aparezca la fuente.
+        let fuentes = [];
+        const limite = Date.now() + 3000;
+        while (Date.now() < limite) {
+          const mapa = globalThis.__testUltimoMapa;
+          fuentes = mapa ? Object.entries(mapa._sources).filter(([id]) => id.startsWith('vv-polyline-')) : [];
+          if (fuentes.length > 0) break;
+          await new Promise(r => setTimeout(r, 100));
+        }
         const ultima = fuentes[fuentes.length - 1];
         const coords = ultima ? ultima[1].data?.geometry?.coordinates : null;
         // El último punto de la polyline (usuario→destino) es el destino resuelto, en

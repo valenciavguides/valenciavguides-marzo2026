@@ -142,7 +142,13 @@ export const TIPOS_MENSAJE = {
     RETO: {
         MOSTRAR: 'RETO.MOSTRAR',
         MOSTRADO: 'RETO.MOSTRADO',
+        // OCULTAR es siempre hijo4→padre ("cierra la ventana del reto"). LIMPIAR_ESTADO es
+        // el mensaje distinto que usa el padre para pedirle a hijo4, en la otra dirección,
+        // que limpie su estado interno tras esconderla — antes ambas direcciones reusaban
+        // OCULTAR con significados distintos, lo que confundía al leer el código sin avisar
+        // de que el mismo tipo viaja en dos sentidos con dos efectos diferentes.
         OCULTAR: 'RETO.OCULTAR',
+        LIMPIAR_ESTADO: 'RETO.LIMPIAR_ESTADO',
         COMPLETADO: 'RETO.COMPLETADO',
         SOLICITAR_RETO: 'RETO.SOLICITAR_RETO',
         HABILITAR: 'RETO.HABILITAR',

@@ -9233,7 +9233,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     // Notificar a hijo4 para limpiar estado interno y restaurar botonRetos en modo CASA
                     enviarMensajePadre({
-                        tipo: TIPOS_MENSAJE.RETO.OCULTAR,
+                        tipo: TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO,
                         origen: getPadreId(),
                         destino: 'hijo4',
                         datos: { retoId }
@@ -9393,24 +9393,12 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).warn(`${logPrefix} Error notificando fin de reto a hijo2:`, notifError);
                 }
 
-                // Lógica de botón GPS en paradas: reto resuelto → GPS habilitado
-                if (correcto && estado.modo.actual === MODOS.AVENTURA) {
-                    const paradaActual = estado.paradaActual;
-                    const elementoActual = _buscarParadaEnDatos(paradaActual, paradaActual, DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre);
-                    if (elementoActual && elementoActual.tipo !== 'tramo') {
-                        (globalThis.logger || console).info(`${logPrefix} Reto resuelto en parada, habilitando GPS`);
-                        try {
-                            await enviarMensajePadre({
-                                tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR,
-                                origen: getPadreId(),
-                                destino: 'hijo2',
-                                datos: { razon: 'reto_resuelto' }
-                            });
-                        } catch (e) {
-                            (globalThis.logger || console).warn(`${logPrefix} Error habilitando GPS tras reto:`, e);
-                        }
-                    }
-                }
+                // Nota: aquí solía enviarse NAVEGACION.GPS.ACTIVAR a hijo2 tras un reto resuelto
+                // en una parada — hijo2 nunca registró handler para ese tipo (solo lo emite, no
+                // lo recibe), así que el mensaje se descartaba en silencio sin efecto. El
+                // ACTUALIZAR_ESTADO{retoActivo:false} de arriba ya es lo que de verdad reactiva
+                // los botones (llega a actualizarEstadoBotones() en hijo2), confirmado en
+                // auditoría — se retira el envío muerto en vez de dejarlo como falsa pista.
 
                 // Lógica de progresión
                 await _procesarResultadoReto(correcto, retoId, estado, logPrefix);
@@ -10503,7 +10491,21 @@ await _comprobarReanudacionAventura(logPrefix);
             (globalThis.logger || console).info(`${logPrefix} Audio finalizado sin reto — intentando completar elemento`);
             const modoActual = estado.modo?.actual;
             try {
-                const elementoAudio = findElementoPorAudio(audioId) || estado.elementoActual;
+                // _hdl_AUDIO_FIN_REPRODUCCION (el único caller, vía _procesarFinAudioElemento) ya
+                // resuelve findElementoPorAudio(audioId), marca pending.audio=true y llama
+                // intentarCompletarElemento() para la misma clave ANTES de llegar aquí — repetirlo
+                // duplicaba la llamada a marcarParadaCompletada() en cada audio sin reto (se
+                // detectó en auditoría: no causaba avance doble solo porque marcarParadaCompletada
+                // tiene su propio guard por estado.paradasCompletadas, una protección en un sitio
+                // distinto de donde se esperaría). Aquí solo hace falta actuar cuando ESA
+                // resolución falló (audioId no mapea a ningún elemento) y hay que caer al
+                // elemento activo como respaldo — en ese caso el handler de arriba no marcó nada.
+                const elementoResuelto = findElementoPorAudio(audioId);
+                if (elementoResuelto) {
+                    (globalThis.logger || console).debug(`${logPrefix} Elemento ya resuelto y completado por el handler de fin de audio — sin duplicar`);
+                    return;
+                }
+                const elementoAudio = estado.elementoActual;
                 const claveA = elementoAudio?.padreid || (elementoAudio?.parada_id ? `padre-${elementoAudio.parada_id}` : null);
                 if (claveA) {
                     const p = ensurePending(claveA, elementoAudio?.tipo || 'parada');

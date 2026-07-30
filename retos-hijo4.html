@@ -1614,9 +1614,10 @@
 
 
 
-            // Controlador para ocultar el reto
-            registrarControladorSeguro(TIPOS_MENSAJE.RETO.OCULTAR, async (_mensaje) => {
-                logger.info(`[hijo4] RETO.OCULTAR recibido - ocultando reto`);
+            // Controlador para limpiar el estado tras cerrar el reto (el padre lo envía después
+            // de recibir RETO.OCULTAR de este mismo hijo4 — direcciones distintas, tipos distintos)
+            registrarControladorSeguro(TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO, async (_mensaje) => {
+                logger.info(`[hijo4] RETO.LIMPIAR_ESTADO recibido - limpiando estado`);
 
                 // Limpiar estado local del reto
                 estado.retoActualId = null;
@@ -1641,7 +1642,7 @@
                     const wrapper = document.getElementById('botonRetos-wrapper');
                     if (wrapper) wrapper.style.display = '';
                 }
-                logger.info(`[hijo4] Estado y interfaz limpiados tras RETO.OCULTAR`);
+                logger.info(`[hijo4] Estado y interfaz limpiados tras RETO.LIMPIAR_ESTADO`);
             });
 
             // Controlador para habilitar retos en modo AVENTURA (después de audio 1 vez)

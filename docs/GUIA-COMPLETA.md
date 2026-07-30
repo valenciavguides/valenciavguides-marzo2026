@@ -841,6 +841,7 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 | ▲ (flecha GPS) | Triángulo CSS con borde blanco, sin punto central (el triángulo solo ya representa posición y rumbo) | `#4285F4` azul Google | **Posición real del usuario** en tiempo real (modo AVENTURA). Rota con la brújula del dispositivo vía `DeviceOrientationEvent` (hasta 30 veces/segundo, pero `actualizarRotacionFlechaGPS()` limita la escritura al DOM a ~10Hz). El sensor de rumbo es ruidoso — se aplica suavizado exponencial (solo una fracción del salto detectado en cada lectura) sobre un ángulo acumulado sin acotar a 0-360°, para que la rotación CSS siempre gire por el camino corto y no dé una vuelta larga visible al cruzar 359°→0°; ese ángulo acumulado también sobrevive a que el marcador se destruya y recree en cada posición GPS (ver detalle en la tabla de módulos, `funciones-mapa.js`). En modo CASA aparece como 🛸 |
 | ↑ (flecha snap-to-route) | Carácter `↑` rotado según brújula | `#0066cc` azul oscuro | **Posición del usuario proyectada sobre la polyline del tramo activo.** Solo aparece durante un tramo (no en paradas). El mapa de aventura usa `puntoMasCercanoEnLinea()` (`js/utils.js`) para buscar el punto de la polyline más cercano al usuario y pone la flecha exactamente ahí — efecto "sigues el camino"; es una proyección plana local sin dependencias externas, precisión de sobra para las distancias de un tramo. Se activa en `completarCambioParada()` al detectar `tipo === 'tramo'` y se desactiva al volver a una parada. Se actualiza en cada posición GPS y en cada cambio de brújula |
 | ○ (círculo 21 m) | Polígono geográfico (radio constante en metros, no en píxeles) | Borde rojo, relleno amarillo semitransparente | Acompaña siempre a la flecha snap-to-route. Indica la zona de tolerancia visual alrededor del punto proyectado. MapLibre no tiene una capa `circle` con radio en metros (su `circle-radius` es en píxeles de pantalla, cambiaría de tamaño real al hacer zoom), así que el círculo se genera como un polígono real (32 puntos a distancia/rumbo fijo del centro) que se recalcula cada vez que el centro se mueve |
+| ○ (círculo 20 m) | Polígono geográfico (mismo mecanismo que el de 21 m — `_crearCirculoGeografico()`) | Borde naranja `#ff8c00`, relleno naranja muy tenue (`fillOpacity: 0.12`) | **Zona de activación de parada** — no del punto proyectado sobre la ruta, sino de la posición real del usuario: se centra y se mueve con la propia flecha ▲/🛸, no con el punto más cercano de la polyline. Visible siempre que el modo es AVENTURA (independientemente de si el elemento activo es parada o tramo); desaparece al volver a CASA. Da una referencia visual constante de "este es tu margen para que la app detecte que has llegado". Creado/actualizado dentro de `actualizarMarcadorUsuario()`, en el mismo bloque que activa la brújula por primera vez |
 | 🏛️ (píldora referencia) | Div CSS: píldora blanca con borde naranja | `#ff8c00` naranja | **Referencias visuales** — monumentos mencionados en el texto que el usuario nunca visita físicamente. Muestra el emoji 🏛️ a la izquierda y el número de `mapa_numero` a la derecha. Al pulsar abre un popup con el nombre del monumento. Escala dinámicamente con el zoom. Apilado visual `zIndex: 400` (por debajo de paradas visitadas, 600) vía CSS sobre el elemento del marcador. Gestionado por `crearIconoReferencia()` y `dibujarReferencias()` en `funciones-mapa.js` — implementación independiente de la de `mapa-completo.html`, que dibuja sus propias referencias con `L.divIcon`/`L.marker` sobre los mismos datos |
 
 **El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
@@ -1064,21 +1065,25 @@ un tramo y sigue oculto):
 ```javascript
 // Pone opacity:0 en todos los elementos de navegación activos
 rutasActivas.forEach(r => r.setStyle({ opacity: 0 }));
-marcadoresParadas.get('tramo-inicio-ruta')?.setOpacity(0);  // 📌
-marcadoresParadas.get('tramo-fin-ruta')?.setOpacity(0);     // 🎯
-marcadorParadaActual?.setOpacity(0);                         // 🎯 parada
+_setOpacidadMarcador(marcadoresParadas.get('tramo-inicio-ruta'), 0);  // 📌
+_setOpacidadMarcador(marcadoresParadas.get('tramo-fin-ruta'), 0);     // 🎯
+_setOpacidadMarcador(marcadorParadaActual, 0);                        // 🎯 parada
 estadoMapa.gpsVisualActivo = false;
+sincronizarEstadoGPSConPadre();  // refleja gpsVisualActivo en estadoPadre.gps.visualActivo
 ```
 
 **Código de `revelarNavegacion()`** (`js/funciones-mapa.js`, función exportada):
 ```javascript
 // Restaura la visibilidad de los elementos ocultos
 rutasActivas.forEach(r => r.setStyle({ opacity: 0.7 }));    // opacidad original del tramo
-marcadoresParadas.get('tramo-inicio-ruta')?.setOpacity(1);
-marcadoresParadas.get('tramo-fin-ruta')?.setOpacity(1);
-marcadorParadaActual?.setOpacity(1);
+_setOpacidadMarcador(marcadoresParadas.get('tramo-inicio-ruta'), 1);
+_setOpacidadMarcador(marcadoresParadas.get('tramo-fin-ruta'), 1);
+_setOpacidadMarcador(marcadorParadaActual, 1);
 estadoMapa.gpsVisualActivo = true;
+sincronizarEstadoGPSConPadre();
 ```
+
+`_setOpacidadMarcador(marcador, opacidad)` es el wrapper propio del proyecto — los `Marker` de MapLibre GL JS no tienen `.setOpacity()` nativo (a diferencia de Leaflet), así que ajusta `marcador.getElement().style.opacity` directamente.
 
 #### Flujos por combinación de elementos
 
@@ -2441,7 +2446,7 @@ sequenceDiagram
 | Elemento | ID / clase | Estado inicial | Cuándo se habilita / qué cambia |
 |----------|-----------|-----------|----|
 | Elemento audio | (interno, sin ID público) | `src = ""`, sin reproducir | Al recibir `AUDIO.REPRODUCIR_REQUEST` → se asigna `src`, se actualiza el título, la barra de progreso se resetea a 0 (`_resetearProgresoVisual()`); `.play()` solo si `autoplay===true` (el padre siempre envía `autoplay:false`) |
-| Barra de progreso | `.progress-top-row input[type=range]` | Valor 0 | Se actualiza con evento `timeupdate` del audio cada ~250 ms. Vuelve a 0 en dos momentos: al cargar un audio nuevo (arriba) y al terminar de reproducirse (evento `ended`, antes de notificar `AUDIO.FIN_REPRODUCCION`) — nunca se queda con el progreso del audio anterior mientras el padre resuelve cuál toca a continuación |
+| Barra de progreso | `.progress-top-row input[type=range]` | Valor 0 | Se actualiza con evento `timeupdate` del audio cada ~250 ms. Vuelve a 0 en tres momentos: al cargar un audio nuevo (arriba), al terminar de reproducirse (evento `ended`, antes de notificar `AUDIO.FIN_REPRODUCCION`), y al recibir el comando `stop` del overlay de audio del padre (`_manejarAudioControl('stop', ...)`) — nunca se queda con el progreso del audio anterior mientras el padre resuelve cuál toca a continuación, ni con el de un audio que el usuario detuvo a mano |
 | Título de pista | `#track-title-display` / `.content-left` | Texto vacío | Muestra nombre de la parada/tramo cuando se asigna el audio |
 | Botón retos | `#retosBtn` | `disabled = true`, `opacity: 0.5`, `pointer-events: none` | Ver tabla de habilitación ↓ |
 
@@ -2672,7 +2677,7 @@ globalThis.addEventListener('message', async (event) => {
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza interfaz según modo; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `RETO.MOSTRAR` | Si trae `retosArray` en línea, añade su(s) reto(s) a la caché acotada (máx. 2 ids); renderiza el reto; muestra el overlay; deshabilita `#btnNextAfterReto`. Si el id no está en caché, pide `DATOS.SOLICITAR_RETOS { retoId }` al padre |
-| `RETO.OCULTAR` | Oculta el overlay; limpia el contenido |
+| `RETO.LIMPIAR_ESTADO` | El padre lo envía justo después de recibir `RETO.OCULTAR` de este mismo hijo4 (direcciones opuestas, tipos distintos a propósito). Oculta el overlay y limpia el contenido |
 | `RETO.HABILITAR` | Muestra `#botonRetos-wrapper` y habilita `#botonRetos` (`disabled=false`, quita clase `deshabilitado`) |
 | `RETO.ESTADO_CASA` | Modo CASA: gestiona habilitación del panel según tipo de elemento activo |
 | `RETO.CONFIRMADO` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO |
@@ -2686,6 +2691,7 @@ globalThis.addEventListener('message', async (event) => {
 | Tipo | Cuándo | Payload relevante |
 |------|--------|-------------------|
 | `RETO.MOSTRADO` | Tras renderizar correctamente el reto | `{ retoId }` |
+| `RETO.OCULTAR` | Click en `#btnNext`/`#btnNextAfterReto` o en `#btn-puzzle-continuar` — usuario cierra la ventana del reto | `{ retoId }` |
 | `RETO.COMPLETADO` | Usuario envía respuesta | `{ retoId, correcto, progreso }` (puzzle: `{ retoId, completado: true }`) — ver payload completo arriba |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Tras procesar `CAMBIO_PARADA` (no precarga el reto, ver fila `NAVEGACION.CAMBIO_PARADA` arriba) | `{ paradaId }` |
 | `DATOS.SOLICITAR_RETOS { retoId }` | Cache-miss: `mostrarReto()` no encuentra ese `retoId` en la caché local acotada (máx. 2 entradas) | `{ retoId, motivo:'cache_miss', timestamp }` |
@@ -2716,8 +2722,10 @@ sequenceDiagram
 
     H4-->>P: RETO.COMPLETADO { retoId, correcto, progreso }
     alt correcto === true
-        P->>H4: RETO.OCULTAR
-        P->>P: marcar parada completada → habilitar btnAvanzar en hijo2
+        P->>P: marca pending.reto=true; si la cola de retos está completa,\nintentarCompletarElemento() → marcarParadaCompletada()\n→ habilita btnAvanzar en hijo2 (parada) o progresa solo (tramo)
+        Note over H4: botón "siguiente" se habilita — el padre NO cierra\nla ventana del reto por su cuenta, espera al usuario
+        H4-->>P: RETO.OCULTAR (usuario pulsa "siguiente"/cierra)
+        P->>H4: RETO.LIMPIAR_ESTADO
     else correcto === false
         Note over H4: borde rojo, vibración, usuario reintenta
     end
@@ -3398,7 +3406,8 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `CONTROL.DESHABILITAR` | Padre → Hijo2/Hijo3 | Deshabilitar un control concreto |
 | | `CONTROL.DEV_CINCO_TOQUES` | Hijo1 → Padre | 5 taps o `Ctrl+Alt+clic` sobre `#icono-temporizador` — activa Factor 2 DEV; el padre abre modal de código y con código DEV correcto (verificado por hash SHA-256) pone `_devModeActivo = true` y cambia a modo CASA |
 | **RETO** | `RETO.MOSTRAR` | Padre → Hijo4 | Muestra el reto de la parada actual |
-| | `RETO.OCULTAR` | Bidireccional | Hijo4 → Padre: usuario cierra el reto · Padre → Hijo4: señal de limpieza de estado interno tras ocultar el iframe |
+| | `RETO.OCULTAR` | Hijo4 → Padre | Usuario cierra la ventana del reto |
+| | `RETO.LIMPIAR_ESTADO` | Padre → Hijo4 | El padre lo envía justo después de recibir `RETO.OCULTAR` — señal de limpieza de estado interno tras ocultar el iframe (dirección opuesta a `RETO.OCULTAR`, tipo distinto a propósito — antes ambas direcciones reusaban el mismo tipo) |
 | | `RETO.COMPLETADO` | Hijo4 → Padre | Usuario respondió (correcto/incorrecto) |
 | | `RETO.SOLICITAR_RETO` | Hijo3/Hijo4 → Padre | Usuario pulsó `#retosBtn` (hijo3) o `#botonRetos` (hijo4) — payloads distintos pero padre usa solo `mensaje.origen` y `estado.paradaActual` |
 | | `RETO.HABILITAR` | Padre → Hijo4 | Habilitar panel de retos (solo AVENTURA) |
@@ -3665,7 +3674,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `RETO.ESTADO_CASA` | `{ tipo:'parada'/'tramo', habilitado:bool }` | Muestra/oculta `#botonRetos-wrapper` según posición | ✓ | — |
 | `CONTROL.HABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
 | `CONTROL.DESHABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
-| `RETO.OCULTAR` | `{ retoId }` | Limpia estado interno del reto, restaura `#botonRetos-wrapper` en modo CASA (padre envía este mensaje justo después de ocultar el iframe) | ✓ | ✓ |
+| `RETO.LIMPIAR_ESTADO` | `{ retoId }` | Limpia estado interno del reto, restaura `#botonRetos-wrapper` en modo CASA (padre envía este mensaje justo después de recibir `RETO.OCULTAR` de este mismo hijo4 — direcciones opuestas, tipos distintos a propósito) | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
 | `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Detecta `AVENTURA_ACTIVADA` para limpiar estado de reto anterior | ✓ | ✓ |
@@ -4440,7 +4449,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-1e5ec1181903'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-b5db227ffcb2'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5014,16 +5023,16 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 |-------|-------|
 | Emitido por | hijo4 (usuario pulsa #btnNextAfterReto para cerrar el reto) |
 | Payload | `{ retoId }` |
-| Handler en padre | `_hdl_RETO_OCULTAR` L8343 |
-| Acción | Oculta iframe hijo4 + backdrop; envía `CONTROL.HABILITAR` a hijo2 (`motivo:'reto_cerrado'`) y a hijo3 (`control:'retosBtn'`); re-envía `RETO.OCULTAR` a hijo4 para limpiar estado interno |
+| Handler en padre | `_hdl_RETO_OCULTAR` L9185 |
+| Acción | Oculta iframe hijo4 + backdrop; envía `CONTROL.HABILITAR` a hijo2 (`motivo:'reto_cerrado'`) y a hijo3 (`control:'retosBtn'`); envía `RETO.LIMPIAR_ESTADO` a hijo4 |
 
-**RETO.OCULTAR** (padre → hijo4)
+**RETO.LIMPIAR_ESTADO** (padre → hijo4)
 
 | Campo | Valor |
 |-------|-------|
-| Handler en hijo4 | L1685 |
+| Handler en hijo4 | L1619 |
 | Acción | Limpia estado interno del reto, restaura `#botonRetos-wrapper` en modo CASA |
-| Nota | Padre lo envía siempre tras recibir el RETO.OCULTAR de hijo4 — es el segundo paso del mismo flujo |
+| Nota | Padre lo envía siempre tras recibir `RETO.OCULTAR` de hijo4 — es el segundo paso del mismo flujo, con un tipo de mensaje distinto a propósito (antes ambas direcciones reusaban `RETO.OCULTAR`, lo que confundía al leer el código sin avisar de que el mismo tipo viajaba en dos sentidos con dos efectos diferentes) |
 
 **RETO.ESTADO_CASA** (padre → hijo4)
 
@@ -5948,8 +5957,10 @@ watchPosition (padre)
 | `#btn-imagen` | verde (rojo si reto activo) | verde (rojo si reto activo) | sin cambio |
 | `#btn-video` | verde | verde | ❌ rojo |
 | `#btn-ubicacion` | ❌ rojo (no necesario) | ❌ rojo | ✅ **verde** |
-| `#btn-mapa-completo` | verde | verde | ❌ rojo |
-| `#btn-mapa-jpg` | verde | verde | ❌ rojo |
+| `#btn-mapa-completo` | verde | verde | ✅ **verde** |
+| `#btn-mapa-jpg` | verde | verde | ✅ **verde** |
+
+`_desactivarBotonesRangoExcedido()` (`coordenadas-hijo2.html`) habilita los mapas junto con el botón de ubicación, con el mismo motivo declarado en su propio comentario: *"los mapas ayudan a un usuario perdido a orientarse"* — mismo grupo funcional que ubicación, no el de vídeo/avanzar (que si se deshabilitan, porque no tiene sentido seguir viendo el vídeo de la parada o poder avanzar mientras el sistema no confía en la posición real).
 
 **Respuesta del padre a `NAVEGACION.USUARIO_FUERA_RANGO`** (se envía una sola vez, al confirmarse fuera de rango en cualquier franja):
 - Registra `estado.usuarioFueraRango = { activo: true, distancia, franja, elementoMasCercano }`
@@ -7189,7 +7200,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-1e5ec1181903'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-b5db227ffcb2'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7836,7 +7847,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-1e5ec1181903';
+const CACHE_VERSION = 'v-b5db227ffcb2';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9777,7 +9788,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SELECCION.AVENTURA_ACTIVADA` | Pantalla de selección (P15 — reto R-2 afirmativo) | `_hdl_SELECCION_AVENTURA_ACTIVADA`: si iframes ya listos → fast-path (sincroniza modo); si no → completa carga; si `_devModeActivo` → llama `_vv_triggerCambioModo(MODOS.CASA)`; si no → espera GPS | `SISTEMA.CAMBIO_MODO` broadcast | Todos los hijos | Lanzar la aventura tras confirmación final del usuario |
 | `SELECCION.TERMINOS_ACEPTADOS` | Pantalla de selección (P10) | `_hdl_SELECCION_TERMINOS_ACEPTADOS`: registra aceptación en `estado`; sin efecto en carga de iframes | (ninguna) | — | Trazabilidad legal; el flujo puede continuar sin este ACK |
 | `RETO.SOLICITAR_RETO` | Hijo 3 (click en `#retosBtn`) o Hijo 4 (click en `#botonRetos`) | `_hdl_RETO_SOLICITAR`: llama `mostrarReto(estado.paradaActual)` → envía `RETO.MOSTRAR` a hijo4 con los datos del reto | `RETO.MOSTRAR` | Hijo 4 | El padre es el árbitro de qué reto mostrar; hijos no acceden directamente a los datos |
-| `RETO.OCULTAR` | Hijo 4 (usuario cierra el reto) | `_hdl_RETO_OCULTAR`: limpia estado interno del reto; oculta hijo4 | (ninguna) | — | Sincronizar el estado del reto con el padre tras cierre manual |
+| `RETO.OCULTAR` | Hijo 4 (usuario cierra el reto) | `_hdl_RETO_OCULTAR`: oculta iframe hijo4 + backdrop. No limpia ningún estado propio del padre — solo relé y DOM | `CONTROL.HABILITAR` (hijo2, hijo3) + `RETO.LIMPIAR_ESTADO` (hijo4) | Hijo2, Hijo3, Hijo4 | Rehabilitar navegación/audio tras cerrar el reto, y que hijo4 limpie su propio estado interno |
 | `RETO.MOSTRADO` | Hijo 4 (reto renderizado en UI) | `_hdl_RETO_MOSTRADO`: registra que el reto está visible; sin acción adicional | (ninguna) | — | Confirmación de que hijo4 completó la renderización del reto |
 | `AVENTURA.TIEMPO_ACTUALIZADO` | Hijo 1 (cada segundo mientras el temporizador corre) | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`: actualiza la UI del temporizador del padre (`#tiempo-restante`) | (ninguna) | — | Mantener el contador visible en el padre sincronizado con hijo1 |
 | `AVENTURA.TIEMPO_AGOTADO` | Hijo 1 (contador a 0) | `_hdl_AVENTURA_TIEMPO_AGOTADO`: lanza el flujo de fin de aventura por tiempo (modal + despedida) | (ninguna directa) | — | Gestionar el caso de límite de tiempo alcanzado |
@@ -9819,6 +9830,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `RETO.MOSTRAR` | Hijo 4 | Cuando el usuario pulsa el botón de retos (`RETO.SOLICITAR_RETO`), o al avanzar al siguiente reto de una cola | Renderizar el reto en hijo 4 para que el usuario lo resuelva |
 | `RETO.HABILITAR` | Hijo 4 | Cuando hijo 3 notifica `FIN_REPRODUCCION` y la parada tiene retos (vía `_procesarFinAudioElemento`) | Desbloquear el botón del reto para que el usuario pueda intentarlo; no se envía si la parada no tiene reto |
 | `RETO.ESTADO_CASA` | Hijo 4 | Al cambiar de parada en modo CASA | Mostrar y habilitar el botón de retos solo en paradas que tienen reto; ocultar en tramos y en paradas sin reto |
+| `RETO.LIMPIAR_ESTADO` | Hijo 4 | Justo después de recibir `RETO.OCULTAR` de hijo4 (usuario cerró la ventana del reto) | Que hijo4 limpie su propio estado interno del reto y restaure `#botonRetos-wrapper` en modo CASA — tipo distinto de `RETO.OCULTAR` a propósito (direcciones opuestas) |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Hijo 5 | En respuesta a `SOLICITAR_DATOS_PARADAS` | Entregar la lista de paradas para que hijo 5 la renderice en la barra de navegación |
 | `DATOS.CARGAR_COORDENADAS` | Hijo 2 | En respuesta a `SOLICITAR_COORDENADAS`, o al iniciar la aventura | Entregar el array de elementos del recorrido al mapa |
 | `CONTROL.HABILITAR` | Hijo específico | Al mostrar una pantalla | Activar el iframe (visible, interactivo) |
@@ -9958,6 +9970,7 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | `RETO.MOSTRAR` | Padre (al activar cada parada vía `_hdl_NAVEGACION_CAMBIO_PARADA`; cuando el usuario solicita el reto pulsando el botón, en respuesta a `RETO.SOLICITAR_RETO`; también al avanzar al siguiente reto de una cola) | Recibe `{ retoId, retosArray:[retoData] }` con el objeto reto ya resuelto; lo guarda en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); renderiza pregunta y opciones — el reto queda interactivo en este punto. Si `retosArray` llega vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | `RETO.MOSTRADO` | Padre | Protección pasiva por parada (§16): entregar solo el reto de la parada activa, no la aventura completa |
 | `RETO.HABILITAR` | Padre (tras `FIN_REPRODUCCION` en modo AVENTURA, solo si la parada tiene retos) | Habilita el botón `#botonRetos`; activa la interacción del usuario | (ninguna) | — | El botón de retos solo se activa después de escuchar el audio completo y solo en paradas con reto |
 | `RETO.ESTADO_CASA` | Padre (en `_hdl_NAVEGACION_CAMBIO_PARADA`) | Muestra y habilita `#botonRetos` si `habilitado: true` (parada con reto); lo oculta si `habilitado: false` (tramo o parada sin reto) | (ninguna) | — | Controla la visibilidad del botón de retos en modo CASA según si el elemento actual tiene reto o no |
+| `RETO.LIMPIAR_ESTADO` | Padre (`_hdl_RETO_OCULTAR`, justo tras recibir `RETO.OCULTAR` de este mismo hijo) | Limpia su estado interno del reto (caché de la pregunta activa, respuesta seleccionada) y restaura `#botonRetos-wrapper` en modo CASA | (ninguna) | — | Tipo distinto de `RETO.OCULTAR` a propósito: mismo nombre de concepto, direcciones opuestas y efectos distintos (ver §25, protocolo detallado) |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
 **Mensajes salientes de Hijo 4:**
@@ -9971,6 +9984,7 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
 | `DATOS.SOLICITAR_RETOS { retoId }` | Padre | Cache-miss: `mostrarReto()` no encuentra ese id en la caché local acotada | Pedir un reto concreto — el padre lo resuelve y responde con `RETO.MOSTRAR`, no con un reenvío masivo |
 | `RETO.COMPLETADO` | Padre | Cuando el usuario responde correctamente | Notificar al padre para avanzar el recorrido |
+| `RETO.OCULTAR` | Padre | Cuando el usuario cierra la ventana del reto (botón siguiente/continuar) | Pedir al padre que oculte el iframe hijo4 y el backdrop, y que rehabilite navegación/audio (`CONTROL.HABILITAR` a hijo2/hijo3); el padre responde con `RETO.LIMPIAR_ESTADO` para que este hijo limpie su propio estado |
 
 ---
 
@@ -11333,7 +11347,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-1e5ec1181903';
+const CACHE_VERSION = 'v-b5db227ffcb2';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11495,11 +11509,13 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 
 **Las tres franjas — pantallas a pantalla completa en el padre, mutuamente excluyentes:**
 
-| Franja | Distancia | Pantalla | Botón ubicación (hijo2) | Vídeo/mapas/avanzar |
+| Franja | Distancia | Pantalla | Ubicación + mapas (hijo2) | Vídeo/avanzar |
 |---|---|---|---|---|
-| Fuera de rango | rango real + 1m hasta 50m | `foto-fuera-rango.png` + distancia + cuenta atrás de 5 min | Se habilita al acabar la cuenta atrás | Se deshabilitan al acabar la cuenta atrás |
-| Lejos | 51m – 2.000m | `foto_lejos_ubicacion.png` + distancia | Se habilita al instante | Se deshabilitan al instante |
-| Muy lejos | > 2.000m | `fotogpserror.png` + distancia (ver §30.5/§30.6) | Se habilita al instante | Se deshabilitan al instante |
+| Fuera de rango | rango real + 1m hasta 50m | `foto-fuera-rango.png` + distancia + cuenta atrás de 5 min | Se habilitan al acabar la cuenta atrás | Se deshabilitan al acabar la cuenta atrás |
+| Lejos | 51m – 2.000m | `foto_lejos_ubicacion.png` + distancia | Se habilitan al instante | Se deshabilitan al instante |
+| Muy lejos | > 2.000m | `fotogpserror.png` + distancia (ver §30.5/§30.6) | Se habilitan al instante | Se deshabilitan al instante |
+
+Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a un usuario perdido a orientarse, así que se habilitan a la vez (ver la tabla de botones de hijo2 en "Sistema fuera de rango real" más arriba, y `_desactivarBotonesRangoExcedido()`).
 
 **Quién decide qué:** hijo2 calcula la distancia real en cada posición (`verificarDistanciaYActualizarBotones()`) y decide, de forma independiente y local, el estado de sus propios botones — no espera respuesta del padre para eso. En tramos, la distancia usada aquí es `distanciaAlCamino` (proyección sobre la ruta real), no la línea recta al punto de llegada — ver "Dos métricas de distancia" en la sección anterior; en paradas ambas coinciden siempre. Por separado, envía esa distancia al padre vía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }`; el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) reparte esa distancia entre las 3 pantallas según los umbrales fijos de 50 y 2.000 metros. Cuando el usuario vuelve dentro del rango real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta las 3 pantallas a la vez (`_ocultarTodasPantallasDistanciaGPS()`).
 

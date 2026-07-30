@@ -1894,10 +1894,19 @@ async function enviarConsultaCoordenadas(paradaId, padreId) {
         tipo: TIPOS_MENSAJE.NAVEGACION.SOLICITAR_COORDENADAS,
         origen: resolverIdPadre(),
         mensajeId,
-        datos: { 
+        datos: {
             paradaId,
             padreId,
-            tipoConsulta: globalThis.mensajeria?.getHijoTipo('hijo2') ?? 'COORDENADAS'
+            // Literal, no globalThis.mensajeria.getHijoTipo('hijo2'): el handler en
+            // coordenadas-hijo2.html exige tipoConsulta === 'COORDENADAS' exacto. Antes este
+            // valor salía de _hijosRegistrados (poblado cuando hijo2 se autodeclara con
+            // tipo:'COORDENADAS' en su propio HIJO_PREPARADO) — dos sitios sin relación
+            // declarada entre sí, en archivos distintos, que solo coincidían porque hijo2 elige
+            // ese mismo string por su cuenta. Cambiar cualquiera de los dos sin tocar el otro
+            // rompía en silencio esta consulta de respaldo (se usa solo cuando la caché local
+            // del padre no tiene la parada). getHijoTipo() no tiene ningún otro consumidor en
+            // el proyecto — no aporta nada usarlo aquí frente al literal directo.
+            tipoConsulta: 'COORDENADAS'
         }
     });
 }
@@ -1928,29 +1937,17 @@ async function procesarRespuestaConsulta(tipo, datos) {
         if (tipo === 'coordenadas') {
             estadoMapa.datosRecopilados.coordenadas = datos;
             estadoMapa.esperandoCoordenadas = false;
-
-            // Distribuir imagen/video a hijo2 si están presentes
-            if (datos?.imagen !== undefined && datos?.video !== undefined) {
-                try {
-                    enviarMensaje({
-                        destino: 'hijo2',
-                        tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
-                        origen: 'funciones-mapa',
-                        datos: {
-                            paradas: [datos],
-                            paradaActual: datos.paradaId || datos.id,
-                            timestamp: Date.now()
-                        }
-                    });
-                    logger.info(`${logPrefix} Información completa distribuida a hijo2:`, {
-                        paradaId: datos.paradaId || datos.id,
-                        tieneImagen: !!datos.imagen,
-                        tieneVideo: !!datos.video
-                    });
-                } catch (error) {
-                    logger.error(`${logPrefix} Error distribuyendo datos a hijo2:`, error);
-                }
-            }
+            // No hace falta reenviar imagen/video a hijo2 aquí: hijo2 ya tiene la aventura
+            // completa (con imagen/video de cada parada) en globalThis.__vv_coordenadasAventura
+            // desde DATOS.CARGAR_COORDENADAS, que llega una vez al activar la aventura, antes de
+            // que exista ningún CAMBIO_PARADA — esta consulta (Route 2 de manejarCambiarParada)
+            // solo se dispara cuando la CACHÉ DEL PADRE no tiene la parada, algo independiente de
+            // si hijo2 la tiene. Reenviarlo aquí reutilizaba NAVEGACION.RESPUESTA_DATOS_PARADAS
+            // (pensado para el array completo) con un solo elemento; el guard antiduplicados de
+            // ese handler en hijo2 (paradas.length > 5) no distinguía este caso, así que
+            // sobreescribía estadoComponente.arrayParadasLocal con un array de 1 elemento —
+            // sin efecto real (arrayParadasLocal solo se usa para logging en ese mismo handler),
+            // pero confuso de leer y con un envío que no aportaba nada.
         }
 
         logger.info(`${logPrefix} Datos recopilados para ${paradaId}`);
