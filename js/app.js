@@ -876,11 +876,21 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}) {
         estado.elementoActual = null;
         estado.siguiendoRuta = false;
 
-        // Resetear estado GPS
+        // Resetear estado GPS — NUNCA tocar aquí estado.gps.activo ni estado.gps.watchId.
+        // watchPosition() se enciende una sola vez en P14 y no se apaga al cambiar de modo
+        // (ver docs/GUIA-COMPLETA.md §2.15/§2.6 y "Fuente única de verdad del estado GPS") —
+        // el modo solo decide si las posiciones fuerzan avance automático (comprobación en
+        // funciones-mapa.js:procesarPosicionGPSParaAventura), no si el sensor está encendido.
+        // Poner watchId/activo a false aquí mentía sobre el estado real: el watch nativo
+        // seguía vivo y disparando _watchPositionSuccess de fondo, pero activarGPS() usa
+        // exactamente `est.gps.activo && est.gps.watchId !== null` para decidir si ya hay
+        // uno corriendo — con watchId a null, la siguiente activación (reentrar en AVENTURA)
+        // no reconocía el watch existente y arrancaba un SEGUNDO watchPosition en paralelo,
+        // sin poder cancelar nunca el primero (su id ya se había perdido). Cada vuelta
+        // CASA↔AVENTURA sin este fix sumaba un watch más, todos escribiendo sobre el mismo
+        // estado.gps y mandando ACTUALIZAR_ESTADO duplicados a hijo2.
         estado.gps = estado.gps || {};
-        estado.gps.activo = false;
         estado.gps.posicionUsuario = null;
-        estado.gps.watchId = null;
 
         // Resetear otros estados relacionados
         estado.retoActivo = false;
