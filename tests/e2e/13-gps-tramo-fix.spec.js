@@ -454,7 +454,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     }, TRAMO);
     await page.waitForTimeout(300);
 
-    const huboLimpieza = logs.some(l => l.includes('Distancia ≤50m, removiendo polyline de navegación automáticamente'));
+    const huboLimpieza = logs.some(l => l.includes('Distancia ≤50m o trazado ya visible, removiendo polyline de navegación automáticamente'));
     expect(huboLimpieza, 'La llegada real debe limpiar la polyline sin importar la ventana de prioridad manual').toBe(true);
   });
 

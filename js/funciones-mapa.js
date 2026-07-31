@@ -188,6 +188,20 @@ const estadoMapa = {
     gpsError: null, // Último error GPS
     ultimaUbicacion: null, // { lat, lng } - última ubicación GPS recibida
     gpsVisualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
+    // Fase del tramo activo respecto a su propio trazado (ver procesarPosicionGPSParaAventura):
+    // false = nunca ha llegado a .inicio en esta activación (fase 1, se mide contra .inicio).
+    // true = ya llegó a .inicio alguna vez (fase 2, se mide contra distanciaAlCamino de ahí en
+    // adelante, para no exigir volver a .inicio si se desvía a mitad de tramo — p.ej. una calle
+    // cortada por obras). Se resetea a false en completarCambioParada() al activarse CUALQUIER
+    // elemento nuevo (parada o tramo) — deliberadamente incondicional para no depender de
+    // comparar IDs con formatos distintos entre funciones.
+    _tramoIniciadoEstaActivacion: false,
+    // Confirmación por 2 lecturas seguidas antes de revelar/ocultar el trazado por distancia
+    // (mismo criterio que _llegadaCandidataId/_llegadaCandidataCount, pero para visibilidad,
+    // no para notificar llegada — deliberadamente separado para no mezclar ambas garantías).
+    _trazadoCandidataId: null,
+    _trazadoCandidataCerca: null,
+    _trazadoCandidataCount: 0,
     siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
@@ -1179,6 +1193,13 @@ export function limpiarRecursos() {
         estadoMapa.gpsError = null;
         estadoMapa.gpsVisualActivo = false;
         estadoMapa.posicionUsuario = null;
+        // Mismo motivo que gpsVisualActivo: sin este reset, un reset completo real (cambio de
+        // modo/aventura) arrastraría la fase del tramo anterior y el contador de confirmación
+        // por 2 lecturas al elemento nuevo.
+        estadoMapa._tramoIniciadoEstaActivacion = false;
+        estadoMapa._trazadoCandidataId = null;
+        estadoMapa._trazadoCandidataCerca = null;
+        estadoMapa._trazadoCandidataCount = 0;
         sincronizarEstadoGPSConPadre();
 
         logger.info('[funciones-mapa] Limpieza completa de recursos finalizada');
@@ -2016,6 +2037,14 @@ async function completarCambioParada() {
                 if (old) { try { old.remove(); } catch (_e) {} marcadoresParadas.delete(k); } // NOSONAR
             });
 
+            // Reset de la visibilidad por distancia para el elemento nuevo — incondicional
+            // (aplica igual a parada o tramo) para que no dependa de comparar IDs con formato
+            // distinto entre esta función y procesarPosicionGPSParaAventura.
+            estadoMapa._tramoIniciadoEstaActivacion = false;
+            estadoMapa._trazadoCandidataId = null;
+            estadoMapa._trazadoCandidataCerca = null;
+            estadoMapa._trazadoCandidataCount = 0;
+
             // Determinar si es tramo o parada
             const esTramo = coordenadas.tipo === 'tramo' || !!coordenadas.coordenadasFin;
             // Los emojis se añaden a continuación en cada rama (tramo/parada).
@@ -2166,6 +2195,12 @@ async function completarCambioParada() {
                 logger.info(`${logPrefix} Tramo en AVENTURA — trazado oculto hasta llegar a ≤20m de .inicio`);
             } else if (globalThis.estadoPadre?.pendingRevealNavegacion) {
                 globalThis.estadoPadre.pendingRevealNavegacion = false;
+                // Llamada explícita a revelarNavegacion() (en vez de dejarlo implícito en la
+                // opacidad por defecto del marcador recién creado) para que gpsVisualActivo
+                // quede en true — si no, procesarPosicionGPSParaAventura() vería el marcador
+                // visible pero la bandera en false, y su chequeo de "lejos ⇒ ocultar" nunca se
+                // dispararía (exige gpsVisualActivo=true para llamar a _ocultarNavegacion()).
+                revelarNavegacion();
                 logger.info(`${logPrefix} pendingRevealNavegacion=true — navegación visible inmediatamente`);
             } else {
                 _ocultarNavegacion();
@@ -2842,6 +2877,11 @@ async function procesarPosicionGPSParaAventura(posicion) {
 
         logger.debug(`${logPrefix} Distancia a ${siguienteParada.id}: ${Math.ceil(distancia)}m (camino: ${Math.ceil(distanciaAlCamino)}m, tolerancia: ${toleranciaGPS}m)`);
 
+        // Id del elemento activo — se calcula aquí (antes solo se calculaba más abajo, junto a
+        // la detección de llegada) porque el bloque de visibilidad del trazado, justo debajo,
+        // también lo necesita para indexar su propio contador de confirmación por 2 lecturas.
+        const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
+
         // ✅ CRÍTICO: Actualizar marcador visual del usuario en el mapa (flecha azul)
         // DEBE llamarse ANTES de enviar mensajes para que el usuario vea su posición en tiempo real
         try {
@@ -2852,16 +2892,54 @@ async function procesarPosicionGPSParaAventura(posicion) {
             logger.warn(`${logPrefix} Error actualizando marcador de usuario:`, error_);
         }
 
-        // Revelar el trazado de un tramo solo al llegar de verdad a su punto de inicio (≤20m,
-        // mismo radio que "llegada" en paradas — RADIO_PARADA en hijo2). completarCambioParada()
-        // lo deja oculto siempre para tramos (ver ese comentario); este es el único sitio que
-        // lo revela, así que si el usuario se aleja después de haber llegado, el trazado se
-        // queda visible (correcto: ya lo alcanzó, no tiene sentido re-ocultarlo a medio camino).
-        if (siguienteParada.tipo === 'tramo' && siguienteParada.inicio?.lat && siguienteParada.inicio?.lng && !estadoMapa.gpsVisualActivo) {
-            const distanciaAlInicio = calcularDistancia(latitude, longitude, siguienteParada.inicio.lat, siguienteParada.inicio.lng);
-            if (distanciaAlInicio <= 20) {
-                revelarNavegacion();
-                logger.info(`${logPrefix} 🗺️ Trazado del tramo revelado — usuario a ${Math.ceil(distanciaAlInicio)}m de .inicio`);
+        // Visibilidad del trazado (📌🎯 + línea sólida del tramo, o 🎯 de la parada) según
+        // distancia real — solo en AVENTURA (en CASA completarCambioParada() ya lo deja
+        // visible sin condición, y el GPS nunca se apaga entre modos, así que hay que excluir
+        // CASA explícitamente aquí para no empezar a ocultar cosas que en CASA deben quedarse
+        // visibles siempre).
+        //
+        // Parada: cerca = distancia ≤20m al punto (mismo radio que "llegada").
+        // Tramo, fase 1 (aún no ha llegado nunca a .inicio en esta activación): cerca =
+        // distancia ≤20m a .inicio — el mismo criterio que antes, ahora generalizado.
+        // Tramo, fase 2 (ya llegó a .inicio alguna vez): cerca = distanciaAlCamino ≤ toleranciaGPS
+        // — deliberadamente NO vuelve a medir contra .inicio, porque avanzar hacia .fin aleja
+        // por definición de .inicio; usar distanciaAlCamino (y no una re-visita a .inicio) es lo
+        // que permite manejar un desvío real (p.ej. una calle cortada por obras): el trazado se
+        // oculta mientras el usuario está lejos del camino, y se revela solo con volver a
+        // acercarse al camino — no hace falta retroceder a .inicio para que reaparezca.
+        if (estadoMapa.modo === MODOS.AVENTURA) {
+            let cerca;
+            if (siguienteParada.tipo === 'tramo') {
+                if (!estadoMapa._tramoIniciadoEstaActivacion) {
+                    cerca = !!(siguienteParada.inicio?.lat && siguienteParada.inicio?.lng) &&
+                        calcularDistancia(latitude, longitude, siguienteParada.inicio.lat, siguienteParada.inicio.lng) <= 20;
+                } else {
+                    cerca = distanciaAlCamino <= toleranciaGPS;
+                }
+            } else {
+                cerca = distancia <= 20;
+            }
+
+            // Confirmación por 2 lecturas seguidas en la misma dirección — mismo criterio que
+            // la detección de llegada, pero indexado y contado aparte (_trazadoCandidata*, no
+            // _llegadaCandidata*) para no mezclar "confirmar llegada" con "confirmar visibilidad".
+            if (estadoMapa._trazadoCandidataId === derivedParadaId && estadoMapa._trazadoCandidataCerca === cerca) {
+                estadoMapa._trazadoCandidataCount = (estadoMapa._trazadoCandidataCount || 0) + 1;
+            } else {
+                estadoMapa._trazadoCandidataCount = 1;
+            }
+            estadoMapa._trazadoCandidataId = derivedParadaId;
+            estadoMapa._trazadoCandidataCerca = cerca;
+
+            if (estadoMapa._trazadoCandidataCount >= 2) {
+                if (cerca && !estadoMapa.gpsVisualActivo) {
+                    revelarNavegacion();
+                    if (siguienteParada.tipo === 'tramo') estadoMapa._tramoIniciadoEstaActivacion = true;
+                    logger.info(`${logPrefix} 🗺️ Trazado revelado — usuario cerca de ${derivedParadaId}`);
+                } else if (!cerca && estadoMapa.gpsVisualActivo) {
+                    _ocultarNavegacion();
+                    logger.info(`${logPrefix} 🗺️ Trazado ocultado — usuario lejos de ${derivedParadaId}`);
+                }
             }
         }
 
@@ -2914,24 +2992,41 @@ async function procesarPosicionGPSParaAventura(posicion) {
         );
 
         // 🗺️ Gestión automática de la polyline de navegación (guía discontinua
-        // usuario→destino): remover solo ESA si distancia ≤50m. NO tocar rutasActivas
+        // usuario→destino): remover solo ESA si está "cerca". NO tocar rutasActivas
         // aquí — ahí vive la polyline sólida y persistente del propio tramo (dibujada
         // por dibujarTramo() en completarCambioParada), que debe seguir visible durante
         // todo el trayecto y solo se limpia al cambiar de elemento o de modo. Antes esta
         // limpieza borraba las dos juntas: como la distancia a un tramo podía medirse
         // (bug ya corregido) contra su propio punto de inicio, la ruta del tramo
         // desaparecía prácticamente nada más empezar a caminarlo.
-        if (distancia <= 50 && polylineNavegacion) {
-            logger.info(`${logPrefix} 🗺️ Distancia ≤50m, removiendo polyline de navegación automáticamente`);
+        //
+        // "Cerca"/"lejos" aquí: llegar de verdad al destino real (≤50m) SIEMPRE limpia esta
+        // polyline, sin excepción y sin depender de las 2 lecturas de confirmación del bloque
+        // de arriba — es una garantía distinta e independiente ("ya llegaste, no hace falta
+        // guía") de la del trazado persistente ("estás sobre el camino, no hace falta guía").
+        // En AVENTURA se añade una segunda condición con "o": también se oculta mientras
+        // gpsVisualActivo esté activo (el trazado persistente ya está haciendo ese trabajo —
+        // p.ej. a mitad de un tramo largo, lejos de .fin pero sobre el camino real, cerca de
+        // .inicio). Así nunca están las dos capas visibles a la vez, pero ninguna llegada real
+        // depende del debounce de la otra. En CASA (o cualquier modo que no sea AVENTURA) se
+        // mantiene el criterio original, fijo a 50m — gpsVisualActivo no es fiable ahí porque
+        // el bloque de arriba no se ejecuta en CASA.
+        const _polylineAutoCerca = (distancia <= 50) || (estadoMapa.modo === MODOS.AVENTURA && estadoMapa.gpsVisualActivo);
+        const _polylineAutoLejos = (distancia > 50) && !(estadoMapa.modo === MODOS.AVENTURA && estadoMapa.gpsVisualActivo);
+
+        if (_polylineAutoCerca && polylineNavegacion) {
+            logger.info(`${logPrefix} 🗺️ Distancia ≤50m o trazado ya visible, removiendo polyline de navegación automáticamente`);
             try {
-                polylineNavegacion.remove();
-                polylineNavegacion = null;
+                // limpiarPolylineNavegacion() borra la polyline Y su marcador 🎯
+                // (marcadorDestinoNavegacion) juntos — quitar solo la polyline aquí dejaba el
+                // marcador huérfano en el mapa hasta el próximo dibujarPolylineNavegacion().
+                limpiarPolylineNavegacion();
 
                 logger.debug(`${logPrefix} ✅ Polyline de navegación removida automáticamente`);
             } catch (error_) {
                 logger.warn(`${logPrefix} Error removiendo polylines:`, error_);
             }
-        } else if (distancia > 50 && !(estadoMapa._polylineManualHasta && Date.now() < estadoMapa._polylineManualHasta)) {
+        } else if (_polylineAutoLejos && !(estadoMapa._polylineManualHasta && Date.now() < estadoMapa._polylineManualHasta)) {
             // ✅ DIBUJAR/REFRESCAR POLYLINE AUTOMÁTICAMENTE cuando usuario está lejos (>50m)
             // Se redibuja en CADA lectura GPS válida, no solo la primera vez — el extremo
             // "usuario" de la línea es la posición actual, así que si solo se dibujara una
@@ -2999,7 +3094,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // que hijo2 (LLEGADA_DETECTADA) y deja que sea el único sistema de finalización el
         // que decida cuándo avanzar de verdad — es redundante con la detección de hijo2 (dos
         // sensores para el mismo hecho), pero nunca la sustituye ni la salta.
-        const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
+        // (derivedParadaId ya se calculó más arriba, antes del bloque de visibilidad del trazado)
 
         // Confirmación por dos lecturas seguidas dentro de radio: sin filtro de precisión
         // aguas arriba, una única lectura ruidosa (posible con mala precisión) podría caer
@@ -3165,6 +3260,17 @@ export function dibujarPolylineNavegacion(opciones = {}) {
     }
     
     try {
+        // Ocultar el trazado persistente (rutasActivas + emojis) explícitamente al mostrar la
+        // línea manual — no depender solo de que el bloque de 2 lecturas de
+        // procesarPosicionGPSParaAventura ya lo haya ocultado por distancia: pulsar el botón de
+        // ubicación es justo la señal de que el usuario está perdido/lejos, y la única señal que
+        // debe recibir en ese momento es esta línea + su propia diana de destino, nunca las dos
+        // capas de trazado a la vez. Solo en AVENTURA — en CASA la navegación permanece visible
+        // siempre, sin relación con la posición real.
+        if (estadoMapa.modo === MODOS.AVENTURA) {
+            _ocultarNavegacion();
+        }
+
         // Limpiar polyline anterior si existe
         if (polylineNavegacion) {
             polylineNavegacion.remove();

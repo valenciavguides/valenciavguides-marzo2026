@@ -626,7 +626,7 @@ La app siempre arranca en **modo CASA** (`estado.modo.actual = 'casa'`). El usua
 | **Botón vídeo/dron (`#btn-video`)** | Habilitado inmediatamente si el elemento es tramo | Habilitado si elemento es tramo Y reto no activo |
 | **Audio** | No se reproduce automáticamente | Se lanza solo al llegar a cada parada |
 | **Botón "Avanzar" (hijo2)** | Sin efecto — no hay progresión automática por GPS | Se bloquea al entrar en cada parada; se desbloquea al completar audio + reto |
-| **Polylines y marcadores del mapa** | Visibles **inmediatamente** tras dibujar | Ocultos (opacity 0) — se revelan cuando el usuario pulsa btn-avanzar (`pendingRevealNavegacion`) |
+| **Polylines y marcadores del mapa** | Visibles **inmediatamente** tras dibujar | Visibilidad inicial por `pendingRevealNavegacion`, y de ahí en adelante vigilada en cada lectura GPS: visible solo mientras el usuario está cerca (bidireccional, se oculta de nuevo si se aleja — ver §4.7d) |
 
 ```mermaid
 flowchart LR
@@ -903,19 +903,21 @@ flowchart TD
     C -- tipo: parada --> D["Solo ruta principal visible\nSnap-to-route desactivado\n(desactivarFlechaUsuario)"]
     C -- tipo: tramo --> E["Tramo normal #3388ff 4px\n+ Tramo destacado #ff4500 6px\nSnap-to-route activado\n(activarFlechaUsuario)"]
 
-    E --> F{Distancia del usuario\na la polyline del tramo}
-    F -- ≤ 50m --> G["Sin polyline de navegación\nUsuario sigue la ruta correctamente"]
-    F -- más de 50m --> H["Polyline de navegación aparece\nazul discontinua #3388ff 2px\ncon waypoints del tramo\n(guía el camino de vuelta)"]
-    H --> I{Usuario vuelve\na ≤ 50m}
+    E --> F{"¿distancia ≤50m (llegada)\nO trazado persistente\nvisible? (gpsVisualActivo,\nver §4.7d)"}
+    F -- "sí (cerca)" --> G["Sin polyline de navegación\nUsuario sigue la ruta correctamente"]
+    F -- "no (lejos)" --> H["Polyline de navegación aparece\nazul discontinua #3388ff 2px\ncon waypoints del tramo\n(guía el camino de vuelta)"]
+    H --> I{"¿distancia ≤50m\nO gpsVisualActivo=true?"}
     I -- sí --> G
     I -- no --> H
 
     J([Zoom del mapa cambia]) --> K["getPolylineEscalado recalcula\ngrosor × factor de escala\ntodos los trazos se actualizan"]
 ```
 
-**La polyline de navegación (`polylineNavegacion`, el tramo H del diagrama) se redibuja en cada lectura GPS válida mientras la distancia siga >50m** — no solo la primera vez. Su extremo "usuario" es la posición actual, así que si solo se dibujara una vez al superar los 50m, se quedaría anclada a la posición de ese instante y dejaría de reflejar dónde está el usuario realmente mientras camina, aunque la distancia mostrada en la ventana flotante sí siguiera actualizándose (se calcula aparte, en cada posición). El redibujado consiste en eliminar la polyline anterior y crear una nueva — `_crearPolyline()` no tiene método de actualización de puntos, así que no hay forma más barata de moverla.
+**En AVENTURA, la rama F del diagrama es "cerca" si `distancia ≤50m` (llegada real al destino) O si `estadoMapa.gpsVisualActivo` es `true`** (el mismo flag que gobierna la visibilidad del trazado persistente — 📌🎯 + línea sólida del tramo, ver §4.7d parte 2). Son dos motivos distintos e independientes para ocultar esta guía: "ya llegaste, no hace falta" (≤50m, nunca depende de las 2 lecturas de confirmación de la otra garantía — llegar de verdad limpia esta polyline siempre, de inmediato) y "ya estás sobre el trazado persistente, no hace falta una segunda guía" (`gpsVisualActivo`, típico a mitad de un tramo largo: lejos aún de `.fin` pero ya cerca de `.inicio` o sobre el camino real). Antes de esta unificación, esta polyline usaba únicamente `distancia >50m`/`≤50m`, sin relación con el trazado persistente — durante buena parte de un tramo largo (revelado desde `.inicio` pero todavía a más de 50m de `.fin`) las dos capas podían solaparse, visualmente indistinguibles (mismo color y opacidad). **En CASA** (o cualquier modo que no sea AVENTURA) se conserva el criterio original, fijo a 50m sin el término de `gpsVisualActivo` — no es fiable ahí porque la vigilancia de §4.7d parte 2 no se ejecuta en CASA.
 
-**Esta misma variable (`polylineNavegacion`) es también la que dibuja el botón de ubicación** (línea verde manual, §30.4) — las dos comparten una sola referencia porque solo tiene sentido que exista una guía visible a la vez, nunca dos superpuestas. Sin coordinación entre ambas, pulsar el botón de ubicación mientras la distancia sigue >50m duraría poco: en el siguiente ciclo GPS (~7s, `CONFIG.GPS.INTERVALO_ACTUALIZACION`) el redibujado automático de arriba la sustituiría por la azul, antes de que el usuario llegara a mirar la respuesta que acababa de pedir. `dibujarPolylineNavegacion()` (la función que traza la línea manual) marca `estadoMapa._polylineManualHasta = Date.now() + 90000` al dibujar; mientras ese plazo no haya pasado, el bloque automático de arriba no toca la polyline — la deja tal cual, aunque la distancia siga siendo >50m y en circunstancias normales sí la habría redibujado. Pasados los 90 segundos (margen pensado para que el usuario mire el móvil, se oriente y empiece a andar), el redibujado automático retoma el control sin que nadie tenga que pedirlo de nuevo. La comprobación de llegada real (≤50m, rama G del diagrama) no consulta este plazo — llegar de verdad siempre limpia la polyline, sea cual sea la línea que estuviera mostrándose en ese momento.
+**La polyline de navegación (`polylineNavegacion`, el tramo H del diagrama) se redibuja en cada lectura GPS válida mientras siga "lejos"** — no solo la primera vez. Su extremo "usuario" es la posición actual, así que si solo se dibujara una vez, se quedaría anclada a la posición de ese instante y dejaría de reflejar dónde está el usuario realmente mientras camina, aunque la distancia mostrada en la ventana flotante sí siguiera actualizándose (se calcula aparte, en cada posición). El redibujado consiste en eliminar la polyline anterior y crear una nueva — `_crearPolyline()` no tiene método de actualización de puntos, así que no hay forma más barata de moverla. Al pasar a "cerca", la retirada usa `limpiarPolylineNavegacion()` (borra la polyline y su marcador 🎯 juntos) en vez de solo la polyline — antes dejaba el marcador huérfano en el mapa hasta el siguiente redibujado.
+
+**Esta misma variable (`polylineNavegacion`) es también la que dibuja el botón de ubicación** (línea verde manual, §30.4) — las dos comparten una sola referencia porque solo tiene sentido que exista una guía visible a la vez, nunca dos superpuestas. Sin coordinación entre ambas, pulsar el botón de ubicación mientras sigue "lejos" (rama H) duraría poco: en el siguiente ciclo GPS (~7s, `CONFIG.GPS.INTERVALO_ACTUALIZACION`) el redibujado automático de arriba la sustituiría por la azul, antes de que el usuario llegara a mirar la respuesta que acababa de pedir. `dibujarPolylineNavegacion()` (la función que traza la línea manual) marca `estadoMapa._polylineManualHasta = Date.now() + 90000` al dibujar; mientras ese plazo no haya pasado, el bloque automático de arriba no toca la polyline — la deja tal cual, aunque siga "lejos" y en circunstancias normales sí la habría redibujado. Pasados los 90 segundos (margen pensado para que el usuario mire el móvil, se oriente y empiece a andar), el redibujado automático retoma el control sin que nadie tenga que pedirlo de nuevo. Además, al dibujarse, fuerza `_ocultarNavegacion()` sobre el trazado persistente de inmediato (§4.7d) — no espera a que la vigilancia por distancia lo confirme por su cuenta. La comprobación de llegada real (rama G del diagrama) no consulta el plazo de 90s — llegar de verdad siempre limpia la polyline, sea cual sea la línea que estuviera mostrándose en ese momento.
 
 ### 4.6b. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
 
@@ -1022,24 +1024,24 @@ flowchart TD
     G -- replay --> K["Reinicia desde el principio"]
 ```
 
-### 4.7d. Revelación de navegación en el mapa (`pendingRevealNavegacion`)
+### 4.7d. Visibilidad del trazado en el mapa: creación (`pendingRevealNavegacion`) + vigilancia continua por distancia
 
 #### Principio de diseño
 
-El comportamiento difiere según el modo y el tipo de elemento:
+Hay dos momentos distintos que gobiernan si el trazado (🎯 de parada; polyline azul + 📌 inicio + 🎯 fin de tramo) se ve o no, y ambos aplican **solo en modo AVENTURA** — en CASA la navegación se muestra siempre inmediatamente tras dibujarse, sin condición, porque el usuario no está caminando la ruta, solo consultándola:
 
-- **Modo AVENTURA, parada:** Cuando se avanza a la parada, el mapa carga el marcador 🎯 pero lo mantiene **invisible**. Se muestra solo cuando el usuario pulsa `btn-avanzar` explícitamente. **Por qué:** el usuario necesita escuchar el audio y completar el reto antes de saber adónde ir.
-- **Modo AVENTURA, tramo:** El trazado completo (polyline azul + marcadores 📌 inicio / 🎯 fin) se mantiene **invisible** siempre al entrar en el tramo, sin excepción — ni siquiera avanzando desde la parada anterior con `btn-avanzar` lo revela. Se revela únicamente cuando el GPS confirma que el usuario está a ≤20m del punto real de `.inicio` (mismo radio que "llegada" en paradas). **Por qué:** revelar el trazado entero nada más avanzar lógicamente al tramo (independientemente de dónde esté el usuario de verdad) mostraba la ruta completa sin que tuviera relación con la posición real — visible y desactualizado si, por ejemplo, el usuario cerraba la app y la reanudaba lejos del punto de inicio real.
-- **Modo CASA:** La navegación se muestra **inmediatamente** tras dibujar los elementos (parada o tramo) — no hay audio obligatorio ni reto que completar antes de ver la ruta, y tampoco tiene sentido exigir proximidad real: en CASA el usuario no está caminando la ruta, solo consultándola.
+1. **Al crearse el elemento** (`completarCambioParada()`): decide la visibilidad INICIAL — igual que antes (ver `pendingRevealNavegacion` más abajo).
+2. **De ahí en adelante, en cada lectura GPS** (`procesarPosicionGPSParaAventura()`): decide si el trazado sigue visible o no, **de forma continua y bidireccional** — no es un "revelar una vez y listo". Si el usuario se aleja después de haber estado revelado, el trazado se vuelve a ocultar; si vuelve a acercarse, se revela de nuevo. **Por qué:** mostrarle al usuario el trazado detallado y los emojis de un elemento del que está lejos es ruido — dos señales compitiendo por su atención cuando en realidad solo una es accionable (la guía para volver, no el detalle de un sitio al que no puede llegar ahora mismo). La única señal que debe recibir el usuario cuando está lejos es la polyline automática de "vuelve aquí" (ver más abajo) y su propia diana de destino — nunca las dos capas de trazado a la vez.
 
-#### Mecanismo técnico: flag `pendingRevealNavegacion` (paradas, solo AVENTURA) + revelación por GPS (tramos, solo AVENTURA)
+**Caso concreto que motivó el diseño bidireccional:** un tramo cuya calle real está cortada por obras obliga al usuario a desviarse del camino prediseñado para llegar de `.inicio` a `.fin`. Si la visibilidad fuera un latch de una sola dirección (como antes), el trazado se quedaría pegado a la pantalla durante todo el desvío, sin relación con dónde está el usuario de verdad. Con el diseño actual se oculta mientras dura el desvío y se revela de nuevo en cuanto el usuario vuelve a estar cerca del camino — **sin exigir volver a pasar por `.inicio`**, porque avanzar legítimamente hacia `.fin` también aleja de `.inicio` y eso no debe tratarse como "se ha perdido".
 
-El flag `estado.pendingRevealNavegacion` (`boolean`, inicializado a `false` en `codigo-padre.html`) coordina cuándo mostrar la navegación **en modo AVENTURA, solo para paradas**:
+#### Mecanismo técnico, parte 1 — visibilidad inicial al crear el elemento
 
-- **`false` (valor por defecto):** `completarCambioParada()` en `js/funciones-mapa.js` llama `_ocultarNavegacion()` tras dibujar los elementos.
-- **`true`:** `completarCambioParada()` mantiene los elementos visibles y resetea el flag a `false`.
+El flag `estado.pendingRevealNavegacion` (`boolean`, inicializado a `false` en `codigo-padre.html`) decide la visibilidad con la que nace el elemento **en modo AVENTURA**:
 
-Para **tramos**, `completarCambioParada()` ignora este flag por completo — siempre llama `_ocultarNavegacion()` en AVENTURA, y lo resetea a `false` sin usarlo, para que no quede pendiente y afecte a una parada posterior. La revelación de un tramo depende únicamente de `procesarPosicionGPSParaAventura()`, que llama `revelarNavegacion()` en cuanto una posición GPS válida cae a ≤20m de `siguienteParada.inicio` (y solo si `estadoMapa.gpsVisualActivo` seguía en `false`, para no repetir la llamada en cada tick una vez ya revelado):
+- **Parada, flag=`true`** (se llegó aquí avanzando desde un elemento anterior recién completado): `completarCambioParada()` llama `revelarNavegacion()` explícitamente (no solo deja el marcador en su opacidad por defecto — hace falta la llamada real para que `gpsVisualActivo` quede en `true` y la parte 2, más abajo, pueda vigilar correctamente desde el primer tick) y resetea el flag a `false`.
+- **Parada, flag=`false`** (p. ej. la primera parada de la aventura, o una reanudación): `completarCambioParada()` llama `_ocultarNavegacion()`.
+- **Tramo, cualquier valor del flag:** `completarCambioParada()` **ignora el flag por completo** y siempre llama `_ocultarNavegacion()` — ni siquiera avanzando desde la parada anterior con `btn-avanzar` lo revela de golpe. Además resetea `estadoMapa._tramoIniciadoEstaActivacion = false`, marcando que este tramo, en esta activación, aún no ha sido alcanzado nunca por GPS (ver parte 2).
 
 ```text
 CAMBIO_PARADA recibido
@@ -1047,19 +1049,36 @@ CAMBIO_PARADA recibido
         ▼
 completarCambioParada():
   1. Limpia capas anteriores (polylines, tramo markers 📌🎯 — siempre, independiente del modo)
-  2. Dibuja polyline (si tramo) + marcadores 📌🎯 (o 🎯 si parada)
-  3. Hace zoom/flyTo al destino
-  4. Decide visibilidad:
-        ├─ modo ≠ 'aventura'                          → visible inmediatamente     [CASA]
-        ├─ modo = 'aventura', ES TRAMO                → _ocultarNavegacion() SIEMPRE, ignora el flag
-        │                                                (se revela solo por GPS — ver más abajo)
-        ├─ modo = 'aventura', parada, flag=true        → visible, resetea flag a false [btn-avanzar]
-        └─ modo = 'aventura', parada, flag=false        → _ocultarNavegacion(): opacity 0 [recién llegado]
-
-procesarPosicionGPSParaAventura() en cada posición GPS válida (solo si el elemento activo es
-un tramo y sigue oculto):
-        └─ distancia a siguienteParada.inicio ≤20m → revelarNavegacion()
+  2. Resetea _tramoIniciadoEstaActivacion y el contador de confirmación por 2 lecturas (parte 2)
+  3. Dibuja polyline (si tramo) + marcadores 📌🎯 (o 🎯 si parada)
+  4. Hace zoom/flyTo al destino
+  5. Decide visibilidad inicial:
+        ├─ modo ≠ 'aventura'                     → visible inmediatamente        [CASA]
+        ├─ modo = 'aventura', ES TRAMO           → _ocultarNavegacion() SIEMPRE, ignora el flag
+        ├─ modo = 'aventura', parada, flag=true  → revelarNavegacion() explícito [btn-avanzar]
+        └─ modo = 'aventura', parada, flag=false → _ocultarNavegacion()          [recién llegado]
 ```
+
+#### Mecanismo técnico, parte 2 — vigilancia continua por distancia (ambos tipos, bidireccional)
+
+A partir de ahí, **cada lectura GPS válida** en `procesarPosicionGPSParaAventura()` recalcula si el elemento activo está "cerca" o "lejos" y ajusta la visibilidad en consecuencia — solo si `estadoMapa.modo === MODOS.AVENTURA` (en CASA esta comprobación entera se salta):
+
+| Tipo / fase | "Cerca" cuando... | Motivo |
+|---|---|---|
+| Parada | `distancia` (al punto) `≤ 20m` | Mismo radio que "llegada" |
+| Tramo, fase 1 — nunca alcanzó `.inicio` en esta activación (`!estadoMapa._tramoIniciadoEstaActivacion`) | `distancia a .inicio ≤ 20m` | Igual que el diseño original — confirma que el usuario ha empezado el tramo de verdad |
+| Tramo, fase 2 — ya alcanzó `.inicio` alguna vez | `distanciaAlCamino ≤ toleranciaGPS` (dinámica, ya calculada por tramo) | Deliberadamente NO vuelve a medir contra `.inicio` — avanzar hacia `.fin` aleja de `.inicio` por definición, así que usar esa distancia re-ocultaría el trazado del usuario que va bien encaminado. `distanciaAlCamino` (distancia a la polyline completa, no a un punto) permite manejar un desvío real sin exigir volver al principio |
+
+El resultado ("cerca" `true`/`false`) se confirma por **2 lecturas seguidas en la misma dirección** antes de actuar — mismo criterio que la detección de llegada (`_llegadaCandidataId`/`_llegadaCandidataCount`), pero contado aparte en `estadoMapa._trazadoCandidataId` / `_trazadoCandidataCerca` / `_trazadoCandidataCount` para no mezclar "confirmar llegada" con "confirmar visibilidad". Evita parpadeo por una lectura GPS puntualmente mala cerca del umbral. El contador se indexa por el id del elemento activo, así que cambiar de parada/tramo lo resetea solo (además se resetea explícitamente en `completarCambioParada()` y en `limpiarRecursos()`, por si acaso).
+
+Con 2 lecturas confirmadas:
+- **cerca && trazado oculto** → `revelarNavegacion()`; si es un tramo, marca `estadoMapa._tramoIniciadoEstaActivacion = true` (pasa a fase 2 para siempre en esta activación).
+- **lejos && trazado visible** → `_ocultarNavegacion()`.
+- En cualquier otro caso (ya está en el estado que le corresponde) no hace nada — evita llamadas repetidas en cada tick mientras el usuario se queda quieto cerca o lejos.
+
+**La polyline azul automática de "vuelve aquí" está ligada a esta visibilidad, no es un sistema aparte — pero no es un complemento estricto de una sola variable.** Ya existía antes (dibuja una línea punteada usuario→destino, vía `.inicio→waypoints→.fin` en tramos — nunca directa a `.fin`, precisamente para seguir forzando la ruta exacta) con su propio umbral fijo de 50m a la distancia real (a `.fin`/al punto de la parada), independiente del trazado persistente; durante buena parte de un tramo largo podían solaparse (ambas visibles a la vez, visualmente indistinguibles: mismo color `#3388ff`, misma opacidad 0.7). Ahora, en AVENTURA, se oculta cuando `distancia ≤50m` (llegada real — esta condición nunca depende de las 2 lecturas del bloque de arriba, así que llegar de verdad siempre limpia esta polyline al instante, sin excepción) **o** cuando `estadoMapa.gpsVisualActivo` es `true` (el trazado persistente ya está guiando, no hace falta una segunda guía) — y se muestra solo cuando ninguna de las dos se cumple. En CASA conserva su criterio original de 50m fijos, sin el término de `gpsVisualActivo` (no es fiable ahí porque la parte 2 no se ejecuta en CASA). De paso se corrigió un bug real encontrado en esta misma revisión: al retirarse automáticamente dejaba huérfano su propio marcador 🎯 (`marcadorDestinoNavegacion`) hasta el próximo redibujado — ahora usa `limpiarPolylineNavegacion()` (ya existía, escrita correctamente, pero sin ninguna llamada en todo el proyecto hasta ahora), que borra la polyline y el marcador juntos.
+
+**El botón de ubicación (`dibujarPolylineNavegacion`, disparado por `NAVEGACION.MOSTRAR_UBICACION_POLYLINE`) fuerza explícitamente `_ocultarNavegacion()` al dibujarse**, en AVENTURA — no depende solo de que la vigilancia por distancia ya lo haya ocultado a tiempo. Pulsar ese botón es la señal más directa de que el usuario está perdido/lejos, así que la garantía se aplica sin esperar al próximo ciclo GPS.
 
 **Código de `_ocultarNavegacion()`** (`js/funciones-mapa.js`):
 ```javascript
@@ -1083,7 +1102,7 @@ estadoMapa.gpsVisualActivo = true;
 sincronizarEstadoGPSConPadre();
 ```
 
-`_setOpacidadMarcador(marcador, opacidad)` es el wrapper propio del proyecto — los `Marker` de MapLibre GL JS no tienen `.setOpacity()` nativo (a diferencia de Leaflet), así que ajusta `marcador.getElement().style.opacity` directamente.
+`_setOpacidadMarcador(marcador, opacidad)` es el wrapper propio del proyecto — los `Marker` de MapLibre GL JS no tienen `.setOpacity()` nativo (a diferencia de Leaflet), así que ajusta `marcador.getElement().style.opacity` directamente. Ambas funciones son idempotentes y baratas de llamar de más — la parte 2 ya evita llamarlas cuando no hace falta, pero si algo las invocara igualmente no habría efecto visible distinto.
 
 #### Flujos por combinación de elementos
 
@@ -1126,7 +1145,7 @@ Usuario escucha audio + completa reto en parada N
 completarCambioParada() para Parada M:
   dibuja marcador 🎯
   NO es tramo → ve pendingRevealNavegacion === true
-  → deja el marcador VISIBLE inmediatamente
+  → revelarNavegacion() explícito: marcador VISIBLE inmediatamente, gpsVisualActivo=true
   → resetea flag a false
 ```
 
@@ -1148,6 +1167,9 @@ _hdl_NAVEGACION_GPS_ACTIVAR():
   paradaListaParaAvanzar === false (es tramo)
   → llama revelarNavegacion() DIRECTAMENTE
   → polyline + 📌🎯 se hacen visibles al instante (datos ya cargados)
+  → NO marca _tramoIniciadoEstaActivacion=true (solo lo hace la parte 2) — si el usuario se
+    aleja después de esto sin haber pasado por .inicio de verdad, la siguiente lectura GPS lo
+    tratará todavía como fase 1 (mide contra .inicio, no contra el camino)
 ```
 
 Este camino sigue existiendo en el código, pero en la práctica queda cubierto por el Caso E antes de que importe: `btn-avanzar` para un tramo activo se habilita por la misma distancia (`distanciaAlDestino`, a `.fin`) que usa `_actualizarBotonGps()` en hijo2 para el resto de su lógica de tramo — no por proximidad a `.inicio` — así que si el botón llega a habilitarse, el usuario ya está mucho más cerca de `.inicio` de lo necesario y el Caso E ya habrá revelado el trazado por GPS.
@@ -1170,34 +1192,57 @@ completarCambioParada() para la siguiente Parada M:
   → btn-avanzar se habilita → usuario pulsa → Caso A o B
 ```
 
-**Caso E — Revelación de un tramo por GPS (el único camino real para tramos):**
+Desde este punto, la parte 2 (vigilancia continua) también puede revelar el 🎯 antes de que el usuario pulse nada, si se acerca a ≤20m del punto real de la parada — algo que antes de esta revisión no ocurría nunca para paradas (solo tramos tenían revelación por GPS).
+
+**Caso E — Revelación inicial de un tramo por GPS (fase 1 → fase 2):**
 
 ```text
-Tramo N activo, trazado oculto (Caso A o C)
+Tramo N activo, trazado oculto (Caso A o C), _tramoIniciadoEstaActivacion = false
         │
         ▼
 Cada posición GPS válida → procesarPosicionGPSParaAventura():
-  siguienteParada.tipo === 'tramo' && !estadoMapa.gpsVisualActivo
-        │
-        ▼
-  distancia(posición actual, siguienteParada.inicio) ≤ 20m
+  distancia(posición actual, siguienteParada.inicio) ≤ 20m, confirmado 2 lecturas seguidas
         │
         ▼
   revelarNavegacion() → polyline + 📌🎯 visibles
-  (idempotente: en ticks posteriores estadoMapa.gpsVisualActivo ya es true, no se repite)
+  _tramoIniciadoEstaActivacion = true  → a partir de aquí, fase 2 (ver Caso F)
 ```
 
-No importa cómo se llegó al tramo (avanzando desde una parada, reanudando una sesión cerrada, o cualquier otro camino) — mientras la posición real del usuario no esté a ≤20m de `.inicio`, el trazado se queda oculto. Si el usuario se aleja después de haber llegado (ya revelado), el trazado no se vuelve a ocultar — llegar una vez es suficiente, no tiene sentido escondérselo a medio tramo.
+No importa cómo se llegó al tramo (avanzando desde una parada, reanudando una sesión cerrada, o cualquier otro camino) — mientras la posición real del usuario no esté a ≤20m de `.inicio`, el trazado se queda oculto.
 
-**Resumen de los 5 casos:**
+**Caso F — Desvío y recuperación tras haber iniciado el tramo (fase 2, bidireccional):**
 
-| Transición | Es tramo | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación |
+```text
+Tramo N activo, ya alcanzó .inicio alguna vez (_tramoIniciadoEstaActivacion = true), trazado visible
+        │
+        ▼
+Usuario se desvía del camino real (p. ej. calle cortada por obras) → distanciaAlCamino > toleranciaGPS,
+confirmado 2 lecturas seguidas
+        │
+        ▼
+_ocultarNavegacion() → trazado OCULTO; la polyline automática "vuelve aquí" pasa a visible,
+apuntando siempre a .inicio (fuerza la ruta exacta, igual que siempre)
+        │
+        ▼
+Usuario vuelve a acercarse al camino EN CUALQUIER PUNTO (no hace falta pasar por .inicio otra
+vez) → distanciaAlCamino ≤ toleranciaGPS, confirmado 2 lecturas seguidas
+        │
+        ▼
+revelarNavegacion() → trazado VISIBLE de nuevo; _tramoIniciadoEstaActivacion sigue en true
+```
+
+Un reanudación de sesión (cerrar la app y reabrirla) SÍ resetea `_tramoIniciadoEstaActivacion` a `false` (es un campo en memoria de `estadoMapa`, no persistido) — coherente con que un tramo incompleto debe rehacerse desde el principio tras reanudar (ver §16, invariante de pending).
+
+**Resumen:**
+
+| Transición | Es tramo | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación / ocultación posterior |
 |---|---|---|---|---|
-| Parada→Tramo (btn-avanzar) | ✅ | `true` (ignorado) | ❌ oculta siempre | GPS ≤20m de `.inicio` (Caso E) |
-| Parada→Parada (btn-avanzar) | ❌ | `true` | ✅ inmediata | Automática al cargar |
-| Tramo activo, btn-avanzar sin llegar (vestigial) | ✅ | n/a | — | `revelarNavegacion()` directo, normalmente ya cubierto por el Caso E |
-| GPS auto-avanza a una parada (llegada automática) | ❌ | `false` | ❌ oculta | Al pulsar btn-avanzar siguiente |
-| Cualquier entrada a un tramo (avance, reanudación...) | ✅ | — | ❌ oculta siempre | GPS ≤20m de `.inicio` (Caso E), único camino real |
+| Parada→Tramo (btn-avanzar) | ✅ | `true` (ignorado) | ❌ oculta siempre | GPS ≤20m de `.inicio`, fase 1 (Caso E); luego bidireccional por `distanciaAlCamino` (Caso F) |
+| Parada→Parada (btn-avanzar) | ❌ | `true` | ✅ inmediata (`revelarNavegacion()` explícito) | Bidireccional por `distancia` desde el primer tick |
+| Tramo activo, btn-avanzar sin llegar (vestigial) | ✅ | n/a | — | `revelarNavegacion()` directo, sin marcar fase 2 todavía — normalmente ya cubierto por el Caso E |
+| GPS auto-avanza a una parada (llegada automática) | ❌ | `false` | ❌ oculta | Al pulsar btn-avanzar, o antes si el GPS confirma ≤20m (bidireccional, nuevo) |
+| Cualquier entrada a un tramo (avance, reanudación...) | ✅ | — | ❌ oculta siempre | Fase 1 (GPS ≤20m de `.inicio`) → fase 2 (bidireccional por `distanciaAlCamino`, Caso F) |
+| Botón de ubicación pulsado (cualquier tipo) | — | — | — | Fuerza `_ocultarNavegacion()` de inmediato, sin esperar a la vigilancia por distancia |
 
 ### 4.7e. Overlay de error de contenido (`#error-overlay`)
 
@@ -4449,7 +4494,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-6456412c2ce8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-35572a801972'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5877,7 +5922,7 @@ El estado GPS está repartido entre dos propietarios con responsabilidades disti
 Cada vez que alguno de estos campos cambia, `sincronizarEstadoGPSConPadre()` los copia a `window.estadoPadre.gps`, permitiendo que el resto del padre los lea sin acceder directamente a las variables internas de `funciones-mapa.js`.
 
 **`estadoPadre.gps.watchId` (`codigo-padre.html`)** — propiedad exclusiva del padre.
-Solo `activarGPS()` lo asigna (al llamar a `navigator.geolocation.watchPosition`) y solo `desactivarGPS()` lo limpia (al llamar a `clearWatch`). `funciones-mapa.js` no tiene campo `watchId` en `estadoMapa` ni escribe en `estadoPadre.gps.watchId`. `sincronizarEstadoGPSConPadre()` deliberadamente no sincroniza este campo.
+Solo `activarGPS()` lo asigna (al llamar a `navigator.geolocation.watchPosition`) y solo `desactivarGPS()` lo limpia (al llamar a `clearWatch`). `funciones-mapa.js` no tiene campo `watchId` en `estadoMapa` ni escribe en `estadoPadre.gps.watchId`. `sincronizarEstadoGPSConPadre()` deliberadamente no sincroniza este campo. **`limpiarRecursosPorModo()` (`js/app.js`), que corre en cada `SISTEMA.CAMBIO_MODO`, NO toca `watchId` ni `activo`** — antes sí lo hacía (los ponía a `null`/`false` en cada cambio de modo), lo que mentía sobre el estado real: el watch nativo seguía vivo (nunca se apaga al cambiar de modo, ver más arriba), y `activarGPS()` usa exactamente `activo && watchId !== null` para reconocer un watch ya en marcha — con `watchId` a `null`, la siguiente activación no lo reconocía y arrancaba un segundo `watchPosition` en paralelo, sin poder cancelar nunca el primero (su id ya se había perdido). Cada vuelta CASA↔AVENTURA sumaba un watch huérfano más.
 
 No existe una tercera copia en `state-manager.js` — la única sincronización de campos de comportamiento es `funciones-mapa.js → window.estadoPadre.gps`.
 
@@ -7060,7 +7105,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `17-flecha-brujula-continuidad.spec.js` | 3 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1); `alpha=90` (Android) se convierte al rumbo `270` (`360-alpha`), nunca se usa crudo (HD-1) |
 | `18-boton-deshabilitado-color.spec.js` | 6 | Un `background-color` inline residual (bypass antiguo) no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#B22222` (BU-2a..e) |
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
-| `20-tramo-inicio-y-revelado.spec.js` | 2 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m (RV-1) |
+| `20-tramo-inicio-y-revelado.spec.js` | 4 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m, con 2 lecturas seguidas (RV-1); una vez iniciado, desviarse del camino real (`distanciaAlCamino`) oculta el trazado y volver a acercarse en cualquier punto — sin pasar de nuevo por `.inicio` — lo revela otra vez, cubriendo el caso de una calle cortada por obras (RV2-1); pulsar el botón de ubicación oculta el trazado persistente de inmediato, sin esperar a la próxima lectura GPS (PL-1) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7200,7 +7245,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-6456412c2ce8'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-35572a801972'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7847,7 +7892,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-6456412c2ce8';
+const CACHE_VERSION = 'v-35572a801972';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11347,7 +11392,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-6456412c2ce8';
+const CACHE_VERSION = 'v-35572a801972';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
