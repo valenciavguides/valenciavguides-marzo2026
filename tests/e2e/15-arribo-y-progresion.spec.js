@@ -6,21 +6,26 @@
  * confirmada por 2 lecturas GPS seguidas dentro de radio — ver 13-gps-tramo-fix.spec.js)
  * marca `pending.llegada = true` en el padre; AUDIO.FIN_REPRODUCCION marca `pending.audio
  * = true`. Con ambos resueltos, intentarCompletarElemento() llama a
- * marcarParadaCompletada(), que — para un tramo — dispara progresarSiguienteElemento(),
- * y este limpia el pending del elemento anterior ANTES de reenviar CAMBIO_PARADA a los
- * hijos (audio incluido). Todo el pipeline se ejercita aquí vía los mensajes reales que
- * envían hijo2/hijo3 en producción, no llamando a funciones internas directamente.
+ * marcarParadaCompletada(), que habilita btn-avanzar y espera la confirmación explícita
+ * del usuario — parada y tramo por igual (§4.7d de la guía, Caso D). Solo al recibir
+ * NAVEGACION.GPS.ACTIVAR (el mensaje real que hijo2 envía al pulsar btn-avanzar) se llama
+ * progresarSiguienteElemento(), que limpia el pending del elemento anterior ANTES de
+ * reenviar CAMBIO_PARADA a los hijos (audio incluido). Todo el pipeline se ejercita aquí
+ * vía los mensajes reales que envían hijo2/hijo3 en producción, no llamando a funciones
+ * internas directamente.
  *
  *   AP-1  NAVEGACION.LLEGADA_DETECTADA sintético marca pending.llegada=true para el
  *         elemento activo (estado.elementoActual).
- *   AP-2  Con llegada (AP-1) y AUDIO.FIN_REPRODUCCION del audio del tramo, la parada se
- *         marca completada y progresarSiguienteElemento() avanza indiceProgreso.
- *   AP-3  El pending del elemento anterior queda limpio y estado.elementoActual ya
- *         apunta al siguiente antes de que termine la progresión — no hay solape.
+ *   AP-2  Con llegada (AP-1) y AUDIO.FIN_REPRODUCCION del audio del tramo, el tramo se
+ *         marca completado y habilita btn-avanzar — pero NO avanza indiceProgreso por sí
+ *         solo, ni cambia estado.elementoActual: espera la pulsación del usuario.
+ *   AP-3  Al recibir NAVEGACION.GPS.ACTIVAR (btn-avanzar pulsado), progresarSiguienteElemento()
+ *         avanza indiceProgreso y estado.elementoActual ya apunta al siguiente — no hay solape
+ *         con el pending del elemento anterior, que sigue limpio desde AP-2.
  *   AP-4  manejarCambiarParada() (funciones-mapa.js) encuentra el nuevo elemento en
  *         AVENTURA_PARADAS por paradaId, no por padreId — antes fallaba siempre en la
- *         progresión automática y dejaba el marcador/diana del elemento anterior sin
- *         actualizar en el mapa.
+ *         progresión y dejaba el marcador/diana del elemento anterior sin actualizar en
+ *         el mapa.
  *   AP-5  Tras completar el tramo, se pide a hijo3 exactamente el audio del siguiente
  *         elemento (la parada contigua) — una sola solicitud, sin repetir el audio del
  *         tramo recién completado ni adelantarse al elemento posterior.
@@ -118,7 +123,7 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
     expect(pendingLlegada, 'pending.llegada debe ser true tras el mensaje sintético de llegada').toBe(true);
   });
 
-  test('AP-2/AP-3. Llegada + fin de audio completan el tramo y progresan, limpiando el pending anterior', async ({ page }) => {
+  test('AP-2. Llegada + fin de audio completan el tramo: habilita btn-avanzar, no progresa solo', async ({ page }) => {
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
 
@@ -138,8 +143,9 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
     expect(antesDeAudio.pendingLlegada, 'Precondición: llegada debe estar confirmada antes de enviar el audio').toBe(true);
 
     // 2) Fin de audio (mismo mensaje real que envía hijo3) — con llegada ya true, esto
-    // debe completar el tramo y disparar progresarSiguienteElemento() automáticamente
-    // (causa='audio_llegada_tramo' avanza sin esperar confirmación del usuario).
+    // completa el tramo. Desde la unificación de la progresión (§4.7d), un tramo
+    // completado se comporta exactamente igual que una parada: habilita btn-avanzar y
+    // espera la confirmación explícita del usuario, nunca avanza por sí solo.
     await enviarMensajeSintetico(page, 'AUDIO.FIN_REPRODUCCION', {
       audioId: TRAMO_AUDIO_ID, duracion: 42, timestamp: Date.now(),
     });
@@ -147,14 +153,58 @@ test.describe('AP — Llegada confirmada → pending → progresión (CAMBIO_PAR
 
     const despues = await page.evaluate(({ tramoPadreid }) => ({
       indiceProgreso: globalThis.estado.indiceProgreso,
+      paradaListaParaAvanzar: globalThis.estado.paradaListaParaAvanzar,
       pendingAnteriorLimpio: !globalThis.estado.pendingCompleciones?.[tramoPadreid],
       completada: [...(globalThis.estado.paradasCompletadas?.keys() || [])],
+      elementoActual: globalThis.estado.elementoActual?.padreid || null,
+    }), { tramoPadreid: TRAMO_PADREID });
+
+    expect(despues.indiceProgreso, 'indiceProgreso NO debe avanzar solo — el tramo completado espera btn-avanzar').toBe(antesDeAudio.indiceProgreso);
+    expect(despues.elementoActual, 'estado.elementoActual debe seguir siendo el tramo recién completado, no el siguiente').toBe(TRAMO_PADREID);
+    expect(despues.paradaListaParaAvanzar, 'paradaListaParaAvanzar debe quedar en true, habilitando btn-avanzar').toBe(true);
+    expect(despues.pendingAnteriorLimpio, 'El pending del tramo completado debe quedar limpio aunque todavía no haya progresado (se borra al completar, no al progresar)').toBe(true);
+    expect(despues.completada, `El tramo debe quedar registrado como completado: ${JSON.stringify(despues.completada)}`).toContain(TRAMO_ID);
+
+    const huboHabilitar = logs.some(l => l.includes('Tramo completado en aventura') && l.includes('habilitando btnAvanzar'));
+    expect(huboHabilitar, `Debe registrarse el log de habilitación de btn-avanzar para el tramo. Logs: ${JSON.stringify(logs.filter(l => /btnAvanzar|Tramo completado/i.test(l)))}`).toBe(true);
+  });
+
+  test('AP-3/AP-4/AP-5. Al pulsar btn-avanzar, progresarSiguienteElemento() avanza, limpia el pending y pide el audio correcto', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenario(page);
+    test.skip(!prep.tieneEstado || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Mismo camino que AP-2 (llegada + fin de audio) para dejar el tramo completado y
+    // esperando confirmación, sin repetir aquí sus aserciones.
+    await enviarMensajeSintetico(page, 'NAVEGACION.LLEGADA_DETECTADA', {
+      paradaId: TRAMO_ID, parada_id: TRAMO_ID, tipoParada: 'tramo', distancia: 3, timestamp: Date.now(),
+    });
+    await page.waitForTimeout(300);
+    await enviarMensajeSintetico(page, 'AUDIO.FIN_REPRODUCCION', {
+      audioId: TRAMO_AUDIO_ID, duracion: 42, timestamp: Date.now(),
+    });
+    await page.waitForTimeout(500);
+
+    const antesDePulsar = await page.evaluate(() => ({
+      indiceProgreso: globalThis.estado.indiceProgreso,
+      paradaListaParaAvanzar: globalThis.estado.paradaListaParaAvanzar,
+    }));
+    test.skip(!antesDePulsar.paradaListaParaAvanzar, `Precondición no disponible: el tramo no quedó listo para avanzar: ${JSON.stringify(antesDePulsar)}`);
+
+    // Pulsar btn-avanzar: mismo mensaje real que hijo2 envía al pulsar el botón.
+    await enviarMensajeSintetico(page, 'NAVEGACION.GPS.ACTIVAR', { activar: true });
+    await page.waitForTimeout(500);
+
+    const despues = await page.evaluate(({ tramoPadreid }) => ({
+      indiceProgreso: globalThis.estado.indiceProgreso,
+      pendingAnteriorLimpio: !globalThis.estado.pendingCompleciones?.[tramoPadreid],
       nuevoElementoActual: globalThis.estado.elementoActual?.padreid || null,
     }), { tramoPadreid: TRAMO_PADREID });
 
-    expect(despues.indiceProgreso, `indiceProgreso debe avanzar (era ${antesDeAudio.indiceProgreso}, quedó ${despues.indiceProgreso})`).toBeGreaterThan(antesDeAudio.indiceProgreso);
-    expect(despues.pendingAnteriorLimpio, 'El pending del tramo completado debe quedar limpio tras progresar').toBe(true);
-    expect(despues.completada, `El tramo debe quedar registrado como completado: ${JSON.stringify(despues.completada)}`).toContain(TRAMO_ID);
+    expect(despues.indiceProgreso, `indiceProgreso debe avanzar tras pulsar btn-avanzar (era ${antesDePulsar.indiceProgreso}, quedó ${despues.indiceProgreso})`).toBeGreaterThan(antesDePulsar.indiceProgreso);
+    expect(despues.pendingAnteriorLimpio, 'El pending del tramo completado debe seguir limpio tras progresar').toBe(true);
     expect(despues.nuevoElementoActual, 'estado.elementoActual debe apuntar ya al siguiente elemento, no seguir en el tramo completado').not.toBe(TRAMO_PADREID);
 
     // AP-4: manejarCambiarParada() (funciones-mapa.js) debe encontrar el nuevo elemento en

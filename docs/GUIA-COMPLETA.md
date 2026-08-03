@@ -624,7 +624,7 @@ La app siempre arranca en **modo CASA** (`estado.modo.actual = 'casa'`). El usua
 | **Quién cambia de parada** | El usuario — pulsa una parada en hijo5 | El GPS — el padre detecta llegada (≤ 20 m) |
 | **`retosBtn` al llegar a una parada** | Se habilita **inmediatamente** si la parada tiene reto | Arranca **deshabilitado** — se habilita solo cuando termina el audio |
 | **Botón vídeo/dron (`#btn-video`)** | Habilitado inmediatamente si el elemento es tramo | Habilitado si elemento es tramo Y reto no activo |
-| **Audio** | No se reproduce automáticamente | Se lanza solo al llegar a cada parada |
+| **Audio** | No se reproduce automáticamente | Se carga y queda listo al activarse cada parada/tramo, pero tampoco se reproduce solo — el usuario pulsa play. `_solicitarAudioParaParada()` manda siempre `AUDIO.REPRODUCIR_REQUEST` con `autoplay: false` (verificado: cero apariciones de `autoplay: true` en `codigo-padre.html`); `cargarYReproducirAudio()` en hijo3 solo llama a `audioPlayer.play()` si `autoplay` es `true` |
 | **Botón "Avanzar" (hijo2)** | Sin efecto — no hay progresión automática por GPS | Se bloquea al entrar en cada parada; se desbloquea al completar audio + reto |
 | **Polylines y marcadores del mapa** | Visibles **inmediatamente** tras dibujar | Visibilidad inicial por `pendingRevealNavegacion`, y de ahí en adelante vigilada en cada lectura GPS: visible solo mientras el usuario está cerca (bidireccional, se oculta de nuevo si se aleja — ver §4.7d) |
 
@@ -872,15 +872,15 @@ Las polylines son las líneas que se dibujan en el mapa para mostrar rutas, tram
 | **Ruta principal** | `#0077ff` (azul) | 6 px | 0.8 | Sólido | Al activar la aventura. Muestra todo el recorrido completo |
 | **Tramo normal** | `#3388ff` (azul claro) | 4 px | 0.7 | Sólido | Al seleccionar un tramo específico entre dos paradas |
 | **Tramo destacado** | `#ff4500` (naranja-rojo) | 6 px | 0.9 | Sólido | Cuando un tramo está activo o enfatizado (el actual) |
-| **Línea de navegación** | `#3388ff` (azul claro) | 2 px | 0.7 | Discontinuo `10, 10` | Cuando el usuario está a más de 50 m de la ruta. Muestra el camino de vuelta |
+| **Línea de navegación manual** | `#3eff3f` (verde) | 2 px | 0.8 | Discontinuo `0, 2` | Solo al pulsar `btn-ubicacion`. Nunca se dibuja sola |
 
 **Escalado dinámico:** Todos los grosores se multiplican por un factor de escala que depende del tamaño de la pantalla y el nivel de zoom del mapa. La función `getPolylineEscalado()` calcula los valores finales.
 
-**Comportamiento automático:**
+**Comportamiento — solo manual, nunca automático:**
 
-- La **polyline de navegación** aparece automáticamente cuando el usuario se aleja más de 50 metros de la ruta. Incluye los waypoints intermedios del tramo para guiar al usuario por el camino correcto (no en línea recta).
-- Se **elimina automáticamente** cuando el usuario vuelve a estar dentro de los 50 metros.
-- También se puede activar **manualmente**: el usuario pulsa `btn-ubicacion` en hijo2, que envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` `{ ubicacionUsuario, proximoElemento, centrar: true, zoom: 16 }` al padre. El padre dibuja la misma polyline discontinua desde la posición actual hasta la próxima parada.
+- La **polyline de navegación** (`polylineNavegacion`) NO se dibuja nunca sola. La única forma de que aparezca es que el usuario pulse `btn-ubicacion` en hijo2, que envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` `{ ubicacionUsuario, proximoElemento, centrar: true, zoom: 16 }` al padre; el padre la dibuja (`dibujarPolylineNavegacion()`, siempre verde) desde la posición actual hasta la próxima parada, vía `.inicio→waypoints→.fin` en tramos (nunca en línea recta a `.fin`, para seguir forzando la ruta exacta).
+- Existió una variante automática (azul discontinua, se redibujaba sola en cada lectura GPS con `distancia >50m`) — se retiró a propósito: competía por el mismo aviso con el propio `btn-ubicacion` habilitándose solo al detectar "fuera de rango" (§30.4), y el criterio de umbral entre ambas señales no coincidía. Ahora "fuera de rango" es la única señal automática, y pulsar el botón es la única forma de pedir la guía visual.
+- Se **elimina** en `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) en dos casos independientes: llegar de verdad al destino (`distancia ≤50m`, garantía inmediata, no depende de las 2 lecturas de confirmación de llegada) o, en AVENTURA, cuando `estadoMapa.gpsVisualActivo` ya está `true` (el trazado persistente del elemento activo ya está guiando — ver §4.7d — así que no hace falta una segunda guía superpuesta). `limpiarPolylineNavegacion()` borra la polyline y su marcador 🎯 (`marcadorDestinoNavegacion`) juntos.
 - Todas las polylines se dibujan como capas `line` dentro del array `layers` del estilo de MapLibre — el orden de aparición en ese array decide qué polyline o capa de calle queda por encima de cuál (MapLibre no tiene una propiedad `zIndex` numérica independiente). Los marcadores (paradas, referencias, flecha del usuario) son elementos DOM aparte, superpuestos sobre el lienzo del mapa — quedan por encima de cualquier polyline sin necesidad de ordenarlos en ese array.
 
 **Snap-to-route (flecha sobre la polyline):**
@@ -903,21 +903,17 @@ flowchart TD
     C -- tipo: parada --> D["Solo ruta principal visible\nSnap-to-route desactivado\n(desactivarFlechaUsuario)"]
     C -- tipo: tramo --> E["Tramo normal #3388ff 4px\n+ Tramo destacado #ff4500 6px\nSnap-to-route activado\n(activarFlechaUsuario)"]
 
-    E --> F{"¿distancia ≤50m (llegada)\nO trazado persistente\nvisible? (gpsVisualActivo,\nver §4.7d)"}
-    F -- "sí (cerca)" --> G["Sin polyline de navegación\nUsuario sigue la ruta correctamente"]
-    F -- "no (lejos)" --> H["Polyline de navegación aparece\nazul discontinua #3388ff 2px\ncon waypoints del tramo\n(guía el camino de vuelta)"]
-    H --> I{"¿distancia ≤50m\nO gpsVisualActivo=true?"}
-    I -- sí --> G
-    I -- no --> H
+    L([Usuario pulsa btn-ubicación]) --> M["dibujarPolylineNavegacion()\nverde #3eff3f discontinua 2px\ncon waypoints del tramo\nfuerza _ocultarNavegacion() del\ntrazado persistente de inmediato"]
+    M --> N{"Cada lectura GPS:\n¿distancia ≤50m (llegada)\nO gpsVisualActivo=true?\n(ver §4.7d)"}
+    N -- "sí" --> O["limpiarPolylineNavegacion()\npolyline + 🎯 eliminados juntos"]
+    N -- "no" --> M
 
     J([Zoom del mapa cambia]) --> K["getPolylineEscalado recalcula\ngrosor × factor de escala\ntodos los trazos se actualizan"]
 ```
 
-**En AVENTURA, la rama F del diagrama es "cerca" si `distancia ≤50m` (llegada real al destino) O si `estadoMapa.gpsVisualActivo` es `true`** (el mismo flag que gobierna la visibilidad del trazado persistente — 📌🎯 + línea sólida del tramo, ver §4.7d parte 2). Son dos motivos distintos e independientes para ocultar esta guía: "ya llegaste, no hace falta" (≤50m, nunca depende de las 2 lecturas de confirmación de la otra garantía — llegar de verdad limpia esta polyline siempre, de inmediato) y "ya estás sobre el trazado persistente, no hace falta una segunda guía" (`gpsVisualActivo`, típico a mitad de un tramo largo: lejos aún de `.fin` pero ya cerca de `.inicio` o sobre el camino real). Antes de esta unificación, esta polyline usaba únicamente `distancia >50m`/`≤50m`, sin relación con el trazado persistente — durante buena parte de un tramo largo (revelado desde `.inicio` pero todavía a más de 50m de `.fin`) las dos capas podían solaparse, visualmente indistinguibles (mismo color y opacidad). **En CASA** (o cualquier modo que no sea AVENTURA) se conserva el criterio original, fijo a 50m sin el término de `gpsVisualActivo` — no es fiable ahí porque la vigilancia de §4.7d parte 2 no se ejecuta en CASA.
+**`polylineNavegacion` es estática una vez dibujada** — a diferencia de la ruta principal o del tramo activo (que no cambian de posición), sus dos extremos quedan fijados en el instante del `btn-ubicacion` (posición del usuario en ese momento → destino) y no se redibuja en lecturas GPS posteriores mientras el usuario camina. No existe ningún bucle que la mantenga "siguiendo" al usuario — solo dos comprobaciones en cada lectura GPS que deciden si toca eliminarla (rama N del diagrama, ver el detalle de las dos condiciones en §4.6 arriba). Si el usuario quiere una guía actualizada a su nueva posición, tiene que volver a pulsar `btn-ubicacion`.
 
-**La polyline de navegación (`polylineNavegacion`, el tramo H del diagrama) se redibuja en cada lectura GPS válida mientras siga "lejos"** — no solo la primera vez. Su extremo "usuario" es la posición actual, así que si solo se dibujara una vez, se quedaría anclada a la posición de ese instante y dejaría de reflejar dónde está el usuario realmente mientras camina, aunque la distancia mostrada en la ventana flotante sí siguiera actualizándose (se calcula aparte, en cada posición). El redibujado consiste en eliminar la polyline anterior y crear una nueva — `_crearPolyline()` no tiene método de actualización de puntos, así que no hay forma más barata de moverla. Al pasar a "cerca", la retirada usa `limpiarPolylineNavegacion()` (borra la polyline y su marcador 🎯 juntos) en vez de solo la polyline — antes dejaba el marcador huérfano en el mapa hasta el siguiente redibujado.
-
-**Esta misma variable (`polylineNavegacion`) es también la que dibuja el botón de ubicación** (línea verde manual, §30.4) — las dos comparten una sola referencia porque solo tiene sentido que exista una guía visible a la vez, nunca dos superpuestas. Sin coordinación entre ambas, pulsar el botón de ubicación mientras sigue "lejos" (rama H) duraría poco: en el siguiente ciclo GPS (~7s, `CONFIG.GPS.INTERVALO_ACTUALIZACION`) el redibujado automático de arriba la sustituiría por la azul, antes de que el usuario llegara a mirar la respuesta que acababa de pedir. `dibujarPolylineNavegacion()` (la función que traza la línea manual) marca `estadoMapa._polylineManualHasta = Date.now() + 90000` al dibujar; mientras ese plazo no haya pasado, el bloque automático de arriba no toca la polyline — la deja tal cual, aunque siga "lejos" y en circunstancias normales sí la habría redibujado. Pasados los 90 segundos (margen pensado para que el usuario mire el móvil, se oriente y empiece a andar), el redibujado automático retoma el control sin que nadie tenga que pedirlo de nuevo. Además, al dibujarse, fuerza `_ocultarNavegacion()` sobre el trazado persistente de inmediato (§4.7d) — no espera a que la vigilancia por distancia lo confirme por su cuenta. La comprobación de llegada real (rama G del diagrama) no consulta el plazo de 90s — llegar de verdad siempre limpia la polyline, sea cual sea la línea que estuviera mostrándose en ese momento.
+**Esta misma variable (`polylineNavegacion`) es la única guía de "vuelta" que existe** — no compite con ninguna otra capa automática (§4.6). Al dibujarse fuerza `_ocultarNavegacion()` sobre el trazado persistente de inmediato (§4.7d) — no espera a que la vigilancia por distancia lo oculte por su cuenta, porque pulsar el botón es la señal más directa de que el usuario está perdido/lejos.
 
 ### 4.6b. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
 
@@ -925,14 +921,14 @@ flowchart TD
 
 La app dispone de todos los datos necesarios para implementar instrucciones paso a paso tipo "gira a la derecha en 50 metros": los tramos tienen `waypoints` con coordenadas exactas de cada giro, el GPS actualiza posición en tiempo real, y `estadoMapa.tramoWaypoints` contiene la lista de puntos del tramo activo con sus coordenadas.
 
-**Razón por la que no se ha terminado**: El modelo de experiencia elegido prioriza la exploración libre. El usuario ve la polyline completa del recorrido, la polyline de navegación de vuelta cuando se aleja de la ruta, y la flecha snap-to-route en los tramos. Eso es suficiente orientación sin imponer un camino rígido. Las instrucciones tipo GPS ("gira aquí") harían la aventura mecánica y reduciría el placer de descubrir el camino.
+**Razón por la que no se ha terminado**: El modelo de experiencia elegido prioriza la exploración libre. El usuario ve la polyline completa del recorrido, la flecha snap-to-route en los tramos, y puede pedir la polyline de navegación de vuelta cuando quiera (`btn-ubicacion`). Eso es suficiente orientación sin imponer un camino rígido. Las instrucciones tipo GPS ("gira aquí") harían la aventura mecánica y reduciría el placer de descubrir el camino.
 
 **Lo que está implementado hoy:**
 
 | Elemento | Implementado | Descripción |
 |---|---|---|
 | Polyline de ruta completa | ✅ | Se dibuja al activar la aventura |
-| Polyline de navegación (vuelta) | ✅ | Aparece si usuario se aleja >50 m |
+| Polyline de navegación (vuelta) | ✅ | Solo manual, al pulsar `btn-ubicacion` (§4.6) |
 | Flecha snap-to-route | ✅ | Solo en tramos; sigue el waypoint más cercano |
 | Detección de proximidad a parada | ✅ | Radio configurable por aventura |
 | Distancia al destino (en hijo2) | ✅ | Se actualiza con cada GPS |
@@ -957,7 +953,7 @@ Los 6 botones del panel de `coordenadas-hijo2.html` no usan emojis sino imágene
 | `btn-mapa-jpg` | `H2-fotomapa-vintage.png` | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` `{ formato: 'jpg', url: <urlMapaVintage> }` | Abre el JPG del mapa vintage de la aventura actual |
 | `btn-video` | `H2-fotodron.png` | `_reproducirVideoParada()` (interno) | Solo disponible en **tramos**. Reproduce el vídeo de dron del tramo. Deshabilitado en paradas |
 | `btn-imagen` | `H2-fotoproximo-monumento.png` | `UI.ACCION_USUARIO` `{ accion: 'mostrar-imagen', paradaActual, urlImagen, imagenes[], tipo, mapa_numero }` | Abre imagen o galería del monumento de la parada actual. **Siempre habilitado** en MODO AVENTURA: no se deshabilita al estar fuera de rango real (§30.4 — el usuario necesita ver qué está buscando), ni cuando el reto o el vídeo están activos (cubren toda la pantalla y el botón queda tapado). Solo se deshabilita cuando el padre envía `CONTROL.DESHABILITAR { control: 'btnImagen' }` |
-| `btn-avanzar` | `fotoruta-A-B.png` | `NAVEGACION.GPS.ACTIVAR` `{ activar: bool, idParada, distancia }` | Botón de progresión y revelación de navegación. **En paradas** (completada: audio + reto): habilitado por el padre vía `CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'parada_completada' }`. Al pulsar: establece `estado.pendingRevealNavegacion = true` y llama `progresarSiguienteElemento()` — el siguiente `CAMBIO_PARADA` muestra de inmediato la navegación del nuevo elemento. **En tramos**: habilitado por GPS cuando el usuario está a 5-50 m del inicio del tramo. Al pulsar: llama `revelarNavegacion()` directamente (polyline + 📌 + 🎯 ya estaban cargados pero ocultos). El GPS auto-avanza cuando el usuario llega al final del tramo. El tracking GPS **nunca se detiene** |
+| `btn-avanzar` | `fotoruta-A-B.png` | `NAVEGACION.GPS.ACTIVAR` `{ activar: bool, idParada, distancia }` | Botón de progresión y revelación de navegación — **única puerta de confirmación explícita para pasar al siguiente elemento, en paradas y en tramos por igual**. El padre lo habilita vía `CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'parada_completada' \| 'tramo_completado' }` en cuanto `marcarParadaCompletada()` confirma las condiciones del elemento activo (parada: audio + llegada + reto; tramo: audio + llegada — ver §4.7d). Al pulsar: si `estado.paradaListaParaAvanzar` es `true` (elemento completado y esperando confirmación), establece `estado.pendingRevealNavegacion = true` y llama `progresarSiguienteElemento()` — el siguiente `CAMBIO_PARADA` muestra de inmediato la navegación del nuevo elemento. Si es `false` (tramo activo pero aún no completado, botón habilitado por proximidad vía hijo2), llama `revelarNavegacion()` directamente (normalmente ya no tiene efecto visible — el trazado ya se reveló por GPS, ver Caso E en §4.7d). El GPS **nunca avanza la aventura por sí solo**: en ningún caso, ni parada ni tramo — llegar al destino solo habilita el botón, nunca sustituye la pulsación. El tracking GPS en sí **nunca se detiene** |
 | `btn-ubicacion` | `H2-fotodistancia.png` | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` `{ ubicacionUsuario, proximoElemento, centrar: true, zoom: 16 }` | Muestra polyline de navegación desde posición actual hasta próxima parada. El padre oculta la pantalla de distancia (§30.4) que estuviera visible al recibir esta solicitud |
 
 ```mermaid
@@ -970,9 +966,9 @@ flowchart LR
     E -- Sí --> F["_reproducirVideoParada()\n→ vídeo de dron del tramo"]
     E -- No/Parada --> G["Acción bloqueada\n(no disponible en paradas)"]
     B -- btn-imagen --> H["UI.ACCION_USUARIO\naccion: 'mostrar-imagen'\n→ galería del monumento"]
-    B -- btn-avanzar --> I{"NAVEGACION.GPS.ACTIVAR\n¿paradaListaParaAvanzar?"}
-    I -- "Sí (parada completada)" --> I1["pendingRevealNavegacion = true\n→ progresarSiguienteElemento()\n→ CAMBIO_PARADA revela nav. inmediatamente"]
-    I -- "No (tramo activo)" --> I2["revelarNavegacion()\n→ polyline + 📌🎯 visibles al instante\n(datos ya cargados, solo ocultos)"]
+    B -- btn-avanzar --> I{"NAVEGACION.GPS.ACTIVAR\n¿paradaListaParaAvanzar?\n(parada o tramo completados,\nver §4.7d)"}
+    I -- "Sí" --> I1["pendingRevealNavegacion = true\n→ progresarSiguienteElemento()\n→ CAMBIO_PARADA revela nav. inmediatamente"]
+    I -- "No (tramo activo,\naún sin completar)" --> I2["revelarNavegacion()\n→ normalmente sin efecto,\nya revelado por GPS (Caso E)"]
     B -- btn-ubicacion --> J["NAVEGACION.MOSTRAR_UBICACION_POLYLINE\n→ polyline hasta próxima parada\ncierra overlay fuera de rango"]
 ```
 
@@ -1106,14 +1102,15 @@ sincronizarEstadoGPSConPadre();
 
 #### Flujos por combinación de elementos
 
-**Caso A — Parada → Tramo (btn-avanzar en parada completada):**
+**Caso A — Elemento completado → Tramo (btn-avanzar):**
 
 ```text
-Usuario escucha audio + completa reto en parada N
+Elemento N se completa (parada: audio + reto; tramo: audio + llegada — ver Caso D)
         │
         ▼
-Padre: paradaListaParaAvanzar = true
-       envía CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'parada_completada' } → hijo2
+Padre (marcarParadaCompletada()): paradaListaParaAvanzar = true
+       envía CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'parada_completada' | 'tramo_completado' } → hijo2
+       muestra el cartel de transición (§4.7g) anunciando qué termina y qué empieza
         │
         ▼
 Usuario pulsa btn-avanzar
@@ -1133,10 +1130,12 @@ completarCambioParada() para Tramo 1:
   → el mapa solo muestra la flecha GPS del usuario, hasta que llegue a ≤20m de .inicio (Caso E)
 ```
 
-**Caso B — Parada → Parada (btn-avanzar en parada completada, sin tramo):**
+Esta es la única puerta de entrada a un tramo, sea cual sea el elemento que se acaba de completar — una parada (audio + reto) o el tramo anterior (audio + llegada, Caso D). El mecanismo del botón no distingue el origen.
+
+**Caso B — Elemento completado → Parada (btn-avanzar):**
 
 ```text
-Usuario escucha audio + completa reto en parada N
+Elemento N se completa (parada: audio + reto; tramo: audio + llegada — ver Caso D)
         │
         ▼
 (mismo btn-avanzar / pendingRevealNavegacion = true / progresarSiguienteElemento() que Caso A)
@@ -1149,7 +1148,7 @@ completarCambioParada() para Parada M:
   → resetea flag a false
 ```
 
-**Caso C — Tramo activo, usuario pulsa btn-avanzar sin haber llegado aún (vestigial):**
+**Caso C — Tramo activo, usuario pulsa btn-avanzar sin haber llegado aún:**
 
 ```text
 CAMBIO_PARADA llega para Tramo N
@@ -1164,7 +1163,7 @@ Usuario pulsa btn-avanzar
         │
         ▼
 _hdl_NAVEGACION_GPS_ACTIVAR():
-  paradaListaParaAvanzar === false (es tramo)
+  paradaListaParaAvanzar === false (tramo activo, aún sin completar)
   → llama revelarNavegacion() DIRECTAMENTE
   → polyline + 📌🎯 se hacen visibles al instante (datos ya cargados)
   → NO marca _tramoIniciadoEstaActivacion=true (solo lo hace la parte 2) — si el usuario se
@@ -1174,25 +1173,27 @@ _hdl_NAVEGACION_GPS_ACTIVAR():
 
 Este camino sigue existiendo en el código, pero en la práctica queda cubierto por el Caso E antes de que importe: `btn-avanzar` para un tramo activo se habilita por la misma distancia (`distanciaAlDestino`, a `.fin`) que usa `_actualizarBotonGps()` en hijo2 para el resto de su lógica de tramo — no por proximidad a `.inicio` — así que si el botón llega a habilitarse, el usuario ya está mucho más cerca de `.inicio` de lo necesario y el Caso E ya habrá revelado el trazado por GPS.
 
-**Caso D — GPS auto-avanza tramo (llega al final sin pulsar btn-avanzar):**
+**Caso D — Tramo completado por GPS (audio + llegada), esperando confirmación:**
 
 ```text
-Usuario llega al final del Tramo N (GPS detecta proximidad)
+Usuario llega al final del Tramo N (GPS detecta proximidad, 2 lecturas confirmadas)
+Y el audio del tramo ya terminó (ambas condiciones en cualquier orden)
         │
         ▼
-progresarSiguienteElemento() automático (sin pulsar btn-avanzar)
-pendingRevealNavegacion === false (nadie pulsó el botón)
+intentarCompletarElemento() → marcarParadaCompletada() para el Tramo N:
+  estado.paradaListaParaAvanzar = true
+  envía CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'tramo_completado' } → hijo2
+  muestra el cartel de transición (§4.7g)
         │
         ▼
-completarCambioParada() para la siguiente Parada M:
-  dibuja 🎯 de la parada
-  NO es tramo, pendingRevealNavegacion === false → _ocultarNavegacion()
-  → el 🎯 queda OCULTO
-  → el usuario escucha el audio, completa el reto
-  → btn-avanzar se habilita → usuario pulsa → Caso A o B
+El trazado del Tramo N sigue visible tal cual estaba (revelado desde el Caso E/F) —
+completarse NO lo oculta ni lo cambia
+        │
+        ▼
+Usuario pulsa btn-avanzar → Caso A o Caso B, según el tipo del siguiente elemento
 ```
 
-Desde este punto, la parte 2 (vigilancia continua) también puede revelar el 🎯 antes de que el usuario pulse nada, si se acerca a ≤20m del punto real de la parada — algo que antes de esta revisión no ocurría nunca para paradas (solo tramos tenían revelación por GPS).
+El GPS **nunca** llama a `progresarSiguienteElemento()` por su cuenta — solo confirma condiciones y habilita el botón, exactamente igual que en una parada. Antes de esta unificación, un tramo completado disparaba `progresarSiguienteElemento()` directamente en cuanto el GPS confirmaba la llegada, sin que el usuario llegara a enterarse de que había cambiado de un elemento a otro (`btn-avanzar` seguía deshabilitado en todo momento). El cartel de transición (§4.7g) es precisamente la señal que compensa la pérdida de ese aviso implícito: ahora el usuario ve explícitamente qué acaba de terminar y qué va a empezar, tanto en paradas como en tramos.
 
 **Caso E — Revelación inicial de un tramo por GPS (fase 1 → fase 2):**
 
@@ -1220,8 +1221,9 @@ Usuario se desvía del camino real (p. ej. calle cortada por obras) → distanci
 confirmado 2 lecturas seguidas
         │
         ▼
-_ocultarNavegacion() → trazado OCULTO; la polyline automática "vuelve aquí" pasa a visible,
-apuntando siempre a .inicio (fuerza la ruta exacta, igual que siempre)
+_ocultarNavegacion() → trazado OCULTO; ningún trazado de este tramo queda visible mientras
+dure el desvío. Si el usuario quiere una guía visual de vuelta, tiene que pulsar btn-ubicacion
+(§4.6) — no hay ninguna señal automática además del propio botón habilitándose por distancia
         │
         ▼
 Usuario vuelve a acercarse al camino EN CUALQUIER PUNTO (no hace falta pasar por .inicio otra
@@ -1235,14 +1237,15 @@ Un reanudación de sesión (cerrar la app y reabrirla) SÍ resetea `_tramoInicia
 
 **Resumen:**
 
-| Transición | Es tramo | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación / ocultación posterior |
+| Transición | Es tramo el destino | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación / ocultación posterior |
 |---|---|---|---|---|
-| Parada→Tramo (btn-avanzar) | ✅ | `true` (ignorado) | ❌ oculta siempre | GPS ≤20m de `.inicio`, fase 1 (Caso E); luego bidireccional por `distanciaAlCamino` (Caso F) |
-| Parada→Parada (btn-avanzar) | ❌ | `true` | ✅ inmediata (`revelarNavegacion()` explícito) | Bidireccional por `distancia` desde el primer tick |
-| Tramo activo, btn-avanzar sin llegar (vestigial) | ✅ | n/a | — | `revelarNavegacion()` directo, sin marcar fase 2 todavía — normalmente ya cubierto por el Caso E |
-| GPS auto-avanza a una parada (llegada automática) | ❌ | `false` | ❌ oculta | Al pulsar btn-avanzar, o antes si el GPS confirma ≤20m (bidireccional, nuevo) |
-| Cualquier entrada a un tramo (avance, reanudación...) | ✅ | — | ❌ oculta siempre | Fase 1 (GPS ≤20m de `.inicio`) → fase 2 (bidireccional por `distanciaAlCamino`, Caso F) |
-| Botón de ubicación pulsado (cualquier tipo) | — | — | — | Fuerza `_ocultarNavegacion()` de inmediato, sin esperar a la vigilancia por distancia |
+| Elemento completado → Tramo (btn-avanzar, Caso A) | ✅ | `true` (ignorado) | ❌ oculta siempre | GPS ≤20m de `.inicio`, fase 1 (Caso E); luego bidireccional por `distanciaAlCamino` (Caso F) |
+| Elemento completado → Parada (btn-avanzar, Caso B) | ❌ | `true` | ✅ inmediata (`revelarNavegacion()` explícito) | Bidireccional por `distancia` desde el primer tick |
+| Tramo activo, btn-avanzar sin llegar (Caso C) | n/a | n/a | — | `revelarNavegacion()` directo, sin marcar fase 2 todavía — normalmente ya cubierto por el Caso E |
+| Tramo completado por GPS, esperando btn-avanzar (Caso D) | n/a | — | (sin cambio; el tramo que se completa ya estaba visible) | Habilita btn-avanzar + cartel de transición (§4.7g); no oculta ni avanza nada por sí solo |
+| Botón de ubicación pulsado (cualquier tipo) | — | — | — | Dibuja la polyline manual verde (§4.6) y fuerza `_ocultarNavegacion()` de inmediato, sin esperar a la vigilancia por distancia |
+
+**Tanto una parada como un tramo, al completarse, siguen exactamente el mismo camino** (Caso D confluye en Caso A o B) — la única diferencia entre los dos tipos de elemento es qué condiciones cuentan como "completado" (parada: audio + llegada + reto; tramo: audio + llegada, ver §4.7d parte 1) y si el elemento de **destino** de la siguiente transición es tramo o parada (columna "Es tramo el destino"), no el tipo del elemento que se acaba de dejar atrás.
 
 ### 4.7e. Overlay de error de contenido (`#error-overlay`)
 
@@ -1283,6 +1286,21 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 **Cierre:** `globalThis.cerrarImagenOverlay()` (también con tecla Escape, ver más abajo) quita `.visible`, elimina el nodo tras 400ms, resetea `_galeriaEstado`, y notifica a hijo2 (`CONTROL.HABILITAR { motivo: 'vista_cerrada' }`) para que reactive los botones que había desactivado al abrir la imagen.
 
 **Tecla Escape:** un único listener global (`document.addEventListener('keydown', ...)`, definido junto a los 4 sistemas de overlay) cierra el que esté `.visible` en ese momento — imagen, video, error o iframe — comprobando cada uno por turno.
+
+### 4.7g. Cartel de transición entre elementos (`#cartel-transicion`)
+
+**Por qué existe:** desde la unificación de la progresión (§4.7d, Caso D), tanto una parada como un tramo se quedan esperando la pulsación de `btn-avanzar` en cuanto se completan — nunca avanzan solos. Sin ningún aviso adicional, el usuario no tiene forma de saber que acaba de completar el elemento activo (más allá de que un botón que antes estaba rojo pasa a verde), ni qué elemento viene a continuación. El cartel resuelve ese hueco: un aviso breve, no bloqueante, que anuncia explícitamente qué acaba de terminar y qué va a empezar.
+
+**Disparo:** `globalThis.mostrarCartelTransicion(tipo1, nombre1, tipo2, nombre2)`, definida en `codigo-padre.html` justo después de `mostrarModalFinalizacion` (import dinámico de las traducciones, expuesta en `globalThis` porque la llama `marcarParadaCompletada()`, que puede vivir en un script distinto). Se invoca desde dentro de `marcarParadaCompletada()`, en la misma rama que fija `paradaListaParaAvanzar = true` y envía `CONTROL.HABILITAR { control: 'btnAvanzar' }` — es decir, en el mismo instante en que el botón se habilita, no al pulsarlo. `tipo1`/`nombre1` son el tipo y nombre del elemento que se acaba de completar (`findElementoPorPadreId(idLimpio)`); `tipo2`/`nombre2` son el tipo y nombre del **siguiente** elemento en la secuencia (`elementosIDpadre[estado.indiceProgreso + 1]`, resuelto directamente sobre el array — `estado.indiceProgreso` todavía no se ha incrementado en este punto, `progresarSiguienteElemento()` no lo hace hasta que el usuario pulse). Si no hay elemento siguiente (se acaba de completar el último elemento de la aventura), `tipo2`/`nombre2` llegan como `null` y el cartel muestra solo la mitad de "completado" — el modal de fin de aventura (`mostrarModalFinalizacion`, §8.x) es quien se encarga del resto, y se dispara aparte cuando el usuario pulsa `btn-avanzar` y `progresarSiguienteElemento()` no encuentra elemento siguiente.
+
+**Contenido:** dos líneas de texto sobre fondo `#fff8e7` (mismo celeste-crema que el panel de texto en `btn-imagen` de hijo2), borde `clamp(2.5px,0.6vmin,4px)` sólido `#FF8C00` (el naranja estándar de toda la app — badges, selector de mapa, círculo de activación de 20m), esquinas redondeadas `0.75rem`:
+
+- Línea 1 (eyebrow, mayúsculas, `#8b5e1a`): el nombre de la aventura (`INDICE_AVENTURAS[aventuraSeleccionada].nombre`).
+- Línea 2 (`#333`): el mensaje combinado, construido a partir de `TRADUCCIONES_CARTEL_TRANSICION` (`js/traducciones-ui.js`, 12 idiomas) — plantilla `terminaParada`/`terminaTramo` según `tipo1`, con `{nombre}` sustituido por `nombre1` (escapado con `_escapar()`, previene inyección HTML si un nombre de parada llegara a contener caracteres especiales); si hay elemento siguiente, se concatena ` — ` + plantilla `empiezaParada`/`empiezaTramo` según `tipo2` con `nombre2`. En español: *"Ha terminado la parada Torres de Serranos — va a empezar el tramo Torres de Serranos → Portal de la Mar"*. Todas las plantillas usan registro formal ("usted"/equivalente por idioma — mismo criterio que `TRADUCCIONES_FINALIZACION`, ver más abajo) y frases naturales por idioma, no traducciones literales palabra por palabra (p. ej. polaco usa una construcción impersonal — "następny przystanek: {nombre}" — en vez de un pronombre de género que no se puede inferir).
+
+**Cierre:** botón `.btn-cerrar-overlay` estándar (mismo componente circular naranja/verde/negro que el resto de la app — ✗, esquina superior derecha) y cierre automático a los 10 segundos (`setTimeout`) si el usuario no interactúa. Un flag `cerrado` local evita que ambos disparadores intenten eliminar el nodo dos veces. `document.getElementById('cartel-transicion')?.remove()` al principio de la función asegura que un segundo cartel (dos completados seguidos muy rápido) reemplaza al anterior en vez de apilarse.
+
+**Posición y capa:** `position:fixed`, centrado horizontalmente, `top: calc(var(--gap-superior, 0px) + 0.75rem)` (respeta el recorte superior del dispositivo), `z-index:1000060` — por encima de la UI normal de la app pero sin bloquear ninguna interacción (no tiene backdrop ni captura clics fuera de sí mismo; el mapa y los botones de hijo2 siguen operativos mientras el cartel está en pantalla).
 
 ### 4.8. Código de colores de estado en botones
 
@@ -2767,7 +2785,7 @@ sequenceDiagram
 
     H4-->>P: RETO.COMPLETADO { retoId, correcto, progreso }
     alt correcto === true
-        P->>P: marca pending.reto=true; si la cola de retos está completa,\nintentarCompletarElemento() → marcarParadaCompletada()\n→ habilita btnAvanzar en hijo2 (parada) o progresa solo (tramo)
+        P->>P: marca pending.reto=true; si la cola de retos está completa,\nintentarCompletarElemento() → marcarParadaCompletada()\n→ habilita btnAvanzar en hijo2 (parada y tramo por igual)
         Note over H4: botón "siguiente" se habilita — el padre NO cierra\nla ventana del reto por su cuenta, espera al usuario
         H4-->>P: RETO.OCULTAR (usuario pulsa "siguiente"/cierra)
         P->>H4: RETO.LIMPIAR_ESTADO
@@ -3840,7 +3858,7 @@ Los mensajes que se comportan distinto según el modo activo:
 
 | Mensaje | MODO CASA | MODO AVENTURA |
 |---------|-----------|---------------|
-| Origen de `NAVEGACION.CAMBIO_PARADA` | hijo5 — clic manual del usuario en lista de paradas | Siempre programático desde el padre — `progresarSiguienteElemento()`, disparado por `intentarCompletarElemento()` cuando `pending.llegada` + `pending.audio` (+ retos si los hay) se cumplen |
+| Origen de `NAVEGACION.CAMBIO_PARADA` | hijo5 — clic manual del usuario en lista de paradas | Siempre programático desde el padre — `progresarSiguienteElemento()`, disparado únicamente por la pulsación explícita de `btn-avanzar` (`_hdl_NAVEGACION_GPS_ACTIVAR`) una vez `intentarCompletarElemento()` confirma que `pending.llegada` + `pending.audio` (+ retos si los hay) se cumplen y `marcarParadaCompletada()` habilita el botón (§4.7d) |
 | `NAVEGACION.LLEGADA_DETECTADA` | **No ocurre** — hijo2 no valida distancias | Hijo2 → Padre (≤20 m parada / `toleranciaGPS` tramo) **y** funciones-mapa → Padre (≤50 m / tolerancia dinámica) — dos sensores independientes, ninguno avanza por sí mismo, solo marcan `pending.llegada` (ver §"Tolerancia GPS por tipo de elemento") |
 | `AUDIO.REPRODUCIR_REQUEST` | Disparado por acción manual del usuario; `autoplay:false` | Enviado automáticamente al entrar en cada parada; `autoplay:false` (el usuario reproduce desde los controles del padre) |
 | `CONTROL.HABILITAR { control:'retosBtn' }` | Enviado **inmediatamente** si la parada tiene `reto_id` | Enviado solo tras `AUDIO.FIN_REPRODUCCION` para esa parada |
@@ -4221,7 +4239,8 @@ sequenceDiagram
 
     P-->>P: intentarCompletarElemento(padreId)
     P-->>P: marcarParadaCompletada()
-    P-->>P: progresarSiguienteElemento() → repite ciclo
+    Note over P,H2: marcarParadaCompletada() NO llama progresarSiguienteElemento()\naquí directamente — habilita btn-avanzar y espera\nla pulsación explícita del usuario (§4.7d, Caso D)
+    P-->>P: progresarSiguienteElemento() ← disparado por btn-avanzar\n→ repite ciclo
 ```
 
 #### Condiciones de completado por tipo de elemento
@@ -4255,8 +4274,9 @@ flowchart TD
     F -- Sí --> H[Audio termina → RETO.HABILITAR\nUsuario responde → RETO.COMPLETADO\n→ pending.reto=true]
     G --> I{intentarCompletarElemento}
     H --> I
-    I -- Condiciones OK --> J[marcarParadaCompletada\n→ persiste en paradasCompletadas + localStorage]
-    J --> K[progresarSiguienteElemento\n→ indiceProgreso++\n→ __triggerCambioParadaInterno]
+    I -- Condiciones OK --> J[marcarParadaCompletada\n→ persiste en paradasCompletadas + localStorage\n→ habilita btn-avanzar + cartel de transición]
+    J --> J2([Usuario pulsa btn-avanzar\nsiempre, parada y tramo por igual])
+    J2 --> K[progresarSiguienteElemento\n→ indiceProgreso++\n→ __triggerCambioParadaInterno]
     I -- Condiciones pendientes --> L([Espera más eventos])
     K --> M{¿último elemento?}
     M -- No --> A
@@ -4494,7 +4514,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-35572a801972'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-53388d25dd38'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5005,7 +5025,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Emitido por | hijo3 (al completar reproducción) |
 | Payload | `{ audioId, duracion, timestamp }` |
 | Handler en padre | `_hdl_AUDIO_FIN_REPRODUCCION` L9884 |
-| Acción | Actualiza estado, llama `_procesarFinAudioElemento` → habilita botón retos (si hay reto), o avanza automáticamente en tramos, o habilita btnAvanzar en paradas sin reto |
+| Acción | Actualiza estado, llama `_procesarFinAudioElemento` → habilita botón retos (si hay reto), o marca `pending.audio=true` y, si ya se cumplen las demás condiciones, habilita btnAvanzar vía `marcarParadaCompletada()` (parada y tramo por igual — el GPS nunca avanza por sí solo, ver §4.7d) |
 
 **AUDIO.REPRODUCIR_RESPONSE** (hijo3 → padre)
 
@@ -6010,7 +6030,7 @@ watchPosition (padre)
 **Respuesta del padre a `NAVEGACION.USUARIO_FUERA_RANGO`** (se envía una sola vez, al confirmarse fuera de rango en cualquier franja):
 - Registra `estado.usuarioFueraRango = { activo: true, distancia, franja, elementoMasCercano }`
 - Deshabilita audio (propio padre) vía `actualizarEstadoControlesAudioPadre()` y envía `CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango' }` a hijo3 — detalle completo en §25.7
-- No toca la polyline guía automática (la que dibuja `procesarPosicionGPSParaAventura()` en `funciones-mapa.js` mientras `distancia > 50m`, ver §4.6): ese redibujado corre con su propio umbral en cada posición GPS, independiente del ~20m/`toleranciaGPS` de este mensaje — limpiarla aquí competía con ese redibujado y la hacía parpadear/desaparecer
+- No toca la polyline manual de navegación (`polylineNavegacion`, dibujada solo si el usuario pulsó `btn-ubicacion`, ver §4.6): su limpieza corre por su propio criterio (`distancia ≤50m` o `gpsVisualActivo`) en cada lectura GPS, independiente del ~20m/`toleranciaGPS` de este mensaje — no hay ninguna otra capa automática con la que competir
 
 **Hijo4 no se ve afectado** por el mecanismo de fuera de rango — el reto sigue accesible si ya estaba abierto.
 
@@ -6085,7 +6105,7 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 | Quién | Radio | Cómo se calcula | Efecto |
 | --- | --- | --- | --- |
 | **funciones-mapa.js** `calcularToleranciaGPS()` — parada | **50 m** | Valor constante — enviado a hijo2 como `toleranciaGPS` en `ACTUALIZAR_ESTADO` | Umbral de la detección propia de funciones-mapa (`verificarLlegadaADestino`), que notifica `LLEGADA_DETECTADA` — nunca avanza por sí sola. Hijo2 lo ignora para paradas. |
-| **funciones-mapa.js** `calcularToleranciaGPS()` — tramo | **dinámica** | Distancia máxima entre waypoints + 20 m buffer | Enviado a hijo2 como `toleranciaGPS`; hijo2 lo usa para activar botón GPS en tramos |
+| **funciones-mapa.js** `calcularToleranciaGPS()` — tramo | **dinámica, con suelo de 50 m** | `max(50, distancia máxima entre waypoints + 20 m buffer)` | Enviado a hijo2 como `toleranciaGPS`; hijo2 lo usa para activar botón GPS en tramos |
 | **hijo2** `rangoMaximo` — parada | **20 m** (hardcoded) | Fijo — hijo2 ignora el `toleranciaGPS` recibido para paradas | Activa botón GPS cuando usuario está a ≤20 m de la parada |
 | **hijo2** `rangoMaximo` — tramo | **= toleranciaGPS** | Recibido de funciones-mapa | Activa botón GPS cuando usuario está a ≤toleranciaGPS m del waypoint final |
 | **hijo2** `rangoMinimo` — parada | **0 m** | `const rangoMinimo = esTramo ? 5 : 0` | Botón GPS se activa incluso si el usuario está encima de la parada |
@@ -6093,9 +6113,9 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 | **hijo2** `_detectarLlegadaParada()` | **20 m** (`RADIO_PARADA` local) | Fijo | ✅ Genera `LLEGADA_DETECTADA` → padre |
 | **hijo2** `_detectarLlegadaTramo()` | **= toleranciaGPS** | Recibido de funciones-mapa | ✅ Genera `LLEGADA_DETECTADA` → padre |
 
-> **Dos sensores independientes, un único camino de avance (solo en modo AVENTURA)**: funciones-mapa usa 50 m/tolerancia dinámica para su propia detección (`verificarLlegadaADestino`) y hijo2 usa 20 m/`toleranciaGPS` para la suya (`_detectarLlegadaParada`/`_detectarLlegadaTramo`). Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplieron las demás condiciones (audio terminado, y retos si los hay) y llama a `progresarSiguienteElemento()`. Que funciones-mapa notifique por su cuenta es redundante con hijo2 (dos sensores para el mismo hecho, con radios distintos) pero nunca salta el gate: ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente, ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y `_detectarLlegadaParada`/`_detectarLlegadaTramo` de hijo2 solo corren cuando `ACTUALIZAR_ESTADO` trae `tipoParada`, que solo llega en AVENTURA.
+> **Dos sensores independientes, un único camino de avance (solo en modo AVENTURA)**: funciones-mapa usa 50 m/tolerancia dinámica para su propia detección (`verificarLlegadaADestino`) y hijo2 usa 20 m/`toleranciaGPS` para la suya (`_detectarLlegadaParada`/`_detectarLlegadaTramo`). Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplieron las demás condiciones (audio terminado, y retos si los hay) y llama a `marcarParadaCompletada()` — que habilita `btn-avanzar` y espera la confirmación explícita del usuario (parada y tramo por igual, ver §4.7d Caso D) antes de que `progresarSiguienteElemento()` llegue a ejecutarse. Que funciones-mapa notifique por su cuenta es redundante con hijo2 (dos sensores para el mismo hecho, con radios distintos) pero nunca salta el gate: ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente, ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y `_detectarLlegadaParada`/`_detectarLlegadaTramo` de hijo2 solo corren cuando `ACTUALIZAR_ESTADO` trae `tipoParada`, que solo llega en AVENTURA.
 
-Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada. El destino de un tramo es siempre su **punto `.fin`** — no el último waypoint del array, que puede quedar corto o largo del punto de llegada real definido en los datos.
+Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada — pero nunca por debajo de **50 m**, el mismo suelo que usa la tolerancia fija de parada. Sin ese suelo, un tramo con waypoints muy juntos podía calcular una tolerancia de 25-30 m, fácil de superar por el ruido normal del GPS en calles estrechas (varios metros de error típico) sin que el usuario se hubiera desviado de verdad — el aviso de "fuera de rango" y la ocultación del trazado (§4.7d) se disparaban por imprecisión del sensor, no por una razón real. El destino de un tramo es siempre su **punto `.fin`** — no el último waypoint del array, que puede quedar corto o largo del punto de llegada real definido en los datos.
 
 > **Los waypoints intermedios no son checkpoints obligatorios.** La app no comprueba si el usuario pasó por cada punto intermedio. Solo verifica si llegó al radio de `.fin`. Los waypoints intermedios sirven para dibujar la polyline en el mapa y para calcular la tolerancia dinámica.
 
@@ -7099,8 +7119,8 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `10-controladores-padre.spec.js` | 8 | Handlers extraídos a `js/controladores-padre.js`; smoke tests de SOLICITAR_AUDIOS/TEXTOS/RETOS/COORDENADAS |
 | `11-constants-integrity.spec.js` | 8 | Integridad de TIPOS_MENSAJE: constantes GPS funcionales, eliminación de handlers huérfanos GPS.VISUAL_*, presencia de CHAT.ESTADO_PADRE, exposición de reciclaje-digital |
 | `12-carga-por-parada.spec.js` | 3 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo |
-| `13-gps-tramo-fix.spec.js` | 15 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras 2 lecturas seguidas dentro de radio, con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual manda 90s sobre la automática, salvo que haya llegada real (PM-1..3); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3) |
-| `15-arribo-y-progresion.spec.js` | 2 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo, disparando `progresarSiguienteElemento()` y limpiando el pending anterior antes de fijar el nuevo `elementoActual`; `manejarCambiarParada()` encuentra el nuevo elemento en `AVENTURA_PARADAS` sin error (fix de `idToMatch`) |
+| `13-gps-tramo-fix.spec.js` | 14 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras 2 lecturas seguidas dentro de radio, con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual (única guía de vuelta que existe, §4.6) se limpia con llegada real o con el trazado persistente ya visible, y permanece si ninguna de las dos se cumple (PM-1/2); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3) |
+| `15-arribo-y-progresion.spec.js` | 3 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo — habilita btn-avanzar y espera confirmación explícita, sin avanzar `indiceProgreso` por sí solo (AP-2, parada y tramo por igual, §4.7d); solo al recibir `NAVEGACION.GPS.ACTIVAR` (btn-avanzar pulsado) `progresarSiguienteElemento()` avanza y limpia el pending anterior antes de fijar el nuevo `elementoActual` (AP-3); `manejarCambiarParada()` encuentra el nuevo elemento en `AVENTURA_PARADAS` sin error (fix de `idToMatch`) |
 | `16-loading-overlay-oculta-ui.spec.js` | 2 | Con `body.loading` activo, `#selector-tipo-mapa` y `#btn-chat-soporte` permanecen invisibles (opacity/visibility computados) aunque su `style.display` se fuerce a visible; al quitar la clase, ambos vuelven a mostrarse |
 | `17-flecha-brujula-continuidad.spec.js` | 3 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1); `alpha=90` (Android) se convierte al rumbo `270` (`360-alpha`), nunca se usa crudo (HD-1) |
 | `18-boton-deshabilitado-color.spec.js` | 6 | Un `background-color` inline residual (bypass antiguo) no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#B22222` (BU-2a..e) |
@@ -7245,7 +7265,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-35572a801972'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-53388d25dd38'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7892,7 +7912,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-35572a801972';
+const CACHE_VERSION = 'v-53388d25dd38';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9143,9 +9163,9 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 |-----------|-------|--------------------|
 | `RADIO_PARADA` — llegada física a parada | 20 m | Hardcodeado en `_detectarLlegadaParada()` en hijo2 — dispara `LLEGADA_DETECTADA`; condición necesaria para completar la parada |
 | `rangoMaximo` parada (hijo2) | 20 m | Hardcoded en `_actualizarGpsEnModoAventura()` / `verificarDistanciaYActualizarBotones()` — punto donde arrancan las franjas de aviso por distancia (§30.4) |
-| `rangoMaximo` tramo (hijo2) | ~50 m dinámico | `toleranciaGPS` recibida de `calcularToleranciaGPS()` en funciones-mapa.js |
+| `rangoMaximo` tramo (hijo2) | dinámico, mín. 50 m | `toleranciaGPS` recibida de `calcularToleranciaGPS()` en funciones-mapa.js |
 | Franjas de aviso por distancia (padre) | 21-50m / 51-2.000m / >2.000m | `_hdl_NAVEGACION_GPS_RESTRINGIDO` en `codigo-padre.html` — ver §30.4 |
-| Tolerancia de llegada a tramo | dinámica (distancia máx. entre waypoints + 20 m buffer) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo |
+| Tolerancia de llegada a tramo | dinámica, mín. 50 m (distancia máx. entre waypoints + 20 m buffer, con suelo) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo |
 | Confirmación de llegada por lecturas repetidas | 2 lecturas seguidas dentro de radio | `estadoMapa._llegadaCandidataCount` en funciones-mapa.js / `estadoComponente._llegadaCandidataCount` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
 | `PRECISION_MINIMA` / `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas) |
 | Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
@@ -10307,6 +10327,10 @@ _hdl_SISTEMA_HIJO_LISTO(mensaje)     [codigo-padre.html Script 1]
 
 Si el modo no es aventura al momento del reload, el snapshot se descarta sin enviar nada (en modo CASA no hay estado que restaurar).
 
+#### `NAVEGACION.CAMBIO_PARADA` de restauración es una reconfirmación, no un cambio real
+
+El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre al elemento que YA estaba activo antes del reload — nunca a uno distinto. `completarCambioParada()` (`js/funciones-mapa.js`) reconoce este caso al principio de la función: si el `paradaId` recibido coincide con `estadoMapa.paradaActual` (el elemento ya activo), retorna de inmediato sin ejecutar el resto de la función — sin limpiar capas, sin resetear `_tramoIniciadoEstaActivacion` ni el contador de confirmación por 2 lecturas (§4.7d parte 2), sin volver a decidir visibilidad inicial. Sin este guard, la reconfirmación se procesaría como si fuera un cambio de elemento real: mitad de un tramo largo, con el trazado ya revelado (fase 2, el usuario puede estar lejos de `.inicio` habiendo avanzado legítimamente hacia `.fin`), un heartbeat reload de hijo2 volvería a poner `_tramoIniciadoEstaActivacion = false` de golpe — la siguiente lectura GPS mediría de nuevo contra `.inicio` (fase 1) en vez de contra el camino real (fase 2), y como el usuario ya está lejos de `.inicio`, el trazado se ocultaría sin ninguna forma de recuperarlo caminando (fase 1 solo revela por proximidad a `.inicio`, no por `distanciaAlCamino`).
+
 #### Archivos modificados
 
 - `js/mensajeria.js` — `intentarReconectarHijo()`: llama `globalThis._vv_beforeHijoReload(hijoId)` antes del reload
@@ -10765,7 +10789,7 @@ Puedes reanudar el audio en cualquier momento desde la pantalla principal de la 
 **Respuesta:**
 Si el audio de alguna parada no está disponible en tu idioma, la app usa el español como alternativa para que puedas continuar la aventura sin interrupciones.
 
-Cuando el audio en tu idioma esté disponible ({{IDIOMA_ACTIVO}}), se reproducirá automáticamente. Si prefieres cambiar a un idioma con más contenido disponible, puedes hacerlo desde la pantalla de selección de idioma.
+Cuando el audio en tu idioma esté disponible ({{IDIOMA_ACTIVO}}), lo verás listo para reproducir en los controles de la pantalla principal — pulsa play para escucharlo. Si prefieres cambiar a un idioma con más contenido disponible, puedes hacerlo desde la pantalla de selección de idioma.
 
 **Imagen:** null
 
@@ -10776,9 +10800,9 @@ Cuando el audio en tu idioma esté disponible ({{IDIOMA_ACTIVO}}), se reproducir
 **Pregunta:** ¿El audio se reproduce solo al llegar?
 
 **Respuesta:**
-Sí. Cuando el GPS confirma que has llegado a una parada o completado un tramo, el audio empieza a reproducirse automáticamente.
+No exactamente. Al llegar a una parada o empezar un tramo, el audio se **carga y queda listo** en los controles de la pantalla principal — pero tienes que pulsar el botón de reproducción tú mismo para que empiece a sonar.
 
-No tienes que pulsar ningún botón para iniciar la reproducción. Sí puedes pausarlo, reanudarlo o repetirlo cuando quieras desde los controles de la pantalla principal.
+Desde ahí puedes pausarlo, reanudarlo o repetirlo cuando quieras.
 
 **Imagen:** null
 
@@ -11392,7 +11416,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-35572a801972';
+const CACHE_VERSION = 'v-53388d25dd38';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

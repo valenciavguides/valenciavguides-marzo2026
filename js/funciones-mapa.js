@@ -90,9 +90,14 @@ function calcularToleranciaGPS(elemento) {
         }
     }
 
-    const tolerancia = Math.ceil(distanciaMaxima + 20);
-    logger.debug(`📏 Tolerancia GPS para tramo "${elemento.id}": ${tolerancia}m (max waypoint: ${Math.ceil(distanciaMaxima)}m + 20m buffer)`);
-    
+    // Suelo de 50m — mismo criterio que la tolerancia fija de parada (arriba). Sin él, un
+    // tramo con waypoints muy juntos podía bajar de 25-30m: fácil de superar por el ruido
+    // normal del GPS en calles estrechas (ver comentario más abajo en distanciaAlCamino),
+    // no solo por un desvío real. Este valor lo usan a la vez la visibilidad del trazado,
+    // la detección de llegada y el aviso de "fuera de rango" — un único suelo para los tres.
+    const tolerancia = Math.max(50, Math.ceil(distanciaMaxima + 20));
+    logger.debug(`📏 Tolerancia GPS para tramo "${elemento.id}": ${tolerancia}m (max waypoint: ${Math.ceil(distanciaMaxima)}m + 20m buffer, suelo 50m)`);
+
     return tolerancia;
 }
 
@@ -228,10 +233,7 @@ const estadoMapa = {
     // llegada solo se notifica a partir de 2, para no confirmar con una lectura ruidosa
     // suelta (sin filtro de precisión aguas arriba, ver procesarPosicionGPSParaAventura)
     _llegadaCandidataId: null,
-    _llegadaCandidataCount: 0,
-    // Timestamp hasta el que la polyline manual (botón ubicación) manda sobre la
-    // automática — ver POLYLINE_MANUAL_PRIORIDAD_MS y dibujarPolylineNavegacion()
-    _polylineManualHasta: null
+    _llegadaCandidataCount: 0
 };
 
 // =====================================================
@@ -1993,10 +1995,24 @@ async function completarCambioParada() {
     try {
         const { paradaId, padreId: resolvedPadreId, origen, mensajeId } = estadoMapa.consultaParadaPendiente;
         const { coordenadas, audio, reto } = estadoMapa.datosRecopilados;
-        
+
+        // Reconfirmación del mismo elemento ya activo — p.ej. el padre reenvía CAMBIO_PARADA
+        // para restaurar el estado de hijo2 tras una recarga por heartbeat perdido
+        // (_vv_afterHijoListo, codigo-padre.html). Ese reenvío solo necesita re-sincronizar
+        // hijo2 (su propio DOM sí se perdió al recargar) — el mapa del padre nunca se
+        // recargó, sigue teniendo todo correcto. Sin este guard, se re-ejecutaba todo el
+        // reset de abajo (zoom, marcadores, y sobre todo _tramoIniciadoEstaActivacion a
+        // false) para un elemento que no cambió — el trazado de un tramo a mitad de camino
+        // se ocultaba de golpe y no volvía a revelarse nunca, porque la fase 1 vuelve a medir
+        // contra .inicio, ya lejano en ese punto del recorrido.
+        if (paradaId && estadoMapa.paradaActual === paradaId) {
+            logger.info(`${logPrefix} Reconfirmación de ${paradaId} (ya es el elemento activo) — sin resetear visual`);
+            return;
+        }
+
         logger.info(`${logPrefix} ⚡ Completando cambio de parada ${paradaId}`);
         logger.debug(`${logPrefix} DEBUG coordenadas:`, coordenadas);
-        
+
         // Resetear flag de interacción del usuario al cambiar de parada/tramo
         estadoMapa.usuarioMovioMapa = false;
         
@@ -2991,94 +3007,37 @@ async function procesarPosicionGPSParaAventura(posicion) {
             siguienteParada
         );
 
-        // 🗺️ Gestión automática de la polyline de navegación (guía discontinua
-        // usuario→destino): remover solo ESA si está "cerca". NO tocar rutasActivas
-        // aquí — ahí vive la polyline sólida y persistente del propio tramo (dibujada
-        // por dibujarTramo() en completarCambioParada), que debe seguir visible durante
-        // todo el trayecto y solo se limpia al cambiar de elemento o de modo. Antes esta
-        // limpieza borraba las dos juntas: como la distancia a un tramo podía medirse
-        // (bug ya corregido) contra su propio punto de inicio, la ruta del tramo
-        // desaparecía prácticamente nada más empezar a caminarlo.
+        // 🗺️ Limpieza de la polyline manual de navegación (verde, botón de ubicación) al
+        // llegar de verdad o al volver al camino — NO se dibuja nunca sola aquí: la única
+        // forma de que aparezca es que el usuario pulse el botón de ubicación
+        // (dibujarPolylineNavegacion). Antes de esta revisión también se redibujaba sola en
+        // azul discontinuo cuando distancia>50m, sin que el usuario pidiera nada — se retiró
+        // esa parte a propósito: dos señales automáticas competían por el mismo aviso
+        // (esta y el propio botón de ubicación habilitándose solo al detectar "fuera de
+        // rango"), y el criterio de umbral no coincidía entre las dos.
         //
-        // "Cerca"/"lejos" aquí: llegar de verdad al destino real (≤50m) SIEMPRE limpia esta
-        // polyline, sin excepción y sin depender de las 2 lecturas de confirmación del bloque
-        // de arriba — es una garantía distinta e independiente ("ya llegaste, no hace falta
-        // guía") de la del trazado persistente ("estás sobre el camino, no hace falta guía").
-        // En AVENTURA se añade una segunda condición con "o": también se oculta mientras
-        // gpsVisualActivo esté activo (el trazado persistente ya está haciendo ese trabajo —
-        // p.ej. a mitad de un tramo largo, lejos de .fin pero sobre el camino real, cerca de
-        // .inicio). Así nunca están las dos capas visibles a la vez, pero ninguna llegada real
-        // depende del debounce de la otra. En CASA (o cualquier modo que no sea AVENTURA) se
-        // mantiene el criterio original, fijo a 50m — gpsVisualActivo no es fiable ahí porque
-        // el bloque de arriba no se ejecuta en CASA.
-        const _polylineAutoCerca = (distancia <= 50) || (estadoMapa.modo === MODOS.AVENTURA && estadoMapa.gpsVisualActivo);
-        const _polylineAutoLejos = (distancia > 50) && !(estadoMapa.modo === MODOS.AVENTURA && estadoMapa.gpsVisualActivo);
-
-        if (_polylineAutoCerca && polylineNavegacion) {
-            logger.info(`${logPrefix} 🗺️ Distancia ≤50m o trazado ya visible, removiendo polyline de navegación automáticamente`);
+        // No tocar rutasActivas aquí — ahí vive la polyline sólida y persistente del propio
+        // tramo (dibujada por dibujarTramo() en completarCambioParada), que se limpia por su
+        // cuenta (ver el bloque de arriba, gpsVisualActivo) y no por esta condición.
+        //
+        // "Cerca" aquí: llegar de verdad al destino real (≤50m) SIEMPRE limpia la manual, sin
+        // excepción y sin depender de las 2 lecturas de confirmación del bloque de arriba —
+        // garantía independiente ("ya llegaste, no hace falta guía"). En AVENTURA también se
+        // limpia si gpsVisualActivo ya está activo (el trazado persistente ya está haciendo
+        // ese trabajo). En CASA se mantiene el criterio original, fijo a 50m — gpsVisualActivo
+        // no es fiable ahí porque el bloque de arriba no se ejecuta en CASA.
+        const _polylineManualCerca = (distancia <= 50) || (estadoMapa.modo === MODOS.AVENTURA && estadoMapa.gpsVisualActivo);
+        if (_polylineManualCerca && polylineNavegacion) {
+            logger.info(`${logPrefix} 🗺️ Distancia ≤50m o trazado ya visible, removiendo polyline manual de navegación`);
             try {
                 // limpiarPolylineNavegacion() borra la polyline Y su marcador 🎯
                 // (marcadorDestinoNavegacion) juntos — quitar solo la polyline aquí dejaba el
                 // marcador huérfano en el mapa hasta el próximo dibujarPolylineNavegacion().
                 limpiarPolylineNavegacion();
 
-                logger.debug(`${logPrefix} ✅ Polyline de navegación removida automáticamente`);
+                logger.debug(`${logPrefix} ✅ Polyline manual de navegación removida`);
             } catch (error_) {
                 logger.warn(`${logPrefix} Error removiendo polylines:`, error_);
-            }
-        } else if (_polylineAutoLejos && !(estadoMapa._polylineManualHasta && Date.now() < estadoMapa._polylineManualHasta)) {
-            // ✅ DIBUJAR/REFRESCAR POLYLINE AUTOMÁTICAMENTE cuando usuario está lejos (>50m)
-            // Se redibuja en CADA lectura GPS válida, no solo la primera vez — el extremo
-            // "usuario" de la línea es la posición actual, así que si solo se dibujara una
-            // vez (guard !polylineNavegacion) se quedaría anclada a la posición de cuando
-            // se dibujó, sin seguir al usuario mientras camina, aunque la distancia mostrada
-            // en la ventana flotante sí se siguiera actualizando (se calcula aparte).
-            //
-            // La ventana de prioridad manual (_polylineManualHasta, ver dibujarPolylineNavegacion)
-            // frena este redibujado mientras esté activa: pulsar el botón de ubicación es una
-            // petición explícita de ayuda, y sustituirla por la azul a los pocos segundos (el
-            // siguiente ciclo GPS, ~7s) le quitaría sentido a la respuesta antes de que el
-            // usuario llegue a mirarla. La comprobación de llegada (bloque de arriba, distancia
-            // ≤50m) no depende de esta ventana — llegar de verdad siempre limpia la polyline,
-            // esté quien esté "al mando" de ella en ese momento.
-            try {
-                // Usar valores escalados según pantalla y zoom
-                const peso = getPolylineEscalado();
-
-                // Construir array de puntos: usuario → [waypoints si es tramo] → destino
-                const puntosPolyline = [[latitude, longitude]];
-                if (siguienteParada.tipo === 'tramo' && siguienteParada.waypoints && Array.isArray(siguienteParada.waypoints)) {
-                    // Para tramos: usuario → inicio → waypoints → fin
-                    if (siguienteParada.inicio) {
-                        puntosPolyline.push([siguienteParada.inicio.lat, siguienteParada.inicio.lng]);
-                    }
-                    siguienteParada.waypoints.forEach(wp => {
-                        if (wp?.lat && wp?.lng) {
-                            puntosPolyline.push([wp.lat, wp.lng]);
-                        }
-                    });
-                    if (siguienteParada.fin) {
-                        puntosPolyline.push([siguienteParada.fin.lat, siguienteParada.fin.lng]);
-                    }
-                } else {
-                    // Para paradas: línea directa
-                    puntosPolyline.push([coordsSiguiente.lat, coordsSiguiente.lng]);
-                }
-
-                if (polylineNavegacion) {
-                    polylineNavegacion.remove();
-                    polylineNavegacion = null;
-                }
-                polylineNavegacion = _crearPolyline(puntosPolyline, {
-                    color: '#3388ff',
-                    weight: peso.tramo,
-                    opacity: 0.7,
-                    dashArray: '10, 10'
-                });
-
-                logger.debug(`${logPrefix} ✅ Polyline automática refrescada (${puntosPolyline.length} puntos) hasta ${siguienteParada.id}`);
-            } catch (error_) {
-                logger.warn(`${logPrefix} Error dibujando polyline automática:`, error_);
             }
         }
 
@@ -3230,11 +3189,6 @@ if (globalThis.window !== undefined) {
 
 // ==================== CONTROLADORES DE NAVEGACIÓN ====================
 
-// Tiempo que la polyline manual (botón ubicación) manda sobre el redibujado automático —
-// margen de sobra para que el usuario mire el móvil, se oriente y empiece a andar antes de
-// que la guía en vivo retome el control (ver el guard en procesarPosicionGPSParaAventura).
-const POLYLINE_MANUAL_PRIORIDAD_MS = 90000;
-
 /**
  * Dibuja una polyline desde la ubicación del usuario hasta la siguiente parada en modo aventura
  * @param {Object} opciones - Opciones para el dibujo
@@ -3310,12 +3264,6 @@ export function dibujarPolylineNavegacion(opciones = {}) {
             { className: 'marcador-destino-navegacion', title: 'Tu destino', zIndex: 500 }
         );
         
-        // Prioridad temporal sobre el redibujado automático (ver procesarPosicionGPSParaAventura):
-        // pulsar el botón de ubicación es una petición explícita de ayuda — sin esta ventana, el
-        // siguiente ciclo GPS (~7s) sustituiría esta línea por la guía azul automática antes de
-        // que el usuario llegue a mirarla.
-        estadoMapa._polylineManualHasta = Date.now() + POLYLINE_MANUAL_PRIORIDAD_MS;
-
         logger.debug(`Polyline de navegación dibujada desde [${origen.lat}, ${origen.lng}] hasta [${destino.lat}, ${destino.lng}] con marcador 🎯`);
         return polylineNavegacion;
     } catch (error) {

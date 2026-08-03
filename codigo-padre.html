@@ -7986,6 +7986,73 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         globalThis.mostrarModalFinalizacion = mostrarModalFinalizacion;
+
+        // Cartel breve y no bloqueante al completar una parada/tramo, combinando lo que se
+        // acaba de terminar con lo que viene a continuación (o solo lo terminado si es el
+        // último elemento — ver la llamada en marcarParadaCompletada). Import dinámico de las
+        // traducciones (en vez de depender de un import estático de este mismo script) para
+        // que la función funcione igual sin importar desde qué scope se invoque — se expone
+        // en globalThis precisamente porque marcarParadaCompletada() puede vivir en un script
+        // distinto de este.
+        async function mostrarCartelTransicion(tipo1, nombre1, tipo2, nombre2) {
+            try {
+                if (!nombre1) return;
+                const { TRADUCCIONES_CARTEL_TRANSICION } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                const t = TRADUCCIONES_CARTEL_TRANSICION?.[idioma] || TRADUCCIONES_CARTEL_TRANSICION?.es;
+                if (!t) {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_TRANSICION] Traducciones no disponibles');
+                    return;
+                }
+
+                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+                const plantillaTermina = tipo1 === 'tramo' ? t.terminaTramo : t.terminaParada;
+                let cuerpo = plantillaTermina.replace('{nombre}', _escapar(nombre1));
+                if (tipo2 && nombre2) {
+                    const plantillaEmpieza = tipo2 === 'tramo' ? t.empiezaTramo : t.empiezaParada;
+                    cuerpo += ` — ${plantillaEmpieza.replace('{nombre}', _escapar(nombre2))}`;
+                }
+
+                document.getElementById('cartel-transicion')?.remove();
+                const cartel = document.createElement('div');
+                cartel.id = 'cartel-transicion';
+                cartel.style.cssText = [
+                    'position:fixed',
+                    'top:calc(var(--gap-superior, 0px) + 0.75rem)',
+                    'left:50%',
+                    'transform:translateX(-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'z-index:1000060',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:0.75rem 2.75rem 0.75rem 1rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                ].join(';');
+
+                cartel.innerHTML = `
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${cuerpo}</p>
+                `;
+                document.body.appendChild(cartel);
+
+                let cerrado = false;
+                const cerrar = () => { if (cerrado) return; cerrado = true; cartel.remove(); };
+                cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
+                setTimeout(cerrar, 10000);
+
+                (globalThis.logger || console).info('[PADRE][CARTEL_TRANSICION] Mostrado:', { tipo1, nombre1, tipo2, nombre2 });
+            } catch (error) {
+                (globalThis.logger || console).error('[PADRE][CARTEL_TRANSICION] Error mostrando cartel:', error);
+            }
+        }
+        globalThis.mostrarCartelTransicion = mostrarCartelTransicion;
     </script>
 
     <script>
@@ -8685,8 +8752,12 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     // Política de progresión:
                     // - Si hay retos pendientes: esperar RETO.COMPLETADO antes de decidir qué hacer
-                    // - Tramo en aventura (causa='audio_llegada_tramo'): GPS detectó llegada → avance automático
-                    // - Parada en aventura: GPS button ya está verde → esperar que el usuario lo pulse
+                    // - Aventura: GPS/audio/reto ya confirmaron que se cumplieron las condiciones,
+                    //   pero SIEMPRE se espera la pulsación explícita de btnAvanzar — parada y tramo
+                    //   se comportan igual aquí. Antes el tramo (causa='audio_llegada_tramo')
+                    //   progresaba solo en cuanto GPS detectaba el final, sin que el usuario llegara
+                    //   a enterarse de que había cambiado de un elemento a otro; ahora ambos casos
+                    //   habilitan btnAvanzar y esperan, exactamente como ya hacía la parada.
                     // - Modo casa: limpiar estado del reto, el usuario elige siguiente via hijo5
                     const cola = estado.retoActual?.cola || [];
                     const completados = estado.retoActual?.colaCompletados || new Set();
@@ -8703,18 +8774,33 @@ await _comprobarReanudacionAventura(logPrefix);
                         // Modo casa: limpiar estado del reto, no avanzar — usuario elige via hijo5
                         estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
-                    } else if (esTramo) {
-                        // Tramo en aventura: GPS detectó llegada al final — avance automático
-                        try {
-                            (globalThis.logger || console).info(`${logPrefix} Tramo completado en aventura -> progresando automáticamente`);
-                            await progresarSiguienteElemento();
-                        } catch (progErr) {
-                            (globalThis.logger || console).error(`${logPrefix} Error progresando tras tramo:`, progErr);
-                        }
                     } else {
                         estado.paradaListaParaAvanzar = true;
-                        (globalThis.logger || console).info(`${logPrefix} Parada completada en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
-                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+                        (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} completado en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
+                        enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
+
+                        // Cartel de transición — mira el elemento siguiente en la secuencia sin
+                        // necesitar que el usuario haya pulsado avanzar todavía (estado.indiceProgreso
+                        // aún apunta al que se acaba de completar; progresarSiguienteElemento() no lo
+                        // incrementa hasta que se pulsa). Si no hay siguiente (último elemento de la
+                        // aventura), se muestra solo la mitad de "completado" — el modal de fin de
+                        // aventura (mostrarModalFinalizacion) se encarga del resto cuando el usuario
+                        // pulse avanzar de verdad y progresarSiguienteElemento() no encuentre nada.
+                        try {
+                            const elementoCompletado = findElementoPorPadreId(idLimpio);
+                            const idxSiguiente = (typeof estado.indiceProgreso === 'number' ? estado.indiceProgreso : 0) + 1;
+                            const elementosSecuencia = DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
+                            const elementoSiguiente = Array.isArray(elementosSecuencia) ? elementosSecuencia[idxSiguiente] : null;
+                            if (typeof globalThis.mostrarCartelTransicion === 'function' && elementoCompletado?.nombre) {
+                                globalThis.mostrarCartelTransicion(
+                                    esTramo ? 'tramo' : 'parada', elementoCompletado.nombre,
+                                    elementoSiguiente?.tipo === 'tramo' ? 'tramo' : (elementoSiguiente ? 'parada' : null),
+                                    elementoSiguiente?.nombre || null
+                                );
+                            }
+                        } catch (cartelErr) {
+                            (globalThis.logger || console).warn(`${logPrefix} Error mostrando cartel de transición:`, cartelErr);
+                        }
                     }
 
                 } catch (error) {
@@ -10517,11 +10603,11 @@ await _comprobarReanudacionAventura(logPrefix);
                     if (modoActual === MODOS.CASA) {
                         estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
-                    } else if (elementoAudio?.tipo === 'tramo') {
-                        await progresarSiguienteElemento();
                     } else {
+                        // Tramo y parada se tratan igual aquí también — habilitar btnAvanzar y
+                        // esperar confirmación, nunca progresar solo (ver marcarParadaCompletada).
                         estado.paradaListaParaAvanzar = true;
-                        (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
+                        (globalThis.logger || console).info(`${logPrefix} ${elementoAudio?.tipo === 'tramo' ? 'Tramo' : 'Parada'} aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
                         enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback2' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
                     }
                 }
