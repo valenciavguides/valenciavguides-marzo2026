@@ -573,7 +573,7 @@ export async function manejarCambioModo(estado, mensaje) {
             opciones
         };
 
-        registrarEvento('CAMBIO_MODO', eventoCambioModo);
+        (globalThis.registrarEvento ?? registrarEvento)('CAMBIO_MODO', eventoCambioModo);
 
         // 5. Validar permisos (si es necesario) - comprobar en MODOS_OPERACION de forma segura
         // Buscar configuración de permisos en MODOS_OPERACION usando varias formas de key
@@ -1011,7 +1011,7 @@ async function restaurarEstadoModoAnterior(estado, modoAnterior, modoFallido, mo
  * @param {string} [nivel='info'] - Nivel de severidad ('debug', 'info', 'warn', 'error')
  * @returns {string} ID del evento registrado
  */
-export function registrarEvento(tipo, datos = {}, nivel = 'info') {
+function registrarEvento(tipo, datos = {}, nivel = 'info') {
     const mensaje = `Evento: ${tipo}, Nivel: ${nivel}, Datos: ${JSON.stringify(datos)}`;
     switch (nivel) {
         case 'debug':
@@ -1075,8 +1075,13 @@ if (globalThis.performance?.memory && !globalThis.__vv_intervaloMemoria) {
 }
 
 // Exponer funciones de monitoreo globalmente
+// registrarEvento NO se expone aquí — codigo-padre.html Script 1 ya define su propia
+// globalThis.registrarEvento (superconjunto: además guarda historial en
+// estado.monitoreo.historial.eventos). Exponer también la de aquí sobrescribía la del
+// padre en cuanto este módulo se importaba (auditoría 2026-08-03) — las 3 llamadas
+// internas de este fichero usan (globalThis.registrarEvento ?? registrarEvento) para
+// preferir la del padre cuando ya está disponible, igual que registrarMetrica más abajo.
 if (globalThis.window !== undefined) {
-    globalThis.registrarEvento = registrarEvento;
     globalThis.registrarMetrica = registrarMetrica;
     globalThis.notificarError = notificarError;
     globalThis.obtenerEstadoMonitoreo = obtenerEstadoMonitoreo;
@@ -1106,7 +1111,7 @@ globalThis.addEventListener('load', () => {
     if (typeof tiempoCarga === 'number' && !Number.isNaN(tiempoCarga)) {
         (globalThis.registrarMetrica ?? registrarMetrica)('tiempo_carga_pagina', tiempoCarga);
     }
-    registrarEvento('pagina_cargada', {
+    (globalThis.registrarEvento ?? registrarEvento)('pagina_cargada', {
         tiempoCarga,
         url: globalThis.location.href,
         userAgent: navigator.userAgent
@@ -1193,7 +1198,8 @@ if (globalThis.window !== undefined) {
                 promesasPendientes.clear();
             }
             // Limpiar globales de la aplicación agresivamente
-            if (globalThis.registrarEvento) delete globalThis.registrarEvento;
+            // registrarEvento no se borra aquí — no es de este módulo (ver nota más arriba,
+            // donde se deja de exponer); borrarlo aquí borraría la del padre por error.
             if (globalThis.registrarMetrica) delete globalThis.registrarMetrica;
             if (globalThis.notificarError) delete globalThis.notificarError;
             if (globalThis.obtenerEstadoMonitoreo) delete globalThis.obtenerEstadoMonitoreo;
@@ -1463,7 +1469,7 @@ const intervaloReintentoModo = setInterval(async () => {
                     }
                 });
                 pendingModeChanges.delete(hijoId);
-                registrarEvento && typeof registrarEvento === 'function' && registrarEvento('CAMBIO_MODO_REENVIADO', { hijoId, timestamp: Date.now() });
+                (globalThis.registrarEvento ?? registrarEvento)('CAMBIO_MODO_REENVIADO', { hijoId, timestamp: Date.now() });
                 logger.info(`[APP][CAMBIO_MODO][RESEND] Reenvío exitoso a ${hijoId}`);
             } catch (sendErr) {
                 // increment attempts and schedule next

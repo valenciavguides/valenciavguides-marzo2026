@@ -1,9 +1,14 @@
 /**
  * @fileoverview Detección de dispositivos para ValenciaVGuides
- * @version 2.0.0
- * 
- * Proporciona funciones para detectar el tipo de dispositivo,
- * sistema operativo y capacidades del navegador.
+ * @version 3.0.0
+ *
+ * Solo esMovil()/esTelefonoMovil() tienen caller real hoy — usadas por mensajeria.js
+ * (TTL de limpieza de mensajes) y codigo-padre.html (aviso de "gira el móvil" en
+ * horizontal). El resto de detecciones que existían aquí (tablet/iOS/Android/navegador/
+ * táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA
+ * instalada) se retiraron en la auditoría de 2026-08-03: 0 callers en todo el proyecto,
+ * solo alcanzables manualmente vía un agregador de debug sin ningún uso en el flujo real
+ * de la app. Ver docs/GUIA-COMPLETA.md §26.3 para el detalle verificado.
  */
 
 /**
@@ -13,11 +18,6 @@
 const cache = {
     esMovil: null,
     esTelefonoMovil: null,
-    esTablet: null,
-    esIOS: null,
-    esAndroid: null,
-    navegador: null,
-    soportaTactil: null
 };
 
 /**
@@ -36,9 +36,9 @@ export function esMovil() {
     if (cache.esMovil !== null) {
         return cache.esMovil;
     }
-    
+
     const ua = getUserAgent().toLowerCase();
-    
+
     // Patrones comunes de dispositivos móviles
     const patronesMovil = [
         /android/i,
@@ -52,7 +52,7 @@ export function esMovil() {
         /mobile/i,
         /tablet/i
     ];
-    
+
     // Verificar por User Agent (único método fiable)
     cache.esMovil = patronesMovil.some(patron => patron.test(ua));
     return cache.esMovil;
@@ -66,9 +66,9 @@ export function esTelefonoMovil() {
     if (cache.esTelefonoMovil !== null) {
         return cache.esTelefonoMovil;
     }
-    
+
     const ua = getUserAgent().toLowerCase();
-    
+
     // Patrones específicos de teléfonos
     const patronesTelefono = [
         /iphone/i,
@@ -78,230 +78,22 @@ export function esTelefonoMovil() {
         /opera mini/i,
         /mobile/i
     ];
-    
+
     // Excluir tablets conocidas
     const esTablet = (
         /ipad/i.test(ua) ||
         (/android/i.test(ua) && !/mobile/i.test(ua)) ||
         /tablet/i.test(ua)
     );
-    
+
     // Verificar por tamaño de pantalla típico de teléfonos
     const esTamanoTelefono = globalThis.innerWidth <= 768;
-    
+
     // Es teléfono si coincide con patrón Y no es tablet Y tiene tamaño apropiado
     const esTelefono = patronesTelefono.some(patron => patron.test(ua)) && !esTablet;
-    
+
     cache.esTelefonoMovil = esTelefono || (esMovil() && esTamanoTelefono && !esTablet);
     return cache.esTelefonoMovil;
-}
-
-/**
- * Detecta si el dispositivo es una tablet
- * @returns {boolean} True si es tablet
- */
-export function esTablet() {
-    if (cache.esTablet !== null) {
-        return cache.esTablet;
-    }
-    
-    const ua = getUserAgent().toLowerCase();
-    
-    // Patrones de tablets
-    const patronesTablet = [
-        /ipad/i,
-        /tablet/i,
-        /playbook/i,
-        /silk/i
-    ];
-    
-    // Android sin "mobile" suele ser tablet
-    const esAndroidTablet = /android/i.test(ua) && !/mobile/i.test(ua);
-    
-    // Verificar por tamaño de pantalla típico de tablets
-    const esTamanoTablet = globalThis.innerWidth > 768 && globalThis.innerWidth <= 1024;
-    
-    cache.esTablet = patronesTablet.some(patron => patron.test(ua)) || 
-                     esAndroidTablet || 
-                     (esMovil() && esTamanoTablet);
-    return cache.esTablet;
-}
-
-/**
- * Detecta si el dispositivo usa iOS
- * @returns {boolean} True si es iOS
- */
-export function esIOS() {
-    if (cache.esIOS !== null) {
-        return cache.esIOS;
-    }
-    
-    const ua = getUserAgent();
-    
-    cache.esIOS = /iPad|iPhone|iPod/.test(ua) || 
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    return cache.esIOS;
-}
-
-/**
- * Detecta si el dispositivo usa Android
- * @returns {boolean} True si es Android
- */
-export function esAndroid() {
-    if (cache.esAndroid !== null) {
-        return cache.esAndroid;
-    }
-    
-    cache.esAndroid = /Android/i.test(getUserAgent());
-    return cache.esAndroid;
-}
-
-/**
- * Detecta el navegador actual
- * @returns {Object} Información del navegador
- */
-function _extraerVersion(ua, regex) {
-    const match = regex.exec(ua);
-    return match ? match[1] : '';
-}
-
-export function detectarNavegador() {
-    if (cache.navegador !== null) {
-        return cache.navegador;
-    }
-
-    const ua = getUserAgent();
-    let nombre = 'Desconocido';
-    let version = '';
-
-    if (/Chrome/i.test(ua) && !/Chromium|Edge|OPR|Opera/i.test(ua)) {
-        nombre = 'Chrome';
-        version = _extraerVersion(ua, /Chrome\/(\d+)/);
-    } else if (/Firefox/i.test(ua)) {
-        nombre = 'Firefox';
-        version = _extraerVersion(ua, /Firefox\/(\d+)/);
-    } else if (/Safari/i.test(ua) && !/Chrome|Chromium/i.test(ua)) {
-        nombre = 'Safari';
-        version = _extraerVersion(ua, /Version\/(\d+)/);
-    } else if (/Edg/i.test(ua)) {
-        nombre = 'Edge';
-        version = _extraerVersion(ua, /Edg\/(\d+)/);
-    } else if (/OPR|Opera/i.test(ua)) {
-        nombre = 'Opera';
-        version = _extraerVersion(ua, /(?:OPR|Opera)\/(\d+)/);
-    } else if (/MSIE|Trident/i.test(ua)) {
-        nombre = 'Internet Explorer';
-        version = _extraerVersion(ua, /(?:MSIE |rv:)(\d+)/);
-    }
-    
-    cache.navegador = { nombre, version };
-    return cache.navegador;
-}
-
-/**
- * Detecta si el dispositivo soporta eventos táctiles
- * @returns {boolean} True si soporta touch
- */
-export function soportaTactil() {
-    if (cache.soportaTactil !== null) {
-        return cache.soportaTactil;
-    }
-    
-    cache.soportaTactil = (
-        'ontouchstart' in globalThis ||
-        navigator.maxTouchPoints > 0 ||
-        navigator.msMaxTouchPoints > 0
-    );
-    return cache.soportaTactil;
-}
-
-/**
- * Detecta si el dispositivo tiene giroscopio
- * @returns {boolean} True si tiene giroscopio
- */
-export function tieneGiroscopio() {
-    return 'DeviceOrientationEvent' in globalThis;
-}
-
-/**
- * Detecta si el dispositivo tiene acelerómetro
- * @returns {boolean} True si tiene acelerómetro
- */
-export function tieneAcelerometro() {
-    return 'DeviceMotionEvent' in globalThis;
-}
-
-/**
- * Detecta si el navegador soporta geolocalización
- * @returns {boolean} True si soporta geolocalización
- */
-export function soportaGeolocalizacion() {
-    return 'geolocation' in navigator;
-}
-
-/**
- * Detecta si el navegador soporta notificaciones
- * @returns {boolean} True si soporta notificaciones
- */
-export function soportaNotificaciones() {
-    return 'Notification' in globalThis;
-}
-
-/**
- * Detecta si el navegador soporta Service Workers
- * @returns {boolean} True si soporta Service Workers
- */
-export function soportaServiceWorkers() {
-    return 'serviceWorker' in navigator;
-}
-
-/**
- * Detecta si está en modo standalone (PWA instalada)
- * @returns {boolean} True si es PWA instalada
- */
-export function esPWAInstalada() {
-    return globalThis.matchMedia('(display-mode: standalone)').matches ||
-           globalThis.navigator.standalone === true;
-}
-
-/**
- * Obtiene información completa del dispositivo
- * @returns {Object} Información completa del dispositivo
- */
-export function getInfoDispositivo() {
-    return {
-        esMovil: esMovil(),
-        esTelefonoMovil: esTelefonoMovil(),
-        esTablet: esTablet(),
-        esIOS: esIOS(),
-        esAndroid: esAndroid(),
-        navegador: detectarNavegador(),
-        soportaTactil: soportaTactil(),
-        tieneGiroscopio: tieneGiroscopio(),
-        tieneAcelerometro: tieneAcelerometro(),
-        soportaGeolocalizacion: soportaGeolocalizacion(),
-        soportaNotificaciones: soportaNotificaciones(),
-        soportaServiceWorkers: soportaServiceWorkers(),
-        esPWAInstalada: esPWAInstalada(),
-        pantalla: {
-            ancho: globalThis.innerWidth,
-            alto: globalThis.innerHeight,
-            pixelRatio: globalThis.devicePixelRatio || 1
-        },
-        conexion: navigator.connection ? {
-            tipo: navigator.connection.effectiveType,
-            downlink: navigator.connection.downlink
-        } : null
-    };
-}
-
-/**
- * Limpia la caché de detecciones (útil para testing o cambios de orientación)
- */
-export function limpiarCacheDispositivo() {
-    Object.keys(cache).forEach(key => {
-        cache[key] = null;
-    });
 }
 
 // Escuchar cambios de orientación para invalidar cache
@@ -309,27 +101,5 @@ if (globalThis.window !== undefined) {
     globalThis.addEventListener('orientationchange', () => {
         cache.esMovil = null;
         cache.esTelefonoMovil = null;
-        cache.esTablet = null;
     });
-    
-    // Exponer para debugging
-    globalThis.__vv_deviceInfo = getInfoDispositivo;
 }
-
-export default {
-    esMovil,
-    esTelefonoMovil,
-    esTablet,
-    esIOS,
-    esAndroid,
-    detectarNavegador,
-    soportaTactil,
-    tieneGiroscopio,
-    tieneAcelerometro,
-    soportaGeolocalizacion,
-    soportaNotificaciones,
-    soportaServiceWorkers,
-    esPWAInstalada,
-    getInfoDispositivo,
-    limpiarCacheDispositivo
-};

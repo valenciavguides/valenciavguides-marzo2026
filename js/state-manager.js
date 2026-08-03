@@ -115,14 +115,6 @@ const state = {
 
 // Getters and setters with synchronization
 
-export async function getHeartbeatPrewarmed() {
-  return await mutexes.heartbeatPrewarmed.runExclusive(() => state.heartbeatPrewarmed);
-}
-
-export async function setHeartbeatPrewarmed(value) {
-  await mutexes.heartbeatPrewarmed.runExclusive(() => { state.heartbeatPrewarmed = value; });
-}
-
 export async function getScript2Listo() {
   return await mutexes.script2Listo.runExclusive(() => state.script2Listo);
 }
@@ -264,7 +256,9 @@ export async function updateEstadoPadre(updates) {
 
 /**
  * Aserción interna: lanza Error si el mensaje no tiene la estructura mínima requerida.
- * Distinta de validacion.js/validarMensaje, que devuelve { valido, errores } sin lanzar.
+ * Único validador de mensajes de la app — validacion.js solo exporta validarCoordenadas()
+ * (el resto de esa librería, incluido un validarMensaje() con contrato distinto, se
+ * retiró en la auditoría de 2026-08-03 por no tener ningún caller real).
  */
 async function _assertMensajeValido(mensaje) {
   if (!mensaje || typeof mensaje !== 'object') {

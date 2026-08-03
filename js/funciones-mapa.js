@@ -3409,9 +3409,15 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             }
             // Activar brújula para rotación en tiempo real (si no está ya activa)
             activarBrujula();
-        } else if (circuloActivacion) {
-            circuloActivacion.remove();
-            circuloActivacion = null;
+        } else {
+            // Simétrico al activarBrujula() de la rama de arriba — sin esto, el listener de
+            // deviceorientation seguía registrado en CASA indefinidamente (auditoría: desactivarBrujula
+            // existía pero no tenía ningún caller). Idempotente si ya estaba desactivada.
+            desactivarBrujula();
+            if (circuloActivacion) {
+                circuloActivacion.remove();
+                circuloActivacion = null;
+            }
         }
 
         // Actualizar flecha de dirección sobre tramo (si hay tramo activo)
