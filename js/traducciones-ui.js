@@ -9,7 +9,7 @@
 export const TRADUCCIONES_REANUDACION = {
     es: {
         titulo: '¡Aventura en curso!',
-        info: 'Tienes una aventura activa:',
+        info: 'Tiene una aventura activa:',
         idioma: 'Idioma',
         progreso: 'Progreso',
         parada: 'parada',
@@ -19,8 +19,8 @@ export const TRADUCCIONES_REANUDACION = {
         autoContinuar: 'Continuando automáticamente en',
         segundos: 's',
         advertenciaTitulo: '⚠️ Atención',
-        advertenciaTexto1: 'Perderás todo el progreso de tu aventura actual:',
-        advertenciaTexto2: 'Además, necesitarás adquirir una nueva aventura.',
+        advertenciaTexto1: 'Perderá todo el progreso de su aventura actual:',
+        advertenciaTexto2: 'Además, necesitará adquirir una nueva aventura.',
         volver: 'Volver a mi aventura',
         confirmarOtra: 'Sí, elegir otra aventura',
         frasesCarga: [
@@ -105,7 +105,7 @@ export const TRADUCCIONES_REANUDACION = {
     },
     it: {
         titulo: 'Avventura in corso!',
-        info: 'Hai un\'avventura attiva:',
+        info: 'Ha un\'avventura attiva:',
         idioma: 'Lingua',
         progreso: 'Progresso',
         parada: 'tappa',
@@ -115,8 +115,8 @@ export const TRADUCCIONES_REANUDACION = {
         autoContinuar: 'Continuazione automatica tra',
         segundos: 's',
         advertenciaTitulo: '⚠️ Attenzione',
-        advertenciaTexto1: 'Perderai tutto il progresso della tua avventura attuale:',
-        advertenciaTexto2: 'Inoltre, dovrai acquistare una nuova avventura.',
+        advertenciaTexto1: 'Perderà tutto il progresso della sua avventura attuale:',
+        advertenciaTexto2: 'Inoltre, dovrà acquistare una nuova avventura.',
         volver: 'Torna alla mia avventura',
         confirmarOtra: 'Sì, scegli un\'altra avventura',
         frasesCarga: [
@@ -265,7 +265,7 @@ export const TRADUCCIONES_REANUDACION = {
     },
     pl: {
         titulo: 'Przygoda w toku!',
-        info: 'Masz aktywną przygodę:',
+        info: 'Wykryto aktywną przygodę:',
         idioma: 'Język',
         progreso: 'Postęp',
         parada: 'przystanek',
@@ -275,8 +275,8 @@ export const TRADUCCIONES_REANUDACION = {
         autoContinuar: 'Automatyczne kontynuowanie za',
         segundos: 's',
         advertenciaTitulo: '⚠️ Uwaga',
-        advertenciaTexto1: 'Stracisz cały postęp swojej obecnej przygody:',
-        advertenciaTexto2: 'Ponadto będziesz musiał zakupić nową przygodę.',
+        advertenciaTexto1: 'Cały postęp obecnej przygody zostanie utracony:',
+        advertenciaTexto2: 'Ponadto konieczne będzie zakupienie nowej przygody.',
         volver: 'Wróć do mojej przygody',
         confirmarOtra: 'Tak, wybierz inną przygodę',
         frasesCarga: [
@@ -394,18 +394,40 @@ export const TRADUCCIONES_REANUDACION = {
 };
 
 export const TRADUCCIONES_FINALIZACION = {
-    es: { titulo: '¡Felicidades!', completado: 'Has completado', pregunta: '¿Qué deseas hacer ahora?', btn_otra: 'Hacer otra aventura', btn_terminar: 'Terminar esta experiencia' },
+    es: { titulo: '¡Felicidades!', completado: 'Ha completado', pregunta: '¿Qué desea hacer ahora?', btn_otra: 'Hacer otra aventura', btn_terminar: 'Terminar esta experiencia' },
     en: { titulo: 'Congratulations!', completado: 'You have completed', pregunta: 'What would you like to do now?', btn_otra: 'Start another adventure', btn_terminar: 'End this experience' },
     fr: { titulo: 'Félicitations !', completado: 'Vous avez terminé', pregunta: 'Que souhaitez-vous faire maintenant ?', btn_otra: 'Commencer une autre aventure', btn_terminar: 'Terminer cette expérience' },
-    it: { titulo: 'Congratulazioni!', completado: 'Hai completato', pregunta: 'Cosa desideri fare adesso?', btn_otra: "Fare un'altra avventura", btn_terminar: 'Terminare questa esperienza' },
+    it: { titulo: 'Congratulazioni!', completado: 'Ha completato', pregunta: 'Cosa desidera fare adesso?', btn_otra: "Fare un'altra avventura", btn_terminar: 'Terminare questa esperienza' },
     nl: { titulo: 'Gefeliciteerd!', completado: 'U heeft voltooid', pregunta: 'Wat wilt u nu doen?', btn_otra: 'Een ander avontuur beginnen', btn_terminar: 'Deze ervaring beëindigen' },
     de: { titulo: 'Herzlichen Glückwunsch!', completado: 'Sie haben abgeschlossen', pregunta: 'Was möchten Sie jetzt tun?', btn_otra: 'Ein anderes Abenteuer beginnen', btn_terminar: 'Dieses Erlebnis beenden' },
     ja: { titulo: 'おめでとうございます！', completado: '完了しました', pregunta: '次に何をしますか？', btn_otra: '別の冒険を始める', btn_terminar: 'この体験を終了する' },
     zh: { titulo: '恭喜！', completado: '您已完成', pregunta: '您现在想做什么？', btn_otra: '开始另一个冒险', btn_terminar: '结束此体验' },
-    pl: { titulo: 'Gratulacje!', completado: 'Ukończyłeś', pregunta: 'Co chcesz teraz zrobić?', btn_otra: 'Rozpocząć inną przygodę', btn_terminar: 'Zakończyć to doświadczenie' },
+    pl: { titulo: 'Gratulacje!', completado: 'Ukończono trasę', pregunta: 'Co dalej?', btn_otra: 'Rozpocząć inną przygodę', btn_terminar: 'Zakończyć to doświadczenie' },
     pt: { titulo: 'Parabéns!', completado: 'Você completou', pregunta: 'O que deseja fazer agora?', btn_otra: 'Fazer outra aventura', btn_terminar: 'Terminar esta experiência' },
     ru: { titulo: 'Поздравляем!', completado: 'Вы завершили', pregunta: 'Что вы хотите сделать сейчас?', btn_otra: 'Начать другое приключение', btn_terminar: 'Завершить приключение' },
     uk: { titulo: 'Вітаємо!', completado: 'Ви завершили', pregunta: 'Що ви хочете зробити тепер?', btn_otra: 'Розпочати іншу пригоду', btn_terminar: 'Завершити пригоду' }
+};
+
+// Cartel de transición al completar una parada/tramo (mostrarCartelTransicion, codigo-padre.html).
+// Cuatro frases por idioma en vez de una plantilla que pegue "tipo + nombre" sueltos — cada
+// idioma necesita su propio artículo/género/orden de palabras, y una plantilla genérica
+// concatenada no lo respeta. Registro formal (usted/vous/Sie/Lei/U/...), igual que
+// TRADUCCIONES_FINALIZACION. {nombre} se sustituye por el nombre real de la parada/tramo tal
+// cual viene en elementosIDpadre — los tramos ya incluyen su propia flecha ("A → B"), por eso
+// las frases de tramo no añaden "hacia" ni ninguna preposición de dirección redundante.
+export const TRADUCCIONES_CARTEL_TRANSICION = {
+    es: { terminaParada: 'Ha terminado la parada {nombre}', terminaTramo: 'Ha terminado el tramo {nombre}', empiezaParada: 'va a empezar la parada {nombre}', empiezaTramo: 'va a empezar el tramo {nombre}' },
+    en: { terminaParada: 'You have finished the stop {nombre}', terminaTramo: 'You have finished the segment {nombre}', empiezaParada: 'you are about to start the stop {nombre}', empiezaTramo: 'you are about to start the segment {nombre}' },
+    fr: { terminaParada: "Vous avez terminé l'arrêt {nombre}", terminaTramo: 'Vous avez terminé le tronçon {nombre}', empiezaParada: "vous allez commencer l'arrêt {nombre}", empiezaTramo: 'vous allez commencer le tronçon {nombre}' },
+    it: { terminaParada: 'Ha terminato la tappa {nombre}', terminaTramo: 'Ha terminato il tratto {nombre}', empiezaParada: 'sta per iniziare la tappa {nombre}', empiezaTramo: 'sta per iniziare il tratto {nombre}' },
+    nl: { terminaParada: 'U heeft de stop {nombre} voltooid', terminaTramo: 'U heeft het traject {nombre} voltooid', empiezaParada: 'u gaat beginnen aan de stop {nombre}', empiezaTramo: 'u gaat beginnen aan het traject {nombre}' },
+    de: { terminaParada: 'Sie haben die Station {nombre} abgeschlossen', terminaTramo: 'Sie haben den Abschnitt {nombre} abgeschlossen', empiezaParada: 'Sie beginnen gleich mit der Station {nombre}', empiezaTramo: 'Sie beginnen gleich mit dem Abschnitt {nombre}' },
+    ja: { terminaParada: '{nombre}の見学を終えました', terminaTramo: '{nombre}を歩き終えました', empiezaParada: '次は{nombre}です', empiezaTramo: '次は{nombre}を歩きます' },
+    zh: { terminaParada: '您已完成站点 {nombre}', terminaTramo: '您已完成路段 {nombre}', empiezaParada: '接下来将前往站点 {nombre}', empiezaTramo: '接下来将开始路段 {nombre}' },
+    pl: { terminaParada: 'Ukończono przystanek {nombre}', terminaTramo: 'Ukończono odcinek {nombre}', empiezaParada: 'następny przystanek: {nombre}', empiezaTramo: 'następny odcinek: {nombre}' },
+    pt: { terminaParada: 'Você concluiu a parada {nombre}', terminaTramo: 'Você concluiu o trecho {nombre}', empiezaParada: 'você vai começar a parada {nombre}', empiezaTramo: 'você vai começar o trecho {nombre}' },
+    ru: { terminaParada: 'Вы завершили остановку {nombre}', terminaTramo: 'Вы завершили участок {nombre}', empiezaParada: 'далее — остановка {nombre}', empiezaTramo: 'далее — участок {nombre}' },
+    uk: { terminaParada: 'Ви завершили зупинку {nombre}', terminaTramo: 'Ви завершили ділянку {nombre}', empiezaParada: 'далі — зупинка {nombre}', empiezaTramo: 'далі — ділянка {nombre}' }
 };
 
 export const TRADUCCIONES_TIEMPO_AGOTADO = {
@@ -439,10 +461,10 @@ export const TRADUCCIONES_DESPEDIDA = {
 };
 
 export const TRADUCCIONES_ACCESO_ERRONEO = {
-    es: { titulo: 'Código o email incorrectos', cuerpo: 'Revisa los datos introducidos e inténtalo de nuevo.' },
+    es: { titulo: 'Código o email incorrectos', cuerpo: 'Revise los datos introducidos e inténtelo de nuevo.' },
     en: { titulo: 'Incorrect code or email', cuerpo: 'Please check the details you entered and try again.' },
     fr: { titulo: 'Code ou email incorrect', cuerpo: 'Vérifiez les informations saisies et réessayez.' },
-    it: { titulo: 'Codice o email errati', cuerpo: 'Controlla i dati inseriti e riprova.' },
+    it: { titulo: 'Codice o email errati', cuerpo: 'Controlli i dati inseriti e riprovi.' },
     nl: { titulo: 'Onjuiste code of e-mail', cuerpo: 'Controleer de ingevoerde gegevens en probeer het opnieuw.' },
     de: { titulo: 'Falscher Code oder falsche E-Mail', cuerpo: 'Überprüfen Sie Ihre Angaben und versuchen Sie es erneut.' },
     ja: { titulo: 'コードまたはメールアドレスが正しくありません', cuerpo: '入力内容を確認して、もう一度お試しください。' },
@@ -454,10 +476,10 @@ export const TRADUCCIONES_ACCESO_ERRONEO = {
 };
 
 export const MSG_RETOS_COMPLETOS = {
-    es: '¡Has completado todos los retos!',
+    es: '¡Ha completado todos los retos!',
     en: "You've completed all the challenges!",
     fr: 'Vous avez terminé tous les défis !',
-    it: 'Hai completato tutte le sfide!',
+    it: 'Ha completato tutte le sfide!',
     nl: 'U heeft alle uitdagingen voltooid!',
     ja: 'すべてのチャレンジをクリアしました！',
     de: 'Sie haben alle Herausforderungen gemeistert!',
@@ -786,7 +808,7 @@ export const PLACEHOLDER_RESPUESTA_TEXTO = {
     es: 'Escriba su respuesta aquí...',
     en: 'Write your answer here...',
     fr: 'Écrivez votre réponse ici...',
-    it: 'Scrivi qui la tua risposta...',
+    it: 'Scriva qui la sua risposta...',
     nl: 'Schrijf hier uw antwoord...',
     de: 'Schreiben Sie hier Ihre Antwort...',
     ja: 'ここに回答を入力してください...',

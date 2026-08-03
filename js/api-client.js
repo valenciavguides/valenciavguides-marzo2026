@@ -106,13 +106,13 @@ class ApiClientError extends Error {
     getMensajeUsuario() {
         const mensajes = {
             // Errores de red
-            'NETWORK_ERROR': 'No se puede conectar con el servidor. Verifica tu conexión a internet.',
-            'TIMEOUT': 'La solicitud tardó demasiado. Intenta de nuevo.',
-            'OFFLINE': 'No hay conexión a internet. Activa tus datos o WiFi.',
-            
+            'NETWORK_ERROR': 'No se puede conectar con el servidor. Verifique su conexión a internet.',
+            'TIMEOUT': 'La solicitud tardó demasiado. Inténtelo de nuevo.',
+            'OFFLINE': 'No hay conexión a internet. Active sus datos o el WiFi.',
+
             // Errores del servidor
-            'SERVIDOR_NO_DISPONIBLE': 'El servidor no está disponible en este momento. Intenta más tarde.',
-            'ERROR_INTERNO': 'Ha ocurrido un error. Por favor, intenta de nuevo.',
+            'SERVIDOR_NO_DISPONIBLE': 'El servidor no está disponible en este momento. Inténtelo más tarde.',
+            'ERROR_INTERNO': 'Ha ocurrido un error. Por favor, inténtelo de nuevo.',
             
             // Errores de datos
             'AVENTURA_NO_ENCONTRADA': 'La aventura solicitada no existe.',
@@ -129,11 +129,11 @@ class ApiClientError extends Error {
             'RESPUESTA_INVALIDA': 'La respuesta enviada no es válida.',
             
             // Rate limiting
-            'RATE_LIMIT_EXCEEDED': 'Demasiadas solicitudes. Espera un momento antes de continuar.',
+            'RATE_LIMIT_EXCEEDED': 'Demasiadas solicitudes. Espere un momento antes de continuar.',
 
             // Autenticación
             'TOKEN_REQUERIDO': 'Se requiere activar la aventura antes de continuar.',
-            'TOKEN_INVALIDO': 'Tu sesión ha expirado. Por favor, vuelve a activar tu aventura.',
+            'TOKEN_INVALIDO': 'Su sesión ha expirado. Por favor, vuelva a activar su aventura.',
             'CODIGO_REQUERIDO': 'Se requiere un código de activación.',
             'CODIGO_INVALIDO': 'El código de activación no es válido.'
         };

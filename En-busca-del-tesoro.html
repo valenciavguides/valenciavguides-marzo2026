@@ -900,7 +900,7 @@
       </button>
       <div id="gps-denegado-p13" style="display:none; text-align:center; margin-top:1rem; padding:0.75rem; background:#fff3cd; border-radius:0.75rem;">
         <img src="imagenes/imagenes-aplicación/imagen-no-gps.png" alt="GPS sin permiso" style="width:4rem; height:auto;">
-        <div style="font-size:1.75rem; margin-top:0.5rem;" title="Activa el GPS en los ajustes y vuelve a pulsar ➣">🛰️→🌐→⚙️</div>
+        <div style="font-size:1.75rem; margin-top:0.5rem;" title="Active el GPS en los ajustes y vuelva a pulsar ➣">🛰️→🌐→⚙️</div>
       </div>
     </div>
   </div>
@@ -1492,7 +1492,7 @@
       if (document.getElementById('_p13-error-overlay')) return;
       const idioma = idiomaSeleccionado || localStorage.getItem('vv_idioma') || 'es';
       const dic = globalThis.TRADUCCIONES_ACCESO_ERRONEO || {};
-      const t = dic[idioma] || dic.es || { titulo: 'Código o email incorrectos', cuerpo: 'Revisa los datos introducidos e inténtalo de nuevo.' };
+      const t = dic[idioma] || dic.es || { titulo: 'Código o email incorrectos', cuerpo: 'Revise los datos introducidos e inténtelo de nuevo.' };
       const overlay = document.createElement('div');
       overlay.id = '_p13-error-overlay';
       overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;padding:1rem;box-sizing:border-box;';
