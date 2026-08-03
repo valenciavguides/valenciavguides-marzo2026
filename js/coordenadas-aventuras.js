@@ -3763,7 +3763,7 @@ export const DATOS_AVENTURAS = {
     {
         tipo: "referencia",
         id: "REF-15",
-        mapa_numero: 15,
+        mapa_numero: 15, // Bioparc: tickets/entrada es la parada real del cliente — este es el pin que manda
         coordenadas: { lat: Number('39.477981'), lng: Number('-0.407598') },
         nombre: "Bioparc (tickets)",
         imagen: "imagenes/imagenes-aventuras/bioparc.jpg"
@@ -3771,7 +3771,7 @@ export const DATOS_AVENTURAS = {
     {
         tipo: "referencia",
         id: "REF-16",
-        mapa_numero: 15,
+        mapa_numero: 15, // Mismo conjunto que REF-15 (Bioparc) — el cliente no entra al zoo, solo pasa por delante
         coordenadas: { lat: Number('39.478406'), lng: Number('-0.410455') },
         nombre: "Bioparc (Zoo)",
         imagen: "imagenes/imagenes-aventuras/bioparc.jpg"
@@ -3994,6 +3994,14 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.476500'), lng: Number('-0.368760') },
         nombre: "Puente del Real",
         imagen: "imagenes/imagenes-aventuras/puente_real_up.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-44",
+        mapa_numero: "v12",
+        coordenadas: { lat: Number('39.478579'), lng: Number('-0.369801') },
+        nombre: "Portón del Convento de San Julián",
+        imagen: "imagenes/imagenes-aventuras/viveros_san_julian.jpg",
     },
 
     // Coordenadas completas Aventura 4
@@ -5292,7 +5300,7 @@ export const DATOS_AVENTURAS = {
     },
     {
         tipo: "referencia",
-        id: "REF-",
+        id: "REF-16",
         mapa_numero: 16,
         coordenadas: { lat: Number('39.474380'), lng: Number('-0.378340') },
         nombre: "Lonja de la Seda",
@@ -7954,6 +7962,22 @@ export const DATOS_AVENTURAS = {
         coordenadas: { lat: Number('39.47789'), lng: Number('-0.37469') },
         nombre: "Palacio de los Borgia (Cortes Valencianas)",
         imagen: "imagenes/imagenes-aventuras/cortes_valencianas.jpg",
+    },
+    {
+        tipo: "referencia",
+        id: "REF-90",
+        mapa_numero: "v1",
+        coordenadas: { lat: Number('39.477710'), lng: Number('-0.368240') },
+        nombre: "Paseo de las Palmeras",
+        imagen: "imagenes/imagenes-aventuras/viveros_ paseo_palmeras.jpg"
+    },
+    {
+        tipo: "referencia",
+        id: "REF-91",
+        mapa_numero: "v5",
+        coordenadas: { lat: Number('39.479790'), lng: Number('-0.367200') },
+        nombre: "Circuito Vial Urbano",
+        imagen: "imagenes/imagenes-aventuras/viveros_ circuito_vial.jpg"
     },
 
       // ────---------------------------------------------

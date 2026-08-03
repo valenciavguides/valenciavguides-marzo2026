@@ -650,6 +650,7 @@ const B = {
   aRep:  AI+'boton-audio-replay.png',
   reto:  AI+'H4-fotoretos.png',
   opts:  AI+'foto-opciones.png',
+  listado: AI+'boton_listado_paradas.png',
   timer: AI+'foto-temporizador.png',
   info:  AI+'foto-informacion.png',
   pages: AI+'foto-paginas-oficiales.png',
@@ -1108,6 +1109,7 @@ function mainHTML(avState='disabled'){
   <!-- hijo1: columna izquierda (opciones, temporizador, info, páginas) -->
   <div class="col-left">
     <button class="boton" id="bl-opts"><img src="${B.opts}" alt=""></button>
+    <button class="boton" id="bl-listado"><img src="${B.listado}" alt=""></button>
     <button class="boton" id="bl-timer"><img src="${B.timer}" alt=""></button>
     <button class="boton" id="bl-info"><img src="${B.info}" alt=""></button>
     <button class="boton" id="bl-pages"><img src="${B.pages}" alt=""></button>
@@ -1234,9 +1236,10 @@ async function scene5(){
         <div class="btn-main-ico"><img src="${B.b6}" alt=""></div>
         <div class="btn-main-ico"><img src="${B.reto}" alt=""></div>
       </div>
-      <!-- columna central hijo1 (6) -->
+      <!-- columna central hijo1 (7) -->
       <div style="display:flex;flex-direction:column;gap:8px">
         <div class="btn-main-ico"><img src="${B.opts}" alt=""></div>
+        <div class="btn-main-ico"><img src="${B.listado}" alt=""></div>
         <div class="btn-main-ico"><img src="${B.info}" alt=""></div>
         <div class="btn-main-ico"><img src="${B.gastro}" alt=""></div>
         <div class="btn-main-ico"><img src="${B.historia}" alt=""></div>
@@ -1770,6 +1773,44 @@ async function scene16(){
 }
 
 
+/* ── P19b: Botón listado de paradas ── */
+async function sceneListadoParadas(){
+  setScene(mainHTML('disabled'));
+  MC.showInset(RA); MC.showFull(RA);
+  const hideBubble = showBubble(20);
+  await wait(700);
+  const bl=$('bl-listado');
+  spin(bl);
+  await zoomBtn(bl, B.listado, 5000);
+  await Gauntlet.hover(bl,'L',320);
+  await Gauntlet.tapEl(bl,'L',()=>{ spin(bl);
+    setOv(`<div class="ov-dark">
+      <div class="ov-close" id="oclp"><span class="icono-x-cerrar">✗</span></div>
+      <div style="background:#fff8e7;border:6px solid #F28500;border-radius:14px;padding:16px 20px;width:min(78vw,300px);display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:20px;height:20px;flex-shrink:0;border-radius:50%;background:#1e7e34"></div>
+          <div style="flex:1;height:8px;background:#333;border-radius:4px;filter:blur(1px);width:70%"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:20px;height:20px;flex-shrink:0;border-radius:50%;background:#1e7e34"></div>
+          <div style="flex:1;height:8px;background:#333;border-radius:4px;filter:blur(1px);width:55%"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:20px;height:20px;flex-shrink:0;border-radius:50%;border:3px solid #1e7e34;box-sizing:border-box"></div>
+          <div style="flex:1;height:8px;background:#333;border-radius:4px;filter:blur(1px);width:62%"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:20px;height:20px;flex-shrink:0;border-radius:50%;border:3px solid #1e7e34;box-sizing:border-box"></div>
+          <div style="flex:1;height:8px;background:#333;border-radius:4px;filter:blur(1px);width:48%"></div>
+        </div>
+      </div>
+    </div>`);
+  });
+  await waitForNextBtn();
+  await Gauntlet.tapEl($('oclp'),'UR',()=>clearOv());
+  hideBubble(); await wait(600);
+}
+
 /* ── P20: Botón temporizador ── */
 async function scene17(){
   setScene(mainHTML('disabled'));
@@ -1919,7 +1960,7 @@ async function run(){
   const scenes=[scene1,scene2,scene3,scene4,scene5,scene8,scene9,
     scene10,sceneImg,sceneVid,
     scene11,scene12,sceneRetoMCQ,
-    scene13,scene14,scene16,scene17,scene18,scene19];
+    scene13,scene14,scene16,sceneListadoParadas,scene17,scene18,scene19];
   for(const fn of scenes){
     if (_skipRequested) break;
     [$('knight'),$('knight2')].forEach(k=>{

@@ -787,6 +787,21 @@ export const JAIME_SCENES = [
         ru: 'Всё готово. Валенсия ждёт вас — с памятниками, тайнами и испытаниями. Пусть приключение начнётся!',
         uk: 'Все готово. Валенсія чекає на вас — з пам\'ятками, таємницями та випробуваннями. Нехай пригода розпочнеться!',
     },
+    // 20 — Botón listado de paradas
+    {
+        es: 'Pulsando este botón puede saber el progreso de su aventura, úselo si necesita saber cuántas paradas le quedan para terminar su aventura.',
+        en: 'Tap this button to check your adventure\'s progress — use it whenever you need to know how many stops you have left to finish.',
+        fr: 'En appuyant sur ce bouton, vous pouvez consulter la progression de votre aventure — utilisez-le si vous avez besoin de savoir combien d\'arrêts il vous reste pour la terminer.',
+        it: 'Premendo questo pulsante potete conoscere l\'andamento della vostra avventura — usatelo se avete bisogno di sapere quante tappe vi restano per finirla.',
+        nl: 'Door op dit knopje te tikken, kunt u de voortgang van uw avontuur bekijken — gebruik het wanneer u wilt weten hoeveel haltes u nog moet afleggen om te eindigen.',
+        ja: 'このボタンを押すと、冒険の進み具合を確認できます。あと何か所停まれば冒険が終わるか知りたいときにお使いください。',
+        de: 'Wenn Sie auf diesen Button tippen, können Sie den Fortschritt Ihres Abenteuers einsehen — nutzen Sie ihn, wenn Sie wissen möchten, wie viele Stopps Ihnen noch bis zum Ende bleiben.',
+        zh: '点击此按钮可以查看您冒险的进度——如果您想知道还剩多少个停靠点才能完成冒险，请使用它。',
+        pl: 'Naciskając ten przycisk, możecie sprawdzić postęp swojej przygody — skorzystajcie z niego, jeśli chcecie wiedzieć, ile przystanków zostało wam do zakończenia przygody.',
+        pt: 'Ao premir este botão, pode consultar o progresso da sua aventura — utilize-o sempre que precisar de saber quantas paragens lhe faltam para terminar.',
+        ru: 'Нажав эту кнопку, вы можете узнать, как продвигается ваше приключение — используйте её, если хотите знать, сколько остановок осталось до конца приключения.',
+        uk: 'Натиснувши цю кнопку, ви можете дізнатися про прогрес вашої пригоди — користуйтеся нею, якщо хочете знати, скільки зупинок залишилось до завершення пригоди.',
+    },
 ];
 
 export const TRADUCCIONES_SW_UPDATE = {

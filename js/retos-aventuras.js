@@ -3729,7 +3729,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-es",
                 tipo: "texto",
                 pregunta: "21. ¿De qué color son las tejas de la cúpula de la Torre barroca Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -3943,7 +3943,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-en",
                 tipo: "texto",
                 pregunta: "What color are the tiles of the dome of the baroque tower of Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -4157,7 +4157,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-fr",
                 tipo: "texto",
                 pregunta: "De quelle couleur sont les tuiles du dôme de la tour baroque de Santa Catalina ?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -4371,7 +4371,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-it",
                 tipo: "texto",
                 pregunta: "Di che colore sono le tegole della cupola della torre barocca di Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -4585,7 +4585,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-nl",
                 tipo: "texto",
                 pregunta: "Welke kleur hebben de tegels van de koepel van de barokke toren van Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -4799,7 +4799,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-ja",
                 tipo: "texto",
                 pregunta: "サンタカタリナのバロック塔のドームの瓦の色は何ですか？",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -5013,7 +5013,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-de",
                 tipo: "texto",
                 pregunta: "21. Welche Farbe haben die Dachziegel der Kuppel des Barockturms von Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -5227,7 +5227,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-zh",
                 tipo: "texto",
                 pregunta: "21. 圣卡塔利娜巴洛克塔穹顶的瓦片是什么颜色？",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -5441,7 +5441,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-pl",
                 tipo: "texto",
                 pregunta: "21. Jakiego koloru są dachówki kopuły barokowej wieży Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -5655,7 +5655,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-pt",
                 tipo: "texto",
                 pregunta: "21. De que cor são as telhas da cúpula da torre barroca de Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -5869,7 +5869,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-ru",
                 tipo: "texto",
                 pregunta: "21. Какого цвета черепица купола барочной башни Санта-Каталина?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -6083,7 +6083,7 @@ export const RETOS_AVENTURAS = {
                 id: "R21-Av2-uk",
                 tipo: "texto",
                 pregunta: "21. Якого кольору черепиця купола барокової вежі Санта-Каталіна?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 22,
@@ -16459,7 +16459,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-es",
                 tipo: "texto",
                 pregunta: "40. ¿De qué color son las tejas de la cúpula de la Torre barroca Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
             {
                 reto: 41,
@@ -17201,7 +17201,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-en",
                 tipo: "texto",
                 pregunta: "What color are the tiles of the dome of the baroque tower of Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -17947,7 +17947,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-fr",
                 tipo: "texto",
                 pregunta: "De quelle couleur sont les tuiles du dôme de la tour baroque de Santa Catalina ?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -18693,7 +18693,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-it",
                 tipo: "texto",
                 pregunta: "Di che colore sono le tegole della cupola della torre barocca di Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -19439,7 +19439,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-nl",
                 tipo: "texto",
                 pregunta: "Welke kleur hebben de tegels van de koepel van de barokke toren van Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -20185,7 +20185,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-ja",
                 tipo: "texto",
                 pregunta: "サンタカタリナのバロック塔のドームの瓦の色は何ですか？",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -20928,7 +20928,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-de",
                 tipo: "texto",
                 pregunta: "40. Welche Farbe haben die Dachziegel der Kuppel des Barockturms von Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -21664,7 +21664,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-zh",
                 tipo: "texto",
                 pregunta: "40. 圣卡塔利娜巴洛克塔穹顶的瓦片是什么颜色？",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -22400,7 +22400,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-pl",
                 tipo: "texto",
                 pregunta: "40. Jakiego koloru są dachówki kopuły barokowej wieży Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -23136,7 +23136,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-pt",
                 tipo: "texto",
                 pregunta: "40. De que cor são as telhas da cúpula da torre barroca de Santa Catalina?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -23872,7 +23872,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-ru",
                 tipo: "texto",
                 pregunta: "40. Какого цвета черепица купола барочной башни Санта-Каталина?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,
@@ -24608,7 +24608,7 @@ export const RETOS_AVENTURAS = {
                 id: "R40-Av34km-uk",
                 tipo: "texto",
                 pregunta: "40. Якого кольору черепиця купола барокової вежі Санта-Каталіна?",
-                correctas: ["azules"]
+                correctas: ["marrones"]
             },
 {
                 reto: 41,

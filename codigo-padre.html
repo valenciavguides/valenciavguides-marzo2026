@@ -2387,6 +2387,84 @@
             box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
         }
     }
+
+    /* ========================================== */
+    /* VENTANA LISTADO DE PARADAS (PADRE)          */
+    /* ========================================== */
+    .ventana-listado-paradas-padre {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85vw;
+        height: 85vh;
+        background: #fff8e7;
+        border: 0.3rem solid #F28500;
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.5);
+        z-index: 2000000;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+    .listado-paradas-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem clamp(0.75rem, 3vw, 2rem) 1.5rem;
+        box-sizing: border-box;
+    }
+    .listado-paradas-logo {
+        display: block;
+        max-width: min(60%, 320px);
+        margin: 0.5rem auto 0;
+    }
+    .listado-paradas-en-busca {
+        display: block;
+        max-width: min(50%, 260px);
+        margin: 0.4rem auto 1.25rem;
+    }
+    .listado-paradas-filas {
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+    .listado-parada-fila {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-width: 0;
+    }
+    .listado-parada-circulo {
+        flex: 0 0 auto;
+        width: clamp(20px, 4.5vmin, 26px);
+        height: clamp(20px, 4.5vmin, 26px);
+        border-radius: 50%;
+        border: 0.18em solid #1e7e34;
+        background: transparent;
+        box-sizing: border-box;
+        transition: background-color 0.3s ease;
+    }
+    .listado-parada-circulo.completada {
+        background: #1e7e34;
+    }
+    .listado-parada-texto {
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: clamp(14px, 3.2vmin, 18px);
+        color: #111;
+    }
+    .listado-parada-pin {
+        flex: 0 0 auto;
+        font-size: clamp(13px, 2.8vmin, 16px);
+        color: #555;
+        white-space: nowrap;
+    }
     </style>
 </head>
 <body class="loading">
@@ -2440,7 +2518,7 @@
     <iframe id="hijo1-opciones" name="hijo1-opciones"
         title="Opciones de usuario"
         aria-label="Opciones y configuración"
-        style="position:fixed; left:1.5px; right:auto; top:auto; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(6 * var(--franja-lateral) + 26px); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: transparent;"></iframe>
+        style="position:fixed; left:1.5px; right:auto; top:auto; bottom:var(--gap-inferior); width:var(--franja-lateral); height:calc(7 * var(--franja-lateral) + 26px); z-index:1502; pointer-events:auto; display:none; visibility:hidden; background: transparent;"></iframe>
 
     <!-- Botón de acceso al chat de soporte — encima de hijo2, misma vertical -->
     <button type="button" id="btn-chat-soporte"
@@ -6216,6 +6294,18 @@
         try { globalThis.showInternetOverlay = showInternetOverlay; globalThis.hideInternetOverlay = hideInternetOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         try { globalThis.showGpsSignalOverlay = showGpsSignalOverlay; globalThis.hideGpsSignalOverlay = hideGpsSignalOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
+        // Detección instantánea de pérdida de conexión — el evento 'offline' dispara el
+        // aviso en el momento real en que el dispositivo pierde red, en vez de esperar a
+        // que algo intente cargar y falle. showInternetOverlay() ya filtra por modo AVENTURA
+        // internamente, así que este listener puede quedar registrado siempre sin guard propio.
+        // El disparador reactivo existente (audio fallido + !navigator.onLine) se mantiene
+        // como red de seguridad para dispositivos donde 'offline' no llegue a dispararse.
+        try {
+            globalThis.addEventListener('offline', () => {
+                try { showInternetOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+            });
+        } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
                 // ============================================================
                 // Overlay secundario: Mostrar próxima parada/tramo cuando el usuario pulsa el botón
                 // ============================================================
@@ -8750,6 +8840,14 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     // Persistir además el índice de progreso si está definido
                     try { persistProgressState(); } catch (e) { (globalThis.logger || console).warn(`${logPrefix} No se pudo persistir vv_progreso`, e); }
+
+                    // Refrescar el listado de paradas si el usuario lo tiene abierto ahora mismo
+                    try {
+                        const ventanaListado = document.getElementById('ventana-listado-paradas-padre');
+                        if (ventanaListado && ventanaListado.style.display !== 'none') {
+                            _renderizarListadoParadas(ventanaListado);
+                        }
+                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
                     await _notificarParadaCompletada(idLimpio, registro, logPrefix);
 
@@ -11730,6 +11828,172 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             }
         }
 
+        // ========================================================================
+        // LISTADO DE PARADAS (ventana flotante en el padre, botón nuevo en hijo1)
+        // ========================================================================
+        // Mapa de imagen "En busca del tesoro" localizada por idioma — mismo mapa
+        // que usa En-busca-del-tesoro.html en P5, con el mismo fallback a español.
+        const _EN_BUSCA_IMG_POR_IDIOMA = {
+            es: 'en-busca-español.png', en: 'en-busca-ingles.png', fr: 'en-busca-frances.png',
+            it: 'en-busca-italiano.png', nl: 'en-busca-neerlandes.png', ja: 'en-busca-japones.png',
+            de: 'en-busca-aleman.png', zh: 'en-busca-chino-simplificado.png', pl: 'en-busca-polaco.png',
+            pt: 'en-busca-portugues.png', ru: 'en-busca-ruso.png', uk: 'en-busca-ucraniano.png'
+        };
+
+        function _expandeHopMapaNumero(hop) {
+            if (hop == null) return [];
+            const trimmed = String(hop).trim();
+            if (trimmed === '-' || trimmed === '') return [];
+            return trimmed.split(/[/,\-]/).map(t => t.trim()).filter(Boolean);
+        }
+
+        function _parseCadenaMapaNumero(valor) {
+            if (valor == null) return [];
+            return String(valor).split('→').map(h => _expandeHopMapaNumero(h));
+        }
+
+        // Construye, en orden de recorrido, la secuencia de filas del listado de paradas:
+        // una fila por cada parada/inicio real (con su título localizado y estado de
+        // completado), más una fila "puente" por cada número de mapa que la ruta pasa
+        // pero donde nunca hay parada propia — ver GUIA-COMPLETA para el razonamiento
+        // completo (números de mapa muchos-a-muchos con paradas, revisitas no consecutivas,
+        // cadenas de tramo tipo "7→4→8").
+        async function _construirFilasListadoParadas(aventura, idioma) {
+            const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
+            const referencias = new Map();
+            for (const c of coords) {
+                if (c.tipo === 'referencia') referencias.set(String(c.mapa_numero), c.nombre);
+            }
+
+            let textos = [];
+            try {
+                const { cargarTextos: _cargarTx } = await import('./js/data-loader.js');
+                textos = await _cargarTx(aventura, idioma) || [];
+            } catch (e) { (globalThis.logger || console).warn('[PARADAS.LISTADO] cargarTextos falló:', e?.message); } // NOSONAR
+
+            // Mismo patrón de coincidencia que usa coordenadas-hijo2.html para resolver
+            // el título localizado de una parada a partir del array de textos.
+            function tituloLocalizado(paradaId) {
+                const norm = paradaId.replaceAll('-', '');
+                const t = textos.find(x => x?.id && x.id.replaceAll('-', '').includes(norm));
+                return t?.title || null;
+            }
+
+            const secuencia = coords.filter(c => c.tipo === 'inicio' || c.tipo === 'parada' || c.tipo === 'tramo');
+
+            const cubiertos = new Set();
+            for (const el of secuencia) {
+                if (el.tipo === 'tramo') continue;
+                for (const n of _expandeHopMapaNumero(el.mapa_numero)) cubiertos.add(n);
+            }
+
+            const filas = [];
+            let pendientes = [];
+            function flushPuentes() {
+                const unicos = [...new Set(pendientes)];
+                for (const n of unicos) {
+                    if (cubiertos.has(n)) continue;
+                    filas.push({ tipo: 'puente', numero: n, nombre: referencias.get(n) || null });
+                }
+                pendientes = [];
+            }
+
+            for (const el of secuencia) {
+                if (el.tipo === 'tramo') {
+                    for (const hop of _parseCadenaMapaNumero(el.mapa_numero)) {
+                        for (const n of hop) if (!cubiertos.has(n)) pendientes.push(n);
+                    }
+                    continue;
+                }
+                flushPuentes();
+                filas.push({
+                    tipo: 'parada',
+                    id: el.id,
+                    nombre: tituloLocalizado(el.id) || el.nombre,
+                    numeros: _expandeHopMapaNumero(el.mapa_numero),
+                    completada: estado.paradasCompletadas?.has(el.id) || false
+                });
+            }
+            flushPuentes();
+
+            // Cada puente se rellena de verde cuando se completa la siguiente parada real
+            // de la ruta (el usuario necesariamente ya pasó por ahí para llegar a esa parada).
+            let siguienteParadaId = null;
+            for (let i = filas.length - 1; i >= 0; i--) {
+                if (filas[i].tipo === 'parada') { siguienteParadaId = filas[i].id; continue; }
+                filas[i].completaConId = siguienteParadaId;
+                filas[i].completada = siguienteParadaId ? (estado.paradasCompletadas?.has(siguienteParadaId) || false) : false;
+            }
+
+            filas.forEach((f, i) => { f.fila = i + 1; });
+            return filas;
+        }
+
+        function _renderizarFilaListadoParadas(f) {
+            const numeros = f.tipo === 'parada' ? (f.numeros || []) : [f.numero];
+            const pin = numeros.length ? `📍${numeros.join(',')}` : '';
+            const nombre = f.nombre || (f.tipo === 'puente' ? `(sin nombre) ${pin}` : '');
+            const _esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            return `
+                <div class="listado-parada-fila">
+                    <div class="listado-parada-circulo${f.completada ? ' completada' : ''}"></div>
+                    <div class="listado-parada-texto">${f.fila}. ${_esc(nombre)}</div>
+                    <div class="listado-parada-pin">${_esc(pin)}</div>
+                </div>
+            `;
+        }
+
+        async function _renderizarListadoParadas(ventana) {
+            const aventura = globalThis.aventuraSeleccionada;
+            const idioma = globalThis.idiomaSeleccionado || 'es';
+            if (!aventura) return;
+            const scroll = ventana.querySelector('.listado-paradas-scroll');
+            if (!scroll) return;
+            const filas = await _construirFilasListadoParadas(aventura, idioma);
+            const enBuscaImg = _EN_BUSCA_IMG_POR_IDIOMA[idioma] || _EN_BUSCA_IMG_POR_IDIOMA.es;
+            scroll.innerHTML = `
+                <img class="listado-paradas-logo" src="imagenes/imagenes-aplicación/logo-alargado.png" alt="Valencia VGuides">
+                <img class="listado-paradas-en-busca" src="imagenes/imagenes-aplicación/${enBuscaImg}" alt="En busca del tesoro">
+                <div class="listado-paradas-filas">${filas.map(_renderizarFilaListadoParadas).join('')}</div>
+            `;
+        }
+
+        async function _hdl_PARADAS_LISTADO_TOGGLE(_mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[PARADAS.LISTADO_TOGGLE]`;
+            try {
+                (globalThis.logger || console).info(`${logPrefix} Toggle de listado de paradas solicitado`);
+
+                let ventana = document.getElementById('ventana-listado-paradas-padre');
+                let recienCreada = false;
+                if (!ventana) {
+                    ventana = document.createElement('div');
+                    ventana.id = 'ventana-listado-paradas-padre';
+                    ventana.className = 'ventana-listado-paradas-padre';
+                    ventana.style.display = 'none';
+                    ventana.innerHTML = `
+                        <button type="button" class="btn-cerrar-overlay" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
+                        <div class="listado-paradas-scroll"></div>
+                    `;
+                    document.body.appendChild(ventana);
+                    ventana.querySelector('.btn-cerrar-overlay')?.addEventListener('click', () => { ventana.style.display = 'none'; });
+                    recienCreada = true;
+                    (globalThis.logger || console).info(`${logPrefix} Ventana del listado creada en el padre`);
+                }
+
+                const estaVisible = !recienCreada && ventana.style.display !== 'none';
+                if (estaVisible) {
+                    ventana.style.display = 'none';
+                } else {
+                    ventana.style.display = 'flex';
+                    await _renderizarListadoParadas(ventana);
+                }
+
+                (globalThis.logger || console).info(`${logPrefix} Listado ${estaVisible ? 'oculto' : 'mostrado'}`);
+            } catch (error) {
+                (globalThis.logger || console).error(`${logPrefix} Error en toggle de listado de paradas:`, error);
+            }
+        }
+
         function _regCtrl_AventuraYTiempo(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.ESTADISTICAS_TIEMPO, _hdl_AVENTURA_ESTADISTICAS_TIEMPO, { permanente: true });
 
@@ -11740,6 +12004,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AVENTURA.TIEMPO_ACTUALIZADO, _hdl_AVENTURA_TIEMPO_ACTUALIZADO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.TEMPORIZADOR.TOGGLE, _hdl_TEMPORIZADOR_TOGGLE, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE, _hdl_PARADAS_LISTADO_TOGGLE, { permanente: true });
         }
 
         function _regCtrl_UI(_TIPOS_MENSAJE) {

@@ -780,6 +780,7 @@
     // CONFIGURACIÓN DE ICONOS Y CONSTANTES UI
     // ============================================================
     const iconosArriba = [
+        { id: 'icono-listado-paradas', url: null, nombre: 'Listado de paradas', accion: 'toggleListadoParadas' },
         { id: 'icono-gastronomia', url: 'gastronomia.html', nombre: 'Gastronomía' },
         { id: 'icono-informacion', url: 'consejos-valencia.html', nombre: 'Información' },
         { id: 'icono-historia', url: 'videos-valencia-historica.html', nombre: 'Historia' }
@@ -1132,6 +1133,10 @@
                                 // Acción especial: toggle de la ventana del temporizador
                                 logger.info(`${clickPrefix} Ejecutando acción: toggleTemporizador`);
                                 toggleVentanaTemporizador();
+                            } else if (icono.accion === 'toggleListadoParadas') {
+                                // Acción especial: toggle de la ventana de listado de paradas
+                                logger.info(`${clickPrefix} Ejecutando acción: toggleListadoParadas`);
+                                toggleListadoParadas();
                             } else {
                                 logger.info(`${clickPrefix} Sin URL ni acción definida para ${icono.nombre}`);
                             }
@@ -1250,6 +1255,26 @@
             });
 
             logger.info(`${logPrefix} Mensaje TEMPORIZADOR.TOGGLE enviado al padre`);
+        } catch (error) {
+            logger.error(`${logPrefix} Error enviando toggle al padre:`, error);
+        }
+    }
+
+    /**
+     * Envía mensaje al padre para toggle de la ventana de listado de paradas
+     * El padre es quien construye y muestra el listado (tiene acceso a
+     * estado.paradasCompletadas y a los datos de coordenadas de la aventura)
+     */
+    async function toggleListadoParadas() {
+        const logPrefix = '[LISTADO_PARADAS][toggle]';
+        try {
+            await enviarMensaje({
+                destino: resolverIdPadre(),
+                tipo: TIPOS_MENSAJE.PARADAS.LISTADO_TOGGLE,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                datos: { timestamp: Date.now() }
+            });
+            logger.info(`${logPrefix} Mensaje PARADAS.LISTADO_TOGGLE enviado al padre`);
         } catch (error) {
             logger.error(`${logPrefix} Error enviando toggle al padre:`, error);
         }
@@ -1586,6 +1611,9 @@
   <!-- ========================================== -->
   <!-- ICONOS ARRIBA (se despliegan hacia arriba) -->
   <!-- ========================================== -->
+  <button class="icono-flotante" id="icono-listado-paradas" title="Listado de paradas" aria-label="Listado de paradas">
+      <img src="imagenes/imagenes-aplicación/boton_listado_paradas.png" alt="Listado de paradas">
+  </button>
   <button class="icono-flotante" id="icono-gastronomia" title="Gastronomía" aria-label="Gastronomía">
       <img src="imagenes/imagenes-aplicación/H1-fotogastronomia.png" alt="Gastronomía">
   </button>
