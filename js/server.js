@@ -37,7 +37,13 @@ const PROTECTED_FILES = [
 
 function isProtectedFile(urlPath) {
     if (!PROTECT_DATA) return false;
-    const normalized = urlPath.split('?')[0].toLowerCase();
+    // path.posix.normalize colapsa "..", "." y barras dobles ANTES de comparar — sin esto,
+    // "/js/../js/coordenadas-aventuras.js", "/js//coordenadas-aventuras.js" o
+    // "/./js/coordenadas-aventuras.js" no empiezan literalmente por ningún prefijo de
+    // PROTECTED_FILES (bypass), aunque el path.resolve() de más abajo (que sí normaliza)
+    // sirva exactamente el mismo fichero protegido real. Confirmado en auditoría — ver
+    // docs/GUIA-COMPLETA.md §22.4.
+    const normalized = path.posix.normalize(urlPath.split('?')[0]).toLowerCase();
     return PROTECTED_FILES.some(pf => normalized.startsWith(pf.toLowerCase()));
 }
 

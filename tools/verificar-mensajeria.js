@@ -2,7 +2,7 @@
 /**
  * verificar-mensajeria.js — Cruza cada tipo de TIPOS_MENSAJE con quién lo emite
  * y quién lo escucha, para detectar tipos huérfanos (EJE 4 / EJE 13 de la
- * metodología de auditoría, ver docs/GUIA-COMPLETA.md §35.4 y §35.13).
+ * metodología de auditoría, ver docs/GUIA-COMPLETA.md §36.4 y §36.13).
  *
  * Uso:
  *   node tools/verificar-mensajeria.js            → informe completo

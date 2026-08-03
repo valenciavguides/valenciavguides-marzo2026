@@ -443,7 +443,7 @@
             }
 
         /* Inner layout: imagen arriba (flexible) + banda inferior fija con el botón de
-           reintento — así el botón nunca tapa parte de la foto (ver GUIA-COMPLETA §30.4). */
+           reintento — así el botón nunca tapa parte de la foto (ver GUIA-COMPLETA §31.4). */
         .gps-overlay-distancia .gps-overlay-img {
             position: relative;
             flex: 1 1 auto;
@@ -635,7 +635,7 @@
         #internet-action:active { transform: translateX(-50%) scale(0.98); }
 
         /* Fila de distancia compartida por las 3 pantallas de aviso GPS por distancia
-           (foto-fuera-rango / foto-lejos / gps-out-of-range) — ver GUIA-COMPLETA §30. */
+           (foto-fuera-rango / foto-lejos / gps-out-of-range) — ver GUIA-COMPLETA §31. */
         .gps-distancia-row {
             position: absolute;
             top: 0.75rem;
@@ -5651,7 +5651,7 @@
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
         // Expuestas para Script 2 — _hdl_NAVEGACION_GPS_RESTRINGIDO las llama al recibir la
-        // distancia real de hijo2 (ver GUIA-COMPLETA §30).
+        // distancia real de hijo2 (ver GUIA-COMPLETA §31).
         try { globalThis.showGpsOutOfRangeOverlay = showGpsOutOfRangeOverlay; globalThis.hideGpsOutOfRangeOverlay = hideGpsOutOfRangeOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         // ──────────────────────────────────────────────────────────────
