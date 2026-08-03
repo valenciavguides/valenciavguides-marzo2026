@@ -8166,6 +8166,10 @@ await _comprobarReanudacionAventura(logPrefix);
             await sleep(50);
         }
         const { registrarControlador: registrarControlador_S2, enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
+        // Capturar la implementación de Script 1 ANTES de importar app.js — ese módulo asigna
+        // su propio globalThis.registrarEvento en su top-level (misma propiedad, formato de log
+        // distinto), y sobrescribiría la de Script 1 si se leyera después del import (auditoría).
+        const registrarEventoGlobal = globalThis.registrarEvento;
         await import('./js/app.js');
         const { invalidarTamañoMapa, diagnosticarMapa, setMapView, dibujarPolylineNavegacion } = await import('./js/funciones-mapa.js');
 
@@ -8176,7 +8180,6 @@ await _comprobarReanudacionAventura(logPrefix);
         // Crear referencias con nombres diferentes para evitar conflicto del linter
         // Make resolverIdsParada available under the simple name used in handlers
         const resolverIdsParada = resolverIdsParada_S2;
-        const registrarEventoGlobal = globalThis.registrarEvento;
 
         // Aliases locales que no chocan con Script 1
         // NOTE: CONFIG_PADRE_LOCAL alias intentionally avoided; use getPadreId()/CONFIG_PADRE where possible

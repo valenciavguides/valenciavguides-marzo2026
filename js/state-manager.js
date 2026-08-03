@@ -28,11 +28,6 @@ const mutexes = {
   audiosCargados: new SimpleMutex(),
   retosCargados: new SimpleMutex(),
   estadoPadre: new SimpleMutex(),
-  aventuraSeleccionada: new SimpleMutex(),
-  idiomaSeleccionado: new SimpleMutex(),
-  uiConfirmado: new SimpleMutex(),
-  estadoComponenteInicializado: new SimpleMutex(),
-  estadoMenuAbierto: new SimpleMutex(),
   controladores: new SimpleMutex(),
   mensajesEnviados: new SimpleMutex(),
   heartbeat: new SimpleMutex(),
@@ -104,11 +99,6 @@ const state = {
     siguiendoRuta: false,
     hijosQueRecibieronPadreListo: new Set()
   },
-  aventuraSeleccionada: null,
-  idiomaSeleccionado: null,
-  uiConfirmado: false,
-  estadoComponenteInicializado: false,
-  estadoMenuAbierto: false,
   controladores: new Map(),
   mensajesEnviados: new Set(),
   heartbeat: {
@@ -133,60 +123,12 @@ export async function setHeartbeatPrewarmed(value) {
   await mutexes.heartbeatPrewarmed.runExclusive(() => { state.heartbeatPrewarmed = value; });
 }
 
-export async function getProcesandoCola() {
-  return await mutexes.procesandoCola.runExclusive(() => state.procesandoCola);
-}
-
-export async function setProcesandoCola(value) {
-  await mutexes.procesandoCola.runExclusive(() => { state.procesandoCola = value; });
-}
-
 export async function getScript2Listo() {
   return await mutexes.script2Listo.runExclusive(() => state.script2Listo);
 }
 
 export async function setScript2Listo(value) {
   await mutexes.script2Listo.runExclusive(() => { state.script2Listo = value; });
-}
-
-export async function getListenerRegistrado() {
-  return await mutexes.listenerRegistrado.runExclusive(() => state.listenerRegistrado);
-}
-
-export async function setListenerRegistrado(value) {
-  await mutexes.listenerRegistrado.runExclusive(() => { state.listenerRegistrado = value; });
-}
-
-export async function getMensajeriaReady() {
-  return await mutexes.mensajeriaReady.runExclusive(() => state.mensajeriaReady);
-}
-
-export async function setMensajeriaReady(value) {
-  await mutexes.mensajeriaReady.runExclusive(() => { state.mensajeriaReady = value; });
-}
-
-export async function getCoordenadasCargadas() {
-  return await mutexes.coordenadasCargadas.runExclusive(() => state.coordenadasCargadas);
-}
-
-export async function setCoordenadasCargadas(value) {
-  await mutexes.coordenadasCargadas.runExclusive(() => { state.coordenadasCargadas = value; });
-}
-
-export async function getAudiosCargados() {
-  return await mutexes.audiosCargados.runExclusive(() => state.audiosCargados);
-}
-
-export async function setAudiosCargados(value) {
-  await mutexes.audiosCargados.runExclusive(() => { state.audiosCargados = value; });
-}
-
-export async function getRetosCargados() {
-  return await mutexes.retosCargados.runExclusive(() => state.retosCargados);
-}
-
-export async function setRetosCargados(value) {
-  await mutexes.retosCargados.runExclusive(() => { state.retosCargados = value; });
 }
 
 export async function getHeartbeat() {
@@ -315,46 +257,6 @@ export async function updateEstadoPadre(updates) {
   await mutexes.estadoPadre.runExclusive(() => {
     _deepMerge(state.estadoPadre, updates);
   });
-}
-
-export async function getAventuraSeleccionada() {
-  return await mutexes.aventuraSeleccionada.runExclusive(() => state.aventuraSeleccionada);
-}
-
-export async function setAventuraSeleccionada(value) {
-  await mutexes.aventuraSeleccionada.runExclusive(() => { state.aventuraSeleccionada = value; });
-}
-
-export async function getIdiomaSeleccionado() {
-  return await mutexes.idiomaSeleccionado.runExclusive(() => state.idiomaSeleccionado);
-}
-
-export async function setIdiomaSeleccionado(value) {
-  await mutexes.idiomaSeleccionado.runExclusive(() => { state.idiomaSeleccionado = value; });
-}
-
-export async function getUiConfirmado() {
-  return await mutexes.uiConfirmado.runExclusive(() => state.uiConfirmado);
-}
-
-export async function setUiConfirmado(value) {
-  await mutexes.uiConfirmado.runExclusive(() => { state.uiConfirmado = value; });
-}
-
-export async function getEstadoComponenteInicializado() {
-  return await mutexes.estadoComponenteInicializado.runExclusive(() => state.estadoComponenteInicializado);
-}
-
-export async function setEstadoComponenteInicializado(value) {
-  await mutexes.estadoComponenteInicializado.runExclusive(() => { state.estadoComponenteInicializado = value; });
-}
-
-export async function getEstadoMenuAbierto() {
-  return await mutexes.estadoMenuAbierto.runExclusive(() => state.estadoMenuAbierto);
-}
-
-export async function setEstadoMenuAbierto(value) {
-  await mutexes.estadoMenuAbierto.runExclusive(() => { state.estadoMenuAbierto = value; });
 }
 
 
