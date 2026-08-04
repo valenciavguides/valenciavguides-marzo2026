@@ -647,6 +647,12 @@ const estadoComponente = {
     toleranciaGPS: 50, // Tolerancia dinámica recibida de funciones-mapa (50m paradas, variable tramos)
     controlesHabilitados: true,
     btnAvanzarDeshabilitadoExternamente: false,
+    // true desde que el padre confirma audio+llegada(+reto) hasta el próximo CAMBIO_PARADA.
+    // Sin esto, cada lectura GPS posterior (actualizarEstadoBotones) recalculaba btn-avanzar
+    // solo por distancia vía _actualizarGpsEnModoAventura — y para un tramo exige >=5m del
+    // destino, así que el usuario que acaba de LLEGAR de verdad (a menudo <5m de .fin) veía
+    // el botón recién habilitado apagarse otra vez en el siguiente tick, sin poder avanzar.
+    btnAvanzarCompletadoPorPadre: false,
     inicializado: false, // Estado de inicialización del componente
     elementosDOM: {}, // Referencias a botones
     botonesActivos: {
@@ -756,6 +762,12 @@ function _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, i
     if (retoActivo) {
         desactivarBoton(elementosDOM.btnAvanzar);
         logger.debug('🛰️ Botón GPS DESACTIVADO: reto activo');
+        return;
+    }
+    if (modo === 'aventura' && estadoComponente.btnAvanzarCompletadoPorPadre) {
+        // El padre ya confirmó audio+llegada(+reto) para este elemento — no volver a
+        // apagar el botón por distancia GPS en cada tick (ver comentario junto al flag).
+        activarBoton(elementosDOM.btnAvanzar);
         return;
     }
     if (modo === 'aventura') {
@@ -1482,11 +1494,18 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.HABILITAR, async (mensaje) => {
     const logPrefix = '[hijo2][CONTROL.HABILITAR]';
 
     try {
-        const { motivo, control } = mensaje.datos || {};
+        const { motivo, control, razon } = mensaje.datos || {};
         logger.info(`${logPrefix} Recibido - control: ${control}, motivo: ${motivo}`);
 
         if (control === 'btnAvanzar') {
             estadoComponente.btnAvanzarDeshabilitadoExternamente = false;
+            // Solo las razones de completado real "pegan" el botón habilitado (ver comentario
+            // junto al flag). 'usuario_en_zona' (recuperación del bloqueo por >5km, no una
+            // llegada real al elemento activo) debe dejar que la lógica normal de proximidad
+            // GPS decida — si no, el usuario podría avanzar sin haber completado nada.
+            if (razon && razon.includes('completad')) {
+                estadoComponente.btnAvanzarCompletadoPorPadre = true;
+            }
             actualizarEstadoBotones();
             return;
         }
@@ -1521,6 +1540,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.CONTROL.DESHABILITAR, async (mensaje) =
 
         if (control === 'btnAvanzar') {
             estadoComponente.btnAvanzarDeshabilitadoExternamente = true;
+            estadoComponente.btnAvanzarCompletadoPorPadre = false;
             if (elementosDOM.btnAvanzar) desactivarBoton(elementosDOM.btnAvanzar);
             return;
         }
@@ -2405,6 +2425,8 @@ try {
             estadoComponente.tipoParadaActual = tipoRecibido;
             estadoComponente.distanciaAlDestino = null;
             estadoComponente._llegadaNotificada = null;
+            // Elemento nuevo: nunca hereda el "completado" del anterior.
+            estadoComponente.btnAvanzarCompletadoPorPadre = false;
 
             logger.debug(`[hijo2][CAMBIO_PARADA] parada=${parada_id} tipo=${tipoRecibido}`);
 

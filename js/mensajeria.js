@@ -346,39 +346,39 @@ export function getControladoresPorTipo(tipo) {
 
 /**
  * Envía un mensaje
- * @param {string|Object} tipoOrMensaje - Tipo de mensaje o objeto mensaje completo
- * @param {*} [datos] - Datos del mensaje (si primer param es string)
- * @param {string|Window} [destino] - Destino del mensaje
- * @returns {boolean} True si se envió
+ *
+ * Solo acepta el formato objeto — el formato posicional histórico
+ * (`enviarMensaje(tipo, datos, destino)`) se retiró el 2026-08-06: verificado que
+ * ningún caller de todo el proyecto (padre, los 6 hijos, tests) lo usaba, y que no
+ * tiene relación con el futuro backend/frontend (mensajeria.js es exclusivamente
+ * postMessage entre iframes del mismo documento, ortogonal a de dónde vengan los
+ * datos de la aventura). Mantenerlo sin ningún consumidor real violaba la regla del
+ * proyecto de no diseñar para casos hipotéticos — ver GUIA-COMPLETA.md §8.1.
+ *
+ * @param {Object} mensaje - Mensaje a enviar
+ * @param {string} mensaje.tipo - Tipo de mensaje (obligatorio)
+ * @param {*} [mensaje.datos] - Datos del mensaje
+ * @param {string|Window} [mensaje.destino] - Destino del mensaje; si se omite, hace broadcast
+ * @param {string} [mensaje.origen] - Origen; por defecto, el propio componente
+ * @returns {Promise<boolean>} true si se envió correctamente
  */
-export function enviarMensaje(tipoOrMensaje, datos, destino) {
-    // Soportar formato objeto: enviarMensaje({ tipo, datos, destino, ... })
-    if (tipoOrMensaje && typeof tipoOrMensaje === 'object' && tipoOrMensaje.tipo) {
-        const { tipo, datos: objDatos, destino: objDestino, origen, ...resto } = tipoOrMensaje;
-        const mensaje = {
-            tipo,
-            datos: objDatos || resto.datos,
-            id: resto.id || generarIdUnico('msg'),
-            timestamp: resto.timestamp || Date.now(),
-            origen: origen || componenteId,
-            tipoOrigen: tipoComponente,
-            destino: objDestino
-        };
-        if (!String(tipo).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipo}`, { destino: objDestino || 'broadcast' });
-        return enviarMensajeInterno(mensaje, objDestino);
-    }
-    
-    // Formato tradicional: enviarMensaje(tipo, datos, destino)
-    if (!tipoOrMensaje) {
+export function enviarMensaje(mensaje) {
+    if (!mensaje || typeof mensaje !== 'object' || !mensaje.tipo) {
         logger.error('[mensajeria] enviarMensaje: tipo es requerido');
-        return false;
+        return Promise.resolve(false);
     }
-    
-    const mensaje = crearMensaje(tipoOrMensaje, datos);
-    
-    if (!String(tipoOrMensaje).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipoOrMensaje}`, { destino: destino || 'broadcast' }); // NOSONAR
-    
-    return enviarMensajeInterno(mensaje, destino);
+    const { tipo, datos, destino, origen, ...resto } = mensaje;
+    const mensajeCompleto = {
+        tipo,
+        datos: datos ?? resto.datos,
+        id: resto.id || generarIdUnico('msg'),
+        timestamp: resto.timestamp || Date.now(),
+        origen: origen || componenteId,
+        tipoOrigen: tipoComponente,
+        destino
+    };
+    if (!String(tipo).includes('HEARTBEAT')) logger.debug(`[mensajeria] Enviando mensaje: ${tipo}`, { destino: destino || 'broadcast' });
+    return enviarMensajeInterno(mensajeCompleto, destino);
 }
 
 /**
@@ -432,14 +432,19 @@ export function enviarMensajeConConfirmacion(tipoOrMensaje, datos, opciones = {}
             timestamp: Date.now()
         });
         
-        // Enviar mensaje
-        const enviado = enviarMensajeInterno(mensaje, destino);
-        
-        if (!enviado) {
-            clearTimeout(timeoutId);
-            confirmacionesPendientes.delete(idConfirmacion);
-            reject(new Error(`No se pudo enviar mensaje: ${tipo}`));
-        }
+        // Enviar mensaje — enviarMensajeInterno() devuelve una Promise desde que se
+        // corrigió su .catch() roto (ver comentario junto a su definición); hay que
+        // esperarla para saber si el envío falló de verdad, si no este chequeo nunca
+        // detecta el fallo (una Promise siempre es truthy) y el timeout de 5s de arriba
+        // se convierte en el único camino de salida, incluso cuando el envío falló al
+        // instante (p.ej. iframe destino inexistente).
+        enviarMensajeInterno(mensaje, destino).then(enviado => {
+            if (!enviado) {
+                clearTimeout(timeoutId);
+                confirmacionesPendientes.delete(idConfirmacion);
+                reject(new Error(`No se pudo enviar mensaje: ${tipo}`));
+            }
+        });
     });
 }
 
@@ -496,23 +501,31 @@ function _enviarDesdePadre(mensaje, destino) {
 }
 
 function enviarMensajeInterno(mensaje, destino) {
+    // Envuelto en Promise.resolve(): muchos callers encadenan .catch() sobre el
+    // resultado (patrón fire-and-forget) esperando una Promise real. Devolver un
+    // booleano síncrono desnudo (como hacía antes) rompe ese .catch() con un
+    // TypeError inmediato — no una promesa rechazada, sino una excepción síncrona
+    // en el momento de evaluar `.catch`, que aborta el resto de la función llamante
+    // si ese resto vive en el mismo bloque try (ver p.ej. marcarParadaCompletada en
+    // codigo-padre.html, donde cortaba el cartel de transición justo después).
     try {
+        let resultado;
         if (tipoComponente === 'hijo' && ventanaPadre) {
             ventanaPadre.postMessage(mensaje, globalThis.location.origin);
-            return true;
-        }
-        if (tipoComponente === 'padre') {
-            return _enviarDesdePadre(mensaje, destino);
-        }
-        // Fallback: postMessage genérico
-        if (globalThis.window !== undefined) {
+            resultado = true;
+        } else if (tipoComponente === 'padre') {
+            resultado = _enviarDesdePadre(mensaje, destino);
+        } else if (globalThis.window !== undefined) {
+            // Fallback: postMessage genérico
             globalThis.postMessage(mensaje, globalThis.location.origin);
-            return true;
+            resultado = true;
+        } else {
+            resultado = false;
         }
-        return false;
+        return Promise.resolve(resultado);
     } catch (error) {
         logger.error(`[mensajeria] Error enviando mensaje: ${error.message}`);
-        return false;
+        return Promise.resolve(false);
     }
 }
 

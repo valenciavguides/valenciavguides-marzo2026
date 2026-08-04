@@ -914,7 +914,13 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 
 **El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
 
-**El ángulo que rota la flecha (el rumbo, no su geometría) se calcula distinto según la plataforma**, en `actualizarOrientacionFlecha()` (`js/funciones-mapa.js`): iOS entrega `event.webkitCompassHeading`, ya referenciado al norte real y en sentido horario — se usa tal cual. El resto de navegadores (Android incluido) entregan `event.alpha`, que por especificación crece en sentido **antihorario** — justo al revés que un rumbo de brújula — así que se convierte con `rumbo = 360 - alpha` antes de aplicarlo; sin esta conversión la flecha giraba a un ángulo incorrecto y no reflejaba de verdad hacia dónde mira el usuario. `activarBrujula()` además prefiere escuchar `deviceorientationabsolute` en vez de `deviceorientation` cuando el navegador la soporta (Chrome/Android la exponen; WebKit no): por definición solo entrega valores de `alpha` ya referenciados al norte real, evitando el caso — frecuente en la implementación estándar de `deviceorientation` — de que `alpha` sea relativo a la orientación que tuviera el móvil al cargar la página, sin relación alguna con el norte. Cubierto por el test `HD-1` (mismo fichero de test que `GA-1`).
+**El ángulo que rota la flecha (el rumbo, no su geometría) se calcula distinto según la plataforma**, en `actualizarOrientacionFlecha()` (`js/funciones-mapa.js`): iOS entrega `event.webkitCompassHeading`, ya referenciado al norte real, en sentido horario y ya compensado por el propio sistema operativo respecto a la inclinación del móvil — se usa tal cual, sin ningún cálculo adicional.
+
+El resto de navegadores (Android incluido) solo entregan `event.alpha/beta/gamma` en crudo, sin compensar. Estos tres ángulos son la rotación intrínseca Z-X'-Y'' (por especificación W3C) del dispositivo respecto al mundo: `alpha` (0-360°, eje Z, crece en sentido **antihorario** — justo al revés que un rumbo de brújula), `beta` (-180 a 180°, inclinación adelante-atrás) y `gamma` (-90 a 90°, inclinación izquierda-derecha). Con el móvil plano y pantalla hacia arriba (`beta≈0`), `rumbo = 360 - alpha` basta — pero esa es exactamente la postura que nadie usa para caminar mirando un mapa; sujeto en vertical (`beta≈90°`, el uso real de esta app), `alpha` solo ya no representa hacia dónde mira el usuario, y la fórmula plana daba un rumbo esencialmente arbitrario según el ángulo exacto con el que cada uno sostiene el móvil (reporte de campo: con el móvil quieto apuntando al norte, la flecha indicaba este u oeste según el momento, sin corregirse al dejar el móvil inmóvil).
+
+La fórmula general aplica la matriz de rotación completa (Z(alpha)·X(beta)·Y(gamma), verificada término a término contra la librería Full-Tilt de referencia del propio coautor de la especificación W3C DeviceOrientation) para calcular hacia dónde apunta, en el plano horizontal del mundo, el vector "parte trasera" del dispositivo (eje -Z local: la dirección en la que el usuario efectivamente mira al sostener el móvil frente a sí). Con `beta=90°` y `gamma=0` esta fórmula general se reduce exactamente a `360 - alpha` — no contradice la fórmula plana, la generaliza a cualquier inclinación real. El vector "parte trasera" se degenera (pierde toda componente horizontal) precisamente cuando el móvil vuelve a estar plano — el caso donde el vector "borde superior" (eje +Y local, la fórmula plana generalizada) sí es fiable; los dos vectores son complementarios por construcción, así que en cada lectura se usa el que tenga mayor componente horizontal, sin un umbral arbitrario que pudiera dar un salto brusco al cruzarlo. Si el navegador no informa `beta`/`gamma`, se cae de vuelta a la fórmula plana original.
+
+`activarBrujula()` además prefiere escuchar `deviceorientationabsolute` en vez de `deviceorientation` cuando el navegador la soporta (Chrome/Android la exponen; WebKit no): por definición solo entrega valores de `alpha` ya referenciados al norte real, evitando el caso — frecuente en la implementación estándar de `deviceorientation` — de que `alpha` sea relativo a la orientación que tuviera el móvil al cargar la página, sin relación alguna con el norte. Cubierto por el test `HD-1` (mismo fichero de test que `GA-1`), que verifica tanto el caso vertical realista (`beta=90°`) como el caso plano, confirmando que ambas ramas de cálculo coinciden cuando `gamma=0` (sin discontinuidad entre ellas).
 
 ```mermaid
 flowchart TD
@@ -1360,6 +1366,16 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 **Por qué existe:** desde la unificación de la progresión (§4.7d, Caso D), tanto una parada como un tramo se quedan esperando la pulsación de `btn-avanzar` en cuanto se completan — nunca avanzan solos. Sin ningún aviso adicional, el usuario no tiene forma de saber que acaba de completar el elemento activo (más allá de que un botón que antes estaba rojo pasa a verde), ni qué elemento viene a continuación. El cartel resuelve ese hueco: un aviso breve, no bloqueante, que anuncia explícitamente qué acaba de terminar y qué va a empezar.
 
 **Disparo:** `globalThis.mostrarCartelTransicion(tipo1, nombre1, tipo2, nombre2)`, definida en `codigo-padre.html` justo después de `mostrarModalFinalizacion` (import dinámico de las traducciones, expuesta en `globalThis` porque la llama `marcarParadaCompletada()`, que puede vivir en un script distinto). Se invoca desde dentro de `marcarParadaCompletada()`, en la misma rama que fija `paradaListaParaAvanzar = true` y envía `CONTROL.HABILITAR { control: 'btnAvanzar' }` — es decir, en el mismo instante en que el botón se habilita, no al pulsarlo. `tipo1`/`nombre1` son el tipo y nombre del elemento que se acaba de completar (`findElementoPorPadreId(idLimpio)`); `tipo2`/`nombre2` son el tipo y nombre del **siguiente** elemento en la secuencia (`elementosIDpadre[estado.indiceProgreso + 1]`, resuelto directamente sobre el array — `estado.indiceProgreso` todavía no se ha incrementado en este punto, `progresarSiguienteElemento()` no lo hace hasta que el usuario pulse). Si no hay elemento siguiente (se acaba de completar el último elemento de la aventura), `tipo2`/`nombre2` llegan como `null` y el cartel muestra solo la mitad de "completado" — el modal de fin de aventura (`mostrarModalFinalizacion`, §8.x) es quien se encarga del resto, y se dispara aparte cuando el usuario pulsa `btn-avanzar` y `progresarSiguienteElemento()` no encuentra elemento siguiente.
+
+**Por qué el cartel depende de que `enviarMensajeInterno()` devuelva una Promise real:** la línea anterior a la que dispara el cartel (`enviarMensajePadre({...CONTROL.HABILITAR...}).catch(e => ...)`, patrón fire-and-forget) vive en el mismo bloque `try` de `marcarParadaCompletada()` que la llamada a `mostrarCartelTransicion`. `.catch()` solo existe en el prototipo de `Promise` — si `enviarMensajeInterno()` (la función que hace el envío real dentro de `mensajeria.js`) devolviera alguna vez un booleano desnudo en vez de envolverlo en `Promise.resolve(...)`, `.catch` sería `undefined` y llamarlo lanzaría un `TypeError` **síncrono**, en el momento mismo de evaluar esa línea — no una promesa rechazada más tarde, sino una excepción que corta ahí mismo el resto de la función que la contiene. Eso incluye todo lo que viene después en el mismo bloque `try`: el cartel de transición nunca llegaría a dispararse, con el mensaje ya enviado pero cualquier código posterior abortado en silencio (el `catch` externo de `marcarParadaCompletada()` solo registra el error, no reintenta ni avisa al usuario). Por eso `enviarMensajeInterno()` envuelve sus tres ramas (hijo→padre, padre→hijo, y el `catch` de error) en `Promise.resolve(...)` de forma explícita.
+
+**La garantía se extiende a toda la familia de funciones relacionadas (reforzado 2026-08-06):** tres huecos estructurales de la misma clase, localizados el 2026-08-04 y verificados como inalcanzables con el código de entonces (guards ya existentes, hoisting), se cerraron igualmente por construcción — para que ninguno de los tres dependa de que el contexto que hoy los protege se mantenga igual en el futuro:
+
+- `enviarMensaje()` (`js/mensajeria.js`) ya no acepta el formato posicional histórico (`enviarMensaje(tipo, datos, destino)`) — se retiró por completo tras confirmar que ningún caller de todo el proyecto (padre, los 6 hijos, tests) lo usaba, y que no tiene relación con un futuro backend/frontend (mensajeria.js es exclusivamente `postMessage` entre iframes del mismo documento). Ahora solo acepta `enviarMensaje({ tipo, datos, destino, origen })`, y su único camino de fallo (`tipo` ausente) devuelve `Promise.resolve(false)`.
+- `enviarMensajePadre()` (`codigo-padre.html`) ahora devuelve `Promise.resolve(undefined)` en su `catch` más interior (el que se alcanza si tanto el envío enriquecido como el reintento fallan) en vez de salir sin `return`. Su rama "legacy signature" (llamar con varios argumentos sueltos) se retiró junto con la de `enviarMensaje()`, ya que dependía de ella y ya no tenía sentido.
+- `globalThis._vv_triggerCambioModo` (`codigo-padre.html`) ahora tiene un `else` explícito que devuelve `Promise.resolve(undefined)` si `_hdl_SISTEMA_CAMBIO_MODO` no está disponible, en vez de devolver `undefined` implícito.
+
+Ver detalle completo (incluida la verificación de alcanzabilidad previa al refuerzo) en la memoria `project_audit_promise_boolean_pendiente`.
 
 **Contenido:** dos líneas de texto sobre fondo `#fff8e7` (mismo celeste-crema que el panel de texto en `btn-imagen` de hijo2), borde `clamp(2.5px,0.6vmin,4px)` sólido `#FF8C00` (el naranja estándar de toda la app — badges, selector de mapa, círculo de activación de 20m), esquinas redondeadas `0.75rem`:
 
@@ -3411,8 +3427,8 @@ La comunicación entre `codigo-padre.html` y todos sus iframes usa la API nativa
 
 | Función | Descripción |
 |---------|-------------|
-| `enviarMensaje(tipoOrMensaje, datos?, destino?)` | Envío estándar — acepta formato objeto `({ tipo, datos, destino, origen })` o posicional `(tipo, datos, destino)`. Si `destino` es un ID de iframe, lo busca; si se omite, hace broadcast a todos los registrados |
-| `enviarMensajeConConfirmacion(tipoOrMensaje, datos?, opciones?)` | Envío con espera de `SISTEMA.ACK`; acepta el mismo formato dual que `enviarMensaje`; timeout configurable; añade campo `id` al mensaje para rastrear la confirmación |
+| `enviarMensaje({ tipo, datos?, destino?, origen? })` | Envío estándar — solo acepta formato objeto (el formato posicional histórico se retiró el 2026-08-06, ver nota más abajo). Si `destino` es un ID de iframe, lo busca; si se omite, hace broadcast a todos los registrados. Devuelve `Promise<boolean>` — `false` si `tipo` falta, nunca lanza de forma síncrona |
+| `enviarMensajeConConfirmacion(tipoOrMensaje, datos?, opciones?)` | Envío con espera de `SISTEMA.ACK`; a diferencia de `enviarMensaje`, sigue aceptando formato dual — objeto `({tipo, datos, destino, ...})` o posicional `(tipo, datos, opciones)` — implementación independiente, no delega en `enviarMensaje`; timeout configurable; añade campo `id` al mensaje para rastrear la confirmación |
 | `registrarControlador(tipo, handler, opciones={})` | Registra un handler para un tipo de mensaje entrante; delega al state-manager si está disponible, o cae en `__vv_manejadoresLocales` |
 | `registrarIframe(id, elemento)` | Registra un iframe por su ID para que `enviarMensaje` lo resuelva |
 | `iniciarHeartbeat(intervalo=5000)` | Inicia el latido: envía `SISTEMA.HEARTBEAT` a todos los hijos en `_hijosRegistrados` cada `intervalo` ms (fallback a `['hijo2','hijo3','hijo4','hijo5']` si el registro está vacío). El estado (intervalId, `heartbeatsFallidos`, `ultimoHeartbeat`, `hijosDesconectados`) vive en el state-manager. Tras `CONFIG.HEARTBEAT.MAX_HEARTBEATS_FALLIDOS` (3) fallos consecutivos sin `HEARTBEAT_RESPONSE`, recarga el iframe del hijo via self-assign (`iframe.src = iframe.src`) |
@@ -4649,7 +4665,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5e7a31c1a1d3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-0e5c5ebd8cee'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7419,7 +7435,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5e7a31c1a1d3'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-0e5c5ebd8cee'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8055,7 +8071,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5e7a31c1a1d3';
+const CACHE_VERSION = 'v-0e5c5ebd8cee';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9643,7 +9659,7 @@ Todo el tráfico entre padre e hijos pasa por `js/mensajeria.js` usando `window.
 
 ```javascript
 // El padre llama a:
-enviarMensaje('NAVEGACION.CAMBIO_PARADA', { paradaId: 'P-5' }, 'hijo2');
+enviarMensaje({ tipo: 'NAVEGACION.CAMBIO_PARADA', datos: { paradaId: 'P-5' }, destino: 'hijo2' });
 
 // Internamente en mensajeria.js — enviarMensajeInterno():
 const iframeInfo = iframesRegistrados.get('hijo2');
@@ -11496,6 +11512,17 @@ En `_hdl_NAVEGACION_CAMBIO_PARADA` (dentro del handler de CAMBIO_PARADA):
 
 Cuando se completa la parada (condiciones `pending.llegada + pending.audio + retosOk` satisfechas), se envía `CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'parada_completada' }` a hijo2. Esto ocurre desde `marcarParadaCompletada` (vía `intentarCompletarElemento`) o desde el fallback en `_hdl_RETO_COMPLETADO`.
 
+### 29.6 Persistencia de la habilitación (`btnAvanzarCompletadoPorPadre`)
+
+`_actualizarBotonGps()` (`coordenadas-hijo2.html`) recalcula el estado de `btnAvanzar` de forma continua, en cada lectura GPS, basándose en `distanciaAlDestino` — para un tramo exige `≥5m` respecto a `.fin`. Sin más, esto entra en conflicto con la confirmación del padre: el usuario que acaba de llegar de verdad suele estar a menos de 5m del destino, así que el botón que el padre acaba de habilitar (§29.5) se volvería a apagar solo en la siguiente lectura GPS, antes de que el usuario llegara a pulsarlo.
+
+`estadoComponente.btnAvanzarCompletadoPorPadre` (booleano, `coordenadas-hijo2.html`) resuelve esto quedando "pegado" a `true` desde que el padre confirma hasta el siguiente cambio de elemento: mientras está a `true`, `_actualizarBotonGps()` corta antes de la lógica de distancia y deja el botón habilitado sin importar lo que diga el GPS en ese tick.
+
+- **Se activa** en el handler `CONTROL.HABILITAR` de hijo2 — pero solo si `datos.razon` contiene la subcadena `"completad"` (cubre `tramo_completado`, `parada_completada`, `parada_completada_fallback` y `parada_completada_fallback2`, las cuatro razones que el padre envía junto con `estado.paradaListaParaAvanzar = true`). La razón `usuario_en_zona` (recuperación del bloqueo por estar a más de 5km de la ruta, §31.5) llega por el mismo `CONTROL.HABILITAR { control: 'btnAvanzar' }` pero **no** activa el flag — no representa una llegada real al elemento activo, así que debe dejar que la lógica normal de proximidad GPS siga decidiendo; activarlo ahí dejaría avanzar al usuario sin haber completado nada.
+- **Se desactiva** en el handler `CONTROL.DESHABILITAR` (cualquier razón) y en `NAVEGACION.CAMBIO_PARADA` — un elemento nuevo nunca hereda el "completado" del anterior.
+
+Cubierto por la suite de arribo y progresión (`tests/e2e/15-arribo-y-progresion.spec.js`).
+
 ### 29.6 Lógica de retos en modo AVENTURA
 
 **Archivo: `codigo-padre.html`**
@@ -11586,7 +11613,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-5e7a31c1a1d3';
+const CACHE_VERSION = 'v-0e5c5ebd8cee';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

@@ -27,10 +27,13 @@
  * exactamente en el punto GPS en cualquier ángulo, con la base barriendo el arco detrás —
  * como una aguja de brújula.
  *
- * HD-1 cubre un tercer bug, de RUMBO (reporte de campo en Android — "la flecha no apunta
- * a donde miro realmente"): alpha de DeviceOrientationEvent crece en sentido antihorario,
- * al revés que un rumbo de brújula — actualizarOrientacionFlecha() ahora convierte con
- * 360-alpha antes de usarlo. webkitCompassHeading (iOS) ya viene corregido y no se toca.
+ * HD-1 cubre un tercer bug, de RUMBO (reporte de campo en Android — "según el momento dice
+ * que miro al este o al oeste estando quieto mirando al norte", sin corregirse al dejar el
+ * móvil inmóvil): `360-alpha` a secas solo es válido con el móvil PLANO — con el móvil
+ * vertical (como se usa esta app al caminar), alpha por sí solo ya no basta.
+ * actualizarOrientacionFlecha() ahora compensa la inclinación real (beta/gamma) — ver el
+ * comentario junto a esa función en funciones-mapa.js para la derivación completa.
+ * webkitCompassHeading (iOS) ya viene corregido por el SO y no se toca.
  */
 'use strict';
 
@@ -154,11 +157,19 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
   });
 
   // HD-1 cubre un bug de RUMBO distinto de GA-1 (geometría): reporte de campo del usuario
-  // en Android, "la flecha no detecta hacia dónde miro realmente". alpha de
-  // DeviceOrientationEvent crece en sentido antihorario — justo al revés que un rumbo de
-  // brújula — así que usarlo directo (sin invertir) giraba la flecha al ángulo equivocado.
-  // iOS entrega webkitCompassHeading ya corregido y no debe tocarse.
-  test('HD-1. alpha (Android) se convierte a rumbo con 360-alpha; webkitCompassHeading (iOS) pasa sin tocar', async ({ page }) => {
+  // en Android, "la flecha no detecta hacia dónde miro realmente" — el rumbo cambiaba
+  // según el momento, y no se corregía dejando el móvil quieto sujeto en vertical.
+  // Causa real: `360-alpha` (fórmula original) solo es correcta con el móvil plano
+  // (beta≈0°) — exactamente la postura que nadie usa para caminar mirando un mapa. La
+  // fórmula actual usa el vector "parte trasera" del dispositivo (-Z local, la dirección
+  // en la que efectivamente mira el usuario sujetándolo vertical) o el vector "borde
+  // superior" (+Y local, la fórmula anterior generalizada), el que tenga mayor componente
+  // horizontal en cada lectura — ver el comentario junto a actualizarOrientacionFlecha()
+  // en funciones-mapa.js para la derivación completa (verificada contra la matriz de
+  // rotación de Full-Tilt, de richtr, coautor de la especificación W3C DeviceOrientation).
+  // iOS entrega webkitCompassHeading ya corregido (compensación de inclinación incluida
+  // por el propio SO) y no se toca.
+  test('HD-1. alpha+beta+gamma (Android) se convierten a rumbo compensando la inclinación; webkitCompassHeading (iOS) pasa sin tocar', async ({ page }) => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const resultado = await page.evaluate(async () => {
@@ -168,18 +179,36 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
       const marker = await actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
       if (!marker) return { ok: false, motivo: 'actualizarMarcadorUsuario no devolvió marcador' };
 
-      // Caso Android: alpha=90 → rumbo esperado 360-90=270.
-      const evAlpha = document.createEvent('Event');
-      evAlpha.initEvent(nombreEvento, true, true);
-      evAlpha.alpha = 90;
-      globalThis.dispatchEvent(evAlpha);
-      const transformAlpha = marker.getElement()?.querySelector('.gps-arrow-heading')?.style.transform || null;
+      // Caso Android, móvil sujeto en VERTICAL (beta=90°, gamma=0 — la forma real en que
+      // se usa esta app al caminar, no el móvil plano sobre una mesa): alpha=90 debe seguir
+      // dando 270 (con beta=90 y gamma=0, la fórmula general se reduce exactamente a
+      // 360-alpha — verificado analítica y numéricamente antes de este cambio).
+      const evVertical = document.createEvent('Event');
+      evVertical.initEvent(nombreEvento, true, true);
+      evVertical.alpha = 90;
+      evVertical.beta = 90;
+      evVertical.gamma = 0;
+      globalThis.dispatchEvent(evVertical);
+      const transformVertical = marker.getElement()?.querySelector('.gps-arrow-heading')?.style.transform || null;
 
-      return { ok: true, transformAlpha };
+      // Caso Android, móvil PLANO (beta=0, gamma=0 — la postura para la que SÍ valía la
+      // fórmula original): mismo alpha=90 debe dar el mismo 270, por la otra rama del
+      // cálculo (vector "borde superior") — confirma que ambas ramas coinciden siempre
+      // que gamma=0, sin salto entre ellas.
+      const evPlano = document.createEvent('Event');
+      evPlano.initEvent(nombreEvento, true, true);
+      evPlano.alpha = 90;
+      evPlano.beta = 0;
+      evPlano.gamma = 0;
+      globalThis.dispatchEvent(evPlano);
+      const transformPlano = marker.getElement()?.querySelector('.gps-arrow-heading')?.style.transform || null;
+
+      return { ok: true, transformVertical, transformPlano };
     });
 
     test.skip(!resultado.ok, `No se pudo medir: ${resultado.motivo}`);
-    expect(resultado.transformAlpha, `alpha=90 debe convertirse a rumbo 270 (360-alpha): ${resultado.transformAlpha}`).toContain('270');
-    expect(resultado.transformAlpha, 'El rumbo convertido no debe contener el alpha crudo sin invertir').not.toContain('rotate(90deg)');
+    expect(resultado.transformVertical, `alpha=90,beta=90,gamma=0 (vertical) debe dar rumbo 270: ${resultado.transformVertical}`).toContain('270');
+    expect(resultado.transformVertical, 'El rumbo convertido no debe contener el alpha crudo sin invertir').not.toContain('rotate(90deg)');
+    expect(resultado.transformPlano, `alpha=90,beta=0,gamma=0 (plano) también debe dar rumbo 270 — misma alpha, sin discontinuidad entre las dos ramas del cálculo: ${resultado.transformPlano}`).toContain('270');
   });
 });

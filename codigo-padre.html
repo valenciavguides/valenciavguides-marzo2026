@@ -3783,6 +3783,16 @@
                     origen: 'padre-dev'
                 });
             }
+            // Refuerzo (2026-08-06): sin este else, si _hdl_SISTEMA_CAMBIO_MODO no existiera
+            // (function declaration hoisted en este mismo script — hoy siempre existe ya cuando
+            // se llega aquí, pero un renombrado/movido futuro de esa función sin actualizar esta
+            // referencia lo rompería en silencio) esta función devolvía `undefined` en vez de una
+            // Promise. Se usa con `.catch()` sin envolver en línea ~11530 — sobre `undefined`,
+            // `.catch()` lanza un TypeError síncrono que corta el resto de esa función sin aviso,
+            // en los 3 flujos reales que dependen de este puente (activación de aventura en CASA
+            // y AVENTURA, y Factor 2 del modo dev). Este return la hace correcta por construcción.
+            // Ver GUIA-COMPLETA.md §4.7g y memoria project_audit_promise_boolean_pendiente.
+            return Promise.resolve(undefined);
         };
 
         // ============================================================
@@ -8578,17 +8588,35 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // Helper: enviarMensajePadre
         // Ensures all messages originating from the padre include a valid origen (PADRE ID)
-        // Handles both object-style and legacy signature (destino, tipo, datos)
-        function enviarMensajePadre(...args) {
+        // Solo acepta el formato objeto — desde que enviarMensaje() (js/mensajeria.js) dejó
+        // de soportar el formato posicional (2026-08-06), el fallback "legacy signature" que
+        // vivía aquí (llamar a enviarMensaje(...args) con varios argumentos sueltos) dejó de
+        // tener sentido: ya estaba sin ningún caller (nada en el proyecto llama a
+        // enviarMensajePadre con más de un argumento — verificado), y además habría quedado
+        // roto de raíz si alguna vez se hubiera alcanzado, así que se retira junto con el de
+        // mensajeria.js en vez de dejarlo silenciosamente inútil.
+        function enviarMensajePadre(mensaje) {
             try {
-                if (args.length === 1 && args[0] && typeof args[0] === 'object') {
-                    return _enriquecerPayloadPadre({ ...args[0] });
-                }
-                // Legacy signature: enviarMensaje(destino, tipo, datos)
-                return enviarMensaje(...args);
+                return _enriquecerPayloadPadre({ ...mensaje });
             } catch (e) {
                 (globalThis.logger || console).debug('[PADRE][ENVIAR_PADRE] enviarMensaje wrapper error:', e);
-                try { return enviarMensaje(...args); } catch (err) { (globalThis.logger || console).warn('[PADRE][ENVIAR_PADRE] enviarMensaje not available:', err); }
+                try {
+                    return enviarMensaje(mensaje);
+                } catch (err) {
+                    (globalThis.logger || console).warn('[PADRE][ENVIAR_PADRE] enviarMensaje not available:', err);
+                    // Refuerzo (2026-08-06): sin este return, un fallo doble (enriquecer Y el
+                    // reintento) dejaba la función devolviendo `undefined` en vez de una Promise.
+                    // enviarMensajePadre() se usa con `.catch()` encadenado sin envolver en 9
+                    // sitios (incluida marcarParadaCompletada) — sobre `undefined`, `.catch()`
+                    // lanza un TypeError síncrono ahí mismo, cortando en seco el resto de la
+                    // función que lo llama, sin ningún aviso. Hoy este camino es inalcanzable
+                    // en la práctica (Script 2 ya espera a que `globalThis.mensajeria` esté
+                    // disponible antes de definir esta función — línea ~8365), pero esa garantía
+                    // vive fuera de esta función; este return la hace correcta por construcción,
+                    // sin depender de que ese guard externo se mantenga igual en el futuro. Ver
+                    // GUIA-COMPLETA.md §4.7g y memoria project_audit_promise_boolean_pendiente.
+                    return Promise.resolve(undefined);
+                }
             }
         }
         if (globalThis.enviarMensajePadre === undefined) globalThis.enviarMensajePadre = enviarMensajePadre;

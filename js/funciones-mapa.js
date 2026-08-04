@@ -1546,18 +1546,75 @@ function desactivarFlechaUsuario() {
 
 /**
  * Actualiza la orientación de la flecha según la brújula del dispositivo.
+ *
  * iOS devuelve webkitCompassHeading: 0=N, YA en sentido horario y ya compensado
- * respecto al norte real — se usa tal cual.
- * Android (y el resto de navegadores) devuelven alpha: por especificación, alpha
- * crece en sentido ANTIHORARIO (mirando el dispositivo desde arriba), justo al
- * revés que un rumbo de brújula — usar alpha directamente como rumbo giraba la
- * flecha al revés o a un ángulo incorrecto. La conversión estándar es
- * rumbo = 360 - alpha.
+ * respecto al norte real (compensación de inclinación incluida por el propio SO)
+ * — se usa tal cual, esta rama no se toca.
+ *
+ * Android (y el resto de navegadores) solo devuelven alpha/beta/gamma en crudo,
+ * sin compensar. `rumbo = 360 - alpha` (fórmula anterior) es la conversión
+ * correcta ÚNICAMENTE cuando el móvil está plano, pantalla hacia arriba (beta≈0)
+ * — exactamente la postura que NADIE usa para caminar mirando un mapa. Sujeto
+ * en vertical (beta≈90°, la forma real de uso de esta app), alpha por sí solo ya
+ * no representa hacia dónde mira el usuario: la fórmula plana ignoraba la
+ * inclinación real del dispositivo, dando un rumbo esencialmente arbitrario según
+ * el ángulo exacto con el que cada uno sostiene el móvil — reporte de campo:
+ * "según el momento, dice que miro al este o al oeste estando quieto mirando al
+ * norte", y no se corrige al dejar el móvil inmóvil (no es ruido puntual, es un
+ * cálculo sistemáticamente equivocado para esa postura).
+ *
+ * Fórmula general (verificada dos veces): se calcula hacia dónde apunta el eje
+ * -Z del dispositivo (la "parte trasera", la dirección en la que efectivamente
+ * mira el usuario al sostenerlo frente a sí — no el borde superior, que con el
+ * móvil vertical apunta al cielo y no informa de ningún rumbo horizontal) tras
+ * aplicar la rotación intrínseca Z-X'-Y'' (alpha-beta-gamma) que especifica el
+ * propio W3C. La matriz de rotación usada aquí se verificó término a término
+ * contra Full-Tilt (github.com/adtile/Full-Tilt, de richtr, coautor de la
+ * especificación W3C DeviceOrientation) antes de aplicarla. Con beta=90°
+ * (vertical) y gamma=0, esta fórmula general se reduce exactamente a
+ * `360 - alpha` — no contradice la fórmula anterior, la generaliza a cualquier
+ * inclinación real en vez de asumir siempre "plano".
+ *
+ * Caso límite verificado aparte: el vector "parte trasera" se degenera (pierde
+ * toda componente horizontal) precisamente cuando el móvil vuelve a estar plano
+ * — el mismo caso donde el vector "borde superior" (fórmula anterior) SÍ es
+ * fiable. Los dos vectores son complementarios por construcción (con la misma
+ * matriz: magnitud horizontal de uno = cos(beta), del otro = √(1-(cos(beta)·
+ * cos(gamma))²) — nunca ambos cerca de cero a la vez salvo gamma≈90° con
+ * beta≈0, un "de canto" que ni se sostiene ni se camina así). Se calculan
+ * ambos y se usa el que tenga mayor componente horizontal en cada lectura, sin
+ * un umbral arbitrario que pudiera dar un salto brusco al cruzarlo.
+ *
+ * Si beta/gamma no vienen informados (algún navegador antiguo sin esos campos),
+ * se cae de vuelta a la fórmula plana original — más fiable que asumir 0° de
+ * inclinación, que degeneraría el cálculo general a un rumbo constante sin
+ * sentido en vez de a un fallback intencional.
  */
 function actualizarOrientacionFlecha(event) {
     let heading;
     if (event.webkitCompassHeading != null) {
         heading = event.webkitCompassHeading;
+    } else if (event.alpha != null && event.beta != null && event.gamma != null) {
+        const gr = Math.PI / 180;
+        const a = event.alpha * gr, b = event.beta * gr, g = event.gamma * gr;
+        const ca = Math.cos(a), sa = Math.sin(a);
+        const cb = Math.cos(b), sb = Math.sin(b);
+        const cg = Math.cos(g), sg = Math.sin(g);
+
+        // Vector "parte trasera" (-Z local), fiable con el móvil vertical (beta≈90°).
+        const vxTrasera = -(ca * sg + sa * sb * cg); // Este
+        const vyTrasera = -(sa * sg - ca * sb * cg); // Norte
+        const magTrasera = vxTrasera * vxTrasera + vyTrasera * vyTrasera;
+
+        // Vector "borde superior" (+Y local, la fórmula anterior generalizada a
+        // cualquier beta/gamma), fiable con el móvil plano (beta≈0°).
+        const vxSuperior = -sa * cb; // Este
+        const vySuperior = ca * cb;  // Norte
+        const magSuperior = vxSuperior * vxSuperior + vySuperior * vySuperior;
+
+        // El más fiable en esta lectura es el que tenga mayor componente horizontal.
+        const [vx, vy] = magTrasera >= magSuperior ? [vxTrasera, vyTrasera] : [vxSuperior, vySuperior];
+        heading = (Math.atan2(vx, vy) * (180 / Math.PI) + 360) % 360;
     } else if (event.alpha != null) {
         heading = (360 - event.alpha) % 360;
     }
@@ -3390,9 +3447,6 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
 
         const iconoLog = modo === 'casa' ? '🛸' : '➤';
         logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, heading: ${Math.round(heading || 0)}°)`);
-
-        // Actualizar posición de la flecha snap-to-route si hay tramo activo
-        if (flechaActiva) actualizarPosicionFlecha();
 
         // Círculo naranja 20m — zona de activación de parada.
         // Brújula activada en el mismo branch para evitar condición duplicada.
