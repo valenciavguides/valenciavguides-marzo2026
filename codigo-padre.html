@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VGuides">
     <link rel="apple-touch-icon" sizes="180x180" href="imagenes/imagenes-aplicación/logo-redondo.png">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://docs.google.com; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; upgrade-insecure-requests" />
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(self)" />
     <title>Aventura 1 - Padre</title>
@@ -2465,6 +2465,30 @@
         color: #555;
         white-space: nowrap;
     }
+
+    /* ── Pulso ligero de valoración (33%/66% de progreso) ──
+       z-index por debajo de .ventana-temporizador-padre/.ventana-listado-paradas-padre
+       (2000000, "máximo, por encima de todo") a propósito: si el usuario tiene alguna
+       de esas dos ventanas abierta justo cuando se completa la parada que cruza el
+       umbral, el pulso queda oculto detrás en vez de interrumpir esa ventana — se
+       pierde ese aviso puntual (el guard ya lo marca como mostrado, no reintenta),
+       preferible a romper el techo visual que esas ventanas declaran explícitamente. */
+    .pulso-valoracion-padre {
+        position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+        transform: translateX(-50%); z-index: 1900000;
+        background: #fff8e7; border: 0.2rem solid #F28500; border-radius: 1rem;
+        box-shadow: 0 0.375rem 1.5rem rgba(0,0,0,0.4);
+        padding: 0.9rem 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+        max-width: 90vw; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .pulso-valoracion-padre.visible { opacity: 1; }
+    .pulso-valoracion-padre-texto { font-size: clamp(13px, 3.5vmin, 16px); color: #333; text-align: center; }
+    .pulso-valoracion-padre-estrellas { display: flex; gap: 0.3rem; }
+    .pulso-valoracion-padre-estrella {
+        background: none; border: none; cursor: pointer; touch-action: manipulation;
+        font-size: clamp(1.6rem, 6vmin, 2.2rem); line-height: 1; color: #ccc; padding: 0.1rem;
+    }
+    .pulso-valoracion-padre-estrella:active { transform: scale(0.9); }
     </style>
 </head>
 <body class="loading">
@@ -2791,7 +2815,8 @@
         import { limpiarDatosAventura, verificarTimeoutAventura, armarRedDeSeguridad } from './js/reciclaje-digital.js';
         globalThis.limpiarDatosAventura = limpiarDatosAventura;
         globalThis.verificarTimeoutAventura = verificarTimeoutAventura;
-        import { TRADUCCIONES_REANUDACION, TRADUCCIONES_FINALIZACION, TRADUCCIONES_SW_UPDATE } from './js/traducciones-ui.js';
+        import { TRADUCCIONES_REANUDACION, TRADUCCIONES_FINALIZACION, TRADUCCIONES_SW_UPDATE, TEXTOS_VALORACION } from './js/traducciones-ui.js';
+        import { enviarValoracion } from './js/feedback-forms.js';
         globalThis.TRADUCCIONES_SW_UPDATE = TRADUCCIONES_SW_UPDATE;
         import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
         globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
@@ -8000,6 +8025,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
             const idioma = globalThis.idiomaSeleccionado || 'es';
             const t = TRADUCCIONES_FINALIZACION[idioma] || TRADUCCIONES_FINALIZACION['es'];
+            const tv = TEXTOS_VALORACION[idioma] || TEXTOS_VALORACION['es'];
             const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre
                                 || globalThis.aventuraSeleccionada || '';
 
@@ -8031,6 +8057,16 @@ await _comprobarReanudacionAventura(logPrefix);
                     <p style="font-size:clamp(0.9rem,3.5vmin,1.1rem);color:#333;margin:0 0 0.25rem 0;">${t.completado}</p>
                     <p style="font-size:clamp(1rem,4vmin,1.25rem);font-weight:bold;color:#1a5276;margin:0 0 1rem 0;">${nombreAventura}</p>
                     <p style="font-size:clamp(0.85rem,3vmin,1rem);color:#555;margin:0 0 1.5rem 0;">${t.pregunta}</p>
+
+                    <div style="background:#fff8e7;border:0.15rem solid #F28500;border-radius:0.75rem;padding:0.9rem 1rem;margin-bottom:1.25rem;">
+                        <p style="font-size:clamp(0.85rem,3.2vmin,1rem);color:#333;margin:0 0 0.5rem 0;">${tv.preguntaFinal}</p>
+                        <div id="fin-estrellas" style="display:flex;justify-content:center;gap:0.3rem;margin-bottom:0.5rem;">
+                            ${[1,2,3,4,5].map(n => `<button type="button" class="fin-estrella" data-n="${n}" style="background:none;border:none;cursor:pointer;touch-action:manipulation;font-size:clamp(1.6rem,6vmin,2.1rem);line-height:1;color:#ccc;padding:0.1rem;">★</button>`).join('')}
+                        </div>
+                        <textarea id="fin-comentario" placeholder="${tv.comentario}" style="width:100%;min-height:2.6rem;max-height:6rem;resize:vertical;font-family:Verdana,sans-serif;font-size:clamp(0.8rem,3vmin,0.95rem);border:1px solid #ccc;border-radius:0.5rem;padding:0.4rem 0.6rem;box-sizing:border-box;"></textarea>
+                        <a id="fin-btn-facebook" href="https://www.facebook.com/Valenciaguided/reviews" target="_blank" rel="noopener" style="display:none;margin-top:0.6rem;background:#1877F2;color:#fff;text-decoration:none;border-radius:0.5rem;padding:0.6rem 1rem;font-size:clamp(0.8rem,3vmin,0.95rem);font-weight:bold;">${tv.botonFacebook}</a>
+                    </div>
+
                     <div style="display:flex;flex-direction:column;gap:0.75rem;">
                         <button id="btn-fin-otra-aventura" type="button" style="background:#1a5276;color:#fff;border:none;border-radius:0.5rem;padding:clamp(0.75rem,3vmin,1rem) 1.5rem;font-size:clamp(0.9rem,3.5vmin,1rem);font-family:Verdana,sans-serif;cursor:pointer;">${t.btn_otra}</button>
                         <button id="btn-fin-terminar"      type="button" style="background:#7f8c8d;color:#fff;border:none;border-radius:0.5rem;padding:clamp(0.75rem,3vmin,1rem) 1.5rem;font-size:clamp(0.9rem,3.5vmin,1rem);font-family:Verdana,sans-serif;cursor:pointer;">${t.btn_terminar}</button>
@@ -8038,6 +8074,29 @@ await _comprobarReanudacionAventura(logPrefix);
                 </div>`;
 
             document.body.appendChild(modal);
+
+            // Valoración final: no bloquea los botones de salida — el valor (si lo hay) se
+            // lee del DOM justo antes de cerrar, en los dos onclick de más abajo.
+            let _finEstrellaSeleccionada = 0;
+            modal.querySelectorAll('.fin-estrella').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    _finEstrellaSeleccionada = Number(btn.dataset.n);
+                    modal.querySelectorAll('.fin-estrella').forEach(b => {
+                        b.style.color = Number(b.dataset.n) <= _finEstrellaSeleccionada ? '#F28500' : '#ccc';
+                    });
+                    const btnFb = document.getElementById('fin-btn-facebook');
+                    if (btnFb) btnFb.style.display = _finEstrellaSeleccionada >= 4 ? 'inline-block' : 'none';
+                });
+            });
+            const _enviarValoracionFinal = async () => {
+                if (_finEstrellaSeleccionada > 0) {
+                    const comentario = document.getElementById('fin-comentario')?.value || '';
+                    // enviarValoracion() usa sendBeacon internamente (ver js/feedback-forms.js),
+                    // que sobrevive al reload/navegación que sigue justo después — el await aquí
+                    // es solo por consistencia async, no una defensa contra que se corte a medias.
+                    await enviarValoracion({ estrellas: _finEstrellaSeleccionada, comentario, momento: 'fin' });
+                }
+            };
 
             async function _finalizarYLimpiar(motivo) {
                 modal.remove();
@@ -8054,19 +8113,27 @@ await _comprobarReanudacionAventura(logPrefix);
 
             // Red de seguridad: si el usuario abandona el modal sin pulsar nada
             // (pestaña en segundo plano, pantalla bloqueada, cierre de pestaña),
-            // limpiar y reiniciar igual que si hubiera pulsado "otra aventura".
-            const _desarmarFn = armarRedDeSeguridad(() => _finalizarYLimpiar('abandono'), 'FIN_AVENTURA');
+            // limpiar y reiniciar igual que si hubiera pulsado "otra aventura". Envía
+            // primero la valoración: es un escenario real y común en móvil — el usuario
+            // puntúa, escribe un comentario, y bloquea el teléfono en vez de tocar un
+            // botón — sin esto, esa valoración se perdía en silencio.
+            const _desarmarFn = armarRedDeSeguridad(async () => {
+                await _enviarValoracionFinal();
+                _finalizarYLimpiar('abandono');
+            }, 'FIN_AVENTURA');
             const _desarmarAbandonoFin = () => { _desarmarFn(); globalThis.__desarmarAbandonoFinAventura = null; };
             globalThis.__desarmarAbandonoFinAventura = _desarmarAbandonoFin;
 
-            document.getElementById('btn-fin-otra-aventura').onclick = () => {
+            document.getElementById('btn-fin-otra-aventura').onclick = async () => {
                 _desarmarAbandonoFin();
+                await _enviarValoracionFinal();
                 (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió OTRA AVENTURA');
                 _finalizarYLimpiar('otra_aventura');
             };
 
-            document.getElementById('btn-fin-terminar').onclick = () => {
+            document.getElementById('btn-fin-terminar').onclick = async () => {
                 _desarmarAbandonoFin();
+                await _enviarValoracionFinal();
                 (globalThis.logger || console).info('[PADRE][MODAL_FIN] Usuario eligió TERMINAR experiencia → P17 despedida');
                 modal.remove();
                 globalThis.location.href = 'En-busca-del-tesoro.html?despedida=1';
@@ -8076,6 +8143,49 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         globalThis.mostrarModalFinalizacion = mostrarModalFinalizacion;
+
+        // Pulso ligero de valoración (33%/66% de progreso) — 1-5 estrellas, sin comentario.
+        // Se expone en globalThis porque quien lo dispara (marcarParadaCompletada) vive en
+        // otro script — mismo motivo que mostrarCartelTransicion, justo abajo.
+        function mostrarPulsoValoracionPadre(momento) {
+            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const t = TEXTOS_VALORACION[idioma] || TEXTOS_VALORACION['es'];
+
+            document.getElementById('pulso-valoracion-padre')?.remove();
+            const card = document.createElement('div');
+            card.id = 'pulso-valoracion-padre';
+            card.className = 'pulso-valoracion-padre';
+            card.innerHTML = `
+                <div class="pulso-valoracion-padre-texto">${t.preguntaLigera}</div>
+                <div class="pulso-valoracion-padre-estrellas">
+                    ${[1,2,3,4,5].map(n => `<button type="button" class="pulso-valoracion-padre-estrella" data-n="${n}">★</button>`).join('')}
+                </div>
+            `;
+            document.body.appendChild(card);
+            requestAnimationFrame(() => card.classList.add('visible'));
+
+            let cerrado = false;
+            const cerrar = () => {
+                if (cerrado) return;
+                cerrado = true;
+                card.classList.remove('visible');
+                setTimeout(() => card.remove(), 350);
+            };
+
+            card.querySelectorAll('.pulso-valoracion-padre-estrella').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // cerrado cubre también el fundido de salida (~350ms) en el que la
+                    // tarjeta sigue siendo clicable: sin este guard, un segundo tap sobre
+                    // otra estrella durante ese margen dispara un envío duplicado.
+                    if (cerrado) return;
+                    void enviarValoracion({ estrellas: Number(btn.dataset.n), momento });
+                    cerrar();
+                });
+            });
+
+            setTimeout(cerrar, 7000);
+        }
+        globalThis.mostrarPulsoValoracionPadre = mostrarPulsoValoracionPadre;
 
         // Cartel breve y no bloqueante al completar una parada/tramo, combinando lo que se
         // acaba de terminar con lo que viene a continuación (o solo lo terminado si es el
@@ -8846,6 +8956,27 @@ await _comprobarReanudacionAventura(logPrefix);
                         const ventanaListado = document.getElementById('ventana-listado-paradas-padre');
                         if (ventanaListado && ventanaListado.style.display !== 'none') {
                             _renderizarListadoParadas(ventanaListado);
+                        }
+                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
+                    // Pulso ligero de valoración al 33%/66% de progreso — solo cuenta paradas
+                    // reales (no tramos, causa==='audio_reto'), una vez por aventura cada uno.
+                    try {
+                        if (causa === 'audio_reto') {
+                            const elementosPulso = DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
+                            const idsParadasReales = new Set(elementosPulso.filter(el => el.tipo === 'parada' || el.tipo === 'inicio').map(el => el.parada_id));
+                            const totalParadasReales = idsParadasReales.size;
+                            if (totalParadasReales > 0) {
+                                const completadasReales = [...estado.paradasCompletadas.keys()].filter(id => idsParadasReales.has(id)).length;
+                                const pct = completadasReales / totalParadasReales;
+                                if (!estado._pulso33Mostrado && pct >= 0.33) {
+                                    estado._pulso33Mostrado = true;
+                                    if (typeof globalThis.mostrarPulsoValoracionPadre === 'function') globalThis.mostrarPulsoValoracionPadre('33%');
+                                } else if (!estado._pulso66Mostrado && pct >= 0.66) {
+                                    estado._pulso66Mostrado = true;
+                                    if (typeof globalThis.mostrarPulsoValoracionPadre === 'function') globalThis.mostrarPulsoValoracionPadre('66%');
+                                }
+                            }
                         }
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 

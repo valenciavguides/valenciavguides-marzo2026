@@ -804,6 +804,36 @@ export const JAIME_SCENES = [
     },
 ];
 
+export const TEXTOS_BUZON_SUGERENCIAS = {
+    es: { titulo: '¿Alguna sugerencia?', placeholder: 'Cuéntenos qué mejoraría o si algo no cuadra...', boton: 'Enviar', gracias: '¡Gracias! Hemos recibido su mensaje.' },
+    en: { titulo: 'Any suggestions?', placeholder: 'Tell us what we could improve, or if something seems off...', boton: 'Send', gracias: 'Thank you! Your message has been received.' },
+    fr: { titulo: 'Une suggestion ?', placeholder: 'Dites-nous ce que nous pourrions améliorer, ou si quelque chose semble incorrect...', boton: 'Envoyer', gracias: 'Merci ! Votre message a bien été reçu.' },
+    it: { titulo: 'Un suggerimento?', placeholder: 'Diteci cosa potremmo migliorare, o se qualcosa non torna...', boton: 'Invia', gracias: 'Grazie! Il vostro messaggio è stato ricevuto.' },
+    nl: { titulo: 'Een suggestie?', placeholder: 'Vertel ons wat we kunnen verbeteren, of als er iets niet klopt...', boton: 'Versturen', gracias: 'Bedankt! Uw bericht is ontvangen.' },
+    de: { titulo: 'Haben Sie einen Vorschlag?', placeholder: 'Sagen Sie uns, was wir verbessern könnten, oder ob etwas nicht stimmt...', boton: 'Senden', gracias: 'Vielen Dank! Ihre Nachricht wurde empfangen.' },
+    ja: { titulo: 'ご意見はありますか？', placeholder: '改善点や気になる点があれば教えてください…', boton: '送信', gracias: 'ありがとうございます。メッセージを受け取りました。' },
+    zh: { titulo: '有什么建议吗？', placeholder: '告诉我们可以改进的地方，或者是否有什么不对劲……', boton: '发送', gracias: '谢谢！我们已收到您的留言。' },
+    pl: { titulo: 'Macie jakąś sugestię?', placeholder: 'Napiszcie, co moglibyśmy poprawić, albo jeśli coś się nie zgadza...', boton: 'Wyślij', gracias: 'Dziękujemy! Wiadomość została odebrana.' },
+    pt: { titulo: 'Alguma sugestão?', placeholder: 'Diga-nos o que poderíamos melhorar, ou se algo não bate certo...', boton: 'Enviar', gracias: 'Obrigado! A sua mensagem foi recebida.' },
+    ru: { titulo: 'Есть пожелания?', placeholder: 'Расскажите, что можно улучшить, или если что-то не сходится...', boton: 'Отправить', gracias: 'Спасибо! Ваше сообщение получено.' },
+    uk: { titulo: 'Маєте пропозицію?', placeholder: 'Розкажіть, що можна покращити, або якщо щось не сходиться...', boton: 'Надіслати', gracias: 'Дякуємо! Ваше повідомлення отримано.' },
+};
+
+export const TEXTOS_VALORACION = {
+    es: { preguntaLigera: '¿Qué tal por ahora?', preguntaFinal: '¿Qué tal la aventura?', comentario: 'Cuéntenos más (opcional)', botonFacebook: 'Cuéntaselo a otros en Facebook' },
+    en: { preguntaLigera: 'How\'s it going so far?', preguntaFinal: 'How was the adventure?', comentario: 'Tell us more (optional)', botonFacebook: 'Tell others on Facebook' },
+    fr: { preguntaLigera: 'Comment ça se passe pour l\'instant ?', preguntaFinal: 'Comment était l\'aventure ?', comentario: 'Dites-nous en plus (facultatif)', botonFacebook: 'Partagez-le sur Facebook' },
+    it: { preguntaLigera: 'Come sta andando finora?', preguntaFinal: 'Com\'è stata l\'avventura?', comentario: 'Ditecelo di più (facoltativo)', botonFacebook: 'Parlatene su Facebook' },
+    nl: { preguntaLigera: 'Hoe gaat het tot nu toe?', preguntaFinal: 'Hoe was het avontuur?', comentario: 'Vertel ons meer (optioneel)', botonFacebook: 'Vertel het anderen op Facebook' },
+    de: { preguntaLigera: 'Wie läuft es bisher?', preguntaFinal: 'Wie war das Abenteuer?', comentario: 'Erzählen Sie uns mehr (optional)', botonFacebook: 'Erzählen Sie es anderen auf Facebook' },
+    ja: { preguntaLigera: 'ここまでいかがですか？', preguntaFinal: '冒険はいかがでしたか？', comentario: '詳しく教えてください（任意）', botonFacebook: 'Facebookでシェアする' },
+    zh: { preguntaLigera: '目前感觉怎么样？', preguntaFinal: '这次冒险怎么样？', comentario: '告诉我们更多（可选）', botonFacebook: '在Facebook上分享给大家' },
+    pl: { preguntaLigera: 'Jak wam idzie do tej pory?', preguntaFinal: 'Jak podobała się przygoda?', comentario: 'Powiedzcie nam więcej (opcjonalnie)', botonFacebook: 'Opowiedzcie o tym na Facebooku' },
+    pt: { preguntaLigera: 'Como está a correr até agora?', preguntaFinal: 'Como foi a aventura?', comentario: 'Conte-nos mais (opcional)', botonFacebook: 'Conte a outros no Facebook' },
+    ru: { preguntaLigera: 'Как вам пока что?', preguntaFinal: 'Как вам приключение?', comentario: 'Расскажите подробнее (необязательно)', botonFacebook: 'Расскажите об этом на Facebook' },
+    uk: { preguntaLigera: 'Як вам поки що?', preguntaFinal: 'Як вам пригода?', comentario: 'Розкажіть детальніше (необов\'язково)', botonFacebook: 'Розкажіть про це на Facebook' },
+};
+
 export const TRADUCCIONES_SW_UPDATE = {
     es: { label: '🔄 Nueva versión disponible', boton: 'Actualizar' },
     en: { label: '🔄 New version available',    boton: 'Update' },

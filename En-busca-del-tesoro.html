@@ -233,6 +233,23 @@
     .checkmark { color: #1a5c2e; font-size: 3rem; font-weight: bold; margin-top: -0.125rem; }
     .cross { color: #9b1c1c; font-size: 3rem; font-weight: bold; margin-top: -0.125rem; }
     .free-demo { position: absolute; top: 0.625rem; left: 0.625rem; background-color: red; color: #000; padding: 0.3125rem 0.625rem; font-weight: bold; font-size: 0.875rem; border-radius: 0.3125rem; z-index: 2147483647; pointer-events: none; }
+    /* ── Pulso ligero de valoración (P12) ── */
+    .pulso-valoracion {
+      position: fixed; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%); z-index: 2147483000;
+      background: #fff8e7; border: 0.2rem solid #F28500; border-radius: 1rem;
+      box-shadow: 0 0.375rem 1.5rem rgba(0,0,0,0.4);
+      padding: 0.9rem 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+      max-width: 90vw; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .pulso-valoracion.visible { opacity: 1; }
+    .pulso-valoracion-texto { font-size: clamp(13px, 3.5vmin, 16px); color: #333; text-align: center; }
+    .pulso-valoracion-estrellas { display: flex; gap: 0.3rem; }
+    .pulso-valoracion-estrella {
+      background: none; border: none; cursor: pointer; touch-action: manipulation;
+      font-size: clamp(1.6rem, 6vmin, 2.2rem); line-height: 1; color: #ccc; padding: 0.1rem;
+    }
+    .pulso-valoracion-estrella:active { transform: scale(0.9); }
     .texto-box { max-height: 18.75rem; overflow-y: auto; border: 0.125rem solid #aaa; padding: 1.25rem; margin-top: 1.25rem; background-color: #fff8e7; color: #111; border-radius: 0.625rem; text-align: left; width: 80%; }
     .borde-azul { border: 0.25rem solid #0074d9; }
     /* Pantalla 2 — selección de idioma: 12 banderas en grid adaptativo sin scroll */
@@ -1164,10 +1181,63 @@
       8:  () => { if (!retoCargadoR1) void cargarRetoR1(); },
       10: () => { if (!terminosCargados) void cargarTerminos(); },
       11: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } _iniciarGuantePlayHint(); },
+      12: () => mostrarPulsoValoracion('P12'),
       14: () => _accionPantalla15(),
       15: () => { if (!retoCargadoR2) void cargarRetoR2(); },
       17: () => _accionPantalla5(),
     };
+
+    // ============================================================
+    // PULSO LIGERO DE VALORACIÓN — 1-5 estrellas, sin comentario.
+    // Se usa en P12 (antes de pago); las otras dos apariciones (33%/66%
+    // de progreso durante la aventura) viven en codigo-padre.html, que
+    // no comparte scope con este archivo — misma UI, implementada aparte.
+    // ============================================================
+    let _pulsoValoracionMostrado12 = false;
+    function mostrarPulsoValoracion(momento) {
+      if (momento === 'P12' && _pulsoValoracionMostrado12) return;
+      if (momento === 'P12') _pulsoValoracionMostrado12 = true;
+
+      const idioma = idiomaSeleccionado || 'es';
+      const t = (globalThis.TEXTOS_VALORACION && (globalThis.TEXTOS_VALORACION[idioma] || globalThis.TEXTOS_VALORACION.es)) || {};
+
+      document.getElementById('pulso-valoracion')?.remove();
+      const card = document.createElement('div');
+      card.id = 'pulso-valoracion';
+      card.className = 'pulso-valoracion';
+      card.innerHTML = `
+        <div class="pulso-valoracion-texto">${t.preguntaLigera || '¿Qué tal por ahora?'}</div>
+        <div class="pulso-valoracion-estrellas">
+          ${[1,2,3,4,5].map(n => `<button type="button" class="pulso-valoracion-estrella" data-n="${n}">★</button>`).join('')}
+        </div>
+      `;
+      document.body.appendChild(card);
+      requestAnimationFrame(() => card.classList.add('visible'));
+
+      let cerrado = false;
+      const cerrar = () => {
+        if (cerrado) return;
+        cerrado = true;
+        card.classList.remove('visible');
+        setTimeout(() => card.remove(), 350);
+      };
+
+      card.querySelectorAll('.pulso-valoracion-estrella').forEach(btn => {
+        btn.addEventListener('click', () => {
+          // cerrado ya cubre el fundido de salida (~350ms) en el que la tarjeta
+          // sigue siendo clicable: sin este guard, un segundo tap sobre otra
+          // estrella durante ese margen dispara un envío duplicado.
+          if (cerrado) return;
+          const n = Number(btn.dataset.n);
+          if (typeof globalThis.enviarValoracion === 'function') {
+            void globalThis.enviarValoracion({ estrellas: n, momento });
+          }
+          cerrar();
+        });
+      });
+
+      setTimeout(cerrar, 7000); // se descarta sola si el usuario la ignora
+    }
 
     async function mostrar(id) {
       if (id === 6 && !await _verificarPuzzleMostrar()) {
@@ -2199,9 +2269,12 @@
        mostrarOverlayCargaAventura, actualizarProgresoCargaAventura, timerProgresoCarga,
        ocultarOverlayCargaAventura */
     import { getEnviarMensaje, getRegistrarControlador, resolverIdPadre } from './js/utils.js';
-    import { TRADUCCIONES_DESPEDIDA, TRADUCCIONES_ACCESO_ERRONEO } from './js/traducciones-ui.js';
+    import { TRADUCCIONES_DESPEDIDA, TRADUCCIONES_ACCESO_ERRONEO, TEXTOS_VALORACION } from './js/traducciones-ui.js';
+    import { enviarValoracion } from './js/feedback-forms.js';
     globalThis.TRADUCCIONES_DESPEDIDA = TRADUCCIONES_DESPEDIDA;
     globalThis.TRADUCCIONES_ACCESO_ERRONEO = TRADUCCIONES_ACCESO_ERRONEO;
+    globalThis.TEXTOS_VALORACION = TEXTOS_VALORACION;
+    globalThis.enviarValoracion = enviarValoracion;
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {

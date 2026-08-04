@@ -3189,6 +3189,14 @@ sequenceDiagram
 
 > Para el catálogo completo de las 26 intenciones, estado del contenido, código completo de `obtenerRespuesta()` y `construirEstadoChat()`, y el namespace `CHAT.*`, ver **§26 — Asistente de soporte (chat-hijo6.html)**.
 
+#### Buzón de sugerencias
+
+Debajo del acordeón `#faq`, fuera de sus temas/preguntas, hay una caja fija (`#buzon-sugerencias`) con un `<textarea>` libre y un botón de envío — el canal para que el usuario reporte una pregunta mal formulada, un error, o cualquier propuesta que no encaje en el FAQ. No depende del acordeón ni de ninguna intención concreta: siempre visible, en cualquier idioma, en cualquier modo.
+
+Al pulsar enviar, el texto (más el contexto — idioma activo, aventura y parada actual, tomados del mismo `estadoPadre` que alimenta los tokens del FAQ) se envía mediante `enviarSugerencia()` de `js/feedback-forms.js`. No hay backend propio ni tipo de mensaje nuevo en el bus padre-hijo: es una llamada de red directa, fuera del protocolo `mensajeria`, igual en naturaleza a los `fetch()` de la capa de datos (ver §10.21). El botón se deshabilita brevemente tras el envío y muestra un mensaje de agradecimiento (`TEXTOS_BUZON_SUGERENCIAS`, 12 idiomas, en `js/traducciones-ui.js`).
+
+El destino real (URL de envío, campo de destino) vive únicamente en las constantes internas de `js/feedback-forms.js` — deliberadamente no se documentan aquí porque este fichero es público (ver §22.15); quien necesite gestionar las sugerencias recibidas debe consultar ese módulo directamente, no esta guía.
+
 ---
 
 ### 7.8 puzzle.html — sub-iframe compartido (cargado por `seleccion` y por `hijo4`)
@@ -4137,7 +4145,7 @@ El iframe `seleccion` carga `En-busca-del-tesoro.html`. La navegación interna u
 | P9 | Confirmación de aventura | `confirmarAventura()` → `notificarPadrePreparacion()` → `mostrar(10)` | `SELECCION.PREPARAR_HIJOS { idioma, aventura, timestamp }` |
 | P10 | Términos y condiciones | `aceptarTerminos()` → `mostrar(11)` | `SELECCION.TERMINOS_ACEPTADOS { aceptados: true, timestamp }` |
 | P11 | Audio intro + texto narrativo | carga audio y texto → `mostrar(12)` | — |
-| P12 | Pantalla de pago (stub) | → `mostrar(13)` | — |
+| P12 | Pantalla de pago (stub) — al mostrarse dispara el primer pulso ligero de valoración (ver §25.5b) | → `mostrar(13)` | — |
 | P13 | Código de activación + email (código de compra) | → `_irANormativa()`: comprueba contra el backend (`getDataMode()`) — rechaza siempre en modo `'local'` (hoy), llama a `ApiClient.activar()` en modo `'api'`; si falla, pantalla flotante de error (12 idiomas). Si válido, verifica permiso GPS con `navigator.permissions.query`; si 'denied' muestra `#gps-denegado-p13`; si ok envía `CODIGO_VALIDADO` y avanza a P14. **En modo DEV (ver §24)** `mostrar()` intercepta P12 y P13 y redirige a P14 directamente — no se llega aquí | `SELECCION.CODIGO_VALIDADO { aventura, idioma, email, timestamp }` (solo prod) |
 | P14 | Normativa (botón bloqueado hasta final del texto) | `aceptarNormativa()` → `mostrar(15)` | — |
 | P15 | Reto R-2 | `verificarRetoR2()` → SÍ: activa aventura; NO: `reiniciarSeleccion()` → `mostrar(1)` | `SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }` |
@@ -4641,7 +4649,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c8c83a53af51'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3c78791ae74c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5828,6 +5836,16 @@ En modo `'api'` (pendiente de activar), usaría `fetchFromAPI()` hacia el backen
 | Puzzles | `GET /api/puzzles/:id`, `/puzzles/:id/:pid` | Definición de puzzles |
 
 **Token flow:** `TokenManager` (en `api-client.js`) guarda el JWT en memoria + `sessionStorage('vbg_session_token')`. `fetchWithRetry` lo añade como `Authorization: Bearer` en cada petición. Reintentos con backoff exponencial: 1s → 2s → 4s → 8s (4 intentos).
+
+#### js/feedback-forms.js — sugerencias y valoraciones (activo, sin backend)
+
+Tercer módulo de red, independiente de los dos anteriores: envía el buzón de sugerencias (§7.7) y las valoraciones (§9.3, §25.5b, §25.11) a un formulario ya creado fuera de la aplicación, sin pasar por `data-loader.js`/`api-client.js` ni por el backend (que sigue sin implementar — ver §16). Expone dos funciones, `enviarSugerencia()` y `enviarValoracion()`, ambas construidas sobre un mismo envío interno de bajo nivel.
+
+El envío usa `navigator.sendBeacon()` como mecanismo principal, con `fetch(..., {mode:'no-cors', keepalive:true})` como reserva si `sendBeacon` no está disponible o rechaza la cola. La elección no es arbitraria: varios de estos envíos ocurren justo antes de un `location.reload()`/`location.href=` (fin de aventura — ver §25.11), y un `fetch()` normal —incluso `await`eado— puede quedar cortado a medias (`ERR_ABORTED`) cuando la navegación ocurre inmediatamente después, porque la promesa de un `fetch` en modo `no-cors` puede resolverse antes de que la petición termine realmente de viajar por la red. `sendBeacon()` está diseñado por el navegador exactamente para sobrevivir a la descarga del documento: una vez que devuelve `true`, la entrega queda comprometida independientemente de lo que le pase a la página que la originó.
+
+Como en el resto de la capa `fetch`, el navegador bloquea la lectura de la respuesta (`mode:'no-cors'` la vuelve opaca) — no hay confirmación de éxito en el cliente; la única forma de comprobar que un envío llegó es revisando el destino donde se recogen las respuestas. Este módulo no añade ningún tipo de mensaje nuevo al bus padre-hijo (§8.3): es una llamada de red directa desde donde se dispara cada touchpoint, exactamente igual en naturaleza a los otros dos módulos de esta sección.
+
+El destino real de cada envío (URL, identificadores de campo) vive únicamente en las constantes internas del propio fichero — no se reproduce en esta guía por ser un documento público (§22.15); cualquier cambio de destino se hace editando ese módulo directamente.
 
 ---
 
@@ -7401,7 +7419,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c8c83a53af51'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3c78791ae74c'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7555,6 +7573,7 @@ proyecto/
 │   │
 │   ├── ── BACKEND (pendiente) ──
 │   ├── api-client.js                 ← Cliente HTTP para la API — pendiente de conectar al backend
+│   ├── feedback-forms.js             ← Envío de sugerencias y valoraciones (activo, sin backend — ver §10.21)
 │   │
 │   ├── parrafos-textos/              ← Textos descriptivos de paradas traducidos (JSON)
 │   │   ├── parrafos-texto-espanol.json
@@ -8036,7 +8055,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c8c83a53af51';
+const CACHE_VERSION = 'v-3c78791ae74c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8814,6 +8833,24 @@ En esta situación ideal, el usuario escucha la historia, lee el texto, mira las
 
 ---
 
+### 25.5b. Pulsos ligeros de valoración durante la aventura
+
+Antes del cierre completo de §25.11, la aplicación pregunta dos veces más de forma deliberadamente breve: un tap de 1 a 5 estrellas, sin comentario, con auto-cierre a los 7 segundos si el usuario lo ignora. Son tres disparos independientes en total, cada uno con su propio guard para no repetirse:
+
+| Touchpoint | Cuándo dispara | Guard | Dónde vive |
+|---|---|---|---|
+| P12 | Al mostrarse la pantalla de pago (stub), en `_ACCION_PANTALLA[12]` de `En-busca-del-tesoro.html` — el usuario ya completó el video-intro, el puzzle, el Reto R-1, escuchó el audio de P11 y eligió idioma/aventura, así que ya tiene criterio para valorar la experiencia hasta ese punto | Flag local `_pulsoValoracionMostrado12` | `mostrarPulsoValoracion('P12')` en `En-busca-del-tesoro.html` |
+| ~33% de progreso | Tras completar una parada real (`causa === 'audio_reto'` en `marcarParadaCompletada`) que cruza el 33% de paradas reales completadas | `estado._pulso33Mostrado` | `mostrarPulsoValoracionPadre('33%')`, disparado desde `codigo-padre.html` (Script 2) vía el puente `globalThis.mostrarPulsoValoracionPadre` (Script 1) |
+| ~66% de progreso | Igual que el anterior, cruzando el 66% | `estado._pulso66Mostrado` | Igual mecanismo, `momento: '66%'` |
+
+El porcentaje de progreso **solo cuenta paradas reales** (`tipo === 'parada' || tipo === 'inicio'` en `elementosIDpadre`), no tramos — un tramo completado no hace avanzar este contador. Los guards de 33%/66% se guardan en memoria (`estado`), no en `localStorage`: se reinician solos al recargar la página completa, que es justo lo que ocurre al elegir "otra aventura" (§25.11). El único hueco conocido y aceptado es una reanudación de sesión (cerrar y reabrir la pestaña a mitad de aventura) que, en un caso raro, podría volver a mostrar un pulso ya visto una vez — se consideró de bajo impacto frente a la complejidad de persistirlo.
+
+**En modo DEV (ver §24)**, `mostrar()` salta P12 directamente a P14 — este touchpoint nunca se dispara en desarrollo, solo en producción.
+
+Cada pulso envía `{estrellas, momento}` mediante `enviarValoracion()` de `js/feedback-forms.js` (ver §10.21) en cuanto el usuario toca una estrella; no hay paso de confirmación adicional.
+
+---
+
 ### 25.6. Caminando entre paradas: los tramos
 
 Un **tramo** es el camino entre dos paradas. Cuando el usuario deja una parada y camina hacia la siguiente, el padre detecta que ha entrado en un tramo y ajusta el comportamiento:
@@ -9017,27 +9054,33 @@ progresarSiguienteElemento()  ← no hay siguiente elemento
 - Definido en `mostrarModalFinalizacion()` (`codigo-padre.html` L7371, Script 1) y expuesto como `globalThis.mostrarModalFinalizacion`.
 - Al mostrarse, arma automáticamente la **red de seguridad por abandono** (§25.13): si el usuario no pulsa ningún botón, la sesión se limpia sola.
 
-Los dos botones tienen caminos distintos, pero el resultado final es idéntico — limpieza total y vuelta a P1:
+**Widget de valoración final (dentro del propio modal, antes de los botones):** a diferencia de los pulsos ligeros de §25.5b, este último touchpoint pide 1 a 5 estrellas **más un comentario de texto libre opcional** — es la valoración con más contexto acumulado de las cuatro, así que se le da más espacio. Si el usuario elige 4 o 5 estrellas, aparece de inmediato un botón adicional que enlaza a la página pública de reseñas de Facebook del negocio (`https://www.facebook.com/Valenciaguided/reviews`), para canalizar las experiencias positivas hacia una reseña visible; con 3 estrellas o menos ese botón no aparece — esas valoraciones quedan solo en el destino privado (mismo mecanismo que el resto, `enviarValoracion()` de `js/feedback-forms.js`, §10.21). El envío ocurre al pulsar cualquiera de los dos botones de salida, no al elegir las estrellas.
+
+Los dos botones tienen caminos distintos, pero el resultado final es idéntico — envío de la valoración (si el usuario puntuó), limpieza total y vuelta a P1:
 
 **Botón "Hacer otra aventura"** → `_finalizarYLimpiar('otra_aventura')` (camino rápido):
 
 | Acción | Detalle |
 |--------|---------|
-| 1. Cierra el modal | `modal.remove()` |
-| 2. Limpieza total | `await limpiarDatosAventura('otra_aventura')` — borra `localStorage`, `sessionStorage`, cachés SW, desregistra SW |
-| 3. Recarga a P1 | `location.reload()` → sin estado ni SW → selector muestra P1 |
+| 1. Envía la valoración (si hay estrellas elegidas) | `await enviarValoracion({estrellas, comentario, momento:'fin'})` |
+| 2. Cierra el modal | `modal.remove()` |
+| 3. Limpieza total | `await limpiarDatosAventura('otra_aventura')` — borra `localStorage`, `sessionStorage`, cachés SW, desregistra SW |
+| 4. Recarga a P1 | `location.reload()` → sin estado ni SW → selector muestra P1 |
 
 **Botón "Terminar esta experiencia"** → P17 despedida (camino emotivo):
 
 | Paso | Detalle |
 |------|---------|
-| 1. Modal → P17 | `modal.remove()` + `location.href = 'En-busca-del-tesoro.html?despedida=1'` |
-| 2. P17 se muestra | `modoDespedida = true` → `mostrar(17)` → pantalla de agradecimientos |
-| 3. Usuario pulsa botón verde | `aceptarAgradecimientos()` → `_ejecutarDespedida()` |
-| 4. Despedida | Captura idioma, oculta botón, muestra texto de despedida en pantalla (`TRADUCCIONES_DESPEDIDA`, 12 idiomas, `js/traducciones-ui.js` — expuesto vía `globalThis` porque `_ejecutarDespedida()` vive en un `<script>` clásico, no module) |
-| 5. Limpieza total | `await limpiarDatosAventura('completada')` |
-| 6. Pausa 2 s | El usuario lee el mensaje de despedida |
-| 7. Recarga a P1 | `location.reload()` → selector muestra P1 sin estado |
+| 1. Envía la valoración (si hay estrellas elegidas) | `await enviarValoracion({estrellas, comentario, momento:'fin'})` |
+| 2. Modal → P17 | `modal.remove()` + `location.href = 'En-busca-del-tesoro.html?despedida=1'` |
+| 3. P17 se muestra | `modoDespedida = true` → `mostrar(17)` → pantalla de agradecimientos |
+| 4. Usuario pulsa botón verde | `aceptarAgradecimientos()` → `_ejecutarDespedida()` |
+| 5. Despedida | Captura idioma, oculta botón, muestra texto de despedida en pantalla (`TRADUCCIONES_DESPEDIDA`, 12 idiomas, `js/traducciones-ui.js` — expuesto vía `globalThis` porque `_ejecutarDespedida()` vive en un `<script>` clásico, no module) |
+| 6. Limpieza total | `await limpiarDatosAventura('completada')` |
+| 7. Pausa 2 s | El usuario lee el mensaje de despedida |
+| 8. Recarga a P1 | `location.reload()` → selector muestra P1 sin estado |
+
+El `await` sobre `enviarValoracion()` es solo por consistencia de código async — la entrega real no depende de él: `enviarValoracion()` usa `navigator.sendBeacon()` internamente (§10.21), diseñado precisamente para sobrevivir al `location.reload()`/`location.href=` que sigue justo después en ambos caminos.
 
 **Resultado de negocio:** en ambos casos la sesión queda completamente borrada. Para hacer otra aventura el usuario deberá volver a pagar. La diferencia entre botones es de experiencia: "Terminar" ofrece una pantalla de cierre emocional; "Otra aventura" va directo.
 
@@ -9792,10 +9835,10 @@ Un mensaje de una página externa maliciosa es descartado sin dejar rastro.
 
 - Solo permite scripts de `'self'` (`script-src 'self' 'unsafe-inline'`) — sin orígenes externos
 - Solo permite estilos de `'self'` y Google Fonts (`fonts.googleapis.com`)
-- Solo permite conexiones a `'self'` (`connect-src 'self'`) — sin CDNs externos
+- `connect-src` restringido a `'self'` más una lista explícita de destinos concretos: los proveedores de teselas del mapa (`tiles.openfreemap.org`, `server.arcgisonline.com`, `*.tile.openstreetmap.org`, `*.basemaps.cartocdn.com`) y `docs.google.com` (envíos de §10.21 — buzón de sugerencias y valoraciones). Nada más está permitido; añadir un nuevo destino de red desde `codigo-padre.html` requiere sumarlo aquí explícitamente o el navegador lo bloquea en silencio.
 - Convierte HTTP → HTTPS (`upgrade-insecure-requests`)
 
-> **Sin CDN externos:** MapLibre GL (el único motor de mapas que usa `codigo-padre.html` — no carga Leaflet) se sirve desde `js/vendor/`, lo que permite que `script-src`, `style-src` y `connect-src` no necesiten `https://unpkg.com` ni `https://cdnjs.cloudflare.com`, reduciendo la superficie de ataque de supply-chain. Esos dos orígenes sí los usan `mapa-completo.html` y `video-intro.html` para su propio Leaflet — pero ninguno de los dos tiene cabecera CSP propia, así que no aplica.
+> **Sin CDN de librerías:** MapLibre GL (el único motor de mapas que usa `codigo-padre.html` — no carga Leaflet) se sirve desde `js/vendor/`, lo que permite que `script-src` y `style-src` no necesiten `https://unpkg.com` ni `https://cdnjs.cloudflare.com`, reduciendo la superficie de ataque de supply-chain. Esos dos orígenes sí los usan `mapa-completo.html` y `video-intro.html` para su propio Leaflet — pero ninguno de los dos tiene cabecera CSP propia, así que no aplica. `connect-src` sí necesita destinos externos concretos (teselas de mapa, formularios) — ver punto anterior.
 
 #### Cuarta capa: token JWT en API (cliente implementado; backend pendiente)
 
@@ -11543,7 +11586,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-c8c83a53af51';
+const CACHE_VERSION = 'v-3c78791ae74c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

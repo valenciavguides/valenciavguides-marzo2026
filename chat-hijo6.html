@@ -183,6 +183,56 @@
       border-radius: calc(var(--radio) * 0.5);
       border: 1px solid #b0cfe0;
     }
+
+    /* ── Buzón de sugerencias (fuera del acordeón, siempre visible) ── */
+    #buzon-sugerencias {
+      flex-shrink: 0;
+      background: var(--color-resp-bg);
+      border-top: 1px solid #b0cfe0;
+      padding: 0.75rem 0.75rem calc(0.75rem + var(--gap-inferior));
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    #buzon-titulo {
+      font-size: clamp(13px, 3.2vmin, 15px);
+      font-weight: bold;
+      color: var(--color-header);
+    }
+    #buzon-texto {
+      width: 100%;
+      resize: vertical;
+      min-height: 3.2rem;
+      max-height: 8rem;
+      font-family: inherit;
+      font-size: clamp(13px, 3.2vmin, 15px);
+      color: #222;
+      border: 1px solid #b0cfe0;
+      border-radius: calc(var(--radio) * 0.5);
+      padding: 0.5rem 0.65rem;
+    }
+    #buzon-boton {
+      align-self: flex-end;
+      background: var(--color-tema);
+      color: #fff;
+      border: none;
+      border-radius: calc(var(--radio) * 0.6);
+      padding: 0.45rem 1.1rem;
+      font-size: clamp(13px, 3.2vmin, 15px);
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: opacity 0.15s;
+    }
+    #buzon-boton:active { opacity: 0.82; }
+    #buzon-boton:disabled { opacity: 0.5; cursor: default; }
+    #buzon-gracias {
+      display: none;
+      font-size: clamp(13px, 3.2vmin, 15px);
+      color: #1e7e34;
+      font-weight: bold;
+    }
+    #buzon-gracias.visible { display: block; }
   </style>
 </head>
 <body>
@@ -193,6 +243,12 @@
     <button id="btn-cerrar" aria-label="Cerrar chat" onclick="return cerrarChatVentana();"><span class="icono-x-cerrar">✗</span></button>
   </div>
   <div id="faq" aria-label="Preguntas frecuentes"></div>
+  <div id="buzon-sugerencias">
+    <label id="buzon-titulo" for="buzon-texto">¿Alguna sugerencia?</label>
+    <textarea id="buzon-texto" placeholder=""></textarea>
+    <button id="buzon-boton" type="button">Enviar</button>
+    <span id="buzon-gracias" role="status"></span>
+  </div>
 </div>
 
 <script>
@@ -238,7 +294,8 @@
   import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import logger from './js/logger.js';
-  import { TITULOS_CHAT } from './js/traducciones-ui.js';
+  import { TITULOS_CHAT, TEXTOS_BUZON_SUGERENCIAS } from './js/traducciones-ui.js';
+  import { enviarSugerencia } from './js/feedback-forms.js';
   import {
     IDIOMAS_SOPORTADOS,
     TEMAS_ETIQUETAS,
@@ -303,6 +360,10 @@
   const tituloEl  = document.getElementById('titulo-header');
   const faqEl     = document.getElementById('faq');
   const btnCerrar = document.getElementById('btn-cerrar');
+  const buzonTituloEl  = document.getElementById('buzon-titulo');
+  const buzonTextoEl   = document.getElementById('buzon-texto');
+  const buzonBotonEl   = document.getElementById('buzon-boton');
+  const buzonGraciasEl = document.getElementById('buzon-gracias');
 
   // ── Construcción del acordeón ─────────────────────────────────────────────
   function construirFAQ() {
@@ -367,7 +428,32 @@
     tituloEl.textContent = TITULOS[idioma] || TITULOS.es;
     document.documentElement.lang = idioma;
     construirFAQ();
+    actualizarTextosBuzon();
   }
+
+  // ── Buzón de sugerencias ─────────────────────────────────────────────────
+  function actualizarTextosBuzon() {
+    const t = TEXTOS_BUZON_SUGERENCIAS[idioma] || TEXTOS_BUZON_SUGERENCIAS.es;
+    buzonTituloEl.textContent = t.titulo;
+    buzonTextoEl.placeholder  = t.placeholder;
+    buzonBotonEl.textContent  = t.boton;
+    buzonGraciasEl.textContent = t.gracias;
+  }
+  actualizarTextosBuzon();
+
+  buzonBotonEl.addEventListener('click', async () => {
+    const mensaje = buzonTextoEl.value.trim();
+    if (!mensaje) return;
+    buzonBotonEl.disabled = true;
+    await enviarSugerencia(mensaje, {
+      idioma,
+      aventura: estadoPadre.aventura,
+      parada: estadoPadre.paradaActualNombre,
+    });
+    buzonTextoEl.value = '';
+    buzonGraciasEl.classList.add('visible');
+    setTimeout(() => { buzonGraciasEl.classList.remove('visible'); buzonBotonEl.disabled = false; }, 3000);
+  });
 
   // ── Eventos UI ────────────────────────────────────────────────────────────
   btnCerrar.addEventListener('click', () => { cerrarChatVentana(); });
