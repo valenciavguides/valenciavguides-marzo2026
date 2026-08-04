@@ -132,7 +132,7 @@
 
 ---
 
-## Parada 6 — Casa de los Gatos ðŸ˜¸
+## Parada 6 — Casa de los Gatos 😸
 
 **Imágenes:** imagenes/imagenes-aventuras/casa_de_los_gatos.jpg
 
@@ -143,7 +143,7 @@
 
 ---
 
-## Parada 7 — Casa de los Gatos ðŸ˜¸
+## Parada 7 — Casa de los Gatos 😸
 
 **Imágenes:** imagenes/imagenes-aventuras/casa_de_los_gatos.jpg
 
@@ -154,7 +154,7 @@
 
 ---
 
-## Parada 8 — Casa de los Gatos ðŸ˜¸
+## Parada 8 — Casa de los Gatos 😸
 
 **Imágenes:** imagenes/imagenes-aventuras/casa_de_los_gatos.jpg
 
@@ -165,7 +165,7 @@
 
 ---
 
-## Parada 9 — Casa de los Gatos ðŸ˜¸
+## Parada 9 — Casa de los Gatos 😸
 
 **Imágenes:** imagenes/imagenes-aventuras/casa_de_los_gatos.jpg
 

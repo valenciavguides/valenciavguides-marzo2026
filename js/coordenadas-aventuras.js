@@ -162,7 +162,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-12",
         mapa_numero: 12,
         coordenadas: { lat: Number('39.466660'), lng: Number('-0.376140') },
-        nombre: "Plaza de Toros ðŸ‚",
+        nombre: "Plaza de Toros 🐂",
         imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg"
     },
     {
@@ -178,7 +178,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-14",
         mapa_numero: 14,
         coordenadas: { lat: Number('39.469450'), lng: Number('-0.375540') },
-        nombre: "Palacio de Comunicaciones (Correos) ðŸ“¨",
+        nombre: "Palacio de Comunicaciones (Correos) 📨",
         imagen: "imagenes/imagenes-aventuras/correos.jpg"
     },
     {
@@ -3661,7 +3661,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-2",
         mapa_numero: 2,
         coordenadas: { lat: Number('39.479050'), lng: Number('-0.376880') },
-        nombre: "Museo Corpus Christi (Museo de las Rocas) ðŸ›ž",
+        nombre: "Museo Corpus Christi (Museo de las Rocas) 🛞",
         imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg"
     },
     {
@@ -3685,7 +3685,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-5",
         mapa_numero: 5,
         coordenadas: { lat: Number('39.479700'), lng: Number('-0.379520') },
-        nombre: "Casa de los Gatos ðŸ˜¸",
+        nombre: "Casa de los Gatos 😸",
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg"
     },
     {
@@ -4143,7 +4143,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 9, // mapa número 5
         mapa_numero: 5,
-        nombre: "Casa de los Gatos ðŸ˜¸",
+        nombre: "Casa de los Gatos 😸",
         coordenadas: { lat: Number('39.479740'), lng: Number('-0.379500') },
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
     },
@@ -4153,7 +4153,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 10, // mapa número 5
         mapa_numero: 5,
-        nombre: "Casa de los Gatos ðŸ˜¸",
+        nombre: "Casa de los Gatos 😸",
         coordenadas: { lat: Number('39.479750'), lng: Number('-0.379510') },
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
     },
@@ -4163,7 +4163,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 11, // mapa número 5
         mapa_numero: 5,
-        nombre: "Casa de los Gatos ðŸ˜¸",
+        nombre: "Casa de los Gatos 😸",
         coordenadas: { lat: Number('39.479750'), lng: Number('-0.379500') },
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
     },
@@ -4173,7 +4173,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 12, // mapa número 5
         mapa_numero: 5,
-        nombre: "Casa de los Gatos ðŸ˜¸",
+        nombre: "Casa de los Gatos 😸",
         coordenadas: { lat: Number('39.479740'), lng: Number('-0.379510') },
         imagen: "imagenes/imagenes-aventuras/casa_de_los_gatos.jpg",
     },
@@ -5263,7 +5263,7 @@ export const DATOS_AVENTURAS = {
         id: "REF-11",
         mapa_numero: 11,
          coordenadas: { lat: Number('39.466660'), lng: Number('-0.376140') },
-        nombre: "Plaza de Toros ðŸ‚",
+        nombre: "Plaza de Toros 🐂",
         imagen: "imagenes/imagenes-aventuras/Plaza_Toros.jpg"
     },
     {

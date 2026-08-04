@@ -12006,7 +12006,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // el título localizado de una parada a partir del array de textos.
             function tituloLocalizado(paradaId) {
                 const norm = paradaId.replaceAll('-', '');
-                const t = textos.find(x => x?.id && x.id.replaceAll('-', '').includes(norm));
+                // Límite de palabra tras el número: sin esto, "Av1P1" empareja como
+                // subcadena dentro de "Av1P10" (verificado que hoy no pasa gracias al
+                // orden ascendente del array, pero ese orden no está garantizado por
+                // el código — este límite lo hace correcto también si cambiara).
+                const re = new RegExp(norm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?!\\d)');
+                const t = textos.find(x => x?.id && re.test(x.id.replaceAll('-', '')));
                 return t?.title || null;
             }
 
