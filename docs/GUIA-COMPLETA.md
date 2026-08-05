@@ -4670,7 +4670,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-ed1f249ed1e3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-aaa6b8ea9857'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7440,7 +7440,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ed1f249ed1e3'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-aaa6b8ea9857'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7588,9 +7588,6 @@ proyecto/
 │   ├── agradecimientos-aventuras.js  ← Créditos y fuentes (12 idiomas)
 │   ├── normativa-cumplimiento.js     ← Aviso legal de seguridad vial (12 idiomas)
 │   ├── mapa-vintage-aventuras.js     ← URLs de mapas vintage por aventura
-│   │
-│   ├── ── CHAT ──
-│   ├── chat-asistente.js             ← Legado, sin uso: chat-hijo6.html ya no lo importa (ver §27)
 │   │
 │   ├── ── BACKEND (pendiente) ──
 │   ├── api-client.js                 ← Cliente HTTP para la API — pendiente de conectar al backend
@@ -8076,7 +8073,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ed1f249ed1e3';
+const CACHE_VERSION = 'v-aaa6b8ea9857';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8225,7 +8222,6 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 
 - `docs/aventuras_ordenado/*.md` — el texto completo de las 7 aventuras, el producto de pago en sí, consultable por cualquiera sin activar ni pagar ninguna aventura.
 - `docs/GUIA-COMPLETA.md` — arquitectura interna completa de la aplicación.
-- `docs/chat-preguntas-revision.md` — contenido interno del asistente de chat.
 
 **El problema:** a diferencia del gap de §22.9 (que exige instalar la app y acceder a la caché del Service Worker), este contenido es visible navegando el repositorio directamente en github.com — sin ejecutar la app ni descargar nada. Y persiste en el **historial de git** aunque se elimine del árbol actual: un `git rm` normal no borra las versiones antiguas de esos ficheros, siguen siendo accesibles en cualquier commit previo.
 
@@ -10540,7 +10536,8 @@ El asistente de soporte es una pantalla FAQ en formato acordeón de dos niveles.
 
 - `chat-hijo6.html` — interfaz del acordeón, sistema de imágenes en línea y modal interno (HTML/CSS/JS inline)
 - `js/traducciones-ui.js` — datos: temas, preguntas y respuestas en 12 idiomas
-- `js/chat-asistente.js` — **legado, sin uso.** Contenía la estructura de temas anterior (7 temas, 26 intenciones, en su mayoría sin redactar) y el mecanismo de sustitución `{{PARADA_ACTUAL}}` vía `obtenerRespuesta()`. `chat-hijo6.html` ya no lo importa; se conserva el fichero (y su entrada en el precache del Service Worker) hasta que se decida eliminarlo
+
+La estructura anterior (`js/chat-asistente.js`: 7 temas, 26 intenciones en su mayoría sin redactar, y el mecanismo de sustitución `{{PARADA_ACTUAL}}` vía `obtenerRespuesta()`) ha sido eliminada del proyecto, incluida su entrada en el precache del Service Worker.
 
 Para el mecanismo completo — estructura del acordeón, marcadores `{{IMG:fichero}}`, y el sistema de enlaces internos con su modal (`'terminos'`, `'agradecimientos'`, `'video-intro'`) — ver **§7.7**, que no se repite aquí. Esta sección se centra en el catálogo completo de contenido y en el protocolo de comunicación con el padre.
 
@@ -10982,7 +10979,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-ed1f249ed1e3';
+const CACHE_VERSION = 'v-aaa6b8ea9857';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

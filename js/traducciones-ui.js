@@ -498,10 +498,10 @@ export const TITULOS_CHAT = {
 };
 
 // Temas del acordeón de chat-hijo6.html (nivel 1). Orden de aparición: el mismo
-// que las claves del objeto. Sustituye a TEMAS_ETIQUETAS/ORDEN_TEMAS de
-// js/chat-asistente.js, que quedan obsoletos — ese fichero agrupaba las preguntas
-// en 7 temas distintos (GPS/AUDIO/NAVEGACION/PROGRESO/RETOS/APP/TIEMPO) que no
-// se corresponden con la estructura acordada aquí.
+// que las claves del objeto. Sustituye a TEMAS_ETIQUETAS/ORDEN_TEMAS del antiguo
+// js/chat-asistente.js (ya eliminado), que agrupaba las preguntas en 7 temas
+// distintos (GPS/AUDIO/NAVEGACION/PROGRESO/RETOS/APP/TIEMPO) que no se
+// corresponden con la estructura acordada aquí.
 export const TEMAS_CHAT = {
     ANTES_DE_COMENZAR: {
         es: '🚦 Antes de comenzar', en: '🚦 Getting Started', fr: '🚦 Avant de commencer',
@@ -563,7 +563,7 @@ export const TEMAS_CHAT = {
 export const ORDEN_TEMAS_CHAT = ['ANTES_DE_COMENZAR', 'UBICACION_NAVEGACION', 'AUDIO', 'TIEMPO_PROGRESO', 'RETOS', 'CONFIGURACION', 'AYUDA', 'VER_INTRODUCCION', 'AGRADECIMIENTOS'];
 
 // ─── Preguntas y respuestas del acordeón de chat-hijo6.html (nivel 2) ──────────
-// Sustituye a PREGUNTAS_SOPORTE/RESPUESTAS_SOPORTE de js/chat-asistente.js.
+// Sustituye a PREGUNTAS_SOPORTE/RESPUESTAS_SOPORTE del antiguo js/chat-asistente.js (ya eliminado).
 // Cada pregunta de PREGUNTAS_CHAT tiene su respuesta correspondiente (misma
 // clave) en RESPUESTAS_CHAT, con dos campos independientes por idioma:
 //   texto:  respuesta en texto plano; usa \n para saltos de línea/viñetas
@@ -1189,8 +1189,7 @@ export const PREGUNTAS_CHAT = {
     },
 };
 
-// Sustituye a js/chat-asistente.js:IDIOMAS_SOPORTADOS — exportado desde aquí
-// para que chat-hijo6.html no dependa de un fichero que está previsto retirar.
+// Sustituye al antiguo js/chat-asistente.js:IDIOMAS_SOPORTADOS (fichero ya eliminado).
 export const IDIOMAS_CHAT = ['es', 'en', 'fr', 'it', 'nl', 'ja', 'de', 'zh', 'pl', 'pt', 'ru', 'uk'];
 
 // Etiqueta accesible del botón-flecha que abre un enlace interno (RESPUESTAS_CHAT.*.enlace).
