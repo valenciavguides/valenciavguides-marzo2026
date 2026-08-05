@@ -9171,7 +9171,6 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!overlay) return;
 
             const mainBtn = document.getElementById('audio-main-toggle-btn');
-            const actionButtons = overlay.querySelectorAll('.audio-action-btn');
             // Fuera de rango en AVENTURA: no tiene sentido escuchar el audio de un
             // monumento al que no se ha llegado — mismo criterio que el resto de
             // botones de hijo2 (_desactivarBotonesRangoExcedido), aplicado aquí porque
@@ -9180,10 +9179,13 @@ await _comprobarReanudacionAventura(logPrefix);
             const hayAudio = !fueraDeRango && !!obtenerAudioIdActivoPadre();
 
             if (mainBtn) mainBtn.disabled = !hayAudio;
-            actionButtons.forEach((btn) => {
-                btn.disabled = !hayAudio;
-            });
 
+            // Los 4 botones del desplegable (.audio-action-btn) NO se deshabilitan uno a
+            // uno: cerrar el overlay ya los deja con pointer-events:none/visibility:hidden
+            // (ver #audio-control-overlay.open #audio-control-dropdown en el CSS) — al
+            // instante, no al terminar la transición de 0.3s, porque esas propiedades no
+            // se animan. Con el botón central ya deshabilitado (bloquea nativamente el
+            // click que reabriría el desplegable), un solo estado disabled basta.
             if (!hayAudio) overlay.classList.remove('open');
         }
         globalThis.actualizarEstadoControlesAudioPadre = actualizarEstadoControlesAudioPadre;

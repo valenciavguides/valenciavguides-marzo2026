@@ -1069,21 +1069,23 @@ Los 4 botones de acción están dentro de `#audio-control-dropdown` y son invisi
 **Lógica de habilitación** — `actualizarEstadoControlesAudioPadre()` en `codigo-padre.html`:
 
 ```javascript
-const hayAudio = !!obtenerAudioIdActivoPadre();
+const fueraDeRango = estado.modo?.actual === MODOS.AVENTURA && estado.usuarioFueraRango?.activo === true;
+const hayAudio = !fueraDeRango && !!obtenerAudioIdActivoPadre();
 mainBtn.disabled = !hayAudio;          // verde si hay audio, rojo si no
-actionButtons.forEach(btn => btn.disabled = !hayAudio);
 if (!hayAudio) overlay.classList.remove('open'); // cierra dropdown si no hay audio
 ```
 
-Se llama cada vez que cambia la parada activa. El botón **cambia de estado por parada** — algunas paradas no tienen audio y el botón permanece rojo.
+Solo `#audio-main-toggle-btn` recibe `disabled` — los 4 botones de acción **no se deshabilitan uno a uno**. Cerrar el overlay ya los deja `pointer-events:none`/`visibility:hidden` (`#audio-control-overlay.open #audio-control-dropdown`, ver CSS) al instante, no al terminar la transición de 0.3s, porque esas propiedades no se animan. Con el botón central ya deshabilitado (bloquea nativamente el click que reabriría el desplegable), un único estado `disabled` basta para impedir toda interacción — deshabilitar también los 4 botones de acción sería trabajo redundante, ya cubierto por el cierre del desplegable.
 
-> **Nota sobre el glow:** Los selectores CSS de glow (`#audio-main-toggle-btn:not(:disabled):not(.spinning)` y `.audio-action-btn:not(:disabled)`) no usan prefijo de modo. El `body` de `codigo-padre.html` nunca recibe la clase `modo-aventura` (solo los hijos la reciben vía CAMBIO_MODO), por lo que un prefijo `.modo-aventura` haría que el glow nunca disparara en el padre.
+`hayAudio` es `false` en dos casos independientes: la parada activa no tiene audio (`obtenerAudioIdActivoPadre()` devuelve `null`), o el usuario está confirmado fuera de rango en modo AVENTURA (`estado.usuarioFueraRango.activo`) — no tiene sentido escuchar el audio de un monumento al que no se ha llegado. La función se llama tanto en cada cambio de parada como en las transiciones de `NAVEGACION.GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO` (ver "Sistema fuera de rango real" más abajo). **Importante**: esto solo bloquea *empezar* o *reanudar* audio — si ya estaba sonando cuando se confirma fuera de rango, sigue sonando hasta el final; nada llama a `pause()`/`stop()` sobre el `<audio>` de hijo3 desde aquí. Es una decisión deliberada, no un descuido: interrumpir un audio a mitad de frase por alejarse unos metros sería peor experiencia que dejarlo terminar.
+
+> **Nota sobre el glow:** Los selectores CSS de glow (`#audio-main-toggle-btn:not(:disabled):not(.spinning)` y `.audio-action-btn:not(:disabled)`) no usan prefijo de modo. El `body` de `codigo-padre.html` nunca recibe la clase `modo-aventura` (solo los hijos la reciben vía CAMBIO_MODO), por lo que un prefijo `.modo-aventura` haría que el glow nunca disparara en el padre. Los 4 `.audio-action-btn` ya no reciben `disabled` desde JS, así que ese selector para ellos coincide siempre — el glow depende en la práctica de que el desplegable esté visible (`.open`), no de su propio atributo `disabled`.
 
 ```mermaid
 flowchart TD
-    A([Cambio de parada]) --> B{¿Parada tiene audio?}
-    B -- Sí --> C["#audio-main-toggle-btn verde\n(habilitado)\n4 action-btns habilitados"]
-    B -- No --> D["#audio-main-toggle-btn rojo\n(deshabilitado)\nDropdown forzado cerrado"]
+    A([Cambio de parada / GPS.RESTRINGIDO / GPS.DENTRO_DE_RANGO]) --> B{¿Hay audio y dentro de rango?}
+    B -- Sí --> C["#audio-main-toggle-btn verde (habilitado)"]
+    B -- No --> D["#audio-main-toggle-btn rojo (deshabilitado)\nDropdown forzado cerrado e inaccesible"]
 
     C --> E([Usuario pulsa #audio-main-toggle-btn])
     E --> F["Overlay añade clase .open\nDropdown visible con 4 botones"]
@@ -4670,7 +4672,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-ab0a97830543'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5e57054b6968'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7453,7 +7455,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ab0a97830543'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-5e57054b6968'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8086,7 +8088,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ab0a97830543';
+const CACHE_VERSION = 'v-5e57054b6968';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8925,7 +8927,7 @@ Ubicación y los dos mapas se habilitan juntos, no solo ubicación: los tres ayu
 
 **El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO`** (`_hdl_NAVEGACION_USUARIO_FUERA_RANGO`) y, además de actualizar `estado.usuarioFueraRango`, propaga la restricción a los dos sitios que no dependen de hijo2 (no toca la polyline guía automática de `procesarPosicionGPSParaAventura()`, con su propio umbral de 50m — ver §4.6):
 
-- **Audio (propio padre)**: `actualizarEstadoControlesAudioPadre()` deshabilita `#audio-main-toggle-btn` y los botones de acción del overlay de audio mientras `estado.usuarioFueraRango.activo` sea `true` en modo AVENTURA — no tiene sentido escuchar el audio de un monumento al que no se ha llegado.
+- **Audio (propio padre)**: `actualizarEstadoControlesAudioPadre()` deshabilita `#audio-main-toggle-btn` (y con él, indirectamente, cierra y bloquea el desplegable de acción) mientras `estado.usuarioFueraRango.activo` sea `true` en modo AVENTURA — no tiene sentido escuchar el audio de un monumento al que no se ha llegado (ver §4.7d/apartado de audio para el detalle de por qué solo el botón principal lleva `disabled`).
 - **Retos (hijo3)**: se envía `CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango' }`.
 
 hijo1 (extrainfo), el chat de soporte y `#btn-imagen` quedan fuera a propósito — no dependen de la proximidad real al monumento.
@@ -10992,7 +10994,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-ab0a97830543';
+const CACHE_VERSION = 'v-5e57054b6968';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
