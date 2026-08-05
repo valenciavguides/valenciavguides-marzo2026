@@ -4672,7 +4672,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5e57054b6968'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-384645a39545'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6076,6 +6076,14 @@ El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la h
 
 `js/utils.js` incluye `puntoMasCercanoEnLinea()`, una función propia sin dependencias para el snap-to-route del mapa de aventura (proyección plana local sobre un punto y una polilínea — ver «Marcadores en el mapa», más arriba). El mapa de aventura no necesita ningún plugin de rotación de terceros: al usar MapLibre, la rotación es una capacidad nativa del motor.
 
+### Arranque del mapa: no hay "listo" hasta que el estilo terminó de cargar
+
+`initializeMap()` (`codigo-padre.html`) crea la instancia (`new maplibregl.Map(...)`) y la guarda en `_mapInstance` de inmediato, pero **no resuelve su promesa hasta que el estilo del mapa (tiles/sprite/glyphs, todo vía red) está realmente listo** — comprobado con `map.isStyleLoaded()`, o esperando el evento nativo `map.once('load', ...)` si aún no lo está. Antes de esa confirmación, cualquier llamada a `addSource`/`addLayer` (lo que hacen internamente `_crearPolyline()`/`_crearCirculoGeografico()` en `js/funciones-mapa.js`) fallaría o, con las guardas actuales de esas dos funciones, se resuelve en silencio como un `_capaVacia()` — un stub inerte sin reintento: el círculo naranja de 20m o una polyline simplemente no aparecerían, sin aviso.
+
+`waitForMapLibreAndInitialize()` (llamada desde `ejecutarInicializacionAutomatica()`) espera primero a que la propia librería MapLibre esté cargada (`globalThis.maplibregl !== undefined`) y después a `initializeMap()` — así que, con el gate anterior, tampoco continúa hasta que el estilo esté listo. Como esta espera es la que determina cuándo `ejecutarInicializacionAutomatica()` puede seguir con el resto del arranque (mensajería, datos, iframes) y, más tarde, ocultar `#loading-overlay`, la garantía de "el mapa está listo" se hereda automáticamente en cualquier punto que dependa de esa cadena — no hace falta ninguna comprobación adicional en la pantalla de carga.
+
+No hay ninguna pausa fija (`sleep`) en este punto de la cadena: la única espera es la condición real (`isStyleLoaded()`/`'load'`), consistente con el resto del arranque, que ya usa temporizadores solo como polling sobre una condición comprobada — nunca como sustituto de ella (`checkMapLibre` cada 100ms sobre `maplibregl`, `tryInit` cada 200ms sobre `inicializarServicioMapa()`, ver el propio `initializeMapService()` dentro de `initializeMap()`).
+
 ### Cuándo se activa el GPS por primera vez
 
 `activarGPS()` se llama por primera vez desde **`_hdl_SELECCION_P14_MOSTRADA`** — cuando el usuario acepta la normativa en **P14**, tanto en producción como en modo DEV (ver §24). `_hdl_SELECCION_CODIGO_VALIDADO` (P13) no llama a `activarGPS()`; su cuerpo completo es un log con el comentario literal `// GPS, iframes y datos se activan en P14_MOSTRADA`. El orden dentro de P14_MOSTRADA es: primero `Promise.all([iframes + datos])` (espera hasta `HIJO_LISTO` de todos los hijos) y solo después `await activarGPS()`. Esto garantiza que cuando llegan las primeras posiciones GPS todos los hijos ya tienen sus handlers registrados.
@@ -7455,7 +7463,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5e57054b6968'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-384645a39545'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8088,7 +8096,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5e57054b6968';
+const CACHE_VERSION = 'v-384645a39545';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10994,7 +11002,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-5e57054b6968';
+const CACHE_VERSION = 'v-384645a39545';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11850,7 +11858,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 ## 36. Metodología de auditoría completa
 
-Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 22 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 23 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
 
 **Preparación antes de empezar:**
 1. Ejecuta `npm run inventory` para tener el inventario de funciones actualizado y `npm run inventory:dupes` para detectar duplicados de nombre.
@@ -12169,11 +12177,26 @@ El propio directorio `tests/` puede acumular archivos huérfanos que documentan 
 
 ---
 
-### 36.23 Checklist de cierre pre-producción
+### 36.23 EJE 23 — Esperas ciegas (`sleep`/timer fijo) sustituyendo una comprobación de readiness real
 
-El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 22 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
+Un `await sleep(ms)` o `setTimeout(fn, ms)` es legítimo cuando el retraso es el propio requisito (debounce de resize, una pausa deliberada de UX). Es sospechoso cuando en realidad está sustituyendo a "espera hasta que X esté listo" — ahí el número de ms es una apuesta, no una garantía: puede resolver demasiado pronto (X aún no está listo → fallo silencioso) o esperar más de lo necesario en el caso normal.
 
-1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 22 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
+Para cada `sleep`/`setTimeout` que preceda a código que depende de que algo externo esté listo (una librería cargada, un asset de red descargado, un estilo de mapa listo para `addSource`/`addLayer`):
+
+1. Identifica qué condición real determina "listo" — ¿existe un evento nativo (`'load'`, `'style.load'`), una función síncrona que la consulte (`isStyleLoaded()`), o un flag que otra parte del código ya setea de forma fiable?
+2. Si existe: el `sleep`/timer fijo debe sustituirse por esa comprobación real — evento nativo si lo hay (resuelve exactamente cuando toca, sin margen ni retraso), o el mismo patrón de polling con límite de iteraciones que ya usa el resto del proyecto (ver EJE 2 y EJE 5) si no hay evento disponible.
+3. Si no existe ninguna señal real disponible: documentar explícitamente por qué el timer fijo es la única opción y qué margen de seguridad se eligió y por qué (no dejarlo como una suposición implícita sin comentario).
+4. Verifica que la sustitución no rompe otras partes del código que asumían el retraso fijo por otro motivo (p.ej. dar tiempo a un log a completarse) — separar el motivo real del efecto colateral aprovechado antes de eliminar el timer.
+
+**Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `_esperarHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea. Ejemplo real (2026-08-06): `initializeMap()` (`codigo-padre.html`) resolvía su promesa en cuanto `inicializarServicioMapa(map)` devolvía `true` — una condición real, pero sobre si el módulo JS tenía la referencia al mapa, no sobre si el **estilo** del mapa (tiles/sprite/glyphs, todo vía red) había terminado de cargar. Justo después, `ejecutarInicializacionAutomatica()` hacía `await sleep(500)` con el comentario "asegurar que el mapa esté completamente renderizado" — un cronómetro sin ninguna pregunta real detrás. En una conexión lenta, el estilo puede tardar más de 500ms en cargar; mientras tanto, `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigen `isStyleLoaded()===true` o devuelven un stub inerte (`_capaVacia()`) sin reintento — el círculo naranja de 20m o una polyline podían quedar sin dibujar de forma silenciosa y permanente. Fix: `initializeMap()` no resuelve hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está); el `sleep(500)` sobrante se eliminó por quedar sin propósito.
+
+---
+
+### 36.24 Checklist de cierre pre-producción
+
+El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 23 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
+
+1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 23 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
 2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
 3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium.
 4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado como sin emisor o sin receptor por la herramienta ha sido verificado a mano y clasificado (huérfano real → eliminado; falso positivo de la heurística → descartado con motivo).
@@ -12185,7 +12208,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 
 ---
 
-### 36.24 Formato del reporte de auditoría
+### 36.25 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 

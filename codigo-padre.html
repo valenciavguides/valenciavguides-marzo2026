@@ -3236,7 +3236,23 @@
                                         // NOTA: GPS se activa centralizadamente vía activarGPS() después de cargar iframes
                                         // No inicializar GPS aquí (watchPosition duplicado eliminado)
 
-                                        resolve(map);
+                                        // No resolver todavía si el ESTILO del mapa (tiles/sprite/glyphs, todo
+                                        // vía red) no ha terminado de cargar — inicializarServicioMapa() solo
+                                        // confirma que el módulo JS ya tiene la referencia al mapa, nada dice
+                                        // sobre si addSource/addLayer son seguros de llamar todavía.
+                                        // _crearPolyline()/_crearCirculoGeografico() (funciones-mapa.js) exigen
+                                        // isStyleLoaded()===true o devuelven un stub inerte sin reintento — de
+                                        // ahí que resolver aquí antes de tiempo pudiera dejar el círculo naranja
+                                        // de 20m o una polyline sin dibujar de forma permanente y silenciosa.
+                                        const _resolverConMapaListo = () => {
+                                            (globalThis.logger || console).info('Estilo del mapa cargado, mapa listo para addSource/addLayer');
+                                            resolve(map);
+                                        };
+                                        if (map.isStyleLoaded()) {
+                                            _resolverConMapaListo();
+                                        } else {
+                                            map.once('load', _resolverConMapaListo);
+                                        }
                                         return;
                                     } else {
                                         (globalThis.logger || console).warn('inicializarServicioMapa devolvió false; reintentando');
@@ -7760,8 +7776,9 @@ await _comprobarReanudacionAventura(logPrefix);
                 await waitForMapLibreAndInitialize();
                 (globalThis.logger || console).success(`${logPrefix} ✅ Mapa inicializado`);
 
-                // 2. Pequeña pausa para asegurar que el mapa esté completamente renderizado
-                await sleep(500);
+                // (Ya no hace falta una pausa fija aquí: initializeMap() no resuelve su
+                // promesa hasta que map.isStyleLoaded()/'load' confirma que el estilo
+                // realmente terminó de cargar — ver el comentario en initializeMapService().)
 
                 // 2.5. Validar que mensajería esté lista (parte final de FASE 1)
                 (globalThis.logger || console).info(`${logPrefix} 🔄 Validando mensajería...`);
