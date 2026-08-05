@@ -4582,6 +4582,12 @@
                 const _modoRest = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA;
                 estado.modo = estado.modo || {};
                 estado.modo.actual = _modoRest;
+                // Sincroniza estadoMapa.modo (funciones-mapa.js) sin pasar por el pipeline
+                // completo de manejarCambioModoMapa() (que reactivaría GPS y resetearía la
+                // vista del mapa) — ver el comentario de sincronizarModoMapa() para el porqué.
+                // Sin esto, la vigilancia continua de trazado/llegada por GPS se queda inerte
+                // toda la sesión reanudada, aunque el resto de la app ya esté en AVENTURA.
+                try { globalThis.funcionesMapa?.sincronizarModoMapa?.(_modoRest); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 const hijo5El = document.getElementById('hijo5');
                 if (hijo5El) {
                     if (globalThis._devModeActivo) {

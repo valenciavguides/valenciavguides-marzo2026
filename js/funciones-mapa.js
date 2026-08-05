@@ -2670,6 +2670,24 @@ async function manejarCambioModoMapa(mensaje) {
     }
 }
 
+// Sincroniza SOLO estadoMapa.modo, sin los efectos secundarios de un cambio de modo real
+// (manejarCambioModoMapa también reactiva GPS, limpia recursos con resetCompleto y resetea
+// la vista del mapa al centro/zoom por defecto — nada de eso es deseable aquí).
+//
+// Hace falta porque _activarModoRest() (codigo-padre.html, reanudación de sesión) fija
+// estado.modo.actual directamente y difunde CAMBIO_MODO solo hacia los hijos — nunca pasa
+// por _hdl_SISTEMA_CAMBIO_MODO en el propio padre (evita reactivar el GPS dos veces), que
+// es el único sitio que llama a manejarCambioModoMapa(). Sin esta sincronización,
+// estadoMapa.modo se queda en su valor de arranque ('casa') toda la sesión reanudada: la
+// vigilancia continua de trazado/llegada en procesarPosicionGPSParaAventura() exige
+// estadoMapa.modo === 'aventura' y nunca se cumple, aunque el resto de la app sí esté en
+// modo aventura de verdad (estadoPadre.modo.actual, una variable distinta y ya sincronizada).
+export function sincronizarModoMapa(modo) {
+    if (modo !== MODOS.CASA && modo !== MODOS.AVENTURA) return false;
+    estadoMapa.modo = modo;
+    estadoMapa.timestamp = Date.now();
+    return true;
+}
 
 /**
  * Registra los manejadores de mensajes para el mapa.
@@ -3179,6 +3197,7 @@ globalThis.funcionesMapa = {
     verificarLlegadaADestino,
     procesarPosicionGPSParaAventura,
     manejarCambioModoMapa,
+    sincronizarModoMapa,
     // Exponer la API pública centralizada para cambiar la vista
     setMapView,
     // API para ajustar vista a un rectángulo de coordenadas
