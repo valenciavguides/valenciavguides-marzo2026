@@ -3991,8 +3991,15 @@
             const result = verificarTimeoutAventura();
             if (!result.excedido) return false;
             (globalThis.logger || console).warn(`${logPrefix} ⏰ Aventura excedió el tiempo estimado (${result.tiempoTranscurridoMinutos} min / ${result.tiempoEstimadoMinutos} min)`);
-            (globalThis.logger || console).info(`${logPrefix} Ejecutando limpieza digital por timeout...`);
-            limpiarDatosAventura('timeout');
+            // El modal de tiempo agotado (mismo que el de la sesión en vivo) decide él mismo
+            // cuándo limpiar — al pulsar un botón, o por su propia red de seguridad si se
+            // abandona sin interactuar. Ya no se limpia aquí de forma inmediata y silenciosa.
+            if (typeof globalThis.mostrarModalTiempoAgotado === 'function') {
+                globalThis.mostrarModalTiempoAgotado();
+            } else {
+                (globalThis.logger || console).error(`${logPrefix} mostrarModalTiempoAgotado no disponible — ejecutando limpieza sin avisar al usuario`);
+                limpiarDatosAventura('timeout');
+            }
             return true;
         }
 
@@ -7739,9 +7746,19 @@ if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = ne
                     if (datosGuardados && datosGuardados.aventura) {
                         const _TTL_AVENTURA = 7 * 24 * 60 * 60 * 1000;
                         if (datosGuardados.timestamp && Date.now() - datosGuardados.timestamp > _TTL_AVENTURA) {
-                            (globalThis.logger || console).info(`${logPrefix} vv_aventura_iniciada expirada (${Math.round((Date.now() - datosGuardados.timestamp) / 86400000)} días), descartando`);
-                            localStorage.removeItem('vv_aventura_iniciada');
-                            localStorage.removeItem('vv_progreso');
+                            (globalThis.logger || console).info(`${logPrefix} vv_aventura_iniciada expirada (${Math.round((Date.now() - datosGuardados.timestamp) / 86400000)} días) — mostrando modal de tiempo agotado en vez de descartar en silencio`);
+                            // Aún no ha pasado por ninguna pantalla de selección en este arranque
+                            // en frío — sin esto, el modal (que lee globalThis.idiomaSeleccionado)
+                            // caería siempre a español, ignorando el idioma real de la aventura
+                            // abandonada.
+                            globalThis.idiomaSeleccionado = globalThis.idiomaSeleccionado || datosGuardados.idioma;
+                            if (typeof globalThis.mostrarModalTiempoAgotado === 'function') {
+                                await globalThis.mostrarModalTiempoAgotado();
+                            } else {
+                                (globalThis.logger || console).error(`${logPrefix} mostrarModalTiempoAgotado no disponible — descartando sin avisar al usuario`);
+                                localStorage.removeItem('vv_aventura_iniciada');
+                                localStorage.removeItem('vv_progreso');
+                            }
                         } else {
                             (globalThis.logger || console).info(`${logPrefix} 🔄 Aventura activa detectada: ${datosGuardados.aventura} (${datosGuardados.idioma})`);
                             await mostrarDialogoReanudacion(datosGuardados);
@@ -11895,6 +11912,11 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 (globalThis.logger || console).error(`${logPrefix} Error manejando tiempo agotado:`, error);
             }
         }
+        // Expuesta para que Script 1 (_comprobarReanudacionAventura, _restoreCheckTimeout) pueda
+        // mostrar este mismo modal cuando detecta el tiempo agotado fuera de sesión (7 días sin
+        // reanudar, o duración máxima de la aventura superada mientras la app estaba cerrada) —
+        // _mensaje no se usa en el cuerpo de la función, así que es igual de válida sin él.
+        globalThis.mostrarModalTiempoAgotado = _hdl_AVENTURA_TIEMPO_AGOTADO;
 
         async function _hdl_AVENTURA_FINALIZADA(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AVENTURA_FINALIZADA]`;

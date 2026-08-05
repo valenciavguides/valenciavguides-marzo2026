@@ -4672,7 +4672,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-384645a39545'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-d06115053190'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5362,7 +5362,7 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 | Campo | Valor |
 |-------|-------|
 | Emitido en hijo1 | `tiempoAgotado()` L1413 → `enviarMensaje` L1430, tipo L1432 — cuando `tiempoRestante <= 0` |
-| Handler en padre | `_hdl_AVENTURA_TIEMPO_AGOTADO` L11148 |
+| Handler en padre | `_hdl_AVENTURA_TIEMPO_AGOTADO` L11807 — también expuesta como `globalThis.mostrarModalTiempoAgotado` para dos disparadores más que no pasan por este mensaje (ver §25.12) |
 | Acción | Termina la aventura por tiempo. Muestra `#modal-tiempo-agotado` — modal adaptado del de fin de aventura (imagen `caballero_llorando.png` + título/cuerpo de `TRADUCCIONES_TIEMPO_AGOTADO` + botones `btn_otra`/`btn_terminar` de `TRADUCCIONES_FINALIZACION`, ambos en `js/traducciones-ui.js`, 12 idiomas). Arma además la red de seguridad por abandono (ver §25.12 y §25.13). Ver detalle en §25.12 |
 
 **AVENTURA.ESTADISTICAS_TIEMPO** (hijo1 → padre)
@@ -7463,7 +7463,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-384645a39545'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-d06115053190'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8096,7 +8096,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-384645a39545';
+const CACHE_VERSION = 'v-d06115053190';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9137,9 +9137,21 @@ El `await` sobre `enviarValoracion()` es solo por consistencia de código async 
 
 ### 25.12. Tiempo agotado: modal adaptado del fin de aventura
 
-Cuando el contador de tiempo de hijo1 llega a 0, se dispara `AVENTURA.TIEMPO_AGOTADO` → `_hdl_AVENTURA_TIEMPO_AGOTADO()` (`codigo-padre.html` L11148, Script 2).
+`_hdl_AVENTURA_TIEMPO_AGOTADO()` (`codigo-padre.html` L11807, Script 2) construye y muestra `#modal-tiempo-agotado`. No es solo un handler de mensaje — está expuesta como `globalThis.mostrarModalTiempoAgotado` (L11919, justo tras su definición) para que **tres disparadores independientes** puedan mostrar el mismo modal, no solo el del temporizador en vivo:
 
-**Flujo:**
+| # | Disparador | Dónde | Qué detecta |
+|---|---|---|---|
+| 1 | `AVENTURA.TIEMPO_AGOTADO` (postMessage) | hijo1 → padre, contador llega a 0 en sesión activa | El usuario está jugando ahora mismo y se le acaba el tiempo delante de sus ojos |
+| 2 | `_comprobarReanudacionAventura()` (L7741, Script 1) | Arranque en frío, antes de ofrecer el diálogo "¿continuar?" | `vv_aventura_iniciada` en `localStorage` lleva más de 7 días sin tocarse |
+| 3 | `_restoreCheckTimeout()` (L3989, Script 1), vía `verificarTimeoutAventura()` | Durante la restauración, tras confirmar "Continuar mi aventura" | La duración máxima de la aventura (60h/150h) se superó mientras la app estaba cerrada |
+
+Los disparadores 2 y 3 existían antes solo como limpieza silenciosa (`localStorage.removeItem`/`limpiarDatosAventura()` directos, sin ningún aviso) — el usuario simplemente perdía su aventura sin explicación. Ahora los tres muestran el mismo modal y dejan la decisión (y la limpieza real) en manos del usuario, igual que ya ocurría con el disparador 1.
+
+**Caso 2, particularidad de idioma:** en un arranque en frío, el usuario aún no ha pasado por ninguna pantalla de selección, así que `globalThis.idiomaSeleccionado` (de donde el modal lee su idioma) puede no estar definido todavía. `_comprobarReanudacionAventura()` lo rellena con `datosGuardados.idioma` (el idioma de la aventura abandonada) justo antes de llamar al modal, solo si no hay ya un valor. El caso 3 no necesita este paso: `ejecutarRestauracionAventura()` (§9.10) ya fija `globalThis.idiomaSeleccionado` al principio de la restauración, mucho antes de que `_restoreCheckTimeout()` se ejecute.
+
+**Ambos disparadores nuevos son defensivos:** si `globalThis.mostrarModalTiempoAgotado` no estuviera disponible por algún motivo (Script 2 aún no ha corrido su código de nivel superior), cada uno cae de vuelta al comportamiento antiguo — limpieza directa, con un `logger.error` marcando que el usuario se quedó sin aviso. En el arranque normal, Script 2 expone esta función de forma síncrona en su nivel superior, mucho antes de que estos dos puntos (ambos tardíos en la secuencia de arranque) lleguen a ejecutarse — la guarda es solo higiene defensiva, no una carrera real observada.
+
+**Flujo del disparador 1 (temporizador en vivo):**
 
 ```text
 hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO_AGOTADO)
@@ -9149,6 +9161,8 @@ hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO
       3. estado.seleccion.iniciada = false
 ```
 
+Los disparadores 2 y 3 llaman a la misma función directamente (`await globalThis.mostrarModalTiempoAgotado()`), sin pasar por ningún mensaje — el bloqueo de iframes en el paso 1 no tiene efecto visible ahí porque, en ambos casos, los iframes de aventura (hijo2/hijo3/hijo1-opciones) aún no están cargados o no son relevantes en ese punto del arranque; el modal se muestra igual.
+
 **El modal (`#modal-tiempo-agotado`):** visualmente es una variante del modal de fin de aventura normal (§25.11) — misma tarjeta celeste `#c8e6f7`, mismo `border-radius:1rem`, mismos dos botones verticales con `gap:0.75rem`. Las diferencias:
 
 | | Fin de aventura normal (`#modal-finalizacion-aventura`) | Tiempo agotado (`#modal-tiempo-agotado`) |
@@ -9156,11 +9170,11 @@ hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO
 | Imagen | Emoji 🎉 | `imagenes/imagenes video intro/caballero_llorando.png` |
 | Título/cuerpo | `TRADUCCIONES_FINALIZACION` (12 idiomas): título de felicitación + nombre de la aventura + pregunta | `TRADUCCIONES_TIEMPO_AGOTADO` (12 idiomas): `titulo` ("¡Tiempo agotado!") + `cuerpo` (mensaje de cierre, sin invitar a "reiniciar") |
 | Botones | `btn_otra` / `btn_terminar` de `TRADUCCIONES_FINALIZACION` | Los mismos textos `btn_otra` / `btn_terminar`, reutilizados de `TRADUCCIONES_FINALIZACION` — no existen claves de botón propias en `TRADUCCIONES_TIEMPO_AGOTADO` |
-| Función creadora | `mostrarModalFinalizacion()` (Script 1, L7371) | Construido inline dentro de `_hdl_AVENTURA_TIEMPO_AGOTADO()` (Script 2) — no es la misma función, es HTML/CSS duplicado a propósito porque vive en otro scope de script |
+| Función creadora | `mostrarModalFinalizacion()` (Script 1, L8069) | Construido inline dentro de `_hdl_AVENTURA_TIEMPO_AGOTADO()` (Script 2) — no es la misma función, es HTML/CSS duplicado a propósito porque vive en otro scope de script |
 
-`TRADUCCIONES_FINALIZACION` se importa en Script 2 mediante `await import('./js/traducciones-ui.js')` (L7498) junto a `TRADUCCIONES_TIEMPO_AGOTADO`, ya que el import estático de Script 1 (L2664) no es visible en Script 2 (ver regla de scopes separados en `CLAUDE.md`).
+`TRADUCCIONES_FINALIZACION` se importa en Script 2 mediante `await import('./js/traducciones-ui.js')` (L8349) junto a `TRADUCCIONES_TIEMPO_AGOTADO`, ya que el import estático de Script 1 (L2664) no es visible en Script 2 (ver regla de scopes separados en `CLAUDE.md`).
 
-Al crear el modal por primera vez, también arma la **red de seguridad por abandono** (§25.13) mediante `armarRedDeSeguridad_S2(...)` (Script 2, importado en L7499) — si el usuario no pulsa ningún botón, la sesión se limpia sola igual que en el modal de fin de aventura.
+Al crear el modal por primera vez, también arma la **red de seguridad por abandono** (§25.13) mediante `armarRedDeSeguridad_S2(...)` (Script 2, importado en L8350) — si el usuario no pulsa ningún botón, la sesión se limpia sola igual que en el modal de fin de aventura. Esto cubre también a los disparadores 2 y 3: si el modal aparece en un arranque en frío y el usuario abandona la pestaña sin elegir nada, la limpieza ocurre igual.
 
 **Botón "Hacer otra aventura"** (`#btn-tiempo-agotado-otra`) — camino rápido, igual que en fin de aventura normal:
 1. `modalTiempoAgotado.remove()`
@@ -9227,17 +9241,17 @@ El flag `activado` garantiza que `accionLimpieza()` se ejecuta como máximo una 
 
 | # | Dónde se arma | Acción de limpieza vinculada | Dónde se desarma |
 |---|---|---|---|
-| 1 | `mostrarModalFinalizacion()` — `codigo-padre.html` L7435 (Script 1) | `_finalizarYLimpiar('abandono')` | Onclick de `btn-fin-otra-aventura` / `btn-fin-terminar`, L7439-7450 |
-| 2 | `_hdl_AVENTURA_TIEMPO_AGOTADO()` — `codigo-padre.html` L11222 (Script 2) | `_limpiarYRecargarTiempoAgotado('abandono')` | Onclick de `btn-tiempo-agotado-otra` / `btn-tiempo-agotado-terminar`, L11227-11239 |
+| 1 | `mostrarModalFinalizacion()` — `codigo-padre.html` L8069 (Script 1) | `_finalizarYLimpiar('abandono')` (L8151) | Onclick de `btn-fin-otra-aventura` / `btn-fin-terminar`, L8177/L8184 |
+| 2 | `_hdl_AVENTURA_TIEMPO_AGOTADO()` — `codigo-padre.html` L11807 (Script 2) | `_limpiarYRecargarTiempoAgotado('abandono')` | Onclick de `btn-tiempo-agotado-otra` / `btn-tiempo-agotado-terminar`, L11887/L11894 |
 | 3 | `_armarLimpiezaPorAbandonoP17()` — `En-busca-del-tesoro.html` L2415, invocada desde `_checkUrlParams()` L2408 cuando `?despedida=1` | `_ejecutarDespedida()` | Inicio de `_ejecutarDespedida()`, L1497 |
 
 **Protecciones añadidas tras revisión (no son necesidades hipotéticas, son fallos reales encontrados y corregidos durante la implementación):**
 
-- **Doble instancia en `mostrarModalFinalizacion()`:** si la función se llamara dos veces, la versión original solo eliminaba el `<div>` del modal anterior pero dejaba huérfano el `setTimeout`/listeners armados en la primera llamada. Se corrigió guardando la función `desarmar` en `globalThis.__desarmarAbandonoFinAventura` (L7385-7388) y desarmándola explícitamente al inicio de cada nueva llamada, antes de crear el modal nuevo.
+- **Doble instancia en `mostrarModalFinalizacion()`:** si la función se llamara dos veces, la versión original solo eliminaba el `<div>` del modal anterior pero dejaba huérfano el `setTimeout`/listeners armados en la primera llamada. Se corrigió guardando la función `desarmar` en `globalThis.__desarmarAbandonoFinAventura` (L8084-8086) y desarmándola explícitamente al inicio de cada nueva llamada, antes de crear el modal nuevo.
 - **Condición de carrera en P17 con `pagehide`:** `_ejecutarDespedida()` necesita `js/reciclaje-digital.js` para limpiar, y el `import()` dinámico añadía latencia. Si la red de seguridad se disparaba por cierre real de pestaña (`pagehide`), ese retraso podía impedir que la limpieza llegara a completarse antes de que el navegador destruyera la página. Se corrigió precargando el import (`void import('./js/reciclaje-digital.js')`, sin esperar la promesa) dentro de `_armarLimpiezaPorAbandonoP17()` (L2421), de modo que cuando `_ejecutarDespedida()` lo necesita ya está en caché.
 - **Idempotencia en P17:** si el botón verde y la red de seguridad coincidieran (carrera entre clic manual y disparo automático), `_despedidaEjecutada` (L1495-1496) garantiza que `_ejecutarDespedida()` solo se ejecuta una vez.
 
-**Modo CASA: la red de seguridad está dormida.** `_iniciarTemporizadorAventura()` (`codigo-padre.html` ~L11003) nunca arranca el contador de hijo1 fuera de modo AVENTURA — registra `"Timer NO iniciado (desarrollo sin tiempo límite)"` y retorna. Como `AVENTURA.TIEMPO_AGOTADO` solo puede emitirse cuando ese contador llega a 0, el modal de tiempo agotado —y por tanto el punto de integración #2— es inalcanzable en modo CASA. No existe ningún atajo de desarrollo en `boton-casa-hijo5.html` que lo simule. El desarrollador puede trabajar indefinidamente en modo CASA sin riesgo de que la sesión se autolimpie.
+**Modo CASA: solo el disparador del temporizador en vivo está dormido, no los otros dos.** `_iniciarTemporizadorAventura()` (`codigo-padre.html` L11641) nunca arranca el contador de hijo1 fuera de modo AVENTURA — registra `"Timer NO iniciado (desarrollo sin tiempo límite)"` y retorna. Como `AVENTURA.TIEMPO_AGOTADO` solo puede emitirse cuando ese contador llega a 0, el disparador 1 (§25.12) es inalcanzable en modo CASA — el desarrollador puede trabajar indefinidamente en modo CASA sin riesgo de que una sesión activa se autolimpie por esta vía. Los disparadores 2 y 3 (§25.12) **no están condicionados al modo**: comprueban `localStorage` directamente al arrancar, antes de que la app decida en qué modo entrar esta sesión — si hay datos de una aventura real abandonada hace más de 7 días, el modal puede aparecer incluso en una sesión de desarrollo en modo CASA (disparador 2), y el disparador 3 puede darse en modo CASA si `_devModeActivo` está activo durante una reanudación (`_activarModoRest` fija CASA en vez de AVENTURA cuando el flag de dev mode está activo, ver §11).
 
 **Caso hipotético: el tiempo se agota mientras el usuario está en una pestaña externa.**
 
@@ -11002,7 +11016,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-384645a39545';
+const CACHE_VERSION = 'v-d06115053190';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12055,7 +12069,7 @@ P1 selecciona aventura e idioma → emite `AVENTURA_ACTIVADA` → P2 recibe → 
 El elemento ya está activo (`_hdl_NAVEGACION_CAMBIO_PARADA` disparado antes, al entrar en AVENTURA o tras `btn-avanzar` — vía `__triggerCambioParadaInterno`, el mismo handler único usado en avance manual y en reanudación de sesión) → hijo2 muestra marcador activo → padre muestra overlay de texto (via `cargarTextos`) → padre resuelve el audio de esa parada vía `cargarAudios()` y envía `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` a hijo3, que lo reproduce → padre resuelve el reto vía `cargarRetos()` y envía `RETO.MOSTRAR { retoId, retosArray:[retoData] }` a hijo4 (queda habilitado tras `FIN_REPRODUCCION` del audio) → en paralelo, GPS detecta posición dentro del radio de la parada → `LLEGADA_DETECTADA` → `pending.llegada=true` → usuario resuelve el reto → hijo4 emite `RETO_COMPLETADO` → cuando llegada+audio+reto están completos, `marcarParadaCompletada()` habilita `btn-avanzar` (nunca envía `CAMBIO_PARADA` por sí sola, ver §2.2) → usuario pulsa `btn-avanzar` → `progresarSiguienteElemento()` avanza el progreso y repite este mismo flujo para el siguiente elemento.
 
 **Flujo C — Fin de aventura:**
-Todas las paradas completadas O tiempo agotado → `globalThis.mostrarModalFinalizacion()` → modal en 12 idiomas → "otra aventura" (vuelve a P2 sin limpiar SW) O "terminar" (`?despedida=1` → página de despedida P5 → `limpiarDatosAventura()`).
+Todas las paradas completadas → `globalThis.mostrarModalFinalizacion()` → modal celebrativo en 12 idiomas → "otra aventura" (vuelve a P2 sin limpiar SW) O "terminar" (`?despedida=1` → página de despedida P5 → `limpiarDatosAventura()`). Tiempo agotado (por cualquiera de sus tres disparadores, ver §25.12) sigue el mismo patrón de botones pero con `globalThis.mostrarModalTiempoAgotado()` — un modal distinto, sin tono celebrativo, porque no hay nada que celebrar cuando la aventura termina por falta de tiempo en vez de por completarse.
 
 **Flujo D — Cambio a modo CASA:**
 `CAMBIO_MODO(CASA)` → cada hijo responde ENTENDIDO → aplica ocultamiento propio → responde EFECTUADO → padre confirma con `CAMBIO_MODO_APLICADO` → heartbeat se pausa (`_transicionarAModoCasa`, localStorage de progreso limpiado salvo en modo dev, ver §24) → GPS **sigue activo** — `watchPosition` nunca se detiene al cambiar de modo (ver §2.6) — solo deja de validar distancias.
