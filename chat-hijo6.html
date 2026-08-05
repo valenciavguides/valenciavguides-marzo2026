@@ -176,12 +176,97 @@
       color: #222;
       white-space: pre-line;
     }
-    .respuesta-imagen {
-      display: block;
-      width: 100%;
-      margin-top: 0.75rem;
-      border-radius: calc(var(--radio) * 0.5);
+    /* Imagen incrustada en línea con el texto, en el punto exacto marcado por
+       {{IMG:nombre-fichero}} — ligeramente más grande que el texto, no más. */
+    .respuesta-imagen-inline {
+      display: inline-block;
+      height: 1.7em;
+      width: auto;
+      vertical-align: middle;
+      margin: 0 0.15em;
+      border-radius: 0.25rem;
       border: 1px solid #b0cfe0;
+    }
+    /* Botón-flecha al final de una respuesta con enlace interno (RESPUESTAS_CHAT.*.enlace). */
+    .respuesta-enlace-flecha {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.6em;
+      height: 1.6em;
+      margin-left: 0.4em;
+      background: var(--color-tema);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 0.85em;
+      line-height: 1;
+      cursor: pointer;
+      vertical-align: middle;
+      touch-action: manipulation;
+      flex-shrink: 0;
+    }
+    .respuesta-enlace-flecha:active { opacity: 0.8; }
+
+    /* ── Modal interno (términos, agradecimientos, vídeo de introducción) ── */
+    #chat-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: var(--gap-inferior) 0 var(--gap-inferior) 0;
+    }
+    #chat-modal-overlay.visible { display: flex; }
+    .chat-modal-contenedor {
+      position: relative;
+      width: 95vw;
+      height: 90vh;
+      height: 90dvh;
+      background: #fff8e7;
+      border: 0.3125rem solid #8FE0A8;
+      border-radius: 0.9375rem;
+      box-shadow: 0 0.9375rem 3.125rem rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-modal-cerrar {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 3.25rem;
+      height: 3.25rem;
+      background: #F28500;
+      border: 0.3125rem solid #50C878;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #0F0616;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+    }
+    .chat-modal-cerrar:hover { background: #d97400; border-color: #3ea862; }
+    .chat-modal-contenido {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2.75rem 1.25rem 1.25rem;
+      font-size: clamp(13px, 3.2vmin, 16px);
+      line-height: 1.55;
+      color: #222;
+    }
+    .chat-modal-contenido.sin-padding { padding: 0; }
+    .chat-modal-contenido iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
     }
 
     /* ── Buzón de sugerencias (fuera del acordeón, siempre visible) ── */
@@ -251,6 +336,13 @@
   </div>
 </div>
 
+<div id="chat-modal-overlay">
+  <div class="chat-modal-contenedor">
+    <button type="button" class="chat-modal-cerrar" id="chat-modal-cerrar" title="Cerrar"><span class="icono-x-cerrar">✗</span></button>
+    <div id="chat-modal-contenido" class="chat-modal-contenido"></div>
+  </div>
+</div>
+
 <script>
   function obtenerOrigenPadreSeguro() {
     return globalThis.location.origin === 'null' ? '*' : globalThis.location.origin;
@@ -294,16 +386,18 @@
   import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import logger from './js/logger.js';
-  import { TITULOS_CHAT, TEXTOS_BUZON_SUGERENCIAS } from './js/traducciones-ui.js';
-  import { enviarSugerencia } from './js/feedback-forms.js';
   import {
-    IDIOMAS_SOPORTADOS,
-    TEMAS_ETIQUETAS,
-    ORDEN_TEMAS,
-    TEMAS_AGRUPADOS,
-    PREGUNTAS_SOPORTE,
-    obtenerRespuesta
-  } from './js/chat-asistente.js';
+    TITULOS_CHAT,
+    TEXTOS_BUZON_SUGERENCIAS,
+    TEMAS_CHAT,
+    ORDEN_TEMAS_CHAT,
+    TEMAS_AGRUPADOS_CHAT,
+    PREGUNTAS_CHAT,
+    RESPUESTAS_CHAT,
+    IDIOMAS_CHAT,
+    CHAT_ABRIR_ENLACE,
+  } from './js/traducciones-ui.js';
+  import { enviarSugerencia } from './js/feedback-forms.js';
 
   // ── CONFIG ────────────────────────────────────────────────────────────────
   const CONFIG_HIJO = { IFRAME_ID: 'hijo6-chat', COMPONENTE_ID: 'CHAT' };
@@ -364,15 +458,36 @@
   const buzonTextoEl   = document.getElementById('buzon-texto');
   const buzonBotonEl   = document.getElementById('buzon-boton');
   const buzonGraciasEl = document.getElementById('buzon-gracias');
+  const modalOverlayEl   = document.getElementById('chat-modal-overlay');
+  const modalContenidoEl = document.getElementById('chat-modal-contenido');
+  const modalCerrarEl    = document.getElementById('chat-modal-cerrar');
 
   // ── Construcción del acordeón ─────────────────────────────────────────────
+  // Inserta el texto de una respuesta respetando los marcadores {{IMG:fichero}}
+  // en el punto exacto donde aparecen, sustituyéndolos por <img> en línea.
+  function renderTextoConImagenes(contenedor, texto) {
+    contenedor.innerHTML = '';
+    const partes = texto.split(/\{\{IMG:([^}]+)\}\}/g);
+    partes.forEach((parte, i) => {
+      if (i % 2 === 0) {
+        if (parte) contenedor.appendChild(document.createTextNode(parte));
+      } else {
+        const img = document.createElement('img');
+        img.src = `imagenes/imagenes-aplicación/${parte}.png`;
+        img.alt = '';
+        img.className = 'respuesta-imagen-inline';
+        contenedor.appendChild(img);
+      }
+    });
+  }
+
   function construirFAQ() {
     faqEl.innerHTML = '';
-    for (const temaKey of ORDEN_TEMAS) {
-      const etiqueta  = TEMAS_ETIQUETAS[temaKey]?.[idioma] || TEMAS_ETIQUETAS[temaKey]?.es || temaKey;
-      const intenciones = TEMAS_AGRUPADOS[temaKey] || [];
-      const preguntasActivas = intenciones.filter(k => {
-        const txt = PREGUNTAS_SOPORTE[k]?.[idioma] || PREGUNTAS_SOPORTE[k]?.es || '';
+    for (const temaKey of ORDEN_TEMAS_CHAT) {
+      const etiqueta  = TEMAS_CHAT[temaKey]?.[idioma] || TEMAS_CHAT[temaKey]?.es || temaKey;
+      const claves = TEMAS_AGRUPADOS_CHAT[temaKey] || [];
+      const preguntasActivas = claves.filter(k => {
+        const txt = PREGUNTAS_CHAT[k]?.[idioma] || PREGUNTAS_CHAT[k]?.es || '';
         return txt.trim() !== '';
       });
       const temaBtn = document.createElement('button');
@@ -382,25 +497,31 @@
       const lista = document.createElement('div');
       lista.className = 'preguntas-lista';
       lista.setAttribute('role', 'list');
-      for (const intencion of preguntasActivas) {
-        const textoPregunta = PREGUNTAS_SOPORTE[intencion]?.[idioma] || PREGUNTAS_SOPORTE[intencion]?.es || '';
-        const { texto: textoResp, imagen } = obtenerRespuesta(intencion, idioma, estadoPadre);
+      for (const clave of preguntasActivas) {
+        const textoPregunta = PREGUNTAS_CHAT[clave]?.[idioma] || PREGUNTAS_CHAT[clave]?.es || '';
+        const respuesta = RESPUESTAS_CHAT[clave]?.[idioma] || RESPUESTAS_CHAT[clave]?.es || { texto: '', enlace: null };
         const pregBtn = document.createElement('button');
         pregBtn.className = 'pregunta-btn';
         pregBtn.setAttribute('aria-expanded', 'false');
-        pregBtn.setAttribute('role', 'listitem');
         pregBtn.innerHTML = `<span>${textoPregunta}</span><span class="pregunta-flecha" aria-hidden="true">▶</span>`;
         const panel = document.createElement('div');
         panel.className = 'respuesta-panel';
         const pTexto = document.createElement('p');
         pTexto.className = 'respuesta-texto';
-        pTexto.textContent = textoResp;
-        panel.appendChild(pTexto);
-        if (imagen) {
-          const img = document.createElement('img');
-          img.src = imagen; img.alt = textoPregunta; img.className = 'respuesta-imagen';
-          panel.appendChild(img);
+        renderTextoConImagenes(pTexto, respuesta.texto);
+        if (respuesta.enlace) {
+          const flecha = document.createElement('button');
+          flecha.type = 'button';
+          flecha.className = 'respuesta-enlace-flecha';
+          flecha.setAttribute('aria-label', CHAT_ABRIR_ENLACE[idioma] || CHAT_ABRIR_ENLACE.es);
+          flecha.textContent = '➤';
+          flecha.addEventListener('click', (evento) => {
+            evento.stopPropagation();
+            abrirModalEnlace(respuesta.enlace);
+          });
+          pTexto.appendChild(flecha);
         }
+        panel.appendChild(pTexto);
         pregBtn.addEventListener('click', () => {
           const abierta = panel.classList.toggle('visible');
           pregBtn.setAttribute('aria-expanded', String(abierta));
@@ -423,8 +544,59 @@
     }
   }
 
+  // ── Modal interno (términos, agradecimientos, vídeo de introducción) ──────
+  // Reutiliza el mismo patrón visual que .media-overlay/.btn-cerrar-overlay
+  // de codigo-padre.html (fondo oscuro, caja crema, X naranja/verde arriba a
+  // la derecha), pero autocontenido dentro de este iframe — ver GUIA-COMPLETA §26.
+  const _cacheModuloEnlace = {};
+
+  async function abrirModalTexto(tipo, importar, propiedad, subPropiedad) {
+    if (!_cacheModuloEnlace[tipo]) {
+      const modulo = await importar();
+      _cacheModuloEnlace[tipo] = modulo[propiedad][subPropiedad];
+    }
+    const idiomas = _cacheModuloEnlace[tipo];
+    modalContenidoEl.className = 'chat-modal-contenido';
+    modalContenidoEl.innerHTML = idiomas?.[idioma] || idiomas?.es || '';
+    modalOverlayEl.classList.add('visible');
+  }
+
+  function abrirModalVideoIntro() {
+    modalContenidoEl.className = 'chat-modal-contenido sin-padding';
+    modalContenidoEl.innerHTML = '';
+    const iframeVideo = document.createElement('iframe');
+    iframeVideo.src = 'video-intro.html?lang=' + encodeURIComponent(idioma);
+    iframeVideo.title = 'Video intro';
+    modalContenidoEl.appendChild(iframeVideo);
+    modalOverlayEl.classList.add('visible');
+  }
+
+  function abrirModalEnlace(enlace) {
+    if (enlace === 'terminos') {
+      void abrirModalTexto('terminos', () => import('./js/terminos-aventuras.js'), 'TERMINOS_AVENTURAS', 'terminos_idiomas');
+    } else if (enlace === 'agradecimientos') {
+      void abrirModalTexto('agradecimientos', () => import('./js/agradecimientos-aventuras.js'), 'AGRADECIMIENTOS_AVENTURAS', 'agradecimientos_idiomas');
+    } else if (enlace === 'video-intro') {
+      abrirModalVideoIntro();
+    }
+  }
+
+  function cerrarModal() {
+    modalOverlayEl.classList.remove('visible');
+    modalContenidoEl.innerHTML = ''; // detiene el vídeo si estaba reproduciéndose
+  }
+  modalCerrarEl.addEventListener('click', cerrarModal);
+
+  // El vídeo de introducción anidado notifica su fin exactamente igual que en
+  // En-busca-del-tesoro.html — aquí solo se usa para cerrar el modal.
+  globalThis.addEventListener('message', (evento) => {
+    const origenOk = evento.origin === globalThis.location.origin || evento.origin === 'null';
+    if (!origenOk) return;
+    if (evento.data?.tipo === 'SELECCION.VIDEO_INTRO_TERMINADO') cerrarModal();
+  });
+
   function actualizarIdioma(nuevoIdioma) {
-    idioma = IDIOMAS_SOPORTADOS.includes(nuevoIdioma) ? nuevoIdioma : 'es';
+    idioma = IDIOMAS_CHAT.includes(nuevoIdioma) ? nuevoIdioma : 'es';
     tituloEl.textContent = TITULOS[idioma] || TITULOS.es;
     document.documentElement.lang = idioma;
     construirFAQ();

@@ -2161,7 +2161,7 @@ graph TD
 | `hijo3` | Reproduce los audios. Notifica al padre cuando terminan → desencadena habilitar retos | En cada CAMBIO_PARADA con audio |
 | `hijo4` | Muestra y valida el reto de la parada activa. Notifica resultado | Cuando padre envía RETO.MOSTRAR |
 | `hijo5` | Permite navegar en CASA sin GPS y togglear el modo | Solo en modo CASA o al activar AVENTURA |
-| `hijo6` | FAQ de soporte contextual. Sin efecto en la lógica de juego | Cuando el usuario abre el chat |
+| `hijo6` | FAQ de soporte estático (9 temas, 42 preguntas). Sin efecto en la lógica de juego | Cuando el usuario abre el chat |
 
 ---
 
@@ -3110,44 +3110,49 @@ if (!globalThis.estadoPadre.hijosInicializados?.has('hijo6-chat')) {
      ├── .pregunta-btn (nivel 2 — pregunta)
      │    └── .pregunta-flecha
      └── .respuesta-panel (oculto por defecto)
-          ├── .respuesta-texto  (HTML con tokens sustituidos)
-          └── .respuesta-imagen  (opcional, si existe)
+          └── .respuesta-texto  (texto con marcadores {{IMG:fichero}} sustituidos
+               por <img class="respuesta-imagen-inline"> en el punto exacto donde
+               aparecen; termina en .respuesta-enlace-flecha (➤) si la respuesta
+               tiene enlace interno)
+
+#chat-modal-overlay (fuera de #faq, oculto por defecto)
+└── .chat-modal-contenedor
+     ├── .chat-modal-cerrar (✗, mismo estilo que .btn-cerrar-overlay del padre)
+     └── #chat-modal-contenido  (HTML de términos/agradecimientos, o <iframe> de video-intro.html)
 ```
 
-El FAQ se construye con `construirFAQ()` en base a los datos de `js/chat-asistente.js`:
-- `ORDEN_TEMAS[]` — orden de las secciones (`['GPS', 'AUDIO', 'NAVEGACION', 'PROGRESO', 'RETOS', 'APP', 'TIEMPO']`)
-- `TEMAS_ETIQUETAS[tema][idioma]` — etiqueta visible del tema en cada idioma
-- `TEMAS_AGRUPADOS[tema]` — array de IDs de intención por tema
-- `PREGUNTAS_SOPORTE[intencion][idioma]` — texto de la pregunta
-- `obtenerRespuesta(intencion, idioma, estadoPadre)` → `{ texto, imagen }` — genera la respuesta con tokens sustituidos
+El FAQ se construye con `construirFAQ()` en base a los datos de `js/traducciones-ui.js`:
+- `ORDEN_TEMAS_CHAT[]` — orden de las 9 secciones
+- `TEMAS_CHAT[tema][idioma]` — etiqueta visible del tema en cada idioma
+- `TEMAS_AGRUPADOS_CHAT[tema]` — array de claves de pregunta por tema
+- `PREGUNTAS_CHAT[clave][idioma]` — texto de la pregunta
+- `RESPUESTAS_CHAT[clave][idioma]` → `{ texto, enlace }` — `texto` es texto plano (con `\n` para listas y marcadores `{{IMG:fichero}}` en línea); `enlace` es `'terminos' | 'agradecimientos' | 'video-intro' | null`
+- `IDIOMAS_CHAT` — sustituye a `chat-asistente.js:IDIOMAS_SOPORTADOS`
+- `CHAT_ABRIR_ENLACE[idioma]` — etiqueta accesible (`aria-label`) del botón-flecha
 
-El título de la cabecera del panel (`TITULOS`) se importa como `TITULOS_CHAT` desde `js/traducciones-ui.js` (12 idiomas).
+El título de la cabecera del panel (`TITULOS`) se importa como `TITULOS_CHAT` desde el mismo fichero (12 idiomas).
 
-#### Tokens dinámicos en respuestas
+#### Marcadores `{{IMG:fichero}}` e imágenes en línea
 
-Los textos de respuesta pueden contener placeholders que se sustituyen con el estado actual de la aventura:
+`renderTextoConImagenes(contenedor, texto)` sustituye cada `{{IMG:fichero}}` por un `<img>` en el punto exacto del texto donde aparece — no todas las imágenes van al final. La ruta se resuelve como `imagenes/imagenes-aplicación/fichero.png`; `fichero` no incluye extensión, se añade `.png` siempre. El resto del texto (incluidos emoji literales como 🔁 o 🎯, que no llevan marcador) se inserta como nodos de texto normales; el contenedor tiene `white-space: pre-line` para respetar los `\n` usados como saltos de línea o viñetas (`• `).
 
-| Token | Se sustituye por |
-|-------|-----------------|
-| `{{PARADA_ACTUAL}}` | `estadoPadre.paradaActualNombre` (nombre de la parada activa) |
-| `{{PARADA_SIGUIENTE}}` | `estadoPadre.siguienteParadaNombre` |
-| `{{PARADAS_RESTANTES}}` | `estadoPadre.paradasRestantes` (número entero) |
-| `{{IDIOMA_ACTIVO}}` | `estadoPadre.idioma` (código de idioma activo) |
-| `{{AVENTURA}}` | `estadoPadre.aventura` |
+La imagen se muestra con `.respuesta-imagen-inline`: `height: 1.7em` (ligeramente mayor que el texto circundante, nunca a ancho completo), `vertical-align: middle`.
 
-Payload de `CHAT.ESTADO_PADRE` (recibido del padre), construido por `construirEstadoChat()`:
-```javascript
-{
-  tipo: TIPOS_MENSAJE.CHAT.ESTADO_PADRE,   // constants.js líneas 206-208
-  datos: {
-    idioma:               'es',
-    aventura:             'Aventura1',
-    paradaActualNombre:   'Estación del Norte',
-    siguienteParadaNombre: 'Mercado Central',
-    paradasRestantes:     3
-  }
-}
-```
+#### Enlaces internos y el modal de `chat-hijo6.html`
+
+Cuando `RESPUESTAS_CHAT[clave][idioma].enlace` no es `null`, `construirFAQ()` añade un botón `.respuesta-enlace-flecha` (➤) al final del texto de esa respuesta. Al pulsarlo, `abrirModalEnlace(enlace)` decide qué mostrar en el modal `#chat-modal-overlay` — un overlay a pantalla completa dentro del propio iframe de hijo6, con el mismo lenguaje visual que `.media-overlay`/`.btn-cerrar-overlay` de `codigo-padre.html` (fondo oscuro, caja crema con borde verde, X naranja/verde arriba a la derecha) pero implementado de forma autocontenida, sin depender del padre:
+
+| `enlace` | Qué hace `abrirModalEnlace()` | Origen del contenido |
+|---|---|---|
+| `'terminos'` | `import('./js/terminos-aventuras.js')` (lazy, cacheado en `_cacheModuloEnlace` tras la primera vez) → pinta `TERMINOS_AVENTURAS.terminos_idiomas[idioma]` como HTML dentro de `#chat-modal-contenido` | Mismo módulo que usa `En-busca-del-tesoro.html` P5 |
+| `'agradecimientos'` | Igual, con `import('./js/agradecimientos-aventuras.js')` → `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas[idioma]` | Mismo módulo que usa `En-busca-del-tesoro.html` P17 |
+| `'video-intro'` | Crea un `<iframe src="video-intro.html?lang=IDIOMA">` dentro de `#chat-modal-contenido` (sin cachear — se recrea cada vez) | `video-intro.html`, el mismo fichero que reproduce la introducción en `En-busca-del-tesoro.html` P4; no está condicionado a ese contexto — solo necesita un `<iframe>` que lo aloje y escucha `postMessage` en `globalThis.parent`, que aquí resuelve al propio hijo6 |
+
+`cerrarModal()` vacía `#chat-modal-contenido.innerHTML` al cerrar — esto detiene el `<iframe>` del vídeo si estaba reproduciéndose (destruye su documento) en vez de solo ocultarlo. hijo6 también escucha `message` en `globalThis` (con el mismo check de origen que el resto de la app) para `SELECCION.VIDEO_INTRO_TERMINADO` — el mismo evento que `video-intro.html` emite siempre al terminar — y cierra el modal automáticamente cuando el vídeo llega a su fin.
+
+Hoy solo `RESPUESTAS_CHAT.CONFIG_DATOS_TERCEROS` usa `'terminos'`, solo `AGRADECIMIENTOS_VER` usa `'agradecimientos'`, y solo `INTRO_VOLVER_A_VER` usa `'video-intro'` — un enlace por clave, nunca más de uno.
+
+El estado que `CHAT.ESTADO_PADRE` entrega (`paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes`, `aventura`, `idioma`) ya **no** se usa para sustituir nada dentro de las respuestas del FAQ — estas son estáticas, iguales en cualquier parada. Ese mismo `estadoPadre` se sigue usando exclusivamente como contexto adjunto al buzón de sugerencias (ver más abajo).
 
 #### Controladores que registra
 
@@ -3194,16 +3199,16 @@ sequenceDiagram
     U->>P: click en #btn-chat-soporte (3ª vez)
     P->>H6: CHAT.ESTADO_PADRE { paradaActualNombre, idioma, ... }
     P->>H6: display:block
-    H6->>H6: actualiza estadoPadre → reconstruye tokens en respuestas
+    H6->>H6: actualiza estadoPadre; si cambió el idioma, reconstruye el acordeón
 
     Note over P: Cambio de parada (en cualquier momento)
     P->>H6: CHAT.ESTADO_PADRE { paradaActualNombre: 'Mercado Central', ... }
-    H6->>H6: estadoPadre actualizado → próxima apertura mostrará contexto nuevo
+    H6->>H6: estadoPadre actualizado — solo relevante para el contexto que viaja con el buzón de sugerencias
 ```
 
-**Modo AVENTURA / CASA**: el FAQ adapta el contexto de sus respuestas via `CHAT.ESTADO_PADRE`. No hay diferencia visual de layout entre modos. El acordeón mantiene su estado abierto/cerrado incluso al ocultarse y reabrirse.
+**Modo AVENTURA / CASA**: las respuestas del FAQ son idénticas en ambos modos y en cualquier parada — no hay contexto que adaptar. `CHAT.ESTADO_PADRE` solo importa para el idioma (reconstruye el acordeón si cambia) y para el contexto adjunto al buzón de sugerencias. No hay diferencia visual de layout entre modos. El acordeón mantiene su estado abierto/cerrado incluso al ocultarse y reabrirse.
 
-> Para el catálogo completo de las 26 intenciones, estado del contenido, código completo de `obtenerRespuesta()` y `construirEstadoChat()`, y el namespace `CHAT.*`, ver **§26 — Asistente de soporte (chat-hijo6.html)**.
+> Para el catálogo completo de los 9 temas y las 42 preguntas, el sistema de marcadores `{{IMG:...}}` y enlaces internos, el código de `construirEstadoChat()`, y el namespace `CHAT.*`, ver **§27 — El asistente de soporte (hijo 6)**.
 
 #### Buzón de sugerencias
 
@@ -3635,7 +3640,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `AVENTURA.ESTADISTICAS_TIEMPO` | Hijo1 → Padre | Estadísticas al finalizar |
 | **TEMPORIZADOR** | `TEMPORIZADOR.TOGGLE` | Hijo1 → Padre | Usuario activa/pausa el temporizador |
 | **CHAT** | `CHAT.CERRAR` | Hijo6 → Padre | Usuario cierra el chat |
-| | `CHAT.ESTADO_PADRE` | Padre → Hijo6 | Contexto actual para el FAQ |
+| | `CHAT.ESTADO_PADRE` | Padre → Hijo6 | Idioma (reconstruye el acordeón si cambió) y contexto para el buzón de sugerencias |
 | **PARADAS** | `VV:PARADAS:READY` | Hijo5 → Padre | UI de paradas lista (enviado pre-módulos) |
 | | `PARADAS.LISTADO_TOGGLE` | Hijo1 → Padre | Usuario abre/cierra la ventana de listado de paradas |
 | **PUZZLE** | `PUZZLE.COMPLETADO` / `puzzle-state-completed` | Iframe puzzle → Hijo4 | Puzzle resuelto (ambos formatos soportados) |
@@ -3960,7 +3965,7 @@ Panel FAQ de solo lectura. Se carga de forma **lazy** — su `src` es vacío has
 | **padre →** | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | `{ timestamp, mensaje }` | Handshake OK |
 | **padre →** | `HEARTBEAT_START` / `HEARTBEAT_PAUSE` | — | hijo6 recibe el pulso `SISTEMA.HEARTBEAT` cuando está cargado (queda registrado en `_hijosRegistrados` via su `HIJO_PREPARADO`). `HEARTBEAT_START`/`PAUSE` se envían explícitamente desde `codigo-padre.html` a hijo2/3/4/5; hijo6 puede recibirlos si está cargado al cambiar de modo |
 | **padre →** | `SISTEMA.CAMBIO_MODO` | `{ modo }` | Handler presente pero sin acción (no-op) |
-| **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Actualiza el FAQ con el contexto actual de la aventura |
+| **padre →** | `CHAT.ESTADO_PADRE` | `{ idioma, ...estadoPadre }` | Si cambió el idioma, reconstruye el acordeón; el resto de campos (parada, aventura) solo queda disponible como contexto del buzón de sugerencias |
 
 > hijo6 se carga lazy: no recibe `PADRE_DATOS` ni hace handshake hasta que el usuario abre el chat por primera vez. Tampoco recibe `DATOS.CARGAR_*` ni participa en el flujo de paradas.
 
@@ -4665,7 +4670,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-0e5c5ebd8cee'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-ed1f249ed1e3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5392,11 +5397,11 @@ Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funci
 
 | Campo | Valor |
 |-------|-------|
-| Handler en hijo6 | L418 |
-| Acción | Hijo6 recibe contexto de aventura actual para sustituir los tokens dinámicos del FAQ (parada actual, siguiente parada, idioma) — no hay IA/LLM implicado, es un acordeón de preguntas y respuestas estático (ver §7.7 y §26) |
+| Handler en hijo6 | L704 |
+| Acción | Hijo6 actualiza `estadoPadre` (usado solo como contexto del buzón de sugerencias — idioma, aventura, parada actual) y, si cambió el idioma, reconstruye el acordeón completo en el nuevo idioma. Las respuestas del FAQ ya no contienen marcadores dinámicos — es un acordeón de preguntas y respuestas estático, sin IA/LLM implicado (ver §7.7 y §27) |
 | Nota | hijo6 no tiene handlers de CAMBIO_PARADA — recibe contexto solo vía ESTADO_PADRE |
 
-hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_PREPARADO`, y `CHAT.CERRAR` (raw postMessage a padre L221 cuando el usuario cierra el panel desde dentro de hijo6). No inicia flujos de aventura.
+hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_PREPARADO`, y `CHAT.CERRAR` (raw postMessage a padre L375 cuando el usuario cierra el panel desde dentro de hijo6). No inicia flujos de aventura.
 
 ---
 
@@ -7435,7 +7440,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-0e5c5ebd8cee'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-ed1f249ed1e3'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7566,7 +7571,7 @@ proyecto/
 │   ├── suppress-warnings.js          ← Filtrado de avisos de consola irrelevantes
 │   ├── validacion.js                 ← Validación de datos de entrada
 │   ├── proteccion.js                 ← Protección de datos sensibles
-│   ├── traducciones-ui.js            ← Textos de interfaz en 12 idiomas (JAIME_SCENES, modales, retos, etc.)
+│   ├── traducciones-ui.js            ← Textos de interfaz en 12 idiomas (JAIME_SCENES, modales, FAQ del chat, etc.)
 │   ├── reciclaje-digital.js          ← Limpieza total al finalizar aventura (localStorage, caché, SW)
 │   ├── video-playback-utils.js       ← reproducirVideoConBuffer() — espera buffer suficiente antes de reproducir cualquier <video>, sirve para clips de segundos o minutos (ver §15)
 │   │
@@ -7585,7 +7590,7 @@ proyecto/
 │   ├── mapa-vintage-aventuras.js     ← URLs de mapas vintage por aventura
 │   │
 │   ├── ── CHAT ──
-│   ├── chat-asistente.js             ← Lógica del asistente: intenciones, respuestas, tokens
+│   ├── chat-asistente.js             ← Legado, sin uso: chat-hijo6.html ya no lo importa (ver §27)
 │   │
 │   ├── ── BACKEND (pendiente) ──
 │   ├── api-client.js                 ← Cliente HTTP para la API — pendiente de conectar al backend
@@ -8071,7 +8076,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-0e5c5ebd8cee';
+const CACHE_VERSION = 'v-ed1f249ed1e3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8249,7 +8254,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Hijo 3** | `audio-hijo3.html` — reproductor de audio. Muestra barra de progreso, título de pista y botón de retos. El padre controla play/pause/stop enviando comandos a este iframe |
 | **Hijo 4** | `retos-hijo4.html` — pantalla de retos. Muestra la pregunta de cada parada, valida la respuesta y notifica al padre cuando el reto se completa |
 | **Hijo 5** | `boton-casa-hijo5.html` — herramienta de desarrollo local únicamente. Botón de cambio de modo y selector de paradas. **No aparece en la PWA final** |
-| **Hijo 6** | `chat-hijo6.html` — asistente de chat con intenciones predefinidas. Responde preguntas del usuario usando el contexto de la parada actual (parada, siguiente, paradas restantes) |
+| **Hijo 6** | `chat-hijo6.html` — FAQ de soporte en acordeón de dos niveles (9 temas, 42 preguntas), con imágenes incrustadas y enlaces a términos, agradecimientos y el vídeo de introducción. Contenido estático, igual en cualquier parada |
 | **Selector** | `En-busca-del-tesoro.html` — iframe de selección. Guía al usuario por las 17 pantallas de demo, idioma, aventura, pago y activación antes de iniciar el recorrido |
 | **Iframe** | Ventana incrustada dentro de otra página web |
 
@@ -10274,11 +10279,11 @@ Panel FAQ de acordeón de dos niveles. No tiene lógica de aventura: su única c
 
 | Handler (`TIPOS_MENSAJE.*`) | Enviado por | Qué ejecuta | Responde con | Va a | Propósito |
 |---|---|---|---|---|---|
-| `SISTEMA.PADRE_DATOS` | Padre | Recibe el idioma activo; carga los textos del acordeón en ese idioma desde `js/chat-asistente.js` | `SISTEMA.HIJO_LISTO` | Padre | Renderizar el FAQ en el idioma correcto |
+| `SISTEMA.PADRE_DATOS` | Padre | Recibe el idioma activo; carga los textos del acordeón en ese idioma desde `js/traducciones-ui.js` | `SISTEMA.HIJO_LISTO` | Padre | Renderizar el FAQ en el idioma correcto |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
 | `SISTEMA.CAMBIO_MODO` | Padre | Envía `CAMBIO_MODO_ENTENDIDO` y `CAMBIO_MODO_EFECTUADO` al padre (igual que los demás hijos). El padre gestiona la visibilidad directamente via `display:none/block`, pero hijo6 debe participar en el protocolo para no causar timeouts de 15s en cada transición de modo. | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Participar en el protocolo de modo; sin respuesta el padre espera 15s antes de continuar |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
-| `CHAT.ESTADO_PADRE` | Padre (al reabrir el chat ya cargado) | Actualiza `estadoPadre` y reconstruye el acordeón si cambió el idioma | (ninguna) | — | Refrescar idioma y parada activa sin recargar el iframe |
+| `CHAT.ESTADO_PADRE` | Padre (al reabrir el chat ya cargado) | Actualiza `estadoPadre` y reconstruye el acordeón si cambió el idioma | (ninguna) | — | Refrescar idioma sin recargar el iframe; el resto de `estadoPadre` solo sirve de contexto al buzón de sugerencias |
 
 **Mensajes salientes de Hijo 6:**
 
@@ -10529,90 +10534,59 @@ El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre 
 
 ### Descripción general
 
-El asistente de soporte es una pantalla FAQ en formato acordeón de dos niveles. Se presenta como una ventana flotante que el usuario puede abrir desde el botón de soporte del padre mientras hace la aventura. Su función es resolver las dudas más frecuentes sin necesidad de salir de la app ni de chatear con nadie: el usuario despliega una categoría, pulsa la pregunta que le describe su problema y lee la respuesta.
+El asistente de soporte es una pantalla FAQ en formato acordeón de dos niveles. Se presenta como una ventana flotante que el usuario puede abrir desde el botón de soporte del padre mientras hace la aventura. Su función es resolver las dudas más frecuentes sin necesidad de salir de la app: el usuario despliega un tema, pulsa la pregunta que le describe su duda y lee la respuesta. Es contenido **estático** — igual en cualquier parada, aventura o modo (CASA/AVENTURA) — no un chat conversacional ni un asistente con IA.
 
 **Archivos:**
 
-- `chat-hijo6.html` — interfaz del acordeón (HTML/CSS/JS inline)
-- `js/chat-asistente.js` — datos: preguntas, respuestas, temas e idiomas
+- `chat-hijo6.html` — interfaz del acordeón, sistema de imágenes en línea y modal interno (HTML/CSS/JS inline)
+- `js/traducciones-ui.js` — datos: temas, preguntas y respuestas en 12 idiomas
+- `js/chat-asistente.js` — **legado, sin uso.** Contenía la estructura de temas anterior (7 temas, 26 intenciones, en su mayoría sin redactar) y el mecanismo de sustitución `{{PARADA_ACTUAL}}` vía `obtenerRespuesta()`. `chat-hijo6.html` ya no lo importa; se conserva el fichero (y su entrada en el precache del Service Worker) hasta que se decida eliminarlo
 
-### Estructura del acordeón
+Para el mecanismo completo — estructura del acordeón, marcadores `{{IMG:fichero}}`, y el sistema de enlaces internos con su modal (`'terminos'`, `'agradecimientos'`, `'video-intro'`) — ver **§7.7**, que no se repite aquí. Esta sección se centra en el catálogo completo de contenido y en el protocolo de comunicación con el padre.
 
-El acordeón tiene dos niveles de profundidad:
+### Los 9 temas
 
-```text
-[🎯 GPS y Ubicación]          ← botón de tema (nivel 1, naranja)
-  [¿El GPS no me detecta?]    ← botón de pregunta (nivel 2, azul)
-    El GPS necesita...        ← panel de respuesta (fondo blanco)
-  [¿Estoy fuera de rango?]
-    Si te alejas más...
-[🔊 Audio]
-  ...
-```
+`ORDEN_TEMAS_CHAT` define el orden de aparición. Cada tema agrupa entre 1 y 13 preguntas (`TEMAS_AGRUPADOS_CHAT`):
 
-- Al pulsar un tema, se despliega su lista de preguntas. Al pulsarlo de nuevo, se cierra.
-- Al pulsar una pregunta, aparece la respuesta debajo. Al pulsarla de nuevo, se oculta.
-- Varios temas o preguntas pueden estar abiertos a la vez.
+| Tema | Clave | Nº preguntas |
+| ---- | ----- | ------------ |
+| 🚦 Antes de comenzar | `ANTES_DE_COMENZAR` | 4 |
+| 📌 Ubicación y navegación | `UBICACION_NAVEGACION` | 13 |
+| 🔊 Audio | `AUDIO` | 6 |
+| ⏱️ Tiempo y progreso | `TIEMPO_PROGRESO` | 7 |
+| 🧩 Retos | `RETOS` | 4 |
+| ⚙️ Configuración | `CONFIGURACION` | 3 |
+| 🆘 Ayuda | `AYUDA` | 3 |
+| ▶️ Ver introducción de nuevo | `VER_INTRODUCCION` | 1 |
+| ❤️ Agradecimientos | `AGRADECIMIENTOS` | 1 |
 
-### Los 7 temas y sus intenciones
+Total: **42 preguntas**, completas en los 12 idiomas soportados (`IDIOMAS_CHAT`: es, en, fr, it, nl, ja, de, zh, pl, pt, ru, uk).
 
-La constante `ORDEN_TEMAS` define el orden de aparición. Cada tema agrupa entre 3 y 5 **intenciones** (preguntas predefinidas):
+### Los datos: js/traducciones-ui.js
 
-| Tema | Clave | Intenciones |
-| ---- | ----- | ----------- |
-| 📍 GPS y Ubicación | `GPS` | `GPS_NO_DETECTA`, `GPS_FUERA_RANGO`, `GPS_PERMISO_DENEGADO` |
-| 🔊 Audio | `AUDIO` | `AUDIO_NO_SUENA`, `AUDIO_DETENIDO`, `AUDIO_IDIOMA_NO_DISPONIBLE`, `AUDIO_AUTOMATICO`, `AUDIO_VOLUMEN` |
-| 🗺️ Navegación y Ruta | `NAVEGACION` | `PROXIMA_PARADA`, `PARADA_ACTUAL`, `PARADAS_RESTANTES`, `DESVIO_RUTA` |
-| 💾 Progreso y Guardado | `PROGRESO` | `PROGRESO_GUARDAR`, `PROGRESO_RETOMAR`, `AVENTURA_COMPLETADA` |
-| 🧩 Retos y Puzzles | `RETOS` | `RETO_NO_ENTIENDO`, `RETO_RESPUESTA_MAL`, `PUZZLE_AYUDA` |
-| 📱 La Aplicación | `APP` | `APP_GENERAL`, `APP_SEGUNDO_PLANO`, `SIN_CONEXION`, `BOTONES_ESTADO` |
-| ⏱️ Tiempo y Recorrido | `TIEMPO` | `TIEMPO_AGOTADO`, `TIEMPO_AVENTURA`, `PAUSAS_RUTA`, `ACCESO_MONUMENTOS` |
-
-En total hay **26 intenciones**. Cada una tiene un texto de pregunta (botón nivel 2) y un texto de respuesta, ambos en los 12 idiomas soportados.
-
-### Los datos: js/chat-asistente.js
-
-Este módulo exporta todo lo que necesita la interfaz:
+Los exports relevantes para el chat (comparten fichero con el resto de textos de interfaz de la app, no es un módulo separado):
 
 ```javascript
-export const IDIOMAS_SOPORTADOS  // ['es', 'en', 'fr', 'it', 'nl', 'ja', 'de', 'zh', 'pl', 'pt', 'ru', 'uk']
-export const TEMAS_ETIQUETAS     // { GPS: { es: '📍 GPS y Ubicación', en: '...', ... }, ... }
-export const ORDEN_TEMAS         // ['GPS', 'AUDIO', 'NAVEGACION', 'PROGRESO', 'RETOS', 'APP', 'TIEMPO']
-export const TEMAS_AGRUPADOS     // { GPS: ['GPS_NO_DETECTA', ...], ... }
-export const PREGUNTAS_SOPORTE   // { GPS_NO_DETECTA: { es: '...', en: '...', ... }, ... }
-export function obtenerRespuesta(intencion, idioma, estadoPadre)
-// RESPUESTAS_SOPORTE es interno — no exportado; se accede solo a través de obtenerRespuesta()
+export const TITULOS_CHAT             // título de la cabecera del panel, 12 idiomas
+export const TEXTOS_BUZON_SUGERENCIAS // { titulo, placeholder, boton, gracias }, 12 idiomas
+export const TEMAS_CHAT               // { ANTES_DE_COMENZAR: { es: '🚦 Antes de comenzar', en: '...', ... }, ... }
+export const ORDEN_TEMAS_CHAT         // ['ANTES_DE_COMENZAR', 'UBICACION_NAVEGACION', ..., 'AGRADECIMIENTOS']
+export const TEMAS_AGRUPADOS_CHAT     // { ANTES_DE_COMENZAR: ['ANTES_REQUISITOS', ...], ... }
+export const PREGUNTAS_CHAT           // { ANTES_REQUISITOS: { es: '...', en: '...', ... }, ... }
+export const RESPUESTAS_CHAT          // { ANTES_REQUISITOS: { es: { texto, enlace }, en: { texto, enlace }, ... }, ... }
+export const IDIOMAS_CHAT             // ['es', 'en', 'fr', 'it', 'nl', 'ja', 'de', 'zh', 'pl', 'pt', 'ru', 'uk']
+export const CHAT_ABRIR_ENLACE        // aria-label del botón-flecha ➤, 12 idiomas
 ```
 
-La estructura de `RESPUESTAS_SOPORTE` para cada intención e idioma:
+`RESPUESTAS_CHAT` se construye con el helper interno `_rChat(porIdioma, enlace = null)`, que aplica el mismo `enlace` a los 12 idiomas de una vez — evita repetirlo 12 veces por pregunta. Ejemplo real (`CONFIG_DATOS_TERCEROS`, la única pregunta con `enlace: 'terminos'`):
 
 ```javascript
-{
-    texto:  'Texto de la respuesta. Puede incluir marcadores {{...}}.',
-    imagen: 'ruta/imagen.png'  // o null si no hay imagen aclaratoria
-}
+CONFIG_DATOS_TERCEROS: _rChat({
+    es: 'Sus datos no se comparten con terceros, salvo obligación legal o su consentimiento expreso. Puede consultar el detalle completo en las condiciones de uso aceptadas al adquirir la aventura.',
+    en: '...',
+    // ... resto de idiomas
+}, 'terminos'),
 ```
-
-### Marcadores dinámicos en las respuestas
-
-El texto de cualquier respuesta puede incluir marcadores que se sustituyen en tiempo de ejecución con datos del estado actual de la aventura. La función `obtenerRespuesta()` realiza la sustitución:
-
-| Marcador | Valor sustituido |
-| -------- | --------------- |
-| `{{PARADA_ACTUAL}}` | Nombre de la parada en la que el usuario se encuentra ahora |
-| `{{PARADA_SIGUIENTE}}` | Nombre de la siguiente parada del recorrido |
-| `{{PARADAS_RESTANTES}}` | Número de paradas que quedan hasta el final |
-| `{{IDIOMA_ACTIVO}}` | Código del idioma seleccionado (`es`, `en`, etc.) |
-| `{{AVENTURA}}` | Nombre de la aventura activa |
-
-Ejemplo de respuesta con marcador:
-
-```text
-"Estás en {{PARADA_ACTUAL}}. La siguiente parada es {{PARADA_SIGUIENTE}}.
-Te quedan {{PARADAS_RESTANTES}} paradas para completar la aventura."
-```
-
-Si el padre no ha enviado el valor correspondiente, el marcador se sustituye por cadena vacía.
 
 ### Comunicación con el padre (postMessage)
 
@@ -10624,128 +10598,64 @@ El hijo 6 sigue el mismo protocolo de arranque que los demás hijos:
 | Padre → Hijo | `CHAT.ESTADO_PADRE` o `SISTEMA.PADRE_DATOS` | El padre envía el estado actual (idioma, parada, aventura...) |
 | Hijo → Padre | `CHAT.CERRAR` | Cuando el usuario pulsa el botón ✕ del header |
 
-Al recibir `CHAT.ESTADO_PADRE` o `SISTEMA.PADRE_DATOS`, el hijo actualiza `estadoPadre` y reconstruye el acordeón completo con el nuevo idioma si ha cambiado.
+Al recibir `CHAT.ESTADO_PADRE` o `SISTEMA.PADRE_DATOS`, el hijo actualiza `estadoPadre` y, solo si el idioma cambió, reconstruye el acordeón completo. El resto de campos de `estadoPadre` (`paradaActualNombre`, `siguienteParadaNombre`, `paradasRestantes`, `aventura`) ya no afecta al contenido del FAQ — se conservan únicamente como contexto adjunto al enviar el buzón de sugerencias (ver §7.7).
 
 ### Soporte de idiomas
 
-Al construir el acordeón, se filtra cada intención: si el texto de pregunta está vacío en el idioma actual **y** en el español de fallback, la pregunta no aparece. Esto permite publicar el chat con contenido parcial (algunas preguntas solo disponibles en ciertos idiomas) sin que aparezcan botones vacíos.
+Al construir el acordeón, se filtra cada pregunta: si el texto está vacío en el idioma actual **y** en el español de fallback, la pregunta no aparece. En la práctica esto no ocurre hoy — las 42 preguntas están completas en los 12 idiomas — pero el filtro se mantiene como red de seguridad ante contenido futuro parcial.
 
 La lógica de fallback sigue el mismo patrón que en toda la app: si no hay texto para el idioma activo, se usa el español.
 
-### Imágenes aclaratorias
-
-Algunas respuestas pueden incluir una imagen aclaratoria (campo `imagen` en `RESPUESTAS_SOPORTE`). Si el campo no es `null`, se muestra debajo del texto con `width: 100%` y borde redondeado. Las imágenes viven en la carpeta `imagenes/` del proyecto y su ruta se especifica relativa a la raíz del servidor.
-
-### Estado del contenido
-
-Los textos de preguntas (`PREGUNTAS_SOPORTE`) y respuestas (`RESPUESTAS_SOPORTE`) están estructurados en los 12 idiomas pero **pendientes de redacción**. Casi todas las cadenas son actualmente `''` o `{ texto: '', imagen: null }`. La única intención con contenido completo en los 12 idiomas es `DESVIO_RUTA`. El acordeón filtra automáticamente las preguntas sin texto, así que el chat puede desplegarse vacío mientras se rellena el contenido de forma incremental.
-
-El flujo de trabajo para añadir contenido es: redactar los textos en español en `PREGUNTAS_SOPORTE` y `RESPUESTAS_SOPORTE`, y luego traducirlos a los 11 idiomas restantes.
-
 ---
 
-### Las etiquetas de tema en los 12 idiomas (`TEMAS_ETIQUETAS`)
+### Catálogo completo de las 42 preguntas
 
-La constante `TEMAS_ETIQUETAS` en `js/chat-asistente.js` define el texto del botón de nivel 1 para cada tema en cada idioma:
+Fuente de verdad: `js/traducciones-ui.js` (`PREGUNTAS_CHAT` / `RESPUESTAS_CHAT`). La columna **Marcadores** lista los `{{IMG:fichero}}` que contiene la respuesta en español, en orden de aparición; **Enlace** es el valor de `RESPUESTAS_CHAT[clave][idioma].enlace` (`null` si no tiene).
 
-```javascript
-export const TEMAS_ETIQUETAS = {
-    GPS:        { es: '📍 GPS y Ubicación',      en: '📍 GPS & Location',        fr: '📍 GPS et Position',           it: '📍 GPS e Posizione',          nl: '📍 GPS en Locatie',         ja: '📍 GPS・位置情報',    de: '📍 GPS & Standort',          zh: '📍 GPS与位置',         pl: '📍 GPS i Lokalizacja',       pt: '📍 GPS e Localização',       ru: '📍 GPS и местоположение',   uk: '📍 GPS та місцезнаходження' },
-    AUDIO:      { es: '🔊 Audio',                en: '🔊 Audio',                 fr: '🔊 Audio',                     it: '🔊 Audio',                    nl: '🔊 Audio',                  ja: '🔊 音声',             de: '🔊 Audio',                    zh: '🔊 音频',              pl: '🔊 Audio',                   pt: '🔊 Áudio',                   ru: '🔊 Аудио',                  uk: '🔊 Аудіо'                   },
-    NAVEGACION: { es: '🗺️ Navegación y Ruta',   en: '🗺️ Navigation & Route',    fr: '🗺️ Navigation et Itinéraire', it: '🗺️ Navigazione e Percorso',  nl: '🗺️ Navigatie en Route',    ja: '🗺️ ナビゲーション',   de: '🗺️ Navigation & Route',      zh: '🗺️ 导航与路线',        pl: '🗺️ Nawigacja i Trasa',       pt: '🗺️ Navegação e Rota',        ru: '🗺️ Навигация и маршрут',    uk: '🗺️ Навігація та маршрут'    },
-    PROGRESO:   { es: '💾 Progreso y Guardado',  en: '💾 Progress & Saving',     fr: '💾 Progression et Sauvegarde', it: '💾 Progresso e Salvataggio', nl: '💾 Voortgang en Opslaan',   ja: '💾 進行状況',          de: '💾 Fortschritt & Speichern',  zh: '💾 进度与保存',         pl: '💾 Postęp i Zapisywanie',    pt: '💾 Progresso e Guardar',     ru: '💾 Прогресс и сохранение',  uk: '💾 Прогрес і збереження'    },
-    RETOS:      { es: '🧩 Retos y Puzzles',      en: '🧩 Challenges & Puzzles',  fr: '🧩 Défis et Puzzles',          it: '🧩 Sfide e Puzzle',           nl: '🧩 Uitdagingen en Puzzels', ja: '🧩 チャレンジ',        de: '🧩 Aufgaben & Rätsel',        zh: '🧩 挑战与拼图',         pl: '🧩 Wyzwania i Puzzle',       pt: '🧩 Desafios e Puzzles',      ru: '🧩 Задания и головоломки',  uk: '🧩 Завдання та пазли'       },
-    APP:        { es: '📱 La Aplicación',        en: '📱 The App',               fr: "📱 L'Application",             it: "📱 L'Applicazione",           nl: '📱 De App',                 ja: '📱 アプリ',            de: '📱 Die App',                  zh: '📱 应用程序',           pl: '📱 Aplikacja',               pt: '📱 A Aplicação',             ru: '📱 Приложение',             uk: '📱 Додаток'                  },
-    TIEMPO:     { es: '⏱️ Tiempo y Recorrido',   en: '⏱️ Time & Tour',           fr: '⏱️ Temps et Parcours',         it: '⏱️ Tempo e Percorso',         nl: '⏱️ Tijd en Rondleiding',   ja: '⏱️ 時間・ツアー',     de: '⏱️ Zeit & Tour',             zh: '⏱️ 时间与游览',         pl: '⏱️ Czas i Trasa',            pt: '⏱️ Tempo e Percurso',        ru: '⏱️ Время и маршрут',        uk: '⏱️ Час та маршрут'          },
-};
-```
-
----
-
-### Catálogo completo de las 26 intenciones
-
-Cada intención tiene: un clave (`GPS_NO_DETECTA`), su texto de pregunta en 12 idiomas (`PREGUNTAS_SOPORTE`), y su respuesta en 12 idiomas (`RESPUESTAS_SOPORTE`). Los textos marcados con ⚠️ están pendientes de redacción.
-
-| Tema | Clave de intención | Estado |
-| --- | --- | --- |
-| GPS | `GPS_NO_DETECTA` | ⚠️ pendiente |
-| GPS | `GPS_FUERA_RANGO` | ⚠️ pendiente |
-| GPS | `GPS_PERMISO_DENEGADO` | ⚠️ pendiente |
-| AUDIO | `AUDIO_NO_SUENA` | ⚠️ pendiente |
-| AUDIO | `AUDIO_DETENIDO` | ⚠️ pendiente |
-| AUDIO | `AUDIO_IDIOMA_NO_DISPONIBLE` | ⚠️ pendiente |
-| AUDIO | `AUDIO_AUTOMATICO` | ⚠️ pendiente |
-| AUDIO | `AUDIO_VOLUMEN` | ⚠️ pendiente |
-| NAVEGACION | `PROXIMA_PARADA` | ⚠️ pendiente |
-| NAVEGACION | `PARADA_ACTUAL` | ⚠️ pendiente |
-| NAVEGACION | `PARADAS_RESTANTES` | ⚠️ pendiente |
-| NAVEGACION | `DESVIO_RUTA` | ✅ completo (12 idiomas) |
-| PROGRESO | `PROGRESO_GUARDAR` | ⚠️ pendiente |
-| PROGRESO | `PROGRESO_RETOMAR` | ⚠️ pendiente |
-| PROGRESO | `AVENTURA_COMPLETADA` | ⚠️ pendiente |
-| RETOS | `RETO_NO_ENTIENDO` | ⚠️ pendiente |
-| RETOS | `RETO_RESPUESTA_MAL` | ⚠️ pendiente |
-| RETOS | `PUZZLE_AYUDA` | ⚠️ pendiente |
-| APP | `APP_GENERAL` | ⚠️ pendiente |
-| APP | `APP_SEGUNDO_PLANO` | ⚠️ pendiente |
-| APP | `SIN_CONEXION` | ⚠️ pendiente |
-| APP | `BOTONES_ESTADO` | ⚠️ pendiente |
-| TIEMPO | `TIEMPO_AGOTADO` | ⚠️ pendiente |
-| TIEMPO | `TIEMPO_AVENTURA` | ⚠️ pendiente |
-| TIEMPO | `PAUSAS_RUTA` | ⚠️ pendiente |
-| TIEMPO | `ACCESO_MONUMENTOS` | ⚠️ pendiente |
-
-**Única respuesta redactada — `DESVIO_RUTA`** (ejemplo completo):
-
-```javascript
-DESVIO_RUTA: {
-    es: { texto: 'Sí, puedes ir por donde quieras. La app solo comprueba que llegues al punto final del tramo, no que sigas exactamente el camino marcado.\n\nLa línea azul del mapa es una sugerencia de ruta, no un camino obligatorio. Si te desvías más de 50 metros, aparecerá una línea discontinua que te indica cómo volver a la ruta, pero no te bloquea ni te penaliza.', imagen: null },
-    en: { texto: 'Yes, you can go any way you like. The app only checks that you reach the end point of the segment, not that you follow the exact path shown.\n\n...', imagen: null },
-    // ... fr, it, nl, ja
-}
-```
-
----
-
-### La función `obtenerRespuesta()`
-
-Esta es la única función de negocio en `js/chat-asistente.js`. Recibe una clave de intención, el código de idioma y el estado del padre, y devuelve el objeto `{ texto, imagen }` con los marcadores dinámicos sustituidos:
-
-```javascript
-export function obtenerRespuesta(intencion, idioma, estadoPadre = {}) {
-    const lang    = IDIOMAS_SOPORTADOS.includes(idioma) ? idioma : 'es';
-    const mapa    = RESPUESTAS_SOPORTE[intencion];
-    const entrada = mapa?.[lang] || mapa?.es || { texto: '', imagen: null };
-
-    const texto = (entrada.texto || '')
-        .replaceAll('{{PARADA_ACTUAL}}',      estadoPadre.paradaActualNombre    ?? '')
-        .replaceAll('{{PARADA_SIGUIENTE}}',    estadoPadre.siguienteParadaNombre ?? '')
-        .replaceAll('{{PARADAS_RESTANTES}}',   estadoPadre.paradasRestantes      ?? '')
-        .replaceAll('{{IDIOMA_ACTIVO}}',       estadoPadre.idioma                ?? lang)
-        .replaceAll('{{AVENTURA}}',            estadoPadre.aventura              ?? '');
-
-    return { texto, imagen: entrada.imagen || null };
-}
-```
-
-El fallback de idioma (`mapa?.[lang] || mapa?.es`) garantiza que si el idioma activo no tiene texto, se usa el español.
-
-El estado del padre que `obtenerRespuesta()` espera proviene de `construirEstadoChat()` en el padre:
-
-```javascript
-function construirEstadoChat() {
-    var ep      = globalThis.estadoPadre || {};
-    var paradas = globalThis.AVENTURA_PARADAS || [];
-    var idx     = (typeof ep.indiceProgreso === 'number') ? ep.indiceProgreso : 0;
-    return {
-        idioma:               globalThis.idiomaSeleccionado || ep.idioma || 'es',
-        aventura:             globalThis.aventuraSeleccionada || '',
-        paradaActualNombre:   paradas[idx]?.nombre  || '',
-        siguienteParadaNombre: paradas[idx + 1]?.nombre || '',
-        paradasRestantes:     Math.max(0, paradas.length - 1 - idx)
-    };
-}
-```
+| Tema | Clave | Pregunta (ES) | Marcadores / enlace |
+| --- | --- | --- | --- |
+| 🚦 Antes de comenzar | `ANTES_REQUISITOS` | ¿Qué necesito antes de comenzar? | — (lista con `\n•`) |
+| 🚦 Antes de comenzar | `ANTES_DISFRUTAR` | ¿Qué puedo hacer para disfrutar mejor de la aventura? | — |
+| 🚦 Antes de comenzar | `ANTES_CAMBIO_AVENTURA_IDIOMA` | ¿Puedo cambiar de aventura o de idioma después de adquirir la aventura? | — |
+| 🚦 Antes de comenzar | `ANTES_ENTRADAS_PAGO` | ¿La aventura incluye la entrada a monumentos o espacios de pago? | — |
+| 📌 Ubicación y navegación | `UBIC_PERMISO_DENEGADO` | ¿Qué hago si denegué el permiso de ubicación por error? | — |
+| 📌 Ubicación y navegación | `UBIC_NO_DETECTA` | La aventura no detecta mi ubicación. ¿Qué puedo hacer? | 🔁 (emoji literal) |
+| 📌 Ubicación y navegación | `UBIC_PARADA_NO_ACTIVA` | Estoy en la parada, pero no se activa. ¿Qué puedo hacer? | 🎯 (emoji) + `H2-fotodistancia` |
+| 📌 Ubicación y navegación | `UBIC_FUERA_RANGO` | ¿Qué significa el mensaje «Fuera de rango»? | `H2-fotodistancia`, `H2-fotodron`, `boton-audio-central`, `H4-fotoretos`, `fotoruta-A-B` |
+| 📌 Ubicación y navegación | `UBIC_GPS_TARDA` | ¿Es normal que el GPS tarde unos segundos en localizarme? | — |
+| 📌 Ubicación y navegación | `UBIC_ALTA_PRECISION` | ¿Debo activar la ubicación de alta precisión? | — |
+| 📌 Ubicación y navegación | `UBIC_SENAL_IMPRECISA` | ¿Qué puedo hacer si la señal de ubicación es imprecisa? | — |
+| 📌 Ubicación y navegación | `UBIC_POR_QUE_PERMISO` | ¿Por qué se solicita permiso para acceder a mi ubicación? | — |
+| 📌 Ubicación y navegación | `UBIC_SIGUIENTE_PARADA` | ¿Cómo puedo saber cuál es la siguiente parada? | `H2-fotomapa-moderno`, `H2-fotomapa-vintage` |
+| 📌 Ubicación y navegación | `UBIC_PARADAS_RESTANTES` | ¿Cómo puedo consultar cuántas paradas quedan? | — |
+| 📌 Ubicación y navegación | `UBIC_ORDEN_PARADAS` | ¿Puedo visitar las paradas en cualquier orden? | — |
+| 📌 Ubicación y navegación | `UBIC_CAMINO_DIFERENTE` | ¿Puedo seguir un camino diferente al que aparece en el mapa? | — |
+| 📌 Ubicación y navegación | `UBIC_PASO_DE_LARGO` | ¿Qué ocurre si paso de largo una parada? | — |
+| 🔊 Audio | `AUDIO_NO_ESCUCHO` | No puedo escuchar el audio. ¿Qué puedo hacer? | `boton-audio-play` |
+| 🔊 Audio | `AUDIO_SE_DETIENE` | ¿Por qué se detiene el audio? | `boton-audio-play` |
+| 🔊 Audio | `AUDIO_AUTOMATICO` | ¿El audio se reproduce automáticamente? | `boton-audio-play` |
+| 🔊 Audio | `AUDIO_VARIAS_VECES` | ¿Puedo escuchar un audio más de una vez? | — |
+| 🔊 Audio | `AUDIO_LLAMADA` | ¿Qué ocurre si recibo una llamada? | `boton-audio-play` |
+| 🔊 Audio | `AUDIO_AURICULARES_VMP` | ¿Puedo utilizar auriculares o consultar el móvil durante la conducción? | — (cita el art. 18.2 del Reglamento General de Circulación) |
+| ⏱️ Tiempo y progreso | `TIEMPO_PROGRESO_GUARDADO` | ¿Se guarda mi progreso automáticamente? | `foto-temporizador` |
+| ⏱️ Tiempo y progreso | `TIEMPO_PAUSA` | ¿Puedo hacer una pausa y continuar más tarde? | `foto-temporizador` |
+| ⏱️ Tiempo y progreso | `TIEMPO_OTRO_DISPOSITIVO` | ¿Puedo continuar la aventura en otro dispositivo? | — |
+| ⏱️ Tiempo y progreso | `TIEMPO_SE_AGOTA` | ¿Qué ocurre si se agota el tiempo de mi aventura? | `foto-temporizador` |
+| ⏱️ Tiempo y progreso | `TIEMPO_CONSULTAR_RESTANTE` | ¿Cómo puedo consultar el tiempo restante? | `foto-temporizador` |
+| ⏱️ Tiempo y progreso | `TIEMPO_TERMINO_ANTES` | ¿Qué ocurre si termino antes del tiempo previsto? | — |
+| ⏱️ Tiempo y progreso | `TIEMPO_FIN_AVENTURA` | ¿Qué ocurre cuando finalizo la aventura? | — |
+| 🧩 Retos | `RETOS_NO_ENTIENDO` | No entiendo un reto. ¿Qué puedo hacer? | — |
+| 🧩 Retos | `RETOS_RESPUESTA_INCORRECTA` | Creo que mi respuesta es correcta, pero aparece como incorrecta. | — |
+| 🧩 Retos | `RETOS_NO_CARGA` | Un reto no carga o parece haberse bloqueado. | — |
+| 🧩 Retos | `RETOS_AVANZAR_DESACTIVADO` | ¿Por qué el botón «Avanzar» está desactivado? | `fotoruta-A-B` |
+| ⚙️ Configuración | `CONFIG_AHORRO_ENERGIA` | ¿Puedo utilizar el modo de ahorro de energía? | — |
+| ⚙️ Configuración | `CONFIG_USO_UBICACION` | ¿Cómo se utiliza mi ubicación? | — |
+| ⚙️ Configuración | `CONFIG_DATOS_TERCEROS` | ¿Se comparten mis datos con terceros? | `enlace: 'terminos'` |
+| 🆘 Ayuda | `AYUDA_NO_FUNCIONA` | ¿La aventura no está funcionando como esperaba? | — (lista con `\n•`) |
+| 🆘 Ayuda | `AYUDA_COMUNICAR_PROBLEMA` | ¿Cómo puedo comunicar un problema o una incidencia? | — |
+| 🆘 Ayuda | `AYUDA_BUZON_ANONIMO` | ¿Es anónimo el buzón de sugerencias e incidencias? | — |
+| ▶️ Ver introducción de nuevo | `INTRO_VOLVER_A_VER` | ¿Puedo volver a ver la introducción de la aventura? | `enlace: 'video-intro'` |
+| ❤️ Agradecimientos | `AGRADECIMIENTOS_VER` | ¿Puedo ver la página de agradecimientos? | `enlace: 'agradecimientos'` |
 
 ---
 
@@ -10816,9 +10726,10 @@ chat-hijo6.html carga y ejecuta el handshake normal:
   └─ chat-hijo6.html recibe PADRE_DATOS → construye acordeón en el idioma recibido
   └─ SISTEMA.HIJO_LISTO → padre (confirma inicialización)
 
-Usuario pulsa una categoría (nivel 1) → se despliega la lista de preguntas
+Usuario pulsa un tema (nivel 1) → se despliega la lista de preguntas
 Usuario pulsa una pregunta (nivel 2) → se muestra la respuesta
-  └─ obtenerRespuesta(intencion, idioma, estadoPadre) sustituye marcadores dinámicos
+  └─ renderTextoConImagenes() sustituye los marcadores {{IMG:fichero}} por <img> en línea
+  └─ si la respuesta tiene enlace, se añade el botón ➤ que abre el modal correspondiente
 
 Usuario pulsa el botón ✕ de cerrar:
   1. Intenta llamar a globalThis.parent.cerrarChatSoporte() (acceso directo mismo origen)
@@ -10848,10 +10759,9 @@ El handshake principal sigue usando los tipos estándar `SISTEMA.*` (como todos 
 
 El asistente es 100% offline:
 
-- `js/chat-asistente.js` se incluye en el precache del Service Worker
-- No hace ninguna petición de red durante el uso
-- `estadoPadre` es estado en memoria del cliente
-- Si la aventura no está inicializada, los marcadores `{{...}}` se sustituyen por `''` (cadena vacía)
+- `js/traducciones-ui.js`, `js/terminos-aventuras.js`, `js/agradecimientos-aventuras.js` y `video-intro.html` están en el precache del Service Worker — los tres modales internos (términos, agradecimientos, vídeo de introducción) funcionan sin red
+- No hace ninguna petición de red durante el uso (el buzón de sugerencias es la única excepción — ver §7.7)
+- `estadoPadre` es estado en memoria del cliente, usado solo para el idioma del acordeón y el contexto del buzón
 
 ---
 
@@ -10869,547 +10779,6 @@ SOPORTE: {
     LIMPIAR_HISTORIAL:    'SOPORTE.LIMPIAR_HISTORIAL'     // padre → hijo6: resetear
 }
 ```
-
----
-
-### 27.X — Catálogo de preguntas y respuestas en español
-
-Texto definitivo en español de cada intención. Es la fuente de verdad para rellenar `PREGUNTAS_SOPORTE` y `RESPUESTAS_SOPORTE` en `js/chat-asistente.js` antes de traducir a los 11 idiomas restantes.
-
-Las respuestas que describen overlays, botones y comportamientos concretos están sincronizadas con §31.
-
-Marcadores disponibles en las respuestas: `{{PARADA_ACTUAL}}`, `{{PARADA_SIGUIENTE}}`, `{{PARADAS_RESTANTES}}`, `{{IDIOMA_ACTIVO}}`, `{{AVENTURA}}`.
-
----
-
-#### 📍 GPS y Ubicación
-
-##### `GPS_NO_DETECTA`
-
-**Pregunta:** ¿El GPS no me detecta?
-
-**Respuesta:**
-La app ya ha detectado el problema y te muestra una pantalla con el botón 🛰️🔄. Pulsa ese botón para reintentar obtener señal. Si el contador llega a cero sin éxito, el botón se vuelve a activar para que puedas intentarlo de nuevo.
-
-Si el problema continúa: sal a un espacio abierto alejado de edificios altos o de zonas bajo techo, comprueba que el GPS esté activado en los ajustes de tu teléfono y asegúrate de no estar en modo avión. El GPS no necesita internet para funcionar.
-
-**Imagen:** null
-
----
-
-##### `GPS_PERMISO_DENEGADO`
-
-**Pregunta:** ¿La app no tiene permiso para el GPS?
-
-**Respuesta:**
-El GPS es imprescindible para avanzar en la aventura — la app lo necesita para confirmar que llegas a cada parada.
-
-Verás el botón 🛰️→🌐→⚙️. Sigue esta secuencia:
-
-1. Pulsa el botón — puede abrirse el diálogo nativo de permisos de tu navegador.
-2. Si no aparece nada, pulsa el icono de candado en la barra de dirección del navegador → permisos → ubicación → permitir.
-3. Si tampoco funciona, ve a los ajustes del sistema operativo de tu teléfono → aplicaciones → tu navegador → permisos → ubicación → permitir.
-
-Una vez concedido el permiso, la app detecta automáticamente tu posición y el aviso desaparece.
-
-**Imagen:** null
-
----
-
-##### `GPS_FUERA_RANGO`
-
-**Pregunta:** ¿Por qué no puedo avanzar si estoy en el sitio?
-
-**Respuesta:**
-Si llevas más de 5 minutos alejado de la zona de la parada o tramo actual, la app bloquea el botón de avanzar y muestra un aviso.
-
-Vuelve a la zona marcada en el mapa. En cuanto el GPS te detecte dentro del rango, el botón se activa de nuevo y puedes continuar. El progreso no se pierde.
-
-El botón del mapa sigue activo — úsalo para orientarte y ver dónde está exactamente el punto al que tienes que volver.
-
-**Imagen:** null
-
----
-
-#### 🔊 Audio
-
-##### `AUDIO_NO_SUENA`
-
-**Pregunta:** ¿No escucho el audio de la parada?
-
-**Respuesta:**
-Comprueba estos puntos en orden:
-
-1. **Volumen del teléfono** — asegúrate de que el volumen multimedia está subido (no el de llamada ni el de notificaciones). Usa los botones físicos del lateral del teléfono mientras la app está abierta.
-2. **Auriculares** — si tienes auriculares conectados, el sonido sale solo por ellos.
-3. **Modo silencio** — desactívalo si está activo.
-4. **Conexión** — si el audio tarda en cargar, la app lo intentará de nuevo en cuanto haya señal.
-
-Si el problema persiste, cierra la app, vuelve a abrirla e intenta reproducir de nuevo.
-
-**Imagen:** null
-
----
-
-##### `AUDIO_DETENIDO`
-
-**Pregunta:** ¿El audio se ha parado solo?
-
-**Respuesta:**
-El audio puede detenerse en estos casos:
-
-- **Llamada entrante** — se pausa automáticamente y vuelve cuando terminas la llamada.
-- **App en segundo plano** — si cierras la pantalla o cambias de app, el audio puede pausarse según el sistema operativo. Vuelve a la app para retomarlo.
-- **Interrupción de otra app de audio** — si abres música, un podcast u otra app de sonido, se detiene. Cierra esa app y pulsa el botón de reproducción en la pantalla de audio.
-
-Puedes reanudar el audio en cualquier momento desde la pantalla principal de la aventura.
-
-**Imagen:** null
-
----
-
-##### `AUDIO_IDIOMA_NO_DISPONIBLE`
-
-**Pregunta:** ¿El audio suena en otro idioma?
-
-**Respuesta:**
-Si el audio de alguna parada no está disponible en tu idioma, la app usa el español como alternativa para que puedas continuar la aventura sin interrupciones.
-
-Cuando el audio en tu idioma esté disponible ({{IDIOMA_ACTIVO}}), lo verás listo para reproducir en los controles de la pantalla principal — pulsa play para escucharlo. Si prefieres cambiar a un idioma con más contenido disponible, puedes hacerlo desde la pantalla de selección de idioma.
-
-**Imagen:** null
-
----
-
-##### `AUDIO_AUTOMATICO`
-
-**Pregunta:** ¿El audio se reproduce solo al llegar?
-
-**Respuesta:**
-No exactamente. Al llegar a una parada o empezar un tramo, el audio se **carga y queda listo** en los controles de la pantalla principal — pero tienes que pulsar el botón de reproducción tú mismo para que empiece a sonar.
-
-Desde ahí puedes pausarlo, reanudarlo o repetirlo cuando quieras.
-
-**Imagen:** null
-
----
-
-##### `AUDIO_VOLUMEN`
-
-**Pregunta:** ¿Cómo controlo el volumen?
-
-**Respuesta:**
-Usa los botones físicos de volumen del lateral de tu teléfono. Asegúrate de ajustar el **volumen multimedia** (no el de llamada ni el de alarma).
-
-Si el teléfono muestra la barra de volumen de llamada al pulsar los botones, hazlo con la app en primer plano y el audio reproduciéndose — así el teléfono sabe que quieres ajustar el sonido multimedia.
-
-**Imagen:** null
-
----
-
-##### `AUDIO_REPETIR`
-
-**Pregunta:** ¿Puedo repetir el audio de una parada?
-
-**Respuesta:**
-Sí. En la pantalla principal de la aventura encontrarás un botón de repetición junto a los controles de audio. Pulsa ese botón y el audio de la parada actual vuelve a reproducirse desde el principio.
-
-Puedes repetirlo tantas veces como quieras sin que afecte a tu progreso.
-
-**Imagen:** null
-
----
-
-##### `AUDIO_IDIOMA_CAMBIO`
-
-**Pregunta:** ¿Puedo cambiar el idioma durante la aventura?
-
-**Respuesta:**
-Sí, puedes cambiar de idioma en cualquier momento. El botón de idioma está disponible en la pantalla principal.
-
-Al cambiar, el audio de la parada actual se recarga en el nuevo idioma y empieza desde el principio. Las paradas anteriores no se reproducen de nuevo — solo afecta a la parada actual y a las siguientes.
-
-**Imagen:** null
-
----
-
-#### 🗺️ Navegación y Ruta
-
-##### `PROXIMA_PARADA`
-
-**Pregunta:** ¿Cuál es la siguiente parada?
-
-**Respuesta:**
-La siguiente parada es **{{PARADA_SIGUIENTE}}**. Está marcada en el mapa con un pin — pulsa el botón del mapa para verla y calcular cómo llegar.
-
-La línea azul del mapa te sugiere el camino, pero no es obligatoria: puedes ir por donde prefieras siempre que llegues al punto de destino.
-
-**Imagen:** null
-
----
-
-##### `PARADA_ACTUAL`
-
-**Pregunta:** ¿En qué parada estoy?
-
-**Respuesta:**
-Estás en **{{PARADA_ACTUAL}}**. Te quedan **{{PARADAS_RESTANTES}}** paradas para completar la aventura.
-
-Si el GPS te sitúa fuera del rango de esta parada, verifica tu posición en el mapa con el botón de ubicación.
-
-**Imagen:** null
-
----
-
-##### `PARADAS_RESTANTES`
-
-**Pregunta:** ¿Cuántas paradas me quedan?
-
-**Respuesta:**
-Te quedan **{{PARADAS_RESTANTES}}** paradas para terminar la aventura **{{AVENTURA}}**.
-
-La siguiente es **{{PARADA_SIGUIENTE}}**. Encuéntrala en el mapa con el botón del mapa.
-
-**Imagen:** null
-
----
-
-##### `DESVIO_RUTA`
-
-**Pregunta:** ¿Tengo que seguir exactamente el camino del mapa?
-
-**Respuesta:**
-No, puedes ir por donde quieras. La app solo comprueba que llegues al punto final del tramo, no que sigas exactamente el camino marcado.
-
-La línea azul del mapa es una sugerencia de ruta, no un camino obligatorio. Si te desvías más de 50 metros, aparecerá una línea discontinua que te indica cómo volver a la ruta, pero no te bloquea ni te penaliza.
-
-**Imagen:** null
-
-*(Esta intención ya tiene texto completo en los 12 idiomas en `RESPUESTAS_SOPORTE`.)*
-
----
-
-##### `MAPA_OFFLINE`
-
-**Pregunta:** ¿Funciona el mapa sin internet?
-
-**Respuesta:**
-Sí. El mapa se descarga en tu teléfono la primera vez que abres la app con conexión. A partir de ese momento funciona completamente sin internet.
-
-Si ves el mapa en blanco o con cuadrículas grises, cierra y vuelve a abrir la app con conexión para que se actualice la caché. Una vez cargado, ya funciona offline para toda la aventura.
-
-**Imagen:** null
-
----
-
-#### 💾 Progreso y Guardado
-
-##### `PROGRESO_GUARDAR`
-
-**Pregunta:** ¿Tengo que guardar el progreso?
-
-**Respuesta:**
-No, el progreso se guarda automáticamente después de cada parada completada. No hay ningún botón de guardar.
-
-Si cierras la app o se te apaga el teléfono, al volver a abrirla con el mismo código de acceso retomas exactamente donde lo dejaste.
-
-**Imagen:** null
-
----
-
-##### `PROGRESO_RETOMAR`
-
-**Pregunta:** ¿Puedo continuar la aventura otro día?
-
-**Respuesta:**
-Sí. Abre de nuevo el enlace de la app, selecciona tu aventura e introduce el mismo código de acceso. La app detecta que ya tienes progreso guardado y te lleva directamente a la parada en la que te quedaste.
-
-El progreso se guarda en este dispositivo. Si usas otro teléfono o borras los datos del navegador, tendrás que volver a empezar desde el principio.
-
-**Imagen:** null
-
----
-
-##### `AVENTURA_COMPLETADA`
-
-**Pregunta:** ¿Qué pasa cuando termino la aventura?
-
-**Respuesta:**
-Al llegar a la última parada y escuchar el audio final, la app muestra una pantalla de despedida.
-
-Desde ahí puedes elegir entre iniciar una nueva aventura o cerrar la app. Si decides salir, el progreso se limpia para que otra persona pueda usar el mismo código desde cero.
-
-**Imagen:** null
-
----
-
-##### `PROGRESO_PERDIDO`
-
-**Pregunta:** ¿He perdido mi progreso?
-
-**Respuesta:**
-El progreso puede perderse si has borrado los datos del navegador, cambiado de dispositivo o usado el modo privado / incógnito del navegador (este modo no guarda datos entre sesiones).
-
-Si cierras y vuelves a abrir la app normalmente con el mismo código en el mismo dispositivo, el progreso se recupera automáticamente.
-
-Si el progreso se ha perdido definitivamente y no has terminado la aventura, contacta con nosotros: podremos indicarte desde qué parada retomar o generar un nuevo acceso.
-
-**Imagen:** null
-
----
-
-##### `CODIGO_CADUCIDAD`
-
-**Pregunta:** ¿El código de acceso tiene fecha de caducidad?
-
-**Respuesta:**
-El código no caduca mientras la aventura esté activa. Puedes hacer la ruta en varios días sin ningún límite de tiempo.
-
-Si tienes dudas sobre la validez de tu acceso, contacta con nosotros antes de empezar.
-
-**Imagen:** null
-
----
-
-#### 🧩 Retos y Puzzles
-
-##### `RETO_NO_ENTIENDO`
-
-**Pregunta:** ¿No entiendo el reto?
-
-**Respuesta:**
-Lee el enunciado del reto con calma — a veces la clave está en los detalles o en el entorno que te rodea. Mira a tu alrededor: el reto siempre está relacionado con la parada en la que te encuentras.
-
-Si aun así no lo ves, usa la pista que encontrarás en la pantalla del reto. La pista no te da la respuesta directamente, pero te orienta hacia dónde mirar.
-
-**Imagen:** null
-
----
-
-##### `RETO_RESPUESTA_MAL`
-
-**Pregunta:** ¿He respondido mal el reto?
-
-**Respuesta:**
-Sin problema — no hay penalización por respuesta incorrecta. Puedes intentarlo tantas veces como quieras.
-
-Revisa el enunciado, mira la pista si la necesitas y vuelve a intentarlo. No hay límite de intentos ni pérdida de puntos.
-
-**Imagen:** null
-
----
-
-##### `PUZZLE_AYUDA`
-
-**Pregunta:** ¿Cómo consigo una pista?
-
-**Respuesta:**
-En la pantalla del reto encontrarás un botón de pista. Pulsa ese botón y recibirás una ayuda que te orienta sin darte la respuesta completa.
-
-Puedes pedirla en cualquier momento — no penaliza ni afecta a tu progreso en la aventura.
-
-**Imagen:** null
-
----
-
-##### `RETO_CUANTOS`
-
-**Pregunta:** ¿Cuántos retos tiene la aventura?
-
-**Respuesta:**
-Hay un reto en cada parada. Verás cuántas paradas te quedan en el indicador de progreso — cada una tiene su propio reto que resolver en el lugar.
-
-Los retos están pensados para hacerse in situ: el entorno te da las pistas necesarias.
-
-**Imagen:** null
-
----
-
-##### `RETO_SALTAR`
-
-**Pregunta:** ¿Puedo saltarme un reto?
-
-**Respuesta:**
-El reto es parte de la parada — completarlo es lo que abre el paso a la siguiente. No existe un botón de saltar.
-
-Si llevas mucho tiempo atascado, usa la pista disponible en la pantalla del reto. Si aun así no lo resuelves, contacta con nosotros y te ayudamos sin estropearte la experiencia del resto de la aventura.
-
-**Imagen:** null
-
----
-
-#### 📱 La Aplicación
-
-##### `APP_GENERAL`
-
-**Pregunta:** ¿Cómo funciona la app?
-
-**Respuesta:**
-La app funciona como una audioguía interactiva. Te guía de parada en parada por Valencia usando el GPS de tu teléfono. Al llegar a cada punto, se reproduce un audio con información sobre el lugar y aparece un reto que tienes que resolver para continuar.
-
-No necesitas descargar nada de la tienda de aplicaciones — funciona directamente desde el navegador de tu teléfono.
-
-**Imagen:** null
-
----
-
-##### `APP_SEGUNDO_PLANO`
-
-**Pregunta:** ¿La app funciona con la pantalla apagada?
-
-**Respuesta:**
-El GPS puede seguir funcionando con la pantalla apagada, pero el audio puede pausarse según tu teléfono y sistema operativo.
-
-Para que funcione mejor: mantén la pantalla encendida mientras caminas entre paradas, o activa el modo de pantalla siempre encendida en los ajustes si tu batería lo permite. Algunos teléfonos también permiten que la app siga activa en segundo plano desde los ajustes de batería (permite "actividad en segundo plano" para tu navegador).
-
-**Imagen:** null
-
----
-
-##### `SIN_CONEXION`
-
-**Pregunta:** ¿Funciona sin internet?
-
-**Respuesta:**
-La app funciona sin internet después de la primera carga. Los mapas, audios y contenidos se guardan en tu teléfono la primera vez que los abres con conexión.
-
-Para garantizarlo, abre la app con WiFi o datos antes de empezar la ruta. A partir de ese momento puedes desactivar los datos móviles si lo prefieres — todo seguirá funcionando.
-
-Si una parada nueva carga por primera vez (audio o mapa no visitado antes) sí necesitarás conexión en ese momento.
-
-**Imagen:** null
-
----
-
-##### `BOTONES_ESTADO`
-
-**Pregunta:** ¿Por qué los botones están desactivados?
-
-**Respuesta:**
-Los botones se activan progresivamente según tu posición:
-
-- **Botón de avanzar (gris)** — todavía no has llegado al punto de destino del tramo o parada actual. Camina hacia él y el botón se activará automáticamente cuando el GPS confirme tu llegada.
-- **Botón de reto (gris)** — el audio de la parada actual aún no ha terminado, o no has llegado todavía.
-- **Todos los botones desactivados** — puede que el GPS esté buscando señal. Espera unos segundos a que se estabilice.
-
-Si los botones siguen grises después de llegar al punto y el GPS funciona correctamente, cierra y vuelve a abrir la app.
-
-**Imagen:** null
-
----
-
-##### `APP_INSTALAR`
-
-**Pregunta:** ¿Puedo instalar la app en mi teléfono?
-
-**Respuesta:**
-Sí. La app se puede instalar como aplicación en tu pantalla de inicio sin necesidad de la tienda de apps:
-
-- **Android (Chrome):** pulsa el menú ⋮ de Chrome → "Añadir a pantalla de inicio" → "Instalar".
-- **iPhone (Safari):** pulsa el botón de compartir 🔲↑ → "Añadir a pantalla de inicio".
-
-Una vez instalada, ábrela desde el icono igual que cualquier app. El contenido descargado permanece disponible offline.
-
-**Imagen:** null
-
----
-
-##### `APP_MULTIPLES_DISPOSITIVOS`
-
-**Pregunta:** ¿Puedo usar la app en otro teléfono?
-
-**Respuesta:**
-Sí, pero el progreso no se sincroniza entre dispositivos. Cada teléfono guarda su propio progreso de forma independiente.
-
-Si abres la app con el mismo código en un segundo teléfono, empezarás desde el principio. Si quieres continuar donde lo dejaste, usa siempre el mismo dispositivo.
-
-**Imagen:** null
-
----
-
-#### ⏱️ Tiempo y Recorrido
-
-##### `TIEMPO_AGOTADO`
-
-**Pregunta:** ¿Tengo un tiempo límite por parada?
-
-**Respuesta:**
-No. Puedes quedarte el tiempo que quieras en cada parada — no hay cuenta atrás ni penalización por ir despacio.
-
-Tómate tu tiempo para escuchar el audio, explorar el entorno y resolver el reto con calma.
-
-**Imagen:** null
-
----
-
-##### `TIEMPO_AVENTURA`
-
-**Pregunta:** ¿Cuánto dura la aventura? ¿Hay un tiempo máximo?
-
-**Respuesta:**
-La duración depende de tu ritmo. Una aventura completa, incluyendo los desplazamientos entre paradas, los audios y los retos, suele llevar entre 2 y 3 horas.
-
-Tienes un máximo de **60 horas** desde que activas la aventura para completarla (150 horas para la Aventura 34 km). Puedes hacer pausas, cerrar la app y retomar en otro momento — el progreso se guarda automáticamente. Eso sí, una vez transcurrido el tiempo máximo, la sesión expira y habría que adquirir una nueva aventura.
-
-**Imagen:** null
-
----
-
-##### `PAUSAS_RUTA`
-
-**Pregunta:** ¿Puedo pausar y continuar más tarde?
-
-**Respuesta:**
-Sí, en cualquier momento. Simplemente cierra la app o apaga el teléfono — el progreso se guarda automáticamente al terminar cada parada.
-
-La próxima vez que abras la app en el mismo dispositivo, continúas exactamente donde lo dejaste. Solo asegúrate de retomarlo dentro de las **60 horas** desde que activaste la aventura (150 horas para la Aventura 34 km) — pasado ese tiempo la sesión expira.
-
-**Imagen:** null
-
----
-
-##### `ACCESO_MONUMENTOS`
-
-**Pregunta:** ¿Tengo que entrar a los monumentos?
-
-**Respuesta:**
-No. La aventura está diseñada para hacerse completamente en el exterior, en las calles y plazas de Valencia. No necesitas entrar a ningún edificio ni comprar entradas.
-
-Puedes disfrutar de los monumentos desde fuera mientras escuchas el audio y resuelves los retos.
-
-**Imagen:** null
-
----
-
-##### `DURACION_ESTIMADA`
-
-**Pregunta:** ¿Cuánto camino hay en total?
-
-**Respuesta:**
-El recorrido completo tiene una distancia caminable de unos 3 a 4 km en total, dependiendo de la aventura y del camino que elijas entre paradas.
-
-El terreno es completamente llano — Valencia es una ciudad muy plana, ideal para caminar.
-
-**Imagen:** null
-
----
-
-##### `COMPARTIR_CODIGO`
-
-**Pregunta:** ¿Puedo compartir mi código con alguien?
-
-**Respuesta:**
-El código de acceso es para una sola aventura. Puedes hacer la ruta en grupo con otras personas usando el mismo dispositivo, pero si otra persona quiere su propia experiencia independiente necesitará su propio código de acceso.
-
-**Imagen:** null
-
----
-
-*Total: 7 temas, 34 intenciones.*
-
-*Intenciones nuevas respecto a las 26 originales (pendientes de añadir a `TEMAS_AGRUPADOS`): `AUDIO_REPETIR`, `AUDIO_IDIOMA_CAMBIO`, `MAPA_OFFLINE`, `PROGRESO_PERDIDO`, `CODIGO_CADUCIDAD`, `RETO_CUANTOS`, `RETO_SALTAR`, `APP_INSTALAR`, `APP_MULTIPLES_DISPOSITIVOS`, `DURACION_ESTIMADA`, `COMPARTIR_CODIGO`.*
-
-*`GPS_BAJA_PRECISION` (26 originales) se retira del catálogo: la precisión GPS ya no bloquea nada ni muestra ningún aviso — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición».*
 
 ---
 
@@ -11613,7 +10982,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-0e5c5ebd8cee';
+const CACHE_VERSION = 'v-ed1f249ed1e3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
