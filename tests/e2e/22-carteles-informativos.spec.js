@@ -1,26 +1,33 @@
 /**
  * 22-carteles-informativos.spec.js
  *
- * Prueba de humo end-to-end para los tres carteles no bloqueantes que avisan al
- * usuario en los momentos que antes eran silenciosos (solo cambios de opacidad/color
- * de botones, sin ningún mensaje) — ver docs/GUIA-COMPLETA.md §4.7g/§4.7h/§4.7i.
+ * Prueba de humo end-to-end para los cinco carteles no bloqueantes que avisan al
+ * usuario en cada transición de la aventura — ver docs/GUIA-COMPLETA.md §4.7g-k.
  *
- *   CI-1  Cartel de transición (§4.7g, ya existente): al completar una parada/tramo,
- *         incluye ahora el icono de #btn-avanzar (fotoruta-A-B.png) y la frase
- *         "Pulse el botón avanzar, por favor." (TRADUCCIONES_CARTEL_TRANSICION.pulseAvanzar).
- *   CI-2  Cartel de inicio de tramo (§4.7h, nuevo): al confirmar por GPS (ventana
- *         deslizante) que el usuario está a ≤20m de .inicio de un tramo, aparece
- *         #cartel-inicio-tramo con el icono de audio y menciona la línea azul —
- *         nunca el de avanzar (el botón no tiene nada nuevo que hacer en ese momento).
- *   CI-3  Cartel de llegada a parada (§4.7i, nuevo): al registrarse pending.llegada=true
- *         por primera vez para una PARADA, aparece #cartel-llegada-parada con el icono
- *         de audio — nunca para un tramo (su aviso de audio vive en CI-2, al principio).
- *   CI-4  Vibración (§4.7j, nuevo): al mostrarse cualquiera de los 3 carteles,
- *         navigator.vibrate() se llama exactamente una vez con 200ms — única señal que
- *         llega igual si el usuario no está mirando la pantalla en ese instante.
- *   CI-5  Sin navigator.vibrate (navegadores de escritorio, Safari/iOS), el cartel se
- *         muestra igual sin lanzar ningún error — _vibrarCartel() comprueba soporte
- *         antes de llamar.
+ *   CI-1  Cartel de transición (parada→parada, o última parada de la aventura):
+ *         "Ha terminado X[, va a empezar Y]. Pulse avanzar y play" — dos iconos
+ *         (avanzar + audio), disparado desde marcarParadaCompletada().
+ *   CI-2  Cartel de inicio de tramo, variante parada→tramo: antepone "Ha terminado la
+ *         parada X — va a empezar el tramo Y." al mismo mensaje de línea azul —
+ *         reutiliza terminaParada/empiezaTramo de TRADUCCIONES_CARTEL_TRANSICION.
+ *   CI-2b Cartel de inicio de tramo, variante tramo→tramo: mismo mecanismo con
+ *         terminaTramo/empiezaTramo — "Ha terminado el tramo X — va a empezar el
+ *         tramo Y." + línea azul. Ambas variantes nombran siempre los dos elementos,
+ *         no duplican cadenas nuevas en 12 idiomas.
+ *   CI-3  Cartel de llegada (tramo→parada, o el punto de inicio de la aventura):
+ *         "Ha llegado a la parada X. Pulse avanzar y play" — dos iconos.
+ *   CI-4  Cartel de bienvenida de vuelta (tramo): tras alejarse de un tramo ya
+ *         iniciado y volver — menciona la línea azul, sin repetir "ha terminado".
+ *   CI-5  Cartel de bienvenida de vuelta (parada): tras alejarse de una parada activa
+ *         y volver — sin mención a la línea azul.
+ *   CI-6  Rama real de marcarParadaCompletada(): al completar una parada seguida de
+ *         un tramo, dispara el cartel de inicio de tramo (CI-2), NUNCA el de
+ *         transición genérico (CI-1) — la comprobación de que la bifurcación de 4
+ *         vías no confunde "sigue un tramo" con "sigue una parada".
+ *   CI-7  Vibración: al mostrarse cualquiera de los 5 carteles, navigator.vibrate()
+ *         se llama exactamente una vez con 200ms.
+ *   CI-8  Sin navigator.vibrate (Safari/escritorio), el cartel se muestra igual sin
+ *         lanzar error.
  */
 'use strict';
 
@@ -29,8 +36,6 @@ const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
-const PARADA = { id: 'Av1-P-1', lat: 39.47959, lng: -0.37583 };
-const TRAMO = { id: 'Av1-TR-1', inicio: { lat: 39.47876, lng: -0.37626 } };
 
 async function cargarHijo2Real(page) {
   return page.evaluate(async () => {
@@ -72,100 +77,148 @@ test.describe('CI — Carteles informativos no bloqueantes', () => {
     await gotoAndWaitForFase1(page);
   });
 
-  test('CI-1. Cartel de transición incluye icono avanzar + "Pulse el botón avanzar"', async ({ page }) => {
+  test('CI-1. Cartel de transición: dos iconos (avanzar + audio) y texto en minúscula tras "Por favor,"', async ({ page }) => {
     await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function', null, { timeout: 15000 });
     await page.evaluate(() => {
-      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'tramo', 'Plaza de la Crida');
+      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'parada', 'Plaza de la Crida');
     });
     await page.waitForTimeout(400);
 
     const info = await page.evaluate(() => {
       const el = document.getElementById('cartel-transicion');
-      const img = el?.querySelector('img');
-      return { existe: !!el, texto: el?.textContent || '', imgSrc: img?.getAttribute('src') || null, imgLoaded: img ? img.complete && img.naturalWidth > 0 : false };
+      const imgs = el ? [...el.querySelectorAll('img')].map(i => i.getAttribute('src')) : [];
+      return { existe: !!el, texto: el?.textContent || '', imgs };
     });
     expect(info.existe).toBe(true);
-    expect(info.texto).toContain('Pulse el botón avanzar');
-    expect(info.imgSrc).toContain('fotoruta-A-B.png');
-    expect(info.imgLoaded, 'El icono de avanzar debe cargar').toBe(true);
+    expect(info.texto).toContain('pulse el botón avanzar');
+    expect(info.texto).toContain('pulse play');
+    expect(info.imgs.some(s => s.includes('fotoruta-A-B.png'))).toBe(true);
+    expect(info.imgs.some(s => s.includes('boton-audio-central.png'))).toBe(true);
   });
 
-  test('CI-2. Cartel de inicio de tramo aparece con GPS real (ventana deslizante) y menciona la línea azul', async ({ page }) => {
-    await cargarHijo2Real(page);
-    await page.waitForTimeout(1200);
-    const prep = await prepararComun(page);
-    test.skip(!prep.tieneFunciones, `Precondición no disponible: ${JSON.stringify(prep)}`);
-
-    await page.evaluate(() => {
-      const fm = globalThis.funcionesMapa;
-      fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
-      fm.limpiarPorEstado({ modo: 'aventura', paradaActual: 'Av1-TR-1' });
-    });
-
-    for (let i = 0; i < 2; i++) {
-      await page.evaluate(async (c) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({ coords: { latitude: c.lat, longitude: c.lng, accuracy: 8 } });
-      }, TRAMO.inicio);
-      await page.waitForTimeout(300);
-    }
+  test('CI-2. Cartel de inicio de tramo (parada→tramo): nombra la parada y el tramo, menciona la línea azul, dos iconos', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelInicioTramo === 'function', null, { timeout: 15000 });
+    await page.evaluate(() => { globalThis.mostrarCartelInicioTramo('parada', 'Torres de Serranos', 'Jardín del Turia'); });
     await page.waitForTimeout(400);
 
     const info = await page.evaluate(() => {
       const el = document.getElementById('cartel-inicio-tramo');
-      const img = el?.querySelector('img');
-      return { existe: !!el, texto: el?.textContent || '', imgSrc: img?.getAttribute('src') || null };
+      const imgs = el ? [...el.querySelectorAll('img')].map(i => i.getAttribute('src')) : [];
+      return { existe: !!el, texto: el?.textContent || '', imgs };
     });
-    expect(info.existe, 'Debe aparecer al confirmar GPS en .inicio del tramo').toBe(true);
+    expect(info.existe).toBe(true);
+    expect(info.texto).toContain('Ha terminado la parada Torres de Serranos');
+    expect(info.texto).toContain('va a empezar el tramo Jardín del Turia');
     expect(info.texto).toContain('línea azul');
-    expect(info.texto).not.toContain('avanzar');
-    expect(info.imgSrc).toContain('boton-audio-central.png');
+    expect(info.texto).toContain('avanzar');
+    expect(info.imgs.some(s => s.includes('fotoruta-A-B.png'))).toBe(true);
+    expect(info.imgs.some(s => s.includes('boton-audio-central.png'))).toBe(true);
   });
 
-  test('CI-3. Cartel de llegada a parada aparece con GPS real, nunca para un tramo', async ({ page }) => {
+  test('CI-2b. Cartel de inicio de tramo (tramo→tramo): nombra los dos tramos, mismo aviso de línea azul', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelInicioTramo === 'function', null, { timeout: 15000 });
+    await page.evaluate(() => { globalThis.mostrarCartelInicioTramo('tramo', 'Jardín del Turia', 'Paseo de la Alameda'); });
+    await page.waitForTimeout(400);
+
+    const info = await page.evaluate(() => {
+      const el = document.getElementById('cartel-inicio-tramo');
+      const imgs = el ? [...el.querySelectorAll('img')].map(i => i.getAttribute('src')) : [];
+      return { existe: !!el, texto: el?.textContent || '', imgs };
+    });
+    expect(info.existe).toBe(true);
+    expect(info.texto).toContain('Ha terminado el tramo Jardín del Turia');
+    expect(info.texto).toContain('va a empezar el tramo Paseo de la Alameda');
+    expect(info.texto).toContain('línea azul');
+    expect(info.texto).toContain('avanzar');
+    expect(info.imgs.some(s => s.includes('fotoruta-A-B.png'))).toBe(true);
+    expect(info.imgs.some(s => s.includes('boton-audio-central.png'))).toBe(true);
+  });
+
+  test('CI-3. Cartel de llegada: incluye el nombre de la parada, avanzar y play, dos iconos', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelLlegadaParada === 'function', null, { timeout: 15000 });
+    await page.evaluate(() => { globalThis.mostrarCartelLlegadaParada('Plaza de la Virgen'); });
+    await page.waitForTimeout(400);
+
+    const info = await page.evaluate(() => {
+      const el = document.getElementById('cartel-llegada-parada');
+      const imgs = el ? [...el.querySelectorAll('img')].map(i => i.getAttribute('src')) : [];
+      return { existe: !!el, texto: el?.textContent || '', imgs };
+    });
+    expect(info.existe).toBe(true);
+    expect(info.texto).toContain('Plaza de la Virgen');
+    expect(info.texto).toContain('avanzar');
+    expect(info.texto).toContain('play');
+    expect(info.imgs.some(s => s.includes('fotoruta-A-B.png'))).toBe(true);
+    expect(info.imgs.some(s => s.includes('boton-audio-central.png'))).toBe(true);
+  });
+
+  test('CI-4. Cartel de bienvenida de vuelta (tramo): menciona la línea azul', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelBienvenidaTramo === 'function', null, { timeout: 15000 });
+    await page.evaluate(() => { globalThis.mostrarCartelBienvenidaTramo(); });
+    await page.waitForTimeout(400);
+
+    const info = await page.evaluate(() => {
+      const el = document.getElementById('cartel-bienvenida-tramo');
+      return { existe: !!el, texto: el?.textContent || '' };
+    });
+    expect(info.existe).toBe(true);
+    expect(info.texto).toContain('línea azul');
+  });
+
+  test('CI-5. Cartel de bienvenida de vuelta (parada): sin mención a la línea azul', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelBienvenidaParada === 'function', null, { timeout: 15000 });
+    await page.evaluate(() => { globalThis.mostrarCartelBienvenidaParada('Torres de Serranos'); });
+    await page.waitForTimeout(400);
+
+    const info = await page.evaluate(() => {
+      const el = document.getElementById('cartel-bienvenida-parada');
+      return { existe: !!el, texto: el?.textContent || '' };
+    });
+    expect(info.existe).toBe(true);
+    expect(info.texto).not.toContain('línea azul');
+  });
+
+  test('CI-6. marcarParadaCompletada(): parada→tramo dispara el cartel de inicio de tramo, nunca el de transición genérico', async ({ page }) => {
     await cargarHijo2Real(page);
     await page.waitForTimeout(1200);
     const prep = await prepararComun(page);
     test.skip(!prep.tieneFunciones, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    await page.evaluate((parada) => {
-      const fm = globalThis.funcionesMapa;
-      fm.limpiarPorEstado({ modo: 'aventura', resetCompleto: true });
-      fm.limpiarPorEstado({ modo: 'aventura', paradaActual: parada.id });
-      const elementos = globalThis.DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
-      const el = elementos?.find(e => e.parada_id === parada.id);
-      if (el && globalThis.estado) {
-        if (!globalThis.estado.modo) globalThis.estado.modo = {};
-        globalThis.estado.modo.actual = 'aventura';
-        globalThis.estado.elementoActual = el;
-        globalThis.estado.pendingCompleciones = {};
-      }
-    }, PARADA);
+    await page.waitForFunction(() => typeof globalThis.marcarParadaCompletada === 'function', null, { timeout: 15000 }).catch(() => {});
+    const disponible = await page.evaluate(() => typeof globalThis.marcarParadaCompletada === 'function');
+    test.skip(!disponible, 'marcarParadaCompletada no expuesta en globalThis en este entorno de test');
 
-    for (let i = 0; i < 2; i++) {
-      await page.evaluate(async (c) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({ coords: { latitude: c.lat, longitude: c.lng, accuracy: 8 } });
-      }, PARADA);
-      await page.waitForTimeout(400);
-    }
+    const disparado = await page.evaluate(async () => {
+      const elementos = globalThis.DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
+      const idxParada = elementos.findIndex(e => e.tipo === 'parada' || e.tipo === 'inicio');
+      const idxTramoDespues = elementos.findIndex((e, i) => i > idxParada && e.tipo === 'tramo');
+      if (idxParada === -1 || idxTramoDespues === -1) return { ok: false, motivo: 'no hay pareja parada→tramo en los datos de Aventura1' };
+      if (!globalThis.estado) return { ok: false, motivo: 'globalThis.estado no existe' };
+      if (!globalThis.estado.modo) globalThis.estado.modo = {};
+      globalThis.estado.modo.actual = 'aventura'; // marcarParadaCompletada solo dispara carteles fuera de modo CASA
+      globalThis.estado.indiceProgreso = idxParada;
+      globalThis.estado.retoActual = { id: null, disponible: false, cola: [], colaCompletados: new Set() }; // sin retos pendientes
+      const elParada = elementos[idxParada];
+      await globalThis.marcarParadaCompletada({ paradaId: elParada.parada_id || elParada.tramo_id, origen: 'test', causa: 'audio_reto' });
+      return { ok: true };
+    });
+    test.skip(!disparado.ok, `Precondición de datos no disponible: ${disparado.motivo}`);
     await page.waitForTimeout(400);
 
-    const info = await page.evaluate(() => {
-      const el = document.getElementById('cartel-llegada-parada');
-      const img = el?.querySelector('img');
-      const tramoCartel = document.getElementById('cartel-inicio-tramo');
-      return { existe: !!el, texto: el?.textContent || '', imgSrc: img?.getAttribute('src') || null, tramoCartelExiste: !!tramoCartel };
-    });
-    expect(info.existe, 'Debe aparecer al confirmar GPS de llegada a la parada').toBe(true);
-    expect(info.texto).toContain('pulse play');
-    expect(info.imgSrc).toContain('boton-audio-central.png');
-    expect(info.tramoCartelExiste, 'El cartel de inicio de tramo no debe dispararse para una parada').toBe(false);
+    const info = await page.evaluate(() => ({
+      inicioTramo: !!document.getElementById('cartel-inicio-tramo'),
+      transicion: !!document.getElementById('cartel-transicion'),
+    }));
+
+    expect(info.inicioTramo, 'Debe disparar el cartel de inicio de tramo').toBe(true);
+    expect(info.transicion, 'No debe disparar el cartel de transición genérico').toBe(false);
   });
 });
 
 // Describe aparte: el mock de navigator.vibrate debe inyectarse ANTES de que cargue
 // cualquier script del padre, así que no reutiliza el beforeEach general de arriba.
 test.describe('CI — Vibración al mostrar un cartel', () => {
-  test('CI-4. navigator.vibrate se llama exactamente una vez con 200ms', async ({ page }) => {
+  test('CI-7. navigator.vibrate se llama exactamente una vez con 200ms', async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await page.addInitScript(() => {
       window.__vibrateCalls = [];
@@ -181,7 +234,7 @@ test.describe('CI — Vibración al mostrar un cartel', () => {
 
     await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function', null, { timeout: 15000 });
     await page.evaluate(() => {
-      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'tramo', 'Plaza de la Crida');
+      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'parada', 'Plaza de la Crida');
     });
     await page.waitForTimeout(400);
 
@@ -190,7 +243,7 @@ test.describe('CI — Vibración al mostrar un cartel', () => {
     expect(calls[0]).toBe(200);
   });
 
-  test('CI-5. Sin navigator.vibrate (escritorio/Safari), el cartel se muestra igual sin lanzar error', async ({ page }) => {
+  test('CI-8. Sin navigator.vibrate (escritorio/Safari), el cartel se muestra igual sin lanzar error', async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await page.addInitScript(() => { delete navigator.vibrate; });
     await injectInitSpy(page);
@@ -203,7 +256,7 @@ test.describe('CI — Vibración al mostrar un cartel', () => {
 
     await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function', null, { timeout: 15000 });
     await page.evaluate(() => {
-      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'tramo', 'Plaza de la Crida');
+      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'parada', 'Plaza de la Crida');
     });
     await page.waitForTimeout(400);
 

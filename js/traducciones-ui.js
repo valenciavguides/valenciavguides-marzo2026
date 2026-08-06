@@ -416,48 +416,78 @@ export const TRADUCCIONES_FINALIZACION = {
 // cual viene en elementosIDpadre — los tramos ya incluyen su propia flecha ("A → B"), por eso
 // las frases de tramo no añaden "hacia" ni ninguna preposición de dirección redundante.
 export const TRADUCCIONES_CARTEL_TRANSICION = {
-    es: { terminaParada: 'Ha terminado la parada {nombre}', terminaTramo: 'Ha terminado el tramo {nombre}', empiezaParada: 'va a empezar la parada {nombre}', empiezaTramo: 'va a empezar el tramo {nombre}', pulseAvanzar: 'Pulse el botón avanzar, por favor.' },
-    en: { terminaParada: 'You have finished the stop {nombre}', terminaTramo: 'You have finished the segment {nombre}', empiezaParada: 'you are about to start the stop {nombre}', empiezaTramo: 'you are about to start the segment {nombre}', pulseAvanzar: 'Please press the next button.' },
-    fr: { terminaParada: "Vous avez terminé l'arrêt {nombre}", terminaTramo: 'Vous avez terminé le tronçon {nombre}', empiezaParada: "vous allez commencer l'arrêt {nombre}", empiezaTramo: 'vous allez commencer le tronçon {nombre}', pulseAvanzar: 'Veuillez appuyer sur le bouton suivant.' },
-    it: { terminaParada: 'Ha terminato la tappa {nombre}', terminaTramo: 'Ha terminato il tratto {nombre}', empiezaParada: 'sta per iniziare la tappa {nombre}', empiezaTramo: 'sta per iniziare il tratto {nombre}', pulseAvanzar: 'Prema il pulsante avanti, per favore.' },
-    nl: { terminaParada: 'U heeft de stop {nombre} voltooid', terminaTramo: 'U heeft het traject {nombre} voltooid', empiezaParada: 'u gaat beginnen aan de stop {nombre}', empiezaTramo: 'u gaat beginnen aan het traject {nombre}', pulseAvanzar: 'Druk alstublieft op de knop volgende.' },
-    de: { terminaParada: 'Sie haben die Station {nombre} abgeschlossen', terminaTramo: 'Sie haben den Abschnitt {nombre} abgeschlossen', empiezaParada: 'Sie beginnen gleich mit der Station {nombre}', empiezaTramo: 'Sie beginnen gleich mit dem Abschnitt {nombre}', pulseAvanzar: 'Bitte drücken Sie die Weiter-Taste.' },
-    ja: { terminaParada: '{nombre}の見学を終えました', terminaTramo: '{nombre}を歩き終えました', empiezaParada: '次は{nombre}です', empiezaTramo: '次は{nombre}を歩きます', pulseAvanzar: '「進む」ボタンを押してください。' },
-    zh: { terminaParada: '您已完成站点 {nombre}', terminaTramo: '您已完成路段 {nombre}', empiezaParada: '接下来将前往站点 {nombre}', empiezaTramo: '接下来将开始路段 {nombre}', pulseAvanzar: '请按下前进按钮。' },
-    pl: { terminaParada: 'Ukończono przystanek {nombre}', terminaTramo: 'Ukończono odcinek {nombre}', empiezaParada: 'następny przystanek: {nombre}', empiezaTramo: 'następny odcinek: {nombre}', pulseAvanzar: 'Proszę nacisnąć przycisk Dalej.' },
-    pt: { terminaParada: 'Você concluiu a parada {nombre}', terminaTramo: 'Você concluiu o trecho {nombre}', empiezaParada: 'você vai começar a parada {nombre}', empiezaTramo: 'você vai começar o trecho {nombre}', pulseAvanzar: 'Por favor, aperte o botão avançar.' },
-    ru: { terminaParada: 'Вы завершили остановку {nombre}', terminaTramo: 'Вы завершили участок {nombre}', empiezaParada: 'далее — остановка {nombre}', empiezaTramo: 'далее — участок {nombre}', pulseAvanzar: 'Пожалуйста, нажмите кнопку «Далее».' },
-    uk: { terminaParada: 'Ви завершили зупинку {nombre}', terminaTramo: 'Ви завершили ділянку {nombre}', empiezaParada: 'далі — зупинка {nombre}', empiezaTramo: 'далі — ділянка {nombre}', pulseAvanzar: 'Будь ласка, натисніть кнопку «Далі».' }
+    es: { terminaParada: 'Ha terminado la parada {nombre}', terminaTramo: 'Ha terminado el tramo {nombre}', empiezaParada: 'va a empezar la parada {nombre}', empiezaTramo: 'va a empezar el tramo {nombre}', instrucciones: 'Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura.' },
+    en: { terminaParada: 'You have finished the stop {nombre}', terminaTramo: 'You have finished the segment {nombre}', empiezaParada: 'you are about to start the stop {nombre}', empiezaTramo: 'you are about to start the segment {nombre}', instrucciones: 'Please press the next button and press play to listen to the audio related to your adventure.' },
+    fr: { terminaParada: "Vous avez terminé l'arrêt {nombre}", terminaTramo: 'Vous avez terminé le tronçon {nombre}', empiezaParada: "vous allez commencer l'arrêt {nombre}", empiezaTramo: 'vous allez commencer le tronçon {nombre}', instrucciones: "Veuillez appuyer sur le bouton suivant et sur lecture pour écouter l'audio lié à votre aventure." },
+    it: { terminaParada: 'Ha terminato la tappa {nombre}', terminaTramo: 'Ha terminato il tratto {nombre}', empiezaParada: 'sta per iniziare la tappa {nombre}', empiezaTramo: 'sta per iniziare il tratto {nombre}', instrucciones: "Prema il pulsante avanti e prema play per ascoltare l'audio relativo alla sua avventura." },
+    nl: { terminaParada: 'U heeft de stop {nombre} voltooid', terminaTramo: 'U heeft het traject {nombre} voltooid', empiezaParada: 'u gaat beginnen aan de stop {nombre}', empiezaTramo: 'u gaat beginnen aan het traject {nombre}', instrucciones: 'Druk op de knop volgende en op afspelen om de audio over uw avontuur te beluisteren.' },
+    de: { terminaParada: 'Sie haben die Station {nombre} abgeschlossen', terminaTramo: 'Sie haben den Abschnitt {nombre} abgeschlossen', empiezaParada: 'Sie beginnen gleich mit der Station {nombre}', empiezaTramo: 'Sie beginnen gleich mit dem Abschnitt {nombre}', instrucciones: 'Bitte drücken Sie die Weiter-Taste und auf Abspielen, um das Audio zu Ihrem Abenteuer zu hören.' },
+    ja: { terminaParada: '{nombre}の見学を終えました', terminaTramo: '{nombre}を歩き終えました', empiezaParada: '次は{nombre}です', empiezaTramo: '次は{nombre}を歩きます', instrucciones: '「進む」ボタンを押し、再生ボタンを押して、冒険に関連する音声をお聞きください。' },
+    zh: { terminaParada: '您已完成站点 {nombre}', terminaTramo: '您已完成路段 {nombre}', empiezaParada: '接下来将前往站点 {nombre}', empiezaTramo: '接下来将开始路段 {nombre}', instrucciones: '请按下前进按钮，并点击播放以收听与您的冒险相关的音频。' },
+    pl: { terminaParada: 'Ukończono przystanek {nombre}', terminaTramo: 'Ukończono odcinek {nombre}', empiezaParada: 'następny przystanek: {nombre}', empiezaTramo: 'następny odcinek: {nombre}', instrucciones: 'Proszę nacisnąć przycisk Dalej oraz przycisk odtwarzania, aby wysłuchać nagrania związanego z przygodą.' },
+    pt: { terminaParada: 'Você concluiu a parada {nombre}', terminaTramo: 'Você concluiu o trecho {nombre}', empiezaParada: 'você vai começar a parada {nombre}', empiezaTramo: 'você vai começar o trecho {nombre}', instrucciones: 'Por favor, aperte o botão avançar e aperte o play para ouvir o áudio relacionado à sua aventura.' },
+    ru: { terminaParada: 'Вы завершили остановку {nombre}', terminaTramo: 'Вы завершили участок {nombre}', empiezaParada: 'далее — остановка {nombre}', empiezaTramo: 'далее — участок {nombre}', instrucciones: 'Пожалуйста, нажмите кнопку «Далее» и нажмите play, чтобы прослушать аудио, связанное с вашим приключением.' },
+    uk: { terminaParada: 'Ви завершили зупинку {nombre}', terminaTramo: 'Ви завершили ділянку {nombre}', empiezaParada: 'далі — зупинка {nombre}', empiezaTramo: 'далі — ділянка {nombre}', instrucciones: 'Будь ласка, натисніть кнопку «Далі» та натисніть відтворити, щоб прослухати аудіо, пов\'язане з вашою пригодою.' }
 };
 
 export const TRADUCCIONES_INICIO_TRAMO = {
-    es: { mensaje: 'Ha llegado al inicio del tramo {nombre} — siga la línea azul en el mapa para llegar al próximo punto de interés de su aventura. Pulse play en el audio para escuchar la historia.' },
-    en: { mensaje: 'You have reached the start of the segment {nombre} — follow the blue line on the map to reach the next point of interest in your adventure. Press play on the audio to listen to the story.' },
-    fr: { mensaje: "Vous êtes arrivé au début du tronçon {nombre} — suivez la ligne bleue sur la carte pour atteindre le prochain point d'intérêt de votre aventure. Appuyez sur lecture pour écouter l'histoire." },
-    it: { mensaje: "È arrivato all'inizio del tratto {nombre} — segua la linea blu sulla mappa per raggiungere il prossimo punto d'interesse della sua avventura. Prema play sull'audio per ascoltare la storia." },
-    nl: { mensaje: 'U heeft het begin van het traject {nombre} bereikt — volg de blauwe lijn op de kaart om het volgende interessante punt van uw avontuur te bereiken. Druk op afspelen om het verhaal te beluisteren.' },
-    de: { mensaje: 'Sie haben den Anfang des Abschnitts {nombre} erreicht — folgen Sie der blauen Linie auf der Karte, um den nächsten Punkt Ihres Abenteuers zu erreichen. Drücken Sie auf Abspielen, um die Geschichte zu hören.' },
-    ja: { mensaje: '{nombre}の始まりに到着しました。地図の青い線に沿って進み、冒険の次の見どころへ向かいましょう。再生ボタンを押して物語をお聞きください。' },
-    zh: { mensaje: '您已到达路段{nombre}的起点——请沿地图上的蓝线前往您冒险中的下一个景点。点击播放即可收听故事。' },
-    pl: { mensaje: 'Dotarliście do początku odcinka {nombre} — podążajcie niebieską linią na mapie, aby dotrzeć do kolejnego punktu swojej przygody. Naciśnijcie odtwarzanie, aby wysłuchać historii.' },
-    pt: { mensaje: 'Você chegou ao início do trecho {nombre} — siga a linha azul no mapa para chegar ao próximo ponto de interesse da sua aventura. Aperte o play no áudio para ouvir a história.' },
-    ru: { mensaje: 'Вы дошли до начала участка {nombre} — следуйте по синей линии на карте, чтобы дойти до следующей точки вашего приключения. Нажмите play, чтобы прослушать историю.' },
-    uk: { mensaje: 'Ви дійшли до початку ділянки {nombre} — прямуйте синьою лінією на карті, щоб дійти до наступної точки вашої пригоди. Натисніть відтворити, щоб прослухати історію.' }
+    es: { mensaje: 'Por favor, pulse el botón avanzar, pulse play para escuchar el audio relacionado y siga la línea azul hasta el siguiente punto de interés en su aventura.' },
+    en: { mensaje: 'Please press the next button, press play to listen to the related audio, and follow the blue line to the next point of interest in your adventure.' },
+    fr: { mensaje: "Veuillez appuyer sur le bouton suivant, sur lecture pour écouter l'audio correspondant, et suivre la ligne bleue jusqu'au prochain point d'intérêt de votre aventure." },
+    it: { mensaje: "Prema il pulsante avanti, prema play per ascoltare l'audio relativo e segua la linea blu fino al prossimo punto d'interesse della sua avventura." },
+    nl: { mensaje: 'Druk op de knop volgende, druk op afspelen om de bijbehorende audio te beluisteren en volg de blauwe lijn naar het volgende interessante punt van uw avontuur.' },
+    de: { mensaje: 'Bitte drücken Sie die Weiter-Taste, drücken Sie auf Abspielen, um das zugehörige Audio zu hören, und folgen Sie der blauen Linie bis zum nächsten Punkt Ihres Abenteuers.' },
+    ja: { mensaje: '「進む」ボタンを押し、再生ボタンを押して関連する音声をお聞きになり、地図の青い線に沿って冒険の次の見どころへ向かってください。' },
+    zh: { mensaje: '请按下前进按钮，点击播放以收听相关音频，并沿蓝线前往您冒险中的下一个景点。' },
+    pl: { mensaje: 'Proszę nacisnąć przycisk Dalej, nacisnąć odtwarzanie, aby wysłuchać powiązanego nagrania, i podążać niebieską linią do kolejnego punktu swojej przygody.' },
+    pt: { mensaje: 'Por favor, aperte o botão avançar, aperte o play para ouvir o áudio relacionado e siga a linha azul até o próximo ponto de interesse da sua aventura.' },
+    ru: { mensaje: 'Пожалуйста, нажмите кнопку «Далее», нажмите play, чтобы прослушать соответствующее аудио, и следуйте по синей линии до следующей точки вашего приключения.' },
+    uk: { mensaje: 'Будь ласка, натисніть кнопку «Далі», натисніть відтворити, щоб прослухати відповідне аудіо, і прямуйте синьою лінією до наступної точки вашої пригоди.' }
 };
 
 export const TRADUCCIONES_LLEGADA_PARADA = {
-    es: { mensaje: 'Ha llegado a la parada {nombre} — pulse play en el audio para escuchar la historia.' },
-    en: { mensaje: 'You have arrived at the stop {nombre} — press play on the audio to listen to the story.' },
-    fr: { mensaje: "Vous êtes arrivé à l'arrêt {nombre} — appuyez sur lecture pour écouter l'histoire." },
-    it: { mensaje: 'È arrivato alla tappa {nombre} — prema play sull\'audio per ascoltare la storia.' },
-    nl: { mensaje: 'U bent aangekomen bij de stop {nombre} — druk op afspelen om het verhaal te beluisteren.' },
-    de: { mensaje: 'Sie sind an der Station {nombre} angekommen — drücken Sie auf Abspielen, um die Geschichte zu hören.' },
-    ja: { mensaje: '{nombre}に到着しました。再生ボタンを押して物語をお聞きください。' },
-    zh: { mensaje: '您已到达站点{nombre}——点击播放即可收听故事。' },
-    pl: { mensaje: 'Dotarliście do przystanku {nombre} — naciśnijcie odtwarzanie, aby wysłuchać historii.' },
-    pt: { mensaje: 'Você chegou à parada {nombre} — aperte o play no áudio para ouvir a história.' },
-    ru: { mensaje: 'Вы прибыли на остановку {nombre} — нажмите play, чтобы прослушать историю.' },
-    uk: { mensaje: 'Ви прибули на зупинку {nombre} — натисніть відтворити, щоб прослухати історію.' }
+    es: { mensaje: 'Ha llegado a la parada {nombre}. Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura.' },
+    en: { mensaje: 'You have arrived at the stop {nombre}. Please press the next button and press play to listen to the audio related to your adventure.' },
+    fr: { mensaje: "Vous êtes arrivé à l'arrêt {nombre}. Veuillez appuyer sur le bouton suivant et sur lecture pour écouter l'audio lié à votre aventure." },
+    it: { mensaje: "È arrivato alla tappa {nombre}. Prema il pulsante avanti e prema play per ascoltare l'audio relativo alla sua avventura." },
+    nl: { mensaje: 'U bent aangekomen bij de stop {nombre}. Druk op de knop volgende en op afspelen om de audio over uw avontuur te beluisteren.' },
+    de: { mensaje: 'Sie sind an der Station {nombre} angekommen. Bitte drücken Sie die Weiter-Taste und auf Abspielen, um das Audio zu Ihrem Abenteuer zu hören.' },
+    ja: { mensaje: '{nombre}に到着しました。「進む」ボタンを押し、再生ボタンを押して、冒険に関連する音声をお聞きください。' },
+    zh: { mensaje: '您已到达站点{nombre}。请按下前进按钮，并点击播放以收听与您的冒险相关的音频。' },
+    pl: { mensaje: 'Dotarliście do przystanku {nombre}. Proszę nacisnąć przycisk Dalej oraz przycisk odtwarzania, aby wysłuchać nagrania związanego z przygodą.' },
+    pt: { mensaje: 'Você chegou à parada {nombre}. Por favor, aperte o botão avançar e aperte o play para ouvir o áudio relacionado à sua aventura.' },
+    ru: { mensaje: 'Вы прибыли на остановку {nombre}. Пожалуйста, нажмите кнопку «Далее» и нажмите play, чтобы прослушать аудио, связанное с вашим приключением.' },
+    uk: { mensaje: 'Ви прибули на зупинку {nombre}. Будь ласка, натисніть кнопку «Далі» та натисніть відтворити, щоб прослухати аудіо, пов\'язане з вашою пригодою.' }
+};
+
+export const TRADUCCIONES_BIENVENIDA_TRAMO = {
+    es: { mensaje: 'Ha vuelto al camino. Por favor, pulse el botón avanzar, pulse play para escuchar el audio relacionado y siga la línea azul hasta el siguiente punto de interés en su aventura.' },
+    en: { mensaje: 'You are back on the path. Please press the next button, press play to listen to the related audio, and follow the blue line to the next point of interest in your adventure.' },
+    fr: { mensaje: "Vous êtes de retour sur le chemin. Veuillez appuyer sur le bouton suivant, sur lecture pour écouter l'audio correspondant, et suivre la ligne bleue jusqu'au prochain point d'intérêt de votre aventure." },
+    it: { mensaje: "È tornato sul percorso. Prema il pulsante avanti, prema play per ascoltare l'audio relativo e segua la linea blu fino al prossimo punto d'interesse della sua avventura." },
+    nl: { mensaje: 'U bent terug op het pad. Druk op de knop volgende, druk op afspelen om de bijbehorende audio te beluisteren en volg de blauwe lijn naar het volgende interessante punt van uw avontuur.' },
+    de: { mensaje: 'Sie sind zurück auf dem Weg. Bitte drücken Sie die Weiter-Taste, drücken Sie auf Abspielen, um das zugehörige Audio zu hören, und folgen Sie der blauen Linie bis zum nächsten Punkt Ihres Abenteuers.' },
+    ja: { mensaje: '道に戻りました。「進む」ボタンを押し、再生ボタンを押して関連する音声をお聞きになり、地図の青い線に沿って冒険の次の見どころへ向かってください。' },
+    zh: { mensaje: '您已回到路线上。请按下前进按钮，点击播放以收听相关音频，并沿蓝线前往您冒险中的下一个景点。' },
+    pl: { mensaje: 'Wróciliście na trasę. Proszę nacisnąć przycisk Dalej, nacisnąć odtwarzanie, aby wysłuchać powiązanego nagrania, i podążać niebieską linią do kolejnego punktu swojej przygody.' },
+    pt: { mensaje: 'Você voltou ao caminho. Por favor, aperte o botão avançar, aperte o play para ouvir o áudio relacionado e siga a linha azul até o próximo ponto de interesse da sua aventura.' },
+    ru: { mensaje: 'Вы снова на маршруте. Пожалуйста, нажмите кнопку «Далее», нажмите play, чтобы прослушать соответствующее аудио, и следуйте по синей линии до следующей точки вашего приключения.' },
+    uk: { mensaje: 'Ви знову на маршруті. Будь ласка, натисніть кнопку «Далі», натисніть відтворити, щоб прослухати відповідне аудіо, і прямуйте синьою лінією до наступної точки вашої пригоди.' }
+};
+
+export const TRADUCCIONES_BIENVENIDA_PARADA = {
+    es: { mensaje: 'Ha vuelto a su aventura. Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado y continuar su caza del tesoro.' },
+    en: { mensaje: 'You are back in your adventure. Please press the next button and press play to listen to the related audio and continue your treasure hunt.' },
+    fr: { mensaje: "Vous êtes de retour dans votre aventure. Veuillez appuyer sur le bouton suivant et sur lecture pour écouter l'audio correspondant et poursuivre votre chasse au trésor." },
+    it: { mensaje: 'È tornato nella sua avventura. Prema il pulsante avanti e prema play per ascoltare l\'audio relativo e continuare la sua caccia al tesoro.' },
+    nl: { mensaje: 'U bent terug in uw avontuur. Druk op de knop volgende en op afspelen om de bijbehorende audio te beluisteren en uw schattenjacht voort te zetten.' },
+    de: { mensaje: 'Sie sind zurück in Ihrem Abenteuer. Bitte drücken Sie die Weiter-Taste und auf Abspielen, um das zugehörige Audio zu hören und Ihre Schatzsuche fortzusetzen.' },
+    ja: { mensaje: '冒険に戻りました。「進む」ボタンを押し、再生ボタンを押して関連する音声をお聞きになり、宝探しを続けてください。' },
+    zh: { mensaje: '您已回到冒险中。请按下前进按钮，点击播放以收听相关音频，继续您的寻宝之旅。' },
+    pl: { mensaje: 'Wróciliście do swojej przygody. Proszę nacisnąć przycisk Dalej oraz przycisk odtwarzania, aby wysłuchać powiązanego nagrania i kontynuować polowanie na skarb.' },
+    pt: { mensaje: 'Você voltou à sua aventura. Por favor, aperte o botão avançar e aperte o play para ouvir o áudio relacionado e continuar sua caça ao tesouro.' },
+    ru: { mensaje: 'Вы снова в своём приключении. Пожалуйста, нажмите кнопку «Далее» и нажмите play, чтобы прослушать соответствующее аудио и продолжить охоту за сокровищами.' },
+    uk: { mensaje: 'Ви знову у своїй пригоді. Будь ласка, натисніть кнопку «Далі» та натисніть відтворити, щоб прослухати відповідне аудіо та продовжити полювання за скарбом.' }
 };
 
 export const TRADUCCIONES_TIEMPO_AGOTADO = {

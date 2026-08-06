@@ -722,6 +722,17 @@
     // que cumpla sus 3s; si no, pisaría en silencio el estado visual del reto siguiente.
     let _timeoutResetBtnEnviar = null;
 
+    // Datos de RETO.COMPLETADO pendientes de enviar al padre — se rellena en cuanto la
+    // respuesta es correcta (verificar()) o el puzzle avisa que terminó (listener de
+    // 'message' más abajo), pero el envío real se retrasa hasta que el usuario pulsa el
+    // botón verde (btnNext/btnPuzzleContinuar). Antes se enviaba en el mismo instante en
+    // que la respuesta se verificaba correcta — el padre marcaba pending.reto=true (y podía
+    // completar la parada/disparar su cartel de transición) mientras la ventana del reto
+    // seguía abierta en pantalla, antes de que el usuario hubiera confirmado nada pulsando
+    // el botón. Pulsar el botón verde es la señal real de "he terminado de verdad este
+    // reto", así que es ahí donde debe dispararse el mensaje al padre, no antes.
+    let _pendienteCompletado = null;
+
 
     /**
      * Función: ocultarControles()
@@ -910,6 +921,10 @@
             // cancelarlo aquí, dispararía más tarde y pisaría en silencio el estado visual
             // de btnEnviar de este reto nuevo.
             if (_timeoutResetBtnEnviar) { clearTimeout(_timeoutResetBtnEnviar); _timeoutResetBtnEnviar = null; }
+            // Igual con una compleción pendiente sin confirmar del reto anterior (el
+            // usuario nunca pulsó el botón verde y llegó otro reto por otra vía) — no debe
+            // colarse como si perteneciera a este reto nuevo.
+            _pendienteCompletado = null;
 
             // Los botones están siempre visibles, pero btnNext está deshabilitado hasta respuesta correcta
             if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#B22222"; }
@@ -1100,39 +1115,15 @@
                 estadoRetos.estadisticas.aciertosConsecutivos++;
 
                 logger.info(`[hijo4] Reto completado: ${reto.id}. Progreso: ${estadoRetos.progreso.completados}/${estadoRetos.progreso.total}`);
-                logger.info(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${reto.id}. Enviando al padre...`);
+                logger.info(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${reto.id}. Pendiente de confirmación con el botón verde.`);
 
-                try {
-                    // Usar enviarMensajeConConfirmacion si está disponible, sino fallback a enviarMensaje
-                    if (typeof enviarMensajeConConfirmacion === 'function') {
-                        await enviarMensajeConConfirmacion({
-                            tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: resolverIdPadre(),
-                            datos: {
-                                retoId: reto.id,
-                                correcto: true,
-                                progreso: estadoRetos.progreso
-                            }
-                        });
-                        logger.info(`[FLUJO-RETO] [HIJO4] ✅ Confirmación recibida del padre para reto ${reto.id}`);
-                    } else {
-                        enviarMensaje({
-                            tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
-                            origen: CONFIG_HIJO.IFRAME_ID,
-                            destino: resolverIdPadre(),
-                            datos: {
-                                retoId: reto.id,
-                                correcto: true,
-                                progreso: estadoRetos.progreso
-                            }
-                        });
-                        logger.info(`[FLUJO-RETO] [HIJO4] ⚠️ Enviado sin confirmación (función no disponible) para reto ${reto.id}`);
-                    }
-                } catch (e) {
-                    logger.error(`[FLUJO-RETO] [HIJO4] ❌ Error enviando/confirmando reto completado:`, e);
-                    // No bloqueamos el flujo local, el usuario ya ganó visualmente
-                }
+                // El envío real a RETO.COMPLETADO ocurre al pulsar btnNext (más abajo) — no
+                // aquí. Guardamos los datos para ese momento.
+                _pendienteCompletado = {
+                    retoId: reto.id,
+                    correcto: true,
+                    progreso: estadoRetos.progreso
+                };
             } else {
                 retoDiv.classList.add("incorrect");
                 vibrar();
@@ -1171,7 +1162,35 @@
            Envía mensaje al padre para cerrar la ventana del reto.
         */
         if (btnNext) {
-            btnNext.addEventListener("click", () => {
+            btnNext.addEventListener("click", async () => {
+            // Si hay una compleción pendiente (respuesta ya verificada correcta, ver
+            // verificar()), es AHORA cuando se confirma al padre — no antes.
+            if (_pendienteCompletado) {
+                const datosCompletado = _pendienteCompletado;
+                _pendienteCompletado = null;
+                try {
+                    if (typeof enviarMensajeConConfirmacion === 'function') {
+                        await enviarMensajeConConfirmacion({
+                            tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            destino: resolverIdPadre(),
+                            datos: datosCompletado
+                        });
+                        logger.info(`[FLUJO-RETO] [HIJO4] ✅ Confirmación recibida del padre para reto ${datosCompletado.retoId}`);
+                    } else {
+                        await enviarMensaje({
+                            tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            destino: resolverIdPadre(),
+                            datos: datosCompletado
+                        });
+                        logger.info(`[FLUJO-RETO] [HIJO4] ⚠️ Enviado sin confirmación (función no disponible) para reto ${datosCompletado.retoId}`);
+                    }
+                } catch (e) {
+                    logger.error(`[FLUJO-RETO] [HIJO4] ❌ Error enviando/confirmando reto completado:`, e);
+                    // No bloqueamos el cierre de la ventana, el usuario ya ganó visualmente
+                }
+            }
             // Enviar mensaje al padre para cerrar la ventana
             enviarMensaje({
                 tipo: TIPOS_MENSAJE.RETO.OCULTAR,
@@ -1194,7 +1213,24 @@
         // Botón continuar puzzle (dentro del iframe, solo en puzzle-mode)
         const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
         if (btnPuzzleContinuar) {
-            btnPuzzleContinuar.addEventListener("click", () => {
+            btnPuzzleContinuar.addEventListener("click", async () => {
+                // Misma lógica que btnNext: la compleción pendiente (puzzle terminado o
+                // expirado, ver el listener de 'message' más abajo) se confirma al padre
+                // AHORA, al pulsar el botón verde — no cuando el puzzle avisó que terminó.
+                if (_pendienteCompletado) {
+                    const datosCompletado = _pendienteCompletado;
+                    _pendienteCompletado = null;
+                    try {
+                        await enviarMensaje({
+                            tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
+                            origen: CONFIG_HIJO.IFRAME_ID,
+                            destino: resolverIdPadre(),
+                            datos: datosCompletado
+                        });
+                    } catch (e) {
+                        logger.error(`[FLUJO-RETO] [HIJO4] ❌ Error enviando reto completado (puzzle):`, e);
+                    }
+                }
                 enviarMensaje({
                     tipo: TIPOS_MENSAJE.RETO.OCULTAR,
                     origen: CONFIG_HIJO.IFRAME_ID,
@@ -1224,16 +1260,11 @@
                 retoDiv.classList.add("correct");
                 retoDiv.classList.remove("incorrect");
                 fuegosArtificiales();
-                // Enviar mensaje de completado para puzzles
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: resolverIdPadre(),
-                    datos: {
-                        retoId: retoActual.id,
-                        completado: true
-                    }
-                });
+                // El envío real a RETO.COMPLETADO ocurre al pulsar btn-puzzle-continuar (más
+                // abajo), no aquí — mismo motivo que en verificar(): la ventana del puzzle
+                // sigue abierta en pantalla en este instante, el usuario aún no ha confirmado
+                // nada pulsando el botón verde.
+                _pendienteCompletado = { retoId: retoActual.id, completado: true };
                 // Mostrar botón continuar dentro del puzzle
                 const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
                 if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
@@ -1242,12 +1273,7 @@
                 retoDiv.classList.add("incorrect");
                 retoDiv.classList.remove("correct");
                 vibrar();
-                await enviarMensaje({
-                    tipo: TIPOS_MENSAJE.RETO.COMPLETADO,
-                    origen: CONFIG_HIJO.IFRAME_ID,
-                    destino: resolverIdPadre(),
-                    datos: { retoId: retoActual.id, completado: true }
-                });
+                _pendienteCompletado = { retoId: retoActual.id, completado: true };
                 const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
                 if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
             }

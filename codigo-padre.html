@@ -251,7 +251,6 @@
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: transparent; }
         iframe { background: transparent; border: none; }
         #mapa { position: fixed; top: 0; left: 0; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; z-index: 500; background-color: #e0f7fa; /* Azul claro para ver si está visible antes de cargar tiles */ }
-        .user-direction-arrow { pointer-events: none; }
         #map-debug { position: fixed; top: 0.625rem; left: 0.625rem; background: rgba(255, 255, 255, 0.9); padding: 0.3125rem 0.5rem; border-radius: 0.3125rem; z-index: 5000; font-size: 0.75rem; font-family: monospace; display: none; transition: opacity 0.5s; }
 
         /* Logo styling with exact positioning (responsive) */
@@ -1292,6 +1291,41 @@
             }
         }
 
+        /* ── Botón de recentrar cámara ── */
+        /* Hueco entre el borde izquierdo y #logo-aventura (88vw centrado ⇒ 6vw libres a
+           cada lado) — más pequeño que el resto de botones (clamp 29-43px) a propósito,
+           es un botón de acción, no de información, y el hueco disponible es estrecho. */
+        #btn-recentrar {
+            position: fixed;
+            left: 1vw;
+            top: calc(0.25rem + 5.25vh);
+            transform: translateY(-50%);
+            width: clamp(20px, 5.2vw, 28px);
+            height: clamp(20px, 5.2vw, 28px);
+            z-index: 3500; /* por encima de #logo-aventura (3000), por debajo de #hijo5 (1000000) */
+            display: none;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            font-size: clamp(11px, 3vw, 16px);
+            line-height: clamp(20px, 5.2vw, 28px); /* = height — centra el glifo vertical con display:block, que es lo que fuerza _mostrarUIActivada() vía estilo inline */
+            text-align: center;
+            padding: 0;
+            cursor: pointer;
+            touch-action: manipulation;
+            pointer-events: auto;
+            transition: transform 0.3s ease;
+        }
+        #btn-recentrar:active {
+            transform: translateY(-50%) scale(0.9);
+        }
+        @media (hover: hover) {
+            #btn-recentrar:hover {
+                transform: translateY(-50%) scale(1.08);
+            }
+        }
+
         /* ── Control de audio desplegable (reemplaza play local de hijo3) ── */
         fieldset#audio-control-overlay {
             border: none;
@@ -1603,6 +1637,18 @@
                 globalThis.addEventListener('message', function(ev) {
                     if (ev.origin !== globalThis.location.origin) return;
                     if (ev.data && (ev.data.tipo === (globalThis.TIPOS_MENSAJE?.CHAT?.CERRAR || 'CHAT.CERRAR'))) cerrarChat();
+                });
+            })();
+
+            // 6. Botón de recentrar cámara — retoma el seguimiento automático (funciones-mapa.js)
+            // pausado tras un arrastre manual del mapa, y centra de inmediato sobre la posición actual.
+            (function() {
+                const btnRecentrar = document.getElementById('btn-recentrar');
+                if (!btnRecentrar) return;
+                btnRecentrar.addEventListener('click', () => {
+                    try {
+                        globalThis.funcionesMapa?.reactivarSeguimientoCamara?.();
+                    } catch (e) { (globalThis.logger || console).debug('[PADRE] Error reactivando seguimiento de cámara', e && e.message); }
                 });
             })();
 
@@ -2552,6 +2598,12 @@
       <img src="imagenes/imagenes-aplicación/fotochat-boton.png" alt="Chat soporte"
            style="width:100%; height:100%; object-fit:cover; display:block; border-radius:0.75rem 0 0 0.75rem; pointer-events:none;">
     </button>
+
+    <!-- Botón de recentrar cámara — retoma el seguimiento automático sobre la posición
+         del usuario tras pausarse por un arrastre manual del mapa -->
+    <button type="button" id="btn-recentrar"
+        title="Centrar mapa en mi posición"
+        aria-label="Centrar mapa en mi posición">&#9678;</button>
 
     <!-- Overlay del chat de soporte (hijo6) — carga lazy al primer uso -->
     <iframe id="hijo6-chat" name="hijo6-chat" src=""
@@ -4160,7 +4212,7 @@
         // llegar ya visibles: de una aventura realmente activa (mostrarDialogoVueltaRapida)
         // o de una restauración de bfcache del navegador al reabrir la pestaña.
         function _ocultarUIActivada() {
-            const idsAOcultar = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
+            const idsAOcultar = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte', 'btn-recentrar'];
             for (const id of idsAOcultar) {
                 const el = document.getElementById(id);
                 if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
@@ -4491,7 +4543,7 @@
         function _mostrarInterfazReanudacion() {
             const iframeSeleccion = document.getElementById('seleccion');
             if (iframeSeleccion) iframeSeleccion.style.display = 'none';
-            for (const id of ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte']) {
+            for (const id of ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte', 'btn-recentrar']) {
                 if (id === 'hijo5' && !globalThis._devModeActivo) continue;
                 const el = document.getElementById(id);
                 if (el) { el.style.display = 'block'; el.style.visibility = 'visible'; }
@@ -8237,8 +8289,9 @@ await _comprobarReanudacionAventura(logPrefix);
         }
         globalThis.mostrarPulsoValoracionPadre = mostrarPulsoValoracionPadre;
 
-        // Vibración breve al aparecer cualquiera de los 3 carteles de esta sección (transición,
-        // inicio de tramo, llegada a parada) — la única de las señales que llega igual si el
+        // Vibración breve al aparecer cualquiera de los 5 carteles de esta sección (transición,
+        // inicio de tramo, llegada a parada, bienvenida de vuelta en tramo, bienvenida de vuelta
+        // en parada) — la única de las señales que llega igual si el
         // usuario no está mirando la pantalla en ese instante (glow/spin/el propio cartel exigen
         // mirar). navigator.vibrate no existe en escritorio ni en todos los navegadores móviles
         // (Safari/iOS no lo soporta) — comprobación de soporte antes de llamar, nunca lanza.
@@ -8307,7 +8360,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${cuerpo}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;">
                         <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <p style="margin:0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${_escapar(t.pulseAvanzar || '')}</p>
+                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        <p style="margin:0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${_escapar(t.instrucciones || '')}</p>
                     </div>
                 `;
                 document.body.appendChild(cartel);
@@ -8325,19 +8379,18 @@ await _comprobarReanudacionAventura(logPrefix);
         }
         globalThis.mostrarCartelTransicion = mostrarCartelTransicion;
 
-        // Cartel breve y no bloqueante al llegar por GPS al INICIO de un tramo (fase 1 de
-        // procesarPosicionGPSParaAventura, funciones-mapa.js) — mismo estilo visual que
-        // mostrarCartelTransicion, pero disparador y traducciones propios: aquí no se
-        // "termina" nada, solo empieza a caminarse el tramo, así que no lleva el aviso de
-        // "pulse avanzar" (el botón no tiene nada nuevo que hacer en este momento) ni su
-        // icono — lleva el de audio, porque el audio del tramo está pensado para
-        // escucharse durante el camino, no al llegar al final. Expuesta en globalThis
-        // porque quien la llama (funciones-mapa.js) es un módulo distinto de este script,
-        // aunque corra dentro del mismo padre.
-        async function mostrarCartelInicioTramo(nombreTramo) {
+        // Cartel breve y no bloqueante al completar el elemento actual cuando lo que sigue
+        // es un TRAMO (parada→tramo o tramo→tramo) — dispara desde marcarParadaCompletada(),
+        // mismo instante que mostrarCartelTransicion. Siempre nombra los dos elementos,
+        // igual que mostrarCartelTransicion — antepone "Ha terminado [la parada/el tramo]
+        // X — va a empezar el tramo Y." reutilizando las mismas plantillas
+        // terminaParada/terminaTramo/empiezaTramo de TRADUCCIONES_CARTEL_TRANSICION (evita
+        // duplicar esas cadenas en 12 idiomas), seguido del aviso fijo de avanzar/play/línea
+        // azul (TRADUCCIONES_INICIO_TRAMO) — la única diferencia real con
+        // mostrarCartelTransicion es ese aviso de la línea azul, no si se nombra o no.
+        async function mostrarCartelInicioTramo(tipoAnterior, nombreAnterior, nombreTramoNuevo) {
             try {
-                if (!nombreTramo) return;
-                const { TRADUCCIONES_INICIO_TRAMO } = await import('./js/traducciones-ui.js');
+                const { TRADUCCIONES_INICIO_TRAMO, TRADUCCIONES_CARTEL_TRANSICION } = await import('./js/traducciones-ui.js');
                 const idioma = globalThis.idiomaSeleccionado || 'es';
                 const t = TRADUCCIONES_INICIO_TRAMO?.[idioma] || TRADUCCIONES_INICIO_TRAMO?.es;
                 if (!t) {
@@ -8347,7 +8400,17 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-                const cuerpo = (t.mensaje || '').replace('{nombre}', _escapar(nombreTramo));
+
+                let cuerpo = t.mensaje || '';
+                if (nombreAnterior && nombreTramoNuevo) {
+                    const tt = TRADUCCIONES_CARTEL_TRANSICION?.[idioma] || TRADUCCIONES_CARTEL_TRANSICION?.es;
+                    if (tt) {
+                        const plantillaTermina = tipoAnterior === 'tramo' ? tt.terminaTramo : tt.terminaParada;
+                        const terminaTxt = plantillaTermina.replace('{nombre}', nombreAnterior);
+                        const empiezaTxt = tt.empiezaTramo.replace('{nombre}', nombreTramoNuevo);
+                        cuerpo = `${terminaTxt} — ${empiezaTxt}. ${cuerpo}`;
+                    }
+                }
 
                 document.getElementById('cartel-inicio-tramo')?.remove();
                 const cartel = document.createElement('div');
@@ -8373,8 +8436,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
-                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${cuerpo}</p>
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${_escapar(cuerpo)}</p>
                     </div>
                 `;
                 document.body.appendChild(cartel);
@@ -8385,21 +8449,23 @@ await _comprobarReanudacionAventura(logPrefix);
                 cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
                 setTimeout(cerrar, 10000);
 
-                (globalThis.logger || console).info('[PADRE][CARTEL_INICIO_TRAMO] Mostrado:', { nombreTramo });
+                (globalThis.logger || console).info('[PADRE][CARTEL_INICIO_TRAMO] Mostrado:', { tipoAnterior: tipoAnterior || null, nombreAnterior: nombreAnterior || null, nombreTramoNuevo: nombreTramoNuevo || null });
             } catch (error) {
                 (globalThis.logger || console).error('[PADRE][CARTEL_INICIO_TRAMO] Error mostrando cartel:', error);
             }
         }
         globalThis.mostrarCartelInicioTramo = mostrarCartelInicioTramo;
 
-        // Cartel breve y no bloqueante al registrarse la primera llegada por GPS a una
-        // PARADA (nunca tramo — el aviso de audio de un tramo vive en
-        // mostrarCartelInicioTramo, al principio, no al final). Dispara desde
-        // _marcarPendingPorLlegada() la primera vez que pending.llegada pasa a true para
-        // el elemento activo; en la mayoría de los casos reales el usuario ya está en el
-        // sitio (la parada suele coincidir con el .fin del tramo anterior), así que
-        // aparece casi al pulsar avanzar — y en los casos donde de verdad hay que caminar
-        // una distancia real, aparece justo cuando el GPS confirma que se ha llegado.
+        // Cartel breve y no bloqueante para el único caso en que la compleción del
+        // elemento actual la decide el GPS, no una acción en el sitio: un TRAMO cuya
+        // llegada a .fin confirma la última condición pendiente (audio ya escuchado
+        // mientras se caminaba) — dispara desde marcarParadaCompletada() con el nombre
+        // de la PARADA siguiente (.fin del tramo suele coincidir con sus coordenadas),
+        // nunca con el nombre del tramo que acaba de terminar. Reutilizada también para
+        // el primer elemento de la aventura (tipo 'inicio', p.ej. Torres de Serranos):
+        // ahí no hay ningún elemento anterior cuya compleción dispare un cartel, así que
+        // se llama directamente desde procesarPosicionGPSParaAventura() (funciones-mapa.js)
+        // al confirmarse la primera llegada.
         async function mostrarCartelLlegadaParada(nombreParada) {
             try {
                 if (!nombreParada) return;
@@ -8439,6 +8505,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
                     <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
                         <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${cuerpo}</p>
                     </div>
@@ -8457,6 +8524,133 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
         globalThis.mostrarCartelLlegadaParada = mostrarCartelLlegadaParada;
+
+        // Cartel breve y no bloqueante al confirmarse por GPS que el usuario volvió al
+        // camino de un TRAMO ya iniciado, tras haberse alejado lo suficiente para que
+        // procesarPosicionGPSParaAventura() ocultara el trazado (funciones-mapa.js).
+        // Nunca dispara en la primera revelación de un tramo (esa ya la cubre
+        // mostrarCartelInicioTramo, disparada desde marcarParadaCompletada) — solo en
+        // revelaciones posteriores, cuando estadoMapa._elementoYaRevelado ya era true.
+        async function mostrarCartelBienvenidaTramo() {
+            try {
+                const { TRADUCCIONES_BIENVENIDA_TRAMO } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                const t = TRADUCCIONES_BIENVENIDA_TRAMO?.[idioma] || TRADUCCIONES_BIENVENIDA_TRAMO?.es;
+                if (!t) {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_BIENVENIDA_TRAMO] Traducciones no disponibles');
+                    return;
+                }
+
+                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                const cuerpo = t.mensaje || '';
+
+                document.getElementById('cartel-bienvenida-tramo')?.remove();
+                const cartel = document.createElement('div');
+                cartel.id = 'cartel-bienvenida-tramo';
+                cartel.style.cssText = [
+                    'position:fixed',
+                    'top:calc(10.7vh + 10px + 0.5rem)',
+                    'left:50%',
+                    'transform:translateX(-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'z-index:1000060',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:0.75rem 2.75rem 0.75rem 1rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                ].join(';');
+
+                cartel.innerHTML = `
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${_escapar(cuerpo)}</p>
+                    </div>
+                `;
+                document.body.appendChild(cartel);
+                _vibrarCartel();
+
+                let cerrado = false;
+                const cerrar = () => { if (cerrado) return; cerrado = true; cartel.remove(); };
+                cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
+                setTimeout(cerrar, 10000);
+
+                (globalThis.logger || console).info('[PADRE][CARTEL_BIENVENIDA_TRAMO] Mostrado');
+            } catch (error) {
+                (globalThis.logger || console).error('[PADRE][CARTEL_BIENVENIDA_TRAMO] Error mostrando cartel:', error);
+            }
+        }
+        globalThis.mostrarCartelBienvenidaTramo = mostrarCartelBienvenidaTramo;
+
+        // Cartel breve y no bloqueante al confirmarse por GPS que el usuario volvió a una
+        // PARADA (no tramo) de la que se había alejado antes de completarla — mismo
+        // disparador que mostrarCartelBienvenidaTramo (estadoMapa._elementoYaRevelado ya
+        // era true), pero sin mención a la línea azul, porque una parada no tiene polyline
+        // propia que seguir.
+        async function mostrarCartelBienvenidaParada(nombreParada) {
+            try {
+                const { TRADUCCIONES_BIENVENIDA_PARADA } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                const t = TRADUCCIONES_BIENVENIDA_PARADA?.[idioma] || TRADUCCIONES_BIENVENIDA_PARADA?.es;
+                if (!t) {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_BIENVENIDA_PARADA] Traducciones no disponibles');
+                    return;
+                }
+
+                const nombreAventura = globalThis.__vv_INDICE_AVENTURAS?.[globalThis.aventuraSeleccionada]?.nombre || globalThis.aventuraSeleccionada || '';
+                const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                const cuerpo = t.mensaje || '';
+
+                document.getElementById('cartel-bienvenida-parada')?.remove();
+                const cartel = document.createElement('div');
+                cartel.id = 'cartel-bienvenida-parada';
+                cartel.style.cssText = [
+                    'position:fixed',
+                    'top:calc(10.7vh + 10px + 0.5rem)',
+                    'left:50%',
+                    'transform:translateX(-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'z-index:1000060',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:0.75rem 2.75rem 0.75rem 1rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                ].join(';');
+
+                cartel.innerHTML = `
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
+                    <p style="margin:0 0 0.2rem 0;font-size:clamp(0.75rem,3vmin,0.85rem);font-weight:bold;color:#8b5e1a;text-transform:uppercase;letter-spacing:0.03em;">${_escapar(nombreAventura)}</p>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <img src="imagenes/imagenes-aplicación/fotoruta-A-B.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;">${_escapar(cuerpo)}</p>
+                    </div>
+                `;
+                document.body.appendChild(cartel);
+                _vibrarCartel();
+
+                let cerrado = false;
+                const cerrar = () => { if (cerrado) return; cerrado = true; cartel.remove(); };
+                cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
+                setTimeout(cerrar, 10000);
+
+                (globalThis.logger || console).info('[PADRE][CARTEL_BIENVENIDA_PARADA] Mostrado:', { nombreParada });
+            } catch (error) {
+                (globalThis.logger || console).error('[PADRE][CARTEL_BIENVENIDA_PARADA] Error mostrando cartel:', error);
+            }
+        }
+        globalThis.mostrarCartelBienvenidaParada = mostrarCartelBienvenidaParada;
     </script>
 
     <script>
@@ -9233,22 +9427,44 @@ await _comprobarReanudacionAventura(logPrefix);
                         (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} completado en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
                         enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
 
-                        // Cartel de transición — mira el elemento siguiente en la secuencia sin
-                        // necesitar que el usuario haya pulsado avanzar todavía (estado.indiceProgreso
-                        // aún apunta al que se acaba de completar; progresarSiguienteElemento() no lo
-                        // incrementa hasta que se pulsa). Si no hay siguiente (último elemento de la
-                        // aventura), se muestra solo la mitad de "completado" — el modal de fin de
-                        // aventura (mostrarModalFinalizacion) se encarga del resto cuando el usuario
-                        // pulse avanzar de verdad y progresarSiguienteElemento() no encuentre nada.
+                        // Cartel al completarse el elemento — cuál de los 4 exactamente depende
+                        // de qué acaba de terminar y qué sigue, mira el elemento siguiente en la
+                        // secuencia sin necesitar que el usuario haya pulsado avanzar todavía
+                        // (estado.indiceProgreso aún apunta al que se acaba de completar;
+                        // progresarSiguienteElemento() no lo incrementa hasta que se pulsa):
+                        //   - Sigue un tramo (parada→tramo o tramo→tramo): mostrarCartelInicioTramo,
+                        //     siempre con el aviso de "siga la línea azul" Y siempre nombrando los
+                        //     dos elementos ("Ha terminado [la parada/el tramo] X — va a empezar el
+                        //     tramo Y"), igual que mostrarCartelTransicion — la única diferencia
+                        //     real entre los dos carteles es el aviso de la línea azul.
+                        //   - Termina un tramo y sigue una parada: mostrarCartelLlegadaParada, con
+                        //     el nombre de esa parada — un tramo se completa por audio+llegada GPS,
+                        //     nunca por un "me quedo quieto y termino" como una parada, así que su
+                        //     cartel siempre habla de "ha llegado", nunca de "ha terminado el tramo".
+                        //   - Termina una parada y sigue otra parada (o no hay siguiente, último
+                        //     elemento de la aventura): mostrarCartelTransicion, el único de los
+                        //     tres que menciona explícitamente "ha terminado X". Si no hay
+                        //     siguiente, el modal de fin de aventura (mostrarModalFinalizacion) se
+                        //     encarga del resto cuando el usuario pulse avanzar de verdad y
+                        //     progresarSiguienteElemento() no encuentre nada.
                         try {
                             const elementoCompletado = findElementoPorPadreId(idLimpio);
                             const idxSiguiente = (typeof estado.indiceProgreso === 'number' ? estado.indiceProgreso : 0) + 1;
                             const elementosSecuencia = DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
                             const elementoSiguiente = Array.isArray(elementosSecuencia) ? elementosSecuencia[idxSiguiente] : null;
-                            if (typeof globalThis.mostrarCartelTransicion === 'function' && elementoCompletado?.nombre) {
-                                globalThis.mostrarCartelTransicion(
+
+                            if (elementoSiguiente?.tipo === 'tramo') {
+                                globalThis.mostrarCartelInicioTramo?.(
+                                    esTramo ? 'tramo' : 'parada',
+                                    elementoCompletado?.nombre || null,
+                                    elementoSiguiente.nombre || null
+                                );
+                            } else if (esTramo && elementoSiguiente?.nombre) {
+                                globalThis.mostrarCartelLlegadaParada?.(elementoSiguiente.nombre);
+                            } else if (elementoCompletado?.nombre) {
+                                globalThis.mostrarCartelTransicion?.(
                                     esTramo ? 'tramo' : 'parada', elementoCompletado.nombre,
-                                    elementoSiguiente?.tipo === 'tramo' ? 'tramo' : (elementoSiguiente ? 'parada' : null),
+                                    elementoSiguiente ? 'parada' : null,
                                     elementoSiguiente?.nombre || null
                                 );
                             }
@@ -9261,6 +9477,10 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).error('[PADRE][MARCAR_PARADA] Error inesperado:', error);
                 }
             }
+            // Expuesta en globalThis por el mismo motivo que los carteles que dispara
+            // (mostrarCartelTransicion, etc.): otros módulos/tests pueden necesitar
+            // invocarla fuera de este scope de script.
+            globalThis.marcarParadaCompletada = marcarParadaCompletada;
 
         /**
          * Solicita coordenadas a hijo2 para el elemento especificado
@@ -10844,18 +11064,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 const elemento = findElementoPorPadreId(paradaId) || findElementoPorPadreId(`padre-${paradaId}`) || findElementoPorPadreId(paradaId.replace(/^padre-/, ''));
                 const key = elemento?.padreid || (`padre-${paradaId}`);
                 const pending = ensurePending(key, elemento?.tipo || 'parada');
-                const _yaLlegado = pending.llegada === true;
                 pending.llegada = true;
                 if (coordenadas?.lat && coordenadas?.lng) pending.destinoCoords = coordenadas;
                 pending.timestamp = Date.now();
-                // Cartel de "ha llegado" solo para parada/inicio, nunca tramo — el tramo tiene
-                // el suyo propio al llegar a .inicio (mostrarCartelInicioTramo), no al final.
-                // Solo la PRIMERA vez que se registra esta llegada (_yaLlegado evaluado antes
-                // de fijar pending.llegada=true): las siguientes lecturas GPS no deben repetir
-                // el cartel mientras el usuario permanece en el sitio.
-                if (!_yaLlegado && elemento?.tipo !== 'tramo' && elemento?.nombre && typeof globalThis.mostrarCartelLlegadaParada === 'function') {
-                    globalThis.mostrarCartelLlegadaParada(elemento.nombre);
-                }
+                // El cartel de "ha llegado" (mostrarCartelLlegadaParada) ya no dispara aquí:
+                // ahora se decide en marcarParadaCompletada(), con el elemento SIGUIENTE ya
+                // resuelto — necesario para saber su nombre y tipo, que este punto no tiene.
                 intentarCompletarElemento(key);
             } catch (err) {
                 (globalThis.logger || console).warn(`${logPrefix} Error marcando pending por llegada:`, err);
@@ -11656,7 +11870,7 @@ await _comprobarReanudacionAventura(logPrefix);
         function _mostrarUIActivada(logPrefix) {
             const iframeSeleccion = document.getElementById('seleccion');
             if (iframeSeleccion) iframeSeleccion.style.display = 'none';
-            const iframesToShow = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
+            const iframesToShow = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte', 'btn-recentrar'];
             for (const iframeId of iframesToShow) {
                 if (iframeId === 'hijo5' && !globalThis._devModeActivo) continue;
                 const iframe = document.getElementById(iframeId);

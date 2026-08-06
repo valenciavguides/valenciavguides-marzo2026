@@ -164,17 +164,15 @@ let marcadorPosicionActual = null; // Marcador para la posición GPS actual del 
 let rutasTramos = [];
 let rutasActivas = [];
 let marcadorUsuario = null;
-let marcadorFlechaUsuario = null;
-let marcadorHaloUsuario = null;
 let deviceOrientationHeading = 0;
 let _flechaGpsAnguloAcumulado = null; // ángulo continuo sin acotar a 0-360, para que rotate() siempre gire por el camino corto
 let _flechaGpsUltimaEscritura = 0;
-let flechaActiva = false;
 let compassActiva = false;
 let _brujulaEventoActivo = null; // 'deviceorientationabsolute' o 'deviceorientation' — cuál se registró de verdad
 let _mapaInstance = null; // Instancia del mapa MapLibre
 let _mapaOpciones = null; // Opciones del mapa
 let _pulseTimeout = null; // Timeout del efecto de llegada (cancelable)
+let _camaraSiguiendoUsuario = true; // false tras un arrastre manual del usuario — ver _registrarSeguimientoCamara()
 
 // Array de paradas locales
 let arrayParadasLocal = [];
@@ -193,14 +191,19 @@ const estadoMapa = {
     gpsError: null, // Último error GPS
     ultimaUbicacion: null, // { lat, lng } - última ubicación GPS recibida
     gpsVisualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
-    // Fase del tramo activo respecto a su propio trazado (ver procesarPosicionGPSParaAventura):
-    // false = nunca ha llegado a .inicio en esta activación (fase 1, se mide contra .inicio).
-    // true = ya llegó a .inicio alguna vez (fase 2, se mide contra distanciaAlCamino de ahí en
-    // adelante, para no exigir volver a .inicio si se desvía a mitad de tramo — p.ej. una calle
-    // cortada por obras). Se resetea a false en completarCambioParada() al activarse CUALQUIER
-    // elemento nuevo (parada o tramo) — deliberadamente incondicional para no depender de
-    // comparar IDs con formatos distintos entre funciones.
-    _tramoIniciadoEstaActivacion: false,
+    // Si el trazado/marcador del elemento activo ya se reveló alguna vez en esta activación.
+    // Para un TRAMO además determina la fase respecto a su propio trazado (ver
+    // procesarPosicionGPSParaAventura): false = nunca ha llegado a .inicio (fase 1, se mide
+    // contra .inicio); true = ya llegó a .inicio alguna vez (fase 2, se mide contra
+    // distanciaAlCamino de ahí en adelante, para no exigir volver a .inicio si se desvía a
+    // mitad de tramo — p.ej. una calle cortada por obras). Para una PARADA solo distingue
+    // "primera revelación" (dispara el cartel de llegada del propio inicio de aventura si
+    // aplica, o nada — el resto de casos ya los cubrió marcarParadaCompletada) de
+    // "revelación posterior" (el usuario se alejó y ha vuelto — cartel de bienvenida de
+    // vuelta). Se resetea a false en completarCambioParada() al activarse CUALQUIER elemento
+    // nuevo (parada o tramo) — deliberadamente incondicional para no depender de comparar
+    // IDs con formatos distintos entre funciones.
+    _elementoYaRevelado: false,
     // Ventana deslizante (2 de las últimas 4 lecturas) antes de revelar/ocultar el trazado
     // por distancia — mismo mecanismo que _llegadaCandidataId/_llegadaVentana (llegada, ver
     // procesarPosicionGPSParaAventura), pero contado aparte para no mezclar "confirmar
@@ -214,7 +217,6 @@ const estadoMapa = {
     siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
-    tramoWaypoints: null, // Puntos [inicio, ...waypoints, fin] del tramo activo para snap-to-route
     timestamp: Date.now(),
     // Estado para consultas de cambio de parada
     consultaParadaPendiente: null,
@@ -282,9 +284,48 @@ function _estiloListo() {
     try { return !!_mapaInstance && typeof _mapaInstance.isStyleLoaded === 'function' && _mapaInstance.isStyleLoaded(); } catch (_e) { return false; } // NOSONAR
 }
 
-/** Wrapper no-op seguro: mismo shape que _crearPolyline/_crearCirculoGeografico, para cuando el estilo no está listo. */
-function _capaVacia(tipo) {
-    return { _tipo: tipo, sourceId: null, setLatLngs() {}, setLatLng() {}, setStyle() {}, remove() {} };
+/**
+ * Envoltorio auto-reparable para cuando el estilo del mapa aún no está listo en el
+ * instante de creación — sustituye al antiguo _capaVacia(), que devolvía un stub
+ * inerte para siempre (la polyline o el círculo nunca llegaban a existir, sin
+ * ningún aviso). Este proxy se engancha al evento nativo 'load' del mapa (el mismo
+ * que usa initializeMap() para saber que el estilo terminó de cargar) y ejecuta
+ * `factory()` — la creación real de la capa — en cuanto dispara. Cualquier
+ * setLatLngs/setLatLng/setStyle llamado mientras tanto se recuerda y se aplica
+ * sobre la capa real en cuanto exista, para no perder una actualización que llegó
+ * durante la espera. Si remove() se llama antes de que el estilo cargue, se marca
+ * como retirada y `factory()` nunca se ejecuta — no tiene sentido crear una capa
+ * que ya se pidió eliminar.
+ */
+function _crearCapaDiferida(tipo, factory) {
+    let real = null;
+    let removida = false;
+    let puntosPendientes = null;
+    let estiloPendiente = null;
+
+    const intentar = () => {
+        if (removida || real) return;
+        if (!_estiloListo()) {
+            if (_mapaInstance) _mapaInstance.once('load', intentar);
+            return;
+        }
+        real = factory();
+        if (puntosPendientes !== null) {
+            if (typeof real.setLatLngs === 'function') real.setLatLngs(puntosPendientes);
+            else if (typeof real.setLatLng === 'function') real.setLatLng(puntosPendientes);
+        }
+        if (estiloPendiente !== null && typeof real.setStyle === 'function') real.setStyle(estiloPendiente);
+    };
+    if (_mapaInstance) _mapaInstance.once('load', intentar);
+
+    return {
+        _tipo: tipo,
+        sourceId: null,
+        setLatLngs(nuevosPuntos) { if (real) real.setLatLngs(nuevosPuntos); else puntosPendientes = nuevosPuntos; },
+        setLatLng(nuevasCoords) { if (real) real.setLatLng(nuevasCoords); else puntosPendientes = nuevasCoords; },
+        setStyle(nuevoEstilo) { if (real) real.setStyle(nuevoEstilo); else estiloPendiente = nuevoEstilo; },
+        remove() { removida = true; if (real) real.remove(); }
+    };
 }
 
 function _normalizarDashArray(d) {
@@ -333,8 +374,8 @@ let _capaSeq = 0;
  */
 function _crearPolyline(puntos, estilo = {}) {
     if (!_estiloListo()) {
-        logger.warn('[MAPA] _crearPolyline: estilo aún no cargado, polilínea omitida');
-        return _capaVacia('polyline');
+        logger.warn('[MAPA] _crearPolyline: estilo aún no cargado, reintentando en cuanto cargue');
+        return _crearCapaDiferida('polyline', () => _crearPolyline(puntos, estilo));
     }
     const id = `vv-polyline-${_capaSeq++}`;
     const sourceId = `${id}-src`;
@@ -412,8 +453,8 @@ function _poligonoCirculo(lat, lng, radioM, lados = 32) {
  */
 function _crearCirculoGeografico(coords, radioM, estilo = {}) {
     if (!_estiloListo()) {
-        logger.warn('[MAPA] _crearCirculoGeografico: estilo aún no cargado, círculo omitido');
-        return _capaVacia('circulo');
+        logger.warn('[MAPA] _crearCirculoGeografico: estilo aún no cargado, reintentando en cuanto cargue');
+        return _crearCapaDiferida('circulo', () => _crearCirculoGeografico(coords, radioM, estilo));
     }
     const id = `vv-circulo-${_capaSeq++}`;
     const sourceId = `${id}-src`;
@@ -825,6 +866,38 @@ function registrarListenerZoom() {
     logger.debug('[MAPA] Listener de zoom registrado para escalado dinámico');
 }
 
+/**
+ * Registra el listener que pausa el seguimiento automático de cámara en cuanto el
+ * usuario arrastra el mapa a mano. 'dragstart' incluye `originalEvent` solo cuando
+ * el gesto viene de verdad del usuario (ratón/táctil) — un `easeTo()`/`flyTo()`
+ * programático (el propio seguimiento, o el zoom de cambio de parada/tramo) no lo
+ * dispara con ese campo presente, así que no se pausa a sí mismo por error.
+ * Retomar el seguimiento es responsabilidad del botón de recentrar (codigo-padre.html),
+ * que llama a reactivarSeguimientoCamara().
+ */
+function _registrarSeguimientoCamara() {
+    if (!_mapaInstance) return;
+    _mapaInstance.on('dragstart', (e) => {
+        if (e && e.originalEvent) {
+            _camaraSiguiendoUsuario = false;
+            logger.debug('[MAPA] Seguimiento de cámara pausado — arrastre manual detectado');
+        }
+    });
+}
+
+/**
+ * Reactiva el seguimiento automático de cámara y recentra de inmediato sobre la
+ * última posición GPS conocida — llamado por el botón de recentrar.
+ */
+export function reactivarSeguimientoCamara() {
+    _camaraSiguiendoUsuario = true;
+    const pos = estadoMapa.posicionUsuario;
+    if (_mapaInstance && pos?.lat && pos?.lng) {
+        _mapaInstance.easeTo({ center: aLngLat(pos), duration: 500 });
+    }
+    logger.debug('[MAPA] Seguimiento de cámara reactivado');
+}
+
 // NOTA: Implementación de precalentamiento GPS eliminada — el GPS principal se iniciará bajo demanda
 
 /**
@@ -872,7 +945,6 @@ function limpiarRecursosInactivos() {
         estadoMapa.posicionUsuario = null;
         estadoMapa.paradaActual = null;
         estadoMapa.tramoActual = null;
-        estadoMapa.tramoWaypoints = null;
 
         // Additional cleanup for mobile
         if (esMovil() && _mapaInstance) {
@@ -918,6 +990,7 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
         _mapaOpciones = { ...opciones };
         arrayParadasLocal = normalizarParadas(globalThis.AVENTURA_PARADAS || []);
         registrarListenerZoom(); // Habilitar escalado dinámico según zoom
+        _registrarSeguimientoCamara(); // Pausar seguimiento de cámara al arrastrar el mapa a mano
         logger.info('Servicio de mapa inicializado correctamente (instancia recibida)');
         return true;
     }
@@ -957,6 +1030,7 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
             _mapaOpciones = { ...opciones };
             arrayParadasLocal = normalizarParadas(globalThis.AVENTURA_PARADAS || []);
             registrarListenerZoom(); // Habilitar escalado dinámico según zoom
+        _registrarSeguimientoCamara(); // Pausar seguimiento de cámara al arrastrar el mapa a mano
 
             logger.info('Servicio de mapa inicializado correctamente (instancia creada internamente)');
             return true;
@@ -1203,7 +1277,7 @@ export function limpiarRecursos() {
         // Mismo motivo que gpsVisualActivo: sin este reset, un reset completo real (cambio de
         // modo/aventura) arrastraría la fase del tramo anterior y el contador de confirmación
         // por 2 lecturas al elemento nuevo.
-        estadoMapa._tramoIniciadoEstaActivacion = false;
+        estadoMapa._elementoYaRevelado = false;
         estadoMapa._trazadoCandidataId = null;
         estadoMapa._trazadoVentana = [];
         sincronizarEstadoGPSConPadre();
@@ -1468,7 +1542,6 @@ export function limpiarPorEstado(nuevoEstado) {
             // Resetear estadoMapa completamente
             estadoMapa.paradaActual = null;
             estadoMapa.tramoActual = null;
-            estadoMapa.tramoWaypoints = null;
             estadoMapa.posicionUsuario = null;
             estadoMapa.gpsActivo = false;
             estadoMapa.siguiendoRuta = false;
@@ -1507,45 +1580,11 @@ export function limpiarPorEstado(nuevoEstado) {
             estadoMapa.timestamp = Date.now();
         }
 
-        // Activar/desactivar flecha de usuario
-        if (tramoActual !== null) {
-            activarFlechaUsuario();
-        } else {
-            desactivarFlechaUsuario();
-        }
-
         return limpiado;
     } catch (error) {
         logger.error('Error en limpiarPorEstado:', error);
         return false;
     }
-}
-
-function activarFlechaUsuario() {
-    if (!flechaActiva && estadoMapa.tramoActual && estadoMapa.modo === MODOS.AVENTURA) {
-        flechaActiva = true;
-        if (_mapaInstance) {
-            _mapaInstance.on('zoomend', actualizarPosicionFlecha);
-        }
-        logger.info('Flecha de ruta activada');
-    }
-}
-
-function desactivarFlechaUsuario() {
-    if (!flechaActiva) { return; }
-    flechaActiva = false;
-    if (_mapaInstance) {
-        _mapaInstance.off('zoomend', actualizarPosicionFlecha);
-    }
-    if (marcadorFlechaUsuario) {
-        marcadorFlechaUsuario.remove();
-        marcadorFlechaUsuario = null;
-    }
-    if (marcadorHaloUsuario) {
-        marcadorHaloUsuario.remove();
-        marcadorHaloUsuario = null;
-    }
-    logger.info('Flecha de ruta desactivada');
 }
 
 /**
@@ -1626,8 +1665,6 @@ function actualizarOrientacionFlecha(event) {
     deviceOrientationHeading = heading;
     // Rotar la flecha GPS en tiempo real sin recrear el marcador
     actualizarRotacionFlechaGPS(heading);
-    // Actualizar también la flecha de ruta si está activa
-    if (flechaActiva) actualizarPosicionFlecha();
 }
 
 /**
@@ -1712,50 +1749,6 @@ function desactivarBrujula() {
     globalThis.removeEventListener(_brujulaEventoActivo || 'deviceorientation', actualizarOrientacionFlecha);
     compassActiva = false;
     logger.info('[brujula] Desactivada');
-}
-
-/**
- * Actualiza la posición y rotación de la flecha del usuario.
- */
-function actualizarPosicionFlecha() {
-    if (!flechaActiva || !estadoMapa.tramoActual || !estadoMapa.posicionUsuario || !_mapaInstance) return;
-
-    // Usar waypoints del estado (guardados al activar el tramo en completarCambioParada)
-    const waypointsRaw = estadoMapa.tramoWaypoints;
-    if (!waypointsRaw?.length) return;
-
-    // Calcular punto más cercano en la polilínea (sustituye a L.GeometryUtil.closest)
-    const closestPoint = puntoMasCercanoEnLinea(estadoMapa.posicionUsuario, waypointsRaw);
-
-    if (closestPoint) {
-        // Calcular tamaño basado en zoom
-        const zoom = _mapaInstance.getZoom();
-        const baseSize = 15;
-        const sizeMultiplier = Math.max(1, (zoom - 13) * 0.5 + 1); // Crece con zoom
-        const size = Math.round(baseSize * sizeMultiplier);
-
-        // Crear o actualizar marcador
-        const arrowHtml = `<div style="font-size: ${size}px; color: #0066cc; text-shadow: 1px 1px 2px rgba(0,0,0,0.7), 0 0 4px rgba(0,0,0,0.3); transform: rotate(${deviceOrientationHeading}deg); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));">↑</div>`;
-
-        if (marcadorFlechaUsuario) {
-            marcadorFlechaUsuario.setLngLat(aLngLat(closestPoint));
-            marcadorFlechaUsuario.getElement().innerHTML = arrowHtml;
-        } else {
-            marcadorFlechaUsuario = _crearMarcadorHTML(closestPoint, arrowHtml, { className: 'user-direction-arrow' });
-        }
-
-        // Actualizar o crear halo (círculo de 21m)
-        if (marcadorHaloUsuario) {
-            marcadorHaloUsuario.setLatLng(closestPoint);
-        } else {
-            marcadorHaloUsuario = _crearCirculoGeografico(closestPoint, 21, {
-                color: 'red',
-                fillColor: 'yellow',
-                fillOpacity: 0.2,
-                weight: 1
-            });
-        }
-    }
 }
 
 /**
@@ -2062,7 +2055,7 @@ async function completarCambioParada() {
         // (_vv_afterHijoListo, codigo-padre.html). Ese reenvío solo necesita re-sincronizar
         // hijo2 (su propio DOM sí se perdió al recargar) — el mapa del padre nunca se
         // recargó, sigue teniendo todo correcto. Sin este guard, se re-ejecutaba todo el
-        // reset de abajo (zoom, marcadores, y sobre todo _tramoIniciadoEstaActivacion a
+        // reset de abajo (zoom, marcadores, y sobre todo _elementoYaRevelado a
         // false) para un elemento que no cambió — el trazado de un tramo a mitad de camino
         // se ocultaba de golpe y no volvía a revelarse nunca, porque la fase 1 vuelve a medir
         // contra .inicio, ya lejano en ese punto del recorrido.
@@ -2117,7 +2110,7 @@ async function completarCambioParada() {
             // Reset de la visibilidad por distancia para el elemento nuevo — incondicional
             // (aplica igual a parada o tramo) para que no dependa de comparar IDs con formato
             // distinto entre esta función y procesarPosicionGPSParaAventura.
-            estadoMapa._tramoIniciadoEstaActivacion = false;
+            estadoMapa._elementoYaRevelado = false;
             estadoMapa._trazadoCandidataId = null;
             estadoMapa._trazadoVentana = [];
 
@@ -2297,22 +2290,8 @@ async function completarCambioParada() {
             logger.info(`${logPrefix} Reto disponible: ${reto.pregunta || 'N/A'}`);
         }
         
-        // Snap-to-route: activar flecha sobre polyline en tramos, desactivar en paradas
         const esTramo = coordenadas?.tipo === 'tramo';
-        if (esTramo) {
-            const tramoWaypts = [
-                { lat: coordenadas.lat, lng: coordenadas.lng },
-                ...(coordenadas.waypoints || []),
-                ...(coordenadas.coordenadasFin ? [coordenadas.coordenadasFin] : [])
-            ].filter(p => p?.lat && p?.lng);
-            estadoMapa.tramoActual = paradaId;
-            estadoMapa.tramoWaypoints = tramoWaypts;
-            activarFlechaUsuario();
-        } else {
-            estadoMapa.tramoActual = null;
-            estadoMapa.tramoWaypoints = null;
-            desactivarFlechaUsuario();
-        }
+        estadoMapa.tramoActual = esTramo ? paradaId : null;
 
         // Actualizar estado
         estadoMapa.paradaActual = paradaId;
@@ -3004,7 +2983,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         if (estadoMapa.modo === MODOS.AVENTURA) {
             let cerca;
             if (siguienteParada.tipo === 'tramo') {
-                if (!estadoMapa._tramoIniciadoEstaActivacion) {
+                if (!estadoMapa._elementoYaRevelado) {
                     cerca = !!(siguienteParada.inicio?.lat && siguienteParada.inicio?.lng) &&
                         calcularDistancia(latitude, longitude, siguienteParada.inicio.lat, siguienteParada.inicio.lng) <= 20;
                 } else {
@@ -3033,19 +3012,44 @@ async function procesarPosicionGPSParaAventura(posicion) {
             if (cerca) {
                 const _cercaConfirmado = estadoMapa._trazadoVentana.filter(v => v === true).length >= 2;
                 if (_cercaConfirmado && !estadoMapa.gpsVisualActivo) {
-                    // Capturado ANTES de fijar _tramoIniciadoEstaActivacion=true: distingue la
-                    // revelación real de "inicio de tramo" (fase 1→2, una vez por activación)
-                    // de una revelación por recuperación de desvío en fase 2 (ver más abajo, no
-                    // debe repetir el cartel cada vez que se sale y se vuelve al camino).
-                    const _esInicioDeTramo = siguienteParada.tipo === 'tramo' && !estadoMapa._tramoIniciadoEstaActivacion;
+                    // Capturado ANTES de fijar _elementoYaRevelado=true: distingue la primera
+                    // revelación de este elemento (una vez por activación) de una revelación
+                    // posterior por recuperación de un desvío (no debe repetir ningún cartel de
+                    // "inicio" cada vez que el usuario se aleja y vuelve al camino).
+                    const _esPrimeraRevelacion = !estadoMapa._elementoYaRevelado;
                     revelarNavegacion();
-                    if (siguienteParada.tipo === 'tramo') estadoMapa._tramoIniciadoEstaActivacion = true;
+                    estadoMapa._elementoYaRevelado = true;
                     logger.info(`${logPrefix} 🗺️ Trazado revelado — usuario cerca de ${derivedParadaId}`);
-                    if (_esInicioDeTramo && siguienteParada.nombre) {
-                        if (typeof globalThis.mostrarCartelInicioTramo === 'function') {
-                            globalThis.mostrarCartelInicioTramo(siguienteParada.nombre);
-                        } else {
-                            logger.warn(`${logPrefix} mostrarCartelInicioTramo no disponible — aviso de inicio de tramo perdido`);
+
+                    if (_esPrimeraRevelacion) {
+                        // Primera vez que se revela ESTE elemento. Para cualquier elemento que no
+                        // sea el punto de inicio de la aventura (tipo 'inicio'), el cartel que
+                        // corresponde ya lo disparó marcarParadaCompletada() al completarse el
+                        // elemento ANTERIOR — no hay nada más que hacer aquí. El punto de inicio
+                        // es la única excepción: no hay ningún elemento previo cuya compleción
+                        // dispare nada, así que se dispara aquí, reusando el cartel de llegada.
+                        if (siguienteParada.tipo === 'inicio' && siguienteParada.nombre) {
+                            if (typeof globalThis.mostrarCartelLlegadaParada === 'function') {
+                                globalThis.mostrarCartelLlegadaParada(siguienteParada.nombre);
+                            } else {
+                                logger.warn(`${logPrefix} mostrarCartelLlegadaParada no disponible — aviso de llegada al inicio perdido`);
+                            }
+                        }
+                    } else {
+                        // Revelación posterior a la primera: el usuario se alejó del camino/zona
+                        // de este elemento y ha vuelto.
+                        if (siguienteParada.tipo === 'tramo') {
+                            if (typeof globalThis.mostrarCartelBienvenidaTramo === 'function') {
+                                globalThis.mostrarCartelBienvenidaTramo();
+                            } else {
+                                logger.warn(`${logPrefix} mostrarCartelBienvenidaTramo no disponible — aviso de bienvenida perdido`);
+                            }
+                        } else if (siguienteParada.nombre) {
+                            if (typeof globalThis.mostrarCartelBienvenidaParada === 'function') {
+                                globalThis.mostrarCartelBienvenidaParada(siguienteParada.nombre);
+                            } else {
+                                logger.warn(`${logPrefix} mostrarCartelBienvenidaParada no disponible — aviso de bienvenida perdido`);
+                            }
                         }
                     }
                 }
@@ -3239,6 +3243,7 @@ globalThis.funcionesMapa = {
     procesarPosicionGPSParaAventura,
     manejarCambioModoMapa,
     sincronizarModoMapa,
+    reactivarSeguimientoCamara,
     // Exponer la API pública centralizada para cambiar la vista
     setMapView,
     // API para ajustar vista a un rectángulo de coordenadas
@@ -3412,8 +3417,9 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
     try {
         // ── CRÍTICO: Actualizar estadoMapa.posicionUsuario ──────────────
         // Esta es la ÚNICA ruta viva que recibe posiciones GPS — NAVEGACION.ACTUALIZAR_ESTADO
-        // llega directo desde padre. Actualizamos el estado interno aquí para que
-        // actualizarPosicionFlecha() funcione.
+        // llega directo desde padre. Actualizamos el estado interno aquí porque es la fuente
+        // que usa procesarPosicionGPSParaAventura() para proximidad/fuera de rango, y la que
+        // se sincroniza con estadoPadre.gps.posicionUsuario.
         estadoMapa.posicionUsuario = {
             lat,
             lng,
@@ -3534,8 +3540,12 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             }
         }
 
-        // Actualizar flecha de dirección sobre tramo (si hay tramo activo)
-        actualizarPosicionFlecha();
+        // Cámara siguiendo al usuario — pausada si arrastró el mapa a mano (ver
+        // _registrarSeguimientoCamara) y saltada mientras un flyTo de cambio de
+        // parada/tramo está en curso, para no competir con esa animación.
+        if (_camaraSiguiendoUsuario && !estadoMapa.zoomEnCurso && _mapaInstance) {
+            _mapaInstance.easeTo({ center: aLngLat({ lat, lng }), duration: 800 });
+        }
 
         return marcadorUsuarioGPS;
     } catch (error) {

@@ -420,8 +420,8 @@ navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
 | Validación de distancia a paradas | No | Sí (radio ~20m) |
 | `CAMBIO_PARADA` automático | No | No — GPS solo marca `pending.llegada`; `CAMBIO_PARADA` del siguiente elemento requiere pulsar `btn-avanzar` (§2.2) |
 | Overlay "fuera de rango" | Oculto | Visible si >50m de la ruta |
-| Snap-to-route en tramos | No | Sí (`activarFlechaUsuario()`) |
 | Marcador del usuario en mapa | 🛸 | ▲ triángulo azul `#4285F4`, rota con brújula |
+| Cámara sigue al usuario | Sí | Sí — en los dos modos, pausable arrastrando el mapa a mano (§4.6c) |
 
 **Ciclo de vida del GPS**:
 
@@ -829,7 +829,6 @@ Una vez en modo AVENTURA, estos emojis aparecen en la interfaz:
 | ✖ | Padre (pantallas de fuera de rango, §31.4) | Botón para cerrar el aviso de distancia al objetivo |
 | 🔄 | Puzzle (puzzle.html) | Reiniciar el puzzle |
 | ⏸️ / ▶️ | Puzzle (puzzle.html) | Pausar / reanudar el puzzle |
-| ↑ | Mapa (funciones-mapa.js) | Flecha snap-to-route proyectada sobre la polyline del tramo activo |
 
 ```mermaid
 flowchart TD
@@ -838,8 +837,6 @@ flowchart TD
     B -- Parada --> C{¿Reto tipo puzzle\nen esta parada?}
     C -- No --> D["Sin controles de puzzle\notros tipos de reto no muestran ⏸️▶️🔄"]
     C -- Sí --> E["⏸️▶️ controles en puzzle.html\n🔄 Reiniciar puzzle\n(mismo componente que P6/hijo4, ver §13)"]
-
-    B -- Tramo --> F["↑ Flecha snap-to-route activa\nsobre la polyline\nsolo si estadoMapa.modo===AVENTURA\n(ver §4.6)"]
 
     G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\n21-50m / 51-2000m / >2000m"}
     G2 --> H["Padre muestra la pantalla\nde distancia que corresponda (§31.4)\nBotón ✖ para cerrar"]
@@ -906,10 +903,10 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 | 🎯 | Emoji diana | — | **Paradas** (puntos de interés) y **punto final** de la ruta |
 | ● (círculo CSS) | Círculo sólido con borde blanco y sombra | `#F44336` rojo | Marcador de inicio alternativo |
 | ● (círculo CSS) | Círculo sólido con borde blanco y sombra | `#4CAF50` verde | Marcador de parada alternativo |
-| ▲ (flecha GPS) | Triángulo CSS con borde blanco, sin punto central (el triángulo solo ya representa posición y rumbo) | `#4285F4` azul Google | **Posición real del usuario** en tiempo real (modo AVENTURA). Rota con la brújula del dispositivo vía `DeviceOrientationEvent` (hasta 30 veces/segundo, pero `actualizarRotacionFlechaGPS()` limita la escritura al DOM a ~10Hz). El sensor de rumbo es ruidoso — se aplica suavizado exponencial (solo una fracción del salto detectado en cada lectura) sobre un ángulo acumulado sin acotar a 0-360°, para que la rotación CSS siempre gire por el camino corto y no dé una vuelta larga visible al cruzar 359°→0°; ese ángulo acumulado también sobrevive a que el marcador se destruya y recree en cada posición GPS (ver detalle en la tabla de módulos, `funciones-mapa.js`). En modo CASA aparece como 🛸 |
-| ↑ (flecha snap-to-route) | Carácter `↑` rotado según brújula | `#0066cc` azul oscuro | **Posición del usuario proyectada sobre la polyline del tramo activo.** Solo aparece durante un tramo (no en paradas). El mapa de aventura usa `puntoMasCercanoEnLinea()` (`js/utils.js`) para buscar el punto de la polyline más cercano al usuario y pone la flecha exactamente ahí — efecto "sigues el camino"; es una proyección plana local sin dependencias externas, precisión de sobra para las distancias de un tramo. Se activa en `completarCambioParada()` al detectar `tipo === 'tramo'` y se desactiva al volver a una parada. Se actualiza en cada posición GPS y en cada cambio de brújula |
-| ○ (círculo 21 m) | Polígono geográfico (radio constante en metros, no en píxeles) | Borde rojo, relleno amarillo semitransparente | Acompaña siempre a la flecha snap-to-route. Indica la zona de tolerancia visual alrededor del punto proyectado. MapLibre no tiene una capa `circle` con radio en metros (su `circle-radius` es en píxeles de pantalla, cambiaría de tamaño real al hacer zoom), así que el círculo se genera como un polígono real (32 puntos a distancia/rumbo fijo del centro) que se recalcula cada vez que el centro se mueve |
-| ○ (círculo 20 m) | Polígono geográfico (mismo mecanismo que el de 21 m — `_crearCirculoGeografico()`) | Borde naranja `#ff8c00`, relleno naranja muy tenue (`fillOpacity: 0.12`) | **Zona de activación de parada** — no del punto proyectado sobre la ruta, sino de la posición real del usuario: se centra y se mueve con la propia flecha ▲/🛸, no con el punto más cercano de la polyline. Visible siempre que el modo es AVENTURA (independientemente de si el elemento activo es parada o tramo); desaparece al volver a CASA. Da una referencia visual constante de "este es tu margen para que la app detecte que has llegado". Creado/actualizado dentro de `actualizarMarcadorUsuario()`, en el mismo bloque que activa la brújula por primera vez |
+| ▲ (flecha GPS) | Triángulo CSS con borde blanco, sin punto central (el triángulo solo ya representa posición y rumbo) | `#4285F4` azul Google | **Posición real del usuario** en tiempo real (modo AVENTURA). Rota con la brújula del dispositivo vía `DeviceOrientationEvent` (hasta 30 veces/segundo, pero `actualizarRotacionFlechaGPS()` limita la escritura al DOM a ~10Hz). El sensor de rumbo es ruidoso — se aplica suavizado exponencial (solo una fracción del salto detectado en cada lectura) sobre un ángulo acumulado sin acotar a 0-360°, para que la rotación CSS siempre gire por el camino corto y no dé una vuelta larga visible al cruzar 359°→0°; ese ángulo acumulado también sobrevive a que el marcador se destruya y recree en cada posición GPS (ver detalle en la tabla de módulos, `funciones-mapa.js`). En modo CASA aparece como 🛸. Es el **único** marcador de posición/rumbo del usuario — no hay ningún segundo marcador proyectado sobre la ruta (ver nota más abajo) |
+| ○ (círculo 20 m) | Polígono geográfico (radio constante en metros, no en píxeles) — `_crearCirculoGeografico()` | Borde naranja `#ff8c00`, relleno naranja muy tenue (`fillOpacity: 0.12`) | **Zona de activación de parada**, centrada siempre en la posición real del usuario: se mueve con la propia flecha ▲/🛸. Visible siempre que el modo es AVENTURA (independientemente de si el elemento activo es parada o tramo); desaparece al volver a CASA. Da una referencia visual constante de "este es tu margen para que la app detecte que has llegado". Creado/actualizado dentro de `actualizarMarcadorUsuario()`, en el mismo bloque que activa la brújula por primera vez. MapLibre no tiene una capa `circle` con radio en metros (su `circle-radius` es en píxeles de pantalla, cambiaría de tamaño real al hacer zoom), así que el círculo se genera como un polígono real (32 puntos a distancia/rumbo fijo del centro) que se recalcula cada vez que el centro se mueve. Es el **único** círculo del mapa de aventura |
+
+**Ya no existe ningún marcador proyectado sobre la ruta.** Hasta esta versión existía un segundo sistema — una flecha `↑` y un círculo de 21 m en rojo/amarillo, ambos calculados con `puntoMasCercanoEnLinea()` sobre el punto de la polyline del tramo más cercano al usuario, no sobre su posición GPS real — que se activaba en paralelo al triángulo ▲ y al círculo naranja de arriba durante cualquier tramo. Se eliminó por decisión de diseño explícita: el usuario reportó verlo como dos marcadores de posición distintos y confusos superpuestos casi en el mismo sitio (coinciden cuando se está sobre el camino, divergen al desviarse) con una paleta de color (`#0066cc`/rojo-amarillo) que no seguía la convención del resto de la app (naranja = zona de activación, azul = tú). No aportaba una guía turn-by-turn real (ver §4.6b, esa decisión de diseño sigue vigente) y duplicaba, sin explicarlo en pantalla, la información que ya da el triángulo. Las funciones que lo implementaban (`activarFlechaUsuario`, `desactivarFlechaUsuario`, `actualizarPosicionFlecha`, las variables `marcadorFlechaUsuario`/`marcadorHaloUsuario`/`flechaActiva`, y el campo `estadoMapa.tramoWaypoints`, que solo ellas leían) se retiraron por completo de `funciones-mapa.js` — no quedan detrás de un flag ni comentadas, no había ningún otro caller.
 | 🏛️ (píldora referencia) | Div CSS: píldora blanca con borde naranja | `#ff8c00` naranja | **Referencias visuales** — monumentos mencionados en el texto que el usuario nunca visita físicamente. Muestra el emoji 🏛️ a la izquierda y el número de `mapa_numero` a la derecha. Al pulsar abre un popup con el nombre del monumento. Escala dinámicamente con el zoom. Apilado visual `zIndex: 400` (por debajo de paradas visitadas, 600) vía CSS sobre el elemento del marcador. Gestionado por `crearIconoReferencia()` y `dibujarReferencias()` en `funciones-mapa.js` — implementación independiente de la de `mapa-completo.html`, que dibuja sus propias referencias con `L.divIcon`/`L.marker` sobre los mismos datos |
 
 **El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
@@ -930,9 +927,7 @@ flowchart TD
     D -- AVENTURA --> E["▲ Triángulo azul #4285F4\nrota con brújula del dispositivo\nhasta 30 veces/segundo"]
     D -- CASA --> F["🛸 OVNI\n(posición simulada, sin GPS real)"]
 
-    E --> G{¿Elemento actual?}
-    G -- Parada --> H["Solo ▲ triángulo\n↑ flecha y círculo 21m desactivados"]
-    G -- Tramo --> I["↑ Flecha snap-to-route\n+ ○ Círculo 21m amarillo\nambos proyectados sobre la polyline\nmediante puntoMasCercanoEnLinea()"]
+    E --> G["▲ triángulo + ○ círculo naranja 20m\nsiempre sobre la posición real\nigual en parada o en tramo"]
 
     J([Usuario pulsa referencia 🏛️]) --> K["Popup con nombre del monumento\n(no genera CAMBIO_PARADA)"]
 ```
@@ -943,7 +938,7 @@ Las polylines son las líneas que se dibujan en el mapa para mostrar rutas, tram
 
 | Tipo de polyline | Color | Grosor base | Opacidad | Patrón | Cuándo se dibuja |
 |-----------------|-------|-------------|----------|--------|------------------|
-| **Ruta principal** | `#0077ff` (azul) | 6 px | 0.8 | Sólido | Al activar la aventura. Muestra todo el recorrido completo |
+| **Ruta principal** | `#0077ff` (azul) | 6 px | 0.8 | Sólido | Se intenta dibujar una vez, al activar la aventura (`dibujarRutaConMarcadores({dibujarRuta:true})`) — pero nunca llega a verse durante una partida real: el primer `completarCambioParada()` (activar la primera parada, un paso obligatorio del propio arranque) vacía `rutasActivas` de forma incondicional segundos después de haberse dibujado (§4.6, limpieza al inicio de `completarCambioParada()`), y nada la vuelve a dibujar. La vista de "recorrido completo" que el usuario ve de verdad es una página aparte, `mapa-completo.html` (Leaflet, polyline propia `#2255cc`) — este intento en el mapa de aventura es trabajo desperdiciado, no un bug con síntoma visible, y no se ha tocado en esta pasada por no estar en el alcance acordado |
 | **Tramo normal** | `#3388ff` (azul claro) | 4 px | 0.7 | Sólido | Al seleccionar un tramo específico entre dos paradas |
 | **Tramo destacado** | `#ff4500` (naranja-rojo) | 6 px | 0.9 | Sólido | Cuando un tramo está activo o enfatizado (el actual) |
 | **Línea de navegación manual** | `#3eff3f` (verde) | 2 px | 0.8 | Discontinuo `0, 2` | Solo al pulsar `btn-ubicacion`. Nunca se dibuja sola |
@@ -957,25 +952,11 @@ Las polylines son las líneas que se dibujan en el mapa para mostrar rutas, tram
 - Se **elimina** en `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) en dos casos independientes: llegar de verdad al destino (`distancia ≤50m`, garantía inmediata, no depende de las 2 lecturas de confirmación de llegada) o, en AVENTURA, cuando `estadoMapa.gpsVisualActivo` ya está `true` (el trazado persistente del elemento activo ya está guiando — ver §4.7d — así que no hace falta una segunda guía superpuesta). `limpiarPolylineNavegacion()` borra la polyline y su marcador 🎯 (`marcadorDestinoNavegacion`) juntos.
 - Todas las polylines se dibujan como capas `line` dentro del array `layers` del estilo de MapLibre — el orden de aparición en ese array decide qué polyline o capa de calle queda por encima de cuál (MapLibre no tiene una propiedad `zIndex` numérica independiente). Los marcadores (paradas, referencias, flecha del usuario) son elementos DOM aparte, superpuestos sobre el lienzo del mapa — quedan por encima de cualquier polyline sin necesidad de ordenarlos en ese array.
 
-**Snap-to-route (flecha sobre la polyline):**
-
-Cuando el padre cambia a un **tramo** (via `CAMBIO_PARADA` con `tipo === 'tramo'`), `completarCambioParada()` en `funciones-mapa.js`:
-
-1. Guarda los puntos del tramo (inicio + waypoints intermedios + fin) en `estadoMapa.tramoWaypoints`.
-2. Setea `estadoMapa.tramoActual` con el ID del tramo.
-3. Llama a `activarFlechaUsuario()`, que registra un listener `zoomend` y pone `flechaActiva = true` (solo si el modo es `AVENTURA`).
-
-Con `flechaActiva = true`, `actualizarPosicionFlecha()` se ejecuta en cada actualización GPS y en cada cambio de brújula. Calcula con `puntoMasCercanoEnLinea()` (`js/utils.js`) el punto de `estadoMapa.tramoWaypoints` más cercano al usuario y mueve la flecha `↑` y el círculo de 21 m exactamente a ese punto.
-
-Cuando el padre cambia a una **parada**, `completarCambioParada()` llama a `desactivarFlechaUsuario()`: borra la flecha y el círculo del mapa, desregistra el listener `zoomend` y pone `flechaActiva = false`.
-
 ```mermaid
 flowchart TD
-    A([Aventura activada]) --> B["Ruta principal dibujada\nazul #0077ff, 6px, sólida\n(todo el recorrido completo)"]
-
-    B --> C{Padre envía CAMBIO_PARADA}
-    C -- tipo: parada --> D["Solo ruta principal visible\nSnap-to-route desactivado\n(desactivarFlechaUsuario)"]
-    C -- tipo: tramo --> E["Tramo normal #3388ff 4px\n+ Tramo destacado #ff4500 6px\nSnap-to-route activado\n(activarFlechaUsuario)"]
+    A([Aventura activada]) --> C{Padre envía CAMBIO_PARADA}
+    C -- tipo: parada --> D["Solo 🎯 de la parada visible"]
+    C -- tipo: tramo --> E["Tramo normal #3388ff 4px\n+ Tramo destacado #ff4500 6px\n📌🎯 + polyline, con auto-reparación\nsi el estilo del mapa aún no cargó (§4.6a)"]
 
     L([Usuario pulsa btn-ubicación]) --> M["dibujarPolylineNavegacion()\nverde #3eff3f discontinua 2px\ncon waypoints del tramo\nfuerza _ocultarNavegacion() del\ntrazado persistente de inmediato"]
     M --> N{"Cada lectura GPS:\n¿distancia ≤50m (llegada)\nO gpsVisualActivo=true?\n(ver §4.7d)"}
@@ -989,33 +970,51 @@ flowchart TD
 
 **Esta misma variable (`polylineNavegacion`) es la única guía de "vuelta" que existe** — no compite con ninguna otra capa automática (§4.6). Al dibujarse fuerza `_ocultarNavegacion()` sobre el trazado persistente de inmediato (§4.7d) — no espera a que la vigilancia por distancia lo oculte por su cuenta, porque pulsar el botón es la señal más directa de que el usuario está perdido/lejos.
 
-### 4.6b. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
+### 4.6a. Auto-reparación de polyline/círculo si el estilo del mapa aún no cargó
+
+`_crearPolyline()`/`_crearCirculoGeografico()` (`js/funciones-mapa.js`) exigen que el estilo de MapLibre esté cargado (`_estiloListo()`, ver §11 "Arranque del mapa") antes de llamar a `addSource`/`addLayer` — MapLibre lanza excepción si se llama antes de tiempo. Hasta esta versión, si el estilo no estaba listo en el instante exacto de la llamada, ambas funciones devolvían `_capaVacia()`: un objeto con la misma forma (`setLatLngs`/`setLatLng`/`setStyle`/`remove`) pero completamente inerte — nunca se llegaba a `addLayer` de verdad, y como el objeto no era `null`, el código que lo recibía (p. ej. `if (polyline) { rutasActivas.push(polyline); }` en `completarCambioParada()`) lo trataba como un éxito. El resultado, reportado por el usuario con capturas reales: 📌/🎯 (marcadores DOM, no dependen del estilo) aparecían con normalidad mientras la polyline del tramo se quedaba invisible para siempre, sin ningún aviso — la única pista era un `logger.warn` que nadie ve fuera de las DevTools.
+
+La corrección sustituye `_capaVacia()` por `_crearCapaDiferida(tipo, factory)`: en vez de un stub muerto, devuelve un proxy que se engancha al evento nativo `'load'` del mapa (el mismo que usa `initializeMap()` para saber que el estilo terminó de cargar, ver §11) y ejecuta `factory()` — la creación real de la capa — en cuanto dispara. Cualquier `setLatLngs`/`setLatLng`/`setStyle` invocado sobre el proxy mientras tanto se recuerda (`puntosPendientes`/`estiloPendiente`) y se aplica sobre la capa real en cuanto existe, para no perder una actualización que llegó durante la espera (p. ej. `revelarNavegacion()` subiendo la opacidad a 0.7 antes de que la capa real se haya creado). Si `remove()` se llama antes de que el estilo cargue, se marca como retirada y `factory()` nunca llega a ejecutarse — no tiene sentido crear una capa que ya se pidió eliminar. Si el estilo ya está listo en el momento de la llamada (el caso normal, en cualquier tramo que no sea el primerísimo instante de la app), el comportamiento es idéntico al de antes: la capa real se crea al instante, sin pasar por el proxy.
+
+Cubierto por `tests/e2e/23-polyline-autoreparacion.spec.js` (PR-1/2/3): con un mapa simulado cuyo `isStyleLoaded()` empieza en `false`, confirma que no se llama a `addLayer`/`addSource` hasta que el mapa dispara `'load'`, que un `setStyle()` pedido antes de ese momento (vía `revelarNavegacion()`) se aplica sobre la capa real en cuanto existe, y que con el estilo ya cargado el comportamiento no cambia.
+
+### 4.6b. Cámara siguiendo al usuario
+
+Antes, la cámara del mapa de aventura solo se movía con los `flyTo` puntuales de cambio de parada/tramo (§4.7d) — nunca seguía al usuario mientras caminaba entre esos puntos, así que podía quedar descentrado durante todo un tramo largo. `actualizarMarcadorUsuario()` ahora centra la cámara (`_mapaInstance.easeTo({center, duration:800})`) en cada posición GPS real, en los dos modos (CASA y AVENTURA), salvo dos excepciones:
+
+- **`estadoMapa.zoomEnCurso`** — mientras un `flyTo` de cambio de parada/tramo está en curso (`completarCambioParada()`), el seguimiento se salta para no competir con esa animación ya en marcha.
+- **Arrastre manual del usuario** — `_registrarSeguimientoCamara()` (llamada una vez desde `inicializarServicioMapa()`) escucha el evento nativo `'dragstart'` del mapa; si `event.originalEvent` está presente (el gesto viene de verdad de un ratón/dedo, no de un `easeTo()`/`flyTo()` programático — el propio seguimiento incluido), pone `_camaraSiguiendoUsuario = false` y dejan de aplicarse los `easeTo()` de seguimiento. Así el usuario conserva la libertad de arrastrar el mapa para mirar algo (p. ej. una referencia 🏛️ más adelante) sin que la siguiente lectura GPS deshaga el gesto de golpe.
+
+Retomar el seguimiento es responsabilidad exclusiva del **botón de recentrar** (`#btn-recentrar`, `codigo-padre.html`), que llama a `globalThis.funcionesMapa.reactivarSeguimientoCamara()`: pone `_camaraSiguiendoUsuario = true` y centra de inmediato sobre `estadoMapa.posicionUsuario` (sin esperar a la siguiente lectura GPS). Es un `<button>` nuevo (no una imagen PNG — un glifo Unicode `◎`, U+25CE, por no disponer de un icono a medida diseñado para "centrar en mi posición"), posicionado en el hueco entre `#logo-aventura` (centrado, `width:88vw`, deja `6vw` libres a cada lado) y el borde izquierdo de pantalla: `left:1vw`, `clamp(20px,5.2vw,28px)` de lado — más pequeño que el resto de botones del padre (`clamp(29px,8.4vmin,43px)`) porque es un botón de acción, no de información, y el hueco disponible es más estrecho. `z-index:3500` — por encima de `#logo-aventura` (3000) y por debajo de `#hijo5` (1000000), a propósito: en modo CASA (dev), el botón rojo de hijo5 debe quedar por encima y puede taparlo, sin que eso rompa nada (el seguimiento de cámara no tiene sentido sobre una posición simulada). Empieza oculto (`display:none` en su CSS) y se muestra/oculta junto con el resto de la UI de aventura (`btn-chat-soporte`, `hijo2`, etc.) a través de las mismas listas ya existentes en `_mostrarUIActivada()`/`_ocultarUIActivada()`/`mostrarDialogoVueltaRapida()` — no un mecanismo propio.
+
+Cubierto por `tests/e2e/24-camara-sigue-usuario.spec.js` (CAM-1/2/3/4): confirma que la primera posición centra la cámara, que un `dragstart` sin `originalEvent` (programático) no pausa nada, que uno con `originalEvent` sí lo hace, y que `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato. El guard de `zoomEnCurso` no tiene test aislado — forzarlo exigiría reproducir el flujo completo de `CAMBIO_PARADA` solo para una comprobación de una línea; queda verificado por revisión directa del código. El botón en sí está cubierto por `tests/e2e/25-boton-recentrar.spec.js` (BR-1/2/3): existe y empieza oculto, su `z-index` cae entre el del logo y el de hijo5, y al pulsarlo invoca `reactivarSeguimientoCamara()`.
+
+### 4.6c. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
 
 **Estado: parcialmente implementado. Detenido intencionalmente.**
 
-La app dispone de todos los datos necesarios para implementar instrucciones paso a paso tipo "gira a la derecha en 50 metros": los tramos tienen `waypoints` con coordenadas exactas de cada giro, el GPS actualiza posición en tiempo real, y `estadoMapa.tramoWaypoints` contiene la lista de puntos del tramo activo con sus coordenadas.
+La app dispone de todos los datos necesarios para implementar instrucciones paso a paso tipo "gira a la derecha en 50 metros": los tramos tienen `waypoints` con coordenadas exactas de cada giro, y el GPS actualiza posición en tiempo real.
 
-**Razón por la que no se ha terminado**: El modelo de experiencia elegido prioriza la exploración libre. El usuario ve la polyline completa del recorrido, la flecha snap-to-route en los tramos, y puede pedir la polyline de navegación de vuelta cuando quiera (`btn-ubicacion`). Eso es suficiente orientación sin imponer un camino rígido. Las instrucciones tipo GPS ("gira aquí") harían la aventura mecánica y reduciría el placer de descubrir el camino.
+**Razón por la que no se ha terminado**: El modelo de experiencia elegido prioriza la exploración libre. El usuario ve la polyline completa del tramo activo (📌/🎯 + línea azul, §4.6) y puede pedir la polyline de navegación de vuelta cuando quiera (`btn-ubicacion`). Eso es suficiente orientación sin imponer un camino rígido. Las instrucciones tipo GPS ("gira aquí") harían la aventura mecánica y reduciría el placer de descubrir el camino. (Existió además, hasta esta versión, un segundo sistema de flecha "snap-to-route" que proyectaba una posición sobre la ruta — se retiró por decisión de diseño independiente de esta, ver la nota en §4.5, no por ser un paso hacia turn-by-turn).
 
 **Lo que está implementado hoy:**
 
 | Elemento | Implementado | Descripción |
 |---|---|---|
-| Polyline de ruta completa | ✅ | Se dibuja al activar la aventura |
+| Polyline del tramo activo | ✅ | 📌/🎯 + línea azul, revelados por proximidad real a `.inicio` (§4.7d) |
 | Polyline de navegación (vuelta) | ✅ | Solo manual, al pulsar `btn-ubicacion` (§4.6) |
-| Flecha snap-to-route | ✅ | Solo en tramos; sigue el waypoint más cercano |
 | Detección de proximidad a parada | ✅ | Radio configurable por aventura |
 | Distancia al destino (en hijo2) | ✅ | Se actualiza con cada GPS |
 
 **Lo que faltaría para turn-by-turn completo:**
 
-1. Función que calcule la instrucción de giro: leer ángulo entre waypoints consecutivos de `estadoMapa.tramoWaypoints` y determinar "recto / izquierda / derecha" según la posición del usuario.
+1. Función que calcule la instrucción de giro: leer ángulo entre waypoints consecutivos del tramo activo y determinar "recto / izquierda / derecha" según la posición del usuario.
 2. Umbral de activación: disparar la instrucción cuando el usuario esté a X metros del waypoint de giro.
 3. Tipo de mensaje nuevo (`NAVEGACION.INSTRUCCION_TURNO`) para enviar la instrucción a hijo2 o al padre.
 4. UI en hijo2 (o banner en el padre) que muestre la instrucción.
 5. Opcional: síntesis de voz con `speechSynthesis` en hijo3 o en padre.
 
-Si se decide implementar en el futuro, el punto de entrada natural es `actualizarPosicionFlecha()` en `funciones-mapa.js`, que ya se ejecuta en cada actualización GPS y tiene acceso a `estadoMapa.tramoWaypoints` y `estadoMapa.posicionUsuario`.
+Si se decide implementar en el futuro, el punto de entrada natural es `procesarPosicionGPSParaAventura()` en `funciones-mapa.js`, que ya se ejecuta en cada actualización GPS y tiene acceso a los waypoints del tramo activo (`siguienteParada.waypoints`) y a `estadoMapa.posicionUsuario`.
 
 ### 4.7. Botones del hijo 2 (coordenadas) — iconos por imagen
 
@@ -1113,7 +1112,7 @@ El flag `estado.pendingRevealNavegacion` (`boolean`, inicializado a `false` en `
 
 - **Parada, flag=`true`** (se llegó aquí avanzando desde un elemento anterior recién completado): `completarCambioParada()` llama `revelarNavegacion()` explícitamente (no solo deja el marcador en su opacidad por defecto — hace falta la llamada real para que `gpsVisualActivo` quede en `true` y la parte 2, más abajo, pueda vigilar correctamente desde el primer tick) y resetea el flag a `false`.
 - **Parada, flag=`false`** (p. ej. la primera parada de la aventura, o una reanudación): `completarCambioParada()` llama `_ocultarNavegacion()`.
-- **Tramo, cualquier valor del flag:** `completarCambioParada()` **ignora el flag por completo** y siempre llama `_ocultarNavegacion()` — ni siquiera avanzando desde la parada anterior con `btn-avanzar` lo revela de golpe. Además resetea `estadoMapa._tramoIniciadoEstaActivacion = false`, marcando que este tramo, en esta activación, aún no ha sido alcanzado nunca por GPS (ver parte 2).
+- **Tramo, cualquier valor del flag:** `completarCambioParada()` **ignora el flag por completo** y siempre llama `_ocultarNavegacion()` — ni siquiera avanzando desde la parada anterior con `btn-avanzar` lo revela de golpe. Además resetea `estadoMapa._elementoYaRevelado = false`, marcando que este elemento, en esta activación, aún no se ha revelado nunca (ver parte 2 — el mismo flag, generalizado, también gobierna paradas: ver el disparo de los carteles de bienvenida de vuelta, §4.7k/l).
 
 ```text
 CAMBIO_PARADA recibido
@@ -1121,7 +1120,7 @@ CAMBIO_PARADA recibido
         ▼
 completarCambioParada():
   1. Limpia capas anteriores (polylines, tramo markers 📌🎯 — siempre, independiente del modo)
-  2. Resetea _tramoIniciadoEstaActivacion y el contador de confirmación por 2 lecturas (parte 2)
+  2. Resetea _elementoYaRevelado y el contador de confirmación por 2 lecturas (parte 2)
   3. Dibuja polyline (si tramo) + marcadores 📌🎯 (o 🎯 si parada)
   4. Hace zoom/flyTo al destino
   5. Decide visibilidad inicial:
@@ -1138,13 +1137,13 @@ A partir de ahí, **cada lectura GPS válida** en `procesarPosicionGPSParaAventu
 | Tipo / fase | "Cerca" cuando... | Motivo |
 |---|---|---|
 | Parada | `distancia` (al punto) `≤ 20m` | Mismo radio que "llegada" |
-| Tramo, fase 1 — nunca alcanzó `.inicio` en esta activación (`!estadoMapa._tramoIniciadoEstaActivacion`) | `distancia a .inicio ≤ 20m` | Igual que el diseño original — confirma que el usuario ha empezado el tramo de verdad |
+| Tramo, fase 1 — nunca alcanzó `.inicio` en esta activación (`!estadoMapa._elementoYaRevelado`) | `distancia a .inicio ≤ 20m` | Igual que el diseño original — confirma que el usuario ha empezado el tramo de verdad |
 | Tramo, fase 2 — ya alcanzó `.inicio` alguna vez | `distanciaAlCamino ≤ toleranciaGPS` (dinámica, ya calculada por tramo) | Deliberadamente NO vuelve a medir contra `.inicio` — avanzar hacia `.fin` aleja de `.inicio` por definición, así que usar esa distancia re-ocultaría el trazado del usuario que va bien encaminado. `distanciaAlCamino` (distancia a la polyline completa, no a un punto) permite manejar un desvío real sin exigir volver al principio |
 
 El resultado ("cerca" `true`/`false`) se confirma por **ventana deslizante (2 de las últimas 4 lecturas en la misma dirección)** antes de actuar — mismo mecanismo que la detección de llegada (`_llegadaCandidataId`/`_llegadaVentana`, ver §25.5), contado aparte en `estadoMapa._trazadoCandidataId` / `_trazadoVentana` para no mezclar "confirmar llegada" con "confirmar visibilidad". Empezó como un contador estricto de "2 SEGUIDAS", deliberadamente distinto del de llegada (revelar/ocultar un trazado es reversible y de bajo riesgo, a diferencia de bloquear una llegada real) — pero el mismo ruido GPS urbano que impedía confirmar la llegada impedía también revelar/ocultar el trazado con el usuario ya en la posición correcta, así que se aplicó el mismo ajuste aquí (ver §25.5 para el reporte de campo real que lo motivó). Sigue evitando parpadeo por una lectura GPS puntualmente mala cerca del umbral: 1 de 4 nunca basta. El id se indexa por el elemento activo, así que cambiar de parada/tramo resetea la ventana solo (además se resetea explícitamente en `completarCambioParada()` y en `limpiarRecursos()`, por si acaso).
 
 Con 2 lecturas confirmadas:
-- **cerca && trazado oculto** → `revelarNavegacion()`; si es un tramo, marca `estadoMapa._tramoIniciadoEstaActivacion = true` (pasa a fase 2 para siempre en esta activación).
+- **cerca && trazado oculto** → `revelarNavegacion()`; marca `estadoMapa._elementoYaRevelado = true` (si es un tramo, pasa a fase 2 para siempre en esta activación). Si esta es la **primera** vez que se revela este elemento en la activación actual (`_esPrimeraRevelacion`, capturado justo antes de fijar el flag), dispara un cartel solo si el elemento es el punto de inicio de la aventura (`tipo === 'inicio'`, §4.7j) — cualquier otro elemento ya tuvo su cartel correspondiente al completarse el elemento *anterior* (§4.7g). Si **no** es la primera vez (el usuario se había alejado y ha vuelto), dispara el cartel de bienvenida de vuelta correspondiente (§4.7k tramo / §4.7l parada).
 - **lejos && trazado visible** → `_ocultarNavegacion()`.
 - En cualquier otro caso (ya está en el estado que le corresponde) no hace nada — evita llamadas repetidas en cada tick mientras el usuario se queda quieto cerca o lejos.
 
@@ -1186,7 +1185,8 @@ Elemento N se completa (parada: audio + reto; tramo: audio + llegada — ver Cas
         ▼
 Padre (marcarParadaCompletada()): paradaListaParaAvanzar = true
        envía CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'parada_completada' | 'tramo_completado' } → hijo2
-       muestra el cartel de transición (§4.7g) anunciando qué termina y qué empieza
+       muestra el cartel de Inicio de tramo (§4.7i) — el destino es un tramo,
+       da igual si lo que se completó fue una parada o el tramo anterior (§4.7g)
         │
         ▼
 Usuario pulsa btn-avanzar
@@ -1212,6 +1212,11 @@ Esta es la única puerta de entrada a un tramo, sea cual sea el elemento que se 
 
 ```text
 Elemento N se completa (parada: audio + reto; tramo: audio + llegada — ver Caso D)
+        │
+        ├─ N era una parada → cartel de Transición (§4.7h)
+        └─ N era un tramo, y el audio fue la última condición en cumplirse
+           (la llegada ya se había confirmado antes) → cartel de Transición también (§4.7h,
+           variante "tramo" de la plantilla — ver más abajo, "el otro orden de Caso D")
         │
         ▼
 (mismo btn-avanzar / pendingRevealNavegacion = true / progresarSiguienteElemento() que Caso A)
@@ -1242,7 +1247,7 @@ _hdl_NAVEGACION_GPS_ACTIVAR():
   paradaListaParaAvanzar === false (tramo activo, aún sin completar)
   → llama revelarNavegacion() DIRECTAMENTE
   → polyline + 📌🎯 se hacen visibles al instante (datos ya cargados)
-  → NO marca _tramoIniciadoEstaActivacion=true (solo lo hace la parte 2) — si el usuario se
+  → NO marca _elementoYaRevelado=true (solo lo hace la parte 2) — si el usuario se
     aleja después de esto sin haber pasado por .inicio de verdad, la siguiente lectura GPS lo
     tratará todavía como fase 1 (mide contra .inicio, no contra el camino)
 ```
@@ -1259,7 +1264,9 @@ Y el audio del tramo ya terminó (ambas condiciones en cualquier orden)
 intentarCompletarElemento() → marcarParadaCompletada() para el Tramo N:
   estado.paradaListaParaAvanzar = true
   envía CONTROL.HABILITAR { control: 'btnAvanzar', razon: 'tramo_completado' } → hijo2
-  muestra el cartel de transición (§4.7g)
+  muestra el cartel de Inicio de tramo (§4.7i) si el siguiente elemento es otro tramo,
+  o el cartel de Llegada (§4.7j) si el siguiente es una parada — nunca el de Transición
+  genérico (§4.7h): un tramo no se completa "estando quieto" (§4.7g)
         │
         ▼
 El trazado del Tramo N sigue visible tal cual estaba (revelado desde el Caso E/F) —
@@ -1269,57 +1276,68 @@ completarse NO lo oculta ni lo cambia
 Usuario pulsa btn-avanzar → Caso A o Caso B, según el tipo del siguiente elemento
 ```
 
-El GPS **nunca** llama a `progresarSiguienteElemento()` por su cuenta — solo confirma condiciones y habilita el botón, exactamente igual que en una parada. Antes de esta unificación, un tramo completado disparaba `progresarSiguienteElemento()` directamente en cuanto el GPS confirmaba la llegada, sin que el usuario llegara a enterarse de que había cambiado de un elemento a otro (`btn-avanzar` seguía deshabilitado en todo momento). El cartel de transición (§4.7g) es precisamente la señal que compensa la pérdida de ese aviso implícito: ahora el usuario ve explícitamente qué acaba de terminar y qué va a empezar, tanto en paradas como en tramos.
+El GPS **nunca** llama a `progresarSiguienteElemento()` por su cuenta — solo confirma condiciones y habilita el botón, exactamente igual que en una parada. Antes de esta unificación, un tramo completado disparaba `progresarSiguienteElemento()` directamente en cuanto el GPS confirmaba la llegada, sin que el usuario llegara a enterarse de que había cambiado de un elemento a otro (`btn-avanzar` seguía deshabilitado en todo momento). El cartel correspondiente (§4.7g) es precisamente la señal que compensa la pérdida de ese aviso implícito: ahora el usuario ve explícitamente qué acaba de terminar y qué va a empezar, tanto en paradas como en tramos.
 
-**Caso E — Revelación inicial de un tramo por GPS (fase 1 → fase 2):**
+**El orden en que se cumplen las dos condiciones de un tramo no afecta a qué cartel sale.** `intentarCompletarElemento()` marca `causa: 'audio_llegada_tramo'` en el mismo sitio, sin importar si `pending.audio` o `pending.llegada` fue la que acabó de ponerse a `true` en último lugar — un tramo, mientras no tenga las dos, sencillamente no está completo, así que no hay ningún estado intermedio de "completado por audio" o "completado por llegada" que distinguir. La bifurcación de §4.7g solo mira `esTramo` (si lo que se acaba de completar era un tramo, sea cual sea el orden) y el tipo del elemento siguiente — tramo→parada es **siempre** el cartel de Llegada (§4.7j), sin excepción.
+
+**Caso E — Revelación inicial de un elemento por GPS (fase 1 → fase 2 en tramos):**
 
 ```text
-Tramo N activo, trazado oculto (Caso A o C), _tramoIniciadoEstaActivacion = false
+Elemento N activo, trazado oculto (Caso A, B o C), _elementoYaRevelado = false
         │
         ▼
 Cada posición GPS válida → procesarPosicionGPSParaAventura():
-  distancia(posición actual, siguienteParada.inicio) ≤ 20m, confirmado por ventana (2 de 4)
+  Parada: distancia ≤ 20m   |   Tramo: distancia(posición actual, .inicio) ≤ 20m
+  confirmado por ventana (2 de 4)
         │
         ▼
-  revelarNavegacion() → polyline + 📌🎯 visibles
-  _tramoIniciadoEstaActivacion = true  → a partir de aquí, fase 2 (ver Caso F)
+  revelarNavegacion() → trazado visible
+  _elementoYaRevelado = true  → a partir de aquí, fase 2 en tramos (ver Caso F);
+  en paradas solo importa para distinguir una futura "vuelta tras alejarse" (Caso F)
+        │
+        ▼
+  ¿Es la primera revelación de la aventura completa (tipo === 'inicio')?
+    Sí → cartel de Llegada (§4.7j) — no hay elemento anterior que ya lo haya anunciado
+    No → ningún cartel aquí; el elemento anterior ya disparó el suyo al completarse (§4.7g)
 ```
 
-No importa cómo se llegó al tramo (avanzando desde una parada, reanudando una sesión cerrada, o cualquier otro camino) — mientras la posición real del usuario no esté a ≤20m de `.inicio`, el trazado se queda oculto.
+No importa cómo se llegó al elemento (avanzando desde otro, reanudando una sesión cerrada, o cualquier otro camino) — mientras la posición real del usuario no esté a ≤20m (o de `.inicio`, en tramos), el trazado se queda oculto.
 
-**Caso F — Desvío y recuperación tras haber iniciado el tramo (fase 2, bidireccional):**
+**Caso F — Desvío/alejamiento y recuperación tras la primera revelación (fase 2 en tramos, bidireccional en los dos tipos):**
 
 ```text
-Tramo N activo, ya alcanzó .inicio alguna vez (_tramoIniciadoEstaActivacion = true), trazado visible
+Elemento N activo, ya se reveló alguna vez (_elementoYaRevelado = true), trazado visible
         │
         ▼
-Usuario se desvía del camino real (p. ej. calle cortada por obras) → distanciaAlCamino > toleranciaGPS,
+Usuario se aleja (tramo: distanciaAlCamino > toleranciaGPS; parada: distancia > 20m),
 confirmado por ventana (2 de 4)
         │
         ▼
-_ocultarNavegacion() → trazado OCULTO; ningún trazado de este tramo queda visible mientras
-dure el desvío. Si el usuario quiere una guía visual de vuelta, tiene que pulsar btn-ubicacion
+_ocultarNavegacion() → trazado OCULTO; ningún trazado de este elemento queda visible mientras
+dure el alejamiento. Si el usuario quiere una guía visual de vuelta, tiene que pulsar btn-ubicacion
 (§4.6) — no hay ninguna señal automática además del propio botón habilitándose por distancia
         │
         ▼
-Usuario vuelve a acercarse al camino EN CUALQUIER PUNTO (no hace falta pasar por .inicio otra
-vez) → distanciaAlCamino ≤ toleranciaGPS, confirmado por ventana (2 de 4)
+Usuario vuelve a acercarse EN CUALQUIER PUNTO (en tramos, no hace falta pasar por .inicio otra
+vez) → confirmado por ventana (2 de 4)
         │
         ▼
-revelarNavegacion() → trazado VISIBLE de nuevo; _tramoIniciadoEstaActivacion sigue en true
+revelarNavegacion() → trazado VISIBLE de nuevo; _elementoYaRevelado sigue en true
+  → cartel de bienvenida de vuelta: §4.7k si es un tramo, §4.7l si es una parada
 ```
 
-Un reanudación de sesión (cerrar la app y reabrirla) SÍ resetea `_tramoIniciadoEstaActivacion` a `false` (es un campo en memoria de `estadoMapa`, no persistido) — coherente con que un tramo incompleto debe rehacerse desde el principio tras reanudar (ver §16, invariante de pending).
+Una reanudación de sesión (cerrar la app y reabrirla) SÍ resetea `_elementoYaRevelado` a `false` (es un campo en memoria de `estadoMapa`, no persistido) — coherente con que un tramo incompleto debe rehacerse desde el principio tras reanudar (ver §16, invariante de pending). Para una parada, esto significa que reanudar sesión también puede volver a disparar, en teoría, el cartel de Llegada del punto de inicio si la parada activa en ese momento fuera `tipo === 'inicio'` — un caso de borde extremadamente raro (reanudar literalmente en la primera parada de la aventura), no protegido de forma especial.
 
 **Resumen:**
 
-| Transición | Es tramo el destino | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación / ocultación posterior |
-|---|---|---|---|---|
-| Elemento completado → Tramo (btn-avanzar, Caso A) | ✅ | `true` (ignorado) | ❌ oculta siempre | GPS ≤20m de `.inicio`, fase 1 (Caso E); luego bidireccional por `distanciaAlCamino` (Caso F) |
-| Elemento completado → Parada (btn-avanzar, Caso B) | ❌ | `true` | ✅ inmediata (`revelarNavegacion()` explícito) | Bidireccional por `distancia` desde el primer tick |
-| Tramo activo, btn-avanzar sin llegar (Caso C) | n/a | n/a | — | `revelarNavegacion()` directo, sin marcar fase 2 todavía — normalmente ya cubierto por el Caso E |
-| Tramo completado por GPS, esperando btn-avanzar (Caso D) | n/a | — | (sin cambio; el tramo que se completa ya estaba visible) | Habilita btn-avanzar + cartel de transición (§4.7g); no oculta ni avanza nada por sí solo |
-| Botón de ubicación pulsado (cualquier tipo) | — | — | — | Dibuja la polyline manual verde (§4.6) y fuerza `_ocultarNavegacion()` de inmediato, sin esperar a la vigilancia por distancia |
+| Transición | Es tramo el destino | `pendingRevealNavegacion` al llegar | Navegación visible en CAMBIO_PARADA | Revelación / ocultación posterior | Cartel al completarse |
+|---|---|---|---|---|---|
+| Elemento completado → Tramo (btn-avanzar, Caso A) | ✅ | `true` (ignorado) | ❌ oculta siempre | GPS ≤20m de `.inicio`, fase 1 (Caso E); luego bidireccional por `distanciaAlCamino` (Caso F) | Inicio de tramo (§4.7i) |
+| Elemento completado → Parada (btn-avanzar, Caso B) | ❌ | `true` | ✅ inmediata (`revelarNavegacion()` explícito) | Bidireccional por `distancia` desde el primer tick | Transición (§4.7h) |
+| Tramo activo, btn-avanzar sin llegar (Caso C) | n/a | n/a | — | `revelarNavegacion()` directo, sin marcar fase 2 todavía — normalmente ya cubierto por el Caso E | — |
+| Tramo completado (audio + llegada, cualquier orden), esperando btn-avanzar (Caso D) | n/a | — | (sin cambio; el tramo que se completa ya estaba visible) | Habilita btn-avanzar; no oculta ni avanza nada por sí solo | Inicio de tramo (§4.7i) si el siguiente es un tramo — Llegada (§4.7j) si el siguiente es una parada, siempre, sin excepción |
+| Alejarse y volver, elemento ya revelado antes (Caso F) | — | — | — | `_ocultarNavegacion()` al alejarse, `revelarNavegacion()` al volver | Bienvenida de vuelta: tramo (§4.7k) o parada (§4.7l) |
+| Botón de ubicación pulsado (cualquier tipo) | — | — | — | Dibuja la polyline manual verde (§4.6) y fuerza `_ocultarNavegacion()` de inmediato, sin esperar a la vigilancia por distancia | — |
 
 **Tanto una parada como un tramo, al completarse, siguen exactamente el mismo camino** (Caso D confluye en Caso A o B) — la única diferencia entre los dos tipos de elemento es qué condiciones cuentan como "completado" (parada: audio + llegada + reto; tramo: audio + llegada, ver §4.7d parte 1) y si el elemento de **destino** de la siguiente transición es tramo o parada (columna "Es tramo el destino"), no el tipo del elemento que se acaba de dejar atrás.
 
@@ -1363,11 +1381,41 @@ Vive en un `<script>` clásico propio de `codigo-padre.html` (no un `type="modul
 
 **Tecla Escape:** un único listener global (`document.addEventListener('keydown', ...)`, definido junto a los 4 sistemas de overlay) cierra el que esté `.visible` en ese momento — imagen, video, error o iframe — comprobando cada uno por turno.
 
-### 4.7g. Cartel de transición entre elementos (`#cartel-transicion`)
+### 4.7g. Los cinco carteles: cuál dispara para cada transición
 
-**Por qué existe:** desde la unificación de la progresión (§4.7d, Caso D), tanto una parada como un tramo se quedan esperando la pulsación de `btn-avanzar` en cuanto se completan — nunca avanzan solos. Sin ningún aviso adicional, el usuario no tiene forma de saber que acaba de completar el elemento activo (más allá de que un botón que antes estaba rojo pasa a verde), ni qué elemento viene a continuación. El cartel resuelve ese hueco: un aviso breve, no bloqueante, que anuncia explícitamente qué acaba de terminar y qué va a empezar.
+Antes existían tres carteles, cada uno con su propio disparador independiente (uno al completarse cualquier elemento, uno al confirmarse por GPS el inicio de un tramo, uno al confirmarse por GPS la llegada a una parada). Ahora son **cinco**, con una única regla de selección que vive en `marcarParadaCompletada()` (`codigo-padre.html`) y en el punto de revelación por GPS de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`):
 
-**Disparo:** `globalThis.mostrarCartelTransicion(tipo1, nombre1, tipo2, nombre2)`, definida en `codigo-padre.html` justo después de `mostrarModalFinalizacion` (import dinámico de las traducciones, expuesta en `globalThis` porque la llama `marcarParadaCompletada()`, que puede vivir en un script distinto). Se invoca desde dentro de `marcarParadaCompletada()`, en la misma rama que fija `paradaListaParaAvanzar = true` y envía `CONTROL.HABILITAR { control: 'btnAvanzar' }` — es decir, en el mismo instante en que el botón se habilita, no al pulsarlo. `tipo1`/`nombre1` son el tipo y nombre del elemento que se acaba de completar (`findElementoPorPadreId(idLimpio)`); `tipo2`/`nombre2` son el tipo y nombre del **siguiente** elemento en la secuencia (`elementosIDpadre[estado.indiceProgreso + 1]`, resuelto directamente sobre el array — `estado.indiceProgreso` todavía no se ha incrementado en este punto, `progresarSiguienteElemento()` no lo hace hasta que el usuario pulse). Si no hay elemento siguiente (se acaba de completar el último elemento de la aventura), `tipo2`/`nombre2` llegan como `null` y el cartel muestra solo la mitad de "completado" — el modal de fin de aventura (`mostrarModalFinalizacion`, §8.x) es quien se encarga del resto, y se dispara aparte cuando el usuario pulsa `btn-avanzar` y `progresarSiguienteElemento()` no encuentra elemento siguiente.
+| # | Cartel | Cuándo | `esTramo` (lo que acaba) | `elementoSiguiente?.tipo` |
+|---|--------|--------|---|---|
+| 1 | Transición (§4.7h) | Se completa el elemento actual, estando quieto | parada (o última parada de la aventura) | parada, o sin siguiente |
+| 2 | Inicio de tramo (§4.7i) | Se completa el elemento actual, estando quieto | parada **o** tramo — el texto siempre nombra ambos | tramo |
+| 3 | Llegada (§4.7j) | Se confirma por GPS que un tramo llegó a `.fin` | tramo | parada |
+| 4 | Bienvenida de vuelta — tramo (§4.7k) | Se confirma por GPS que volvió a un tramo ya iniciado, tras alejarse | (n/a — no hay transición de elemento) | — |
+| 5 | Bienvenida de vuelta — parada (§4.7l) | Se confirma por GPS que volvió a una parada activa, tras alejarse | (n/a — no hay transición de elemento) | — |
+
+**Por qué la clave es "qué sigue", no "qué acaba":** la única razón para mostrar el cartel de Inicio de tramo en vez del de Transición o el de Llegada es que haya una polyline nueva que seguir — eso depende exclusivamente del tipo del elemento **siguiente**, nunca del que se acaba de completar. Por eso el cartel de Inicio de tramo (#2) dispara igual tanto si lo anterior era una parada como si era otro tramo (`tramo→tramo` existe de verdad en los datos de varias aventuras — confirmado, no es un caso teórico). El **texto**, en cambio, siempre nombra los dos elementos igual que el cartel de Transición (§4.7h) — la única diferencia real entre ambos carteles es el aviso añadido de "siga la línea azul", no si se nombra o no. Y por eso tramo→parada (#3) tiene su propio cartel distinto del genérico de transición (#1): un tramo nunca se completa "estando quieto" — se completa por **audio + llegada GPS**, y la llegada es, por construcción, un evento de posición, no de estar parado esperando. En el código, la selección exacta es:
+
+```javascript
+if (elementoSiguiente?.tipo === 'tramo') {
+    globalThis.mostrarCartelInicioTramo(
+        esTramo ? 'tramo' : 'parada',
+        elementoCompletado?.nombre || null,
+        elementoSiguiente.nombre || null
+    );
+} else if (esTramo && elementoSiguiente?.nombre) {
+    globalThis.mostrarCartelLlegadaParada(elementoSiguiente.nombre);
+} else if (elementoCompletado?.nombre) {
+    globalThis.mostrarCartelTransicion(esTramo ? 'tramo' : 'parada', elementoCompletado.nombre, elementoSiguiente ? 'parada' : null, elementoSiguiente?.nombre || null);
+}
+```
+
+Cubierto por `tests/e2e/22-carteles-informativos.spec.js`, prueba CI-6: dispara `marcarParadaCompletada()` con datos reales de Aventura1 para una pareja parada→tramo y confirma que aparece el cartel de Inicio de tramo, nunca el de Transición genérico — el caso con más riesgo real de confundirse, porque antes de esta versión ambos existían como conceptos separados sin esta regla explícita. Las dos variantes de texto del cartel de Inicio de tramo (parada→tramo y tramo→tramo, ambas nombrando los dos elementos) se cubren aparte con CI-2/CI-2b, por llamada directa a `mostrarCartelInicioTramo(tipoAnterior, nombreAnterior, nombreTramoNuevo)` — no hay en `marcarParadaCompletada()` ninguna lógica adicional que probar ahí más allá de qué tipo y nombre pasa según `esTramo`, ya cubierta por trazado manual del código. La combinación parada→parada tampoco tiene test end-to-end dedicado sobre `marcarParadaCompletada()` en sí — la bifurcación de arriba es una cadena `if/else if` de tres ramas, ya verificada una vez arriba; se confirmó por trazado manual del código, no por asunción.
+
+### 4.7h. Cartel de transición (`#cartel-transicion`)
+
+**Por qué existe:** un elemento que se completa **estando quieto** (una parada, o el caso donde el último requisito de un tramo en completarse es el audio, no la llegada — ver más abajo) no tiene ningún otro aviso de que acaba de terminar, ni de qué va a empezar. El cartel resuelve ese hueco: un aviso breve, no bloqueante, que anuncia explícitamente qué acaba de terminar y qué va a empezar.
+
+**Disparo:** `globalThis.mostrarCartelTransicion(tipo1, nombre1, tipo2, nombre2)`, definida en `codigo-padre.html` justo después de `mostrarModalFinalizacion` (import dinámico de las traducciones, expuesta en `globalThis` porque la llama `marcarParadaCompletada()`, que puede vivir en un script distinto). Se invoca desde dentro de `marcarParadaCompletada()`, en la misma rama que fija `paradaListaParaAvanzar = true` y envía `CONTROL.HABILITAR { control: 'btnAvanzar' }` — en el mismo instante en que el botón se habilita, no al pulsarlo — y solo cuando la bifurcación de §4.7g resuelve a este cartel (siguiente = parada, o sin siguiente). `tipo1`/`nombre1` son el tipo y nombre del elemento que se acaba de completar (`findElementoPorPadreId(idLimpio)`) — puede ser `'parada'` o `'tramo'` (un tramo llega aquí cuando el audio, no la llegada GPS, fue la última condición en cumplirse); `tipo2`/`nombre2` son el tipo y nombre del **siguiente** elemento en la secuencia (`elementosIDpadre[estado.indiceProgreso + 1]`, resuelto directamente sobre el array — `estado.indiceProgreso` todavía no se ha incrementado en este punto, `progresarSiguienteElemento()` no lo hace hasta que el usuario pulse). Si no hay elemento siguiente (se acaba de completar el último elemento de la aventura), `tipo2`/`nombre2` llegan como `null` y el cartel muestra solo la mitad de "completado" — el modal de fin de aventura (`mostrarModalFinalizacion`, §8.x) es quien se encarga del resto, y se dispara aparte cuando el usuario pulsa `btn-avanzar` y `progresarSiguienteElemento()` no encuentra elemento siguiente.
 
 **Por qué el cartel depende de que `enviarMensajeInterno()` devuelva una Promise real:** la línea anterior a la que dispara el cartel (`enviarMensajePadre({...CONTROL.HABILITAR...}).catch(e => ...)`, patrón fire-and-forget) vive en el mismo bloque `try` de `marcarParadaCompletada()` que la llamada a `mostrarCartelTransicion`. `.catch()` solo existe en el prototipo de `Promise` — si `enviarMensajeInterno()` (la función que hace el envío real dentro de `mensajeria.js`) devolviera alguna vez un booleano desnudo en vez de envolverlo en `Promise.resolve(...)`, `.catch` sería `undefined` y llamarlo lanzaría un `TypeError` **síncrono**, en el momento mismo de evaluar esa línea — no una promesa rechazada más tarde, sino una excepción que corta ahí mismo el resto de la función que la contiene. Eso incluye todo lo que viene después en el mismo bloque `try`: el cartel de transición nunca llegaría a dispararse, con el mensaje ya enviado pero cualquier código posterior abortado en silencio (el `catch` externo de `marcarParadaCompletada()` solo registra el error, no reintenta ni avisa al usuario). Por eso `enviarMensajeInterno()` envuelve sus tres ramas (hijo→padre, padre→hijo, y el `catch` de error) en `Promise.resolve(...)` de forma explícita.
 
@@ -1382,41 +1430,65 @@ Ver detalle completo (incluida la verificación de alcanzabilidad previa al refu
 **Contenido:** dos líneas de texto sobre fondo `#fff8e7` (mismo celeste-crema que el panel de texto en `btn-imagen` de hijo2), borde `clamp(2.5px,0.6vmin,4px)` sólido `#FF8C00` (el naranja estándar de toda la app — badges, selector de mapa, círculo de activación de 20m), esquinas redondeadas `0.75rem`:
 
 - Línea 1 (eyebrow, mayúsculas, `#8b5e1a`): el nombre de la aventura (`INDICE_AVENTURAS[aventuraSeleccionada].nombre`).
-- Línea 2 (`#333`): el mensaje combinado, construido a partir de `TRADUCCIONES_CARTEL_TRANSICION` (`js/traducciones-ui.js`, 12 idiomas) — plantilla `terminaParada`/`terminaTramo` según `tipo1`, con `{nombre}` sustituido por `nombre1` (escapado con `_escapar()`, previene inyección HTML si un nombre de parada llegara a contener caracteres especiales); si hay elemento siguiente, se concatena ` — ` + plantilla `empiezaParada`/`empiezaTramo` según `tipo2` con `nombre2`. En español: *"Ha terminado la parada Torres de Serranos — va a empezar el tramo Torres de Serranos → Portal de la Mar"*. Todas las plantillas usan registro formal ("usted"/equivalente por idioma — mismo criterio que `TRADUCCIONES_FINALIZACION`, ver más abajo) y frases naturales por idioma, no traducciones literales palabra por palabra (p. ej. polaco usa una construcción impersonal — "następny przystanek: {nombre}" — en vez de un pronombre de género que no se puede inferir).
+- Línea 2 (`#333`): el mensaje combinado, construido a partir de `TRADUCCIONES_CARTEL_TRANSICION` (`js/traducciones-ui.js`, 12 idiomas) — plantilla `terminaParada`/`terminaTramo` según `tipo1`, con `{nombre}` sustituido por `nombre1` (escapado con `_escapar()`, previene inyección HTML si un nombre de parada llegara a contener caracteres especiales); si hay elemento siguiente, se concatena ` — ` + plantilla `empiezaParada`/`empiezaTramo` según `tipo2` con `nombre2`. En español: *"Ha terminado la parada Torres de Serranos — va a empezar la parada Portal de la Mar"*. Todas las plantillas usan registro formal ("usted"/equivalente por idioma — mismo criterio que `TRADUCCIONES_FINALIZACION`, ver más abajo) y frases naturales por idioma, no traducciones literales palabra por palabra (p. ej. polaco usa una construcción impersonal — "następny przystanek: {nombre}" — en vez de un pronombre de género que no se puede inferir).
 
 **Cierre:** botón `.btn-cerrar-overlay` estándar (mismo componente circular naranja/verde/negro que el resto de la app — ✗, esquina superior derecha) y cierre automático a los 10 segundos (`setTimeout`) si el usuario no interactúa. Un flag `cerrado` local evita que ambos disparadores intenten eliminar el nodo dos veces. `document.getElementById('cartel-transicion')?.remove()` al principio de la función asegura que un segundo cartel (dos completados seguidos muy rápido) reemplaza al anterior en vez de apilarse.
 
-**Posición y capa:** `position:fixed`, centrado horizontalmente, `top: calc(10.7vh + 10px + 0.5rem)` — justo por debajo del borde inferior de `#fondo-blanco` (`top:0`, `height:calc(10.7vh + 10px)`, el cuadro blanco tras el logo), más un margen de 0.5rem. Antes usaba `calc(var(--gap-superior, 0px) + 0.75rem)` (solo el recorte superior del dispositivo, sin contar la altura real del cuadro blanco), lo que hacía que el cartel apareciera solapado con el logo. `z-index:1000060` — por encima de la UI normal de la app pero sin bloquear ninguna interacción (no tiene backdrop ni captura clics fuera de sí mismo; el mapa y los botones de hijo2 siguen operativos mientras el cartel está en pantalla).
+**Posición y capa:** `position:fixed`, centrado horizontalmente, `top: calc(10.7vh + 10px + 0.5rem)` — justo por debajo del borde inferior de `#fondo-blanco` (`top:0`, `height:calc(10.7vh + 10px)`, el cuadro blanco tras el logo), más un margen de 0.5rem. `z-index:1000060` — por encima de la UI normal de la app pero sin bloquear ninguna interacción (no tiene backdrop ni captura clics fuera de sí mismo; el mapa y los botones de hijo2 siguen operativos mientras el cartel está en pantalla). Los cinco carteles comparten exactamente esta misma tarjeta, posición y capa — solo cambia el contenido de cada uno.
 
-**Aviso de "pulse avanzar" (añadido 2026-08-06):** bajo la línea 2, una fila con `display:flex` combina el icono real de `#btn-avanzar` (`imagenes/imagenes-aplicación/fotoruta-A-B.png`, el mismo PNG que usa el botón en `coordenadas-hijo2.html`) con la plantilla `pulseAvanzar` de `TRADUCCIONES_CARTEL_TRANSICION` (12 idiomas, registro formal igual que el resto de la tabla — p. ej. español "Pulse el botón avanzar, por favor."). Motivo: sin este aviso, el cambio de color del botón (rojo→verde) era la única señal de que hacía falta pulsar algo, y un usuario mirando el monumento en vez de la pantalla podía no darse cuenta. Aparece siempre, tanto si hay elemento siguiente como si es el último de la aventura — en ambos casos hace falta pulsar avanzar para continuar (§4.7d, Caso D).
+**Aviso de "pulse avanzar y play":** bajo la línea 2, una fila con `display:flex` combina **dos** iconos — el de `#btn-avanzar` (`imagenes/imagenes-aplicación/fotoruta-A-B.png`) y el de audio (`imagenes/imagenes-aplicación/boton-audio-central.png`) — con la plantilla `instrucciones` de `TRADUCCIONES_CARTEL_TRANSICION` (12 idiomas, registro formal — español: *"Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura."*). Antes este campo se llamaba `pulseAvanzar` y solo mencionaba avanzar — se renombró y amplió para incluir también el aviso de audio: como lo que sigue aquí es siempre una parada (o el fin de la aventura), pulsar play tiene sentido inmediato, a diferencia del cartel de Inicio de tramo (§4.7i), donde el audio es una guía para caminar, no una narración en el sitio.
 
-### 4.7h. Cartel de inicio de tramo (`#cartel-inicio-tramo`)
+### 4.7i. Cartel de inicio de tramo (`#cartel-inicio-tramo`)
 
-**Por qué existe:** el cartel de §4.7g avisa cuando se **completa** un elemento, pero llegar al **inicio** de un tramo (revelación del trazado por GPS, §4.7d Caso E) es un momento distinto y hasta ahora completamente silencioso — solo cambiaba la opacidad de la polyline y los emojis en el mapa. Un usuario mirando la calle, no la pantalla, no tenía forma de saber que el trazado ya estaba disponible.
+**Por qué existe:** cuando lo que sigue es un tramo, hace falta decirle al usuario, además de "pulse avanzar y play", que va a aparecer una línea azul nueva que seguir — la polyline persistente del tramo (§4.6). Sin este aviso específico, el mismo texto genérico de §4.7h no explicaría qué hacer con esa línea.
 
-**Disparo:** `globalThis.mostrarCartelInicioTramo(nombreTramo)`, definida en `codigo-padre.html` justo después de `mostrarCartelTransicion`, con la misma estructura (import dinámico de traducciones, expuesta en `globalThis`). Se llama desde `js/funciones-mapa.js`, dentro de `procesarPosicionGPSParaAventura()`, en el mismo bloque donde `revelarNavegacion()` confirma por ventana deslizante (§25.5) que el usuario está a ≤20m de `.inicio` — pero **solo la primera vez** que ese tramo pasa de fase 1 a fase 2 (`_esInicioDeTramo`, capturado antes de fijar `estadoMapa._tramoIniciadoEstaActivacion = true`): una revelación posterior por recuperación de un desvío (fase 2, Caso F) no repite el cartel. Como `funciones-mapa.js` corre dentro del propio padre (no en un iframe), la llamada es directa vía `globalThis`, no un `postMessage` — mismo motivo que el arreglo del sensor redundante de llegada (§25.5, §32.3): un `enviarMensaje({destino: resolverIdPadre()})` desde aquí se descartaría en silencio.
+**Disparo:** `globalThis.mostrarCartelInicioTramo(tipoAnterior, nombreAnterior, nombreTramoNuevo)`, definida en `codigo-padre.html` justo después de `mostrarCartelTransicion`, con la misma estructura visual. Se invoca desde `marcarParadaCompletada()`, exactamente en el mismo instante que §4.7h (`CONTROL.HABILITAR{control:'btnAvanzar'}`) — no al confirmarse por GPS que el usuario llegó a `.inicio`, que es donde disparaba el cartel equivalente antes de esta versión. El cambio de disparador es intencional: antes, el aviso de "sigue la línea azul" llegaba con retraso (solo tras la confirmación GPS de `.inicio`, incluso cuando el usuario ya estaba físicamente ahí — el 95% de los tramos, ver la nota de coincidencia de coordenadas en §4.7j); ahora llega en el mismo instante que el resto de la familia de carteles, junto con "pulse avanzar", y son el revelado real de 📌/🎯/línea azul (gobernado por `procesarPosicionGPSParaAventura()`, §4.7d) el que sigue esperando la confirmación GPS por separado — el cartel ya no depende de esa confirmación para aparecer. `tipoAnterior` es `'tramo'` o `'parada'` según `esTramo`; `nombreAnterior` es el nombre del elemento que se acaba de completar; `nombreTramoNuevo` es siempre el nombre del tramo que empieza (lo siguiente, aquí, es por definición un tramo — ver la bifurcación de §4.7g).
 
-**Contenido:** mismo estilo visual que §4.7g (tarjeta `#fff8e7`, borde `#FF8C00`, mismas dimensiones y posición). Cuerpo construido a partir de `TRADUCCIONES_INICIO_TRAMO` (`js/traducciones-ui.js`, 12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado al inicio del tramo Torres de Serranos → Plaza de la crida (Puente de Serranos) — siga la línea azul en el mapa para llegar al próximo punto de interés de su aventura. Pulse play en el audio para escuchar la historia."* `{nombre}` se rellena con `siguienteParada.nombre` (el mismo campo de `AVENTURA_PARADAS`/`coordenadas-aventuras.js` que usa §4.7g para el mismo tramo vía `elementosIDpadre` — idéntico texto en ambas fuentes, verificado). El texto menciona la **línea azul** porque la polyline persistente de un tramo se dibuja con `color:'#0077ff'` (`js/funciones-mapa.js`, `dibujarTramo()`) — no confundir con la polyline manual verde (`#3eff3f`) del botón de ubicación (§4.6), que es una línea completamente distinta.
+**Contenido — mismo mecanismo que el cartel de Transición (§4.7h), con un aviso añadido:** se antepone "Ha terminado [la parada/el tramo] X — va a empezar el tramo Y." (plantilla `terminaParada`/`terminaTramo` según `tipoAnterior`, seguida de `empiezaTramo` — ambas de `TRADUCCIONES_CARTEL_TRANSICION`, reutilizadas en vez de duplicar esas cadenas en un bloque de traducción nuevo, mismas 12 traducciones, un solo sitio que mantener) al mensaje fijo de `TRADUCCIONES_INICIO_TRAMO` (`js/traducciones-ui.js`, 12 idiomas, clave `mensaje`) — el único que sí menciona la línea azul. Dos variantes de ejemplo en español:
 
-**Por qué incluye el aviso de audio, y no un aviso de "pulse avanzar":** en este momento el tramo ya es el elemento activo (se activó al pulsar avanzar desde el elemento anterior, §4.7g) — no hay nada que completar todavía, así que `btn-avanzar` sigue deshabilitado y decirle al usuario que lo pulse sería instrucción sin efecto. El audio del tramo, en cambio, sí tiene sentido ofrecerlo aquí: está pensado para escucharse **durante** el camino, no al llegar al final — de ahí que el aviso de audio viva en este cartel (inicio) y no en el de fin de tramo, a diferencia de una parada (§4.7i), donde el audio describe el monumento al que se acaba de llegar y por tanto el aviso vive en el momento de la llegada.
+- **parada→tramo**: *"Ha terminado la parada Torres de Serranos — va a empezar el tramo Jardín del Turia. Por favor, pulse el botón avanzar, pulse play para escuchar el audio relacionado y siga la línea azul hasta el siguiente punto de interés en su aventura."*
+- **tramo→tramo**: *"Ha terminado el tramo Jardín del Turia — va a empezar el tramo Paseo de la Alameda. Por favor, pulse el botón avanzar, pulse play..."*
 
-**Icono:** `imagenes/imagenes-aplicación/boton-audio-central.png` (mismo PNG que `#audio-main-toggle-btn` en el padre, §4.7 audio), no el de avanzar.
+Dos iconos en ambas variantes, igual que §4.7h: avanzar (`fotoruta-A-B.png`) y audio (`boton-audio-central.png`). Cubierto por `tests/e2e/22-carteles-informativos.spec.js`: CI-2 (parada→tramo) y CI-2b (tramo→tramo), ambas verifican que aparecen los dos nombres además del aviso de línea azul.
 
-### 4.7i. Cartel de llegada a parada (`#cartel-llegada-parada`)
+**Por qué el audio se ofrece aquí y no al llegar al final del tramo:** el audio de un tramo está pensado para escucharse **durante** el camino, no al llegar al final — de ahí que el aviso viva en este cartel (inicio) y no en el de Llegada (§4.7j), a diferencia de una parada, donde el audio describe el monumento al que se acaba de llegar.
 
-**Por qué existe:** mismo hueco que §4.7h, pero para paradas — llegar por GPS a una parada (`_detectarLlegadaParada()` en hijo2 → `NAVEGACION.LLEGADA_DETECTADA` → `_marcarPendingPorLlegada()` en el padre) solo cambiaba botones en silencio (ubicación se deshabilita, imagen/vídeo/mapas se habilitan, §25.5) — nada le decía al usuario que ya podía escuchar el audio de la parada.
+### 4.7j. Cartel de llegada (`#cartel-llegada-parada`)
 
-**Disparo:** `globalThis.mostrarCartelLlegadaParada(nombreParada)`, llamada desde `_marcarPendingPorLlegada()` (`codigo-padre.html`) la primera vez que `pending.llegada` pasa a `true` para el elemento activo (`_yaLlegado`, evaluado antes de fijar el flag — lecturas GPS posteriores mientras el usuario permanece en el sitio no repiten el cartel). Gateado a `elemento?.tipo !== 'tramo'`: **nunca dispara para un tramo** — la llegada a `.fin` de un tramo sigue siendo silenciosa a propósito, porque el aviso de audio de un tramo ya se dio al principio (§4.7h), no tendría sentido repetirlo al final.
+**Por qué existe:** un tramo no se completa "estando quieto" — se completa por **audio + llegada GPS a `.fin`**, las dos condiciones a la vez (`intentarCompletarElemento()`, `codigo-padre.html`), sin importar en qué orden se cumplieron. No hay ningún momento de "el usuario está parado y el elemento se completa" al que enganchar el cartel de §4.7h — el momento real es siempre una confirmación GPS. Este cartel es ese momento, y es el único que dispara para tramo→parada.
 
-**Por qué dispara casi siempre justo tras pulsar avanzar, y eso es correcto:** en el 95% de los tramos de las 7 aventuras (228 de 239, verificado con `calcularDistancia` sobre `js/coordenadas-aventuras.js`), el punto `.fin` del tramo anterior coincide exactamente (≤5m) con las coordenadas de la parada siguiente — geográficamente son el mismo sitio. En esos casos, el cartel aparece casi de inmediato tras pulsar avanzar, porque el usuario ya está ahí. En las **11 excepciones reales** (distancia genuina, hasta 122m — recurrente en el primer tramo de varias aventuras: `Av3-TR-1→Av3-P-1`, `Av5-TR-1→Av5-P-1`, `AvFallas-TR-1→AvFallas-P-1`, `Av34km-TR-1→Av34km-P-1`, los cuatro a 122m exactos), el cartel no aparece hasta que el usuario camina esa distancia real y el GPS lo confirma — que es exactamente cuando hace falta. Un único disparador, sin necesitar detectar de antemano cuál de los dos casos aplica.
+**Disparo:** `globalThis.mostrarCartelLlegadaParada(nombreParada)`, en dos sitios distintos:
 
-**Contenido:** mismo estilo visual que §4.7g/§4.7h. Cuerpo de `TRADUCCIONES_LLEGADA_PARADA` (12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado a la parada Plaza de la crida (Puente de Serranos) — pulse play en el audio para escuchar la historia."* Icono: `boton-audio-central.png`, igual que §4.7h.
+1. **Tramo → parada** (el caso normal): desde `marcarParadaCompletada()`, cuando la bifurcación de §4.7g resuelve a este cartel (`esTramo && elementoSiguiente?.tipo !== 'tramo'`) — usa `elementoSiguiente.nombre`, **no** el nombre del tramo que acaba de terminar: el usuario está físicamente en las coordenadas de la parada siguiente (el `.fin` del tramo coincide con ellas en la inmensa mayoría de los casos, ver nota más abajo), así que lo relevante para él es dónde está ahora, no de dónde viene.
+2. **El punto de inicio de la aventura** (caso especial, sin elemento anterior): llamado directamente desde `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) cuando `siguienteParada.tipo === 'inicio'` y es la primera vez que se revela (`_esPrimeraRevelacion`, §4.7d) — no hay ningún elemento previo cuya compleción dispare nada, así que este es el único cartel que anuncia la llegada al primer punto de la aventura (p. ej. Torres de Serranos). Llamada directa vía `globalThis`, no `postMessage` — mismo motivo que el sensor redundante de llegada (§25.5, §32.3): un `enviarMensaje({destino: resolverIdPadre()})` desde aquí se descartaría en silencio.
 
-### 4.7j. Vibración al mostrar cualquiera de los 3 carteles
+**Contenido:** mismo estilo visual que el resto de la familia. Cuerpo de `TRADUCCIONES_LLEGADA_PARADA` (12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado a la parada Plaza de la Crida (Puente de Serranos). Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura."* Dos iconos: avanzar y audio.
 
-**Por qué existe:** glow, spin y los propios carteles (§4.7g/h/i) son señales visuales — todas exigen que el usuario esté mirando la pantalla en el instante exacto en que aparecen. Un usuario mirando el monumento, no el móvil, puede no darse cuenta de ninguna de ellas. La vibración es la única señal de las cuatro que llega igual sin mirar.
+**Sobre la coincidencia de coordenadas:** en el 95% de los tramos de las 7 aventuras (228 de 239, verificado con `calcularDistancia` sobre `js/coordenadas-aventuras.js`), el punto `.fin` del tramo coincide exactamente (≤5m) con las coordenadas de la parada siguiente — geográficamente son el mismo sitio, así que la confirmación GPS de llegada llega casi de inmediato tras empezar a caminar el tramo. En las **11 excepciones reales** (distancia genuina, hasta 122m — recurrente en el primer tramo de varias aventuras: `Av3-TR-1→Av3-P-1`, `Av5-TR-1→Av5-P-1`, `AvFallas-TR-1→AvFallas-P-1`, `Av34km-TR-1→Av34km-P-1`, los cuatro a 122m exactos), el cartel no aparece hasta que el usuario camina esa distancia real y el GPS lo confirma — que es exactamente cuando hace falta.
 
-**Implementación:** `_vibrarCartel()` (`codigo-padre.html`, función de módulo justo antes de `mostrarCartelTransicion`) — `if (typeof navigator.vibrate === 'function') navigator.vibrate(200);` envuelto en `try/catch`. Se llama una vez, al final de cada una de las tres funciones de cartel (`mostrarCartelTransicion`, `mostrarCartelInicioTramo`, `mostrarCartelLlegadaParada`), justo después de `document.body.appendChild(cartel)`.
+### 4.7k. Cartel de bienvenida de vuelta — tramo (`#cartel-bienvenida-tramo`)
+
+**Por qué existe:** si el usuario se aleja del camino de un tramo ya iniciado, `procesarPosicionGPSParaAventura()` oculta 📌/🎯/línea azul (§4.7d) y habilita `btn-ubicacion` para guiarle de vuelta — pero al volver a rango, nada le recordaba qué tenía que hacer. Este cartel llena ese hueco, sin repetir "ha terminado la parada X", porque esa información ya se dio hace rato y en este punto no es relevante.
+
+**Disparo:** `globalThis.mostrarCartelBienvenidaTramo()` (sin parámetros — el texto no menciona ningún nombre), llamada desde `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`), en el mismo punto donde se revela el trazado (`revelarNavegacion()`, §4.7d) — pero solo cuando **no** es la primera revelación de este tramo (`!_esPrimeraRevelacion`, es decir, `estadoMapa._elementoYaRevelado` ya era `true` antes de esta llamada): la primera revelación de un tramo no dispara este cartel, la cubre §4.7i, disparado antes, al completarse el elemento anterior.
+
+**Contenido:** mismo estilo visual que el resto de la familia. Cuerpo de `TRADUCCIONES_BIENVENIDA_TRAMO` (12 idiomas, clave `mensaje`, sin `{nombre}`) — en español: *"Ha vuelto al camino. Por favor, pulse el botón avanzar, pulse play para escuchar el audio relacionado y siga la línea azul hasta el siguiente punto de interés en su aventura."* Dos iconos: avanzar y audio.
+
+**Qué hace pulsar avanzar aquí, si no hay ningún elemento nuevo esperando:** nada a nivel de estado — el elemento activo sigue siendo el mismo tramo de antes, con los mismos requisitos de audio/llegada pendientes de siempre. El significado de `btn-avanzar` es siempre el mismo en los cinco carteles — "confirmo que sigo aquí, continúo" —, y aquí simplemente no hay ninguna transición nueva que disparar; es el mismo gesto universal, aplicado de forma consistente aunque su efecto de fondo varíe según el momento.
+
+### 4.7l. Cartel de bienvenida de vuelta — parada (`#cartel-bienvenida-parada`)
+
+**Por qué existe:** mismo caso que §4.7k, pero para una parada de la que el usuario se alejó antes de completarla. Sin línea azul que mencionar — una parada no tiene una polyline propia que seguir.
+
+**Disparo:** `globalThis.mostrarCartelBienvenidaParada(nombreParada)`, mismo punto y misma condición que §4.7k (`!_esPrimeraRevelacion`), pero para el caso `siguienteParada.tipo !== 'tramo'`.
+
+**Contenido:** mismo estilo visual que el resto de la familia. Cuerpo de `TRADUCCIONES_BIENVENIDA_PARADA` (12 idiomas, clave `mensaje`, sin `{nombre}`) — en español: *"Ha vuelto a su aventura. Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado y continuar su caza del tesoro."* Dos iconos: avanzar y audio.
+
+### 4.7m. Vibración al mostrar cualquiera de los cinco carteles
+
+**Por qué existe:** glow, spin y los propios carteles (§4.7h-l) son señales visuales — todas exigen que el usuario esté mirando la pantalla en el instante exacto en que aparecen. Un usuario mirando el monumento, no el móvil, puede no darse cuenta de ninguna de ellas. La vibración es la única señal de las cuatro que llega igual sin mirar.
+
+**Implementación:** `_vibrarCartel()` (`codigo-padre.html`, función de módulo justo antes de `mostrarCartelTransicion`) — `if (typeof navigator.vibrate === 'function') navigator.vibrate(200);` envuelto en `try/catch`. Se llama una vez, al final de cada una de las cinco funciones de cartel (`mostrarCartelTransicion`, `mostrarCartelInicioTramo`, `mostrarCartelLlegadaParada`, `mostrarCartelBienvenidaTramo`, `mostrarCartelBienvenidaParada`), justo después de `document.body.appendChild(cartel)`.
 
 **Por qué comprueba soporte antes de llamar:** `navigator.vibrate` no existe en navegadores de escritorio ni en Safari/iOS (nunca lo ha implementado) — llamarlo sin comprobar lanzaría `TypeError: navigator.vibrate is not a function` en esos casos. La comprobación hace que el cartel se muestre exactamente igual, solo sin el vibrado, en cualquier entorno sin soporte — nunca bloquea ni degrada el resto de la función.
 
@@ -4706,7 +4778,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-8f49b1c95d23'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-8a25227d98fc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6108,11 +6180,11 @@ El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la h
 >
 > **Leaflet, servido por CDN:** `mapa-completo.html` y `video-intro.html` cargan Leaflet desde CDNs externos — `cdnjs.cloudflare.com` (con `integrity`/`crossorigin`) el primero, `unpkg.com` el segundo — no desde `js/vendor/`. Ambos ficheros carecen de cabecera CSP propia (a diferencia de `codigo-padre.html`), así que no hay restricción que lo impida. `js/vendor/` solo contiene los ficheros que sí se usan: MapLibre (mapa de aventura) y StPageFlip (`video-intro.html`, ver §35.6b).
 
-`js/utils.js` incluye `puntoMasCercanoEnLinea()`, una función propia sin dependencias para el snap-to-route del mapa de aventura (proyección plana local sobre un punto y una polilínea — ver «Marcadores en el mapa», más arriba). El mapa de aventura no necesita ningún plugin de rotación de terceros: al usar MapLibre, la rotación es una capacidad nativa del motor.
+`js/utils.js` incluye `puntoMasCercanoEnLinea()`, una función propia sin dependencias que proyecta un punto sobre una polilínea (proyección plana local) — usada para `distanciaAlCamino` en la detección de fuera-de-rango y en la vigilancia de visibilidad del trazado de un tramo (§4.7d). El mapa de aventura no necesita ningún plugin de rotación de terceros: al usar MapLibre, la rotación es una capacidad nativa del motor.
 
 ### Arranque del mapa: no hay "listo" hasta que el estilo terminó de cargar
 
-`initializeMap()` (`codigo-padre.html`) crea la instancia (`new maplibregl.Map(...)`) y la guarda en `_mapInstance` de inmediato, pero **no resuelve su promesa hasta que el estilo del mapa (tiles/sprite/glyphs, todo vía red) está realmente listo** — comprobado con `map.isStyleLoaded()`, o esperando el evento nativo `map.once('load', ...)` si aún no lo está. Antes de esa confirmación, cualquier llamada a `addSource`/`addLayer` (lo que hacen internamente `_crearPolyline()`/`_crearCirculoGeografico()` en `js/funciones-mapa.js`) fallaría o, con las guardas actuales de esas dos funciones, se resuelve en silencio como un `_capaVacia()` — un stub inerte sin reintento: el círculo naranja de 20m o una polyline simplemente no aparecerían, sin aviso.
+`initializeMap()` (`codigo-padre.html`) crea la instancia (`new maplibregl.Map(...)`) y la guarda en `_mapInstance` de inmediato, pero **no resuelve su promesa hasta que el estilo del mapa (tiles/sprite/glyphs, todo vía red) está realmente listo** — comprobado con `map.isStyleLoaded()`, o esperando el evento nativo `map.once('load', ...)` si aún no lo está. Antes de esa confirmación, cualquier llamada a `addSource`/`addLayer` (lo que hacen internamente `_crearPolyline()`/`_crearCirculoGeografico()` en `js/funciones-mapa.js`) fallaría — con las guardas actuales de esas dos funciones (`_estiloListo()`), en su lugar devuelven un proxy auto-reparable (`_crearCapaDiferida()`, §4.6a) que crea la capa real en cuanto el mapa dispara `'load'`, en vez del stub inerte y sin reintento (`_capaVacia()`) que había hasta esa corrección — con el stub viejo, el círculo naranja de 20m o una polyline simplemente no aparecían nunca, sin aviso; con el proxy actual, aparecen en cuanto el estilo carga, aunque hayan tenido que esperar.
 
 `waitForMapLibreAndInitialize()` (llamada desde `ejecutarInicializacionAutomatica()`) espera primero a que la propia librería MapLibre esté cargada (`globalThis.maplibregl !== undefined`) y después a `initializeMap()` — así que, con el gate anterior, tampoco continúa hasta que el estilo esté listo. Como esta espera es la que determina cuándo `ejecutarInicializacionAutomatica()` puede seguir con el resto del arranque (mensajería, datos, iframes) y, más tarde, ocultar `#loading-overlay`, la garantía de "el mapa está listo" se hereda automáticamente en cualquier punto que dependa de esa cadena — no hace falta ninguna comprobación adicional en la pantalla de carga.
 
@@ -7359,7 +7431,11 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
 | `20-tramo-inicio-y-revelado.spec.js` | 5 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m, con 2 lecturas seguidas como estímulo (RV-1); 12 lecturas alternando 15m/25m alrededor de `.inicio` — nunca 2 seguidas dentro — también revelan el trazado gracias a la ventana deslizante de 2-de-4 (RV-3); una vez iniciado, desviarse del camino real (`distanciaAlCamino`) oculta el trazado y volver a acercarse en cualquier punto — sin pasar de nuevo por `.inicio` — lo revela otra vez, cubriendo el caso de una calle cortada por obras (RV2-1); pulsar el botón de ubicación oculta el trazado persistente de inmediato, sin esperar a la próxima lectura GPS (PL-1) |
 | `21-llegada-ruido-gps.spec.js` | 4 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, no un mensaje sintético): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 15m/25m alrededor del radio de 20m — nunca 2 SEGUIDAS dentro — SÍ confirman llegada con la ventana deslizante de 2-de-4 (RG-3, reproduce el reporte de campo real); el sensor redundante de `funciones-mapa.js` ya no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
-| `22-carteles-informativos.spec.js` | 5 | El cartel de transición (§4.7g) incluye el icono de `#btn-avanzar` y "Pulse el botón avanzar, por favor." (CI-1); con hijo2 real y GPS real, `#cartel-inicio-tramo` (§4.7h) aparece al confirmar `.inicio` de un tramo por ventana deslizante, menciona la línea azul y nunca "avanzar" (CI-2); `#cartel-llegada-parada` (§4.7i) aparece al confirmar `pending.llegada` para una parada, nunca para un tramo (CI-3); `navigator.vibrate(200)` se llama exactamente una vez al mostrar un cartel (CI-4, §4.7j); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-5) |
+| `22-carteles-informativos.spec.js` | 9 | Los cinco carteles (§4.7g-l), cada uno invocado directamente: Transición con dos iconos y texto tras "Por favor," (CI-1); Inicio de tramo variante parada→tramo, nombra la parada y el tramo ("Ha terminado la parada X — va a empezar el tramo Y") además de "línea azul" (CI-2, §4.7i); Inicio de tramo variante tramo→tramo, mismo mecanismo con los dos tramos (CI-2b); Llegada, con el nombre de la parada y "avanzar"+"play" (CI-3); Bienvenida de vuelta tramo, con "línea azul" (CI-4); Bienvenida de vuelta parada, sin "línea azul" (CI-5); la bifurcación real de `marcarParadaCompletada()` (§4.7g) para una pareja parada→tramo dispara el cartel de Inicio de tramo, nunca el de Transición genérico — con datos reales de Aventura1 (CI-6); `navigator.vibrate(200)` se llama exactamente una vez al mostrar un cartel (CI-7, §4.7m); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-8) |
+| `23-polyline-autoreparacion.spec.js` | 3 | Con un mapa simulado cuyo `isStyleLoaded()` empieza en `false` (§4.6a): `dibujarRutaConMarcadores({dibujarRuta:true})` no llama a `addLayer`/`addSource` hasta que el mapa dispara `'load'`, momento en el que la capa real se crea sola (PR-1); un `setStyle()` pedido (vía `revelarNavegacion()`) antes de que exista la capa real se aplica sobre ella en cuanto se crea, no se pierde (PR-2); con el estilo ya cargado, la capa se crea al instante, sin esperar a `'load'` (PR-3) |
+| `24-camara-sigue-usuario.spec.js` | 1 | Ciclo completo del seguimiento de cámara (§4.6b): la primera posición GPS centra la cámara (`easeTo`); un `dragstart` sin `originalEvent` (programático) no pausa el seguimiento; uno con `originalEvent` (gesto real del usuario) sí lo pausa; `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato |
+| `25-boton-recentrar.spec.js` | 3 | `#btn-recentrar` (§4.6b) existe y empieza oculto sin estilo inline forzándolo a visible (BR-1); su `z-index` cae entre el de `#logo-aventura` y el de `#hijo5` (BR-2); al pulsarlo invoca `funcionesMapa.reactivarSeguimientoCamara()` (BR-3) |
+| `26-reto-completado-boton-verde.spec.js` | 2 | Cargando `retos-hijo4.html` como página de nivel superior: tras responder correcto un reto de tipo texto, ningún log de envío de `RETO.COMPLETADO` aparece todavía — solo el de "pendiente de confirmación con el botón verde"; al pulsar `#btnNextAfterReto`, sí aparece (confirmado o sin confirmación) (RC-1); si el botón verde nunca se pulsa, ese envío nunca se intenta (RC-2). Verifica por log de consola, no por el mensaje `postMessage` en sí — sin un padre real que responda, el delivery real pasa por un bucle interno de auto-confirmación de `mensajeria.js` no observable de forma fiable en este arnés de test, pero cada rama del código bajo prueba emite su propio log de forma síncrona en el punto exacto que importa |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7499,7 +7575,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-8f49b1c95d23'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-8a25227d98fc'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8132,7 +8208,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-8f49b1c95d23';
+const CACHE_VERSION = 'v-8a25227d98fc';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8845,7 +8921,7 @@ En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simu
 
 La pantalla de aventura se compone de varios elementos superpuestos:
 
-**El mapa** (fondo completo): Ocupa toda la pantalla. Muestra la posición del usuario, las paradas y la ruta. Por defecto en modo satélite (ESRI); el botón selector naranja, situado justo encima del botón de chat (borde derecho), permite cambiar a Callejero (OSM estándar) o Nocturno.
+**El mapa** (fondo completo): Ocupa toda la pantalla. Muestra la posición del usuario, las paradas y la ruta. Por defecto en modo satélite (ESRI); el botón selector naranja, situado justo encima del botón de chat (borde derecho), permite cambiar a Callejero (OSM estándar) o Nocturno. La cámara sigue al usuario mientras camina (§4.6b) — si arrastra el mapa a mano para mirar algo, el seguimiento se pausa y aparece disponible el botón de recentrar (`#btn-recentrar`, `◎`, junto al borde izquierdo del logo) para retomarlo.
 
 **Hijo 2 — Coordenadas** (esquina inferior-izquierda): Contiene **6 botones** organizados en 1 fila de 6:
 
@@ -8902,14 +8978,14 @@ En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmaci
 Mientras el usuario está **dentro de los 20 metros** de la parada actual (o dentro del rangoMaximo del tramo):
 
 - ✅ **Botón avanzar**: dos estados posibles — **rojo (deshabilitado)** mientras la parada no está completada (el usuario aún tiene pendiente el audio o el reto); **verde (habilitado)** cuando la parada está completada, para progresar al siguiente elemento.
-- ✅ **Botón Imagen**: habilitado — puede ver la foto del monumento.
-- ✅ **Botón Vídeo**: habilitado — puede ver el vídeo aéreo.
+- ⚠️ **Botón Vídeo**: solo se habilita si el elemento actual es un **tramo** — en una parada permanece deshabilitado siempre, por muy cerca que esté el usuario, porque el vídeo aéreo muestra el trayecto de A a B, no un monumento fijo. No depende de la distancia en absoluto, solo del tipo de elemento (y de que no haya un reto abierto en pantalla, que lo deshabilita temporalmente en cualquier caso).
+- ⚠️ **Botón Imagen**: su condición real es que **no haya un reto abierto en ese momento** (`retoActivo`), no la distancia — se deshabilita mientras la ventana del reto está en pantalla y se rehabilita al cerrarla, en cualquier punto de la aventura. Dentro del radio suele coincidir con "habilitado" simplemente porque lo normal es no tener un reto abierto todavía.
 - ✅ **Botón Ubicación**: deshabilitado (rojo) — no necesita ver dónde ir.
-- ✅ **Botones Mapas**: habilitados — puede ver el mapa completo o vintage.
-- ✅ **Audio**: habilitado — puede escuchar la narración.
-- ✅ **Retos**: habilitado — puede resolver el reto de la parada.
+- ✅ **Botones Mapas**: habilitados — puede ver el mapa completo o vintage. Tampoco dependen de la distancia real, solo de que no se esté en la pantalla de "fuera de rango excedido".
+- ✅ **Audio**: habilitado si el elemento actual tiene un audio asignado — puede escucharlo.
+- ⚠️ **Retos**: si la parada tiene reto **y** audio, el botón permanece deshabilitado hasta que **el audio termina de reproducirse** — no hasta que el usuario llega. Un usuario que lleva rato parado junto al monumento pero no ha terminado de escuchar la narración se encuentra el botón de retos todavía en rojo. Solo si la parada tiene reto pero no tiene audio asignado se habilita de inmediato al llegar.
 
-En esta situación ideal, el usuario escucha la historia, lee el texto, mira las fotos, ve el vídeo y resuelve el reto. Cuando lo resuelve correctamente, aparecen fuegos artificiales 🎆.
+En esta situación ideal, el usuario escucha la historia, lee el texto, mira las fotos, ve el vídeo (si es un tramo) y resuelve el reto en cuanto el audio termina. Cuando lo resuelve correctamente, aparecen fuegos artificiales 🎆.
 
 ---
 
@@ -8943,7 +9019,7 @@ Un **tramo** es el camino entre dos paradas. Cuando el usuario deja una parada y
 La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica que el usuario está a **20 metros o menos** de ella — pero eso por sí solo **no** cambia de parada (ver §2.2). En ese momento:
 
 1. Se envía `NAVEGACION.LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento activo.
-2. Si audio (+ reto, en paradas) ya estaban completos, `marcarParadaCompletada()` habilita `btn-avanzar` en hijo2 y muestra el cartel de transición (§4.7g) — la parada queda marcada como completada en `estado.paradasCompletadas`, pero el elemento activo sigue siendo el mismo.
+2. Si audio (+ reto, en paradas) ya estaban completos, `marcarParadaCompletada()` habilita `btn-avanzar` en hijo2 y muestra el cartel que corresponda según qué acaba de completarse y qué sigue (§4.7g) — la parada queda marcada como completada en `estado.paradasCompletadas`, pero el elemento activo sigue siendo el mismo.
 3. Solo cuando el usuario pulsa `btn-avanzar`, `progresarSiguienteElemento()` incrementa `indiceProgreso`, actualiza `estado.paradaActual` y envía `CAMBIO_PARADA` a los hijos críticos (hijo2, hijo3, hijo4, hijo5).
 4. Cada hijo carga los datos del nuevo elemento (audio, coordenadas, retos).
 5. Se persiste el progreso en `localStorage` → `vv_progreso`.
@@ -9013,8 +9089,8 @@ Si acierta:
 
 - El borde se pone verde.
 - Aparecen fuegos artificiales 🎆.
-- El botón "Siguiente" se habilita (verde).
-- Se envía `RETO.COMPLETADO` al padre.
+- El botón "Siguiente" (`.btn-mundo-verde`) se habilita (verde) — pero `RETO.COMPLETADO` **no** se envía todavía.
+- Solo al pulsar ese botón verde (`#btnNextAfterReto` en retos normales, `#btn-puzzle-continuar` en puzzles) se envía `RETO.COMPLETADO` al padre, justo antes de `RETO.OCULTAR` (cierra la ventana). Antes de esta corrección, el envío ocurría en el mismo instante en que la respuesta se verificaba correcta — con la ventana del reto todavía tapando la pantalla, el padre podía completar la parada y mostrar su cartel de transición (§4.7g) antes de que el usuario hubiera confirmado nada pulsando el botón. `retos-hijo4.html` guarda la compleción en una variable de módulo (`_pendienteCompletado`) en cuanto la respuesta es correcta, y el envío real se dispara desde el `click` del botón verde, no desde `verificar()` ni desde el listener del iframe del puzzle. Cubierto por `tests/e2e/26-reto-completado-boton-verde.spec.js`.
 
 Cuando el usuario completa el **último reto disponible** de la secuencia, aparece una **alerta del navegador** en el idioma elegido por el usuario al inicio de la aventura confirmando que ha terminado todos los retos. Los 12 idiomas están soportados (español, inglés, francés, italiano, neerlandés, japonés, alemán, chino, polaco, portugués, ruso, ucraniano) — texto en `MSG_RETOS_COMPLETOS`, importado desde `js/traducciones-ui.js`. El placeholder del input de tipo `texto` (`PLACEHOLDER_RESPUESTA_TEXTO`) viene de la misma fuente.
 
@@ -9646,7 +9722,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | Módulo | Rol | Expone |
 |--------|-----|--------|
 | `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, notificación de errores, coordinación entre hijos, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `solicitarDatosAHijo()`, `coordinarAccion()`, etc. |
-| `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas de satélite/Carto ya cargadas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo); el ángulo inicial del elemento nuevo reutiliza el ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`) cuando ésta está activa, en vez del `heading` que trae la propia posición GPS (`coords.heading`, el rumbo de desplazamiento — 0 o poco fiable en cuanto el usuario no camina a velocidad suficiente). Sin esto, cada recreación (un tick de GPS, ~7s) saltaba de golpe al rumbo GPS y la brújula tenía que volver a corregirlo desde cero — un giro brusco periódico percibido como "la flecha se vuelve loca", superpuesto al ruido normal de la brújula entre medias. (2) **Snap-to-route**: cuando el padre cambia a un tramo, `completarCambioParada()` guarda los waypoints en `estadoMapa.tramoWaypoints` y activa `flechaActiva`; en cada GPS o cambio de brújula, `actualizarPosicionFlecha()` usa `puntoMasCercanoEnLinea()` (`js/utils.js`) para proyectar la posición del usuario sobre la polyline y mueve la flecha `↑` y un círculo geográfico de 21 m a ese punto. Se desactiva automáticamente al volver a una parada. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta. (5) Marcadores de referencia. Calcula `calcularToleranciaGPS()`: 50 m fijo para paradas, dinámica para tramos. El popup de referencias visuales escapa `nombre` y `mapa_numero` antes de inyectarlos en `innerHTML`. El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
+| `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas de satélite/Carto ya cargadas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo); el ángulo inicial del elemento nuevo reutiliza el ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`) cuando ésta está activa, en vez del `heading` que trae la propia posición GPS (`coords.heading`, el rumbo de desplazamiento — 0 o poco fiable en cuanto el usuario no camina a velocidad suficiente). Sin esto, cada recreación (un tick de GPS, ~7s) saltaba de golpe al rumbo GPS y la brújula tenía que volver a corregirlo desde cero — un giro brusco periódico percibido como "la flecha se vuelve loca", superpuesto al ruido normal de la brújula entre medias. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). (5) Marcadores de referencia. Calcula `calcularToleranciaGPS()`: 50 m fijo para paradas, dinámica para tramos. El popup de referencias visuales escapa `nombre` y `mapa_numero` antes de inyectarlos en `innerHTML`. El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
 | `proteccion.js` | IIFE de protección anti-inspección. Se ejecuta antes que cualquier módulo. Cuatro capas: teclas DevTools, clic derecho, arrastre de media, detector por timing/resize. Borra `window.RETOS_AVENTURAS` y coordenadas si detecta ≥2 intentos de debugger o ≥3 de resize. | — |
 
 #### Ficheros de datos (sin lógica)
@@ -10593,7 +10669,7 @@ Si el modo no es aventura al momento del reload, el snapshot se descarta sin env
 
 #### `NAVEGACION.CAMBIO_PARADA` de restauración es una reconfirmación, no un cambio real
 
-El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre al elemento que YA estaba activo antes del reload — nunca a uno distinto. `completarCambioParada()` (`js/funciones-mapa.js`) reconoce este caso al principio de la función: si el `paradaId` recibido coincide con `estadoMapa.paradaActual` (el elemento ya activo), retorna de inmediato sin ejecutar el resto de la función — sin limpiar capas, sin resetear `_tramoIniciadoEstaActivacion` ni el contador de confirmación por 2 lecturas (§4.7d parte 2), sin volver a decidir visibilidad inicial. Sin este guard, la reconfirmación se procesaría como si fuera un cambio de elemento real: mitad de un tramo largo, con el trazado ya revelado (fase 2, el usuario puede estar lejos de `.inicio` habiendo avanzado legítimamente hacia `.fin`), un heartbeat reload de hijo2 volvería a poner `_tramoIniciadoEstaActivacion = false` de golpe — la siguiente lectura GPS mediría de nuevo contra `.inicio` (fase 1) en vez de contra el camino real (fase 2), y como el usuario ya está lejos de `.inicio`, el trazado se ocultaría sin ninguna forma de recuperarlo caminando (fase 1 solo revela por proximidad a `.inicio`, no por `distanciaAlCamino`).
+El reenvío a hijo2 (`paradaActual`, fila de la tabla de arriba) apunta siempre al elemento que YA estaba activo antes del reload — nunca a uno distinto. `completarCambioParada()` (`js/funciones-mapa.js`) reconoce este caso al principio de la función: si el `paradaId` recibido coincide con `estadoMapa.paradaActual` (el elemento ya activo), retorna de inmediato sin ejecutar el resto de la función — sin limpiar capas, sin resetear `_elementoYaRevelado` ni el contador de confirmación por 2 lecturas (§4.7d parte 2), sin volver a decidir visibilidad inicial. Sin este guard, la reconfirmación se procesaría como si fuera un cambio de elemento real: mitad de un tramo largo, con el trazado ya revelado (fase 2, el usuario puede estar lejos de `.inicio` habiendo avanzado legítimamente hacia `.fin`), un heartbeat reload de hijo2 volvería a poner `_elementoYaRevelado = false` de golpe — la siguiente lectura GPS mediría de nuevo contra `.inicio` (fase 1) en vez de contra el camino real (fase 2), y como el usuario ya está lejos de `.inicio`, el trazado se ocultaría sin ninguna forma de recuperarlo caminando (fase 1 solo revela por proximidad a `.inicio`, no por `distanciaAlCamino`).
 
 #### Archivos modificados
 
@@ -11056,7 +11132,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-8f49b1c95d23';
+const CACHE_VERSION = 'v-8a25227d98fc';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12261,7 +12337,7 @@ Para cada `sleep`/`setTimeout` que preceda a código que depende de que algo ext
 3. Si no existe ninguna señal real disponible: documentar explícitamente por qué el timer fijo es la única opción y qué margen de seguridad se eligió y por qué (no dejarlo como una suposición implícita sin comentario).
 4. Verifica que la sustitución no rompe otras partes del código que asumían el retraso fijo por otro motivo (p.ej. dar tiempo a un log a completarse) — separar el motivo real del efecto colateral aprovechado antes de eliminar el timer.
 
-**Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `_esperarHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea. Ejemplo real (2026-08-06): `initializeMap()` (`codigo-padre.html`) resolvía su promesa en cuanto `inicializarServicioMapa(map)` devolvía `true` — una condición real, pero sobre si el módulo JS tenía la referencia al mapa, no sobre si el **estilo** del mapa (tiles/sprite/glyphs, todo vía red) había terminado de cargar. Justo después, `ejecutarInicializacionAutomatica()` hacía `await sleep(500)` con el comentario "asegurar que el mapa esté completamente renderizado" — un cronómetro sin ninguna pregunta real detrás. En una conexión lenta, el estilo puede tardar más de 500ms en cargar; mientras tanto, `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigen `isStyleLoaded()===true` o devuelven un stub inerte (`_capaVacia()`) sin reintento — el círculo naranja de 20m o una polyline podían quedar sin dibujar de forma silenciosa y permanente. Fix: `initializeMap()` no resuelve hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está); el `sleep(500)` sobrante se eliminó por quedar sin propósito.
+**Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `_esperarHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea. Ejemplo real (2026-08-06): `initializeMap()` (`codigo-padre.html`) resolvía su promesa en cuanto `inicializarServicioMapa(map)` devolvía `true` — una condición real, pero sobre si el módulo JS tenía la referencia al mapa, no sobre si el **estilo** del mapa (tiles/sprite/glyphs, todo vía red) había terminado de cargar. Justo después, `ejecutarInicializacionAutomatica()` hacía `await sleep(500)` con el comentario "asegurar que el mapa esté completamente renderizado" — un cronómetro sin ninguna pregunta real detrás. En una conexión lenta, el estilo puede tardar más de 500ms en cargar; mientras tanto, `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigían `isStyleLoaded()===true` o devolvían un stub inerte (`_capaVacia()`) sin reintento — el círculo naranja de 20m o una polyline podían quedar sin dibujar de forma silenciosa y permanente, un fallo reportado después por el usuario con capturas de campo reales. Fix en dos capas: `initializeMap()` no resuelve hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está), y el `sleep(500)` sobrante se eliminó por quedar sin propósito — pero esto solo cierra la ventana de la carga inicial. El `_capaVacia()` en sí se sustituyó, en una corrección posterior, por `_crearCapaDiferida()` (§4.6a): en vez de un stub muerto para siempre, un proxy que crea la capa real en cuanto el mapa dispara `'load'`, autorreparándose ante cualquier instante en que el estilo no esté listo, no solo el del arranque.
 
 ---
 
