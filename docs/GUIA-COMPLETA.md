@@ -1141,7 +1141,7 @@ A partir de ahí, **cada lectura GPS válida** en `procesarPosicionGPSParaAventu
 | Tramo, fase 1 — nunca alcanzó `.inicio` en esta activación (`!estadoMapa._tramoIniciadoEstaActivacion`) | `distancia a .inicio ≤ 20m` | Igual que el diseño original — confirma que el usuario ha empezado el tramo de verdad |
 | Tramo, fase 2 — ya alcanzó `.inicio` alguna vez | `distanciaAlCamino ≤ toleranciaGPS` (dinámica, ya calculada por tramo) | Deliberadamente NO vuelve a medir contra `.inicio` — avanzar hacia `.fin` aleja de `.inicio` por definición, así que usar esa distancia re-ocultaría el trazado del usuario que va bien encaminado. `distanciaAlCamino` (distancia a la polyline completa, no a un punto) permite manejar un desvío real sin exigir volver al principio |
 
-El resultado ("cerca" `true`/`false`) se confirma por **2 lecturas seguidas en la misma dirección** antes de actuar — mismo espíritu que la detección de llegada (`_llegadaCandidataId`/`_llegadaVentana`, ver §25.5), pero contado aparte en `estadoMapa._trazadoCandidataId` / `_trazadoCandidataCerca` / `_trazadoCandidataCount` para no mezclar "confirmar llegada" con "confirmar visibilidad". A diferencia de la detección de llegada, este contador sigue siendo estrictamente "2 seguidas" y no una ventana deslizante — revelar/ocultar un trazado es una consecuencia reversible y de bajo riesgo (el usuario puede volver a acercarse), a diferencia de bloquear una llegada real, así que no se aplicó aquí el mismo ajuste. Evita parpadeo por una lectura GPS puntualmente mala cerca del umbral. El contador se indexa por el id del elemento activo, así que cambiar de parada/tramo lo resetea solo (además se resetea explícitamente en `completarCambioParada()` y en `limpiarRecursos()`, por si acaso).
+El resultado ("cerca" `true`/`false`) se confirma por **ventana deslizante (2 de las últimas 4 lecturas en la misma dirección)** antes de actuar — mismo mecanismo que la detección de llegada (`_llegadaCandidataId`/`_llegadaVentana`, ver §25.5), contado aparte en `estadoMapa._trazadoCandidataId` / `_trazadoVentana` para no mezclar "confirmar llegada" con "confirmar visibilidad". Empezó como un contador estricto de "2 SEGUIDAS", deliberadamente distinto del de llegada (revelar/ocultar un trazado es reversible y de bajo riesgo, a diferencia de bloquear una llegada real) — pero el mismo ruido GPS urbano que impedía confirmar la llegada impedía también revelar/ocultar el trazado con el usuario ya en la posición correcta, así que se aplicó el mismo ajuste aquí (ver §25.5 para el reporte de campo real que lo motivó). Sigue evitando parpadeo por una lectura GPS puntualmente mala cerca del umbral: 1 de 4 nunca basta. El id se indexa por el elemento activo, así que cambiar de parada/tramo resetea la ventana solo (además se resetea explícitamente en `completarCambioParada()` y en `limpiarRecursos()`, por si acaso).
 
 Con 2 lecturas confirmadas:
 - **cerca && trazado oculto** → `revelarNavegacion()`; si es un tramo, marca `estadoMapa._tramoIniciadoEstaActivacion = true` (pasa a fase 2 para siempre en esta activación).
@@ -1278,7 +1278,7 @@ Tramo N activo, trazado oculto (Caso A o C), _tramoIniciadoEstaActivacion = fals
         │
         ▼
 Cada posición GPS válida → procesarPosicionGPSParaAventura():
-  distancia(posición actual, siguienteParada.inicio) ≤ 20m, confirmado 2 lecturas seguidas
+  distancia(posición actual, siguienteParada.inicio) ≤ 20m, confirmado por ventana (2 de 4)
         │
         ▼
   revelarNavegacion() → polyline + 📌🎯 visibles
@@ -1294,7 +1294,7 @@ Tramo N activo, ya alcanzó .inicio alguna vez (_tramoIniciadoEstaActivacion = t
         │
         ▼
 Usuario se desvía del camino real (p. ej. calle cortada por obras) → distanciaAlCamino > toleranciaGPS,
-confirmado 2 lecturas seguidas
+confirmado por ventana (2 de 4)
         │
         ▼
 _ocultarNavegacion() → trazado OCULTO; ningún trazado de este tramo queda visible mientras
@@ -1303,7 +1303,7 @@ dure el desvío. Si el usuario quiere una guía visual de vuelta, tiene que puls
         │
         ▼
 Usuario vuelve a acercarse al camino EN CUALQUIER PUNTO (no hace falta pasar por .inicio otra
-vez) → distanciaAlCamino ≤ toleranciaGPS, confirmado 2 lecturas seguidas
+vez) → distanciaAlCamino ≤ toleranciaGPS, confirmado por ventana (2 de 4)
         │
         ▼
 revelarNavegacion() → trazado VISIBLE de nuevo; _tramoIniciadoEstaActivacion sigue en true
@@ -1386,7 +1386,31 @@ Ver detalle completo (incluida la verificación de alcanzabilidad previa al refu
 
 **Cierre:** botón `.btn-cerrar-overlay` estándar (mismo componente circular naranja/verde/negro que el resto de la app — ✗, esquina superior derecha) y cierre automático a los 10 segundos (`setTimeout`) si el usuario no interactúa. Un flag `cerrado` local evita que ambos disparadores intenten eliminar el nodo dos veces. `document.getElementById('cartel-transicion')?.remove()` al principio de la función asegura que un segundo cartel (dos completados seguidos muy rápido) reemplaza al anterior en vez de apilarse.
 
-**Posición y capa:** `position:fixed`, centrado horizontalmente, `top: calc(var(--gap-superior, 0px) + 0.75rem)` (respeta el recorte superior del dispositivo), `z-index:1000060` — por encima de la UI normal de la app pero sin bloquear ninguna interacción (no tiene backdrop ni captura clics fuera de sí mismo; el mapa y los botones de hijo2 siguen operativos mientras el cartel está en pantalla).
+**Posición y capa:** `position:fixed`, centrado horizontalmente, `top: calc(10.7vh + 10px + 0.5rem)` — justo por debajo del borde inferior de `#fondo-blanco` (`top:0`, `height:calc(10.7vh + 10px)`, el cuadro blanco tras el logo), más un margen de 0.5rem. Antes usaba `calc(var(--gap-superior, 0px) + 0.75rem)` (solo el recorte superior del dispositivo, sin contar la altura real del cuadro blanco), lo que hacía que el cartel apareciera solapado con el logo. `z-index:1000060` — por encima de la UI normal de la app pero sin bloquear ninguna interacción (no tiene backdrop ni captura clics fuera de sí mismo; el mapa y los botones de hijo2 siguen operativos mientras el cartel está en pantalla).
+
+**Aviso de "pulse avanzar" (añadido 2026-08-06):** bajo la línea 2, una fila con `display:flex` combina el icono real de `#btn-avanzar` (`imagenes/imagenes-aplicación/fotoruta-A-B.png`, el mismo PNG que usa el botón en `coordenadas-hijo2.html`) con la plantilla `pulseAvanzar` de `TRADUCCIONES_CARTEL_TRANSICION` (12 idiomas, registro formal igual que el resto de la tabla — p. ej. español "Pulse el botón avanzar, por favor."). Motivo: sin este aviso, el cambio de color del botón (rojo→verde) era la única señal de que hacía falta pulsar algo, y un usuario mirando el monumento en vez de la pantalla podía no darse cuenta. Aparece siempre, tanto si hay elemento siguiente como si es el último de la aventura — en ambos casos hace falta pulsar avanzar para continuar (§4.7d, Caso D).
+
+### 4.7h. Cartel de inicio de tramo (`#cartel-inicio-tramo`)
+
+**Por qué existe:** el cartel de §4.7g avisa cuando se **completa** un elemento, pero llegar al **inicio** de un tramo (revelación del trazado por GPS, §4.7d Caso E) es un momento distinto y hasta ahora completamente silencioso — solo cambiaba la opacidad de la polyline y los emojis en el mapa. Un usuario mirando la calle, no la pantalla, no tenía forma de saber que el trazado ya estaba disponible.
+
+**Disparo:** `globalThis.mostrarCartelInicioTramo(nombreTramo)`, definida en `codigo-padre.html` justo después de `mostrarCartelTransicion`, con la misma estructura (import dinámico de traducciones, expuesta en `globalThis`). Se llama desde `js/funciones-mapa.js`, dentro de `procesarPosicionGPSParaAventura()`, en el mismo bloque donde `revelarNavegacion()` confirma por ventana deslizante (§25.5) que el usuario está a ≤20m de `.inicio` — pero **solo la primera vez** que ese tramo pasa de fase 1 a fase 2 (`_esInicioDeTramo`, capturado antes de fijar `estadoMapa._tramoIniciadoEstaActivacion = true`): una revelación posterior por recuperación de un desvío (fase 2, Caso F) no repite el cartel. Como `funciones-mapa.js` corre dentro del propio padre (no en un iframe), la llamada es directa vía `globalThis`, no un `postMessage` — mismo motivo que el arreglo del sensor redundante de llegada (§25.5, §32.3): un `enviarMensaje({destino: resolverIdPadre()})` desde aquí se descartaría en silencio.
+
+**Contenido:** mismo estilo visual que §4.7g (tarjeta `#fff8e7`, borde `#FF8C00`, mismas dimensiones y posición). Cuerpo construido a partir de `TRADUCCIONES_INICIO_TRAMO` (`js/traducciones-ui.js`, 12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado al inicio del tramo Torres de Serranos → Plaza de la crida (Puente de Serranos) — siga la línea azul en el mapa para llegar al próximo punto de interés de su aventura. Pulse play en el audio para escuchar la historia."* `{nombre}` se rellena con `siguienteParada.nombre` (el mismo campo de `AVENTURA_PARADAS`/`coordenadas-aventuras.js` que usa §4.7g para el mismo tramo vía `elementosIDpadre` — idéntico texto en ambas fuentes, verificado). El texto menciona la **línea azul** porque la polyline persistente de un tramo se dibuja con `color:'#0077ff'` (`js/funciones-mapa.js`, `dibujarTramo()`) — no confundir con la polyline manual verde (`#3eff3f`) del botón de ubicación (§4.6), que es una línea completamente distinta.
+
+**Por qué incluye el aviso de audio, y no un aviso de "pulse avanzar":** en este momento el tramo ya es el elemento activo (se activó al pulsar avanzar desde el elemento anterior, §4.7g) — no hay nada que completar todavía, así que `btn-avanzar` sigue deshabilitado y decirle al usuario que lo pulse sería instrucción sin efecto. El audio del tramo, en cambio, sí tiene sentido ofrecerlo aquí: está pensado para escucharse **durante** el camino, no al llegar al final — de ahí que el aviso de audio viva en este cartel (inicio) y no en el de fin de tramo, a diferencia de una parada (§4.7i), donde el audio describe el monumento al que se acaba de llegar y por tanto el aviso vive en el momento de la llegada.
+
+**Icono:** `imagenes/imagenes-aplicación/boton-audio-central.png` (mismo PNG que `#audio-main-toggle-btn` en el padre, §4.7 audio), no el de avanzar.
+
+### 4.7i. Cartel de llegada a parada (`#cartel-llegada-parada`)
+
+**Por qué existe:** mismo hueco que §4.7h, pero para paradas — llegar por GPS a una parada (`_detectarLlegadaParada()` en hijo2 → `NAVEGACION.LLEGADA_DETECTADA` → `_marcarPendingPorLlegada()` en el padre) solo cambiaba botones en silencio (ubicación se deshabilita, imagen/vídeo/mapas se habilitan, §25.5) — nada le decía al usuario que ya podía escuchar el audio de la parada.
+
+**Disparo:** `globalThis.mostrarCartelLlegadaParada(nombreParada)`, llamada desde `_marcarPendingPorLlegada()` (`codigo-padre.html`) la primera vez que `pending.llegada` pasa a `true` para el elemento activo (`_yaLlegado`, evaluado antes de fijar el flag — lecturas GPS posteriores mientras el usuario permanece en el sitio no repiten el cartel). Gateado a `elemento?.tipo !== 'tramo'`: **nunca dispara para un tramo** — la llegada a `.fin` de un tramo sigue siendo silenciosa a propósito, porque el aviso de audio de un tramo ya se dio al principio (§4.7h), no tendría sentido repetirlo al final.
+
+**Por qué dispara casi siempre justo tras pulsar avanzar, y eso es correcto:** en el 95% de los tramos de las 7 aventuras (228 de 239, verificado con `calcularDistancia` sobre `js/coordenadas-aventuras.js`), el punto `.fin` del tramo anterior coincide exactamente (≤5m) con las coordenadas de la parada siguiente — geográficamente son el mismo sitio. En esos casos, el cartel aparece casi de inmediato tras pulsar avanzar, porque el usuario ya está ahí. En las **11 excepciones reales** (distancia genuina, hasta 122m — recurrente en el primer tramo de varias aventuras: `Av3-TR-1→Av3-P-1`, `Av5-TR-1→Av5-P-1`, `AvFallas-TR-1→AvFallas-P-1`, `Av34km-TR-1→Av34km-P-1`, los cuatro a 122m exactos), el cartel no aparece hasta que el usuario camina esa distancia real y el GPS lo confirma — que es exactamente cuando hace falta. Un único disparador, sin necesitar detectar de antemano cuál de los dos casos aplica.
+
+**Contenido:** mismo estilo visual que §4.7g/§4.7h. Cuerpo de `TRADUCCIONES_LLEGADA_PARADA` (12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado a la parada Plaza de la crida (Puente de Serranos) — pulse play en el audio para escuchar la historia."* Icono: `boton-audio-central.png`, igual que §4.7h.
 
 ### 4.8. Código de colores de estado en botones
 
@@ -4672,7 +4696,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-43a7c382361f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3bad6649b68b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7323,8 +7347,9 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `17-flecha-brujula-continuidad.spec.js` | 3 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1); `alpha=90` (Android) se convierte al rumbo `270` (`360-alpha`), nunca se usa crudo (HD-1) |
 | `18-boton-deshabilitado-color.spec.js` | 6 | Un `background-color` inline residual (bypass antiguo) no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#B22222` (BU-2a..e) |
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
-| `20-tramo-inicio-y-revelado.spec.js` | 4 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m, con 2 lecturas seguidas (RV-1); una vez iniciado, desviarse del camino real (`distanciaAlCamino`) oculta el trazado y volver a acercarse en cualquier punto — sin pasar de nuevo por `.inicio` — lo revela otra vez, cubriendo el caso de una calle cortada por obras (RV2-1); pulsar el botón de ubicación oculta el trazado persistente de inmediato, sin esperar a la próxima lectura GPS (PL-1) |
+| `20-tramo-inicio-y-revelado.spec.js` | 5 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m, con 2 lecturas seguidas como estímulo (RV-1); 12 lecturas alternando 15m/25m alrededor de `.inicio` — nunca 2 seguidas dentro — también revelan el trazado gracias a la ventana deslizante de 2-de-4 (RV-3); una vez iniciado, desviarse del camino real (`distanciaAlCamino`) oculta el trazado y volver a acercarse en cualquier punto — sin pasar de nuevo por `.inicio` — lo revela otra vez, cubriendo el caso de una calle cortada por obras (RV2-1); pulsar el botón de ubicación oculta el trazado persistente de inmediato, sin esperar a la próxima lectura GPS (PL-1) |
 | `21-llegada-ruido-gps.spec.js` | 4 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, no un mensaje sintético): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 15m/25m alrededor del radio de 20m — nunca 2 SEGUIDAS dentro — SÍ confirman llegada con la ventana deslizante de 2-de-4 (RG-3, reproduce el reporte de campo real); el sensor redundante de `funciones-mapa.js` ya no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
+| `22-carteles-informativos.spec.js` | 3 | El cartel de transición (§4.7g) incluye el icono de `#btn-avanzar` y "Pulse el botón avanzar, por favor." (CI-1); con hijo2 real y GPS real, `#cartel-inicio-tramo` (§4.7h) aparece al confirmar `.inicio` de un tramo por ventana deslizante, menciona la línea azul y nunca "avanzar" (CI-2); `#cartel-llegada-parada` (§4.7i) aparece al confirmar `pending.llegada` para una parada, nunca para un tramo (CI-3) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7464,7 +7489,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-43a7c382361f'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3bad6649b68b'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8097,7 +8122,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-43a7c382361f';
+const CACHE_VERSION = 'v-3bad6649b68b';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11021,7 +11046,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-43a7c382361f';
+const CACHE_VERSION = 'v-3bad6649b68b';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

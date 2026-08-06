@@ -201,15 +201,16 @@ const estadoMapa = {
     // elemento nuevo (parada o tramo) — deliberadamente incondicional para no depender de
     // comparar IDs con formatos distintos entre funciones.
     _tramoIniciadoEstaActivacion: false,
-    // Confirmación por 2 lecturas seguidas antes de revelar/ocultar el trazado por distancia
-    // (mismo espíritu que _llegadaCandidataId/_llegadaVentana, pero para visibilidad, no
-    // para notificar llegada — deliberadamente separado para no mezclar ambas garantías;
-    // este contador sigue siendo "2 seguidas" a propósito, no ventana deslizante — revelar/
-    // ocultar un trazado es reversible y de bajo riesgo, a diferencia de bloquear una
-    // llegada real, así que no se aplicó aquí el mismo cambio).
+    // Ventana deslizante (2 de las últimas 4 lecturas) antes de revelar/ocultar el trazado
+    // por distancia — mismo mecanismo que _llegadaCandidataId/_llegadaVentana (llegada, ver
+    // procesarPosicionGPSParaAventura), pero contado aparte para no mezclar "confirmar
+    // llegada" con "confirmar visibilidad". Empezó como un contador de "2 SEGUIDAS" separado
+    // a propósito del de llegada (revelar/ocultar es reversible, bloquear una llegada no) —
+    // pero el mismo ruido GPS que rompía la confirmación de llegada rompe también esta:
+    // el trazado podía tardar en revelarse/ocultarse indefinidamente con el usuario ya en
+    // la posición correcta, así que se aplicó el mismo ajuste aquí.
     _trazadoCandidataId: null,
-    _trazadoCandidataCerca: null,
-    _trazadoCandidataCount: 0,
+    _trazadoVentana: [],
     siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
@@ -1204,8 +1205,7 @@ export function limpiarRecursos() {
         // por 2 lecturas al elemento nuevo.
         estadoMapa._tramoIniciadoEstaActivacion = false;
         estadoMapa._trazadoCandidataId = null;
-        estadoMapa._trazadoCandidataCerca = null;
-        estadoMapa._trazadoCandidataCount = 0;
+        estadoMapa._trazadoVentana = [];
         sincronizarEstadoGPSConPadre();
 
         logger.info('[funciones-mapa] Limpieza completa de recursos finalizada');
@@ -2119,8 +2119,7 @@ async function completarCambioParada() {
             // distinto entre esta función y procesarPosicionGPSParaAventura.
             estadoMapa._tramoIniciadoEstaActivacion = false;
             estadoMapa._trazadoCandidataId = null;
-            estadoMapa._trazadoCandidataCerca = null;
-            estadoMapa._trazadoCandidataCount = 0;
+            estadoMapa._trazadoVentana = [];
 
             // Determinar si es tramo o parada
             const esTramo = coordenadas.tipo === 'tramo' || !!coordenadas.coordenadasFin;
@@ -3015,23 +3014,44 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 cerca = distancia <= 20;
             }
 
-            // Confirmación por 2 lecturas seguidas en la misma dirección — mismo criterio que
-            // la detección de llegada, pero indexado y contado aparte (_trazadoCandidata*, no
-            // _llegadaCandidata*) para no mezclar "confirmar llegada" con "confirmar visibilidad".
-            if (estadoMapa._trazadoCandidataId === derivedParadaId && estadoMapa._trazadoCandidataCerca === cerca) {
-                estadoMapa._trazadoCandidataCount = (estadoMapa._trazadoCandidataCount || 0) + 1;
-            } else {
-                estadoMapa._trazadoCandidataCount = 1;
+            // Confirmación por ventana deslizante (2 de las últimas 4 lecturas de "cerca" en
+            // la misma dirección) — mismo criterio que la detección de llegada (ver más abajo),
+            // pero indexado y contado aparte (_trazadoCandidata*/_trazadoVentana, no
+            // _llegadaCandidata*/_llegadaVentana) para no mezclar "confirmar llegada" con
+            // "confirmar visibilidad". El ruido GPS real (calles estrechas, edificios altos)
+            // puede alternar cerca/lejos lectura a lectura cerca del umbral — exigir 2 SEGUIDAS
+            // (diseño anterior) podía dejar el trazado sin revelarse/ocultarse indefinidamente
+            // con el usuario ya en la posición correcta, igual que le pasaba a la llegada.
+            if (estadoMapa._trazadoCandidataId !== derivedParadaId) {
+                estadoMapa._trazadoCandidataId = derivedParadaId;
+                estadoMapa._trazadoVentana = [];
             }
-            estadoMapa._trazadoCandidataId = derivedParadaId;
-            estadoMapa._trazadoCandidataCerca = cerca;
+            if (!Array.isArray(estadoMapa._trazadoVentana)) estadoMapa._trazadoVentana = [];
+            estadoMapa._trazadoVentana.push(cerca);
+            if (estadoMapa._trazadoVentana.length > 4) estadoMapa._trazadoVentana.shift();
 
-            if (estadoMapa._trazadoCandidataCount >= 2) {
-                if (cerca && !estadoMapa.gpsVisualActivo) {
+            if (cerca) {
+                const _cercaConfirmado = estadoMapa._trazadoVentana.filter(v => v === true).length >= 2;
+                if (_cercaConfirmado && !estadoMapa.gpsVisualActivo) {
+                    // Capturado ANTES de fijar _tramoIniciadoEstaActivacion=true: distingue la
+                    // revelación real de "inicio de tramo" (fase 1→2, una vez por activación)
+                    // de una revelación por recuperación de desvío en fase 2 (ver más abajo, no
+                    // debe repetir el cartel cada vez que se sale y se vuelve al camino).
+                    const _esInicioDeTramo = siguienteParada.tipo === 'tramo' && !estadoMapa._tramoIniciadoEstaActivacion;
                     revelarNavegacion();
                     if (siguienteParada.tipo === 'tramo') estadoMapa._tramoIniciadoEstaActivacion = true;
                     logger.info(`${logPrefix} 🗺️ Trazado revelado — usuario cerca de ${derivedParadaId}`);
-                } else if (!cerca && estadoMapa.gpsVisualActivo) {
+                    if (_esInicioDeTramo && siguienteParada.nombre) {
+                        if (typeof globalThis.mostrarCartelInicioTramo === 'function') {
+                            globalThis.mostrarCartelInicioTramo(siguienteParada.nombre);
+                        } else {
+                            logger.warn(`${logPrefix} mostrarCartelInicioTramo no disponible — aviso de inicio de tramo perdido`);
+                        }
+                    }
+                }
+            } else {
+                const _lejosConfirmado = estadoMapa._trazadoVentana.filter(v => v === false).length >= 2;
+                if (_lejosConfirmado && estadoMapa.gpsVisualActivo) {
                     _ocultarNavegacion();
                     logger.info(`${logPrefix} 🗺️ Trazado ocultado — usuario lejos de ${derivedParadaId}`);
                 }

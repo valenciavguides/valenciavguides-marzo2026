@@ -27,9 +27,13 @@
  * maplibregl.Map para capturar las fuentes geojson añadidas al mapa y leer las
  * coordenadas reales de la polyline dibujada.
  *
- * RV-1 ahora confirma la revelación con 2 lecturas seguidas (no 1) porque la visibilidad del
- * trazado dejó de ser un latch de una sola dirección — ver RV2 más abajo, que cubre el nuevo
- * comportamiento bidireccional (se puede ocultar otra vez tras haberse revelado).
+ * RV-1 confirma la revelación con 2 lecturas seguidas (no 1) porque la visibilidad del
+ * trazado no es un latch de una sola dirección — ver RV2 más abajo, que cubre el
+ * comportamiento bidireccional (se puede ocultar otra vez tras haberse revelado). La
+ * confirmación real es una ventana deslizante (2 de las últimas 4 lecturas, no
+ * necesariamente seguidas) — RV-1 usa 2 seguidas como estímulo porque sigue confirmando,
+ * pero RV-3 prueba el caso de ruido real (lecturas alternando dentro/fuera de radio) que
+ * motivó el cambio, mismo ajuste que en la confirmación de llegada (§25.5 de la guía).
  *
  *   RV2-1  Una vez que un tramo ya se alcanzó a .inicio alguna vez, desviarse del CAMINO
  *          (no de .inicio — avanzar hacia .fin también aleja de .inicio, y eso no debe ocultar
@@ -62,6 +66,15 @@ const TRAMO = {
   ],
   fin: { lat: 39.47959, lng: -0.37583 },
 };
+
+function puntoADistancia(lat, lng, metros, rumboDeg) {
+  const R = 6371000;
+  const brng = rumboDeg * Math.PI / 180;
+  const lat1 = lat * Math.PI / 180, lng1 = lng * Math.PI / 180;
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(metros / R) + Math.cos(lat1) * Math.sin(metros / R) * Math.cos(brng));
+  const lng2 = lng1 + Math.atan2(Math.sin(brng) * Math.sin(metros / R) * Math.cos(lat1), Math.cos(metros / R) - Math.sin(lat1) * Math.sin(lat2));
+  return { lat: lat2 * 180 / Math.PI, lng: lng2 * 180 / Math.PI };
+}
 
 async function esperarPipelineListo(page) {
   await page.waitForFunction(
@@ -216,6 +229,30 @@ test.describe('RV — Revelación del trazado del tramo solo por proximidad real
 
     visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
     expect(visualActivo, 'A ≤20m de .inicio con 2 lecturas seguidas, el trazado del tramo debe revelarse').toBe(true);
+  });
+
+  test('RV-3. Ruido GPS oscilando alrededor del radio de 20m de .inicio SÍ revela el trazado (ventana deslizante)', async ({ page }) => {
+    // Mismo ajuste que la confirmación de llegada (ver 21-llegada-ruido-gps.spec.js y
+    // docs/GUIA-COMPLETA.md §25.5): 2 lecturas SEGUIDAS podía no cumplirse nunca con GPS
+    // real oscilando alrededor del umbral, dejando el trazado sin revelarse indefinidamente
+    // aunque el usuario ya estuviera en .inicio. Ahora confirma con 2 de las últimas 4.
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // 12 lecturas alternando 15m/25m alrededor de .inicio — nunca 2 SEGUIDAS dentro de 20m.
+    for (let i = 0; i < 12; i++) {
+      const metros = i % 2 === 0 ? 15 : 25;
+      const pt = puntoADistancia(TRAMO.inicio.lat, TRAMO.inicio.lng, metros, 90);
+      await page.evaluate(async (c) => {
+        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+          coords: { latitude: c.lat, longitude: c.lng, accuracy: 5 },
+        });
+      }, pt);
+      await page.waitForTimeout(180);
+    }
+
+    const visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
+    expect(visualActivo, 'Ruido oscilando alrededor de .inicio debe revelar el trazado con la ventana deslizante').toBe(true);
   });
 });
 
