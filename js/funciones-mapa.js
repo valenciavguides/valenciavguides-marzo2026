@@ -202,8 +202,11 @@ const estadoMapa = {
     // comparar IDs con formatos distintos entre funciones.
     _tramoIniciadoEstaActivacion: false,
     // Confirmación por 2 lecturas seguidas antes de revelar/ocultar el trazado por distancia
-    // (mismo criterio que _llegadaCandidataId/_llegadaCandidataCount, pero para visibilidad,
-    // no para notificar llegada — deliberadamente separado para no mezclar ambas garantías).
+    // (mismo espíritu que _llegadaCandidataId/_llegadaVentana, pero para visibilidad, no
+    // para notificar llegada — deliberadamente separado para no mezclar ambas garantías;
+    // este contador sigue siendo "2 seguidas" a propósito, no ventana deslizante — revelar/
+    // ocultar un trazado es reversible y de bajo riesgo, a diferencia de bloquear una
+    // llegada real, así que no se aplicó aquí el mismo cambio).
     _trazadoCandidataId: null,
     _trazadoCandidataCerca: null,
     _trazadoCandidataCount: 0,
@@ -229,11 +232,12 @@ const estadoMapa = {
     // mismo aviso en cada lectura GPS mientras el usuario permanece parado en el sitio
     // (misma idea que estadoComponente._llegadaNotificada en coordenadas-hijo2.html)
     _llegadaNotificada: null,
-    // Contador de lecturas GPS seguidas dentro de radio para el mismo elemento — la
-    // llegada solo se notifica a partir de 2, para no confirmar con una lectura ruidosa
-    // suelta (sin filtro de precisión aguas arriba, ver procesarPosicionGPSParaAventura)
+    // Ventana deslizante de lecturas GPS dentro/fuera de radio para el mismo elemento —
+    // la llegada solo se notifica con 2 de las últimas 4 dentro de radio, para tolerar
+    // el ruido real de GPS urbano sin confirmar con una única lectura suelta (ver
+    // procesarPosicionGPSParaAventura)
     _llegadaCandidataId: null,
-    _llegadaCandidataCount: 0
+    _llegadaVentana: []
 };
 
 // =====================================================
@@ -3130,22 +3134,31 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // sensores para el mismo hecho), pero nunca la sustituye ni la salta.
         // (derivedParadaId ya se calculó más arriba, antes del bloque de visibilidad del trazado)
 
-        // Confirmación por dos lecturas seguidas dentro de radio: sin filtro de precisión
-        // aguas arriba, una única lectura ruidosa (posible con mala precisión) podría caer
-        // dentro del radio por casualidad aunque el usuario siga lejos de verdad. Exigir que
-        // la lectura ANTERIOR también estuviera dentro de radio para el mismo elemento evita
-        // ese falso positivo puntual sin depender de la precisión reportada.
-        if (llegadaDetectada) {
-            estadoMapa._llegadaCandidataCount = (estadoMapa._llegadaCandidataId === derivedParadaId)
-                ? (estadoMapa._llegadaCandidataCount || 0) + 1
-                : 1;
+        // Confirmación por ventana deslizante (2 de las últimas 4 lecturas dentro de
+        // radio, no necesariamente seguidas): sin filtro de precisión aguas arriba, una
+        // única lectura ruidosa podría caer dentro del radio por casualidad aunque el
+        // usuario siga lejos de verdad — de ahí que una sola lectura nunca baste. Pero
+        // exigir estrictamente 2 SEGUIDAS (el diseño anterior) fallaba en la calle real:
+        // el ruido de GPS urbano (calles estrechas, edificios altos — ver §11 de la guía)
+        // hace que la distancia oscile alrededor de un umbral fijo, y basta con que UNA
+        // lectura de cada dos caiga fuera del radio para que el contador de "seguidas"
+        // nunca llegue a 2, por mucho rato que el usuario lleve parado en el sitio real
+        // (reproducido con datos reales de Av1-P-1: 20 lecturas alternando 15m/25m nunca
+        // confirmaban la llegada). La ventana de 4 conserva la misma protección contra
+        // una lectura suelta (1 de 4 no es 2 de 4) sin depender de que el azar alinee dos
+        // lecturas buenas consecutivas.
+        const _VENTANA_LLEGADA = 4;
+        const _CONFIRMACION_LLEGADA = 2;
+        if (estadoMapa._llegadaCandidataId !== derivedParadaId) {
             estadoMapa._llegadaCandidataId = derivedParadaId;
-        } else {
-            estadoMapa._llegadaCandidataId = null;
-            estadoMapa._llegadaCandidataCount = 0;
+            estadoMapa._llegadaVentana = [];
         }
+        if (!Array.isArray(estadoMapa._llegadaVentana)) estadoMapa._llegadaVentana = [];
+        estadoMapa._llegadaVentana.push(llegadaDetectada);
+        if (estadoMapa._llegadaVentana.length > _VENTANA_LLEGADA) estadoMapa._llegadaVentana.shift();
+        const _confirmadaPorVentana = estadoMapa._llegadaVentana.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
 
-        if (llegadaDetectada && estadoMapa._llegadaCandidataCount >= 2) {
+        if (llegadaDetectada && _confirmadaPorVentana) {
             if (estadoMapa.modo !== MODOS.AVENTURA) {
                 logger.debug(`${logPrefix} Llegada detectada en modo ${estadoMapa.modo} — sin notificación automática por GPS`);
             } else if (estadoMapa._llegadaNotificada === derivedParadaId) {
@@ -3153,19 +3166,27 @@ async function procesarPosicionGPSParaAventura(posicion) {
             } else {
                 estadoMapa._llegadaNotificada = derivedParadaId;
                 logger.info(`${logPrefix} 🎯 Llegada GPS a ${siguienteParada.id} — notificando (pending decide si avanza)`);
-                enviarMensaje({
-                    destino: resolverIdPadre(),
-                    tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
-                    origen: 'funciones-mapa',
-                    datos: {
-                        paradaId: derivedParadaId,
-                        parada_id: derivedParadaId,
-                        tipoParada: siguienteParada.tipo,
-                        coordenadas: coordsSiguiente,
-                        distancia: distancia,
-                        timestamp: Date.now()
-                    }
-                });
+                const _datosLlegada = {
+                    paradaId: derivedParadaId,
+                    parada_id: derivedParadaId,
+                    tipoParada: siguienteParada.tipo,
+                    coordenadas: coordsSiguiente,
+                    distancia: distancia,
+                    timestamp: Date.now()
+                };
+                // Este envío ocurre DENTRO del propio padre (funciones-mapa.js no vive en
+                // un iframe) — enviarMensaje({destino: resolverIdPadre()}) se autodirige al
+                // ID del propio padre, que _enviarDesdePadre() (mensajeria.js) busca en
+                // iframesRegistrados y nunca encuentra (ese mapa solo contiene iframes hijo),
+                // así que el mensaje se descartaba en silencio en todas las llamadas. Llamar
+                // al handler directamente vía el wrapper expuesto en globalThis (mismo patrón
+                // que __triggerCambioParadaInterno para _hdl_NAVEGACION_CAMBIO_PARADA) evita
+                // el postMessage roto por completo.
+                if (typeof globalThis.__triggerLlegadaDetectadaInterno === 'function') {
+                    globalThis.__triggerLlegadaDetectadaInterno(_datosLlegada);
+                } else {
+                    logger.warn(`${logPrefix} __triggerLlegadaDetectadaInterno no disponible — notificación de llegada perdida`);
+                }
             }
         } else if (!llegadaDetectada && estadoMapa._llegadaNotificada === derivedParadaId && distancia > toleranciaGPS * 1.5) {
             // Usuario se alejó de nuevo del destino ya notificado — permitir renotificar

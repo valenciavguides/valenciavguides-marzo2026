@@ -10754,6 +10754,21 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.CAMBIO_PARADA_CONFIRMADO, _hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA, _hdl_NAVEGACION_LLEGADA_DETECTADA, { permanente: true });
+
+        // Disparador directo para el sensor de llegada de funciones-mapa.js (cross-scope:
+        // funciones-mapa.js no vive en un iframe, así que enviarMensaje({destino:
+        // resolverIdPadre()}) se autodirigía al ID del propio padre — _enviarDesdePadre()
+        // (mensajeria.js) busca ese destino en iframesRegistrados, que nunca contiene al
+        // padre mismo, y lo descartaba en silencio en cada llamada. Mismo patrón que
+        // __triggerCambioParadaInterno, arriba.
+        globalThis.__triggerLlegadaDetectadaInterno = async function(datos) {
+            return _hdl_NAVEGACION_LLEGADA_DETECTADA({
+                tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
+                origen: 'funciones-mapa',
+                destino: getPadreId(),
+                datos
+            });
+        };
         }
 
         async function _hdl_NAVEGACION_USUARIO_FUERA_RANGO(mensaje) {

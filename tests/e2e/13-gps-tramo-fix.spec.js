@@ -180,7 +180,8 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
     // Primera lectura: solo arma la candidata, todavía no notifica (confirmación por
-    // 2 lecturas seguidas — ver PD-2/PD-3 para el detalle de este mecanismo).
+    // ventana deslizante de 2-de-4 lecturas — ver PD-2/PD-3/PD-4 para el detalle de
+    // este mecanismo, incluyendo el caso de lecturas no consecutivas).
     await page.evaluate(async (tramo) => {
       await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
         coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
@@ -275,7 +276,13 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'PD-3: 2 lecturas seguidas deben confirmar la llegada, aunque la precisión sea mala').toBe(true);
   });
 
-  test('PD-4. Salir de radio entre lecturas reinicia el contador de candidata (no basta con 2 no-seguidas)', async ({ page }) => {
+  test('PD-4. Ventana deslizante: 2 lecturas dentro de radio NO seguidas (con una fuera entre medias) sí confirman', async ({ page }) => {
+    // Sustituye al diseño anterior ("2 SEGUIDAS", que reiniciaba el contador entero al
+    // salir de radio una sola vez). Se cambió a ventana deslizante de 2-de-4 tras un
+    // reporte de campo real (Av1-P-1, GPS urbano oscilando alrededor del radio de 20m
+    // nunca daba 2 lecturas seguidas, así que la llegada no se confirmaba nunca por
+    // mucho que el usuario esperase — ver docs/GUIA-COMPLETA.md §25.5 y
+    // 21-llegada-ruido-gps.spec.js para la reproducción completa con hijo2 real).
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
 
@@ -284,25 +291,23 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
 
     await page.evaluate(async (tramo) => {
       const fm = globalThis.funcionesMapa;
-      // 1: dentro de radio (arma candidata=1)
+      // 1: dentro de radio (ventana=[true], 1/1 — no basta)
       await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 } });
-      // 2: fuera de radio (rompe la racha, candidata vuelve a 0)
+      // 2: fuera de radio (ventana=[true,false], 1/2 — no basta)
       await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 } });
-      // 3: dentro de radio otra vez (candidata=1, NO 2 — no debe notificar todavía)
-      await fm.procesarPosicionGPSParaAventura({ coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 } });
     }, TRAMO);
     await page.waitForTimeout(300);
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'Con 1 sola lectura dentro de radio (de 2) no debe notificar todavía').toBe(false);
 
-    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'Una racha rota por una lectura fuera de radio no debe notificar con una sola lectura de vuelta').toBe(false);
-
-    // 4ª lectura, seguida de la 3ª, dentro de radio: ahora sí (2 seguidas: la 3ª y la 4ª).
+    // 3: dentro de radio otra vez — ventana=[true,false,true], 2/3 SÍ confirma, aunque
+    // la 2ª y 3ª lectura NO sean seguidas (hubo una fuera de radio entre medias).
     await page.evaluate(async (tramo) => {
       await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
         coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
       });
     }, TRAMO);
     await page.waitForTimeout(300);
-    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'La 3ª y 4ª lectura seguidas dentro de radio sí deben confirmar').toBe(true);
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), '2 de las últimas 3-4 lecturas dentro de radio deben confirmar, aunque no sean consecutivas').toBe(true);
   });
 
   test('GT-5. verificarLlegadaADestino reconoce tipo:"inicio" (parada 0) igual que "parada"', async ({ page }) => {

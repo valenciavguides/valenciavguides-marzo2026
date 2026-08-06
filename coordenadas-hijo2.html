@@ -1403,21 +1403,28 @@ function _aplicarDatosEstado(datos, logPrefix) {
     }
 }
 
-// Exige dos lecturas GPS seguidas dentro de radio para el mismo elemento antes de dar
-// la llegada por confirmada — sin filtro de precisión aguas arriba (funciones-mapa.js ya
-// no descarta lecturas por baja precisión), una única lectura ruidosa podría caer dentro
-// del radio por casualidad aunque el usuario siga lejos de verdad.
+// Exige 2 de las últimas 4 lecturas GPS dentro de radio para el mismo elemento antes de
+// dar la llegada por confirmada — sin filtro de precisión aguas arriba (funciones-mapa.js
+// ya no descarta lecturas por baja precisión), una única lectura ruidosa podría caer
+// dentro del radio por casualidad aunque el usuario siga lejos de verdad, de ahí que una
+// sola lectura nunca baste. Ventana deslizante (no "2 SEGUIDAS" a secas): con GPS real en
+// calles estrechas del centro histórico, la distancia puede oscilar alrededor del radio
+// de 20m lectura a lectura — exigir 2 estrictamente consecutivas podía no cumplirse nunca
+// mientras ese patrón persistiera, aunque el usuario llevara un buen rato físicamente en
+// el sitio (reproducido con datos reales de Av1-P-1: 20 lecturas alternando 15m/25m nunca
+// confirmaban la llegada con el diseño anterior). 2 de 4 conserva la misma protección
+// contra una lectura suelta sin depender de que el azar alinee dos lecturas consecutivas.
+const _VENTANA_LLEGADA = 4;
+const _CONFIRMACION_LLEGADA = 2;
 function _registrarCandidataLlegada(dentroDeRadio, idParada) {
-    if (dentroDeRadio) {
-        estadoComponente._llegadaCandidataCount = (estadoComponente._llegadaCandidataId === idParada)
-            ? (estadoComponente._llegadaCandidataCount || 0) + 1
-            : 1;
+    if (estadoComponente._llegadaCandidataId !== idParada) {
         estadoComponente._llegadaCandidataId = idParada;
-    } else {
-        estadoComponente._llegadaCandidataId = null;
-        estadoComponente._llegadaCandidataCount = 0;
+        estadoComponente._llegadaVentana = [];
     }
-    return estadoComponente._llegadaCandidataCount >= 2;
+    if (!Array.isArray(estadoComponente._llegadaVentana)) estadoComponente._llegadaVentana = [];
+    estadoComponente._llegadaVentana.push(dentroDeRadio);
+    if (estadoComponente._llegadaVentana.length > _VENTANA_LLEGADA) estadoComponente._llegadaVentana.shift();
+    return estadoComponente._llegadaVentana.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
 }
 
 async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix) {

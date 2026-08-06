@@ -448,7 +448,7 @@ flowchart TD
     H --> K{Usuario inicia AVENTURA\nvía botón 🛰️ hijo5 o Factor 2}
     K --> L[MODO AVENTURA\nwatchPosition activo + validaciones distancia]
     L --> M1[funciones-mapa envía ACTUALIZAR_ESTADO a hijo2\ndistancia + toleranciaGPS, cada lectura]
-    L --> M2[funciones-mapa detecta llegada por sí mismo\n2 lecturas seguidas dentro de radio\n→ LLEGADA_DETECTADA directo al padre]
+    L --> M2[funciones-mapa detecta llegada por sí mismo\n2 de las últimas 4 lecturas dentro de radio\n→ LLEGADA_DETECTADA directo al padre]
     M1 --> M3[hijo2 hace su propia detección con esos datos\n→ LLEGADA_DETECTADA directo al padre]
     M2 --> L
     M3 --> L
@@ -709,7 +709,7 @@ flowchart LR
         FIN --> R2{"reto_id\npresente?"}
         R2 -->|Sí| EN2["✅ CONTROL.HABILITAR retosBtn\n→ hijo3\nusuario completa el reto → pending.reto=true"]
         R2 -->|No| SKIP2["sin reto: no hace falta pending.reto"]
-        GPS["GPS ≤20m confirmado\n(2 lecturas seguidas)"] --> LD["LLEGADA_DETECTADA\n→ padre → pending.llegada=true"]
+        GPS["GPS ≤20m confirmado\n(ventana: 2 de 4 lecturas)"] --> LD["LLEGADA_DETECTADA\n→ padre → pending.llegada=true"]
         EN2 --> CHK2{"¿pending.llegada +\npending.audio (+ .reto)\ntodas true?"}
         SKIP2 --> CHK2
         LD --> CHK2
@@ -1141,7 +1141,7 @@ A partir de ahí, **cada lectura GPS válida** en `procesarPosicionGPSParaAventu
 | Tramo, fase 1 — nunca alcanzó `.inicio` en esta activación (`!estadoMapa._tramoIniciadoEstaActivacion`) | `distancia a .inicio ≤ 20m` | Igual que el diseño original — confirma que el usuario ha empezado el tramo de verdad |
 | Tramo, fase 2 — ya alcanzó `.inicio` alguna vez | `distanciaAlCamino ≤ toleranciaGPS` (dinámica, ya calculada por tramo) | Deliberadamente NO vuelve a medir contra `.inicio` — avanzar hacia `.fin` aleja de `.inicio` por definición, así que usar esa distancia re-ocultaría el trazado del usuario que va bien encaminado. `distanciaAlCamino` (distancia a la polyline completa, no a un punto) permite manejar un desvío real sin exigir volver al principio |
 
-El resultado ("cerca" `true`/`false`) se confirma por **2 lecturas seguidas en la misma dirección** antes de actuar — mismo criterio que la detección de llegada (`_llegadaCandidataId`/`_llegadaCandidataCount`), pero contado aparte en `estadoMapa._trazadoCandidataId` / `_trazadoCandidataCerca` / `_trazadoCandidataCount` para no mezclar "confirmar llegada" con "confirmar visibilidad". Evita parpadeo por una lectura GPS puntualmente mala cerca del umbral. El contador se indexa por el id del elemento activo, así que cambiar de parada/tramo lo resetea solo (además se resetea explícitamente en `completarCambioParada()` y en `limpiarRecursos()`, por si acaso).
+El resultado ("cerca" `true`/`false`) se confirma por **2 lecturas seguidas en la misma dirección** antes de actuar — mismo espíritu que la detección de llegada (`_llegadaCandidataId`/`_llegadaVentana`, ver §25.5), pero contado aparte en `estadoMapa._trazadoCandidataId` / `_trazadoCandidataCerca` / `_trazadoCandidataCount` para no mezclar "confirmar llegada" con "confirmar visibilidad". A diferencia de la detección de llegada, este contador sigue siendo estrictamente "2 seguidas" y no una ventana deslizante — revelar/ocultar un trazado es una consecuencia reversible y de bajo riesgo (el usuario puede volver a acercarse), a diferencia de bloquear una llegada real, así que no se aplicó aquí el mismo ajuste. Evita parpadeo por una lectura GPS puntualmente mala cerca del umbral. El contador se indexa por el id del elemento activo, así que cambiar de parada/tramo lo resetea solo (además se resetea explícitamente en `completarCambioParada()` y en `limpiarRecursos()`, por si acaso).
 
 Con 2 lecturas confirmadas:
 - **cerca && trazado oculto** → `revelarNavegacion()`; si es un tramo, marca `estadoMapa._tramoIniciadoEstaActivacion = true` (pasa a fase 2 para siempre en esta activación).
@@ -4672,7 +4672,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-d06115053190'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-43a7c382361f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7317,13 +7317,14 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `10-controladores-padre.spec.js` | 8 | Handlers extraídos a `js/controladores-padre.js`; smoke tests de SOLICITAR_AUDIOS/TEXTOS/RETOS/COORDENADAS |
 | `11-constants-integrity.spec.js` | 8 | Integridad de TIPOS_MENSAJE: constantes GPS funcionales, eliminación de handlers huérfanos GPS.VISUAL_*, presencia de CHAT.ESTADO_PADRE, exposición de reciclaje-digital |
 | `12-carga-por-parada.spec.js` | 3 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo |
-| `13-gps-tramo-fix.spec.js` | 14 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras 2 lecturas seguidas dentro de radio, con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual (única guía de vuelta que existe, §4.6) se limpia con llegada real o con el trazado persistente ya visible, y permanece si ninguna de las dos se cumple (PM-1/2); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3) |
+| `13-gps-tramo-fix.spec.js` | 14 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras confirmar por ventana deslizante (2 de las últimas 4 lecturas dentro de radio — este test usa 2 consecutivas como estímulo, que sigue confirmando; ver `21-llegada-ruido-gps.spec.js` para el caso con ruido real), con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual (única guía de vuelta que existe, §4.6) se limpia con llegada real o con el trazado persistente ya visible, y permanece si ninguna de las dos se cumple (PM-1/2); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3) |
 | `15-arribo-y-progresion.spec.js` | 3 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo — habilita btn-avanzar y espera confirmación explícita, sin avanzar `indiceProgreso` por sí solo (AP-2, parada y tramo por igual, §4.7d); solo al recibir `NAVEGACION.GPS.ACTIVAR` (btn-avanzar pulsado) `progresarSiguienteElemento()` avanza y limpia el pending anterior antes de fijar el nuevo `elementoActual` (AP-3); `manejarCambiarParada()` encuentra el nuevo elemento en `AVENTURA_PARADAS` sin error (fix de `idToMatch`) |
 | `16-loading-overlay-oculta-ui.spec.js` | 2 | Con `body.loading` activo, `#selector-tipo-mapa` y `#btn-chat-soporte` permanecen invisibles (opacity/visibility computados) aunque su `style.display` se fuerce a visible; al quitar la clase, ambos vuelven a mostrarse |
 | `17-flecha-brujula-continuidad.spec.js` | 3 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1); `alpha=90` (Android) se convierte al rumbo `270` (`360-alpha`), nunca se usa crudo (HD-1) |
 | `18-boton-deshabilitado-color.spec.js` | 6 | Un `background-color` inline residual (bypass antiguo) no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#B22222` (BU-2a..e) |
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
 | `20-tramo-inicio-y-revelado.spec.js` | 4 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m, con 2 lecturas seguidas (RV-1); una vez iniciado, desviarse del camino real (`distanciaAlCamino`) oculta el trazado y volver a acercarse en cualquier punto — sin pasar de nuevo por `.inicio` — lo revela otra vez, cubriendo el caso de una calle cortada por obras (RV2-1); pulsar el botón de ubicación oculta el trazado persistente de inmediato, sin esperar a la próxima lectura GPS (PL-1) |
+| `21-llegada-ruido-gps.spec.js` | 4 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, no un mensaje sintético): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 15m/25m alrededor del radio de 20m — nunca 2 SEGUIDAS dentro — SÍ confirman llegada con la ventana deslizante de 2-de-4 (RG-3, reproduce el reporte de campo real); el sensor redundante de `funciones-mapa.js` ya no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7463,7 +7464,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d06115053190'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-43a7c382361f'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8096,7 +8097,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d06115053190';
+const CACHE_VERSION = 'v-43a7c382361f';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8853,11 +8854,15 @@ Cuando el usuario está **dentro del radio de acción** de la parada o tramo act
 | `RADIO_PROXIMIDAD` (config.js) | **20 m** | Solo definición — **no leído por el runtime** | Ídem. |
 | `DISTANCIA_MINIMA` (config.js) | **5 m** | Solo definición — **no leída por el runtime** | No hay filtro de movimiento mínimo en el flujo GPS de producción. |
 
-#### Precisión GPS: se procesa siempre, la llegada se confirma por repetición
+#### Precisión GPS: se procesa siempre, la llegada se confirma por ventana deslizante
 
 Ninguna posición GPS se descarta por su precisión. Las paradas y tramos de esta aplicación están en el centro histórico de Valencia — calles estrechas entre fachadas de piedra que degradan la precisión del GPS de forma constante, no ocasional. Un umbral que descartara la lectura entera cada vez que la precisión supera un valor fijo dejaría a la app sin datos de posición justo en el entorno donde más se usa: la distancia dejaría de recalcularse, la polyline guía dejaría de redibujarse y la llegada no se podría detectar mientras la precisión no mejorase — es decir, exactamente donde más se necesita que siga funcionando.
 
-En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmación de llegada. `procesarPosicionGPSParaAventura()` (`funciones-mapa.js`) y `_detectarLlegadaParada()`/`_detectarLlegadaTramo()` (hijo2) — los dos sensores independientes que evalúan la misma llegada — llevan cada uno su propio contador de lecturas consecutivas dentro del radio para el elemento activo (`estadoMapa._llegadaCandidataCount` / `estadoComponente._llegadaCandidataCount`). Una lectura dentro de radio arma la candidata pero no notifica todavía; solo la **segunda lectura seguida** dentro del mismo radio, para el mismo elemento, dispara `NAVEGACION.LLEGADA_DETECTADA`. Cualquier lectura fuera de radio entre medias rompe la racha y el contador vuelve a cero — hacen falta dos lecturas seguidas de nuevo, no basta con acumular dos sueltas en momentos distintos. Así, una lectura puntual con precisión mala que caiga dentro del radio por pura casualidad no basta para confirmar una llegada que no es real: necesitaría dos lecturas seguidas cayendo dentro del mismo radio por casualidad, mucho menos probable dado que el ruido de un GPS no suele repetir el mismo error dos veces seguidas en la misma dirección.
+En su lugar, la fiabilidad se resuelve donde de verdad importa: en la confirmación de llegada. `procesarPosicionGPSParaAventura()` (`funciones-mapa.js`) y `_detectarLlegadaParada()`/`_detectarLlegadaTramo()` (hijo2) — los dos sensores independientes que evalúan la misma llegada — llevan cada uno su propia **ventana deslizante de las últimas 4 lecturas** dentro/fuera de radio para el elemento activo (`estadoMapa._llegadaVentana` / `estadoComponente._llegadaVentana`). Cada lectura empuja un booleano a la ventana (recortada a 4 elementos); en cuanto **2 de esas 4** están dentro del radio — no necesariamente seguidas — se dispara `NAVEGACION.LLEGADA_DETECTADA`. Una lectura puntual con precisión mala que caiga dentro del radio por pura casualidad no basta para confirmar una llegada que no es real: hacen falta 2 de 4, no 1 de 4.
+
+**Por qué ventana y no "2 lecturas seguidas" (diseño anterior):** exigir que las dos lecturas confirmatorias fueran estrictamente consecutivas fallaba en la calle real. El ruido de GPS urbano no es un error aislado que se corrige solo — la distancia calculada puede oscilar de forma sostenida alrededor de un umbral fijo, lectura tras lectura, mientras el usuario está físicamente parado en el mismo sitio. Bastaba con que **una** lectura de cada dos cayera justo fuera del radio para que el contador de "seguidas" se reiniciara antes de llegar a 2 — y con ese patrón, la llegada podía no confirmarse nunca, por mucho tiempo que el usuario esperase parado en la diana (reporte de campo real en Av1-P-1, reproducido con datos reales y un hijo2 cargado como iframe real: 20 lecturas alternando 15m/25m alrededor del radio de 20m jamás confirmaban la llegada con el diseño de "2 seguidas"). La ventana de 4 conserva exactamente la misma protección contra una lectura ruidosa aislada (1 de 4 sigue sin ser suficiente) sin depender de que el azar alinee dos lecturas buenas justo una detrás de la otra.
+
+> **Sensor redundante de `funciones-mapa.js`, autoenvío arreglado:** el segundo sensor (el de `procesarPosicionGPSParaAventura()`, pensado como respaldo del de hijo2) vive dentro del propio padre — no en un iframe — y notificaba su llegada con `enviarMensaje({ destino: resolverIdPadre(), ... })`. Como `resolverIdPadre()` devuelve el ID del **propio** padre y `_enviarDesdePadre()` (`js/mensajeria.js`) busca ese destino en `iframesRegistrados` (que nunca contiene al padre mismo), el envío se descartaba en silencio en todas y cada una de las llamadas — código muerto desde que se escribió, sin ningún error visible (`enviarMensaje()` se llama en fire-and-forget, sin `.catch()` que comprobara el resultado). Ahora usa `globalThis.__triggerLlegadaDetectadaInterno(datos)`, expuesto junto al registro de `NAVEGACION.LLEGADA_DETECTADA` en `codigo-padre.html`, que invoca el handler del padre directamente — mismo patrón que `__triggerCambioParadaInterno` para `CAMBIO_PARADA` en reanudación de sesión (§9.10). Esto no cambia el comportamiento observable en producción (el sensor de hijo2 ya cubría la notificación real), pero convierte un "respaldo" que nunca respaldaba nada en uno que sí funciona. Es un caso concreto de la regla general de §32.3 ("el padre no puede enviarse mensajes a sí mismo vía `enviarMensaje`") — ver esa sección para el patrón completo y por qué `_enviarDesdePadre()` nunca puede resolver el propio ID del padre.
 
 Mientras el usuario está **dentro de los 20 metros** de la parada actual (o dentro del rangoMaximo del tramo):
 
@@ -9388,7 +9393,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | `rangoMaximo` tramo (hijo2) | dinámico, mín. 50 m | `toleranciaGPS` recibida de `calcularToleranciaGPS()` en funciones-mapa.js |
 | Franjas de aviso por distancia (padre) | 21-50m / 51-2.000m / >2.000m | `_hdl_NAVEGACION_GPS_RESTRINGIDO` en `codigo-padre.html` — ver §31.4 |
 | Tolerancia de llegada a tramo | dinámica, mín. 50 m (distancia máx. entre waypoints + 20 m buffer, con suelo) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo |
-| Confirmación de llegada por lecturas repetidas | 2 lecturas seguidas dentro de radio | `estadoMapa._llegadaCandidataCount` en funciones-mapa.js / `estadoComponente._llegadaCandidataCount` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
+| Confirmación de llegada por ventana deslizante | 2 de las últimas 4 lecturas dentro de radio | `estadoMapa._llegadaVentana` en funciones-mapa.js / `estadoComponente._llegadaVentana` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
 | `PRECISION_MINIMA` / `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas) |
 | Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
 | Frecuencia heartbeat | 5 s | `INTERVALO_HEARTBEAT` en `config.js` |
@@ -9432,7 +9437,7 @@ El botón que aparece depende del motivo:
 
 #### ¿Y si el GPS tiene poca precisión?
 
-Nada especial — la aplicación procesa la posición igual, sea cual sea su precisión. Las paradas están en calles estrechas del centro histórico, donde la precisión del GPS fluctúa constantemente por las fachadas de piedra; descartar esas lecturas dejaría a la app sin datos de posición justo donde más se necesita. En vez de eso, la fiabilidad se gana pidiendo dos lecturas seguidas dentro del radio de la parada o tramo antes de confirmar que el usuario ha llegado — una lectura ruidosa suelta no basta para dar una llegada por buena. Detalle técnico completo en §25.5.
+Nada especial — la aplicación procesa la posición igual, sea cual sea su precisión. Las paradas están en calles estrechas del centro histórico, donde la precisión del GPS fluctúa constantemente por las fachadas de piedra; descartar esas lecturas dejaría a la app sin datos de posición justo donde más se necesita. En vez de eso, la fiabilidad se gana pidiendo 2 de las últimas 4 lecturas dentro del radio de la parada o tramo antes de confirmar que el usuario ha llegado (no necesariamente seguidas — el ruido real de GPS urbano puede hacer que la distancia oscile alrededor del radio lectura a lectura) — una lectura ruidosa suelta no basta para dar una llegada por buena. Detalle técnico completo en §25.5.
 
 ---
 
@@ -11016,7 +11021,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-d06115053190';
+const CACHE_VERSION = 'v-43a7c382361f';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11462,6 +11467,24 @@ if (typeof pausarFn === 'function') {
 ```
 
 Este patrón aplica a cualquier función de mensajería que el padre necesite llamar sobre sí mismo: nunca `enviarMensaje({ destino: CONFIG_PADRE.ID })`, siempre `globalThis.mensajeria.funcionX()`.
+
+**Variante: cuando el destino es un handler de mensaje del propio padre, no una función exportada por `mensajeria.js`.** El patrón de arriba (`globalThis.mensajeria.funcionX()`) sirve para invocar funciones que el propio módulo `mensajeria.js` exporta. Pero cuando lo que hay que invocar es un handler de mensaje registrado en el padre (`_hdl_NAVEGACION_LLEGADA_DETECTADA`, `_hdl_NAVEGACION_CAMBIO_PARADA`...) desde otro módulo que corre dentro del propio padre (no un HTML de hijo cargado en iframe — p.ej. `js/funciones-mapa.js`, importado directamente por `codigo-padre.html`), la solución es exponer un wrapper dedicado en `globalThis` que llama al handler directamente con un mensaje sintetizado, sin pasar por `enviarMensaje` en ningún momento:
+
+```javascript
+// Junto al registro del handler real, en codigo-padre.html:
+globalThis.__triggerLlegadaDetectadaInterno = async function(datos) {
+    return _hdl_NAVEGACION_LLEGADA_DETECTADA({
+        tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
+        origen: 'funciones-mapa',
+        destino: getPadreId(),
+        datos
+    });
+};
+```
+
+`js/funciones-mapa.js` llama a `globalThis.__triggerLlegadaDetectadaInterno(datos)` en vez de `enviarMensaje({ destino: resolverIdPadre(), ... })`. Mismo patrón que `globalThis.__triggerCambioParadaInterno` (usado por la restauración de sesión para invocar `_hdl_NAVEGACION_CAMBIO_PARADA` sin pasar por un `postMessage` autodirigido — ver §9.10).
+
+**Esta no es una precaución teórica — ya ha ocurrido de verdad, sin que ninguna auditoría anterior lo detectara.** El sensor redundante de llegada de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`, ver §25.5) llamaba a `enviarMensaje({ destino: resolverIdPadre(), tipo: NAVEGACION.LLEGADA_DETECTADA, ... })` — exactamente el error que describe esta sección — y se descartaba en silencio en cada una de sus llamadas desde que se escribió, sin lanzar ningún error visible ni bloquear nada más. EJE 4 de la metodología de auditoría (§36.4, punto 9) incorpora este caso como comprobación explícita.
 
 ---
 
@@ -11938,6 +11961,7 @@ Para cada constante definida en `js/constants.js` dentro de `TIPOS_MENSAJE`:
 6. **Call-chain deduplication:** para cada `enviarMensaje(tipo=X)`, sube el call-stack completo hacia el caller y el segundo nivel. Verifica si alguna función ancestora también emite `tipo=X` a destinatarios solapados. Si hay solapamiento, el receptor recibe el mismo mensaje dos veces en una sola acción de usuario; determina si los side effects del handler son idempotentes o dañinos. Verificado en `SISTEMA.CAMBIO_MODO` (2026-08-03): `actualizarInterfazModo` lo envía a todos los hijos una única vez — no existe ninguna función `_propagarCambioModoAHijos` ni un segundo envío duplicado (ver §36.15, Flujo F); este eje sigue aplicando a otros mensajes, solo se retira el ejemplo porque ya no es real.
 7. **Auto-mensajes (origen === destino):** cuando el padre se envía un mensaje a sí mismo (p.ej. `SISTEMA.HEARTBEAT_START`/`HEARTBEAT_PAUSE`/`HEARTBEAT_ESTADO`), comprueba la existencia del handler con el mismo rigor que un mensaje cruzado entre archivos — no la des por sentada solo porque emisor y receptor "deberían" vivir en el mismo scope. Un auto-mensaje sin handler no lanza ningún error visible: el `postMessage` se dispara, nadie lo procesa, y la ausencia de handler no bloquea el arranque ni aparece en ningún log. Es exactamente el tipo de huérfano que EJE 7 (rutas de error silenciosas) debe cruzar con este eje.
 8. **Descentralización:** cualquier `window.addEventListener('message', ...)` que NO sea el listener central de `mensajeria.js` es una señal de alerta, no un patrón válido más. Localízalo, identifica qué tipos de mensaje procesa y por qué no pasa por `registrarControladorSeguro`/`registrarControlador`. Si no hay una razón documentada (p.ej. necesidad de capturar mensajes antes de que `mensajeria.js` esté listo), repórtalo como ⚠️ y propone migrarlo al canal centralizado.
+9. **Autoenvío del padre con `destino: resolverIdPadre()` (GAP detectado 2026-08-06):** distinto del punto 7 (que cubre `origen === destino` sin handler) — aquí el problema es de enrutamiento, no de handler ausente. `resolverIdPadre()`/`getPadreId()` (`js/utils.js`) está pensada para que un **hijo** direccione un mensaje hacia el padre; si un módulo que corre dentro del propio padre (p.ej. `funciones-mapa.js`, importado directamente, no cargado en un iframe) la usa como `destino`, el valor resultante es el ID del propio padre. `_enviarDesdePadre()` (`js/mensajeria.js`) resuelve ese `destino` buscándolo en `iframesRegistrados` — un mapa que **por construcción nunca contiene al padre mismo**, solo a sus iframes hijo — así que la búsqueda falla siempre, se loguea `"Iframe no encontrado o sin contentWindow: <id>"` y el mensaje se descarta. Si el envío es fire-and-forget (sin `.catch()` que compruebe el resultado `false`, el patrón más común en el código), esto es indistinguible de "todo va bien" salvo por ese único warning suelto en el log — fácil de no ver en una lectura superficial porque no rompe nada más. Para cada `enviarMensaje({ destino: resolverIdPadre(), ... })` (o `getPadreId()`), confirma primero desde qué contexto corre ese código: si es un módulo que vive dentro del padre (no un HTML de hijo cargado en iframe), es casi con certeza este bug. Caso real encontrado y corregido: el sensor redundante de llegada en `procesarPosicionGPSParaAventura()` (§25.5) — nunca notificó nada en ninguna versión de producción hasta el arreglo, sin que ninguna auditoría anterior lo detectara.
 
 ---
 
