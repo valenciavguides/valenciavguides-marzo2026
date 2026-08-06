@@ -8237,6 +8237,19 @@ await _comprobarReanudacionAventura(logPrefix);
         }
         globalThis.mostrarPulsoValoracionPadre = mostrarPulsoValoracionPadre;
 
+        // Vibración breve al aparecer cualquiera de los 3 carteles de esta sección (transición,
+        // inicio de tramo, llegada a parada) — la única de las señales que llega igual si el
+        // usuario no está mirando la pantalla en ese instante (glow/spin/el propio cartel exigen
+        // mirar). navigator.vibrate no existe en escritorio ni en todos los navegadores móviles
+        // (Safari/iOS no lo soporta) — comprobación de soporte antes de llamar, nunca lanza.
+        // Un único pulso corto, no repetido: a diferencia del spin (cada 3s mientras el botón
+        // siga sin pulsarse), vibrar en bucle sería molesto, no útil.
+        function _vibrarCartel() {
+            try {
+                if (typeof navigator.vibrate === 'function') navigator.vibrate(200);
+            } catch (_e) { /* no crítico — sin vibración, el cartel sigue siendo visible */ }
+        }
+
         // Cartel breve y no bloqueante al completar una parada/tramo, combinando lo que se
         // acaba de terminar con lo que viene a continuación (o solo lo terminado si es el
         // último elemento — ver la llamada en marcarParadaCompletada). Import dinámico de las
@@ -8298,6 +8311,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     </div>
                 `;
                 document.body.appendChild(cartel);
+                _vibrarCartel();
 
                 let cerrado = false;
                 const cerrar = () => { if (cerrado) return; cerrado = true; cartel.remove(); };
@@ -8364,6 +8378,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     </div>
                 `;
                 document.body.appendChild(cartel);
+                _vibrarCartel();
 
                 let cerrado = false;
                 const cerrar = () => { if (cerrado) return; cerrado = true; cartel.remove(); };
@@ -8429,6 +8444,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     </div>
                 `;
                 document.body.appendChild(cartel);
+                _vibrarCartel();
 
                 let cerrado = false;
                 const cerrar = () => { if (cerrado) return; cerrado = true; cartel.remove(); };
@@ -9404,7 +9420,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     void mainBtn.offsetWidth;
                     mainBtn.classList.add('spinning');
                     mainBtn.addEventListener('animationend', () => mainBtn.classList.remove('spinning'), { once: true });
-                }, 5000);
+                }, 3000);
             }
             globalThis._resetSpinAudioMainPadre = _iniciarSpinAudioMain;
 

@@ -1412,6 +1412,16 @@ Ver detalle completo (incluida la verificación de alcanzabilidad previa al refu
 
 **Contenido:** mismo estilo visual que §4.7g/§4.7h. Cuerpo de `TRADUCCIONES_LLEGADA_PARADA` (12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado a la parada Plaza de la crida (Puente de Serranos) — pulse play en el audio para escuchar la historia."* Icono: `boton-audio-central.png`, igual que §4.7h.
 
+### 4.7j. Vibración al mostrar cualquiera de los 3 carteles
+
+**Por qué existe:** glow, spin y los propios carteles (§4.7g/h/i) son señales visuales — todas exigen que el usuario esté mirando la pantalla en el instante exacto en que aparecen. Un usuario mirando el monumento, no el móvil, puede no darse cuenta de ninguna de ellas. La vibración es la única señal de las cuatro que llega igual sin mirar.
+
+**Implementación:** `_vibrarCartel()` (`codigo-padre.html`, función de módulo justo antes de `mostrarCartelTransicion`) — `if (typeof navigator.vibrate === 'function') navigator.vibrate(200);` envuelto en `try/catch`. Se llama una vez, al final de cada una de las tres funciones de cartel (`mostrarCartelTransicion`, `mostrarCartelInicioTramo`, `mostrarCartelLlegadaParada`), justo después de `document.body.appendChild(cartel)`.
+
+**Por qué comprueba soporte antes de llamar:** `navigator.vibrate` no existe en navegadores de escritorio ni en Safari/iOS (nunca lo ha implementado) — llamarlo sin comprobar lanzaría `TypeError: navigator.vibrate is not a function` en esos casos. La comprobación hace que el cartel se muestre exactamente igual, solo sin el vibrado, en cualquier entorno sin soporte — nunca bloquea ni degrada el resto de la función.
+
+**Por qué un único pulso de 200ms, no repetido:** a diferencia del spin (§4.7 más abajo, reintentado cada 3s hasta que el usuario pulsa), la vibración solo tiene sentido como aviso puntual de "algo nuevo acaba de pasar" — vibrar en bucle cada pocos segundos mientras el cartel sigue en pantalla (hasta 10s, su autocierre) sería molesto, no útil. 200ms es perceptible sin ser una vibración larga tipo notificación de llamada.
+
 ### 4.8. Código de colores de estado en botones
 
 | Color | Hex | Dónde aparece | Cuándo |
@@ -2546,16 +2556,16 @@ sequenceDiagram
 
 #### Animación de giro (spin) de botones
 
-Los 6 botones habilitados muestran una animación de giro cada 5 segundos (`@keyframes spin-btn`, clase `.spinning`) hasta que el usuario los pulsa por primera vez. Al cambiar de parada, el ciclo se reinicia en todos los botones.
+Los 4 botones "que requieren atención del usuario" (`btn-video`, `btn-avanzar`, `btn-ubicacion`, `btn-imagen` — los mismos que llevan el glow prominente `glow-activo`, no el glow suave de `btn-mapa-completo`/`btn-mapa-jpg`) muestran una animación de giro cada 3 segundos (`@keyframes spin-btn`, clase `.spinning`) hasta que el usuario los pulsa por primera vez. Al cambiar de parada, el ciclo se reinicia en todos los botones. `#audio-main-toggle-btn`, en `codigo-padre.html`, tiene una implementación gemela independiente (`_iniciarSpinAudioMain()`) con el mismo intervalo e idéntico keyframe (`spin-audio-main`) — no comparte código con hijo2 porque vive en otro documento, pero el comportamiento es idéntico.
 
 **Implementación**: tres funciones a nivel de módulo (fuera de `DOMContentLoaded`):
 
 | Función | Rol |
 |---------|-----|
 | `_spinState` (Map) | Mapa `btn.id → { intervalId, pressed }` que rastrea qué botones están girando |
-| `_iniciarSpinBtn(btn)` | Arranca el `setInterval` de 5 s para un botón; lo para cuando el usuario hace clic |
+| `_iniciarSpinBtn(btn)` | Arranca el `setInterval` de 3 s para un botón; lo para cuando el usuario hace clic |
 | `_detenerSpinBtn(btn)` | Para el intervalo y elimina la clase `.spinning` |
-| `_resetSpinsAventura()` | Llama a `_iniciarSpinBtn` para los 6 botones — usada en la inicialización (dentro de `DOMContentLoaded`) y en el handler `NAVEGACION.CAMBIO_PARADA` (fuera de `DOMContentLoaded`) |
+| `_resetSpinsAventura()` | Llama a `_iniciarSpinBtn` para los 4 botones — usada en la inicialización (dentro de `DOMContentLoaded`) y en el handler `NAVEGACION.CAMBIO_PARADA` (fuera de `DOMContentLoaded`) |
 
 **Invariante de scope**: estas funciones están declaradas a nivel de módulo (antes del bloque `DOMContentLoaded`) porque el controlador de mensajes `NAVEGACION.CAMBIO_PARADA` se registra fuera de `DOMContentLoaded` y necesita llamar a `_resetSpinsAventura()`. Si se mueven dentro de `DOMContentLoaded`, el handler no puede acceder a ellas y lanza `ReferenceError` silencioso.
 
@@ -4696,7 +4706,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3bad6649b68b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-8f49b1c95d23'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7349,7 +7359,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
 | `20-tramo-inicio-y-revelado.spec.js` | 5 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m, con 2 lecturas seguidas como estímulo (RV-1); 12 lecturas alternando 15m/25m alrededor de `.inicio` — nunca 2 seguidas dentro — también revelan el trazado gracias a la ventana deslizante de 2-de-4 (RV-3); una vez iniciado, desviarse del camino real (`distanciaAlCamino`) oculta el trazado y volver a acercarse en cualquier punto — sin pasar de nuevo por `.inicio` — lo revela otra vez, cubriendo el caso de una calle cortada por obras (RV2-1); pulsar el botón de ubicación oculta el trazado persistente de inmediato, sin esperar a la próxima lectura GPS (PL-1) |
 | `21-llegada-ruido-gps.spec.js` | 4 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, no un mensaje sintético): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 15m/25m alrededor del radio de 20m — nunca 2 SEGUIDAS dentro — SÍ confirman llegada con la ventana deslizante de 2-de-4 (RG-3, reproduce el reporte de campo real); el sensor redundante de `funciones-mapa.js` ya no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
-| `22-carteles-informativos.spec.js` | 3 | El cartel de transición (§4.7g) incluye el icono de `#btn-avanzar` y "Pulse el botón avanzar, por favor." (CI-1); con hijo2 real y GPS real, `#cartel-inicio-tramo` (§4.7h) aparece al confirmar `.inicio` de un tramo por ventana deslizante, menciona la línea azul y nunca "avanzar" (CI-2); `#cartel-llegada-parada` (§4.7i) aparece al confirmar `pending.llegada` para una parada, nunca para un tramo (CI-3) |
+| `22-carteles-informativos.spec.js` | 5 | El cartel de transición (§4.7g) incluye el icono de `#btn-avanzar` y "Pulse el botón avanzar, por favor." (CI-1); con hijo2 real y GPS real, `#cartel-inicio-tramo` (§4.7h) aparece al confirmar `.inicio` de un tramo por ventana deslizante, menciona la línea azul y nunca "avanzar" (CI-2); `#cartel-llegada-parada` (§4.7i) aparece al confirmar `pending.llegada` para una parada, nunca para un tramo (CI-3); `navigator.vibrate(200)` se llama exactamente una vez al mostrar un cartel (CI-4, §4.7j); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-5) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7489,7 +7499,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-3bad6649b68b'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-8f49b1c95d23'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8122,7 +8132,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-3bad6649b68b';
+const CACHE_VERSION = 'v-8f49b1c95d23';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11046,7 +11056,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-3bad6649b68b';
+const CACHE_VERSION = 'v-8f49b1c95d23';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

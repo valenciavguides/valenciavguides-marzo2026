@@ -15,6 +15,12 @@
  *   CI-3  Cartel de llegada a parada (§4.7i, nuevo): al registrarse pending.llegada=true
  *         por primera vez para una PARADA, aparece #cartel-llegada-parada con el icono
  *         de audio — nunca para un tramo (su aviso de audio vive en CI-2, al principio).
+ *   CI-4  Vibración (§4.7j, nuevo): al mostrarse cualquiera de los 3 carteles,
+ *         navigator.vibrate() se llama exactamente una vez con 200ms — única señal que
+ *         llega igual si el usuario no está mirando la pantalla en ese instante.
+ *   CI-5  Sin navigator.vibrate (navegadores de escritorio, Safari/iOS), el cartel se
+ *         muestra igual sin lanzar ningún error — _vibrarCartel() comprueba soporte
+ *         antes de llamar.
  */
 'use strict';
 
@@ -153,5 +159,56 @@ test.describe('CI — Carteles informativos no bloqueantes', () => {
     expect(info.texto).toContain('pulse play');
     expect(info.imgSrc).toContain('boton-audio-central.png');
     expect(info.tramoCartelExiste, 'El cartel de inicio de tramo no debe dispararse para una parada').toBe(false);
+  });
+});
+
+// Describe aparte: el mock de navigator.vibrate debe inyectarse ANTES de que cargue
+// cualquier script del padre, así que no reutiliza el beforeEach general de arriba.
+test.describe('CI — Vibración al mostrar un cartel', () => {
+  test('CI-4. navigator.vibrate se llama exactamente una vez con 200ms', async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await page.addInitScript(() => {
+      window.__vibrateCalls = [];
+      Object.defineProperty(navigator, 'vibrate', {
+        value: (ms) => { window.__vibrateCalls.push(ms); return true; },
+        configurable: true,
+      });
+    });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await gotoAndWaitForFase1(page);
+
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function', null, { timeout: 15000 });
+    await page.evaluate(() => {
+      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'tramo', 'Plaza de la Crida');
+    });
+    await page.waitForTimeout(400);
+
+    const calls = await page.evaluate(() => window.__vibrateCalls);
+    expect(calls.length, 'navigator.vibrate debe llamarse exactamente una vez por cartel').toBe(1);
+    expect(calls[0]).toBe(200);
+  });
+
+  test('CI-5. Sin navigator.vibrate (escritorio/Safari), el cartel se muestra igual sin lanzar error', async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await page.addInitScript(() => { delete navigator.vibrate; });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await gotoAndWaitForFase1(page);
+
+    const pageErrors = [];
+    page.on('pageerror', e => pageErrors.push(e.message));
+
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function', null, { timeout: 15000 });
+    await page.evaluate(() => {
+      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'tramo', 'Plaza de la Crida');
+    });
+    await page.waitForTimeout(400);
+
+    const existe = await page.evaluate(() => !!document.getElementById('cartel-transicion'));
+    expect(existe, 'El cartel debe aparecer igual sin soporte de vibración').toBe(true);
+    expect(pageErrors, 'No debe lanzar ningún error sin navigator.vibrate').toEqual([]);
   });
 });

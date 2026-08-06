@@ -1059,7 +1059,7 @@ async function _reproducirVideoParada(idParadaActual) {
 }
 
 // ── Spin behavior (AVENTURA) ──
-// Botones glow-activo giran cada 5 s hasta ser pulsados; se reinicia en cada CAMBIO_PARADA.
+// Botones glow-activo giran cada 3 s hasta ser pulsados; se reinicia en cada CAMBIO_PARADA.
 // Definido a nivel de módulo para que _resetSpinsAventura sea accesible desde los controladores
 // de mensajes registrados fuera del bloque DOMContentLoaded.
 const _spinState = new Map(); // id → { intervalId, pressed }
@@ -1074,7 +1074,7 @@ function _iniciarSpinBtn(btn) {
         void btn.offsetWidth; // forzar reflow para reiniciar animación
         btn.classList.add('spinning');
         btn.addEventListener('animationend', () => btn.classList.remove('spinning'), { once: true });
-    }, 5000);
+    }, 3000);
     _spinState.set(btn.id, state);
     btn.addEventListener('click', () => {
         state.pressed = true;
