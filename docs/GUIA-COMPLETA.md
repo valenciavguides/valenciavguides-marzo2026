@@ -2269,7 +2269,7 @@ graph TD
 | `hijo3` | Reproduce los audios. Notifica al padre cuando terminan → desencadena habilitar retos | En cada CAMBIO_PARADA con audio |
 | `hijo4` | Muestra y valida el reto de la parada activa. Notifica resultado | Cuando padre envía RETO.MOSTRAR |
 | `hijo5` | Permite navegar en CASA sin GPS y togglear el modo | Solo en modo CASA o al activar AVENTURA |
-| `hijo6` | FAQ de soporte estático (9 temas, 42 preguntas). Sin efecto en la lógica de juego | Cuando el usuario abre el chat |
+| `hijo6` | FAQ de soporte estático (9 temas, 46 preguntas). Sin efecto en la lógica de juego | Cuando el usuario abre el chat |
 
 ---
 
@@ -3316,7 +3316,7 @@ sequenceDiagram
 
 **Modo AVENTURA / CASA**: las respuestas del FAQ son idénticas en ambos modos y en cualquier parada — no hay contexto que adaptar. `CHAT.ESTADO_PADRE` solo importa para el idioma (reconstruye el acordeón si cambia) y para el contexto adjunto al buzón de sugerencias. No hay diferencia visual de layout entre modos. El acordeón mantiene su estado abierto/cerrado incluso al ocultarse y reabrirse.
 
-> Para el catálogo completo de los 9 temas y las 42 preguntas, el sistema de marcadores `{{IMG:...}}` y enlaces internos, el código de `construirEstadoChat()`, y el namespace `CHAT.*`, ver **§27 — El asistente de soporte (hijo 6)**.
+> Para el catálogo completo de los 9 temas y las 46 preguntas, el sistema de marcadores `{{IMG:...}}` y enlaces internos, el código de `construirEstadoChat()`, y el namespace `CHAT.*`, ver **§27 — El asistente de soporte (hijo 6)**.
 
 #### Buzón de sugerencias
 
@@ -4778,7 +4778,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-8a25227d98fc'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3a1f8f73055c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7575,7 +7575,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-8a25227d98fc'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3a1f8f73055c'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8208,7 +8208,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-8a25227d98fc';
+const CACHE_VERSION = 'v-3a1f8f73055c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8385,7 +8385,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Hijo 3** | `audio-hijo3.html` — reproductor de audio. Muestra barra de progreso, título de pista y botón de retos. El padre controla play/pause/stop enviando comandos a este iframe |
 | **Hijo 4** | `retos-hijo4.html` — pantalla de retos. Muestra la pregunta de cada parada, valida la respuesta y notifica al padre cuando el reto se completa |
 | **Hijo 5** | `boton-casa-hijo5.html` — herramienta de desarrollo local únicamente. Botón de cambio de modo y selector de paradas. **No aparece en la PWA final** |
-| **Hijo 6** | `chat-hijo6.html` — FAQ de soporte en acordeón de dos niveles (9 temas, 42 preguntas), con imágenes incrustadas y enlaces a términos, agradecimientos y el vídeo de introducción. Contenido estático, igual en cualquier parada |
+| **Hijo 6** | `chat-hijo6.html` — FAQ de soporte en acordeón de dos niveles (9 temas, 46 preguntas), con imágenes incrustadas y enlaces a términos, agradecimientos y el vídeo de introducción. Contenido estático, igual en cualquier parada |
 | **Selector** | `En-busca-del-tesoro.html` — iframe de selección. Guía al usuario por las 17 pantallas de demo, idioma, aventura, pago y activación antes de iniciar el recorrido |
 | **Iframe** | Ventana incrustada dentro de otra página web |
 
@@ -10696,12 +10696,12 @@ Para el mecanismo completo — estructura del acordeón, marcadores `{{IMG:fiche
 
 ### Los 9 temas
 
-`ORDEN_TEMAS_CHAT` define el orden de aparición. Cada tema agrupa entre 1 y 13 preguntas (`TEMAS_AGRUPADOS_CHAT`):
+`ORDEN_TEMAS_CHAT` define el orden de aparición. Cada tema agrupa entre 1 y 17 preguntas (`TEMAS_AGRUPADOS_CHAT`):
 
 | Tema | Clave | Nº preguntas |
 | ---- | ----- | ------------ |
 | 🚦 Antes de comenzar | `ANTES_DE_COMENZAR` | 4 |
-| 📌 Ubicación y navegación | `UBICACION_NAVEGACION` | 13 |
+| 📌 Ubicación y navegación | `UBICACION_NAVEGACION` | 17 |
 | 🔊 Audio | `AUDIO` | 6 |
 | ⏱️ Tiempo y progreso | `TIEMPO_PROGRESO` | 7 |
 | 🧩 Retos | `RETOS` | 4 |
@@ -10710,7 +10710,7 @@ Para el mecanismo completo — estructura del acordeón, marcadores `{{IMG:fiche
 | ▶️ Ver introducción de nuevo | `VER_INTRODUCCION` | 1 |
 | ❤️ Agradecimientos | `AGRADECIMIENTOS` | 1 |
 
-Total: **42 preguntas**, completas en los 12 idiomas soportados (`IDIOMAS_CHAT`: es, en, fr, it, nl, ja, de, zh, pl, pt, ru, uk).
+Total: **46 preguntas**, completas en los 12 idiomas soportados (`IDIOMAS_CHAT`: es, en, fr, it, nl, ja, de, zh, pl, pt, ru, uk).
 
 ### Los datos: js/traducciones-ui.js
 
@@ -10752,13 +10752,13 @@ Al recibir `CHAT.ESTADO_PADRE` o `SISTEMA.PADRE_DATOS`, el hijo actualiza `estad
 
 ### Soporte de idiomas
 
-Al construir el acordeón, se filtra cada pregunta: si el texto está vacío en el idioma actual **y** en el español de fallback, la pregunta no aparece. En la práctica esto no ocurre hoy — las 42 preguntas están completas en los 12 idiomas — pero el filtro se mantiene como red de seguridad ante contenido futuro parcial.
+Al construir el acordeón, se filtra cada pregunta: si el texto está vacío en el idioma actual **y** en el español de fallback, la pregunta no aparece. En la práctica esto no ocurre hoy — las 46 preguntas están completas en los 12 idiomas — pero el filtro se mantiene como red de seguridad ante contenido futuro parcial.
 
 La lógica de fallback sigue el mismo patrón que en toda la app: si no hay texto para el idioma activo, se usa el español.
 
 ---
 
-### Catálogo completo de las 42 preguntas
+### Catálogo completo de las 46 preguntas
 
 Fuente de verdad: `js/traducciones-ui.js` (`PREGUNTAS_CHAT` / `RESPUESTAS_CHAT`). La columna **Marcadores** lista los `{{IMG:fichero}}` que contiene la respuesta en español, en orden de aparición; **Enlace** es el valor de `RESPUESTAS_CHAT[clave][idioma].enlace` (`null` si no tiene).
 
@@ -10781,6 +10781,10 @@ Fuente de verdad: `js/traducciones-ui.js` (`PREGUNTAS_CHAT` / `RESPUESTAS_CHAT`)
 | 📌 Ubicación y navegación | `UBIC_ORDEN_PARADAS` | ¿Puedo visitar las paradas en cualquier orden? | — |
 | 📌 Ubicación y navegación | `UBIC_CAMINO_DIFERENTE` | ¿Puedo seguir un camino diferente al que aparece en el mapa? | — |
 | 📌 Ubicación y navegación | `UBIC_PASO_DE_LARGO` | ¿Qué ocurre si paso de largo una parada? | — |
+| 📌 Ubicación y navegación | `UBIC_CAMARA_MAPA` | ¿Por qué el mapa ha dejado de seguir mi posición mientras camino? | — (glifo ◎ literal, sin `{{IMG:}}` — el botón no tiene icono en PNG) |
+| 📌 Ubicación y navegación | `UBIC_AVISOS_CARTEL` | ¿Qué son los avisos que aparecen brevemente en la parte superior de la pantalla? | `fotoruta-A-B`, `boton-audio-central` |
+| 📌 Ubicación y navegación | `UBIC_BOTONES_AUTOMATICOS` | ¿Por qué algunos botones se activan y desactivan solos? | `H4-fotoretos`, `H2-fotodron` |
+| 📌 Ubicación y navegación | `UBIC_BOTONES_SIEMPRE_ACTIVOS` | ¿Por qué algunos botones siempre permanecen activados? | `H2-fotomapa-moderno`, `H2-fotomapa-vintage`, `fotochat-boton` |
 | 🔊 Audio | `AUDIO_NO_ESCUCHO` | No puedo escuchar el audio. ¿Qué puedo hacer? | `boton-audio-play` |
 | 🔊 Audio | `AUDIO_SE_DETIENE` | ¿Por qué se detiene el audio? | `boton-audio-play` |
 | 🔊 Audio | `AUDIO_AUTOMATICO` | ¿El audio se reproduce automáticamente? | `boton-audio-play` |
@@ -11132,7 +11136,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-8a25227d98fc';
+const CACHE_VERSION = 'v-3a1f8f73055c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
