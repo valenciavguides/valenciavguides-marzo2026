@@ -914,7 +914,11 @@ function _registrarSeguimientoRumbo() {
 export function reactivarSeguimientoCamara() {
     _camaraSiguiendoUsuario = true;
     const pos = estadoMapa.posicionUsuario;
-    if (_mapaInstance && pos?.lat && pos?.lng) {
+    // No competir por 'center' con un flyTo de cambio de parada/tramo en curso (mismo
+    // guard que ya usa el seguimiento por-tick, más abajo) — si se omite aquí, se
+    // autocorrige solo en la siguiente lectura GPS real, ya que _camaraSiguiendoUsuario
+    // queda en true.
+    if (_mapaInstance && !estadoMapa.zoomEnCurso && pos?.lat && pos?.lng) {
         _mapaInstance.easeTo({ center: aLngLat(pos), duration: 500 });
     }
     logger.debug('[MAPA] Seguimiento de cámara reactivado');
@@ -934,8 +938,12 @@ export function activarSeguimientoRumbo() {
     const pos = estadoMapa.posicionUsuario;
     const rumbo = (compassActiva && _flechaGpsAnguloAcumulado !== null) ? _flechaGpsAnguloAcumulado : 0;
     if (_mapaInstance) {
+        // 'bearing' nunca compite con un flyTo de cambio de parada/tramo (ninguno lo
+        // toca, solo center/zoom) — se aplica siempre. 'center' sí competiría, así que
+        // se omite mientras haya un flyTo en curso; se autocorrige en la siguiente
+        // lectura GPS real (_camaraSiguiendoUsuario queda en true).
         const opciones = { bearing: rumbo, duration: 500 };
-        if (pos?.lat && pos?.lng) opciones.center = aLngLat(pos);
+        if (!estadoMapa.zoomEnCurso && pos?.lat && pos?.lng) opciones.center = aLngLat(pos);
         _mapaInstance.easeTo(opciones);
     }
     logger.debug('[MAPA] Seguimiento de rumbo activado');
@@ -952,8 +960,12 @@ export function desactivarSeguimientoRumbo() {
     _camaraSiguiendoUsuario = true;
     const pos = estadoMapa.posicionUsuario;
     if (_mapaInstance) {
+        // 'bearing' se aplica siempre, incluso con un flyTo en curso (ver nota en
+        // activarSeguimientoRumbo) — crítico aquí en particular: _camaraSiguiendoRumbo
+        // ya queda en false, así que si se omitiera el bearing aquí no quedaría ningún
+        // otro sitio (ni el bucle de la brújula) que lo corrigiera después.
         const opciones = { bearing: 0, duration: 500 };
-        if (pos?.lat && pos?.lng) opciones.center = aLngLat(pos);
+        if (!estadoMapa.zoomEnCurso && pos?.lat && pos?.lng) opciones.center = aLngLat(pos);
         _mapaInstance.easeTo(opciones);
     }
     logger.debug('[MAPA] Seguimiento de rumbo desactivado — norte fijo');

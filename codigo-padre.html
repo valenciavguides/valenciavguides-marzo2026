@@ -3254,6 +3254,12 @@
 
                     let _modoCamaraActivo = 'norte'; // arranca en norte fijo — coincide con _camaraSiguiendoRumbo=false por defecto en funciones-mapa.js
                     let _dropdownCamaraAbierto = false;
+                    // Generación de la activación de "Seguir mi rumbo" en curso — el timeout de
+                    // auto-reversión por brújula caída (ver _elegirModoCamara) compara contra este
+                    // valor, no solo contra _modoCamaraActivo==='rumbo': sin esto, alternar
+                    // rumbo→norte→rumbo dos veces en menos de 1.5s deja un timeout viejo que
+                    // revierte la elección NUEVA antes de que cumpla su propio plazo de gracia.
+                    let _rumboActivacionId = 0;
 
                     const _BTN_STYLE_CAMARA_MAIN = 'box-sizing:border-box;width:clamp(36px,9.8vmin,52px);height:clamp(36px,9.8vmin,52px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.4vmin,29px);flex-shrink:0;';
                     const _BTN_STYLE_CAMARA_DROPDOWN = 'box-sizing:border-box;width:clamp(29px,8.4vmin,43px);height:clamp(29px,8.4vmin,43px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.2vmin,21px);flex-shrink:0;';
@@ -3324,11 +3330,14 @@
                                 // Si la brújula no responde en ~1.5s (permiso denegado en iOS, o
                                 // sin soporte), activarSeguimientoRumbo() se queda "encendido" sin
                                 // que nada vuelva a mover el bearing — revertir sola a "Norte fijo"
-                                // en vez de dejar el icono mintiendo sobre un modo ya muerto. Guard
-                                // de _modoCamaraActivo === 'rumbo' por si el usuario ya cambió de
-                                // modo antes de que salte este timeout. Ver docs/brujula-y-mapa.md §4.
+                                // en vez de dejar el icono mintiendo sobre un modo ya muerto. El
+                                // guard de _rumboActivacionId (no solo _modoCamaraActivo==='rumbo')
+                                // asegura que un timeout de una activación VIEJA no revierta una
+                                // elección más reciente si el usuario alternó rápido entre modos.
+                                // Ver docs/brujula-y-mapa.md §4.
+                                const idActivacion = ++_rumboActivacionId;
                                 setTimeout(() => {
-                                    if (_modoCamaraActivo === 'rumbo' && !globalThis.funcionesMapa?.brujulaEstaActiva?.()) {
+                                    if (idActivacion === _rumboActivacionId && _modoCamaraActivo === 'rumbo' && !globalThis.funcionesMapa?.brujulaEstaActiva?.()) {
                                         globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
                                         _modoCamaraActivo = 'norte';
                                         _actualizarBtnCamaraPrincipal();
@@ -10381,23 +10390,6 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _hdl_NAVEGACION_GPS_DESACTIVAR(mensaje) {
-            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.DESACTIVAR][${mensaje?.origen || 'desconocido'}]`;
-
-            try {
-                (globalThis.logger || console).info(`${logPrefix} Solicitud de desactivación GPS de ${mensaje.origen}`);
-
-                // Usar la función GPS centralizada del padre
-                desactivarGPS();
-
-                (globalThis.logger || console).info(`${logPrefix} GPS desactivado exitosamente`);
-
-
-            } catch (error) {
-                (globalThis.logger || console).error(`${logPrefix} Error procesando desactivación GPS:`, error);
-            }
-        }
-
         // Reparte la distancia real recibida de hijo2 entre las 3 pantallas de aviso (§30):
         // >2000m → fotogpserror (reutilizada, mismo aviso que accuracy>50m/5km); 51-2000m →
         // foto-lejos; 21-50m → foto-fuera-rango (con cuenta atrás). hijo2 solo envía este
@@ -10456,8 +10448,12 @@ await _comprobarReanudacionAventura(logPrefix);
         function _regCtrl_GPS(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, _hdl_NAVEGACION_GPS_ACTIVAR, { permanente: true });
 
-        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.DESACTIVAR, _hdl_NAVEGACION_GPS_DESACTIVAR, { permanente: true });
-
+        // NAVEGACION.GPS.DESACTIVAR no tiene handler propio: nada en el proyecto lo emite
+        // (GPS se desactiva siempre por llamada directa a desactivarGPS(), nunca por
+        // postMessage — confirmado por auditoría, ver docs/GUIA-COMPLETA.md §36) — el
+        // handler que existía era inalcanzable, se retiró. La constante se conserva
+        // (§11-constants-integrity.spec.js la comprueba) por si en el futuro un hijo
+        // necesita pedir la desactivación de verdad.
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO, _hdl_NAVEGACION_GPS_RESTRINGIDO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.DENTRO_DE_RANGO, _hdl_NAVEGACION_GPS_DENTRO_DE_RANGO, { permanente: true });
@@ -11627,6 +11623,27 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
+        // SISTEMA.ERROR es un tipo genérico de error usado por varios hijos (p.ej. también
+        // 'ELEMENTO_NO_ENCONTRADO' desde _manejarSimularClick en audio-hijo3.html) — este
+        // handler no cubre cada código posible, solo evita que el mensaje se pierda sin
+        // ningún rastro y da feedback visible al usuario en el caso que sí se conoce hoy
+        // (AUDIO_CONTROL_FALLIDO, ver _manejarAudioControl en audio-hijo3.html, §7.4).
+        async function _hdl_SISTEMA_ERROR(mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SISTEMA.ERROR][${mensaje?.origen || 'desconocido'}]`;
+            try {
+                const { codigo, mensaje: mensajeError, comando } = mensaje?.datos || {};
+                (globalThis.logger || console).warn(`${logPrefix} ${codigo || 'sin código'}: ${mensajeError || '(sin mensaje)'}${comando ? ` (comando: ${comando})` : ''}`);
+
+                if (codigo === 'AUDIO_CONTROL_FALLIDO') {
+                    try {
+                        globalThis.errorUI?.showToast('No se ha podido reproducir el audio. Inténtalo de nuevo.', { type: 'warning', duration: 6000 });
+                    } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error mostrando toast:`, e?.message); }
+                }
+            } catch (error) {
+                (globalThis.logger || console).error(`${logPrefix} Error procesando SISTEMA.ERROR:`, error);
+            }
+        }
+
         function _regCtrl_Audio(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ESTADO_ACTUALIZADO, _hdl_AUDIO_ESTADO_ACTUALIZADO, { permanente: true });
 
@@ -11635,6 +11652,8 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.ERROR, _hdl_AUDIO_ERROR, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_RESPONSE, _hdl_AUDIO_REPRODUCIR_RESPONSE, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.ERROR, _hdl_SISTEMA_ERROR, { permanente: true });
         }
 
         async function _hdl_DATOS_COORDENADAS_CARGADAS(mensaje) {

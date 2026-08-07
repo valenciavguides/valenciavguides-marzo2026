@@ -149,6 +149,17 @@ Tras dar la implementación por completa, una revisión pedida explícitamente e
 
 Detalle completo, con referencias de línea, en `docs/GUIA-COMPLETA.md` §4.6b. Cubierto por `tests/e2e/25-boton-recentrar.spec.js` BR-7/BR-8.
 
+### 4.6 Auditoría completa + inversa — dos hallazgos más, cerrados
+
+Una auditoría de 23 ejes sobre el proyecto completo (más una auditoría inversa, funciones sin mencionar en la guía) encontró dos hallazgos más en este mismo menú de cámara, ambos ⚠️ MEDIO — ningún bug de campo, huecos de borde encontrados por revisión directa:
+
+1. **El timeout de reversión de brújula caída no distinguía activaciones.** El guard de §4.5.1 comparaba solo `_modoCamaraActivo === 'rumbo'` — un timeout de una elección VIEJA podía revertir una elección NUEVA si el usuario alternaba rumbo→norte→rumbo dos veces en menos de 1.5s. Fix: `_rumboActivacionId`, un contador que se incrementa en cada activación; el timeout compara también contra su propio valor capturado.
+2. **El menú competía con el `flyTo` de cambio de parada/tramo.** `reactivarSeguimientoCamara()`/`activarSeguimientoRumbo()`/`desactivarSeguimientoRumbo()` movían la cámara sin comprobar `estadoMapa.zoomEnCurso`, a diferencia del seguimiento por-tick que sí lo hace. Fix: mismo guard, pero solo sobre `center` — `bearing` se sigue aplicando siempre, porque ningún `flyTo` de la app lo toca nunca y omitirlo en `desactivarSeguimientoRumbo()` lo habría dejado sin corrección posible (esa función ya apaga `_camaraSiguiendoRumbo`).
+
+Detalle completo en `docs/GUIA-COMPLETA.md` §4.6b. Cubierto por `tests/e2e/25-boton-recentrar.spec.js` BR-9; el guard de `zoomEnCurso` no tiene test aislado (mismo motivo que el guard equivalente preexistente, ver `tests/e2e/24-camara-sigue-usuario.spec.js`), verificado por revisión directa del código.
+
+La misma auditoría encontró y cerró tres hallazgos más fuera del ámbito de la brújula (un `SISTEMA.ERROR` de audio sin consumidor en el padre, un handler `NAVEGACION.GPS.DESACTIVAR` huérfano, y dos exports muertos en `js/mensajeria.js`) — no son parte del modo de mapa orientado al rumbo, documentados en sus secciones correspondientes de `docs/GUIA-COMPLETA.md`.
+
 ---
 
 ## 5. Herramientas creadas esta noche

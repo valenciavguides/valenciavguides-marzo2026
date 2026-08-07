@@ -23,6 +23,11 @@
  * se expone fuera del módulo y forzar ese flag exigiría disparar el flujo completo
  * de CAMBIO_PARADA (ver 22-carteles-informativos.spec.js) solo para una comprobación
  * de una línea; queda cubierto por revisión directa del código, no por un test E2E.
+ * Misma limitación, mismo motivo, para el guard equivalente añadido tras auditoría
+ * (2026-08-08) en reactivarSeguimientoCamara()/activarSeguimientoRumbo()/
+ * desactivarSeguimientoRumbo() — las tres omiten 'center' del easeTo (o el easeTo
+ * entero, en el caso de reactivarSeguimientoCamara) mientras zoomEnCurso es true, para
+ * no competir con el flyTo de cambio de parada/tramo. Ver docs/GUIA-COMPLETA.md §4.6b.
  */
 'use strict';
 

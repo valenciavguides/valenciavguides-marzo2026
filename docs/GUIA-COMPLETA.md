@@ -456,7 +456,7 @@ flowchart TD
     N --> H
 ```
 
-Los dos caminos de `LLEGADA_DETECTADA` (funciones-mapa y hijo2) son sensores redundantes del mismo hecho — ninguno de los dos envía `CAMBIO_PARADA`; ambos solo marcan `pending.llegada` en el padre (§2.2). `desactivarGPS()` existe y `clearWatch()` funcionaría si se llamara, pero el mensaje que lo dispara (`NAVEGACION.GPS.DESACTIVAR`) no lo emite ningún código de la app hoy — en la práctica el GPS no se detiene nunca tras arrancar en P14.
+Los dos caminos de `LLEGADA_DETECTADA` (funciones-mapa y hijo2) son sensores redundantes del mismo hecho — ninguno de los dos envía `CAMBIO_PARADA`; ambos solo marcan `pending.llegada` en el padre (§2.2). `desactivarGPS()` existe y `clearWatch()` funcionaría si se llamara, pero nada en la app lo dispara vía postMessage — `NAVEGACION.GPS.DESACTIVAR` no tiene handler (la constante existe, sin uso, por si algún día un hijo necesita pedirlo de verdad). En la práctica, el GPS no se detiene nunca tras arrancar en P14.
 
 **Matiz verificado sobre "sin validaciones" en CASA:** `procesarPosicionGPSParaAventura()` se ejecuta en cada lectura GPS sea cual sea el modo (no hay guard de modo a la entrada de la función). Dentro de ella, solo dos cosas están explícitamente condicionadas a `estadoMapa.modo === MODOS.AVENTURA`: la visibilidad del trazado y el propio sensor de llegada de funciones-mapa (`if (estadoMapa.modo !== MODOS.AVENTURA)` corta ahí sin notificar). El envío de `ACTUALIZAR_ESTADO` a hijo2 **no** está condicionado por modo — se envía igual en CASA. El sensor de llegada de hijo2 (`_detectarLlegadaTramo`/`_detectarLlegadaParada`, disparado por ese mismo `ACTUALIZAR_ESTADO`) tampoco comprueba el modo, y el handler del padre para `LLEGADA_DETECTADA` (`_hdl_NAVEGACION_LLEGADA_DETECTADA`) solo comprueba que el `paradaId` coincida con `estado.elementoActual` — que `_transicionarAModoCasa()` no vacía al volver a CASA. En la práctica esto es invisible para el usuario (CASA no muestra botón de avanzar de estilo AVENTURA ni depende de `pending.llegada`), pero la afirmación de la tabla de arriba ("Validación de distancia a paradas: No" en CASA) describe el efecto visible, no una ausencia real de guard en ese tramo del código — solo el overlay "fuera de rango" y el trazado están realmente bloqueados por modo.
 
@@ -1008,7 +1008,11 @@ Retomar el seguimiento de posición manualmente sigue centrando sobre `estadoMap
 - **Brújula caída (permiso denegado en iOS, o `DeviceOrientationEvent` no soportado).** `activarSeguimientoRumbo()` enciende `_camaraSiguiendoRumbo` sin comprobar si la brújula responde de verdad — si nunca responde, `actualizarRotacionFlechaGPS()` nunca vuelve a llamar a `setBearing()` y el modo se queda "encendido" (icono `➤`) sin hacer nada, indistinguible de un cuelgue. `_elegirModoCamara('rumbo')`, tras activar el modo, arma un `setTimeout` de 1.5s que comprueba `funcionesMapa.brujulaEstaActiva()` (getter nuevo de solo lectura sobre la variable interna `compassActiva`, `js/funciones-mapa.js`); si sigue sin responder y el usuario no ha cambiado de modo mientras tanto (guard `_modoCamaraActivo === 'rumbo'`), revierte sola a "Norte fijo" — `desactivarSeguimientoRumbo()` + icono de vuelta a `N`. Cubierto por BR-7.
 - **"Elegir otra aventura" sin recargar la página.** Terminar una aventura normalmente y pulsar "otra aventura" en el modal de fin SÍ recarga (`location.reload()`, §25.11) y resetea todo el estado del módulo solo. Pero el diálogo de **reanudación de sesión** (`mostrarDialogoVueltaRapida`, al reabrir la app con una aventura ya activa) tiene su propio "elegir otra" (`ejecutarElegirOtra()`) que limpia `localStorage`/globals y navega el iframe de selección **sin recargar** — reutiliza el mismo module scope de `funciones-mapa.js`, así que sin nada más el modo de cámara de la aventura abandonada (p. ej. "Seguir mi rumbo") seguiría activo en la siguiente. `initializeMap()` expone `globalThis._resetModoCamaraRecentrar()` (pone `_modoCamaraActivo = 'norte'`, llama a `desactivarSeguimientoRumbo()` y actualiza el icono) y `ejecutarElegirOtra()` lo llama junto al resto de globals que ya resetea (`estado.tiempoRestante`, etc.). Cubierto por BR-8.
 
-Cubierto por `tests/e2e/24-camara-sigue-usuario.spec.js` (CAM-1/2/3/4): confirma que la primera posición centra la cámara, que un `dragstart` sin `originalEvent` (programático) no pausa nada, que uno con `originalEvent` sí lo hace, y que `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato. El guard de `zoomEnCurso` no tiene test aislado — forzarlo exigiría reproducir el flujo completo de `CAMBIO_PARADA` solo para una comprobación de una línea; queda verificado por revisión directa del código. El menú en sí está cubierto por `tests/e2e/25-boton-recentrar.spec.js` (BR-1 a BR-8): existe y empieza oculto, alineación/tamaño respecto a `#selector-tipo-mapa`, el botón principal despliega/pliega las 3 opciones, cada una de las 3 invoca la función correcta (con las dos persistentes actualizando el icono y la de centrar sin tocarlo), la reversión automática por brújula caída (BR-7) y el reset bajo demanda (BR-8). El seguimiento de rumbo en sí (activar/desactivar, y que `actualizarRotacionFlechaGPS()` mueva el `bearing` del mapa solo mientras el modo está activo) está cubierto por `tests/e2e/27-seguimiento-rumbo.spec.js` (SR-1/2/3) — ver `docs/brujula-y-mapa.md` §4 para el diseño completo del modo "Seguir mi rumbo".
+**El menú de cámara no compite con el `flyTo` de cambio de parada/tramo.** Las tres funciones (`reactivarSeguimientoCamara()`, `activarSeguimientoRumbo()`, `desactivarSeguimientoRumbo()`) comprueban `!estadoMapa.zoomEnCurso` antes de incluir `center` en su `easeTo()` — mismo guard que ya usa el seguimiento por-tick. `bearing` (en las dos últimas) se aplica siempre, incluso con `zoomEnCurso` activo: ningún `flyTo()` de la app lo toca nunca (solo `center`/`zoom`), así que no hay nada con lo que competir, y omitirlo en `desactivarSeguimientoRumbo()` sería especialmente grave — como esa función ya deja `_camaraSiguiendoRumbo=false`, ningún otro sitio volvería a corregir el bearing después. Si `center` se omite por haber un `flyTo` en curso, se autocorrige solo: `_camaraSiguiendoUsuario` queda en `true`, así que el seguimiento por-tick lo recentra en la siguiente lectura GPS real.
+
+**La reversión automática por brújula caída usa un identificador de activación, no solo el modo activo.** `_elegirModoCamara('rumbo')` incrementa `_rumboActivacionId` y captura su valor local (`idActivacion`) antes de armar el `setTimeout` de 1.5s; el timeout compara `idActivacion === _rumboActivacionId` además de `_modoCamaraActivo === 'rumbo'`. Sin el identificador, alternar rumbo→norte→rumbo dos veces en menos de 1.5s dejaba un timeout de la PRIMERA elección vivo, que revertía la SEGUNDA antes de que esta cumpliera su propio plazo de gracia.
+
+Cubierto por `tests/e2e/24-camara-sigue-usuario.spec.js` (CAM-1/2/3/4): confirma que la primera posición centra la cámara, que un `dragstart` sin `originalEvent` (programático) no pausa nada, que uno con `originalEvent` sí lo hace, y que `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato. El guard de `zoomEnCurso` (en el seguimiento por-tick y en las tres funciones del menú) no tiene test aislado — forzarlo exigiría reproducir el flujo completo de `CAMBIO_PARADA` solo para una comprobación de una línea; queda verificado por revisión directa del código. El menú en sí está cubierto por `tests/e2e/25-boton-recentrar.spec.js` (BR-1 a BR-9): existe y empieza oculto, alineación/tamaño respecto a `#selector-tipo-mapa`, el botón principal despliega/pliega las 3 opciones, cada una de las 3 invoca la función correcta (con las dos persistentes actualizando el icono y la de centrar sin tocarlo), la reversión automática por brújula caída (BR-7), el reset bajo demanda (BR-8), y que un timeout de auto-reversión viejo no revierte una elección de "rumbo" más reciente (BR-9). El seguimiento de rumbo en sí (activar/desactivar, y que `actualizarRotacionFlechaGPS()` mueva el `bearing` del mapa solo mientras el modo está activo) está cubierto por `tests/e2e/27-seguimiento-rumbo.spec.js` (SR-1/2/3) — ver `docs/brujula-y-mapa.md` §4 para el diseño completo del modo "Seguir mi rumbo".
 
 ### 4.6c. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
 
@@ -2015,7 +2019,7 @@ Todos los handlers del padre se registran mediante `globalThis.registrarControla
 | Prefijo | Registrado en | Ejemplos |
 |---------|--------------|---------|
 | `SISTEMA.*` | Script 1 | `HIJO_PREPARADO`, `HIJO_LISTO`, `CAMBIO_MODO`, `HEARTBEAT`, `HIJO_FALLIDO` |
-| `NAVEGACION.*` | Script 2 | `CAMBIO_PARADA`, `LLEGADA_DETECTADA`¹, `GPS.ACTIVAR`, `GPS.DESACTIVAR` |
+| `NAVEGACION.*` | Script 2 | `CAMBIO_PARADA`, `LLEGADA_DETECTADA`¹, `GPS.ACTIVAR` |
 | `RETO.*` | Script 2 | `SOLICITAR_RETO`, `OCULTAR`, `COMPLETADO`, `MOSTRADO` |
 | `SELECCION.*` | Script 2 | `PREPARAR_HIJOS`, `CODIGO_VALIDADO`, `AVENTURA_SELECCIONADA`, `AVENTURA_ACTIVADA`, `IDIOMA_SELECCIONADO` |
 | `SELECCION.DEV_MODE_TOGGLE` | Script 1 (IIFE independiente) | No pasa por `registrarControladorSeguro` — IIFE propio que escucha `message` directamente y pone `globalThis._devModeActivo = true`. Recibido desde la pantalla de selección al activar el modo DEV (ver §24) |
@@ -2828,6 +2832,8 @@ El padre tiene un overlay central desplegable con botones que controlan el `<aud
 hijo3 responde con `SISTEMA.CONFIRMACION { accion:'audio_control', comando, exito:true }` tras ejecutar el comando con éxito. Ver §8.7 para el handler completo (`UI.ACCION_USUARIO` a `_manejarAudioControl`).
 
 **Si el comando falla, responde `SISTEMA.ERROR` en vez de quedarse callado o confirmar un éxito falso.** `_manejarAudioControl()` envuelve la ejecución del comando en su propio `try/catch`: si `audioPlayer.play()` rechaza (autoplay bloqueado por el navegador — posible en `play`/`replay`) o `cargarYReproducirAudio()` devuelve `{exito:false, error}` (audio no encontrado en caché ni recibido a tiempo del padre, o sin archivo configurado — sin lanzar excepción, solo devuelve el objeto), el catch lo detecta y envía `SISTEMA.ERROR { codigo:'AUDIO_CONTROL_FALLIDO', mensaje, comando }` — la línea de `SISTEMA.CONFIRMACION{exito:true}` nunca se alcanza en ese caso. Antes de esto, ambos fallos desaparecían: la excepción de `.play()` subía sin capturar hasta el `catch` genérico de `registrarControladorSeguro` (solo hacía `logger.error`, sin avisar a quien pidió el comando, que se quedaba esperando una confirmación que nunca llegaba), y el `exito:false` de `cargarYReproducirAudio()` se ignoraba del todo — el código seguía de largo y confirmaba éxito de todos modos. Cubierto por `tests/e2e/28-audio-control-error.spec.js` (AC-1).
+
+**El padre escucha ese `SISTEMA.ERROR` y muestra un aviso visible.** `_hdl_SISTEMA_ERROR` (`codigo-padre.html`, registrado junto al resto de handlers de audio) es genérico — `SISTEMA.ERROR` también lo usan otros fallos sin relación con audio (p. ej. `'ELEMENTO_NO_ENCONTRADO'` desde `_manejarSimularClick` en hijo3) — pero cuando `datos.codigo === 'AUDIO_CONTROL_FALLIDO'` llama a `globalThis.errorUI?.showToast(...)` con un aviso breve tipo `warning`, mismo mecanismo que ya usan `data-loader.js` y el resumen final de aventura para errores no bloqueantes. Sin este handler, el fix de arriba corrige la respuesta pero nadie la recibía: el padre nunca tenía handler registrado para `SISTEMA.ERROR`. Cubierto por `tests/e2e/28-audio-control-error.spec.js` (SE-1: código `AUDIO_CONTROL_FALLIDO` sí muestra el toast; SE-2: cualquier otro código no lo muestra).
 
 #### Controladores que registra
 
@@ -3718,7 +3724,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `NAVEGACION.SOLICITAR_DATOS_PARADAS` | Hijo5 → Padre | Solicita lista completa de paradas |
 | | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre → Hijo5 | Lista de paradas con metadatos |
 | | `NAVEGACION.GPS.ACTIVAR` | Hijo2 → Padre | `#btnAvanzar` en hijo2 — solicita progresión al siguiente elemento + asegura GPS activo. hijo5 **no** envía este mensaje |
-| | `NAVEGACION.GPS.DESACTIVAR` | funciones-mapa → Padre *(modo iframe)* | Deshabilitar el procesamiento GPS de la aplicación (detección de proximidad/llegadas); `desactivarGPS()` en padre llama a `clearWatch()` para detener el `watchPosition` |
 | | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | Padre → hijo2 (directo vía `enviarMensaje_S1`) | Estado del GPS (activo/error/permisos); hijo1/hijo3/hijo4 no tienen handler |
 | | `NAVEGACION.GPS.ERROR` | Padre → hijo2 (directo vía `enviarMensaje_S1`) | Error de GPS; hijo1/hijo3/hijo4 no tienen handler |
 | | `NAVEGACION.GPS.RESTRINGIDO` | Hijo2 → Padre | Zona GPS restringida |
@@ -4801,7 +4806,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-80fa8d3c9ee2'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5db4da4fc767'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5207,14 +5212,13 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 | Handler en padre | `_hdl_NAVEGACION_GPS_ACTIVAR` |
 | Acción | Llama `progresarSiguienteElemento()` o `revelarNavegacion()`, luego `activarGPS()` |
 
-##### NAVEGACION.GPS.DESACTIVAR / RESTRINGIDO
+##### NAVEGACION.GPS.RESTRINGIDO
 
-| Tipo | Handler en padre | Línea aprox. | Nota |
-|------|-----------------|-------------|------|
-| `GPS.DESACTIVAR` | `_hdl_NAVEGACION_GPS_DESACTIVAR` | ~8522 | Hijo2 → padre al desactivar GPS |
-| `GPS.RESTRINGIDO` | `_hdl_NAVEGACION_GPS_RESTRINGIDO` | ~8540 | Hijo2 → padre cuando usuario está fuera de rango |
+| Tipo | Handler en padre | Nota |
+|------|-----------------|------|
+| `GPS.RESTRINGIDO` | `_hdl_NAVEGACION_GPS_RESTRINGIDO` | Hijo2 → padre cuando usuario está fuera de rango |
 
-Dirección: hijo → padre. Ver §10.15 para el conflicto de registro con `funciones-mapa.js`.
+Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no tiene handler (ver la nota junto a `desactivarGPS()` más arriba en este documento). Ver §10.15 para el conflicto de registro con `funciones-mapa.js`.
 
 **NAVEGACION.LLEGADA_DETECTADA** (hijo2 → padre, y funciones-mapa → padre)
 
@@ -5794,9 +5798,9 @@ Los 3 handlers reales viven en Script 4, registrados justo antes del bloque de a
 
 ### 10.15 Tipos y comportamientos pendientes
 
-#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — registro exclusivo en Script 2
+#### `GPS.ACTIVAR` — registro exclusivo en Script 2
 
-`NAVEGACION.GPS.ACTIVAR` y `NAVEGACION.GPS.DESACTIVAR` los registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. Los handlers (`_hdl_NAVEGACION_GPS_ACTIVAR`, `_hdl_NAVEGACION_GPS_DESACTIVAR`) verifican que el modo activo sea AVENTURA, evalúan `paradaListaParaAvanzar` para decidir si progresar al siguiente elemento o revelar la navegación (vía `revelarNavegacion()`), y en cualquier caso llaman a `activarGPS()`.
+`NAVEGACION.GPS.ACTIVAR` lo registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. El handler (`_hdl_NAVEGACION_GPS_ACTIVAR`) verifica que el modo activo sea AVENTURA, evalúa `paradaListaParaAvanzar` para decidir si progresar al siguiente elemento o revelar la navegación (vía `revelarNavegacion()`), y en cualquier caso llama a `activarGPS()`. `NAVEGACION.GPS.DESACTIVAR` no tiene handler simétrico — nada en la app lo emite (ver la nota junto a `desactivarGPS()` en §2.2).
 
 `funciones-mapa.js` contiene `manejarGPSActivar` (el adaptador — ver «Fuente única de verdad del estado GPS», §11) para llamadas internas directas dentro del módulo — la usa `manejarCambioModoMapa()` al entrar en AVENTURA — pero no se registra en el bus de mensajes. `state-manager.js` garantiza exactamente un handler por tipo de mensaje; cualquier segundo intento de registro para el mismo tipo retorna `false` silenciosamente.
 
@@ -5908,7 +5912,7 @@ El padre dirige cada mensaje directamente al hijo que le corresponde con `destin
 | Error de geolocalización en watchPosition | `GPS.ERROR` → destino: 'hijo2' |
 | `desactivarGPS()` | `GPS.ESTADO_ACTUALIZADO` → destino: 'hijo2' |
 
-`desactivarGPS()` notifica a hijo2 directamente mediante `GPS.ESTADO_ACTUALIZADO` — `_hdl_NAVEGACION_GPS_DESACTIVAR` no envía notificación adicional. GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre recibe desde hijo2.
+`desactivarGPS()` notifica a hijo2 directamente mediante `GPS.ESTADO_ACTUALIZADO`, sea cual sea el código que la llame (siempre por llamada directa — no hay handler de mensaje que la dispare, ver §2.2). GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre recibe desde hijo2.
 
 ---
 
@@ -6099,9 +6103,9 @@ bus aún no ha transmitido el dato.
 | `progresarSiguienteElemento` | `codigo-padre.html` ~L7731 | `__triggerCambioParadaInterno(datosCambio)` |
 | `_onNextEntityShowMapClick` (GPS overlay) | `codigo-padre.html` ~L5527 | `funcionesMapa.setMapView([lat, lng], 16, { animate: true })` |
 
-#### `GPS.ACTIVAR` / `GPS.DESACTIVAR` — handlers en Script 2
+#### `GPS.ACTIVAR` — handler en Script 2
 
-`NAVEGACION.GPS.ACTIVAR` y `NAVEGACION.GPS.DESACTIVAR` están gestionados por Script 2 de `codigo-padre.html` (handlers `_hdl_NAVEGACION_GPS_ACTIVAR` / `_hdl_NAVEGACION_GPS_DESACTIVAR`). Ver §10.15 para el detalle completo del flujo.
+`NAVEGACION.GPS.ACTIVAR` está gestionado por Script 2 de `codigo-padre.html` (`_hdl_NAVEGACION_GPS_ACTIVAR`). `NAVEGACION.GPS.DESACTIVAR` no tiene handler. Ver §10.15 para el detalle completo del flujo.
 
 #### `NAVEGACION.RESPUESTA_COORDENADAS` — handler en `funciones-mapa.js`
 
@@ -6293,7 +6297,7 @@ ya ha sido actualizado al momento de la llamada — la comprobación interna
 actualizar el estado para calcular el flag correctamente.
 
 > **Nota de diseño — hub + adaptador, no duplicación.**
-> `activarGPS()` / `desactivarGPS()` en `codigo-padre.html` son el **hub**: la única implementación real que llama a `navigator.geolocation.watchPosition`. `manejarGPSActivar()` en `funciones-mapa.js` es el **adaptador**: detecta si está en el padre (`window.parent === window`) y delega al hub, o si está en un iframe, envía postMessage al padre para que el hub actúe. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P14 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento. No existe un adaptador simétrico para desactivar: `desactivarGPS()` solo se llama directamente desde `_hdl_NAVEGACION_GPS_DESACTIVAR` en el propio padre — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
+> `activarGPS()` / `desactivarGPS()` en `codigo-padre.html` son el **hub**: la única implementación real que llama a `navigator.geolocation.watchPosition`. `manejarGPSActivar()` en `funciones-mapa.js` es el **adaptador**: detecta si está en el padre (`window.parent === window`) y delega al hub, o si está en un iframe, envía postMessage al padre para que el hub actúe. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P14 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento. No existe un adaptador simétrico para desactivar: `desactivarGPS()` solo se llama directamente dentro del propio padre (nunca vía mensaje — no hay handler para `NAVEGACION.GPS.DESACTIVAR`) — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
 
 ### Infraestructura GPS pendiente — preparada, sin feeder activo
 
@@ -7457,10 +7461,10 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `22-carteles-informativos.spec.js` | 9 | Los cinco carteles (§4.7g-l), cada uno invocado directamente: Transición con dos iconos y texto tras "Por favor," (CI-1); Inicio de tramo variante parada→tramo, nombra la parada y el tramo ("Ha terminado la parada X — va a empezar el tramo Y") además de "línea azul" (CI-2, §4.7i); Inicio de tramo variante tramo→tramo, mismo mecanismo con los dos tramos (CI-2b); Llegada, con el nombre de la parada y "avanzar"+"play" (CI-3); Bienvenida de vuelta tramo, con "línea azul" (CI-4); Bienvenida de vuelta parada, sin "línea azul" (CI-5); la bifurcación real de `marcarParadaCompletada()` (§4.7g) para una pareja parada→tramo dispara el cartel de Inicio de tramo, nunca el de Transición genérico — con datos reales de Aventura1 (CI-6); `navigator.vibrate(200)` se llama exactamente una vez al mostrar un cartel (CI-7, §4.7m); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-8) |
 | `23-polyline-autoreparacion.spec.js` | 3 | Con un mapa simulado cuyo `isStyleLoaded()` empieza en `false` (§4.6a): `dibujarRutaConMarcadores({dibujarRuta:true})` no llama a `addLayer`/`addSource` hasta que el mapa dispara `'load'`, momento en el que la capa real se crea sola (PR-1); un `setStyle()` pedido (vía `revelarNavegacion()`) antes de que exista la capa real se aplica sobre ella en cuanto se crea, no se pierde (PR-2); con el estilo ya cargado, la capa se crea al instante, sin esperar a `'load'` (PR-3) |
 | `24-camara-sigue-usuario.spec.js` | 1 | Ciclo completo del seguimiento de cámara (§4.6b): la primera posición GPS centra la cámara (`easeTo`); un `dragstart` sin `originalEvent` (programático) no pausa el seguimiento; uno con `originalEvent` (gesto real del usuario) sí lo pausa; `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato |
-| `25-boton-recentrar.spec.js` | 8 | Menú de modo de cámara `#btn-recentrar` (§4.6b): existe y empieza oculto sin estilo inline forzándolo a visible (BR-1); mismo `right`/`z-index` que `#selector-tipo-mapa` y ancho del botón principal en rango (BR-2); pulsar el botón principal despliega/pliega las 3 opciones (BR-3); elegir "Norte fijo" llama a `desactivarSeguimientoRumbo()` y cierra el desplegable (BR-4); elegir "Seguir mi rumbo" llama a `activarSeguimientoRumbo()` y cambia el icono del botón principal (BR-5); elegir "Centrar mapa en mi ubicación" llama a `reactivarSeguimientoCamara()` sin cambiar el icono — acción puntual, no modo persistente (BR-6); con `brujulaEstaActiva()` simulada en `false`, "Seguir mi rumbo" revierte sola a "Norte fijo" ~1.5s después, invocando `desactivarSeguimientoRumbo()` (BR-7); `globalThis._resetModoCamaraRecentrar()` fuerza el reset a "Norte fijo" bajo demanda (BR-8) |
+| `25-boton-recentrar.spec.js` | 9 | Menú de modo de cámara `#btn-recentrar` (§4.6b): existe y empieza oculto sin estilo inline forzándolo a visible (BR-1); mismo `right`/`z-index` que `#selector-tipo-mapa` y ancho del botón principal en rango (BR-2); pulsar el botón principal despliega/pliega las 3 opciones (BR-3); elegir "Norte fijo" llama a `desactivarSeguimientoRumbo()` y cierra el desplegable (BR-4); elegir "Seguir mi rumbo" llama a `activarSeguimientoRumbo()` y cambia el icono del botón principal (BR-5); elegir "Centrar mapa en mi ubicación" llama a `reactivarSeguimientoCamara()` sin cambiar el icono — acción puntual, no modo persistente (BR-6); con `brujulaEstaActiva()` simulada en `false`, "Seguir mi rumbo" revierte sola a "Norte fijo" ~1.5s después, invocando `desactivarSeguimientoRumbo()` (BR-7); `globalThis._resetModoCamaraRecentrar()` fuerza el reset a "Norte fijo" bajo demanda (BR-8); alternar rumbo→norte→rumbo dos veces en menos de 1.5s no deja que el timeout de la primera elección revierta la segunda antes de su propio plazo (BR-9) |
 | `26-reto-completado-boton-verde.spec.js` | 2 | Cargando `retos-hijo4.html` como página de nivel superior: tras responder correcto un reto de tipo texto, ningún log de envío de `RETO.COMPLETADO` aparece todavía — solo el de "pendiente de confirmación con el botón verde"; al pulsar `#btnNextAfterReto`, sí aparece (confirmado o sin confirmación) (RC-1); si el botón verde nunca se pulsa, ese envío nunca se intenta (RC-2). Verifica por log de consola, no por el mensaje `postMessage` en sí — sin un padre real que responda, el delivery real pasa por un bucle interno de auto-confirmación de `mensajeria.js` no observable de forma fiable en este arnés de test, pero cada rama del código bajo prueba emite su propio log de forma síncrona en el punto exacto que importa |
 | `27-seguimiento-rumbo.spec.js` | 1 | Modo "Seguir mi rumbo" (§4.6b, `docs/brujula-y-mapa.md` §4): con el modo desactivado (estado por defecto), una lectura de brújula no mueve el `bearing` del mapa (SR-1); `activarSeguimientoRumbo()` gira el mapa de inmediato (`easeTo`) al último rumbo conocido y, a partir de ahí, cada lectura de brújula sí mueve el `bearing` (`setBearing()`, dentro de `actualizarRotacionFlechaGPS()`) (SR-2); `desactivarSeguimientoRumbo()` fija el mapa a norte (`bearing:0`) de inmediato y las lecturas de brújula dejan de mover el `bearing` otra vez (SR-3) |
-| `28-audio-control-error.spec.js` | 1 | `_manejarAudioControl()` (§7.4 "Controles globales de audio", audio-hijo3.html): pedir `play` de un `audioId` que no está en caché local (`cargarYReproducirAudio()` devuelve `exito:false` de forma determinista en este contexto standalone) hace que el catch propio de la función registre el fallo explícitamente, en vez de perderse en el catch genérico externo o confirmar éxito de todos modos ignorando el `exito:false` (AC-1) |
+| `28-audio-control-error.spec.js` | 3 | `_manejarAudioControl()` (§7.4 "Controles globales de audio", audio-hijo3.html): pedir `play` de un `audioId` que no está en caché local (`cargarYReproducirAudio()` devuelve `exito:false` de forma determinista en este contexto standalone) hace que el catch propio de la función registre el fallo explícitamente, en vez de perderse en el catch genérico externo o confirmar éxito de todos modos ignorando el `exito:false` (AC-1); en `codigo-padre.html`, `_hdl_SISTEMA_ERROR` muestra `errorUI.showToast()` cuando el código es `AUDIO_CONTROL_FALLIDO` (SE-1) y no muestra nada para cualquier otro código de error (SE-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7600,7 +7604,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-80fa8d3c9ee2'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-5db4da4fc767'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8233,7 +8237,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-80fa8d3c9ee2';
+const CACHE_VERSION = 'v-5db4da4fc767';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9825,7 +9829,7 @@ Todo el tráfico entre padre e hijos pasa por `js/mensajeria.js` usando `window.
 | Categoría | Mensajes principales |
 |-----------|---------------------|
 | `SISTEMA` | `HIJO_PREPARADO`, `HIJO_LISTO`, `PADRE_DATOS`, `PADRE_CONFIRMA_HIJO_LISTO`, `CAMBIO_MODO`, `CAMBIO_MODO_ENTENDIDO`, `CAMBIO_MODO_EFECTUADO`, `CAMBIO_MODO_APLICADO`, `HEARTBEAT`, `ACK`, `NACK`, `ERROR`, `CONFIRMACION` |
-| `NAVEGACION` | `CAMBIO_PARADA`, `GPS.ACTIVAR`, `GPS.DESACTIVAR`, `SOLICITAR_DATOS_PARADAS`, `RESPUESTA_DATOS_PARADAS` |
+| `NAVEGACION` | `CAMBIO_PARADA`, `GPS.ACTIVAR`, `SOLICITAR_DATOS_PARADAS`, `RESPUESTA_DATOS_PARADAS` |
 | `DATOS` | Solicitudes y respuestas de coordenadas, audios, textos, retos |
 | `AUDIO` | `REPRODUCIR_REQUEST`, `REPRODUCIR_RESPONSE`, `FIN_REPRODUCCION`, `ESTADO_ACTUALIZADO` |
 | `RETO` | `MOSTRAR`, `COMPLETADO`, `SOLICITAR_RETO`, `OCULTAR`, `HABILITAR` |
@@ -10200,7 +10204,6 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `RETO.COMPLETADO` | Hijo 4 cuando el usuario resuelve el reto | Actualiza el progreso en state-manager; marca `pending.reto=true`; si llegada + audio (+ reto) ya están todas a `true`, `marcarParadaCompletada()` habilita `btnAvanzar` (nunca envía `CAMBIO_PARADA` directamente, ver §2.2); si es la última parada, dispara el flujo de fin de aventura | (múltiples acciones internas; no hay un único mensaje de respuesta) | — | Avanzar el estado del recorrido tras superar el reto |
 | `NAVEGACION.LLEGADA_DETECTADA` | Hijo 2 al entrar en radio de parada o tramo | Se dispara para **ambos tipos**: paradas (`RADIO_PARADA=10 m` hardcodeado en `_detectarLlegadaParada()`) y tramos (`toleranciaGPS` dinámica ≥ 50 m desde `calcularToleranciaGPS()`). El mensaje incluye `tipoParada` ('parada'/'tramo'). El padre distingue por `estado.elementoActual.tipo`: para tramos → solicita audio (`AUDIO.REPRODUCIR_REQUEST`) + llama `_marcarPendingPorLlegada()`; para paradas → solo llama `_marcarPendingPorLlegada()` (audio ya cargado en `CAMBIO_PARADA`). Ambos caminos marcan `pending.llegada=true`, condición necesaria junto con `pending.audio` y `retosOk` para completar la parada/tramo. | — | — | Condición GPS de llegada — aplica a paradas Y tramos; sin ella la parada nunca se completa aunque el usuario escuche el audio y resuelva el reto |
 | `NAVEGACION.GPS.ACTIVAR` | Hijo 2 (al pulsar botón GPS) | `_hdl_NAVEGACION_GPS_ACTIVAR`: si `estado.paradaListaParaAvanzar` → llama `progresarSiguienteElemento()`; si no → llama `revelarNavegacion()`. En ambos casos llama después `activarGPS()` (inicia `watchPosition`). Solo se procesa si el modo es AVENTURA. | (ninguna) | — | El padre gestiona GPS y progresión; hijo2 envía la señal desde el botón `#btnAvanzar` |
-| `NAVEGACION.GPS.DESACTIVAR` | Hijo 2 (al pulsar botón GPS off) | Detiene `watchPosition` en el padre (`_hdl_NAVEGACION_GPS_DESACTIVAR`); limpia watchId | (ninguna) | — | Ídem — el padre gestiona el ciclo completo de GPS |
 | `NAVEGACION.GPS.RESTRINGIDO` | Hijo 2 (cuando el usuario deniega el permiso de geolocalización) | Registra GPS restringido; puede notificar al usuario (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) | (ninguna) | — | Caso de permiso denegado; el padre maneja la UI de error |
 | `DATOS.SOLICITAR_COORDENADAS` | Hijo 2 durante su inicialización | Lee `DATOS_PADRE[aventura][idioma].coordenadas` | `DATOS.CARGAR_COORDENADAS` (array de elementos: paradas, tramos, referencias) | Hijo 2 | Hijo 2 no tiene datos propios; los pide al padre que los tiene en memoria |
 | `DATOS.SOLICITAR_AUDIOS` | Hijo 3, cuando `cargarYReproducirAudio()` no encuentra un `audioId` en su caché local acotada (miss — parada visitada hace más de 1 salto, o el `AUDIO.REPRODUCIR_REQUEST` original no incluyó `audioData`) | `js/controladores-padre.js`: resuelve ese `audioId` concreto vía `cargarAudios(aventura, idioma)` — no reenvía la aventura completa | `AUDIO.REPRODUCIR_REQUEST { audioId, audioData }` — el mismo mensaje que usa el flujo normal, no un tipo aparte | Hijo 3 | Recuperación puntual de un audio fuera de la caché de 2 entradas, sin reexponer el resto de la aventura |
@@ -11163,7 +11166,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-80fa8d3c9ee2';
+const CACHE_VERSION = 'v-5db4da4fc767';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

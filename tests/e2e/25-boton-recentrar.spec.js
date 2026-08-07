@@ -29,6 +29,11 @@
  *   BR-8  globalThis._resetModoCamaraRecentrar() (llamado desde ejecutarElegirOtra()
  *         al elegir otra aventura desde el diálogo de reanudación de sesión, que no
  *         recarga la página) devuelve el menú a "Norte fijo" bajo demanda.
+ *   BR-9  Corrección de una condición de carrera (auditoría): alternar rumbo→norte→
+ *         rumbo dos veces en menos de 1.5s no deja que el timeout de auto-reversión
+ *         de la PRIMERA elección revierta la SEGUNDA antes de que cumpla su propio
+ *         plazo de gracia — el guard compara contra `_rumboActivacionId`, no solo
+ *         contra el modo activo.
  */
 'use strict';
 
@@ -230,5 +235,59 @@ test.describe('BR — Menú de modo de cámara', () => {
     expect(resultado.iconoTrasElegir, 'Precondición: el icono debe haber cambiado al elegir "Seguir mi rumbo"').not.toBe(resultado.iconoInicial);
     expect(resultado.llamadaDesactivar, 'El reset debe invocar desactivarSeguimientoRumbo()').toBe(true);
     expect(resultado.iconoTrasReset, 'El icono debe volver al de "Norte fijo" tras el reset').toBe(resultado.iconoInicial);
+  });
+
+  test('BR-9. Un timeout de auto-reversión viejo no revierte una elección de "rumbo" más reciente', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
+
+    await page.evaluate(() => {
+      document.getElementById('btn-recentrar').style.display = 'flex';
+      globalThis.funcionesMapa.activarSeguimientoRumbo = () => {};
+      globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { globalThis.__vv_llamadasDesactivar = (globalThis.__vv_llamadasDesactivar || 0) + 1; };
+      // Brújula caída durante todo el test — sin esto, ninguna de las dos elecciones
+      // de "rumbo" llegaría a armar su timeout de auto-reversión.
+      globalThis.funcionesMapa.brujulaEstaActiva = () => false;
+    });
+
+    const elegirRumbo = () => page.evaluate(() => {
+      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
+      document.querySelectorAll('#btn-recentrar > div:last-child > div')[1].click(); // "Seguir mi rumbo"
+    });
+    const elegirNorte = () => page.evaluate(() => {
+      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
+      document.querySelectorAll('#btn-recentrar > div:last-child > div')[0].click(); // "Norte fijo"
+    });
+
+    // t=0: elige "rumbo" (activación A, arma un timeout para t≈1500).
+    await elegirRumbo();
+
+    await page.waitForTimeout(800);
+    // t=800: "Norte fijo" explícito (llama a desactivarSeguimientoRumbo — se descuenta
+    // del contador antes de continuar, para medir solo lo que pasa DESPUÉS de esto).
+    await elegirNorte();
+    await page.evaluate(() => { globalThis.__vv_llamadasDesactivar = 0; });
+    // t≈800: elige "rumbo" otra vez (activación B, arma un SEGUNDO timeout para t≈2300).
+    await elegirRumbo();
+
+    // t≈1700: el timeout de la activación A (armado en t=0, dispara en t≈1500) ya debería
+    // haber intentado ejecutarse. Con el bug, revertiría aquí — antes de que B cumpla su
+    // propio plazo de 1.5s (que termina en t≈2300).
+    await page.waitForTimeout(900);
+    const trasTimeoutViejo = await page.evaluate(() => ({
+      llamadas: globalThis.__vv_llamadasDesactivar,
+      icono: document.querySelector('#btn-recentrar > div:first-child').textContent,
+    }));
+    expect(trasTimeoutViejo.llamadas, 'El timeout viejo (de la primera elección) no debe revertir la elección nueva').toBe(0);
+    expect(trasTimeoutViejo.icono, 'El modo debe seguir siendo "Seguir mi rumbo" (icono sin cambiar)').toBe('➤');
+
+    // t≈2500: el timeout de la activación B (armado en t≈800, dispara en t≈2300) ya
+    // debería haberse ejecutado — ahora sí debe revertir, con su propio plazo cumplido.
+    await page.waitForTimeout(800);
+    const trasTimeoutNuevo = await page.evaluate(() => ({
+      llamadas: globalThis.__vv_llamadasDesactivar,
+      icono: document.querySelector('#btn-recentrar > div:first-child').textContent,
+    }));
+    expect(trasTimeoutNuevo.llamadas, 'El timeout de la elección más reciente sí debe revertir, cumplido su propio plazo').toBe(1);
+    expect(trasTimeoutNuevo.icono, 'El icono debe volver al de "Norte fijo"').toBe('N');
   });
 });

@@ -191,8 +191,6 @@ function exponerAPIGlobal() {
         esperarHijosListos,
 
         // Funciones de consulta
-        getControladoresRegistrados,
-        getControladoresPorTipo,
         estaInicializado: () => inicializado,
         getComponenteId: () => componenteId,
         getTipoComponente: () => tipoComponente,
@@ -320,24 +318,6 @@ function obtenerMapaManejadores() {
     }
     
     return new Map();
-}
-
-/**
- * Obtiene todos los controladores registrados
- * @returns {Map} Mapa de controladores
- */
-export function getControladoresRegistrados() {
-    return obtenerMapaManejadores();
-}
-
-/**
- * Obtiene controladores por tipo
- * @param {string} tipo - Tipo a buscar
- * @returns {Function|null} Handler o null
- */
-export function getControladoresPorTipo(tipo) {
-    const manejadores = obtenerMapaManejadores();
-    return manejadores.get(tipo) || null;
 }
 
 // =====================================================
@@ -1133,8 +1113,6 @@ export default {
     enviarMensaje,
     enviarMensajeConConfirmacion,
     marcarScript2Listo,
-    getControladoresRegistrados,
-    getControladoresPorTipo,
     registrarControladorCentral,
     registrarIframe,
     obtenerIframe,

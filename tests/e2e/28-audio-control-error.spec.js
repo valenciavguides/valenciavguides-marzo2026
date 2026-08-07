@@ -38,6 +38,10 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
+const path = require('path');
+const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 const LOG_FALLO = "Comando de audio 'play' falló";
 
@@ -78,5 +82,68 @@ test.describe('AC — _manejarAudioControl() no confirma éxito ni pierde el fal
     await enviarComandoPlayYEsperar(page);
 
     expect(logs.some((l) => l.includes(LOG_FALLO)), `El fallo debe registrarse explícitamente (catch propio, no el genérico). Logs: ${JSON.stringify(logs)}`).toBe(true);
+  });
+});
+
+/**
+ * Corrección de auditoría (2026-08-08): el SISTEMA.ERROR{codigo:'AUDIO_CONTROL_FALLIDO'}
+ * que envía el fix de arriba llegaba al padre sin que nada lo escuchara — ningún handler
+ * registrado para SISTEMA.ERROR en codigo-padre.html. _hdl_SISTEMA_ERROR (nuevo) lo
+ * registra y, para este código concreto, muestra un aviso visible (errorUI.showToast) en
+ * vez de dejar que el usuario pulse "play" sin ver nunca ningún efecto ni explicación.
+ */
+test.describe('SE — El padre reacciona a SISTEMA.ERROR de audio_control', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  test('SE-1. SISTEMA.ERROR con codigo AUDIO_CONTROL_FALLIDO muestra un toast visible', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.TIPOS_MENSAJE === 'object', null, { timeout: 15000 }).catch(() => {});
+
+    const resultado = await page.evaluate(async () => {
+      const llamadas = [];
+      globalThis.errorUI = { showToast: (msg, opciones) => { llamadas.push({ msg, opciones }); } };
+
+      const tipo = globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR';
+      const enviar = () => globalThis.postMessage({
+        tipo,
+        origen: 'hijo3',
+        destino: 'padre',
+        datos: { codigo: 'AUDIO_CONTROL_FALLIDO', mensaje: 'audioFiles_missing', comando: 'play' },
+      }, globalThis.location.origin);
+
+      for (let intento = 0; intento < 10 && llamadas.length === 0; intento++) {
+        enviar();
+        await new Promise((r) => setTimeout(r, 300));
+      }
+      return { llamadas };
+    });
+
+    expect(resultado.llamadas.length, `errorUI.showToast debe llamarse. Llamadas: ${JSON.stringify(resultado.llamadas)}`).toBeGreaterThan(0);
+    expect(resultado.llamadas[0].opciones?.type, 'El toast debe ser de tipo warning (no bloqueante)').toBe('warning');
+  });
+
+  test('SE-2. SISTEMA.ERROR con otro código (no relacionado con audio) no muestra ningún toast', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.TIPOS_MENSAJE === 'object', null, { timeout: 15000 }).catch(() => {});
+
+    const resultado = await page.evaluate(async () => {
+      const llamadas = [];
+      globalThis.errorUI = { showToast: (msg, opciones) => { llamadas.push({ msg, opciones }); } };
+
+      const tipo = globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR';
+      globalThis.postMessage({
+        tipo,
+        origen: 'hijo3',
+        destino: 'padre',
+        datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: 'btn-x no existe' },
+      }, globalThis.location.origin);
+      await new Promise((r) => setTimeout(r, 800));
+      return { llamadas };
+    });
+
+    expect(resultado.llamadas.length, 'Un código de error distinto no debe disparar el toast de audio').toBe(0);
   });
 });
