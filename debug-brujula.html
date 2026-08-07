@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Diagnóstico brújula — temporal</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 1rem;
+    background: #111;
+    color: #eee;
+    font-family: -apple-system, Roboto, Arial, sans-serif;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  h1 { font-size: 1.1rem; color: #ff8c00; margin: 0 0 0.5rem 0; }
+  #btnEmpezar {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  #btnEmpezar:disabled { background: #555; }
+  .fila {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #333;
+  }
+  .fila .clave { color: #aaa; }
+  .fila .valor { font-weight: bold; font-variant-numeric: tabular-nums; }
+  .destacado { color: #ff8c00; font-size: 1.3rem; }
+  #escenario {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 1.5rem auto;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1a1a1a, #000);
+    border: 2px solid #333;
+  }
+  #escenario::after {
+    content: 'N';
+    position: absolute;
+    top: 4px; left: 50%; transform: translateX(-50%);
+    color: #666; font-size: 0.8rem;
+  }
+  .gps-arrow-heading {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+    transition: transform 0.15s ease-out;
+  }
+  .flecha-borde {
+    position: absolute; width: 0; height: 0;
+    border-left: 26px solid transparent;
+    border-right: 26px solid transparent;
+    border-bottom: 64px solid white;
+    transform: translate(-50%, 0%);
+  }
+  .flecha-cuerpo {
+    position: absolute; width: 0; height: 0;
+    border-left: 22px solid transparent;
+    border-right: 22px solid transparent;
+    border-bottom: 56px solid #4285F4;
+    transform: translate(-50%, 0%) translate(1px, 2px);
+  }
+  #logRaw {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: #666;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 20vh;
+    overflow-y: auto;
+    background: #000;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+  }
+  .aviso { color: #ffcc00; font-size: 0.85rem; margin: 0.5rem 0; }
+</style>
+</head>
+<body>
+
+<h1>⚠️ Diagnóstico de brújula — página temporal, no forma parte de la app</h1>
+<p class="aviso">Sujeta el móvil como cuando andas mirando el mapa (vertical, pantalla hacia ti). Gira tu cuerpo, no la muñeca.</p>
+
+<button id="btnEmpezar" type="button">Empezar</button>
+
+<div id="escenario">
+  <div class="gps-arrow-heading" id="flecha">
+    <div class="flecha-borde"></div>
+    <div class="flecha-cuerpo"></div>
+  </div>
+</div>
+
+<div class="fila"><span class="clave">Evento activo</span><span class="valor" id="vEvento">—</span></div>
+<div class="fila"><span class="clave">absolute</span><span class="valor" id="vAbsolute">—</span></div>
+<div class="fila"><span class="clave">alpha (crudo)</span><span class="valor" id="vAlpha">—</span></div>
+<div class="fila"><span class="clave">beta (crudo)</span><span class="valor" id="vBeta">—</span></div>
+<div class="fila"><span class="clave">gamma (crudo)</span><span class="valor" id="vGamma">—</span></div>
+<div class="fila"><span class="clave">webkitCompassHeading</span><span class="valor" id="vWebkit">—</span></div>
+<div class="fila"><span class="clave">vector usado</span><span class="valor" id="vVector">—</span></div>
+<div class="fila"><span class="clave destacado">RUMBO CALCULADO</span><span class="valor destacado" id="vHeading">—</span></div>
+
+<div id="logRaw"></div>
+
+<script>
+(function () {
+  'use strict';
+  const btn = document.getElementById('btnEmpezar');
+  const flecha = document.getElementById('flecha');
+  const elEvento = document.getElementById('vEvento');
+  const elAbsolute = document.getElementById('vAbsolute');
+  const elAlpha = document.getElementById('vAlpha');
+  const elBeta = document.getElementById('vBeta');
+  const elGamma = document.getElementById('vGamma');
+  const elWebkit = document.getElementById('vWebkit');
+  const elVector = document.getElementById('vVector');
+  const elHeading = document.getElementById('vHeading');
+  const elLog = document.getElementById('logRaw');
+
+  let ultimoLog = 0;
+
+  // ── Misma fórmula EXACTA que actualizarOrientacionFlecha() en js/funciones-mapa.js ──
+  function calcularHeading(event) {
+    let heading = null;
+    let origen = '';
+    if (event.webkitCompassHeading != null) {
+      heading = event.webkitCompassHeading;
+      origen = 'webkitCompassHeading (iOS)';
+    } else if (event.alpha != null && event.beta != null && event.gamma != null) {
+      const gr = Math.PI / 180;
+      const a = event.alpha * gr, b = event.beta * gr, g = event.gamma * gr;
+      const ca = Math.cos(a), sa = Math.sin(a);
+      const cb = Math.cos(b), sb = Math.sin(b);
+      const cg = Math.cos(g), sg = Math.sin(g);
+
+      const vxTrasera = -(ca * sg + sa * sb * cg);
+      const vyTrasera = -(sa * sg - ca * sb * cg);
+      const magTrasera = vxTrasera * vxTrasera + vyTrasera * vyTrasera;
+
+      const vxSuperior = -sa * cb;
+      const vySuperior = ca * cb;
+      const magSuperior = vxSuperior * vxSuperior + vySuperior * vySuperior;
+
+      const usarTrasera = magTrasera >= magSuperior;
+      const [vx, vy] = usarTrasera ? [vxTrasera, vyTrasera] : [vxSuperior, vySuperior];
+      heading = (Math.atan2(vx, vy) * (180 / Math.PI) + 360) % 360;
+      origen = usarTrasera ? 'trasera (-Z, móvil vertical)' : 'superior (+Y, móvil plano)';
+    } else if (event.alpha != null) {
+      heading = (360 - event.alpha) % 360;
+      origen = 'fallback plano (360-alpha)';
+    }
+    return { heading, origen };
+  }
+
+  function actualizar(event) {
+    elAbsolute.textContent = String(event.absolute);
+    elAlpha.textContent = event.alpha != null ? event.alpha.toFixed(1) + '°' : '—';
+    elBeta.textContent = event.beta != null ? event.beta.toFixed(1) + '°' : '—';
+    elGamma.textContent = event.gamma != null ? event.gamma.toFixed(1) + '°' : '—';
+    elWebkit.textContent = event.webkitCompassHeading != null ? event.webkitCompassHeading.toFixed(1) + '°' : '— (no es iOS)';
+
+    const { heading, origen } = calcularHeading(event);
+    elVector.textContent = origen || '—';
+    if (heading != null) {
+      elHeading.textContent = heading.toFixed(1) + '°';
+      flecha.style.transform = `translate(-50%,-50%) rotate(${heading}deg)`;
+    }
+
+    const ahora = Date.now();
+    if (ahora - ultimoLog > 500) {
+      ultimoLog = ahora;
+      const linea = `[${new Date().toLocaleTimeString()}] tipo=${event.type} absolute=${event.absolute} a=${event.alpha?.toFixed(1)} b=${event.beta?.toFixed(1)} g=${event.gamma?.toFixed(1)} webkit=${event.webkitCompassHeading} => heading=${heading?.toFixed(1)} (${origen})\n`;
+      elLog.textContent = linea + elLog.textContent;
+    }
+  }
+
+  async function empezar() {
+    btn.disabled = true;
+    btn.textContent = 'Activando…';
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const permiso = await DeviceOrientationEvent.requestPermission();
+        if (permiso !== 'granted') {
+          btn.textContent = 'Permiso denegado';
+          elEvento.textContent = 'PERMISO DENEGADO';
+          return;
+        }
+      }
+      const nombreEvento = ('ondeviceorientationabsolute' in window) ? 'deviceorientationabsolute' : 'deviceorientation';
+      elEvento.textContent = nombreEvento;
+      window.addEventListener(nombreEvento, actualizar);
+      btn.textContent = 'Activo — girando en vivo';
+    } catch (e) {
+      btn.textContent = 'Error: ' + (e && e.message);
+      elEvento.textContent = 'ERROR: ' + (e && e.message);
+    }
+  }
+
+  btn.addEventListener('click', empezar);
+})();
+</script>
+
+</body>
+</html>
