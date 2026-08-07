@@ -1291,45 +1291,11 @@
             }
         }
 
-        /* ── Botón de recentrar cámara ── */
-        /* Hueco entre el borde izquierdo y #logo-aventura (88vw centrado ⇒ 6vw libres a
-           cada lado) — más pequeño que el resto de botones (clamp 29-43px) a propósito,
-           es un botón de acción, no de información, y el hueco disponible es estrecho. */
-        /* Posición: mismo ancho/right que #selector-tipo-mapa (creado en JS, ver
-           initializeMap()) — right = (4px + mitad de --franja-lateral) - mitad de este
-           botón, igual cálculo, mismo tamaño de botón (clamp(36px,9.8vmin,52px)) para
-           que ambos queden centrados en el mismo eje horizontal. bottom = bottom del
-           selector + su altura + 8px — el mismo hueco de 8px que ya separa al propio
-           selector de #btn-chat-soporte (ver comentario junto a #selector-tipo-mapa). */
-        #btn-recentrar {
-            position: fixed;
-            right: calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));
-            bottom: calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px + clamp(36px,9.8vmin,52px) + 8px);
-            width: clamp(36px, 9.8vmin, 52px);
-            height: clamp(36px, 9.8vmin, 52px);
-            z-index: 1000025; /* por debajo de #selector-tipo-mapa (1000030) — su desplegable, cuando se abre, tapa este botón a propósito */
-            display: none;
-            border: none;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.55);
-            color: #fff;
-            font-size: clamp(20px, 5.4vmin, 29px);
-            line-height: clamp(36px, 9.8vmin, 52px); /* = height — centra el glifo vertical con display:block, que es lo que fuerza _mostrarUIActivada() vía estilo inline */
-            text-align: center;
-            padding: 0;
-            cursor: pointer;
-            touch-action: manipulation;
-            pointer-events: auto;
-            transition: transform 0.3s ease;
-        }
-        #btn-recentrar:active {
-            transform: scale(0.9);
-        }
-        @media (hover: hover) {
-            #btn-recentrar:hover {
-                transform: scale(1.08);
-            }
-        }
+        /* ── Botón de recentrar/modo de cámara ── */
+        /* #btn-recentrar ya no tiene CSS estático — es 100% creado por JS dentro de
+           initializeMap() (junto a #selector-tipo-mapa, mismo patrón exacto: botón
+           principal + desplegable que crece hacia arriba), igual que #selector-tipo-mapa
+           tampoco lo tiene. Ver ese bloque para el estilo real. */
 
         /* ── Control de audio desplegable (reemplaza play local de hijo3) ── */
         fieldset#audio-control-overlay {
@@ -1645,17 +1611,9 @@
                 });
             })();
 
-            // 6. Botón de recentrar cámara — retoma el seguimiento automático (funciones-mapa.js)
-            // pausado tras un arrastre manual del mapa, y centra de inmediato sobre la posición actual.
-            (function() {
-                const btnRecentrar = document.getElementById('btn-recentrar');
-                if (!btnRecentrar) return;
-                btnRecentrar.addEventListener('click', () => {
-                    try {
-                        globalThis.funcionesMapa?.reactivarSeguimientoCamara?.();
-                    } catch (e) { (globalThis.logger || console).debug('[PADRE] Error reactivando seguimiento de cámara', e && e.message); }
-                });
-            })();
+            // 6. #btn-recentrar (menú de modo de cámara) ya no tiene un único click-handler
+            // aquí — se crea entero, con sus 3 opciones y sus propios listeners, dentro de
+            // initializeMap() (junto a #selector-tipo-mapa, mismo patrón).
 
         }, { once: true });
     </script>
@@ -2604,11 +2562,8 @@
            style="width:100%; height:100%; object-fit:cover; display:block; border-radius:0.75rem 0 0 0.75rem; pointer-events:none;">
     </button>
 
-    <!-- Botón de recentrar cámara — retoma el seguimiento automático sobre la posición
-         del usuario tras pausarse por un arrastre manual del mapa -->
-    <button type="button" id="btn-recentrar"
-        title="Centrar mapa en mi posición"
-        aria-label="Centrar mapa en mi posición">&#9678;</button>
+    <!-- #btn-recentrar ya no existe como <button> estático — se crea por completo en JS
+         dentro de initializeMap(), junto a #selector-tipo-mapa (mismo patrón). -->
 
     <!-- Overlay del chat de soporte (hijo6) — carga lazy al primer uso -->
     <iframe id="hijo6-chat" name="hijo6-chat" src=""
@@ -3280,6 +3235,125 @@
                             if (map.getLayer(id)) map.setLayoutProperty(id, 'text-size', expr);
                         });
                     }, 250));
+
+                    // ── Menú de modo de cámara (#btn-recentrar) ─────────────────────────
+                    // Mismo patrón exacto que #selector-tipo-mapa justo encima: botón
+                    // principal + desplegable que crece hacia arriba (column-reverse). 3
+                    // opciones, ninguna imagen todavía — glifos de texto como marcador de
+                    // posición, a sustituir por iconos propios más adelante (fuera del
+                    // alcance de esta implementación). "Norte fijo" y "Seguir mi rumbo" son
+                    // modos persistentes (el icono del botón principal refleja cuál está
+                    // activo, igual que el selector de mapa con la miniatura del estilo
+                    // activo); "Centrar mapa en mi ubicación" es una acción puntual — no
+                    // cambia qué modo se muestra como activo, solo actúa sobre la posición.
+                    const _MODOS_CAMARA = [
+                        { id: 'norte',   nombre: 'Norte fijo',                      glifo: 'N' },
+                        { id: 'rumbo',   nombre: 'Seguir mi rumbo',                 glifo: '➤' },
+                        { id: 'centrar', nombre: 'Centrar mapa en mi ubicación',    glifo: '◎' },
+                    ];
+
+                    let _modoCamaraActivo = 'norte'; // arranca en norte fijo — coincide con _camaraSiguiendoRumbo=false por defecto en funciones-mapa.js
+                    let _dropdownCamaraAbierto = false;
+
+                    const _BTN_STYLE_CAMARA_MAIN = 'box-sizing:border-box;width:clamp(36px,9.8vmin,52px);height:clamp(36px,9.8vmin,52px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.4vmin,29px);flex-shrink:0;';
+                    const _BTN_STYLE_CAMARA_DROPDOWN = 'box-sizing:border-box;width:clamp(29px,8.4vmin,43px);height:clamp(29px,8.4vmin,43px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.2vmin,21px);flex-shrink:0;';
+
+                    // Mismo right/bottom que #selector-tipo-mapa, justo encima (mismo hueco
+                    // de 8px que ya separa a ese de #btn-chat-soporte) — ver el comentario
+                    // junto a #selector-tipo-mapa para el cálculo completo.
+                    const _recentrarDiv = document.createElement('div');
+                    _recentrarDiv.id = 'btn-recentrar';
+                    _recentrarDiv.style.cssText = 'position:fixed;' +
+                        'right:calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));' +
+                        'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px + clamp(36px,9.8vmin,52px) + 8px);' +
+                        'z-index:1000025;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
+
+                    const _btnCamaraPrincipal = document.createElement('div');
+                    _btnCamaraPrincipal.style.cssText = _BTN_STYLE_CAMARA_MAIN;
+                    _btnCamaraPrincipal.title = 'Modo de cámara';
+                    _recentrarDiv.appendChild(_btnCamaraPrincipal);
+
+                    const _dropdownCamaraDiv = document.createElement('div');
+                    _dropdownCamaraDiv.style.cssText = 'display:flex;flex-direction:column;gap:clamp(3px,0.8vmin,6px);max-height:0;overflow:hidden;transition:max-height 0.35s ease;';
+                    _recentrarDiv.appendChild(_dropdownCamaraDiv);
+
+                    _MODOS_CAMARA.forEach(modo => {
+                        const btn = document.createElement('div');
+                        btn.style.cssText = _BTN_STYLE_CAMARA_DROPDOWN;
+                        btn.textContent = modo.glifo;
+                        btn.title = modo.nombre;
+                        btn.addEventListener('click', (e) => { e.stopPropagation(); _elegirModoCamara(modo.id); _cerrarDropdownCamara(); });
+                        _dropdownCamaraDiv.appendChild(btn);
+                    });
+
+                    function _alturaDisponibleParaDropdownCamara() {
+                        const MARGEN_SEGURIDAD = 8;
+                        const fondoBlanco = document.getElementById('fondo-blanco');
+                        const limiteSuperior = fondoBlanco ? fondoBlanco.getBoundingClientRect().bottom : 0;
+                        const topBotonPrincipal = _recentrarDiv.getBoundingClientRect().top;
+                        return Math.max(0, topBotonPrincipal - limiteSuperior - MARGEN_SEGURIDAD);
+                    }
+
+                    _btnCamaraPrincipal.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        _dropdownCamaraAbierto = !_dropdownCamaraAbierto;
+                        _dropdownCamaraDiv.style.maxHeight = _dropdownCamaraAbierto ? `${_alturaDisponibleParaDropdownCamara()}px` : '0';
+                    });
+
+                    globalThis.addEventListener('resize', debounce(() => {
+                        if (_dropdownCamaraAbierto) _dropdownCamaraDiv.style.maxHeight = `${_alturaDisponibleParaDropdownCamara()}px`;
+                    }, 200));
+
+                    document.addEventListener('click', () => { if (_dropdownCamaraAbierto) _cerrarDropdownCamara(); });
+
+                    function _cerrarDropdownCamara() { _dropdownCamaraAbierto = false; _dropdownCamaraDiv.style.maxHeight = '0'; }
+
+                    function _actualizarBtnCamaraPrincipal() {
+                        const modo = _MODOS_CAMARA.find(m => m.id === _modoCamaraActivo);
+                        _btnCamaraPrincipal.textContent = modo.glifo;
+                    }
+
+                    function _elegirModoCamara(nuevoId) {
+                        try {
+                            if (nuevoId === 'norte') {
+                                globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
+                                _modoCamaraActivo = 'norte';
+                            } else if (nuevoId === 'rumbo') {
+                                globalThis.funcionesMapa?.activarSeguimientoRumbo?.();
+                                _modoCamaraActivo = 'rumbo';
+                                // Si la brújula no responde en ~1.5s (permiso denegado en iOS, o
+                                // sin soporte), activarSeguimientoRumbo() se queda "encendido" sin
+                                // que nada vuelva a mover el bearing — revertir sola a "Norte fijo"
+                                // en vez de dejar el icono mintiendo sobre un modo ya muerto. Guard
+                                // de _modoCamaraActivo === 'rumbo' por si el usuario ya cambió de
+                                // modo antes de que salte este timeout. Ver docs/brujula-y-mapa.md §4.
+                                setTimeout(() => {
+                                    if (_modoCamaraActivo === 'rumbo' && !globalThis.funcionesMapa?.brujulaEstaActiva?.()) {
+                                        globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
+                                        _modoCamaraActivo = 'norte';
+                                        _actualizarBtnCamaraPrincipal();
+                                    }
+                                }, 1500);
+                            } else if (nuevoId === 'centrar') {
+                                globalThis.funcionesMapa?.reactivarSeguimientoCamara?.();
+                                // No toca _modoCamaraActivo — acción puntual, no un modo persistente.
+                            }
+                        } catch (e) { (globalThis.logger || console).debug('[PADRE] Error cambiando modo de cámara', e && e.message); }
+                        _actualizarBtnCamaraPrincipal();
+                    }
+
+                    // Expuesto para que ejecutarElegirOtra() (fuera de este cierre — diálogo de
+                    // reanudación de sesión) pueda resetear el modo de cámara al elegir otra
+                    // aventura sin recargar la página, mismo sitio donde ya se resetean
+                    // estado.tiempoRestante y el resto de globals de la aventura abandonada.
+                    globalThis._resetModoCamaraRecentrar = () => {
+                        globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
+                        _modoCamaraActivo = 'norte';
+                        _actualizarBtnCamaraPrincipal();
+                    };
+
+                    _actualizarBtnCamaraPrincipal();
+                    document.body.appendChild(_recentrarDiv);
 
                     // Initialize map service - wait for funciones-mapa to be available
                     const initializeMapService = () => {
@@ -4217,13 +4291,18 @@
         // llegar ya visibles: de una aventura realmente activa (mostrarDialogoVueltaRapida)
         // o de una restauración de bfcache del navegador al reabrir la pestaña.
         function _ocultarUIActivada() {
-            const idsAOcultar = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte', 'btn-recentrar'];
+            const idsAOcultar = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
             for (const id of idsAOcultar) {
                 const el = document.getElementById(id);
                 if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
             }
             const selMapa = document.getElementById('selector-tipo-mapa');
             if (selMapa) selMapa.style.display = 'none';
+            // #btn-recentrar es flex (contenedor del botón principal + desplegable de
+            // modos), no block — fuera del bucle genérico de arriba, igual que
+            // #selector-tipo-mapa justo encima.
+            const btnRecentrarModo = document.getElementById('btn-recentrar');
+            if (btnRecentrarModo) btnRecentrarModo.style.display = 'none';
             const logoElement = document.getElementById('logo-aventura');
             const fondoElement = document.getElementById('fondo-blanco');
             const fondoInferiorElement = document.getElementById('fondo-blanco-inferior');
@@ -4403,6 +4482,11 @@
                     // aventura seleccionada arrancaría su temporizador con el tiempo que le
                     // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
                     estado.tiempoRestante = null;
+                    // Este camino (a diferencia de "otra aventura" desde el modal de fin, que
+                    // recarga la página) reutiliza el mismo module scope de funciones-mapa.js —
+                    // sin esto, el modo de cámara ("Seguir mi rumbo"/"Norte fijo") de la aventura
+                    // abandonada seguiría activo en la siguiente, con el icono ya desincronizado.
+                    globalThis._resetModoCamaraRecentrar?.();
                     // Ocultar la UI de "aventura activada" (hijo2/hijo3/hijo1-opciones/hijo5/
                     // chat/selector de mapa) por si ya estaba visible — de una restauración
                     // de bfcache al reabrir la pestaña, o de una aventura realmente activa en
@@ -4548,13 +4632,15 @@
         function _mostrarInterfazReanudacion() {
             const iframeSeleccion = document.getElementById('seleccion');
             if (iframeSeleccion) iframeSeleccion.style.display = 'none';
-            for (const id of ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte', 'btn-recentrar']) {
+            for (const id of ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte']) {
                 if (id === 'hijo5' && !globalThis._devModeActivo) continue;
                 const el = document.getElementById(id);
                 if (el) { el.style.display = 'block'; el.style.visibility = 'visible'; }
             }
             const selMapa = document.getElementById('selector-tipo-mapa');
             if (selMapa) selMapa.style.display = 'flex';
+            const btnRecentrarModo3 = document.getElementById('btn-recentrar');
+            if (btnRecentrarModo3) { btnRecentrarModo3.style.display = 'flex'; btnRecentrarModo3.style.visibility = 'visible'; }
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') globalThis.actualizarVisibilidadSelectorMapa();
             const logoEl = document.getElementById('logo-aventura');
             const fondoEl = document.getElementById('fondo-blanco');
@@ -11875,7 +11961,7 @@ await _comprobarReanudacionAventura(logPrefix);
         function _mostrarUIActivada(logPrefix) {
             const iframeSeleccion = document.getElementById('seleccion');
             if (iframeSeleccion) iframeSeleccion.style.display = 'none';
-            const iframesToShow = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte', 'btn-recentrar'];
+            const iframesToShow = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5', 'btn-chat-soporte'];
             for (const iframeId of iframesToShow) {
                 if (iframeId === 'hijo5' && !globalThis._devModeActivo) continue;
                 const iframe = document.getElementById(iframeId);
@@ -11883,6 +11969,10 @@ await _comprobarReanudacionAventura(logPrefix);
             }
             const _selMapa2 = document.getElementById('selector-tipo-mapa');
             if (_selMapa2) _selMapa2.style.display = 'flex';
+            // #btn-recentrar es flex, igual que #selector-tipo-mapa — fuera del bucle
+            // genérico de arriba, que fuerza 'block' (rompería su flex-direction:column-reverse).
+            const _btnRecentrarModo2 = document.getElementById('btn-recentrar');
+            if (_btnRecentrarModo2) { _btnRecentrarModo2.style.display = 'flex'; _btnRecentrarModo2.style.visibility = 'visible'; }
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                 globalThis.actualizarVisibilidadSelectorMapa();
             }

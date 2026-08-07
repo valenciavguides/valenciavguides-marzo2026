@@ -109,34 +109,45 @@ Confirmado como correcto: el triángulo mide rumbo absoluto, no dirección relat
 
 ---
 
-## 4. Diseño pendiente — mapa orientado al rumbo (no implementado)
+## 4. Implementado — mapa orientado al rumbo ("Seguir mi rumbo")
 
-Acordado con el usuario: opción elegida es que el mapa rote para que el rumbo actual del usuario quede siempre "hacia arriba" en pantalla (mismo patrón que la navegación de coche en Google/Apple Maps), en vez del norte fijo actual. Se diseñará y construirá en otra sesión — esto queda anotado para no perder el contexto.
+Diseño acordado con el usuario e implementado: el mapa puede rotar para que el rumbo actual del usuario quede siempre "hacia arriba" en pantalla (mismo patrón que la navegación de coche en Google/Apple Maps), como alternativa al norte fijo de siempre. No sustituye al norte fijo — es un tercer modo elegible, junto a "Norte fijo" y "Centrar mapa en mi ubicación", desde el nuevo menú desplegable de `#btn-recentrar`. Documentación de referencia (autoridad, nivel de detalle completo): `docs/GUIA-COMPLETA.md` §4.6b.
 
-### 4.1 Qué hace falta programar de verdad
+### 4.1 Lo programado
 
-Una sola pieza nueva: que la rotación de la cámara del mapa siga el mismo rumbo ya calculado y verificado en `actualizarOrientacionFlecha()`/`actualizarRotacionFlechaGPS()` — probablemente una llamada adicional a `_mapaInstance.easeTo({bearing: heading, ...})` (o `.setBearing()`) en el mismo punto donde ya se actualiza el triángulo, reusando el ángulo ya suavizado (`_flechaGpsAnguloAcumulado`), no recalculando nada.
+Dos funciones exportadas nuevas en `js/funciones-mapa.js` (`activarSeguimientoRumbo()`/`desactivarSeguimientoRumbo()`) y una llamada añadida al final de `actualizarRotacionFlechaGPS()` — exactamente el punto previsto, reusando el ángulo ya suavizado (`_flechaGpsAnguloAcumulado`), sin recalcular nada:
 
-**Convención de signo:** `bearing` en MapLibre se define como "la dirección de compás que aparece en la parte de arriba del viewport" — coincide directamente con nuestro `heading` (0=norte arriba, 90=este arriba, sentido horario). En principio `bearing = heading` sin ninguna inversión adicional, dado que ya verificamos que `heading` en sí es correcto (§2.2). Confirmar esto con una prueba real antes de darlo por sentado.
+```javascript
+if (_camaraSiguiendoRumbo && _mapaInstance) {
+    _mapaInstance.setBearing(_flechaGpsAnguloAcumulado);
+}
+```
 
-### 4.2 Lo que sale gratis (confirmado, no hace falta programarlo)
+`setBearing()` sin animación, no `easeTo()` — el suavizado exponencial que ya aplica esa función al ángulo acumulado, a ~10Hz, ya da fluidez; una segunda capa de easing encima produciría retraso/rebote, no más suavidad. La convención de signo prevista se confirmó sin sorpresas: `bearing = heading` tal cual, sin inversión — verificado en campo por RB-1 (§1a) antes incluso de este modo, ya que `_rumboEnPantalla()` (heading−bearing) es la pieza que hizo posible este modo sin más cambios.
 
-MapLibre recalcula automáticamente la posición en pantalla de toda capa (líneas, marcadores, iconos, raster) bajo cualquier transformación de cámara, incluida la rotación — es el motivo de usar un motor de mapa real en vez de una imagen estática. Con la rotación de cámara activada:
+### 4.2 Lo que salió gratis (confirmado en la implementación)
 
-- **La polyline azul** (capa GL de línea) se re-renderiza correctamente sola.
-- **Los marcadores de parada/tramo** (`maplibregl.Marker`, posicionados por lng/lat) recalculan su posición en pantalla solos.
-- **Los nombres de las calles** (capas symbol con `symbol-placement` sobre la geometría de la calle) ya siguen el trazado real de la calle, no un ángulo fijo en pantalla — al rotar el mapa, giran con él, permaneciendo alineados a su calle. Esto es explícitamente lo que pidió el usuario ("los nombres de las calles pueden quedarse tal cual están ahora porque si no se salen de la calle") — ya es el comportamiento por defecto, no requiere cambio.
+Tal como se previó: la polyline azul, los marcadores de parada/tramo y los nombres de las calles (con `symbol-placement` sobre la geometría real) se re-renderizan solos bajo rotación de cámara, sin ningún cambio adicional en `funciones-mapa.js` para conseguirlo.
 
-### 4.3 Decisiones de diseño abiertas (hablar antes de programar)
+### 4.3 Las 4 decisiones de diseño, resueltas
 
-1. **¿El triángulo mantiene su propia rotación CSS independiente, o se fija apuntando siempre hacia arriba** una vez que es el mapa el que gira para seguir el rumbo? Mantener ambas rotaciones sería redundante (girarían siempre a la par); fijar el triángulo simplificaría el código pero pierde la señal visual de "el rumbo se está actualizando en vivo" si el mapa tarda en reaccionar.
-2. **¿El gesto manual de girar el mapa con dos dedos debe pausar el seguimiento de rumbo**, igual que arrastrar ya pausa el centrado (`_camaraSiguiendoUsuario`)? ¿Un único flag para centrado+rotación, o dos independientes (se podría querer centrado sin rotación, o viceversa)?
-3. **¿El botón `#btn-recentrar` retoma también la rotación**, o solo el centrado como ahora? (Probablemente sí, mismo botón, mismo gesto mental para el usuario — pero confirmarlo explícitamente.)
-4. Reusar el guard existente `!estadoMapa.zoomEnCurso` para no rotar durante una animación de zoom en curso.
+1. **¿El triángulo mantiene su propia rotación CSS, o se fija apuntando arriba?** Ninguna de las dos como caso especial — se mantiene exactamente el mismo cálculo de siempre, `_rumboEnPantalla(heading) = heading − bearing`. El efecto de "apuntar siempre hacia arriba" es una propiedad emergente: en cuanto `bearing` seguido por `setBearing()` coincide con el `heading` acumulado (el mismo valor, en el mismo tick), la resta da ~0° — la flecha queda fija visualmente sin necesidad de ningún código dedicado a ese caso.
+2. **¿Un único flag centrado+rotación, o dos independientes?** Dos independientes: `_camaraSiguiendoUsuario` (posición, preexistente) y `_camaraSiguiendoRumbo` (rotación, nuevo). El gesto manual de girar el mapa con dos dedos (`'rotatestart'` con `originalEvent`, `_registrarSeguimientoRumbo()`) pausa solo la rotación — mismo mecanismo campo por campo que `'dragstart'`/`_registrarSeguimientoCamara()` ya usa para pausar solo el centrado. Activar cualquiera de los 3 modos del menú SÍ reactiva ambos flags a la vez (elegir un modo es, en sí mismo, un "vuelve a seguirme" explícito) — la independencia es solo para el *pausado* por gesto manual, no para la reactivación.
+3. **¿El botón de recentrar retoma también la rotación?** No — se resolvió con un menú de 3 opciones en vez de un único botón (idea del propio usuario, para que las dos acciones no queden mezcladas de forma opaca): "Centrar mapa en mi ubicación" solo toca posición (`reactivarSeguimientoCamara()`, sin tocar `bearing` para nada — lo dice su propio comentario en el código); "Seguir mi rumbo" es la opción dedicada a la rotación. Se descartó explícitamente un diseño con gestos ocultos en el botón (p. ej. doble toque) por mala capacidad de descubrimiento: si el usuario no sabe que existen, "a veces el mapa gira y otras no" parecería aleatorio.
+4. **¿Reusar el guard `!estadoMapa.zoomEnCurso`?** Deliberadamente NO aplicado. Ese guard existe para que el seguimiento de posición no compita con el `center`/`zoom` que ya está animando un `flyTo()` de cambio de parada/tramo — pero ningún `flyTo()` de la app toca nunca `bearing` (confirmado por grep: solo pasan `center`/`zoom`), así que `setBearing()` no tiene ninguna propiedad con la que competir durante ese guard. El mapa sigue girando en vivo incluso durante la animación de cambio de parada/tramo — consistente con que el propio triángulo CSS tampoco se pausa nunca por `zoomEnCurso`.
 
-### 4.4 No es una corrección de bug
+### 4.4 Pendiente, a cargo del usuario
 
-Importante para la próxima sesión: esto **no** es un fix de la fórmula de brújula (que ya está verificada, §2). Es una funcionalidad nueva — un modo de mapa distinto. Tratarlo con el mismo proceso de diseño que la cámara-sigue-al-usuario y los carteles (documentar el diseño acordado, confirmar antes de implementar, documentar en GUIA-COMPLETA al terminar).
+Los 3 glifos de texto Unicode del menú (`N`, `➤`, `◎`) son marcadores de posición explícitos — el usuario diseñará los iconos definitivos en otra sesión. Sustituirlos no requiere tocar la lógica (es un cambio de `textContent`/`innerHTML` por botón, ver `_MODOS_CAMARA` en `codigo-padre.html`).
+
+### 4.5 Revisión posterior — dos cabos sueltos cerrados
+
+Tras dar la implementación por completa, una revisión pedida explícitamente encontró y cerró dos casos de estado inconsistente que no habían salido en los tests iniciales (ninguno de los dos es un bug de campo reportado — son huecos de diseño encontrados por inspección directa del código):
+
+1. **Brújula caída.** `activarSeguimientoRumbo()` no comprobaba si la brújula respondía de verdad — con el permiso denegado en iOS (o sin soporte de `DeviceOrientationEvent`), el modo se quedaba "encendido" (icono `➤`) sin que nada volviera a girar el mapa nunca, indistinguible de un cuelgue. Se decidió que revirtiera sola: `_elegirModoCamara('rumbo')` arma un `setTimeout` de 1.5s que comprueba el nuevo getter `funcionesMapa.brujulaEstaActiva()` y, si sigue sin responder, desactiva el modo y devuelve el icono a "Norte fijo".
+2. **"Elegir otra aventura" sin recargar.** Descubierto que existen dos caminos distintos para "otra aventura": el del modal de fin de aventura normal SÍ recarga la página (todo el estado del módulo se resetea solo); el del diálogo de reanudación de sesión (`mostrarDialogoVueltaRapida` → `ejecutarElegirOtra()`) NO recarga — así que el modo de cámara de la aventura abandonada sobrevivía a la siguiente. Se decidió resetear también aquí: `globalThis._resetModoCamaraRecentrar()`, llamado junto al resto de globals que `ejecutarElegirOtra()` ya limpiaba.
+
+Detalle completo, con referencias de línea, en `docs/GUIA-COMPLETA.md` §4.6b. Cubierto por `tests/e2e/25-boton-recentrar.spec.js` BR-7/BR-8.
 
 ---
 

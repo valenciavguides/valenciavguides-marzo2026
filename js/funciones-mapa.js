@@ -173,6 +173,7 @@ let _mapaInstance = null; // Instancia del mapa MapLibre
 let _mapaOpciones = null; // Opciones del mapa
 let _pulseTimeout = null; // Timeout del efecto de llegada (cancelable)
 let _camaraSiguiendoUsuario = true; // false tras un arrastre manual del usuario — ver _registrarSeguimientoCamara()
+let _camaraSiguiendoRumbo = false; // true tras elegir "Seguir mi rumbo" en el menú de #btn-recentrar — ver _registrarSeguimientoRumbo()
 
 // Array de paradas locales
 let arrayParadasLocal = [];
@@ -886,8 +887,29 @@ function _registrarSeguimientoCamara() {
 }
 
 /**
+ * Registra el listener que pausa el seguimiento de rumbo (rotación del mapa) en
+ * cuanto el usuario gira el mapa a mano con el gesto de dos dedos. 'rotatestart'
+ * incluye `originalEvent` solo cuando el gesto viene de verdad del usuario — un
+ * `easeTo()`/`setBearing()` programático (el propio seguimiento) no lo dispara con
+ * ese campo presente, así que no se pausa a sí mismo por error. Retomar el
+ * seguimiento es responsabilidad del menú de modo de `#btn-recentrar`
+ * (`codigo-padre.html`), vía `activarSeguimientoRumbo()`.
+ */
+function _registrarSeguimientoRumbo() {
+    if (!_mapaInstance) return;
+    _mapaInstance.on('rotatestart', (e) => {
+        if (e && e.originalEvent) {
+            _camaraSiguiendoRumbo = false;
+            logger.debug('[MAPA] Seguimiento de rumbo pausado — giro manual detectado');
+        }
+    });
+}
+
+/**
  * Reactiva el seguimiento automático de cámara y recentra de inmediato sobre la
- * última posición GPS conocida — llamado por el botón de recentrar.
+ * última posición GPS conocida — llamado por la opción "Centrar mapa en mi
+ * ubicación" del menú de `#btn-recentrar`. No toca el seguimiento de rumbo (ni el
+ * bearing actual) para nada — solo posición, tal como dice su nombre.
  */
 export function reactivarSeguimientoCamara() {
     _camaraSiguiendoUsuario = true;
@@ -896,6 +918,45 @@ export function reactivarSeguimientoCamara() {
         _mapaInstance.easeTo({ center: aLngLat(pos), duration: 500 });
     }
     logger.debug('[MAPA] Seguimiento de cámara reactivado');
+}
+
+/**
+ * Activa el seguimiento de rumbo (el mapa rota para mantener el rumbo del usuario
+ * siempre "hacia arriba" en pantalla, como la navegación de coche) y sincroniza el
+ * bearing de inmediato con el último rumbo conocido de la brújula — no espera a la
+ * siguiente lectura. También reactiva el seguimiento de posición: elegir un modo
+ * del menú es, en sí mismo, un "vuelve a seguirme" explícito, igual que pulsar
+ * "centrar" — llamado por la opción "Seguir mi rumbo" del menú de `#btn-recentrar`.
+ */
+export function activarSeguimientoRumbo() {
+    _camaraSiguiendoRumbo = true;
+    _camaraSiguiendoUsuario = true;
+    const pos = estadoMapa.posicionUsuario;
+    const rumbo = (compassActiva && _flechaGpsAnguloAcumulado !== null) ? _flechaGpsAnguloAcumulado : 0;
+    if (_mapaInstance) {
+        const opciones = { bearing: rumbo, duration: 500 };
+        if (pos?.lat && pos?.lng) opciones.center = aLngLat(pos);
+        _mapaInstance.easeTo(opciones);
+    }
+    logger.debug('[MAPA] Seguimiento de rumbo activado');
+}
+
+/**
+ * Desactiva el seguimiento de rumbo y fija el mapa a norte arriba (bearing 0) de
+ * inmediato. También reactiva el seguimiento de posición, mismo motivo que
+ * `activarSeguimientoRumbo()` — llamado por la opción "Norte fijo" del menú de
+ * `#btn-recentrar`.
+ */
+export function desactivarSeguimientoRumbo() {
+    _camaraSiguiendoRumbo = false;
+    _camaraSiguiendoUsuario = true;
+    const pos = estadoMapa.posicionUsuario;
+    if (_mapaInstance) {
+        const opciones = { bearing: 0, duration: 500 };
+        if (pos?.lat && pos?.lng) opciones.center = aLngLat(pos);
+        _mapaInstance.easeTo(opciones);
+    }
+    logger.debug('[MAPA] Seguimiento de rumbo desactivado — norte fijo');
 }
 
 // NOTA: Implementación de precalentamiento GPS eliminada — el GPS principal se iniciará bajo demanda
@@ -991,6 +1052,7 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
         arrayParadasLocal = normalizarParadas(globalThis.AVENTURA_PARADAS || []);
         registrarListenerZoom(); // Habilitar escalado dinámico según zoom
         _registrarSeguimientoCamara(); // Pausar seguimiento de cámara al arrastrar el mapa a mano
+        _registrarSeguimientoRumbo(); // Pausar seguimiento de rumbo al girar el mapa a mano
         logger.info('Servicio de mapa inicializado correctamente (instancia recibida)');
         return true;
     }
@@ -1031,6 +1093,7 @@ export function inicializarServicioMapa(mapaInstance, opciones = {}) {
             arrayParadasLocal = normalizarParadas(globalThis.AVENTURA_PARADAS || []);
             registrarListenerZoom(); // Habilitar escalado dinámico según zoom
         _registrarSeguimientoCamara(); // Pausar seguimiento de cámara al arrastrar el mapa a mano
+        _registrarSeguimientoRumbo(); // Pausar seguimiento de rumbo al girar el mapa a mano
 
             logger.info('Servicio de mapa inicializado correctamente (instancia creada internamente)');
             return true;
@@ -1725,6 +1788,14 @@ function actualizarRotacionFlechaGPS(heading) {
     }
 
     div.style.transform = `translate(-50%,-50%) rotate(${_rumboEnPantalla(_flechaGpsAnguloAcumulado)}deg)`;
+
+    // Seguimiento de rumbo: el mapa gira para mantener este mismo ángulo (ya
+    // suavizado) siempre hacia arriba en pantalla. setBearing() sin animación, no
+    // easeTo() — el suavizado exponencial de arriba ya da fluidez a ~10Hz; añadir
+    // una segunda capa de easing encima produciría retraso/rebote, no más suavidad.
+    if (_camaraSiguiendoRumbo && _mapaInstance) {
+        _mapaInstance.setBearing(_flechaGpsAnguloAcumulado);
+    }
 }
 
 /**
@@ -1767,6 +1838,16 @@ function desactivarBrujula() {
     globalThis.removeEventListener(_brujulaEventoActivo || 'deviceorientation', actualizarOrientacionFlecha);
     compassActiva = false;
     logger.info('[brujula] Desactivada');
+}
+
+/**
+ * Getter de solo lectura de `compassActiva` — usado por `codigo-padre.html` para
+ * detectar si "Seguir mi rumbo" se quedó "encendido" sin brújula real detrás (permiso
+ * denegado en iOS, o `DeviceOrientationEvent` no soportado) y revertir sola la opción
+ * a "Norte fijo" en vez de dejar el icono del menú mintiendo sobre un modo ya muerto.
+ */
+export function brujulaEstaActiva() {
+    return compassActiva;
 }
 
 /**
@@ -3262,6 +3343,9 @@ globalThis.funcionesMapa = {
     manejarCambioModoMapa,
     sincronizarModoMapa,
     reactivarSeguimientoCamara,
+    activarSeguimientoRumbo,
+    desactivarSeguimientoRumbo,
+    brujulaEstaActiva,
     // Exponer la API pública centralizada para cambiar la vista
     setMapView,
     // API para ajustar vista a un rectángulo de coordenadas

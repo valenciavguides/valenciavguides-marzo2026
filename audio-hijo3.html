@@ -1609,17 +1609,41 @@
 
         async function _manejarAudioControl(comando, audioId, msg, logPrefix) {
             logger.info(`${logPrefix} Ejecutando comando de audio: ${comando}`);
-            if (comando === 'play') {
-                if (!audioPlayer.src && audioId) { await cargarYReproducirAudio(audioId, true); } else { await audioPlayer.play(); }
-            } else if (comando === 'pause') {
-                audioPlayer.pause();
-            } else if (comando === 'stop') {
-                audioPlayer.pause(); audioPlayer.currentTime = 0; _resetearProgresoVisual();
-            } else if (comando === 'replay') {
-                const objetivo = audioId || currentAudioId;
-                if (objetivo && (!audioPlayer.src || currentAudioId !== objetivo)) { await cargarYReproducirAudio(objetivo, true); } else { audioPlayer.currentTime = 0; await audioPlayer.play(); }
-            } else {
-                throw new Error(`Comando de audio no soportado: ${comando}`);
+            try {
+                if (comando === 'play') {
+                    if (!audioPlayer.src && audioId) {
+                        const resultado = await cargarYReproducirAudio(audioId, true);
+                        if (!resultado.exito) throw new Error(resultado.error || 'carga_fallida');
+                    } else {
+                        await audioPlayer.play();
+                    }
+                } else if (comando === 'pause') {
+                    audioPlayer.pause();
+                } else if (comando === 'stop') {
+                    audioPlayer.pause(); audioPlayer.currentTime = 0; _resetearProgresoVisual();
+                } else if (comando === 'replay') {
+                    const objetivo = audioId || currentAudioId;
+                    if (objetivo && (!audioPlayer.src || currentAudioId !== objetivo)) {
+                        const resultado = await cargarYReproducirAudio(objetivo, true);
+                        if (!resultado.exito) throw new Error(resultado.error || 'carga_fallida');
+                    } else {
+                        audioPlayer.currentTime = 0;
+                        await audioPlayer.play();
+                    }
+                } else {
+                    throw new Error(`Comando de audio no soportado: ${comando}`);
+                }
+            } catch (error) {
+                // audioPlayer.play() puede rechazar (autoplay bloqueado por el navegador) y
+                // cargarYReproducirAudio() puede devolver exito:false (audio no encontrado,
+                // sin archivo configurado) sin lanzar — sin este catch y esta comprobación,
+                // ambos casos se perdían: la excepción subía al catch genérico del
+                // controlador (solo logueaba) o el exito:false se ignoraba y de todos modos
+                // se confirmaba exito:true más abajo. En ambos casos quien pidió el comando
+                // se quedaba esperando una respuesta que nunca llegaba, sin saber que falló.
+                logger.warn(`${logPrefix} Comando de audio '${comando}' falló:`, error && error.message ? error.message : error);
+                await enviarMensaje({ destino: msg.origen, tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { codigo: 'AUDIO_CONTROL_FALLIDO', mensaje: error && error.message ? error.message : String(error), comando, timestamp: Date.now() } });
+                return;
             }
             await enviarMensaje({ destino: msg.origen, tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION, origen: CONFIG_HIJO.IFRAME_ID, datos: { accion: 'audio_control', comando, exito: true, timestamp: Date.now() } });
         }
