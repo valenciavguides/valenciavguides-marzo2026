@@ -777,7 +777,7 @@ function _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, i
 
 function _actualizarGpsEnModoAventura(btnAvanzar, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS) {
     const rangoMinimo = esTramo ? 5 : 0;
-    const rangoMaximo = esTramo ? toleranciaGPS : 20;
+    const rangoMaximo = esTramo ? toleranciaGPS : 10;
     const distanciaEnRango = distanciaAlDestino !== null &&
                            distanciaAlDestino >= rangoMinimo &&
                            distanciaAlDestino <= rangoMaximo;
@@ -961,7 +961,7 @@ function verificarDistanciaYActualizarBotones() {
     // y el override manual de avanzar siguen midiendo contra distanciaAlDestino, sin
     // cambios — llegar exige estar cerca del final, no solo del camino.
     const distanciaParaRango = (esTramo && typeof distanciaAlCamino === 'number') ? distanciaAlCamino : distanciaAlDestino;
-    const rangoMaximo = esTramo ? toleranciaGPS : 20; // mismo umbral real que usa btn-avanzar
+    const rangoMaximo = esTramo ? toleranciaGPS : 10; // mismo umbral real que usa btn-avanzar
     const dentroDeRango = distanciaParaRango <= rangoMaximo;
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
@@ -1448,7 +1448,7 @@ async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada
 }
 
 async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
-    const RADIO_PARADA = 20;
+    const RADIO_PARADA = 10;
     const dentroDeRadio = distanciaAlDestino <= RADIO_PARADA;
     const confirmada = _registrarCandidataLlegada(dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {

@@ -7,8 +7,9 @@
  *
  *   BR-1  El botón existe, empieza oculto (display:none, sin estilo inline que lo
  *         fuerce a visible) — no debe aparecer antes de que el mapa esté en pantalla.
- *   BR-2  z-index entre #logo-aventura (3000) y #hijo5 (1000000), tal como se acordó
- *         explícitamente (por debajo de hijo5, por encima del logo).
+ *   BR-2  Mismo tamaño y right que #selector-tipo-mapa, con z-index justo por debajo
+ *         del suyo (1000030) — su desplegable, al abrirse, tapa este botón a
+ *         propósito (acordado explícitamente, no es un descuido).
  *   BR-3  Al pulsarlo, llama a funcionesMapa.reactivarSeguimientoCamara().
  *
  * El "se muestra junto con el resto de la UI de aventura" (_mostrarUIActivada/
@@ -45,13 +46,25 @@ test.describe('BR — Botón de recentrar cámara', () => {
     expect(info.display, 'Debe empezar oculto, sin estilo inline forzándolo a visible').toBe('none');
   });
 
-  test('BR-2. z-index entre #logo-aventura y #hijo5', async ({ page }) => {
-    const zIndices = await page.evaluate(() => {
-      const zOf = (id) => Number(getComputedStyle(document.getElementById(id)).zIndex);
-      return { logo: zOf('logo-aventura'), recentrar: zOf('btn-recentrar'), hijo5: zOf('hijo5') };
+  test('BR-2. Mismo right que #selector-tipo-mapa, z-index justo por debajo', async ({ page }) => {
+    await page.waitForSelector('#selector-tipo-mapa', { state: 'attached', timeout: 15000 });
+    const info = await page.evaluate(() => {
+      // Ambos empiezan display:none (BR-1) — getComputedStyle().width no es fiable
+      // sobre un elemento sin caja renderizada (el contenedor del selector, además,
+      // no fija su propio ancho: se ajusta al hijo más ancho). "right" y z-index sí
+      // se resuelven igual con o sin renderizar, al fijarse directamente por CSS.
+      const recentrar = getComputedStyle(document.getElementById('btn-recentrar'));
+      const selector = getComputedStyle(document.getElementById('selector-tipo-mapa'));
+      return {
+        rightRecentrar: recentrar.right, rightSelector: selector.right,
+        zRecentrar: Number(recentrar.zIndex), zSelector: Number(selector.zIndex),
+        anchoRecentrarPx: parseFloat(recentrar.width),
+      };
     });
-    expect(zIndices.recentrar).toBeGreaterThan(zIndices.logo);
-    expect(zIndices.recentrar).toBeLessThan(zIndices.hijo5);
+    expect(info.rightRecentrar, 'Misma distancia al borde derecho que el selector de mapa').toBe(info.rightSelector);
+    expect(info.zRecentrar).toBeLessThan(info.zSelector);
+    expect(info.anchoRecentrarPx, 'Ancho en el rango esperado (clamp 36-52px)').toBeGreaterThanOrEqual(36);
+    expect(info.anchoRecentrarPx).toBeLessThanOrEqual(52);
   });
 
   test('BR-3. Al pulsarlo, llama a funcionesMapa.reactivarSeguimientoCamara()', async ({ page }) => {

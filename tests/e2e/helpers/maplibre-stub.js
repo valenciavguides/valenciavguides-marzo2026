@@ -135,8 +135,8 @@
       setZoom: function () { return m; },
       getCenter: function () { return { lng: -0.3763, lat: 39.4699 }; },
       setCenter: function () { return m; },
-      getBearing: function () { return 0; },
-      setBearing: function () { return m; },
+      getBearing: function () { return m._bearing || 0; },
+      setBearing: function (b) { m._bearing = b; return m; },
       getPitch: function () { return 0; },
       setPitch: function () { return m; },
 

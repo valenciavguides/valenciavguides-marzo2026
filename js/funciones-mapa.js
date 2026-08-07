@@ -1679,6 +1679,24 @@ function _anguloDeltaCorto(actual, objetivo) {
 }
 
 /**
+ * Convierte un rumbo real (0=norte, sentido horario, referenciado al norte
+ * geográfico) en el ángulo de rotación CSS correcto para pantalla, restando
+ * el bearing actual del mapa. `rotate()` en CSS es siempre relativo a la
+ * pantalla, nunca al norte — con el mapa en su orientación por defecto
+ * (bearing 0) da igual, pero en cuanto el usuario gira el mapa a mano (gesto
+ * de dos dedos, posible desde siempre, nunca bloqueado), "arriba en pantalla"
+ * deja de significar "norte" y la flecha, sin este ajuste, apunta con un
+ * desfase exactamente igual al bearing del mapa — en el caso límite de un
+ * giro de ~180° (p.ej. reorientar el mapa hacia un punto que queda al sur),
+ * se ve apuntando literalmente al lado contrario de hacia donde mira el
+ * usuario. Confirmado en campo — ver docs/brujula-y-mapa.md.
+ */
+function _rumboEnPantalla(heading) {
+    const bearing = (_mapaInstance && typeof _mapaInstance.getBearing === 'function') ? _mapaInstance.getBearing() : 0;
+    return heading - bearing;
+}
+
+/**
  * Actualiza solo el CSS transform de la flecha GPS (no recrea el marcador).
  * DeviceOrientationEvent llama a esta función indirectamente hasta 30 veces/segundo;
  * el sensor de rumbo es ruidoso (sobre todo en Android bajo techo), así que aquí se
@@ -1706,7 +1724,7 @@ function actualizarRotacionFlechaGPS(heading) {
         _flechaGpsAnguloAcumulado += delta * 0.25;
     }
 
-    div.style.transform = `translate(-50%,-50%) rotate(${_flechaGpsAnguloAcumulado}deg)`;
+    div.style.transform = `translate(-50%,-50%) rotate(${_rumboEnPantalla(_flechaGpsAnguloAcumulado)}deg)`;
 }
 
 /**
@@ -3398,7 +3416,7 @@ export function dibujarPolylineNavegacion(opciones = {}) {
 let polylineNavegacion = null;
 let marcadorDestinoNavegacion = null;
 let marcadorUsuarioGPS = null; // Marcador del usuario con flecha azul
-let circuloActivacion = null;  // Círculo naranja 20m — zona de activación de parada
+let circuloActivacion = null;  // Círculo naranja 10m — zona de activación de parada
 
 /**
  * Actualiza o crea el marcador del usuario en el mapa
@@ -3485,7 +3503,7 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             // en un icono de 40px; con -50%/0% la punta no se mueve ni un píxel al rotar).
             iconHtml = `<div style="width:${tamAventura}px;height:${tamAventura}px;position:relative;">
                 <!-- Flecha principal estilo Google Maps — clase gps-arrow-heading para rotación en tiempo real -->
-                <div class="gps-arrow-heading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(${rotation}deg);transition:transform 0.3s ease-out;">
+                <div class="gps-arrow-heading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(${_rumboEnPantalla(rotation)}deg);transition:transform 0.3s ease-out;">
                     <!-- Sombra de la flecha -->
                     <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.94)}px solid rgba(0,0,0,0.2);filter:blur(3px);transform:translate(-50%,0%) translate(2px,2px);"></div>
                     <!-- Borde blanco de la flecha -->
@@ -3514,13 +3532,13 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
         const iconoLog = modo === 'casa' ? '🛸' : '➤';
         logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, heading: ${Math.round(heading || 0)}°)`);
 
-        // Círculo naranja 20m — zona de activación de parada.
+        // Círculo naranja 10m — zona de activación de parada.
         // Brújula activada en el mismo branch para evitar condición duplicada.
         if (modo !== 'casa') {
             if (circuloActivacion) {
                 circuloActivacion.setLatLng({ lat, lng });
             } else {
-                circuloActivacion = _crearCirculoGeografico({ lat, lng }, 20, {
+                circuloActivacion = _crearCirculoGeografico({ lat, lng }, 10, {
                     color: '#ff8c00',
                     weight: 2,
                     fillColor: '#ff8c00',

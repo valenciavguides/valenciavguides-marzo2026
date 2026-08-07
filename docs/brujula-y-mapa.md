@@ -1,6 +1,18 @@
-# Brújula y mapa — diagnóstico, estado actual y diseño pendiente
+# Brújula y mapa — diagnóstico, resolución y diseño pendiente
 
-> Documento de trabajo, no arquitectura ya implementada (salvo la sección 3, que sí describe código real ya en producción). Recoge la sesión de diagnóstico del triángulo GPS (rumbo del usuario) y el diseño acordado — pero no construido — de un modo de mapa orientado al rumbo. Objetivo: que la siguiente sesión no tenga que repetir la investigación ni recordarla de memoria.
+> Documento de trabajo. La sección 1 narra la investigación tal como ocurrió, incluida una hipótesis descartada por error que luego resultó ser la causa real (§1a) — se deja así, sin reescribir la historia, porque el propio recorrido es útil para la siguiente sesión. El bug de rotación del mapa (§1a) y el radio de activación (§2 de la sesión de arreglo) **ya están corregidos e implementados** — ver §1a y §6. Lo único que sigue pendiente de diseñar es el modo de mapa orientado al rumbo (§4).
+
+---
+
+## 1a. Actualización — el bug SÍ era la rotación del mapa (hipótesis 1, más abajo, se reabrió y se confirmó)
+
+La hipótesis 1 de más abajo se dio por descartada esa misma noche con una prueba insuficiente (el usuario probó "con el mapa girado y sin girar" sin un punto de referencia externo fijo para comparar). En una sesión posterior, el usuario reprodujo el fallo de forma concluyente: parado quieto en un punto fijo, giró el mapa a mano hasta poner un monumento real "de frente" en pantalla (bearing del mapa ≈ su propio rumbo real en ese momento) — el triángulo, en vez de apuntar hacia arriba (coincidiendo con hacia dónde giró el mapa), apuntaba literalmente al revés.
+
+**Causa confirmada por lectura de código (dos veces, releído desde cero ambas veces):** `actualizarRotacionFlechaGPS()` y la creación inicial del marcador (`js/funciones-mapa.js`) pintan el rumbo real con `rotate(Xdeg)` en CSS sin restar nunca el `bearing` actual del mapa. `rotate()` es siempre relativo a la pantalla, nunca al norte — con el mapa en su orientación por defecto (bearing 0, la única situación que se había probado con la página de diagnóstico de §2, que no toca el mapa en absoluto) el fallo es invisible. En cuanto el bearing del mapa deja de ser 0 (el gesto de girar con dos dedos nunca ha estado bloqueado), la pantalla queda desfasada exactamente ese ángulo.
+
+**Fix implementado:** nueva función `_rumboEnPantalla(heading)` en `js/funciones-mapa.js`, que resta `_mapaInstance.getBearing()` al rumbo justo antes de escribirlo — aplicada en los dos sitios donde se pinta `rotate()` (`actualizarRotacionFlechaGPS()` y la creación del marcador). El ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`) sigue representando el rumbo real sin tocar; la resta ocurre solo en el último paso, al pintar. Documentado en detalle, con la derivación completa, en `docs/GUIA-COMPLETA.md` §4.5 (justo después de la explicación de `actualizarOrientacionFlecha()`). Test nuevo: `RB-1` en `tests/e2e/17-flecha-brujula-continuidad.spec.js`, que simula un mapa con bearing≠0 y verifica que el mismo rumbo real se pinta distinto según el bearing.
+
+Esto **no** sustituye al diseño pendiente de §4 (mapa orientado al rumbo, que rota el mapa automáticamente seguir hacia donde camina el usuario) — son dos cosas relacionadas pero distintas: este fix hace que el triángulo sea correcto **siempre**, gire el usuario el mapa a mano o no; §4 es una funcionalidad nueva sobre cuándo y por qué rotarlo automáticamente.
 
 ---
 
@@ -153,3 +165,23 @@ Se hicieron dos cambios al Firewall de Windows esta noche para que el móvil pud
 Ambos comandos requieren PowerShell como administrador (clic derecho sobre el icono → "Ejecutar como administrador"), igual que los comandos usados para crearlas/desactivarlas.
 
 También conviene deshacer el ajuste de `chrome://flags/#unsafely-treat-insecure-origin-as-secure` en el móvil (volver el desplegable a "Default" y relanzar Chrome) una vez terminadas las pruebas — no es un riesgo grave dejarlo, pero no tiene sentido mantenerlo activo indefinidamente para una única IP de desarrollo.
+
+---
+
+## 7. Otros dos ajustes de la misma sesión de arreglo (no relacionados con la brújula, pero surgieron de las mismas capturas de campo)
+
+**Radio de activación de parada: 20m → 10m.** El usuario reportó, aparte del bug de la flecha, que en aventuras con dos paradas del mismo monumento muy próximas (parada-tramo-parada con poca distancia real entre ellas), el radio de 20m bastaba para que, al completar la primera parada, el usuario ya estuviera también dentro del radio de la segunda — el tramo intermedio se daba por completado sin caminarlo de verdad. Bajado a 10m como primer ajuste (no descartado subir/bajar más tras probarlo en campo). Cuatro sitios cambiados, todos el mismo valor: `RADIO_PARADA` y `rangoMaximo` (×2, dos funciones) en `coordenadas-hijo2.html`, y el círculo naranja visual (`circuloActivacion`) en `js/funciones-mapa.js`. Documentado en detalle, con la razón completa, en GUIA-COMPLETA §25.5 ("Por qué 10 m y no 20 m").
+
+**Si en el terreno el tramo corto sigue completándose demasiado rápido incluso con el radio de parada ya en 10m, este cambio probablemente NO es la causa — hay que mirar en otro sitio, ya identificado:**
+
+`RADIO_PARADA`/`rangoMaximo` (lo que se tocó) solo controla la llegada a **paradas**. La llegada a un **tramo** (su `.fin`) nunca ha usado ese valor — usa `calcularToleranciaGPS()` (`js/funciones-mapa.js`, línea ~98):
+
+```javascript
+const tolerancia = Math.max(50, Math.ceil(distanciaMaxima + 20));
+```
+
+Para un tramo corto (parada-tramo-parada con poca distancia real, exactamente el caso que preocupa), `distanciaMaxima` entre waypoints es pequeña, así que el `+20` no basta para superar el **suelo de 50m** — el tramo se considera "llegado" en cuanto el usuario está a ≤50m de su `.fin`, que en un tramo corto puede ser prácticamente donde ya está parado nada más empezar a caminarlo. Ese suelo de 50m es, con mucha probabilidad, el verdadero responsable de que un tramo corto se complete casi al instante — independiente de todo lo tocado hoy. El propio comentario del código (línea 93-97) explica por qué existe el suelo (evitar que el ruido normal de GPS en calle estrecha, no solo un desvío real, dispare una "llegada" falsa en un tramo con waypoints muy juntos) — bajarlo sin más volvería a abrir ese problema distinto. Si hace falta tocarlo, pensar en una solución que no sea solo "bajar el número 50" a secas — ver el comentario del código para el porqué exacto antes de decidir.
+
+**No tocado hoy** (fuera del alcance explícito, "solo el halo naranja"): la lógica de visibilidad del trazado (§4.7d de GUIA-COMPLETA, sus propios `≤20m` internos en `funciones-mapa.js` siguen en 20, mecanismo distinto tanto del radio de llegada de parada como de la tolerancia de tramo).
+
+**Botón de recentrar movido y agrandado.** El botón original (junto al logo, `clamp(20px,5.2vw,28px)`) resultaba demasiado pequeño y difícil de ver. Movido al borde derecho, mismo tamaño y `right` que el botón principal del selector de tipo de mapa (`clamp(36px,9.8vmin,52px)`), justo encima con el mismo hueco de 8px que ya separa al selector del botón de chat, z-index justo por debajo del selector (para que su desplegable, en los momentos puntuales en que se abre, lo tape sin problema). Documentado en GUIA-COMPLETA §4.6b.

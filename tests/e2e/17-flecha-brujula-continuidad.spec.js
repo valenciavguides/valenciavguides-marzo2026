@@ -211,4 +211,68 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
     expect(resultado.transformVertical, 'El rumbo convertido no debe contener el alpha crudo sin invertir').not.toContain('rotate(90deg)');
     expect(resultado.transformPlano, `alpha=90,beta=0,gamma=0 (plano) también debe dar rumbo 270 — misma alpha, sin discontinuidad entre las dos ramas del cálculo: ${resultado.transformPlano}`).toContain('270');
   });
+
+  // RB-1 cubre un cuarto bug, de ROTACIÓN DEL MAPA (reporte de campo del usuario): el
+  // rumbo real (calculado arriba, referenciado al norte) se pintaba en pantalla con
+  // rotate() tal cual, sin restar el bearing actual del mapa. rotate() en CSS es
+  // siempre relativo a la pantalla, nunca al norte — mientras el mapa está en su
+  // orientación por defecto (bearing 0) da igual, pero el gesto de girar el mapa con
+  // dos dedos nunca ha estado bloqueado, y en cuanto el usuario lo gira a mano, "arriba
+  // en pantalla" deja de ser "norte". Caso real reportado: usuario gira el mapa ~180°
+  // para poner un monumento que tiene detrás "de frente" en pantalla, con lo que el
+  // rumbo real del usuario (mirando hacia ese monumento) coincide con el nuevo bearing
+  // del mapa — el triángulo debería apuntar hacia arriba, pero sin restar el bearing
+  // seguía pintándose con el rumbo crudo, apuntando literalmente al revés. Fix:
+  // _rumboEnPantalla(heading) resta el bearing justo antes de escribir rotate().
+  test('RB-1. La rotación en pantalla resta el bearing actual del mapa', async ({ page }) => {
+    await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
+
+    await page.evaluate(async () => {
+      const fakeMap = {
+        _bearing: 0,
+        isStyleLoaded() { return true; },
+        once() {}, on() {}, off() {}, fire() {},
+        addSource() { return fakeMap; },
+        addLayer() { return fakeMap; },
+        getSource() { return { setData() {} }; },
+        getLayer() { return {}; },
+        removeLayer() {}, removeSource() {}, setPaintProperty() {},
+        getZoom() { return 15; },
+        getBearing() { return fakeMap._bearing; },
+        setBearing(b) { fakeMap._bearing = b; },
+        easeTo() {},
+      };
+      globalThis.__testFakeMap = fakeMap;
+
+      const mod = await import('/js/funciones-mapa.js');
+      globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
+      globalThis.__testMarker = await mod.actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
+    });
+
+    const transformBearing0 = await page.evaluate(() => {
+      const nombreEvento = ('ondeviceorientationabsolute' in globalThis) ? 'deviceorientationabsolute' : 'deviceorientation';
+      const ev = document.createEvent('Event');
+      ev.initEvent(nombreEvento, true, true);
+      ev.alpha = 180; // rumbo = 360-alpha = 180
+      globalThis.dispatchEvent(ev);
+      return globalThis.__testMarker?.getElement()?.querySelector('.gps-arrow-heading')?.style.transform || null;
+    });
+
+    // Deja pasar el throttle de escritura (~10Hz, ver actualizarRotacionFlechaGPS) antes
+    // del segundo evento, para que no se descarte por llegar demasiado pronto.
+    await page.waitForTimeout(150);
+
+    const transformBearing180 = await page.evaluate(() => {
+      globalThis.__testFakeMap._bearing = 180; // el usuario gira el mapa 180° a mano
+      const nombreEvento = ('ondeviceorientationabsolute' in globalThis) ? 'deviceorientationabsolute' : 'deviceorientation';
+      const ev = document.createEvent('Event');
+      ev.initEvent(nombreEvento, true, true);
+      ev.alpha = 180; // mismo rumbo real que antes — el usuario no ha girado su cuerpo
+      globalThis.dispatchEvent(ev);
+      return globalThis.__testMarker?.getElement()?.querySelector('.gps-arrow-heading')?.style.transform || null;
+    });
+
+    expect(transformBearing0, `Con el mapa en su orientación por defecto (bearing 0), el rumbo 180 debe pintarse tal cual: ${transformBearing0}`).toContain('180');
+    expect(transformBearing180, `Con el mapa girado 180° a mano y el mismo rumbo real (180), debe pintarse a 0deg en pantalla (180-180), no seguir apuntando a 180: ${transformBearing180}`).toContain('rotate(0deg)');
+  });
 });

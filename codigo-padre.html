@@ -1295,21 +1295,26 @@
         /* Hueco entre el borde izquierdo y #logo-aventura (88vw centrado ⇒ 6vw libres a
            cada lado) — más pequeño que el resto de botones (clamp 29-43px) a propósito,
            es un botón de acción, no de información, y el hueco disponible es estrecho. */
+        /* Posición: mismo ancho/right que #selector-tipo-mapa (creado en JS, ver
+           initializeMap()) — right = (4px + mitad de --franja-lateral) - mitad de este
+           botón, igual cálculo, mismo tamaño de botón (clamp(36px,9.8vmin,52px)) para
+           que ambos queden centrados en el mismo eje horizontal. bottom = bottom del
+           selector + su altura + 8px — el mismo hueco de 8px que ya separa al propio
+           selector de #btn-chat-soporte (ver comentario junto a #selector-tipo-mapa). */
         #btn-recentrar {
             position: fixed;
-            left: 1vw;
-            top: calc(0.25rem + 5.25vh);
-            transform: translateY(-50%);
-            width: clamp(20px, 5.2vw, 28px);
-            height: clamp(20px, 5.2vw, 28px);
-            z-index: 3500; /* por encima de #logo-aventura (3000), por debajo de #hijo5 (1000000) */
+            right: calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));
+            bottom: calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px + clamp(36px,9.8vmin,52px) + 8px);
+            width: clamp(36px, 9.8vmin, 52px);
+            height: clamp(36px, 9.8vmin, 52px);
+            z-index: 1000025; /* por debajo de #selector-tipo-mapa (1000030) — su desplegable, cuando se abre, tapa este botón a propósito */
             display: none;
             border: none;
             border-radius: 50%;
             background: rgba(0, 0, 0, 0.55);
             color: #fff;
-            font-size: clamp(11px, 3vw, 16px);
-            line-height: clamp(20px, 5.2vw, 28px); /* = height — centra el glifo vertical con display:block, que es lo que fuerza _mostrarUIActivada() vía estilo inline */
+            font-size: clamp(20px, 5.4vmin, 29px);
+            line-height: clamp(36px, 9.8vmin, 52px); /* = height — centra el glifo vertical con display:block, que es lo que fuerza _mostrarUIActivada() vía estilo inline */
             text-align: center;
             padding: 0;
             cursor: pointer;
@@ -1318,11 +1323,11 @@
             transition: transform 0.3s ease;
         }
         #btn-recentrar:active {
-            transform: translateY(-50%) scale(0.9);
+            transform: scale(0.9);
         }
         @media (hover: hover) {
             #btn-recentrar:hover {
-                transform: translateY(-50%) scale(1.08);
+                transform: scale(1.08);
             }
         }
 
