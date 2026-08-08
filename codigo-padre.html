@@ -1291,8 +1291,8 @@
             }
         }
 
-        /* ── Botón de recentrar/modo de cámara ── */
-        /* #btn-recentrar ya no tiene CSS estático — es 100% creado por JS dentro de
+        /* ── Botón de modo de cámara (brújula) ── */
+        /* #brujula-modo ya no tiene CSS estático — es 100% creado por JS dentro de
            initializeMap() (junto a #selector-tipo-mapa, mismo patrón exacto: botón
            principal + desplegable que crece hacia arriba), igual que #selector-tipo-mapa
            tampoco lo tiene. Ver ese bloque para el estilo real. */
@@ -1611,7 +1611,7 @@
                 });
             })();
 
-            // 6. #btn-recentrar (menú de modo de cámara) ya no tiene un único click-handler
+            // 6. #brujula-modo (menú de modo de cámara) ya no tiene un único click-handler
             // aquí — se crea entero, con sus 3 opciones y sus propios listeners, dentro de
             // initializeMap() (junto a #selector-tipo-mapa, mismo patrón).
 
@@ -2326,7 +2326,7 @@
     body.loading #info-parada,
     body.loading #logo-aventura,
     body.loading #selector-tipo-mapa,
-    body.loading #btn-recentrar,
+    body.loading #brujula-modo,
     body.loading #btn-chat-soporte,
     body.loading iframe {
         visibility: hidden !important;
@@ -2563,7 +2563,7 @@
            style="width:100%; height:100%; object-fit:cover; display:block; border-radius:0.75rem 0 0 0.75rem; pointer-events:none;">
     </button>
 
-    <!-- #btn-recentrar ya no existe como <button> estático — se crea por completo en JS
+    <!-- #brujula-modo ya no existe como <button> estático — se crea por completo en JS
          dentro de initializeMap(), junto a #selector-tipo-mapa (mismo patrón). -->
 
     <!-- Overlay del chat de soporte (hijo6) — carga lazy al primer uso -->
@@ -3237,7 +3237,7 @@
                         });
                     }, 250));
 
-                    // ── Menú de modo de cámara (#btn-recentrar) ─────────────────────────
+                    // ── Menú de modo de cámara (#brujula-modo) ─────────────────────────
                     // Mismo patrón exacto que #selector-tipo-mapa justo encima: botón
                     // principal + desplegable que crece hacia arriba (column-reverse). 3
                     // opciones, ninguna imagen todavía — glifos de texto como marcador de
@@ -3247,123 +3247,129 @@
                     // activo, igual que el selector de mapa con la miniatura del estilo
                     // activo); "Centrar mapa en mi ubicación" es una acción puntual — no
                     // cambia qué modo se muestra como activo, solo actúa sobre la posición.
-                    const _MODOS_CAMARA = [
-                        { id: 'norte',   nombre: 'Norte fijo',                      glifo: 'N' },
-                        { id: 'rumbo',   nombre: 'Seguir mi rumbo',                 glifo: '➤' },
-                        { id: 'centrar', nombre: 'Centrar mapa en mi ubicación',    glifo: '◎' },
+                    // IDs con prefijo "brujula-modo-" a propósito (no solo el nombre del texto
+                    // visible): alguien que no conozca la PWA y busque "brujula-modo" en el
+                    // código encuentra el contenedor y las tres opciones juntos, sin ambigüedad.
+                    const _MODOS_BRUJULA = [
+                        { id: 'brujula-modo-norte',       nombre: 'Norte fijo',                      glifo: 'N' },
+                        { id: 'brujula-modo-seguimiento', nombre: 'Seguir mi rumbo',                 glifo: '➤' },
+                        { id: 'brujula-modo-centrado',    nombre: 'Centrar mapa en mi ubicación',    glifo: '◎' },
                     ];
 
-                    let _modoCamaraActivo = 'norte'; // arranca en norte fijo — coincide con _camaraSiguiendoRumbo=false por defecto en funciones-mapa.js
-                    let _dropdownCamaraAbierto = false;
+                    let _brujulaModoActivo = 'brujula-modo-norte'; // arranca en norte fijo — coincide con _camaraSiguiendoRumbo=false por defecto en funciones-mapa.js
+                    let _brujulaModoDropdownAbierto = false;
                     // Generación de la activación de "Seguir mi rumbo" en curso — el timeout de
-                    // auto-reversión por brújula caída (ver _elegirModoCamara) compara contra este
-                    // valor, no solo contra _modoCamaraActivo==='rumbo': sin esto, alternar
-                    // rumbo→norte→rumbo dos veces en menos de 1.5s deja un timeout viejo que
-                    // revierte la elección NUEVA antes de que cumpla su propio plazo de gracia.
-                    let _rumboActivacionId = 0;
+                    // auto-reversión por brújula caída (ver _elegirBrujulaModo) compara contra este
+                    // valor, no solo contra _brujulaModoActivo==='brujula-modo-seguimiento': sin
+                    // esto, alternar seguimiento→norte→seguimiento dos veces en menos de 1.5s deja
+                    // un timeout viejo que revierte la elección NUEVA antes de que cumpla su propio
+                    // plazo de gracia.
+                    let _brujulaModoSeguimientoActivacionId = 0;
 
-                    const _BTN_STYLE_CAMARA_MAIN = 'box-sizing:border-box;width:clamp(36px,9.8vmin,52px);height:clamp(36px,9.8vmin,52px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.4vmin,29px);flex-shrink:0;';
-                    const _BTN_STYLE_CAMARA_DROPDOWN = 'box-sizing:border-box;width:clamp(29px,8.4vmin,43px);height:clamp(29px,8.4vmin,43px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.2vmin,21px);flex-shrink:0;';
+                    const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(36px,9.8vmin,52px);height:clamp(36px,9.8vmin,52px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.4vmin,29px);flex-shrink:0;';
+                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(29px,8.4vmin,43px);height:clamp(29px,8.4vmin,43px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,4.2vmin,21px);flex-shrink:0;';
 
-                    // Mismo right/bottom que #selector-tipo-mapa, justo encima (mismo hueco
-                    // de 8px que ya separa a ese de #btn-chat-soporte) — ver el comentario
-                    // junto a #selector-tipo-mapa para el cálculo completo.
-                    const _recentrarDiv = document.createElement('div');
-                    _recentrarDiv.id = 'btn-recentrar';
-                    _recentrarDiv.style.cssText = 'position:fixed;' +
-                        'right:calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));' +
-                        'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px + clamp(36px,9.8vmin,52px) + 8px);' +
+                    // Mismo bottom que #selector-tipo-mapa (misma altura), espejado al lado
+                    // izquierdo: mismo margen desde el borde izquierdo que el selector tiene
+                    // desde el derecho (misma fórmula, "left" en vez de "right") — ver el
+                    // comentario junto a #selector-tipo-mapa para el cálculo completo.
+                    const _brujulaModoDiv = document.createElement('div');
+                    _brujulaModoDiv.id = 'brujula-modo';
+                    _brujulaModoDiv.style.cssText = 'position:fixed;' +
+                        'left:calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));' +
+                        'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px);' +
                         'z-index:1000025;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
-                    const _btnCamaraPrincipal = document.createElement('div');
-                    _btnCamaraPrincipal.style.cssText = _BTN_STYLE_CAMARA_MAIN;
-                    _btnCamaraPrincipal.title = 'Modo de cámara';
-                    _recentrarDiv.appendChild(_btnCamaraPrincipal);
+                    const _brujulaModoBtnPrincipal = document.createElement('div');
+                    _brujulaModoBtnPrincipal.style.cssText = _BTN_STYLE_BRUJULA_MODO_MAIN;
+                    _brujulaModoBtnPrincipal.title = 'Modo de cámara';
+                    _brujulaModoDiv.appendChild(_brujulaModoBtnPrincipal);
 
-                    const _dropdownCamaraDiv = document.createElement('div');
-                    _dropdownCamaraDiv.style.cssText = 'display:flex;flex-direction:column;gap:clamp(3px,0.8vmin,6px);max-height:0;overflow:hidden;transition:max-height 0.35s ease;';
-                    _recentrarDiv.appendChild(_dropdownCamaraDiv);
+                    const _brujulaModoDropdownDiv = document.createElement('div');
+                    _brujulaModoDropdownDiv.style.cssText = 'display:flex;flex-direction:column;gap:clamp(3px,0.8vmin,6px);max-height:0;overflow:hidden;transition:max-height 0.35s ease;';
+                    _brujulaModoDiv.appendChild(_brujulaModoDropdownDiv);
 
-                    _MODOS_CAMARA.forEach(modo => {
+                    _MODOS_BRUJULA.forEach(modo => {
                         const btn = document.createElement('div');
-                        btn.style.cssText = _BTN_STYLE_CAMARA_DROPDOWN;
+                        btn.style.cssText = _BTN_STYLE_BRUJULA_MODO_DROPDOWN;
                         btn.textContent = modo.glifo;
                         btn.title = modo.nombre;
-                        btn.addEventListener('click', (e) => { e.stopPropagation(); _elegirModoCamara(modo.id); _cerrarDropdownCamara(); });
-                        _dropdownCamaraDiv.appendChild(btn);
+                        btn.addEventListener('click', (e) => { e.stopPropagation(); _elegirBrujulaModo(modo.id); _cerrarBrujulaModoDropdown(); });
+                        _brujulaModoDropdownDiv.appendChild(btn);
                     });
 
-                    function _alturaDisponibleParaDropdownCamara() {
+                    function _alturaDisponibleParaBrujulaModoDropdown() {
                         const MARGEN_SEGURIDAD = 8;
                         const fondoBlanco = document.getElementById('fondo-blanco');
                         const limiteSuperior = fondoBlanco ? fondoBlanco.getBoundingClientRect().bottom : 0;
-                        const topBotonPrincipal = _recentrarDiv.getBoundingClientRect().top;
+                        const topBotonPrincipal = _brujulaModoDiv.getBoundingClientRect().top;
                         return Math.max(0, topBotonPrincipal - limiteSuperior - MARGEN_SEGURIDAD);
                     }
 
-                    _btnCamaraPrincipal.addEventListener('click', (e) => {
+                    _brujulaModoBtnPrincipal.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        _dropdownCamaraAbierto = !_dropdownCamaraAbierto;
-                        _dropdownCamaraDiv.style.maxHeight = _dropdownCamaraAbierto ? `${_alturaDisponibleParaDropdownCamara()}px` : '0';
+                        _brujulaModoDropdownAbierto = !_brujulaModoDropdownAbierto;
+                        _brujulaModoDropdownDiv.style.maxHeight = _brujulaModoDropdownAbierto ? `${_alturaDisponibleParaBrujulaModoDropdown()}px` : '0';
                     });
 
                     globalThis.addEventListener('resize', debounce(() => {
-                        if (_dropdownCamaraAbierto) _dropdownCamaraDiv.style.maxHeight = `${_alturaDisponibleParaDropdownCamara()}px`;
+                        if (_brujulaModoDropdownAbierto) _brujulaModoDropdownDiv.style.maxHeight = `${_alturaDisponibleParaBrujulaModoDropdown()}px`;
                     }, 200));
 
-                    document.addEventListener('click', () => { if (_dropdownCamaraAbierto) _cerrarDropdownCamara(); });
+                    document.addEventListener('click', () => { if (_brujulaModoDropdownAbierto) _cerrarBrujulaModoDropdown(); });
 
-                    function _cerrarDropdownCamara() { _dropdownCamaraAbierto = false; _dropdownCamaraDiv.style.maxHeight = '0'; }
+                    function _cerrarBrujulaModoDropdown() { _brujulaModoDropdownAbierto = false; _brujulaModoDropdownDiv.style.maxHeight = '0'; }
 
-                    function _actualizarBtnCamaraPrincipal() {
-                        const modo = _MODOS_CAMARA.find(m => m.id === _modoCamaraActivo);
-                        _btnCamaraPrincipal.textContent = modo.glifo;
+                    function _actualizarBrujulaModoBtnPrincipal() {
+                        const modo = _MODOS_BRUJULA.find(m => m.id === _brujulaModoActivo);
+                        _brujulaModoBtnPrincipal.textContent = modo.glifo;
                     }
 
-                    function _elegirModoCamara(nuevoId) {
+                    function _elegirBrujulaModo(nuevoId) {
                         try {
-                            if (nuevoId === 'norte') {
+                            if (nuevoId === 'brujula-modo-norte') {
                                 globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
-                                _modoCamaraActivo = 'norte';
-                            } else if (nuevoId === 'rumbo') {
+                                _brujulaModoActivo = 'brujula-modo-norte';
+                            } else if (nuevoId === 'brujula-modo-seguimiento') {
                                 globalThis.funcionesMapa?.activarSeguimientoRumbo?.();
-                                _modoCamaraActivo = 'rumbo';
+                                _brujulaModoActivo = 'brujula-modo-seguimiento';
                                 // Si la brújula no responde en ~1.5s (permiso denegado en iOS, o
                                 // sin soporte), activarSeguimientoRumbo() se queda "encendido" sin
                                 // que nada vuelva a mover el bearing — revertir sola a "Norte fijo"
                                 // en vez de dejar el icono mintiendo sobre un modo ya muerto. El
-                                // guard de _rumboActivacionId (no solo _modoCamaraActivo==='rumbo')
-                                // asegura que un timeout de una activación VIEJA no revierta una
-                                // elección más reciente si el usuario alternó rápido entre modos.
+                                // guard de _brujulaModoSeguimientoActivacionId (no solo
+                                // _brujulaModoActivo==='brujula-modo-seguimiento') asegura que un
+                                // timeout de una activación VIEJA no revierta una elección más
+                                // reciente si el usuario alternó rápido entre modos.
                                 // Ver docs/brujula-y-mapa.md §4.
-                                const idActivacion = ++_rumboActivacionId;
+                                const idActivacion = ++_brujulaModoSeguimientoActivacionId;
                                 setTimeout(() => {
-                                    if (idActivacion === _rumboActivacionId && _modoCamaraActivo === 'rumbo' && !globalThis.funcionesMapa?.brujulaEstaActiva?.()) {
+                                    if (idActivacion === _brujulaModoSeguimientoActivacionId && _brujulaModoActivo === 'brujula-modo-seguimiento' && !globalThis.funcionesMapa?.brujulaEstaActiva?.()) {
                                         globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
-                                        _modoCamaraActivo = 'norte';
-                                        _actualizarBtnCamaraPrincipal();
+                                        _brujulaModoActivo = 'brujula-modo-norte';
+                                        _actualizarBrujulaModoBtnPrincipal();
                                     }
                                 }, 1500);
-                            } else if (nuevoId === 'centrar') {
+                            } else if (nuevoId === 'brujula-modo-centrado') {
                                 globalThis.funcionesMapa?.reactivarSeguimientoCamara?.();
-                                // No toca _modoCamaraActivo — acción puntual, no un modo persistente.
+                                // No toca _brujulaModoActivo — acción puntual, no un modo persistente.
                             }
                         } catch (e) { (globalThis.logger || console).debug('[PADRE] Error cambiando modo de cámara', e && e.message); }
-                        _actualizarBtnCamaraPrincipal();
+                        _actualizarBrujulaModoBtnPrincipal();
                     }
 
                     // Expuesto para que ejecutarElegirOtra() (fuera de este cierre — diálogo de
                     // reanudación de sesión) pueda resetear el modo de cámara al elegir otra
                     // aventura sin recargar la página, mismo sitio donde ya se resetean
                     // estado.tiempoRestante y el resto de globals de la aventura abandonada.
-                    globalThis._resetModoCamaraRecentrar = () => {
+                    globalThis._resetBrujulaModo = () => {
                         globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
-                        _modoCamaraActivo = 'norte';
-                        _actualizarBtnCamaraPrincipal();
+                        _brujulaModoActivo = 'brujula-modo-norte';
+                        _actualizarBrujulaModoBtnPrincipal();
                     };
 
-                    _actualizarBtnCamaraPrincipal();
-                    document.body.appendChild(_recentrarDiv);
+                    _actualizarBrujulaModoBtnPrincipal();
+                    document.body.appendChild(_brujulaModoDiv);
 
                     // Initialize map service - wait for funciones-mapa to be available
                     const initializeMapService = () => {
@@ -4308,11 +4314,11 @@
             }
             const selMapa = document.getElementById('selector-tipo-mapa');
             if (selMapa) selMapa.style.display = 'none';
-            // #btn-recentrar es flex (contenedor del botón principal + desplegable de
+            // #brujula-modo es flex (contenedor del botón principal + desplegable de
             // modos), no block — fuera del bucle genérico de arriba, igual que
             // #selector-tipo-mapa justo encima.
-            const btnRecentrarModo = document.getElementById('btn-recentrar');
-            if (btnRecentrarModo) btnRecentrarModo.style.display = 'none';
+            const brujulaModoDiv = document.getElementById('brujula-modo');
+            if (brujulaModoDiv) brujulaModoDiv.style.display = 'none';
             const logoElement = document.getElementById('logo-aventura');
             const fondoElement = document.getElementById('fondo-blanco');
             const fondoInferiorElement = document.getElementById('fondo-blanco-inferior');
@@ -4496,7 +4502,7 @@
                     // recarga la página) reutiliza el mismo module scope de funciones-mapa.js —
                     // sin esto, el modo de cámara ("Seguir mi rumbo"/"Norte fijo") de la aventura
                     // abandonada seguiría activo en la siguiente, con el icono ya desincronizado.
-                    globalThis._resetModoCamaraRecentrar?.();
+                    globalThis._resetBrujulaModo?.();
                     // Ocultar la UI de "aventura activada" (hijo2/hijo3/hijo1-opciones/hijo5/
                     // chat/selector de mapa) por si ya estaba visible — de una restauración
                     // de bfcache al reabrir la pestaña, o de una aventura realmente activa en
@@ -4649,8 +4655,8 @@
             }
             const selMapa = document.getElementById('selector-tipo-mapa');
             if (selMapa) selMapa.style.display = 'flex';
-            const btnRecentrarModo3 = document.getElementById('btn-recentrar');
-            if (btnRecentrarModo3) { btnRecentrarModo3.style.display = 'flex'; btnRecentrarModo3.style.visibility = 'visible'; }
+            const brujulaModoDiv3 = document.getElementById('brujula-modo');
+            if (brujulaModoDiv3) { brujulaModoDiv3.style.display = 'flex'; brujulaModoDiv3.style.visibility = 'visible'; }
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') globalThis.actualizarVisibilidadSelectorMapa();
             const logoEl = document.getElementById('logo-aventura');
             const fondoEl = document.getElementById('fondo-blanco');
@@ -11989,10 +11995,10 @@ await _comprobarReanudacionAventura(logPrefix);
             }
             const _selMapa2 = document.getElementById('selector-tipo-mapa');
             if (_selMapa2) _selMapa2.style.display = 'flex';
-            // #btn-recentrar es flex, igual que #selector-tipo-mapa — fuera del bucle
+            // #brujula-modo es flex, igual que #selector-tipo-mapa — fuera del bucle
             // genérico de arriba, que fuerza 'block' (rompería su flex-direction:column-reverse).
-            const _btnRecentrarModo2 = document.getElementById('btn-recentrar');
-            if (_btnRecentrarModo2) { _btnRecentrarModo2.style.display = 'flex'; _btnRecentrarModo2.style.visibility = 'visible'; }
+            const brujulaModoDiv2 = document.getElementById('brujula-modo');
+            if (brujulaModoDiv2) { brujulaModoDiv2.style.display = 'flex'; brujulaModoDiv2.style.visibility = 'visible'; }
             if (typeof globalThis.actualizarVisibilidadSelectorMapa === 'function') {
                 globalThis.actualizarVisibilidadSelectorMapa();
             }

@@ -96,7 +96,7 @@ Confirmado como correcto: el triángulo mide rumbo absoluto, no dirección relat
 - Gesto de rotación manual (dos dedos) **no está bloqueado** — el usuario puede girar el mapa a mano, pero nada en la app reacciona a ello ni lo usa para nada.
 - **Seguimiento de posición** (implementado, documentado en GUIA-COMPLETA §4.6b): `_camaraSiguiendoUsuario` (L175, módulo, `true` por defecto), `_registrarSeguimientoCamara()` (L878, escucha `dragstart` y pausa el seguimiento solo si `e.originalEvent` existe — gesto real del usuario, no `easeTo`/`flyTo` programático), `reactivarSeguimientoCamara()` (L892, exportada, expuesta en `globalThis.funcionesMapa`). Centra la cámara (`easeTo({center, duration:800})`) en cada posición GPS real, si `_camaraSiguiendoUsuario && !estadoMapa.zoomEnCurso`.
 - **Esto solo centra, nunca rota.** No hay ningún código que conecte el rumbo de la brújula con la rotación del mapa.
-- **`#btn-recentrar`** (`codigo-padre.html`): botón `◎`, siempre visible mientras la UI de aventura está en pantalla (mismo listado que `#btn-chat-soporte`, no aparece/desaparece según si el seguimiento está pausado). Su click llama a `reactivarSeguimientoCamara()` sin condiciones.
+- **`#brujula-modo`** (`codigo-padre.html`): botón `◎`, siempre visible mientras la UI de aventura está en pantalla (mismo listado que `#btn-chat-soporte`, no aparece/desaparece según si el seguimiento está pausado). Su click llama a `reactivarSeguimientoCamara()` sin condiciones.
 
 ### 3.3 Tests automatizados existentes
 
@@ -111,7 +111,7 @@ Confirmado como correcto: el triángulo mide rumbo absoluto, no dirección relat
 
 ## 4. Implementado — mapa orientado al rumbo ("Seguir mi rumbo")
 
-Diseño acordado con el usuario e implementado: el mapa puede rotar para que el rumbo actual del usuario quede siempre "hacia arriba" en pantalla (mismo patrón que la navegación de coche en Google/Apple Maps), como alternativa al norte fijo de siempre. No sustituye al norte fijo — es un tercer modo elegible, junto a "Norte fijo" y "Centrar mapa en mi ubicación", desde el nuevo menú desplegable de `#btn-recentrar`. Documentación de referencia (autoridad, nivel de detalle completo): `docs/GUIA-COMPLETA.md` §4.6b.
+Diseño acordado con el usuario e implementado: el mapa puede rotar para que el rumbo actual del usuario quede siempre "hacia arriba" en pantalla (mismo patrón que la navegación de coche en Google/Apple Maps), como alternativa al norte fijo de siempre. No sustituye al norte fijo — es un tercer modo elegible, junto a "Norte fijo" y "Centrar mapa en mi ubicación", desde el menú desplegable `#brujula-modo`. Documentación de referencia (autoridad, nivel de detalle completo): `docs/GUIA-COMPLETA.md` §4.6b.
 
 ### 4.1 Lo programado
 
@@ -138,7 +138,7 @@ Tal como se previó: la polyline azul, los marcadores de parada/tramo y los nomb
 
 ### 4.4 Pendiente, a cargo del usuario
 
-Los 3 glifos de texto Unicode del menú (`N`, `➤`, `◎`) son marcadores de posición explícitos — el usuario diseñará los iconos definitivos en otra sesión. Sustituirlos no requiere tocar la lógica (es un cambio de `textContent`/`innerHTML` por botón, ver `_MODOS_CAMARA` en `codigo-padre.html`).
+Los 3 glifos de texto Unicode del menú (`N`, `➤`, `◎`) son marcadores de posición explícitos — el usuario diseñará los iconos definitivos en otra sesión. Sustituirlos no requiere tocar la lógica (es un cambio de `textContent`/`innerHTML` por botón, ver `_MODOS_BRUJULA` en `codigo-padre.html`).
 
 ### 4.5 Revisión posterior — dos cabos sueltos cerrados
 
@@ -147,7 +147,7 @@ Tras dar la implementación por completa, una revisión pedida explícitamente e
 1. **Brújula caída.** `activarSeguimientoRumbo()` no comprobaba si la brújula respondía de verdad — con el permiso denegado en iOS (o sin soporte de `DeviceOrientationEvent`), el modo se quedaba "encendido" (icono `➤`) sin que nada volviera a girar el mapa nunca, indistinguible de un cuelgue. Se decidió que revirtiera sola: `_elegirModoCamara('rumbo')` arma un `setTimeout` de 1.5s que comprueba el nuevo getter `funcionesMapa.brujulaEstaActiva()` y, si sigue sin responder, desactiva el modo y devuelve el icono a "Norte fijo".
 2. **"Elegir otra aventura" sin recargar.** Descubierto que existen dos caminos distintos para "otra aventura": el del modal de fin de aventura normal SÍ recarga la página (todo el estado del módulo se resetea solo); el del diálogo de reanudación de sesión (`mostrarDialogoVueltaRapida` → `ejecutarElegirOtra()`) NO recarga — así que el modo de cámara de la aventura abandonada sobrevivía a la siguiente. Se decidió resetear también aquí: `globalThis._resetModoCamaraRecentrar()`, llamado junto al resto de globals que `ejecutarElegirOtra()` ya limpiaba.
 
-Detalle completo, con referencias de línea, en `docs/GUIA-COMPLETA.md` §4.6b. Cubierto por `tests/e2e/25-boton-recentrar.spec.js` BR-7/BR-8.
+Detalle completo, con referencias de línea, en `docs/GUIA-COMPLETA.md` §4.6b. Cubierto por `tests/e2e/25-brujula-modo.spec.js` BR-7/BR-8.
 
 ### 4.6 Auditoría completa + inversa — dos hallazgos más, cerrados
 
@@ -156,7 +156,7 @@ Una auditoría de 23 ejes sobre el proyecto completo (más una auditoría invers
 1. **El timeout de reversión de brújula caída no distinguía activaciones.** El guard de §4.5.1 comparaba solo `_modoCamaraActivo === 'rumbo'` — un timeout de una elección VIEJA podía revertir una elección NUEVA si el usuario alternaba rumbo→norte→rumbo dos veces en menos de 1.5s. Fix: `_rumboActivacionId`, un contador que se incrementa en cada activación; el timeout compara también contra su propio valor capturado.
 2. **El menú competía con el `flyTo` de cambio de parada/tramo.** `reactivarSeguimientoCamara()`/`activarSeguimientoRumbo()`/`desactivarSeguimientoRumbo()` movían la cámara sin comprobar `estadoMapa.zoomEnCurso`, a diferencia del seguimiento por-tick que sí lo hace. Fix: mismo guard, pero solo sobre `center` — `bearing` se sigue aplicando siempre, porque ningún `flyTo` de la app lo toca nunca y omitirlo en `desactivarSeguimientoRumbo()` lo habría dejado sin corrección posible (esa función ya apaga `_camaraSiguiendoRumbo`).
 
-Detalle completo en `docs/GUIA-COMPLETA.md` §4.6b. Cubierto por `tests/e2e/25-boton-recentrar.spec.js` BR-9; el guard de `zoomEnCurso` no tiene test aislado (mismo motivo que el guard equivalente preexistente, ver `tests/e2e/24-camara-sigue-usuario.spec.js`), verificado por revisión directa del código.
+Detalle completo en `docs/GUIA-COMPLETA.md` §4.6b. Cubierto por `tests/e2e/25-brujula-modo.spec.js` BR-9; el guard de `zoomEnCurso` no tiene test aislado (mismo motivo que el guard equivalente preexistente, ver `tests/e2e/24-camara-sigue-usuario.spec.js`), verificado por revisión directa del código.
 
 La misma auditoría encontró y cerró tres hallazgos más fuera del ámbito de la brújula (un `SISTEMA.ERROR` de audio sin consumidor en el padre, un handler `NAVEGACION.GPS.DESACTIVAR` huérfano, y dos exports muertos en `js/mensajeria.js`) — no son parte del modo de mapa orientado al rumbo, documentados en sus secciones correspondientes de `docs/GUIA-COMPLETA.md`.
 
@@ -207,3 +207,27 @@ Para un tramo corto (parada-tramo-parada con poca distancia real, exactamente el
 **No tocado hoy** (fuera del alcance explícito, "solo el halo naranja"): la lógica de visibilidad del trazado (§4.7d de GUIA-COMPLETA, sus propios `≤20m` internos en `funciones-mapa.js` siguen en 20, mecanismo distinto tanto del radio de llegada de parada como de la tolerancia de tramo).
 
 **Botón de recentrar movido y agrandado.** El botón original (junto al logo, `clamp(20px,5.2vw,28px)`) resultaba demasiado pequeño y difícil de ver. Movido al borde derecho, mismo tamaño y `right` que el botón principal del selector de tipo de mapa (`clamp(36px,9.8vmin,52px)`), justo encima con el mismo hueco de 8px que ya separa al selector del botón de chat, z-index justo por debajo del selector (para que su desplegable, en los momentos puntuales en que se abre, lo tape sin problema). Documentado en GUIA-COMPLETA §4.6b.
+
+**Actualización posterior:** esta posición (apilado en el borde derecho, encima del selector) se cambió de nuevo — ver §8.
+
+---
+
+## 8. Reposicionado en espejo — un botón a cada lado de la pantalla
+
+El usuario pidió mover `#btn-recentrar` del borde derecho (apilado sobre `#selector-tipo-mapa`, §7) al borde **izquierdo**, a la **misma altura** que el selector — mismo `bottom`, y el mismo margen desde el borde izquierdo que el selector tiene desde el derecho (espejado, misma fórmula con `left` en vez de `right`). Resultado: los dos botones quedan alineados horizontalmente, uno en cada extremo de la pantalla, en vez de uno encima del otro en el mismo lado.
+
+Verificado con Playwright (medición real de `getBoundingClientRect()`, no solo lectura de CSS): `bottom` de ambos botones idéntico (494px desde el borde inferior del viewport en un iPhone 12 simulado), margen izquierdo de `#btn-recentrar` idéntico al margen derecho de `#selector-tipo-mapa` (15.875px), y sin solape con `extrainfo-hijo1.html` (columna izquierda) — el borde inferior del botón queda ~7px por encima del borde superior de hijo1, mismo margen que ya tenía el botón original con hijo2 en el lado derecho.
+
+Documentado en GUIA-COMPLETA §4.6b (reemplaza la descripción de posición de §7 de este documento, que queda como registro histórico de la decisión anterior). Test actualizado: `tests/e2e/25-brujula-modo.spec.js` BR-2.
+
+---
+
+## 9. Renombrado — `#btn-recentrar` pasa a ser `#brujula-modo`
+
+El usuario confirmó la propuesta de nombres apuntada al final de §8: el contenedor pasa de `#btn-recentrar` a **`#brujula-modo`**, y las tres opciones del menú pasan a identificarse en código como **`brujula-modo-norte`**, **`brujula-modo-seguimiento`** y **`brujula-modo-centrado`** — nombres más neutros que `brujula-norte`/`brujula-centrado`, para que alguien sin contexto de la app que toque el código entienda por el propio id que son las tres opciones del menú "modo" de la brújula, no que cada una usa el sensor de la brújula por separado.
+
+Cambiados: el id del contenedor, las variables/funciones internas del bloque en `codigo-padre.html` (`_MODOS_BRUJULA`, `_brujulaModoActivo`, `_brujulaModoDropdownAbierto`, `_brujulaModoSeguimientoActivacionId`, `_actualizarBrujulaModoBtnPrincipal()`, `_elegirBrujulaModo()`, `globalThis._resetBrujulaModo`), los tres valores de id de modo, los comentarios de `js/funciones-mapa.js` que apuntaban a `#btn-recentrar`, y las referencias en la suite de tests (`tests/e2e/25-boton-recentrar.spec.js` renombrado a `tests/e2e/25-brujula-modo.spec.js`, más los ajustes correspondientes en `16-loading-overlay-oculta-ui.spec.js` y `27-seguimiento-rumbo.spec.js`). Los tres nombres visibles para el usuario final ("Norte fijo", "Seguir mi rumbo", "Centrar mapa en mi ubicación") no cambian — el rename es solo de identificadores de código.
+
+Fuera de alcance, sin tocar: las funciones de comportamiento en `js/funciones-mapa.js` (`activarSeguimientoRumbo()`, `desactivarSeguimientoRumbo()`, `reactivarSeguimientoCamara()`, `brujulaEstaActiva()`, `_camaraSiguiendoRumbo`, `_camaraSiguiendoUsuario`) — son la lógica que el menú llama, no el menú en sí.
+
+Documentado en detalle en `docs/GUIA-COMPLETA.md` §4.6b.

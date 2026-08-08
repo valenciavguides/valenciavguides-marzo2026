@@ -1,10 +1,13 @@
 /**
- * 25-boton-recentrar.spec.js
+ * 25-brujula-modo.spec.js
  *
- * Prueba del menú de modo de cámara (`#btn-recentrar`, `codigo-padre.html`) —
+ * Prueba del menú de modo de cámara (`#brujula-modo`, `codigo-padre.html`) —
  * reescrito de un único botón ("centrar posición") a un desplegable de 3 opciones,
  * mismo patrón que `#selector-tipo-mapa` (botón principal + desplegable que crece
  * hacia arriba): "Norte fijo", "Seguir mi rumbo" y "Centrar mapa en mi ubicación".
+ * Posicionado en espejo respecto a `#selector-tipo-mapa`: misma altura (`bottom`),
+ * pero en el borde IZQUIERDO de la pantalla con el mismo margen que el selector
+ * tiene respecto al derecho — los dos quedan a la misma altura, uno a cada lado.
  * Ver `docs/GUIA-COMPLETA.md` §4.6b y `docs/brujula-y-mapa.md` §4 para el diseño
  * completo, incluida la razón de por qué "Centrar" no cambia el icono del modo
  * activo (es una acción puntual, no un modo persistente como los otros dos).
@@ -12,7 +15,8 @@
  *   BR-1  El contenedor existe, empieza oculto (display:none, sin estilo inline que
  *         lo fuerce a visible) — no debe aparecer antes de que el mapa esté en
  *         pantalla.
- *   BR-2  Mismo `right` y `z-index` (justo por debajo) que `#selector-tipo-mapa`; el
+ *   BR-2  Misma altura (`bottom`) que `#selector-tipo-mapa`, y el mismo margen desde
+ *         el borde izquierdo que el selector tiene desde el derecho (espejado); el
  *         botón principal (hijo, sin id propio) tiene el ancho esperado.
  *   BR-3  Pulsar el botón principal despliega las 3 opciones (max-height > 0);
  *         empieza plegado (max-height 0).
@@ -26,13 +30,13 @@
  *   BR-7  Si la brújula no responde (permiso denegado/no soportada), "Seguir mi
  *         rumbo" revierte solo a "Norte fijo" ~1.5s después de elegirlo, sin dejar el
  *         icono mintiendo sobre un modo ya muerto.
- *   BR-8  globalThis._resetModoCamaraRecentrar() (llamado desde ejecutarElegirOtra()
+ *   BR-8  globalThis._resetBrujulaModo() (llamado desde ejecutarElegirOtra()
  *         al elegir otra aventura desde el diálogo de reanudación de sesión, que no
  *         recarga la página) devuelve el menú a "Norte fijo" bajo demanda.
  *   BR-9  Corrección de una condición de carrera (auditoría): alternar rumbo→norte→
  *         rumbo dos veces en menos de 1.5s no deja que el timeout de auto-reversión
  *         de la PRIMERA elección revierta la SEGUNDA antes de que cumpla su propio
- *         plazo de gracia — el guard compara contra `_rumboActivacionId`, no solo
+ *         plazo de gracia — el guard compara contra `_brujulaModoSeguimientoActivacionId`, no solo
  *         contra el modo activo.
  */
 'use strict';
@@ -50,32 +54,32 @@ test.describe('BR — Menú de modo de cámara', () => {
     await stubCDNResources(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await gotoAndWaitForFase1(page);
-    await page.waitForSelector('#btn-recentrar', { state: 'attached', timeout: 15000 });
+    await page.waitForSelector('#brujula-modo', { state: 'attached', timeout: 15000 });
   });
 
   test('BR-1. Existe y empieza oculto', async ({ page }) => {
     const info = await page.evaluate(() => {
-      const el = document.getElementById('btn-recentrar');
+      const el = document.getElementById('brujula-modo');
       return { existe: !!el, display: el ? getComputedStyle(el).display : null };
     });
     expect(info.existe, 'El contenedor debe existir en el DOM').toBe(true);
     expect(info.display, 'Debe empezar oculto, sin estilo inline forzándolo a visible').toBe('none');
   });
 
-  test('BR-2. Mismo right/z-index que #selector-tipo-mapa; botón principal con el ancho esperado', async ({ page }) => {
+  test('BR-2. Misma altura que #selector-tipo-mapa, espejado al lado izquierdo; botón principal con el ancho esperado', async ({ page }) => {
     await page.waitForSelector('#selector-tipo-mapa', { state: 'attached', timeout: 15000 });
     const info = await page.evaluate(() => {
-      const recentrar = getComputedStyle(document.getElementById('btn-recentrar'));
+      const brujulaModo = getComputedStyle(document.getElementById('brujula-modo'));
       const selector = getComputedStyle(document.getElementById('selector-tipo-mapa'));
-      const btnPrincipal = document.querySelector('#btn-recentrar > div:first-child');
+      const btnPrincipal = document.querySelector('#brujula-modo > div:first-child');
       return {
-        rightRecentrar: recentrar.right, rightSelector: selector.right,
-        zRecentrar: Number(recentrar.zIndex), zSelector: Number(selector.zIndex),
+        bottomBrujulaModo: brujulaModo.bottom, bottomSelector: selector.bottom,
+        leftBrujulaModo: brujulaModo.left, rightSelector: selector.right,
         anchoPrincipalPx: btnPrincipal ? parseFloat(getComputedStyle(btnPrincipal).width) : NaN,
       };
     });
-    expect(info.rightRecentrar, 'Misma distancia al borde derecho que el selector de mapa').toBe(info.rightSelector);
-    expect(info.zRecentrar).toBeLessThan(info.zSelector);
+    expect(info.bottomBrujulaModo, 'Misma altura (bottom) que el selector de mapa').toBe(info.bottomSelector);
+    expect(info.leftBrujulaModo, 'Mismo margen desde el borde izquierdo que el selector tiene desde el derecho (espejado)').toBe(info.rightSelector);
     expect(info.anchoPrincipalPx, 'Ancho del botón principal en el rango esperado (clamp 36-52px)').toBeGreaterThanOrEqual(36);
     expect(info.anchoPrincipalPx).toBeLessThanOrEqual(52);
   });
@@ -84,21 +88,21 @@ test.describe('BR — Menú de modo de cámara', () => {
     // El cálculo de altura disponible usa getBoundingClientRect(), que solo da valores
     // reales con el elemento visible (display:none siempre da 0) — se fuerza aquí igual
     // que en el resto de tests de interacción de este fichero.
-    await page.evaluate(() => { document.getElementById('btn-recentrar').style.display = 'flex'; });
+    await page.evaluate(() => { document.getElementById('brujula-modo').style.display = 'flex'; });
 
     const antes = await page.evaluate(() => {
-      const opciones = document.querySelectorAll('#btn-recentrar > div:last-child > div');
-      return { numOpciones: opciones.length, maxHeight: document.querySelector('#btn-recentrar > div:last-child').style.maxHeight };
+      const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
+      return { numOpciones: opciones.length, maxHeight: document.querySelector('#brujula-modo > div:last-child').style.maxHeight };
     });
     expect(antes.numOpciones, 'Debe haber exactamente 3 opciones en el desplegable').toBe(3);
     expect(antes.maxHeight, 'Empieza plegado').toBe('0px');
 
-    await page.evaluate(() => document.querySelector('#btn-recentrar > div:first-child').click());
-    const trasAbrir = await page.evaluate(() => document.querySelector('#btn-recentrar > div:last-child').style.maxHeight);
+    await page.evaluate(() => document.querySelector('#brujula-modo > div:first-child').click());
+    const trasAbrir = await page.evaluate(() => document.querySelector('#brujula-modo > div:last-child').style.maxHeight);
     expect(trasAbrir, 'Tras pulsar el botón principal, debe desplegarse (max-height > 0)').not.toBe('0px');
 
-    await page.evaluate(() => document.querySelector('#btn-recentrar > div:first-child').click());
-    const trasCerrar = await page.evaluate(() => document.querySelector('#btn-recentrar > div:last-child').style.maxHeight);
+    await page.evaluate(() => document.querySelector('#brujula-modo > div:first-child').click());
+    const trasCerrar = await page.evaluate(() => document.querySelector('#brujula-modo > div:last-child').style.maxHeight);
     expect(trasCerrar, 'Un segundo toque debe plegarlo de nuevo').toBe('0px');
   });
 
@@ -106,16 +110,16 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const resultado = await page.evaluate(() => {
-      document.getElementById('btn-recentrar').style.display = 'flex';
+      document.getElementById('brujula-modo').style.display = 'flex';
       let llamado = false;
       const original = globalThis.funcionesMapa.desactivarSeguimientoRumbo;
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { llamado = true; };
 
-      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
-      const opciones = document.querySelectorAll('#btn-recentrar > div:last-child > div');
-      opciones[0].click(); // "Norte fijo" — primera opción del array _MODOS_CAMARA
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
+      opciones[0].click(); // "Norte fijo" — primera opción del array _MODOS_BRUJULA
 
-      const maxHeightTrasElegir = document.querySelector('#btn-recentrar > div:last-child').style.maxHeight;
+      const maxHeightTrasElegir = document.querySelector('#brujula-modo > div:last-child').style.maxHeight;
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = original;
       return { llamado, maxHeightTrasElegir };
     });
@@ -128,16 +132,16 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const resultado = await page.evaluate(() => {
-      document.getElementById('btn-recentrar').style.display = 'flex';
+      document.getElementById('brujula-modo').style.display = 'flex';
       let llamado = false;
       const original = globalThis.funcionesMapa.activarSeguimientoRumbo;
       globalThis.funcionesMapa.activarSeguimientoRumbo = () => { llamado = true; };
 
-      const iconoAntes = document.querySelector('#btn-recentrar > div:first-child').textContent;
-      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
-      const opciones = document.querySelectorAll('#btn-recentrar > div:last-child > div');
-      opciones[1].click(); // "Seguir mi rumbo" — segunda opción del array _MODOS_CAMARA
-      const iconoDespues = document.querySelector('#btn-recentrar > div:first-child').textContent;
+      const iconoAntes = document.querySelector('#brujula-modo > div:first-child').textContent;
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
+      opciones[1].click(); // "Seguir mi rumbo" — segunda opción del array _MODOS_BRUJULA
+      const iconoDespues = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       globalThis.funcionesMapa.activarSeguimientoRumbo = original;
       return { llamado, iconoAntes, iconoDespues };
@@ -151,16 +155,16 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const resultado = await page.evaluate(() => {
-      document.getElementById('btn-recentrar').style.display = 'flex';
+      document.getElementById('brujula-modo').style.display = 'flex';
       let llamado = false;
       const original = globalThis.funcionesMapa.reactivarSeguimientoCamara;
       globalThis.funcionesMapa.reactivarSeguimientoCamara = () => { llamado = true; };
 
-      const iconoAntes = document.querySelector('#btn-recentrar > div:first-child').textContent;
-      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
-      const opciones = document.querySelectorAll('#btn-recentrar > div:last-child > div');
+      const iconoAntes = document.querySelector('#brujula-modo > div:first-child').textContent;
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
       opciones[2].click(); // "Centrar mapa en mi ubicación" — tercera opción
-      const iconoDespues = document.querySelector('#btn-recentrar > div:first-child').textContent;
+      const iconoDespues = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       globalThis.funcionesMapa.reactivarSeguimientoCamara = original;
       return { llamado, iconoAntes, iconoDespues };
@@ -174,7 +178,7 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const inmediato = await page.evaluate(() => {
-      document.getElementById('btn-recentrar').style.display = 'flex';
+      document.getElementById('brujula-modo').style.display = 'flex';
       let llamadaActivar = false, llamadaDesactivar = false;
       globalThis.funcionesMapa.activarSeguimientoRumbo = () => { llamadaActivar = true; };
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { llamadaDesactivar = true; };
@@ -182,11 +186,11 @@ test.describe('BR — Menú de modo de cámara', () => {
       globalThis.funcionesMapa.brujulaEstaActiva = () => false;
       globalThis.__llamadas = () => ({ llamadaActivar, llamadaDesactivar });
 
-      const iconoInicial = document.querySelector('#btn-recentrar > div:first-child').textContent;
-      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
-      const opciones = document.querySelectorAll('#btn-recentrar > div:last-child > div');
+      const iconoInicial = document.querySelector('#brujula-modo > div:first-child').textContent;
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
       opciones[1].click(); // "Seguir mi rumbo"
-      const iconoTrasElegir = document.querySelector('#btn-recentrar > div:first-child').textContent;
+      const iconoTrasElegir = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       return { iconoInicial, iconoTrasElegir, ...globalThis.__llamadas() };
     });
@@ -198,7 +202,7 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForTimeout(1700); // deja pasar el timeout de auto-reversión (1500ms)
 
     const trasEspera = await page.evaluate(() => ({
-      icono: document.querySelector('#btn-recentrar > div:first-child').textContent,
+      icono: document.querySelector('#brujula-modo > div:first-child').textContent,
       ...globalThis.__llamadas(),
     }));
 
@@ -206,32 +210,32 @@ test.describe('BR — Menú de modo de cámara', () => {
     expect(trasEspera.icono, 'El icono debe volver al de "Norte fijo"').toBe(inmediato.iconoInicial);
   });
 
-  test('BR-8. globalThis._resetModoCamaraRecentrar() devuelve el menú a "Norte fijo" bajo demanda', async ({ page }) => {
+  test('BR-8. globalThis._resetBrujulaModo() devuelve el menú a "Norte fijo" bajo demanda', async ({ page }) => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const resultado = await page.evaluate(() => {
-      document.getElementById('btn-recentrar').style.display = 'flex';
+      document.getElementById('brujula-modo').style.display = 'flex';
       let llamadaDesactivar = false;
       const original = globalThis.funcionesMapa.desactivarSeguimientoRumbo;
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { llamadaDesactivar = true; };
 
-      const iconoInicial = document.querySelector('#btn-recentrar > div:first-child').textContent;
+      const iconoInicial = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       // Simula haber elegido "Seguir mi rumbo" en la aventura abandonada, sin esperar a
       // la reversión automática de BR-7 (se llama al hook de reset directamente y rápido).
-      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
-      document.querySelectorAll('#btn-recentrar > div:last-child > div')[1].click(); // "Seguir mi rumbo"
-      const iconoTrasElegir = document.querySelector('#btn-recentrar > div:first-child').textContent;
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      document.querySelectorAll('#brujula-modo > div:last-child > div')[1].click(); // "Seguir mi rumbo"
+      const iconoTrasElegir = document.querySelector('#brujula-modo > div:first-child').textContent;
 
-      const existe = typeof globalThis._resetModoCamaraRecentrar === 'function';
-      globalThis._resetModoCamaraRecentrar?.();
-      const iconoTrasReset = document.querySelector('#btn-recentrar > div:first-child').textContent;
+      const existe = typeof globalThis._resetBrujulaModo === 'function';
+      globalThis._resetBrujulaModo?.();
+      const iconoTrasReset = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = original;
       return { existe, iconoInicial, iconoTrasElegir, iconoTrasReset, llamadaDesactivar };
     });
 
-    expect(resultado.existe, 'globalThis._resetModoCamaraRecentrar debe existir como función').toBe(true);
+    expect(resultado.existe, 'globalThis._resetBrujulaModo debe existir como función').toBe(true);
     expect(resultado.iconoTrasElegir, 'Precondición: el icono debe haber cambiado al elegir "Seguir mi rumbo"').not.toBe(resultado.iconoInicial);
     expect(resultado.llamadaDesactivar, 'El reset debe invocar desactivarSeguimientoRumbo()').toBe(true);
     expect(resultado.iconoTrasReset, 'El icono debe volver al de "Norte fijo" tras el reset').toBe(resultado.iconoInicial);
@@ -241,7 +245,7 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     await page.evaluate(() => {
-      document.getElementById('btn-recentrar').style.display = 'flex';
+      document.getElementById('brujula-modo').style.display = 'flex';
       globalThis.funcionesMapa.activarSeguimientoRumbo = () => {};
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { globalThis.__vv_llamadasDesactivar = (globalThis.__vv_llamadasDesactivar || 0) + 1; };
       // Brújula caída durante todo el test — sin esto, ninguna de las dos elecciones
@@ -250,12 +254,12 @@ test.describe('BR — Menú de modo de cámara', () => {
     });
 
     const elegirRumbo = () => page.evaluate(() => {
-      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
-      document.querySelectorAll('#btn-recentrar > div:last-child > div')[1].click(); // "Seguir mi rumbo"
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      document.querySelectorAll('#brujula-modo > div:last-child > div')[1].click(); // "Seguir mi rumbo"
     });
     const elegirNorte = () => page.evaluate(() => {
-      document.querySelector('#btn-recentrar > div:first-child').click(); // abrir
-      document.querySelectorAll('#btn-recentrar > div:last-child > div')[0].click(); // "Norte fijo"
+      document.querySelector('#brujula-modo > div:first-child').click(); // abrir
+      document.querySelectorAll('#brujula-modo > div:last-child > div')[0].click(); // "Norte fijo"
     });
 
     // t=0: elige "rumbo" (activación A, arma un timeout para t≈1500).
@@ -275,7 +279,7 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForTimeout(900);
     const trasTimeoutViejo = await page.evaluate(() => ({
       llamadas: globalThis.__vv_llamadasDesactivar,
-      icono: document.querySelector('#btn-recentrar > div:first-child').textContent,
+      icono: document.querySelector('#brujula-modo > div:first-child').textContent,
     }));
     expect(trasTimeoutViejo.llamadas, 'El timeout viejo (de la primera elección) no debe revertir la elección nueva').toBe(0);
     expect(trasTimeoutViejo.icono, 'El modo debe seguir siendo "Seguir mi rumbo" (icono sin cambiar)').toBe('➤');
@@ -285,7 +289,7 @@ test.describe('BR — Menú de modo de cámara', () => {
     await page.waitForTimeout(800);
     const trasTimeoutNuevo = await page.evaluate(() => ({
       llamadas: globalThis.__vv_llamadasDesactivar,
-      icono: document.querySelector('#btn-recentrar > div:first-child').textContent,
+      icono: document.querySelector('#brujula-modo > div:first-child').textContent,
     }));
     expect(trasTimeoutNuevo.llamadas, 'El timeout de la elección más reciente sí debe revertir, cumplido su propio plazo').toBe(1);
     expect(trasTimeoutNuevo.icono, 'El icono debe volver al de "Norte fijo"').toBe('N');

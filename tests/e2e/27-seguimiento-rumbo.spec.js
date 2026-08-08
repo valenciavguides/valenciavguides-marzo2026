@@ -2,7 +2,7 @@
  * 27-seguimiento-rumbo.spec.js
  *
  * Prueba del seguimiento de rumbo (js/funciones-mapa.js): el "modo Seguir mi rumbo"
- * del menú de #btn-recentrar (ver 25-boton-recentrar.spec.js para el propio botón)
+ * del menú de #brujula-modo (ver 25-brujula-modo.spec.js para el propio botón)
  * hace que el mapa rote para mantener siempre el rumbo del usuario "hacia arriba" en
  * pantalla, como la navegación de coche — construido sobre la corrección de bearing
  * de RB-1 (17-flecha-brujula-continuidad.spec.js). activarSeguimientoRumbo() y

@@ -173,7 +173,7 @@ let _mapaInstance = null; // Instancia del mapa MapLibre
 let _mapaOpciones = null; // Opciones del mapa
 let _pulseTimeout = null; // Timeout del efecto de llegada (cancelable)
 let _camaraSiguiendoUsuario = true; // false tras un arrastre manual del usuario — ver _registrarSeguimientoCamara()
-let _camaraSiguiendoRumbo = false; // true tras elegir "Seguir mi rumbo" en el menú de #btn-recentrar — ver _registrarSeguimientoRumbo()
+let _camaraSiguiendoRumbo = false; // true tras elegir "Seguir mi rumbo" en el menú de #brujula-modo — ver _registrarSeguimientoRumbo()
 
 // Array de paradas locales
 let arrayParadasLocal = [];
@@ -892,7 +892,7 @@ function _registrarSeguimientoCamara() {
  * incluye `originalEvent` solo cuando el gesto viene de verdad del usuario — un
  * `easeTo()`/`setBearing()` programático (el propio seguimiento) no lo dispara con
  * ese campo presente, así que no se pausa a sí mismo por error. Retomar el
- * seguimiento es responsabilidad del menú de modo de `#btn-recentrar`
+ * seguimiento es responsabilidad del menú de modo de `#brujula-modo`
  * (`codigo-padre.html`), vía `activarSeguimientoRumbo()`.
  */
 function _registrarSeguimientoRumbo() {
@@ -908,7 +908,7 @@ function _registrarSeguimientoRumbo() {
 /**
  * Reactiva el seguimiento automático de cámara y recentra de inmediato sobre la
  * última posición GPS conocida — llamado por la opción "Centrar mapa en mi
- * ubicación" del menú de `#btn-recentrar`. No toca el seguimiento de rumbo (ni el
+ * ubicación" del menú de `#brujula-modo`. No toca el seguimiento de rumbo (ni el
  * bearing actual) para nada — solo posición, tal como dice su nombre.
  */
 export function reactivarSeguimientoCamara() {
@@ -930,7 +930,7 @@ export function reactivarSeguimientoCamara() {
  * bearing de inmediato con el último rumbo conocido de la brújula — no espera a la
  * siguiente lectura. También reactiva el seguimiento de posición: elegir un modo
  * del menú es, en sí mismo, un "vuelve a seguirme" explícito, igual que pulsar
- * "centrar" — llamado por la opción "Seguir mi rumbo" del menú de `#btn-recentrar`.
+ * "centrar" — llamado por la opción "Seguir mi rumbo" del menú de `#brujula-modo`.
  */
 export function activarSeguimientoRumbo() {
     _camaraSiguiendoRumbo = true;
@@ -953,7 +953,7 @@ export function activarSeguimientoRumbo() {
  * Desactiva el seguimiento de rumbo y fija el mapa a norte arriba (bearing 0) de
  * inmediato. También reactiva el seguimiento de posición, mismo motivo que
  * `activarSeguimientoRumbo()` — llamado por la opción "Norte fijo" del menú de
- * `#btn-recentrar`.
+ * `#brujula-modo`.
  */
 export function desactivarSeguimientoRumbo() {
     _camaraSiguiendoRumbo = false;
