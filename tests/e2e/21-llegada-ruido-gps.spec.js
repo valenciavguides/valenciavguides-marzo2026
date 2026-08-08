@@ -7,14 +7,27 @@
  * correcta (polyline verde incluida), pero al llegar a la diana física la llegada nunca
  * se detectaba, ni esperando un buen rato parado en el sitio.
  *
- * Causa raíz confirmada: _registrarCandidataLlegada() (coordenadas-hijo2.html y su
- * equivalente en js/funciones-mapa.js) exigía 2 lecturas GPS SEGUIDAS dentro del radio
- * de 20m. El ruido real de GPS urbano (calles estrechas, edificios altos) hace que la
- * distancia oscile alrededor de un umbral fijo — basta con que una lectura de cada dos
- * caiga fuera del radio para que el contador de "seguidas" nunca llegue a 2, sin importar
- * cuánto tiempo pase. El arreglo confirma con 2 de las últimas 4 lecturas (no
+ * Causa raíz confirmada: _registrarCandidataLlegada() exigía 2 lecturas GPS SEGUIDAS
+ * dentro de radio. El ruido real de GPS urbano (calles estrechas, edificios altos) hace
+ * que la distancia oscile alrededor de un umbral fijo — basta con que una lectura de cada
+ * dos caiga fuera del radio para que el contador de "seguidas" nunca llegue a 2, sin
+ * importar cuánto tiempo pase. El arreglo confirma con 2 de las últimas 4 lecturas (no
  * necesariamente seguidas), tolerando ese patrón sin perder la protección original
  * contra una única lectura ruidosa aislada.
+ *
+ * Dos implementaciones independientes de esta misma ventana deslizante, con radios
+ * DISTINTOS — no confundir uno con otro al leer los umbrales de este archivo:
+ *   - coordenadas-hijo2.html — `_detectarLlegadaParada()`, radio real = `RADIO_PARADA`
+ *     (10m hoy; era 20m antes de una corrección posterior a este mismo arreglo).
+ *   - js/funciones-mapa.js — sensor redundante, `verificarLlegadaADestino()` →
+ *     `calcularToleranciaGPS()`, radio fijo de 50m para paradas — nunca tuvo relación
+ *     con `RADIO_PARADA`, ni antes ni ahora.
+ * Este archivo carga hijo2 como iframe real (`cargarHijo2Real`, necesario para que RG-4
+ * pueda comprobar el enrutamiento del mensaje), pero `enviarLectura()` llama siempre a
+ * `funcionesMapa.procesarPosicionGPSParaAventura()` directamente — es decir, RG-1/2/3
+ * ejercitan el sensor de **funciones-mapa.js con su radio fijo de 50m**, no el detector
+ * real de hijo2. Los estímulos de RG-3 están elegidos para acercarse a esos 50m, no a
+ * los 10m de `RADIO_PARADA`.
  *
  * De camino se encontró y arregló un segundo bug, independiente: el sensor "redundante"
  * de funciones-mapa.js (pensado como respaldo del de hijo2) se autoenviaba
@@ -29,10 +42,11 @@
  *         llegada — control de que el arreglo no rompió el caso normal.
  *   RG-2  Una única lectura ruidosa aislada (1 de 4) NO confirma la llegada — la
  *         ventana deslizante conserva la protección original contra falsos positivos.
- *   RG-3  Ruido oscilando 15m/25m alrededor del radio de 20m (nunca 2 lecturas SEGUIDAS
- *         dentro), reproduciendo el reporte de campo con datos reales de Av1-P-1 y un
- *         hijo2 real cargado como iframe (no un mensaje sintético): SÍ confirma la
- *         llegada tras el arreglo — antes del arreglo, esto nunca confirmaba.
+ *   RG-3  Ruido oscilando 45m/55m alrededor del radio real de 50m (nunca 2 lecturas
+ *         SEGUIDAS dentro), reproduciendo el patrón de campo original (entonces medido
+ *         contra otro radio, ver nota de las dos implementaciones arriba) con datos
+ *         reales de Av1-P-1: SÍ confirma la llegada tras el arreglo — antes del arreglo,
+ *         este patrón nunca confirmaba.
  *   RG-4  El sensor redundante de funciones-mapa.js ya no genera el warning "Iframe no
  *         encontrado o sin contentWindow" con el ID del propio padre como destino.
  */
@@ -150,8 +164,8 @@ test.describe('RG — Llegada por ventana deslizante, tolerante a ruido GPS real
     const prep = await prepararEscenario(page);
     test.skip(!prep.tieneFunciones || !prep.paradaEncontrada, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    // 1 lectura dentro de radio (10m) rodeada de lecturas lejos (80m) — nunca debe
-    // acumular 2 de 4 dentro del radio.
+    // 1 lectura dentro del radio real de 50m (a 10m) rodeada de lecturas lejos (80m,
+    // fuera de los 50m) — nunca debe acumular 2 de 4 dentro del radio.
     const lejos = puntoADistancia(PARADA.lat, PARADA.lng, 80, 0);
     const cerca = puntoADistancia(PARADA.lat, PARADA.lng, 10, 0);
     for (const pt of [lejos, cerca, lejos, lejos]) {
@@ -163,21 +177,22 @@ test.describe('RG — Llegada por ventana deslizante, tolerante a ruido GPS real
     expect(pending, 'Una única lectura dentro de radio (aislada) no debe confirmar llegada').not.toBe(true);
   });
 
-  test('RG-3. Ruido 15m/25m alrededor del radio de 20m SÍ confirma llegada (reporte de campo)', async ({ page }) => {
+  test('RG-3. Ruido 45m/55m alrededor del radio real de 50m SÍ confirma llegada (reporte de campo)', async ({ page }) => {
     const prep = await prepararEscenario(page);
     test.skip(!prep.tieneFunciones || !prep.paradaEncontrada, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    // Nunca 2 lecturas SEGUIDAS dentro del radio de 20m por construcción — antes del
+    // 45m/55m straddlean el radio real de 50m de calcularToleranciaGPS() para paradas
+    // (funciones-mapa.js) — nunca 2 lecturas SEGUIDAS dentro por construcción. Antes del
     // arreglo esto no confirmaba llegada nunca, por muchas lecturas que pasaran.
     for (let i = 0; i < 12; i++) {
-      const metros = i % 2 === 0 ? 15 : 25;
+      const metros = i % 2 === 0 ? 45 : 55;
       const pt = puntoADistancia(PARADA.lat, PARADA.lng, metros, 90);
       await enviarLectura(page, pt);
       await page.waitForTimeout(180);
     }
 
     const pending = await leerPendingLlegada(page, prep.padreid);
-    expect(pending, 'Ruido oscilando alrededor del radio debe confirmar llegada con la ventana deslizante').toBe(true);
+    expect(pending, 'Ruido oscilando alrededor del radio real debe confirmar llegada con la ventana deslizante').toBe(true);
   });
 
   test('RG-4. El sensor redundante de funciones-mapa.js ya no descarta su propio envío', async ({ page }) => {

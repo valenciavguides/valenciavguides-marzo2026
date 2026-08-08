@@ -383,7 +383,7 @@
             */
             /* Base compartida por las 3 pantallas de aviso GPS por distancia (§30 de la guía):
                fotogpserror (>2000m o accuracy>50m), foto-lejos (51-2000m), foto-fuera-rango
-               (21-50m). Cada una solo añade su propio z-index — ver reglas #gps-out-of-range-
+               (11-50m). Cada una solo añade su propio z-index — ver reglas #gps-out-of-range-
                overlay / #foto-lejos-overlay / #foto-fuera-rango-overlay más abajo. */
             .gps-overlay-distancia {
                     position: fixed;
@@ -505,7 +505,7 @@
 
         .gps-overlay-distancia .gps-overlay-retry-btn:active { transform: scale(0.96); }
 
-        /* Cuenta atrás más pequeña en foto-fuera-rango (21-50m) — flota sobre la parte
+        /* Cuenta atrás más pequeña en foto-fuera-rango (11-50m) — flota sobre la parte
            baja de la imagen, justo encima de la banda inferior donde vive el botón. */
         #foto-fuera-rango-overlay .vv-overlay-countdown {
             font-size: clamp(1.25rem, 5vmin, 2rem);
@@ -2326,6 +2326,7 @@
     body.loading #info-parada,
     body.loading #logo-aventura,
     body.loading #selector-tipo-mapa,
+    body.loading #btn-recentrar,
     body.loading #btn-chat-soporte,
     body.loading iframe {
         visibility: hidden !important;
@@ -5951,7 +5952,7 @@
         // ──────────────────────────────────────────────────────────────
         // Pantallas de aviso GPS por distancia (§30 de la guía): fotogpserror
         // (>2000m o accuracy>50m, arriba), foto-lejos (51-2000m), foto-fuera-rango
-        // (21-50m, con cuenta atrás de 5 min). Solo una visible a la vez.
+        // (11-50m, con cuenta atrás de 5 min). Solo una visible a la vez.
         // ──────────────────────────────────────────────────────────────
 
         function _actualizarFilaDistanciaOverlay(rowId, distanciaActual, distanciaMax) {
@@ -5976,7 +5977,7 @@
         const _SNOOZE_DURACION_MS = {
             'gps-out-of-range-overlay': 150000, // muy lejos / posición no fiable — 150s
             'foto-lejos-overlay': 120000,       // lejos (51-2000m) — 120s
-            'foto-fuera-rango-overlay': 60000   // fuera de rango real (21-50m) — 60s
+            'foto-fuera-rango-overlay': 60000   // fuera de rango real (11-50m) — 60s
         };
 
         function _snoozearOverlayDistancia(id) {
@@ -10392,8 +10393,8 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // Reparte la distancia real recibida de hijo2 entre las 3 pantallas de aviso (§30):
         // >2000m → fotogpserror (reutilizada, mismo aviso que accuracy>50m/5km); 51-2000m →
-        // foto-lejos; 21-50m → foto-fuera-rango (con cuenta atrás). hijo2 solo envía este
-        // mensaje cuando ya sabe que está por encima de su propio rango real (20m parada /
+        // foto-lejos; 11-50m → foto-fuera-rango (con cuenta atrás). hijo2 solo envía este
+        // mensaje cuando ya sabe que está por encima de su propio rango real (10m parada /
         // toleranciaGPS tramo), así que aquí no hace falta volver a comprobarlo.
         async function _hdl_NAVEGACION_GPS_RESTRINGIDO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.RESTRINGIDO][${mensaje?.origen || 'desconocido'}]`;
@@ -11245,7 +11246,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 // No se limpia la polyline de navegación aquí: procesarPosicionGPSParaAventura()
                 // (js/funciones-mapa.js) la redibuja automáticamente en cada posición GPS mientras
-                // distancia > 50m, con su propio umbral independiente del de "fuera de rango" (~20m/
+                // distancia > 50m, con su propio umbral independiente del de "fuera de rango" (~10m/
                 // toleranciaGPS) que dispara este mensaje — limpiarla aquí competía con ese redibujado
                 // y la hacía parpadear/desaparecer.
 

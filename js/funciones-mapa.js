@@ -1511,15 +1511,10 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
             logger.debug('Polyline omitida (modo casa o deshabilitado)');
         }
 
-        // Crear iconos personalizados usando colores en lugar de archivos
-        const crearIconoColoreado = (color) => {
+        // Icono de marcador para inicio/parada — emoji 🎯 (único caso alcanzable: ver más abajo)
+        const crearIconoParada = () => {
             const iconos = getIconoEscalado();
-            // Para marcadores verdes (paradas), usar emoji 🎯
-            if (color === '#4CAF50') {
-                return `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;">🎯</div>`;
-            }
-            // Para otros colores, usar círculos coloreados
-            return `<div style="background-color: ${color}; width: ${iconos.inicio}px; height: ${iconos.inicio}px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`;
+            return `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;">🎯</div>`;
         };
 
         // Agregar marcadores SOLO para inicio, parada y fin (omitir waypoints intermedios)
@@ -1542,8 +1537,7 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
                 return;
             }
 
-            // Para inicio o paradas, usar icono coloreado o emoji
-            let markerColor = '#4CAF50';
+            // Para inicio o paradas, usar emoji 🎯
             if (coord.tipo === 'inicio' || (coord.tipo === 'tramo' && isFirst)) {
                 markerTitle = coord.nombre || 'Inicio';
                 // Usar emoji 📌 para punto de inicio
@@ -1556,8 +1550,8 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
                 markerTitle = coord.nombre || `Parada ${coord.id}`;
             }
 
-            const marker = _crearMarcadorHTML(coord, crearIconoColoreado(markerColor), {
-                className: markerColor === '#4CAF50' ? 'custom-marker-emoji' : 'custom-marker',
+            const marker = _crearMarcadorHTML(coord, crearIconoParada(), {
+                className: 'custom-marker-emoji',
                 title: markerTitle,
                 zIndex: 600
             });
@@ -3082,9 +3076,13 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // CASA explícitamente aquí para no empezar a ocultar cosas que en CASA deben quedarse
         // visibles siempre).
         //
-        // Parada: cerca = distancia ≤20m al punto (mismo radio que "llegada").
+        // Parada: cerca = distancia ≤10m al punto — umbral de VISIBILIDAD del trazado,
+        // igualado a propósito al radio de "llegada" (RADIO_PARADA, coordenadas-hijo2.html)
+        // en una revisión posterior a cuando este bloque se escribió por primera vez con 20m.
         // Tramo, fase 1 (aún no ha llegado nunca a .inicio en esta activación): cerca =
-        // distancia ≤20m a .inicio — el mismo criterio que antes, ahora generalizado.
+        // distancia ≤20m a .inicio — este umbral NO se tocó en esa misma revisión (alcance
+        // explícitamente distinto a "parada"); sigue siendo un valor distinto e independiente,
+        // no la misma constante que el de arriba.
         // Tramo, fase 2 (ya llegó a .inicio alguna vez): cerca = distanciaAlCamino ≤ toleranciaGPS
         // — deliberadamente NO vuelve a medir contra .inicio, porque avanzar hacia .fin aleja
         // por definición de .inicio; usar distanciaAlCamino (y no una re-visita a .inicio) es lo
@@ -3101,7 +3099,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     cerca = distanciaAlCamino <= toleranciaGPS;
                 }
             } else {
-                cerca = distancia <= 20;
+                cerca = distancia <= 10;
             }
 
             // Confirmación por ventana deslizante (2 de las últimas 4 lecturas de "cerca" en

@@ -95,7 +95,7 @@ La aplicación soporta **12 idiomas**: español, inglés, francés, italiano, ne
 Actualmente hay **7 aventuras** definidas en `js/indice-aventuras.js`, todas con `disponible: true` (aparecen en la pantalla de selección): **Aventuras 1, 2, 3, 4, 5, Fallas y 34km**. `disponible: true` solo controla si la aventura es seleccionable — no garantiza que el contenido esté completo, y el nivel de completitud varía mucho según el tipo de contenido:
 
 - **Rutas GPS** (`coordenadas-aventuras.js`): completas en las 7 aventuras, incluidas las referencias visuales (una entrada `tipo:"referencia"` por cada pin numerado del mapa de cada aventura — ver §26.10).
-- **Audios narrados** (`audios-aventuras.js`, campo `file`): la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma en las 7 aventuras. **11 de los 12 idiomas** (todos salvo español) tienen `file:''` en el 100% de sus entradas — sin audio real, el sistema lo gestiona sin romper el flujo (`file:''` → sin reproducción, ver §7.4). **El español es distinto y no está simplemente "más avanzado":** sus `file` nunca están vacíos, pero las 66-237 entradas de cada aventura (verificado en las 7) apuntan solo a 2 ficheros compartidos (`01-Intro-ESPAÑOL-1.mp3`/`02-Intro-ESPAÑOL-2.mp3`, en `audios-aventuras/español/`) — no hay ninguna narración distinta por parada todavía, y los subdirectorios por aventura donde debería vivir esa narración real (`audios-aventuras/español/Av1/`, etc.) existen pero están vacíos. `_resolverAudioData()` (`codigo-padre.html`) no distingue placeholder de contenido real — simplemente reenvía el `file` que encuentre, así que **hoy un usuario en español oye ese mismo clip de introducción repetido en cada parada de cada aventura**, no silencio. Ver §12 para el detalle completo por aventura.
+- **Audios narrados** (`audios-aventuras.js`, campo `file`): la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma en las 7 aventuras. **11 de los 12 idiomas** (todos salvo español) tienen `file:""` en el 100% de sus entradas (verificado por conteo exhaustivo: 0 excepciones en 5.578 entradas no-español repartidas en las 7 aventuras) — sin audio real, el sistema lo gestiona sin romper el flujo (`file:""` → sin reproducción, ver §7.4). **El español es distinto y no está simplemente "más avanzado":** sus `file` nunca están vacíos (598 entradas en total, entre 47 en Aventura Fallas y 237 en Av34km según la aventura — verificado), pero todas apuntan solo a 2 ficheros compartidos (`01-Intro-ESPAÑOL-1.mp3`/`02-Intro-ESPAÑOL-2.mp3`, en `audios-aventuras/español/`) — no hay ninguna narración distinta por parada todavía, y los subdirectorios por aventura donde debería vivir esa narración real (`audios-aventuras/español/Av1/`, etc.) existen pero están vacíos. `_resolverAudioData()` (`codigo-padre.html`) no distingue placeholder de contenido real — simplemente reenvía el `file` que encuentre, así que **hoy un usuario en español oye ese mismo clip de introducción repetido en cada parada de cada aventura**, no silencio. Ver §12 para el detalle completo por aventura.
 - **Textos narrativos** (párrafos): completos en las 7 aventuras y los 12 idiomas — ver §14.
 - **Retos**: completos en las 7 aventuras y los 12 idiomas.
 
@@ -468,9 +468,17 @@ Solo activo en **MODO AVENTURA**. Detecta hijos colgados o desconectados.
 
 **Configuración** (`js/config.js`):
 
-- Intervalo: **5000 ms** (5 segundos)
-- Máximo de fallos consecutivos antes de marcar como desconectado: **3**
+- Intervalo: **5000 ms** (5 segundos) — `HEARTBEAT.INTERVALO_HEARTBEAT`
+- Máximo de fallos consecutivos antes de marcar como desconectado: **3** — `HEARTBEAT.MAX_HEARTBEATS_FALLIDOS`
 - `AUTO_RECONECTAR: true` → recarga el iframe automáticamente
+
+**Algoritmo real del contador de fallos** (`enviarHeartbeatAHijos()`/`procesarHeartbeatResponse()`, `js/mensajeria.js`) — no es "esperar el timeout y entonces contar un fallo", es incrementar de forma optimista en el envío y resetear por completo en cualquier respuesta:
+
+1. En cada tick del `setInterval` de 5s, por cada hijo crítico: se envía `SISTEMA.HEARTBEAT` y, en la misma operación atómica (`sm.atomicUpdateHeartbeat`, evita condición de carrera con la respuesta llegando en paralelo), se incrementa `heartbeatsFallidos[hijoId]` en 1 — el envío en sí ya cuenta como "posible fallo" antes de saber si habrá respuesta.
+2. Si el contador alcanza `MAX_HEARTBEATS_FALLIDOS` (3) tras el incremento, se llama `marcarHijoDesconectado(hijoId, autoReconectar)` inmediatamente, en ese mismo tick.
+3. Si llega `SISTEMA.HEARTBEAT_RESPONSE` del hijo (`procesarHeartbeatResponse()`) — para cualquier heartbeat previo, no solo el último — el contador de ese hijo se pone a **0** de golpe (no se decrementa) y `ultimoHeartbeat[hijoId]` se actualiza. Si el hijo estaba en `hijosDesconectados`, se quita del set; si era `hijo2`, además se reenvían los mensajes GPS pendientes (`reenviarMensajesGPSAPendientes`).
+
+Efecto neto: 3 ticks seguidos (15s) sin ninguna respuesta marcan al hijo como desconectado — una sola respuesta en cualquier punto de esa ventana reinicia la cuenta desde cero.
 
 **Mensajes del heartbeat** (`js/constants.js`):
 
@@ -901,13 +909,13 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 |----------|-------|-------|----------------|
 | 📌 | Emoji chincheta | — | **Punto de inicio** de la ruta |
 | 🎯 | Emoji diana | — | **Paradas** (puntos de interés) y **punto final** de la ruta |
-| ● (círculo CSS) | Círculo sólido con borde blanco y sombra | `#F44336` rojo | Marcador de inicio alternativo |
-| ● (círculo CSS) | Círculo sólido con borde blanco y sombra | `#4CAF50` verde | Marcador de parada alternativo |
 | ▲ (flecha GPS) | Triángulo CSS con borde blanco, sin punto central (el triángulo solo ya representa posición y rumbo) | `#4285F4` azul Google | **Posición real del usuario** en tiempo real (modo AVENTURA). Rota con la brújula del dispositivo vía `DeviceOrientationEvent` (hasta 30 veces/segundo, pero `actualizarRotacionFlechaGPS()` limita la escritura al DOM a ~10Hz). El sensor de rumbo es ruidoso — se aplica suavizado exponencial (solo una fracción del salto detectado en cada lectura) sobre un ángulo acumulado sin acotar a 0-360°, para que la rotación CSS siempre gire por el camino corto y no dé una vuelta larga visible al cruzar 359°→0°; ese ángulo acumulado también sobrevive a que el marcador se destruya y recree en cada posición GPS (ver detalle en la tabla de módulos, `funciones-mapa.js`). En modo CASA aparece como 🛸. Es el **único** marcador de posición/rumbo del usuario — no hay ningún segundo marcador proyectado sobre la ruta (ver nota más abajo) |
 | ○ (círculo 10 m) | Polígono geográfico (radio constante en metros, no en píxeles) — `_crearCirculoGeografico()` | Borde naranja `#ff8c00`, relleno naranja muy tenue (`fillOpacity: 0.12`) | **Zona de activación de parada**, centrada siempre en la posición real del usuario: se mueve con la propia flecha ▲/🛸. Visible siempre que el modo es AVENTURA (independientemente de si el elemento activo es parada o tramo); desaparece al volver a CASA. Da una referencia visual constante de "este es tu margen para que la app detecte que has llegado". Creado/actualizado dentro de `actualizarMarcadorUsuario()`, en el mismo bloque que activa la brújula por primera vez. MapLibre no tiene una capa `circle` con radio en metros (su `circle-radius` es en píxeles de pantalla, cambiaría de tamaño real al hacer zoom), así que el círculo se genera como un polígono real (32 puntos a distancia/rumbo fijo del centro) que se recalcula cada vez que el centro se mueve. Es el **único** círculo del mapa de aventura |
+| 🏛️ (píldora referencia) | Div CSS: píldora blanca con borde naranja | `#ff8c00` naranja | **Referencias visuales** — monumentos mencionados en el texto que el usuario nunca visita físicamente. Muestra el emoji 🏛️ a la izquierda y el número de `mapa_numero` a la derecha. Al pulsar abre un popup con el nombre del monumento. Escala dinámicamente con el zoom. Apilado visual `zIndex: 400` (por debajo de paradas visitadas, 600) vía CSS sobre el elemento del marcador. Gestionado por `crearIconoReferencia()` y `dibujarReferencias()` en `funciones-mapa.js` — implementación independiente de la de `mapa-completo.html`, que dibuja sus propias referencias con `L.divIcon`/`L.marker` sobre los mismos datos |
 
 **Ya no existe ningún marcador proyectado sobre la ruta.** Hasta esta versión existía un segundo sistema — una flecha `↑` y un círculo de 21 m en rojo/amarillo, ambos calculados con `puntoMasCercanoEnLinea()` sobre el punto de la polyline del tramo más cercano al usuario, no sobre su posición GPS real — que se activaba en paralelo al triángulo ▲ y al círculo naranja de arriba durante cualquier tramo. Se eliminó por decisión de diseño explícita: el usuario reportó verlo como dos marcadores de posición distintos y confusos superpuestos casi en el mismo sitio (coinciden cuando se está sobre el camino, divergen al desviarse) con una paleta de color (`#0066cc`/rojo-amarillo) que no seguía la convención del resto de la app (naranja = zona de activación, azul = tú). No aportaba una guía turn-by-turn real (ver §4.6b, esa decisión de diseño sigue vigente) y duplicaba, sin explicarlo en pantalla, la información que ya da el triángulo. Las funciones que lo implementaban (`activarFlechaUsuario`, `desactivarFlechaUsuario`, `actualizarPosicionFlecha`, las variables `marcadorFlechaUsuario`/`marcadorHaloUsuario`/`flechaActiva`, y el campo `estadoMapa.tramoWaypoints`, que solo ellas leían) se retiraron por completo de `funciones-mapa.js` — no quedan detrás de un flag ni comentadas, no había ningún otro caller.
-| 🏛️ (píldora referencia) | Div CSS: píldora blanca con borde naranja | `#ff8c00` naranja | **Referencias visuales** — monumentos mencionados en el texto que el usuario nunca visita físicamente. Muestra el emoji 🏛️ a la izquierda y el número de `mapa_numero` a la derecha. Al pulsar abre un popup con el nombre del monumento. Escala dinámicamente con el zoom. Apilado visual `zIndex: 400` (por debajo de paradas visitadas, 600) vía CSS sobre el elemento del marcador. Gestionado por `crearIconoReferencia()` y `dibujarReferencias()` en `funciones-mapa.js` — implementación independiente de la de `mapa-completo.html`, que dibuja sus propias referencias con `L.divIcon`/`L.marker` sobre los mismos datos |
+
+**Nota sobre `dibujarRutaConMarcadores({dibujarRuta:true})`** (la función de la "ruta principal" de §4.6, que en la práctica nunca llega a verse): su lógica de marcadores (`crearIconoColoreado()`) tiene una rama muerta — `markerColor` está fijado siempre a `'#4CAF50'` en el bucle que la llama, nunca se reasigna a otro valor, y esa rama concreta del color siempre devuelve el emoji 🎯 en vez de un círculo; el `<div>` de círculo coloreado (para "otros colores") es código inalcanzable con el estado actual del bucle. No es un bug con síntoma visible (la propia función ya es efectivamente no-op en una partida real, per la nota de §4.6), pero tampoco hay ningún camino de código que produzca hoy un círculo rojo o verde como marcador — comentado aquí, no corregido en el código.
 
 **El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
 
@@ -1007,6 +1015,7 @@ Retomar el seguimiento de posición manualmente sigue centrando sobre `estadoMap
 
 - **Brújula caída (permiso denegado en iOS, o `DeviceOrientationEvent` no soportado).** `activarSeguimientoRumbo()` enciende `_camaraSiguiendoRumbo` sin comprobar si la brújula responde de verdad — si nunca responde, `actualizarRotacionFlechaGPS()` nunca vuelve a llamar a `setBearing()` y el modo se queda "encendido" (icono `➤`) sin hacer nada, indistinguible de un cuelgue. `_elegirModoCamara('rumbo')`, tras activar el modo, arma un `setTimeout` de 1.5s que comprueba `funcionesMapa.brujulaEstaActiva()` (getter nuevo de solo lectura sobre la variable interna `compassActiva`, `js/funciones-mapa.js`); si sigue sin responder y el usuario no ha cambiado de modo mientras tanto (guard `_modoCamaraActivo === 'rumbo'`), revierte sola a "Norte fijo" — `desactivarSeguimientoRumbo()` + icono de vuelta a `N`. Cubierto por BR-7.
 - **"Elegir otra aventura" sin recargar la página.** Terminar una aventura normalmente y pulsar "otra aventura" en el modal de fin SÍ recarga (`location.reload()`, §25.11) y resetea todo el estado del módulo solo. Pero el diálogo de **reanudación de sesión** (`mostrarDialogoVueltaRapida`, al reabrir la app con una aventura ya activa) tiene su propio "elegir otra" (`ejecutarElegirOtra()`) que limpia `localStorage`/globals y navega el iframe de selección **sin recargar** — reutiliza el mismo module scope de `funciones-mapa.js`, así que sin nada más el modo de cámara de la aventura abandonada (p. ej. "Seguir mi rumbo") seguiría activo en la siguiente. `initializeMap()` expone `globalThis._resetModoCamaraRecentrar()` (pone `_modoCamaraActivo = 'norte'`, llama a `desactivarSeguimientoRumbo()` y actualiza el icono) y `ejecutarElegirOtra()` lo llama junto al resto de globals que ya resetea (`estado.tiempoRestante`, etc.). Cubierto por BR-8.
+- **Visible por encima de una pantalla de carga.** `#btn-recentrar` se crea (con `display:none` inline) dentro de `initializeMap()`, que corre en el arranque en frío, mucho antes de que el usuario llegue a activar una aventura — igual que `#selector-tipo-mapa`. Al no ser un `<iframe>`, la regla `body.loading iframe` no lo cubre; sin una entrada propia en la hoja de estilos, cualquier `display:flex` disparado mientras `body` sigue en `loading` (una reanudación de sesión, sobre todo) lo dejaba visible por encima del overlay de carga, ya que su z-index (1000025) es mayor que el suyo (999999) — mismo síntoma, mismo origen y misma solución que ya tenía `#selector-tipo-mapa`: `body.loading #btn-recentrar { visibility:hidden !important; opacity:0 !important; }` (ver "Por qué nada puede verse nunca por encima de `#loading-overlay`" más arriba). Cubierto por `tests/e2e/16-loading-overlay-oculta-ui.spec.js` (LO-1/LO-2).
 
 **El menú de cámara no compite con el `flyTo` de cambio de parada/tramo.** Las tres funciones (`reactivarSeguimientoCamara()`, `activarSeguimientoRumbo()`, `desactivarSeguimientoRumbo()`) comprueban `!estadoMapa.zoomEnCurso` antes de incluir `center` en su `easeTo()` — mismo guard que ya usa el seguimiento por-tick. `bearing` (en las dos últimas) se aplica siempre, incluso con `zoomEnCurso` activo: ningún `flyTo()` de la app lo toca nunca (solo `center`/`zoom`), así que no hay nada con lo que competir, y omitirlo en `desactivarSeguimientoRumbo()` sería especialmente grave — como esa función ya deja `_camaraSiguiendoRumbo=false`, ningún otro sitio volvería a corregir el bearing después. Si `center` se omite por haber un `flyTo` en curso, se autocorrige solo: `_camaraSiguiendoUsuario` queda en `true`, así que el seguimiento por-tick lo recentra en la siguiente lectura GPS real.
 
@@ -1161,7 +1170,7 @@ A partir de ahí, **cada lectura GPS válida** en `procesarPosicionGPSParaAventu
 
 | Tipo / fase | "Cerca" cuando... | Motivo |
 |---|---|---|
-| Parada | `distancia` (al punto) `≤ 20m` | Mismo radio que "llegada" |
+| Parada | `distancia` (al punto) `≤ 10m` | Mismo radio que "llegada" (`RADIO_PARADA`) |
 | Tramo, fase 1 — nunca alcanzó `.inicio` en esta activación (`!estadoMapa._elementoYaRevelado`) | `distancia a .inicio ≤ 20m` | Igual que el diseño original — confirma que el usuario ha empezado el tramo de verdad |
 | Tramo, fase 2 — ya alcanzó `.inicio` alguna vez | `distanciaAlCamino ≤ toleranciaGPS` (dinámica, ya calculada por tramo) | Deliberadamente NO vuelve a medir contra `.inicio` — avanzar hacia `.fin` aleja de `.inicio` por definición, así que usar esa distancia re-ocultaría el trazado del usuario que va bien encaminado. `distanciaAlCamino` (distancia a la polyline completa, no a un punto) permite manejar un desvío real sin exigir volver al principio |
 
@@ -1312,7 +1321,7 @@ Elemento N activo, trazado oculto (Caso A, B o C), _elementoYaRevelado = false
         │
         ▼
 Cada posición GPS válida → procesarPosicionGPSParaAventura():
-  Parada: distancia ≤ 20m   |   Tramo: distancia(posición actual, .inicio) ≤ 20m
+  Parada: distancia ≤ 10m   |   Tramo: distancia(posición actual, .inicio) ≤ 20m
   confirmado por ventana (2 de 4)
         │
         ▼
@@ -1326,7 +1335,7 @@ Cada posición GPS válida → procesarPosicionGPSParaAventura():
     No → ningún cartel aquí; el elemento anterior ya disparó el suyo al completarse (§4.7g)
 ```
 
-No importa cómo se llegó al elemento (avanzando desde otro, reanudando una sesión cerrada, o cualquier otro camino) — mientras la posición real del usuario no esté a ≤20m (o de `.inicio`, en tramos), el trazado se queda oculto.
+No importa cómo se llegó al elemento (avanzando desde otro, reanudando una sesión cerrada, o cualquier otro camino) — mientras la posición real del usuario no esté a ≤10m del punto (parada) o ≤20m de `.inicio` (tramo), el trazado se queda oculto.
 
 **Caso F — Desvío/alejamiento y recuperación tras la primera revelación (fase 2 en tramos, bidireccional en los dos tipos):**
 
@@ -1334,7 +1343,7 @@ No importa cómo se llegó al elemento (avanzando desde otro, reanudando una ses
 Elemento N activo, ya se reveló alguna vez (_elementoYaRevelado = true), trazado visible
         │
         ▼
-Usuario se aleja (tramo: distanciaAlCamino > toleranciaGPS; parada: distancia > 20m),
+Usuario se aleja (tramo: distanciaAlCamino > toleranciaGPS; parada: distancia > 10m),
 confirmado por ventana (2 de 4)
         │
         ▼
@@ -1489,7 +1498,7 @@ Dos iconos en ambas variantes, igual que §4.7h: avanzar (`fotoruta-A-B.png`) y 
 
 **Contenido:** mismo estilo visual que el resto de la familia. Cuerpo de `TRADUCCIONES_LLEGADA_PARADA` (12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado a la parada Plaza de la Crida (Puente de Serranos). Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura."* Dos iconos: avanzar y audio.
 
-**Sobre la coincidencia de coordenadas:** en el 95% de los tramos de las 7 aventuras (228 de 239, verificado con `calcularDistancia` sobre `js/coordenadas-aventuras.js`), el punto `.fin` del tramo coincide exactamente (≤5m) con las coordenadas de la parada siguiente — geográficamente son el mismo sitio, así que la confirmación GPS de llegada llega casi de inmediato tras empezar a caminar el tramo. En las **11 excepciones reales** (distancia genuina, hasta 122m — recurrente en el primer tramo de varias aventuras: `Av3-TR-1→Av3-P-1`, `Av5-TR-1→Av5-P-1`, `AvFallas-TR-1→AvFallas-P-1`, `Av34km-TR-1→Av34km-P-1`, los cuatro a 122m exactos), el cartel no aparece hasta que el usuario camina esa distancia real y el GPS lo confirma — que es exactamente cuando hace falta.
+**Sobre la coincidencia de coordenadas:** de los 239 tramos de las 7 aventuras (verificado con `calcularDistancia` sobre `js/coordenadas-aventuras.js`, comparando el `.fin` de cada tramo contra la parada que le sigue en la secuencia real, no contra la parada más cercana cualquiera), **218** coinciden exactamente (≤5m) con las coordenadas de la parada siguiente — geográficamente son el mismo sitio, así que la confirmación GPS de llegada llega casi de inmediato tras empezar a caminar el tramo. **11 excepciones reales** tienen una distancia genuina, hasta 122m — recurrente en el primer tramo de varias aventuras: `Av3-TR-1→Av3-P-1`, `Av5-TR-1→Av5-P-1`, `AvFallas-TR-1→AvFallas-P-1`, `Av34km-TR-1→Av34km-P-1`, los cuatro a 122m casi exactos (121.7m) — ahí el cartel no aparece hasta que el usuario camina esa distancia real y el GPS lo confirma, que es exactamente cuando hace falta. Los **10 tramos restantes** son tramo→tramo directo (sin parada intermedia en la secuencia) o el último tramo de la aventura — no aplica la comparación en absoluto (218+11+10=239).
 
 ### 4.7k. Cartel de bienvenida de vuelta — tramo (`#cartel-bienvenida-tramo`)
 
@@ -1523,7 +1532,7 @@ Dos iconos en ambas variantes, igual que §4.7h: avanzar (`fotoruta-A-B.png`) y 
 
 | Color | Hex | Dónde aparece | Cuándo |
 |-------|-----|---------------|--------|
-| 🟢 Verde | `#1e7e34→#0d3a16` | `.boton` en hijo2, `.boton.habilitado` en hijo3 | Estado por defecto — botón activo y pulsable |
+| 🟢 Verde | `#43c465→#28a745→#1e8035` | `.boton` en hijo2, `#retosBtn` en hijo3, `.boton-flotante`/`.icono-flotante` en hijo1, `#audio-main-toggle-btn`/`.audio-action-btn` en el padre, y sus recreaciones en video-intro.html (`.boton`, `.btn-main-ico`, `.btn-sub-ico`, `.x-btn`) | Estado por defecto — botón activo y pulsable. Verde único y estandarizado en toda la app (unificado 2026-08-08 al gradiente que ya usaba el control de audio del padre — antes hijo1/hijo2/hijo3 usaban un verde más oscuro, `#1e7e34→#0d3a16`, distinto del de audio) |
 | 🔴 Rojo | `#B22222→#8B1A1A` (`opacity: 0.6`) | `.boton.disabled` en hijo2 y en video-intro.html, `#hijo3 .boton.deshabilitado` y `#retosBtn:disabled` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en codigo-padre.html | Botón bloqueado — GPS deshabilitado o precisión insuficiente. Rojo único y estandarizado en toda la app: cualquier botón que se deshabilite, en cualquier hijo, usa este mismo degradado — nunca un rojo distinto |
 | 🔵 Azul | `#007bff→#0056b3` | `.boton.activo` en hijo2 | Navegación revelada — `btn-avanzar` pulsado, polyline y marcadores visibles en el mapa |
 | 🔵 Azul | `#0077cc` (inline) | `btnEnviar` en hijo4 (estado inicial/neutro) | Botón de respuesta listo para pulsar |
@@ -1539,7 +1548,7 @@ El rojo de "deshabilitado" (`#B22222→#8B1A1A`) y el rojo de "respuesta incorre
 ```mermaid
 flowchart TD
     subgraph hijo2 ["hijo2 — botones circulares (.boton)"]
-        A["🟢 Verde #1e7e34\n(por defecto)"] -- CONTROL.DESHABILITAR\no GPS sin precisión --> B["🔴 Rojo #B22222\n(opacity 0.6)"]
+        A["🟢 Verde #43c465\n(por defecto)"] -- CONTROL.DESHABILITAR\no GPS sin precisión --> B["🔴 Rojo #B22222\n(opacity 0.6)"]
         B -- CONTROL.HABILITAR\no GPS recupera --> A
         A -- btn-avanzar pulsado\n(navegación revelada) --> C["🔵 Azul #007bff\n(.boton.activo)"]
         C -- CAMBIO_PARADA\n(se resetea) --> A
@@ -1613,15 +1622,15 @@ En ambos modos (CASA y AVENTURA) todos los botones habilitados tienen una animac
 
 #### Lógica del spin (JS)
 
-El spin aplica solo a los botones con **glow activo**. El comportamiento es idéntico en todos los archivos:
+El spin aplica solo a los botones con **glow activo**. El comportamiento base y el intervalo (3000ms) son idénticos en los tres archivos que lo implementan:
 
-1. **Al llegar a cada nuevo elemento** (`CAMBIO_PARADA`): se inicia un `setInterval` de 5 000 ms para cada botón glow-activo del archivo.
-2. **Cada 5 segundos**: si el botón NO está deshabilitado Y el usuario NO lo ha pulsado aún desde el último reset, se añade la clase `.spinning` al botón.
+1. **Al llegar a cada nuevo elemento** (`CAMBIO_PARADA`): se inicia un `setInterval` de 3000ms para cada botón glow-activo del archivo.
+2. **En cada tick**: si el botón NO está deshabilitado Y el usuario NO lo ha pulsado aún desde el último reset, se añade la clase `.spinning` al botón.
 3. **Al terminar el giro** (evento `animationend`): se elimina `.spinning` — el glow reanuda automáticamente.
 4. **En la primera pulsación** del botón: se llama `clearInterval`, se marca `pressed = true`. El spin se detiene para esa sesión de elemento.
 5. **En el siguiente `CAMBIO_PARADA`**: el estado `pressed` se resetea a `false` y el intervalo se reinicia desde cero.
 
-**Patrón de implementación** (idéntico en hijo2, hijo3, padre):
+**Patrón de implementación** (idéntico en hijo2, hijo3 y padre, mismos 3000ms):
 
 ```javascript
 // Al llegar a nueva parada/tramo:
@@ -1636,7 +1645,7 @@ function _iniciarSpinBtn(btn) {
         btn.classList.add('spinning');
         btn.addEventListener('animationend',
             () => btn.classList.remove('spinning'), { once: true });
-    }, 5000);
+    }, 3000);
     _spinState.set(btn.id, state);
     btn.addEventListener('click', () => {        // primer click detiene spin
         state.pressed = true;
@@ -1648,13 +1657,13 @@ function _iniciarSpinBtn(btn) {
 
 **Diferencias por archivo:**
 
-| Archivo | Variable de estado | Reset activado por | Botones gestionados |
-|---|---|---|---|
-| `coordenadas-hijo2.html` | `_spinState` (Map) | Handler `CAMBIO_PARADA` → `_resetSpinsAventura()` | `btnVideo`, `btnAvanzar`, `btnUbicacion`, `btnImagen` |
-| `audio-hijo3.html` | `_retosBtnSpinInterval` + `_retosBtnSpinPressed` | Handler `CAMBIO_PARADA` → `_resetSpinRetosBtn()` | `retosBtn` |
-| `codigo-padre.html` | `_audioMainSpinInterval` + `_audioMainSpinPressed` | `progresarSiguienteElemento()` → `globalThis._resetSpinAudioMainPadre()` | `#audio-main-toggle-btn` |
+| Archivo | Intervalo real | Variable de estado | Reset activado por | Botones gestionados |
+|---|---|---|---|---|
+| `coordenadas-hijo2.html` | **3000ms** | `_spinState` (Map) | Handler `CAMBIO_PARADA` → `_resetSpinsAventura()` | `btnVideo`, `btnAvanzar`, `btnUbicacion`, `btnImagen` |
+| `audio-hijo3.html` | **3000ms** | `_retosBtnSpinInterval` + `_retosBtnSpinPressed` | Handler `CAMBIO_PARADA` → `_resetSpinRetosBtn()` | `retosBtn` |
+| `codigo-padre.html` | **3000ms** | `_audioMainSpinInterval` + `_audioMainSpinPressed` | `progresarSiguienteElemento()` → `globalThis._resetSpinAudioMainPadre()` | `#audio-main-toggle-btn` |
 
-**Variante sin nag periódico — gira solo al pulsar:** `btnMapaCompleto`/`btnMapaJpg` (`coordenadas-hijo2.html`) y `#btn-chat-soporte` (`codigo-padre.html`) están habilitados de forma permanente y no necesitan reclamar atención — el spin periódico cada 5s resultaba molesto en un botón que el usuario puede pulsar en cualquier momento sin urgencia. Usan un patrón más simple, `_spinAlPulsar(btn)` en hijo2 (equivalente inline en `#btn-chat-soporte`), calcado del botón `#mas-opciones` de `extrainfo-hijo1.html`: cada click (no solo el primero) quita `.spinning`, fuerza reflow y la vuelve a añadir. **No basta con depender de `animationend`** para quitar la clase: en estos 3 botones el mismo click también dispara `setBotonActivo()`/lógica equivalente, que añade/quita `.activo` en el mismo elemento — como el glow-suave depende de `:not(.activo)` (línea ~222), ese cambio de clase hace que Chromium cancele la animación en curso sin disparar `animationend` nunca, dejando `.spinning` pegado para siempre. La red de seguridad real es un `setTimeout` de 950ms (duración de la animación + margen) que quita `.spinning` igualmente; `animationend` solo adelanta la limpieza si llega a dispararse.
+**Variante sin nag periódico — gira solo al pulsar:** `btnMapaCompleto`/`btnMapaJpg` (`coordenadas-hijo2.html`) y `#btn-chat-soporte` (`codigo-padre.html`) están habilitados de forma permanente y no necesitan reclamar atención — el spin periódico resultaba molesto en un botón que el usuario puede pulsar en cualquier momento sin urgencia. Usan un patrón más simple, `_spinAlPulsar(btn)` en hijo2 (equivalente inline en `#btn-chat-soporte`), calcado del botón `#mas-opciones` de `extrainfo-hijo1.html`: cada click (no solo el primero) quita `.spinning`, fuerza reflow y la vuelve a añadir. **No basta con depender de `animationend`** para quitar la clase: en estos 3 botones el mismo click también dispara `setBotonActivo()`/lógica equivalente, que añade/quita `.activo` en el mismo elemento — como el glow-suave depende de `:not(.activo)` (línea ~222), ese cambio de clase hace que Chromium cancele la animación en curso sin disparar `animationend` nunca, dejando `.spinning` pegado para siempre. La red de seguridad real es un `setTimeout` de 950ms (duración de la animación + margen) que quita `.spinning` igualmente; `animationend` solo adelanta la limpieza si llega a dispararse.
 
 > **Nota hijo1:** `#mas-opciones` ya tenía su propio spin en hijo1 (clase `.spinning` añadida en el evento `click` del botón). No tiene spin periódico — solo gira al pulsarse. Los cinco `.icono-flotante` tampoco tienen spin, solo glow suave.
 
@@ -1821,7 +1830,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    PADRE["codigo-padre.html (~11.400 líneas)"]
+    PADRE["codigo-padre.html (~13.400 líneas)"]
     SEL["seleccion — En-busca-del-tesoro.html"]
     PZ["puzzle.html\nsub-iframe interno de seleccion"]
     H1["hijo1-opciones — extrainfo-hijo1.html"]
@@ -1925,12 +1934,12 @@ El archivo `codigo-padre.html` (~11.400 líneas) es el **orquestador** de toda l
 
 `codigo-padre.html` contiene **cuatro** bloques `<script type="module">` con roles distintos. Más varios `<script>` regulares para utilidades síncronas (HTTPS redirect, stub `activarGPS`, image fallback, etc.).
 
-| Script | Líneas | Rol principal |
+| Script | Líneas (aprox., crecen con cada sesión de trabajo — verificar con `grep -n '<script type="module">' codigo-padre.html` si hace falta el número exacto) | Rol principal |
 |--------|--------|--------------|
-| **Script 1** | 2404–7034 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra handlers del ciclo de vida: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`. Al final carga `js/controladores-padre.js`. |
-| **Script 2** | 7059–10972 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`, `SISTEMA.ADVERTENCIA`. Contiene `distribuirDatosAventura`. |
-| **Script 3** | 10981–11107 | Utilidades de carga de iframes: `cargarIframeConDatos()` y backup de distribución `CARGAR_*`. |
-| **Script 4** | 11173–11435 | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`), `js/monitoreo.js` y `js/utils.js`; arranca el heartbeat GPS. |
+| **Script 1** | ~2665–8778 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra handlers del ciclo de vida: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`. Al final carga `js/controladores-padre.js`. |
+| **Script 2** | ~8779–12883 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`, `SISTEMA.ADVERTENCIA`. Contiene `distribuirDatosAventura`. |
+| **Script 3** | ~12884–13044 | Utilidades de carga de iframes: `cargarIframeConDatos()` y backup de distribución `CARGAR_*`. |
+| **Script 4** | ~13045–fin | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`), `js/monitoreo.js` y `js/utils.js`; arranca el heartbeat GPS. |
 
 > **Por qué Script 1 registra solo los handlers del ciclo de vida y Script 2 el resto:** Script 1 debe completar el registro de `HIJO_PREPARADO` / `HIJO_LISTO` / `CAMBIO_MODO` **antes** de asignar `src` a cualquier iframe. Los handlers de dominio (`NAVEGACION.*`, `RETO.*`, `SELECCION.*`) solo son necesarios una vez que los iframes están cargados, por lo que pueden vivir en Script 2 sin riesgo de llegar tarde.
 >
@@ -2152,7 +2161,7 @@ Esta reconexión es **solo para fallos de carga inicial**. Los fallos de heartbe
 
 El estado de la aplicación se guarda en un único lugar: `js/state-manager.js`. **Todos** los campos de estado tienen su propio `SimpleMutex` que serializa lecturas y escrituras concurrentes. `SimpleMutex` es una implementación nativa de Promise-chain (sin dependencias externas) definida al principio del archivo.
 
-**18 mutexes definidos** (líneas 21-40 de `state-manager.js`):
+**13 mutexes definidos** (verificado por conteo exhaustivo de `new SimpleMutex()` — antes eran 18, cinco campos 100% huérfanos —`aventuraSeleccionada`, `idiomaSeleccionado`, `uiConfirmado`, `estadoComponenteInicializado`, `estadoMenuAbierto`— se eliminaron por completo, mutex+campo+getter+setter, en una auditoría anterior; ninguno de los cinco tiene ya ninguna referencia en `state-manager.js`):
 
 | Campo | Tipo | Propósito |
 | --- | --- | --- |
@@ -2165,15 +2174,12 @@ El estado de la aplicación se guarda en un único lugar: `js/state-manager.js`.
 | `audiosCargados` | `boolean` | Confirmación de carga del módulo de audios |
 | `retosCargados` | `boolean` | Confirmación de carga del módulo de retos |
 | `estadoPadre` | `object` | Estado completo del padre (modo, GPS, paradas, hijos, monitoreo…) |
-| `aventuraSeleccionada` | `string\|null` | ID de la aventura activa |
-| `idiomaSeleccionado` | `string\|null` | Código de idioma activo (`es`, `en`, `fr`…) |
-| `uiConfirmado` | `boolean` | Flag: UI de aventura ya mostrada |
-| `estadoComponenteInicializado` | `boolean` | Flag: componente padre inicializado |
-| `estadoMenuAbierto` | `boolean` | Estado del menú desplegable |
 | `controladores` | `Map` | Map de handlers de mensajes registrados |
 | `mensajesEnviados` | `Set` | Set de IDs de mensajes ya enviados (deduplicación) |
 | `heartbeat` | `object` | Estado completo del heartbeat (activo, fallos, timers, `gpsPendientes`) |
 | `hijosListosPromises` | `Map` | Promesas de carga de cada hijo (resueltas por `marcarHijoListo`) |
+
+`aventuraSeleccionada`/`idiomaSeleccionado` (la aventura e idioma activos) siguen existiendo como datos reales de la app, pero fuera de `state-manager.js` — viven como variables `globalThis.aventuraSeleccionada`/`globalThis.idiomaSeleccionado` en `codigo-padre.html`, sin mutex propio.
 
 > **Nota:** `gpsPendientes` (mensajes GPS encolados mientras hijo2 está desconectado) se almacena **dentro** del objeto `heartbeat` y comparte su mutex — no tiene mutex propio.
 >
@@ -2194,11 +2200,6 @@ La estructura del estado (`state`) tiene dos niveles diferenciados:
     heartbeatPrewarmed, procesandoCola, script2Listo,
     listenerRegistrado, mensajeriaReady,
     coordenadasCargadas, audiosCargados, retosCargados,
-    uiConfirmado, estadoComponenteInicializado, estadoMenuAbierto,
-
-    // Datos de aventura
-    aventuraSeleccionada: "Aventura1",
-    idiomaSeleccionado: "es",
 
     // Estado completo del padre (mutex estadoPadre)
     estadoPadre: {
@@ -3130,6 +3131,8 @@ Generados dinámicamente por `generarBotonesParadas()`. Cada botón tiene dos fi
   </div>
 </button>
 ```
+
+`_crearBotonParada()` construye este HTML con un template literal; el atributo `data-nombre` del `.btn-nombre-wrap` guarda el nombre sin escapar para otros usos (marquee, comparaciones), separado del `<span class="btn-nombre">` visible.
 
 Distinción de tipos:
 
@@ -4653,9 +4656,9 @@ El texto sale siempre de `TRADUCCIONES_REANUDACION[idioma].frasesCarga` (13 fras
 
 **Por qué nada puede verse nunca por encima de `#loading-overlay`, sea cual sea el orden de arranque**
 
-`#loading-overlay` tiene `z-index:999999` — deliberadamente por debajo de toda la interfaz de la aventura (`#hijo5`, overlays de media, el selector de mapa, el botón de chat... todos entre 1000000 y 1100000). Ocultar lo que hay debajo NO se consigue con ese margen de z-index — se consigue con la regla CSS `body.loading #mapa, body.loading #map-debug, body.loading #info-parada, body.loading #logo-aventura, body.loading #selector-tipo-mapa, body.loading #btn-chat-soporte, body.loading iframe { visibility:hidden !important; opacity:0 !important; }`, activada por la clase `loading` en `<body>` (presente en el HTML estático desde el primer pintado, añadida por `showParentLoadingOverlay()` y quitada por `hideParentLoadingOverlay()` — nunca en ningún otro sitio). Con `!important`, esta regla gana pase lo que pase con `style.display` inline, y pase lo que pase en qué momento del arranque se dispare: da igual si `_mostrarUIActivada()` o `actualizarVisibilidadSelectorMapa()` deciden mostrar estos elementos antes, durante o después de que el overlay de carga termine su fundido — mientras `body` siga llevando la clase `loading`, permanecen invisibles.
+`#loading-overlay` tiene `z-index:999999` — deliberadamente por debajo de toda la interfaz de la aventura (`#hijo5`, overlays de media, el selector de mapa, el botón de chat, el menú de modo de cámara... todos entre 1000000 y 1100000). Ocultar lo que hay debajo NO se consigue con ese margen de z-index — se consigue con la regla CSS `body.loading #mapa, body.loading #map-debug, body.loading #info-parada, body.loading #logo-aventura, body.loading #selector-tipo-mapa, body.loading #btn-recentrar, body.loading #btn-chat-soporte, body.loading iframe { visibility:hidden !important; opacity:0 !important; }`, activada por la clase `loading` en `<body>` (presente en el HTML estático desde el primer pintado, añadida por `showParentLoadingOverlay()` y quitada por `hideParentLoadingOverlay()` — nunca en ningún otro sitio). Con `!important`, esta regla gana pase lo que pase con `style.display` inline, y pase lo que pase en qué momento del arranque se dispare: da igual si `_mostrarUIActivada()` o `actualizarVisibilidadSelectorMapa()` deciden mostrar estos elementos antes, durante o después de que el overlay de carga termine su fundido — mientras `body` siga llevando la clase `loading`, permanecen invisibles.
 
-`#selector-tipo-mapa` (un `<div>` creado por JS) y `#btn-chat-soporte` (un `<button>` del HTML estático) están en esta lista aparte de `iframe` a propósito: ninguno de los dos es un `<iframe>`, así que `body.loading iframe` nunca los cubría. Cualquier código que les pusiera `style.display = 'flex'/'block'` durante la carga los dejaba visibles por encima del overlay, ya que su z-index (1000000+) es mayor que el suyo (999999) — el problema nunca fue el ORDEN de las llamadas JS, sino que ningún mecanismo los frenaba mientras el overlay seguía activo.
+`#selector-tipo-mapa` y `#btn-recentrar` (`<div>` creados por JS) y `#btn-chat-soporte` (un `<button>` del HTML estático) están en esta lista aparte de `iframe` a propósito: ninguno de los tres es un `<iframe>`, así que `body.loading iframe` nunca los cubría. Cualquier código que les pusiera `style.display = 'flex'/'block'` durante la carga los dejaba visibles por encima del overlay, ya que su z-index (1000000+) es mayor que el suyo (999999) — el problema nunca fue el ORDEN de las llamadas JS, sino que ningún mecanismo los frenaba mientras el overlay seguía activo. `#btn-recentrar` (§4.6b) se sumó a esta regla después de que se reportara el mismo síntoma para el menú de modo de cámara — mismo patrón de creación que `#selector-tipo-mapa` (JS, mismo bloque de `initializeMap()`, mismo z-index 1000025), mismo hueco de protección, mismo fix.
 
 **`_restoreBroadcast` y el pipeline CAMBIO_PARADA en restauración**
 
@@ -4806,7 +4809,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5db4da4fc767'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-402e002e9078'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5559,6 +5562,102 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 
 ---
 
+### 10.6 Comportamientos notables del sistema de mensajería
+
+#### El despachador serializa por tipo de mensaje
+
+- **Dónde**: `js/mensajeria.js`, función `manejarMensajeEntrante` → `_encolarEjecucionHandler` (usa el `Map` module-scope `_colaPorTipo`).
+- Cada `message` event del navegador es una tarea independiente del event loop. Sin esto, dos mensajes del **mismo tipo** que llegan con pocos milisegundos de diferencia (típico con `NAVEGACION.CAMBIO_PARADA` durante lecturas GPS seguidas) se procesaban en paralelo, sin garantía de terminar en el orden en que llegaron — la causa real de que actualizaciones de mapa se perdieran en carreras silenciosas.
+- Cada tipo de mensaje se encadena detrás de la ejecución anterior del **mismo tipo**; tipos distintos siguen siendo completamente concurrentes entre sí (un `CAMBIO_PARADA` lento no bloquea un `HEARTBEAT`). Un handler que falla no rompe la cola — el error se loguea y confirma, y el siguiente mensaje del mismo tipo se procesa igual.
+
+#### `manejarCambiarParada` (funciones-mapa.js) encola, no descarta
+
+- **Dónde**: `js/funciones-mapa.js`, función `manejarCambiarParada` — guard de `estadoMapa.consultaParadaPendiente`, y `_procesarSiguienteEnCola()`.
+- Mientras la animación de zoom de `completarCambioParada()` está en curso (puede tardar 1-2,5 s reales: zoom-out + espera `moveend` + zoom-in), `estadoMapa.consultaParadaPendiente` permanece ocupado. Si llega otro `CAMBIO_PARADA` en esa ventana, se guarda en el slot único `estadoMapa._cambioParadaEncolado` (solo importa el más reciente) en vez de descartarse — así el marcador/polyline del mapa siempre terminan reflejando la última llegada real, aunque coincida con la animación de la anterior.
+- Se drena desde los tres sitios donde `consultaParadaPendiente` se libera: el timeout de seguridad de 8 s, el `catch` de error, y el `finally` de `completarCambioParada()`.
+
+#### `manejarCambiarParada` busca en AVENTURA_PARADAS por `paradaId`, nunca por `padreId`
+
+- **Dónde**: `js/funciones-mapa.js`, función `manejarCambiarParada` — `const idToMatch = paradaId || padreId;`.
+- `AVENTURA_PARADAS` (`js/coordenadas-aventuras.js`, cacheado en `globalThis.AVENTURA_PARADAS`) solo tiene campo `.id`, con el mismo formato que `paradaId`/`parada_id`/`tramo_id` (`"Av1-TR-1"`, `"Av1-P-1"`...) — nunca tiene `padreid`. Cualquier búsqueda que priorice `padreId` (`"padre-TR1"`) falla siempre que el mensaje de `CAMBIO_PARADA` trae ambos campos a la vez, que es el caso normal: `progresarSiguienteElemento()` (la función que fija el nuevo `estado.elementoActual` tras completar audio+llegada) construye el mensaje con `paradaId` **y** `padreId` juntos.
+- Consecuencia de priorizar `padreId`: la búsqueda no encontraba el elemento, `manejarCambiarParada` lanzaba `Parada X no encontrada en datos base` y terminaba en su propio `catch` — el resto del pipeline de `CAMBIO_PARADA` (audio, notificación a hijos) seguía funcionando con normalidad porque corre en un handler distinto, pero el marcador/polyline del elemento activo nunca se actualizaba en el mapa. El marcador del elemento anterior se quedaba en pantalla sin limpiar, dando la sensación de dos destinos activos a la vez.
+
+#### `procesarPosicionGPSParaAventura` — guard de modo AVENTURA
+
+- **Dónde**: `js/funciones-mapa.js` función `procesarPosicionGPSParaAventura` — bloque `if (llegadaDetectada)`
+- El guard `if (estadoMapa.modo !== MODOS.AVENTURA)` impide que se envíe `NAVEGACION.LLEGADA_DETECTADA` en modo CASA. El marcador, el polyline y `ACTUALIZAR_ESTADO` a hijo2 siguen funcionando en ambos modos; solo la notificación de llegada queda desactivada fuera de AVENTURA.
+- `LLEGADA_DETECTADA` no avanza la parada por sí sola — solo marca `pending.llegada = true` en el padre (`_marcarPendingPorLlegada`). El avance real lo decide `intentarCompletarElemento()` cuando también se cumplen audio (y retos, si los hay). `estadoMapa._llegadaNotificada` deduplica el envío mientras la distancia se mantenga ≤ tolerancia; se resetea con histéresis (`distancia > toleranciaGPS * 1.5`) para permitir renotificar si el usuario se aleja y vuelve.
+
+#### `RETO.SOLICITAR_RETO` — handler en Script 2
+
+- hijo3 L837 y hijo4 L853 envían `RETO.SOLICITAR_RETO` → padre.
+- Handler `_hdl_RETO_SOLICITAR` en padre L8142, registrado en L8260 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. El handler está en Script 2, separado del resto; una búsqueda limitada a Script 1 no lo encontrará.
+
+#### `DATOS.SOLICITAR_COORDENADAS` en `constants.js`
+
+- Clave `SOLICITAR_COORDENADAS: 'DATOS.SOLICITAR_COORDENADAS'` en `constants.js` L146.
+- Nota: `NAVEGACION.SOLICITAR_COORDENADAS` (L123) es un flujo distinto — padre pide coords de una parada concreta a hijo2. No confundir.
+
+#### `SISTEMA.HIJO_FALLIDO` — handler en padre
+
+- hijo1 (`extrainfo-hijo1.html` L354) y seleccion (`En-busca-del-tesoro.html` L2252) envían `SISTEMA.HIJO_FALLIDO` si su inicialización falla.
+- Padre tiene handler inline L6144 registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. No hay reintento automático ni alerta al usuario; el fallo queda registrado en el log.
+
+#### Patrón: `enviarMensajePadre({destino: padreId})` no funciona
+
+`_enviarDesdePadre(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las tres funciones afectadas usan en cambio `__triggerCambioParadaInterno` o `funcionesMapa.setMapView`:
+
+| Función | Ubicación | Implementación actual |
+| ------- | --------- | --------------------- |
+| `ensureDefaultParada` | `codigo-padre.html` ~L3585 | `__triggerCambioParadaInterno(datosDefault)` |
+| `progresarSiguienteElemento` | `codigo-padre.html` ~L7731 | `__triggerCambioParadaInterno(datosCambio)` |
+| `_onNextEntityShowMapClick` (GPS overlay) | `codigo-padre.html` ~L5527 | `funcionesMapa.setMapView([lat, lng], 16, { animate: true })` |
+
+#### `GPS.ACTIVAR` — handler en Script 2
+
+`NAVEGACION.GPS.ACTIVAR` está gestionado por Script 2 de `codigo-padre.html` (`_hdl_NAVEGACION_GPS_ACTIVAR`). `NAVEGACION.GPS.DESACTIVAR` no tiene handler. Ver §10.15 para el detalle completo del flujo.
+
+#### `NAVEGACION.RESPUESTA_COORDENADAS` — handler en `funciones-mapa.js`
+
+`funciones-mapa.js` L3481 registra handler para `RESPUESTA_COORDENADAS` mediante `procesarRespuestaConsulta`. Resuelve la promesa pendiente de `enviarMensajeConConfirmacion`. El handler está en `funciones-mapa.js`, no en un bloque `<script>` de `codigo-padre.html`; una búsqueda superficial del archivo padre no lo encontrará.
+
+#### `UI.CLOSE_MENUS` hijo1 → padre
+
+hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel de opciones. El padre tiene `_hdl_UI_CLOSE_MENUS_PADRE` en Script 2 que cierra el overlay `#audio-control-overlay` (ver §34.1).
+
+---
+
+### 10.7 Tabla resumen de cobertura por hijo
+
+| Mensaje | hijo1 | hijo2 | hijo3 | hijo4 | hijo5 | hijo6 |
+|---------|-------|-------|-------|-------|-------|-------|
+| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ (+ sync GPS btn) | ✅ |
+| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ (muestra/oculta #paradas-window) | ✅ |
+| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (marca botón .activo) | ❌ |
+| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| HEARTBEAT_START | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| CARGAR_COORDENADAS | — | ✅ | — | — | — | — |
+| CARGAR_TEXTOS | — | ✅ | — | — | — | — |
+| AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — | — |
+| RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — | — |
+| RETO.HABILITAR | — | — | — | ✅ | — | — |
+| RETO.ESTADO_CASA | — | — | — | ✅ | — | — |
+| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | ✅ | — | — |
+| AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — | — |
+| RESPUESTA_DATOS_PARADAS | — | — | — | — | ✅ (genera botones) | — |
+| CHAT.ESTADO_PADRE | — | — | — | — | — | ✅ |
+
+**Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
+
+> ℹ️ **GPS (ESTADO_ACTUALIZADO / ERROR)**: solo **hijo2** tiene handlers para estos tipos. El GPS real llega directamente a hijo2 vía `enviarMensaje_S1` — los demás hijos no procesan eventos GPS.
+
+---
+
 ### 10.8 Listeners pre-módulo (fuera del bus de mensajería)
 
 Algunos mensajes son procesados por listeners raw `window.addEventListener('message')` que se registran **antes** de que los módulos JS carguen. Estos mensajes NO pasan por `mensajeria.js` ni `registrarControladorSeguro`. No tienen garantías de dedup, logging ni routing estándar.
@@ -6052,101 +6151,7 @@ bus aún no ha transmitido el dato.
 
 ---
 
-### 10.6 Comportamientos notables del sistema de mensajería
-
-#### El despachador serializa por tipo de mensaje
-
-- **Dónde**: `js/mensajeria.js`, función `manejarMensajeEntrante` → `_encolarEjecucionHandler` (usa el `Map` module-scope `_colaPorTipo`).
-- Cada `message` event del navegador es una tarea independiente del event loop. Sin esto, dos mensajes del **mismo tipo** que llegan con pocos milisegundos de diferencia (típico con `NAVEGACION.CAMBIO_PARADA` durante lecturas GPS seguidas) se procesaban en paralelo, sin garantía de terminar en el orden en que llegaron — la causa real de que actualizaciones de mapa se perdieran en carreras silenciosas.
-- Cada tipo de mensaje se encadena detrás de la ejecución anterior del **mismo tipo**; tipos distintos siguen siendo completamente concurrentes entre sí (un `CAMBIO_PARADA` lento no bloquea un `HEARTBEAT`). Un handler que falla no rompe la cola — el error se loguea y confirma, y el siguiente mensaje del mismo tipo se procesa igual.
-
-#### `manejarCambiarParada` (funciones-mapa.js) encola, no descarta
-
-- **Dónde**: `js/funciones-mapa.js`, función `manejarCambiarParada` — guard de `estadoMapa.consultaParadaPendiente`, y `_procesarSiguienteEnCola()`.
-- Mientras la animación de zoom de `completarCambioParada()` está en curso (puede tardar 1-2,5 s reales: zoom-out + espera `moveend` + zoom-in), `estadoMapa.consultaParadaPendiente` permanece ocupado. Si llega otro `CAMBIO_PARADA` en esa ventana, se guarda en el slot único `estadoMapa._cambioParadaEncolado` (solo importa el más reciente) en vez de descartarse — así el marcador/polyline del mapa siempre terminan reflejando la última llegada real, aunque coincida con la animación de la anterior.
-- Se drena desde los tres sitios donde `consultaParadaPendiente` se libera: el timeout de seguridad de 8 s, el `catch` de error, y el `finally` de `completarCambioParada()`.
-
-#### `manejarCambiarParada` busca en AVENTURA_PARADAS por `paradaId`, nunca por `padreId`
-
-- **Dónde**: `js/funciones-mapa.js`, función `manejarCambiarParada` — `const idToMatch = paradaId || padreId;`.
-- `AVENTURA_PARADAS` (`js/coordenadas-aventuras.js`, cacheado en `globalThis.AVENTURA_PARADAS`) solo tiene campo `.id`, con el mismo formato que `paradaId`/`parada_id`/`tramo_id` (`"Av1-TR-1"`, `"Av1-P-1"`...) — nunca tiene `padreid`. Cualquier búsqueda que priorice `padreId` (`"padre-TR1"`) falla siempre que el mensaje de `CAMBIO_PARADA` trae ambos campos a la vez, que es el caso normal: `progresarSiguienteElemento()` (la función que fija el nuevo `estado.elementoActual` tras completar audio+llegada) construye el mensaje con `paradaId` **y** `padreId` juntos.
-- Consecuencia de priorizar `padreId`: la búsqueda no encontraba el elemento, `manejarCambiarParada` lanzaba `Parada X no encontrada en datos base` y terminaba en su propio `catch` — el resto del pipeline de `CAMBIO_PARADA` (audio, notificación a hijos) seguía funcionando con normalidad porque corre en un handler distinto, pero el marcador/polyline del elemento activo nunca se actualizaba en el mapa. El marcador del elemento anterior se quedaba en pantalla sin limpiar, dando la sensación de dos destinos activos a la vez.
-
-#### `procesarPosicionGPSParaAventura` — guard de modo AVENTURA
-
-- **Dónde**: `js/funciones-mapa.js` función `procesarPosicionGPSParaAventura` — bloque `if (llegadaDetectada)`
-- El guard `if (estadoMapa.modo !== MODOS.AVENTURA)` impide que se envíe `NAVEGACION.LLEGADA_DETECTADA` en modo CASA. El marcador, el polyline y `ACTUALIZAR_ESTADO` a hijo2 siguen funcionando en ambos modos; solo la notificación de llegada queda desactivada fuera de AVENTURA.
-- `LLEGADA_DETECTADA` no avanza la parada por sí sola — solo marca `pending.llegada = true` en el padre (`_marcarPendingPorLlegada`). El avance real lo decide `intentarCompletarElemento()` cuando también se cumplen audio (y retos, si los hay). `estadoMapa._llegadaNotificada` deduplica el envío mientras la distancia se mantenga ≤ tolerancia; se resetea con histéresis (`distancia > toleranciaGPS * 1.5`) para permitir renotificar si el usuario se aleja y vuelve.
-
-#### `RETO.SOLICITAR_RETO` — handler en Script 2
-
-- hijo3 L837 y hijo4 L853 envían `RETO.SOLICITAR_RETO` → padre.
-- Handler `_hdl_RETO_SOLICITAR` en padre L8142, registrado en L8260 vía `registrarControladorScript2Seguro(TIPOS_MENSAJE_S2.RETO.SOLICITAR_RETO, _hdl_RETO_SOLICITAR)`. El handler está en Script 2, separado del resto; una búsqueda limitada a Script 1 no lo encontrará.
-
-#### `DATOS.SOLICITAR_COORDENADAS` en `constants.js`
-
-- Clave `SOLICITAR_COORDENADAS: 'DATOS.SOLICITAR_COORDENADAS'` en `constants.js` L146.
-- Nota: `NAVEGACION.SOLICITAR_COORDENADAS` (L123) es un flujo distinto — padre pide coords de una parada concreta a hijo2. No confundir.
-
-#### `SISTEMA.HIJO_FALLIDO` — handler en padre
-
-- hijo1 (`extrainfo-hijo1.html` L354) y seleccion (`En-busca-del-tesoro.html` L2252) envían `SISTEMA.HIJO_FALLIDO` si su inicialización falla.
-- Padre tiene handler inline L6144 registrado con `registrarControladorSeguro`. Marca `hijoEstado.activo = false` + `hijoEstado.fallido = true` en `estado.estadoHijos`. No hay reintento automático ni alerta al usuario; el fallo queda registrado en el log.
-
-#### Patrón: `enviarMensajePadre({destino: padreId})` no funciona
-
-`_enviarDesdePadre(padreId)` busca `padreId` en `iframesRegistrados` — padre no es un iframe, no está en ese mapa — el mensaje se descarta sin error. Las tres funciones afectadas usan en cambio `__triggerCambioParadaInterno` o `funcionesMapa.setMapView`:
-
-| Función | Ubicación | Implementación actual |
-| ------- | --------- | --------------------- |
-| `ensureDefaultParada` | `codigo-padre.html` ~L3585 | `__triggerCambioParadaInterno(datosDefault)` |
-| `progresarSiguienteElemento` | `codigo-padre.html` ~L7731 | `__triggerCambioParadaInterno(datosCambio)` |
-| `_onNextEntityShowMapClick` (GPS overlay) | `codigo-padre.html` ~L5527 | `funcionesMapa.setMapView([lat, lng], 16, { animate: true })` |
-
-#### `GPS.ACTIVAR` — handler en Script 2
-
-`NAVEGACION.GPS.ACTIVAR` está gestionado por Script 2 de `codigo-padre.html` (`_hdl_NAVEGACION_GPS_ACTIVAR`). `NAVEGACION.GPS.DESACTIVAR` no tiene handler. Ver §10.15 para el detalle completo del flujo.
-
-#### `NAVEGACION.RESPUESTA_COORDENADAS` — handler en `funciones-mapa.js`
-
-`funciones-mapa.js` L3481 registra handler para `RESPUESTA_COORDENADAS` mediante `procesarRespuestaConsulta`. Resuelve la promesa pendiente de `enviarMensajeConConfirmacion`. El handler está en `funciones-mapa.js`, no en un bloque `<script>` de `codigo-padre.html`; una búsqueda superficial del archivo padre no lo encontrará.
-
-#### `UI.CLOSE_MENUS` hijo1 → padre
-
-hijo1 envía `UI.CLOSE_MENUS` (con `except: 'mas-opciones'`) al abrir su panel de opciones. El padre tiene `_hdl_UI_CLOSE_MENUS_PADRE` en Script 2 que cierra el overlay `#audio-control-overlay` (ver §34.1).
-
----
-
-### 10.7 Tabla resumen de cobertura por hijo
-
-| Mensaje | hijo1 | hijo2 | hijo3 | hijo4 | hijo5 | hijo6 |
-|---------|-------|-------|-------|-------|-------|-------|
-| PADRE_DATOS | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PADRE_CONFIRMA_HIJO_LISTO | ✅ | ✅ | ✅ | ✅ | ✅ (+ sync GPS btn) | ✅ |
-| CAMBIO_MODO | ✅ | ✅ | ✅ | ✅ | ✅ (muestra/oculta #paradas-window) | ✅ |
-| CAMBIO_MODO_APLICADO | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| CAMBIO_PARADA | ❌ | ✅ | ✅ | ✅ | ✅ (marca botón .activo) | ❌ |
-| HEARTBEAT | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| HEARTBEAT_START | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| HEARTBEAT_PAUSE | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| GPS.ESTADO_ACTUALIZADO | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| GPS.ERROR | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| CARGAR_COORDENADAS | — | ✅ | — | — | — | — |
-| CARGAR_TEXTOS | — | ✅ | — | — | — | — |
-| AUDIO.REPRODUCIR_REQUEST | — | — | ✅ | — | — | — |
-| RETO.MOSTRAR/OCULTAR | — | — | — | ✅ | — | — |
-| RETO.HABILITAR | — | — | — | ✅ | — | — |
-| RETO.ESTADO_CASA | — | — | — | ✅ | — | — |
-| CONTROL.HABILITAR/DESHABILITAR | — | ✅ | ✅ | ✅ | — | — |
-| AVENTURA.INICIADA/FINALIZADA | ✅ | — | — | — | — | — |
-| RESPUESTA_DATOS_PARADAS | — | — | — | — | ✅ (genera botones) | — |
-| CHAT.ESTADO_PADRE | — | — | — | — | — | ✅ |
-
-**Leyenda**: ✅ handler presente · ❌ ausente (potencial gap) · — no aplica al rol de ese hijo
-
-> ℹ️ **GPS (ESTADO_ACTUALIZADO / ERROR)**: solo **hijo2** tiene handlers para estos tipos. El GPS real llega directamente a hijo2 vía `enviarMensaje_S1` — los demás hijos no procesan eventos GPS.
-
----
+### 10.24 Traducciones e idiomas — cobertura por idioma
 
 | Código | Idioma | Bandera | Estado de audios |
 |--------|--------|---------|-----------------|
@@ -6247,7 +6252,7 @@ Los pasos 1-3 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 4-5 solo o
 2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que comprueba que `funcionesMapa.procesarPosicionGPSParaAventura` existe (si no, solo avisa por log y no lanza), llama a esa función dentro de un try/catch propio, y si tiene éxito llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` que `_watchPositionSuccess()` ya llamó antes: cada overlay de error GPS (sin señal vs. fuera de rango real) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage.
 3. `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`.
 4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`.
-5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 20 m hardcodeado en hijo2).
+5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 10 m hardcodeado en hijo2, `RADIO_PARADA`).
 
 > **CASA — sin avance automático por GPS:** el modo lo decide hijo5 con el botón 🛰️. En modo CASA las pestañas de tramos y paradas están desplegadas y el usuario elige libremente. `procesarPosicionGPSParaAventura` sigue ejecutándose (actualiza el marcador y calcula distancias), pero el guard `estadoMapa.modo !== MODOS.AVENTURA` impide que se envíe el `CAMBIO_PARADA` automático.
 
@@ -6444,7 +6449,7 @@ La función `calcularToleranciaGPS()` en `js/funciones-mapa.js` determina cuánt
 | **hijo2** `_detectarLlegadaParada()` | **10 m** (`RADIO_PARADA` local) | Fijo | ✅ Genera `LLEGADA_DETECTADA` → padre |
 | **hijo2** `_detectarLlegadaTramo()` | **= toleranciaGPS** | Recibido de funciones-mapa | ✅ Genera `LLEGADA_DETECTADA` → padre |
 
-> **Dos sensores independientes, un único camino de avance (solo en modo AVENTURA)**: funciones-mapa usa 50 m/tolerancia dinámica para su propia detección (`verificarLlegadaADestino`) y hijo2 usa 20 m/`toleranciaGPS` para la suya (`_detectarLlegadaParada`/`_detectarLlegadaTramo`). Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplieron las demás condiciones (audio terminado, y retos si los hay) y llama a `marcarParadaCompletada()` — que habilita `btn-avanzar` y espera la confirmación explícita del usuario (parada y tramo por igual, ver §4.7d Caso D) antes de que `progresarSiguienteElemento()` llegue a ejecutarse. Que funciones-mapa notifique por su cuenta es redundante con hijo2 (dos sensores para el mismo hecho, con radios distintos) pero nunca salta el gate: ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente, ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y `_detectarLlegadaParada`/`_detectarLlegadaTramo` de hijo2 solo corren cuando `ACTUALIZAR_ESTADO` trae `tipoParada`, que solo llega en AVENTURA.
+> **Dos sensores independientes, un único camino de avance (solo en modo AVENTURA)**: funciones-mapa usa 50 m/tolerancia dinámica para su propia detección (`verificarLlegadaADestino`) y hijo2 usa 10 m/`toleranciaGPS` para la suya (`_detectarLlegadaParada`/`_detectarLlegadaTramo`). Los dos son solo sensores — **ninguno de los dos avanza la aventura por sí solo**: ambos notifican `LLEGADA_DETECTADA` al padre, que marca `pending.llegada = true` para el elemento actual (`_marcarPendingPorLlegada`) y llama a `intentarCompletarElemento()`. El avance real solo ocurre cuando `intentarCompletarElemento()` ve que también se cumplieron las demás condiciones (audio terminado, y retos si los hay) y llama a `marcarParadaCompletada()` — que habilita `btn-avanzar` y espera la confirmación explícita del usuario (parada y tramo por igual, ver §4.7d Caso D) antes de que `progresarSiguienteElemento()` llegue a ejecutarse. Que funciones-mapa notifique por su cuenta es redundante con hijo2 (dos sensores para el mismo hecho, con radios distintos) pero nunca salta el gate: ningún camino de detección de llegada envía `CAMBIO_PARADA` directamente, ambos pasan siempre por el sistema pending. En modo CASA ninguno de los dos sensores notifica nada — el guard `estadoMapa.modo !== MODOS.AVENTURA` en `procesarPosicionGPSParaAventura` lo bloquea, y `_detectarLlegadaParada`/`_detectarLlegadaTramo` de hijo2 solo corren cuando `ACTUALIZAR_ESTADO` trae `tipoParada`, que solo llega en AVENTURA.
 
 Para los tramos, la tolerancia dinámica se calcula a partir de la distancia entre waypoints: si el tramo tiene waypoints muy separados (calles largas), la tolerancia es mayor; si están muy juntos (callejones), más ajustada — pero nunca por debajo de **50 m**, el mismo suelo que usa la tolerancia fija de parada. Sin ese suelo, un tramo con waypoints muy juntos podía calcular una tolerancia de 25-30 m, fácil de superar por el ruido normal del GPS en calles estrechas (varios metros de error típico) sin que el usuario se hubiera desviado de verdad — el aviso de "fuera de rango" y la ocultación del trazado (§4.7d) se disparaban por imprecisión del sensor, no por una razón real. El destino de un tramo es siempre su **punto `.fin`** — no el último waypoint del array, que puede quedar corto o largo del punto de llegada real definido en los datos.
 
@@ -7452,12 +7457,12 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `12-carga-por-parada.spec.js` | 3 | Protección pasiva por parada: audio/reto se resuelven en línea por elemento activado, sin broadcast masivo |
 | `13-gps-tramo-fix.spec.js` | 14 | Distancia y llegada a tramos por GPS: `verificarLlegadaADestino` usa `.fin` (no `.inicio` ni el último waypoint) y reconoce `tipo:"inicio"`; `procesarPosicionGPSParaAventura` notifica `LLEGADA_DETECTADA` (nunca `CAMBIO_PARADA` directo) tras confirmar por ventana deslizante (2 de las últimas 4 lecturas dentro de radio — este test usa 2 consecutivas como estímulo, que sigue confirmando; ver `21-llegada-ruido-gps.spec.js` para el caso con ruido real), con dedup; `_siguienteIdElementoNavegable` apunta al elemento activo, no al siguiente en el array (GT-6); precisión mala ya no descarta la lectura y el contador de candidata se reinicia al salir de radio (PD-1..4); la polyline manual (única guía de vuelta que existe, §4.6) se limpia con llegada real o con el trazado persistente ya visible, y permanece si ninguna de las dos se cumple (PM-1/2); `distanciaAlCamino` da ~0m en el inicio del tramo y sobre un waypoint intermedio mientras `distanciaAlDestino` se mantiene grande, y coincide siempre con `distanciaAlDestino` en una parada (DC-1..3) |
 | `15-arribo-y-progresion.spec.js` | 3 | Pipeline llegada→pending→progresión con mensajes reales: `LLEGADA_DETECTADA` marca `pending.llegada`; `AUDIO.FIN_REPRODUCCION` marca `pending.audio` y completa el tramo — habilita btn-avanzar y espera confirmación explícita, sin avanzar `indiceProgreso` por sí solo (AP-2, parada y tramo por igual, §4.7d); solo al recibir `NAVEGACION.GPS.ACTIVAR` (btn-avanzar pulsado) `progresarSiguienteElemento()` avanza y limpia el pending anterior antes de fijar el nuevo `elementoActual` (AP-3); `manejarCambiarParada()` encuentra el nuevo elemento en `AVENTURA_PARADAS` sin error (fix de `idToMatch`) |
-| `16-loading-overlay-oculta-ui.spec.js` | 2 | Con `body.loading` activo, `#selector-tipo-mapa` y `#btn-chat-soporte` permanecen invisibles (opacity/visibility computados) aunque su `style.display` se fuerce a visible; al quitar la clase, ambos vuelven a mostrarse |
+| `16-loading-overlay-oculta-ui.spec.js` | 2 | Con `body.loading` activo, `#selector-tipo-mapa`, `#btn-chat-soporte` y `#btn-recentrar` permanecen invisibles (opacity/visibility computados) aunque su `style.display` se fuerce a visible; al quitar la clase, los tres vuelven a mostrarse |
 | `17-flecha-brujula-continuidad.spec.js` | 4 | La recreación del marcador GPS (una posición nueva) reutiliza el ángulo acumulado de la brújula como rotación inicial de `.gps-arrow-heading`, no el `heading` GPS (poco fiable si el usuario no camina a velocidad suficiente); el ápice del triángulo de la flecha, medido con `getBoundingClientRect()` en 0° y 180°, coincide exactamente con el punto GPS real en ambos ángulos — no orbita (GA-1); `alpha=90` (Android) se convierte al rumbo `270` (`360-alpha`), nunca se usa crudo (HD-1); con el mapa girado 180° a mano (bearing≠0), el mismo rumbo real se pinta restando el bearing (`_rumboEnPantalla()`) — 180 en pantalla con bearing 0, 0deg con bearing 180 (RB-1) |
 | `18-boton-deshabilitado-color.spec.js` | 6 | Un `background-color` inline residual (bypass antiguo) no puede tapar el degradado de la clase `.disabled` (BU-1); los 5 sitios CSS estandarizados (`.boton.disabled` en hijo2 y video-intro.html, `#retosBtn:disabled` y `.boton.deshabilitado` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en el padre) resuelven al mismo rojo `#B22222` (BU-2a..e) |
 | `19-tiempo-restante-reset.spec.js` | 1 | Pulsar "Elegir otra aventura" en `mostrarDialogoVueltaRapida` resetea `estado.tiempoRestante` a `null` — si no, la siguiente aventura seleccionada heredaría el tiempo restante de la abandonada como override de su propio temporizador |
 | `20-tramo-inicio-y-revelado.spec.js` | 5 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` con un tramo activo dibuja la polyline verde hasta `.inicio` del tramo, no hasta P-0/Torres de Serranos (PC-1); el trazado completo de un tramo permanece oculto mientras el usuario está lejos de `.inicio` y se revela (`revelarNavegacion()`) solo al confirmar por GPS que está a ≤20m, con 2 lecturas seguidas como estímulo (RV-1); 12 lecturas alternando 15m/25m alrededor de `.inicio` — nunca 2 seguidas dentro — también revelan el trazado gracias a la ventana deslizante de 2-de-4 (RV-3); una vez iniciado, desviarse del camino real (`distanciaAlCamino`) oculta el trazado y volver a acercarse en cualquier punto — sin pasar de nuevo por `.inicio` — lo revela otra vez, cubriendo el caso de una calle cortada por obras (RV2-1); pulsar el botón de ubicación oculta el trazado persistente de inmediato, sin esperar a la próxima lectura GPS (PL-1) |
-| `21-llegada-ruido-gps.spec.js` | 4 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, no un mensaje sintético): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 15m/25m alrededor del radio de 20m — nunca 2 SEGUIDAS dentro — SÍ confirman llegada con la ventana deslizante de 2-de-4 (RG-3, reproduce el reporte de campo real); el sensor redundante de `funciones-mapa.js` ya no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
+| `21-llegada-ruido-gps.spec.js` | 4 | Con datos reales de Av1-P-1 y un hijo2 real cargado como iframe (registrado en `iframesRegistrados`, solo para que RG-4 pueda comprobar el enrutamiento — `enviarLectura()` llama siempre a `funcionesMapa.procesarPosicionGPSParaAventura()` directamente, nunca a un mensaje sintético ni al detector propio de hijo2): 2 lecturas exactas en la diana confirman llegada (RG-1); una única lectura dentro de radio rodeada de lecturas lejanas (1 de 4) NO confirma (RG-2); 12 lecturas alternando 45m/55m alrededor del radio real de 50m de `calcularToleranciaGPS()` para paradas (el mismo que usa este sensor, no el `RADIO_PARADA` de 10m de hijo2) — nunca 2 SEGUIDAS dentro — SÍ confirman llegada con la ventana deslizante de 2-de-4 (RG-3, reproduce el patrón de campo real); el sensor redundante de `funciones-mapa.js` ya no genera el warning "Iframe no encontrado" al notificar su propia llegada al padre (RG-4) |
 | `22-carteles-informativos.spec.js` | 9 | Los cinco carteles (§4.7g-l), cada uno invocado directamente: Transición con dos iconos y texto tras "Por favor," (CI-1); Inicio de tramo variante parada→tramo, nombra la parada y el tramo ("Ha terminado la parada X — va a empezar el tramo Y") además de "línea azul" (CI-2, §4.7i); Inicio de tramo variante tramo→tramo, mismo mecanismo con los dos tramos (CI-2b); Llegada, con el nombre de la parada y "avanzar"+"play" (CI-3); Bienvenida de vuelta tramo, con "línea azul" (CI-4); Bienvenida de vuelta parada, sin "línea azul" (CI-5); la bifurcación real de `marcarParadaCompletada()` (§4.7g) para una pareja parada→tramo dispara el cartel de Inicio de tramo, nunca el de Transición genérico — con datos reales de Aventura1 (CI-6); `navigator.vibrate(200)` se llama exactamente una vez al mostrar un cartel (CI-7, §4.7m); sin soporte de `navigator.vibrate` (escritorio/Safari) el cartel se muestra igual sin lanzar error (CI-8) |
 | `23-polyline-autoreparacion.spec.js` | 3 | Con un mapa simulado cuyo `isStyleLoaded()` empieza en `false` (§4.6a): `dibujarRutaConMarcadores({dibujarRuta:true})` no llama a `addLayer`/`addSource` hasta que el mapa dispara `'load'`, momento en el que la capa real se crea sola (PR-1); un `setStyle()` pedido (vía `revelarNavegacion()`) antes de que exista la capa real se aplica sobre ella en cuanto se crea, no se pierde (PR-2); con el estilo ya cargado, la capa se crea al instante, sin esperar a `'load'` (PR-3) |
 | `24-camara-sigue-usuario.spec.js` | 1 | Ciclo completo del seguimiento de cámara (§4.6b): la primera posición GPS centra la cámara (`easeTo`); un `dragstart` sin `originalEvent` (programático) no pausa el seguimiento; uno con `originalEvent` (gesto real del usuario) sí lo pausa; `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato |
@@ -7604,7 +7609,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5db4da4fc767'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-402e002e9078'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7777,13 +7782,14 @@ proyecto/
 │       ├── maplibre-gl.css
 │       └── page-flip.browser.js      ← StPageFlip (MIT) — efecto de pasar página en video-intro.html, ver §35.6b
 │
-├── audios-aventuras/                 ← MP3 organizados por idioma (protegidos por PROTECT_DATA)
+├── audios-aventuras/                 ← MP3 organizados por idioma (protegidos por PROTECT_DATA) — 12 carpetas, una por idioma (ver §12)
 │   ├── español/
 │   ├── english/
 │   ├── frances/
 │   ├── italiano/
 │   ├── holandes/
-│   └── japones/
+│   ├── japones/
+│   └── ...                           (aleman, chino, polaco, portugues, ruso, ucraniano)
 │
 ├── videos-aventuras/                 ← Vídeos MP4 de dron organizados por aventura
 │   ├── av1/
@@ -7796,7 +7802,7 @@ proyecto/
 │   └── imagenes-mapas-vintage/       ← Tiles del mapa vintage artístico
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright (11 suites)
+│   └── e2e/                          ← Tests Playwright — 27 specs, ver §18.3 para el listado completo
 │
 └── docs/                             ← Esta documentación
     └── aventuras_ordenado/           ← Guiones legibles por aventura + tramos-para-videos.md — generados, no se editan a mano (ver §21)
@@ -7911,8 +7917,10 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
 | 11 | `BACKEND_READY = true` en `js/data-loader.js` (activa `DATA_MODE='api'` en dominios no locales) | §22.11 | ⏳ pendiente |
 | 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
-| 14 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | §22.14 | ⏳ pendiente |
-| 15 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ pendiente |
+| 13 | Migrar imports directos (`aventuras-ID-padre.js`, puzzles) a `data-loader.js` antes de activar `PROTECT_DATA=true` | §22.12 | ⏳ pendiente |
+| 14 | Compatibilidad iOS PWA y navegadores antiguos (meta tags, Permissions-Policy vía cabecera) | §22.13 | ⏳ pendiente |
+| 15 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | §22.14 | ⏳ pendiente |
+| 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ pendiente |
 
 ---
 
@@ -8237,7 +8245,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5db4da4fc767';
+const CACHE_VERSION = 'v-402e002e9078';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8959,8 +8967,8 @@ La pantalla de aventura se compone de varios elementos superpuestos:
 | avanzar | Ruta A→B | Envía `NAVEGACION.GPS.ACTIVAR` al padre para activar el GPS interno o avanzar al siguiente elemento. En tramo con polyline oculta: revela la ruta. En parada completada: progresa al siguiente elemento |
 | Imagen | Foto monumento | Muestra una foto de la parada actual en un overlay y el texto relacionado con ella |
 | Vídeo | Fotograma dron | Reproduce un vídeo aéreo del tramo de A a B |
-| Ubicación | Foto distancia | cuando el usuario sale fuera del radio de la aventura |
-| Mapa completo | Mapa moderno | Abre un mapa moderno a pantalla completa con las paradas y la polyline en coordenadas-aventuras son las referencias |
+| Ubicación | Foto distancia | Dibuja una polyline discontinua de vuelta al destino actual. Deshabilitado (rojo) mientras el usuario está en rango; se habilita (verde) cuando se confirma que está fuera de rango (§11, "Sistema fuera de rango real") |
+| Mapa completo | Mapa moderno | Abre `mapa-completo.html` a pantalla completa: todas las paradas, la polyline de la ruta y los marcadores `tipo:"referencia"` de `coordenadas-aventuras.js` |
 | Mapa vintage | Mapa antiguo | Abre el mapa artístico a pantalla completa |
 
 **Hijo 3 — Audio** (borde inferior): Muestra un reproductor de audio con:
@@ -9059,7 +9067,7 @@ La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica q
 
 ### 25.7. Cuando el usuario se aleja demasiado: fuera del radio
 
-**El umbral:** si `distanciaAlDestino` (la distancia a la parada que le toca al usuario, calculada en tiempo real por `funciones-mapa.js`) supera el rango real de llegada (20m en paradas, `toleranciaGPS` en tramos — el mismo umbral que `btn-avanzar`), hijo2 activa el sistema de aviso por distancia. Esto se comprueba en cada posición GPS que llega. El sistema verifica solo la parada o tramo activo — no vale estar cerca de cualquier punto de la ruta.
+**El umbral:** si `distanciaAlDestino` (la distancia a la parada que le toca al usuario, calculada en tiempo real por `funciones-mapa.js`) supera el rango real de llegada (10m en paradas — `RADIO_PARADA`/`rangoMaximo`, `coordenadas-hijo2.html` —, `toleranciaGPS` en tramos — el mismo umbral que `btn-avanzar`), hijo2 activa el sistema de aviso por distancia. Esto se comprueba en cada posición GPS que llega. El sistema verifica solo la parada o tramo activo — no vale estar cerca de cualquier punto de la ruta.
 
 A partir de ahí, la distancia se reparte en tres franjas — detalle completo, mensajes y pantallas en §31.4:
 
@@ -9587,7 +9595,7 @@ Nada especial — la aplicación procesa la posición igual, sea cual sea su pre
 
 Alejarse de la parada activa (más allá de 10 m, o de la tolerancia del tramo) no bloquea nada de inmediato — la aplicación escala el aviso según cuánta distancia queda por recorrer:
 
-- **Entre 21 y 50 metros**: aparece la imagen de "fuera de rango" con una cuenta atrás de 5 minutos. Es un margen para que el usuario llegue por su cuenta antes de que la app le ofrezca ayuda.
+- **Entre 11 y 50 metros**: aparece la imagen de "fuera de rango" con una cuenta atrás de 5 minutos. Es un margen para que el usuario llegue por su cuenta antes de que la app le ofrezca ayuda.
 - **Entre 51 metros y 2 kilómetros**: aparece la imagen de "lejos de tu objetivo" — la ayuda se ofrece al instante, sin esperar.
 - **Más de 2 kilómetros**: aparece la misma imagen que la comprobación de más de 5 km de la ruta (siguiente apartado) — al usuario le queda claro que algo no cuadra, sin necesidad de un mensaje distinto para cada caso.
 
@@ -10310,7 +10318,7 @@ Panel lateral izquierdo con un botón "Más opciones" que despliega iconos flota
 |---|---|---|---|---|---|
 | `SISTEMA.PADRE_DATOS` | Padre (handshake) | Guarda el idioma y la aventura activa; inicializa el botón y los iconos | `SISTEMA.HIJO_LISTO` | Padre | Recibir el contexto para mostrar los iconos correctos |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; el botón queda interactivo | (ninguna) | — | Handshake |
-| `SISTEMA.CAMBIO_MODO` | Padre | En modo `AVENTURA`/`MAPA` se muestra; en `CASA` se oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | El panel solo tiene sentido durante la aventura |
+| `SISTEMA.CAMBIO_MODO` | Padre | En modo `AVENTURA` se muestra; en `CASA` se oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | El panel solo tiene sentido durante la aventura |
 | `SISTEMA.HEARTBEAT` | Padre | Responde inmediatamente | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmar vida |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
@@ -10431,7 +10439,7 @@ Herramienta de desarrollo. El iframe arranca oculto (`display:none; visibility:h
 |---|---|---|---|---|---|
 | `SISTEMA.PADRE_DATOS` | Padre | Guarda configuración; envía `NAVEGACION.SOLICITAR_DATOS_PARADAS` al padre para obtener la lista de paradas; inicializa la barra | `SISTEMA.HIJO_LISTO` | Padre | Sin los datos de paradas no puede renderizar los botones de navegación |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake; la barra queda interactiva | (ninguna) | — | Handshake |
-| `SISTEMA.CAMBIO_MODO` | Padre | En `AVENTURA`/`MAPA` muestra la barra; en `CASA` la oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La barra solo es visible durante la aventura |
+| `SISTEMA.CAMBIO_MODO` | Padre | En `AVENTURA` muestra la barra; en `CASA` la oculta | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | La barra solo es visible durante la aventura |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Padre | Renderiza los botones de parada/tramo con emoji, código corto y nombre completo; activa el efecto marquee si el nombre no cabe | (ninguna) | — | Poblar la barra con los botones navegables de la aventura |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
@@ -11076,7 +11084,7 @@ Cuando se completa la parada (condiciones `pending.llegada + pending.audio + ret
 
 Cubierto por la suite de arribo y progresión (`tests/e2e/15-arribo-y-progresion.spec.js`).
 
-### 29.6 Lógica de retos en modo AVENTURA
+### 29.7 Lógica de retos en modo AVENTURA
 
 **Archivo: `codigo-padre.html`**
 - En `_hdl_AUDIO_FIN_REPRODUCCION`:
@@ -11089,7 +11097,7 @@ Cubierto por la suite de arribo y progresión (`tests/e2e/15-arribo-y-progresion
 - Handler `RETO.HABILITAR`:
   - Habilita `#botonRetos` cuando el audio se ha escuchado al menos 1 vez y la parada tiene reto
 
-### 29.7 Lógica de retos en modo CASA
+### 29.8 Lógica de retos en modo CASA
 
 **Archivo: `codigo-padre.html`**
 
@@ -11104,7 +11112,7 @@ Cubierto por la suite de arribo y progresión (`tests/e2e/15-arribo-y-progresion
   - Si `habilitado: true` → muestra `botonRetos-wrapper` + activa `#botonRetos`
   - Si `habilitado: false` → oculta `botonRetos-wrapper` (`display: none`) + desactiva `#botonRetos`
 
-### 29.8 Comportamiento de botones en modo CASA
+### 29.9 Comportamiento de botones en modo CASA
 
 Estado de botones por hijo en modo CASA:
 
@@ -11116,7 +11124,7 @@ Estado de botones por hijo en modo CASA:
 - **Hijo 4 (retos-hijo4.html):**
   - Botón retos: controlado por `RETO.ESTADO_CASA` (habilitado solo en paradas **con reto**, oculto en tramos y en paradas sin reto)
 
-### 29.9 Archivos con lógica de restricciones GPS
+### 29.10 Archivos con lógica de restricciones GPS
 
 1. **js/config.js**: Parámetros GPS
 2. **codigo-padre.html**: Estado GPS, lógica de botones de avance y retos
@@ -11166,7 +11174,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-5db4da4fc767';
+const CACHE_VERSION = 'v-402e002e9078';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11413,10 +11421,10 @@ Los dos disparadores del overlay (§31.4, distancia al objetivo >2.000m; §31.5,
 
 Si `FIN_REPRODUCCION` nunca llega, `pending.audio` se queda `false` para siempre y `intentarCompletarElemento()` nunca avanza al siguiente elemento.
 
-**Corrección 30.7a — `AUDIO.ERROR` desbloquea el pending:**
+**Corrección 31.7a — `AUDIO.ERROR` desbloquea el pending:**
 El handler `_hdl_AUDIO_ERROR()` ([codigo-padre.html:10188](codigo-padre.html#L10188)) localiza el elemento por `audioId` con `findElementoPorAudio()`, resuelve su pending vía `ensurePending()` y, si `pending.audio` aún no estaba a `true`, lo marca y llama a `intentarCompletarElemento()`. El error de audio se trata como fin de audio a efectos de progresión — la parada no queda bloqueada aunque el MP3 nunca cargue.
 
-**Corrección 30.7b — TTL activo:**
+**Corrección 31.7b — TTL activo:**
 Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, configurable por elemento en `_buildPendingConfig()`). Un `setInterval` global (`globalThis.__VV_PENDING_CLEANUP`, [codigo-padre.html:11487](codigo-padre.html#L11487)) corre cada 60 segundos, solo en modo AVENTURA: recorre `estado.pendingCompleciones`, y para cada uno cuyo `Date.now() - pending.timestamp > pending.ttlMs`, fuerza `audio = true` y `llegada = true` y llama a `intentarCompletarElemento()`. El intervalo se limpia (`clearInterval`) junto con el resto de limpieza global del padre ([codigo-padre.html:11696](codigo-padre.html#L11696)).
 
 **Nota sobre tramos:** los tramos requieren `pending.audio && pending.llegada`. Si el audio no carga pero el GPS sí confirma llegada, el tramo sigue bloqueado hasta que se resuelva el audio. La solución del punto 1 (AUDIO.ERROR → pending.audio = true) también desbloquea este caso.
@@ -11427,7 +11435,7 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 
 **Pendiente de decisión — timeout de seguridad en el padre:** si tanto `AUDIO.ERROR` como el TTL activo fallan por algún motivo, el padre podría implementar un timeout de seguridad de último recurso que fuerce la progresión tras un tiempo máximo configurable. Este mecanismo es más agresivo que el TTL (no distingue entre audio fallido y audio simplemente largo) y requiere decisión de diseño antes de implementarse.
 
-**Estado de implementación:** ✅ ambas correcciones aplicadas (30.7a y 30.7b).
+**Estado de implementación:** ✅ ambas correcciones aplicadas (31.7a y 31.7b).
 
 ---
 
@@ -11435,18 +11443,18 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 
 | # | Problema | Imagen | Detectado por | Estado |
 |---|---|---|---|---|
-| 30.1 | Sin internet | `imagen-no-internet.png` | `AUDIO.ERROR` + `!navigator.onLine` → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
-| 30.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(code)` | ✅ implementado |
-| 30.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
-| 30.4a | Fuera de rango: 11-50m | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
-| 30.4b | Fuera de rango: 51-2000m | `foto_lejos_ubicacion.png` | ídem | ✅ implementado |
-| 30.4c | Fuera de rango: >2000m del objetivo | `fotogpserror.png` | `GPS.RESTRINGIDO` → padre | ✅ implementado |
-| 30.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
-| 30.6 | Mecánica compartida (reintento + panel "Próxima parada") de 30.4c y 30.5 | `fotogpserror.png` | `_gpsReintentarDesdeOverlayDistancia()` / `showNextEntityOverlay()` | ✅ botón centrado + countdown 15s implementado |
-| 30.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` marca `pending.audio = true` + llama `intentarCompletarElemento` | ✅ corregido |
-| 30.7b | TTL pending nunca ejecutado | — | `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` | ✅ corregido |
-| 30.9 | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |
-| 30.9 | iOS PWA sin meta tags correctos | — | meta tags `apple-mobile-web-app-*` | ✅ implementado |
+| 31.1 | Sin internet | `imagen-no-internet.png` | `AUDIO.ERROR` + `!navigator.onLine` → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
+| 31.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(code)` | ✅ implementado |
+| 31.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
+| 31.4a | Fuera de rango: 11-50m | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
+| 31.4b | Fuera de rango: 51-2000m | `foto_lejos_ubicacion.png` | ídem | ✅ implementado |
+| 31.4c | Fuera de rango: >2000m del objetivo | `fotogpserror.png` | `GPS.RESTRINGIDO` → padre | ✅ implementado |
+| 31.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
+| 31.6 | Mecánica compartida (reintento + panel "Próxima parada") de 31.4c y 31.5 | `fotogpserror.png` | `_gpsReintentarDesdeOverlayDistancia()` / `showNextEntityOverlay()` | ✅ botón centrado + countdown 15s implementado |
+| 31.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` marca `pending.audio = true` + llama `intentarCompletarElemento` | ✅ corregido |
+| 31.7b | TTL pending nunca ejecutado | — | `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` | ✅ corregido |
+| 31.9 | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |
+| 31.9 | iOS PWA sin meta tags correctos | — | meta tags `apple-mobile-web-app-*` | ✅ implementado |
 
 ---
 
