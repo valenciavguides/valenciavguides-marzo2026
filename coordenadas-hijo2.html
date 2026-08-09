@@ -106,7 +106,9 @@
             position: relative;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(180deg, #43c465 0%, #28a745 50%, #1e8035 100%);
+            /* Verde medio #00BB77 por defecto — botones de orientación (mapa completo,
+               mapa vintage) que no cambian de estado con la frecuencia de los otros 4. */
+            background: linear-gradient(#00BB77, #00BB77);
             color: white;
             font-size: var(--icon-size);
             display: flex;
@@ -118,6 +120,17 @@
             padding: 0;
             box-sizing: border-box;
             overflow: hidden;
+        }
+
+        /* Verde vivo #00FF00 — los 4 botones que más cambian de estado según el progreso
+           real del usuario (dron/vídeo, imagen, ubicación, avanzar). :not(.disabled) evita
+           competir con .boton.disabled más abajo — sin él, un ID siempre gana a una clase
+           por especificidad, disabled o no. */
+        #btn-video:not(.disabled),
+        #btn-imagen:not(.disabled),
+        #btn-avanzar:not(.disabled),
+        #btn-ubicacion:not(.disabled) {
+            background: linear-gradient(#00FF00, #00FF00);
         }
 
         .boton.activo {
@@ -139,7 +152,7 @@
         }
 
         .boton.disabled {
-            background: linear-gradient(to right, #B22222, #8B1A1A);
+            background: linear-gradient(#ED2100, #ED2100);
             cursor: not-allowed;
             opacity: 0.6;
             box-shadow: none;

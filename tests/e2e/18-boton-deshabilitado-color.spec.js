@@ -15,11 +15,25 @@
  *         reproduce el bypass a propósito (fondo inline verde) y confirma que la
  *         clase `.disabled` sigue pintando el degradado rojo por encima, pase lo que
  *         pase con el inline.
- *   BU-2  Estandarización de color: los 4 sitios CSS (`.boton.disabled` en
+ *   BU-2  Estandarización de color: los 5 sitios CSS (`.boton.disabled` en
  *         coordenadas-hijo2.html y video-intro.html, `#retosBtn:disabled` y
  *         `#hijo3 .boton.deshabilitado` en audio-hijo3.html,
  *         `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en
- *         codigo-padre.html) resuelven al mismo rojo base #B22222 = rgb(178, 34, 34).
+ *         codigo-padre.html) resuelven al mismo rojo base #ED2100 = rgb(237, 33, 0) —
+ *         único para TODOS los botones deshabilitados de la app, sin excepción,
+ *         independientemente de si su verde habilitado es el vivo #00FF00 o el medio
+ *         #00BB77 (ver §11/§4.6b de docs/GUIA-COMPLETA.md para qué botón lleva cada
+ *         verde). Cada regla sigue pintando `background-image` (un `linear-gradient`
+ *         de un único color, no `background-color`) a propósito — visualmente plano,
+ *         pero conserva la propiedad defensiva de BU-1 (una imagen de fondo siempre
+ *         pinta por encima de un `background-color` inline).
+ *   BU-3  Los dos verdes de coordenadas-hijo2.html: `#btn-video`/`#btn-imagen`/
+ *         `#btn-avanzar`/`#btn-ubicacion` (los botones cuyo estado cambia más a
+ *         menudo con el progreso real) resuelven al verde vivo #00FF00; el resto de
+ *         `.boton` (`#btn-mapa-completo`/`#btn-mapa-jpg`) al verde medio #00BB77
+ *         (BU-3a). El `:not(.disabled)` de la regla del verde vivo no compite con
+ *         `.boton.disabled` — con la clase `disabled` puesta, un botón vivo sigue
+ *         resolviendo al rojo estándar, no al verde (BU-3b).
  *
  * Cada página se carga de forma standalone (no como iframe hijo dentro de
  * codigo-padre.html) — los módulos ES no cargan sobre file://, así que se navega vía
@@ -31,7 +45,7 @@
 
 const { test, expect } = require('@playwright/test');
 
-const ROJO_BASE = 'rgb(178, 34, 34)'; // #B22222
+const ROJO_BASE = 'rgb(237, 33, 0)'; // #ED2100
 
 test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de la clase .disabled', () => {
   test('BU-1. Un background-color inline (bypass) no puede tapar el degradado de la clase .disabled', async ({ page }) => {
@@ -59,7 +73,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
     expect(resultado.despuesDeDisabled, `El degradado pintado encima debe ser el rojo estándar. Computado: ${resultado.despuesDeDisabled}`).toContain(ROJO_BASE);
   });
 
-  test('BU-2a. coordenadas-hijo2.html — .boton.disabled resuelve a rgb(178,34,34)', async ({ page }) => {
+  test('BU-2a. coordenadas-hijo2.html — .boton.disabled resuelve a rgb(237,33,0)', async ({ page }) => {
     await page.goto('/coordenadas-hijo2.html');
     const bg = await page.evaluate(() => {
       const el = document.createElement('button');
@@ -70,7 +84,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
     expect(bg, `Computado: ${bg}`).toContain(ROJO_BASE);
   });
 
-  test('BU-2b. audio-hijo3.html — #retosBtn:disabled resuelve a rgb(178,34,34)', async ({ page }) => {
+  test('BU-2b. audio-hijo3.html — #retosBtn:disabled resuelve a rgb(237,33,0)', async ({ page }) => {
     await page.goto('/audio-hijo3.html');
     await page.waitForSelector('#retosBtn', { state: 'attached', timeout: 15000 });
     // #retosBtn lleva `disabled` de fábrica en el HTML estático — sin necesidad de forzar nada.
@@ -78,7 +92,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
     expect(bg, `Computado: ${bg}`).toContain(ROJO_BASE);
   });
 
-  test('BU-2c. audio-hijo3.html — #hijo3 .boton.deshabilitado resuelve a rgb(178,34,34)', async ({ page }) => {
+  test('BU-2c. audio-hijo3.html — #hijo3 .boton.deshabilitado resuelve a rgb(237,33,0)', async ({ page }) => {
     await page.goto('/audio-hijo3.html');
     const bg = await page.evaluate(() => {
       let hijo3 = document.getElementById('hijo3');
@@ -95,7 +109,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
     expect(bg, `Computado: ${bg}`).toContain(ROJO_BASE);
   });
 
-  test('BU-2d. codigo-padre.html — #audio-main-toggle-btn:disabled y .audio-action-btn:disabled resuelven a rgb(178,34,34)', async ({ page }) => {
+  test('BU-2d. codigo-padre.html — #audio-main-toggle-btn:disabled y .audio-action-btn:disabled resuelven a rgb(237,33,0)', async ({ page }) => {
     await page.goto('/codigo-padre.html');
     const resultado = await page.evaluate(() => {
       const a = document.createElement('button');
@@ -117,7 +131,7 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
     expect(resultado.accion, `.audio-action-btn computado: ${resultado.accion}`).toContain(ROJO_BASE);
   });
 
-  test('BU-2e. video-intro.html — .boton.disabled resuelve a rgb(178,34,34)', async ({ page }) => {
+  test('BU-2e. video-intro.html — .boton.disabled resuelve a rgb(237,33,0)', async ({ page }) => {
     await page.goto('/video-intro.html');
     const bg = await page.evaluate(() => {
       const el = document.createElement('button');
@@ -126,5 +140,52 @@ test.describe('BU — Botón deshabilitado: color estandarizado y mecanismo de l
       return getComputedStyle(el).backgroundImage;
     });
     expect(bg, `Computado: ${bg}`).toContain(ROJO_BASE);
+  });
+
+  test('BU-3a. coordenadas-hijo2.html — verde vivo en dron/imagen/avanzar/ubicación, verde medio en el resto', async ({ page }) => {
+    await page.goto('/coordenadas-hijo2.html');
+    // Los botones reales arrancan deshabilitados por defecto hasta que el estado real
+    // (GPS/progreso) los habilita — igual que BU-2a/2c, se leen las reglas CSS sobre
+    // elementos frescos con el id/clase exactos, no el estado inicial de la página real.
+    const resultado = await page.evaluate(() => {
+      const idsVivos = ['btn-video', 'btn-imagen', 'btn-avanzar', 'btn-ubicacion'];
+      const idsMedios = ['btn-mapa-completo', 'btn-mapa-jpg'];
+      const leer = (id) => {
+        const el = document.createElement('button');
+        el.id = id;
+        el.className = 'boton';
+        document.body.appendChild(el);
+        const bg = getComputedStyle(el).backgroundImage;
+        el.remove();
+        return bg;
+      };
+      const out = {};
+      [...idsVivos, ...idsMedios].forEach(id => { out[id] = leer(id); });
+      return out;
+    });
+    const VERDE_VIVO = 'rgb(0, 255, 0)'; // #00FF00
+    const VERDE_MEDIO = 'rgb(0, 187, 119)'; // #00BB77
+    expect(resultado['btn-video'], `#btn-video computado: ${resultado['btn-video']}`).toContain(VERDE_VIVO);
+    expect(resultado['btn-imagen'], `#btn-imagen computado: ${resultado['btn-imagen']}`).toContain(VERDE_VIVO);
+    expect(resultado['btn-avanzar'], `#btn-avanzar computado: ${resultado['btn-avanzar']}`).toContain(VERDE_VIVO);
+    expect(resultado['btn-ubicacion'], `#btn-ubicacion computado: ${resultado['btn-ubicacion']}`).toContain(VERDE_VIVO);
+    expect(resultado['btn-mapa-completo'], `#btn-mapa-completo computado: ${resultado['btn-mapa-completo']}`).toContain(VERDE_MEDIO);
+    expect(resultado['btn-mapa-jpg'], `#btn-mapa-jpg computado: ${resultado['btn-mapa-jpg']}`).toContain(VERDE_MEDIO);
+  });
+
+  test('BU-3b. coordenadas-hijo2.html — un botón de verde vivo deshabilitado sigue resolviendo a rojo, no a verde', async ({ page }) => {
+    await page.goto('/coordenadas-hijo2.html');
+    await page.waitForSelector('#btn-video', { state: 'attached', timeout: 15000 });
+    const bg = await page.evaluate(() => {
+      const btn = document.getElementById('btn-video');
+      // .boton lleva `transition: all 0.3s ease` — sin anularla, leer el estilo computado
+      // justo después de cambiar la clase puede capturar un valor a medio interpolar entre
+      // los dos linear-gradient (mismo motivo que BU-1, más arriba).
+      btn.style.transition = 'none';
+      btn.classList.add('disabled');
+      return getComputedStyle(btn).backgroundImage;
+    });
+    expect(bg, `#btn-video.disabled computado: ${bg}`).toContain(ROJO_BASE);
+    expect(bg, `#btn-video.disabled no debe resolver al verde vivo: ${bg}`).not.toContain('rgb(0, 255, 0)');
   });
 });

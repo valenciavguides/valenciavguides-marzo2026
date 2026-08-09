@@ -243,3 +243,15 @@ Tres ajustes pedidos por el usuario tras usar el menú, sin relación con la br�
 3. **Fórmulas de posición que dependían del tamaño del botón.** El `left:`/`right:` de ambos contenedores (espejados entre sí) restan la mitad del ancho del botón principal para centrarlo sobre el botón de chat — ese `clamp(...)` está hardcodeado en la fórmula, así que subir el tamaño del botón sin actualizar también la fórmula habría desalineado ambos botones respecto al chat. Actualizado en los dos sitios.
 
 Documentado en `docs/GUIA-COMPLETA.md` §4.6b y §11 ("Capas de mapa y selector de estilo").
+
+---
+
+## 11. Imagen fija para los dos botones principales, sin borde CSS propio
+
+El usuario aportó dos imágenes nuevas (`imagenes/imagenes-aplicación/boton-brujula.png` y `mapa-cambio-modo.png`, ambas redimensionadas de su tamaño original a 320×320 con `ffmpeg` — el original de brújula pesaba 1,36MB, demasiado para un icono de ~67px) y pidió que fueran el icono **fijo** del botón principal de cada menú, sin más — el de `#selector-tipo-mapa` dejó de cambiar su miniatura según el modo activo (satélite/callejero/nocturno), igual que el de `#brujula-modo` dejó de mostrar el glifo de texto (`N`/`➤`/`◎`) del modo activo. Las 3 opciones de cada desplegable siguen mostrando su icono real (thumbnail de tile / glifo) sin cambios — el estado activo ya no tiene ningún indicador visual en el botón principal de ninguno de los dos menús, solo en cuál opción del desplegable eligió el usuario la última vez (que tampoco queda marcada, solo se ejecuta el efecto).
+
+Ambas imágenes ya traen su propio anillo integrado (dorado en la brújula, azul en el selector), así que el botón principal de los dos perdió el borde naranja CSS que sí conservan las 3 opciones del desplegable — un borde encima habría duplicado el efecto de anillo. `_actualizarBtnPrincipal()` (selector) y `_actualizarBrujulaModoBtnPrincipal()` (brújula) — las funciones que antes actualizaban la imagen/glifo del botón principal en cada cambio de modo — se eliminaron por completo, junto con sus llamadas.
+
+Efecto colateral en los tests: `tests/e2e/25-brujula-modo.spec.js` (BR-5 a BR-9) verificaba varias de estas transiciones leyendo el `textContent` del botón principal como prueba indirecta de que el modo había cambiado — reescrito para verificar directamente las llamadas a `funcionesMapa.*` (que es lo que de verdad importa), ya que ese `textContent` ya no existe.
+
+Documentado en `docs/GUIA-COMPLETA.md` §4.6b y §11. Colores de fondo (`#00BB77` en los dos) cubiertos en §4.8 "Código de colores de estado en botones" — parte de una unificación de color más amplia que afecta a toda la app, no solo a estos dos menús, así que vive documentada allí y no aquí.

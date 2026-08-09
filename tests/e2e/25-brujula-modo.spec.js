@@ -8,9 +8,13 @@
  * Posicionado en espejo respecto a `#selector-tipo-mapa`: misma altura (`bottom`),
  * pero en el borde IZQUIERDO de la pantalla con el mismo margen que el selector
  * tiene respecto al derecho — los dos quedan a la misma altura, uno a cada lado.
- * Ver `docs/GUIA-COMPLETA.md` §4.6b y `docs/brujula-y-mapa.md` §4 para el diseño
- * completo, incluida la razón de por qué "Centrar" no cambia el icono del modo
- * activo (es una acción puntual, no un modo persistente como los otros dos).
+ * Ver `docs/GUIA-COMPLETA.md` §4.6b y `docs/brujula-y-mapa.md` §4/§11 para el diseño
+ * completo. El botón principal muestra siempre `boton-brujula.png` (imagen fija,
+ * mismo criterio que `#selector-tipo-mapa` — ver §11) — ya NO refleja el modo activo
+ * con un icono/glifo que cambia; el estado real (`_brujulaModoActivo`) es interno y
+ * solo observable por sus efectos (qué función invoca, qué revierte solo con el
+ * tiempo), no por nada visible en el botón. Por eso estos tests verifican llamadas a
+ * `funcionesMapa.*`, no un `textContent` que ya no existe.
  *
  *   BR-1  El contenedor existe, empieza oculto (display:none, sin estilo inline que
  *         lo fuerce a visible) — no debe aparecer antes de que el mapa esté en
@@ -22,22 +26,22 @@
  *         empieza plegado (max-height 0).
  *   BR-4  Elegir "Norte fijo" llama a `funcionesMapa.desactivarSeguimientoRumbo()` y
  *         cierra el desplegable.
- *   BR-5  Elegir "Seguir mi rumbo" llama a `funcionesMapa.activarSeguimientoRumbo()`
- *         y el icono del botón principal cambia para reflejarlo.
+ *   BR-5  Elegir "Seguir mi rumbo" llama a `funcionesMapa.activarSeguimientoRumbo()`.
  *   BR-6  Elegir "Centrar mapa en mi ubicación" llama a
- *         `funcionesMapa.reactivarSeguimientoCamara()` SIN cambiar el icono del modo
- *         activo (acción puntual, no un modo persistente).
+ *         `funcionesMapa.reactivarSeguimientoCamara()`.
  *   BR-7  Si la brújula no responde (permiso denegado/no soportada), "Seguir mi
- *         rumbo" revierte solo a "Norte fijo" ~1.5s después de elegirlo, sin dejar el
- *         icono mintiendo sobre un modo ya muerto.
+ *         rumbo" revierte sola a "Norte fijo" ~1.5s después de elegirlo —
+ *         `desactivarSeguimientoRumbo()` se invoca sin que el usuario haga nada más.
  *   BR-8  globalThis._resetBrujulaModo() (llamado desde ejecutarElegirOtra()
  *         al elegir otra aventura desde el diálogo de reanudación de sesión, que no
- *         recarga la página) devuelve el menú a "Norte fijo" bajo demanda.
+ *         recarga la página) fuerza el reset a "Norte fijo" bajo demanda —
+ *         invoca `desactivarSeguimientoRumbo()`.
  *   BR-9  Corrección de una condición de carrera (auditoría): alternar rumbo→norte→
  *         rumbo dos veces en menos de 1.5s no deja que el timeout de auto-reversión
  *         de la PRIMERA elección revierta la SEGUNDA antes de que cumpla su propio
  *         plazo de gracia — el guard compara contra `_brujulaModoSeguimientoActivacionId`, no solo
- *         contra el modo activo.
+ *         contra el modo activo. Verificado contando cuántas veces se invoca
+ *         `desactivarSeguimientoRumbo()`, no por ningún icono.
  */
 'use strict';
 
@@ -128,7 +132,7 @@ test.describe('BR — Menú de modo de cámara', () => {
     expect(resultado.maxHeightTrasElegir, 'Elegir una opción debe cerrar el desplegable').toBe('0px');
   });
 
-  test('BR-5. "Seguir mi rumbo" llama a activarSeguimientoRumbo() y cambia el icono del botón principal', async ({ page }) => {
+  test('BR-5. "Seguir mi rumbo" llama a activarSeguimientoRumbo()', async ({ page }) => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const resultado = await page.evaluate(() => {
@@ -137,21 +141,18 @@ test.describe('BR — Menú de modo de cámara', () => {
       const original = globalThis.funcionesMapa.activarSeguimientoRumbo;
       globalThis.funcionesMapa.activarSeguimientoRumbo = () => { llamado = true; };
 
-      const iconoAntes = document.querySelector('#brujula-modo > div:first-child').textContent;
       document.querySelector('#brujula-modo > div:first-child').click(); // abrir
       const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
       opciones[1].click(); // "Seguir mi rumbo" — segunda opción del array _MODOS_BRUJULA
-      const iconoDespues = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       globalThis.funcionesMapa.activarSeguimientoRumbo = original;
-      return { llamado, iconoAntes, iconoDespues };
+      return { llamado };
     });
 
     expect(resultado.llamado, 'Elegir "Seguir mi rumbo" debe invocar activarSeguimientoRumbo()').toBe(true);
-    expect(resultado.iconoDespues, `El icono del botón principal debe cambiar para reflejar el nuevo modo (antes=${resultado.iconoAntes})`).not.toBe(resultado.iconoAntes);
   });
 
-  test('BR-6. "Centrar mapa en mi ubicación" llama a reactivarSeguimientoCamara() SIN cambiar el icono del modo activo', async ({ page }) => {
+  test('BR-6. "Centrar mapa en mi ubicación" llama a reactivarSeguimientoCamara()', async ({ page }) => {
     await page.waitForFunction(() => typeof globalThis.funcionesMapa === 'object', null, { timeout: 15000 }).catch(() => {});
 
     const resultado = await page.evaluate(() => {
@@ -160,18 +161,15 @@ test.describe('BR — Menú de modo de cámara', () => {
       const original = globalThis.funcionesMapa.reactivarSeguimientoCamara;
       globalThis.funcionesMapa.reactivarSeguimientoCamara = () => { llamado = true; };
 
-      const iconoAntes = document.querySelector('#brujula-modo > div:first-child').textContent;
       document.querySelector('#brujula-modo > div:first-child').click(); // abrir
       const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
       opciones[2].click(); // "Centrar mapa en mi ubicación" — tercera opción
-      const iconoDespues = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       globalThis.funcionesMapa.reactivarSeguimientoCamara = original;
-      return { llamado, iconoAntes, iconoDespues };
+      return { llamado };
     });
 
     expect(resultado.llamado, 'Elegir "Centrar mapa en mi ubicación" debe invocar reactivarSeguimientoCamara()').toBe(true);
-    expect(resultado.iconoDespues, 'El icono no debe cambiar — "centrar" es una acción puntual, no un modo persistente').toBe(resultado.iconoAntes);
   });
 
   test('BR-7. "Seguir mi rumbo" revierte sola a "Norte fijo" si la brújula no responde en ~1.5s', async ({ page }) => {
@@ -186,28 +184,21 @@ test.describe('BR — Menú de modo de cámara', () => {
       globalThis.funcionesMapa.brujulaEstaActiva = () => false;
       globalThis.__llamadas = () => ({ llamadaActivar, llamadaDesactivar });
 
-      const iconoInicial = document.querySelector('#brujula-modo > div:first-child').textContent;
       document.querySelector('#brujula-modo > div:first-child').click(); // abrir
       const opciones = document.querySelectorAll('#brujula-modo > div:last-child > div');
       opciones[1].click(); // "Seguir mi rumbo"
-      const iconoTrasElegir = document.querySelector('#brujula-modo > div:first-child').textContent;
 
-      return { iconoInicial, iconoTrasElegir, ...globalThis.__llamadas() };
+      return globalThis.__llamadas();
     });
 
     expect(inmediato.llamadaActivar, 'Elegir "Seguir mi rumbo" debe invocar activarSeguimientoRumbo() de inmediato').toBe(true);
-    expect(inmediato.iconoTrasElegir, 'El icono debe cambiar de inmediato al elegir el modo').not.toBe(inmediato.iconoInicial);
     expect(inmediato.llamadaDesactivar, 'Antes de que pase el timeout, no debe haber revertido todavía').toBe(false);
 
     await page.waitForTimeout(1700); // deja pasar el timeout de auto-reversión (1500ms)
 
-    const trasEspera = await page.evaluate(() => ({
-      icono: document.querySelector('#brujula-modo > div:first-child').textContent,
-      ...globalThis.__llamadas(),
-    }));
+    const trasEspera = await page.evaluate(() => globalThis.__llamadas());
 
     expect(trasEspera.llamadaDesactivar, 'Tras ~1.5s sin brújula activa, debe revertir llamando a desactivarSeguimientoRumbo()').toBe(true);
-    expect(trasEspera.icono, 'El icono debe volver al de "Norte fijo"').toBe(inmediato.iconoInicial);
   });
 
   test('BR-8. globalThis._resetBrujulaModo() devuelve el menú a "Norte fijo" bajo demanda', async ({ page }) => {
@@ -219,26 +210,20 @@ test.describe('BR — Menú de modo de cámara', () => {
       const original = globalThis.funcionesMapa.desactivarSeguimientoRumbo;
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = () => { llamadaDesactivar = true; };
 
-      const iconoInicial = document.querySelector('#brujula-modo > div:first-child').textContent;
-
       // Simula haber elegido "Seguir mi rumbo" en la aventura abandonada, sin esperar a
       // la reversión automática de BR-7 (se llama al hook de reset directamente y rápido).
       document.querySelector('#brujula-modo > div:first-child').click(); // abrir
       document.querySelectorAll('#brujula-modo > div:last-child > div')[1].click(); // "Seguir mi rumbo"
-      const iconoTrasElegir = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       const existe = typeof globalThis._resetBrujulaModo === 'function';
       globalThis._resetBrujulaModo?.();
-      const iconoTrasReset = document.querySelector('#brujula-modo > div:first-child').textContent;
 
       globalThis.funcionesMapa.desactivarSeguimientoRumbo = original;
-      return { existe, iconoInicial, iconoTrasElegir, iconoTrasReset, llamadaDesactivar };
+      return { existe, llamadaDesactivar };
     });
 
     expect(resultado.existe, 'globalThis._resetBrujulaModo debe existir como función').toBe(true);
-    expect(resultado.iconoTrasElegir, 'Precondición: el icono debe haber cambiado al elegir "Seguir mi rumbo"').not.toBe(resultado.iconoInicial);
     expect(resultado.llamadaDesactivar, 'El reset debe invocar desactivarSeguimientoRumbo()').toBe(true);
-    expect(resultado.iconoTrasReset, 'El icono debe volver al de "Norte fijo" tras el reset').toBe(resultado.iconoInicial);
   });
 
   test('BR-9. Un timeout de auto-reversión viejo no revierte una elección de "rumbo" más reciente', async ({ page }) => {
@@ -277,21 +262,13 @@ test.describe('BR — Menú de modo de cámara', () => {
     // haber intentado ejecutarse. Con el bug, revertiría aquí — antes de que B cumpla su
     // propio plazo de 1.5s (que termina en t≈2300).
     await page.waitForTimeout(900);
-    const trasTimeoutViejo = await page.evaluate(() => ({
-      llamadas: globalThis.__vv_llamadasDesactivar,
-      icono: document.querySelector('#brujula-modo > div:first-child').textContent,
-    }));
-    expect(trasTimeoutViejo.llamadas, 'El timeout viejo (de la primera elección) no debe revertir la elección nueva').toBe(0);
-    expect(trasTimeoutViejo.icono, 'El modo debe seguir siendo "Seguir mi rumbo" (icono sin cambiar)').toBe('➤');
+    const trasTimeoutViejo = await page.evaluate(() => globalThis.__vv_llamadasDesactivar);
+    expect(trasTimeoutViejo, 'El timeout viejo (de la primera elección) no debe revertir la elección nueva').toBe(0);
 
     // t≈2500: el timeout de la activación B (armado en t≈800, dispara en t≈2300) ya
     // debería haberse ejecutado — ahora sí debe revertir, con su propio plazo cumplido.
     await page.waitForTimeout(800);
-    const trasTimeoutNuevo = await page.evaluate(() => ({
-      llamadas: globalThis.__vv_llamadasDesactivar,
-      icono: document.querySelector('#brujula-modo > div:first-child').textContent,
-    }));
-    expect(trasTimeoutNuevo.llamadas, 'El timeout de la elección más reciente sí debe revertir, cumplido su propio plazo').toBe(1);
-    expect(trasTimeoutNuevo.icono, 'El icono debe volver al de "Norte fijo"').toBe('N');
+    const trasTimeoutNuevo = await page.evaluate(() => globalThis.__vv_llamadasDesactivar);
+    expect(trasTimeoutNuevo, 'El timeout de la elección más reciente sí debe revertir, cumplido su propio plazo').toBe(1);
   });
 });

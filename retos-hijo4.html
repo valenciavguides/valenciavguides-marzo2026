@@ -927,7 +927,7 @@
             _pendienteCompletado = null;
 
             // Los botones están siempre visibles, pero btnNext está deshabilitado hasta respuesta correcta
-            if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#B22222"; }
+            if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#ED2100"; }
             if (btnMostrarRespuesta) btnMostrarRespuesta.disabled = false;
             if (btnEnviar) { btnEnviar.textContent = "🫵"; btnEnviar.style.backgroundColor = "#0077cc"; }
 
@@ -1088,7 +1088,7 @@
                 ocultarControles();
                 if (btnEnviar) {
                     btnEnviar.textContent = "👍";
-                    btnEnviar.style.backgroundColor = "#28a745";
+                    btnEnviar.style.backgroundColor = "#00FF00";
                     btnEnviar.style.display = "inline-block";
                     btnEnviar.disabled = true;
                 }
@@ -1104,7 +1104,7 @@
                 // se habilita en cuanto la respuesta es correcta, sin condición.
                 if (btnNext) {
                     btnNext.disabled = false;
-                    btnNext.style.backgroundColor = "#28a745";
+                    btnNext.style.backgroundColor = "#00FF00";
                 }
 
                 // Enviar mensaje al padre indicando que el reto se completó
@@ -1128,7 +1128,7 @@
                 retoDiv.classList.add("incorrect");
                 vibrar();
                 btnEnviar.textContent = "👎";
-                btnEnviar.style.backgroundColor = "#B22222";
+                btnEnviar.style.backgroundColor = "#ED2100";
                 btnEnviar.disabled = true;
                 if (_timeoutResetBtnEnviar) clearTimeout(_timeoutResetBtnEnviar);
                 _timeoutResetBtnEnviar = setTimeout(() => {

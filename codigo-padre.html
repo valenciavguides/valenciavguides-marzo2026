@@ -1327,7 +1327,12 @@
             position: relative;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(180deg, #43c465 0%, #28a745 50%, #1e8035 100%);
+            /* Verde vivo #00FF00 — botón de "los que más cambian" (audio, en el padre).
+               Se pinta como linear-gradient de un único color (no background-color) a
+               propósito: mismo mecanismo que ya usaba el degradado de 3 tonos, para que
+               un bypass inline (`style.backgroundColor`) nunca pueda tapar el color real
+               — background-image siempre pinta por encima de background-color. */
+            background: linear-gradient(#00FF00, #00FF00);
             color: #000;
             display: flex;
             align-items: center;
@@ -1383,7 +1388,7 @@
 
         #audio-main-toggle-btn:disabled,
         .audio-action-btn:disabled {
-            background: linear-gradient(to right, #B22222, #8B1A1A);
+            background: linear-gradient(#ED2100, #ED2100);
             opacity: 0.6;
             cursor: not-allowed;
             box-shadow: none;
@@ -2563,7 +2568,7 @@
     <button type="button" id="btn-chat-soporte"
         title="Asistente de soporte"
         aria-label="Abrir asistente de soporte"
-                style="position:fixed; right:4px; bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px); width:var(--franja-lateral); height:var(--franja-lateral); z-index:1000005; display:none; border:none; padding:2px; background:transparent; cursor:pointer; touch-action:manipulation; border-radius:0.75rem 0 0 0.75rem; overflow:hidden;">
+                style="position:fixed; right:4px; bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px); width:var(--franja-lateral); height:var(--franja-lateral); z-index:1000005; display:none; border:none; padding:2px; background:#00BB77; cursor:pointer; touch-action:manipulation; border-radius:0.75rem 0 0 0.75rem; overflow:hidden;">
       <img src="imagenes/imagenes-aplicación/fotochat-boton.png" alt="Chat soporte"
            style="width:100%; height:100%; object-fit:cover; display:block; border-radius:0.75rem 0 0 0.75rem; pointer-events:none;">
     </button>
@@ -3132,8 +3137,10 @@
                     // total realmente renderizado (borde incluido), y el cálculo de `right` del
                     // contenedor (más abajo) que centra este botón contra #btn-chat-soporte no
                     // tiene que compensar el borde aparte.
-                    const _BTN_STYLE_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
-                    const _BTN_STYLE_MAIN = 'box-sizing:border-box;width:clamp(46px,12.6vmin,67px);height:clamp(46px,12.6vmin,67px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
+                    const _BTN_STYLE_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-color:#00BB77;background-size:cover;background-position:center;flex-shrink:0;';
+                    // Sin borde naranja propio: mapa-cambio-modo.png ya trae su propio anillo azul
+                    // integrado en la imagen — un borde CSS encima duplicaría el efecto de anillo.
+                    const _BTN_STYLE_MAIN = 'box-sizing:border-box;width:clamp(46px,12.6vmin,67px);height:clamp(46px,12.6vmin,67px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;cursor:pointer;user-select:none;touch-action:manipulation;background-color:#00BB77;background-size:cover;background-position:center;flex-shrink:0;';
 
                     // Posición: encima del botón de chat (#btn-chat-soporte, right:4px,
                     // width/height:var(--franja-lateral)), con el centro horizontal de este
@@ -3150,7 +3157,7 @@
                         'z-index:1000030;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
                     const _btnPrincipal = document.createElement('div');
-                    _btnPrincipal.style.cssText = _BTN_STYLE_MAIN;
+                    _btnPrincipal.style.cssText = _BTN_STYLE_MAIN + "background-image:url('imagenes/imagenes-aplicación/mapa-cambio-modo.png');";
                     _btnPrincipal.title = 'Cambiar tipo de mapa';
                     _selectorDiv.appendChild(_btnPrincipal);
 
@@ -3198,11 +3205,6 @@
 
                     function _cerrarDropdown() { _dropdownAbierto = false; _dropdownDiv.style.maxHeight = '0'; }
 
-                    function _actualizarBtnPrincipal() {
-                        const modo = _MODOS_MAPA.find(m => m.id === _modoActivo);
-                        _btnPrincipal.style.backgroundImage = `url('${modo.thumb}')`;
-                    }
-
                     function _cambiarModo(nuevoId) {
                         if (nuevoId === _modoActivo) return;
                         const actual = _MODOS_MAPA.find(m => m.id === _modoActivo);
@@ -3227,10 +3229,8 @@
                         });
 
                         _modoActivo = nuevoId;
-                        _actualizarBtnPrincipal();
                     }
 
-                    _actualizarBtnPrincipal();
                     document.body.appendChild(_selectorDiv);
 
                     // Recalcular tamaño del texto de calles al cambiar el tamaño de ventana/pantalla
@@ -3271,8 +3271,10 @@
                     // plazo de gracia.
                     let _brujulaModoSeguimientoActivacionId = 0;
 
-                    const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(46px,12.6vmin,67px);height:clamp(46px,12.6vmin,67px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,6.9vmin,37px);flex-shrink:0;';
-                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.3vmin,28px);flex-shrink:0;';
+                    // Sin borde naranja propio en el principal: boton-brujula.png ya trae su
+                    // propio anillo dorado integrado en la imagen.
+                    const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(46px,12.6vmin,67px);height:clamp(46px,12.6vmin,67px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background-color:#00BB77;background-size:cover;background-position:center;color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,6.9vmin,37px);flex-shrink:0;';
+                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:#00BB77;color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.3vmin,28px);flex-shrink:0;';
 
                     // Mismo bottom que #selector-tipo-mapa (misma altura), espejado al lado
                     // izquierdo: mismo margen desde el borde izquierdo que el selector tiene
@@ -3286,7 +3288,7 @@
                         'z-index:1000025;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
                     const _brujulaModoBtnPrincipal = document.createElement('div');
-                    _brujulaModoBtnPrincipal.style.cssText = _BTN_STYLE_BRUJULA_MODO_MAIN;
+                    _brujulaModoBtnPrincipal.style.cssText = _BTN_STYLE_BRUJULA_MODO_MAIN + "background-image:url('imagenes/imagenes-aplicación/boton-brujula.png');";
                     _brujulaModoBtnPrincipal.title = 'Modo de cámara';
                     _brujulaModoDiv.appendChild(_brujulaModoBtnPrincipal);
 
@@ -3325,11 +3327,6 @@
 
                     function _cerrarBrujulaModoDropdown() { _brujulaModoDropdownAbierto = false; _brujulaModoDropdownDiv.style.maxHeight = '0'; }
 
-                    function _actualizarBrujulaModoBtnPrincipal() {
-                        const modo = _MODOS_BRUJULA.find(m => m.id === _brujulaModoActivo);
-                        _brujulaModoBtnPrincipal.textContent = modo.glifo;
-                    }
-
                     function _elegirBrujulaModo(nuevoId) {
                         try {
                             if (nuevoId === 'brujula-modo-norte') {
@@ -3352,7 +3349,6 @@
                                     if (idActivacion === _brujulaModoSeguimientoActivacionId && _brujulaModoActivo === 'brujula-modo-seguimiento' && !globalThis.funcionesMapa?.brujulaEstaActiva?.()) {
                                         globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
                                         _brujulaModoActivo = 'brujula-modo-norte';
-                                        _actualizarBrujulaModoBtnPrincipal();
                                     }
                                 }, 1500);
                             } else if (nuevoId === 'brujula-modo-centrado') {
@@ -3360,7 +3356,6 @@
                                 // No toca _brujulaModoActivo — acción puntual, no un modo persistente.
                             }
                         } catch (e) { (globalThis.logger || console).debug('[PADRE] Error cambiando modo de cámara', e && e.message); }
-                        _actualizarBrujulaModoBtnPrincipal();
                     }
 
                     // Expuesto para que ejecutarElegirOtra() (fuera de este cierre — diálogo de
@@ -3370,10 +3365,8 @@
                     globalThis._resetBrujulaModo = () => {
                         globalThis.funcionesMapa?.desactivarSeguimientoRumbo?.();
                         _brujulaModoActivo = 'brujula-modo-norte';
-                        _actualizarBrujulaModoBtnPrincipal();
                     };
 
-                    _actualizarBrujulaModoBtnPrincipal();
                     document.body.appendChild(_brujulaModoDiv);
 
                     // Initialize map service - wait for funciones-mapa to be available

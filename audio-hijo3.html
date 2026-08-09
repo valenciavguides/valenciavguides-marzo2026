@@ -172,7 +172,10 @@
             position: relative;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(180deg, #43c465 0%, #28a745 50%, #1e8035 100%);
+            /* Verde vivo #00FF00 — botón de "los que más cambian" (retos). Gradiente de
+               un único color, no background-color, para que un bypass inline nunca pueda
+               tapar el color real (background-image siempre pinta encima). */
+            background: linear-gradient(#00FF00, #00FF00);
             color: white;
             font-size: var(--icon-size);
             display: flex;
@@ -193,7 +196,7 @@
         }
 
         #retosBtn:disabled {
-            background: linear-gradient(to right, #B22222, #8B1A1A);
+            background: linear-gradient(#ED2100, #ED2100);
             cursor: not-allowed;
             opacity: 0.6;
             box-shadow: none;
@@ -334,15 +337,17 @@
             background: none; /* Se asegura que no haya colores adicionales */
         }
 
-        /* Botón habilitado: degradado verde */
+        /* Botón habilitado: verde medio #00BB77 (sin caller real hoy — ver nota de
+           arriba, ningún elemento de este fichero lleva class="boton"; se mantiene
+           el color al día por si se retoma) */
         #hijo3 .boton.habilitado {
-            background: linear-gradient(to right, #1e7e34, #155c27);
+            background: linear-gradient(#00BB77, #00BB77);
             color: white;
         }
 
-        /* Botón deshabilitado: degradado rojo */
+        /* Botón deshabilitado: rojo estándar #ED2100 */
         #hijo3 .boton.deshabilitado {
-            background: linear-gradient(to right, #B22222, #8B1A1A);
+            background: linear-gradient(#ED2100, #ED2100);
             color: white;
         }
 
