@@ -3132,8 +3132,8 @@
                     // total realmente renderizado (borde incluido), y el cálculo de `right` del
                     // contenedor (más abajo) que centra este botón contra #btn-chat-soporte no
                     // tiene que compensar el borde aparte.
-                    const _BTN_STYLE_DROPDOWN = 'box-sizing:border-box;width:clamp(32px,9.2vmin,47px);height:clamp(32px,9.2vmin,47px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
-                    const _BTN_STYLE_MAIN = 'box-sizing:border-box;width:clamp(40px,11vmin,58px);height:clamp(40px,11vmin,58px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
+                    const _BTN_STYLE_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
+                    const _BTN_STYLE_MAIN = 'box-sizing:border-box;width:clamp(46px,12.6vmin,67px);height:clamp(46px,12.6vmin,67px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;cursor:pointer;user-select:none;touch-action:manipulation;background-size:cover;background-position:center;flex-shrink:0;';
 
                     // Posición: encima del botón de chat (#btn-chat-soporte, right:4px,
                     // width/height:var(--franja-lateral)), con el centro horizontal de este
@@ -3146,7 +3146,7 @@
                     _selectorDiv.id = 'selector-tipo-mapa';
                     _selectorDiv.style.cssText = 'position:fixed;' +
                         'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px);' +
-                        'right:calc(4px + (var(--franja-lateral) / 2) - (clamp(40px,11vmin,58px) / 2));' +
+                        'right:calc(4px + (var(--franja-lateral) / 2) - (clamp(46px,12.6vmin,67px) / 2));' +
                         'z-index:1000030;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
                     const _btnPrincipal = document.createElement('div');
@@ -3271,8 +3271,8 @@
                     // plazo de gracia.
                     let _brujulaModoSeguimientoActivacionId = 0;
 
-                    const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(40px,11vmin,58px);height:clamp(40px,11vmin,58px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(22px,6vmin,32px);flex-shrink:0;';
-                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(32px,9.2vmin,47px);height:clamp(32px,9.2vmin,47px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(17px,4.6vmin,24px);flex-shrink:0;';
+                    const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(46px,12.6vmin,67px);height:clamp(46px,12.6vmin,67px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,6.9vmin,37px);flex-shrink:0;';
+                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:rgba(0,0,0,0.55);color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.3vmin,28px);flex-shrink:0;';
 
                     // Mismo bottom que #selector-tipo-mapa (misma altura), espejado al lado
                     // izquierdo: mismo margen desde el borde izquierdo que el selector tiene
@@ -3281,7 +3281,7 @@
                     const _brujulaModoDiv = document.createElement('div');
                     _brujulaModoDiv.id = 'brujula-modo';
                     _brujulaModoDiv.style.cssText = 'position:fixed;' +
-                        'left:calc(4px + (var(--franja-lateral) / 2) - (clamp(40px,11vmin,58px) / 2));' +
+                        'left:calc(4px + (var(--franja-lateral) / 2) - (clamp(46px,12.6vmin,67px) / 2));' +
                         'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px);' +
                         'z-index:1000025;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
