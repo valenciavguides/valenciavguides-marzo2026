@@ -231,3 +231,15 @@ Cambiados: el id del contenedor, las variables/funciones internas del bloque en 
 Fuera de alcance, sin tocar: las funciones de comportamiento en `js/funciones-mapa.js` (`activarSeguimientoRumbo()`, `desactivarSeguimientoRumbo()`, `reactivarSeguimientoCamara()`, `brujulaEstaActiva()`, `_camaraSiguiendoRumbo`, `_camaraSiguiendoUsuario`) — son la lógica que el menú llama, no el menú en sí.
 
 Documentado en detalle en `docs/GUIA-COMPLETA.md` §4.6b.
+
+---
+
+## 10. Unificación visual con `#selector-tipo-mapa` y fix de visibilidad sobre overlays
+
+Tres ajustes pedidos por el usuario tras usar el menú, sin relación con la brújula en sí:
+
+1. **Tamaño/forma/borde unificados con `#selector-tipo-mapa`.** Antes `#brujula-modo` era circular sin borde y `#selector-tipo-mapa` cuadrado (`border-radius:4px`) con borde naranja `#FF8C00` — inconsistente con el resto de botones flotantes de la app (chat, badges del mapa), que son circulares con ese mismo borde. Los dos pasan a compartir exactamente el mismo estilo (circular, borde naranja) y suben de tamaño un ~12-15%: principal `clamp(36px,9.8vmin,52px)` → `clamp(40px,11vmin,58px)`, opciones del desplegable `clamp(29px,8.4vmin,43px)` → `clamp(32px,9.2vmin,47px)`. Verificado con Playwright que en un viewport de móvil real (390×844) el desplegable, ya expandido con el tamaño nuevo, deja un margen amplio (~90px) hasta el borde inferior de `#fondo-blanco` — lejos de solaparlo.
+2. **`#brujula-modo` se quedaba visible por delante del chat.** Ambos contenedores tienen z-index por encima de `#hijo6-chat` (1000020) — pero lo que de verdad oculta al selector cuando se abre un overlay no es el z-index, es que `actualizarVisibilidadSelectorMapa()` le fuerza `display:none` explícitamente. Esa función nunca se enteró de que `#brujula-modo` existe. Fix: la misma función ahora oculta y muestra los dos contenedores bajo el mismo criterio (chat, hijo4, backdrop, overlays de imagen/vídeo/error/iframe).
+3. **Fórmulas de posición que dependían del tamaño del botón.** El `left:`/`right:` de ambos contenedores (espejados entre sí) restan la mitad del ancho del botón principal para centrarlo sobre el botón de chat — ese `clamp(...)` está hardcodeado en la fórmula, así que subir el tamaño del botón sin actualizar también la fórmula habría desalineado ambos botones respecto al chat. Actualizado en los dos sitios.
+
+Documentado en `docs/GUIA-COMPLETA.md` §4.6b y §11 ("Capas de mapa y selector de estilo").

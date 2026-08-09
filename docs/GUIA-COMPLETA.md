@@ -1007,7 +1007,7 @@ Las 3 opciones, definidas en `_MODOS_BRUJULA` (array de `{id, nombre, glifo}`, i
 
 Los glifos son texto Unicode de marcador de posición — el usuario diseñará los iconos definitivos más adelante; el mecanismo de sustitución (cambiar `btn.textContent` por una imagen) no requiere tocar la lógica. Elegir cualquier opción cierra el desplegable (`_cerrarBrujulaModoDropdown()`) y, en las dos primeras, reactiva también el seguimiento de posición (`_camaraSiguiendoUsuario = true` dentro de `activarSeguimientoRumbo()`/`desactivarSeguimientoRumbo()`) — elegir un modo del menú es, en sí mismo, un "vuelve a seguirme" explícito, igual que la propia opción de centrar.
 
-Posicionado en espejo respecto a `#selector-tipo-mapa`: misma altura (`bottom` idéntico, no solo la misma fórmula — literalmente el mismo valor) y el mismo margen desde el borde **izquierdo** que el selector tiene desde el **derecho** (`left:calc(4px + (var(--franja-lateral)/2) - (clamp(36px,9.8vmin,52px)/2))`, misma fórmula que el `right:` del selector, solo cambia el lado) — el botón principal usa además el mismo tamaño `clamp(36px,9.8vmin,52px)` que el del selector. Los dos quedan a la misma altura, uno a cada extremo de la pantalla, en vez del apilado vertical original (que los tenía a ambos en el lado derecho, uno encima del otro). `z-index:1000025`, sin relación jerárquica real con el `1000030` de `#selector-tipo-mapa` desde que dejaron de compartir columna — se conserva el mismo valor por continuidad, no porque haga falta que uno tape al otro (ya no se superponen). La altura disponible para el propio desplegable de `#brujula-modo` se recalcula igual que la del selector (`_alturaDisponibleParaBrujulaModoDropdown()`, contra el borde inferior real de `#fondo-blanco` vía `getBoundingClientRect()`, nunca un `calc()` fijo) para no solaparse con el logo en ningún viewport/notch — esto no cambia con el lado del botón, la lógica es agnóstica a si crece desde la izquierda o la derecha. Empieza oculto (`display:none` en su CSS inline) y se muestra/oculta junto con el resto de la UI de aventura a través de tres sitios distintos — no un mecanismo propio: `_mostrarUIActivada()`/`_ocultarUIActivada()` (flujo normal) y, un tercero menos evidente, `_mostrarInterfazReanudacion()` (flujo de reanudación de sesión) — los tres puestos a `display:flex`/`none` explícitamente porque el contenedor necesita `flex`, no el `block`/`none` genérico que usan el resto de elementos de esas listas.
+Posicionado en espejo respecto a `#selector-tipo-mapa`: misma altura (`bottom` idéntico, no solo la misma fórmula — literalmente el mismo valor) y el mismo margen desde el borde **izquierdo** que el selector tiene desde el **derecho** (`left:calc(4px + (var(--franja-lateral)/2) - (clamp(40px,11vmin,58px)/2))`, misma fórmula que el `right:` del selector, solo cambia el lado). Mismo tamaño, forma y borde que el selector (§11 "Capas de mapa y selector de estilo"): principal `clamp(40px,11vmin,58px)`, opciones del desplegable `clamp(32px,9.2vmin,47px)`, `border-radius:50%` (circular, mismo patrón que el resto de botones flotantes de la app) y borde `clamp(3.5px,0.75vmin,5px) solid #FF8C00` — la única diferencia de estilo entre los dos es el fondo (`rgba(0,0,0,0.55)` con glifo de texto en brújula, frente al thumbnail de imagen del selector). Los dos quedan a la misma altura, uno a cada extremo de la pantalla, en vez del apilado vertical original (que los tenía a ambos en el lado derecho, uno encima del otro). `z-index:1000025`, sin relación jerárquica real con el `1000030` de `#selector-tipo-mapa` desde que dejaron de compartir columna — se conserva el mismo valor por continuidad, no porque haga falta que uno tape al otro (ya no se superponen). La altura disponible para el propio desplegable de `#brujula-modo` se recalcula igual que la del selector (`_alturaDisponibleParaBrujulaModoDropdown()`, contra el borde inferior real de `#fondo-blanco` vía `getBoundingClientRect()`, nunca un `calc()` fijo) para no solaparse con el logo en ningún viewport/notch — esto no cambia con el lado del botón, la lógica es agnóstica a si crece desde la izquierda o la derecha. Empieza oculto (`display:none` en su CSS inline) y se muestra/oculta junto con el resto de la UI de aventura a través de tres sitios distintos — no un mecanismo propio: `_mostrarUIActivada()`/`_ocultarUIActivada()` (flujo normal) y, un tercero menos evidente, `_mostrarInterfazReanudacion()` (flujo de reanudación de sesión) — los tres puestos a `display:flex`/`none` explícitamente porque el contenedor necesita `flex`, no el `block`/`none` genérico que usan el resto de elementos de esas listas. Aparte de esos tres sitios (que gobiernan si el menú puede aparecer en absoluto durante el ciclo de vida de la aventura), `actualizarVisibilidadSelectorMapa()` (§11) lo oculta/muestra igual que al selector cuando hay un overlay encima (chat, reto, imagen, vídeo, error, iframe) — sin esto se quedaría visible por delante del chat pese a que, en apariencia, su z-index (1000025) también está por encima del de `#hijo6-chat` (1000020); el `display:none` explícito de esa función es lo que realmente lo tapa, no el z-index por sí solo.
 
 Retomar el seguimiento de posición manualmente sigue centrando sobre `estadoMapa.posicionUsuario` sin esperar a la siguiente lectura GPS, exactamente como antes de esta reestructuración — solo cambió cómo se llega a esa acción (una opción del menú, no un único botón).
 
@@ -4809,7 +4809,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-79d8da4423cd'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-27ab2530633a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6568,8 +6568,9 @@ Propiedades del botón:
 | Propiedad | Valor |
 |-----------|-------|
 | Posición | `position: fixed; bottom: …; right: …` — ver cálculo de alineación más abajo |
-| Tamaño botón principal | `clamp(36px, 9.8vmin, 52px)`, `box-sizing: border-box` |
-| Tamaño botones desplegables | `clamp(29px, 8.4vmin, 43px)`, `box-sizing: border-box` |
+| Forma | `border-radius: 50%` — circular, mismo patrón que el resto de botones flotantes de la app (chat, badges del mapa) |
+| Tamaño botón principal | `clamp(40px, 11vmin, 58px)`, `box-sizing: border-box` |
+| Tamaño botones desplegables | `clamp(32px, 9.2vmin, 47px)`, `box-sizing: border-box` |
 | Borde | `clamp(3.5px, 0.75vmin, 5px) solid #FF8C00` |
 | `z-index` | `1000030` — por encima de hijo5 (1000000) y de los overlays de imagen/vídeo/chat (1000010-1000020), pero por debajo de las tarjetas de distancia fuera de rango (`foto-fuera-rango-overlay` 1000038, `foto-lejos-overlay` 1000039, `gps-out-of-range-overlay` 1000040) y del aviso de señal GPS (`gps-signal-overlay` 1000041) — así nunca las tapa mientras están activas |
 | Añadido a | `document.body` |
@@ -6579,7 +6580,7 @@ El botón se añade a `document.body` (no al contenedor del mapa) porque el `<di
 **Alineación con `#btn-chat-soporte`:** el botón principal queda centrado horizontalmente sobre el botón de chat, justo encima de él. El cálculo de `right` replica el centro horizontal del chat (`right: 4px; width: var(--franja-lateral)`, sin borde) y le resta la mitad del propio ancho del selector:
 
 ```css
-right: calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));
+right: calc(4px + (var(--franja-lateral) / 2) - (clamp(40px,11vmin,58px) / 2));
 ```
 
 `box-sizing: border-box` en los botones del selector es imprescindible aquí — sin él, el `clamp(...)` declarado en `width` no incluye el borde naranja (`clamp(3.5px,0.75vmin,5px)` por lado), así que la mitad de ancho usada en el cálculo de `right` quedaría corta y el centro no coincidiría con el del chat (desalineación de unos pocos píxeles, más notable cuanto más grueso el borde en pantallas pequeñas).
@@ -6588,7 +6589,7 @@ right: calc(4px + (var(--franja-lateral) / 2) - (clamp(36px,9.8vmin,52px) / 2));
 
 **Límite del desplegable — nunca puede tapar el fondo blanco del logo (`#fondo-blanco`):** al abrir el desplegable (que crece hacia arriba desde el botón principal), `_alturaDisponibleParaDropdown()` mide con `getBoundingClientRect()` — no con `calc()` en cascada, para que el límite sea exacto pase lo que pase con el alto real de la ventana (orientación, notch, etc.) — la distancia real entre la posición del botón principal (antes de expandirse) y el borde inferior de `#fondo-blanco`, resta un margen de seguridad de 8px, y usa ese valor como `max-height` del desplegable. Se recalcula también en `resize` si el desplegable está abierto en ese momento.
 
-Además, el selector no permanece siempre visible: una función centralizada (`actualizarVisibilidadSelectorMapa()`) lo oculta temporalmente cuando se abre el chat, un reto (`hijo4`) o cualquiera de los overlays de imagen, vídeo, error o iframe, y lo vuelve a mostrar al cerrarlos.
+Además, el selector no permanece siempre visible: una función centralizada (`actualizarVisibilidadSelectorMapa()`) lo oculta temporalmente cuando se abre el chat, un reto (`hijo4`) o cualquiera de los overlays de imagen, vídeo, error o iframe, y lo vuelve a mostrar al cerrarlos. Esa misma función oculta y muestra `#brujula-modo` (§4.6b) bajo el mismo criterio, con una sola llamada — es lo que impide que se vea por delante del chat/overlays pese a tener, igual que el selector, un z-index mayor que el de `#hijo6-chat` (1000020): el `display:none` explícito de esta función es el mecanismo real, no el z-index por sí solo.
 
 **Lógica de cambio de modo:**
 
@@ -7609,7 +7610,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-79d8da4423cd'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-27ab2530633a'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8245,7 +8246,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-79d8da4423cd';
+const CACHE_VERSION = 'v-27ab2530633a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11174,7 +11175,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-79d8da4423cd';
+const CACHE_VERSION = 'v-27ab2530633a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
