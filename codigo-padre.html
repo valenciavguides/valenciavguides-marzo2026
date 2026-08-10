@@ -12334,9 +12334,21 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             }
         }
 
+        // Verificador del código dev — única fuente de verdad del hash, reusado por
+        // Factor 2 (_hdl_CONTROL_DEV_CINCO_TOQUES) y por el panel de logs en pantalla (ver
+        // el bloque DEBUG TEMPORAL al final del documento) para no duplicar el hash en dos
+        // sitios, con el riesgo de que se actualice en uno y se olvide en el otro.
+        async function _verificarCodigoDevPWA(codigo) {
+            const CODIGO_DEV_HASH = 'b88919efac1f1343b21bbaa3cbc788362ee3e525d74f72c176616f71ddad0df8';
+            if (!codigo) return false;
+            const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
+            const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex === CODIGO_DEV_HASH;
+        }
+        globalThis._verificarCodigoDevPWA = _verificarCodigoDevPWA;
+
         function _hdl_CONTROL_DEV_CINCO_TOQUES() {
             if (document.getElementById('_dev-code-input')) return;
-            const CODIGO_DEV_HASH = 'b88919efac1f1343b21bbaa3cbc788362ee3e525d74f72c176616f71ddad0df8';
             const overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999999;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;';
             overlay.innerHTML = `<div style="background:#1a1a2e;border-radius:1rem;padding:2rem 1.5rem;width:min(90vw,22rem);text-align:center;border:2px solid #f5a623;">
@@ -12361,9 +12373,8 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 try {
                     const codigo = input.value.trim();
                     if (!codigo) { errorEl.textContent = 'Introduce el código'; _confirming = false; return; }
-                    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
-                    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-                    if (hashHex !== CODIGO_DEV_HASH) {
+                    const valido = await _verificarCodigoDevPWA(codigo);
+                    if (!valido) {
                         errorEl.textContent = 'Código incorrecto';
                         input.value = '';
                         input.focus();
@@ -13484,11 +13495,16 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
     })();
     </script>
 
-    <!-- DEBUG TEMPORAL — panel de logs en pantalla para depurar en móvil sin DevTools.
-         Se activa con ?vvlog=1 en la URL, O tocando 7 veces seguidas (en menos de 3s) en
-         cualquier parte de la pantalla — pensado para la PWA instalada, donde no hay barra
-         de direcciones que editar. Quitar este bloque entero cuando termine la investigación
-         del bug del botón de ubicación (2026-08-10). -->
+    <!-- Panel de logs en pantalla — depurar en móvil sin DevTools/cable USB. Útil en CASA
+         y en AVENTURA por igual (decisión 2026-08-10, tras el bug del botón de ubicación).
+         Se activa tocando 7 veces seguidas (en menos de 3s) en cualquier parte de la
+         pantalla, y SIEMPRE exige el mismo código dev que Factor 2/P1 antes de mostrar
+         nada — nunca depende de globalThis._devModeActivo (se resetea a false justo al
+         entrar en AVENTURA, ver _hdl_SISTEMA_CAMBIO_MODO, así que confiar en ese flag
+         dejaría el panel inutilizable justo cuando más hace falta) ni de ningún otro
+         flag que pueda quedar desincronizado — exige reintroducir el código cada vez,
+         igual que Factor 2, para no depender de un estado que puede llevar minutos u
+         horas sin refrescarse. -->
     <script type="module">
     (async () => {
         try {
@@ -13499,6 +13515,57 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             }
             if (typeof globalThis.__vv_logger === 'undefined') return;
             const vvlogger = globalThis.__vv_logger;
+
+            function _solicitarCodigoParaPanelLogs() {
+                if (document.getElementById('_vvlog-code-input')) return;
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:2000010;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;';
+                overlay.innerHTML = `<div style="background:#1a1a2e;border-radius:1rem;padding:2rem 1.5rem;width:min(90vw,22rem);text-align:center;border:2px solid #f5a623;">
+                    <p style="color:#f5a623;font-size:1.1rem;font-weight:bold;margin:0 0 1rem 0;">🔧 Panel de logs (código dev)</p>
+                    <input id="_vvlog-code-input" type="password" maxlength="20" autocomplete="off"
+                        style="width:100%;padding:0.9rem;border:2px solid #555;border-radius:0.6rem;font-size:1.6rem;text-align:center;letter-spacing:0.5rem;background:#0d0d1a;color:#fff;box-sizing:border-box;">
+                    <p id="_vvlog-code-error" style="color:#ff4444;font-size:0.85rem;margin:0.5rem 0 0 0;min-height:1.2em;"></p>
+                    <div style="display:flex;gap:0.8rem;margin-top:0.8rem;">
+                        <button id="_vvlog-code-cancel" style="flex:1;padding:0.7rem;background:transparent;color:#aaa;border:1px solid #555;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;">Cancelar</button>
+                        <button id="_vvlog-code-ok" style="flex:1;padding:0.7rem;background:#f5a623;color:#000;border:none;border-radius:0.6rem;cursor:pointer;font-size:0.95rem;font-weight:bold;">OK</button>
+                    </div>
+                </div>`;
+                document.body.appendChild(overlay);
+                const input = overlay.querySelector('#_vvlog-code-input');
+                const errorEl = overlay.querySelector('#_vvlog-code-error');
+                input.focus();
+                const cerrar = () => { try { document.body.removeChild(overlay); } catch (_e) {} };
+                let _confirming = false;
+                const confirmar = async () => {
+                    if (_confirming) return;
+                    _confirming = true;
+                    try {
+                        const codigo = input.value.trim();
+                        if (!codigo) { errorEl.textContent = 'Introduce el código'; _confirming = false; return; }
+                        if (typeof globalThis._verificarCodigoDevPWA !== 'function') {
+                            errorEl.textContent = 'Verificador no disponible';
+                            _confirming = false;
+                            return;
+                        }
+                        const valido = await globalThis._verificarCodigoDevPWA(codigo);
+                        if (!valido) {
+                            errorEl.textContent = 'Código incorrecto';
+                            input.value = '';
+                            input.focus();
+                            _confirming = false;
+                            return;
+                        }
+                        cerrar();
+                        mostrarPanelLogs();
+                    } catch (err) {
+                        (globalThis.logger || console).error('[VVLOG] Error verificando código:', err?.message || err);
+                        _confirming = false;
+                    }
+                };
+                overlay.querySelector('#_vvlog-code-cancel').addEventListener('click', cerrar);
+                overlay.querySelector('#_vvlog-code-ok').addEventListener('click', confirmar);
+                input.addEventListener('keydown', e => { if (e.key === 'Enter') confirmar(); if (e.key === 'Escape') cerrar(); });
+            }
 
             function mostrarPanelLogs() {
                 if (document.getElementById('vvlog-panel')) return;
@@ -13596,11 +13663,9 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 _tapsPanelLogs.push(ahora);
                 if (_tapsPanelLogs.length >= 7) {
                     _tapsPanelLogs = [];
-                    mostrarPanelLogs();
+                    _solicitarCodigoParaPanelLogs();
                 }
             });
-
-            if (new URLSearchParams(location.search).has('vvlog')) mostrarPanelLogs();
         } catch (_e) { /* nunca romper la app por el panel de debug */ }
     })();
     </script>

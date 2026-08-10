@@ -4849,7 +4849,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-7e456ba59e8a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-fc436a5fe153'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7654,7 +7654,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-7e456ba59e8a'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-fc436a5fe153'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8295,7 +8295,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-7e456ba59e8a';
+const CACHE_VERSION = 'v-fc436a5fe153';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8623,6 +8623,42 @@ flowchart TD
     CAMBIO --> CASA2([MODO CASA\nhijo5 visible · GPS sin validaciones])
 ```
 
+#### Panel de logs en pantalla — gesto de 7 toques
+
+**Para qué sirve:** ver el log de consola completo desde el propio móvil, sin cable USB ni ordenador — pensado específicamente para la PWA instalada en modo standalone, donde no hay barra de direcciones ni forma de conectar DevTools remoto sin depurar por USB (que en Xiaomi/MIUI puede fallar por driver, como ocurrió en la sesión que motivó esto). Útil en CASA y en AVENTURA por igual — a diferencia de Factor 1/2, este panel **no activa el modo DEV** ni toca `_devModeActivo`, solo muestra el buffer del logger (`js/logger.js`, `globalThis.__vv_logger`, últimas 500 entradas) en un `<textarea>` dentro de la propia página.
+
+**Por qué NO se engancha a `globalThis._devModeActivo` (decisión deliberada):** ese flag se pone a `false` automáticamente en cuanto se entra en AVENTURA (ver `_hdl_SISTEMA_CAMBIO_MODO`, rama `MODOS.AVENTURA`, más abajo) — depender de él dejaría el panel inutilizable justo en el escenario real que lo motivó (depurar GPS durante una aventura activa, con el usuario caminando de verdad). En su lugar, el gesto **siempre** vuelve a pedir el código DEV desde cero, exactamente igual que Factor 2 — nunca confía en un flag que puede llevar horas sin refrescarse ni en si el modo DEV está "activo" en ese instante.
+
+**Gesto de activación:** 7 toques en menos de 3 segundos, en **cualquier parte de la pantalla** (no un elemento concreto) — deliberadamente distinto de los 5 toques de Factor 1/2 (que sí exigen un elemento exacto, `.logo-circular-bg` o `#icono-temporizador`) para no colisionar con ninguno de los dos gestos existentes ni con clicks normales de la interfaz.
+
+**Flujo técnico:**
+
+```mermaid
+flowchart TD
+    ANY([Cualquier pantalla, CASA o AVENTURA]) --> GESTO3{7 toques en <3s\nen cualquier parte de la pantalla}
+    GESTO3 --> HDL3["_solicitarCodigoParaPanelLogs()\noverlay con input #_vvlog-code-input\nguard: si ya existe input, no abre"]
+    HDL3 --> CODE3{"¿código DEV correcto?\n(_verificarCodigoDevPWA — mismo hash que Factor 1/2)"}
+    CODE3 -- No --> HDL3
+    CODE3 -- Sí --> PANEL["mostrarPanelLogs()\ntextarea con buffer del logger, se refresca cada 1s\nbotones Copiar todo / Limpiar / Cerrar"]
+```
+
+**Verificador de código compartido, no duplicado:** `_verificarCodigoDevPWA(codigo)` (Script 2 del padre) es la única función que compara el hash SHA-256 contra `CODIGO_DEV_HASH` — tanto Factor 2 (`_hdl_CONTROL_DEV_CINCO_TOQUES`) como este panel la llaman vía `globalThis._verificarCodigoDevPWA`, en vez de que cada uno tenga su propia copia del hash. Evita el riesgo real de que el código se actualice en un sitio y se olvide en el otro, dejando una puerta con una contraseña vieja.
+
+```javascript
+async function _verificarCodigoDevPWA(codigo) {
+    const CODIGO_DEV_HASH = '...'; // mismo hash que Factor 1/2
+    if (!codigo) return false;
+    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codigo));
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex === CODIGO_DEV_HASH;
+}
+globalThis._verificarCodigoDevPWA = _verificarCodigoDevPWA;
+```
+
+**Contenido del panel:** cada línea muestra `[timestamp] [nivel] [contexto] mensaje args`, formateado desde `logger.getBuffer()` — el mismo buffer circular de 500 entradas que ya usa `logger.exportarJSON()`. "Copiar todo" usa `navigator.clipboard.writeText()` con fallback silencioso (si el navegador lo bloquea, el texto sigue siendo seleccionable a mano). "Limpiar" vacía el buffer real del logger (`logger.limpiarBuffer()`), no solo la vista. Auto-scroll solo si el usuario ya estaba al final del scroll (no le arrebata el control si está revisando líneas anteriores).
+
+**Dónde vive el código:** bloque `<script type="module">` propio, justo antes de `</body>` en `codigo-padre.html` — deliberadamente el último bloque del documento, autocontenido, envuelto en `try/catch` que nunca debe poder romper el resto de la app.
+
 #### Desactivación — botón 🛰️ de hijo5
 
 El modo DEV se desactiva siempre a través del botón GPS de hijo5.
@@ -8645,10 +8681,11 @@ El modo DEV cruza tres scopes distintos que no comparten variables léxicas:
 | `codigo-padre.html` Script 1 (IIFE) | `globalThis._devModeActivo` | IIFE inicializa y escribe; todos los scripts leen via `globalThis` |
 | `codigo-padre.html` Script 2 | `globalThis._devModeActivo` | Lee y escribe via `globalThis` (no puede ver `let`/`const` de Script 1) |
 | `codigo-padre.html` Script 1 | `globalThis._vv_triggerCambioModo` | Script 1 expone la función `_hdl_SISTEMA_CAMBIO_MODO`; Script 2 la llama via `globalThis` |
+| `codigo-padre.html` Script 2 | `globalThis._verificarCodigoDevPWA` | Definida en Script 2 (junto a Factor 2); el bloque del panel de logs, un `<script type="module">` totalmente aparte al final del documento, la llama vía `globalThis` — mismo patrón que el resto de la fila |
 
 #### Protección anti-doble-modal
 
-Ambos modales comprueban si ya existe su input antes de crear el overlay:
+Los tres modales comprueban si ya existe su input antes de crear el overlay:
 
 ```javascript
 // Factor 1 (módulo de selección)
@@ -8656,6 +8693,9 @@ if (document.getElementById('_devp1-code')) return;
 
 // Factor 2 (Script 2 del padre)
 if (document.getElementById('_dev-code-input')) return;
+
+// Panel de logs (bloque final del padre)
+if (document.getElementById('_vvlog-code-input')) return;
 ```
 
 Sin este guard, un doble-tap o clic muy rápido abriría dos overlays solapados.
@@ -8697,8 +8737,9 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 | Código de acceso | [solo conocido por el desarrollador — verificado por hash SHA-256 en `codigo-padre.html` y `En-busca-del-tesoro.html`; no documentado en materiales de usuario, soporte ni chat] |
 | Visibilidad al usuario final | Badge naranja `MODO DEV/CASA` en esquina superior-derecha de P1-P5 cuando está activo; hijo5 visible durante la aventura |
 | Logs en consola del navegador | `[DEV_MODE] 🟢 ACTIVADO` · `[DEV] Modo dev activado en P1 — se saltarán P12 y P13` |
+| Panel de logs (7 toques) | Mismo código de acceso que Factor 1/2, verificado por la misma función (`_verificarCodigoDevPWA`) — no tiene su propio código ni un nivel de seguridad más débil. No activa `_devModeActivo` ni deja ningún flag persistente propio; cada apertura vuelve a pedir el código |
 
-El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código DEV, ni los gestos de activación.
+El chat de soporte (hijo6) no menciona en ningún caso la existencia de hijo5, el código DEV, los gestos de activación, ni el panel de logs.
 
 ---
 
@@ -11259,7 +11300,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-7e456ba59e8a';
+const CACHE_VERSION = 'v-fc436a5fe153';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
