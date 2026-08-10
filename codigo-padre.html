@@ -5732,7 +5732,14 @@
             const incluirRutas = datos.incluirRutas === undefined ? (esTramoIndividual || !esCambioIndividual) : datos.incluirRutas;
             (globalThis.logger || console).info('[PADRE][COORDENADAS_PARADAS_RESPONSE] Dibujando ' + coordenadasTransformadas.length + ' puntos en mapa, incluirRutas=' + incluirRutas);
             try {
-                mapa.dibujarRutaConMarcadores(coordenadasTransformadas, { dibujarRuta: incluirRutas });
+                // dibujarMarcadores:false en cambio individual — completarCambioParada()
+                // (disparado aparte por el mismo NAVEGACION.CAMBIO_PARADA) ya crea su propio
+                // marcador para este mismo elemento, correctamente ocultado/revelado según
+                // distancia real. Sin este flag, dibujarRutaConMarcadores() creaba un
+                // duplicado (📌/🎯) bajo una clave que ningún mecanismo de ocultar conoce —
+                // se quedaba en el mapa para siempre, visible sin importar la distancia
+                // (reporte de uso real 2026-08-10/11, ver docs/GUIA-COMPLETA.md §4.5).
+                mapa.dibujarRutaConMarcadores(coordenadasTransformadas, { dibujarRuta: incluirRutas, dibujarMarcadores: !esCambioIndividual });
             } catch (drawErr) {
                 (globalThis.logger || console).warn('[PADRE][COORDENADAS_PARADAS_RESPONSE] Error dibujando:', drawErr);
             }

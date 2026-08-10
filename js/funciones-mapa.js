@@ -1474,6 +1474,9 @@ function dibujarTramo(tramo, destacado = false) {
  * @param {Array} coordenadasHijo2 - Array de coordenadas con propiedades lat, lng.
  * @param {Object} opciones - Opciones adicionales para el dibujo.
  * @param {boolean} opciones.dibujarRuta - Si debe dibujar la polyline de la ruta (default: true en AVENTURA, false en CASA).
+ * @param {boolean} opciones.dibujarMarcadores - Si debe crear marcadores 📌/🎯 propios (default: true). Pásalo a
+ *   false en cambios de parada/tramo individuales — completarCambioParada() ya crea el suyo, correctamente
+ *   gestionado por _ocultarNavegacion()/revelarNavegacion(); los de aquí quedarían huérfanos para siempre.
  */
 export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
     try {
@@ -1517,46 +1520,66 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
             return `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;">🎯</div>`;
         };
 
-        // Agregar marcadores SOLO para inicio, parada y fin (omitir waypoints intermedios)
-        coordenadasHijo2.forEach((coord, index) => {
-            // Omitir waypoints (no queremos marcadores amarillos intermedios)
-            if (coord.tipo === 'waypoint') return;
+        // opciones.dibujarMarcadores === false: se omite esta sección entera. El único
+        // caller real (codigo-padre.html, DATOS.COORDENADAS_PARADAS_RESPONSE) la pasa así
+        // en cada cambio de parada/tramo individual — completarCambioParada(), disparado
+        // aparte por el mismo evento, ya crea su PROPIO marcador para ese mismo elemento
+        // (marcadorParadaActual / tramo-inicio-ruta / tramo-fin-ruta), correctamente
+        // gestionado por _ocultarNavegacion()/revelarNavegacion() según distancia real.
+        // Los de aquí abajo, guardados bajo claves 'ruta-N'/'ruta-fin', son duplicados
+        // exactos de esos mismos puntos que NINGÚN mecanismo de ocultar/revelar conoce —
+        // se quedaban en el mapa para siempre, visibles sin importar la distancia
+        // (reporte de uso real 2026-08-10/11: diana en parada, chincheta+diana en tramo,
+        // ambas persistentes incluso lejos). limpiarRecursos() (arriba, al principio de
+        // esta función) sí los borra al empezar el SIGUIENTE ciclo, así que nunca se
+        // acumulan sin límite — pero el último ciclo se queda huérfano para siempre. Se
+        // conservan por si en el futuro un caller real necesita el "resumen de toda la
+        // ruta" para el que esta función se diseñó originalmente (múltiples paradas/tramos
+        // a la vez, no un único elemento).
+        if (opciones.dibujarMarcadores !== false) {
+            // Agregar marcadores SOLO para inicio, parada y fin (omitir waypoints intermedios)
+            coordenadasHijo2.forEach((coord, index) => {
+                // Omitir waypoints (no queremos marcadores amarillos intermedios)
+                if (coord.tipo === 'waypoint') return;
 
-            const isFirst = index === 0;
-            const isLast = index === coordenadasHijo2.length - 1;
+                const isFirst = index === 0;
+                const isLast = index === coordenadasHijo2.length - 1;
 
-            let markerTitle = coord.nombre || `Punto ${index + 1}`;
+                let markerTitle = coord.nombre || `Punto ${index + 1}`;
 
-            // Si es el punto final, usar icono 🎯
-            if (isLast) {
-                markerTitle = coord.nombre || 'Fin de ruta';
-                const iconos = getIconoEscalado();
-                const flagHtml = `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`;
-                const markerFin = _crearMarcadorHTML(coord, flagHtml, { className: 'finish-flag-icon', title: markerTitle, zIndex: 700 });
-                marcadoresParadas.set(`ruta-fin`, markerFin);
-                return;
-            }
+                // Si es el punto final, usar icono 🎯
+                if (isLast) {
+                    markerTitle = coord.nombre || 'Fin de ruta';
+                    const iconos = getIconoEscalado();
+                    const flagHtml = `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`;
+                    const markerFin = _crearMarcadorHTML(coord, flagHtml, { className: 'finish-flag-icon', title: markerTitle, zIndex: 700 });
+                    marcadoresParadas.set(`ruta-fin`, markerFin);
+                    return;
+                }
 
-            // Para inicio o paradas, usar emoji 🎯
-            if (coord.tipo === 'inicio' || (coord.tipo === 'tramo' && isFirst)) {
-                markerTitle = coord.nombre || 'Inicio';
-                // Usar emoji 📌 para punto de inicio
-                const iconosInicio = getIconoEscalado();
-                const startHtml = `<div style="font-size:${iconosInicio.inicio}px;line-height:${iconosInicio.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`;
-                const markerInicio = _crearMarcadorHTML(coord, startHtml, { className: 'start-flag-icon', title: markerTitle, zIndex: 700 });
-                marcadoresParadas.set(`ruta-${index}`, markerInicio);
-                return;
-            } else if (coord.tipo === 'parada') {
-                markerTitle = coord.nombre || `Parada ${coord.id}`;
-            }
+                // Para inicio o paradas, usar emoji 🎯
+                if (coord.tipo === 'inicio' || (coord.tipo === 'tramo' && isFirst)) {
+                    markerTitle = coord.nombre || 'Inicio';
+                    // Usar emoji 📌 para punto de inicio
+                    const iconosInicio = getIconoEscalado();
+                    const startHtml = `<div style="font-size:${iconosInicio.inicio}px;line-height:${iconosInicio.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`;
+                    const markerInicio = _crearMarcadorHTML(coord, startHtml, { className: 'start-flag-icon', title: markerTitle, zIndex: 700 });
+                    marcadoresParadas.set(`ruta-${index}`, markerInicio);
+                    return;
+                } else if (coord.tipo === 'parada') {
+                    markerTitle = coord.nombre || `Parada ${coord.id}`;
+                }
 
-            const marker = _crearMarcadorHTML(coord, crearIconoParada(), {
-                className: 'custom-marker-emoji',
-                title: markerTitle,
-                zIndex: 600
+                const marker = _crearMarcadorHTML(coord, crearIconoParada(), {
+                    className: 'custom-marker-emoji',
+                    title: markerTitle,
+                    zIndex: 600
+                });
+                marcadoresParadas.set(`ruta-${index}`, marker);
             });
-            marcadoresParadas.set(`ruta-${index}`, marker);
-        });
+        } else {
+            logger.debug('dibujarRutaConMarcadores: marcadores omitidos (cambio de parada/tramo individual — completarCambioParada() ya dibuja el suyo propio)');
+        }
 
         // Ajustar zoom para mostrar toda la ruta (fitBounds)
         if (puntos.length > 0 && _mapaInstance && opciones.ajustarZoom !== false) {
