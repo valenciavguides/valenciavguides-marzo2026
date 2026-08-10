@@ -1366,64 +1366,6 @@ export function limpiarRecursos() {
 }
 
 /**
- * Muestra todas las paradas en el mapa.
- * @param {Array} paradasExternas - Paradas proporcionadas externamente (opcional).
- */
-export async function mostrarTodasLasParadas(paradasExternas) {
-    try {
-        if (paradasExternas) {
-            arrayParadasLocal = normalizarParadas(paradasExternas);
-        }
-
-        // Si el mapa no está inicializado, esperar a que se inicialice
-        if (!_mapaInstance) {
-            logger.info('mostrarTodasLasParadas: mapa no inicializado, esperando inicialización...');
-
-            // Esperar hasta 5 segundos por la inicialización del mapa
-            const maxWaitTime = 5000;
-            const checkInterval = 100;
-            let waited = 0;
-
-            while (!_mapaInstance && waited < maxWaitTime) {
-                await new Promise(resolve => setTimeout(resolve, checkInterval));
-                waited += checkInterval;
-            }
-
-            // Si aún no está inicializado después de esperar, actualizar solo el array local
-            if (!_mapaInstance) {
-                logger.warn('mostrarTodasLasParadas: mapa no se inicializó después de esperar, solo se actualiza arrayParadasLocal');
-                return false;
-            }
-
-            logger.info('mostrarTodasLasParadas: mapa inicializado, procediendo con la visualización');
-        }
-
-        marcadoresParadas.forEach(marcador => marcador.remove());
-        marcadoresParadas.clear();
-
-        arrayParadasLocal.forEach(parada => {
-            if (parada.coordenadas && validarCoordenadas(parada.coordenadas)) {
-                // Sin icono personalizado — usa el pin por defecto de MapLibre
-                // (anchor 'bottom': la punta toca el punto).
-                const marcador = new maplibregl.Marker({ anchor: 'bottom' })
-                    .setLngLat(aLngLat(parada.coordenadas))
-                    .addTo(_mapaInstance);
-                marcador.getElement().title = parada.nombre || `Parada ${parada.id}`;
-                marcador.getElement().style.zIndex = '600';
-
-                marcadoresParadas.set(parada.id, marcador);
-            }
-        });
-
-        logger.info(`Se han añadido ${marcadoresParadas.size} marcadores al mapa`);
-        return true;
-    } catch (error) {
-        logger.error('Error al mostrar todas las paradas:', error);
-        return false;
-    }
-}
-
-/**
  * Dibuja un tramo específico en el mapa.
  * @param {Object} tramo - Objeto tramo con inicio, fin y waypoints.
  * @param {boolean} destacado - Si es true, se muestra con énfasis.
@@ -2903,12 +2845,10 @@ try {
 
 // Bug H fix: actualizar arrayParadasLocal cuando el padre asigna globalThis.AVENTURA_PARADAS
 // tras seleccionar aventura (puede ocurrir después de que inicializarServicioMapa ya corrió).
-// Solo actualiza el caché local — NO llama a mostrarTodasLasParadas(): esa función dibuja un
-// pin permanente por CADA parada de la aventura entera (pasadas y futuras), sin ocultado por
-// distancia ni limpieza garantizada (limpiarRecursos() solo los borra retroactivamente en el
-// siguiente dibujarRutaConMarcadores()). Si este evento llega con el mapa ya en modo AVENTURA
-// (p.ej. recarga de la PWA a mitad de aventura, restaurando estado guardado), esos pines
-// quedarían visibles hasta el próximo cambio de parada — mismo tipo de fuga que diana/chincheta.
+// Solo actualiza el caché local — no dibuja nada: pintar aquí un pin por CADA parada de la
+// aventura entera (pasadas y futuras) sin ocultado por distancia sería la misma fuga que
+// diana/chincheta si este evento llega con el mapa ya en modo AVENTURA (p.ej. recarga de la
+// PWA a mitad de aventura, restaurando estado guardado).
 if (globalThis.window !== undefined) {
     globalThis.addEventListener('vv:paradas-disponibles', (e) => {
         const paradas = e.detail;
@@ -3414,7 +3354,6 @@ globalThis.funcionesMapa = {
     invalidarTamañoMapa,
     diagnosticarMapa,
     isMapInitialized,
-    mostrarTodasLasParadas,
     limpiarRecursos,
     dibujarRutaConMarcadores,
     dibujarReferencias,
