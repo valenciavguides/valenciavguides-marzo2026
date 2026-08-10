@@ -2129,6 +2129,8 @@ Los dos modos no son equivalentes. El padre ejecuta lógica diferente según `es
 | **Origen típico de `CAMBIO_PARADA`** | hijo5 (clic en lista de paradas) | El padre mismo, tras `progresarSiguienteElemento()` (usuario pulsa `btn-avanzar` en hijo2 una vez llegada+audio+reto están completos) — nunca hijo2 directamente; la llegada GPS solo marca `pending.llegada`, ver §2.2 |
 | **Estado del reto (`estado.retoActual`)** | `disponible: true` al entrar en parada con `reto_id` (inmediato) | `disponible: false` al entrar; cambia a `true` solo cuando audio termina |
 | **Persistencia de progreso** | `localStorage.removeItem('vv_aventura_iniciada')` al cambiar a CASA | `localStorage.setItem('vv_aventura_iniciada', ...)` al cambiar a AVENTURA |
+| **Carteles de distancia GPS** (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`) | Al entrar en CASA, `_hdl_SISTEMA_CAMBIO_MODO` los cierra explícitamente (`_ocultarTodasPantallasDistanciaGPS()`) y resetea `estado.usuarioFueraRango` — ninguno puede quedar visible desde una AVENTURA anterior | Gestionados por `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`/`_hdl_NAVEGACION_LLEGADA_DETECTADA`, cada uno con su propio guard de modo (defensa en profundidad, redundante con el guard de hijo2 que ya evita que se envíen desde CASA) |
+| **Recordatorio "pulse play"** (§25.5c) | `_hdl_SISTEMA_CAMBIO_MODO` llama a `globalThis._detenerRecordatorioAudio()` explícitamente — el elemento activo no cambia solo por cambiar de modo, así que sin este apagado el recordatorio seguiría corriendo fuera de AVENTURA | Arranca en `_hdl_NAVEGACION_CAMBIO_PARADA` si el elemento tiene audio; exige tiempo Y proximidad GPS a la vez (ver §25.5c) |
 
 **Flujo de `CAMBIO_PARADA` según modo** — llamadas ejecutadas en `_hdl_NAVEGACION_CAMBIO_PARADA`:
 
@@ -2725,7 +2727,7 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 
 | Controlador | Qué hace |
 |---|---|
-| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `idParada`, `toleranciaGPS`, `lat`, `lng`; actualiza `estadoComponente.posicionActualUsuario`; habilita `#btn-avanzar` y envía `LLEGADA_DETECTADA` si en rango; en modo AVENTURA llama `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre la distancia real respecto a la parada que toca (§31.4) |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | Recibe `distanciaAlDestino` (ya calculada por `funciones-mapa.js`), `idParada`, `toleranciaGPS`, `lat`, `lng`; actualiza `estadoComponente.posicionActualUsuario`; **solo si `estadoComponente.modo === 'aventura'`**, habilita `#btn-avanzar` y envía `LLEGADA_DETECTADA` si en rango, y llama `verificarDistanciaYActualizarBotones()` para decidir el botón ubicación y notificar al padre la distancia real respecto a la parada que toca (§31.4) — en CASA, `idParada` puede ser un elemento que el usuario solo está "viendo" con hijo5, no uno visitado de verdad, así que ninguna de estas dos acciones se ejecuta |
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza clase CSS del body; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `SISTEMA.CAMBIO_MODO` | Cambia clase CSS del body (`modo-casa`/`modo-aventura`); en CASA desactiva detección de proximidad |
@@ -4849,7 +4851,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-fc436a5fe153'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c8b57e244bc3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5625,7 +5627,7 @@ hijo6 envía: `SISTEMA.HIJO_LISTO`, `SISTEMA.HEARTBEAT_RESPONSE`, `SISTEMA.HIJO_
 #### `procesarPosicionGPSParaAventura` — guard de modo AVENTURA
 
 - **Dónde**: `js/funciones-mapa.js` función `procesarPosicionGPSParaAventura` — bloque `if (llegadaDetectada)`
-- El guard `if (estadoMapa.modo !== MODOS.AVENTURA)` impide que se envíe `NAVEGACION.LLEGADA_DETECTADA` en modo CASA. El marcador, el polyline y `ACTUALIZAR_ESTADO` a hijo2 siguen funcionando en ambos modos; solo la notificación de llegada queda desactivada fuera de AVENTURA.
+- El guard `if (estadoMapa.modo !== MODOS.AVENTURA)` impide que se envíe `NAVEGACION.LLEGADA_DETECTADA` en modo CASA. El marcador de usuario sigue funcionando en ambos modos (con el icono que corresponde a cada uno, ▲/🛸 — ver §4.5); el envío de `ACTUALIZAR_ESTADO` a hijo2 y la visibilidad del trazado por proximidad están, ambos, envueltos en su propio guard `estadoMapa.modo === MODOS.AVENTURA` y no ocurren en CASA (ver "Cómo funciona el mapa", más arriba).
 - `LLEGADA_DETECTADA` no avanza la parada por sí sola — solo marca `pending.llegada = true` en el padre (`_marcarPendingPorLlegada`). El avance real lo decide `intentarCompletarElemento()` cuando también se cumplen audio (y retos, si los hay). `estadoMapa._llegadaNotificada` deduplica el envío mientras la distancia se mantenga ≤ tolerancia; se resetea con histéresis (`distancia > toleranciaGPS * 1.5`) para permitir renotificar si el usuario se aleja y vuelve.
 
 #### `RETO.SOLICITAR_RETO` — handler en Script 2
@@ -6286,15 +6288,15 @@ Los nombres de ambas funciones conservan el sufijo histórico "P0"/"P-0", pero n
 
 ### Cómo funciona el mapa
 
-Los pasos 1-3 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 4-5 solo ocurren en **modo AVENTURA** — en CASA el GPS no fuerza ningún avance automático.
+Los pasos 1-2 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 3-5 solo ocurren en **modo AVENTURA** — en CASA el GPS no fuerza ningún avance automático ni notifica nada a hijo2.
 
 1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` puede detenerse: `desactivarGPS()` llama a `clearWatch()` para cancelarlo.
-2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que comprueba que `funcionesMapa.procesarPosicionGPSParaAventura` existe (si no, solo avisa por log y no lanza), llama a esa función dentro de un try/catch propio, y si tiene éxito llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` que `_watchPositionSuccess()` ya llamó antes: cada overlay de error GPS (sin señal vs. fuera de rango real) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage.
-3. `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`.
-4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`.
-5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 15 m hardcodeado en hijo2, `RADIO_PARADA`).
+2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que comprueba que `funcionesMapa.procesarPosicionGPSParaAventura` existe (si no, solo avisa por log y no lanza), llama a esa función dentro de un try/catch propio, y si tiene éxito llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` que `_watchPositionSuccess()` ya llamó antes: cada overlay de error GPS (sin señal vs. fuera de rango real) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage — con el icono que corresponde al modo real (`estadoMapa.modo`): ▲ triángulo en AVENTURA, 🛸 en CASA (ver tabla de marcadores, §4.5).
+3. *(solo AVENTURA)* `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`. En CASA, `siguienteParada` puede ser cualquier elemento que el usuario esté simplemente mirando con hijo5 (reutiliza el mismo `CAMBIO_PARADA`), no uno que esté visitando de verdad — enviar este mensaje igualmente en CASA no aporta nada (hijo2 lo ignora, ver paso 4) y solo añadía tráfico de mensajería sin propósito.
+4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`. El propio handler de `NAVEGACION.ACTUALIZAR_ESTADO` en hijo2 exige `estadoComponente.modo === 'aventura'` antes de llamar a cualquiera de las dos — sin este guard, una posición GPS real que cayera dentro del radio de una parada que el usuario solo está "viendo" en CASA disparaba una llegada real para un elemento nunca visitado.
+5. *(solo AVENTURA)* Cuando el usuario entra en el radio del elemento, hijo2 envía `NAVEGACION.LLEGADA_DETECTADA` al padre — tanto para tramos (radio dinámico) como para paradas (radio fijo de 15 m hardcodeado en hijo2, `RADIO_PARADA`). El padre, en `_hdl_NAVEGACION_LLEGADA_DETECTADA` y `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`, vuelve a comprobar `estado.modo?.actual === MODOS.AVENTURA` antes de actuar — defensa en profundidad: el emisor (hijo2) ya filtra por modo, pero el padre conoce su propio modo con certeza absoluta y no depende de que ningún remitente se porte bien siempre.
 
-> **CASA — sin avance automático por GPS:** el modo lo decide hijo5 con el botón 🛰️. En modo CASA las pestañas de tramos y paradas están desplegadas y el usuario elige libremente. `procesarPosicionGPSParaAventura` sigue ejecutándose (actualiza el marcador y calcula distancias), pero el guard `estadoMapa.modo !== MODOS.AVENTURA` impide que se envíe el `CAMBIO_PARADA` automático.
+> **CASA — sin avance automático por GPS:** el modo lo decide hijo5 con el botón 🛰️. En modo CASA las pestañas de tramos y paradas están desplegadas y el usuario elige libremente. `procesarPosicionGPSParaAventura` sigue ejecutándose (actualiza el marcador y calcula distancias), pero el guard `estadoMapa.modo !== MODOS.AVENTURA` impide que se envíe tanto el `CAMBIO_PARADA` automático como el propio `ACTUALIZAR_ESTADO` a hijo2 (paso 3). Al volver a CASA desde una AVENTURA en curso, `_hdl_SISTEMA_CAMBIO_MODO` también cierra explícitamente cualquier cartel de distancia que hubiera quedado en pantalla (`gps-out-of-range-overlay`, `foto-fuera-rango-overlay`, `foto-lejos-overlay`, vía `_ocultarTodasPantallasDistanciaGPS()`) y resetea `estado.usuarioFueraRango` — nada los cierra solos al cambiar de modo, así que sin esto podían quedarse pegados en pantalla en CASA indefinidamente.
 
 ### Fuente única de verdad del estado GPS
 
@@ -7654,7 +7656,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-fc436a5fe153'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c8b57e244bc3'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8295,7 +8297,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-fc436a5fe153';
+const CACHE_VERSION = 'v-c8b57e244bc3';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9147,7 +9149,14 @@ Cada pulso envía `{estrellas, momento}` mediante `enviarValoracion()` de `js/fe
 
 **Por qué existe:** reporte de campo real — el usuario caminaba hacia la siguiente parada o a lo largo de un tramo sin haber pulsado nunca el botón de play, y como nada en pantalla se lo recordaba de forma insistente (más allá del cartel de llegada de §4.7g/§4.7j, que se autocierra a los 10s y no vuelve a aparecer), la parada nunca se daba por completada — `pending.audio` se queda en `false` para siempre si no se pulsa play, sin relación con lo cerca que esté el usuario del punto (ver §25.5, "Por qué 15 m y no 10 m"). El usuario podía pasar minutos parado sobre las coordenadas correctas sin entender por qué la aventura no avanzaba.
 
-**Cuándo se muestra:** `RECORDATORIO_AUDIO_PRIMER_AVISO_MS` (10.000ms) después de activarse un elemento nuevo con audio disponible, si el usuario todavía no ha pulsado play. Si sigue sin pulsarlo, se repite cada `RECORDATORIO_AUDIO_INTERVALO_MS` (20.000ms) — deliberadamente el mismo criterio para parada y tramo (decidido con el usuario: unificar bajo un único criterio de tiempo es más simple de mantener que distinguir por tipo, y una parada/tramo "cerca pero sin play" es el mismo problema en ambos casos). Cada aparición se autocierra sola a los 7s, igual que el resto de carteles no bloqueantes de esta sección.
+**Cuándo se muestra:** se exigen DOS condiciones a la vez, no una sola — decidido con el usuario tras un reporte de uso real en el que el cartel aparecía por tiempo aunque el usuario estuviera lejos de las coordenadas:
+
+1. **Tiempo**: han pasado `RECORDATORIO_AUDIO_PRIMER_AVISO_MS` (10.000ms) desde que se activó el elemento actual.
+2. **Proximidad GPS**: `estado.gps.visualActivo === true` — la misma señal que revela el trazado/polyline en el mapa (sincronizada desde `funciones-mapa.js` vía `sincronizarEstadoGPSConPadre()`, ver §25.5 y §4.6), no una comprobación nueva.
+
+Cualquiera de las dos puede cumplirse antes que la otra; el cartel aparece en cuanto se cumple la que faltaba. Si sigue sin pulsar play, se repite cada `RECORDATORIO_AUDIO_INTERVALO_MS` (20.000ms) mientras ambas condiciones sigan cumplidas a la vez — deliberadamente el mismo criterio para parada y tramo, sin distinguir tipo. Cada aparición se autocierra sola a los 7s, igual que el resto de carteles no bloqueantes de esta sección.
+
+Internamente, un único `setInterval` barato (`RECORDATORIO_AUDIO_CHEQUEO_MS`, cada 2.000ms) reevalúa las dos condiciones en cada tick, en vez de encadenar `setTimeout`→`setInterval` como hacía la versión anterior (esa estructura solo podía reaccionar a "ha pasado el tiempo", no a "el GPS acaba de confirmar proximidad" si eso llegaba después) — así, sea cual sea la condición que tarda más en cumplirse, el siguiente tick la detecta y muestra el cartel.
 
 **Cuándo deja de mostrarse:** en cuanto el usuario pulsa `#audio-action-play` o `#audio-action-replay` dentro de `#audio-control-dropdown` (`inicializarControlesAudioPadre()`, `codigo-padre.html`) — ambos cuentan igual como "ya lo pulsó", los dos arrancan reproducción real. **Los botones de play viven en el padre, nunca en hijo3** (audio-hijo3.html solo reproduce lo que el padre le manda) — el listener que detiene el recordatorio está en el mismo sitio que el resto de controles de audio del padre (ver §"Audio control overlay" / [[project-audio-control-overlay]]).
 
@@ -9155,13 +9164,11 @@ Cada pulso envía `{estrellas, momento}` mediante `enviarValoracion()` de `js/fe
 
 **Enganches (tres sitios, todos vía `globalThis.` porque cruzan bloques `<script type="module">` distintos — ver la nota de scope de CLAUDE.md):**
 
-- `_hdl_NAVEGACION_CAMBIO_PARADA`: al activarse cualquier elemento nuevo en AVENTURA con audio disponible (`obtenerAudioIdActivoPadre()`), llama a `globalThis._iniciarRecordatorioAudio()` — que primero cancela cualquier timer del elemento anterior, así que no hace falta comparar IDs a mano. Si el elemento no tiene audio, o el modo no es AVENTURA, llama a `globalThis._detenerRecordatorioAudio()` en su lugar.
-- El click de `#audio-action-play`/`#audio-action-replay` llama a `globalThis._marcarPlayPulsadoRecordatorio()`, que apaga el timer/intervalo activos y cierra el cartel si estaba visible en ese momento.
+- `_hdl_NAVEGACION_CAMBIO_PARADA`: al activarse cualquier elemento nuevo en AVENTURA con audio disponible (`obtenerAudioIdActivoPadre()`), llama a `globalThis._iniciarRecordatorioAudio()` — que primero cancela cualquier check del elemento anterior, así que no hace falta comparar IDs a mano. Si el elemento no tiene audio, o el modo no es AVENTURA, llama a `globalThis._detenerRecordatorioAudio()` en su lugar.
+- El click de `#audio-action-play`/`#audio-action-replay` llama a `globalThis._marcarPlayPulsadoRecordatorio()`, que apaga el intervalo de chequeo activo y cierra el cartel si estaba visible en ese momento.
 - `_hdl_SISTEMA_CAMBIO_MODO`, rama CASA: llama a `globalThis._detenerRecordatorioAudio()` explícitamente — entrar en CASA no dispara `CAMBIO_PARADA` (el elemento activo no cambia solo por cambiar de modo), así que sin este apagado explícito el recordatorio seguiría sonando fuera de AVENTURA. Al volver a AVENTURA con progreso real congelado, la restauración de `estado.paradaRealCongelada` sí dispara `CAMBIO_PARADA` y lo reactiva sola.
 
-**No cubierto (fuera de alcance de esta implementación):** el recordatorio no distingue si el usuario está lejos o cerca del punto — se dispara por tiempo desde la activación del elemento, no por proximidad GPS. Un usuario que camina un tramo largo lo verá aparecer igual que uno que ya está encima de la parada.
-
-Cubierto por `tests/e2e/29-recordatorio-audio.spec.js` (RA-1 el ciclo completo con reloj simulado: aparición a los 10s, autocierre a los 7s, reaparición a los 20s, parada al pulsar play; RA-2 confirma que reiniciar el recordatorio cancela el timer del elemento anterior en vez de acumularlo).
+Cubierto por `tests/e2e/29-recordatorio-audio.spec.js` (RA-1 el ciclo completo con reloj simulado: no aparece a los 10s si falta la proximidad, aparece en cuanto se cumplen ambas condiciones, autocierre a los 7s, reaparición a los 20s, parada al pulsar play; RA-2 confirma que reiniciar el recordatorio cancela el chequeo del elemento anterior en vez de acumularlo; RA-3 confirma el caso simétrico — la proximidad sola tampoco basta antes de los 10s).
 
 ---
 
@@ -11300,7 +11307,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-fc436a5fe153';
+const CACHE_VERSION = 'v-c8b57e244bc3';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

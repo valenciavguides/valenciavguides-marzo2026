@@ -7267,6 +7267,15 @@
                     // que lo detiene). Al volver a AVENTURA con progreso real congelado, la
                     // restauración de más abajo sí dispara CAMBIO_PARADA y lo reactiva solo.
                     globalThis._detenerRecordatorioAudio?.();
+                    // Mismo motivo: los carteles de "fuera de rango" (gps-out-of-range-overlay,
+                    // foto-fuera-rango-overlay, foto-lejos-overlay) pudieron quedar en pantalla
+                    // desde AVENTURA — nada los cierra solos al cambiar de modo, así que si
+                    // seguían visibles se quedaban pegados en CASA indefinidamente (reporte de
+                    // uso real 2026-08-10). estado.usuarioFueraRango también se resetea, para
+                    // que no se reactiven controles/mensajes basados en un fuera-de-rango que
+                    // ya no aplica en modo libre.
+                    try { globalThis._ocultarTodasPantallasDistanciaGPS?.(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                    estado.usuarioFueraRango = { activo: false, distancia: null, franja: null, elementoMasCercano: null, timestamp: null };
                     // _codigoValidadoP13 se pone a true justo antes de activarGPS() en P14
                     // (guard para que showGpsSignalOverlay() no se calle si el GPS falla ahí,
                     // antes de que el modo esté decidido) y nunca se resetea después — sin
@@ -8766,22 +8775,29 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.mostrarCartelBienvenidaParada = mostrarCartelBienvenidaParada;
 
         // ── Recordatorio periódico de "pulse play" — parada y tramo, mismo criterio ──
-        // A los RECORDATORIO_AUDIO_PRIMER_AVISO_MS de activarse un elemento nuevo, si el
-        // usuario todavía no ha pulsado play, se muestra este cartel; si sigue sin pulsar,
-        // se repite cada RECORDATORIO_AUDIO_INTERVALO_MS hasta que lo hace. Deliberadamente
-        // compartido entre parada y tramo (mismo criterio de tiempo, decidido con el
-        // usuario) — no distingue tipo, solo si hay audio disponible para el elemento
-        // activo. Los botones de play viven en el padre (#audio-action-play dentro de
-        // #audio-control-dropdown, ver inicializarControlesAudioPadre), nunca en hijo3.
+        // Se muestra solo cuando se cumplen DOS condiciones a la vez: han pasado
+        // RECORDATORIO_AUDIO_PRIMER_AVISO_MS desde que se activó el elemento actual, Y
+        // el GPS ya confirmó proximidad real a sus coordenadas (estado.gps.visualActivo
+        // — la misma señal que revela el trazado, sincronizada desde funciones-mapa vía
+        // sincronizarEstadoGPSConPadre). Cualquiera de las dos puede llegar antes que la
+        // otra; la que llega última es la que dispara el cartel. Si sigue sin pulsar
+        // play, se repite cada RECORDATORIO_AUDIO_INTERVALO_MS mientras ambas condiciones
+        // sigan cumplidas. Deliberadamente compartido entre parada y tramo — no distingue
+        // tipo, solo si hay audio disponible para el elemento activo. Los botones de play
+        // viven en el padre (#audio-action-play dentro de #audio-control-dropdown, ver
+        // inicializarControlesAudioPadre), nunca en hijo3.
         const RECORDATORIO_AUDIO_PRIMER_AVISO_MS = 10000;
         const RECORDATORIO_AUDIO_INTERVALO_MS = 20000;
-        let _recordatorioAudioTimeoutId = null;
-        let _recordatorioAudioIntervalId = null;
+        const RECORDATORIO_AUDIO_CHEQUEO_MS = 2000;
+        let _recordatorioAudioCheckIntervalId = null;
         let _recordatorioAudioPulsado = false;
+        let _recordatorioAudioActivadoEn = null;
+        let _recordatorioAudioUltimoMostradoEn = null;
 
         function _detenerRecordatorioAudio() {
-            if (_recordatorioAudioTimeoutId) { clearTimeout(_recordatorioAudioTimeoutId); _recordatorioAudioTimeoutId = null; }
-            if (_recordatorioAudioIntervalId) { clearInterval(_recordatorioAudioIntervalId); _recordatorioAudioIntervalId = null; }
+            if (_recordatorioAudioCheckIntervalId) { clearInterval(_recordatorioAudioCheckIntervalId); _recordatorioAudioCheckIntervalId = null; }
+            _recordatorioAudioActivadoEn = null;
+            _recordatorioAudioUltimoMostradoEn = null;
             document.getElementById('cartel-recordatorio-audio')?.remove();
         }
         globalThis._detenerRecordatorioAudio = _detenerRecordatorioAudio;
@@ -8838,19 +8854,27 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // Llamado al activarse cualquier elemento nuevo (parada o tramo) en AVENTURA con
         // audio disponible — ver _hdl_NAVEGACION_CAMBIO_PARADA. _detenerRecordatorioAudio()
-        // al principio cancela cualquier timer del elemento anterior, así que no hace falta
-        // comparar IDs aparte.
+        // al principio cancela cualquier check del elemento anterior, así que no hace falta
+        // comparar IDs aparte. Un único setInterval barato (cada
+        // RECORDATORIO_AUDIO_CHEQUEO_MS) reevalúa las dos condiciones en cada tick en vez
+        // de encadenar setTimeout→setInterval — así, sea cual sea la condición que tarda
+        // más en cumplirse (el tiempo o la proximidad GPS), el siguiente tick la detecta.
         function _iniciarRecordatorioAudio() {
             _detenerRecordatorioAudio();
             _recordatorioAudioPulsado = false;
-            _recordatorioAudioTimeoutId = setTimeout(() => {
-                if (_recordatorioAudioPulsado) return;
-                _mostrarCartelRecordatorioAudio();
-                _recordatorioAudioIntervalId = setInterval(() => {
-                    if (_recordatorioAudioPulsado) { _detenerRecordatorioAudio(); return; }
+            _recordatorioAudioActivadoEn = Date.now();
+            _recordatorioAudioUltimoMostradoEn = null;
+            _recordatorioAudioCheckIntervalId = setInterval(() => {
+                if (_recordatorioAudioPulsado) { _detenerRecordatorioAudio(); return; }
+                const ahora = Date.now();
+                const tiempoListo = (ahora - _recordatorioAudioActivadoEn) >= RECORDATORIO_AUDIO_PRIMER_AVISO_MS;
+                const proximidadLista = estado?.gps?.visualActivo === true;
+                const intervaloListo = _recordatorioAudioUltimoMostradoEn === null || (ahora - _recordatorioAudioUltimoMostradoEn) >= RECORDATORIO_AUDIO_INTERVALO_MS;
+                if (tiempoListo && proximidadLista && intervaloListo) {
+                    _recordatorioAudioUltimoMostradoEn = ahora;
                     _mostrarCartelRecordatorioAudio();
-                }, RECORDATORIO_AUDIO_INTERVALO_MS);
-            }, RECORDATORIO_AUDIO_PRIMER_AVISO_MS);
+                }
+            }, RECORDATORIO_AUDIO_CHEQUEO_MS);
         }
         globalThis._iniciarRecordatorioAudio = _iniciarRecordatorioAudio;
 
@@ -11292,6 +11316,16 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[NAVEGACION.LLEGADA_DETECTADA]`;
 
             try {
+                // Defensa en profundidad — mismo motivo que en _hdl_NAVEGACION_USUARIO_FUERA_RANGO:
+                // los dos emisores reales (hijo2 y el sensor redundante de funciones-mapa.js) ya
+                // deberían filtrar por modo en origen, pero marcar pending.llegada=true por error
+                // en CASA corrompe progreso real (persiste en localStorage) — vale la pena que el
+                // propio padre, que conoce su modo con certeza, nunca dependa solo de eso.
+                if (estado.modo?.actual !== MODOS.AVENTURA) {
+                    (globalThis.logger || console).debug(`${logPrefix} Ignorado — modo actual es ${estado.modo?.actual}, no AVENTURA`);
+                    return;
+                }
+
                 const resolved = resolverIdsParada(mensaje.datos || {});
                 const paradaId = resolved.paradaId || mensaje.datos?.paradaId || mensaje.datos?.parada_id || null;
                 const { coordenadas, distancia } = mensaje.datos || {};
@@ -11364,6 +11398,16 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[USUARIO_FUERA_RANGO][${mensaje?.origen || 'desconocido'}]`;
 
             try {
+                // Defensa en profundidad: hijo2 ya no debería enviar esto fuera de AVENTURA
+                // (verificarDistanciaYActualizarBotones exige estadoComponente.modo==='aventura'),
+                // pero el padre conoce su propio modo con total fiabilidad — no depender solo
+                // de que el remitente se porte bien. Sin este guard, un futuro regreso del
+                // guard de hijo2 dejaría a este handler obedecer ciegamente en CASA otra vez.
+                if (estado.modo?.actual !== MODOS.AVENTURA) {
+                    (globalThis.logger || console).debug(`${logPrefix} Ignorado — modo actual es ${estado.modo?.actual}, no AVENTURA`);
+                    return;
+                }
+
                 const { distancia, franja, elementoMasCercano, timestamp } = mensaje.datos || {};
 
                 (globalThis.logger || console).warn(`${logPrefix} Usuario fuera de rango: ${Math.ceil(distancia)}m (franja: ${franja || 'desconocida'}, elemento más cercano: ${elementoMasCercano || 'desconocido'})`);

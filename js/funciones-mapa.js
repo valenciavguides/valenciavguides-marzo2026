@@ -3060,12 +3060,17 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // también lo necesita para indexar su propio contador de confirmación por 2 lecturas.
         const derivedParadaId = siguienteParada.parada_id || siguienteParada.tramo_id || (typeof siguienteParada.padreid === 'string' ? siguienteParada.padreid.replace(/^padre-/, '') : siguienteParada.id || null);
 
-        // ✅ CRÍTICO: Actualizar marcador visual del usuario en el mapa (flecha azul)
+        // ✅ CRÍTICO: Actualizar marcador visual del usuario en el mapa (flecha azul en
+        // AVENTURA, 🛸 simulado en CASA — ver actualizarMarcadorUsuario). El GPS nunca se
+        // detiene entre modos, así que esta función se ejecuta también en CASA; antes
+        // pasaba 'aventura' fijo sin mirar estadoMapa.modo, dejando la flecha real
+        // encendida en CASA en vez del 🛸 que el diseño espera ahí.
         // DEBE llamarse ANTES de enviar mensajes para que el usuario vea su posición en tiempo real
         try {
             const heading = posicion?.coords?.heading ?? posicion?.heading ?? 0;
-            await actualizarMarcadorUsuario(latitude, longitude, heading, accuracy, 'aventura');
-            logger.debug(`${logPrefix} 🗺️ Marcador de usuario actualizado en mapa: [${latitude.toFixed(6)}, ${longitude.toFixed(6)}]`);
+            const modoMarcador = estadoMapa.modo === MODOS.CASA ? 'casa' : 'aventura';
+            await actualizarMarcadorUsuario(latitude, longitude, heading, accuracy, modoMarcador);
+            logger.debug(`${logPrefix} 🗺️ Marcador de usuario actualizado en mapa (${modoMarcador}): [${latitude.toFixed(6)}, ${longitude.toFixed(6)}]`);
         } catch (error_) {
             logger.warn(`${logPrefix} Error actualizando marcador de usuario:`, error_);
         }
@@ -3180,45 +3185,52 @@ async function procesarPosicionGPSParaAventura(posicion) {
             }
         }
 
-        // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
-        // CRÍTICO: Incluir toleranciaGPS para que hijo2 ajuste lógica de botones dinámicamente
-        try {
-            enviarMensaje({
-                destino: 'hijo2',
-                tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
-                origen: 'funciones-mapa',
-                datos: {
-                    distanciaAlDestino: Math.ceil(distancia),
-                    distanciaAlCamino: Math.ceil(distanciaAlCamino),
-                    idParada: siguienteParada.id,
-                    tipoParada: siguienteParada.tipo || 'parada',
-                    toleranciaGPS: toleranciaGPS,
-                    lat: latitude,
-                    lng: longitude,
-                    timestamp: Date.now()
-                }
-            });
-            logger.debug(`${logPrefix} 📤 Actualización enviada a hijo2: distancia=${Math.ceil(distancia)}m, tolerancia=${toleranciaGPS}m`);
-        } catch (error_) {
-            logger.warn(`${logPrefix} Error al enviar actualización de distancia a hijo2:`, error_);
-        }
-
-        // 📍 RESET ubicacionActiva: SIEMPRE a 50m fijos (no usar tolerancia dinámica)
-        // Razón: Usuario debe estar CERCA (50m) para desactivar ubicación y activar botones
-        if (distancia <= 50) {
+        // Todo lo de aquí abajo (aviso a hijo2 de distancia real, reset de ubicacionActiva)
+        // solo tiene sentido en AVENTURA — en CASA no hay "siguiente parada" real de la que
+        // estar cerca o lejos, es selección libre. Antes se enviaba igual en los dos modos;
+        // hijo2 lo ignoraba en la práctica (su propio guard de modo en
+        // verificarDistanciaYActualizarBotones), pero viajaba de todos modos sin motivo.
+        if (estadoMapa.modo === MODOS.AVENTURA) {
+            // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
+            // CRÍTICO: Incluir toleranciaGPS para que hijo2 ajuste lógica de botones dinámicamente
             try {
                 enviarMensaje({
                     destino: 'hijo2',
                     tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
                     origen: 'funciones-mapa',
                     datos: {
-                        ubicacionActiva: false, // Usuario a ≤50m, resetear ubicación
+                        distanciaAlDestino: Math.ceil(distancia),
+                        distanciaAlCamino: Math.ceil(distanciaAlCamino),
+                        idParada: siguienteParada.id,
+                        tipoParada: siguienteParada.tipo || 'parada',
+                        toleranciaGPS: toleranciaGPS,
+                        lat: latitude,
+                        lng: longitude,
                         timestamp: Date.now()
                     }
                 });
-                logger.info(`${logPrefix} 📍 Estado ubicacionActiva reseteado a FALSE (distancia ${Math.ceil(distancia)}m ≤ 50m)`);
+                logger.debug(`${logPrefix} 📤 Actualización enviada a hijo2: distancia=${Math.ceil(distancia)}m, tolerancia=${toleranciaGPS}m`);
             } catch (error_) {
-                logger.warn(`${logPrefix} Error enviando reset de ubicacionActiva:`, error_);
+                logger.warn(`${logPrefix} Error al enviar actualización de distancia a hijo2:`, error_);
+            }
+
+            // 📍 RESET ubicacionActiva: SIEMPRE a 50m fijos (no usar tolerancia dinámica)
+            // Razón: Usuario debe estar CERCA (50m) para desactivar ubicación y activar botones
+            if (distancia <= 50) {
+                try {
+                    enviarMensaje({
+                        destino: 'hijo2',
+                        tipo: TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO,
+                        origen: 'funciones-mapa',
+                        datos: {
+                            ubicacionActiva: false, // Usuario a ≤50m, resetear ubicación
+                            timestamp: Date.now()
+                        }
+                    });
+                    logger.info(`${logPrefix} 📍 Estado ubicacionActiva reseteado a FALSE (distancia ${Math.ceil(distancia)}m ≤ 50m)`);
+                } catch (error_) {
+                    logger.warn(`${logPrefix} Error enviando reset de ubicacionActiva:`, error_);
+                }
             }
         }
 

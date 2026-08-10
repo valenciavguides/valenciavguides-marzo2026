@@ -1489,7 +1489,15 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS } = datos;
         _aplicarDatosEstado(datos, logPrefix);
 
-        if (typeof distanciaAlDestino === 'number' && idParada) {
+        // Solo en AVENTURA: en CASA el usuario "ve" paradas libremente con hijo5 (reutiliza
+        // este mismo CAMBIO_PARADA/ACTUALIZAR_ESTADO), así que idParada aquí puede ser
+        // cualquier parada que esté simplemente mirando, no una que esté visitando de
+        // verdad. Sin este guard, si su posición GPS real caía dentro del radio de esa
+        // parada mirada, se enviaba LLEGADA_DETECTADA real al padre — que si su propio
+        // elementoActual coincidía (coincide, "ver" en CASA también lo actualiza), marcaba
+        // pending.llegada=true para una parada nunca visitada de verdad (reporte de uso
+        // real 2026-08-10, ver docs/GUIA-COMPLETA.md §24.0/§25.5).
+        if (estadoComponente.modo === 'aventura' && typeof distanciaAlDestino === 'number' && idParada) {
             if (tipoParada === 'tramo' && typeof toleranciaGPS === 'number') {
                 await _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix);
             } else if (tipoParada !== 'tramo') {
