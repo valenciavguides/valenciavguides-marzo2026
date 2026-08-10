@@ -2435,7 +2435,12 @@ async function completarCambioParada() {
 /** MapLibre Marker no tiene setOpacity — se ajusta el estilo CSS del elemento directamente. */
 function _setOpacidadMarcador(marcador, opacidad) {
     const el = marcador?.getElement?.();
-    if (el) el.style.opacity = String(opacidad);
+    if (el) {
+        el.style.opacity = String(opacidad);
+        logger.info(`[funciones-mapa] 🔎 DIAG opacidad-marcador: objetivo=${opacidad} leida-tras-escribir=${el.style.opacity} display=${getComputedStyle(el).display} visibility=${getComputedStyle(el).visibility} parentConectado=${el.isConnected}`);
+    } else {
+        logger.warn(`[funciones-mapa] 🔎 DIAG opacidad-marcador: SIN elemento (marcador=${!!marcador}, getElement=${typeof marcador?.getElement})`);
+    }
 }
 
 function _ocultarNavegacion() {
