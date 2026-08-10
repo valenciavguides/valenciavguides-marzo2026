@@ -5732,14 +5732,18 @@
             const incluirRutas = datos.incluirRutas === undefined ? (esTramoIndividual || !esCambioIndividual) : datos.incluirRutas;
             (globalThis.logger || console).info('[PADRE][COORDENADAS_PARADAS_RESPONSE] Dibujando ' + coordenadasTransformadas.length + ' puntos en mapa, incluirRutas=' + incluirRutas);
             try {
-                // dibujarMarcadores:false en cambio individual — completarCambioParada()
-                // (disparado aparte por el mismo NAVEGACION.CAMBIO_PARADA) ya crea su propio
-                // marcador para este mismo elemento, correctamente ocultado/revelado según
-                // distancia real. Sin este flag, dibujarRutaConMarcadores() creaba un
-                // duplicado (📌/🎯) bajo una clave que ningún mecanismo de ocultar conoce —
-                // se quedaba en el mapa para siempre, visible sin importar la distancia
-                // (reporte de uso real 2026-08-10/11, ver docs/GUIA-COMPLETA.md §4.5).
-                mapa.dibujarRutaConMarcadores(coordenadasTransformadas, { dibujarRuta: incluirRutas, dibujarMarcadores: !esCambioIndividual });
+                // dibujarMarcadores:false siempre, no solo cuando esCambioIndividual —
+                // este es el ÚNICO sitio real del proyecto que llama a
+                // dibujarRutaConMarcadores() (tanto desde NAVEGACION.CAMBIO_PARADA normal
+                // como desde MOSTRAR_UBICACION_POLYLINE al pulsar btn-ubicacion, que pide
+                // sus propias coordenadas sin pasar datos.contexto='cambio_parada_individual'
+                // — comprobado con un reporte de uso real 2026-08-10/11 donde el marcador
+                // duplicado seguía apareciendo pese al primer intento de arreglo, que sí
+                // dependía de esa comprobación). completarCambioParada() es SIEMPRE quien
+                // dibuja el marcador real del elemento activo, correctamente ocultado/
+                // revelado según distancia — no hay ningún flujo real que necesite que esta
+                // función concreta dibuje marcadores propios (ver docs/GUIA-COMPLETA.md §4.5).
+                mapa.dibujarRutaConMarcadores(coordenadasTransformadas, { dibujarRuta: incluirRutas, dibujarMarcadores: false });
             } catch (drawErr) {
                 (globalThis.logger || console).warn('[PADRE][COORDENADAS_PARADAS_RESPONSE] Error dibujando:', drawErr);
             }
