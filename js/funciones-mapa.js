@@ -2432,24 +2432,32 @@ async function completarCambioParada() {
     }
 }
 
-/** MapLibre Marker no tiene setOpacity — se ajusta el estilo CSS del elemento directamente. */
-function _setOpacidadMarcador(marcador, opacidad) {
-    const el = marcador?.getElement?.();
-    if (el) {
-        el.style.opacity = String(opacidad);
-        logger.info(`[funciones-mapa] 🔎 DIAG opacidad-marcador: objetivo=${opacidad} leida-tras-escribir=${el.style.opacity} display=${getComputedStyle(el).display} visibility=${getComputedStyle(el).visibility} parentConectado=${el.isConnected}`);
-    } else {
-        logger.warn(`[funciones-mapa] 🔎 DIAG opacidad-marcador: SIN elemento (marcador=${!!marcador}, getElement=${typeof marcador?.getElement})`);
-    }
+/**
+ * Oculta/revela un marcador quitándolo del mapa o volviéndolo a añadir, en vez de jugar
+ * con su opacidad CSS. Un marcador que no está en el mapa no puede renderizarse por
+ * ningún camino — ni una animación, ni reescalarMarcadoresEmoji() reescribiendo su
+ * innerHTML en el siguiente zoom, ni ningún otro código que toque el elemento pueden
+ * "revivir" algo que MapLibre ya no está dibujando. Reporte de uso real (2026-08-10):
+ * con opacity:0 el marcador seguía siendo visible en el dispositivo del usuario pese a
+ * que el estado interno (gpsVisualActivo) y el propio valor de opacity leído de vuelta
+ * eran correctos — la causa exacta con opacity nunca se llegó a confirmar, pero
+ * remove()/addTo() elimina la clase entera de fallo por construcción, no solo el
+ * síntoma observado.
+ */
+function _ocultarMarcador(marcador) {
+    try { marcador?.remove?.(); } catch (e) { logger.debug('[funciones-mapa]:', e?.message); } // NOSONAR
+}
+function _revelarMarcador(marcador) {
+    try { marcador?.addTo?.(_mapaInstance); } catch (e) { logger.debug('[funciones-mapa]:', e?.message); } // NOSONAR
 }
 
 function _ocultarNavegacion() {
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0 }); } catch(e) {} }); // NOSONAR
     ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
         const m = marcadoresParadas.get(k);
-        if (m) { try { _setOpacidadMarcador(m, 0); } catch(e) {} } // NOSONAR
+        if (m) _ocultarMarcador(m);
     });
-    if (marcadorParadaActual) { try { _setOpacidadMarcador(marcadorParadaActual, 0); } catch(e) {} } // NOSONAR
+    if (marcadorParadaActual) _ocultarMarcador(marcadorParadaActual);
     estadoMapa.gpsVisualActivo = false;
     sincronizarEstadoGPSConPadre();
 }
@@ -2458,9 +2466,9 @@ export function revelarNavegacion() {
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0.7 }); } catch(e) {} }); // NOSONAR
     ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
         const m = marcadoresParadas.get(k);
-        if (m) { try { _setOpacidadMarcador(m, 1); } catch(e) {} } // NOSONAR
+        if (m) _revelarMarcador(m);
     });
-    if (marcadorParadaActual) { try { _setOpacidadMarcador(marcadorParadaActual, 1); } catch(e) {} } // NOSONAR
+    if (marcadorParadaActual) _revelarMarcador(marcadorParadaActual);
     estadoMapa.gpsVisualActivo = true;
     sincronizarEstadoGPSConPadre();
 }

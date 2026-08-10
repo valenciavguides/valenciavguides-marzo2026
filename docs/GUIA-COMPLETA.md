@@ -1190,11 +1190,12 @@ Con 2 lecturas confirmadas:
 **Código de `_ocultarNavegacion()`** (`js/funciones-mapa.js`):
 
 ```javascript
-// Pone opacity:0 en todos los elementos de navegación activos
+// Las polylines siguen ocultándose por opacidad (paint property de la capa, sin DOM
+// de por medio). Los marcadores se OCULTAN QUITÁNDOLOS DEL MAPA — nunca por opacidad.
 rutasActivas.forEach(r => r.setStyle({ opacity: 0 }));
-_setOpacidadMarcador(marcadoresParadas.get('tramo-inicio-ruta'), 0);  // 📌
-_setOpacidadMarcador(marcadoresParadas.get('tramo-fin-ruta'), 0);     // 🎯
-_setOpacidadMarcador(marcadorParadaActual, 0);                        // 🎯 parada
+_ocultarMarcador(marcadoresParadas.get('tramo-inicio-ruta'));  // 📌 — marker.remove()
+_ocultarMarcador(marcadoresParadas.get('tramo-fin-ruta'));     // 🎯 — marker.remove()
+_ocultarMarcador(marcadorParadaActual);                        // 🎯 parada — marker.remove()
 estadoMapa.gpsVisualActivo = false;
 sincronizarEstadoGPSConPadre();  // refleja gpsVisualActivo en estadoPadre.gps.visualActivo
 ```
@@ -1204,14 +1205,14 @@ sincronizarEstadoGPSConPadre();  // refleja gpsVisualActivo en estadoPadre.gps.v
 ```javascript
 // Restaura la visibilidad de los elementos ocultos
 rutasActivas.forEach(r => r.setStyle({ opacity: 0.7 }));    // opacidad original del tramo
-_setOpacidadMarcador(marcadoresParadas.get('tramo-inicio-ruta'), 1);
-_setOpacidadMarcador(marcadoresParadas.get('tramo-fin-ruta'), 1);
-_setOpacidadMarcador(marcadorParadaActual, 1);
+_revelarMarcador(marcadoresParadas.get('tramo-inicio-ruta'));  // marker.addTo(_mapaInstance)
+_revelarMarcador(marcadoresParadas.get('tramo-fin-ruta'));
+_revelarMarcador(marcadorParadaActual);
 estadoMapa.gpsVisualActivo = true;
 sincronizarEstadoGPSConPadre();
 ```
 
-`_setOpacidadMarcador(marcador, opacidad)` es el wrapper propio del proyecto — los `Marker` de MapLibre GL JS no tienen `.setOpacity()` nativo (a diferencia de Leaflet), así que ajusta `marcador.getElement().style.opacity` directamente. Ambas funciones son idempotentes y baratas de llamar de más — la parte 2 ya evita llamarlas cuando no hace falta, pero si algo las invocara igualmente no habría efecto visible distinto.
+**`_ocultarMarcador`/`_revelarMarcador` quitan y vuelven a añadir el marcador al mapa (`marker.remove()`/`marker.addTo(_mapaInstance)`), no tocan opacidad.** La versión anterior ajustaba `marcador.getElement().style.opacity` directamente (los `Marker` de MapLibre GL JS no tienen `.setOpacity()` nativo, a diferencia de Leaflet) — funcionaba en los tests, pero un reporte de uso real (2026-08-10) mostró el marcador seguía visible en el dispositivo del usuario pese a que tanto `gpsVisualActivo` como el propio `style.opacity` leído de vuelta confirmaban `0`; la causa exacta con opacidad nunca llegó a aislarse del todo, y `reescalarMarcadoresEmoji()` (reescribe el `innerHTML` del marcador en cada `zoomend`) era la sospechosa más a mano. `remove()`/`addTo()` no depende de que ninguna otra ruta de código respete un estilo inline — un marcador fuera del mapa no puede renderizarse por ningún camino, así que elimina la clase entera de fallo en vez de solo el síntoma observado. Ambas funciones son idempotentes y baratas de llamar de más — la parte 2 ya evita llamarlas cuando no hace falta, pero si algo las invocara igualmente no habría efecto visible distinto.
 
 #### Flujos por combinación de elementos
 
@@ -4853,7 +4854,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-53a931296955'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-674c206a1f75'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7658,7 +7659,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-53a931296955'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-674c206a1f75'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8299,7 +8300,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-53a931296955';
+const CACHE_VERSION = 'v-674c206a1f75';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11309,7 +11310,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-53a931296955';
+const CACHE_VERSION = 'v-674c206a1f75';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
