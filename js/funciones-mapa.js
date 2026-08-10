@@ -2360,6 +2360,7 @@ async function completarCambioParada() {
             // el trazado se quedaba visible indefinidamente sin relación con dónde está de
             // verdad. La revelación real vive en procesarPosicionGPSParaAventura(), no aquí.
             const _esTramoParaRevelar = coordenadas?.tipo === 'tramo';
+            logger.info(`${logPrefix} 🔎 DIAG revelación: paradaId=${paradaId} coordenadas.tipo=${coordenadas?.tipo} _esTramoParaRevelar=${_esTramoParaRevelar} pendingRevealNavegacion=${globalThis.estadoPadre?.pendingRevealNavegacion} modo=${globalThis.estadoPadre?.modo?.actual} estadoMapa.paradaActual(antes)=${estadoMapa.paradaActual}`);
             if (globalThis.estadoPadre?.modo?.actual !== 'aventura') {
                 // En modo CASA (y cualquier otro no-aventura), la navegación es visible al instante
                 logger.info(`${logPrefix} Modo ${globalThis.estadoPadre?.modo?.actual || 'casa'} — navegación visible inmediatamente`);
@@ -3181,6 +3182,8 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 if (_lejosConfirmado && estadoMapa.gpsVisualActivo) {
                     _ocultarNavegacion();
                     logger.info(`${logPrefix} 🗺️ Trazado ocultado — usuario lejos de ${derivedParadaId}`);
+                } else {
+                    logger.info(`${logPrefix} 🔎 DIAG lejos-sin-ocultar: derivedParadaId=${derivedParadaId} estadoMapa.paradaActual=${estadoMapa.paradaActual} gpsVisualActivo=${estadoMapa.gpsVisualActivo} _lejosConfirmado=${_lejosConfirmado} ventana=${JSON.stringify(estadoMapa._trazadoVentana)}`);
                 }
             }
         }
