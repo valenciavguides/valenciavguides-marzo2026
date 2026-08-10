@@ -4386,6 +4386,12 @@
 
                 overlay.innerHTML = paso1HTML + paso2HTML;
                 document.body.appendChild(overlay);
+                // #brujula-modo/#selector-tipo-mapa/#btn-chat-soporte tienen z-index 1000000+,
+                // muy por encima del 99999 de este overlay — si ya estaban visibles (restauración
+                // de bfcache al reabrir la pestaña, ver comentario más arriba sobre
+                // _ocultarUIActivada()) se verían encima del diálogo sin esto. Misma regla CSS
+                // que ya usa la pantalla de "cargando" de ejecutarReanudacion() más abajo.
+                document.body.classList.add('loading');
 
                 let cuentaRegresiva = 30;
                 let timerInterval = null;
@@ -4514,6 +4520,10 @@
                     // el caso de mostrarDialogoVueltaRapida — _mostrarUIActivada() (Script 2)
                     // es quien las muestra y nunca se revierte por sí sola.
                     _ocultarUIActivada();
+                    // Quitar 'loading' (añadida al mostrar este diálogo) ANTES de revelar el
+                    // iframe de selección: la regla CSS "body.loading iframe" es !important y
+                    // taparía el iframe pese al visibility:visible de abajo si siguiera activa.
+                    document.body.classList.remove('loading');
                     // Mostrar iframe de selección y navegar a P1
                     const iframeSeleccion = document.getElementById('seleccion');
                     if (iframeSeleccion) {
@@ -4572,8 +4582,19 @@
                         </button>
                     </div>`;
                 document.body.appendChild(overlay);
+                // Misma protección que mostrarDialogoReanudacion(): #brujula-modo/
+                // #selector-tipo-mapa/#btn-chat-soporte (z-index 1000000+) están realmente
+                // visibles aquí — esta aventura SÍ está activa — y por encima del 99999 de
+                // este overlay se verían encima del diálogo sin esto.
+                document.body.classList.add('loading');
 
-                function _continuar() { overlay.remove(); resolve('continuar'); }
+                function _continuar() {
+                    overlay.remove();
+                    // Nada se ocultó de verdad (el audio solo se pausó) — quitar 'loading'
+                    // basta para que mapa/brujula/selector/chat vuelvan a verse tal cual.
+                    document.body.classList.remove('loading');
+                    resolve('continuar');
+                }
 
                 async function _elegirOtra() {
                     overlay.remove();
@@ -4599,6 +4620,10 @@
                     // se disparó) — hijo2/hijo3/chat/selector están visibles de verdad y hay que
                     // ocultarlos al volver a selección, ver _ocultarUIActivada().
                     _ocultarUIActivada();
+                    // Quitar 'loading' ANTES de revelar el iframe de selección: la regla CSS
+                    // "body.loading iframe" es !important y lo taparía pese al
+                    // visibility:visible de abajo si siguiera activa.
+                    document.body.classList.remove('loading');
                     const iframeSeleccion = document.getElementById('seleccion');
                     if (iframeSeleccion) {
                         iframeSeleccion.style.display = 'block';
