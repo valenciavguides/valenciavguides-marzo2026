@@ -3251,20 +3251,19 @@
                     // ── Menú de modo de cámara (#brujula-modo) ─────────────────────────
                     // Mismo patrón exacto que #selector-tipo-mapa justo encima: botón
                     // principal + desplegable que crece hacia arriba (column-reverse). 3
-                    // opciones, ninguna imagen todavía — glifos de texto como marcador de
-                    // posición, a sustituir por iconos propios más adelante (fuera del
-                    // alcance de esta implementación). "Norte fijo" y "Seguir mi rumbo" son
-                    // modos persistentes (el icono del botón principal refleja cuál está
-                    // activo, igual que el selector de mapa con la miniatura del estilo
-                    // activo); "Centrar mapa en mi ubicación" es una acción puntual — no
-                    // cambia qué modo se muestra como activo, solo actúa sobre la posición.
-                    // IDs con prefijo "brujula-modo-" a propósito (no solo el nombre del texto
-                    // visible): alguien que no conozca la PWA y busque "brujula-modo" en el
-                    // código encuentra el contenedor y las tres opciones juntos, sin ambigüedad.
+                    // opciones, cada una con su propio icono (fondo transparente — se ve el
+                    // verde #00BB77 del botón alrededor, mismo aspecto que el resto de
+                    // botones circulares de la app). "Norte fijo" y "Seguir mi rumbo" son
+                    // modos persistentes; "Centrar mapa en mi ubicación" es una acción
+                    // puntual — no cambia qué modo se muestra como activo, solo actúa sobre
+                    // la posición. IDs con prefijo "brujula-modo-" a propósito (no solo el
+                    // nombre del texto visible): alguien que no conozca la PWA y busque
+                    // "brujula-modo" en el código encuentra el contenedor y las tres
+                    // opciones juntos, sin ambigüedad.
                     const _MODOS_BRUJULA = [
-                        { id: 'brujula-modo-norte',       nombre: 'Norte fijo',                      glifo: 'N' },
-                        { id: 'brujula-modo-seguimiento', nombre: 'Seguir mi rumbo',                 glifo: '➤' },
-                        { id: 'brujula-modo-centrado',    nombre: 'Centrar mapa en mi ubicación',    glifo: '◎' },
+                        { id: 'brujula-modo-norte',       nombre: 'Norte fijo',                      imagen: 'brujula-norte.png' },
+                        { id: 'brujula-modo-seguimiento', nombre: 'Seguir mi rumbo',                 imagen: 'brujula-seguimiento.png' },
+                        { id: 'brujula-modo-centrado',    nombre: 'Centrar mapa en mi ubicación',    imagen: 'brujula-centrar.png' },
                     ];
 
                     let _brujulaModoActivo = 'brujula-modo-norte'; // arranca en norte fijo — coincide con _camaraSiguiendoRumbo=false por defecto en funciones-mapa.js
@@ -3279,8 +3278,11 @@
 
                     // Sin borde naranja propio en el principal: boton-brujula.png ya trae su
                     // propio anillo dorado integrado en la imagen.
-                    const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(46.92px,12.852vmin,68.34px);height:clamp(46.92px,12.852vmin,68.34px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background-color:#00BB77;background-size:cover;background-position:center;color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,6.9vmin,37px);flex-shrink:0;';
-                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background:#00BB77;color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5.3vmin,28px);flex-shrink:0;';
+                    const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(47.39px,12.981vmin,69.02px);height:clamp(47.39px,12.981vmin,69.02px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background-color:#00BB77;background-size:cover;background-position:center;color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,6.9vmin,37px);flex-shrink:0;';
+                    // background-size:contain (no cover): cada icono trae su propio margen
+                    // transparente alrededor de la forma — contain lo respeta sin recortar
+                    // ninguna punta, dejando ver el verde #00BB77 del botón en el margen.
+                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background-color:#00BB77;cursor:pointer;user-select:none;touch-action:manipulation;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;';
 
                     // Mismo bottom que #selector-tipo-mapa (misma altura), espejado al lado
                     // izquierdo: mismo margen desde el borde izquierdo que el selector tiene
@@ -3289,7 +3291,7 @@
                     const _brujulaModoDiv = document.createElement('div');
                     _brujulaModoDiv.id = 'brujula-modo';
                     _brujulaModoDiv.style.cssText = 'position:fixed;' +
-                        'left:calc(4px + (var(--franja-lateral) / 2) - (clamp(46.92px,12.852vmin,68.34px) / 2));' +
+                        'left:calc(4px + (var(--franja-lateral) / 2) - (clamp(47.39px,12.981vmin,69.02px) / 2));' +
                         'bottom:calc(var(--gap-inferior) + calc(6 * var(--franja-lateral) + 26px) + 6px - 7px + var(--franja-lateral) + 8px);' +
                         'z-index:1000025;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
@@ -3304,8 +3306,7 @@
 
                     _MODOS_BRUJULA.forEach(modo => {
                         const btn = document.createElement('div');
-                        btn.style.cssText = _BTN_STYLE_BRUJULA_MODO_DROPDOWN;
-                        btn.textContent = modo.glifo;
+                        btn.style.cssText = _BTN_STYLE_BRUJULA_MODO_DROPDOWN + `background-image:url('imagenes/imagenes-aplicación/${modo.imagen}');`;
                         btn.title = modo.nombre;
                         btn.addEventListener('click', (e) => { e.stopPropagation(); _elegirBrujulaModo(modo.id); _cerrarBrujulaModoDropdown(); });
                         _brujulaModoDropdownDiv.appendChild(btn);

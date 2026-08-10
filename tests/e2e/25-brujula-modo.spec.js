@@ -70,22 +70,44 @@ test.describe('BR — Menú de modo de cámara', () => {
     expect(info.display, 'Debe empezar oculto, sin estilo inline forzándolo a visible').toBe('none');
   });
 
-  test('BR-2. Misma altura que #selector-tipo-mapa, espejado al lado izquierdo; botón principal con el ancho esperado', async ({ page }) => {
+  test('BR-2. Misma altura que #selector-tipo-mapa, espejado (por fórmula) al lado izquierdo; botón principal con el ancho esperado', async ({ page }) => {
     await page.waitForSelector('#selector-tipo-mapa', { state: 'attached', timeout: 15000 });
     const info = await page.evaluate(() => {
       const brujulaModo = getComputedStyle(document.getElementById('brujula-modo'));
       const selector = getComputedStyle(document.getElementById('selector-tipo-mapa'));
-      const btnPrincipal = document.querySelector('#brujula-modo > div:first-child');
+      const btnPrincipalBrujula = document.querySelector('#brujula-modo > div:first-child');
+      const btnPrincipalSelector = document.querySelector('#selector-tipo-mapa > div:first-child');
+      // getComputedStyle().getPropertyValue('--franja-lateral') devuelve el texto crudo
+      // ("clamp(62px, 7.2vh, 80px)"), no un píxel resuelto — un custom property con
+      // calc()/clamp() no se resuelve así. Sonda temporal: un div con
+      // width:var(--franja-lateral) sí resuelve a píxeles reales en su computed style.
+      const _sonda = document.createElement('div');
+      _sonda.style.cssText = 'position:absolute;visibility:hidden;width:var(--franja-lateral);';
+      document.body.appendChild(_sonda);
+      const franjaLateral = parseFloat(getComputedStyle(_sonda).width);
+      _sonda.remove();
       return {
         bottomBrujulaModo: brujulaModo.bottom, bottomSelector: selector.bottom,
-        leftBrujulaModo: brujulaModo.left, rightSelector: selector.right,
-        anchoPrincipalPx: btnPrincipal ? parseFloat(getComputedStyle(btnPrincipal).width) : NaN,
+        leftBrujulaModo: parseFloat(brujulaModo.left), rightSelector: parseFloat(selector.right),
+        anchoPrincipalBrujula: btnPrincipalBrujula ? parseFloat(getComputedStyle(btnPrincipalBrujula).width) : NaN,
+        anchoPrincipalSelector: btnPrincipalSelector ? parseFloat(getComputedStyle(btnPrincipalSelector).width) : NaN,
+        franjaLateral,
       };
     });
     expect(info.bottomBrujulaModo, 'Misma altura (bottom) que el selector de mapa').toBe(info.bottomSelector);
-    expect(info.leftBrujulaModo, 'Mismo margen desde el borde izquierdo que el selector tiene desde el derecho (espejado)').toBe(info.rightSelector);
-    expect(info.anchoPrincipalPx, 'Ancho del botón principal en el rango esperado (clamp 36-52px)').toBeGreaterThanOrEqual(36);
-    expect(info.anchoPrincipalPx).toBeLessThanOrEqual(52);
+    // El botón principal de la brújula es un 1% más grande que el del selector (a
+    // propósito) — ya no son el mismo tamaño, así que "espejado" ya no significa
+    // "mismo left que right", sino que cada uno sigue su propia fórmula
+    // (4px + mitad de franja - mitad de SU PROPIO ancho), con el corner point de
+    // referencia compartido pero el resultado final ligeramente distinto.
+    expect(info.leftBrujulaModo, 'left de la brújula sigue su propia fórmula (4px + franja/2 - su propio ancho/2)')
+      .toBeCloseTo(4 + info.franjaLateral / 2 - info.anchoPrincipalBrujula / 2, 1);
+    expect(info.rightSelector, 'right del selector sigue su propia fórmula (4px + franja/2 - su propio ancho/2)')
+      .toBeCloseTo(4 + info.franjaLateral / 2 - info.anchoPrincipalSelector / 2, 1);
+    expect(info.anchoPrincipalBrujula, 'Botón principal de la brújula es un 1% más grande que el del selector')
+      .toBeGreaterThan(info.anchoPrincipalSelector);
+    expect(info.anchoPrincipalBrujula, 'Ancho del botón principal en el rango esperado (clamp ~36-52px, +1%)').toBeGreaterThanOrEqual(36);
+    expect(info.anchoPrincipalBrujula).toBeLessThanOrEqual(53);
   });
 
   test('BR-3. El botón principal despliega y pliega las 3 opciones', async ({ page }) => {
