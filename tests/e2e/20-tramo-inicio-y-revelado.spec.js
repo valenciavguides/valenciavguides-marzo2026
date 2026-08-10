@@ -359,4 +359,64 @@ test.describe('PL — La polyline manual oculta el trazado persistente al pulsar
     visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
     expect(visualActivo, 'Al dibujar la polyline manual, el trazado persistente debe ocultarse inmediatamente').not.toBe(true);
   });
+
+  // Bug de campo reportado por el usuario: tras pulsar el botón de ubicación estando
+  // lejos, el trazado persistente (📌🎯) reaparecía en el siguiente tick GPS aunque el
+  // usuario siguiera lejos del destino real — causa: una vez _elementoYaRevelado=true,
+  // "cerca" se mide contra CUALQUIER punto de todo el camino (distanciaAlCamino, para el
+  // caso de desvío por obras de RV2-1), y el botón de ubicación no impedía que ese chequeo
+  // volviera a revelar de inmediato. Reproducido con un test ad-hoc antes del fix (el
+  // usuario, lejos de .inicio Y de .fin, veía "Trazado revelado" en el primer tick tras
+  // pulsar el botón) y confirmado corregido aquí.
+  test('PL-2. Mientras la polyline manual está activa, la proximidad al camino NO revela el trazado persistente', async ({ page }) => {
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Revelar el tramo primero (2 lecturas en .inicio) — mismo setup que PL-1.
+    for (let i = 0; i < 2; i++) {
+      await page.evaluate(async (tramo) => {
+        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+          coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
+        });
+      }, TRAMO);
+      await page.waitForTimeout(300);
+    }
+
+    // El usuario se pierde de verdad: lejos de .inicio Y de .fin (no en el punto de
+    // llegada real, que limpiaría la polyline manual por sí solo vía "distancia≤50m").
+    const PUNTO_PERDIDO = { lat: 39.48200, lng: -0.37450 };
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(async (p) => {
+        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+          coords: { latitude: p.lat, longitude: p.lng, accuracy: 5 },
+        });
+      }, PUNTO_PERDIDO);
+      await page.waitForTimeout(300);
+    }
+
+    // Pulsar "ubicación" — oculta el trazado persistente de inmediato (igual que PL-1).
+    await page.evaluate(async (p) => {
+      const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
+      await dibujarPolylineNavegacion({
+        origen: { lat: p.lat, lng: p.lng },
+        destino: { lat: 39.47959, lng: -0.37583 }, // .fin del tramo
+        opciones: { color: '#3eff3f' },
+      });
+    }, PUNTO_PERDIDO);
+    let visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
+    expect(visualActivo, 'Precondición: justo tras pulsar ubicación, el trazado debe estar oculto').not.toBe(true);
+
+    // Varias lecturas GPS más, todavía perdido — el trazado persistente NO debe reaparecer
+    // en ninguna, mientras la línea manual sigue siendo la única señal en pantalla.
+    for (let i = 0; i < 6; i++) {
+      await page.evaluate(async (p) => {
+        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+          coords: { latitude: p.lat, longitude: p.lng, accuracy: 5 },
+        });
+      }, PUNTO_PERDIDO);
+      await page.waitForTimeout(250);
+      visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
+      expect(visualActivo, `Tick ${i + 1}: el trazado persistente no debe reaparecer mientras la polyline manual sigue activa y el usuario sigue lejos`).not.toBe(true);
+    }
+  });
 });

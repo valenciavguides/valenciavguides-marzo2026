@@ -13363,5 +13363,126 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         });
     })();
     </script>
+
+    <!-- DEBUG TEMPORAL — panel de logs en pantalla para depurar en móvil sin DevTools.
+         Se activa con ?vvlog=1 en la URL, O tocando 7 veces seguidas (en menos de 3s) en
+         cualquier parte de la pantalla — pensado para la PWA instalada, donde no hay barra
+         de direcciones que editar. Quitar este bloque entero cuando termine la investigación
+         del bug del botón de ubicación (2026-08-10). -->
+    <script type="module">
+    (async () => {
+        try {
+            let intentos = 0;
+            while (typeof globalThis.__vv_logger === 'undefined' && intentos < 200) {
+                await new Promise(r => setTimeout(r, 50));
+                intentos++;
+            }
+            if (typeof globalThis.__vv_logger === 'undefined') return;
+            const vvlogger = globalThis.__vv_logger;
+
+            function mostrarPanelLogs() {
+                if (document.getElementById('vvlog-panel')) return;
+                const panel = document.createElement('div');
+                panel.id = 'vvlog-panel';
+                panel.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:42vh;background:rgba(10,10,10,0.95);z-index:2000000;display:flex;flex-direction:column;font-family:monospace;';
+
+                const barra = document.createElement('div');
+                barra.style.cssText = 'display:flex;gap:8px;padding:6px;background:#111;align-items:center;flex-shrink:0;';
+
+                const btnCopiar = document.createElement('button');
+                btnCopiar.textContent = 'Copiar todo';
+                btnCopiar.style.cssText = 'padding:8px 12px;font-size:14px;';
+
+                const btnLimpiar = document.createElement('button');
+                btnLimpiar.textContent = 'Limpiar';
+                btnLimpiar.style.cssText = 'padding:8px 12px;font-size:14px;';
+
+                const contador = document.createElement('span');
+                contador.style.cssText = 'color:#0f0;font-size:12px;';
+
+                const btnCerrar = document.createElement('button');
+                btnCerrar.textContent = 'X';
+                btnCerrar.style.cssText = 'padding:8px 12px;font-size:14px;margin-left:auto;';
+
+                barra.appendChild(btnCopiar);
+                barra.appendChild(btnLimpiar);
+                barra.appendChild(contador);
+                barra.appendChild(btnCerrar);
+
+                const area = document.createElement('textarea');
+                area.readOnly = true;
+                area.style.cssText = 'flex:1;width:100%;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:6px;border:none;resize:none;white-space:pre;box-sizing:border-box;';
+
+                panel.appendChild(barra);
+                panel.appendChild(area);
+                document.body.appendChild(panel);
+
+                function formatear() {
+                    const buf = vvlogger.getBuffer();
+                    contador.textContent = buf.length + ' líneas';
+                    return buf.map(e => {
+                        const args = e.args ? ' ' + e.args.map(a => {
+                            try { return typeof a === 'string' ? a : JSON.stringify(a); } catch (_e) { return String(a); }
+                        }).join(' ') : '';
+                        return `[${e.timestamp}] [${e.nivel}] [${e.contexto}] ${e.mensaje}${args}`;
+                    }).join('\n');
+                }
+
+                let autoScroll = true;
+                area.addEventListener('scroll', () => {
+                    autoScroll = (area.scrollTop + area.clientHeight >= area.scrollHeight - 20);
+                });
+
+                function refrescar() {
+                    const estabaAlFinal = autoScroll;
+                    area.value = formatear();
+                    if (estabaAlFinal) area.scrollTop = area.scrollHeight;
+                }
+
+                btnCopiar.addEventListener('click', async () => {
+                    area.focus();
+                    area.setSelectionRange(0, area.value.length);
+                    try {
+                        await navigator.clipboard.writeText(area.value);
+                        btnCopiar.textContent = '¡Copiado!';
+                        setTimeout(() => { btnCopiar.textContent = 'Copiar todo'; }, 1500);
+                    } catch (_e) {
+                        btnCopiar.textContent = 'Selecciona y copia';
+                    }
+                });
+
+                btnLimpiar.addEventListener('click', () => {
+                    vvlogger.limpiarBuffer();
+                    refrescar();
+                });
+
+                btnCerrar.addEventListener('click', () => {
+                    panel.remove();
+                    clearInterval(intervalo);
+                });
+
+                refrescar();
+                const intervalo = setInterval(refrescar, 1000);
+            }
+
+            // Gesto: 7 toques en menos de 3s en cualquier parte de la pantalla — no colisiona
+            // con los gestos de 5 toques ya existentes (modo DEV en el logo, Factor 2 en el
+            // icono del temporizador), que están atados a un elemento concreto, no a toda la
+            // pantalla.
+            let _tapsPanelLogs = [];
+            document.addEventListener('click', () => {
+                const ahora = Date.now();
+                _tapsPanelLogs = _tapsPanelLogs.filter(t => ahora - t < 3000);
+                _tapsPanelLogs.push(ahora);
+                if (_tapsPanelLogs.length >= 7) {
+                    _tapsPanelLogs = [];
+                    mostrarPanelLogs();
+                }
+            });
+
+            if (new URLSearchParams(location.search).has('vvlog')) mostrarPanelLogs();
+        } catch (_e) { /* nunca romper la app por el panel de debug */ }
+    })();
+    </script>
 </body>
 </html>

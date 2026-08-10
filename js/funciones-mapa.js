@@ -3120,7 +3120,16 @@ async function procesarPosicionGPSParaAventura(posicion) {
 
             if (cerca) {
                 const _cercaConfirmado = estadoMapa._trazadoVentana.filter(v => v === true).length >= 2;
-                if (_cercaConfirmado && !estadoMapa.gpsVisualActivo) {
+                // !polylineNavegacion: mientras la línea manual del botón de ubicación esté
+                // activa, la revelación automática por proximidad se suprime — el usuario acaba
+                // de pedir explícitamente "estoy perdido, guíame con la línea simple", y basta con
+                // estar cerca de CUALQUIER punto del trazado completo (no solo del destino real,
+                // ver distanciaAlCamino más arriba) para que este bloque lo reactivara de golpe en
+                // el siguiente tick GPS — dos capas de trazado a la vez, exactamente lo que
+                // dibujarPolylineNavegacion() existe para evitar (ver su propio comentario). El
+                // trazado persistente vuelve a revelarse solo, sin este guard, en cuanto
+                // limpiarPolylineNavegacion() lo retira más abajo por llegada real (≤50m).
+                if (_cercaConfirmado && !estadoMapa.gpsVisualActivo && !polylineNavegacion) {
                     // Capturado ANTES de fijar _elementoYaRevelado=true: distingue la primera
                     // revelación de este elemento (una vez por activación) de una revelación
                     // posterior por recuperación de un desvío (no debe repetir ningún cartel de

@@ -1179,13 +1179,13 @@ El resultado ("cerca" `true`/`false`) se confirma por **ventana deslizante (2 de
 
 Con 2 lecturas confirmadas:
 
-- **cerca && trazado oculto** → `revelarNavegacion()`; marca `estadoMapa._elementoYaRevelado = true` (si es un tramo, pasa a fase 2 para siempre en esta activación). Si esta es la **primera** vez que se revela este elemento en la activación actual (`_esPrimeraRevelacion`, capturado justo antes de fijar el flag), dispara un cartel solo si el elemento es el punto de inicio de la aventura (`tipo === 'inicio'`, §4.7j) — cualquier otro elemento ya tuvo su cartel correspondiente al completarse el elemento *anterior* (§4.7g). Si **no** es la primera vez (el usuario se había alejado y ha vuelto), dispara el cartel de bienvenida de vuelta correspondiente (§4.7k tramo / §4.7l parada).
+- **cerca && trazado oculto** → `revelarNavegacion()`; marca `estadoMapa._elementoYaRevelado = true` (si es un tramo, pasa a fase 2 para siempre en esta activación). Si esta es la **primera** vez que se revela este elemento en la activación actual (`_esPrimeraRevelacion`, capturado justo antes de fijar el flag), dispara un cartel solo si el elemento es el punto de inicio de la aventura (`tipo === 'inicio'`, §4.7j) — cualquier otro elemento ya tuvo su cartel correspondiente al completarse el elemento *anterior* (§4.7g). Si **no** es la primera vez (el usuario se había alejado y ha vuelto), dispara el cartel de bienvenida de vuelta correspondiente (§4.7k tramo / §4.7l parada). **Excepción — polyline manual del botón de ubicación activa (`polylineNavegacion` no nulo):** este bloque no revela nada aunque "cerca" esté confirmado. Sin esta excepción, un tick con el usuario simplemente cerca de CUALQUIER punto del camino (no de su destino real — ver fase 2 arriba) revelaba de golpe el trazado persistente encima de la línea manual recién pedida, mostrando las dos capas a la vez justo lo que el botón de ubicación existe para evitar (ver más abajo). El trazado persistente vuelve a revelarse solo, sin necesidad de tocar este bloque, en cuanto la llegada real (`distancia≤50m`) limpia la polyline manual.
 - **lejos && trazado visible** → `_ocultarNavegacion()`.
 - En cualquier otro caso (ya está en el estado que le corresponde) no hace nada — evita llamadas repetidas en cada tick mientras el usuario se queda quieto cerca o lejos.
 
 **La polyline azul automática de "vuelve aquí" está ligada a esta visibilidad, no es un sistema aparte — pero no es un complemento estricto de una sola variable.** Ya existía antes (dibuja una línea punteada usuario→destino, vía `.inicio→waypoints→.fin` en tramos — nunca directa a `.fin`, precisamente para seguir forzando la ruta exacta) con su propio umbral fijo de 50m a la distancia real (a `.fin`/al punto de la parada), independiente del trazado persistente; durante buena parte de un tramo largo podían solaparse (ambas visibles a la vez, visualmente indistinguibles: mismo color `#3388ff`, misma opacidad 0.7). Ahora, en AVENTURA, se oculta cuando `distancia ≤50m` (llegada real — esta condición nunca depende de las 2 lecturas del bloque de arriba, así que llegar de verdad siempre limpia esta polyline al instante, sin excepción) **o** cuando `estadoMapa.gpsVisualActivo` es `true` (el trazado persistente ya está guiando, no hace falta una segunda guía) — y se muestra solo cuando ninguna de las dos se cumple. En CASA conserva su criterio original de 50m fijos, sin el término de `gpsVisualActivo` (no es fiable ahí porque la parte 2 no se ejecuta en CASA). De paso se corrigió un bug real encontrado en esta misma revisión: al retirarse automáticamente dejaba huérfano su propio marcador 🎯 (`marcadorDestinoNavegacion`) hasta el próximo redibujado — ahora usa `limpiarPolylineNavegacion()` (ya existía, escrita correctamente, pero sin ninguna llamada en todo el proyecto hasta ahora), que borra la polyline y el marcador juntos.
 
-**El botón de ubicación (`dibujarPolylineNavegacion`, disparado por `NAVEGACION.MOSTRAR_UBICACION_POLYLINE`) fuerza explícitamente `_ocultarNavegacion()` al dibujarse**, en AVENTURA — no depende solo de que la vigilancia por distancia ya lo haya ocultado a tiempo. Pulsar ese botón es la señal más directa de que el usuario está perdido/lejos, así que la garantía se aplica sin esperar al próximo ciclo GPS.
+**El botón de ubicación (`dibujarPolylineNavegacion`, disparado por `NAVEGACION.MOSTRAR_UBICACION_POLYLINE`) fuerza explícitamente `_ocultarNavegacion()` al dibujarse**, en AVENTURA — no depende solo de que la vigilancia por distancia ya lo haya ocultado a tiempo. Pulsar ese botón es la señal más directa de que el usuario está perdido/lejos, así que la garantía se aplica sin esperar al próximo ciclo GPS. Esa ocultación inicial no basta por sí sola: mientras la línea manual sigue en pantalla (`polylineNavegacion` no nulo), la reaparición automática del bloque de arriba queda además suprimida en cada tick — de lo contrario, el primer tick GPS posterior a pulsar el botón podía revelar de nuevo el trazado persistente (fase 2, proximidad a cualquier punto del camino) mientras el usuario seguía lejos de su destino real, mostrando ambas capas a la vez. Cubierto por `tests/e2e/20-tramo-inicio-y-revelado.spec.js` (PL-1 la ocultación inmediata, PL-2 la supresión mientras la línea manual sigue activa).
 
 **Código de `_ocultarNavegacion()`** (`js/funciones-mapa.js`):
 
@@ -4842,7 +4842,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-dc0eae8fba37'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-f04aaede3117'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7647,7 +7647,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-dc0eae8fba37'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-f04aaede3117'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8288,7 +8288,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-dc0eae8fba37';
+const CACHE_VERSION = 'v-f04aaede3117';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11228,7 +11228,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-dc0eae8fba37';
+const CACHE_VERSION = 'v-f04aaede3117';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
