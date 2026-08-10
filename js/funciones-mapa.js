@@ -2452,22 +2452,24 @@ function _revelarMarcador(marcador) {
 }
 
 function _ocultarNavegacion() {
+    const _tIni = marcadoresParadas.get('tramo-inicio-ruta');
+    const _tFin = marcadoresParadas.get('tramo-fin-ruta');
+    logger.info(`[funciones-mapa] 🔎 DIAG _ocultarNavegacion(): tramo-inicio-ruta=${!!_tIni} tramo-fin-ruta=${!!_tFin} marcadorParadaActual=${!!marcadorParadaActual} rutasActivas=${rutasActivas.length} marcadoresParadas.size=${marcadoresParadas.size}`);
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0 }); } catch(e) {} }); // NOSONAR
-    ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
-        const m = marcadoresParadas.get(k);
-        if (m) _ocultarMarcador(m);
-    });
+    if (_tIni) _ocultarMarcador(_tIni);
+    if (_tFin) _ocultarMarcador(_tFin);
     if (marcadorParadaActual) _ocultarMarcador(marcadorParadaActual);
     estadoMapa.gpsVisualActivo = false;
     sincronizarEstadoGPSConPadre();
 }
 
 export function revelarNavegacion() {
+    const _tIni = marcadoresParadas.get('tramo-inicio-ruta');
+    const _tFin = marcadoresParadas.get('tramo-fin-ruta');
+    logger.info(`[funciones-mapa] 🔎 DIAG revelarNavegacion(): tramo-inicio-ruta=${!!_tIni} tramo-fin-ruta=${!!_tFin} marcadorParadaActual=${!!marcadorParadaActual} rutasActivas=${rutasActivas.length} marcadoresParadas.size=${marcadoresParadas.size}`);
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0.7 }); } catch(e) {} }); // NOSONAR
-    ['tramo-inicio-ruta', 'tramo-fin-ruta'].forEach(k => {
-        const m = marcadoresParadas.get(k);
-        if (m) _revelarMarcador(m);
-    });
+    if (_tIni) _revelarMarcador(_tIni);
+    if (_tFin) _revelarMarcador(_tFin);
     if (marcadorParadaActual) _revelarMarcador(marcadorParadaActual);
     estadoMapa.gpsVisualActivo = true;
     sincronizarEstadoGPSConPadre();
