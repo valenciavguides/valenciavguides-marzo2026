@@ -962,7 +962,7 @@ Las polylines son las líneas que se dibujan en el mapa para mostrar rutas, tram
 
 - La **polyline de navegación** (`polylineNavegacion`) NO se dibuja nunca sola. La única forma de que aparezca es que el usuario pulse `btn-ubicacion` en hijo2, que envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` `{ ubicacionUsuario, proximoElemento, centrar: true, zoom: 16 }` al padre; el padre la dibuja (`dibujarPolylineNavegacion()`, siempre verde) desde la posición actual hasta la próxima parada, vía `.inicio→waypoints→.fin` en tramos (nunca en línea recta a `.fin`, para seguir forzando la ruta exacta).
 - Existió una variante automática (azul discontinua, se redibujaba sola en cada lectura GPS con `distancia >50m`) — se retiró a propósito: competía por el mismo aviso con el propio `btn-ubicacion` habilitándose solo al detectar "fuera de rango" (§31.4), y el criterio de umbral entre ambas señales no coincidía. Ahora "fuera de rango" es la única señal automática, y pulsar el botón es la única forma de pedir la guía visual.
-- Se **elimina** en `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) en dos casos independientes: llegar de verdad al destino (`distancia ≤50m`, garantía inmediata, no depende de las 2 lecturas de confirmación de llegada) o, en AVENTURA, cuando `estadoMapa.gpsVisualActivo` ya está `true` (el trazado persistente del elemento activo ya está guiando — ver §4.7d — así que no hace falta una segunda guía superpuesta). `limpiarPolylineNavegacion()` borra la polyline y su marcador 🎯 (`marcadorDestinoNavegacion`) juntos.
+- Se **elimina** en tres casos independientes: dos por lectura GPS, dentro de `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) — llegar de verdad al destino (`distancia ≤50m`, garantía inmediata, no depende de las 2 lecturas de confirmación de llegada) o, en AVENTURA, cuando `estadoMapa.gpsVisualActivo` ya está `true` (el trazado persistente del elemento activo ya está guiando — ver §4.7d — así que no hace falta una segunda guía superpuesta) —, y un tercero incondicional en `completarCambioParada()`, al cambiar de parada/tramo activo: si el usuario pidió la guía manual hacia un elemento y avanza al siguiente sin llegar nunca a estar cerca de aquel (ninguna de las dos condiciones por GPS se cumple jamás para ese destino concreto), esta tercera vía es la que evita que la línea y el 🎯 se queden dibujados de forma permanente. `limpiarPolylineNavegacion()` borra la polyline y su marcador 🎯 (`marcadorDestinoNavegacion`) juntos en los tres casos.
 - Todas las polylines se dibujan como capas `line` dentro del array `layers` del estilo de MapLibre — el orden de aparición en ese array decide qué polyline o capa de calle queda por encima de cuál (MapLibre no tiene una propiedad `zIndex` numérica independiente). Los marcadores (paradas, referencias, flecha del usuario) son elementos DOM aparte, superpuestos sobre el lienzo del mapa — quedan por encima de cualquier polyline sin necesidad de ordenarlos en ese array.
 
 ```mermaid
@@ -975,6 +975,8 @@ flowchart TD
     M --> N{"Cada lectura GPS:\n¿distancia ≤50m (llegada)\nO gpsVisualActivo=true?\n(ver §4.7d)"}
     N -- "sí" --> O["limpiarPolylineNavegacion()\npolyline + 🎯 eliminados juntos"]
     N -- "no" --> M
+    M --> P{"Cambia el elemento activo\n(completarCambioParada)\nantes de cumplirse N"}
+    P -- "sí" --> O
 
     J([Zoom del mapa cambia]) --> K["getPolylineEscalado recalcula\ngrosor × factor de escala\ntodos los trazos se actualizan"]
 ```
@@ -4860,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3461caec74d2'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-56efc870d060'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4891,7 +4893,7 @@ Al cargar el padre, por orden de ejecución:
 | Evento | Quién lo dispara | Quién lo escucha | Payload |
 |--------|-----------------|-----------------|---------|
 | `mensajeriaReady` | `mensajeria.js` (tras `inicializarMensajeria`) | `js/app.js` (`addEventListener once`) | — |
-| `vv:paradas-disponibles` | padre (en distribuirDatosAventura, L7162) | `js/funciones-mapa.js:3518` (`addEventListener passive`) — actualiza `arrayParadasLocal` y repinta marcadores si el mapa está en modo AVENTURA | `coords[]` (array directo — `event.detail` es el array de coordenadas, no un objeto `{ paradas, aventura }`) |
+| `vv:paradas-disponibles` | padre (en distribuirDatosAventura, L7162) | `js/funciones-mapa.js:3518` (`addEventListener passive`) — solo actualiza el caché local `arrayParadasLocal`. No llama a `mostrarTodasLasParadas()` (esa función existe y sigue exportada, pero nada la invoca hoy): dibuja un pin por defecto de MapLibre por cada parada de la aventura entera, sin relación con la distancia real ni con el elemento activo — llamarla desde aquí pintaría en el mapa, de forma permanente hasta el siguiente `dibujarRutaConMarcadores()`, todas las paradas pasadas y futuras, no solo la actual | `coords[]` (array directo — `event.detail` es el array de coordenadas, no un objeto `{ paradas, aventura }`) |
 | `vv-parada-cambiada` | padre (`_hdl_NAVEGACION_CAMBIO_PARADA`) | `js/funciones-mapa.js` | mensaje CAMBIO_PARADA enriquecido con `coordenadasYaResueltas` |
 
 ---
@@ -7665,7 +7667,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-3461caec74d2'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-56efc870d060'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8306,7 +8308,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-3461caec74d2';
+const CACHE_VERSION = 'v-56efc870d060';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11316,7 +11318,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-3461caec74d2';
+const CACHE_VERSION = 'v-56efc870d060';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

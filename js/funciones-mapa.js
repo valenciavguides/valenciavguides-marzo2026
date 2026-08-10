@@ -2235,6 +2235,13 @@ async function completarCambioParada() {
                 if (old) { try { old.remove(); } catch (_e) {} marcadoresParadas.delete(k); } // NOSONAR
             });
 
+            // Limpiar polyline/marcador manual del botón ubicación del elemento anterior —
+            // limpiarPolylineNavegacion() solo se dispara por cercanía real (≤50m) o
+            // gpsVisualActivo (procesarPosicionGPSParaAventura), así que si el usuario pidió
+            // ubicación para un elemento y avanza al siguiente sin llegar nunca a estar cerca,
+            // esa línea y el 🎯 quedaban huérfanos en el mapa indefinidamente.
+            limpiarPolylineNavegacion();
+
             // Reset de la visibilidad por distancia para el elemento nuevo — incondicional
             // (aplica igual a parada o tramo) para que no dependa de comparar IDs con formato
             // distinto entre esta función y procesarPosicionGPSParaAventura.
@@ -2895,13 +2902,18 @@ try {
 }
 
 // Bug H fix: actualizar arrayParadasLocal cuando el padre asigna globalThis.AVENTURA_PARADAS
-// tras seleccionar aventura (puede ocurrir después de que inicializarServicioMapa ya corrió)
+// tras seleccionar aventura (puede ocurrir después de que inicializarServicioMapa ya corrió).
+// Solo actualiza el caché local — NO llama a mostrarTodasLasParadas(): esa función dibuja un
+// pin permanente por CADA parada de la aventura entera (pasadas y futuras), sin ocultado por
+// distancia ni limpieza garantizada (limpiarRecursos() solo los borra retroactivamente en el
+// siguiente dibujarRutaConMarcadores()). Si este evento llega con el mapa ya en modo AVENTURA
+// (p.ej. recarga de la PWA a mitad de aventura, restaurando estado guardado), esos pines
+// quedarían visibles hasta el próximo cambio de parada — mismo tipo de fuga que diana/chincheta.
 if (globalThis.window !== undefined) {
     globalThis.addEventListener('vv:paradas-disponibles', (e) => {
         const paradas = e.detail;
         if (Array.isArray(paradas) && paradas.length > 0) {
             arrayParadasLocal = normalizarParadas(paradas);
-            if (_mapaInstance && estadoMapa.modo === MODOS.AVENTURA) mostrarTodasLasParadas(arrayParadasLocal);
         }
     }, { passive: true });
 }
