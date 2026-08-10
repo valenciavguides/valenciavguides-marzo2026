@@ -2454,7 +2454,7 @@ function _revelarMarcador(marcador) {
 function _ocultarNavegacion() {
     const _tIni = marcadoresParadas.get('tramo-inicio-ruta');
     const _tFin = marcadoresParadas.get('tramo-fin-ruta');
-    logger.info(`[funciones-mapa] 🔎 DIAG _ocultarNavegacion(): tramo-inicio-ruta=${!!_tIni} tramo-fin-ruta=${!!_tFin} marcadorParadaActual=${!!marcadorParadaActual} rutasActivas=${rutasActivas.length} marcadoresParadas.size=${marcadoresParadas.size}`);
+    logger.info(`[funciones-mapa] 🔎 DIAG _ocultarNavegacion(): tramo-inicio-ruta=${!!_tIni} tramo-fin-ruta=${!!_tFin} marcadorParadaActual=${!!marcadorParadaActual} rutasActivas=${rutasActivas.length} marcadoresParadas.keys=${JSON.stringify(Array.from(marcadoresParadas.keys()))}`);
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0 }); } catch(e) {} }); // NOSONAR
     if (_tIni) _ocultarMarcador(_tIni);
     if (_tFin) _ocultarMarcador(_tFin);
@@ -2466,7 +2466,7 @@ function _ocultarNavegacion() {
 export function revelarNavegacion() {
     const _tIni = marcadoresParadas.get('tramo-inicio-ruta');
     const _tFin = marcadoresParadas.get('tramo-fin-ruta');
-    logger.info(`[funciones-mapa] 🔎 DIAG revelarNavegacion(): tramo-inicio-ruta=${!!_tIni} tramo-fin-ruta=${!!_tFin} marcadorParadaActual=${!!marcadorParadaActual} rutasActivas=${rutasActivas.length} marcadoresParadas.size=${marcadoresParadas.size}`);
+    logger.info(`[funciones-mapa] 🔎 DIAG revelarNavegacion(): tramo-inicio-ruta=${!!_tIni} tramo-fin-ruta=${!!_tFin} marcadorParadaActual=${!!marcadorParadaActual} rutasActivas=${rutasActivas.length} marcadoresParadas.keys=${JSON.stringify(Array.from(marcadoresParadas.keys()))}`);
     rutasActivas.forEach(r => { try { r.setStyle({ opacity: 0.7 }); } catch(e) {} }); // NOSONAR
     if (_tIni) _revelarMarcador(_tIni);
     if (_tFin) _revelarMarcador(_tFin);
@@ -3198,7 +3198,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     _ocultarNavegacion();
                     logger.info(`${logPrefix} 🗺️ Trazado ocultado — usuario lejos de ${derivedParadaId}`);
                 } else {
-                    logger.info(`${logPrefix} 🔎 DIAG lejos-sin-ocultar: derivedParadaId=${derivedParadaId} estadoMapa.paradaActual=${estadoMapa.paradaActual} gpsVisualActivo=${estadoMapa.gpsVisualActivo} _lejosConfirmado=${_lejosConfirmado} ventana=${JSON.stringify(estadoMapa._trazadoVentana)}`);
+                    logger.info(`${logPrefix} 🔎 DIAG lejos-sin-ocultar: derivedParadaId=${derivedParadaId} estadoMapa.paradaActual=${estadoMapa.paradaActual} gpsVisualActivo=${estadoMapa.gpsVisualActivo} _lejosConfirmado=${_lejosConfirmado} ventana=${JSON.stringify(estadoMapa._trazadoVentana)} marcadoresParadas.keys=${JSON.stringify(Array.from(marcadoresParadas.keys()))} marcadorParadaActual=${!!marcadorParadaActual}`);
                 }
             }
         }
