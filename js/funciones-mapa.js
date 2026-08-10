@@ -3076,7 +3076,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // CASA explícitamente aquí para no empezar a ocultar cosas que en CASA deben quedarse
         // visibles siempre).
         //
-        // Parada: cerca = distancia ≤10m al punto — umbral de VISIBILIDAD del trazado,
+        // Parada: cerca = distancia ≤15m al punto — umbral de VISIBILIDAD del trazado,
         // igualado a propósito al radio de "llegada" (RADIO_PARADA, coordenadas-hijo2.html)
         // en una revisión posterior a cuando este bloque se escribió por primera vez con 20m.
         // Tramo, fase 1 (aún no ha llegado nunca a .inicio en esta activación): cerca =
@@ -3099,7 +3099,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     cerca = distanciaAlCamino <= toleranciaGPS;
                 }
             } else {
-                cerca = distancia <= 10;
+                cerca = distancia <= 15;
             }
 
             // Confirmación por ventana deslizante (2 de las últimas 4 lecturas de "cerca" en
@@ -3519,7 +3519,7 @@ export function dibujarPolylineNavegacion(opciones = {}) {
 let polylineNavegacion = null;
 let marcadorDestinoNavegacion = null;
 let marcadorUsuarioGPS = null; // Marcador del usuario con flecha azul
-let circuloActivacion = null;  // Círculo naranja 10m — zona de activación de parada
+let circuloActivacion = null;  // Círculo naranja 15m — zona de activación de parada
 
 /**
  * Actualiza o crea el marcador del usuario en el mapa
@@ -3635,13 +3635,13 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
         const iconoLog = modo === 'casa' ? '🛸' : '➤';
         logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, heading: ${Math.round(heading || 0)}°)`);
 
-        // Círculo naranja 10m — zona de activación de parada.
+        // Círculo naranja 15m — zona de activación de parada.
         // Brújula activada en el mismo branch para evitar condición duplicada.
         if (modo !== 'casa') {
             if (circuloActivacion) {
                 circuloActivacion.setLatLng({ lat, lng });
             } else {
-                circuloActivacion = _crearCirculoGeografico({ lat, lng }, 10, {
+                circuloActivacion = _crearCirculoGeografico({ lat, lng }, 15, {
                     color: '#ff8c00',
                     weight: 2,
                     fillColor: '#ff8c00',

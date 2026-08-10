@@ -18,7 +18,7 @@
  * Dos implementaciones independientes de esta misma ventana deslizante, con radios
  * DISTINTOS — no confundir uno con otro al leer los umbrales de este archivo:
  *   - coordenadas-hijo2.html — `_detectarLlegadaParada()`, radio real = `RADIO_PARADA`
- *     (10m hoy; era 20m antes de una corrección posterior a este mismo arreglo).
+ *     (15m hoy; era 10m, y 20m antes de eso — dos correcciones posteriores a este mismo arreglo).
  *   - js/funciones-mapa.js — sensor redundante, `verificarLlegadaADestino()` →
  *     `calcularToleranciaGPS()`, radio fijo de 50m para paradas — nunca tuvo relación
  *     con `RADIO_PARADA`, ni antes ni ahora.
@@ -27,7 +27,7 @@
  * `funcionesMapa.procesarPosicionGPSParaAventura()` directamente — es decir, RG-1/2/3
  * ejercitan el sensor de **funciones-mapa.js con su radio fijo de 50m**, no el detector
  * real de hijo2. Los estímulos de RG-3 están elegidos para acercarse a esos 50m, no a
- * los 10m de `RADIO_PARADA`.
+ * los 15m de `RADIO_PARADA`.
  *
  * De camino se encontró y arregló un segundo bug, independiente: el sensor "redundante"
  * de funciones-mapa.js (pensado como respaldo del de hijo2) se autoenviaba

@@ -217,18 +217,19 @@
 
         /* ── Glow animations (AVENTURA) ── */
         @keyframes glow-suave {
-            0%, 100% { box-shadow: inset 0 0 8px rgba(255,255,255,0.15); }
-            50%       { box-shadow: inset 0 0 18px rgba(255,255,255,0.38); }
+            0%, 100% { box-shadow: inset 0 0 8px rgba(0,240,255,0.25); }
+            50%       { box-shadow: inset 0 0 18px rgba(0,240,255,0.65); }
         }
         @keyframes glow-activo {
-            0%, 100% { box-shadow: inset 0 0 10px rgba(255,255,255,0.2); }
-            50%       { box-shadow: inset 0 0 26px rgba(255,255,255,0.55); }
+            0%, 100% { box-shadow: inset 0 0 10px rgba(0,240,255,0.35); }
+            50%       { box-shadow: inset 0 0 26px rgba(0,240,255,0.85); }
         }
         @keyframes spin-btn {
-            0%   { transform: rotate(0deg); }
+            0%   { transform: rotate(0deg);    box-shadow: inset 0 0 10px rgba(0,240,255,0.35); }
+            50%  { box-shadow: inset 0 0 30px rgba(0,240,255,0.9); }
             60%  { transform: rotate(1080deg); }
             85%  { transform: rotate(1350deg); }
-            100% { transform: rotate(1440deg); }
+            100% { transform: rotate(1440deg); box-shadow: inset 0 0 10px rgba(0,240,255,0.35); }
         }
 
         /* Glow suave: siempre activos cuando habilitados */
@@ -680,7 +681,7 @@ const estadoComponente = {
     ubicacionActiva: false, // Flag para saber si ubicación está activa
     paradaPendiente: false, // Flag para saber si la parada tiene pending en el padre
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
-    timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 10m parada / toleranciaGPS tramo)
+    timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 15m parada / toleranciaGPS tramo)
     tiempoFueraRequerido: 5 * 60 * 1000, // 5 minutos en milisegundos — solo aplica a la franja 11-50m
     fueraDeRangoActivo: false, // Flag: true cuando btn-ubicacion ya está habilitado por estar fuera de rango real
     ultimoHeading: 0, // Última dirección del usuario (0-360 grados)
@@ -790,7 +791,7 @@ function _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, i
 
 function _actualizarGpsEnModoAventura(btnAvanzar, esTramo, idParadaActual, distanciaAlDestino, toleranciaGPS) {
     const rangoMinimo = esTramo ? 5 : 0;
-    const rangoMaximo = esTramo ? toleranciaGPS : 10;
+    const rangoMaximo = esTramo ? toleranciaGPS : 15;
     const distanciaEnRango = distanciaAlDestino !== null &&
                            distanciaAlDestino >= rangoMinimo &&
                            distanciaAlDestino <= rangoMaximo;
@@ -974,7 +975,7 @@ function verificarDistanciaYActualizarBotones() {
     // y el override manual de avanzar siguen midiendo contra distanciaAlDestino, sin
     // cambios — llegar exige estar cerca del final, no solo del camino.
     const distanciaParaRango = (esTramo && typeof distanciaAlCamino === 'number') ? distanciaAlCamino : distanciaAlDestino;
-    const rangoMaximo = esTramo ? toleranciaGPS : 10; // mismo umbral real que usa btn-avanzar
+    const rangoMaximo = esTramo ? toleranciaGPS : 15; // mismo umbral real que usa btn-avanzar
     const dentroDeRango = distanciaParaRango <= rangoMaximo;
     const ahora = Date.now();
     const btn = elementosDOM.btnUbicacion;
@@ -1461,7 +1462,7 @@ async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada
 }
 
 async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
-    const RADIO_PARADA = 10;
+    const RADIO_PARADA = 15;
     const dentroDeRadio = distanciaAlDestino <= RADIO_PARADA;
     const confirmada = _registrarCandidataLlegada(dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {
