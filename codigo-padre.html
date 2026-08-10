@@ -1174,7 +1174,11 @@
             }
         }
 
-        /* Mensaje de rotación SOLO para teléfonos móviles (NO tablets ni PCs) */
+        /* Mensaje de rotación SOLO para teléfonos móviles (NO tablets ni PCs). Se dispara por
+           orientationchange/resize en cualquier momento, incluida una aventura activa — por
+           eso su z-index está en la misma franja que gps-signal-overlay/internet-overlay
+           (1000038-1000042), por encima de #brujula-modo/#selector-tipo-mapa/#btn-chat-soporte
+           (1000005-1000030): sin esto esos tres botones se veían por encima del aviso. */
         .rotation-message {
             display: none;
             position: fixed;
@@ -1183,7 +1187,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.95);
-            z-index: 9999;
+            z-index: 1000043;
             justify-content: center;
             align-items: center;
         }
@@ -8310,7 +8314,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 'background:rgba(0,0,0,0.75)',
                 'display:flex', 'flex-direction:column',
                 'align-items:center', 'justify-content:center',
-                'z-index:10000',
+                // Aparece con la aventura recién completada — #brujula-modo/#selector-tipo-mapa/
+                // #btn-chat-soporte (1000005-1000030) siguen visibles en ese momento y se veían
+                // por encima del modal con 10000. Misma franja que .rotation-message/
+                // #modal-tiempo-agotado (1000038-1000045).
+                'z-index:1000044',
                 'font-family:Verdana,sans-serif',
                 'padding:var(--gap-superior,0) 2vw env(safe-area-inset-bottom,0px) 2vw',
                 'box-sizing:border-box',
@@ -12571,7 +12579,11 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                         flex-direction: column;
                         align-items: center;
                         justify-content: center;
-                        z-index: 9999;
+                        /* Aparece con la aventura en marcha — #brujula-modo/#selector-tipo-mapa/
+                           #btn-chat-soporte (1000005-1000030) seguían visibles por encima del
+                           modal con 9999. Misma franja que .rotation-message/
+                           #modal-finalizacion-aventura (1000038-1000045). */
+                        z-index: 1000045;
                         font-family: Verdana, sans-serif;
                         padding-top: var(--gap-superior);
                         padding-bottom: env(safe-area-inset-bottom, 0px);

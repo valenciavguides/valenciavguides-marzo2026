@@ -4862,7 +4862,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-450325aad79a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c05037f6341b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7667,7 +7667,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-450325aad79a'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c05037f6341b'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7744,6 +7744,8 @@ El CSS asegura que el overlay nunca aparezca en portrait aunque JS falle:
 ```
 
 El overlay muestra la imagen `movil-vertical.png` (un móvil en vertical con flecha) sin texto, comprensible en cualquier idioma.
+
+`.rotation-message` tiene `z-index:1000043` — misma franja que `#modal-finalizacion-aventura` (1000044) y `#modal-tiempo-agotado` (1000045), por encima de `#brujula-modo`/`#selector-tipo-mapa`/`#btn-chat-soporte` (1000005-1000030). El giro del dispositivo puede ocurrir en cualquier momento, incluida una aventura activa con esos tres botones visibles, así que el aviso necesita estar por encima de ellos, no solo del mapa.
 
 **Excepción — mapa vintage:** cuando el usuario abre el mapa vintage en fullscreen, `En-busca-del-tesoro.html` envía `NAVEGACION.SUPRIMIR_ROTACION` con `value: true` al padre, que activa `globalThis.rotationSuppressed = true` y oculta el overlay. Al cerrar el mapa, `value: false` restaura el comportamiento normal. Esto permite al usuario girar el móvil horizontalmente para ver el mapa completo sin que el aviso lo bloquee.
 
@@ -8308,7 +8310,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-450325aad79a';
+const CACHE_VERSION = 'v-c05037f6341b';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9380,7 +9382,7 @@ progresarSiguienteElemento()  ← no hay siguiente elemento
 
 **El modal de finalización (`id="modal-finalizacion-aventura"`):**
 
-- Overlay fijo sobre toda la pantalla, fondo celeste `#c8e6f7`, diseño responsivo.
+- Overlay fijo sobre toda la pantalla, fondo celeste `#c8e6f7`, diseño responsivo, `z-index:1000044` — misma franja que `.rotation-message` (1000043) y `#modal-tiempo-agotado` (1000045), por encima de `#brujula-modo`/`#selector-tipo-mapa`/`#btn-chat-soporte` (1000005-1000030): la aventura acaba de completarse y esos tres siguen visibles en ese instante, así que el modal necesita estar por encima suyo, no solo por encima del mapa.
 - Título de felicitación + nombre de la aventura + dos botones.
 - Multilingüe: 12 idiomas (`es`, `en`, `fr`, `it`, `nl`, `de`, `ja`, `zh`, `pl`, `pt`, `ru`, `uk`) — textos en `TRADUCCIONES_FINALIZACION`, importado desde `js/traducciones-ui.js`.
 - Definido en `mostrarModalFinalizacion()` (`codigo-padre.html` L7371, Script 1) y expuesto como `globalThis.mostrarModalFinalizacion`.
@@ -9455,7 +9457,7 @@ hijo1: tiempoRestante <= 0 → tiempoAgotado() → enviarMensaje(AVENTURA.TIEMPO
 
 Los disparadores 2 y 3 llaman a la misma función directamente (`await globalThis.mostrarModalTiempoAgotado()`), sin pasar por ningún mensaje — el bloqueo de iframes en el paso 1 no tiene efecto visible ahí porque, en ambos casos, los iframes de aventura (hijo2/hijo3/hijo1-opciones) aún no están cargados o no son relevantes en ese punto del arranque; el modal se muestra igual.
 
-**El modal (`#modal-tiempo-agotado`):** visualmente es una variante del modal de fin de aventura normal (§25.11) — misma tarjeta celeste `#c8e6f7`, mismo `border-radius:1rem`, mismos dos botones verticales con `gap:0.75rem`. Las diferencias:
+**El modal (`#modal-tiempo-agotado`):** visualmente es una variante del modal de fin de aventura normal (§25.11) — misma tarjeta celeste `#c8e6f7`, mismo `border-radius:1rem`, mismos dos botones verticales con `gap:0.75rem`, `z-index:1000045` (misma franja que `#modal-finalizacion-aventura`, 1000044, y `.rotation-message`, 1000043 — por encima de `#brujula-modo`/`#selector-tipo-mapa`/`#btn-chat-soporte`, que siguen visibles con la aventura aún en marcha cuando este modal aparece). Las diferencias:
 
 | | Fin de aventura normal (`#modal-finalizacion-aventura`) | Tiempo agotado (`#modal-tiempo-agotado`) |
 |---|---|---|
@@ -11318,7 +11320,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-450325aad79a';
+const CACHE_VERSION = 'v-c05037f6341b';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
