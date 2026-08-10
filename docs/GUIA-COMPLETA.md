@@ -1589,29 +1589,31 @@ En ambos modos (CASA y AVENTURA) todos los botones habilitados tienen una animac
 
 **El giro (`.spinning`) también lleva color.** El `!important` de `.spinning` sustituye la animación de glow por completo mientras dura el giro (0.9s) — sin esto, `spin-btn` solo declararía `transform`, y el botón giraría sin brillo alguno durante esos 0.9s. `spin-btn`/`spin-btn-retos`/`spin-audio-main` declaran también `box-shadow` en el mismo cian que el glow ambiental, así que el giro conserva el brillo mientras rota.
 
-| Animación | Clase CSS / selector | Descripción visual | Intensidad |
+**El propio fondo del botón también pulsa, no solo el halo.** Cada keyframe declara además `background: linear-gradient(#00FF00, #00FF00)` en el valle y `linear-gradient(#00F0FF, #00F0FF)` en el pico — visible a través de las zonas semitransparentes de la foto del botón (el `<img>` no es opaco al 100%; por eso ya se distinguía el verde/rojo de habilitado/deshabilitado antes de este cambio, ver `.boton`). `linear-gradient` de un único color, nunca `background-color`, por el mismo motivo que el resto de la app: un `style.backgroundColor` puesto por bypass nunca puede tapar un `background-image`, que siempre pinta por encima.
+
+| Animación | Clase CSS / selector | Descripción visual | Intensidad del halo |
 |---|---|---|---|
-| **Glow suave** | `animation: glow-suave 3s ease-in-out infinite` | Halo exterior que pulsa lentamente alrededor del círculo. Para botones siempre disponibles | `0 0 8px 2px rgba(0,240,255,0.25)` → `18px 4px 0.65` |
-| **Glow activo** | `animation: glow-activo 3s ease-in-out infinite` | Halo exterior más intenso y notable. Para botones que requieren acción | `0 0 10px 2px rgba(0,240,255,0.35)` → `26px 5px 0.85` |
-| **Spin** | clase `.spinning` añadida por JS | Giro de 4 vueltas (1440°) con rebote elástico al final, con el mismo halo cian del glow-activo en su punto máximo. Dura 0.9 s | `@keyframes spin-btn/spin-ruleta` |
+| **Glow suave** | `animation: glow-suave 3s ease-in-out infinite` | Halo exterior que pulsa lentamente alrededor del círculo, fondo verde→cian→verde | `0 0 8px 2px rgba(0,240,255,0.25)` → `18px 4px 0.65` |
+| **Glow activo** | `animation: glow-activo 3s ease-in-out infinite` | Halo exterior más intenso y notable, mismo pulso de fondo | `0 0 10px 2px rgba(0,240,255,0.35)` → `26px 5px 0.85` |
+| **Spin** | clase `.spinning` añadida por JS | Giro de 4 vueltas (1440°) con rebote elástico al final, con el mismo halo cian y fondo cian del glow-activo en su punto máximo. Dura 0.9 s | `@keyframes spin-btn/spin-ruleta` |
 
 **Keyframes exactos** (definidos por archivo, mismo timing en todos):
 
 ```css
 @keyframes glow-suave {
-    0%, 100% { box-shadow: 0 0 8px 2px rgba(0,240,255,0.25); }
-    50%       { box-shadow: 0 0 18px 4px rgba(0,240,255,0.65); }
+    0%, 100% { box-shadow: 0 0 8px 2px rgba(0,240,255,0.25); background: linear-gradient(#00FF00, #00FF00); }
+    50%       { box-shadow: 0 0 18px 4px rgba(0,240,255,0.65); background: linear-gradient(#00F0FF, #00F0FF); }
 }
 @keyframes glow-activo {
-    0%, 100% { box-shadow: 0 0 10px 2px rgba(0,240,255,0.35); }
-    50%       { box-shadow: 0 0 26px 5px rgba(0,240,255,0.85); }
+    0%, 100% { box-shadow: 0 0 10px 2px rgba(0,240,255,0.35); background: linear-gradient(#00FF00, #00FF00); }
+    50%       { box-shadow: 0 0 26px 5px rgba(0,240,255,0.85); background: linear-gradient(#00F0FF, #00F0FF); }
 }
 @keyframes spin-btn {          /* hijo2, hijo3, padre */
-    0%   { transform: rotate(0deg);    box-shadow: 0 0 10px 2px rgba(0,240,255,0.35); }
-    50%  { box-shadow: 0 0 30px 6px rgba(0,240,255,0.9); }
+    0%   { transform: rotate(0deg);    box-shadow: 0 0 10px 2px rgba(0,240,255,0.35); background: linear-gradient(#00FF00, #00FF00); }
+    50%  { box-shadow: 0 0 30px 6px rgba(0,240,255,0.9); background: linear-gradient(#00F0FF, #00F0FF); }
     60%  { transform: rotate(1080deg); }
     85%  { transform: rotate(1350deg); }
-    100% { transform: rotate(1440deg); box-shadow: 0 0 10px 2px rgba(0,240,255,0.35); }
+    100% { transform: rotate(1440deg); box-shadow: 0 0 10px 2px rgba(0,240,255,0.35); background: linear-gradient(#00FF00, #00FF00); }
 }
 /* timing: 0.9s cubic-bezier(0.2, 0.8, 0.4, 1) forwards */
 ```
@@ -1619,6 +1621,8 @@ En ambos modos (CASA y AVENTURA) todos los botones habilitados tienen una animac
 > En `extrainfo-hijo1.html` el keyframe equivalente se llama `spin-ruleta` (existe desde antes) con idéntico timing y ángulos — sin color propio, ver "Pendiente" más abajo.
 
 **Pendiente, fuera de esta ronda:** `spin-ruleta` (`extrainfo-hijo1.html`, `#mas-opciones`) y el propio glow de hijo1 (`glow-suave-h1`) no se tocaron — el usuario pidió el cambio de color para los 6 botones de "acción" (retos, audio, avanzar, ubicación, imagen, dron), no para el menú de hijo1.
+
+**`btn-mapa-completo`/`btn-mapa-jpg` no llevan ninguna animación.** Compartían `glow-suave` con `btn-imagen` desde antes de esta ronda, pero el usuario nunca lo pidió para esos dos — quedaba oculto por el bug del `inset` (ver arriba) y solo se notó una vez el halo pasó a ser visible de verdad. Se retiraron de la regla, quedan con el fondo/borde estático de `.boton`.
 
 #### Qué botón tiene qué animación
 
@@ -1628,8 +1632,8 @@ En ambos modos (CASA y AVENTURA) todos los botones habilitados tienen una animac
 | `.icono-flotante` ×5 | hijo1 | Suave | ❌ | siempre |
 | `#audio-main-toggle-btn` | padre | **Activo** | ✅ | `:not(:disabled):not(.spinning)` |
 | `.audio-action-btn` ×4 | padre | Suave | ❌ | `:not(:disabled)` |
-| `btn-mapa-completo` | hijo2 | Suave | ❌ | `:not(.activo)` |
-| `btn-mapa-jpg` | hijo2 | Suave | ❌ | `:not(.activo)` |
+| `btn-mapa-completo` | hijo2 | ❌ ninguna | ❌ | — |
+| `btn-mapa-jpg` | hijo2 | ❌ ninguna | ❌ | — |
 | `btn-imagen` | hijo2 | Suave | ❌ | `:not(.activo)` |
 | `btn-video` | hijo2 | **Activo** | ✅ | `:not([disabled]):not(.activo)` |
 | `btn-avanzar` | hijo2 | **Activo** | ✅ | `:not([disabled]):not(.activo)` |
@@ -4854,7 +4858,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-674c206a1f75'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-37a6b04f25da'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7659,7 +7663,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-674c206a1f75'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-37a6b04f25da'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8300,7 +8304,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-674c206a1f75';
+const CACHE_VERSION = 'v-37a6b04f25da';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11310,7 +11314,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-674c206a1f75';
+const CACHE_VERSION = 'v-37a6b04f25da';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
