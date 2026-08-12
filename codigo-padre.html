@@ -9764,6 +9764,7 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
+        let _ultimoHayAudioNotificadoAHijo3 = null;
         function actualizarEstadoControlesAudioPadre() {
             const overlay = document.getElementById('audio-control-overlay');
             if (!overlay) return;
@@ -9785,6 +9786,20 @@ await _comprobarReanudacionAventura(logPrefix);
             // se animan. Con el botón central ya deshabilitado (bloquea nativamente el
             // click que reabriría el desplegable), un solo estado disabled basta.
             if (!hayAudio) overlay.classList.remove('open');
+
+            // El thumb de la barra de progreso de hijo3 sigue este mismo estado (además
+            // de habilitarse también en modo CASA, decisión que toma hijo3 localmente) —
+            // solo se notifica si cambia, para no saturar de mensajes idénticos en cada
+            // llamada (esta función se invoca desde varios sitios reactivos).
+            if (hayAudio !== _ultimoHayAudioNotificadoAHijo3) {
+                _ultimoHayAudioNotificadoAHijo3 = hayAudio;
+                enviarMensajePadre({
+                    tipo: hayAudio ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                    origen: getPadreId(),
+                    destino: 'hijo3',
+                    datos: { control: 'progressBar', razon: hayAudio ? 'audio_activo' : 'sin_audio_o_fuera_de_rango' }
+                }).catch(error => (globalThis.logger || console).debug('[PADRE] Error notificando progressBar a hijo3:', error?.message));
+            }
         }
         globalThis.actualizarEstadoControlesAudioPadre = actualizarEstadoControlesAudioPadre;
 

@@ -294,7 +294,7 @@
         #progressBar {
             height: 100%;
             width: 0%;
-            background: linear-gradient(#00FF00, #00FF00);
+            background: linear-gradient(#0BDA51, #0BDA51);
             border-radius: calc(var(--progress-thick) / 2);
             transition: width 0.1s linear;
             position: relative;
@@ -303,23 +303,37 @@
             box-sizing: border-box;
         }
 
+        /* Thumb: barra vertical (no círculo) — la mitad de gruesa que la altura,
+           extremos redondeados en píldora. clamp() la mantiene dentro del propio
+           contenedor en ambos lados (antes solo se protegía el izquierdo con
+           max(), así que al 100% de progreso el círculo se salía por la derecha). */
         .progress-container::after {
             content: '';
             position: absolute;
-            left: max(0px, calc(var(--bar-w, 0) * 100% - 1.25rem));
+            left: clamp(0px, calc(var(--bar-w, 0) * 100% - 0.625rem), calc(100% - 1.25rem));
             top: 50%;
             transform: translateY(-50%);
-            width: 2.5rem;
+            width: 1.25rem;
             height: 2.5rem;
-            border-radius: 50%;
-            background: #007bff;
+            border-radius: 0.625rem;
+            background: #00FF00;
             border: 0.1875rem solid white;
             box-shadow: 0 0 0 0.0625rem rgba(0,0,0,0.1);
             display: block;
             opacity: 1;
             pointer-events: none;
             z-index: 3;
-            transition: left 0.1s linear, opacity 0.2s ease;
+            transition: left 0.1s linear, opacity 0.2s ease, background 0.2s ease;
+        }
+
+        /* Deshabilitado: rojo estándar de la app (mismo que .boton.disabled) y sin
+           interacción — arrastrar/clicar/tocar no hace nada mientras esté activo. */
+        .progress-container.deshabilitado {
+            pointer-events: none;
+        }
+
+        .progress-container.deshabilitado::after {
+            background: #ED2100;
         }
 
         .time-display {
@@ -422,7 +436,7 @@
     <div class="audio-player-controls">
         <!-- Arriba: barra de progreso (ancho completo) -->
         <div class="progress-top-row">
-            <div class="progress-container" id="progressContainer" aria-label="Barra de progreso de audio">
+            <div class="progress-container deshabilitado" id="progressContainer" aria-label="Barra de progreso de audio">
                 <div id="progressBar"></div>
                 <div class="time-overlay">
                     <span id="currentTime">00:00</span>
@@ -1025,6 +1039,7 @@
     // Keyboard support: seek with left/right arrow while progress container is focused
     progressContainer.addEventListener('keydown', (e) => {
         try {
+            if (progressContainer.classList.contains('deshabilitado')) return; // pointer-events:none no bloquea el teclado
             const step = 5; // 5 seconds per keypress
             if (!audioPlayer || !Number.isFinite(audioPlayer.duration)) return;
             if (e.key === 'ArrowLeft') {
@@ -1138,6 +1153,20 @@
         if (modoSeguro) body.classList.add(`modo-${modoSeguro}`);
 
         logger.info(`[hijo3] Interfaz actualizada para modo: ${modoSeguro}`);
+        _actualizarSeekHabilitado();
+    }
+
+    // El thumb de la barra de progreso se puede arrastrar en 2 casos: el padre ha
+    // confirmado que #audio-main-toggle-btn está habilitado (hay audio real que
+    // controlar), o estamos en modo CASA (sin restricciones de GPS/rango real).
+    // _seekHabilitadoPorPadre llega vía CONTROL.HABILITAR/DESHABILITAR {control:'progressBar'}.
+    let _seekHabilitadoPorPadre = false;
+    function _actualizarSeekHabilitado() {
+        const progressContainer = document.getElementById('progressContainer');
+        if (!progressContainer) return;
+        const enCasa = document.body.classList.contains('modo-casa');
+        const habilitado = _seekHabilitadoPorPadre || enCasa;
+        progressContainer.classList.toggle('deshabilitado', !habilitado);
     }
 
     // Inicialización y controladores (adaptados a mensajería actual)
@@ -1509,6 +1538,12 @@
                     retosBtn.style.pointerEvents = 'auto';
                     retosBtn.classList.remove('activo');
                     logger.debug(`[hijo3] Botón de retos habilitado`);
+                } else if (control === 'progressBar') {
+                    // progressBar también se controla en ambos modos — _actualizarSeekHabilitado
+                    // decide el resultado real combinando esto con el modo (ver su comentario).
+                    _seekHabilitadoPorPadre = true;
+                    _actualizarSeekHabilitado();
+                    logger.debug(`[hijo3] Barra de progreso: habilitación del padre recibida`);
                 } else if (document.body.classList.contains('modo-aventura')) {
                     // Otros controles solo en modo aventura
                     logger.debug(`[hijo3] CONTROL.HABILITAR aplicado en modo aventura para: ${control}`);
@@ -1533,6 +1568,10 @@
                     retosBtn.style.opacity = '0.5';
                     retosBtn.style.pointerEvents = 'none';
                     logger.debug(`[hijo3] Botón de retos deshabilitado`);
+                } else if (control === 'progressBar') {
+                    _seekHabilitadoPorPadre = false;
+                    _actualizarSeekHabilitado();
+                    logger.debug(`[hijo3] Barra de progreso: deshabilitación del padre recibida`);
                 } else if (document.body.classList.contains('modo-aventura')) {
                     // Otros controles solo en modo aventura
                     logger.debug(`[hijo3] CONTROL.DESHABILITAR aplicado en modo aventura para: ${control}`);
