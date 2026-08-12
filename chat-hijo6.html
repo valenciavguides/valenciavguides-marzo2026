@@ -565,7 +565,7 @@
     modalContenidoEl.className = 'chat-modal-contenido sin-padding';
     modalContenidoEl.innerHTML = '';
     const iframeVideo = document.createElement('iframe');
-    iframeVideo.src = 'video-intro.html?lang=' + encodeURIComponent(idioma);
+    iframeVideo.src = 'video-intro.html?lang=' + encodeURIComponent(idioma) + '&replay=1';
     iframeVideo.title = 'Video intro';
     modalContenidoEl.appendChild(iframeVideo);
     modalOverlayEl.classList.add('visible');

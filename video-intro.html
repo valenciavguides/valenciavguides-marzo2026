@@ -599,6 +599,10 @@ const MV = 'imagenes/imagenes-mapas-vintage/';
 const IM = 'imagenes/imagenes-aventuras/';
 
 const _lang = new URLSearchParams(globalThis.location.search).get('lang') || 'es';
+// Reapertura desde chat-hijo6.html ("¿puedo ver el video-intro de nuevo?"): el usuario
+// ya lo ha visto antes, así que el botón de saltar se habilita desde el arranque en vez
+// de esperar a que termine la escena 4 — ver run().
+const _replay = new URLSearchParams(globalThis.location.search).get('replay') === '1';
 // JAIME_SCENES vive en js/traducciones-ui.js; se expone via globalThis
 // desde el <script type="module"> previo porque este es un <script> clasico.
 
@@ -1938,6 +1942,7 @@ globalThis._skipVideoIntro = function() {
 
 async function run(){
   MC.init(); await wait(350);
+  if (_replay) $('btn-skip').classList.add('on');
   // Precarga en segundo plano desde el arranque de la intro: sceneVid (P10) es
   // la escena 10 de 19, así que el vídeo tiene 9 escenas de animación (varios
   // segundos cada una) para descargarse antes de que el usuario llegue a verlo.
