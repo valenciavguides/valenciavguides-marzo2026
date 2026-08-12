@@ -1,8 +1,12 @@
 /**
  * 20-tramo-inicio-y-revelado.spec.js
  *
- * Cobertura de dos bugs del reporte de campo del usuario tras reanudar Aventura1 y
- * alejarse del punto real de un tramo activo (ver docs/GUIA-COMPLETA.md §4.6/§4.7d):
+ * Cobertura del diseño de visibilidad del trazado persistente en AVENTURA
+ * (docs/GUIA-COMPLETA.md §4.5): se revela siempre de inmediato al activarse el elemento
+ * (parada o tramo, cerca o lejos de verdad), nunca se oculta por distancia, y la única
+ * forma de ocultarlo es pulsar btn-ubicacion — que dibuja una línea manual hacia .inicio
+ * mientras el tramo no esté completo. Volver al radio de .inicio limpia esa línea y
+ * revela el trazado persistente de nuevo.
  *
  *   PC-1  La polyline verde manual (botón ubicación, NAVEGACION.MOSTRAR_UBICACION_POLYLINE)
  *         apuntaba siempre a Torres de Serranos (P-0) cuando el elemento activo era un
@@ -12,38 +16,19 @@
  *         `.inicio`/`.fin`/`.waypoints`, así que la función devolvía null y todo tramo
  *         caía siempre al fallback fijo `_obtenerCoordenadasFallbackP0()`. El fix añade
  *         el fallback `entrada.coordenadas || entrada.inicio`.
- *   RV-1  El trazado completo de un tramo (polyline + marcadores 📌🎯) se revelaba de
- *         golpe al avanzar hacia él (pendingRevealNavegacion) y se quedaba visible para
- *         siempre, sin relación con la posición real del usuario — si cerraba la app y la
- *         reanudaba lejos, veía todo el tramo dibujado sin haber llegado a su inicio. El
- *         fix hace que completarCambioParada() mantenga SIEMPRE oculto el trazado de un
- *         tramo en modo AVENTURA, y solo procesarPosicionGPSParaAventura() lo revela
- *         (revelarNavegacion()) al confirmar por GPS que el usuario está a ≤20m de
- *         `.inicio` — mismo radio que "llegada" en paradas.
- *
- * PC-1 mockea solicitarCoordenadasHijo (hijo2 no carga de forma fiable como iframe real
- * en este entorno — mismo límite documentado en 12-carga-por-parada.spec.js) para simular
- * la respuesta real de hijo2 a una petición de coordenadas de un tramo, y envuelve
- * maplibregl.Map para capturar las fuentes geojson añadidas al mapa y leer las
- * coordenadas reales de la polyline dibujada.
- *
- * RV-1 confirma la revelación con 2 lecturas seguidas (no 1) porque la visibilidad del
- * trazado no es un latch de una sola dirección — ver RV2 más abajo, que cubre el
- * comportamiento bidireccional (se puede ocultar otra vez tras haberse revelado). La
- * confirmación real es una ventana deslizante (2 de las últimas 4 lecturas, no
- * necesariamente seguidas) — RV-1 usa 2 seguidas como estímulo porque sigue confirmando,
- * pero RV-3 prueba el caso de ruido real (lecturas alternando dentro/fuera de radio) que
- * motivó el cambio, mismo ajuste que en la confirmación de llegada (§25.5 de la guía).
- *
- *   RV2-1  Una vez que un tramo ya se alcanzó a .inicio alguna vez, desviarse del CAMINO
- *          (no de .inicio — avanzar hacia .fin también aleja de .inicio, y eso no debe ocultar
- *          nada) oculta el trazado, y volver a acercarse en cualquier punto del camino lo
- *          revela de nuevo sin exigir pasar otra vez por .inicio. Cubre el caso de una calle
- *          cortada por obras que obliga a un desvío real del trazado prediseñado.
- *   PL-1   Pulsar el botón de ubicación (dibujarPolylineNavegacion) oculta el trazado
- *          persistente de inmediato, sin depender de que la próxima lectura GPS lo confirme
- *          por distancia — la única señal visible mientras se muestra la línea manual debe
- *          ser ella misma y su propia diana de destino.
+ *   RV-1  El trazado se revela sin depender de ninguna lectura GPS — completarCambioParada()
+ *         llama a revelarNavegacion() sin condición al activar el elemento.
+ *   RV-2  Una vez revelado, el trazado permanece visible aunque el usuario esté lejos de
+ *         .inicio y de todo el camino — ya no existe ningún ocultado automático por
+ *         distancia (el sistema de "cerca/lejos" con ventana deslizante se eliminó).
+ *   PL-1  Pulsar el botón de ubicación (dibujarPolylineNavegacion) oculta el trazado
+ *         persistente de inmediato — la única señal visible mientras se muestra la línea
+ *         manual debe ser ella misma y su propia diana de destino.
+ *   PL-2  Mientras la línea manual está activa, estar cerca de un punto del camino que NO
+ *         es .inicio (un waypoint, o el propio .fin) no limpia la línea ni revela el
+ *         trazado — solo .inicio cuenta, mientras el tramo no esté completo.
+ *   PL-3  Volver al radio de .inicio con la línea manual activa SÍ la limpia y revela el
+ *         trazado persistente de nuevo.
  */
 'use strict';
 
@@ -66,15 +51,6 @@ const TRAMO = {
   ],
   fin: { lat: 39.47959, lng: -0.37583 },
 };
-
-function puntoADistancia(lat, lng, metros, rumboDeg) {
-  const R = 6371000;
-  const brng = rumboDeg * Math.PI / 180;
-  const lat1 = lat * Math.PI / 180, lng1 = lng * Math.PI / 180;
-  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(metros / R) + Math.cos(lat1) * Math.sin(metros / R) * Math.cos(brng));
-  const lng2 = lng1 + Math.atan2(Math.sin(brng) * Math.sin(metros / R) * Math.cos(lat1), Math.cos(metros / R) - Math.sin(lat1) * Math.sin(lat2));
-  return { lat: lat2 * 180 / Math.PI, lng: lng2 * 180 / Math.PI };
-}
 
 async function esperarPipelineListo(page) {
   await page.waitForFunction(
@@ -189,7 +165,7 @@ test.describe('PC — Polyline manual a .inicio en tramos (no P-0)', () => {
   });
 });
 
-test.describe('RV — Revelación del trazado del tramo solo por proximidad real a .inicio', () => {
+test.describe('RV — El trazado se revela de inmediato y no se oculta nunca por distancia', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
@@ -197,125 +173,56 @@ test.describe('RV — Revelación del trazado del tramo solo por proximidad real
     await gotoAndWaitForFase1(page);
   });
 
-  test('RV-1. El trazado permanece oculto lejos de .inicio y se revela al llegar a ≤20m', async ({ page }) => {
+  test('RV-1. revelarNavegacion() deja el trazado visible sin depender de ninguna lectura GPS', async ({ page }) => {
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    // 1) Usuario en .fin del tramo — a ~120m de .inicio (ver 13-gps-tramo-fix.spec.js).
-    // gpsVisualActivo arranca en false por defecto (resetCompleto en prepararEscenarioTramo
-    // no lo toca) — este primer chequeo confirma que sigue así de lejos de .inicio.
-    await page.evaluate(async (tramo) => {
-      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
-      });
-    }, TRAMO);
-    await page.waitForTimeout(300);
+    // completarCambioParada() llama a esto sin condición al activar el elemento, antes de
+    // cualquier lectura GPS. Se invoca aquí directamente porque el arnés de test fija el
+    // elemento activo con limpiarPorEstado() (atajo interno), no con el pipeline completo de
+    // mensajería que dispara completarCambioParada() de verdad.
+    await page.evaluate(async () => {
+      const { revelarNavegacion } = await import('/js/funciones-mapa.js');
+      revelarNavegacion();
+    });
 
-    let visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'Lejos de .inicio (en .fin), el trazado del tramo debe seguir oculto').not.toBe(true);
-
-    // 2) Usuario exactamente en .inicio — debe revelarse. Dos lecturas seguidas (no una):
-    // la visibilidad del trazado ahora se confirma por 2 lecturas iguales seguidas (igual que
-    // la detección de llegada) para poder ser bidireccional sin parpadear — antes se revelaba
-    // con una sola lectura porque nunca se volvía a ocultar después.
-    for (let i = 0; i < 2; i++) {
-      await page.evaluate(async (tramo) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-          coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
-        });
-      }, TRAMO);
-      await page.waitForTimeout(300);
-    }
-
-    visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'A ≤20m de .inicio con 2 lecturas seguidas, el trazado del tramo debe revelarse').toBe(true);
-  });
-
-  test('RV-3. Ruido GPS oscilando alrededor del radio de 20m de .inicio SÍ revela el trazado (ventana deslizante)', async ({ page }) => {
-    // Mismo ajuste que la confirmación de llegada (ver 21-llegada-ruido-gps.spec.js y
-    // docs/GUIA-COMPLETA.md §25.5): 2 lecturas SEGUIDAS podía no cumplirse nunca con GPS
-    // real oscilando alrededor del umbral, dejando el trazado sin revelarse indefinidamente
-    // aunque el usuario ya estuviera en .inicio. Ahora confirma con 2 de las últimas 4.
-    const prep = await prepararEscenarioTramo(page);
-    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
-
-    // 12 lecturas alternando 15m/25m alrededor de .inicio — nunca 2 SEGUIDAS dentro de 20m.
-    for (let i = 0; i < 12; i++) {
-      const metros = i % 2 === 0 ? 15 : 25;
-      const pt = puntoADistancia(TRAMO.inicio.lat, TRAMO.inicio.lng, metros, 90);
-      await page.evaluate(async (c) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-          coords: { latitude: c.lat, longitude: c.lng, accuracy: 5 },
-        });
-      }, pt);
-      await page.waitForTimeout(180);
-    }
-
+    // waitForFunction (no una espera fija): sincronizarEstadoGPSConPadre() escribe en
+    // globalThis.estadoPadre.gps, y globalThis.estado.gps se actualiza a partir de ahí por
+    // su propio camino — sondear evita depender de un margen de tiempo arbitrario.
+    await page.waitForFunction(() => globalThis.estado?.gps?.visualActivo === true, null, { timeout: 5000 });
     const visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'Ruido oscilando alrededor de .inicio debe revelar el trazado con la ventana deslizante').toBe(true);
-  });
-});
-
-test.describe('RV2 — Trazado de tramo ya iniciado: se oculta al desviarse del camino y se revela sin volver a .inicio', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript({ path: MAPLIBRE_STUB });
-    await injectInitSpy(page);
-    await stubCDNResources(page);
-    await gotoAndWaitForFase1(page);
+    expect(visualActivo, 'El trazado debe quedar visible de inmediato, sin ninguna lectura GPS').toBe(true);
   });
 
-  // Cobertura del caso "calle cortada por obras" discutido con el usuario: una vez que el
-  // tramo ya se alcanzó a .inicio alguna vez, alejarse del CAMINO (no de .inicio) debe ocultar
-  // el trazado, y volver a acercarse al camino en CUALQUIER punto (no solo en .inicio) debe
-  // revelarlo de nuevo — si exigiera volver a .inicio, un desvío real por obras nunca podría
-  // recuperar el trazado hasta rehacer el tramo entero desde el principio.
-  test('RV2-1. Tras iniciar el tramo, desviarse del camino oculta el trazado y volver a él (sin pasar por .inicio) lo revela', async ({ page }) => {
+  test('RV-2. Una vez revelado, el trazado permanece visible aunque el usuario esté lejos de .inicio y de todo el camino', async ({ page }) => {
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    // 1) Confirmar el tramo en .inicio (2 lecturas) — mismo paso que RV-1.
-    for (let i = 0; i < 2; i++) {
-      await page.evaluate(async (tramo) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-          coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
-        });
-      }, TRAMO);
-      await page.waitForTimeout(300);
-    }
+    await page.evaluate(async () => {
+      const { revelarNavegacion } = await import('/js/funciones-mapa.js');
+      revelarNavegacion();
+    });
+    await page.waitForFunction(() => globalThis.estado?.gps?.visualActivo === true, null, { timeout: 5000 });
     let visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'Precondición: el tramo debe quedar revelado en .inicio antes de desviarse').toBe(true);
+    expect(visualActivo, 'Precondición: revelado').toBe(true);
 
-    // 2) Usuario se desvía del camino (p.ej. rodeando una obra) — lejos de inicio/waypoints/fin
-    // por igual, muy por encima de cualquier tolerancia dinámica razonable para este tramo.
-    const PUNTO_DESVIO = { lat: 39.48250, lng: -0.37150 };
-    for (let i = 0; i < 2; i++) {
+    // Lejos de .inicio, de todo el camino (waypoints/fin) y del tramo entero — ya no existe
+    // ningún ocultado automático por distancia, así que ningún tick debe apagarlo.
+    const PUNTO_LEJOS = { lat: 39.48250, lng: -0.37150 };
+    for (let i = 0; i < 6; i++) {
       await page.evaluate(async (punto) => {
         await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
           coords: { latitude: punto.lat, longitude: punto.lng, accuracy: 5 },
         });
-      }, PUNTO_DESVIO);
-      await page.waitForTimeout(300);
+      }, PUNTO_LEJOS);
+      await page.waitForTimeout(200);
+      visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
+      expect(visualActivo, `Tick ${i + 1}: el trazado no debe ocultarse nunca por distancia`).toBe(true);
     }
-    visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'Desviado del camino, el trazado debe ocultarse aunque ya se hubiera iniciado').not.toBe(true);
-
-    // 3) Usuario vuelve a acercarse al camino, pero en un waypoint intermedio — NUNCA vuelve a
-    // pasar por .inicio. Debe revelarse igualmente.
-    const waypointIntermedio = TRAMO.waypoints[2];
-    for (let i = 0; i < 2; i++) {
-      await page.evaluate(async (wp) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-          coords: { latitude: wp.lat, longitude: wp.lng, accuracy: 5 },
-        });
-      }, waypointIntermedio);
-      await page.waitForTimeout(300);
-    }
-    visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'De vuelta cerca de un waypoint intermedio (no .inicio), el trazado debe revelarse de nuevo').toBe(true);
   });
 });
 
-test.describe('PL — La polyline manual oculta el trazado persistente al pulsarse', () => {
+test.describe('PL — La polyline manual oculta el trazado; solo volver a .inicio la limpia y lo revela', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
@@ -324,29 +231,22 @@ test.describe('PL — La polyline manual oculta el trazado persistente al pulsar
   });
 
   // Garantía pedida por el usuario: "cuando sale la polyline verde, todos los emojis y
-  // polyline de parada/tramo deben desaparecer" — no debe depender solo de que las 2 lecturas
-  // de procesarPosicionGPSParaAventura ya lo hayan ocultado por distancia (pulsar el botón de
-  // ubicación es la señal más directa de que el usuario está perdido/lejos).
-  test('PL-1. dibujarPolylineNavegacion oculta el trazado ya revelado, sin esperar a la próxima lectura GPS', async ({ page }) => {
+  // polyline de parada/tramo deben desaparecer" — la única forma de ocultar el trazado
+  // persistente es pulsar btn-ubicacion.
+  test('PL-1. dibujarPolylineNavegacion oculta el trazado ya revelado de inmediato', async ({ page }) => {
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    // Revelar el tramo primero (2 lecturas en .inicio).
-    for (let i = 0; i < 2; i++) {
-      await page.evaluate(async (tramo) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-          coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
-        });
-      }, TRAMO);
-      await page.waitForTimeout(300);
-    }
+    await page.evaluate(async () => {
+      const { revelarNavegacion } = await import('/js/funciones-mapa.js');
+      revelarNavegacion();
+    });
+    await page.waitForFunction(() => globalThis.estado?.gps?.visualActivo === true, null, { timeout: 5000 });
     let visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'Precondición: el tramo debe quedar revelado antes de pulsar el botón de ubicación').toBe(true);
+    expect(visualActivo, 'Precondición: el trazado debe estar revelado antes de pulsar el botón de ubicación').toBe(true);
 
-    // Pulsar "ubicación" (dibujarPolylineNavegacion) — debe ocultar el trazado de inmediato,
-    // en la misma llamada, sin esperar a ninguna lectura GPS adicional. No está expuesta en
-    // globalThis.funcionesMapa (esa es una lista manual que no la incluye) — mismo patrón de
-    // import dinámico ya usado para esta función en 13-gps-tramo-fix.spec.js.
+    // No está expuesta en globalThis.funcionesMapa (esa es una lista manual que no la
+    // incluye) — mismo patrón de import dinámico ya usado en 13-gps-tramo-fix.spec.js.
     await page.evaluate(async (tramo) => {
       const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
       await dibujarPolylineNavegacion({
@@ -360,63 +260,72 @@ test.describe('PL — La polyline manual oculta el trazado persistente al pulsar
     expect(visualActivo, 'Al dibujar la polyline manual, el trazado persistente debe ocultarse inmediatamente').not.toBe(true);
   });
 
-  // Bug de campo reportado por el usuario: tras pulsar el botón de ubicación estando
-  // lejos, el trazado persistente (📌🎯) reaparecía en el siguiente tick GPS aunque el
-  // usuario siguiera lejos del destino real — causa: una vez _elementoYaRevelado=true,
-  // "cerca" se mide contra CUALQUIER punto de todo el camino (distanciaAlCamino, para el
-  // caso de desvío por obras de RV2-1), y el botón de ubicación no impedía que ese chequeo
-  // volviera a revelar de inmediato. Reproducido con un test ad-hoc antes del fix (el
-  // usuario, lejos de .inicio Y de .fin, veía "Trazado revelado" en el primer tick tras
-  // pulsar el botón) y confirmado corregido aquí.
-  test('PL-2. Mientras la polyline manual está activa, la proximidad al camino NO revela el trazado persistente', async ({ page }) => {
+  // Mientras el tramo no esté completo, el destino real de la línea manual es siempre
+  // .inicio (PC-1) — estar cerca de cualquier OTRO punto del camino no debe limpiarla ni
+  // revelar el trazado, aunque ese punto esté sobre la ruta prediseñada.
+  test('PL-2. Con la línea manual activa, estar cerca de un punto del camino que no es .inicio no la limpia ni revela el trazado', async ({ page }) => {
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    // Revelar el tramo primero (2 lecturas en .inicio) — mismo setup que PL-1.
-    for (let i = 0; i < 2; i++) {
-      await page.evaluate(async (tramo) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-          coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
-        });
-      }, TRAMO);
-      await page.waitForTimeout(300);
-    }
-
-    // El usuario se pierde de verdad: lejos de .inicio Y de .fin (no en el punto de
-    // llegada real, que limpiaría la polyline manual por sí solo vía "distancia≤50m").
-    const PUNTO_PERDIDO = { lat: 39.48200, lng: -0.37450 };
-    for (let i = 0; i < 3; i++) {
-      await page.evaluate(async (p) => {
-        await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-          coords: { latitude: p.lat, longitude: p.lng, accuracy: 5 },
-        });
-      }, PUNTO_PERDIDO);
-      await page.waitForTimeout(300);
-    }
-
-    // Pulsar "ubicación" — oculta el trazado persistente de inmediato (igual que PL-1).
-    await page.evaluate(async (p) => {
+    await page.evaluate(async () => {
+      const { revelarNavegacion } = await import('/js/funciones-mapa.js');
+      revelarNavegacion();
+    });
+    await page.evaluate(async (tramo) => {
       const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
       await dibujarPolylineNavegacion({
-        origen: { lat: p.lat, lng: p.lng },
-        destino: { lat: 39.47959, lng: -0.37583 }, // .fin del tramo
+        origen: { lat: 39.46000, lng: -0.39000 },
+        destino: tramo.inicio,
         opciones: { color: '#3eff3f' },
       });
-    }, PUNTO_PERDIDO);
+    }, TRAMO);
     let visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-    expect(visualActivo, 'Precondición: justo tras pulsar ubicación, el trazado debe estar oculto').not.toBe(true);
+    expect(visualActivo, 'Precondición: trazado oculto tras pulsar ubicación').not.toBe(true);
 
-    // Varias lecturas GPS más, todavía perdido — el trazado persistente NO debe reaparecer
-    // en ninguna, mientras la línea manual sigue siendo la única señal en pantalla.
-    for (let i = 0; i < 6; i++) {
+    // Un waypoint intermedio y el propio .fin — ninguno de los dos es .inicio, así que en
+    // ningún caso debe limpiarse la línea ni revelarse el trazado.
+    const puntosNoInicio = [TRAMO.waypoints[2], TRAMO.fin];
+    for (const punto of puntosNoInicio) {
       await page.evaluate(async (p) => {
         await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
           coords: { latitude: p.lat, longitude: p.lng, accuracy: 5 },
         });
-      }, PUNTO_PERDIDO);
-      await page.waitForTimeout(250);
+      }, punto);
+      await page.waitForTimeout(200);
       visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
-      expect(visualActivo, `Tick ${i + 1}: el trazado persistente no debe reaparecer mientras la polyline manual sigue activa y el usuario sigue lejos`).not.toBe(true);
+      expect(visualActivo, `Cerca de ${JSON.stringify(punto)} (no .inicio): el trazado no debe revelarse`).not.toBe(true);
     }
+  });
+
+  test('PL-3. Volver al radio de .inicio con la línea manual activa la limpia y revela el trazado', async ({ page }) => {
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.evaluate(async () => {
+      const { revelarNavegacion } = await import('/js/funciones-mapa.js');
+      revelarNavegacion();
+    });
+    await page.evaluate(async (tramo) => {
+      const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
+      await dibujarPolylineNavegacion({
+        origen: { lat: 39.46000, lng: -0.39000 },
+        destino: tramo.inicio,
+        opciones: { color: '#3eff3f' },
+      });
+    }, TRAMO);
+    let visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
+    expect(visualActivo, 'Precondición: trazado oculto tras pulsar ubicación').not.toBe(true);
+
+    // Usuario vuelve a estar cerca de .inicio — debe limpiar la línea manual y revelar el
+    // trazado persistente en el mismo tick.
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(200);
+
+    visualActivo = await page.evaluate(() => globalThis.estado?.gps?.visualActivo);
+    expect(visualActivo, 'De vuelta en .inicio, la línea manual debe limpiarse y el trazado revelarse').toBe(true);
   });
 });

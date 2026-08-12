@@ -691,7 +691,6 @@ const estadoComponente = {
     paradaPendiente: false, // Flag para saber si la parada tiene pending en el padre
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
     timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 15m parada / toleranciaGPS tramo)
-    tiempoFueraRequerido: 5 * 60 * 1000, // 5 minutos en milisegundos — solo aplica a la franja 11-50m
     fueraDeRangoActivo: false, // Flag: true cuando btn-ubicacion ya está habilitado por estar fuera de rango real
     ultimoHeading: 0, // Última dirección del usuario (0-360 grados)
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
@@ -959,8 +958,9 @@ function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRa
  * (10m parada / toleranciaGPS tramo — el mismo umbral que btn-avanzar) y actualiza
  * el botón de ubicación. Fuera de ese rango, informa al padre de la distancia real
  * en cada posición (GPS.RESTRINGIDO) para que decida qué pantalla de aviso mostrar
- * (§30 de la guía) — la franja 11-50m además espera 5 minutos antes de habilitar
- * ubicación; las franjas 51-2000m y >2000m lo hacen al instante.
+ * (§30 de la guía) — las tres franjas (11-50m, 51-2000m, >2000m) habilitan ubicación
+ * al instante: es el usuario quien decide cuándo pulsarla, no un umbral de tiempo
+ * calculado por la app.
  * Solo se ejecuta en modo aventura.
  */
 function verificarDistanciaYActualizarBotones() {
@@ -1019,20 +1019,8 @@ function verificarDistanciaYActualizarBotones() {
     else if (distanciaParaRango > 50) franja = 'lejos';
     else franja = 'fuera';
 
-    if (franja !== 'fuera') {
-        // 51-2000m y >2000m: habilitación inmediata, sin cuenta atrás
-        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango);
-        return;
-    }
-
-    const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
-    if (tiempoFuera >= estadoComponente.tiempoFueraRequerido) {
-        _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango);
-    } else {
-        desactivarBoton(btn);
-        const segundosRestantes = Math.ceil(Math.max(0, estadoComponente.tiempoFueraRequerido - tiempoFuera) / 1000);
-        logger.debug(`${logPrefix} ⏳ ${idParadaActual}: a ${distanciaAlDestino}m, esperando: ${segundosRestantes}s restantes`);
-    }
+    // Las tres franjas habilitan ubicación al instante, sin cuenta atrás — ver JSDoc arriba.
+    _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango);
 }
 
 // Inicializar estado de botones al cargar

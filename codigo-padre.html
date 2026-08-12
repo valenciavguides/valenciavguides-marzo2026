@@ -505,12 +505,6 @@
 
         .gps-overlay-distancia .gps-overlay-retry-btn:active { transform: scale(0.96); }
 
-        /* Cuenta atrás más pequeña en foto-fuera-rango (11-50m) — flota sobre la parte
-           baja de la imagen, justo encima de la banda inferior donde vive el botón. */
-        #foto-fuera-rango-overlay .vv-overlay-countdown {
-            font-size: clamp(1.25rem, 5vmin, 2rem);
-        }
-
         /* Contador descendente dentro de los overlays GPS e internet — bottom deja libre
            el alto de .gps-banda-inferior (5.5rem + 0.5rem de margen) para no solaparse. */
         .vv-overlay-countdown {
@@ -4060,9 +4054,7 @@
             pendingCompleciones: {},
             // true cuando una parada de aventura está completada (audio+reto) y espera
             // que el usuario pulse el botón GPS verde para avanzar al siguiente elemento.
-            paradaListaParaAvanzar: false,
-            // true cuando btn-avanzar pulsado desde parada: el siguiente CAMBIO_PARADA revelará navegación inmediatamente
-            pendingRevealNavegacion: false
+            paradaListaParaAvanzar: false
         };
 
         // Sincronizar estadoPadre con state-manager (ya inicializado en Script 1)
@@ -6009,38 +6001,9 @@
 
         function _ocultarTodasPantallasDistanciaGPS() {
             _ocultarOtrasPantallasDistanciaGPS(null);
-            _detenerCountdownFueraRango();
             _limpiarSnoozeOverlaysDistancia();
         }
         globalThis._ocultarTodasPantallasDistanciaGPS = _ocultarTodasPantallasDistanciaGPS;
-
-        function _detenerCountdownFueraRango() {
-            if (globalThis.__VV_FUERA_RANGO_TIMER) { clearInterval(globalThis.__VV_FUERA_RANGO_TIMER); globalThis.__VV_FUERA_RANGO_TIMER = null; }
-            globalThis.__VV_FUERA_RANGO_TS = null;
-        }
-
-        // Sincroniza la cuenta atrás de foto-fuera-rango con el instante real en que hijo2
-        // detectó la salida de rango — hijo2 no empuja el segundo a segundo, el padre corre
-        // su propio intervalo local a partir de ese único timestamp.
-        function _sincronizarCountdownFueraRango(timestampSalioDeRango) {
-            try {
-                const countdownEl = document.getElementById('foto-fuera-rango-countdown-timer');
-                if (!countdownEl || typeof timestampSalioDeRango !== 'number') return;
-                if (globalThis.__VV_FUERA_RANGO_TS === timestampSalioDeRango && globalThis.__VV_FUERA_RANGO_TIMER) return;
-                _detenerCountdownFueraRango();
-                globalThis.__VV_FUERA_RANGO_TS = timestampSalioDeRango;
-                const TIEMPO_REQUERIDO = 5 * 60 * 1000;
-                const actualizar = () => {
-                    const restante = Math.max(0, TIEMPO_REQUERIDO - (Date.now() - timestampSalioDeRango));
-                    const mins = Math.floor(restante / 60000);
-                    const secs = Math.floor((restante % 60000) / 1000);
-                    countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-                    if (restante <= 0) _detenerCountdownFueraRango();
-                };
-                actualizar();
-                globalThis.__VV_FUERA_RANGO_TIMER = setInterval(actualizar, 1000);
-            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-        }
 
         // Reintento compartido por las 3 pantallas: recalcula posición y deja que el pipeline
         // normal (hijo2 recibe la posición actualizada, recalcula distancia y reenvía
@@ -6160,10 +6123,6 @@
             distanciaRow.id = 'foto-fuera-rango-distancia-row';
             distanciaRow.innerHTML = '<span class="gps-distancia-actual">0</span><span class="gps-distancia-unidad">m</span><span class="gps-distancia-separador">/</span><span class="gps-distancia-max">20</span><span class="gps-distancia-unidad">m</span>';
 
-            const countdown = document.createElement('div');
-            countdown.className = 'vv-overlay-countdown';
-            countdown.id = 'foto-fuera-rango-countdown-timer';
-
             const btn = document.createElement('button');
             btn.id = 'foto-fuera-rango-action';
             btn.className = 'gps-overlay-retry-btn';
@@ -6187,14 +6146,13 @@
 
             inner.appendChild(img);
             inner.appendChild(distanciaRow);
-            inner.appendChild(countdown);
             inner.appendChild(bandaInferior);
             inner.appendChild(closeBtn);
             el.appendChild(inner);
             document.body.appendChild(el);
         }
 
-        function showFotoFueraRangoOverlay(distancia, rangoMaximo, timestampSalioDeRango) {
+        function showFotoFueraRangoOverlay(distancia, rangoMaximo) {
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
                 if (modoActual !== MODOS.AVENTURA) { hideFotoFueraRangoOverlay(); return; }
@@ -6205,7 +6163,6 @@
                 _actualizarFilaDistanciaOverlay('foto-fuera-rango-distancia-row', distancia, rangoMaximo);
                 _ocultarOtrasPantallasDistanciaGPS('foto-fuera-rango-overlay');
                 el.classList.add('show');
-                _sincronizarCountdownFueraRango(timestampSalioDeRango);
             } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][FUERA_RANGO] Error mostrando overlay:', e && e.message); }
         }
         globalThis.showFotoFueraRangoOverlay = showFotoFueraRangoOverlay;
@@ -6214,7 +6171,6 @@
             try {
                 const el = document.getElementById('foto-fuera-rango-overlay');
                 if (el) el.classList.remove('show');
-                _detenerCountdownFueraRango();
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
         globalThis.hideFotoFueraRangoOverlay = hideFotoFueraRangoOverlay;
@@ -10481,24 +10437,19 @@ await _comprobarReanudacionAventura(logPrefix);
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 try { typeof globalThis.incrementarContador === 'function' && globalThis.incrementarContador('gps.solicitudes_recibidas'); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
-                // Si la parada está completada y esperando que el usuario confirme avance, progresar primero
+                // Si la parada está completada y esperando que el usuario confirme avance, progresar
+                // primero — completarCambioParada() revela siempre de inmediato al activar el
+                // siguiente elemento (§4.5), así que no hace falta ningún flag ni llamada aparte
+                // para revelar nada aquí: ni para el elemento que se progresa, ni para uno ya
+                // activo (que, si su trazado está oculto, es porque el usuario pulsó btn-ubicacion
+                // — revelarlo a ciegas aquí volvería a mostrar las dos capas de guía a la vez).
                 if (estado.paradaListaParaAvanzar) {
                     estado.paradaListaParaAvanzar = false;
-                    estado.pendingRevealNavegacion = true; // completarCambioParada revelará navegación del siguiente elemento
                     (globalThis.logger || console).info(`${logPrefix} Parada completada confirmada — progresando al siguiente elemento antes de activar GPS`);
                     try {
                         await progresarSiguienteElemento();
                     } catch (progErr) {
                         (globalThis.logger || console).error(`${logPrefix} Error progresando al siguiente elemento:`, progErr);
-                    }
-                } else {
-                    // Tramo activo: revelar la navegación que ya está cargada pero oculta
-                    try {
-                        const { revelarNavegacion } = await import('./js/funciones-mapa.js');
-                        revelarNavegacion();
-                        (globalThis.logger || console).info(`${logPrefix} Navegación revelada en tramo activo`);
-                    } catch (revErr) {
-                        (globalThis.logger || console).warn(`${logPrefix} Error revelando navegación:`, revErr);
                     }
                 }
 
@@ -10531,14 +10482,14 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // Reparte la distancia real recibida de hijo2 entre las 3 pantallas de aviso (§30):
         // >2000m → fotogpserror (reutilizada, mismo aviso que accuracy>50m/5km); 51-2000m →
-        // foto-lejos; 11-50m → foto-fuera-rango (con cuenta atrás). hijo2 solo envía este
-        // mensaje cuando ya sabe que está por encima de su propio rango real (10m parada /
-        // toleranciaGPS tramo), así que aquí no hace falta volver a comprobarlo.
+        // foto-lejos; 11-50m → foto-fuera-rango. hijo2 solo envía este mensaje cuando ya
+        // sabe que está por encima de su propio rango real (10m parada / toleranciaGPS
+        // tramo), así que aquí no hace falta volver a comprobarlo.
         async function _hdl_NAVEGACION_GPS_RESTRINGIDO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.RESTRINGIDO][${mensaje?.origen || 'desconocido'}]`;
 
             try {
-                const { distancia, rangoMaximo, timestampSalioDeRango } = mensaje.datos || {};
+                const { distancia, rangoMaximo } = mensaje.datos || {};
                 if (typeof distancia !== 'number') return;
 
                 if (distancia > 2000) {
@@ -10546,7 +10497,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else if (distancia > 50) {
                     showFotoLejosOverlay(distancia);
                 } else {
-                    showFotoFueraRangoOverlay(distancia, rangoMaximo, timestampSalioDeRango);
+                    showFotoFueraRangoOverlay(distancia, rangoMaximo);
                 }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando GPS restringido:`, error);

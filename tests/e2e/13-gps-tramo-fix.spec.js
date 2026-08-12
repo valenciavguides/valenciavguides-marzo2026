@@ -370,11 +370,12 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     expect(logDistancia, `El GPS debía apuntar a Av1-P-0 (el elemento activo), no al siguiente en el array: "${logDistancia}"`).toContain('Distancia a Av1-P-0');
   });
 
-  // PM — Limpieza de la polyline manual (botón ubicación, siempre verde) al llegar de
-  // verdad. No existe ninguna polyline automática con la que competir: procesarPosicion-
-  // GPSParaAventura() ya no dibuja nada por su cuenta, solo limpia la manual cuando
-  // corresponde (ver comentario en el propio bloque, funciones-mapa.js).
-  test('PM-1. Llegar de verdad (≤50m) limpia la polyline manual', async ({ page }) => {
+  // PM — Limpieza de la polyline manual (botón ubicación, siempre verde) al volver de
+  // verdad a .inicio — destino real de la línea mientras el tramo no esté completo (nunca
+  // .fin, ver PC-1 en 20-tramo-inicio-y-revelado.spec.js). El origen/destino que se le pasa
+  // aquí a dibujarPolylineNavegacion() es el mismo que resolvería _resolverCoordenadasElemento()
+  // en la app real para este tramo.
+  test('PM-1. Volver a .inicio (≤50m) limpia la polyline manual', async ({ page }) => {
     const logs = [];
     page.on('console', msg => logs.push(msg.text()));
 
@@ -384,42 +385,13 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     await page.evaluate(async (tramo) => {
       const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
       await dibujarPolylineNavegacion({
-        origen: tramo.inicio,
-        destino: tramo.fin,
+        origen: tramo.fin,
+        destino: tramo.inicio,
         opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' },
       });
     }, TRAMO);
 
-    // Lectura en .fin: dentro de radio (≤50m) — debe limpiar la polyline manual.
-    await page.evaluate(async (tramo) => {
-      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
-        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
-      });
-    }, TRAMO);
-    await page.waitForTimeout(300);
-
-    const huboLimpieza = logs.some(l => l.includes('Distancia ≤50m o trazado ya visible, removiendo polyline manual de navegación'));
-    expect(huboLimpieza, 'La llegada real (≤50m) debe limpiar la polyline manual').toBe(true);
-  });
-
-  test('PM-2. Lejos del destino (>50m) y sin trazado visible, la polyline manual no se toca', async ({ page }) => {
-    const logs = [];
-    page.on('console', msg => logs.push(msg.text()));
-
-    const prep = await prepararEscenarioTramo(page);
-    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
-
-    await page.evaluate(async (tramo) => {
-      const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
-      await dibujarPolylineNavegacion({
-        origen: tramo.inicio,
-        destino: tramo.fin,
-        opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' },
-      });
-    }, TRAMO);
-
-    // Lectura lejana (.inicio, ~120m de .fin): sin gpsVisualActivo (trazado persistente
-    // no revelado), no debe limpiar la manual que el usuario acaba de pedir.
+    // Lectura en .inicio: dentro de radio (≤50m) — debe limpiar la polyline manual.
     await page.evaluate(async (tramo) => {
       await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
         coords: { latitude: tramo.inicio.lat, longitude: tramo.inicio.lng, accuracy: 5 },
@@ -427,8 +399,37 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     }, TRAMO);
     await page.waitForTimeout(300);
 
+    const huboLimpieza = logs.some(l => l.includes('A ≤50m de .inicio, removiendo polyline manual de navegación'));
+    expect(huboLimpieza, 'Volver de verdad a .inicio (≤50m) debe limpiar la polyline manual').toBe(true);
+  });
+
+  test('PM-2. Lejos de .inicio (en .fin, ~120m) la polyline manual no se toca', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    await page.evaluate(async (tramo) => {
+      const { dibujarPolylineNavegacion } = await import('/js/funciones-mapa.js');
+      await dibujarPolylineNavegacion({
+        origen: tramo.fin,
+        destino: tramo.inicio,
+        opciones: { color: '#3eff3f', opacity: 0.8, dashArray: '0, 2' },
+      });
+    }, TRAMO);
+
+    // Lectura en .fin (~120m de .inicio, el destino real de la línea) — no debe limpiar
+    // la manual que el usuario acaba de pedir, aunque .fin sea el punto final del tramo.
+    await page.evaluate(async (tramo) => {
+      await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+        coords: { latitude: tramo.fin.lat, longitude: tramo.fin.lng, accuracy: 5 },
+      });
+    }, TRAMO);
+    await page.waitForTimeout(300);
+
     const huboLimpieza = logs.some(l => l.includes('removiendo polyline manual de navegación'));
-    expect(huboLimpieza, 'Lejos del destino y sin trazado revelado, la polyline manual debe permanecer').toBe(false);
+    expect(huboLimpieza, 'Lejos de .inicio, la polyline manual debe permanecer aunque esté en .fin').toBe(false);
   });
 
   // DC — distanciaAlCamino: la distancia al camino real (inicio→waypoints→fin), separada
