@@ -3285,8 +3285,11 @@
                     const _BTN_STYLE_BRUJULA_MODO_MAIN = 'box-sizing:border-box;width:clamp(47.39px,12.981vmin,69.02px);height:clamp(47.39px,12.981vmin,69.02px);border-radius:50%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background-color:#00BB77;background-size:cover;background-position:center;color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;display:flex;align-items:center;justify-content:center;font-size:clamp(25px,6.9vmin,37px);flex-shrink:0;';
                     // background-size:contain (no cover): cada icono trae su propio margen
                     // transparente alrededor de la forma — contain lo respeta sin recortar
-                    // ninguna punta, dejando ver el verde #00BB77 del botón en el margen.
-                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:clamp(3.5px,0.75vmin,5px) solid #FF8C00;background-color:#00BB77;cursor:pointer;user-select:none;touch-action:manipulation;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;';
+                    // ninguna punta, dejando ver el fondo blanco del botón en el margen (a
+                    // diferencia del selector de mapa, cuyas miniaturas son fotos opacas que
+                    // cubren el círculo entero — ahí el color de fondo nunca llega a verse).
+                    // Sin borde propio, igual que el botón principal (comentario de arriba).
+                    const _BTN_STYLE_BRUJULA_MODO_DROPDOWN = 'box-sizing:border-box;width:clamp(37px,10.6vmin,54px);height:clamp(37px,10.6vmin,54px);border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.5);border:none;background-color:#fff;cursor:pointer;user-select:none;touch-action:manipulation;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;';
 
                     // Mismo bottom que #selector-tipo-mapa (misma altura), espejado al lado
                     // izquierdo: mismo margen desde el borde izquierdo que el selector tiene
