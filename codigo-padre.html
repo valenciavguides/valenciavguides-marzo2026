@@ -5716,68 +5716,23 @@
             try { entry.resolve(datos); } catch (e) { try { entry.reject(e); } catch(_){ (globalThis.logger || console).debug('[VV]:', _?.message); } } // NOSONAR
         }
 
-        function _transformarCoordParada(coord, result) {
-            if (coord.coordenadas && coord.coordenadas.lat && coord.coordenadas.lng) {
-                result.push({ lat: coord.coordenadas.lat, lng: coord.coordenadas.lng, nombre: coord.nombre, id: coord.id, tipo: coord.tipo });
-            }
-        }
-
-        function _transformarCoordTramo(coord, result) {
-            if (coord.inicio && coord.inicio.lat && coord.inicio.lng) {
-                result.push({ lat: coord.inicio.lat, lng: coord.inicio.lng, nombre: coord.nombre, id: coord.id, tipo: coord.tipo });
-            }
-            if (coord.waypoints && Array.isArray(coord.waypoints)) {
-                for (const wp of coord.waypoints) {
-                    if (wp.lat && wp.lng) {
-                        result.push({ lat: wp.lat, lng: wp.lng, nombre: (coord.nombre || '') + ' (waypoint)', id: (coord.id || '') + '_wp', tipo: 'waypoint' });
-                    }
-                }
-            }
-            if (coord.fin && coord.fin.lat && coord.fin.lng) {
-                result.push({ lat: coord.fin.lat, lng: coord.fin.lng, nombre: coord.nombre, id: coord.id, tipo: coord.tipo });
-            }
-        }
-
-        function _transformarCoordenadas(coordenadas) {
-            const result = [];
-            for (const coord of coordenadas) {
-                if (coord.tipo === 'parada' || coord.tipo === 'inicio' || (coord.tipo === 'tramo' && coord.coordenadas)) {
-                    _transformarCoordParada(coord, result);
-                } else if (coord.tipo === 'tramo') {
-                    _transformarCoordTramo(coord, result);
-                }
-            }
-            return result;
-        }
-
-        function _dibujarCoordenadasEnMapa(mapa, coordenadasTransformadas, datos, coordenadas) {
-            if (coordenadasTransformadas.length === 0) {
-                (globalThis.logger || console).warn('[PADRE][COORDENADAS_PARADAS_RESPONSE] 0 coordenadas transformadas, no se dibuja');
-                return;
-            }
-            const contexto = datos.contexto || '';
-            const esCambioIndividual = contexto.includes('cambio_parada_individual');
-            const esTramoIndividual = esCambioIndividual && coordenadas.some(c => c.tipo === 'tramo');
-            const incluirRutas = datos.incluirRutas === undefined ? (esTramoIndividual || !esCambioIndividual) : datos.incluirRutas;
-            (globalThis.logger || console).info('[PADRE][COORDENADAS_PARADAS_RESPONSE] Dibujando ' + coordenadasTransformadas.length + ' puntos en mapa, incluirRutas=' + incluirRutas);
-            try {
-                // dibujarMarcadores:false siempre, no solo cuando esCambioIndividual —
-                // este es el ÚNICO sitio real del proyecto que llama a
-                // dibujarRutaConMarcadores() (tanto desde NAVEGACION.CAMBIO_PARADA normal
-                // como desde MOSTRAR_UBICACION_POLYLINE al pulsar btn-ubicacion, que pide
-                // sus propias coordenadas sin pasar datos.contexto='cambio_parada_individual'
-                // — comprobado con un reporte de uso real 2026-08-10/11 donde el marcador
-                // duplicado seguía apareciendo pese al primer intento de arreglo, que sí
-                // dependía de esa comprobación). completarCambioParada() es SIEMPRE quien
-                // dibuja el marcador real del elemento activo, correctamente ocultado/
-                // revelado según distancia — no hay ningún flujo real que necesite que esta
-                // función concreta dibuje marcadores propios (ver docs/GUIA-COMPLETA.md §4.5).
-                mapa.dibujarRutaConMarcadores(coordenadasTransformadas, { dibujarRuta: incluirRutas, dibujarMarcadores: false });
-            } catch (drawErr) {
-                (globalThis.logger || console).warn('[PADRE][COORDENADAS_PARADAS_RESPONSE] Error dibujando:', drawErr);
-            }
-        }
-
+        // _handleCoordenadasParadasResponse es SOLO el enrutador de respuestas correlacionadas
+        // por pedidoId (solicitarCoordenadasHijo, usado por el fallback de btn-ubicacion). Hasta
+        // esta versión, cualquier DATOS.COORDENADAS_PARADAS_RESPONSE SIN pedidoId caía en un
+        // fallthrough que llamaba a dibujarRutaConMarcadores() — pensado en su día para pintar
+        // un resumen de ruta, pero sin ningún emisor real que pidiera eso: tanto
+        // _solicitarParadaAHijo2() (cambio de parada normal, solo necesita datos para pasarlos a
+        // otros hijos) como solicitarCoordenadasAHijo2() (reanudación, solo resincroniza los
+        // botones de hijo2) piden coordenadas SIN pedidoId por motivos ajenos al mapa — y hijo2
+        // responde dos veces a cualquier COORDENADAS_PARADAS_REQUEST (confirmación directa +
+        // este mismo broadcast "por compatibilidad", ver coordenadas-hijo2.html), así que el
+        // fallthrough se disparaba en cada cambio de parada/tramo en los dos modos, sin que
+        // nadie lo hubiera pedido. Su limpiarRecursos() incondicional borraba los marcadores
+        // 📌/🎯 que completarCambioParada() (la única cadena real que debe dibujar en el mapa,
+        // ver §4.5) acababa de crear — causa del bug de emojis ausentes en CASA. Verificado que
+        // ningún emisor real depende del fallthrough: el propio dibujarRutaConMarcadores()
+        // sigue disponible para quien lo llame directamente (3 tests de auto-reparación de
+        // polyline en 23-polyline-autoreparacion.spec.js), solo se retiró este camino accidental.
         function _handleCoordenadasParadasResponse(mensaje) {
             try {
                 const pid = mensaje && mensaje.datos && mensaje.datos.pedidoId;
@@ -5786,20 +5741,11 @@
                     if (entry) {
                         _resolveCoordWaiter(entry, mensaje.datos);
                         globalThis.__coordResponseWaiters.delete(pid);
-                        return;
                     }
                 }
-                if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.dibujarRutaConMarcadores === 'function') {
-                    const datos = mensaje.datos || {};
-                    const coordenadas = datos.coordenadas;
-                    const exito = datos.exito;
-                    if (!exito || !coordenadas || !Array.isArray(coordenadas) || coordenadas.length === 0) {
-                        (globalThis.logger || console).warn('[PADRE][COORDENADAS_PARADAS_RESPONSE] Respuesta sin coordenadas válidas, no se dibuja');
-                        return;
-                    }
-                    const coordenadasTransformadas = _transformarCoordenadas(coordenadas);
-                    _dibujarCoordenadasEnMapa(globalThis.funcionesMapa, coordenadasTransformadas, datos, coordenadas);
-                }
+                // Sin pedidoId: la respuesta era para _solicitarParadaAHijo2()/
+                // solicitarCoordenadasAHijo2(), que ya tienen lo que necesitan por su propio
+                // canal (confirmación directa / estado interno de hijo2) — nada que hacer aquí.
             } catch (e) { (globalThis.logger || console).warn && (globalThis.logger || console).warn('[PADRE] Error en handler global COORDENADAS_PARADAS_RESPONSE', e && e.message); }
         }
 

@@ -1462,22 +1462,16 @@ export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
             return `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;">🎯</div>`;
         };
 
-        // opciones.dibujarMarcadores === false: se omite esta sección entera. El único
-        // caller real (codigo-padre.html, DATOS.COORDENADAS_PARADAS_RESPONSE) la pasa así
-        // en cada cambio de parada/tramo individual — completarCambioParada(), disparado
-        // aparte por el mismo evento, ya crea su PROPIO marcador para ese mismo elemento
-        // (marcadorParadaActual / tramo-inicio-ruta / tramo-fin-ruta), correctamente
-        // gestionado por _ocultarNavegacion()/revelarNavegacion() según distancia real.
-        // Los de aquí abajo, guardados bajo claves 'ruta-N'/'ruta-fin', son duplicados
-        // exactos de esos mismos puntos que NINGÚN mecanismo de ocultar/revelar conoce —
-        // se quedaban en el mapa para siempre, visibles sin importar la distancia
-        // (reporte de uso real 2026-08-10/11: diana en parada, chincheta+diana en tramo,
-        // ambas persistentes incluso lejos). limpiarRecursos() (arriba, al principio de
-        // esta función) sí los borra al empezar el SIGUIENTE ciclo, así que nunca se
-        // acumulan sin límite — pero el último ciclo se queda huérfano para siempre. Se
-        // conservan por si en el futuro un caller real necesita el "resumen de toda la
-        // ruta" para el que esta función se diseñó originalmente (múltiples paradas/tramos
-        // a la vez, no un único elemento).
+        // opciones.dibujarMarcadores === false: se omite esta sección entera. Ningún flujo
+        // real de mensajería llama hoy a dibujarRutaConMarcadores() — completarCambioParada()
+        // es la única cadena que dibuja en el mapa por cambio de parada/tramo (marcadorParadaActual
+        // / tramo-inicio-ruta / tramo-fin-ruta, gestionados por _ocultarNavegacion()/
+        // revelarNavegacion() según distancia real; ver §4.5 en GUIA-COMPLETA.md). Los
+        // marcadores 'ruta-N'/'ruta-fin' de aquí abajo solo se crean si alguien llama a esta
+        // función DIRECTAMENTE con dibujarMarcadores!==false (hoy, únicamente los tests de
+        // auto-reparación de polyline en 23-polyline-autoreparacion.spec.js) — la función se
+        // conserva completa, con su capacidad original de "resumen de toda la ruta" (múltiples
+        // paradas/tramos a la vez), por si algún día aparece un caller real que la necesite.
         if (opciones.dibujarMarcadores !== false) {
             // Agregar marcadores SOLO para inicio, parada y fin (omitir waypoints intermedios)
             coordenadasHijo2.forEach((coord, index) => {
