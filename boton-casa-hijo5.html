@@ -819,23 +819,26 @@
                 return;
             }
             const modoNuevo = estado.modo === 'casa' ? 'aventura' : 'casa';
-            logger.info(`${logPrefix} Cambiando modo: ${estado.modo} → ${modoNuevo}`);
-            estado.modo = modoNuevo;
-            _actualizarUIParaModo(modoNuevo, logPrefix);
-            logger.info(`${logPrefix} Notificando cambio de modo al padre: ${modoNuevo}`);
+            // No actualizar estado.modo/UI aquí de forma optimista: el envío de abajo
+            // (enviarMensaje local, línea ~320) es un postMessage crudo sin confirmación
+            // -- resuelve en cuanto se despacha, sin relación alguna con si el padre
+            // realmente aplica el cambio (p.ej. su guard "ya hay un cambio de modo en
+            // curso" puede rechazarlo en silencio). La actualización real y fiable ya
+            // ocurre en el controlador SISTEMA.CAMBIO_MODO (más abajo en este archivo),
+            // que solo se dispara cuando el padre confirma el cambio de verdad y
+            // reenvía el mensaje a todos los hijos -- de ahí sale el estado.modo/
+            // _actualizarUIParaModo reales. Actualizar aquí también dejaba el botón
+            // mostrando un modo que el padre nunca llegó a aplicar.
+            logger.info(`${logPrefix} Solicitando cambio de modo al padre: ${estado.modo} → ${modoNuevo}`);
             await enviarMensaje({
                 destino: resolverIdPadre(),
                 tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO,
                 origen: CONFIG_HIJO.IFRAME_ID,
                 datos: { modo: modoNuevo, timestamp: Date.now(), origen: 'boton-gps' }
             });
-            logger.info(`${logPrefix} Cambio de modo completado exitosamente`);
+            logger.info(`${logPrefix} Solicitud de cambio de modo enviada`);
         } catch (error) {
             logger.error(`${logPrefix} Error al manejar click en GPS:`, { message: error.message, stack: error.stack });
-            const modoRevertido = estado.modo === 'casa' ? 'aventura' : 'casa';
-            estado.modo = modoRevertido;
-            _actualizarUIParaModo(modoRevertido, logPrefix);
-            logger.warn(`${logPrefix} Estado revertido debido al error`);
             enviarMensaje({ destino: resolverIdPadre(), tipo: TIPOS_MENSAJE.SISTEMA.ERROR, origen: CONFIG_HIJO.IFRAME_ID, datos: { error: error.message, contexto: 'manejarClickGPS', timestamp: Date.now() } })
                 .catch(e => logger.debug(`${logPrefix} Error notificando al padre:`, e));
         }

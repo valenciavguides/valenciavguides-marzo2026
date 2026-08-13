@@ -917,6 +917,8 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 
 **Ya no existe ningún marcador proyectado sobre la ruta.** Hasta esta versión existía un segundo sistema — una flecha `↑` y un círculo de 21 m en rojo/amarillo, ambos calculados con `puntoMasCercanoEnLinea()` sobre el punto de la polyline del tramo más cercano al usuario, no sobre su posición GPS real — que se activaba en paralelo al triángulo ▲ y al círculo naranja de arriba durante cualquier tramo. Se eliminó por decisión de diseño explícita: el usuario reportó verlo como dos marcadores de posición distintos y confusos superpuestos casi en el mismo sitio (coinciden cuando se está sobre el camino, divergen al desviarse) con una paleta de color (`#0066cc`/rojo-amarillo) que no seguía la convención del resto de la app (naranja = zona de activación, azul = tú). No aportaba una guía turn-by-turn real (ver §4.6b, esa decisión de diseño sigue vigente) y duplicaba, sin explicarlo en pantalla, la información que ya da el triángulo. Las funciones que lo implementaban (`activarFlechaUsuario`, `desactivarFlechaUsuario`, `actualizarPosicionFlecha`, las variables `marcadorFlechaUsuario`/`marcadorHaloUsuario`/`flechaActiva`, y el campo `estadoMapa.tramoWaypoints`, que solo ellas leían) se retiraron por completo de `funciones-mapa.js` — no quedan detrás de un flag ni comentadas, no había ningún otro caller.
 
+**Tamaño de los emoji 📌/🎯 y reescalado con el zoom.** Tamaño base (antes de escalar): 📌 inicio de tramo 16px, 🎯 parada/fin de tramo 20px, 🎯 destino de la línea de navegación manual 26px (el más grande de los tres, para destacarlo sobre el resto). Todos se multiplican por el mismo factor de `getEscalaMapa()` que usan las polylines (§4.6): tamaño de pantalla × nivel de zoom, acotado entre 0.5× y 2.5×. `reescalarMarcadoresEmoji()` (`js/funciones-mapa.js`) recorre el `Map` `marcadoresParadas` en cada evento `zoomend` del mapa y reescribe el `font-size` de cada marcador según la clase CSS que tenga (`custom-marker-emoji`/`finish-flag-icon`/`tramo-fin-icon` → 🎯 parada; `start-flag-icon`/`tramo-inicio-icon` → 📌 inicio) — solo los marcadores registrados en ese `Map` reciben este reescalado; el marcador de destino de navegación (`marcadorDestinoNavegacion`) se reescala aparte, en la misma función. El marcador 🎯 de una parada normal (no de tramo) se registra en `marcadoresParadas` bajo la clave `'parada-actual'` al crearse y se retira de ahí al limpiarse — mismo patrón que ya usaban los marcadores de tramo (`'tramo-inicio-ruta'`/`'tramo-fin-ruta'`) desde siempre.
+
 **`completarCambioParada()` es la única cadena que dibuja marcadores/polyline en el mapa por cambio de parada/tramo, en los dos modos.** Los tests de auto-reparación de polyline (`23-polyline-autoreparacion.spec.js`) verifican el mecanismo de creación diferida de capas llamando directamente a `dibujarPolylineNavegacion()` (la función real del botón de ubicación, §4.6a). Ningún emisor real de `DATOS.COORDENADAS_PARADAS_REQUEST` necesita que su respuesta dibuje nada en el mapa — ver la tabla de `DATOS.COORDENADAS_PARADAS_REQUEST/RESPONSE` más abajo para el detalle de los tres emisores reales y por qué ninguno depende de ningún dibujado.
 
 **El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
@@ -952,9 +954,9 @@ Las polylines son las líneas que se dibujan en el mapa para mostrar rutas, tram
 |-----------------|-------|-------------|----------|--------|------------------|
 | **Tramo normal** | `#3388ff` (azul claro) | 4 px | 0.7 | Sólido | Al seleccionar un tramo específico entre dos paradas |
 | **Tramo destacado** | `#ff4500` (naranja-rojo) | 6 px | 0.9 | Sólido | Cuando un tramo está activo o enfatizado (el actual) |
-| **Línea de navegación manual** | `#3eff3f` (verde) | 2 px | 0.8 | Discontinuo `0, 2` | Solo al pulsar `btn-ubicacion`. Nunca se dibuja sola |
+| **Línea de navegación manual** | `#3eff3f` (verde) | 7 px | 0.8 | Discontinuo (segmento 0, hueco 2 — el `0, 2` del patrón `dashArray` es el propio dibujo del trazo punteado, no el grosor de la línea) | Solo al pulsar `btn-ubicacion`. Nunca se dibuja sola |
 
-**Escalado dinámico:** Todos los grosores se multiplican por un factor de escala que depende del tamaño de la pantalla y el nivel de zoom del mapa. La función `getPolylineEscalado()` calcula los valores finales.
+**Escalado dinámico:** Todos los grosores se multiplican por un factor de escala que depende del tamaño de la pantalla y el nivel de zoom del mapa. La función `getPolylineEscalado()` calcula los valores finales — mismo mecanismo que usan los tamaños de emoji de §4.5.
 
 **Comportamiento — solo manual, nunca automático:**
 
@@ -2959,7 +2961,7 @@ sequenceDiagram
 | OFF | CASA | `.off` | `linear-gradient(to right, #e74c3c, #c0392b)` (rojo) | `OFF` |
 | ON | AVENTURA | `.on` | `linear-gradient(to right, #27ae60, #2ecc71)` (verde) | `ON` |
 
-El botón **siempre está habilitado**. Un click alterna el modo:
+El botón **siempre está habilitado**. Un click solicita el cambio de modo al padre:
 
 ```javascript
 // Payload enviado al padre:
@@ -2970,6 +2972,8 @@ El botón **siempre está habilitado**. Un click alterna el modo:
   datos: { modo: nuevoModo, timestamp: Date.now(), origen: 'boton-gps' }
 }
 ```
+
+**El botón nunca cambia de aspecto en el momento del click — solo cuando el padre confirma el cambio de verdad.** `manejarClickGPS()` calcula `modoNuevo` y envía la solicitud, pero no toca `estado.modo` ni `_actualizarUIParaModo()` en ese punto. El envío usa el `enviarMensaje` local de este archivo (un `postMessage` directo al padre, sin confirmación de entrega ni de éxito — resuelve en cuanto se despacha la llamada, sin relación con si el padre realmente aplicó el cambio, p. ej. si su guard interno "ya hay un cambio de modo en curso" lo rechaza). El único sitio que actualiza `estado.modo`/el aspecto del botón es el controlador `SISTEMA.CAMBIO_MODO` (ver diagrama de secuencia más abajo, línea `H5->>H5: #gps-casa-btn → clase .on...`), que solo se dispara cuando el padre reenvía el `CAMBIO_MODO` ya confirmado a todos los hijos — la misma vía por la que se sincroniza al cargar (`_sincronizarBotonConModo`). Antes de esto, el botón sí se actualizaba de forma optimista en el propio click, antes de tener ninguna confirmación del padre — si el cambio fallaba en el padre (p. ej. por ese mismo guard de concurrencia), el botón se quedaba mostrando un modo que nunca llegó a aplicarse de verdad, sin ninguna forma de corregirse sola.
 
 #### Botones de parada/tramo (`.parada-tramo-btn`)
 
@@ -4678,7 +4682,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-227d82115e06'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-b0ac7fc972d0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6264,6 +6268,10 @@ En CASA, seleccionar cualquier parada/tramo para verlo en pantalla (hijo5) enví
 
 Verificado end-to-end: AVENTURA en `Av1-P-2` (índice 7) → CASA → ver `Av1-TR-5` (el puntero se mueve, la navegación libre funciona) → volver a AVENTURA → el progreso real vuelve solo a `Av1-P-2`, índice 7.
 
+**Hueco confirmado — sin progreso real previo, la congelación no protege nada.** El paso 1 congela `estado.paradaActual || null` — si el desarrollador entra en CASA por primera vez en la sesión (bootstrap de Factor 1, antes de haber pisado nunca AVENTURA), `paradaActual` todavía es `null`, así que se congela `null`. El paso 3 solo resincroniza si `estado.paradaRealCongelada` es verdadero — con `null` no hace nada. En ese caso, lo que decide dónde aterriza la sesión al entrar en AVENTURA no es lo último que se tocó en CASA, sino `ensureDefaultParada()` (`codigo-padre.html:4250-4290`): si `paradaActual` sigue vacío en ese punto (lo estará, porque el cambio de modo lo resetea incondicionalmente vía `limpiarRecursosPorModo`, `js/app.js:874`), fija siempre el elemento `tipo:'inicio'` de la aventura — nunca la última parada explorada en CASA. Verificado en vivo: CASA fresca → tocar `padre-P1` → tocar `padre-P5` → pasar a AVENTURA → `estado.paradaActual` termina en `Av1-P-0` (el inicio), no en `padre-P5`.
+
+**Hueco confirmado — recargar la página estando en CASA puede dejar `vv_progreso` apuntando a lo último explorado, no al progreso real.** Cada clic en hijo5 llama a `persistProgressState()` (vía `_actualizarEstadoParada`), que sobrescribe `localStorage['vv_progreso']` con la parada tocada — igual en CASA que en AVENTURA. `estado.paradaRealCongelada`, en cambio, vive solo en memoria y nunca se persiste. Si el desarrollador recarga la página mientras sigue en CASA, después de haber tocado una parada distinta a la real y sin haber vuelto antes a AVENTURA, el diálogo de reanudación restaura desde `vv_progreso` — que en ese momento contiene la parada explorada, no la real. El congelado solo protege dentro de la misma sesión sin recargar.
+
 ### Las coordenadas
 
 Cada parada tiene esta estructura:
@@ -7482,7 +7490,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-227d82115e06'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-b0ac7fc972d0'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8125,7 +8133,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-227d82115e06';
+const CACHE_VERSION = 'v-b0ac7fc972d0';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8692,7 +8700,7 @@ Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por 
    - `distanciaAlDestino` → **no se resetea** (último valor recibido antes de ir a CASA)
    - `posicionActualUsuario` → **no se resetea**
    - `#btn-ubicacion` → rojo, deshabilitado (comportamiento CASA)
-7. **localStorage**: `vv_paradas_completadas` y `vv_progreso` se **borran** al pasar a CASA
+7. **localStorage**: en un cliente real, `vv_paradas_completadas` y `vv_progreso` se borrarían al pasar a CASA — pero `_transicionarAModoCasa` salta ese borrado por completo cuando `globalThis._devModeActivo === true` (ver §9.9), que es siempre el caso al entrar en CASA por Factor 2: la propia activación es un paso de bootstrap, no un abandono real, así que el progreso guardado sobrevive intacto en localStorage durante toda la sesión de desarrollo
 8. **En memoria**: `estado.paradasCompletadas` (Map) y `estado.indiceProgreso` **se conservan** — la sesión recuerda las paradas completadas aunque el localStorage esté vacío
 
 **Al volver a AVENTURA (pulsar 🛰️ en hijo5):**
@@ -11132,7 +11140,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-227d82115e06';
+const CACHE_VERSION = 'v-b0ac7fc972d0';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
