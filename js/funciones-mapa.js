@@ -237,20 +237,6 @@ function aLngLat(coord) {
 }
 
 /**
- * Caja delimitadora [[minLng,minLat],[maxLng,maxLat]] a partir de un conjunto de
- * puntos — formato que espera map.fitBounds() en MapLibre.
- * @param {Array<Array<number>|{lat:number,lng:number}>} puntos
- * @returns {[[number,number],[number,number]]|null}
- */
-function _bboxDesdePuntos(puntos) {
-    if (!Array.isArray(puntos) || puntos.length === 0) return null;
-    const lngLats = puntos.map(aLngLat);
-    const lngs = lngLats.map(p => p[0]);
-    const lats = lngLats.map(p => p[1]);
-    return [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]];
-}
-
-/**
  * True si el estilo del mapa ya terminó de cargar y admite addSource/addLayer.
  * MapLibre lanza "Style is not done loading" si se llama antes de tiempo.
  * En la práctica esto solo podría ocurrir en los primeros instantes tras crear
@@ -2908,22 +2894,7 @@ globalThis.funcionesMapa = {
     desactivarSeguimientoRumbo,
     brujulaEstaActiva,
     // Exponer la API pública centralizada para cambiar la vista
-    setMapView,
-    // API para ajustar vista a un rectángulo de coordenadas
-    fitMapBounds: async function(puntosLatLng, opciones = {}) {
-        return ejecutarOperacionMapa(mapa => {
-            const bounds = _bboxDesdePuntos(puntosLatLng);
-            // padding: MapLibre acepta un número único o {top,bottom,left,right}
-            const padding = Array.isArray(opciones.padding) ? Math.max(...opciones.padding) : (opciones.padding || 80);
-            mapa.fitBounds(bounds, {
-                padding,
-                maxZoom: opciones.maxZoom || 18,
-                animate: opciones.animate !== false,
-                duration: (opciones.duration || 0.8) * 1000
-            });
-            return true;
-        });
-    }
+    setMapView
     // Note: GPS warmup helpers removed
 };
 
