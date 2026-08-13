@@ -15,9 +15,8 @@
  *
  * Los 3 tests llaman a dibujarPolylineNavegacion() (js/funciones-mapa.js) — la función
  * real que usa el botón de ubicación en producción (codigo-padre.html, `await import(...)`,
- * mismo patrón que aquí) — en vez de dibujarRutaConMarcadores(), que ya no tiene ningún
- * caller real en la app (se retiró junto a la Cadena B de dibujado de marcadores; ver
- * GUIA-COMPLETA §4.5) y ha sido eliminada de js/funciones-mapa.js.
+ * mismo patrón que aquí) — para ejercitar _crearPolyline()/_crearCapaDiferida() con un
+ * caller real de la app en vez de invocar esas funciones internas directamente.
  *
  *   PR-1  Con el estilo aún no cargado, dibujarPolylineNavegacion({origen,destino}) NO
  *         llama a addLayer/addSource todavía — pero en cuanto el mapa dispara 'load',

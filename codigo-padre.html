@@ -5713,22 +5713,15 @@
         }
 
         // _handleCoordenadasParadasResponse es SOLO el enrutador de respuestas correlacionadas
-        // por pedidoId (solicitarCoordenadasHijo, usado por el fallback de btn-ubicacion). Hasta
-        // esta versión, cualquier DATOS.COORDENADAS_PARADAS_RESPONSE SIN pedidoId caía en un
-        // fallthrough que llamaba a dibujarRutaConMarcadores() — pensado en su día para pintar
-        // un resumen de ruta, pero sin ningún emisor real que pidiera eso: tanto
-        // _solicitarParadaAHijo2() (cambio de parada normal, solo necesita datos para pasarlos a
-        // otros hijos) como solicitarCoordenadasAHijo2() (reanudación, solo resincroniza los
-        // botones de hijo2) piden coordenadas SIN pedidoId por motivos ajenos al mapa — y hijo2
-        // responde dos veces a cualquier COORDENADAS_PARADAS_REQUEST (confirmación directa +
-        // este mismo broadcast "por compatibilidad", ver coordenadas-hijo2.html), así que el
-        // fallthrough se disparaba en cada cambio de parada/tramo en los dos modos, sin que
-        // nadie lo hubiera pedido. Su limpiarRecursos() incondicional borraba los marcadores
-        // 📌/🎯 que completarCambioParada() (la única cadena real que debe dibujar en el mapa,
-        // ver §4.5) acababa de crear — causa del bug de emojis ausentes en CASA. Verificado que
-        // ningún emisor real depende del fallthrough: el propio dibujarRutaConMarcadores()
-        // sigue disponible para quien lo llame directamente (3 tests de auto-reparación de
-        // polyline en 23-polyline-autoreparacion.spec.js), solo se retiró este camino accidental.
+        // por pedidoId (solicitarCoordenadasHijo, usado por el fallback de btn-ubicacion) —
+        // ignora deliberadamente cualquier DATOS.COORDENADAS_PARADAS_RESPONSE sin pedidoId.
+        // hijo2 responde dos veces a cada COORDENADAS_PARADAS_REQUEST (confirmación directa +
+        // un broadcast "por compatibilidad" sin pedidoId, ver coordenadas-hijo2.html); ese
+        // broadcast no tiene ningún emisor real que lo necesite (_solicitarParadaAHijo2() y
+        // solicitarCoordenadasAHijo2() piden coordenadas sin pedidoId por motivos ajenos al
+        // mapa) y no debe disparar ningún dibujado — completarCambioParada() (§4.5) es la
+        // única cadena que dibuja marcadores/polyline en el mapa; cualquier otro camino que
+        // reaccione a esa respuesta competiría con ella y podría borrar lo que acaba de crear.
         function _handleCoordenadasParadasResponse(mensaje) {
             try {
                 const pid = mensaje && mensaje.datos && mensaje.datos.pedidoId;
