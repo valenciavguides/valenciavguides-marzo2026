@@ -157,7 +157,6 @@ import { esMovil } from './device-detection.js';
 
 // Estado del módulo
 let marcadoresParadas = new Map();
-let marcadoresReferencias = new Map(); // Referencias visuales (tipo: "referencia")
 let marcadorDestino = null;
 let marcadorParadaActual = null; // Marcador para la parada actualmente visitada
 let marcadorPosicionActual = null; // Marcador para la posición GPS actual del usuario
@@ -493,7 +492,6 @@ const ESCALA_BASE = {
     ICONO_DESTINO: 26,          // Tamaño emoji destino 🎯
     ICONO_USUARIO_CASA: 48,     // Tamaño emoji 🛸 modo casa
     ICONO_USUARIO_AVENTURA: 44, // Tamaño flecha + punto modo aventura
-    ICONO_REFERENCIA: 36,        // Tamaño base marcador referencia visual 🏛️ (pill)
 
     // Referencia de escala
     PANTALLA_REF: 400,          // Pantalla de referencia (vmin)
@@ -571,8 +569,7 @@ function getIconoEscalado() {
         inicio: Math.round(ESCALA_BASE.ICONO_INICIO * escala),
         destino: Math.round(ESCALA_BASE.ICONO_DESTINO * escala),
         usuarioCasa: Math.round(ESCALA_BASE.ICONO_USUARIO_CASA * escala),
-        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escala),
-        referencia: Math.round(ESCALA_BASE.ICONO_REFERENCIA * escala)
+        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escala)
     };
 }
 
@@ -614,15 +611,6 @@ function reescalarMarcadoresEmoji() {
         } catch (_e) { /* ignore individual marker errors */ } // NOSONAR
     });
 
-    // Re-escalar marcadores de referencias visuales (🏛️)
-    marcadoresReferencias.forEach((marker) => {
-        try {
-            if (marker._refData) {
-                marker.getElement().innerHTML = crearIconoReferencia(marker._refData);
-            }
-        } catch (_e) { /* ignore individual marker errors */ } // NOSONAR
-    });
-
     // Re-escalar marcador de destino de navegación (🎯)
     if (marcadorDestinoNavegacion) {
         try {
@@ -631,183 +619,6 @@ function reescalarMarcadoresEmoji() {
                 `<div style="font-size:${size}px;text-align:center;line-height:${size}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`;
         } catch (_e) { /* ignore */ } // NOSONAR
     }
-}
-
-// =====================================================
-// REFERENCIAS VISUALES (tipo: "referencia")
-// Monumentos que se mencionan en el texto pero que el usuario
-// no visita. Aparecen como pin 🏛️+número en el mapa,
-// sin participar en lógica GPS ni en elementosIDpadre.
-// =====================================================
-
-let _refPopupEstilosInyectados = false;
-
-/**
- * Inyecta una vez los estilos CSS del popup de referencia visual.
- * @private
- */
-function _inyectarEstilosReferencia() {
-    if (_refPopupEstilosInyectados) return;
-    _refPopupEstilosInyectados = true;
-    const style = document.createElement('style');
-    style.id = 'estilos-referencia-popup';
-    style.textContent = `
-        #referencia-popup {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 1000015;
-            background: rgba(0,0,0,0.75);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeInMedia 0.3s ease-out;
-        }
-        #referencia-popup .ref-popup-card {
-            position: relative;
-            background: white;
-            border: 0.3125rem solid #8FE0A8;
-            border-radius: 0.9375rem;
-            box-shadow: 0 0.9375rem 3.125rem rgba(0,0,0,0.7);
-            padding: 2.2rem 2rem 1.5rem;
-            max-width: min(80vw, 22rem);
-            width: max-content;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.4rem;
-        }
-        #referencia-popup .ref-popup-emoji {
-            font-size: clamp(2rem, 8vw, 3rem);
-            line-height: 1;
-        }
-        #referencia-popup .ref-popup-numero {
-            font-size: clamp(0.7rem, 2.8vw, 0.85rem);
-            color: #ff8c00;
-            font-weight: bold;
-            letter-spacing: 0.04em;
-        }
-        #referencia-popup .ref-popup-nombre {
-            font-size: clamp(0.95rem, 3.5vw, 1.1rem);
-            color: #222;
-            font-weight: 600;
-            margin: 0;
-            line-height: 1.3;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-/**
- * Muestra el popup de información de una referencia visual.
- * Reutiliza .btn-cerrar-overlay de codigo-padre.html.
- * @param {Object} referencia - Objeto referencia con nombre y mapa_numero
- */
-function mostrarPopupReferencia(referencia) {
-    _inyectarEstilosReferencia();
-
-    const existente = document.getElementById('referencia-popup');
-    if (existente) existente.remove();
-
-    const _e = s => String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
-    const popup = document.createElement('div');
-    popup.id = 'referencia-popup';
-    popup.innerHTML = `
-        <div class="ref-popup-card">
-            <button class="btn-cerrar-overlay"
-                onclick="document.getElementById('referencia-popup').remove()"
-                title="Cerrar">×</button>
-            <div class="ref-popup-emoji">🏛️</div>
-            <div class="ref-popup-numero">Nº ${_e(referencia.mapa_numero)} · Referencia visual</div>
-            <p class="ref-popup-nombre">${_e(referencia.nombre)}</p>
-        </div>
-    `;
-    popup.addEventListener('click', (e) => {
-        if (e.target === popup) popup.remove();
-    });
-    document.body.appendChild(popup);
-}
-
-/**
- * Genera el HTML del icono de un marcador de referencia visual.
- * Círculo/pill blanco con borde naranja, 🏛️ y número de mapa.
- * Se escala dinámicamente con el sistema de escalado del mapa.
- * @param {Object} referencia - Objeto referencia con mapa_numero
- * @returns {string} HTML del icono, listo para _crearMarcadorHTML
- */
-function crearIconoReferencia(referencia) {
-    const escala = getEscalaMapa();
-    const h = Math.round(ESCALA_BASE.ICONO_REFERENCIA * escala);
-    const borde = Math.max(2, Math.round(h * 0.08));
-    const emojiPx = Math.round(h * 0.5);
-    const numPx = Math.round(h * 0.34);
-    const gap = Math.round(h * 0.06);
-    const px = Math.round(h * 0.15);
-
-    const numStr = String(referencia.mapa_numero);
-    const w = Math.round(h + numStr.length * numPx * 0.62 + px * 2);
-
-    return `<div style="
-        width:${w}px;height:${h}px;
-        background:white;
-        border:${borde}px solid #ff8c00;
-        border-radius:${Math.round(h / 2)}px;
-        display:flex;align-items:center;justify-content:center;
-        gap:${gap}px;padding:0 ${px}px;box-sizing:border-box;
-        box-shadow:0 2px 6px rgba(0,0,0,0.35);
-        cursor:pointer;
-    "><span style="font-size:${emojiPx}px;line-height:1;">🏛️</span><span style="font-size:${numPx}px;font-weight:bold;color:#ff8c00;line-height:1;">${numStr}</span></div>`;
-}
-
-/**
- * Dibuja en el mapa todos los elementos tipo "referencia" del array de coordenadas.
- * No participa en GPS ni en la secuencia de la aventura.
- * @param {Array} coordenadasBrutas - Array completo de coordenadas de la aventura
- */
-export function dibujarReferencias(coordenadasBrutas) {
-    if (!_mapaInstance) {
-        logger.warn('[MAPA] dibujarReferencias: mapa no inicializado');
-        return;
-    }
-    limpiarReferencias();
-
-    if (!Array.isArray(coordenadasBrutas)) return;
-
-    const referencias = coordenadasBrutas.filter(c => c.tipo === 'referencia');
-
-    referencias.forEach(ref => {
-        const coords = _getLatLng(ref);
-        if (!coords) {
-            logger.warn(`[MAPA] Referencia "${ref.id}" sin coordenadas válidas`);
-            return;
-        }
-        const icono = crearIconoReferencia(ref);
-        const marcador = _crearMarcadorHTML(coords, icono, {
-            className: 'referencia-visual-marker',
-            title: ref.nombre || `Referencia ${ref.mapa_numero}`,
-            zIndex: 400  // Por debajo de paradas (600) pero visible
-        });
-
-        marcador._refData = ref; // Guardamos para poder re-escalar
-        marcador.getElement().addEventListener('click', () => mostrarPopupReferencia(ref));
-
-        marcadoresReferencias.set(ref.id, marcador);
-        logger.debug(`[MAPA] Referencia visual dibujada: ${ref.id} (${ref.nombre})`);
-    });
-
-    if (referencias.length > 0) {
-        logger.info(`[MAPA] ${referencias.length} referencia(s) visual(es) dibujada(s)`);
-    }
-}
-
-/**
- * Elimina del mapa todos los marcadores de referencias visuales.
- */
-function limpiarReferencias() {
-    marcadoresReferencias.forEach(m => {
-        try { m.remove(); } catch (_e) { /* ignore */ } // NOSONAR
-    });
-    marcadoresReferencias.clear();
 }
 
 /**
@@ -1288,9 +1099,6 @@ export function limpiarRecursos() {
         // Limpiar marcadores de paradas
         marcadoresParadas.forEach(marcador => marcador.remove());
         marcadoresParadas.clear();
-
-        // Limpiar referencias visuales
-        limpiarReferencias();
 
         // Limpiar rutas
         logger.debug(`[funciones-mapa] Eliminando ${rutasTramos.length} rutas de tramos y ${rutasActivas.length} rutas activas`);
@@ -3088,8 +2896,6 @@ globalThis.funcionesMapa = {
     diagnosticarMapa,
     isMapInitialized,
     limpiarRecursos,
-    dibujarReferencias,
-    limpiarReferencias,
     registrarManejadoresMensajes,
     limpiarPorEstado,
     calcularToleranciaGPS,

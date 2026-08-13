@@ -68,7 +68,7 @@ export const DATOS_AVENTURAS = {
   Aventura1: {
     "coordenadas-hijo2.html": {
       coordenadas: [
-    // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+    // poner las coordenadas específicas de los puntos a visitar del mapa. mapa-completo.html ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
         id: "REF-1",
@@ -1197,7 +1197,7 @@ export const DATOS_AVENTURAS = {
     "coordenadas-hijo2.html": {
             coordenadas: [
 
-    // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+    // poner las coordenadas específicas de los puntos a visitar del mapa. mapa-completo.html ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
         id: "REF-1",
@@ -2130,7 +2130,7 @@ export const DATOS_AVENTURAS = {
       coordenadas:
       [
 
-    // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+    // poner las coordenadas específicas de los puntos a visitar del mapa. mapa-completo.html ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
         id: "REF-1",
@@ -3647,7 +3647,7 @@ export const DATOS_AVENTURAS = {
   Aventura4: {
     "coordenadas-hijo2.html": {
       coordenadas: [
-    // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+    // poner las coordenadas específicas de los puntos a visitar del mapa. mapa-completo.html ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
         id: "REF-1",
@@ -5177,7 +5177,7 @@ export const DATOS_AVENTURAS = {
   Aventura5: {
     "coordenadas-hijo2.html": {
       coordenadas: [
-        // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+        // poner las coordenadas específicas de los puntos a visitar del mapa. mapa-completo.html ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
         id: "REF-1",
@@ -6427,7 +6427,7 @@ export const DATOS_AVENTURAS = {
   AventuraFallas: {
     "coordenadas-hijo2.html": {
       coordenadas: [
-    // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+    // poner las coordenadas específicas de los puntos a visitar del mapa. mapa-completo.html ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
         id: "REF-1",
@@ -7250,7 +7250,7 @@ export const DATOS_AVENTURAS = {
   Aventura34km: {
     "coordenadas-hijo2.html": {
       coordenadas: [
-        // poner las coordenadas específicas de los puntos a visitar del mapa. dibujarReferencias() ignora automáticamente las que tengan coordenadas: null.
+        // poner las coordenadas específicas de los puntos a visitar del mapa. mapa-completo.html ignora automáticamente las que tengan coordenadas: null.
     {
         tipo: "referencia",
         id: "REF-1",
