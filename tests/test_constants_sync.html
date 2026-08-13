@@ -86,13 +86,6 @@
                 } else {
                     addResult('❌ funciones-mapa.js no usa TIPOS_MENSAJE.NAVEGACION', 'error');
                 }
-
-                // Test 5: funciones-mapa.js uses SOLICITAR_DATOS_PARADAS
-                if (mapaText.includes('TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS')) {
-                    addResult('✅ funciones-mapa.js usa TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS', 'success');
-                } else {
-                    addResult('❌ funciones-mapa.js no usa TIPOS_MENSAJE.NAVEGACION.SOLICITAR_DATOS_PARADAS', 'error');
-                }
             }
 
             addResult('── 3. Verificar uso en boton-casa-hijo5.html ──', 'info');
@@ -131,6 +124,16 @@
                     addResult('✅ codigo-padre.html referencia CAMBIO_PARADA', 'success');
                 } else {
                     addResult('❌ codigo-padre.html no referencia CAMBIO_PARADA', 'error');
+                }
+
+                // Test 5 (movido aquí desde la sección de funciones-mapa.js): el handler real de
+                // SOLICITAR_DATOS_PARADAS vive en codigo-padre.html Script 1 (registrarControladorSeguro
+                // sobre TIPOS_MENSAJE_S1.NAVEGACION.SOLICITAR_DATOS_PARADAS), atiende directamente desde
+                // DATOS_PADRE en memoria — funciones-mapa.js nunca lo ha referenciado, no le corresponde.
+                if (padreText.includes('NAVEGACION.SOLICITAR_DATOS_PARADAS')) {
+                    addResult('✅ codigo-padre.html usa NAVEGACION.SOLICITAR_DATOS_PARADAS', 'success');
+                } else {
+                    addResult('❌ codigo-padre.html no usa NAVEGACION.SOLICITAR_DATOS_PARADAS', 'error');
                 }
             }
 
