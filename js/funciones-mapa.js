@@ -1789,6 +1789,7 @@ async function completarCambioParada() {
             if (marcadorParadaActual) {
                 try { marcadorParadaActual.remove(); } catch (_e) { /* ignore */ } // NOSONAR
                 marcadorParadaActual = null;
+                marcadoresParadas.delete('parada-actual');
             }
 
             // Limpiar polylines/rutas activas antes de dibujar la nueva
@@ -1911,6 +1912,14 @@ async function completarCambioParada() {
                         { className: 'custom-marker-emoji', title: paradaId, zIndex: 600 }
                     );
                     marcadorParadaActual = mP;
+                    // Registrar también en marcadoresParadas — es el Map que
+                    // reescalarMarcadoresEmoji() recorre en cada zoomend. Sin esto, la
+                    // clase CSS 'custom-marker-emoji' del marcador nunca se visita (aunque
+                    // el check de clase en esa función la reconozca), y la diana se queda
+                    // congelada al tamaño que tenía al llegar a la parada — no crece ni
+                    // encoge con el zoom, a diferencia de los 📌/🎯 de un tramo, que sí
+                    // están en este Map desde su creación.
+                    marcadoresParadas.set('parada-actual', mP);
                 } catch(e) { logger.warn(`${logPrefix} Error añadiendo marcador parada:`, e); } // NOSONAR
 
                 logger.info(`${logPrefix} 🎬 Iniciando zoom para PARADA ${paradaId} a ${destino}`);
