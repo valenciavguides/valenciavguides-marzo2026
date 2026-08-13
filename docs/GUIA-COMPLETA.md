@@ -1360,9 +1360,9 @@ Dos verdes, no uno — la distinción es cuánto cambia el estado habilitado/des
 
 | Color | Hex | Dónde aparece | Cuándo |
 |-------|-----|---------------|--------|
-| 🟢 Verde vivo | `#00FF00` | `#btn-video` (dron), `#btn-imagen`, `#btn-avanzar`, `#btn-ubicacion` en hijo2; `#retosBtn` en hijo3; `#audio-main-toggle-btn`/`.audio-action-btn` en el padre | Estado por defecto de los botones cuyo habilitado/deshabilitado cambia con más frecuencia según el progreso real (imagen, vídeo, avanzar, ubicación, retos, audio) — el verde más saturado, para que ese cambio de estado destaque |
+| 🟢 Verde vivo | `#00FF00` | `#btn-video` (dron), `#btn-imagen`, `#btn-avanzar`, `#btn-ubicacion` en hijo2; `#retosBtn` y el thumb de la barra de progreso (`.progress-container::after`) en hijo3; `#audio-main-toggle-btn`/`.audio-action-btn` en el padre | Estado por defecto de los botones cuyo habilitado/deshabilitado cambia con más frecuencia según el progreso real (imagen, vídeo, avanzar, ubicación, retos, audio, seek) — el verde más saturado, para que ese cambio de estado destaque |
 | 🟢 Verde medio | `#00BB77` | `.boton-flotante`/`.icono-flotante` en hijo1; `#btn-mapa-completo`/`#btn-mapa-jpg` en hijo2; `#btn-chat-soporte`, `#selector-tipo-mapa` y `#brujula-modo` (§4.6b, §11) en el padre | Estado por defecto de los botones de orientación/ayuda — prácticamente siempre habilitados, casi nunca cambian de estado en una sesión real |
-| 🔴 Rojo | `#ED2100` (`opacity: 0.6`) | `.boton.disabled` en hijo2 y en video-intro.html, `#hijo3 .boton.deshabilitado` y `#retosBtn:disabled` en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en codigo-padre.html | Botón bloqueado — GPS deshabilitado o precisión insuficiente. Rojo único y estandarizado en toda la app: cualquier botón que se deshabilite, sea del verde que sea en su estado habilitado, usa este mismo tono — nunca un rojo distinto |
+| 🔴 Rojo | `#ED2100` (`opacity: 0.6`) | `.boton.disabled` en hijo2 y en video-intro.html, `#hijo3 .boton.deshabilitado`, `#retosBtn:disabled` y `.progress-container.deshabilitado::after` (thumb de la barra de progreso) en hijo3, `#audio-main-toggle-btn:disabled`/`.audio-action-btn:disabled` en codigo-padre.html | Botón bloqueado — GPS deshabilitado o precisión insuficiente. Rojo único y estandarizado en toda la app: cualquier botón que se deshabilite, sea del verde que sea en su estado habilitado, usa este mismo tono — nunca un rojo distinto |
 | 🔵 Azul | `#007bff→#0056b3` | `.boton.activo` en hijo2 | Navegación revelada — `btn-avanzar` pulsado, polyline y marcadores visibles en el mapa |
 | 🔵 Azul | `#0077cc` (inline) | `btnEnviar` en hijo4 (estado inicial/neutro) | Botón de respuesta listo para pulsar |
 | 🔴 Rojo | `#ED2100` (inline) | `btnNext` en hijo4 | Deshabilitado desde que empieza el reto hasta que la respuesta es correcta — mismo rojo estándar que el resto de la app, aplicado a mano (inline) porque este botón no usa la clase `.disabled` compartida |
@@ -2636,7 +2636,7 @@ sequenceDiagram
 | Elemento | ID / clase | Estado inicial | Cuándo se habilita / qué cambia |
 |----------|-----------|-----------|----|
 | Elemento audio | (interno, sin ID público) | `src = ""`, sin reproducir | Al recibir `AUDIO.REPRODUCIR_REQUEST` → se asigna `src`, se actualiza el título, la barra de progreso se resetea a 0 (`_resetearProgresoVisual()`); `.play()` solo si `autoplay===true` (el padre siempre envía `autoplay:false`) |
-| Barra de progreso | `.progress-top-row input[type=range]` | Valor 0 | Se actualiza con evento `timeupdate` del audio cada ~250 ms. Vuelve a 0 en tres momentos: al cargar un audio nuevo (arriba), al terminar de reproducirse (evento `ended`, antes de notificar `AUDIO.FIN_REPRODUCCION`), y al recibir el comando `stop` del overlay de audio del padre (`_manejarAudioControl('stop', ...)`) — nunca se queda con el progreso del audio anterior mientras el padre resuelve cuál toca a continuación, ni con el de un audio que el usuario detuvo a mano |
+| Barra de progreso | `#progressContainer` (contenedor, no un `<input>`) / `#progressBar` (relleno `#0BDA51`) | Valor 0, clase `deshabilitado` (thumb rojo `#ED2100`, sin interacción) | El relleno se actualiza con evento `timeupdate` del audio cada ~250 ms. Vuelve a 0 en tres momentos: al cargar un audio nuevo (arriba), al terminar de reproducirse (evento `ended`, antes de notificar `AUDIO.FIN_REPRODUCCION`), y al recibir el comando `stop` del overlay de audio del padre (`_manejarAudioControl('stop', ...)`) — nunca se queda con el progreso del audio anterior mientras el padre resuelve cuál toca a continuación, ni con el de un audio que el usuario detuvo a mano. El thumb (barra vertical, `.progress-container::after`) solo se puede arrastrar (clic/touch/teclado) cuando el padre confirma `#audio-main-toggle-btn` habilitado (`CONTROL.HABILITAR/DESHABILITAR {control:'progressBar'}`) o en modo CASA — clase `deshabilitado` quitada/puesta por `_actualizarSeekHabilitado()` |
 | Título de pista | `#track-title-display` / `.content-left` | Texto vacío | Muestra nombre de la parada/tramo cuando se asigna el audio |
 | Botón retos | `#retosBtn` | `disabled = true`, `opacity: 0.5`, `pointer-events: none` | Ver tabla de habilitación ↓ |
 
@@ -3146,7 +3146,7 @@ Cuando `RESPUESTAS_CHAT[clave][idioma].enlace` no es `null`, `construirFAQ()` a�
 |---|---|---|
 | `'terminos'` | `import('./js/terminos-aventuras.js')` (lazy, cacheado en `_cacheModuloEnlace` tras la primera vez) → pinta `TERMINOS_AVENTURAS.terminos_idiomas[idioma]` como HTML dentro de `#chat-modal-contenido` | Mismo módulo que usa `En-busca-del-tesoro.html` P5 |
 | `'agradecimientos'` | Igual, con `import('./js/agradecimientos-aventuras.js')` → `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas[idioma]` | Mismo módulo que usa `En-busca-del-tesoro.html` P17 |
-| `'video-intro'` | Crea un `<iframe src="video-intro.html?lang=IDIOMA">` dentro de `#chat-modal-contenido` (sin cachear — se recrea cada vez) | `video-intro.html`, el mismo fichero que reproduce la introducción en `En-busca-del-tesoro.html` P4; no está condicionado a ese contexto — solo necesita un `<iframe>` que lo aloje y escucha `postMessage` en `globalThis.parent`, que aquí resuelve al propio hijo6 |
+| `'video-intro'` | Crea un `<iframe src="video-intro.html?lang=IDIOMA&replay=1">` dentro de `#chat-modal-contenido` (sin cachear — se recrea cada vez) | `video-intro.html`, el mismo fichero que reproduce la introducción en `En-busca-del-tesoro.html` P4; escucha `postMessage` en `globalThis.parent`, que aquí resuelve al propio hijo6. El `&replay=1` sí lo condiciona a este contexto: habilita `#btn-skip` desde el arranque en vez de esperar a la escena 4 (§35.5b) — el usuario ya ha visto la intro antes, así que puede salir en cualquier momento |
 
 `cerrarModal()` vacía `#chat-modal-contenido.innerHTML` al cerrar — esto detiene el `<iframe>` del vídeo si estaba reproduciéndose (destruye su documento) en vez de solo ocultarlo. hijo6 también escucha `message` en `globalThis` (con el mismo check de origen que el resto de la app) para `SELECCION.VIDEO_INTRO_TERMINADO` — el mismo evento que `video-intro.html` emite siempre al terminar — y cierra el modal automáticamente cuando el vídeo llega a su fin.
 
@@ -3849,6 +3849,8 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `AUDIO.REPRODUCIR_REQUEST` | `{ audioId, audioData:{id,title,file}, autoplay:false }` | Guarda `audioData` en la caché local acotada (máx. 2 ids: parada actual + 1 anterior); asigna `audio.src`; resetea la barra de progreso a 0 (`_resetearProgresoVisual()`, también se llama al terminar el audio anterior — ver §7.4); el padre siempre envía `autoplay:false` — el usuario reproduce desde los controles del padre. Si `audioData` viene ausente (p. ej. respuesta a `SOLICITAR_AUDIOS` desde `js/controladores-padre.js`, que sí lo incluye) o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | ✓ (manual) | ✓ (automático al entrar en parada) |
 | `CONTROL.HABILITAR` | `{ control:'retosBtn' }` | `retosBtn.disabled=false`, opacity 1 | ✓ inmediato si reto_id | ✓ tras FIN_REPRODUCCION |
 | `CONTROL.DESHABILITAR` | `{ control:'retosBtn', razon }` | `retosBtn.disabled=true`, opacity 0.5 | ✓ tramos/sin reto | ✓ al entrar en parada |
+| `CONTROL.HABILITAR` | `{ control:'progressBar' }` | `_seekHabilitadoPorPadre=true` → `_actualizarSeekHabilitado()` quita la clase `deshabilitado` del thumb (arrastrable, verde) | ✓ (aunque en CASA ya estaba arrastrable localmente, ver abajo) | ✓ cuando `#audio-main-toggle-btn` está habilitado |
+| `CONTROL.DESHABILITAR` | `{ control:'progressBar', razon }` | `_seekHabilitadoPorPadre=false` → si además no está en modo CASA, añade `deshabilitado` (no arrastrable, rojo) | Sin efecto visible — CASA fuerza habilitado igualmente | ✓ cuando no hay audio activo o está fuera de rango |
 | `NAVEGACION.CAMBIO_PARADA` | `{ paradaId }` | Reset spin + quita clase `.activo` del `#retosBtn` | ✓ | ✓ |
 | `UI.ACCION_USUARIO` | `{ accion:'audio_control', comando, audioId }` ó `{ accion:'simular_click', elemento, contexto:'boton_horizontal' }` | Controles de audio del overlay del padre (play/pause/stop/replay) y simulación de clicks en botones horizontales | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
@@ -5298,10 +5300,10 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | Padre (para habilitar/deshabilitar retosBtn, btnAvanzar, etc.) |
-| Payload | `{ control: 'retosBtn'\|'btnAvanzar', razon }` |
+| Emitido por | Padre (para habilitar/deshabilitar retosBtn, btnAvanzar, progressBar, etc.) |
+| Payload | `{ control: 'retosBtn'\|'btnAvanzar'\|'progressBar', razon }` |
 | Handler en hijo2 | L1735/L1769 — gestiona btnAvanzar |
-| Handler en hijo3 | L1613/L1638 — gestiona retosBtn |
+| Handler en hijo3 | L1613/L1638 — gestiona retosBtn y progressBar (thumb de la barra de progreso, §7.4) |
 | Handler en hijo4 | L1767/L1773 |
 
 **UI.ACCION_USUARIO** (hijo2 → padre / hijo3 → padre)
@@ -11925,10 +11927,12 @@ sequenceDiagram
 
 | Estado | CSS | Interactividad |
 |--------|-----|---------------|
-| Inicial (escenas 1-3) | `opacity:0.3; filter:grayscale(1)` | `pointer-events:none` |
-| Activo (escena 3 en adelante) | `opacity:1; filter:none` | `pointer-events:auto` |
+| Inicial (escenas 1-4) | `opacity:0.3; filter:grayscale(1)` | `pointer-events:none` |
+| Activo (escena 4 en adelante) | `opacity:1; filter:none` | `pointer-events:auto` |
 
 Se activa al terminar la **escena 4** (mapa vintage) — `run()` hace `$('btn-skip').classList.add('on')` inmediatamente después de `await scene4()`.
+
+**Excepción — reapertura desde chat-hijo6.html:** la X de la escena 4 (`oc5`) no cierra nada, es parte del tutorial guiado (la gauntlet la toca como demostración animada, sin esperar un tap real — ver `Gauntlet.tapEl()`), así que antes de esta excepción, reabrir el vídeo desde "¿puedo ver el video-intro de nuevo?" en el chat dejaba al usuario sin ninguna forma de salir durante las 4 primeras escenas. `chat-hijo6.html` carga el iframe con `&replay=1`; `video-intro.html` lee ese flag (`_replay`) y, si está activo, hace `$('btn-skip').classList.add('on')` desde el arranque de `run()` en vez de esperar a que termine la escena 4. La reproducción normal desde `En-busca-del-Tesoro.html` (sin `replay=1`) no cambia — sigue esperando a la escena 4.
 
 Al pulsarlo (`_skipVideoIntro`):
 
