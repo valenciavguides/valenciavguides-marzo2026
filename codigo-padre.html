@@ -4791,7 +4791,19 @@
         }
         async function _activarModoRest(logPrefix, datosGuardados) {
             try {
-                const _modoRest = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA;
+                // El modo persistido (datosGuardados.modo) es la fuente de verdad — no
+                // globalThis._devModeActivo, que es una variable solo en memoria y se pierde
+                // en cualquier recarga de página. Sin esto, reanudar una aventura guardada en
+                // CASA volvía siempre a AVENTURA (y hijo5 se quedaba oculto) porque el flag ya
+                // estaba perdido para cuando se llega aquí. modo:'casa' solo puede haberse
+                // persistido con dev mode activo (única vía de entrada a CASA, ver el
+                // _modoInicio del flujo de activación normal) — así que restaurarlo aquí
+                // también reactiva _devModeActivo, del que depende la visibilidad de hijo5
+                // más abajo. Con un valor ausente o corrupto, se cae de vuelta al flag actual.
+                const _modoRest = (datosGuardados?.modo === MODOS.CASA || datosGuardados?.modo === MODOS.AVENTURA)
+                    ? datosGuardados.modo
+                    : (globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA);
+                if (_modoRest === MODOS.CASA) globalThis._devModeActivo = true;
                 estado.modo = estado.modo || {};
                 estado.modo.actual = _modoRest;
                 // Sincroniza estadoMapa.modo (funciones-mapa.js) sin pasar por el pipeline
