@@ -77,10 +77,6 @@ function getHijoTipo(id) {
     return _hijosRegistrados.get(id)?.tipo ?? null;
 }
 
-function getHijosRegistrados() {
-    return new Map(_hijosRegistrados);
-}
-
 /**
  * Callbacks pendientes de confirmación
  * @type {Map<string, Object>}
@@ -198,21 +194,16 @@ function exponerAPIGlobal() {
         // Registro dinámico de hijos
         registrarHijo,
         getHijoTipo,
-        getHijosRegistrados,
 
         // Funciones de iframe (solo padre)
         registrarIframe,
-        obtenerIframe,
         getIframesRegistrados: () => new Map(iframesRegistrados),
 
         // Función centralizada (delega a state-manager)
         registrarControladorCentral,
 
         // Utilidades
-        generarIdMensaje: () => generarIdUnico('msg'),
-
-        // Diagnóstico
-        getDiagnostico
+        generarIdMensaje: () => generarIdUnico('msg')
     };
     
     // Alias para compatibilidad
@@ -695,16 +686,6 @@ export function registrarIframe(id, iframe) {
     return true;
 }
 
-/**
- * Obtiene un iframe registrado
- * @param {string} id - ID del iframe
- * @returns {Object|null} Información del iframe o null
- */
-export function obtenerIframe(id) {
-    const iframe = iframesRegistrados.get(id);
-    return iframe ? iframe.elemento : null;
-}
-
 // =====================================================
 // UTILIDADES
 // =====================================================
@@ -740,24 +721,6 @@ export function marcarScript2Listo() {
     if (sm && typeof sm.setScript2Listo === 'function') {
         sm.setScript2Listo(true).catch(e => logger.debug('[mensajeria] Error sincronizando script2Listo:', e?.message));
     }
-}
-
-/**
- * Obtiene información de diagnóstico
- * @returns {Object} Información de diagnóstico
- */
-export function getDiagnostico() {
-    return {
-        inicializado,
-        componenteId,
-        tipoComponente,
-        script2Listo,
-        iframesRegistrados: Array.from(iframesRegistrados.keys()),
-        controladoresRegistrados: Array.from(obtenerMapaManejadores().keys()),
-        confirmacionesPendientes: confirmacionesPendientes.size,
-        colaMensajes: colaMensajes.length,
-        stateManagerDisponible: !!stateManager
-    };
 }
 
 // =====================================================
@@ -1115,8 +1078,6 @@ export default {
     marcarScript2Listo,
     registrarControladorCentral,
     registrarIframe,
-    obtenerIframe,
-    getDiagnostico,
     limpiar
 };
 

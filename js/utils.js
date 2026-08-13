@@ -709,66 +709,6 @@ export function sonIguales(a, b) {
     return false;
 }
 
-/**
- * Maneja errores de forma centralizada
- * @param {Error} error - El error a manejar
- * @param {Object} [contexto] - Contexto adicional (ej: mensaje que causó el error)
- * @param {Object} [opciones] - Opciones de manejo
- * @param {boolean} [opciones.notificar=true] - Si debe notificar al usuario
- * @param {boolean} [opciones.reenviar=false] - Si debe reenviar el error
- */
-export function manejarError(error, contexto = null, opciones = {}) {
-    const { reenviar = false } = opciones;
-    
-    // Construir información del error
-    const errorInfo = {
-        mensaje: error?.message || String(error),
-        nombre: error?.name || 'Error',
-        stack: error?.stack || null,
-        timestamp: Date.now(),
-        contexto: contexto ? {
-            tipo: contexto.tipo || null,
-            origen: contexto.origen || null,
-            destino: contexto.destino || null,
-            mensajeId: contexto.mensajeId || contexto.id || null
-        } : null
-    };
-    
-    // Log del error
-    (globalThis.logger || console).error('[ERROR]', errorInfo.mensaje, errorInfo);
-    
-    // Intentar enviar error al padre si estamos en un iframe
-    if (globalThis.parent && globalThis.parent !== globalThis.window) {
-        try {
-            const _errOrigin = globalThis.location.origin === 'null' ? '*' : globalThis.location.origin;
-            globalThis.parent.postMessage({
-                tipo: 'ERROR_HIJO',
-                datos: errorInfo,
-                origen: globalThis.name || 'hijo-desconocido',
-                timestamp: Date.now()
-            }, _errOrigin);
-        } catch {
-            // Ignorar errores de cross-origin
-        }
-    }
-    
-    // Registrar en historial de errores global si existe
-    if (globalThis.__vv_errores) {
-        globalThis.__vv_errores.push(errorInfo);
-        // Mantener solo los últimos 100 errores
-        if (globalThis.__vv_errores.length > 100) {
-            globalThis.__vv_errores.shift();
-        }
-    } else {
-        globalThis.__vv_errores = [errorInfo];
-    }
-    
-    // Re-lanzar si se solicita
-    if (reenviar) {
-        throw error;
-    }
-}
-
 // Exponer funciones útiles globalmente para debugging
 if (globalThis.window !== undefined) {
     globalThis.__vv_utils = {
@@ -780,7 +720,6 @@ if (globalThis.window !== undefined) {
         getEnviarMensaje,
         getRegistrarControlador,
         retryUntilAvailable,
-        manejarError,
         canonicalizarModo
     };
 }
@@ -807,6 +746,5 @@ export default {
     getByPath,
     setByPath,
     sonIguales,
-    manejarError,
     canonicalizarModo
 };

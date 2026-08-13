@@ -266,16 +266,6 @@ function enviarHeartbeat() {
 }
 
 /**
- * Registra actividad de un componente
- * @param {string} componenteId - ID del componente
- */
-export function registrarActividadComponente(componenteId) {
-    estadoMonitoreo.componentesActivos.set(componenteId, {
-        ultimaActividad: Date.now()
-    });
-}
-
-/**
  * Maneja errores globales
  * @param {ErrorEvent} event - Evento de error
  */
@@ -320,55 +310,17 @@ export function getEstadoMonitoreo() {
     };
 }
 
-/**
- * Obtiene las alertas activas
- * @param {number} [limite=10] - Número máximo de alertas
- * @returns {Array}
- */
-export function getAlertas(limite = 10) {
-    return estadoMonitoreo.alertas.slice(-limite);
-}
-
-/**
- * Detiene el monitoreo
- */
-export function detenerMonitoreo() {
-    if (estadoMonitoreo.intervaloMetricas) {
-        clearInterval(estadoMonitoreo.intervaloMetricas);
-        estadoMonitoreo.intervaloMetricas = null;
-    }
-    
-    if (estadoMonitoreo.intervaloHeartbeat) {
-        clearInterval(estadoMonitoreo.intervaloHeartbeat);
-        estadoMonitoreo.intervaloHeartbeat = null;
-    }
-    
-    if (globalThis.window !== undefined) {
-        globalThis.removeEventListener('error', manejarErrorGlobal);
-        globalThis.removeEventListener('unhandledrejection', manejarPromiseRechazada);
-    }
-    
-    estadoMonitoreo.inicializado = false;
-    logger.info('[monitoreo] Sistema de monitoreo detenido');
-}
-
 // Exponer para debugging
 if (globalThis.window !== undefined) {
     globalThis.__vv_monitoreo = {
         inicializarMonitoreo,
         registrarMetrica,
-        getEstadoMonitoreo,
-        getAlertas,
-        detenerMonitoreo,
-        registrarActividadComponente
+        getEstadoMonitoreo
     };
 }
 
 export default {
     inicializarMonitoreo,
     registrarMetrica,
-    getEstadoMonitoreo,
-    getAlertas,
-    detenerMonitoreo,
-    registrarActividadComponente
+    getEstadoMonitoreo
 };
