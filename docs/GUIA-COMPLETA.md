@@ -12188,6 +12188,7 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 4. Lista funciones expuestas via `globalThis.fn = fn` que nunca se llaman como `globalThis.fn(...)` en ningún archivo → exposición innecesaria.
 5. Lista exports de módulos (`export function`, `export const`) que ningún archivo importa.
 6. Distingue: huérfano intencional (documentado para uso futuro) vs. huérfano accidental (olvidado).
+7. **Exports/propiedades de objetos `globalThis.X` sin caller real, no solo mensajes:** los pasos de arriba tienden a centrarse en emisor/receptor de mensajería — aplica el mismo rigor a cada `export function` de un módulo y a cada propiedad de un objeto `globalThis.X = {...}` construido a mano (p.ej. `globalThis.funcionesMapa`): para cada una, grep el nombre exacto en todo el proyecto y confirma que existe al menos un llamador real fuera de su propia línea de definición/exportación. Caso real: `dibujarReferencias()` (`js/funciones-mapa.js`) estaba exportada y expuesta en `globalThis.funcionesMapa`, con JSDoc completo y sin ningún llamador real en ningún sitio — ni código, ni handler de mensaje, ni test — invisible mientras la auditoría se centraba en el flujo de mensajes en vez de recorrer, una por una, las propiedades de ese objeto.
 
 ---
 
