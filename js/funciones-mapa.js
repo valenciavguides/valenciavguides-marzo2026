@@ -762,7 +762,6 @@ function crearIconoReferencia(referencia) {
 /**
  * Dibuja en el mapa todos los elementos tipo "referencia" del array de coordenadas.
  * No participa en GPS ni en la secuencia de la aventura.
- * Llamar después de dibujarRutaConMarcadores con el array completo de coordenadas.
  * @param {Array} coordenadasBrutas - Array completo de coordenadas de la aventura
  */
 export function dibujarReferencias(coordenadasBrutas) {
@@ -1381,136 +1380,6 @@ function dibujarTramo(tramo, destacado = false) {
         return null;
     }
 }
-
-/**
- * Dibuja una ruta con marcadores en el mapa.
- * @param {Array} coordenadasHijo2 - Array de coordenadas con propiedades lat, lng.
- * @param {Object} opciones - Opciones adicionales para el dibujo.
- * @param {boolean} opciones.dibujarRuta - Si debe dibujar la polyline de la ruta (default: true en AVENTURA, false en CASA).
- * @param {boolean} opciones.dibujarMarcadores - Si debe crear marcadores 📌/🎯 propios (default: true). Pásalo a
- *   false en cambios de parada/tramo individuales — completarCambioParada() ya crea el suyo, correctamente
- *   gestionado por _ocultarNavegacion()/revelarNavegacion(); los de aquí quedarían huérfanos para siempre.
- */
-export function dibujarRutaConMarcadores(coordenadasHijo2, opciones = {}) {
-    try {
-        if (!Array.isArray(coordenadasHijo2) || coordenadasHijo2.length === 0) {
-            throw new Error('Coordenadas inválidas para dibujar ruta');
-        }
-
-        // Determinar si dibujar ruta basado en modo y opciones
-        const modoActual = estadoMapa.modo || MODOS.CASA;
-        const dibujarRuta = opciones.dibujarRuta ?? (modoActual === MODOS.AVENTURA);
-
-        logger.debug('Dibujando ruta con marcadores', {
-            puntos: coordenadasHijo2.length,
-            modo: modoActual,
-            dibujarRuta
-        });
-
-        // Limpiar ruta anterior
-        limpiarRecursos();
-
-        const puntos = coordenadasHijo2.map(coord => [coord.lat, coord.lng]);
-
-        // Dibujar polyline de la ruta solo si está habilitado
-        if (dibujarRuta) {
-            const peso = getPolylineEscalado();
-            const polyline = _crearPolyline(puntos, {
-                color: '#0077ff',
-                weight: peso.ruta,
-                opacity: 0.8
-            });
-
-            rutasActivas.push(polyline);
-            logger.debug('Polyline de ruta dibujada');
-        } else {
-            logger.debug('Polyline omitida (modo casa o deshabilitado)');
-        }
-
-        // Icono de marcador para inicio/parada — emoji 🎯 (único caso alcanzable: ver más abajo)
-        const crearIconoParada = () => {
-            const iconos = getIconoEscalado();
-            return `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;">🎯</div>`;
-        };
-
-        // opciones.dibujarMarcadores === false: se omite esta sección entera. Ningún flujo
-        // real de mensajería llama hoy a dibujarRutaConMarcadores() — completarCambioParada()
-        // es la única cadena que dibuja en el mapa por cambio de parada/tramo (marcadorParadaActual
-        // / tramo-inicio-ruta / tramo-fin-ruta, gestionados por _ocultarNavegacion()/
-        // revelarNavegacion() según distancia real; ver §4.5 en GUIA-COMPLETA.md). Los
-        // marcadores 'ruta-N'/'ruta-fin' de aquí abajo solo se crean si alguien llama a esta
-        // función DIRECTAMENTE con dibujarMarcadores!==false (hoy, únicamente los tests de
-        // auto-reparación de polyline en 23-polyline-autoreparacion.spec.js) — la función se
-        // conserva completa, con su capacidad original de "resumen de toda la ruta" (múltiples
-        // paradas/tramos a la vez), por si algún día aparece un caller real que la necesite.
-        if (opciones.dibujarMarcadores !== false) {
-            // Agregar marcadores SOLO para inicio, parada y fin (omitir waypoints intermedios)
-            coordenadasHijo2.forEach((coord, index) => {
-                // Omitir waypoints (no queremos marcadores amarillos intermedios)
-                if (coord.tipo === 'waypoint') return;
-
-                const isFirst = index === 0;
-                const isLast = index === coordenadasHijo2.length - 1;
-
-                let markerTitle = coord.nombre || `Punto ${index + 1}`;
-
-                // Si es el punto final, usar icono 🎯
-                if (isLast) {
-                    markerTitle = coord.nombre || 'Fin de ruta';
-                    const iconos = getIconoEscalado();
-                    const flagHtml = `<div style="font-size:${iconos.parada}px;line-height:${iconos.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`;
-                    const markerFin = _crearMarcadorHTML(coord, flagHtml, { className: 'finish-flag-icon', title: markerTitle, zIndex: 700 });
-                    marcadoresParadas.set(`ruta-fin`, markerFin);
-                    return;
-                }
-
-                // Para inicio o paradas, usar emoji 🎯
-                if (coord.tipo === 'inicio' || (coord.tipo === 'tramo' && isFirst)) {
-                    markerTitle = coord.nombre || 'Inicio';
-                    // Usar emoji 📌 para punto de inicio
-                    const iconosInicio = getIconoEscalado();
-                    const startHtml = `<div style="font-size:${iconosInicio.inicio}px;line-height:${iconosInicio.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`;
-                    const markerInicio = _crearMarcadorHTML(coord, startHtml, { className: 'start-flag-icon', title: markerTitle, zIndex: 700 });
-                    marcadoresParadas.set(`ruta-${index}`, markerInicio);
-                    return;
-                } else if (coord.tipo === 'parada') {
-                    markerTitle = coord.nombre || `Parada ${coord.id}`;
-                }
-
-                const marker = _crearMarcadorHTML(coord, crearIconoParada(), {
-                    className: 'custom-marker-emoji',
-                    title: markerTitle,
-                    zIndex: 600
-                });
-                marcadoresParadas.set(`ruta-${index}`, marker);
-            });
-        } else {
-            logger.debug('dibujarRutaConMarcadores: marcadores omitidos (cambio de parada/tramo individual — completarCambioParada() ya dibuja el suyo propio)');
-        }
-
-        // Ajustar zoom para mostrar toda la ruta (fitBounds)
-        if (puntos.length > 0 && _mapaInstance && opciones.ajustarZoom !== false) {
-            try {
-                const bounds = _bboxDesdePuntos(puntos);
-                _mapaInstance.fitBounds(bounds, {
-                    padding: 50, // MapLibre acepta un número único (padding simétrico)
-                    maxZoom: 16,
-                    duration: 500 // milisegundos
-                });
-                logger.debug('Zoom ajustado para mostrar toda la ruta');
-            } catch (boundsError) {
-                logger.warn('Error ajustando zoom de la ruta:', boundsError);
-            }
-        }
-
-        logger.info('Ruta dibujada con éxito', { puntos: coordenadasHijo2.length });
-        return true;
-    } catch (error) {
-        logger.error('Error al dibujar ruta con marcadores:', error);
-        return false;
-    }
-}
-
 
 /**
  * Limpia recursos del mapa basándose en el estado actual
@@ -3219,7 +3088,6 @@ globalThis.funcionesMapa = {
     diagnosticarMapa,
     isMapInitialized,
     limpiarRecursos,
-    dibujarRutaConMarcadores,
     dibujarReferencias,
     limpiarReferencias,
     registrarManejadoresMensajes,

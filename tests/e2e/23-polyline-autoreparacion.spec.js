@@ -13,11 +13,17 @@
  * engancha al evento 'load' del mapa y crea la capa real en cuanto el estilo está listo,
  * aplicando cualquier setLatLngs/setLatLng/setStyle que se hubiera llamado mientras tanto.
  *
- *   PR-1  Con el estilo aún no cargado, dibujarRutaConMarcadores({dibujarRuta:true}) NO
+ * Los 3 tests llaman a dibujarPolylineNavegacion() (js/funciones-mapa.js) — la función
+ * real que usa el botón de ubicación en producción (codigo-padre.html, `await import(...)`,
+ * mismo patrón que aquí) — en vez de dibujarRutaConMarcadores(), que ya no tiene ningún
+ * caller real en la app (se retiró junto a la Cadena B de dibujado de marcadores; ver
+ * GUIA-COMPLETA §4.5) y ha sido eliminada de js/funciones-mapa.js.
+ *
+ *   PR-1  Con el estilo aún no cargado, dibujarPolylineNavegacion({origen,destino}) NO
  *         llama a addLayer/addSource todavía — pero en cuanto el mapa dispara 'load',
  *         la capa real se crea sola, sin ninguna acción adicional del código que llama.
- *   PR-2  Una llamada a setStyle() hecha SOBRE el proxy antes de que exista la capa real
- *         no se pierde — se aplica en cuanto la capa real se crea.
+ *   PR-2  Una llamada a .setStyle() hecha SOBRE el objeto devuelto (el proxy, mientras la
+ *         capa real no existe) no se pierde — se aplica en cuanto la capa real se crea.
  *   PR-3  Si el estilo YA está cargado en el momento de crear la polyline, se comporta
  *         exactamente igual que antes (sin cambios) — la capa real se crea al instante,
  *         sin esperar a ningún evento.
@@ -41,7 +47,8 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
   });
 
   test('PR-1. Estilo no listo: la capa real se crea sola en cuanto el mapa dispara \'load\'', async ({ page }) => {
-    const resultado = await page.evaluate(() => {
+    const resultado = await page.evaluate(async () => {
+      const mod = await import('/js/funciones-mapa.js');
       const listeners = {};
       const fakeMap = {
         _styleLoaded: false,
@@ -61,10 +68,12 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
       };
 
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
-      globalThis.funcionesMapa.dibujarRutaConMarcadores(
-        [{ lat: 39.4795, lng: -0.3758 }, { lat: 39.4799, lng: -0.3762 }],
-        { dibujarRuta: true }
-      );
+      // dibujarPolylineNavegacion() es la función real que usa el botón de ubicación en
+      // producción (codigo-padre.html) — crea la polyline vía _crearPolyline() por debajo.
+      mod.dibujarPolylineNavegacion({
+        origen: { lat: 39.4795, lng: -0.3758 },
+        destino: { lat: 39.4799, lng: -0.3762 }
+      });
 
       const antesDeLoad = { addLayer: fakeMap._addLayerCalls.length, addSource: fakeMap._addSourceCalls.length };
 
@@ -82,11 +91,8 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
     expect(resultado.despuesDeLoad.addSource, 'Al disparar \'load\', la fuente real debe crearse sola').toBeGreaterThan(0);
   });
 
-  test('PR-2. revelarNavegacion() llamado antes de \'load\' (setStyle sobre el proxy) no se pierde — se aplica sobre la capa real', async ({ page }) => {
+  test('PR-2. dibujarPolylineNavegacion() llamado antes de \'load\' (setStyle sobre el proxy) no se pierde — se aplica sobre la capa real', async ({ page }) => {
     const resultado = await page.evaluate(async () => {
-      // revelarNavegacion no está en el objeto globalThis.funcionesMapa (solo un subconjunto
-      // de la API se expone ahí) — se importa el módulo directamente para llegar a ella,
-      // igual que haría cualquier otro código que la importe estáticamente con ESM.
       const mod = await import('/js/funciones-mapa.js');
       const listeners = {};
       const paintCalls = [];
@@ -109,16 +115,18 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
 
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
 
-      // dibujarRutaConMarcadores crea la polyline (opacidad de creación 0.8) y la guarda
-      // internamente en rutasActivas — con el estilo aún sin cargar, es el proxy diferido.
-      globalThis.funcionesMapa.dibujarRutaConMarcadores(
-        [{ lat: 39.4795, lng: -0.3758 }, { lat: 39.4799, lng: -0.3762 }],
-        { dibujarRuta: true }
-      );
+      // dibujarPolylineNavegacion() crea la polyline (opacidad de creación 0.7 por defecto)
+      // y devuelve el objeto — con el estilo aún sin cargar, es el proxy diferido de
+      // _crearCapaDiferida(), con su propio setStyle() que encola la llamada.
+      const linea = mod.dibujarPolylineNavegacion({
+        origen: { lat: 39.4795, lng: -0.3758 },
+        destino: { lat: 39.4799, lng: -0.3762 }
+      });
 
-      // revelarNavegacion() es la función real que, en producción, llama setStyle({opacity:0.7})
-      // sobre cada elemento de rutasActivas — aquí se dispara ANTES de que exista la capa real.
-      mod.revelarNavegacion();
+      // .setStyle() sobre el proxy, exactamente como haría cualquier caller real que
+      // quisiera cambiar su opacidad más tarde — aquí se dispara ANTES de que exista la
+      // capa real, así que debe quedar encolado en vez de perderse.
+      linea.setStyle({ opacity: 0.7 });
 
       const paintAntesDeLoad = paintCalls.length;
 
@@ -132,11 +140,12 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
 
     expect(resultado.paintAntesDeLoad, 'setPaintProperty no puede llamarse sobre una capa que no existe todavía').toBe(0);
     expect(resultado.layerCreada, 'La capa real debe haberse creado tras \'load\'').toBe(true);
-    expect(resultado.ultimaOpacidadAplicada, 'La opacidad 0.7 pedida por revelarNavegacion() antes de \'load\' debe aplicarse sobre la capa real en cuanto existe, no perderse').toBe(0.7);
+    expect(resultado.ultimaOpacidadAplicada, 'La opacidad 0.7 pedida sobre el proxy antes de \'load\' debe aplicarse sobre la capa real en cuanto existe, no perderse').toBe(0.7);
   });
 
   test('PR-3. Estilo ya cargado: la capa real se crea al instante, sin esperar a \'load\'', async ({ page }) => {
-    const resultado = await page.evaluate(() => {
+    const resultado = await page.evaluate(async () => {
+      const mod = await import('/js/funciones-mapa.js');
       const fakeMap = {
         _addLayerCalls: [],
         isStyleLoaded() { return true; },
@@ -150,10 +159,10 @@ test.describe('PR — Auto-reparación de polyline/círculo cuando el estilo no 
       };
 
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
-      globalThis.funcionesMapa.dibujarRutaConMarcadores(
-        [{ lat: 39.4795, lng: -0.3758 }, { lat: 39.4799, lng: -0.3762 }],
-        { dibujarRuta: true }
-      );
+      mod.dibujarPolylineNavegacion({
+        origen: { lat: 39.4795, lng: -0.3758 },
+        destino: { lat: 39.4799, lng: -0.3762 }
+      });
 
       return { addLayer: fakeMap._addLayerCalls.length };
     });
