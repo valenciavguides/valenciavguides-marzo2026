@@ -6887,7 +6887,7 @@
                     (globalThis.logger || console).debug(`${logPrefix} Aventura no seleccionada aún, omitiendo envío de datos de paradas a hijo2`);
                     return;
                 }
-                
+
                 if (DATOS_PADRE[av] && DATOS_PADRE[av][id]) {
                     const paradasNormalizadas = normalizarParadas_S1(DATOS_PADRE[av][id].elementosIDpadre || []);
                     if (typeof enviarMensaje_S1 === 'function') {
@@ -7796,7 +7796,7 @@
                 (globalThis.logger || console).error(`${logPrefix} ❌ CRITICAL: globalThis.estadoPadre no existe en Script 2 - Script 1 no se ejecutó correctamente`);
                 throw new Error('estadoPadre debe ser inicializado por Script 1');
             }
-            
+
             // Asegurar propiedades mínimas sin destruir el objeto existente
             if (!globalThis.estadoPadre.hijosInicializados) globalThis.estadoPadre.hijosInicializados = new Set();
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
@@ -8989,12 +8989,12 @@ await _comprobarReanudacionAventura(logPrefix);
         async function distribuirDatosAventura(aventura, idioma) {
             const logPrefix = '[PADRE][DISTRIBUIR_DATOS]';
             (globalThis.logger || console).info(`${logPrefix} 🔥 INICIANDO distribución de ${aventura} (${idioma}) a todos los hijos...`);
-            
+
             try {
                 // USAR ESTADO GLOBAL CORRECTO
                 const estadoPadre = globalThis.estadoPadre || globalThis.estadoScript2 || {};
                 const hijosInicializados = estadoPadre.hijosInicializados || new Set();
-                
+
                 // DIAGNÓSTICO: Ver estado de datos centralizados
                 (globalThis.logger || console).info(`${logPrefix} 📊 Estado datos centralizados:`, {
                     DATOS: !!globalThis.__vv_DATOS_AVENTURAS,
@@ -9101,7 +9101,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 (globalThis.logger || console).success(`${logPrefix} ✅ Distribución completada`);
                 return { pospuesto: false, resultados };
-                
+
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error distribuyendo datos:`, error);
                 throw error;
@@ -9110,7 +9110,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
         // Exponer globalmente
         globalThis.distribuirDatosAventura = distribuirDatosAventura;
-        
+
         // Resolver promesa de espera
         if (_resolveDistribuirReady) {
             _resolveDistribuirReady();
@@ -11794,7 +11794,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).success(`${logPrefix} ✅ hijo2 confirmó: ${totalCargadas} coordenadas cargadas (${aventura}/${idioma})`);
                     if (!estado.seleccion) estado.seleccion = {};
                     estado.seleccion.coordenadasCargadas = true;
-                    
+
                     // 🔥 CRÍTICO: Dibujar marcadores y polylines ahora que tenemos los datos
                     try {
                         const coords = globalThis.__vv_DATOS_AVENTURAS?.[aventura]?.['coordenadas-hijo2.html']?.coordenadas || [];
@@ -11885,7 +11885,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const { idioma, timestamp } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Idioma seleccionado: ${idioma} desde ${mensaje.origen}`);
-                
+
                 // DEBUG: Verificar estado
                 (globalThis.logger || console).debug(`${logPrefix} DEBUG estado:`, typeof estado, estado);
                 (globalThis.logger || console).debug(`${logPrefix} DEBUG globalThis.estadoPadre:`, typeof globalThis.estadoPadre, !!globalThis.estadoPadre);
@@ -12322,7 +12322,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const { aceptados, timestamp } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Términos aceptados: ${aceptados}`);
-                
+
                 // DEBUG: Verificar estado
                 (globalThis.logger || console).debug(`${logPrefix} DEBUG estado disponible:`, !!estado, typeof estado);
 
