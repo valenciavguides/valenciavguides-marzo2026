@@ -3161,7 +3161,7 @@
                         'z-index:1000030;display:none;flex-direction:column-reverse;align-items:center;gap:clamp(3px,0.8vmin,6px);';
 
                     const _btnPrincipal = document.createElement('div');
-                    _btnPrincipal.style.cssText = _BTN_STYLE_MAIN + "background-image:url('imagenes/imagenes-aplicación/mapa-cambio-modo.png');";
+                    _btnPrincipal.style.cssText = _BTN_STYLE_MAIN;
                     _btnPrincipal.title = 'Cambiar tipo de mapa';
                     _selectorDiv.appendChild(_btnPrincipal);
 
@@ -3209,6 +3209,14 @@
 
                     function _cerrarDropdown() { _dropdownAbierto = false; _dropdownDiv.style.maxHeight = '0'; }
 
+                    // El botón principal (colapsado) muestra la miniatura del modo ACTIVO, no un
+                    // icono genérico — así el usuario ve de un vistazo qué tipo de mapa tiene
+                    // puesto sin necesidad de abrir el desplegable.
+                    function _actualizarBtnPrincipal() {
+                        const modo = _MODOS_MAPA.find(m => m.id === _modoActivo);
+                        _btnPrincipal.style.backgroundImage = `url('${modo.thumb}')`;
+                    }
+
                     function _cambiarModo(nuevoId) {
                         if (nuevoId === _modoActivo) return;
                         const actual = _MODOS_MAPA.find(m => m.id === _modoActivo);
@@ -3233,8 +3241,10 @@
                         });
 
                         _modoActivo = nuevoId;
+                        _actualizarBtnPrincipal();
                     }
 
+                    _actualizarBtnPrincipal();
                     document.body.appendChild(_selectorDiv);
 
                     // Recalcular tamaño del texto de calles al cambiar el tamaño de ventana/pantalla
@@ -7288,6 +7298,24 @@
                 const resultado = await manejarCambioModo(estado, mensaje);
                 if (resultado.exito) {
                     (globalThis.logger || console).success(`${logPrefix} Cambio de modo exitoso: ${resultado.modoActual}`);
+
+                    // Sincronizar vv_aventura_iniciada.modo con el modo real — antes de este
+                    // fix solo se escribía una vez, en la activación inicial (línea ~12245),
+                    // así que cualquier cambio de modo hecho en caliente (activar dev mode vía
+                    // Factor 2, alternar CASA↔AVENTURA con el botón GPS de hijo5) se perdía al
+                    // cerrar y reabrir la app: _activarModoRest() siempre restauraba el modo de
+                    // la primera activación, nunca el real de justo antes de cerrar.
+                    try {
+                        const _aventuraGuardadaRaw = localStorage.getItem('vv_aventura_iniciada');
+                        if (_aventuraGuardadaRaw) {
+                            const _aventuraGuardada = JSON.parse(_aventuraGuardadaRaw);
+                            if (_aventuraGuardada && _aventuraGuardada.modo !== modo) {
+                                _aventuraGuardada.modo = modo;
+                                localStorage.setItem('vv_aventura_iniciada', JSON.stringify(_aventuraGuardada));
+                                (globalThis.logger || console).debug(`${logPrefix} vv_aventura_iniciada.modo sincronizado a '${modo}'`);
+                            }
+                        }
+                    } catch (persistErr) { (globalThis.logger || console).debug('[VV]:', persistErr?.message); } // NOSONAR
 
                     // Restaurar el progreso real al volver a AVENTURA — ver
                     // estado.paradaRealCongelada más arriba. Se dispara SIEMPRE que hay un
