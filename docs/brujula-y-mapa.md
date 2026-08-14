@@ -1,6 +1,6 @@
 # Brújula y mapa — diagnóstico, resolución y diseño pendiente
 
-> Documento de trabajo. La sección 1 narra la investigación tal como ocurrió, incluida una hipótesis descartada por error que luego resultó ser la causa real (§1a) — se deja así, sin reescribir la historia, porque el propio recorrido es útil para la siguiente sesión. El bug de rotación del mapa (§1a) y el radio de activación (§2 de la sesión de arreglo) **ya están corregidos e implementados** — ver §1a y §6. Lo único que sigue pendiente de diseñar es el modo de mapa orientado al rumbo (§4).
+> Documento de trabajo. La sección 1 narra la investigación tal como ocurrió, incluida una hipótesis descartada por error que luego resultó ser la causa real (§1a) — se deja así, sin reescribir la historia, porque el propio recorrido es útil para la siguiente sesión. El bug de rotación del mapa (§1a), el radio de activación (§2 de la sesión de arreglo) y el modo de mapa orientado al rumbo (§4) **ya están corregidos e implementados** — ver §1a, §4 y §6. Lo único que queda pendiente son los 3 iconos definitivos del menú `#brujula-modo` (§4.4), a cargo del usuario — no requiere tocar lógica.
 
 ---
 

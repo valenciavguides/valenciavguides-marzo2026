@@ -95,7 +95,7 @@ La aplicación soporta **12 idiomas**: español, inglés, francés, italiano, ne
 Actualmente hay **7 aventuras** definidas en `js/indice-aventuras.js`, todas con `disponible: true` (aparecen en la pantalla de selección): **Aventuras 1, 2, 3, 4, 5, Fallas y 34km**. `disponible: true` solo controla si la aventura es seleccionable — no garantiza que el contenido esté completo, y el nivel de completitud varía mucho según el tipo de contenido:
 
 - **Rutas GPS** (`coordenadas-aventuras.js`): completas en las 7 aventuras, incluidas las referencias visuales (una entrada `tipo:"referencia"` por cada pin numerado del mapa de cada aventura — ver §26.10).
-- **Audios narrados** (`audios-aventuras.js`, campo `file`): la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma en las 7 aventuras. **11 de los 12 idiomas** (todos salvo español) tienen `file:""` en el 100% de sus entradas (verificado por conteo exhaustivo: 0 excepciones en 5.578 entradas no-español repartidas en las 7 aventuras) — sin audio real, el sistema lo gestiona sin romper el flujo (`file:""` → sin reproducción, ver §7.4). **El español es distinto y no está simplemente "más avanzado":** sus `file` nunca están vacíos (598 entradas en total, entre 47 en Aventura Fallas y 237 en Av34km según la aventura — verificado), pero todas apuntan solo a 2 ficheros compartidos (`01-Intro-ESPAÑOL-1.mp3`/`02-Intro-ESPAÑOL-2.mp3`, en `audios-aventuras/español/`) — no hay ninguna narración distinta por parada todavía, y los subdirectorios por aventura donde debería vivir esa narración real (`audios-aventuras/español/Av1/`, etc.) existen pero están vacíos. `_resolverAudioData()` (`codigo-padre.html`) no distingue placeholder de contenido real — simplemente reenvía el `file` que encuentre, así que **hoy un usuario en español oye ese mismo clip de introducción repetido en cada parada de cada aventura**, no silencio. Ver §12 para el detalle completo por aventura.
+- **Audios narrados** (`audios-aventuras.js`, campo `file`): la estructura de metadatos (título, id) existe con el mismo número de entradas en cada idioma en las 7 aventuras. **11 de los 12 idiomas** (todos salvo español) tienen `file:""` en el 100% de sus entradas (verificado por conteo exhaustivo: 0 excepciones en 6.578 entradas no-español repartidas en las 7 aventuras — 598 entradas × 11 idiomas) — sin audio real, el sistema lo gestiona sin romper el flujo (`file:""` → sin reproducción, ver §7.4). **El español es distinto y no está simplemente "más avanzado":** sus `file` nunca están vacíos (598 entradas en total, entre 47 en Aventura Fallas y 237 en Av34km según la aventura — verificado), pero todas apuntan solo a 2 ficheros compartidos (`01-Intro-ESPAÑOL-1.mp3`/`02-Intro-ESPAÑOL-2.mp3`, en `audios-aventuras/español/`) — no hay ninguna narración distinta por parada todavía, y los subdirectorios por aventura donde debería vivir esa narración real (`audios-aventuras/español/Av1/`, etc.) existen pero están vacíos. `_resolverAudioData()` (`codigo-padre.html`) no distingue placeholder de contenido real — simplemente reenvía el `file` que encuentre, así que **hoy un usuario en español oye ese mismo clip de introducción repetido en cada parada de cada aventura**, no silencio. Ver §12 para el detalle completo por aventura.
 - **Textos narrativos** (párrafos): completos en las 7 aventuras y los 12 idiomas — ver §14.
 - **Retos**: completos en las 7 aventuras y los 12 idiomas.
 
@@ -681,7 +681,7 @@ flowchart TD
 
 ### 3.4. Modo CASA vs modo AVENTURA — qué cambia
 
-La app siempre arranca en **modo CASA** (`estado.modo.actual = 'casa'`). El usuario pasa a **modo AVENTURA** cuando activa el GPS desde hijo5. Desde ese momento, el padre gestiona los dos modos de forma radicalmente diferente. La misma acción — cambiar de parada — produce efectos distintos según el modo activo.
+La app siempre arranca en **modo CASA** (`estado.modo.actual = 'casa'`), antes de que el usuario haya elegido ninguna aventura. Al completar el onboarding y confirmar el inicio (`AVENTURA_ACTIVADA`), el padre pasa directo a **modo AVENTURA** en producción — no hace falta ningún botón; hijo5 y su botón GPS son exclusivos del modo DEV (ver §9.5/§24). Desde que el modo cambia, el padre gestiona los dos modos de forma radicalmente diferente. La misma acción — cambiar de parada — produce efectos distintos según el modo activo.
 
 **Resumen ejecutivo:**
 
@@ -847,7 +847,7 @@ flowchart TD
     C -- No --> D["Sin controles de puzzle\notros tipos de reto no muestran ⏸️▶️🔄"]
     C -- Sí --> E["⏸️▶️ controles en puzzle.html\n🔄 Reiniciar puzzle\n(mismo componente que P6/hijo4, ver §13)"]
 
-    G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\n11-50m / 51-2000m / >2000m"}
+    G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\n16-50m / 51-2000m / >2000m"}
     G2 --> H["Padre muestra la pantalla\nde distancia que corresponda (§31.4)\nBotón ✖ para cerrar"]
     H --> I([Usuario pulsa ✖])
     I --> J["El overlay se cierra\nGPS.RESTRINGIDO sigue llegando\nsi el usuario sigue fuera de rango\n→ el aviso puede reaparecer (snooze, §31.4)"]
@@ -971,7 +971,7 @@ flowchart TD
     C -- tipo: parada --> D["Solo 🎯 de la parada visible"]
     C -- tipo: tramo --> E["Tramo normal #3388ff 4px\n+ Tramo destacado #ff4500 6px\n📌🎯 + polyline, con auto-reparación\nsi el estilo del mapa aún no cargó (§4.6a)"]
 
-    L([Usuario pulsa btn-ubicación]) --> M["dibujarPolylineNavegacion()\nverde #3eff3f discontinua 2px\ncon waypoints del tramo\nfuerza _ocultarNavegacion() del\ntrazado persistente de inmediato"]
+    L([Usuario pulsa btn-ubicación]) --> M["dibujarPolylineNavegacion()\nverde #3eff3f discontinua 7px\ncon waypoints del tramo\nfuerza _ocultarNavegacion() del\ntrazado persistente de inmediato"]
     M --> N{"Cada lectura GPS:\n¿≤50m de .inicio (tramo)\no del punto (parada)?\n(ver §4.7d)"}
     N -- "sí" --> O["limpiarPolylineNavegacion()\npolyline + 🎯 eliminados juntos"]
     N -- "no" --> M
@@ -1287,7 +1287,7 @@ Cubierto por `tests/e2e/22-carteles-informativos.spec.js`, prueba CI-6: dispara 
 
 Ver detalle completo (incluida la verificación de alcanzabilidad previa al refuerzo) en la memoria `project_audit_promise_boolean_pendiente`.
 
-**Contenido:** dos líneas de texto sobre fondo `#fff8e7` (mismo celeste-crema que el panel de texto en `btn-imagen` de hijo2), borde `clamp(2.5px,0.6vmin,4px)` sólido `#FF8C00` (el naranja estándar de toda la app — badges, selector de mapa, círculo de activación de 10m), esquinas redondeadas `0.75rem`:
+**Contenido:** dos líneas de texto sobre fondo `#fff8e7` (mismo celeste-crema que el panel de texto en `btn-imagen` de hijo2), borde `clamp(2.5px,0.6vmin,4px)` sólido `#FF8C00` (el naranja estándar de toda la app — badges, selector de mapa, círculo de activación de 15m), esquinas redondeadas `0.75rem`:
 
 - Línea 1 (eyebrow, mayúsculas, `#8b5e1a`): el nombre de la aventura (`INDICE_AVENTURAS[aventuraSeleccionada].nombre`).
 - Línea 2 (`#333`): el mensaje combinado, construido a partir de `TRADUCCIONES_CARTEL_TRANSICION` (`js/traducciones-ui.js`, 12 idiomas) — plantilla `terminaParada`/`terminaTramo` según `tipo1`, con `{nombre}` sustituido por `nombre1` (escapado con `_escapar()`, previene inyección HTML si un nombre de parada llegara a contener caracteres especiales); si hay elemento siguiente, se concatena ` — ` + plantilla `empiezaParada`/`empiezaTramo` según `tipo2` con `nombre2`. En español: *"Ha terminado la parada Torres de Serranos — va a empezar la parada Portal de la Mar"*. Todas las plantillas usan registro formal ("usted"/equivalente por idioma — mismo criterio que `TRADUCCIONES_FINALIZACION`, ver más abajo) y frases naturales por idioma, no traducciones literales palabra por palabra (p. ej. polaco usa una construcción impersonal — "następny przystanek: {nombre}" — en vez de un pronombre de género que no se puede inferir).
@@ -1545,7 +1545,7 @@ El padre nunca usa polling para esperar que un hijo esté listo. Usa **Promises*
 | Hijo 1 | `hijo1-opciones` | `extrainfo-hijo1.html` | No | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Panel lateral izquierdo con botón "Más opciones". Despliega iconos de acceso a contenido complementario (temporizador, vídeos, etc.). |
 | Hijo 2 | `hijo2` | `coordenadas-hijo2.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Gestiona 6 botones de navegación. Recibe `distanciaAlDestino` de `funciones-mapa.js` (el Haversine lo hace el padre), compara contra umbral, envía `LLEGADA_DETECTADA` y gestiona overlay "fuera de rango". Sin mapa propio — lo renderiza `codigo-padre.html` vía `funciones-mapa.js`. |
 | Hijo 3 | `hijo3` | `audio-hijo3.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()` | Reproductor de audio. Recibe del padre qué audio reproducir y lo controla. |
-| Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()`. **No** forma parte del `Promise.all` de `AVENTURA_ACTIVADA` | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
+| Hijo 4 | `hijo4` | `retos-hijo4.html` | **Sí** | `SELECCION.P14_MOSTRADA` → `cargarRestoDeiframes()`. En la ruta fallback de `AVENTURA_ACTIVADA` (sin pre-carga en P14) sí forma parte del `Promise.all` de recarga y del posterior `_esperarHijosCargados` (hijo1-hijo5, ver §9.11) | Muestra retos (preguntas de opción múltiple, texto libre, puzzles) y valida las respuestas. |
 | Hijo 5 | `hijo5` | `boton-casa-hijo5.html` | No | `SELECCION.P14_MOSTRADA` → `cargarHijoCasa()` (si ya está cargado, solo espera `HIJO_LISTO`) | **Solo desarrollo — no aparece en la PWA final.** Herramienta de prueba para simular el modo CASA desde escritorio. Contiene el botón GPS (🛰️) que envía `SISTEMA.CAMBIO_MODO` al padre para alternar entre modos CASA y AVENTURA. Visible solo cuando el modo DEV está activo (`globalThis._devModeActivo = true`, ver §24); permanece oculto (`display:none`) en todo momento normal. |
 | Hijo 6 | `hijo6-chat` | `chat-hijo6.html` | No | **Lazy** — `src=""` en HTML; se asigna al primer click en `#btn-chat-soporte` | Asistente de soporte FAQ en acordeón. Accesible desde un botón flotante propio del padre. |
 
@@ -1677,7 +1677,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    PADRE["codigo-padre.html (~13.400 líneas)"]
+    PADRE["codigo-padre.html (~13.700 líneas)"]
     SEL["seleccion — En-busca-del-tesoro.html"]
     PZ["puzzle.html\nsub-iframe interno de seleccion"]
     H1["hijo1-opciones — extrainfo-hijo1.html"]
@@ -1691,7 +1691,7 @@ graph TD
     CONST["js/constants.js"]
     CFG["js/config.js"]
     APP["js/app.js"]
-    FMAP["js/funciones-mapa.js (~4.000 líneas)"]
+    FMAP["js/funciones-mapa.js (~3.200 líneas)"]
     CP["js/controladores-padre.js"]
     SRV["js/server.js (servidor estático)"]
 
@@ -1721,7 +1721,7 @@ graph TD
 
 ### Diagrama de secuencia — Reanudación de aventura
 
-Cuando el usuario vuelve a abrir la app y existe `vv_aventura_iniciada` en `localStorage`, el padre restaura el progreso y reposiciona cada hijo en la parada guardada.
+Cuando el usuario vuelve a abrir la app y existe `vv_aventura_iniciada` en `localStorage`, el padre restaura el progreso y reposiciona cada hijo en la parada guardada. **El modo restaurado no es siempre CASA** — `_activarModoRest()` usa `datosGuardados.modo` (el campo persistido junto con `aventura`/`idioma`, ver §9.10) como fuente de verdad: en una sesión guardada en producción ese campo es siempre `'aventura'` (§9.5), así que el caso real y común es reanudar directo en modo AVENTURA, sin pasar por CASA ni por hijo5 en ningún momento. El diagrama de abajo muestra el caso CASA (exclusivo del modo DEV, ver §24) porque es el que tiene más pasos que mostrar (hijo5 entra en juego); para AVENTURA, el mismo `CAMBIO_MODO` se envía con `modo: aventura` a los mismos hijos, hijo5 permanece oculto, y no hay ningún botón que pulsar — la reanudación termina ahí.
 
 ```mermaid
 sequenceDiagram
@@ -1746,7 +1746,7 @@ sequenceDiagram
         P->>H5: NAVEGACION.CAMBIO_PARADA { parada guardada }
     end
 
-    par CAMBIO_MODO CASA a todos los hijos
+    par CAMBIO_MODO (datosGuardados.modo) a todos los hijos — caso CASA (solo dev) ilustrado aquí
         P->>H1: SISTEMA.CAMBIO_MODO { modo: casa }
         P->>H2: SISTEMA.CAMBIO_MODO { modo: casa }
         P->>H3: SISTEMA.CAMBIO_MODO { modo: casa, resetea audio }
@@ -1757,7 +1757,7 @@ sequenceDiagram
     P->>H2: solicitarCoordenadasAHijo2(elementoActual)
     P->>H3: solicitarAudioAHijo3(audio_id, autoplay=false)
 
-    Note over U,H5: Sistema en MODO CASA con parada restaurada.<br/>Usuario pulsa botón GPS (hijo5 [DEV]) para activar AVENTURA.<br/>hijo5 solo es visible cuando el modo DEV está activo (globalThis._devModeActivo = true).
+    Note over U,H5: Caso CASA (dev, minoritario): hijo5 visible, usuario pulsa botón GPS para pasar a AVENTURA.<br/>Caso AVENTURA (producción, el real y común): hijo5 permanece oculto, GPS ya activo con validaciones — la reanudación termina aquí, sin ninguna pulsación.
 ```
 
 > Cuándo y cómo se activa el modo DEV que hace visible a hijo5: ver §24.
@@ -1766,7 +1766,7 @@ sequenceDiagram
 
 ## 6. El código padre: el cerebro de todo
 
-El archivo `codigo-padre.html` (~11.400 líneas) es el **orquestador** de toda la aplicación: coordina la carga de iframes, gestiona el estado global, distribuye mensajes, ejecuta el GPS y toma todas las decisiones de navegación.
+El archivo `codigo-padre.html` (~13.700 líneas) es el **orquestador** de toda la aplicación: coordina la carga de iframes, gestiona el estado global, distribuye mensajes, ejecuta el GPS y toma todas las decisiones de navegación.
 
 ### Responsabilidades del padre
 
@@ -1835,7 +1835,7 @@ Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el 
 - `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `{ idioma, aventura, timestamp }` en `estado.seleccion`; **no carga iframes**
 - `SELECCION.CODIGO_VALIDADO` (P13, solo prod) → handler vacío — registra con un log que el código fue validado; nada más
 - `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; después: `activarGPS()` siempre, en prod y en dev; si GPS deniega → overlay + abort
-- `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-5 como fallback; siempre distribuye datos y activa modo CASA
+- `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-5 como fallback; siempre distribuye datos; el modo final depende de `_devModeActivo` — CASA solo en modo DEV, AVENTURA directo en cualquier otro caso (el real en producción, ver §9.5)
 
 ```mermaid
 flowchart TD
@@ -1896,7 +1896,8 @@ La aplicación tiene dos modos, cuyos valores corresponden a las constantes `MOD
 | Origen | Cuándo | Razón (`razon`) |
 |--------|--------|----------------|
 | Padre (`_hijoListo_onTodosListos`) | Al completar la inicialización de todos los hijos críticos | `'sincronizacion_inicial'` |
-| hijo5 (botón GPS 🛰️) | Al pulsar el botón para iniciar AVENTURA o desactivar modo DEV (ver §24) | `'cambio_modo_global'`, `origen: 'boton-gps'` |
+| **Padre (producción — el caso real y común)** | `_hdl_SELECCION_AVENTURA_ACTIVADA` cuando `_devModeActivo` es falso (cualquier usuario que no haya activado el modo DEV) — aventura arranca directamente en AVENTURA, GPS con validaciones, hijo5 nunca se hace visible (ver §9.5) | llamada interna fire-and-forget vía `globalThis._vv_triggerCambioModo(MODOS.AVENTURA)` |
+| hijo5 (botón GPS 🛰️) | Al pulsar el botón para iniciar AVENTURA o desactivar modo DEV (ver §24) — únicamente alcanzable en modo DEV, porque hijo5 permanece oculto en producción | `'cambio_modo_global'`, `origen: 'boton-gps'` |
 | Reanudación automática | Al detectar `vv_aventura_iniciada` en `localStorage` | payload incluye `restaurado: true` |
 | Padre (modo DEV, ver §24) | `_hdl_SELECCION_AVENTURA_ACTIVADA` cuando `_devModeActivo === true` — aventura arranca directamente en CASA sin GPS | llamada interna via `globalThis._vv_triggerCambioModo(MODOS.CASA)` |
 | Padre (modo DEV, ver §24) | `_hdl_CONTROL_DEV_CINCO_TOQUES` con código correcto — vuelve a CASA desde cualquier modo activo | llamada interna via `globalThis._vv_triggerCambioModo(MODOS.CASA)` |
@@ -2279,7 +2280,7 @@ flowchart TD
     P14 --> P15{P15\nReto R-2\nSÍ / NO}
     P15 -- SÍ\nAVENTURA_ACTIVADA\npadre fast-path si iframes ya cargados --> P16[P16\nLogos · segundo spin]
     P15 -- NO\nreiniciarSeleccion --> P1([P1\nBienvenida logo])
-    P16 --> FIN([Aventura iniciada\nMODO CASA activo])
+    P16 --> FIN([Aventura iniciada\nMODO AVENTURA en producción · MODO CASA solo en dev, ver §9.5])
 ```
 
 > El nodo `DEV_CHECK` es el modo DEV Factor 1 — detalle completo en §24.
@@ -2308,7 +2309,7 @@ flowchart TD
 | `SELECCION.PREPARAR_HIJOS` | Al confirmar aventura en P9 | `{ idioma, aventura, timestamp }` |
 | `SELECCION.DEV_MODE_TOGGLE` | Al activar el modo DEV con su código en el modal de P1 (ver §24) | `{}` — el padre (IIFE Script 1) pone `_devModeActivo = true` |
 | `SELECCION.CODIGO_VALIDADO` | Al pulsar "Iniciar" en P13 con activación aceptada por el backend (modo `'api'`) o, hoy sin backend (modo `'local'`), nunca — ver §16.2 — y GPS no denegado (via `_irANormativa()`). **En modo DEV (ver §24) P13 se salta** — nunca se envía `CODIGO_VALIDADO`; `mostrar()` redirige directamente a P14 sin pasar por `_irANormativa()`. | `{ aventura, idioma, email, timestamp }` — el handler padre (`_hdl_SELECCION_CODIGO_VALIDADO`) es no-op; la carga real la hace `P14_MOSTRADA` |
-| `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P15 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` — el padre usa fast-path si iframes ya cargados desde P13 |
+| `SELECCION.AVENTURA_ACTIVADA` | Al confirmar respuesta afirmativa en P15 (Reto R-2) | `{ aventura, idioma, terminosAceptados, timestamp }` — el padre usa fast-path si iframes ya cargados desde P14 (`_iframesPreCargadosP14`) |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Respuesta al heartbeat | `{ timestamp }` |
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` / `CAMBIO_MODO_EFECTUADO` | Al recibir `CAMBIO_MODO` | — |
 
@@ -2578,7 +2579,7 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 |------|--------|-------------------|
 | `NAVEGACION.LLEGADA_DETECTADA` | Distancia ≤ umbral | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` |
 | `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-avanzar` (toggle GPS on/off) | `{ activar: bool, idParada, distancia }` |
-| `NAVEGACION.USUARIO_FUERA_RANGO` | >50 m tras haber estado en rango | `{ paradaId, distancia }` |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | Al confirmarse fuera de rango en cualquiera de las 3 franjas (>15m parada / `toleranciaGPS` tramo — mismo umbral que `GPS.RESTRINGIDO`, no específicamente >50m) | `{ paradaId, distancia }` |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Click en `#btn-ubicacion`; solicita al padre (funciones-mapa.js) dibujar polyline desde posición actual hasta el destino activo | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Click en `#btn-mapa-completo` | `{ formato: 'html', url: 'mapa-completo.html?aventura=X', aventura }` |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Click en `#btn-mapa-jpg` | `{ formato: 'jpg', url, aventura, paradaActual }` |
@@ -2748,7 +2749,7 @@ sequenceDiagram
 
 **Propósito**: pantalla de retos superpuesta a pantalla completa. Invisible hasta que el padre envía `RETO.MOSTRAR`. Muestra la pregunta, las opciones de respuesta y, tras la respuesta del usuario, comunica el resultado al padre con `RETO.COMPLETADO`. Es el único hijo que puede cubrir completamente la pantalla ocultando el mapa.
 
-**Inicialización**: pre-cargado por `_cargarIframesHijos()`, oculto. Body arranca con clase `modo-aventura`. El overlay permanece oculto hasta recibir `RETO.MOSTRAR`. **No forma parte del `Promise.all` de `AVENTURA_ACTIVADA`** — se reconecta de forma independiente.
+**Inicialización**: pre-cargado por `_cargarIframesHijos()`, oculto. Body arranca con clase `modo-aventura`. El overlay permanece oculto hasta recibir `RETO.MOSTRAR`. En la ruta fallback de `AVENTURA_ACTIVADA` (sin pre-carga en P14) sí forma parte del `Promise.all` de recarga, igual que hijo1/2/3/5 (ver §5/§9.11).
 
 #### Layout interno
 
@@ -2815,10 +2816,23 @@ globalThis.addEventListener('message', async (event) => {
     if (esCompletado) {
         retoDiv.classList.add('correct');
         fuegosArtificiales();
-        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.COMPLETADO, datos: { retoId: retoActual.id, completado: true } });
+        // RETO.COMPLETADO NO se envía aquí — se guarda como pendiente y solo se
+        // confirma al padre cuando el usuario pulsa el botón verde (más abajo):
+        // la ventana del puzzle sigue en pantalla en este instante, sin confirmar nada.
+        _pendienteCompletado = { retoId: retoActual.id, completado: true };
         const btnContinuar = document.getElementById('btn-puzzle-continuar');
         if (btnContinuar) btnContinuar.style.display = 'flex';  // 'flex', no 'block'
     }
+});
+
+// Click en el botón verde — AQUÍ se envía RETO.COMPLETADO de verdad, con el dato guardado arriba
+btnPuzzleContinuar.addEventListener('click', async () => {
+    if (_pendienteCompletado) {
+        const datosCompletado = _pendienteCompletado;
+        _pendienteCompletado = null;
+        await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.COMPLETADO, datos: datosCompletado });
+    }
+    enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.OCULTAR, datos: { retoId: retoActual?.id || null } });
 });
 ```
 
@@ -2911,8 +2925,9 @@ sequenceDiagram
         H4->>PZ: asigna src puzzle.html?id=...
         Note over PZ: usuario resuelve puzzle
         PZ-->>H4: PUZZLE.COMPLETADO (o legacy puzzle-state-completed)
-        H4-->>P: RETO.COMPLETADO { retoId, completado:true }
-        H4->>H4: muestra #btn-puzzle-continuar
+        H4->>H4: guarda _pendienteCompletado; muestra #btn-puzzle-continuar<br/>(RETO.COMPLETADO todavía NO se envía)
+        Note over H4: usuario pulsa el botón verde #btn-puzzle-continuar
+        H4-->>P: RETO.COMPLETADO { retoId, completado:true } (ahora sí, con el dato guardado)
     else tipo = 'opcion' | 'texto' | 'opcion-multiple'
         Note over H4: usuario elige respuesta + click verificar
     end
@@ -4051,11 +4066,14 @@ La aplicación opera siempre en uno de tres estados:
 ```mermaid
 flowchart LR
     A([App abierta]) --> S[Modo SELECCIÓN\nseleccion iframe visible]
-    S -- AVENTURA_ACTIVADA --> C[Modo CASA\nGPS activo sin validación]
-    C -- CAMBIO_MODO aventura\nvía hijo5 botón GPS --> AV[Modo AVENTURA\nGPS + validaciones + heartbeat]
-    AV -- CAMBIO_MODO casa\nvía hijo5 --> C
+    S -- "AVENTURA_ACTIVADA\n(producción: _devModeActivo falso)" --> AV[Modo AVENTURA\nGPS + validaciones + heartbeat]
+    S -- "AVENTURA_ACTIVADA\n(solo modo DEV)" --> C[Modo CASA\nGPS activo sin validación]
+    C -- CAMBIO_MODO aventura\nvía hijo5 botón GPS (solo DEV) --> AV
+    AV -- CAMBIO_MODO casa\nvía hijo5 (solo DEV) --> C
     C -- Recarga app con progreso guardado --> R[Restauración]
+    AV -- Recarga app con progreso guardado --> R
     R --> C
+    R --> AV
 ```
 
 | Modo | GPS | Heartbeat | Validación distancias | Overlays |
@@ -4064,7 +4082,7 @@ flowchart LR
 | CASA | ✅ activo | ✗ | ✗ (emoji 🛸) | hideNextEntityOverlay, hideGpsOutOfRangeOverlay |
 | AVENTURA | ✅ activo | ✅ ~5 s | ✅ 15 m llegada, 53 m out-of-range | nextEntity + outOfRange visibles |
 
-La transición SELECCIÓN→CASA ocurre cuando el padre procesa `SELECCION.AVENTURA_ACTIVADA` (al finalizar la pantalla P15). El modo **no cambia a AVENTURA** en ese momento — permanece CASA. El modo AVENTURA solo se activa cuando el usuario pulsa el botón GPS de hijo5.
+**La transición SELECCIÓN→CASA no es universal — depende de `_devModeActivo`, ver §9.5.** En producción (`_devModeActivo` falso, el caso de cualquier usuario real) el padre procesa `SELECCION.AVENTURA_ACTIVADA` (al finalizar P15) y entra **directo en modo AVENTURA**, sin pasar por CASA ni por hijo5 en ningún momento — `_modoInicio = MODOS.AVENTURA`. Solo en modo DEV (ver §24) el modo permanece en CASA tras `AVENTURA_ACTIVADA`, y el modo AVENTURA se activa manualmente cuando el desarrollador pulsa el botón GPS de hijo5. La restauración de sesión (R) sigue la misma regla: reanuda en el modo que quedó persistido (`datosGuardados.modo`), casi siempre AVENTURA en producción.
 
 ---
 
@@ -4214,7 +4232,7 @@ sequenceDiagram
     U->>S: Reto R-2 correcto (P15)
     S->>P: SELECCION.AVENTURA_ACTIVADA { aventura, idioma, terminosAceptados }
     P-->>P: _hdl_SELECCION_AVENTURA_ACTIVADA() — carga hijo1/2/3/4/5; distribuye datos; muestra UI
-    Note over P: Modo CASA — GPS activo sin validación
+    Note over P: Modo AVENTURA en producción (GPS con validaciones) · Modo CASA solo en dev — ver §9.5
 
 ```
 
@@ -4240,7 +4258,7 @@ En dev mode, `mostrar(12)` y `mostrar(13)` redirigen directamente a `id = 14` si
 
 ---
 
-### 9.5 AVENTURA_ACTIVADA — activación completa (modo CASA)
+### 9.5 AVENTURA_ACTIVADA — activación completa
 
 Al recibir `SELECCION.AVENTURA_ACTIVADA` (fin de P15), el padre ejecuta `_hdl_SELECCION_AVENTURA_ACTIVADA`.
 
@@ -4260,14 +4278,16 @@ sequenceDiagram
     Note over H: hijo1-opciones, hijo2, hijo3, hijo4, hijo5
     H->>P: SISTEMA.HIJO_LISTO (x5, via handshake)
     P-->>P: _esperarHijosCargados() resuelve
-    P-->>P: localStorage.setItem('vv_aventura_iniciada', { modo: 'casa' })
+    P-->>P: localStorage.setItem('vv_aventura_iniciada', { modo: _modoInicio })
     P->>H: distribuirDatosAventura(aventura, idioma)
     P->>P: _mostrarUIActivada() — oculta iframe seleccion, muestra hijo2/3/1-opciones/5
     P->>H: SISTEMA.NOTIFICACION { evento: 'AVENTURA_ACTIVADA' } → broadcast
     P-->>P: hideParentLoadingOverlay()
     P-->>P: _aventuraEnProceso = false
-    Note over P: MODO CASA — GPS activo, sin validaciones de distancia
+    Note over P: _vv_triggerCambioModo(_modoInicio) — ver nota debajo
 ```
+
+**`_modoInicio` decide directamente el modo final, sin pasar por hijo5:** `const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`. En producción (`_devModeActivo` falso, el caso normal para cualquier usuario real) `_modoInicio` es `AVENTURA` — el padre llama `_vv_triggerCambioModo(MODOS.AVENTURA)` de forma fire-and-forget inmediatamente después de `_broadcastActivacion`, sin esperar ninguna pulsación de botón: el usuario entra directo en modo AVENTURA (GPS con validaciones, hijo5 oculto). El botón GPS de hijo5 (§9.7) nunca interviene en este camino — es exclusivamente la vía manual del modo DEV (ver §24), donde `_modoInicio` es `CASA` y el padre sí espera (`await`) a que `_vv_triggerCambioModo(MODOS.CASA)` complete antes de ocultar el overlay de carga.
 
 **`_normalizarSetHijos`** elimina de `estado.hijosInicializados` los IDs de los iframes que se van a recargar, para que `_esperarHijosCargados` no resuelva prematuramente con el estado anterior. Solo se llama en la ruta normal.
 
@@ -4513,7 +4533,7 @@ Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre mue
 6. `_distribuirDatosRest` — redistribuye coordenadas/audios/retos/textos vía `distribuirDatosAventura()`
 7. `_enviarRespuestaParadasHijosRest` — envía `NAVEGACION.RESPUESTA_DATOS_PARADAS` a hijo2 (array normalizado de `elementosIDpadre`) y a hijo5 (array mapeado desde coordenadas)
 8. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`.
-9. `_activarModoRest` — fija `estado.modo.actual` a partir de `datosGuardados.modo` (el campo persistido en `vv_aventura_iniciada` junto con `aventura`/`idioma`, ver el bloque de activación en §12), no de `globalThis._devModeActivo`: ese flag es una variable solo en memoria que no sobrevive a ninguna recarga de página, así que en el momento de la reanudación ya está siempre perdido y no sirve como fuente de verdad. Si `datosGuardados.modo` falta o trae un valor que no es ni `MODOS.CASA` ni `MODOS.AVENTURA` (payload corrupto o de una versión anterior sin este campo), cae al flag actual como aproximación (`globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`). Cuando el modo restaurado es CASA, `_activarModoRest` también reactiva `globalThis._devModeActivo = true` — `modo:'casa'` solo puede haberse persistido con el dev mode activo en su momento (única vía de entrada a CASA, ver §24), y la visibilidad de `#hijo5` más abajo depende de ese mismo flag. Tras fijar el modo, emite `SISTEMA.CAMBIO_MODO` a todos los hijos. Este envío es un broadcast saliente puro — nunca pasa por `_hdl_SISTEMA_CAMBIO_MODO` en el propio padre, que es el único sitio que normalmente llama a `activarGPS()` al entrar en AVENTURA. Por eso, si el modo restaurado es AVENTURA, `_activarModoRest` llama a `activarGPS()` explícitamente al final — sin esto, una sesión restaurada en AVENTURA se quedaba con el modo correcto pero sin `watchPosition` corriendo. Por el mismo motivo, `_activarModoRest` también llama a `globalThis.funcionesMapa.sincronizarModoMapa(_modoRest)` justo al fijar `estado.modo.actual` — sin ella, `estadoMapa.modo` (la copia local de `funciones-mapa.js`, una variable distinta) se quedaba en su valor de arranque toda la sesión reanudada, con las consecuencias detalladas en "Sincronización de `estadoMapa.modo` al reanudar sesión" (§11). Si el modo restaurado es AVENTURA, el mismo broadcast acaba pasando por `_activarHeartbeatAventura` en cada hijo/padre relevante, que ya trae el paso 8 aplicado — así el temporizador de hijo1 arranca desde el `tiempoRestante` real, no desde el máximo de la aventura (ver §7.2).
+9. `_activarModoRest` — fija `estado.modo.actual` a partir de `datosGuardados.modo` (el campo persistido en `vv_aventura_iniciada` junto con `aventura`/`idioma`, ver el bloque de activación en §9.5), no de `globalThis._devModeActivo`: ese flag es una variable solo en memoria que no sobrevive a ninguna recarga de página, así que en el momento de la reanudación ya está siempre perdido y no sirve como fuente de verdad. Si `datosGuardados.modo` falta o trae un valor que no es ni `MODOS.CASA` ni `MODOS.AVENTURA` (payload corrupto o de una versión anterior sin este campo), cae al flag actual como aproximación (`globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`). Cuando el modo restaurado es CASA, `_activarModoRest` también reactiva `globalThis._devModeActivo = true` — `modo:'casa'` solo puede haberse persistido con el dev mode activo en su momento (única vía de entrada a CASA, ver §24), y la visibilidad de `#hijo5` más abajo depende de ese mismo flag. Tras fijar el modo, emite `SISTEMA.CAMBIO_MODO` a todos los hijos. Este envío es un broadcast saliente puro — nunca pasa por `_hdl_SISTEMA_CAMBIO_MODO` en el propio padre, que es el único sitio que normalmente llama a `activarGPS()` al entrar en AVENTURA. Por eso, si el modo restaurado es AVENTURA, `_activarModoRest` llama a `activarGPS()` explícitamente al final — sin esto, una sesión restaurada en AVENTURA se quedaba con el modo correcto pero sin `watchPosition` corriendo. Por el mismo motivo, `_activarModoRest` también llama a `globalThis.funcionesMapa.sincronizarModoMapa(_modoRest)` justo al fijar `estado.modo.actual` — sin ella, `estadoMapa.modo` (la copia local de `funciones-mapa.js`, una variable distinta) se quedaba en su valor de arranque toda la sesión reanudada, con las consecuencias detalladas en "Sincronización de `estadoMapa.modo` al reanudar sesión" (§11). Si el modo restaurado es AVENTURA, el mismo broadcast acaba pasando por `_activarHeartbeatAventura` en cada hijo/padre relevante, que ya trae el paso 8 aplicado — así el temporizador de hijo1 arranca desde el `tiempoRestante` real, no desde el máximo de la aventura (ver §7.2).
 10. `_solicitarRecursosRest` — solicita coordenadas a hijo2 vía S2 para el elemento actual. El audio ya llegó en el paso 8 vía `_restoreBroadcast` → pipeline CAMBIO_PARADA.
 
 Verificado end-to-end con Playwright (GPS simulado, `vv_aventura_iniciada`/`vv_progreso` en `localStorage` antes de cargar la página): tras pulsar "continuar", el modo, `indiceProgreso` y el GPS (`watchId` real) quedan exactamente como estaban antes de cerrar la app. Esto incluye una sesión guardada en modo CASA: `#hijo5` vuelve a hacerse visible (`display:block`/`visibility:visible`) tras la reanudación, porque `datosGuardados.modo` (no `globalThis._devModeActivo`, perdido en la recarga) es la fuente de verdad para `_activarModoRest` — ver el punto 9 más arriba. Para una sesión guardada en modo AVENTURA, hijo5 permanece oculto durante todo el proceso, verificado con vigilancia continua por `requestAnimationFrame` (2779 muestras).
@@ -4564,13 +4584,13 @@ Esto garantiza que los handlers están registrados antes de recibir los datos, i
 | Aventura2 | València centro histórico 2 | ~4 | 👣 | ✅ | Disponible |
 | Aventura3 | Ciudad de las Artes y las Ciencias | ~10 | 🚲🛴 | ✅ | Disponible |
 | Aventura4 | Parque de Cabecera y Viveros | ~10 | 🚲🛴 | ✅ | Disponible |
-| Aventura5 | València murallas | ~6 | 🚲🛴 | ✅ | Disponible |
+| Aventura5 | Murallas de València | ~6 | 🚲🛴 | ✅ | Disponible |
 | AventuraFallas | València en Fallas | ~4 | 👣 | ✅ | Disponible |
-| Aventura34km | València 34 kilómetros | ~34 | 🚲🛴👣 | ✅ | Disponible |
+| Aventura34km | Aventura 34 kilómetros | ~34 | 🚲🛴👣 | ✅ | Disponible |
 
 Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P6 se calculan dinámicamente importando los módulos fuente, sin valores hardcoded en el índice.
 
-> **Aventura34km**: `disponible: true` en el índice y ruta real (232 coordenadas), pero 0 audios en los 12 idiomas, solo 2 textos narrativos y retos solo en 6/12 idiomas — ver detalle completo en §1.
+> **Aventura34km**: `disponible: true` en el índice y ruta real. Textos narrativos (237 entradas) y retos están completos en los 12 idiomas — el hueco real es solo el audio narrado: español tiene sus 237 entradas apuntando a los 2 clips de introducción compartidos (sin narración propia por parada todavía) y los 11 idiomas restantes tienen `file:""` en el 100% de sus entradas — ver detalle completo en §1.
 
 ---
 
@@ -4606,7 +4626,7 @@ Estos ficheros se cargan directamente en el navegador:
 | Fichero | Qué contiene | Estructura |
 |---------|-------------|------------|
 | `coordenadas-aventuras.js` | Latitud/longitud de cada parada y tramo, tipo (`parada`/`tramo`/`referencia`), nombre, número en mapa | `DATOS_AVENTURAS.Aventura1["coordenadas-hijo2.html"].coordenadas[]` |
-| `textos-aventuras.js` | Índice language-agnostic: 66 entradas por aventura que mapean IDs de texto a IDs de párrafos numéricos | `TEXTOS_AVENTURAS.Aventura1[index]` = `{ id, parrafos: { position: párrafoId } }` |
+| `textos-aventuras.js` | Índice language-agnostic: mapea IDs de texto a IDs de párrafos numéricos — entre 47 (Aventura Fallas) y 237 (Av34km) entradas por aventura, no un número fijo (66 es el total real solo de Aventura1) | `TEXTOS_AVENTURAS.Aventura1[index]` = `{ id, parrafos: { position: párrafoId } }` |
 | `retos-aventuras.js` | Preguntas, opciones y respuestas correctas | `RETOS_AVENTURAS.Aventura1.es[]` |
 | `audios-aventuras.js` | Metadatos de audios (título, fichero MP3) | `AUDIOS_AVENTURAS.Aventura1.es[]` |
 | `puzzles-aventuras.js` | Definición de puzzles (imágenes) | `PUZZLES_AVENTURAS.INTRO["puzzle.html"].puzzle_id[]` |
@@ -4684,7 +4704,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5039bbc43d59'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-7d681c56bbfe'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4881,7 +4901,7 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ aventura, idioma, terminosAceptados, timestamp }` |
 | Handler en padre | `_hdl_SELECCION_AVENTURA_ACTIVADA` |
-| Acción | Fast-path si `_iframesPreCargadosP14 === true` (iframes ya cargados desde P14): salta recarga, distribuye datos y activa modo CASA directamente. Fallback si no: normaliza `hijosInicializados`, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`, luego distribuye datos y activa modo CASA. |
+| Acción | Fast-path si `_iframesPreCargadosP14 === true` (iframes ya cargados desde P14): salta recarga, distribuye datos y activa el modo final (`_modoInicio` — AVENTURA en producción, CASA solo en dev, ver §9.5). Fallback si no: normaliza `hijosInicializados`, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo (`Promise.all`), espera `HIJO_LISTO`, luego distribuye datos y activa ese mismo modo final. |
 
 ---
 
@@ -5673,7 +5693,8 @@ padre _hdl_RETO_COMPLETADO L8465
   → pending.reto = true → intentarCompletarElemento → progresa aventura
 
 Si puzzle.html se agota (PUZZLE.TIMEOUT):
-hijo4 → soporta lógica de timeout (mostrar solución, etc.) sin enviar COMPLETADO al padre
+hijo4 → guarda _pendienteCompletado {retoId, completado:true}, muestra #btn-puzzle-continuar
+  → al pulsar el botón, SÍ envía RETO.COMPLETADO al padre (mismo camino diferido que el éxito, ver §7.5)
 ```
 
 **Soporte legacy**: `PUZZLE.LEGACY_COMPLETADO = 'puzzle-state-completed'` y `LEGACY_TIMEOUT = 'puzzle-state-timeout'` son strings usados por versiones anteriores de puzzle.html que enviaban el estado como string en lugar de objeto. hijo4 y `En-busca-del-tesoro.html` comprueban ambos formatos.
@@ -5797,12 +5818,12 @@ Los 3 handlers reales viven en Script 4, registrados justo antes del bloque de a
 |--------|-----------|-------------|
 | `PENDING_INICIADO` | padre → hijo2/3/4 | Se ha iniciado seguimiento de completado para una parada |
 | `PENDING_CANCELADO` | padre → hijo2/3/4 | El seguimiento fue cancelado (timeout, navegación a otra parada, error) |
-| `AVENTURA_ACTIVADA` | padre → broadcast | La aventura quedó activada con éxito (idioma, aventura, modo CASA listo) |
+| `AVENTURA_ACTIVADA` | padre → broadcast | La aventura quedó activada con éxito (idioma, aventura, modo final ya aplicado — AVENTURA en producción, CASA solo en dev, ver §9.5) |
 
 **PENDING_INICIADO** (padre → hijo2, hijo3, hijo4)
 
 ```text
-padre ensurePending(key) L7521
+padre ensurePending(key) L9300
   → estado.pendingCompleciones[key] = { llegada:false, audio:false, reto:false, ttlMs, outOfRangeM, arrivalRequired }
   → populatePendingCoords(key) — obtiene coords del destino async (via solicitarCoordenadasHijo)
 padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, ttlMs, outOfRangeM, arrivalRequired }
@@ -6030,22 +6051,22 @@ bus aún no ha transmitido el dato.
 
 | Código | Idioma | Bandera | Estado de audios |
 |--------|--------|---------|-----------------|
-| `es` | Español | 🇪🇸 | ✅ Grabados |
-| `en` | Inglés | 🇬🇧 | ❌ Pendiente |
-| `fr` | Francés | 🇫🇷 | ❌ Pendiente |
-| `it` | Italiano | 🇮🇹 | ❌ Pendiente |
-| `nl` | Neerlandés | 🇳🇱 | ❌ Pendiente |
-| `ja` | Japonés | 🇯🇵 | ❌ Pendiente |
-| `de` | Alemán | 🇩🇪 | ❌ Pendiente |
-| `zh` | Chino simplificado | 🇨🇳 | ❌ Pendiente |
-| `pl` | Polaco | 🇵🇱 | ❌ Pendiente |
-| `pt` | Portugués | 🇵🇹 | ❌ Pendiente |
-| `ru` | Ruso | 🇷🇺 | ❌ Pendiente |
-| `uk` | Ucraniano | 🇺🇦 | ❌ Pendiente |
+| `es` | Español | 🇪🇸 | ⚠️ `file` siempre relleno, pero solo con 2 clips de introducción compartidos — sin narración propia por parada (ver §1/§12) |
+| `en` | Inglés | 🇬🇧 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `fr` | Francés | 🇫🇷 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `it` | Italiano | 🇮🇹 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `nl` | Neerlandés | 🇳🇱 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `ja` | Japonés | 🇯🇵 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `de` | Alemán | 🇩🇪 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `zh` | Chino simplificado | 🇨🇳 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `pl` | Polaco | 🇵🇱 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `pt` | Portugués | 🇵🇹 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `ru` | Ruso | 🇷🇺 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
+| `uk` | Ucraniano | 🇺🇦 | ❌ Pendiente (`file` vacío en el 100% de las entradas) |
 
 ### ¿Qué está traducido?
 
-- **Textos narrativos**: estructura en `textos-aventuras.js` — 66 entradas por aventura, language-agnostic (solo referencias a párrafos; no contiene texto). El HTML real de cada párrafo está en `js/parrafos-textos/parrafos-texto-[idioma].json`: **870 párrafos por idioma, 12 ficheros** (uno por idioma, incluyendo es/en/fr/it/nl/ja/de/zh/pl/pt/ru/uk).
+- **Textos narrativos**: estructura en `textos-aventuras.js` — entre 47 y 237 entradas según la aventura, language-agnostic (solo referencias a párrafos; no contiene texto). El HTML real de cada párrafo está en `js/parrafos-textos/parrafos-texto-[idioma].json`: **876 párrafos por idioma, 12 ficheros** (uno por idioma, incluyendo es/en/fr/it/nl/ja/de/zh/pl/pt/ru/uk).
 - **Títulos de textos** (`title` en textos-aventuras.js): ✅ los 12 idiomas — "Parada" → Stop / Arrêt / Fermata / Halte / 停留所 / Haltestelle / 停靠站 / Przystanek / Parada / Остановка / Зупинка, "Tramo" → Section / Tronçon / Tratto / Traject / 区間 / Abschnitt / 路段 / Odcinek / Trecho / Участок / Ділянка.
 - **Retos** (`retos-aventuras.js`): ✅ los 12 idiomas (preguntas, opciones y respuestas traducidas).
 - **Audios** (`audios-aventuras.js`): la estructura de metadatos existe en los 12 idiomas con el mismo número de entradas, pero el campo `file` (ruta al MP3) está prácticamente vacío en **todos** los idiomas, incluido el español — no es que español esté grabado y el resto pendiente; ningún idioma tiene el grueso de sus audios grabados todavía. Ver detalle por aventura en §1 y §12.
@@ -6091,7 +6112,7 @@ El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la h
 
 ### Arranque del mapa: no hay "listo" hasta que el estilo terminó de cargar
 
-`initializeMap()` (`codigo-padre.html`) crea la instancia (`new maplibregl.Map(...)`) y la guarda en `_mapInstance` de inmediato, pero **no resuelve su promesa hasta que el estilo del mapa (tiles/sprite/glyphs, todo vía red) está realmente listo** — comprobado con `map.isStyleLoaded()`, o esperando el evento nativo `map.once('load', ...)` si aún no lo está. Antes de esa confirmación, cualquier llamada a `addSource`/`addLayer` (lo que hacen internamente `_crearPolyline()`/`_crearCirculoGeografico()` en `js/funciones-mapa.js`) fallaría — con las guardas actuales de esas dos funciones (`_estiloListo()`), en su lugar devuelven un proxy auto-reparable (`_crearCapaDiferida()`, §4.6a) que crea la capa real en cuanto el mapa dispara `'load'`, en vez del stub inerte y sin reintento (`_capaVacia()`) que había hasta esa corrección — con el stub viejo, el círculo naranja de 20m o una polyline simplemente no aparecían nunca, sin aviso; con el proxy actual, aparecen en cuanto el estilo carga, aunque hayan tenido que esperar.
+`initializeMap()` (`codigo-padre.html`) crea la instancia (`new maplibregl.Map(...)`) y la guarda en `_mapInstance` de inmediato, pero **no resuelve su promesa hasta que el estilo del mapa (tiles/sprite/glyphs, todo vía red) está realmente listo** — comprobado con `map.isStyleLoaded()`, o esperando el evento nativo `map.once('load', ...)` si aún no lo está. Antes de esa confirmación, cualquier llamada a `addSource`/`addLayer` (lo que hacen internamente `_crearPolyline()`/`_crearCirculoGeografico()` en `js/funciones-mapa.js`) fallaría — con las guardas actuales de esas dos funciones (`_estiloListo()`), en su lugar devuelven un proxy auto-reparable (`_crearCapaDiferida()`, §4.6a) que crea la capa real en cuanto el mapa dispara `'load'`, en vez del stub inerte y sin reintento (`_capaVacia()`) que había hasta esa corrección — con el stub viejo, el círculo naranja de 15m o una polyline simplemente no aparecían nunca, sin aviso; con el proxy actual, aparecen en cuanto el estilo carga, aunque hayan tenido que esperar.
 
 `waitForMapLibreAndInitialize()` (llamada desde `ejecutarInicializacionAutomatica()`) espera primero a que la propia librería MapLibre esté cargada (`globalThis.maplibregl !== undefined`) y después a `initializeMap()` — así que, con el gate anterior, tampoco continúa hasta que el estilo esté listo. Como esta espera es la que determina cuándo `ejecutarInicializacionAutomatica()` puede seguir con el resto del arranque (mensajería, datos, iframes) y, más tarde, ocultar `#loading-overlay`, la garantía de "el mapa está listo" se hereda automáticamente en cualquier punto que dependa de esa cadena — no hace falta ninguna comprobación adicional en la pantalla de carga.
 
@@ -6241,7 +6262,7 @@ watchPosition (padre)
 
 - Registra `estado.usuarioFueraRango = { activo: true, distancia, franja, elementoMasCercano }`
 - Deshabilita audio (propio padre) vía `actualizarEstadoControlesAudioPadre()` y envía `CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango' }` a hijo3 — detalle completo en §25.7
-- No toca la polyline manual de navegación (`polylineNavegacion`, dibujada solo si el usuario pulsó `btn-ubicacion`, ver §4.6): su limpieza corre por su propio criterio (≤50m de `.inicio` en tramos, del punto en paradas) en cada lectura GPS, independiente del ~20m/`toleranciaGPS` de este mensaje — no hay ninguna otra capa automática con la que competir
+- No toca la polyline manual de navegación (`polylineNavegacion`, dibujada solo si el usuario pulsó `btn-ubicacion`, ver §4.6): su limpieza corre por su propio criterio (≤50m de `.inicio` en tramos, del punto en paradas) en cada lectura GPS, independiente del ~15m/`toleranciaGPS` de este mensaje — no hay ninguna otra capa automática con la que competir
 
 **Hijo4 no se ve afectado** por el mecanismo de fuera de rango — el reto sigue accesible si ya estaba abierto.
 
@@ -6821,7 +6842,7 @@ export const TEXTOS_AVENTURAS = {
 }
 ```
 
-El contenido HTML real vive por separado, en `js/parrafos-textos/parrafos-texto-{idioma}.json` — un mapa plano número de párrafo → HTML (870 párrafos por idioma, uno de estos ficheros por cada uno de los 12 idiomas):
+El contenido HTML real vive por separado, en `js/parrafos-textos/parrafos-texto-{idioma}.json` — un mapa plano número de párrafo → HTML (876 párrafos por idioma, uno de estos ficheros por cada uno de los 12 idiomas):
 
 ```json
 {
@@ -7353,6 +7374,8 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `26-reto-completado-boton-verde.spec.js` | 2 | Cargando `retos-hijo4.html` como página de nivel superior: tras responder correcto un reto de tipo texto, ningún log de envío de `RETO.COMPLETADO` aparece todavía — solo el de "pendiente de confirmación con el botón verde"; al pulsar `#btnNextAfterReto`, sí aparece (confirmado o sin confirmación) (RC-1); si el botón verde nunca se pulsa, ese envío nunca se intenta (RC-2). Verifica por log de consola, no por el mensaje `postMessage` en sí — sin un padre real que responda, el delivery real pasa por un bucle interno de auto-confirmación de `mensajeria.js` no observable de forma fiable en este arnés de test, pero cada rama del código bajo prueba emite su propio log de forma síncrona en el punto exacto que importa |
 | `27-seguimiento-rumbo.spec.js` | 1 | Modo "Seguir mi rumbo" (§4.6b, `docs/brujula-y-mapa.md` §4): con el modo desactivado (estado por defecto), una lectura de brújula no mueve el `bearing` del mapa (SR-1); `activarSeguimientoRumbo()` gira el mapa de inmediato (`easeTo`) al último rumbo conocido y, a partir de ahí, cada lectura de brújula sí mueve el `bearing` (`setBearing()`, dentro de `actualizarRotacionFlechaGPS()`) (SR-2); `desactivarSeguimientoRumbo()` fija el mapa a norte (`bearing:0`) de inmediato y las lecturas de brújula dejan de mover el `bearing` otra vez (SR-3) |
 | `28-audio-control-error.spec.js` | 3 | `_manejarAudioControl()` (§7.4 "Controles globales de audio", audio-hijo3.html): pedir `play` de un `audioId` que no está en caché local (`cargarYReproducirAudio()` devuelve `exito:false` de forma determinista en este contexto standalone) hace que el catch propio de la función registre el fallo explícitamente, en vez de perderse en el catch genérico externo o confirmar éxito de todos modos ignorando el `exito:false` (AC-1); en `codigo-padre.html`, `_hdl_SISTEMA_ERROR` muestra `errorUI.showToast()` cuando el código es `AUDIO_CONTROL_FALLIDO` (SE-1) y no muestra nada para cualquier otro código de error (SE-2) |
+| `29-recordatorio-audio.spec.js` | 3 | Cartel recordatorio "pulse play" (§25.5c, `codigo-padre.html`), con `page.clock` simulado: no aparece solo por tiempo (10s) sin proximidad GPS (`estado.gps.visualActivo`), aparece en cuanto se cumplen ambas condiciones, se autocierra a los 7s, reaparece cada 20s, y se detiene al pulsar play/replay en `#audio-control-dropdown` (RA-1); reiniciar el recordatorio al activarse un nuevo elemento cancela el timer del anterior en vez de acumularlo (RA-2); la proximidad GPS sola tampoco basta antes de los 10s, caso simétrico de RA-1 (RA-3) |
+| `30-casa-no-fuga-aventura.spec.js` | 6 | Reporte de uso real (2026-08-10): varias piezas de `procesarPosicionGPSParaAventura()`/`_detectarLlegadaTramo()`/`_detectarLlegadaParada()` se comportaban "como si fuera AVENTURA" en modo CASA porque el GPS nunca se detiene entre modos. El marcador de usuario usa 🛸 en CASA, no la flecha (CM-1); en CASA, `procesarPosicionGPSParaAventura()` no envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 (CM-2); con `estadoComponente.modo='casa'`, un `ACTUALIZAR_ESTADO` dentro de radio no dispara detección de llegada — cero `LLEGADA_DETECTADA` (CM-3, el hallazgo más grave: antes, "ver" una parada en CASA con hijo5 podía marcarla como visitada de verdad); defensa en profundidad si `LLEGADA_DETECTADA` llegara igualmente en CASA, `_hdl_NAVEGACION_LLEGADA_DETECTADA` lo ignora (CM-4) y `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` no activa `estado.usuarioFueraRango` (CM-5); `_hdl_SISTEMA_CAMBIO_MODO(CASA)` cierra los overlays de distancia GPS que hubieran quedado visibles desde una AVENTURA anterior (CM-6) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7492,7 +7515,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-5039bbc43d59'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-7d681c56bbfe'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7688,7 +7711,7 @@ proyecto/
 │   └── imagenes-mapas-vintage/       ← Tiles del mapa vintage artístico
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 27 specs, ver §18.3 para el listado completo
+│   └── e2e/                          ← Tests Playwright — 29 specs, ver §18.3 para el listado completo
 │
 └── docs/                             ← Esta documentación
     └── aventuras_ordenado/           ← Guiones legibles por aventura + tramos-para-videos.md — generados, no se editan a mano (ver §21)
@@ -7991,7 +8014,7 @@ El servidor actual **no tiene autenticación**. Para producción habrá que impl
 **Qué hacer al desplegar** — añadir a cada `<iframe>` en `codigo-padre.html`:
 
 ```html
-<iframe id="hijo2-coordenadas" src="coordenadas-hijo2.html"
+<iframe id="hijo2" src="coordenadas-hijo2.html"
   sandbox="allow-scripts allow-same-origin allow-forms"
   ...></iframe>
 ```
@@ -8135,7 +8158,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-5039bbc43d59';
+const CACHE_VERSION = 'v-7d681c56bbfe';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8321,7 +8344,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 
 | Término | Significado |
 |---------|-------------|
-| **Modo CASA** | Estado neutro de la app: sin GPS activo ni aventura en curso. El usuario puede explorar paradas en el mapa y navegar los controles, pero sin posicionamiento ni heartbeat |
+| **Modo CASA** | Estado neutro de la app: GPS activo (`watchPosition` corriendo igual que en AVENTURA, nunca se detiene entre modos) pero sin validaciones de distancia ni heartbeat — el usuario navega paradas manualmente, sin avance automático por posición |
 | **Modo AVENTURA** | Estado activo del recorrido: GPS encendido, heartbeat activo, audio y retos vinculados a la parada actual |
 | **Elemento** | Unidad mínima de la secuencia de una aventura: puede ser una **parada** o un **tramo**. El padre avanza de elemento en elemento via `CAMBIO_PARADA` |
 | **Parada** | Punto de interés (monumento, plaza…). El usuario debe llegar físicamente, escuchar el audio y superar el reto para completarla. IDs con formato `AvN-P-X` (`parada_id`) / `padre-PX` (`padreid`, sin guion antes del número) |
@@ -8696,7 +8719,7 @@ Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por 
 4. `estadoMapa.modo = MODOS.CASA` — `procesarPosicionGPSParaAventura` deja de enviar `ACTUALIZAR_ESTADO`; proximidad desactivada, GPS silenciado de nuevo
 5. GPS sigue corriendo — la señal no se interrumpe
 6. En hijo2, `_resetarEstadoParaModo('casa')`:
-   - `timestampSalioDeRango` → `null` (el countdown de "fuera de rango" se cancela)
+   - `timestampSalioDeRango` → `null` (dato informativo de cuándo empezó la salida de rango, no gatea ningún countdown visual — ver §31.4)
    - `fueraDeRangoActivo` → **no se resetea** (conserva su último valor)
    - `distanciaAlDestino` → **no se resetea** (último valor recibido antes de ir a CASA)
    - `posicionActualUsuario` → **no se resetea**
@@ -8711,7 +8734,7 @@ Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por 
    - Si `posicionActualUsuario` está poblado, llama `verificarDistanciaYActualizarBotones()` con el `distanciaAlDestino` del último mensaje recibido antes de ir a CASA (puede ser ligeramente desactualizado)
    - `idParadaActual` (la única variable de "parada actual" de hijo2) **no se toca** aquí — se resincroniza en el paso 5
 2. `funciones-mapa.js` reanuda: `estadoMapa.modo = MODOS.AVENTURA` → el siguiente pulso GPS genera un `ACTUALIZAR_ESTADO` fresco con la distancia real a la siguiente parada no completada
-3. Si el desarrollador está fuera de rango (>50m) al volver: el overlay aparece y el countdown arranca desde 00:00 (sin penalización por el tiempo en CASA)
+3. Si el desarrollador está fuera de rango (>15m) al volver: el overlay de aviso correspondiente aparece al instante (sin cuenta atrás ni penalización por el tiempo en CASA — ver §31.4)
 4. `estado.indiceProgreso`/`estado.paradaActual` (los del **padre**) nunca se tocan al cambiar de modo — solo cambian si de verdad se avanza una parada. Lo que SÍ se vacía en cada cambio de modo, incondicionalmente, es la copia local de "parada actual" de **funciones-mapa** (`estadoMapa.paradaActual`, vía `limpiarPorEstado`) y la de **hijo2** (`idParadaActual`, indirectamente) — ninguna de las dos es la misma variable que `estado.paradaActual` del padre.
 5. Por eso `_hdl_SISTEMA_CAMBIO_MODO` (ver §8.12/§10.6) resincroniza SIEMPRE que hay progreso real, no solo si `estado.paradaActual` cambió en CASA: llama a `__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada })`, que dispara el pipeline completo de `NAVEGACION.CAMBIO_PARADA` (notifica a hijo2, y dispara `vv-parada-cambiada` para que funciones-mapa fije `estadoMapa.paradaActual` de nuevo). Sin este paso, `_siguienteIdElementoNavegable()` en funciones-mapa (que calcula la "siguiente parada" a partir de `estadoMapa.paradaActual`, no de `estado.indiceProgreso`) arrancaría siempre desde el principio de la aventura tras cualquier vuelta a AVENTURA — la causa real detrás del bug donde la polyline discontinua siempre apuntaba a la parada 0.
 
@@ -8853,25 +8876,23 @@ Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponible
 
 Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
-1. Re-activa hijo1/hijo2/hijo3/hijo5 en **paralelo** (`Promise.all` via `_cargarSoloIframeActivacion`). **Hijo4 no está en esta lista** — ya está precargado y no necesita re-activación en este punto.
+1. Si los iframes no se precargaron ya en P14 (`_iframesPreCargadosP14`), re-activa hijo1/hijo2/hijo3/**hijo4**/hijo5 en **paralelo** (`Promise.all` vía `_cargarSoloIframeActivacion`) — los cinco, hijo4 incluido (ver §5/§9.11). Si ya se precargaron en P14 (el caso común), este paso se salta entero para los cinco por igual.
 2. Espera a que cada hijo confirmado complete el handshake `HIJO_LISTO`.
 3. Guarda en `localStorage` la clave `vv_aventura_iniciada`.
 4. Distribuye los datos de la aventura a todos los hijos (`distribuirDatosAventura()`).
 5. Muestra la UI de aventura (`_mostrarUIActivada()`).
 6. Envía `SISTEMA.NOTIFICACION { evento:'AVENTURA_ACTIVADA' }` a broadcast.
-7. **El sistema queda en modo CASA** — el usuario activa el modo AVENTURA pulsando el botón GPS en hijo5.
+7. **El modo final depende de `_devModeActivo` (ver §9.5/§24): en producción, el caso real de cualquier turista, el sistema pasa directo a modo AVENTURA, sin ningún botón que pulsar.** Solo en modo DEV el sistema queda en CASA a la espera de que el desarrollador pulse el botón GPS de hijo5.
 
 ---
 
 ### 25.3. El modo AVENTURA comienza
 
-Tras la activación (P16 — pantalla de logos), el sistema está en **modo CASA** con todos los iframes de juego visibles. El usuario ve el mapa y los controles, pero el GPS y el heartbeat aún no están activos.
+Tras la activación (P16 — pantalla de logos), el turista real pasa **directo a modo AVENTURA** — `_hdl_SELECCION_AVENTURA_ACTIVADA` llama a `_vv_triggerCambioModo(MODOS.AVENTURA)` en cuanto termina de distribuir los datos, sin esperar ninguna acción manual (ver §9.5). El resto de esta sección (25.3 en adelante) describe exactamente lo que ese turista ve al entrar en AVENTURA.
 
-> **Nota de arquitectura:** `hijo5` (panel de modo CASA) arranca siempre oculto (`display:none; visibility:hidden`). El sistema DEV MODE (documentado en §24.0) lo hace visible cuando el desarrollador activa el modo DEV — ya sea desde P1 (Factor 1) o desde dentro de la aventura activa (Factor 2). El usuario final nunca lo ve ni tiene acceso a los gestos de activación.
+> **Nota de arquitectura — excepción exclusiva de desarrollo:** `hijo5` (panel de modo CASA) arranca siempre oculto (`display:none; visibility:hidden`) y el turista real nunca lo ve. Solo existe una vía distinta: el modo DEV (documentado en §24.0), donde el sistema queda en CASA tras la activación y el propio desarrollador pulsa el botón GPS 🛰️ de hijo5 para pasar a AVENTURA manualmente — el modo DEV lo activa el propio equipo, nunca un usuario final, que no tiene acceso a los gestos que lo disparan.
 
-En el flujo de desarrollo, el desarrollador pulsa el botón GPS 🛰️ de hijo5 para cambiar a modo AVENTURA.
-
-En el instante en que el padre cambia a modo AVENTURA, ocurren varias cosas simultáneamente:
+En el instante en que el sistema pasa a modo AVENTURA (automáticamente para el turista real, o al pulsar el botón de hijo5 en modo DEV), ocurren varias cosas simultáneamente:
 
 - **Se activa el GPS.** El navegador pide permiso de geolocalización (si no lo tenía ya). Se usa `watchPosition` con alta precisión (`enableHighAccuracy: true`), sin caché (`maximumAge: 0`) y un timeout de 35 segundos. Las posiciones llegan con cada actualización del dispositivo — no hay intervalo fijo (`INTERVALO_ACTUALIZACION` está definido en `config.js` pero `watchPosition` no acepta parámetro de intervalo).
 
@@ -9033,7 +9054,7 @@ La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica q
 
 A partir de ahí, la distancia se reparte en tres franjas — detalle completo, mensajes y pantallas en §31.4:
 
-- **11-50m**: pantalla `foto-fuera-rango.png`, botón Ubicación habilitado al instante.
+- **16-50m**: pantalla `foto-fuera-rango.png`, botón Ubicación habilitado al instante.
 - **51m-2.000m**: pantalla `foto_lejos_ubicacion.png`, botón Ubicación habilitado al instante.
 - **Más de 2.000m**: pantalla `fotogpserror.png` (compartida con el bloqueo por >5km, §31.5), botón Ubicación habilitado al instante.
 
@@ -9448,7 +9469,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │  Heartbeat (cada 5s)                 │                 │
 │    │  Mapa MapLibre con posición GPS en vivo│                │
 │    │                                      │                 │
-│    │  ┌──── DENTRO 10m ────┐              │                 │
+│    │  ┌──── DENTRO 15m ────┐              │                 │
 │    │  │ Imagen ✅ Vídeo ✅  │              │                 │
 │    │  │ Audio  ✅ Retos ✅  │              │                 │
 │    │  │ Mapas  ✅           │              │                 │
@@ -9467,7 +9488,8 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │  Progreso guardado automáticamente   │                 │
 │    │                                      │                 │
 │    │  Botón 🛰 OFF → Volver a CASA       │                 │
-│    │     (⚠️ borra progreso)              │                 │
+│    │     (solo modo DEV — hijo5 no existe en la PWA real)│  │
+│    │     (⚠️ borra progreso, salvo en dev, ver §9.9)     │  │
 │    │                                      │                 │
 │    │  ┌──── ÚLTIMA PARADA COMPLETADA ───┐ │                 │
 │    │  │ _handleFinDeAventura()          │ │                 │
@@ -9504,7 +9526,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | `RADIO_PARADA` — llegada física a parada | 15 m | Hardcodeado en `_detectarLlegadaParada()` en hijo2 — dispara `LLEGADA_DETECTADA`; condición necesaria para completar la parada |
 | `rangoMaximo` parada (hijo2) | 15 m | Hardcoded en `_actualizarGpsEnModoAventura()` / `verificarDistanciaYActualizarBotones()` — punto donde arrancan las franjas de aviso por distancia (§31.4) |
 | `rangoMaximo` tramo (hijo2) | dinámico, mín. 50 m | `toleranciaGPS` recibida de `calcularToleranciaGPS()` en funciones-mapa.js |
-| Franjas de aviso por distancia (padre) | 11-50m / 51-2.000m / >2.000m | `_hdl_NAVEGACION_GPS_RESTRINGIDO` en `codigo-padre.html` — ver §31.4 |
+| Franjas de aviso por distancia (padre) | 16-50m / 51-2.000m / >2.000m | `_hdl_NAVEGACION_GPS_RESTRINGIDO` en `codigo-padre.html` — ver §31.4 |
 | Tolerancia de llegada a tramo | dinámica, mín. 50 m (distancia máx. entre waypoints + 20 m buffer, con suelo) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo |
 | Confirmación de llegada por ventana deslizante | 2 de las últimas 4 lecturas dentro de radio | `estadoMapa._llegadaVentana` en funciones-mapa.js / `estadoComponente._llegadaVentana` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
 | `PRECISION_MINIMA` / `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas) |
@@ -9512,7 +9534,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | Frecuencia heartbeat | 5 s | `INTERVALO_HEARTBEAT` en `config.js` |
 | Timeout GPS | 30 s | `TIMEOUT` en `config.js` |
 | Timeout watchPosition | 35 s | `watchPosition` en `codigo-padre.html` |
-| Habilitación de ubicación en las 3 franjas (11-50m / 51-2.000m / >2.000m) | Inmediata, sin cuenta atrás | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
+| Habilitación de ubicación en las 3 franjas (16-50m / 51-2.000m / >2.000m) | Inmediata, sin cuenta atrás | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
 | Heartbeats fallidos antes de reconexión | 3 | `MAX_HEARTBEATS_FALLIDOS` en `config.js` |
 | Auto-continuación diálogo reanudación | 30 s | `mostrarDialogoReanudacion` en `codigo-padre.html` |
 
@@ -9557,7 +9579,7 @@ Nada especial — la aplicación procesa la posición igual, sea cual sea su pre
 
 Alejarse de la parada activa (más allá de 15 m, o de la tolerancia del tramo) no bloquea nada de inmediato — la aplicación escala el aviso según cuánta distancia queda por recorrer:
 
-- **Entre 11 y 50 metros**: aparece la imagen de "fuera de rango" — la ayuda se ofrece al instante, sin esperar.
+- **Entre 16 y 50 metros**: aparece la imagen de "fuera de rango" — la ayuda se ofrece al instante, sin esperar.
 - **Entre 51 metros y 2 kilómetros**: aparece la imagen de "lejos de tu objetivo" — la ayuda se ofrece al instante, sin esperar.
 - **Más de 2 kilómetros**: aparece la misma imagen que la comprobación de más de 5 km de la ruta (siguiente apartado) — al usuario le queda claro que algo no cuadra, sin necesidad de un mensaje distinto para cada caso.
 
@@ -9586,7 +9608,7 @@ El usuario no ve ningún aviso especial en estos casos — la aventura simplemen
 
 ---
 
-> Para la documentación técnica completa de estos mecanismos (funciones implicadas, flujos de código, tabla de estado de implementación), ver **§30 — Posibles problemas en modo AVENTURA**.
+> Para la documentación técnica completa de estos mecanismos (funciones implicadas, flujos de código, tabla de estado de implementación), ver **§31 — Posibles problemas en modo AVENTURA**.
 
 ---
 
@@ -10087,10 +10109,10 @@ Muestra el reto de cada parada y valida la respuesta del usuario. El padre decid
 | Hijo → Padre | `SISTEMA.HIJO_PREPARADO` | Al cargarse |
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — sin retos; el contenido llega parada a parada (ver §16) |
 | Padre → Hijo | `RETO.MOSTRAR` | Con el objeto reto resuelto (`retosArray`) de la parada actual, en línea |
-| Hijo → Padre | `RETO.COMPLETADO` | Cuando el usuario responde correctamente |
+| Hijo → Padre | `RETO.COMPLETADO` | Al pulsar el botón verde (btnNext) tras responder correctamente — no en el momento de responder (`_pendienteCompletado` guarda el resultado hasta ese clic) |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Para ocultar el reto al volver al modo CASA |
 
-La validación ocurre en dos pasos: el hijo llama a `window.ejecutarValidacion(reto, respuesta)` (función registrada por el padre mediante stub), que devuelve un booleano. Si es `true`, el hijo envía `RETO.COMPLETADO`.
+La corrección real se decide comparando `respuestaUsuario` con `reto.correctas` dentro de `verificar()` (radio/checkbox: coincidencia exacta de valores; texto libre: siempre correcto). Antes de esa comparación, `verificar()` también llama a `globalThis.ejecutarValidacion(reto, respuestaUsuario)` si existe — un hook secundario y opcional, no la validación principal. Como cada iframe tiene su propio `globalThis` (no se comparte con el padre), hijo4 usa su **propio stub local** definido al principio de `retos-hijo4.html` (siempre devuelve `true`); el stub que existe en `codigo-padre.html` es un `globalThis` distinto y no tiene ningún efecto sobre hijo4.
 
 #### Hijo 5 — boton-casa-hijo5.html (navegación y botón de casa)
 
@@ -10129,7 +10151,7 @@ Una referencia visual es el marcador numerado que se dibuja para **cada punto nu
 { tipo: "tramo",      id: "TR-6", ... }
 ```
 
-El marcador es una píldora blanca con borde naranja (`#ff8c00`), emoji 🏛 a la izquierda y número de `mapa_numero` a la derecha. Apilado visual `zIndexOffset: 400` (opción de Leaflet), por debajo de paradas visitadas (600).
+El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-completo.html`) con borde de 2px `#8B6914` (dorado oscuro/marrón, no naranja — el `#ff8c00` era el color de la versión MapLibre ya eliminada, ver más abajo), texto del mismo color `#8B6914`, emoji 🏛️ y número de `mapa_numero` en la misma línea. Apilado visual `zIndexOffset: 400` (opción de Leaflet), por debajo de paradas visitadas (600).
 
 ---
 
@@ -10188,7 +10210,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SELECCION.IDIOMA_SELECCIONADO` | Pantalla de selección (P3) | `_hdl_SELECCION_IDIOMA_SELECCIONADO`: actualiza `estado.idioma`; si los hijos ya están cargados, propaga el cambio | (ninguna) | — | Mantener el idioma sincronizado en el estado global del padre |
 | `SELECCION.AVENTURA_SELECCIONADA` | Pantalla de selección (P7) | `_hdl_SELECCION_AVENTURA_SELECCIONADA`: guarda `estado.aventura`; no carga nada aún | (ninguna) | — | Registrar la aventura elegida antes de que el usuario complete el onboarding |
 | `SELECCION.PREPARAR_HIJOS` | Pantalla de selección (P9) | `_hdl_SELECCION_PREPARAR_HIJOS`: recibe `{ idioma, aventura, timestamp }`; arranca la carga de iframes en background vía `_cargarIframesHijos()` | (ninguna directa) | — | Arrancar la precarga de iframes mientras el usuario lee términos y reto R-2 (P10–P15) |
-| `SELECCION.AVENTURA_ACTIVADA` | Pantalla de selección (P15 — reto R-2 afirmativo) | `_hdl_SELECCION_AVENTURA_ACTIVADA`: si iframes ya listos → fast-path (sincroniza modo); si no → completa carga; si `_devModeActivo` (modo DEV, ver §24) → llama `_vv_triggerCambioModo(MODOS.CASA)`; si no → espera GPS | `SISTEMA.CAMBIO_MODO` broadcast | Todos los hijos | Lanzar la aventura tras confirmación final del usuario |
+| `SELECCION.AVENTURA_ACTIVADA` | Pantalla de selección (P15 — reto R-2 afirmativo) | `_hdl_SELECCION_AVENTURA_ACTIVADA`: si iframes ya listos → fast-path (sincroniza modo); si no → completa carga; `_modoInicio = _devModeActivo ? MODOS.CASA : MODOS.AVENTURA`; si `_devModeActivo` (modo DEV, ver §24) → `await _vv_triggerCambioModo(MODOS.CASA)`; si no (producción) → `_vv_triggerCambioModo(MODOS.AVENTURA)` directamente, fire-and-forget (ver §9.5) | `SISTEMA.CAMBIO_MODO` broadcast | Todos los hijos | Lanzar la aventura tras confirmación final del usuario |
 | `SELECCION.TERMINOS_ACEPTADOS` | Pantalla de selección (P10) | `_hdl_SELECCION_TERMINOS_ACEPTADOS`: registra aceptación en `estado`; sin efecto en carga de iframes | (ninguna) | — | Trazabilidad legal; el flujo puede continuar sin este ACK |
 | `RETO.SOLICITAR_RETO` | Hijo 3 (click en `#retosBtn`) o Hijo 4 (click en `#botonRetos`) | `_hdl_RETO_SOLICITAR`: llama `mostrarReto(estado.paradaActual)` → envía `RETO.MOSTRAR` a hijo4 con los datos del reto | `RETO.MOSTRAR` | Hijo 4 | El padre es el árbitro de qué reto mostrar; hijos no acceden directamente a los datos |
 | `RETO.OCULTAR` | Hijo 4 (usuario cierra el reto) | `_hdl_RETO_OCULTAR`: oculta iframe hijo4 + backdrop. No limpia ningún estado propio del padre — solo relé y DOM | `CONTROL.HABILITAR` (hijo2, hijo3) + `RETO.LIMPIAR_ESTADO` (hijo4) | Hijo2, Hijo3, Hijo4 | Rehabilitar navegación/audio tras cerrar el reto, y que hijo4 limpie su propio estado interno |
@@ -10388,7 +10410,7 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Fase 3 protocolo modo | Sincronización |
 | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida | Heartbeat |
 | `DATOS.SOLICITAR_RETOS { retoId }` | Padre | Cache-miss: `mostrarReto()` no encuentra ese id en la caché local acotada | Pedir un reto concreto — el padre lo resuelve y responde con `RETO.MOSTRAR`, no con un reenvío masivo |
-| `RETO.COMPLETADO` | Padre | Cuando el usuario responde correctamente | Notificar al padre para avanzar el recorrido |
+| `RETO.COMPLETADO` | Padre | Al pulsar el botón verde (btnNext) tras responder correctamente — no en el momento de responder (`_pendienteCompletado` guarda el resultado hasta ese clic) | Notificar al padre para avanzar el recorrido |
 | `RETO.OCULTAR` | Padre | Cuando el usuario cierra la ventana del reto (botón siguiente/continuar) | Pedir al padre que oculte el iframe hijo4 y el backdrop, y que rehabilite navegación/audio (`CONTROL.HABILITAR` a hijo2/hijo3); el padre responde con `RETO.LIMPIAR_ESTADO` para que este hijo limpie su propio estado |
 
 ---
@@ -10475,7 +10497,7 @@ Usuario pulsa el botón de retos (#botonRetos en hijo 4)
         └─▶ PADRE envía RETO.MOSTRAR (objeto reto de P3) → HIJO 4
               └─ Reto se renderiza y queda interactivo
 
-Usuario responde el reto correctamente
+Usuario responde el reto correctamente y pulsa el botón verde (btnNext)
   └─▶ HIJO 4 envía RETO.COMPLETADO → PADRE
         └─ Padre avanza secuencia, habilita GPS para la siguiente parada
 
@@ -11001,7 +11023,7 @@ Esta sección documenta los cambios implementados para las restricciones GPS y e
 | `PRECISION_MINIMA` | 50 m — **no leída por el runtime** (§25.5) | `js/config.js` | 99 |
 | `INTERVALO_ACTUALIZACION` | 7.000 ms | `js/config.js` | 87 |
 | `TIMEOUT` | 30.000 ms | `js/config.js` | 81 |
-| `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | ~4957 |
+| `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | ~5659 |
 
 ### 29.2 Nuevos tipos de mensaje
 
@@ -11014,14 +11036,14 @@ Esta sección documenta los cambios implementados para las restricciones GPS y e
 
 **Archivo: `codigo-padre.html`**
 
-- Campo `gps.visualActivo` en el estado GPS (~línea 3285)
-- Campo `gps.tramoAudioPendiente` para controlar audio de tramos (~línea 3286)
-- `audioEscuchadoPorParada: new Map()` para rastrear audio por parada (~línea 3288)
+- Campo `gps.visualActivo` en el estado GPS (~línea 3992)
+- Campo `gps.tramoAudioPendiente` para controlar audio de tramos (~línea 3993)
+- `audioEscuchadoPorParada: new Map()` para rastrear audio por parada (~línea 3995)
 
 **Archivo: `js/funciones-mapa.js`**
 
-- Campo `gpsVisualActivo: false` en `estadoMapa` (~línea 209)
-- `sincronizarEstadoGPSConPadre()` escribe `estadoPadre.gps.visualActivo = estadoMapa.gpsVisualActivo` directamente (~línea 632) — no via mensaje
+- Campo `gpsVisualActivo: false` en `estadoMapa` (~línea 193)
+- `sincronizarEstadoGPSConPadre()` (declarada en la línea 755) escribe `estadoPadre.gps.visualActivo = estadoMapa.gpsVisualActivo` directamente (línea 763) — no via mensaje
 
 ### 29.4 Lógica del botón de avance en tramos y paradas
 
@@ -11132,7 +11154,7 @@ Scripts 2, 3 y 4 toman `const sleep = globalThis.sleep || (ms => new Promise(r =
 
 ### 30.3 Timeout de HIJO_LISTO
 
-**Archivo:** `js/state-manager.js` línea 266 (función `crearPromiseHijoListo`, declarada en la línea 252)
+**Archivo:** `js/state-manager.js` línea 200 (función `crearPromiseHijoListo`, declarada en la línea 186)
 
 Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los dispositivos lentos o conexiones de baja calidad pueden tardar más de 15 s en cargar los iframes hijos.
 
@@ -11141,7 +11163,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-5039bbc43d59';
+const CACHE_VERSION = 'v-7d681c56bbfe';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11238,7 +11260,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 **Diferencia entre código 2 y código 3:**
 
 - Código 2 (POSITION_UNAVAILABLE, GPS apagado): sin reintento automático. El `watchPosition` queda registrado y el browser lo retomará cuando el GPS vuelva.
-- Código 3 (TIMEOUT): reintento automático en `_gpsRetryOnTimeout()` — hasta `Config.GPS.REINTENTOS` intentos (3 por defecto) con `enableHighAccuracy: false` y backoff exponencial. Cada reintento reutiliza `_watchPositionSuccess`/`_watchPositionError` como callbacks del nuevo `watchPosition` (no una copia propia): si ese reintento también agota el tiempo, `_watchPositionError` se ejecuta de nuevo y encadena el siguiente intento hasta agotar el máximo — el conteo de reintentos y el encadenado son consistentes en toda la cadena, no solo en el primer intento.
+- Código 3 (TIMEOUT): reintento automático en `_gpsRetryOnTimeout()` — hasta `globalThis.Config?.GPS?.REINTENTOS || 3` intentos; `Config.GPS` no define ningún campo `REINTENTOS` (ver §29.1), así que esa lectura siempre resuelve `undefined` y el valor real usado es siempre el fallback hardcodeado, **3** — con `enableHighAccuracy: false` y backoff exponencial. Cada reintento reutiliza `_watchPositionSuccess`/`_watchPositionError` como callbacks del nuevo `watchPosition` (no una copia propia): si ese reintento también agota el tiempo, `_watchPositionError` se ejecuta de nuevo y encadena el siguiente intento hasta agotar el máximo — el conteo de reintentos y el encadenado son consistentes en toda la cadena, no solo en el primer intento.
 
 **Qué ve el usuario:** overlay a pantalla completa con `imagen-no-gps.png`. El botón de reintento distingue visualmente entre los dos códigos, cada uno con su propio icono:
 
@@ -11327,7 +11349,7 @@ Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a
 
 | Pantalla | Tiempo de espera tras cerrar |
 |---|---|
-| `foto-fuera-rango.png` (11-50m) | 60s |
+| `foto-fuera-rango.png` (16-50m) | 60s |
 | `foto_lejos_ubicacion.png` (51-2.000m) | 120s |
 | `fotogpserror.png` (>2.000m) | 150s |
 
@@ -11388,10 +11410,10 @@ Los dos disparadores del overlay (§31.4, distancia al objetivo >2.000m; §31.5,
 Si `FIN_REPRODUCCION` nunca llega, `pending.audio` se queda `false` para siempre y `intentarCompletarElemento()` nunca avanza al siguiente elemento.
 
 **Corrección 31.7a — `AUDIO.ERROR` desbloquea el pending:**
-El handler `_hdl_AUDIO_ERROR()` ([codigo-padre.html:10188](codigo-padre.html#L10188)) localiza el elemento por `audioId` con `findElementoPorAudio()`, resuelve su pending vía `ensurePending()` y, si `pending.audio` aún no estaba a `true`, lo marca y llama a `intentarCompletarElemento()`. El error de audio se trata como fin de audio a efectos de progresión — la parada no queda bloqueada aunque el MP3 nunca cargue.
+El handler `_hdl_AUDIO_ERROR()` ([codigo-padre.html:11688](codigo-padre.html#L11688)) localiza el elemento por `audioId` con `findElementoPorAudio()`, resuelve su pending vía `ensurePending()` y, si `pending.audio` aún no estaba a `true`, lo marca y llama a `intentarCompletarElemento()`. El error de audio se trata como fin de audio a efectos de progresión — la parada no queda bloqueada aunque el MP3 nunca cargue.
 
 **Corrección 31.7b — TTL activo:**
-Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, configurable por elemento en `_buildPendingConfig()`). Un `setInterval` global (`globalThis.__VV_PENDING_CLEANUP`, [codigo-padre.html:11487](codigo-padre.html#L11487)) corre cada 60 segundos, solo en modo AVENTURA: recorre `estado.pendingCompleciones`, y para cada uno cuyo `Date.now() - pending.timestamp > pending.ttlMs`, fuerza `audio = true` y `llegada = true` y llama a `intentarCompletarElemento()`. El intervalo se limpia (`clearInterval`) junto con el resto de limpieza global del padre ([codigo-padre.html:11696](codigo-padre.html#L11696)).
+Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, configurable por elemento en `_buildPendingConfig()`). Un `setInterval` global (`globalThis.__VV_PENDING_CLEANUP`, [codigo-padre.html:13034](codigo-padre.html#L13034)) corre cada 60 segundos, solo en modo AVENTURA: recorre `estado.pendingCompleciones`, y para cada uno cuyo `Date.now() - pending.timestamp > pending.ttlMs`, fuerza `audio = true` y `llegada = true` y llama a `intentarCompletarElemento()`. El intervalo se limpia (`clearInterval`) junto con el resto de limpieza global del padre ([codigo-padre.html:13207](codigo-padre.html#L13207)).
 
 **Nota sobre tramos:** los tramos requieren `pending.audio && pending.llegada`. Si el audio no carga pero el GPS sí confirma llegada, el tramo sigue bloqueado hasta que se resuelva el audio. La solución del punto 1 (AUDIO.ERROR → pending.audio = true) también desbloquea este caso.
 
@@ -11412,7 +11434,7 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 | 31.1 | Sin internet | `imagen-no-internet.png` | `AUDIO.ERROR` + `!navigator.onLine` → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
 | 31.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(code)` | ✅ implementado |
 | 31.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
-| 31.4a | Fuera de rango: 11-50m | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
+| 31.4a | Fuera de rango: 16-50m | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
 | 31.4b | Fuera de rango: 51-2000m | `foto_lejos_ubicacion.png` | ídem | ✅ implementado |
 | 31.4c | Fuera de rango: >2000m del objetivo | `fotogpserror.png` | `GPS.RESTRINGIDO` → padre | ✅ implementado |
 | 31.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
@@ -11700,7 +11722,7 @@ Ahora mismo `opciones.permanente` no lo lee ningún código de la app — no hay
 
 **Alcance total:** **57 handlers** con `permanente: true` en total — 52 en `codigo-padre.html` (repartidos entre Script 1, Script 2 y el bloque final de Script 4 tras el TTL de pending — incluye `_hdl_PARADAS_LISTADO_TOGGLE`, ver §7.2), 2 en `app.js`, 3 en `controladores-padre.js` (recuento verificado por `grep -c "permanente: *true"` sobre los 4 archivos).
 
-**Excepción:** El handler de `COORDENADAS_PARADAS_RESPONSE` (~línea 5351) se registra dentro de una función específica, no en la inicialización general junto al resto, y no lleva `permanente: true`.
+**Excepción:** El handler de `COORDENADAS_PARADAS_RESPONSE` (~línea 5801) se registra dentro de una función específica, no en la inicialización general junto al resto, y no lleva `permanente: true`.
 
 ---
 
@@ -11742,7 +11764,9 @@ await sm.atomicUpdateHeartbeat(s => {
 
 **Archivos:** `js/utils.js`, `js/app.js`, `js/funciones-mapa.js`, y todos los hijos HTML.
 
-`utils.js` exporta `resolverIdPadre()`, que determina el ID del padre leyendo URL params, `sessionStorage` o generando un UUID nuevo. El nombre diferencia esta función de `globalThis.getPadreId` definida en `codigo-padre.html` (~línea 3283), que siempre devuelve `CONFIG_PADRE.ID = 'padre'` — dos funciones con propósito distinto.
+`utils.js` exporta `resolverIdPadre()`, que determina el ID del padre leyendo URL params, `sessionStorage` o generando un UUID nuevo (`padre-XXXXXXXX`, cacheado en `sessionStorage['vvguides_padreId']`, ver §10). El nombre diferencia esta función de `globalThis.getPadreId`, definida en un `<script>` clásico (no-módulo) temprano de `codigo-padre.html` (líneas 220-233, reforzado con el mismo guard en 3818-3821), que siempre devuelve `CONFIG_PADRE.ID = 'padre'` — dos funciones con propósito distinto.
+
+**Matiz importante — Script 1 no usa `globalThis.getPadreId` para sus propios envíos:** dentro de Script 1 (`<script type="module">`, líneas 2680-8894), la línea 3651 declara `const getPadreId = getPadreId_S1;`, donde `getPadreId_S1` es el alias local de `resolverIdPadre` importado de `utils.js` (línea 3504: `resolverIdPadre: getPadreId_S1`). Como es un `const` de módulo, no toca `globalThis.getPadreId` — pero sí **sombrea** el identificador `getPadreId` para todo el resto de Script 1. En consecuencia, las ~20 llamadas `origen: getPadreId()` dentro de Script 1 (líneas 4760-7103) usan en realidad `resolverIdPadre()`, no la función que "siempre devuelve `'padre'`" — su `origen` real es el UUID de sesión (`padre-XXXXXXXX`), igual que el que usan los hijos para identificarse. Scripts 2, 3 y 4 son módulos separados sin este `const` local, así que en ellos `getPadreId()` sí resuelve por la cadena de scope hasta `globalThis.getPadreId` (la función "siempre `'padre'`") — de ahí que la mayoría de los ~90 usos de `getPadreId()` en el resto del archivo (Script 2 en adelante) sí envíen el literal `'padre'`. El campo `origen` es puramente informativo/de log — `mensajeria.js` identifica al padre en el transporte real con el literal hardcodeado `id: 'padre'` en `inicializarMensajeria()` (línea 3658), no leyendo este campo — así que la inconsistencia no rompe el enrutamiento, pero sí hace que el valor de `origen` en los mensajes salientes de Script 1 no coincida con el de Script 2-4 ni con el de los propios logs de éxito de handshake.
 
 `js/utils.js` exporta también `getPadreId` como alias de `resolverIdPadre` para compatibilidad con tests y cualquier código que use el nombre anterior:
 
@@ -11757,10 +11781,10 @@ Usos en el código:
 - `js/funciones-mapa.js`: importa `resolverIdPadre`
 - `extrainfo-hijo1.html`, `coordenadas-hijo2.html`, `audio-hijo3.html`, `retos-hijo4.html`, `chat-hijo6.html`, `boton-casa-hijo5.html`, `En-busca-del-tesoro.html`: importan `resolverIdPadre`
 
-**No usan `utils.js` para esto (intencional):**
+**Matiz — `codigo-padre.html` y `controladores-padre.js` no evitan `utils.js` de forma tan limpia como sugiere el título de este apartado:**
 
-- `codigo-padre.html`: usa `globalThis.getPadreId` (función propia, devuelve siempre `'padre'`)
-- `js/controladores-padre.js`: recibe `getPadreId` como inyección de dependencias desde el padre (`getPadreId_S1`, la versión local)
+- `codigo-padre.html` Script 2/3/4: usan `globalThis.getPadreId` (función propia, devuelve siempre `'padre'`) — pero Script 1 usa en realidad `getPadreId_S1` (`resolverIdPadre` de `utils.js`, ver el matiz arriba), no la función propia.
+- `js/controladores-padre.js`: recibe `getPadreId` como inyección de dependencias desde el padre — y el padre le pasa concretamente `getPadreId_S1` (línea ~8213: `getPadreId: getPadreId_S1`), es decir, `resolverIdPadre` de `utils.js` bajo otro nombre, pese a que su JSDoc interno (`js/controladores-padre.js` línea 36: "Retorna el ID del padre ('padre')") describe el comportamiento de la función global, no el de la que realmente recibe.
 
 ---
 
@@ -12049,7 +12073,7 @@ Esta sección define el protocolo estándar para pedir una auditoría exhaustiva
 
 ### 36.2 EJE 2 — Scope de funciones entre scripts (codigo-padre.html)
 
-`codigo-padre.html` tiene 4 `<script type="module">` con scope completamente separado: Script 1 (2577–7521), Script 2 (7522–11515), Script 3 (11516–11712), Script 4 (11713–fin). Una función definida en Script 2 es **invisible** en Script 1 a menos que esté expuesta via `globalThis.fn = fn`.
+`codigo-padre.html` tiene, a día de hoy, **5** `<script type="module">` con scope completamente separado (verificado 2026-08-14; las líneas se desplazan con cada edición del archivo, tratar como aproximadas): Script 1 (2680–8894), Script 2 (8898–13062, etiquetado "Lógica post-carga y funciones auxiliares"), Script 3 (13063–13155, gestión de visibilidad de iframes, sin comentario de cabecera propio), Script 4 (13224–13446, etiquetado explícitamente "SCRIPT 4: Migración de controladores y diagnóstico GPS" en línea 13226 — **no llega hasta el final del archivo**), y un quinto módulo sin numerar (13551–fin) que implementa el panel de logs en pantalla (gesto de 7 toques, ver comentario en línea 13541). Entre Script 4 y este quinto módulo hay además dos `<script>` clásicos (no-módulo, 13454–13514 y 13517–13539) con su propio scope no-modular. Una función definida en Script 2 es **invisible** en Script 1 a menos que esté expuesta via `globalThis.fn = fn` — la misma regla aplica a los 5 módulos entre sí.
 
 1. Para cada función llamada en Script 1 que no está definida en Script 1: verifica que el acceso usa `globalThis.fn(...)`. Una bare call sin `globalThis.` lanza `ReferenceError` en runtime (aunque puede quedar silenciada en un `catch`).
 2. Para cada `globalThis.fn = fn` al final de un script: verifica que `fn` está efectivamente definida en ese mismo script y no viene de otro módulo sin re-exposición explícita.
@@ -12366,7 +12390,7 @@ Para cada `sleep`/`setTimeout` que preceda a código que depende de que algo ext
 3. Si no existe ninguna señal real disponible: documentar explícitamente por qué el timer fijo es la única opción y qué margen de seguridad se eligió y por qué (no dejarlo como una suposición implícita sin comentario).
 4. Verifica que la sustitución no rompe otras partes del código que asumían el retraso fijo por otro motivo (p.ej. dar tiempo a un log a completarse) — separar el motivo real del efecto colateral aprovechado antes de eliminar el timer.
 
-**Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `_esperarHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea. Ejemplo real (2026-08-06): `initializeMap()` (`codigo-padre.html`) resolvía su promesa en cuanto `inicializarServicioMapa(map)` devolvía `true` — una condición real, pero sobre si el módulo JS tenía la referencia al mapa, no sobre si el **estilo** del mapa (tiles/sprite/glyphs, todo vía red) había terminado de cargar. Justo después, `ejecutarInicializacionAutomatica()` hacía `await sleep(500)` con el comentario "asegurar que el mapa esté completamente renderizado" — un cronómetro sin ninguna pregunta real detrás. En una conexión lenta, el estilo puede tardar más de 500ms en cargar; mientras tanto, `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigían `isStyleLoaded()===true` o devolvían un stub inerte (`_capaVacia()`) sin reintento — el círculo naranja de 20m o una polyline podían quedar sin dibujar de forma silenciosa y permanente, un fallo reportado después por el usuario con capturas de campo reales. Fix en dos capas: `initializeMap()` no resuelve hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está), y el `sleep(500)` sobrante se eliminó por quedar sin propósito — pero esto solo cierra la ventana de la carga inicial. El `_capaVacia()` en sí se sustituyó, en una corrección posterior, por `_crearCapaDiferida()` (§4.6a): en vez de un stub muerto para siempre, un proxy que crea la capa real en cuanto el mapa dispara `'load'`, autorreparándose ante cualquier instante en que el estilo no esté listo, no solo el del arranque.
+**Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `_esperarHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea. Ejemplo real (2026-08-06): `initializeMap()` (`codigo-padre.html`) resolvía su promesa en cuanto `inicializarServicioMapa(map)` devolvía `true` — una condición real, pero sobre si el módulo JS tenía la referencia al mapa, no sobre si el **estilo** del mapa (tiles/sprite/glyphs, todo vía red) había terminado de cargar. Justo después, `ejecutarInicializacionAutomatica()` hacía `await sleep(500)` con el comentario "asegurar que el mapa esté completamente renderizado" — un cronómetro sin ninguna pregunta real detrás. En una conexión lenta, el estilo puede tardar más de 500ms en cargar; mientras tanto, `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigían `isStyleLoaded()===true` o devolvían un stub inerte (`_capaVacia()`) sin reintento — el círculo naranja de 15m o una polyline podían quedar sin dibujar de forma silenciosa y permanente, un fallo reportado después por el usuario con capturas de campo reales. Fix en dos capas: `initializeMap()` no resuelve hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está), y el `sleep(500)` sobrante se eliminó por quedar sin propósito — pero esto solo cierra la ventana de la carga inicial. El `_capaVacia()` en sí se sustituyó, en una corrección posterior, por `_crearCapaDiferida()` (§4.6a): en vez de un stub muerto para siempre, un proxy que crea la capa real en cuanto el mapa dispara `'load'`, autorreparándose ante cualquier instante en que el estilo no esté listo, no solo el del arranque.
 
 ---
 

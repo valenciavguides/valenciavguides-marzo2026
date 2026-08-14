@@ -748,7 +748,7 @@ function activarBoton(boton, titulo = '') {
 
 // Actualizar los estados de todos los botones según reglas específicas
 // ARQUITECTURA TOLERANCIA GPS:
-// - PARADAS: rangos fijos (GPS 0-10m, Ubicación fuera de ese rango)
+// - PARADAS: rangos fijos (GPS 0-15m, Ubicación fuera de ese rango)
 // - TRAMOS: tolerancia DINÁMICA calculada en funciones-mapa.js
 //   * GPS habilitado: 5m hasta toleranciaGPS (puede ser 150m+ en tramos largos)
 //   * VIDEO habilitado: 5m hasta toleranciaGPS (para ver video completo del tramo)
@@ -955,10 +955,10 @@ function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRa
 
 /**
  * Verifica si el usuario está dentro/fuera del rango real de la parada/tramo actual
- * (10m parada / toleranciaGPS tramo — el mismo umbral que btn-avanzar) y actualiza
+ * (15m parada / toleranciaGPS tramo — el mismo umbral que btn-avanzar) y actualiza
  * el botón de ubicación. Fuera de ese rango, informa al padre de la distancia real
  * en cada posición (GPS.RESTRINGIDO) para que decida qué pantalla de aviso mostrar
- * (§30 de la guía) — las tres franjas (11-50m, 51-2000m, >2000m) habilitan ubicación
+ * (§30 de la guía) — las tres franjas (16-50m, 51-2000m, >2000m) habilitan ubicación
  * al instante: es el usuario quien decide cuándo pulsarla, no un umbral de tiempo
  * calculado por la app.
  * Solo se ejecuta en modo aventura.
