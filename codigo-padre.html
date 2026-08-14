@@ -4105,6 +4105,20 @@
         // Persistencia del progreso de la aventura
         function persistProgressState() {
             try {
+                // En CASA, la parada activa es siempre exploración (hijo5 permite "ver"
+                // cualquier parada/tramo sin mover el progreso real — protegido en memoria
+                // por estado.paradaRealCongelada, ver _hdl_SISTEMA_CAMBIO_MODO). Persistirla
+                // aquí sobrescribiría vv_progreso con lo último explorado; si la página se
+                // recarga antes de volver a AVENTURA, la reanudación restauraría esa parada
+                // explorada en vez de la real, porque paradaRealCongelada nunca se persiste
+                // a localStorage, solo vive en memoria. No escribir nada aquí mientras se
+                // está en CASA cierra ese hueco: vv_progreso conserva siempre el último
+                // valor real persistido en AVENTURA, y se actualiza de nuevo en cuanto se
+                // vuelve a AVENTURA (la resincronización automática también pasa por aquí).
+                if (estado.modo?.actual === MODOS.CASA) {
+                    (globalThis.logger || console).debug('[PADRE][PROGRESO] Persistencia de vv_progreso omitida en modo CASA');
+                    return;
+                }
                 // Calcular total de paradas para mostrar progreso en diálogo de reanudación
                 let totalParadas = null;
                 try {
@@ -7244,9 +7258,19 @@
                 }
 
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
-                // de manejarCambioModo (puede tardar hasta 15s si algún hijo no responde)
+                // de manejarCambioModo (puede tardar hasta 15s si algún hijo no responde).
+                // No tocar globalThis._devModeActivo aquí: por diseño (§24.0 GUIA-COMPLETA)
+                // solo se reinicia al recargar la página, nunca por un cambio de modo en
+                // curso -- poner aquí _devModeActivo=false rompía justo eso cada vez que el
+                // desarrollador entraba en AVENTURA desde CASA (el camino normal, vía el
+                // botón 🛰️ de hijo5), porque _transicionarAModoCasa() (más abajo, rama CASA
+                // de esta misma función) usa ese flag para decidir si la vuelta a CASA es un
+                // bootstrap de desarrollo (no borrar nada) o un abandono real (borrar
+                // vv_aventura_iniciada/vv_progreso/vv_paradas_completadas) -- con el flag ya
+                // en false por este reset, CADA vuelta a CASA vía el botón (no solo Factor 2)
+                // se trataba como abandono real y borraba la sesión guardada en localStorage
+                // en mitad de una sesión de desarrollo normal.
                 if (modo === MODOS.AVENTURA) {
-                    globalThis._devModeActivo = false;
                     const hijo5El = document.getElementById('hijo5');
                     if (hijo5El) hijo5El.style.display = 'none';
                 }

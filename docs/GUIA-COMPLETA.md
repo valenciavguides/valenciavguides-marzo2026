@@ -248,7 +248,7 @@ flowchart TD
 
 **Controlador en padre**: `_hdl_SISTEMA_CAMBIO_MODO()` (compartido por ambas direcciones — esta es la rama `modo === 'aventura'`), que:
 
-1. Inmediatamente (antes de cualquier await): establece `_devModeActivo = false` (flag del modo DEV, ver §24) y oculta el iframe hijo5 (`display: none`).
+1. Inmediatamente (antes de cualquier await): oculta el iframe hijo5 (`display: none`). No toca `globalThis._devModeActivo` — ese flag (ver §24) solo se reinicia al recargar la página, nunca por un cambio de modo; ponerlo a `false` aquí hacía que `_transicionarAModoCasa()` (rama CASA de esta misma función) tratara CADA vuelta a CASA por este mismo botón como un abandono real y borrara `vv_aventura_iniciada`/`vv_progreso`/`vv_paradas_completadas` — corregido, ver §7.6.
 2. Llama directamente a `globalThis.funcionesMapa.manejarCambioModoMapa(mensaje)` (no como handler registrado — competiría con este mismo handler por el orden de inserción en `getMapaControladoresSync`) para actualizar `estadoMapa.modo`, ejecutar `limpiarPorEstado` y resetear la vista.
 3. Llama `manejarCambioModo(estado, mensaje)` de `js/app.js`, que actualiza `estado.modo.actual = 'aventura'` (optimistic update) y llama `actualizarInterfazModo()` — envía `SISTEMA.CAMBIO_MODO` a todos los hijos con `secuenciaCompleta: !!estado.todosHijosListos` y espera ENTENDIDO+EFECTUADO de cada uno (timeout 5s+10s).
 4. Si el cambio tuvo éxito y existe `estado.paradaRealCongelada` (progreso real guardado al entrar en CASA, ver §2.5): restaura ese progreso llamando `globalThis.__triggerCambioParadaInterno({ paradaId: estado.paradaRealCongelada })`, y limpia el flag. Esto deshace cualquier navegación "de solo mirar" que el usuario haya hecho en CASA vía hijo5 — sin esta restauración, mapa/hijo2 se quedarían apuntando a lo último que se miró en CASA en vez del progreso real de la aventura.
@@ -282,7 +282,7 @@ sequenceDiagram
 
     U->>H5: Pulsa botón GPS (activar)
     H5->>P: SISTEMA.CAMBIO_MODO (modo: aventura, origen: boton-gps)
-    Note over P: INMEDIATO: _devModeActivo=false · iframe hijo5 display=none
+    Note over P: INMEDIATO: iframe hijo5 display=none (_devModeActivo no se toca)
     P->>P: manejarCambioModo → estado.modo.actual = 'aventura'
     Note over P: actualizarInterfazModo() envía CAMBIO_MODO a todos los hijos<br/>(secuenciaCompleta: !!todosHijosListos) y espera ENTENDIDO+EFECTUADO
     par actualizarInterfazModo — primera propagación
@@ -2975,6 +2975,8 @@ El botón **siempre está habilitado**. Un click solicita el cambio de modo al p
 
 **El botón nunca cambia de aspecto en el momento del click — solo cuando el padre confirma el cambio de verdad.** `manejarClickGPS()` calcula `modoNuevo` y envía la solicitud, pero no toca `estado.modo` ni `_actualizarUIParaModo()` en ese punto. El envío usa el `enviarMensaje` local de este archivo (un `postMessage` directo al padre, sin confirmación de entrega ni de éxito — resuelve en cuanto se despacha la llamada, sin relación con si el padre realmente aplicó el cambio, p. ej. si su guard interno "ya hay un cambio de modo en curso" lo rechaza). El único sitio que actualiza `estado.modo`/el aspecto del botón es el controlador `SISTEMA.CAMBIO_MODO` (ver diagrama de secuencia más abajo, línea `H5->>H5: #gps-casa-btn → clase .on...`), que solo se dispara cuando el padre reenvía el `CAMBIO_MODO` ya confirmado a todos los hijos — la misma vía por la que se sincroniza al cargar (`_sincronizarBotonConModo`). Antes de esto, el botón sí se actualizaba de forma optimista en el propio click, antes de tener ninguna confirmación del padre — si el cambio fallaba en el padre (p. ej. por ese mismo guard de concurrencia), el botón se quedaba mostrando un modo que nunca llegó a aplicarse de verdad, sin ninguna forma de corregirse sola.
 
+**Corregido — `globalThis._devModeActivo` ya no se reiniciaba a `false` al entrar en AVENTURA, y eso borraba la sesión guardada cada vez que el desarrollador pulsaba este mismo botón para volver a CASA.** `_hdl_SISTEMA_CAMBIO_MODO` (`codigo-padre.html`) ponía `_devModeActivo = false` en su rama AVENTURA — pensado solo para ocultar hijo5, pero con un efecto colateral serio: `_transicionarAModoCasa()` (misma función, rama CASA) decide si borrar `vv_aventura_iniciada`/`vv_progreso`/`vv_paradas_completadas` mirando ese mismo flag (`if (!globalThis._devModeActivo) { borrar todo }`) — pensado para distinguir un abandono real de un simple bootstrap de dev. Como el flag ya estaba en `false` desde la última vez que se entró en AVENTURA, **cada vuelta a CASA por este botón (no solo por Factor 2) se trataba como un abandono real** y borraba toda la sesión guardada en localStorage en mitad de una sesión de desarrollo normal — contradiciendo lo que dice la propia tabla de "Seguridad del sistema" en §24.0 (persistencia: ninguna, se reinicia solo al recargar la página). Ahora `_devModeActivo` no se toca en la rama AVENTURA — sigue en `true` durante toda la sesión de desarrollo, exactamente como está documentado, y solo se pierde con una recarga real de página. Verificado en vivo: AVENTURA con progreso real en `padre-P1` → CASA (vía este botón) → `vv_aventura_iniciada`/`vv_progreso` siguen en localStorage sin borrar → explorar `padre-P5` → volver a AVENTURA → el progreso real (`padre-P1`) se mantiene intacto en todo momento.
+
 #### Botones de parada/tramo (`.parada-tramo-btn`)
 
 Generados dinámicamente por `generarBotonesParadas()`. Cada botón tiene dos filas:
@@ -4682,7 +4684,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-b0ac7fc972d0'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-5039bbc43d59'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6268,9 +6270,9 @@ En CASA, seleccionar cualquier parada/tramo para verlo en pantalla (hijo5) enví
 
 Verificado end-to-end: AVENTURA en `Av1-P-2` (índice 7) → CASA → ver `Av1-TR-5` (el puntero se mueve, la navegación libre funciona) → volver a AVENTURA → el progreso real vuelve solo a `Av1-P-2`, índice 7.
 
-**Hueco confirmado — sin progreso real previo, la congelación no protege nada.** El paso 1 congela `estado.paradaActual || null` — si el desarrollador entra en CASA por primera vez en la sesión (bootstrap de Factor 1, antes de haber pisado nunca AVENTURA), `paradaActual` todavía es `null`, así que se congela `null`. El paso 3 solo resincroniza si `estado.paradaRealCongelada` es verdadero — con `null` no hace nada. En ese caso, lo que decide dónde aterriza la sesión al entrar en AVENTURA no es lo último que se tocó en CASA, sino `ensureDefaultParada()` (`codigo-padre.html:4250-4290`): si `paradaActual` sigue vacío en ese punto (lo estará, porque el cambio de modo lo resetea incondicionalmente vía `limpiarRecursosPorModo`, `js/app.js:874`), fija siempre el elemento `tipo:'inicio'` de la aventura — nunca la última parada explorada en CASA. Verificado en vivo: CASA fresca → tocar `padre-P1` → tocar `padre-P5` → pasar a AVENTURA → `estado.paradaActual` termina en `Av1-P-0` (el inicio), no en `padre-P5`.
+**Comportamiento esperado sin progreso real previo: se cae al inicio de la aventura, no a lo último explorado.** El paso 1 congela `estado.paradaActual || null` — si el desarrollador entra en CASA por primera vez en la sesión (bootstrap de Factor 1, antes de haber pisado nunca AVENTURA), `paradaActual` todavía es `null`, así que se congela `null`. El paso 3 solo resincroniza si `estado.paradaRealCongelada` es verdadero — con `null` no hace nada, así que lo que decide dónde aterriza la sesión al entrar en AVENTURA es `ensureDefaultParada()` (`codigo-padre.html:4250-4290`): si `paradaActual` sigue vacío en ese punto, fija siempre el elemento `tipo:'inicio'` de la aventura — nunca la última parada explorada en CASA. Verificado en vivo: CASA fresca → tocar `padre-P1` → tocar `padre-P5` → pasar a AVENTURA → `estado.paradaActual` termina en `Av1-P-0` (el inicio), no en `padre-P5`. Es la dinámica esperada, no un bug: sin progreso real que proteger, la aventura simplemente arranca desde el principio.
 
-**Hueco confirmado — recargar la página estando en CASA puede dejar `vv_progreso` apuntando a lo último explorado, no al progreso real.** Cada clic en hijo5 llama a `persistProgressState()` (vía `_actualizarEstadoParada`), que sobrescribe `localStorage['vv_progreso']` con la parada tocada — igual en CASA que en AVENTURA. `estado.paradaRealCongelada`, en cambio, vive solo en memoria y nunca se persiste. Si el desarrollador recarga la página mientras sigue en CASA, después de haber tocado una parada distinta a la real y sin haber vuelto antes a AVENTURA, el diálogo de reanudación restaura desde `vv_progreso` — que en ese momento contiene la parada explorada, no la real. El congelado solo protege dentro de la misma sesión sin recargar.
+**Corregido — `persistProgressState()` ya no escribe nada en localStorage mientras se está en CASA**, precisamente para que una recarga de página en mitad de una exploración libre no pueda confundir lo explorado con el progreso real (antes, cada clic en hijo5 sobrescribía `vv_progreso` con la parada tocada, vía `_actualizarEstadoParada`, igual que en AVENTURA). Ver el detalle completo en §7.6 (botón GPS de hijo5) más abajo.
 
 ### Las coordenadas
 
@@ -7490,7 +7492,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-b0ac7fc972d0'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-5039bbc43d59'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8133,7 +8135,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-b0ac7fc972d0';
+const CACHE_VERSION = 'v-5039bbc43d59';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8464,7 +8466,7 @@ flowchart TD
 
 **Para qué sirve:** ver el log de consola completo desde el propio móvil, sin cable USB ni ordenador — pensado específicamente para la PWA instalada en modo standalone, donde no hay barra de direcciones ni forma de conectar DevTools remoto sin depurar por USB (que en Xiaomi/MIUI puede fallar por driver, como ocurrió en la sesión que motivó esto). Útil en CASA y en AVENTURA por igual — a diferencia de Factor 1/2, este panel **no activa el modo DEV** ni toca `_devModeActivo`, solo muestra el buffer del logger (`js/logger.js`, `globalThis.__vv_logger`, últimas 500 entradas) en un `<textarea>` dentro de la propia página.
 
-**Por qué NO se engancha a `globalThis._devModeActivo` (decisión deliberada):** ese flag se pone a `false` automáticamente en cuanto se entra en AVENTURA (ver `_hdl_SISTEMA_CAMBIO_MODO`, rama `MODOS.AVENTURA`, más abajo) — depender de él dejaría el panel inutilizable justo en el escenario real que lo motivó (depurar GPS durante una aventura activa, con el usuario caminando de verdad). En su lugar, el gesto **siempre** vuelve a pedir el código DEV desde cero, exactamente igual que Factor 2 — nunca confía en un flag que puede llevar horas sin refrescarse ni en si el modo DEV está "activo" en ese instante.
+**Por qué NO se engancha a `globalThis._devModeActivo` (decisión deliberada):** aunque hoy ese flag se mantiene en `true` durante toda la sesión de dev (solo se pierde al recargar la página, ver §24.0), depender de él seguiría atando el panel a un flag que puede llevar horas sin refrescarse y que no dice nada sobre si el código correcto se introdujo hace un momento o hace un día. En su lugar, el gesto **siempre** vuelve a pedir el código DEV desde cero, exactamente igual que Factor 2 — más simple y más seguro que confiar en cualquier flag de estado, sea cual sea su fiabilidad en cada momento.
 
 **Gesto de activación:** 7 toques en menos de 3 segundos, en **cualquier parte de la pantalla** (no un elemento concreto) — deliberadamente distinto de los 5 toques de Factor 1/2 (que sí exigen un elemento exacto, `.logo-circular-bg` o `#icono-temporizador`) para no colisionar con ninguno de los dos gestos existentes ni con clicks normales de la interfaz.
 
@@ -8496,15 +8498,15 @@ globalThis._verificarCodigoDevPWA = _verificarCodigoDevPWA;
 
 **Dónde vive el código:** bloque `<script type="module">` propio, justo antes de `</body>` en `codigo-padre.html` — deliberadamente el último bloque del documento, autocontenido, envuelto en `try/catch` que nunca debe poder romper el resto de la app.
 
-#### Desactivación — botón 🛰️ de hijo5
+#### Salir a AVENTURA — botón 🛰️ de hijo5
 
-El modo DEV se desactiva siempre a través del botón GPS de hijo5.
+El botón GPS de hijo5 pasa la app a modo AVENTURA y oculta hijo5, pero **no desactiva el modo DEV en sí** — `globalThis._devModeActivo` sigue en `true` durante toda la sesión (ver §24.0), así que el desarrollador puede volver a CASA más tarde con el mismo botón sin que la sesión guardada se borre por el camino (ver el hueco corregido en §7.6). El modo DEV solo se pierde de verdad al recargar la página.
 
 ```mermaid
 flowchart TD
     CASA_DEV([MODO CASA dev activo\nhijo5 visible]) --> BTN["Desarrollador pulsa 🛰️ ON en hijo5\nhijo5 envía SISTEMA.CAMBIO_MODO\nmodo: 'aventura' · datos.origen: 'boton-gps'"]
-    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\n_devModeActivo=false · hijo5:display:none\nfuncionesMapa.manejarCambioModoMapa() — estado mapa · limpiarPorEstado · reset vista\nmanejarCambioModo (app.js) — coordina hijos\n_gestionarHeartbeatSegunModo: heartbeat activado\n_gestionarGpsSegunModo: red de seguridad — activarGPS() solo si !estado.gps.activo (normalmente ya está activo desde P14)"]
-    HDLAV --> AVENTURA([MODO AVENTURA\nGPS watchPosition activo desde P14, sin interrupción\nvalidaciones de proximidad activas])
+    BTN --> HDLAV["padre: _hdl_SISTEMA_CAMBIO_MODO(AVENTURA)\nhijo5:display:none (_devModeActivo NO se toca, sigue true)\nfuncionesMapa.manejarCambioModoMapa() — estado mapa · limpiarPorEstado · reset vista\nmanejarCambioModo (app.js) — coordina hijos\n_gestionarHeartbeatSegunModo: heartbeat activado\n_gestionarGpsSegunModo: red de seguridad — activarGPS() solo si !estado.gps.activo (normalmente ya está activo desde P14)"]
+    HDLAV --> AVENTURA([MODO AVENTURA\nGPS watchPosition activo desde P14, sin interrupción\nvalidaciones de proximidad activas\n_devModeActivo sigue true — el desarrollador puede volver a CASA sin perder la sesión])
 ```
 
 #### Comunicación entre scripts y scopes
@@ -8669,8 +8671,7 @@ Cuando el desarrollador está listo para probar la navegación real, pulsa el bo
 
 1. hijo5 envía `SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }` al padre
 2. El padre ejecuta `_hdl_SISTEMA_CAMBIO_MODO(AVENTURA)`:
-   - `globalThis._devModeActivo = false`
-   - hijo5: `display:none` (desaparece)
+   - hijo5: `display:none` (desaparece) — `globalThis._devModeActivo` no se toca aquí, sigue en `true` toda la sesión (corregido: antes se ponía a `false`, lo que hacía que la siguiente vuelta a CASA por este mismo botón se tratara como abandono real y borrara la sesión guardada, ver §7.6)
    - `manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `SISTEMA.CAMBIO_MODO` a todos los hijos, espera `ENTENDIDO` + `EFECTUADO`, envía `APLICADO`
    - `_gestionarGpsSegunModo(AVENTURA)` → guard `!estado.gps?.activo` — normalmente ya es `false` (GPS activo desde P14), así que este paso no hace nada; es una red de seguridad por si el GPS se hubiera desactivado por algún motivo
 3. Qué hace cada hijo al recibir `CAMBIO_MODO('aventura')`:
@@ -11140,7 +11141,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-b0ac7fc972d0';
+const CACHE_VERSION = 'v-5039bbc43d59';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12244,9 +12245,9 @@ Hay dos rutas de activación del modo dev (ver §24 para el gesto de cada una):
 
 *Ruta Factor 2 (`_hdl_CONTROL_DEV_CINCO_TOQUES` desde hijo1):* usuario entra código correcto → `confirmar()` es `async` con flag `_confirming` (bloquea reentradas: doble Enter ignorado) y `try/catch/finally` (error de `_vv_triggerCambioModo` queda logueado, no silencioso) → `_devModeActivo=true` → `await _vv_triggerCambioModo(MODOS_S2.CASA)` → solo después del await: hijo5 se hace visible → `cambiandoModo` ya es `false` cuando el usuario puede pulsar GPS; no hay race condition.
 
-*GPS button click (ambas rutas):* hijo5 envía `SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }` → `_hdl_SISTEMA_CAMBIO_MODO`: `_devModeActivo=false` (síncrono), hijo5 oculto inmediatamente → `await manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos (una sola vez; no existe ninguna función `_propagarCambioModoAHijos`) → `_gestionarGpsSegunModo(AVENTURA)` comprueba `!estado.gps.activo` — normalmente ya es `false` porque el GPS lleva activo desde P14, así que no hace nada (red de seguridad, no primera activación) → modo AVENTURA activo, heartbeat arranca.
+*GPS button click (ambas rutas):* hijo5 envía `SISTEMA.CAMBIO_MODO { modo: 'aventura', origen: 'boton-gps' }` → `_hdl_SISTEMA_CAMBIO_MODO`: hijo5 oculto inmediatamente (síncrono) — `_devModeActivo` no se toca → `await manejarCambioModo(AVENTURA)` → `actualizarInterfazModo` envía `CAMBIO_MODO` a todos los hijos (una sola vez; no existe ninguna función `_propagarCambioModoAHijos`) → `_gestionarGpsSegunModo(AVENTURA)` comprueba `!estado.gps.activo` — normalmente ya es `false` porque el GPS lleva activo desde P14, así que no hace nada (red de seguridad, no primera activación) → modo AVENTURA activo, heartbeat arranca.
 
-*Persistencia de `_devModeActivo`:* se resetea a `false` solo en dos momentos: cuando el usuario pulsa GPS (línea 6496 de `codigo-padre.html`), o recarga completa de página. "Otra aventura" (P2 sin reload) mantiene `_devModeActivo=true` — comportamiento intencional para conveniencia del desarrollador.
+*Persistencia de `_devModeActivo`:* se resetea a `false` **solo** al recargar la página por completo. Corregido: hasta hace poco también se ponía a `false` al pulsar el botón GPS para pasar a AVENTURA (línea ~7263 de `codigo-padre.html`) — parecía inofensivo porque solo afecta la visibilidad de hijo5 directamente, pero `_transicionarAModoCasa()` usa ese mismo flag para decidir si una vuelta a CASA es abandono real o bootstrap de dev, así que con el flag ya en `false`, la siguiente vez que el desarrollador volvía a CASA con el mismo botón, la sesión guardada en localStorage se borraba como si fuera un abandono real. Ahora `_devModeActivo` sobrevive a cualquier número de vueltas CASA↔AVENTURA dentro de la misma sesión, incluida "otra aventura" (P2 sin reload) — solo una recarga completa de página lo reinicia.
 
 **Flujo G — GPS→botones, usuario fuera de rango:**
 GPS dispara `_watchPositionSuccess` → `procesarPosicionGPSParaAventura` (funciones-mapa.js) calcula Haversine al elemento activo (`_siguienteIdElementoNavegable`, resuelto a partir de `estadoMapa.paradaActual` — ver §"Lógica de proximidad y LLEGADA_DETECTADA") → emite `NAVEGACION.ACTUALIZAR_ESTADO { distanciaAlDestino, idParada, lat, lng, toleranciaGPS }` a hijo2 → handler hijo2: llama `actualizarEstadoBotones()` y, si `modo === 'aventura'` y `distanciaAlDestino !== null`, llama `verificarDistanciaYActualizarBotones()` → si distancia > `rangoMaximo` (15m parada / `toleranciaGPS` tramo): setea `timestampSalioDeRango`, envía `GPS.RESTRINGIDO` al padre en cada posición (el padre elige la pantalla de aviso según la franja, §31.4) → al instante, en las 3 franjas por igual: `_desactivarBotonesRangoExcedido()` deshabilita `#btn-video` / `#btn-avanzar`; habilita `#btn-ubicacion`, `#btn-mapa-completo` y `#btn-mapa-jpg` (verde, los tres — un usuario perdido puede seguir consultando el mapa para orientarse); `#btn-imagen` **no se toca** → hijo2 emite `NAVEGACION.USUARIO_FUERA_RANGO` al padre → padre registra `estado.usuarioFueraRango = { activo: true, ... }` (la polyline guía automática no se toca aquí — sigue su propio umbral de distancia, ver §4.6), **y además** deshabilita su propio control de audio (`actualizarEstadoControlesAudioPadre()`) y envía `CONTROL.DESHABILITAR { control:'retosBtn' }` a hijo3 (ver tabla de botones más arriba); `_resetarEstadoParaModo` resetea `timestampSalioDeRango = null` en la siguiente vuelta al modo aventura.
