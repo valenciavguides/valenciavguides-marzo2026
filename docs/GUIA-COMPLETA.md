@@ -4708,7 +4708,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-f5fcc5a83648'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-85cc331468a9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7435,16 +7435,16 @@ Define cómo se ve la app cuando se instala en el móvil (`manifest.json` en la 
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1a2e",
+  "background_color": "#ff8c00",
   "theme_color": "#ff8c00",
   "lang": "es",
   "categories": ["travel", "navigation", "entertainment"],
   "prefer_related_applications": false,
   "icons": [
-    { "src": "imagenes/imagenes-aplicación/logo-redondo.png",           "sizes": "192x192", "type": "image/png",  "purpose": "any" },
-    { "src": "imagenes/imagenes-aplicación/logo-redondo.png",           "sizes": "512x512", "type": "image/png",  "purpose": "any" },
-    { "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "maskable" },
-    { "src": "imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "maskable" }
+    { "src": "imagenes/imagenes-aplicación/logo-splash-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "imagenes/imagenes-aplicación/logo-splash-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "imagenes/imagenes-aplicación/logo-redondo.png",    "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "imagenes/imagenes-aplicación/logo-redondo.png",    "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "screenshots": [],
   "shortcuts": [
@@ -7455,8 +7455,10 @@ Define cómo se ve la app cuando se instala en el móvil (`manifest.json` en la 
 
 - Se abre en **modo standalone** (sin barra de direcciones del navegador).
 - Solo en **vertical** (portrait).
-- Colores: fondo oscuro (`#1a1a2e`), tema naranja (`#ff8c00`).
-- El icono `maskable` (fondo blanco) permite que Android recorte el icono con su forma propia sin bordes raros.
+- Colores: fondo naranja (`#ff8c00`, el mismo tono naranja usado en toda la aplicación — `#loading-overlay`, el body de `En-busca-del-tesoro.html`, etc.), tema naranja (`#ff8c00`).
+- **Dos pares de iconos, con propósitos distintos:**
+  - `purpose: "any"` (`logo-splash-192.png`/`logo-splash-512.png`) — Android los usa para la **pantalla de splash nativa** que se ve al abrir la PWA instalada, antes de que `codigo-padre.html` termine de cargar: círculo blanco con el logo VG recortado (sin el margen transparente de `logo-redondo.png`) y escalado más grande, sobre un cuadrado ya pintado del mismo naranja que `background_color` — al coincidir ambos naranjas exactamente, no se ve ninguna costura entre el icono y el fondo de pantalla completa; el efecto visual es un círculo blanco flotando directamente sobre una pantalla naranja lisa.
+  - `purpose: "maskable"` (`logo-redondo.png`, fondo transparente, logo al 65% del lienzo con margen de seguridad) — gobierna el **icono del launcher/pantalla de inicio** del móvil, donde Android recorta el icono con la forma que use ese dispositivo (círculo, squircle...) sin cortar el logo. No afecta a la pantalla de splash.
 - `shortcuts` añade un acceso directo al menú largo-press del icono en Android.
 
 ### El Service Worker (sw.js)
@@ -7521,7 +7523,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-f5fcc5a83648'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-85cc331468a9'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8164,7 +8166,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-f5fcc5a83648';
+const CACHE_VERSION = 'v-85cc331468a9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8232,12 +8234,12 @@ iOS Safari ignora el Web App Manifest para la instalación como PWA. Todos los m
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VGuides">
-<link rel="apple-touch-icon" sizes="180x180" href="imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg">
+<link rel="apple-touch-icon" sizes="180x180" href="imagenes/imagenes-aplicación/logo-redondo.png">
 ```
 
 **Por qué `black-translucent`:** la app ya usa `viewport-fit=cover` en el meta viewport y la variable CSS `--gap-superior: env(safe-area-inset-top, 0px)`. Con `black-translucent`, la barra de estado de iOS se superpone al contenido pero el padding de safe-area ya empuja los elementos hacia abajo. Si se usa `default` o `black`, iOS reserva espacio para la barra y reduce la altura disponible de la app.
 
-**`apple-touch-icon`:** se usa `logo-redondo-fondo-blanco.jpg` (fondo blanco) porque iOS aplica una máscara de esquinas redondeadas al icono. Sin fondo, el recorte mostraría un borde transparente negro.
+**`apple-touch-icon`:** usa `logo-redondo.png` (fondo transparente, logo al 65% del lienzo con margen de seguridad) — mismo archivo que el icono `maskable` de `manifest.json`. Antes usaba `logo-redondo-fondo-blanco.jpg` (fondo blanco, archivo aparte); ambos se regeneraron con margen de seguridad y se consolidó en un único archivo para maskable + apple-touch-icon.
 
 #### Permissions-Policy y GPS en iOS
 
@@ -8287,7 +8289,8 @@ La única solución es un **paso de compilación con Babel** que transpile la si
 #### manifest.json — configuración de instalación
 
 - `"prefer_related_applications": false` — indica a Chrome/Android que no sugiera una app nativa alternativa en lugar de la PWA.
-- Icono `maskable` en dos tamaños (`192x192` y `512x512`) con `logo-redondo-fondo-blanco.jpg` — requerido por Lighthouse y Chrome para instalar la PWA sin advertencias. El propósito `maskable` indica que el icono tiene zona de sangrado segura para que el sistema operativo pueda recortarlo.
+- Icono `maskable` en dos tamaños (`192x192` y `512x512`) con `logo-redondo.png` — requerido por Lighthouse y Chrome para instalar la PWA sin advertencias. El propósito `maskable` indica que el icono tiene zona de sangrado segura para que el sistema operativo pueda recortarlo. Gobierna el icono del launcher, no la pantalla de splash.
+- Icono `any` en dos tamaños con `logo-splash-192.png`/`logo-splash-512.png` — dedicados a la pantalla de splash nativa de Android (ver §7 "El manifest.json" para el detalle de diseño y por qué su naranja de fondo coincide exactamente con `background_color`).
 
 ---
 
@@ -11169,7 +11172,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-f5fcc5a83648';
+const CACHE_VERSION = 'v-85cc331468a9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11482,10 +11485,12 @@ Meta tags instalados (ver §22.13 para detalle):
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VGuides">
-<link rel="apple-touch-icon" sizes="180x180" href="imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg">
+<link rel="apple-touch-icon" sizes="180x180" href="imagenes/imagenes-aplicación/logo-redondo.png">
 ```
 
 La barra de estado usa `black-translucent` porque la app ya gestiona el desplazamiento superior con `env(safe-area-inset-top)` via `--gap-superior`.
+
+**La pantalla de splash naranja con círculo blanco (`logo-splash-192.png`/`logo-splash-512.png`, §7 "El manifest.json") es exclusiva de Android.** Como iOS ignora `manifest.json` para la instalación, no lee su array `icons` — el único icono que ve iOS es `apple-touch-icon` (`logo-redondo.png`, sin cambios). Sin un `<link rel="apple-touch-startup-image">` explícito (no presente en el proyecto), iOS no compone una pantalla de splash con icono propio al abrir la PWA instalada.
 
 #### Navegadores sin soporte de módulos ES (pre-2017)
 

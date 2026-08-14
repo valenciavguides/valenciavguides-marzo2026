@@ -77,6 +77,8 @@ const APP_SHELL = [
   // Iconos
   '/imagenes/imagenes-aplicación/logo-redondo.png',
   '/imagenes/imagenes-aplicación/logo-redondo-fondo-blanco.jpg',
+  '/imagenes/imagenes-aplicación/logo-splash-192.png',
+  '/imagenes/imagenes-aplicación/logo-splash-512.png',
 ];
 
 // ─── CACHE_VERSION: Auto-generada en pre-commit ──────────────────────────────
@@ -86,7 +88,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-f5fcc5a83648';
+const CACHE_VERSION = 'v-85cc331468a9';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
