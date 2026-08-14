@@ -771,7 +771,7 @@
         return { exito: true, reproducido: false };
     }
 
-    // Nivel de modulo (no dentro de actualizarInterfazModo) para que cargarYReproducirAudio
+    // Nivel de modulo (no dentro de sincronizarSeekPorModo) para que cargarYReproducirAudio
     // y los listeners de audioPlayer, ambos tambien de nivel de modulo, puedan llamarla.
     // progressBar/progressContainer/currentTimeElement se resuelven en el cuerpo de la
     // funcion, no al definirla, asi que da igual que progressContainer se declare mas abajo.
@@ -1142,8 +1142,13 @@
         }
     }
 
-    // Función para actualizar la interfaz según el modo
-    function actualizarInterfazModo(modo) {
+    // Reacción local a un modo recibido del padre (nunca difunde nada). El efecto que
+    // realmente importa no es la clase CSS del body (.audio-player-controls la consume
+    // con reglas idénticas en ambos modos, sin diferencia visual) sino la llamada a
+    // _actualizarSeekHabilitado(): decide si se puede arrastrar la barra de progreso
+    // del audio (habilitado = _seekHabilitadoPorPadre || enCasa), aplicado por CSS
+    // (pointer-events) y reforzado aparte en el handler de teclado.
+    function sincronizarSeekPorModo(modo) {
         const modoSeguro = normalizarModo(modo);
         logger.info(`[AUDIO] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
         const body = document.body;
@@ -1220,7 +1225,7 @@
 
                     if (modo) {
                         logger.info(`${logPrefix} Procesando modo inicial del padre: ${modo}`);
-                        actualizarInterfazModo(modo);
+                        sincronizarSeekPorModo(modo);
                     }
 
                     if (paradas) {
@@ -1302,7 +1307,7 @@
                     if (estado && estado.pendingCambioModo && estado.pendingCambioModo.modo) {
                         const modoPendiente = estado.pendingCambioModo.modo;
                         logger.info(`${logPrefix} Aplicando modo pendiente: ${modoPendiente}`);
-                        actualizarInterfazModo(modoPendiente);
+                        sincronizarSeekPorModo(modoPendiente);
                         await enviarMensaje({
                             destino: mensaje.origen,
                             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
@@ -1331,7 +1336,7 @@
                 const { modoInicial } = mensaje.datos || {};
                 if (modoInicial) {
                     logger.info(`${logPrefix} Modo inicial recibido: ${modoInicial}`);
-                    actualizarInterfazModo(modoInicial);
+                    sincronizarSeekPorModo(modoInicial);
                     logger.debug(`${logPrefix} Interfaz actualizada según modo inicial`);
                 }
 
@@ -1480,7 +1485,7 @@
                 logger.debug(`${logPrefix} Estado de audio reseteado`);
                 estado.modo = estado.modo || {};
                 estado.modo.actual = modo;
-                actualizarInterfazModo(modo);
+                sincronizarSeekPorModo(modo);
 
                 // Enviar EFECTUADO
                 logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);

@@ -4704,7 +4704,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c4705a0f8e37'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3cababcb1479'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7517,7 +7517,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c4705a0f8e37'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3cababcb1479'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8160,7 +8160,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c4705a0f8e37';
+const CACHE_VERSION = 'v-3cababcb1479';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10100,7 +10100,7 @@ Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada es
 | Hijo → Padre | `AUDIO.REPRODUCIR_RESPONSE` | Confirmando que el audio ha empezado |
 | Hijo → Padre | `AUDIO.FIN_REPRODUCCION` | Cuando el audio termina |
 | Hijo → Padre | `AUDIO.ESTADO_ACTUALIZADO` | Periódicamente con el tiempo de reproducción |
-| Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Para detener el audio al volver al modo CASA |
+| Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Pausa y resetea el audio en curso en cualquier cambio de modo (no solo al entrar en CASA) y recalcula si la barra de progreso es arrastrable |
 
 #### Hijo 4 — retos-hijo4.html (los retos)
 
@@ -10112,7 +10112,7 @@ Muestra el reto de cada parada y valida la respuesta del usuario. El padre decid
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — sin retos; el contenido llega parada a parada (ver §16) |
 | Padre → Hijo | `RETO.MOSTRAR` | Con el objeto reto resuelto (`retosArray`) de la parada actual, en línea |
 | Hijo → Padre | `RETO.COMPLETADO` | Al pulsar el botón verde (btnNext) tras responder correctamente — no en el momento de responder (`_pendienteCompletado` guarda el resultado hasta ese clic) |
-| Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Para ocultar el reto al volver al modo CASA |
+| Padre → Hijo | `SISTEMA.CAMBIO_MODO` | En cualquier cambio de modo (no solo CASA): limpia el DOM del reto salvo que haya uno activo en ese momento (§32.2, guard independiente del modo destino) |
 
 La corrección real se decide comparando `respuestaUsuario` con `reto.correctas` dentro de `verificar()` (radio/checkbox: coincidencia exacta de valores; texto libre: siempre correcto). Antes de esa comparación, `verificar()` también llama a `globalThis.ejecutarValidacion(reto, respuestaUsuario)` si existe — un hook secundario y opcional, no la validación principal. Como cada iframe tiene su propio `globalThis` (no se comparte con el padre), hijo4 usa su **propio stub local** definido al principio de `retos-hijo4.html` (siempre devuelve `true`); el stub que existe en `codigo-padre.html` es un `globalThis` distinto y no tiene ningún efecto sobre hijo4.
 
@@ -10366,7 +10366,7 @@ Gestiona la reproducción del audio de guía de cada parada. Invisible para el u
 |---|---|---|---|---|---|
 | `SISTEMA.PADRE_DATOS` | Padre | Guarda datos de aventura; prepara el elemento `<audio>` | `SISTEMA.HIJO_LISTO` | Padre | Handshake — el audio en sí llega después, parada a parada |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Padre | Finaliza handshake | (ninguna) | — | Handshake |
-| `SISTEMA.CAMBIO_MODO` | Padre | En `CASA` pausa o para el audio en curso | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | No tiene sentido que el audio continúe si el usuario volvió al menú principal |
+| `SISTEMA.CAMBIO_MODO` | Padre | Pausa y resetea el audio en curso (`currentTime=0`, barra a 0%) **siempre que hay reproducción activa, sea cual sea el modo destino** — no solo al entrar en CASA; actualiza `estado.modo.actual` y llama a `sincronizarSeekPorModo(modo)` (clase CSS del body + recalcula si se puede arrastrar la barra de progreso) | `SISTEMA.CAMBIO_MODO_ENTENDIDO`; `SISTEMA.CAMBIO_MODO_EFECTUADO` | Padre | Ningún audio a medias sobrevive un cambio de modo, en cualquier dirección — el usuario siempre lo retoma desde cero |
 | `SISTEMA.HEARTBEAT` | Padre | Responde | `SISTEMA.HEARTBEAT_RESPONSE` | Padre | Confirmación vida |
 | `AUDIO.REPRODUCIR_REQUEST` | Padre (al activar cada parada — inicio, avance o reanudación, vía `_hdl_NAVEGACION_CAMBIO_PARADA`) | Recibe `{ audioId, audioData:{id,title,file}, autoplay:false }`; guarda `audioData` en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); carga el audio pero NO inicia reproducción automáticamente — el usuario arranca el audio con los controles del desplegable del padre. Si `audioData` falta o el id no está en caché, pide `DATOS.SOLICITAR_AUDIOS` | (el evento `ended` del `<audio>` dispara `FIN_REPRODUCCION`) | — | Protección pasiva por parada (§16): entregar solo el audio de la parada activa, no la aventura completa |
 | `UI.ACCION_USUARIO` `{ accion:'audio_control', comando:'play'\|'pause'\|'stop'\|'replay' }` | Padre (botones del desplegable overlay) | Ejecuta el comando sobre el `<audio>`: play inicia reproducción, pause la pausa, stop para y resetea `currentTime=0`, replay vuelve al inicio y reproduce | `SISTEMA.CONFIRMACION{exito:true}` si el comando se ejecuta; `SISTEMA.ERROR{codigo:'AUDIO_CONTROL_FALLIDO'}` si `play()`/`replay()` fallan (autoplay bloqueado, audio no encontrado) — nunca se pierde en silencio ni confirma un éxito falso (§7.4, "Controles globales de audio") | Padre | El padre centraliza el control de audio; hijo3 expone únicamente el elemento `<audio>` |
@@ -11165,7 +11165,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-c4705a0f8e37';
+const CACHE_VERSION = 'v-3cababcb1479';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
