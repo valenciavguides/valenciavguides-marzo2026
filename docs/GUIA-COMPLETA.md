@@ -2888,7 +2888,7 @@ btnPuzzleContinuar.addEventListener('click', async () => {
 | `SISTEMA.PADRE_DATOS` | Recibe modo inicial (`{ modo, timestamp }`); actualiza interfaz según modo; envía `HIJO_LISTO` |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Hace la UI visible |
 | `RETO.MOSTRAR` | Si trae `retosArray` en línea, añade su(s) reto(s) a la caché acotada (máx. 2 ids); renderiza el reto; muestra el overlay; deshabilita `#btnNextAfterReto`. Si el id no está en caché, pide `DATOS.SOLICITAR_RETOS { retoId }` al padre |
-| `RETO.LIMPIAR_ESTADO` | El padre lo envía justo después de recibir `RETO.OCULTAR` de este mismo hijo4 (direcciones opuestas, tipos distintos a propósito). Oculta el overlay y limpia el contenido |
+| `RETO.LIMPIAR_ESTADO` | El padre lo envía justo después de recibir `RETO.OCULTAR` de este mismo hijo4 (direcciones opuestas, tipos distintos a propósito). Oculta el overlay y limpia el contenido; restaura `#botonRetos-wrapper` en CASA solo si `retoSigueActivo !== false` |
 | `RETO.HABILITAR` | Muestra `#botonRetos-wrapper` y habilita `#botonRetos` (`disabled=false`, quita clase `deshabilitado`) |
 | `RETO.ESTADO_CASA` | Modo CASA: gestiona habilitación del panel según tipo de elemento activo |
 | `RETO.CONFIRMADO` | Padre confirma recepción de `RETO.MOSTRADO` — fase 3 del protocolo RETO |
@@ -3916,7 +3916,7 @@ Renderiza y evalúa los retos (opción múltiple, texto libre, puzzles). Se mues
 | `RETO.ESTADO_CASA` | `{ tipo:'parada'/'tramo', habilitado:bool }` | Muestra/oculta `#botonRetos-wrapper` según posición | ✓ | — |
 | `CONTROL.HABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
 | `CONTROL.DESHABILITAR` | — | Handler registrado pero stub vacío — padre no envía CONTROL a hijo4 actualmente | — | — |
-| `RETO.LIMPIAR_ESTADO` | `{ retoId }` | Limpia estado interno del reto, restaura `#botonRetos-wrapper` en modo CASA (padre envía este mensaje justo después de recibir `RETO.OCULTAR` de este mismo hijo4 — direcciones opuestas, tipos distintos a propósito) | ✓ | ✓ |
+| `RETO.LIMPIAR_ESTADO` | `{ retoId, retoSigueActivo }` | Limpia siempre el estado interno del reto; restaura `#botonRetos-wrapper` en modo CASA solo si `retoSigueActivo !== false` (padre envía este mensaje justo después de recibir `RETO.OCULTAR` de este mismo hijo4 — direcciones opuestas, tipos distintos a propósito) | ✓ | ✓ |
 | `SISTEMA.CAMBIO_MODO_APLICADO` | `{ modo }` | Acuse de recibo del cambio de modo global | ✓ | ✓ |
 | `SISTEMA.ACK` | `{ mensajeOriginalId }` | ACK de mensajes enviados | ✓ | ✓ |
 | `SISTEMA.NOTIFICACION` | `{ evento }` | Detecta `AVENTURA_ACTIVADA` para limpiar estado de reto anterior | ✓ | ✓ |
@@ -4704,7 +4704,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-57ce4271983d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c4705a0f8e37'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5277,16 +5277,17 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 |-------|-------|
 | Emitido por | hijo4 (usuario pulsa #btnNextAfterReto para cerrar el reto) |
 | Payload | `{ retoId }` |
-| Handler en padre | `_hdl_RETO_OCULTAR` L9185 |
-| Acción | Oculta iframe hijo4 + backdrop; envía `CONTROL.HABILITAR` a hijo2 (`motivo:'reto_cerrado'`) y a hijo3 (`control:'retosBtn'`); envía `RETO.LIMPIAR_ESTADO` a hijo4 |
+| Handler en padre | `_hdl_RETO_OCULTAR` L10192 |
+| Acción | Oculta iframe hijo4 + backdrop; envía `CONTROL.HABILITAR` a hijo2 (`motivo:'reto_cerrado'`); calcula `retoSigueActivo` (`!retoId \|\| retoId === estado.retoActual?.id \|\| estado.retoActual?.cola?.includes(retoId)`) y, si es cierto, envía `CONTROL.HABILITAR` a hijo3 (`control:'retosBtn'`); envía `RETO.LIMPIAR_ESTADO` a hijo4 con `{ retoId, retoSigueActivo }` — siempre, independientemente del valor de `retoSigueActivo` |
 
 **RETO.LIMPIAR_ESTADO** (padre → hijo4)
 
 | Campo | Valor |
 |-------|-------|
-| Handler en hijo4 | L1619 |
-| Acción | Limpia estado interno del reto, restaura `#botonRetos-wrapper` en modo CASA |
-| Nota | Padre lo envía siempre tras recibir `RETO.OCULTAR` de hijo4 — es el segundo paso del mismo flujo, con un tipo de mensaje distinto a propósito (antes ambas direcciones reusaban `RETO.OCULTAR`, lo que confundía al leer el código sin avisar de que el mismo tipo viajaba en dos sentidos con dos efectos diferentes) |
+| Payload | `{ retoId, retoSigueActivo }` |
+| Handler en hijo4 | L1647 (lee `estado.modo.actual`, escrito por `sincronizarEstadoModo()`, L1325, para decidir la reaparición) |
+| Acción | Limpia siempre el estado interno del reto (DOM, fuegos artificiales, `estado.retoActualId`). Restaura `#botonRetos-wrapper` en modo CASA **solo si** `retoSigueActivo !== false` — evita que un mensaje que llega tarde (el usuario ya cambió a otra parada sin reto antes de que este `RETO.LIMPIAR_ESTADO` aterrizara) vuelva a mostrar el wrapper como si la parada actual tuviera reto. Por defecto `true` si el campo faltara, para no romper el caso normal. |
+| Nota | Padre lo envía siempre tras recibir `RETO.OCULTAR` de hijo4 — es el segundo paso del mismo flujo, con un tipo de mensaje distinto a propósito (antes ambas direcciones reusaban `RETO.OCULTAR`, lo que confundía al leer el código sin avisar de que el mismo tipo viajaba en dos sentidos con dos efectos diferentes). `retoSigueActivo` reutiliza el mismo cálculo que ya protegía a `retosBtn` en hijo3 — antes de este campo, hijo4 no tenía forma de distinguir un `RETO.LIMPIAR_ESTADO` vigente de uno desfasado. |
 
 **RETO.ESTADO_CASA** (padre → hijo4)
 
@@ -7516,7 +7517,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-57ce4271983d'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c4705a0f8e37'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8159,7 +8160,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-57ce4271983d';
+const CACHE_VERSION = 'v-c4705a0f8e37';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10257,7 +10258,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `RETO.MOSTRAR` | Hijo 4 | Cuando el usuario pulsa el botón de retos (`RETO.SOLICITAR_RETO`), o al avanzar al siguiente reto de una cola | Renderizar el reto en hijo 4 para que el usuario lo resuelva |
 | `RETO.HABILITAR` | Hijo 4 | Cuando hijo 3 notifica `FIN_REPRODUCCION` y la parada tiene retos (vía `_procesarFinAudioElemento`) | Desbloquear el botón del reto para que el usuario pueda intentarlo; no se envía si la parada no tiene reto |
 | `RETO.ESTADO_CASA` | Hijo 4 | Al cambiar de parada en modo CASA | Mostrar y habilitar el botón de retos solo en paradas que tienen reto; ocultar en tramos y en paradas sin reto |
-| `RETO.LIMPIAR_ESTADO` | Hijo 4 | Justo después de recibir `RETO.OCULTAR` de hijo4 (usuario cerró la ventana del reto) | Que hijo4 limpie su propio estado interno del reto y restaure `#botonRetos-wrapper` en modo CASA — tipo distinto de `RETO.OCULTAR` a propósito (direcciones opuestas) |
+| `RETO.LIMPIAR_ESTADO` | Hijo 4 | Justo después de recibir `RETO.OCULTAR` de hijo4 (usuario cerró la ventana del reto) | Que hijo4 limpie su propio estado interno del reto y, solo si `retoSigueActivo !== false` (la parada no cambió mientras tanto), restaure `#botonRetos-wrapper` en modo CASA — tipo distinto de `RETO.OCULTAR` a propósito (direcciones opuestas) |
 | `NAVEGACION.RESPUESTA_DATOS_PARADAS` | Hijo 5 | En respuesta a `SOLICITAR_DATOS_PARADAS` | Entregar la lista de paradas para que hijo 5 la renderice en la barra de navegación |
 | `DATOS.CARGAR_COORDENADAS` | Hijo 2 | En respuesta a `SOLICITAR_COORDENADAS`, o al iniciar la aventura | Entregar el array de elementos del recorrido al mapa |
 | `CONTROL.HABILITAR` | Hijo específico | Al mostrar una pantalla | Activar el iframe (visible, interactivo) |
@@ -10398,7 +10399,7 @@ Muestra el reto interactivo de cada parada. Permanece bloqueado (no interactuabl
 | `RETO.MOSTRAR` | Padre (al activar cada parada vía `_hdl_NAVEGACION_CAMBIO_PARADA`; cuando el usuario solicita el reto pulsando el botón, en respuesta a `RETO.SOLICITAR_RETO`; también al avanzar al siguiente reto de una cola) | Recibe `{ retoId, retosArray:[retoData] }` con el objeto reto ya resuelto; lo guarda en su caché local acotada (máx. 2 ids: parada actual + 1 anterior); renderiza pregunta y opciones — el reto queda interactivo en este punto. Si `retosArray` llega vacío y el id no está en caché, pide `DATOS.SOLICITAR_RETOS` | `RETO.MOSTRADO` | Padre | Protección pasiva por parada (§16): entregar solo el reto de la parada activa, no la aventura completa |
 | `RETO.HABILITAR` | Padre (tras `FIN_REPRODUCCION` en modo AVENTURA, solo si la parada tiene retos) | Habilita el botón `#botonRetos`; activa la interacción del usuario | (ninguna) | — | El botón de retos solo se activa después de escuchar el audio completo y solo en paradas con reto |
 | `RETO.ESTADO_CASA` | Padre (en `_hdl_NAVEGACION_CAMBIO_PARADA`) | Muestra y habilita `#botonRetos` si `habilitado: true` (parada con reto); lo oculta si `habilitado: false` (tramo o parada sin reto) | (ninguna) | — | Controla la visibilidad del botón de retos en modo CASA según si el elemento actual tiene reto o no |
-| `RETO.LIMPIAR_ESTADO` | Padre (`_hdl_RETO_OCULTAR`, justo tras recibir `RETO.OCULTAR` de este mismo hijo) | Limpia su estado interno del reto (caché de la pregunta activa, respuesta seleccionada) y restaura `#botonRetos-wrapper` en modo CASA | (ninguna) | — | Tipo distinto de `RETO.OCULTAR` a propósito: mismo nombre de concepto, direcciones opuestas y efectos distintos (ver §25, protocolo detallado) |
+| `RETO.LIMPIAR_ESTADO` | Padre (`_hdl_RETO_OCULTAR`, justo tras recibir `RETO.OCULTAR` de este mismo hijo) | Limpia su estado interno del reto (caché de la pregunta activa, respuesta seleccionada) y, solo si `retoSigueActivo !== false`, restaura `#botonRetos-wrapper` en modo CASA | (ninguna) | — | Tipo distinto de `RETO.OCULTAR` a propósito: mismo nombre de concepto, direcciones opuestas y efectos distintos (ver §25, protocolo detallado) |
 | `CONTROL.HABILITAR` / `CONTROL.DESHABILITAR` | Padre | Activa/desactiva el iframe | (ninguna) | — | Ciclo de vida |
 
 **Mensajes salientes de Hijo 4:**
@@ -11164,7 +11165,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-57ce4271983d';
+const CACHE_VERSION = 'v-c4705a0f8e37';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11535,7 +11536,7 @@ Para el estado por archivo, ver §28.5.
 
 ### 32.2 CAMBIO_MODO en hijo4: guardar estado activo antes de limpiar
 
-El handler `_onCambioModo` de `retos-hijo4.html` **no debe limpiar `retoDiv.innerHTML`** cuando hay un reto activo.
+El handler de `SISTEMA.CAMBIO_MODO` de `retos-hijo4.html` (callback anónimo registrado con `registrarControladorSeguro`, sin nombre propio en el código) **no debe limpiar `retoDiv.innerHTML`** cuando hay un reto activo.
 
 **Secuencia de eventos que justifica esta regla:**
 
@@ -11554,7 +11555,7 @@ Si `_onCambioModo` limpia `retoDiv.innerHTML` en el paso 6, el iframe del puzzle
 
 - El retry loop de `pendingModeChanges` (reintento cada 5 s si hubo NACK)
 
-**Patrón correcto** en `_onCambioModo` de `retos-hijo4.html`:
+**Patrón correcto** en el handler de `SISTEMA.CAMBIO_MODO` de `retos-hijo4.html`:
 
 ```javascript
 if (retoActual !== null || estado.retoActualId !== null) {
@@ -11568,7 +11569,7 @@ if (retoActual !== null || estado.retoActualId !== null) {
     }
     ocultarControles();
 }
-actualizarInterfazModo(modo);
+sincronizarEstadoModo(modo);
 // CAMBIO_MODO_EFECTUADO se envía siempre, independientemente del guard
 ```
 

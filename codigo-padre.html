@@ -10238,12 +10238,16 @@ await _comprobarReanudacionAventura(logPrefix);
                         });
                     }
 
-                    // Notificar a hijo4 para limpiar estado interno y restaurar botonRetos en modo CASA
+                    // Notificar a hijo4 para limpiar estado interno y restaurar botonRetos en modo CASA.
+                    // retoSigueActivo reutiliza el mismo cálculo de arriba (retosBtn en hijo3): si el
+                    // usuario ya cambió de parada antes de que este mensaje llegue, hijo4 debe limpiar
+                    // su estado interno igualmente, pero NO debe volver a mostrar botonRetos-wrapper
+                    // como si la parada actual tuviera reto — ver guard en su propio handler.
                     enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO,
                         origen: getPadreId(),
                         destino: 'hijo4',
-                        datos: { retoId }
+                        datos: { retoId, retoSigueActivo: _retoSigueActivo }
                     });
                 } else {
                     (globalThis.logger || console).warn(`${logPrefix} No se encontraron elementos hijo4 o backdrop para ocultar`);

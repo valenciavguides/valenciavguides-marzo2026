@@ -1317,10 +1317,12 @@
             }
         }
 
-        /* Función: actualizarInterfazModo(modo)
-           Actualiza la interfaz según el modo (aventura/casa)
+        /* Función: sincronizarEstadoModo(modo)
+           Reacción local a un modo recibido del padre (nunca difunde nada) — sincroniza
+           estado.modo.actual (consumido por RETO.LIMPIAR_ESTADO para decidir si reaparece
+           botonRetos-wrapper) y la clase CSS del body (sin consumidor real hoy).
         */
-        function actualizarInterfazModo(modo) {
+        function sincronizarEstadoModo(modo) {
             const modoSeguro = normalizarModo(modo);
             logger.info(`[RETOS] Actualizando interfaz para modo:`, { original: modo, normalizado: modoSeguro });
             const body = document.body;
@@ -1374,7 +1376,7 @@
 
                     if (modo) {
                         logger.info(`[hijo4] Procesando modo inicial del padre: ${modo}`);
-                        actualizarInterfazModo(modo);
+                        sincronizarEstadoModo(modo);
                     }
 
                     if (paradas) {
@@ -1437,7 +1439,7 @@
                     if (estado.pendingCambioModo && estado.pendingCambioModo.modo) {
                         const modoPendiente = estado.pendingCambioModo.modo;
                         logger.info(`[hijo4] Aplicando modo pendiente: ${modoPendiente}`);
-                        actualizarInterfazModo(modoPendiente);
+                        sincronizarEstadoModo(modoPendiente);
                         await enviarMensaje({
                             destino: mensaje.origen,
                             tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
@@ -1454,7 +1456,7 @@
                 const { modoInicial } = mensaje.datos || {};
                 if (modoInicial) {
                     logger.info(`[hijo4] Modo inicial recibido: ${modoInicial}`);
-                    actualizarInterfazModo(modoInicial);
+                    sincronizarEstadoModo(modoInicial);
                     logger.debug(`[hijo4] Interfaz actualizada según modo inicial`);
                 }
 
@@ -1591,7 +1593,7 @@
                         ocultarControles();
                         logger.debug(`${logPrefix} Estado de retos reseteado`);
                     }
-                    actualizarInterfazModo(modo);
+                    sincronizarEstadoModo(modo);
 
                     // Enviar EFECTUADO
                     logger.info(`${logPrefix} Cambio de modo a "${modo}" efectuado`);
@@ -1642,7 +1644,7 @@
 
             // Controlador para limpiar el estado tras cerrar el reto (el padre lo envía después
             // de recibir RETO.OCULTAR de este mismo hijo4 — direcciones distintas, tipos distintos)
-            registrarControladorSeguro(TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO, async (_mensaje) => {
+            registrarControladorSeguro(TIPOS_MENSAJE.RETO.LIMPIAR_ESTADO, async (mensaje) => {
                 logger.info(`[hijo4] RETO.LIMPIAR_ESTADO recibido - limpiando estado`);
 
                 // Limpiar estado local del reto
@@ -1664,7 +1666,13 @@
                     fuegosDiv.style.display = "none";
                 }
 
-                if (estado.modo?.actual === 'casa') {
+                // retoSigueActivo (calculado por el padre, mismo criterio que usa para
+                // retosBtn en hijo3) evita que un RETO.LIMPIAR_ESTADO que llega tarde —
+                // el usuario cerró el reto de una parada y ya cambió a otra sin reto antes
+                // de que este mensaje aterrizara — vuelva a mostrar botonRetos-wrapper como
+                // si la parada actual tuviera reto. Por defecto true (!== false) para no
+                // romper el caso normal si el campo faltara.
+                if (estado.modo?.actual === 'casa' && mensaje?.datos?.retoSigueActivo !== false) {
                     const wrapper = document.getElementById('botonRetos-wrapper');
                     if (wrapper) wrapper.style.display = '';
                 }
