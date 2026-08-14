@@ -2203,16 +2203,20 @@
     }
 
     #loading-spinner-shell {
-        width: min(58vmin, 58vw, 52vh);
-        height: min(58vmin, 58vw, 52vh);
-        max-width: min(58vmin, 52vh);
-        max-height: min(58vmin, 52vh);
+        width: min(70vmin, 70vw, 58vh);
+        height: min(70vmin, 70vw, 58vh);
+        max-width: min(70vmin, 58vh);
+        max-height: min(70vmin, 58vh);
         background: #ff8c00;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 0.5rem;
+        /* margin-top negativo: sube todo el bloque (circulo+texto+barra, el grupo
+           se centra como conjunto via justify-content:center del padre) para que
+           el circulo mas grande no deje la barra de progreso pegada al borde
+           inferior de la pantalla. */
+        margin: -3vh 0 0.5rem 0;
         border: none;
         box-shadow: none;
         flex: 0 0 auto;
@@ -2222,7 +2226,7 @@
         width: 90%;
         max-width: 90%;
         max-height: 90%;
-        max-height: min(58vmin, 52vh);
+        max-height: min(70vmin, 58vh);
         height: auto;
         margin: 0;
         border-radius: 0;
@@ -2265,22 +2269,22 @@
         background: rgba(255, 255, 255, 0.28);
         box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
     }
-    #loading-progress-bar::-webkit-progress-bar,
-    .loading-progress-bar::-webkit-progress-bar { background: rgba(255,255,255,0.28); border-radius: 999px; }
-    #loading-progress-bar::-webkit-progress-value,
-    .loading-progress-bar::-webkit-progress-value { background: linear-gradient(90deg,#ffd84d 0%,#ffb347 100%); border-radius: 999px; transition: width 0.35s ease; }
-    #loading-progress-bar::-moz-progress-bar,
-    .loading-progress-bar::-moz-progress-bar { background: linear-gradient(90deg,#ffd84d 0%,#ffb347 100%); border-radius: 999px; }
+    #loading-progress-bar::-webkit-progress-bar { background: rgba(255,255,255,0.28); border-radius: 999px; }
+    #loading-progress-bar::-webkit-progress-value { background: linear-gradient(90deg,#ffd84d 0%,#ffb347 100%); border-radius: 999px; transition: width 0.35s ease; }
+    #loading-progress-bar::-moz-progress-bar { background: linear-gradient(90deg,#ffd84d 0%,#ffb347 100%); border-radius: 999px; }
 
     #loading-progress-percent {
-        font-size: clamp(1rem, 3vmin, 1.18rem);
+        font-size: clamp(1.1rem, 3.4vmin, 1.32rem);
         font-weight: 800;
         color: #ffffff;
         text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
     }
 
     #loading-frase-carga {
-        font-size: clamp(0.85rem, 3.2vmin, 1.05rem);
+        font-size: clamp(0.95rem, 3.7vmin, 1.2rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         font-style: italic;
         color: #fff;
         text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
@@ -2301,10 +2305,10 @@
 
     @media (max-aspect-ratio: 3/4) {
         #loading-spinner-shell {
-            width: min(44vmin, 44vw, 38vh);
-            height: min(44vmin, 44vw, 38vh);
-            max-width: min(44vmin, 38vh);
-            max-height: min(44vmin, 38vh);
+            width: min(53vmin, 53vw, 46vh);
+            height: min(53vmin, 53vw, 46vh);
+            max-width: min(53vmin, 46vh);
+            max-height: min(53vmin, 46vh);
         }
         #loading-progress-wrap {
             width: min(92vw, 24rem);
@@ -2313,10 +2317,10 @@
 
     @media (max-aspect-ratio: 9/16) {
         #loading-spinner-shell {
-            width: min(40vmin, 40vw, 34vh);
-            height: min(40vmin, 40vw, 34vh);
-            max-width: min(40vmin, 34vh);
-            max-height: min(40vmin, 34vh);
+            width: min(48vmin, 48vw, 41vh);
+            height: min(48vmin, 48vw, 41vh);
+            max-width: min(48vmin, 41vh);
+            max-height: min(48vmin, 41vh);
         }
         #loading-progress-wrap {
             width: min(90vw, 22rem);
@@ -4413,80 +4417,31 @@
                     if (timerInterval) clearInterval(timerInterval);
                     overlay.remove();
 
-                    // Pantalla de espera mientras se restaura la aventura. Añade body.loading
-                    // igual que showParentLoadingOverlay — sin esta clase, #selector-tipo-mapa
-                    // y #btn-chat-soporte (z-index 1000000+, por encima de cualquier overlay a
-                    // pantalla completa que no sea 1000000+) pueden quedar visibles ENCIMA de
-                    // esta pantalla si algo los revela mientras restaura (ver el comentario junto
-                    // a la regla CSS "body.loading #selector-tipo-mapa..." — ya preveía este caso,
-                    // pero esta pantalla nunca activaba la clase que la dispara).
-                    document.body.classList.add('loading');
-                    const cargandoEl = document.createElement('div');
-                    cargandoEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#ff8c00;z-index:999999;display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:opacity 0.5s ease;padding:max(0.875rem, var(--gap-superior)) 1rem max(0.875rem, env(safe-area-inset-bottom, 0));box-sizing:border-box;';
-                    cargandoEl.innerHTML = `
-                        <div style="width:min(58vmin,58vw,52vh);height:min(58vmin,58vw,52vh);max-width:min(58vmin,52vh);max-height:min(58vmin,52vh);background:#ff8c00;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:0.5rem;border:none;box-shadow:none;flex:0 0 auto;">
-                            <img src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando" style="width:90%;max-width:90%;max-height:90%;height:auto;margin:0;border-radius:0;object-fit:contain;filter:drop-shadow(0 0.25rem 0.9375rem rgba(0,0,0,0.28));display:block;animation:logo-carga-spin-padre 7s linear infinite;transform-origin:center center;"/>
-                        </div>
-                        <div style="width:min(92vw,30rem);display:flex;flex-direction:column;align-items:center;gap:0.4rem;margin:0.25rem auto 0.25rem auto;">
-                            <progress id="restore-progress-bar" max="100" value="0" class="loading-progress-bar" style="width:100%;height:clamp(0.9rem,2.6vmin,1.1rem);border:none;border-radius:999px;overflow:hidden;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,0.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.25);"></progress>
-                            <div id="restore-progress-percent" style="font-size:clamp(1rem,3vmin,1.18rem);font-weight:800;color:#ffffff;text-shadow:0 0.125rem 0.25rem rgba(0,0,0,0.2);">0%</div>
-                            <div id="restore-frase-carga" style="font-size:clamp(0.85rem,3.2vmin,1.05rem);font-style:italic;color:#fff;text-shadow:0 0.125rem 0.25rem rgba(0,0,0,0.2);text-align:center;min-height:1.4em;opacity:0;transition:opacity 0.4s ease;max-width:90vw;"></div>
-                        </div>
-                    `;
-                    document.body.appendChild(cargandoEl);
+                    // Pantalla de espera mientras se restaura la aventura — reutiliza el
+                    // propio #loading-overlay (mismo elemento que showParentLoadingOverlay
+                    // usa en el arranque en frío) en vez de una copia paralela con sus
+                    // propios IDs restore-*: una sola fuente de verdad para el tamaño del
+                    // círculo/logo, las media queries de aspect-ratio y el texto de la frase
+                    // de carga — evita que ambas pantallas se desincronicen si el diseño de
+                    // una cambia sin tocar la otra.
+                    globalThis.showParentLoadingOverlay?.('', '', 10, idioma);
 
                     let restoreProgress = 10;
-                    const restoreBar = cargandoEl.querySelector('#restore-progress-bar');
-                    const restorePercent = cargandoEl.querySelector('#restore-progress-percent');
-                    const actualizarRestoreProgress = (value) => {
-                        const clamped = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
-                        if (restoreBar) restoreBar.value = clamped;
-                        if (restorePercent) restorePercent.textContent = `${clamped}%`;
-                    };
-                    actualizarRestoreProgress(restoreProgress);
-
                     const restoreProgressTimer = setInterval(() => {
                         if (restoreProgress >= 92) return;
                         restoreProgress = Math.min(restoreProgress + 4, 92);
-                        actualizarRestoreProgress(restoreProgress);
+                        _setLoadingProgress(restoreProgress);
                     }, 700);
-
-                    // Frases aleatorias bajo la barra de progreso, para entretener al
-                    // usuario durante una espera de duración impredecible. Nunca repite
-                    // la misma frase dos veces seguidas. Se apoya en el mismo fundido de
-                    // opacidad que ya usa #restore-progress-bar/percent — no bloquea nada
-                    // si la lista de frases faltara en algún idioma (guard defensivo).
-                    const fraseEl = cargandoEl.querySelector('#restore-frase-carga');
-                    const frasesCarga = Array.isArray(t.frasesCarga) ? t.frasesCarga : [];
-                    let ultimaFraseIdx = -1;
-                    const mostrarFraseAleatoria = () => {
-                        if (!fraseEl || frasesCarga.length === 0) return;
-                        let idx = Math.floor(Math.random() * frasesCarga.length);
-                        if (frasesCarga.length > 1 && idx === ultimaFraseIdx) {
-                            idx = (idx + 1) % frasesCarga.length;
-                        }
-                        ultimaFraseIdx = idx;
-                        fraseEl.style.opacity = '0';
-                        setTimeout(() => {
-                            fraseEl.textContent = frasesCarga[idx];
-                            fraseEl.style.opacity = '1';
-                        }, 400);
-                    };
-                    mostrarFraseAleatoria();
-                    const restoreFraseTimer = setInterval(mostrarFraseAleatoria, 5000);
 
                     (globalThis.logger || console).info(`${logPrefix} ✅ Usuario eligió CONTINUAR aventura`);
                     try {
                         await ejecutarRestauracionAventura(datosGuardados);
-                        actualizarRestoreProgress(100);
+                        _setLoadingProgress(100);
                         // Insertar entrada en el historial para interceptar "botón atrás"
                         try { history.pushState({ vv_en_aventura: true }, ''); } catch (_e) { /* NOSONAR */ }
                     } finally {
                         clearInterval(restoreProgressTimer);
-                        clearInterval(restoreFraseTimer);
-                        cargandoEl.style.opacity = '0';
-                        document.body.classList.remove('loading');
-                        setTimeout(() => cargandoEl.remove(), 500);
+                        globalThis.hideParentLoadingOverlay?.();
                     }
                     resolve('continuar');
                 }

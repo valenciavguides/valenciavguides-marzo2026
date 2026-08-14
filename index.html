@@ -15,36 +15,65 @@
 
         /* Fuente global Verdana */
         * { font-family: Verdana, sans-serif !important; }
-        
+
         body {
             font-family: Verdana, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #3730a3 0%, #5b21b6 100%);
-            color: white;
+            background: #ff8c00;
+            color: #1a1a1a;
+            padding: max(0.875rem, env(safe-area-inset-top, 0)) 1rem max(0.875rem, env(safe-area-inset-bottom, 0));
+            box-sizing: border-box;
         }
         .container {
             text-align: center;
-            padding: 2rem;
+            padding: 0 2rem;
         }
-        .spinner {
-            border: 0.25rem solid rgba(255, 255, 255, 0.3);
-            border-top: 0.25rem solid white;
+        /* Mismo círculo+logo+animación que #loading-overlay (codigo-padre.html) y
+           .logo-carga-circular-bg (En-busca-del-tesoro.html) — mismo lenguaje visual
+           en las tres pantallas de espera de la app. */
+        .logo-carga-circular-bg {
+            width: min(58vmin, 58vw, 52vh);
+            height: min(58vmin, 58vw, 52vh);
+            max-width: min(58vmin, 52vh);
+            max-height: min(58vmin, 52vh);
+            background: #ff8c00;
             border-radius: 50%;
-            width: 2.5rem;
-            height: 2.5rem;
-            animation: spin 1s linear infinite;
-            margin: 1.25rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem auto;
+            border: none;
+            box-shadow: none;
+            flex: 0 0 auto;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .logo-carga-spin {
+            width: 90%;
+            max-width: 90%;
+            max-height: 90%;
+            height: auto;
+            margin: 0;
+            border-radius: 0;
+            object-fit: contain;
+            filter: drop-shadow(0 0.25rem 0.9375rem rgba(0, 0, 0, 0.28));
+            display: block;
+            animation: logo-carga-spin-index 7s linear infinite;
+            transform-origin: center center;
+        }
+        @keyframes logo-carga-spin-index {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        p {
+            text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.15);
         }
         a {
-            color: white;
+            color: #1a1a1a;
+            font-weight: bold;
             text-decoration: underline;
         }
     </style>
@@ -52,7 +81,9 @@
 <body>
     <div class="container">
         <h1>🗺️ Valencia VGuides</h1>
-        <div class="spinner"></div>
+        <div class="logo-carga-circular-bg">
+            <img class="logo-carga-spin" src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando">
+        </div>
         <p>Redirigiendo a la aventura...</p>
         <p><small>Si no eres redirigido automáticamente, <a href="codigo-padre.html">haz clic aquí</a>.</small></p>
     </div>
