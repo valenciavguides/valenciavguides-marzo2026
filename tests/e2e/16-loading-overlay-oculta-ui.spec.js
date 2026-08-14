@@ -2,22 +2,26 @@
  * 16-loading-overlay-oculta-ui.spec.js
  *
  * Mientras `<body class="loading">` está activo (desde el primer pintado en frío, o
- * durante una reanudación de sesión), #selector-tipo-mapa, #btn-chat-soporte y
- * #brujula-modo deben quedar invisibles pase lo que pase con su `style.display` —
- * bug recurrente: al no ser <iframe> (dos son <div> creados por JS, el otro un
- * <button> del HTML estático), la regla CSS que ya oculta el resto del contenido
- * durante la carga ("body.loading iframe") nunca los cubría, así que cualquier código
- * que los revelara en cualquier momento de la carga (_mostrarUIActivada,
- * actualizarVisibilidadSelectorMapa) los dejaba viéndose por encima del overlay de
- * carga, cuyo z-index (999999) es menor que el suyo (1000000+ selector/chat,
- * 1000025 brujula-modo). El fix vive en la hoja de estilos (body.loading
- * #selector-tipo-mapa, body.loading #btn-chat-soporte, body.loading #brujula-modo,
- * con !important), no en el orden de llamadas JS — por eso este test fuerza
- * display:flex/block directamente y comprueba el estilo COMPUTADO, no solo que nadie
- * los muestre por accidente durante el arranque real. #brujula-modo se sumó a esta
- * lista después de que el mismo síntoma se reportara para el menú de modo de cámara
- * (§4.6b) — mismo patrón de creación que #selector-tipo-mapa, mismo hueco de
- * protección.
+ * durante una reanudación de sesión), #selector-tipo-mapa, #btn-chat-soporte,
+ * #brujula-modo y #audio-control-overlay deben quedar invisibles pase lo que pase con
+ * su `style.display`/`visibility` — bug recurrente: al no ser <iframe> (dos son <div>
+ * creados por JS, los otros dos un <button> y un <fieldset> del HTML estático), la
+ * regla CSS que ya oculta el resto del contenido durante la carga ("body.loading
+ * iframe") nunca los cubría, así que cualquier código que los revelara en cualquier
+ * momento de la carga (_mostrarUIActivada, actualizarVisibilidadSelectorMapa) los
+ * dejaba viéndose por encima del overlay de carga, cuyo z-index (999999) es menor que
+ * el suyo (1000000+ selector/chat, 1000025 brujula-modo). El fix vive en la hoja de
+ * estilos (body.loading #selector-tipo-mapa, body.loading #btn-chat-soporte, body.loading
+ * #brujula-modo, body.loading #audio-control-overlay, con !important), no en el orden
+ * de llamadas JS — por eso este test fuerza display:flex/block directamente y
+ * comprueba el estilo COMPUTADO, no solo que nadie los muestre por accidente durante
+ * el arranque real. #brujula-modo se sumó a esta lista después de que el mismo
+ * síntoma se reportara para el menú de modo de cámara (§4.6b) — mismo patrón de
+ * creación que #selector-tipo-mapa, mismo hueco de protección. #audio-control-overlay
+ * es un caso distinto — su z-index (1505) es bajo, nunca gana por orden de capas; el
+ * síntoma era el fondo semitransparente de los diálogos de reanudación de sesión
+ * (rgba(0,0,0,0.85), no opaco) dejando ver el botón "sangrando" por debajo, atenuado
+ * — mismo fix (misma regla CSS), origen distinto (ver §9.10/§34.3 de la guía).
  */
 'use strict';
 
@@ -35,10 +39,11 @@ test.describe('LO — body.loading oculta el selector de mapa y el botón de cha
     await gotoAndWaitForFase1(page);
   });
 
-  test('LO-1. Con body.loading activo, los tres permanecen invisibles aunque su display se fuerce a visible', async ({ page }) => {
+  test('LO-1. Con body.loading activo, los cuatro permanecen invisibles aunque su display se fuerce a visible', async ({ page }) => {
     await page.waitForSelector('#selector-tipo-mapa', { state: 'attached', timeout: 15000 });
     await page.waitForSelector('#btn-chat-soporte', { state: 'attached', timeout: 15000 });
     await page.waitForSelector('#brujula-modo', { state: 'attached', timeout: 15000 });
+    await page.waitForSelector('#audio-control-overlay', { state: 'attached', timeout: 15000 });
 
     const resultado = await page.evaluate(() => {
       document.body.classList.add('loading');
@@ -46,8 +51,13 @@ test.describe('LO — body.loading oculta el selector de mapa y el botón de cha
       const selector = document.getElementById('selector-tipo-mapa');
       const chat = document.getElementById('btn-chat-soporte');
       const brujulaModo = document.getElementById('brujula-modo');
+      const audioOverlay = document.getElementById('audio-control-overlay');
       // Simula exactamente lo que hace _mostrarUIActivada()/actualizarVisibilidadSelectorMapa()
       // — forzar el display inline a visible, como si se hubieran disparado durante la carga.
+      // #audio-control-overlay ya es display:flex por CSS desde la carga (no hace falta
+      // forzarlo) — su bug no es de display, es que se ve a través del fondo
+      // semitransparente de los diálogos de reanudación; el test sigue siendo válido
+      // porque comprueba el mismo mecanismo (visibility/opacity computados).
       selector.style.display = 'flex';
       chat.style.display = 'block';
       brujulaModo.style.display = 'flex';
@@ -55,34 +65,41 @@ test.describe('LO — body.loading oculta el selector de mapa y el botón de cha
       const csSelector = getComputedStyle(selector);
       const csChat = getComputedStyle(chat);
       const csBrujulaModo = getComputedStyle(brujulaModo);
+      const csAudioOverlay = getComputedStyle(audioOverlay);
       return {
         selectorVisible: csSelector.visibility !== 'hidden' && csSelector.opacity !== '0',
         chatVisible: csChat.visibility !== 'hidden' && csChat.opacity !== '0',
         brujulaModoVisible: csBrujulaModo.visibility !== 'hidden' && csBrujulaModo.opacity !== '0',
+        audioOverlayVisible: csAudioOverlay.visibility !== 'hidden' && csAudioOverlay.opacity !== '0',
         selectorOpacity: csSelector.opacity,
         selectorVisibility: csSelector.visibility,
         chatOpacity: csChat.opacity,
         chatVisibility: csChat.visibility,
         brujulaModoOpacity: csBrujulaModo.opacity,
         brujulaModoVisibility: csBrujulaModo.visibility,
+        audioOverlayOpacity: csAudioOverlay.opacity,
+        audioOverlayVisibility: csAudioOverlay.visibility,
       };
     });
 
     expect(resultado.selectorVisible, `El selector de mapa no debe ser visible con body.loading activo (opacity=${resultado.selectorOpacity}, visibility=${resultado.selectorVisibility})`).toBe(false);
     expect(resultado.chatVisible, `El botón de chat no debe ser visible con body.loading activo (opacity=${resultado.chatOpacity}, visibility=${resultado.chatVisibility})`).toBe(false);
     expect(resultado.brujulaModoVisible, `El menú de modo de cámara no debe ser visible con body.loading activo (opacity=${resultado.brujulaModoOpacity}, visibility=${resultado.brujulaModoVisibility})`).toBe(false);
+    expect(resultado.audioOverlayVisible, `El botón de audio no debe ser visible con body.loading activo (opacity=${resultado.audioOverlayOpacity}, visibility=${resultado.audioOverlayVisibility})`).toBe(false);
   });
 
-  test('LO-2. Al quitar body.loading, los tres vuelven a ser visibles con su display ya puesto', async ({ page }) => {
+  test('LO-2. Al quitar body.loading, los cuatro vuelven a ser visibles con su display ya puesto', async ({ page }) => {
     await page.waitForSelector('#selector-tipo-mapa', { state: 'attached', timeout: 15000 });
     await page.waitForSelector('#btn-chat-soporte', { state: 'attached', timeout: 15000 });
     await page.waitForSelector('#brujula-modo', { state: 'attached', timeout: 15000 });
+    await page.waitForSelector('#audio-control-overlay', { state: 'attached', timeout: 15000 });
 
     const resultado = await page.evaluate(() => {
       document.body.classList.add('loading');
       const selector = document.getElementById('selector-tipo-mapa');
       const chat = document.getElementById('btn-chat-soporte');
       const brujulaModo = document.getElementById('brujula-modo');
+      const audioOverlay = document.getElementById('audio-control-overlay');
       selector.style.display = 'flex';
       chat.style.display = 'block';
       brujulaModo.style.display = 'flex';
@@ -92,15 +109,18 @@ test.describe('LO — body.loading oculta el selector de mapa y el botón de cha
       const csSelector = getComputedStyle(selector);
       const csChat = getComputedStyle(chat);
       const csBrujulaModo = getComputedStyle(brujulaModo);
+      const csAudioOverlay = getComputedStyle(audioOverlay);
       return {
         selectorVisible: csSelector.visibility !== 'hidden' && csSelector.opacity !== '0',
         chatVisible: csChat.visibility !== 'hidden' && csChat.opacity !== '0',
         brujulaModoVisible: csBrujulaModo.visibility !== 'hidden' && csBrujulaModo.opacity !== '0',
+        audioOverlayVisible: csAudioOverlay.visibility !== 'hidden' && csAudioOverlay.opacity !== '0',
       };
     });
 
     expect(resultado.selectorVisible, 'El selector de mapa debe volver a verse al terminar la carga').toBe(true);
     expect(resultado.chatVisible, 'El botón de chat debe volver a verse al terminar la carga').toBe(true);
     expect(resultado.brujulaModoVisible, 'El menú de modo de cámara debe volver a verse al terminar la carga').toBe(true);
+    expect(resultado.audioOverlayVisible, 'El botón de audio debe volver a verse al terminar la carga').toBe(true);
   });
 });
