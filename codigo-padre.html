@@ -2726,28 +2726,6 @@
             }
         };
 
-        const ensureLoadingOverlay = () => {
-            let overlay = document.getElementById('loading-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = 'loading-overlay';
-                overlay.innerHTML = `
-                    <div id="loading-spinner-shell">
-                        <img id="loading-spinner" src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando" />
-                    </div>
-                    <div id="loading-progress-wrap" aria-label="Progreso de carga">
-                        <progress id="loading-progress-bar" max="100" value="0" aria-label="Carga"></progress>
-                        <div id="loading-progress-percent">0%</div>
-                        <div id="loading-frase-carga"></div>
-                    </div>
-                    <div id="loading-text" style="display:none;"></div>
-                    <div id="loading-details" style="display:none;"></div>
-                `;
-                document.body.appendChild(overlay);
-            }
-            return overlay;
-        };
-
         // Mismas frases rotatorias que la pantalla de reanudación (ver
         // mostrarDialogoReanudacion/ejecutarReanudacion) — es el mismo componente
         // visual (logo redondo + barra fake) en distintos momentos de espera, así
@@ -2795,7 +2773,7 @@
         _iniciarFrasesLoadingOverlay();
 
         globalThis.showParentLoadingOverlay = (message = '', details = '', progress = 8, idioma = null) => {
-            const overlay = ensureLoadingOverlay();
+            const overlay = document.getElementById('loading-overlay');
             if (overlay) {
                 overlay.style.display = 'flex';
                 overlay.style.opacity = '1';
