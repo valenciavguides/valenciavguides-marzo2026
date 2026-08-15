@@ -13429,7 +13429,23 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // llegan casi simultáneamente para la misma actualización.
             let _swBannerMostrado = false;
 
+            // Persistencia del aviso: controllerchange/SW_ACTIVADO son eventos de
+            // una sola vez, disparados solo en la sesión donde el SW nuevo se activa.
+            // Si el usuario cierra la PWA antes de pulsar "Actualizar", esos eventos
+            // no vuelven a dispararse (el controlador ya es el nuevo desde el primer
+            // instante de la siguiente sesión — no hay "cambio" que detectar), así que
+            // sin este flag el aviso se perdía para siempre y el usuario podía quedarse
+            // en la versión vieja sin saberlo ni tener botón para arreglarlo.
+            const SW_PENDIENTE_KEY = 'vv_sw_update_pendiente';
+            function _marcarActualizacionPendiente(version) {
+                try { localStorage.setItem(SW_PENDIENTE_KEY, version || 'desconocida'); } catch (_e) { /* ignore */ }
+            }
+            function _limpiarActualizacionPendiente() {
+                try { localStorage.removeItem(SW_PENDIENTE_KEY); } catch (_e) { /* ignore */ }
+            }
+
             function _mostrarBannerSW(version) {
+                _marcarActualizacionPendiente(version);
                 if (document.getElementById('sw-update-banner')) return;
                 _swBannerMostrado = true;
                 const _lang = globalThis.idiomaSeleccionado
@@ -13445,7 +13461,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const btn = document.createElement('button');
                 btn.textContent = _t.boton;
                 btn.style.cssText = 'background:#ff8c00;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;';
-                btn.addEventListener('click', () => { globalThis.location.reload(); });
+                btn.addEventListener('click', () => { _limpiarActualizacionPendiente(); globalThis.location.reload(); });
                 banner.appendChild(label);
                 banner.appendChild(btn);
                 document.body.appendChild(banner);
@@ -13465,6 +13481,17 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 _mostrarBannerSW(event.data.version || null);
             });
 
+            // Arranque: si una sesión anterior dejó el aviso sin resolver (el usuario
+            // cerró la PWA antes de pulsar "Actualizar"), no hay ningún evento nuevo que
+            // vaya a dispararse para recordarlo — hay que comprobar el flag a mano y
+            // mostrar el banner de inmediato, sin esperar a controllerchange/SW_ACTIVADO.
+            // Recargar sobre una versión que ya era la última es inofensivo (una recarga
+            // de más); perder el aviso para siempre no lo es — ante la duda, se muestra.
+            try {
+                const _pendiente = localStorage.getItem(SW_PENDIENTE_KEY);
+                if (_pendiente) _mostrarBannerSW(_pendiente === 'desconocida' ? null : _pendiente);
+            } catch (_e) { /* ignore */ }
+
             navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
                 .then(registration => {
                     // Comprobar actualización también en cada carga, no solo al ocultar la
@@ -13478,6 +13505,16 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     document.addEventListener('visibilitychange', () => {
                         if (document.visibilityState === 'hidden') {
                             try { registration.update(); } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); } // NOSONAR
+                        } else {
+                            // La PWA recupera el foco: si el proceso sobrevivió cerrado/en
+                            // segundo plano en vez de recargarse de verdad, este es el único
+                            // momento en que se puede re-mostrar un aviso pendiente — un
+                            // arranque nuevo (el bloque de arriba) no llega a ejecutarse en
+                            // ese caso porque no hay ningún arranque nuevo.
+                            try {
+                                const _pendienteAlVolver = localStorage.getItem(SW_PENDIENTE_KEY);
+                                if (_pendienteAlVolver) _mostrarBannerSW(_pendienteAlVolver === 'desconocida' ? null : _pendienteAlVolver);
+                            } catch (_e) { /* ignore */ }
                         }
                     });
                 })
