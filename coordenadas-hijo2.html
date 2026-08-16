@@ -2623,20 +2623,6 @@ globalThis.addEventListener('pagehide', () => {
         return padreId && (padreId === estadoComponente.idParadaActual || padreId === (`padre-${estadoComponente.idParadaActual}`));
     }
 
-    async function _manejarPendingCancelado(datos, mensaje, logPrefix) {
-        const padreId = datos?.padreId || datos?.padreid || null;
-        const motivo = datos?.motivo || 'sin_motivo';
-        logger.info(`${logPrefix} Pendiente cancelado: ${padreId} motivo: ${motivo}`);
-        if (_esPadreIdActual(padreId)) {
-            try {
-                estadoComponente.paradaPendiente = false;
-                if (elementosDOM.btnUbicacion) { desactivarBoton(elementosDOM.btnUbicacion); estadoComponente.botonesActivos.ubicacion = false; }
-                actualizarEstado(`Parada cancelada por: ${motivo}`, 'warn');
-            } catch (err) { logger.warn(`${logPrefix} Error actualizando UI al cancelar pending:`, err && err.message); }
-        }
-        try { await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, destino: mensaje.origen, datos: { mensaje: 'PENDING_CANCELADO recibido', padreId, motivo } }); } catch (e) { logger.warn(`${logPrefix} Error enviando ACK PENDING_CANCELADO:`, e && e.message); }
-    }
-
     function _manejarPendingIniciado(datos, logPrefix) {
         const padreId = datos?.padreId || datos?.padreid || null;
         const ttlMs = datos?.ttlMs || null;
@@ -2648,13 +2634,12 @@ globalThis.addEventListener('pagehide', () => {
         }
     }
 
-    // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_CANCELADO
+    // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_INICIADO
     safeRegistrar(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
         const logPrefix = `[hijo2][NOTIFICACION][${mensaje?.origen || 'desconocido'}]`;
         try {
             const evento = mensaje.datos?.evento;
             if (!evento) return;
-            if (evento === 'PENDING_CANCELADO') await _manejarPendingCancelado(mensaje.datos, mensaje, logPrefix);
             if (evento === 'PENDING_INICIADO') _manejarPendingIniciado(mensaje.datos, logPrefix);
         } catch (err) {
             logger.warn(`${logPrefix} Error procesando NOTIFICACION:`, err);

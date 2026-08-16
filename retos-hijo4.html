@@ -1809,28 +1809,12 @@
                 // Procesar confirmaciones del padre
             });
 
-            // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_CANCELADO
+            // CONTROLADOR: SISTEMA.NOTIFICACION - manejar PENDING_INICIADO
             registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.NOTIFICACION, async (mensaje) => {
                 const logPrefix = `[hijo4][NOTIFICACION][${mensaje?.origen || 'desconocido'}]`;
                 try {
                     const evento = mensaje.datos?.evento;
                     if (!evento) return;
-                    if (evento === 'PENDING_CANCELADO') {
-                        const padreId = mensaje.datos?.padreId || mensaje.datos?.padreid || null;
-                        const motivo = mensaje.datos?.motivo || 'sin_motivo';
-                        logger.info(`${logPrefix} PENDING_CANCELADO recibido para ${padreId}: ${motivo}`);
-                        if (padreId && padreId === estado.padreIdActual) {
-                            // Hide or reset reto UI
-                            try {
-                                estado.retoActualId = null;
-                                estado.paradaPendiente = false;
-                                // Hide controls
-                                ocultarControles();
-                                // Notify parent that the child processed the notification
-                                await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, destino: mensaje.origen, datos: { mensaje: 'PENDING_CANCELADO procesado', padreId, motivo } });
-                            } catch (error_) { logger.warn(`${logPrefix} Error limpiando UI reto por pending cancelado:`, error_); }
-                        }
-                    }
                     if (evento === 'PENDING_INICIADO') {
                         const padreId = mensaje.datos?.padreId || mensaje.datos?.padreid || null;
                         const motivo = mensaje.datos?.motivo || 'iniciado';

@@ -188,7 +188,6 @@ module.exports = [
         showGpsOutOfRangeOverlay: "readonly",
         _ocultarTodasPantallasDistanciaGPS: "readonly",
         _iniciarTemporizadorAventura: "readonly",
-        updatePendingDistances: "readonly",
         _obtenerCoordenadasP0Fallback: "readonly",
         solicitarCoordenadasHijo: "readonly",
         solicitarCoordenadasAHijo2: "readonly",

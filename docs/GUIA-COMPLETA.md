@@ -4134,19 +4134,15 @@ estado.pendingCompleciones[padreid] = {
   retosTotal: N,           // número de reto_ids del elemento
   retosCompletadosCount: 0,// retos respondidos correctamente
   timestamp: Date.now(),
-  _lastDistance: null,     // última distancia GPS recibida (metros)
-  _outOfRangeAt: null,     // timestamp cuando el usuario salió del radio
   destinoCoords: null,     // coordenadas del destino (rellenadas por populatePendingCoords)
   ttlMs: 600000,           // timeout = 10 minutos
-  outOfRangeM: 53,         // radio de "fuera de rango"
-  outOfRangeGrace: 300000, // gracia fuera de rango = 5 minutos
   arrivalRequired: bool    // true si el GPS debe detectar llegada
 }
 ```
 
 `arrivalRequired` se calcula en `_buildPendingConfig`: es `true` para tramos y `false` para paradas (por defecto, a menos que el elemento tenga el campo `arrivalRequired: true` explícitamente). Sin embargo, la lógica de completado en `intentarCompletarElemento` exige `pending.llegada = true` para **todos** los tipos (paradas, inicio y tramos): la llegada GPS siempre es necesaria. `arrivalRequired` se usa principalmente para informar a hijo2 de si debe mostrar el overlay de proximidad.
 
-> **`outOfRangeM`/`outOfRangeGrace`/`_lastDistance`/`_outOfRangeAt` — mecanismo real pero efectivamente inerte hoy (hallazgo de la ronda 2026-08-16).** Estos 4 campos alimentan `_procesarDistanciaPending()`, llamada desde `updatePendingDistances()`: si la distancia al `destinoCoords` del pending supera `outOfRangeM` (53m por defecto) durante más de `outOfRangeGrace` (5 min por defecto), **cancela el pending entero** (`cancelarPending(clave, 'out_of_range_expirado')` — borra `estado.pendingCompleciones[clave]`, perdiendo el progreso de llegada/audio/reto de ese elemento). Es un mecanismo real y distinto del sistema de franjas de §31.4/§25.7 (aquél solo restringe botones; este cancela progreso). **Pero `updatePendingDistances()` solo se llama una vez en todo el proyecto**, desde `_hijoListo_onTodosListos()` (arranque, cuando todos los hijos críticos confirman `HIJO_LISTO`) — nunca desde `_watchPositionSuccess()` ni ningún otro punto que reciba posiciones GPS en curso. En ese momento del arranque no existe todavía ningún `pendingCompleciones` (se crean de forma lazy al primer `LLEGADA_DETECTADA`/`FIN_REPRODUCCION`/`RETO_COMPLETADO`, ver arriba), así que el bucle de `updatePendingDistances()` itera sobre un objeto vacío y no hace nada. En la práctica, ningún pending se cancela nunca por esta vía. Sin confirmar todavía si esto es un cableado incompleto (se pensó para llamarse en cada posición, como `_check5kmFromRoute()`, y ese paso final no se hizo) o si se abandonó a propósito en favor del sistema de franjas de hijo2 — pendiente de decisión.
+> **Eliminado (ronda 2026-08-16): `outOfRangeM`/`outOfRangeGrace`/`_lastDistance`/`_outOfRangeAt`.** Existía un segundo mecanismo de "fuera de rango" a este nivel — `_procesarDistanciaPending()`, llamada desde `updatePendingDistances()`, cancelaba el pending entero (`cancelarPending()`, perdiendo el progreso de llegada/audio/reto) si la distancia al `destinoCoords` superaba 53m durante más de 5 min. Se encontró que `updatePendingDistances()` solo se llamaba una vez en todo el proyecto (desde `_hijoListo_onTodosListos()`, al arrancar, cuando `pendingCompleciones` está siempre vacío todavía) — nunca en cada posición GPS como `_check5kmFromRoute()` — así que en la práctica nunca cancelaba nada. Confirmado con el usuario que el sistema de franjas de hijo2 (§31.4/§25.7) ya cubre la necesidad real sin el efecto destructivo de borrar progreso, y que competiría de forma confusa con la gracia por franja (7-15 min) si se hubiera activado tal cual. Se eliminó por completo: los 4 campos de arriba, `_procesarDistanciaPending()`, `updatePendingDistances()` (+ su única llamada), `cancelarPending()` (quedaba sin más callers tras quitar el anterior), el evento `PENDING_CANCELADO` (`SISTEMA.NOTIFICACION`) y sus 3 handlers receptores (`_manejarPendingCancelado` en hijo2, el bloque equivalente en hijo4 — hijo3 nunca lo manejaba, era ya un hueco preexistente). `PENDING_INICIADO` no se ha tocado, sigue real y activo.
 
 Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2, hijo3 e hijo4.
 
@@ -4710,7 +4706,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-ece6469d4358'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-84ca70d8f742'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5146,7 +5142,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Emisor real | `js/funciones-mapa.js` L3543/L3564 (`procesarPosicionGPSParaAventura`) — no padre directamente |
-| Payload | `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada, ubicacionActiva }` |
+| Payload | `{ distanciaAlDestino, distanciaAlCamino, toleranciaGPS, idParada, tipoParada, lat, lng, accuracy, ubicacionActiva }` — `accuracy` añadido en la ronda 2026-08-16 (§31.4/§25.7) |
 | Handler en hijo2 | L1709 — actualiza distancia, modo, flags de proximidad |
 | Handler en funciones-mapa | ninguno — el único receptor es hijo2 directamente vía `enviarMensaje_S1` |
 
@@ -5155,7 +5151,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Campo | Valor |
 |-------|-------|
 | Handler en padre | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO` L9718 |
-| Acción | Log de advertencia, potencialmente limpia pending vía `_procesarDistanciaPending` |
+| Acción | Marca `estado.usuarioFueraRango`, deshabilita audio del padre y `retosBtn` de hijo3 (§31.4/§25.7). No toca `pendingCompleciones` — el mecanismo que lo hacía (`_procesarDistanciaPending`) se eliminó en la ronda 2026-08-16, ver §9.2.3 |
 
 **NAVEGACION.MOSTRAR_UBICACION_POLYLINE** (hijo2 → padre)
 
@@ -5824,28 +5820,18 @@ Los 3 handlers reales viven en Script 4, registrados justo antes del bloque de a
 | Evento | Dirección | Descripción |
 |--------|-----------|-------------|
 | `PENDING_INICIADO` | padre → hijo2/3/4 | Se ha iniciado seguimiento de completado para una parada |
-| `PENDING_CANCELADO` | padre → hijo2/3/4 | El seguimiento fue cancelado (timeout, navegación a otra parada, error) |
 | `AVENTURA_ACTIVADA` | padre → broadcast | La aventura quedó activada con éxito (idioma, aventura, modo final ya aplicado — AVENTURA en producción, CASA solo en dev, ver §9.5) |
 
 **PENDING_INICIADO** (padre → hijo2, hijo3, hijo4)
 
 ```text
 padre ensurePending(key) L9300
-  → estado.pendingCompleciones[key] = { llegada:false, audio:false, reto:false, ttlMs, outOfRangeM, arrivalRequired }
+  → estado.pendingCompleciones[key] = { llegada:false, audio:false, reto:false, ttlMs, arrivalRequired }
   → populatePendingCoords(key) — obtiene coords del destino async (via solicitarCoordenadasHijo)
-padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, ttlMs, outOfRangeM, arrivalRequired }
+padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, ttlMs, arrivalRequired }
 ```
 
-**PENDING_CANCELADO** (padre → hijo2, hijo3, hijo4)
-
-```text
-padre cancelarPending(clave, motivo) L7586
-  → delete estado.pendingCompleciones[clave]
-padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_CANCELADO', padreId:clave, motivo }
-↓
-hijo2 L2762 maneja PENDING_CANCELADO (vía SISTEMA.NOTIFICACION)
-  → resetea `paradaPendiente`, desactiva `btnUbicacion`, actualiza estado textual
-```
+**`PENDING_CANCELADO` eliminado (ronda 2026-08-16)** — su único emisor real era `cancelarPending()`, que a su vez solo la llamaba el mecanismo de fuera-de-rango de `pendingCompleciones` eliminado en §9.2.3 (nunca se activaba en la práctica). Se quitaron `cancelarPending()`, el evento, y sus 2 handlers receptores reales (`_manejarPendingCancelado` en hijo2 L2762; el bloque equivalente en hijo4 — hijo3 nunca lo manejó, era ya un hueco preexistente sin relación con este cambio).
 
 **AVENTURA_ACTIVADA** (padre → broadcast)
 
@@ -7548,7 +7534,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ece6469d4358'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-84ca70d8f742'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8191,7 +8177,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ece6469d4358';
+const CACHE_VERSION = 'v-84ca70d8f742';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10278,7 +10264,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.HIJO_FALLIDO` | Cualquier hijo que no pudo inicializar | Registra en log el error con código y origen; el padre puede intentar recargar el iframe | (ninguna) | — | Gestión de errores de carga de iframes |
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: registra la confirmación por hijo; cuando ambos confirman, el padre puede habilitar el botón de avance | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
-| `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7) | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: marca `estado.usuarioFueraRango`, deshabilita audio del padre y `retosBtn` de hijo3 | (ninguna directa) | — | Gestionar el caso de que el usuario se aleje del recorrido. **No** inicia ningún contador de gracia — el `outOfRangeGrace`/`_procesarDistanciaPending()` que cancela un `pendingCompleciones` completo es un mecanismo aparte (§9.2.3) que hoy solo se evalúa una vez, al arrancar (`updatePendingDistances()` solo se llama desde `_hijoListo_onTodosListos`, nunca en cada posición GPS) — en la práctica no llega a actuar nunca, porque a esa hora todavía no existe ningún `pendingCompleciones` que cancelar. |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7) | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: marca `estado.usuarioFueraRango`, deshabilita audio del padre y `retosBtn` de hijo3 | (ninguna directa) | — | Gestionar el caso de que el usuario se aleje del recorrido. **No** inicia ningún contador de gracia propio — el mecanismo aparte que sí lo hacía (`outOfRangeGrace`/`_procesarDistanciaPending()`, cancelaba un `pendingCompleciones` completo) se eliminó en la ronda 2026-08-16 por estar efectivamente inerte (§9.2.3). |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa de aventura desde la posición actual del usuario hasta la parada objetivo | (ninguna) | — | Feedback visual de dirección al usuario |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo 2 (botón de mapa completo) | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO`: abre `mapa-completo.html` en overlay de pantalla completa | (ninguna) | — | Vista interactiva del mapa Leaflet con todas las paradas |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo 2 (botón de mapa vintage) | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE`: muestra imagen JPG del mapa vintage en overlay | (ninguna) | — | Vista alternativa del mapa con estética histórica |
@@ -11215,7 +11201,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-ece6469d4358';
+const CACHE_VERSION = 'v-84ca70d8f742';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

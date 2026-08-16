@@ -7138,9 +7138,6 @@
             const modoActual = estado.modo?.actual || MODOS.CASA;
             await _hijoListo_sincronizarModoCriticos(logPrefix, modoActual, hijosCriticos);
             try {
-                if (estado.gps && estado.gps.posicionUsuario) updatePendingDistances(estado.gps.posicionUsuario);
-            } catch (err) { (globalThis.logger || console).warn('[PADRE][PENDING] updatePendingDistances error:', err); }
-            try {
                 const modoA = estado.modo.actual;
                 (globalThis.logger || console).info(`${logPrefix} Modo inicial: ${modoA}`);
                 if (modoA === MODOS.AVENTURA) {
@@ -9508,10 +9505,8 @@ await _comprobarReanudacionAventura(logPrefix);
         function _buildPendingConfig(elemento, globalPendingCfg) {
             const cfg = elemento.pending || elemento.pendingConfig || {};
             const ttlMs = typeof cfg.TTL_MS === 'number' ? cfg.TTL_MS : (globalPendingCfg.TTL_MS || 10 * 60 * 1000);
-            const outOfRangeM = typeof cfg.OUT_OF_RANGE_M === 'number' ? cfg.OUT_OF_RANGE_M : (globalPendingCfg.OUT_OF_RANGE_M || 53);
-            const outOfRangeGrace = typeof cfg.OUT_OF_RANGE_GRACE_MS === 'number' ? cfg.OUT_OF_RANGE_GRACE_MS : (globalPendingCfg.OUT_OF_RANGE_GRACE_MS || 5 * 60 * 1000);
             const arrivalRequired = typeof cfg.arrivalRequired === 'boolean' ? cfg.arrivalRequired : (elemento.arrivalRequired === true || elemento.tipo === 'tramo');
-            return { ttlMs, outOfRangeM, outOfRangeGrace, arrivalRequired };
+            return { ttlMs, arrivalRequired };
         }
 
         function ensurePending(padreId, tipo) {
@@ -9521,14 +9516,14 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!estado.pendingCompleciones[key]) {
                 const elemento = findElementoPorPadreId(key) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === key || p.parada_id === key || p.tramo_id === key) || {};
                 const globalPendingCfg = (globalThis.Config && globalThis.Config.PENDING) ? globalThis.Config.PENDING : {};
-                const { ttlMs, outOfRangeM, outOfRangeGrace, arrivalRequired } = _buildPendingConfig(elemento, globalPendingCfg);
+                const { ttlMs, arrivalRequired } = _buildPendingConfig(elemento, globalPendingCfg);
                 const retosIds = obtenerRetosIds(elemento);
-                estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), _lastDistance: null, _outOfRangeAt: null, destinoCoords: null, ttlMs, outOfRangeM, outOfRangeGrace, arrivalRequired };
+                estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), destinoCoords: null, ttlMs, arrivalRequired };
                 (async () => {
                     try { await populatePendingCoords(key); } catch (err) { (globalThis.logger || console).debug('[PADRE][PENDING] populatePendingCoords failed:', err); }
                 })();
                 try {
-                    const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs, outOfRangeM: estado.pendingCompleciones[key].outOfRangeM, arrivalRequired: estado.pendingCompleciones[key].arrivalRequired };
+                    const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs, arrivalRequired: estado.pendingCompleciones[key].arrivalRequired };
                     enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
                     enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo3', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
                     enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
@@ -9578,54 +9573,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 return null;
             }
         }
-
-        function cancelarPending(clave, motivo = 'cancelado') {
-            try {
-                if (!clave || !estado.pendingCompleciones || !estado.pendingCompleciones[clave]) return false;
-                delete estado.pendingCompleciones[clave];
-                (globalThis.logger || console).warn(`[PADRE][PENDING] Cancelado pending ${clave} por motivo=${motivo}`);
-                // Notificar a hijos interesados (hijo2/hijo3/hijo4) para que limpien UI
-                try {
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo2', datos: { evento: 'PENDING_CANCELADO', padreId: clave, motivo } }).catch(_e => {}); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo3', datos: { evento: 'PENDING_CANCELADO', padreId: clave, motivo } }).catch(_e => {}); // NOSONAR
-                    enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo4', datos: { evento: 'PENDING_CANCELADO', padreId: clave, motivo } }).catch(_e => {}); // NOSONAR
-                } catch (error_) { (globalThis.logger || console).debug('[VV]:', error_?.message); } // NOSONAR
-                return true;
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE][PENDING] Error cancelando pending:', e);
-                return false;
-            }
-        }
-
-        function _procesarDistanciaPending(clave, pending, dist, pendingCfg, now) {
-            const threshold = typeof pending.outOfRangeM === 'number' ? pending.outOfRangeM : (pendingCfg?.OUT_OF_RANGE_M ?? 53);
-            const grace = typeof pending.outOfRangeGrace === 'number' ? pending.outOfRangeGrace : (pendingCfg?.OUT_OF_RANGE_GRACE_MS ?? 5 * 60 * 1000);
-            if (dist > threshold) {
-                if (!pending._outOfRangeAt) { pending._outOfRangeAt = now; return false; }
-                if (now - pending._outOfRangeAt >= grace) { cancelarPending(clave, 'out_of_range_expirado'); return true; }
-            } else {
-                pending._outOfRangeAt = null;
-            }
-            return false;
-        }
-
-        function updatePendingDistances(posicionUsuario) {
-            try {
-                if (!posicionUsuario || !estado.pendingCompleciones) return;
-                const pendingCfg = globalThis.Config?.PENDING ?? null;
-                const now = Date.now();
-                for (const [clave, pending] of Object.entries(estado.pendingCompleciones)) {
-                    if (!pending?.destinoCoords) continue;
-                    const dist = calcularDistancia(posicionUsuario.lat, posicionUsuario.lng, pending.destinoCoords.lat, pending.destinoCoords.lng);
-                    pending._lastDistance = dist;
-                    const canceled = _procesarDistanciaPending(clave, pending, dist, pendingCfg, now);
-                    if (canceled) continue;
-                }
-            } catch (e) {
-                (globalThis.logger || console).warn('[PADRE][PENDING] Error actualizando distancias pendings:', e);
-            }
-        }
-        globalThis.updatePendingDistances = updatePendingDistances;
 
         function _paradaConditionsMet(pending, elemento) {
             const retosIds = obtenerRetosIds(elemento);
