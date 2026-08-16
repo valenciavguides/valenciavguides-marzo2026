@@ -247,10 +247,18 @@
         #btn-imagen:not(.activo) {
             animation: glow-suave 3s ease-in-out infinite;
         }
-        /* Glow prominente: botones que requieren atención del usuario */
-        #btn-video:not([disabled]):not(.activo),
-        #btn-avanzar:not([disabled]):not(.activo),
-        #btn-ubicacion:not([disabled]):not(.activo) {
+        /* Glow prominente: botones que requieren atención del usuario.
+           :not(.disabled) — no :not([disabled]) — para usar la MISMA señal que
+           .boton.disabled (arriba) y #btn-video:not(.disabled) (verde vivo, más
+           arriba): un botón desactivado solo por clase (sin la propiedad/atributo
+           disabled) debe dejar de brillar igual que uno desactivado por completo.
+           Antes de este fix, el glow (que anima background hasta un cian #00F0FF a
+           mitad de ciclo) seguía corriendo mientras solo faltara el atributo, y esa
+           animación gana al background estático de .boton.disabled — hallazgo de
+           la auditoría 2026-08-15, ver docs/GUIA-COMPLETA.md §4.8. */
+        #btn-video:not(.disabled):not(.activo),
+        #btn-avanzar:not(.disabled):not(.activo),
+        #btn-ubicacion:not(.disabled):not(.activo) {
             animation: glow-activo 3s ease-in-out infinite;
         }
         /* Spin: anula el glow mientras dura el giro */
@@ -644,6 +652,7 @@ if (globalThis !== undefined && globalThis.registrarControladorSeguro === undefi
 
 import { TIPOS_MENSAJE } from './js/constants.js';
 import logger from './js/logger.js';
+import { CONFIG } from './js/config.js';
 
 const CONFIG_HIJO = {
     IFRAME_ID: 'hijo2',
@@ -691,9 +700,25 @@ const estadoComponente = {
     paradaPendiente: false, // Flag para saber si la parada tiene pending en el padre
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
     timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 15m parada / toleranciaGPS tramo)
-    fueraDeRangoActivo: false, // Flag: true cuando btn-ubicacion ya está habilitado por estar fuera de rango real
+    ayudaFueraDeRangoActiva: false, // Flag: true en cuanto se detecta fuera de rango real — habilita ubicación/mapas AL INSTANTE, sin esperar la gracia (ver _habilitarAyudaFueraDeRango)
+    fueraDeRangoActivo: false, // Flag: true cuando la GRACIA de la franja ya expiró — vídeo/avanzar deshabilitados y padre notificado (ver _procesarFueraDeRangoConfirmado)
+    _notificacionFueraRangoEnviada: false, // Evita reenviar NAVEGACION.USUARIO_FUERA_RANGO en cada tick mientras la restricción sigue activa
+    _notificacionSenalNoFiableEnviada: false, // Evita reenviar NAVEGACION.GPS.PRECISION_INSUFICIENTE en cada tick de mala precisión
     ultimoHeading: 0, // Última dirección del usuario (0-360 grados)
     hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
+};
+
+// Tiempo de gracia antes de restringir vídeo/avanzar/audio/reto por franja de distancia
+// (ver verificarDistanciaYActualizarBotones) — "fuera" y "desviado" dan margen a un desvío
+// real (recado rápido, rodeo por obras); "lejos"/"perdido" no tienen gracia, a esa distancia
+// ya no es un desvío de la ruta sino un probable abandono o error. La ayuda (btn-ubicacion/
+// mapas) NUNCA espera esta gracia — se habilita al instante en cualquier franja, ver
+// docs/GUIA-COMPLETA.md §31.4.
+const _GRACIA_FUERA_DE_RANGO_MS = {
+    fuera: 7 * 60 * 1000,      // 7 min — 15m(parada)/toleranciaGPS(tramo) a 50m
+    desviado: 15 * 60 * 1000,  // 15 min — 50m a 150m
+    lejos: 0,                  // 150m a 2000m — instantáneo
+    perdido: 0                 // >2000m — instantáneo
 };
 
 // Referencias DOM
@@ -833,6 +858,18 @@ function _actualizarBotonUbicacion(elementosDOM, modo, retoActivo) {
     }
 }
 
+// Habilita ubicación/mapas al instante, nada más detectarse fuera de rango real —
+// independiente de la gracia (ver _GRACIA_FUERA_DE_RANGO_MS): pedir ayuda no tiene
+// coste, así que no espera a que la franja termine de dar margen. Llamada desde
+// verificarDistanciaYActualizarBotones() en cada posición fuera de rango.
+function _habilitarAyudaFueraDeRango(logPrefix) {
+    if (!estadoComponente.ayudaFueraDeRangoActiva) {
+        estadoComponente.ayudaFueraDeRangoActiva = true;
+        logger.info(`${logPrefix} ✅ Ayuda habilitada al instante: ubicación disponible (gracia en curso)`);
+        actualizarEstadoBotones();
+    }
+}
+
 function _desactivarBotonesRangoExcedido(elementosDOM) {
     if (elementosDOM.btnVideo) desactivarBoton(elementosDOM.btnVideo);
     if (elementosDOM.btnAvanzar) desactivarBoton(elementosDOM.btnAvanzar);
@@ -884,7 +921,17 @@ function actualizarEstadoBotones() {
     }
 
     _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, idParadaActual, distanciaAlDestino, toleranciaGPS);
-    _actualizarBotonUbicacion(elementosDOM, modo, retoActivo);
+
+    // Ayuda (ubicación) al instante en cuanto se detecta fuera de rango real, aunque la
+    // gracia de esa franja todavía no haya expirado (fueraDeRangoActivo sigue false) —
+    // pedir el mapa no tiene coste, no hay motivo para esperar. Gana a
+    // _actualizarBotonUbicacion salvo que haya un reto activo o estemos en CASA, que
+    // siguen teniendo prioridad (mismo criterio que ya tenía este botón antes de la gracia).
+    if (!retoActivo && modo === 'aventura' && estadoComponente.ayudaFueraDeRangoActiva) {
+        activarBoton(elementosDOM.btnUbicacion);
+    } else {
+        _actualizarBotonUbicacion(elementosDOM, modo, retoActivo);
+    }
 
     if (elementosDOM.btnMapaCompleto) activarBoton(elementosDOM.btnMapaCompleto);
     if (elementosDOM.btnMapaJpg) activarBoton(elementosDOM.btnMapaJpg);
@@ -925,23 +972,30 @@ function _procesarDentroDeRango(btn, logPrefix) {
             datos: { timestamp: Date.now() }
         }).catch(e => logger.debug(`${logPrefix} Error notificando dentro de rango:`, e.message));
     }
+    let cambioBotones = false;
+    if (estadoComponente.ayudaFueraDeRangoActiva) {
+        estadoComponente.ayudaFueraDeRangoActiva = false;
+        cambioBotones = true;
+    }
     if (estadoComponente.fueraDeRangoActivo) {
         estadoComponente.fueraDeRangoActivo = false;
         logger.info(`${logPrefix} ✅ Fuera de rango DESACTIVADO: usuario volvió a ruta`);
-        actualizarEstadoBotones();
+        cambioBotones = true;
     }
+    if (cambioBotones) actualizarEstadoBotones();
 }
 
-function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango) {
-    activarBoton(btn);
+// Aplica la RESTRICCIÓN (vídeo/avanzar deshabilitados; el padre deshabilita su audio y
+// el retosBtn de hijo3) una vez agotada la gracia de la franja — la ayuda (ubicación/
+// mapas) ya se habilitó al instante en _habilitarAyudaFueraDeRango, antes de llegar aquí.
+function _procesarFueraDeRangoConfirmado(logPrefix, franja, distanciaParaRango) {
     if (!estadoComponente.fueraDeRangoActivo) {
         estadoComponente.fueraDeRangoActivo = true;
         actualizarEstadoBotones();
-        logger.info(`${logPrefix} ✅ Fuera de rango ACTIVADO (franja: ${franja}): GPS/video/mapas/avanzar deshabilitados`);
+        logger.info(`${logPrefix} ✅ Fuera de rango ACTIVADO (franja: ${franja}, gracia agotada): vídeo/avanzar deshabilitados`);
     }
     if (!estadoComponente._notificacionFueraRangoEnviada) {
         estadoComponente._notificacionFueraRangoEnviada = true;
-        logger.info(`${logPrefix} ✅ btn-ubicacion HABILITADO (franja: ${franja})`);
         enviarMensaje({
             tipo: TIPOS_MENSAJE.NAVEGACION.USUARIO_FUERA_RANGO,
             origen: CONFIG_HIJO.IFRAME_ID,
@@ -958,9 +1012,11 @@ function _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRa
  * (15m parada / toleranciaGPS tramo — el mismo umbral que btn-avanzar) y actualiza
  * el botón de ubicación. Fuera de ese rango, informa al padre de la distancia real
  * en cada posición (GPS.RESTRINGIDO) para que decida qué pantalla de aviso mostrar
- * (§30 de la guía) — las tres franjas (16-50m, 51-2000m, >2000m) habilitan ubicación
+ * (§30 de la guía) — las 4 franjas (fuera/desviado/lejos/perdido) habilitan ubicación
  * al instante: es el usuario quien decide cuándo pulsarla, no un umbral de tiempo
- * calculado por la app.
+ * calculado por la app. Lo que SÍ espera un tiempo de gracia (7 min "fuera", 15 min
+ * "desviado"; instantáneo en "lejos"/"perdido") es la RESTRICCIÓN de vídeo/avanzar/
+ * audio/reto — ver _GRACIA_FUERA_DE_RANGO_MS.
  * Solo se ejecuta en modo aventura.
  */
 function verificarDistanciaYActualizarBotones() {
@@ -1015,12 +1071,24 @@ function verificarDistanciaYActualizarBotones() {
     }
 
     let franja;
-    if (distanciaParaRango > 2000) franja = 'muylejos';
-    else if (distanciaParaRango > 50) franja = 'lejos';
+    if (distanciaParaRango > 2000) franja = 'perdido';
+    else if (distanciaParaRango > 150) franja = 'lejos';
+    else if (distanciaParaRango > 50) franja = 'desviado';
     else franja = 'fuera';
 
-    // Las tres franjas habilitan ubicación al instante, sin cuenta atrás — ver JSDoc arriba.
-    _procesarFueraDeRangoConfirmado(btn, logPrefix, franja, distanciaParaRango);
+    // La ayuda (ubicación/mapas) se habilita al instante, en cualquier franja.
+    _habilitarAyudaFueraDeRango(logPrefix);
+
+    // La restricción (vídeo/avanzar/audio/reto) espera la gracia de la franja —
+    // 0 en lejos/perdido, así que ahí sigue siendo instantánea como antes.
+    const gracia = _GRACIA_FUERA_DE_RANGO_MS[franja] ?? 0;
+    const tiempoFuera = ahora - estadoComponente.timestampSalioDeRango;
+    if (tiempoFuera >= gracia) {
+        _procesarFueraDeRangoConfirmado(logPrefix, franja, distanciaParaRango);
+    } else {
+        const segundosRestantes = Math.ceil((gracia - tiempoFuera) / 1000);
+        logger.debug(`${logPrefix} ⏳ ${idParadaActual}: en gracia (franja ${franja}), ${segundosRestantes}s restantes antes de restringir vídeo/avanzar`);
+    }
 }
 
 // Inicializar estado de botones al cargar
@@ -1479,12 +1547,51 @@ async function _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix) {
 }
 
 // 📡 Controlador para actualización de estado GPS (enviado por funciones-mapa.js)
+// Precisión GPS insuficiente: con un círculo de error mayor que CONFIG.GPS.PRECISION_MINIMA
+// no se puede confiar en NINGUNA conclusión de distancia — ni llegada, ni franja de fuera
+// de rango — la posición real podría estar en cualquier punto dentro de ese círculo.
+function _notificarSenalNoFiable(accuracy, logPrefix) {
+    if (!estadoComponente._notificacionSenalNoFiableEnviada) {
+        estadoComponente._notificacionSenalNoFiableEnviada = true;
+        logger.warn(`${logPrefix} ⚠️ Precisión GPS insuficiente (±${accuracy}m > ${CONFIG.GPS.PRECISION_MINIMA}m) — ninguna conclusión de distancia es fiable`);
+        enviarMensaje({
+            tipo: TIPOS_MENSAJE.NAVEGACION.GPS.PRECISION_INSUFICIENTE,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: resolverIdPadre(),
+            datos: { accuracy, umbral: CONFIG.GPS.PRECISION_MINIMA, timestamp: Date.now() }
+        }).catch(e => logger.debug(`${logPrefix} Error notificando precisión insuficiente:`, e.message));
+    }
+}
+
+function _notificarSenalRecuperada(logPrefix) {
+    estadoComponente._notificacionSenalNoFiableEnviada = false;
+    logger.info(`${logPrefix} ✅ Precisión GPS recuperada`);
+    enviarMensaje({
+        tipo: TIPOS_MENSAJE.NAVEGACION.GPS.PRECISION_RECUPERADA,
+        origen: CONFIG_HIJO.IFRAME_ID,
+        destino: resolverIdPadre(),
+        datos: { timestamp: Date.now() }
+    }).catch(e => logger.debug(`${logPrefix} Error notificando precisión recuperada:`, e.message));
+}
+
 registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (mensaje) => {
     const logPrefix = '[hijo2][ACTUALIZAR_ESTADO]';
     try {
         const datos = mensaje.datos;
-        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS } = datos;
+        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, accuracy } = datos;
         _aplicarDatosEstado(datos, logPrefix);
+
+        // Se comprueba ANTES de la detección de llegada y de
+        // verificarDistanciaYActualizarBotones(), no solo dentro de esta última, para que
+        // una lectura de mala precisión no pueda disparar una llegada falsa aunque la
+        // distancia calculada parezca corta (ver JSDoc de _notificarSenalNoFiable arriba).
+        if (estadoComponente.modo === 'aventura' && typeof accuracy === 'number' && accuracy > CONFIG.GPS.PRECISION_MINIMA) {
+            _notificarSenalNoFiable(accuracy, logPrefix);
+            return;
+        }
+        if (estadoComponente._notificacionSenalNoFiableEnviada) {
+            _notificarSenalRecuperada(logPrefix);
+        }
 
         // Solo en AVENTURA: en CASA el usuario "ve" paradas libremente con hijo5 (reutiliza
         // este mismo CAMBIO_PARADA/ACTUALIZAR_ESTADO), así que idParada aquí puede ser
@@ -1772,6 +1879,13 @@ try {
             logger.info(`${logPrefix} Reseteando timer GPS por cambio de modo`);
             estadoComponente.timestampSalioDeRango = null;
         }
+        // Sin esto, un fuera-de-rango (ayuda o restricción) activo antes del cambio de
+        // modo se quedaba "pegado" en el estado — la restricción de vídeo/avanzar podía
+        // reaplicarse indebidamente al volver a AVENTURA, ya sin ninguna franja real detrás.
+        estadoComponente.ayudaFueraDeRangoActiva = false;
+        estadoComponente.fueraDeRangoActivo = false;
+        estadoComponente._notificacionFueraRangoEnviada = false;
+        estadoComponente._notificacionSenalNoFiableEnviada = false;
         const btn = elementosDOM.btnUbicacion;
         if (btn) {
             if (modo === 'casa') {

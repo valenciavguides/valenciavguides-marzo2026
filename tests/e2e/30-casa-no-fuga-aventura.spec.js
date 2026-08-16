@@ -137,7 +137,24 @@ test.describe('CM — Nada de AVENTURA se ejecuta de verdad estando en modo CASA
     expect(resultado.capturados, 'No debe enviarse ningún ACTUALIZAR_ESTADO a hijo2 en modo CASA').toBe(0);
   });
 
-  test('CM-6. _hdl_SISTEMA_CAMBIO_MODO(CASA) cierra los overlays de distancia GPS si estaban visibles', async ({ page }) => {
+  test('CM-6. _hdl_SISTEMA_CAMBIO_MODO(CASA) cierra los overlays de distancia GPS si estaban visibles', async ({ page, context }) => {
+    // _vv_triggerCambioModo('aventura') dispara _gestionarGpsSegunModo → activarGPS(),
+    // que llama a navigator.geolocation.watchPosition() de verdad — a diferencia de
+    // CM-1/CM-2 (que inyectan coordenadas sintéticas directo en funcionesMapa, sin
+    // tocar la API real). Sin permiso de geolocalización concedido en el contexto,
+    // Chromium/WebKit invocan el callback de error con PERMISSION_DENIED enseguida,
+    // pero Firefox no invoca NINGÚN callback (ni éxito ni error) — watchPosition()
+    // se queda colgado para siempre, sin timeout propio. Diagnosticado en vivo con
+    // logs de consola: el último log antes del cuelgue es "Iniciando watchPosition...";
+    // confirmado también reproducible con git stash sobre HEAD (no es un bug de esta
+    // sesión) y con el timeout del test subido a 150s (sigue sin resolver — cuelgue
+    // real, no solo lento). No es un bug de producción: en un navegador real, el
+    // usuario ve el diálogo nativo de permiso y responde, resolviendo el callback
+    // en ambos sentidos. Fix: conceder el permiso y fijar una posición antes de
+    // disparar el cambio de modo, igual que un usuario que ya concedió GPS.
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+
     const disponible = await page.evaluate(() => typeof globalThis._vv_triggerCambioModo === 'function');
     test.skip(!disponible, '_vv_triggerCambioModo no disponible');
 

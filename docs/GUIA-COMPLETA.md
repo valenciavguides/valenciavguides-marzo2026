@@ -847,7 +847,7 @@ flowchart TD
     C -- No --> D["Sin controles de puzzle\notros tipos de reto no muestran ⏸️▶️🔄"]
     C -- Sí --> E["⏸️▶️ controles en puzzle.html\n🔄 Reiniciar puzzle\n(mismo componente que P6/hijo4, ver §13)"]
 
-    G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\n16-50m / 51-2000m / >2000m"}
+    G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\nfuera 50m / desviado 150m / lejos 2000m / perdido"}
     G2 --> H["Padre muestra la pantalla\nde distancia que corresponda (§31.4)\nBotón ✖ para cerrar"]
     H --> I([Usuario pulsa ✖])
     I --> J["El overlay se cierra\nGPS.RESTRINGIDO sigue llegando\nsi el usuario sigue fuera de rango\n→ el aviso puede reaparecer (snooze, §31.4)"]
@@ -1086,7 +1086,7 @@ flowchart LR
 
 ### 4.7b. Imagen de error GPS — overlay del padre
 
-El archivo `imagenes/imagenes-aplicación/fotogpserror.png` lo usa `codigo-padre.html` (línea 5185) como imagen del overlay de error GPS (`#gps-error-img`). Se muestra cuando la precisión GPS es baja o la geolocalización falla. No es un botón de hijo2 — es un overlay gestionado directamente por el padre.
+El archivo `imagenes/imagenes-aplicación/fotogpserror.png` lo usa `codigo-padre.html` como imagen del overlay `#gps-out-of-range-overlay` (`#gps-error-img`) — exclusivo desde la ronda 2026-08-16 del bloqueo anti-piratería (§31.5, usuario a más de 5km de toda la ruta). No es un botón de hijo2 — es un overlay gestionado directamente por el padre. La franja "perdido" (>2000m del elemento actual, §31.4) y el aviso de precisión insuficiente tienen sus propias imágenes/overlays (`foto-rango-perdido.png`, `imagen-no-gps.png`), ya no comparten este.
 
 ### 4.7c. Control de audio — overlay del padre (`#audio-control-overlay`)
 
@@ -1458,14 +1458,14 @@ En ambos modos (CASA y AVENTURA) todos los botones habilitados tienen una animac
 | `btn-mapa-completo` | hijo2 | ❌ ninguna | ❌ | — |
 | `btn-mapa-jpg` | hijo2 | ❌ ninguna | ❌ | — |
 | `btn-imagen` | hijo2 | Suave | ❌ | `:not(.activo)` |
-| `btn-video` | hijo2 | **Activo** | ✅ | `:not([disabled]):not(.activo)` |
-| `btn-avanzar` | hijo2 | **Activo** | ✅ | `:not([disabled]):not(.activo)` |
-| `btn-ubicacion` | hijo2 | **Activo** | ✅ | `:not([disabled]):not(.activo)` |
+| `btn-video` | hijo2 | **Activo** | ✅ | `:not(.disabled):not(.activo)` |
+| `btn-avanzar` | hijo2 | **Activo** | ✅ | `:not(.disabled):not(.activo)` |
+| `btn-ubicacion` | hijo2 | **Activo** | ✅ | `:not(.disabled):not(.activo)` |
 | `#retosBtn` | hijo3 | **Activo** | ✅ | `:not(:disabled):not(.activo)` |
 
 **Por qué `:not(.activo)` en glow:** Cuando un botón tiene la clase `.activo` (el usuario acaba de pulsarlo y su contenido está abierto), tiene ya su propia indicación visual (fondo azul). No tiene sentido añadir glow encima.
 
-**Por qué `:not([disabled])` en glow-activo:** Los botones glow-activo pueden estar deshabilitados (rojo, opacidad 0.6). Un botón deshabilitado no llama a la acción, así que tampoco debe brillar para llamarla.
+**Por qué `:not(.disabled)` en glow-activo (corregido en la auditoría 2026-08-15 — antes era `:not([disabled])`):** Los botones glow-activo pueden estar deshabilitados (rojo, opacidad 0.6). Un botón deshabilitado no llama a la acción, así que tampoco debe brillar para llamarla — la intención siempre fue esta, pero el selector original comprobaba el atributo/propiedad `disabled` en vez de la clase `.disabled`, que es la señal real que usa `.boton.disabled` (§4.8) para pintar el rojo. En la práctica `desactivarBoton()` (`coordenadas-hijo2.html`) siempre pone ambos a la vez (`boton.disabled = true` Y `boton.classList.add('disabled')`), así que nunca se vio en producción — pero un test dedicado (`18-boton-deshabilitado-color.spec.js`, BU-3b) que solo simulaba la clase, como haría cualquier código futuro que reutilizara `.disabled` sin la propiedad, revelaba el hueco: con `[disabled]` ausente, el glow seguía activo y su `background` animado (que pasa por un cian `#00F0FF` a mitad de ciclo, ver keyframes arriba) ganaba al rojo estático de `.boton.disabled` — un botón "deshabilitado" que seguía brillando verde/cian en vez de mostrar rojo. Fix: usar `:not(.disabled)`, la misma señal que ya usa `.boton.disabled` y `#btn-video:not(.disabled)` (verde vivo, §4.8) — una sola fuente de verdad para "deshabilitado" en todo el archivo.
 
 **Por qué el `.spinning !important`:** La clase `.spinning` aplica un `animation` que sobrescribe el glow. Sin `!important`, el selector del glow (con ID, mayor especificidad `[1,2,0]`) ganaría al selector de la clase spinning `[0,1,0]`. El `!important` garantiza que el spin siempre sustituya al glow mientras dura el giro — sustituye, no anula del todo: `spin-btn` lleva su propio `box-shadow` cian (ver arriba), así que el brillo sigue presente durante el giro, solo que gobernado por el keyframe del spin en vez del de glow.
 
@@ -2499,7 +2499,7 @@ sequenceDiagram
 | Vídeo | `#btn-video` | Reproduce vídeo del tramo activo | Cuando elemento activo es tramo Y reto no está activo (CASA y AVENTURA) | Si es parada / reto activo / `fueraDeRangoActivo` |
 | Imagen | `#btn-imagen` | Muestra imagen de la parada activa | Siempre (incluso con reto activo o `fueraDeRangoActivo` — el usuario necesita ver qué busca) | Solo si el padre envía `CONTROL.DESHABILITAR { control: 'btnImagen' }` |
 | Avanzar / GPS | `#btn-avanzar` | Toggle GPS: envía `NAVEGACION.GPS.ACTIVAR { activar, idParada, distancia }` al padre | Siempre | — |
-| Ubicación | `#btn-ubicacion` | Solicita al padre polyline de retorno al destino (`MOSTRAR_UBICACION_POLYLINE`) | Siempre en CASA. AVENTURA: fuera del rango real, al instante en las 3 franjas (§31.4) | — |
+| Ubicación | `#btn-ubicacion` | Solicita al padre polyline de retorno al destino (`MOSTRAR_UBICACION_POLYLINE`) | Siempre en CASA. AVENTURA: fuera del rango real, al instante en las 4 franjas, sin esperar la gracia (§31.4) | — |
 
 **Reglas de habilitación/deshabilitación** — se aplican en `actualizarEstadoBotones()`:
 
@@ -2581,7 +2581,7 @@ Las pantallas de aviso (imágenes, cuenta atrás, botón de reintento) viven en 
 |------|--------|-------------------|
 | `NAVEGACION.LLEGADA_DETECTADA` | Distancia ≤ umbral | `{ paradaId, parada_id, distancia, tipoParada: 'parada'\|'tramo', timestamp }` |
 | `NAVEGACION.GPS.ACTIVAR` | Click en `#btn-avanzar` (toggle GPS on/off) | `{ activar: bool, idParada, distancia }` |
-| `NAVEGACION.USUARIO_FUERA_RANGO` | Al confirmarse fuera de rango en cualquiera de las 3 franjas (>15m parada / `toleranciaGPS` tramo — mismo umbral que `GPS.RESTRINGIDO`, no específicamente >50m) | `{ paradaId, distancia }` |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | Tras la gracia de la franja (0-15 min según franja, ver §31.4/§25.7) en cualquiera de las 4 franjas (>15m parada / `toleranciaGPS` tramo — mismo umbral que `GPS.RESTRINGIDO`) | `{ distancia, franja, elementoMasCercano, timestamp }` |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Click en `#btn-ubicacion`; solicita al padre (funciones-mapa.js) dibujar polyline desde posición actual hasta el destino activo | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Click en `#btn-mapa-completo` | `{ formato: 'html', url: 'mapa-completo.html?aventura=X', aventura }` |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Click en `#btn-mapa-jpg` | `{ formato: 'jpg', url, aventura, paradaActual }` |
@@ -3780,7 +3780,7 @@ Panel lateral izquierdo con opciones extra (gastronomía, información, historia
 
 ### 8.6 hijo2 — coordenadas-hijo2.html (GPS + botones)
 
-Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `distanciaAlDestino` (calculada por `funciones-mapa.js`) y la compara contra el umbral para detectar llegada (`LLEGADA_DETECTADA`) o activar la lógica de fuera de rango, al instante en las 3 franjas. **No calcula Haversine** y **no tiene código de mapa propio** — el mapa vive en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
+Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `distanciaAlDestino` (calculada por `funciones-mapa.js`) y la compara contra el umbral para detectar llegada (`LLEGADA_DETECTADA`) o activar la lógica de fuera de rango, en 4 franjas con gracia por franja (§31.4/§25.7). **No calcula Haversine** y **no tiene código de mapa propio** — el mapa vive en `codigo-padre.html` (gestionado por `funciones-mapa.js`).
 
 #### Mensajes que hijo2 envía al padre
 
@@ -3792,8 +3792,8 @@ Gestiona los 6 botones de navegación y el overlay "fuera de rango". Recibe `dis
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo en UI |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
 | `NAVEGACION.GPS.ACTIVAR` | `{ activar:bool, idParada, distancia }` | Toggle GPS — click en `#btn-avanzar` |
-| `NAVEGACION.GPS.RESTRINGIDO` | `{ idParada, distancia, disponible:'solo_imagen' }` | GPS fuera de rango — solo se envía si `idParadaActual !== null` (guard: evitar envío con ID nulo antes del primer `ACTUALIZAR_ESTADO`) |
-| `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, umbral }` | Usuario salió del radio de la parada activa |
+| `NAVEGACION.GPS.RESTRINGIDO` | `{ idParada, distancia, rangoMaximo, timestampSalioDeRango }` | GPS fuera de rango — solo se envía si `idParadaActual !== null` (guard: evitar envío con ID nulo antes del primer `ACTUALIZAR_ESTADO`) |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | `{ distancia, franja, elementoMasCercano, timestamp }` | Usuario salió del radio de la parada activa, gracia de su franja ya expirada (§31.4/§25.7) |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | `{ ubicacionUsuario, proximoElemento, elementoId, centrar:true, zoom:16 }` | Click en `#btn-ubicacion` — solicita polyline de retorno al destino |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | `{ formato: 'html', url: 'mapa-completo.html?aventura=X', aventura }` | Usuario pulsa `#btn-mapa-completo` |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | `{ formato: 'jpg', url, aventura, paradaActual }` | Usuario pulsa `#btn-mapa-jpg` |
@@ -4146,6 +4146,8 @@ estado.pendingCompleciones[padreid] = {
 
 `arrivalRequired` se calcula en `_buildPendingConfig`: es `true` para tramos y `false` para paradas (por defecto, a menos que el elemento tenga el campo `arrivalRequired: true` explícitamente). Sin embargo, la lógica de completado en `intentarCompletarElemento` exige `pending.llegada = true` para **todos** los tipos (paradas, inicio y tramos): la llegada GPS siempre es necesaria. `arrivalRequired` se usa principalmente para informar a hijo2 de si debe mostrar el overlay de proximidad.
 
+> **`outOfRangeM`/`outOfRangeGrace`/`_lastDistance`/`_outOfRangeAt` — mecanismo real pero efectivamente inerte hoy (hallazgo de la ronda 2026-08-16).** Estos 4 campos alimentan `_procesarDistanciaPending()`, llamada desde `updatePendingDistances()`: si la distancia al `destinoCoords` del pending supera `outOfRangeM` (53m por defecto) durante más de `outOfRangeGrace` (5 min por defecto), **cancela el pending entero** (`cancelarPending(clave, 'out_of_range_expirado')` — borra `estado.pendingCompleciones[clave]`, perdiendo el progreso de llegada/audio/reto de ese elemento). Es un mecanismo real y distinto del sistema de franjas de §31.4/§25.7 (aquél solo restringe botones; este cancela progreso). **Pero `updatePendingDistances()` solo se llama una vez en todo el proyecto**, desde `_hijoListo_onTodosListos()` (arranque, cuando todos los hijos críticos confirman `HIJO_LISTO`) — nunca desde `_watchPositionSuccess()` ni ningún otro punto que reciba posiciones GPS en curso. En ese momento del arranque no existe todavía ningún `pendingCompleciones` (se crean de forma lazy al primer `LLEGADA_DETECTADA`/`FIN_REPRODUCCION`/`RETO_COMPLETADO`, ver arriba), así que el bucle de `updatePendingDistances()` itera sobre un objeto vacío y no hace nada. En la práctica, ningún pending se cancela nunca por esta vía. Sin confirmar todavía si esto es un cableado incompleto (se pensó para llamarse en cada posición, como `_check5kmFromRoute()`, y ese paso final no se hizo) o si se abandonó a propósito en favor del sistema de franjas de hijo2 — pendiente de decisión.
+
 Al crear cada `pendingCompleciones`, el padre envía `SISTEMA.NOTIFICACION { evento: 'PENDING_INICIADO' }` a hijo2, hijo3 e hijo4.
 
 **Por qué la clave siempre es el `padreid` real, nunca el `tramo_id`/`parada_id` con el que llega el evento:** `_marcarPendingPorLlegada` (llamada por `LLEGADA_DETECTADA`) recibe el id tal como lo manda el sensor GPS — para un tramo, eso es su `tramo_id` (p.ej. `"Av1-TR-1"`), no su `padreid` (`"padre-TR1"`). Antes de construir la clave, resuelve el elemento real con `findElementoPorPadreId(paradaId)`, que busca en `elementosIDpadre` comparando contra `padreid`, `parada_id` **y `tramo_id`** — las tres columnas de id que puede traer la entrada. Sin la comparación por `tramo_id`, la búsqueda fallaba para todos los tramos y la clave caía al fallback `` `padre-${paradaId}` `` (`"padre-Av1-TR-1"`, una clave inventada que no coincide con ningún `padreid` real): el `LLEGADA_DETECTADA` de un tramo y su `AUDIO.FIN_REPRODUCCION` (que sí resuelve correctamente vía `findElementoPorAudio`, y sí obtiene `"padre-TR1"`) creaban dos entradas `pendingCompleciones` distintas para el mismo tramo, y `pending.llegada`/`pending.audio` nunca coincidían en la misma — el tramo no se completaba nunca por esta vía, sin importar cuánto GPS o audio llegara. Con `findElementoPorPadreId` resolviendo también por `tramo_id`, ambos caminos convergen en la misma clave real.
@@ -4293,7 +4295,7 @@ sequenceDiagram
 
 **`_normalizarSetHijos`** elimina de `estado.hijosInicializados` los IDs de los iframes que se van a recargar, para que `_esperarHijosCargados` no resuelva prematuramente con el estado anterior. Solo se llama en la ruta normal.
 
-**`_esperarHijosCargados`** usa `globalThis.__stateManager.crearPromiseHijoListo(id)` (event-driven) con fallback a polling de 200 ms. No tiene timeout explícito. Solo se llama en la ruta normal.
+**`_esperarHijosCargados`** usa `globalThis.__stateManager.crearPromiseHijoListo(id)` (event-driven) con fallback a polling de 200 ms vía `retryUntilAvailable()` (`js/utils.js`, ver §11 "Patrón `retryUntilAvailable()`") — acotado a 150 intentos (30 s); si se agota, la promesa correspondiente rechaza y queda registrada como error en el `Promise.all`, en vez de colgarse para siempre. Solo se llama en la ruta normal.
 
 **Guard `_aventuraEnProceso`**: variable de módulo booleana compartida entre `_hdl_SELECCION_AVENTURA_SELECCIONADA` y `_hdl_SELECCION_AVENTURA_ACTIVADA`. Si llega cualquiera de los dos mientras el otro está en curso, el segundo handler aborta inmediatamente. Se resetea en el bloque `finally` de cada uno.
 
@@ -4531,7 +4533,7 @@ Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre mue
 2. Restaura `estado.paradasCompletadas` desde `localStorage['vv_paradas_completadas']`
 3. Llama `globalThis.__cargarDatosAventuraDiferidos()`
 4. `await Promise.all([cargarRestoDeiframes(), cargarHijoCasa()])` — carga hijo1-5 de verdad (asigna `src`, espera `HIJO_LISTO` de cada uno). **Imprescindible**: la reanudación de sesión nunca pasa por P14 (`_hdl_SELECCION_P14_MOSTRADA` es el único otro sitio que carga estos iframes — contienen lógica de pago y no se sirven antes), así que sin este paso ningún iframe tendría `src` asignado al llegar al paso siguiente. Ambas funciones son idempotentes (comprueban el `src` actual antes de reasignarlo), así que no duplican trabajo si algún iframe ya estuviera cargado por otra vía.
-5. `_esperarHijosCriticosRest` — espera que hijo2, hijo3 y hijo4 estén en `estado.hijosInicializados` (polling cada 200 ms sin timeout). Con el paso 4 ya hecho, esto resuelve en cuanto los `HIJO_LISTO` reales llegan — antes de tener el paso 4, esta espera no tenía nada real que esperar y se quedaba colgada para siempre.
+5. `_esperarHijosCriticosRest` — espera que hijo2, hijo3 y hijo4 estén en `estado.hijosInicializados` (polling cada 200 ms vía `retryUntilAvailable()`, acotado a 150 intentos/30 s, ver §11 "Patrón `retryUntilAvailable()`"). Con el paso 4 ya hecho, esto resuelve en cuanto los `HIJO_LISTO` reales llegan — antes de tener el paso 4, esta espera no tenía nada real que esperar y, antes de acotarla, se quedaba colgada para siempre.
 6. `_distribuirDatosRest` — redistribuye coordenadas/audios/retos/textos vía `distribuirDatosAventura()`
 7. `_enviarRespuestaParadasHijosRest` — envía `NAVEGACION.RESPUESTA_DATOS_PARADAS` a hijo2 (array normalizado de `elementosIDpadre`) y a hijo5 (array mapeado desde coordenadas)
 8. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`.
@@ -4708,7 +4710,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-9e427979ce9e'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-ece6469d4358'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6123,6 +6125,20 @@ El proyecto tiene dos motores de mapa independientes, cada uno resuelto con la h
 
 No hay ninguna pausa fija (`sleep`) en este punto de la cadena: la única espera es la condición real (`isStyleLoaded()`/`'load'`), consistente con el resto del arranque, que ya usa temporizadores solo como polling sobre una condición comprobada — nunca como sustituto de ella (`checkMapLibre` cada 100ms sobre `maplibregl`, `tryInit` cada 200ms sobre `inicializarServicioMapa()`, ver el propio `initializeMapService()` dentro de `initializeMap()`).
 
+#### Patrón `retryUntilAvailable()` — polling acotado, no `setTimeout` recursivo a mano
+
+`js/utils.js` (`retryUntilAvailable(checkFn, {maxIntentos, intervalo, mensaje})`, línea 340) es el helper único para "reintentar hasta que una condición sea verdadera": resuelve `true` en cuanto `checkFn()` devuelve verdadero, o `false` tras agotar `maxIntentos` (con un `logger.warn` automático usando `mensaje`). Hasta la auditoría 2026-08-15, 5 sitios de `codigo-padre.html` reinventaban el mismo polling a mano con `check()`/`setTimeout(check, ms)` autoreprogramado **sin ningún límite** — si la condición esperada nunca se cumplía (módulo que falla al cargar, hijo que nunca confirma `HIJO_LISTO`), el bucle quedaba corriendo para siempre, sin log de error ni feedback al usuario. Los 5 se reescribieron sobre `retryUntilAvailable()`:
+
+| Función | Condición esperada | Límite nuevo | Efecto si se agota |
+|---|---|---|---|
+| `initializeMapService()` / `tryInit` (dentro de `initializeMap()`) | `funcionesMapa.inicializarServicioMapa(map)` devuelve `true` | 150×200ms = 30s | `initializeMap()` rechaza con error explícito |
+| `waitForMapLibreAndInitialize()` / `checkMapLibre` | `globalThis.maplibregl` cargado (CDN local, `js/vendor/`) | 150×100ms = 15s | `logger.error` y continúa sin mapa (mismo comportamiento de "resolver igual para no bloquear el arranque" que ya tenía) |
+| `_esperarHijosCriticosRest` (fallback sin `__stateManager`) | hijo en `estado.hijosInicializados` | 150×200ms = 30s por hijo | la promesa de ese hijo rechaza; ya capturado por el `try/catch` que envuelve el `Promise.all` (§9.10) |
+| `_esperarHijosCargados` (fallback sin `__stateManager`) | ídem | ídem | ídem (§9.5) |
+| `esperarMapaListo()` (post-arranque, antes de `invalidarTamañoMapa()`/`diagnosticarMapa()`) | `funcionesMapa.isMapInitialized()` | 100×100ms = 10s | se omiten `invalidarTamañoMapa()`/`diagnosticarMapa()` para esa carga, con warning en consola |
+
+El único caso que ya seguía este mismo patrón acotado antes de la auditoría era `_gpsEsperarHijosListos()` (§11, activación de GPS), que envolvía su propio polling en `Promise.race([...,timeout 5000ms])` — ahora los 6 casos usan el mismo helper compartido en vez de 2 implementaciones distintas del mismo concepto.
+
 ### Cuándo se activa el GPS por primera vez
 
 `activarGPS()` se llama por primera vez desde **`_hdl_SELECCION_P14_MOSTRADA`** — cuando el usuario acepta la normativa en **P14**, tanto en producción como en modo DEV (ver §24). `_hdl_SELECCION_CODIGO_VALIDADO` (P13) no llama a `activarGPS()`; su cuerpo completo es un log con el comentario literal `// GPS, iframes y datos se activan en P14_MOSTRADA`. El orden dentro de P14_MOSTRADA es: primero `Promise.all([iframes + datos])` (espera hasta `HIJO_LISTO` de todos los hijos) y solo después `await activarGPS()`. Esto garantiza que cuando llegan las primeras posiciones GPS todos los hijos ya tienen sus handlers registrados.
@@ -6224,7 +6240,7 @@ La infraestructura de cola fue preparada pero nunca conectada al emisor real.
 
 ### Sistema "fuera de rango real" — flujo completo y estados de botones
 
-Se activa cuando la distancia relevante (ver "Dos métricas de distancia" más abajo) supera `rangoMaximo` respecto a **la parada que le toca al usuario** (la siguiente según `estado.indiceProgreso`) — el mismo umbral real que exige `btn-avanzar`: 15m fijo en paradas, `toleranciaGPS` dinámico en tramos. A partir de ahí, la distancia real se reparte en tres franjas que deciden qué pantalla de aviso muestra el padre (§31.4).
+Se activa cuando la distancia relevante (ver "Dos métricas de distancia" más abajo) supera `rangoMaximo` respecto a **la parada que le toca al usuario** (la siguiente según `estado.indiceProgreso`) — el mismo umbral real que exige `btn-avanzar`: 15m fijo en paradas, `toleranciaGPS` dinámico en tramos. A partir de ahí, la distancia real se reparte en 4 franjas que deciden qué pantalla de aviso muestra el padre (§31.4).
 
 **Dos métricas de distancia, dos propósitos distintos.** `procesarPosicionGPSParaAventura()` calcula y envía ambas en cada posición GPS:
 
@@ -6478,7 +6494,7 @@ Propiedades del botón:
 | Tamaño botones desplegables | `clamp(37px, 10.6vmin, 54px)`, `box-sizing: border-box` |
 | Borde | `clamp(3.5px, 0.75vmin, 5px) solid #FF8C00` en las 3 opciones del desplegable; el botón **principal** va sin borde CSS — su imagen fija ya trae un anillo azul integrado, uno encima duplicaría el efecto |
 | Fondo | `#00BB77` (§4.9 "Colores de estado") en los 4 — en el principal queda cubierto casi por completo por la imagen fija |
-| `z-index` | `1000030` — por encima de hijo5 (1000000) y de los overlays de imagen/vídeo/chat (1000010-1000020), pero por debajo de las tarjetas de distancia fuera de rango (`foto-fuera-rango-overlay` 1000038, `foto-lejos-overlay` 1000039, `gps-out-of-range-overlay` 1000040) y del aviso de señal GPS (`gps-signal-overlay` 1000041) — así nunca las tapa mientras están activas |
+| `z-index` | `1000030` — por encima de hijo5 (1000000) y de los overlays de imagen/vídeo/chat (1000010-1000020), pero por debajo de las tarjetas de distancia/precisión (`gps-precision-overlay` 1000035, `foto-fuera-rango-overlay` 1000036, `foto-desviado-overlay` 1000037, `foto-lejos-overlay` 1000038, `foto-perdido-overlay` 1000039, `gps-out-of-range-overlay` 1000040) y del aviso de señal GPS (`gps-signal-overlay` 1000041) — así nunca las tapa mientras están activas |
 | Añadido a | `document.body` |
 
 El botón se añade a `document.body` (no al contenedor del mapa) porque el `<div id="mapa">` tiene z-index 500, lo que haría que cualquier `position: absolute` dentro de él quedara por debajo de hijo5 (z-index 1000000). Al usar `position: fixed` sobre `body`, el z-index se resuelve en el contexto raíz del documento.
@@ -6564,7 +6580,7 @@ Distinto — muestra la imagen (`ref.imagen`) y compone el número+nombre en `#m
 | `DISTANCIA_MINIMA` | 5 m | Movimiento mínimo para considerar que el usuario se ha movido |
 | `RADIO_PROXIMIDAD` | 20 m | **No leído por el runtime.** `_detectarLlegadaParada()` en hijo2 usa su propia constante local, `const RADIO_PARADA = 15` — ya no coincide numéricamente con este valor muerto de `config.js` (antes sí, por coincidencia; dejó de ser así al bajar `RADIO_PARADA` de 20 a 10, y de ahí a 15, sin tocar esta constante sin uso). |
 | `RADIO_EXTENDIDO` | 50 m | **No leído por el runtime.** `calcularToleranciaGPS()` en funciones-mapa.js usa `return 50` hardcoded (mismo valor). El overlay GPS (`#gps-out-of-range-overlay`) se activa por distancia real (>2.000m del objetivo o >5km de la ruta), no por precisión. |
-| `PRECISION_MINIMA` | 50 m | **No leído por el runtime.** Ninguna posición se descarta por su precisión — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición». |
+| `PRECISION_MINIMA` | 50 m | **Leída por el runtime desde la ronda 2026-08-16.** `coordenadas-hijo2.html` la compara contra `accuracy` de cada lectura, ANTES de calcular franja o confirmar llegada (§31.4/§25.7) — no descarta la posición, pero sí evita sacar ninguna conclusión de distancia mientras la precisión sea peor que este valor. Ninguna posición se descarta por su precisión al procesar distancia/llegada — ver §25.5, «Precisión GPS: se procesa siempre, la llegada se confirma por repetición» (eso sigue igual, es un mecanismo aparte). |
 | `MUESTRAS_PROMEDIO` | 3 | Número de muestras para promediar la posición GPS |
 
 ### Rendimiento del zoom (`js/funciones-mapa.js`)
@@ -7356,7 +7372,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `01-fase1-boot.spec.js` | 9 | Orden de carga de módulos en FASE 1: mensajería, state-manager, logger, config, constants |
 | `02-global-variables.spec.js` | 13 | Variables globales expuestas tras FASE 1: TIPOS_MENSAJE, MODOS, enviarMensaje, CONFIG_PADRE… |
 | `03-handler-registration.spec.js` | 7 | Handlers registrados en state-manager (no en el fallback local) |
-| `04-iframe-dom.spec.js` | 5 | Datos diferidos nulos antes de selección (`__vv_DATOS/AUDIOS/RETOS_AVENTURAS`); `__cargarDatosAventuraDiferidos` expuesta; iframe sistema-ui con srcdoc |
+| `04-iframe-dom.spec.js` | 4 | Datos diferidos nulos antes de selección (`__vv_DATOS/AUDIOS/RETOS_AVENTURAS`); `__cargarDatosAventuraDiferidos` expuesta |
 | `05-queues-draining.spec.js` | 7 | Colas drenadas tras boot; heartbeat inactivo en modo CASA inicial |
 | `06-race-conditions.spec.js` | 10 | 5 condiciones de carrera: doble registro, inicialización concurrente, stub de mapa, estado idempotente |
 | `07-performance-baseline.spec.js` | 4 | Baseline de tiempo de arranque (< umbrales definidos) y conteo de handlers |
@@ -7532,7 +7548,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-9e427979ce9e'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-ece6469d4358'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8175,7 +8191,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-9e427979ce9e';
+const CACHE_VERSION = 'v-ece6469d4358';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8971,9 +8987,9 @@ Cuando el usuario está **dentro del radio de acción** de la parada o tramo act
 | Umbral | Valor | Origen | Propósito |
 |--------|-------|--------|-----------|
 | `RADIO_PARADA` (hardcoded en hijo2) | **15 m** | `_detectarLlegadaParada()` en hijo2 | Radio de llegada para paradas: hijo2 envía `LLEGADA_DETECTADA` cuando el usuario entra en este radio. Condición necesaria para completar una parada. |
-| `rangoMaximo` parada (hardcoded en hijo2) | **15 m** | `_actualizarGpsEnModoAventura()` / `verificarDistanciaYActualizarBotones()` en hijo2 | Controla el botón GPS y el punto donde arrancan las 3 franjas de aviso por distancia del padre (§31.4). Sale del rango → aviso. Entra → se oculta. |
+| `rangoMaximo` parada (hardcoded en hijo2) | **15 m** | `_actualizarGpsEnModoAventura()` / `verificarDistanciaYActualizarBotones()` en hijo2 | Controla el botón GPS y el punto donde arrancan las 4 franjas de aviso por distancia del padre (§31.4). Sale del rango → aviso. Entra → se oculta. |
 | `rangoMaximo` tramo (hijo2, recibido de padre) | **~50 m** | `toleranciaGPS` de `calcularToleranciaGPS()` en funciones-mapa.js | Mismo comportamiento para tramos; valor dinámico según distancia entre waypoints. |
-| `PRECISION_MINIMA` (config.js) | **50 m** | Solo definición — **no leída por el runtime** | Describe la precisión típica esperable en calle abierta, pero ninguna posición se descarta por su valor — ver el apartado siguiente. |
+| `PRECISION_MINIMA` (config.js) | **50 m** | **Leída por el runtime** (hijo2, ver §31.4/§25.7) | Umbral de accuracy por encima del cual hijo2 no calcula franja ni confirma llegada — no descarta la posición, solo desconfía de la distancia calculada con ella. |
 | `RADIO_EXTENDIDO` (config.js) | **50 m** | Solo definición — **no leído por el runtime** | Coincide numéricamente con umbrales hardcoded pero no controla ninguna lógica de la aplicación. |
 | `RADIO_PROXIMIDAD` (config.js) | **20 m** | Solo definición — **no leído por el runtime** | Ya no coincide con `RADIO_PARADA`/`rangoMaximo` parada (15 m) — coincidía antes de bajarlos de 20 a 10 y subirlos después a 15; esta constante muerta se quedó igual. |
 | `DISTANCIA_MINIMA` (config.js) | **5 m** | Solo definición — **no leída por el runtime** | No hay filtro de movimiento mínimo en el flujo GPS de producción. |
@@ -9068,28 +9084,43 @@ La detección de **llegada** a la siguiente parada ocurre cuando el GPS indica q
 
 ### 25.7. Cuando el usuario se aleja demasiado: fuera del radio
 
-**El umbral:** si `distanciaAlDestino` (la distancia a la parada que le toca al usuario, calculada en tiempo real por `funciones-mapa.js`) supera el rango real de llegada (15m en paradas — `RADIO_PARADA`/`rangoMaximo`, `coordenadas-hijo2.html` —, `toleranciaGPS` en tramos — el mismo umbral que `btn-avanzar`), hijo2 activa el sistema de aviso por distancia. Esto se comprueba en cada posición GPS que llega. El sistema verifica solo la parada o tramo activo — no vale estar cerca de cualquier punto de la ruta.
+**El umbral:** si `distanciaAlDestino`/`distanciaAlCamino` (la distancia a la parada o al camino del tramo que le toca al usuario, calculada en tiempo real por `funciones-mapa.js`) supera el rango real de llegada (15m en paradas — `rangoMaximo`, `coordenadas-hijo2.html` —, `toleranciaGPS` en tramos — el mismo umbral que `btn-avanzar`), hijo2 activa el sistema de aviso por distancia. Esto se comprueba en cada posición GPS que llega. El sistema verifica solo la parada o tramo activo — no vale estar cerca de cualquier punto de la ruta.
 
-A partir de ahí, la distancia se reparte en tres franjas — detalle completo, mensajes y pantallas en §31.4:
+A partir de ahí, la distancia se reparte en **4 franjas** (rediseñado en la ronda 2026-08-16, antes eran 3 sin ningún margen de gracia) — detalle completo, mensajes y pantallas en §31.4:
 
-- **16-50m**: pantalla `foto-fuera-rango.png`, botón Ubicación habilitado al instante.
-- **51m-2.000m**: pantalla `foto_lejos_ubicacion.png`, botón Ubicación habilitado al instante.
-- **Más de 2.000m**: pantalla `fotogpserror.png` (compartida con el bloqueo por >5km, §31.5), botón Ubicación habilitado al instante.
+| Franja | Rango | Pantalla | Gracia antes de restringir |
+|---|---|---|---|
+| Fuera | rango real (15m/toleranciaGPS) – 50m | `foto-rango-fuera.png` | 7 min |
+| Desviado | 50m – 150m | `foto-rango-desviado.png` | 15 min |
+| Lejos | 150m – 2.000m | `foto-rango-lejos.png` | Sin gracia (instantáneo) |
+| Perdido | Más de 2.000m del elemento actual | `foto-rango-perdido.png` | Sin gracia (instantáneo) |
 
-**Botones de hijo2 mientras el aviso está activo** (`_desactivarBotonesRangoExcedido()`, igual en las 3 franjas):
+**Por qué dos franjas tienen gracia y las otras dos no:** un desvío real y corto (recado rápido, rodeo de una calle en obras) puede alejar al usuario 50-150m de su parada/tramo sin que eso signifique que ha abandonado la aventura — penalizar al instante desincentivaría exactamente el tipo de exploración libre que la app quiere permitir. Más allá de 150m ya no es un desvío del recorrido: es mucho más probable que sea un abandono real o un error, así que ahí no tiene sentido dar margen. La gracia es más larga en "desviado" (15 min) que en "fuera" (7 min) porque un rodeo real (ir y volver por una calle paralela) tarda más en completarse que un recado junto a la parada.
+
+**La ayuda (botón Ubicación + los dos mapas) nunca espera la gracia — se habilita al instante, en cualquiera de las 4 franjas.** Pedir el mapa para orientarse no tiene coste ni consecuencia, así que no hay motivo para retrasarlo aunque la restricción de vídeo/avanzar/audio/reto sí espere. Este es un cambio deliberado respecto al diseño anterior a esta ronda, donde ubicación también esperaba antes de habilitarse.
+
+**Botones de hijo2 mientras la gracia está en curso** (fuera de rango real, pero sin que la gracia de la franja haya expirado todavía — `ayudaFueraDeRangoActiva=true`, `fueraDeRangoActivo` sigue `false`):
+
+| Botón hijo2 | Estado |
+|-------------|------------------|
+| `#btn-avanzar` / `#btn-video` / `#btn-imagen` | Sin cambio — siguen las reglas normales de progreso, como si no estuviera fuera de rango |
+| `#btn-ubicacion` (ver dónde estoy) | ✅ habilitado (verde) — al instante |
+| `#btn-mapa-completo` / `#btn-mapa-jpg` | ✅ habilitados (verde) — siempre lo están salvo que todos los controles estén deshabilitados |
+
+**Botones de hijo2 una vez la gracia expira, o al instante en "lejos"/"perdido"** (`_desactivarBotonesRangoExcedido()`, `fueraDeRangoActivo=true`):
 
 | Botón hijo2 | Estado |
 |-------------|------------------|
 | `#btn-avanzar` (→ siguiente parada) | ❌ deshabilitado (rojo) |
 | `#btn-imagen` (foto monumento) | sin cambio — mantiene su último estado |
 | `#btn-video` (vídeo aéreo) | ❌ deshabilitado (rojo) |
-| `#btn-ubicacion` (ver dónde estoy) | ✅ habilitado (verde) |
+| `#btn-ubicacion` (ver dónde estoy) | ✅ habilitado (verde) — ya lo estaba desde el principio de la gracia |
 | `#btn-mapa-completo` (mapa moderno) | ✅ habilitado (verde) |
 | `#btn-mapa-jpg` (mapa vintage) | ✅ habilitado (verde) |
 
 Ubicación y los dos mapas se habilitan juntos, no solo ubicación: los tres ayudan a un usuario perdido a orientarse (ver dónde está, ver el recorrido completo), así que comparten el mismo criterio — a diferencia de vídeo/avanzar, que no tienen sentido sin haber llegado de verdad al monumento.
 
-**El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO`** (`_hdl_NAVEGACION_USUARIO_FUERA_RANGO`) y, además de actualizar `estado.usuarioFueraRango`, propaga la restricción a los dos sitios que no dependen de hijo2 (no toca la polyline guía automática de `procesarPosicionGPSParaAventura()`, con su propio umbral de 50m — ver §4.6):
+**El padre recibe `NAVEGACION.USUARIO_FUERA_RANGO`** (`_hdl_NAVEGACION_USUARIO_FUERA_RANGO`) — solo cuando la gracia ya expiró (o al instante en "lejos"/"perdido") — y, además de actualizar `estado.usuarioFueraRango`, propaga la restricción a los dos sitios que no dependen de hijo2 (no toca la polyline guía automática de `procesarPosicionGPSParaAventura()`, con su propio umbral de 50m — ver §4.6):
 
 - **Audio (propio padre)**: `actualizarEstadoControlesAudioPadre()` deshabilita `#audio-main-toggle-btn` (y con él, indirectamente, cierra y bloquea el desplegable de acción) mientras `estado.usuarioFueraRango.activo` sea `true` en modo AVENTURA — no tiene sentido escuchar el audio de un monumento al que no se ha llegado (ver §4.7d/apartado de audio para el detalle de por qué solo el botón principal lleva `disabled`).
 - **Retos (hijo3)**: se envía `CONTROL.DESHABILITAR { control:'retosBtn', razon:'fuera_de_rango' }`.
@@ -9100,13 +9131,15 @@ Al volver dentro de rango (`NAVEGACION.GPS.DENTRO_DE_RANGO`), `_hdl_NAVEGACION_G
 
 **El razonamiento:** si el usuario se ha perdido, lo único útil es ayudarle a volver. El botón Ubicación pide una posición nueva y, solo entonces, traza una polyline en el mapa desde la posición actual del usuario hasta la parada que le toca — nunca se dibuja sola, siempre requiere ese pulsación explícita (así el GPS tiene tiempo de asentarse antes de trazar la línea).
 
-**¿Cómo se recupera?** Cuando `distanciaAlDestino` vuelve a estar dentro del rango real:
+**¿Cómo se recupera?** Cuando `distanciaAlDestino`/`distanciaAlCamino` vuelve a estar dentro del rango real:
 
 1. hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta cualquier pantalla de aviso en el padre.
-2. `fueraDeRangoActivo` se resetea a `false`.
+2. `ayudaFueraDeRangoActiva` y `fueraDeRangoActivo` se resetean a `false`.
 3. Todos los botones de hijo2 se restauran a su estado normal (según lógica de `actualizarEstadoBotones()`).
 4. El timer `timestampSalioDeRango` se borra.
 5. La experiencia continúa exactamente donde la dejó.
+
+**Precisión GPS insuficiente — aviso independiente de las 4 franjas.** Si la lectura GPS trae un círculo de error (`accuracy`) mayor que `CONFIG.GPS.PRECISION_MINIMA` (50m — revivida en esta ronda, antes era una constante sin usar), hijo2 no calcula ninguna franja ni detecta llegada con esa lectura: con un margen de error igual o mayor que el propio umbral de llegada, la distancia calculada no es fiable en ningún sentido — podría ser en realidad cualquier punto dentro de ese círculo. Se comprueba antes incluso de la detección de llegada, no solo antes del cálculo de franja, para que una lectura de mala precisión no pueda disparar una llegada falsa. Mensajes: `NAVEGACION.GPS.PRECISION_INSUFICIENTE` (hijo2→padre, muestra `gps-precision-overlay`/`imagen-no-gps.png`, mismo icono que `showGpsSignalOverlay` para permiso denegado/sin señal, pero un overlay propio) y `NAVEGACION.GPS.PRECISION_RECUPERADA` (al volver a tener buena precisión, oculta el aviso). No toca `estado.usuarioFueraRango` ni el audio/retosBtn — es ortogonal a las 4 franjas, no una franja más.
 
 ---
 
@@ -9499,7 +9532,7 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 │    │  │ Audio  ❌ Retos ❌     │           │                 │
 │    │  │ Mapas  ✅              │           │                 │
 │    │  │ GPS    ❌ Ubic. ✅     │           │                 │
-│    │  │ + pantalla de aviso: al instante (las 3 franjas)  │  │
+│    │  │ + pantalla de aviso: 4 franjas, gracia 0-15min │      │
 │    │  └───────────────────────┘           │                 │
 │    │                                      │                 │
 │    │  Llegada a tramo: toleranciaGPS dinámica (≥50m)     │  │
@@ -9547,12 +9580,13 @@ El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, ma
 | Franjas de aviso por distancia (padre) | 16-50m / 51-2.000m / >2.000m | `_hdl_NAVEGACION_GPS_RESTRINGIDO` en `codigo-padre.html` — ver §31.4 |
 | Tolerancia de llegada a tramo | dinámica, mín. 50 m (distancia máx. entre waypoints + 20 m buffer, con suelo) | `calcularToleranciaGPS()` en `funciones-mapa.js` — dispara `LLEGADA_DETECTADA` al final del tramo |
 | Confirmación de llegada por ventana deslizante | 2 de las últimas 4 lecturas dentro de radio | `estadoMapa._llegadaVentana` en funciones-mapa.js / `estadoComponente._llegadaVentana` en hijo2 — sustituye a un filtro de precisión (ver §25.5) |
-| `PRECISION_MINIMA` / `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas) |
+| `RADIO_EXTENDIDO` / `RADIO_PROXIMIDAD` / `DISTANCIA_MINIMA` | — | `config.js` — **no leídas por el runtime** (constantes muertas). `PRECISION_MINIMA` ya no está en este grupo — se lee desde la ronda 2026-08-16, ver fila de arriba. |
 | Frecuencia actualización GPS | 7 s | `INTERVALO_ACTUALIZACION` en `config.js` |
 | Frecuencia heartbeat | 5 s | `INTERVALO_HEARTBEAT` en `config.js` |
 | Timeout GPS | 30 s | `TIMEOUT` en `config.js` |
 | Timeout watchPosition | 35 s | `watchPosition` en `codigo-padre.html` |
-| Habilitación de ubicación en las 3 franjas (16-50m / 51-2.000m / >2.000m) | Inmediata, sin cuenta atrás | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
+| Habilitación de ubicación en las 4 franjas (rango real-50m / 50-150m / 150-2.000m / >2.000m) | Inmediata en las 4, sin esperar la gracia | `verificarDistanciaYActualizarBotones` en `coordenadas-hijo2.html` |
+| Gracia antes de restringir vídeo/avanzar/audio/reto (franjas "fuera"/"desviado") | 7 min / 15 min — 0 en "lejos"/"perdido" | `_GRACIA_FUERA_DE_RANGO_MS` en `coordenadas-hijo2.html` |
 | Heartbeats fallidos antes de reconexión | 3 | `MAX_HEARTBEATS_FALLIDOS` en `config.js` |
 | Auto-continuación diálogo reanudación | 30 s | `mostrarDialogoReanudacion` en `codigo-padre.html` |
 
@@ -10244,7 +10278,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `SISTEMA.HIJO_FALLIDO` | Cualquier hijo que no pudo inicializar | Registra en log el error con código y origen; el padre puede intentar recargar el iframe | (ninguna) | — | Gestión de errores de carga de iframes |
 | `SISTEMA.APLICACION_INICIALIZADA` | Padre (auto-mensaje tras `_hijoListo_onTodosListos`) | `_hdl_APLICACION_INICIALIZADA`: registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados. No activa ninguna aventura (ver §10.14) | (ninguna) | — | Punto de bookkeeping: se dispara una sola vez cuando todos los hijos están listos |
 | `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | Hijo 3 y Hijo 4 (tras procesar `CAMBIO_PARADA`) | `_hdl_NAVEGACION_CAMBIO_PARADA_CONFIRMADO`: registra la confirmación por hijo; cuando ambos confirman, el padre puede habilitar el botón de avance | (ninguna) | — | Garantizar que audio y retos están listos antes de que el usuario pueda avanzar |
-| `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2 (usuario salió del radio de la parada) | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: inicia el contador de gracia (`outOfRangeGrace`); si expira sin volver → penalización | (ninguna directa) | — | Gestionar el caso de que el usuario se aleje del recorrido |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo 2, tras la gracia de su franja (§31.4/§25.7) | `_hdl_NAVEGACION_USUARIO_FUERA_RANGO`: marca `estado.usuarioFueraRango`, deshabilita audio del padre y `retosBtn` de hijo3 | (ninguna directa) | — | Gestionar el caso de que el usuario se aleje del recorrido. **No** inicia ningún contador de gracia — el `outOfRangeGrace`/`_procesarDistanciaPending()` que cancela un `pendingCompleciones` completo es un mecanismo aparte (§9.2.3) que hoy solo se evalúa una vez, al arrancar (`updatePendingDistances()` solo se llama desde `_hijoListo_onTodosListos`, nunca en cada posición GPS) — en la práctica no llega a actuar nunca, porque a esa hora todavía no existe ningún `pendingCompleciones` que cancelar. |
 | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo 2 (botón de ubicación) | `_hdl_NAVEGACION_MOSTRAR_UBICACION_POLYLINE`: dibuja una línea en el mapa de aventura desde la posición actual del usuario hasta la parada objetivo | (ninguna) | — | Feedback visual de dirección al usuario |
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo 2 (botón de mapa completo) | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO`: abre `mapa-completo.html` en overlay de pantalla completa | (ninguna) | — | Vista interactiva del mapa Leaflet con todas las paradas |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo 2 (botón de mapa vintage) | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE`: muestra imagen JPG del mapa vintage en overlay | (ninguna) | — | Vista alternativa del mapa con estética histórica |
@@ -11038,7 +11072,7 @@ Esta sección documenta los cambios implementados para las restricciones GPS y e
 
 | Parámetro | Valor | Archivo | Línea |
 |-----------|-------|---------|-------|
-| `PRECISION_MINIMA` | 50 m — **no leída por el runtime** (§25.5) | `js/config.js` | 99 |
+| `PRECISION_MINIMA` | 50 m — **leída por el runtime** desde la ronda 2026-08-16 (§31.4/§25.7); no confundir con el mecanismo de §25.5, que sigue sin descartar posiciones por precisión | `js/config.js` | 99 |
 | `INTERVALO_ACTUALIZACION` | 7.000 ms | `js/config.js` | 87 |
 | `TIMEOUT` | 30.000 ms | `js/config.js` | 81 |
 | `watchPosition timeout` | 35.000 ms | `codigo-padre.html` | ~5659 |
@@ -11181,7 +11215,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-9e427979ce9e';
+const CACHE_VERSION = 'v-ece6469d4358';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11339,43 +11373,53 @@ No hay countdown ni reintento automático por tiempo — es una decisión del us
 
 ### 31.4 Usuario fuera del rango real de su parada o tramo actual
 
-**Qué ocurre:** el usuario se aleja de la parada o tramo activo más allá de su rango de llegada real — el mismo umbral que exige `btn-avanzar` (15m fijo en paradas, `toleranciaGPS` dinámico en tramos). A partir de ahí la app escala el aviso en tres franjas según cuánta distancia queda por recorrer.
+**Qué ocurre:** el usuario se aleja de la parada o tramo activo más allá de su rango de llegada real — el mismo umbral que exige `btn-avanzar` (15m fijo en paradas, `toleranciaGPS` dinámico en tramos). A partir de ahí la app escala el aviso en **4 franjas** según cuánta distancia queda por recorrer (rediseñado en la ronda 2026-08-16 — antes eran 3 franjas sin ningún margen de gracia, ver historial más abajo).
 
-**Las tres franjas — pantallas a pantalla completa en el padre, mutuamente excluyentes:**
+**Las 4 franjas — pantallas a pantalla completa en el padre, mutuamente excluyentes:**
 
-| Franja | Distancia | Pantalla | Ubicación + mapas (hijo2) | Vídeo/avanzar |
-|---|---|---|---|---|
-| Fuera de rango | rango real + 1m hasta 50m | `foto-fuera-rango.png` + distancia | Se habilitan al instante | Se deshabilitan al instante |
-| Lejos | 51m – 2.000m | `foto_lejos_ubicacion.png` + distancia | Se habilitan al instante | Se deshabilitan al instante |
-| Muy lejos | > 2.000m | `fotogpserror.png` + distancia (ver §31.5/§31.6) | Se habilitan al instante | Se deshabilitan al instante |
+| Franja | Distancia | Pantalla | Gracia | Ubicación + mapas (hijo2) | Vídeo/avanzar/audio/reto |
+|---|---|---|---|---|---|
+| Fuera | rango real + 1m hasta 50m | `foto-rango-fuera.png` + distancia | 7 min | Se habilitan al instante | Esperan la gracia |
+| Desviado | 50m – 150m | `foto-rango-desviado.png` + distancia | 15 min | Se habilitan al instante | Esperan la gracia |
+| Lejos | 150m – 2.000m | `foto-rango-lejos.png` + distancia | Sin gracia | Se habilitan al instante | Se deshabilitan al instante |
+| Perdido | > 2.000m del elemento actual | `foto-rango-perdido.png` + distancia | Sin gracia | Se habilitan al instante | Se deshabilitan al instante |
 
-Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a un usuario perdido a orientarse, así que se habilitan a la vez (ver la tabla de botones de hijo2 en "Sistema fuera de rango real" más arriba, y `_desactivarBotonesRangoExcedido()`).
+`foto-rango-perdido.png` **no** es la misma imagen que `fotogpserror.png` — antes de esta ronda sí lo era (mismo overlay `#gps-out-of-range-overlay`, compartido con el bloqueo anti-piratería de §31.5), pero un solo icono no puede llevar impresa una cifra fija (2KM o 5KM) que sea correcta para dos umbrales reales distintos a la vez. Ahora "perdido" (>2.000m del elemento actual) tiene su propio overlay (`#foto-perdido-overlay`) e imagen; `fotogpserror.png`/`#gps-out-of-range-overlay` quedan exclusivos del bloqueo anti-piratería de §31.5 (>5km de TODA la ruta, no del elemento actual).
 
-**Quién decide qué:** hijo2 calcula la distancia real en cada posición (`verificarDistanciaYActualizarBotones()`) y decide, de forma independiente y local, el estado de sus propios botones — no espera respuesta del padre para eso. En tramos, la distancia usada aquí es `distanciaAlCamino` (proyección sobre la ruta real), no la línea recta al punto de llegada — ver "Dos métricas de distancia" en la sección anterior; en paradas ambas coinciden siempre. Por separado, envía esa distancia al padre vía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }`; el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) reparte esa distancia entre las 3 pantallas según los umbrales fijos de 50 y 2.000 metros. Cuando el usuario vuelve dentro del rango real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta las 3 pantallas a la vez (`_ocultarTodasPantallasDistanciaGPS()`).
+Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a un usuario perdido a orientarse, así que se habilitan a la vez y **al instante en las 4 franjas, sin esperar ninguna gracia** (ver la tabla de botones de hijo2 en §25.7, y `_habilitarAyudaFueraDeRango()`/`_desactivarBotonesRangoExcedido()`).
+
+**La gracia (7 min "fuera", 15 min "desviado"):** un desvío real y corto — recado rápido junto a la parada, rodeo de una calle en obras — no debería sentirse penalizado al instante. Mientras la gracia de la franja no haya expirado, vídeo/avanzar/audio/reto siguen con su comportamiento normal, como si el usuario no estuviera fuera de rango — solo el botón de ubicación se adelanta y se habilita ya. "Lejos"/"perdido" no tienen gracia: a esa distancia ya no es un desvío del recorrido, es mucho más probable un abandono real o un error, y ahí conviene que la app reaccione al instante. El timer de gracia (`estadoComponente.timestampSalioDeRango`, hijo2) se comparte entre las dos franjas con gracia — si el usuario pasa de "fuera" a "desviado" sin volver dentro de rango entre medias, el tiempo ya transcurrido cuenta para la gracia de "desviado", no se reinicia.
+
+**Quién decide qué:** hijo2 calcula la distancia real en cada posición (`verificarDistanciaYActualizarBotones()`) y decide, de forma independiente y local, el estado de sus propios botones — no espera respuesta del padre para eso. En tramos, la distancia usada aquí es `distanciaAlCamino` (proyección sobre la ruta real), no la línea recta al punto de llegada — ver "Dos métricas de distancia" en la sección anterior; en paradas ambas coinciden siempre. Por separado, envía esa distancia al padre vía `NAVEGACION.GPS.RESTRINGIDO { idParada, distancia, rangoMaximo, timestampSalioDeRango }`; el padre (`_hdl_NAVEGACION_GPS_RESTRINGIDO`) reparte esa distancia entre las 4 pantallas según los umbrales fijos de 50, 150 y 2.000 metros — **estos cortes están duplicados a propósito** en hijo2 y en el padre (el padre no confía ciegamente en la franja que le manda hijo2, recalcula la suya propia a partir de la distancia cruda), así que cualquier cambio de umbral debe aplicarse en los dos sitios a la vez. Cuando el usuario vuelve dentro del rango real, hijo2 envía `NAVEGACION.GPS.DENTRO_DE_RANGO`, que oculta las 4 pantallas (y el aviso de precisión, ver más abajo) a la vez (`_ocultarTodasPantallasDistanciaGPS()`).
 
 **El botón de ubicación siempre cambia de estado a través de `desactivarBoton()`/`activarBoton()`** (helpers compartidos de hijo2, no solo para este botón): además de `disabled`/`aria-disabled`/`title`, alternan la clase CSS `.disabled`, que es la única que controla el color visual (`background` en degradado, ver §4.8). Ningún punto del código toca `style.backgroundColor`/`style.opacity` a mano en este botón — un estilo inline puesto por otra vía no le ganaría necesariamente a la clase (`background-color` inline vs. el `background-image` del degradado de la clase son sub-propiedades distintas que se pintan en capas separadas, la imagen encima del color) y dejaría el botón visualmente verde y activo aunque `disabled` ya fuera `true`.
 
-**Por qué las tres franjas habilitan al instante:** es el usuario quien decide cuándo necesita ayuda pulsando el botón, no un umbral de tiempo calculado por la app — ver §4.7d para el mismo principio aplicado al trazado persistente del mapa. `timestampSalioDeRango` (registrado por hijo2 en el instante en que detecta la salida del rango real, incluido en cada `GPS.RESTRINGIDO`) queda como dato informativo de cuándo empezó la salida de rango, sin gatear nada.
+**Por qué las 4 franjas habilitan ubicación al instante, sin excepción:** es el usuario quien decide cuándo necesita ayuda pulsando el botón, no un umbral de tiempo calculado por la app — ver §4.7d para el mismo principio aplicado al trazado persistente del mapa. `timestampSalioDeRango` (registrado por hijo2 en el instante en que detecta la salida del rango real, incluido en cada `GPS.RESTRINGIDO`) se usa tanto de dato informativo como para calcular cuánto tiempo lleva fuera (y por tanto si la gracia de vídeo/avanzar ya expiró) — pero nunca retrasa la ayuda en sí.
 
 **La polyline nunca se dibuja sola:** habilitar el botón de ubicación no dibuja nada por sí solo — la polyline hacia el objetivo se traza únicamente si el usuario la pulsa explícitamente.
 
-**Reintento (🛰️🔄, presente en las 3 pantallas):** pide una posición nueva y la introduce en el pipeline normal (`procesarPosicionGPSParaAventura`) — no decide él mismo a qué pantalla saltar: hijo2 recalcula la distancia con la posición fresca (sea cual sea su precisión, §25.5) y reenvía `GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO`, lo que hace que la pantalla correcta aparezca sola. Si el intento de geolocalización falla del todo (código 1 permiso, 2 sin señal, 3 timeout), cede el turno a `showGpsSignalOverlay()` — la misma pantalla y lógica que ya cubre esos tres códigos (§31.2/§31.3), sin duplicarla.
+**Reintento (🛰️🔄, presente en las 4 pantallas):** pide una posición nueva y la introduce en el pipeline normal (`procesarPosicionGPSParaAventura`) — no decide él mismo a qué pantalla saltar: hijo2 recalcula la distancia con la posición fresca (sea cual sea su precisión, salvo que supere `CONFIG.GPS.PRECISION_MINIMA`, ver más abajo) y reenvía `GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO`, lo que hace que la pantalla correcta aparezca sola. Si el intento de geolocalización falla del todo (código 1 permiso, 2 sin señal, 3 timeout), cede el turno a `showGpsSignalOverlay()` — la misma pantalla y lógica que ya cubre esos tres códigos (§31.2/§31.3), sin duplicarla.
 
-**Asimetría intencional del botón de reintento en `fotogpserror.png`:** en esa pantalla concreta (ver §31.6), el mismo click que pide la posición nueva abre además un panel secundario "Próxima parada" (`showNextEntityOverlay()`, nombre/tipo/coordenadas del siguiente elemento de la ruta, con botón 📋 para copiar coordenadas y botón 📍 para centrar el mapa ahí) — funcionalidad propia de ese overlay desde el origen del proyecto, pensada como ayuda de navegación manual mientras el GPS reintenta. Las pantallas `foto_lejos_ubicacion.png` y `foto-fuera-rango.png` no abren este panel — su reintento (`_gpsReintentarDesdeOverlayDistancia()`) solo pide la posición nueva.
+**El panel "Próxima parada" es exclusivo del bloqueo anti-piratería (§31.6), no de ninguna de las 4 franjas** — ni siquiera de "perdido", que antes de esta ronda compartía overlay con el anti-piratería y por tanto sí lo mostraba. Las 4 franjas actuales solo piden la posición nueva al reintentar (`_gpsReintentarDesdeOverlayDistancia()`).
 
-**Botón de cierre ✖ y reaparición periódica ("snooze"):** las 3 pantallas usan el mismo botón naranja/verde arriba a la derecha que el resto de overlays del padre — cerrarlo solo descarta el aviso en pantalla, no cambia ningún estado ni desbloquea nada. Como hijo2 reenvía `GPS.RESTRINGIDO` en cada posición fuera de rango (continuo mientras dure el GPS activo), cerrar la pantalla no la silencia para siempre: cada una tiene su propio tiempo de espera antes de poder reaparecer (`globalThis.__VV_GPS_OVERLAY_SNOOZE`, comprobado por `_overlayDistanciaEnSnooze()` al principio de cada `show*Overlay()`), más largo cuanta menos urgencia hay:
+**Botón de cierre ✖ y reaparición periódica ("snooze"):** las 4 pantallas usan el mismo botón naranja/verde arriba a la derecha que el resto de overlays del padre — cerrarlo solo descarta el aviso en pantalla, no cambia ningún estado ni desbloquea nada. Como hijo2 reenvía `GPS.RESTRINGIDO` en cada posición fuera de rango (continuo mientras dure el GPS activo), cerrar la pantalla no la silencia para siempre: cada una tiene su propio tiempo de espera antes de poder reaparecer (`globalThis.__VV_GPS_OVERLAY_SNOOZE`, comprobado por `_overlayDistanciaEnSnooze()` al principio de cada `show*Overlay()`), más largo cuanta menos urgencia hay:
 
 | Pantalla | Tiempo de espera tras cerrar |
 |---|---|
-| `foto-fuera-rango.png` (16-50m) | 60s |
-| `foto_lejos_ubicacion.png` (51-2.000m) | 120s |
-| `fotogpserror.png` (>2.000m) | 150s |
+| `foto-rango-fuera.png` (rango real-50m) | 60s |
+| `foto-rango-desviado.png` (50-150m) | 90s |
+| `foto-rango-lejos.png` (150-2.000m) | 120s |
+| `foto-rango-perdido.png` (>2.000m) | 150s |
+| `imagen-no-gps.png` (precisión insuficiente) | 90s |
+| `fotogpserror.png` (anti-piratería, >5km de toda la ruta) | 150s |
 
 Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de que la app sigue activa) y nueva ocasión de pulsar reintentar — el ciclo se repite mientras el usuario siga fuera de rango. Volver dentro de rango (`GPS.DENTRO_DE_RANGO`) limpia todos los tiempos de espera pendientes (`_limpiarSnoozeOverlaysDistancia()`), para que la próxima salida de rango empiece de cero.
 
-**Banda inferior del botón de reintento:** en las 3 pantallas, la imagen ocupa el espacio flexible superior de `.gps-inner` (`object-fit:contain`, ya no `position:absolute` cubriendo todo el recuadro) y el botón 🛰️🔄 vive dentro de `.gps-banda-inferior`, una franja de fondo oscuro con altura propia (mín. 5.5rem) debajo de la imagen — así el botón nunca tapa parte de la foto. La píldora de distancia (arriba) y el botón de cierre (esquina superior derecha) siguen posicionados en absoluto sobre la imagen, sin cambios.
+**Banda inferior del botón de reintento:** en todas las pantallas de esta familia, la imagen ocupa el espacio flexible superior de `.gps-inner` (`object-fit:contain`, ya no `position:absolute` cubriendo todo el recuadro) y el botón 🛰️🔄 vive dentro de `.gps-banda-inferior`, una franja de fondo oscuro con altura propia (mín. 5.5rem) debajo de la imagen — así el botón nunca tapa parte de la foto. La píldora de distancia (arriba) y el botón de cierre (esquina superior derecha) siguen posicionados en absoluto sobre la imagen, sin cambios — salvo `gps-precision-overlay` (aviso de precisión), que no tiene píldora de distancia porque no mide una distancia.
 
-**Al pulsar el botón de ubicación:** hijo2 construye `elementoId = estadoComponente.idParadaActual || _idParadaInicio()` — usa la parada/tramo activo si ya hay uno; si todavía no hay ninguno (aventura recién empezada, antes del primer `CAMBIO_PARADA`), `_idParadaInicio()` busca en `globalThis.__vv_coordenadasAventura` (ya cargado localmente en hijo2) la entrada con `tipo: "inicio"` y devuelve su `id` real — `"Av1-P-0"`, `"Av34km-P-0"`, etc., siempre con el prefijo de la aventura activa. Envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` al padre con `{ ubicacionUsuario, proximoElemento, elementoId, centrar: true, zoom: 16 }`. El padre oculta las 3 pantallas de aviso (por si alguna seguía abierta) y resuelve las coordenadas del destino en orden: `proximoElemento` si ya trae `lat`/`lng` → `_resolverCoordenadasElemento(elementoId, ...)` (busca en `DATOS_PADRE`, y si no encuentra coordenadas ahí pregunta a hijo2 vía `solicitarCoordenadasHijo`) → `_obtenerCoordenadasFallbackP0()` como último recurso. Con origen y destino resueltos, `dibujarPolylineNavegacion()` (`js/funciones-mapa.js`) traza una línea verde punteada (`#3eff3f`, `line-dasharray:[0,2]` con `line-cap:'round'` — en MapLibre estas unidades son múltiplos del grosor de línea, no píxeles; ese valor da puntos redondos en vez de rayas largas) hasta el destino, y queda protegida 90 segundos frente al redibujado automático de la guía azul (§4.6) — el detalle completo de por qué y cómo vive en esa sección, junto al resto de la lógica de `polylineNavegacion`.
+**Precisión GPS insuficiente (`NAVEGACION.GPS.PRECISION_INSUFICIENTE`/`PRECISION_RECUPERADA`):** antes de calcular cualquiera de las 4 franjas (y antes incluso de comprobar llegada), hijo2 compara el `accuracy` de la lectura contra `CONFIG.GPS.PRECISION_MINIMA` (50m, `js/config.js` — constante que existía desde antes de esta ronda pero nunca se leía en tiempo de ejecución). Si `accuracy` supera ese umbral, ninguna conclusión de distancia es fiable — el punto real podría estar en cualquier lugar dentro de ese círculo de error — así que hijo2 no calcula franja ni detecta llegada con esa lectura, y en su lugar notifica al padre para que muestre `#gps-precision-overlay` (`imagen-no-gps.png`, mismo icono que usa `showGpsSignalOverlay()` para permiso denegado/sin señal — pero un overlay y mecanismo propios, no ese mismo, porque esa función tiene lógica de reintento específica por código de error 1/2/3 que no encaja aquí). No toca `estado.usuarioFueraRango` ni el audio del padre ni el `retosBtn` de hijo3 — es ortogonal a las 4 franjas de distancia, puede aparecer en cualquier momento sea cual sea la franja real.
+
+**Al pulsar el botón de ubicación:** hijo2 construye `elementoId = estadoComponente.idParadaActual || _idParadaInicio()` — usa la parada/tramo activo si ya hay uno; si todavía no hay ninguno (aventura recién empezada, antes del primer `CAMBIO_PARADA`), `_idParadaInicio()` busca en `globalThis.__vv_coordenadasAventura` (ya cargado localmente en hijo2) la entrada con `tipo: "inicio"` y devuelve su `id` real — `"Av1-P-0"`, `"Av34km-P-0"`, etc., siempre con el prefijo de la aventura activa. Envía `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` al padre con `{ ubicacionUsuario, proximoElemento, elementoId, centrar: true, zoom: 16 }`. El padre oculta las pantallas de aviso (por si alguna seguía abierta) y resuelve las coordenadas del destino en orden: `proximoElemento` si ya trae `lat`/`lng` → `_resolverCoordenadasElemento(elementoId, ...)` (busca en `DATOS_PADRE`, y si no encuentra coordenadas ahí pregunta a hijo2 vía `solicitarCoordenadasHijo`) → `_obtenerCoordenadasFallbackP0()` como último recurso. Con origen y destino resueltos, `dibujarPolylineNavegacion()` (`js/funciones-mapa.js`) traza una línea verde punteada (`#3eff3f`, `line-dasharray:[0,2]` con `line-cap:'round'` — en MapLibre estas unidades son múltiplos del grosor de línea, no píxeles; ese valor da puntos redondos en vez de rayas largas) hasta el destino, y queda protegida 90 segundos frente al redibujado automático de la guía azul (§4.6) — el detalle completo de por qué y cómo vive en esa sección, junto al resto de la lógica de `polylineNavegacion`.
 
 **Por qué `_resolverCoordenadasElemento()` lee `entrada.coordenadas || entrada.inicio`, no solo `entrada.coordenadas`:** la respuesta de hijo2 a `solicitarCoordenadasHijo` es la entrada cruda de `coordenadas-aventuras.js` — una parada trae `.coordenadas`, pero un tramo nunca tiene ese campo (trae `.inicio`/`.fin`/`.waypoints`). Sin el fallback a `.inicio`, cualquier tramo activo hacía que la función devolviera `null` incondicionalmente y cayera siempre a `_obtenerCoordenadasFallbackP0()` — la polyline verde apuntaba a Torres de Serranos en vez de al punto real de inicio del tramo, sin importar a qué tramo o dónde estuviera el usuario. `.inicio` (no `.fin`) es la elección correcta aquí porque el botón de ubicación ayuda al usuario a **llegar** al tramo, no a completarlo — el punto al que debe caminar para poder empezarlo.
 
@@ -11399,17 +11443,17 @@ Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de q
 
 **Recuperación:** en la siguiente posición válida que sí caiga dentro de los 5km, `__VV_5KM_BLOCKED` vuelve a `false`, se restaura el botón de reintento, se llama `hideGpsOutOfRangeOverlay()` y se envía `CONTROL.HABILITAR` a hijo2 (`razon: 'usuario_en_zona'`), que limpia el flag externo y deja que la lógica normal de proximidad vuelva a decidir el estado del botón.
 
-**Relación con el otro disparador del mismo overlay:** `#gps-out-of-range-overlay` (`fotogpserror.png`) tiene dos motivos independientes para mostrarse, cada uno con su propio texto accesible: más de 2.000m del objetivo actual (§31.4 — vía `GPS.RESTRINGIDO`, distancia real conocida) y más de 5km de toda la ruta (este caso — bloqueo, no solo aviso). Los dos comparten imagen y estructura, pero solo este último deshabilita `btnAvanzar` de forma persistente vía `btnAvanzarDeshabilitadoExternamente`. La precisión de la lectura GPS no interviene en ninguno de los dos — ver §25.5.
+**`#gps-out-of-range-overlay` (`fotogpserror.png`) es exclusivo de este bloqueo desde la ronda 2026-08-16.** Antes compartía overlay e imagen con la franja "perdido"/"muy lejos" de §31.4 (>2.000m del elemento actual) — un único icono con una cifra impresa fija (2KM o 5KM) no podía ser correcto para dos umbrales reales distintos a la vez. Ahora "perdido" tiene su propio overlay e imagen (`#foto-perdido-overlay`/`foto-rango-perdido.png`, §31.4); este overlay solo se muestra desde `_check5kmFromRoute()`. `btnAvanzarDeshabilitadoExternamente` (deshabilitación persistente de `btnAvanzar`) sigue siendo exclusivo de este caso — ninguna de las 4 franjas de §31.4 lo usa. La precisión de la lectura GPS no interviene aquí — ver §25.5; si la precisión es mala, es el aviso independiente de §31.4 (`gps-precision-overlay`) el que se muestra, no este.
 
 **Estado de implementación:** ✅ implementado.
 
 ---
 
-### 31.6 Mecánica compartida de `#gps-out-of-range-overlay` y panel "Próxima parada"
+### 31.6 Mecánica compartida del panel "Próxima parada"
 
-Los dos disparadores del overlay (§31.4, distancia al objetivo >2.000m; §31.5, distancia a toda la ruta >5km) comparten un mismo botón 🛰️🔄 con cuenta atrás de 15 segundos que llama a `getCurrentPosition()` manualmente. La posición recibida se procesa siempre, sea cual sea su precisión (§25.5): el reintento la introduce en el pipeline normal y dado que ya no hay ningún filtro que pueda descartarla, la única razón para que el overlay siga visible tras el reintento es que la distancia recalculada — real, no de precisión — siga estando fuera de rango.
+El botón 🛰️🔄 de `#gps-out-of-range-overlay` (anti-piratería, §31.5) tiene cuenta atrás de 15 segundos y llama a `getCurrentPosition()` manualmente, igual que el resto de pantallas de esta familia (§31.4). La posición recibida se procesa siempre, sea cual sea su precisión (§25.5): el reintento la introduce en el pipeline normal y dado que ya no hay ningún filtro que pueda descartarla, la única razón para que el overlay siga visible tras el reintento es que la distancia recalculada — real, no de precisión — siga estando fuera de rango.
 
-**Panel "Próxima parada":** el mismo click que pide la posición nueva abre además `showNextEntityOverlay()` — nombre, tipo y coordenadas del siguiente elemento de la ruta, con botón 📋 para copiar coordenadas y botón 📍 para centrar el mapa ahí. Es funcionalidad propia de este overlay concreto desde el origen del proyecto, pensada como ayuda de navegación manual mientras el GPS reintenta obtener una posición útil. Las pantallas `foto_lejos_ubicacion.png` y `foto-fuera-rango.png` (§31.4, franjas más cercanas) no abren este panel — su reintento (`_gpsReintentarDesdeOverlayDistancia()`) solo pide la posición nueva, porque a esa distancia el usuario ya tiene su objetivo real a la vista en el mapa principal y no necesita la ayuda adicional.
+**Panel "Próxima parada":** el mismo click que pide la posición nueva abre además `showNextEntityOverlay()` — nombre, tipo y coordenadas del siguiente elemento de la ruta, con botón 📋 para copiar coordenadas y botón 📍 para centrar el mapa ahí. Es funcionalidad propia de `#gps-out-of-range-overlay` desde el origen del proyecto, pensada como ayuda de navegación manual mientras el GPS reintenta obtener una posición útil — tiene sentido aquí porque el usuario está a más de 5km de TODA la ruta, así que puede necesitar reubicarse desde cero. Ninguna de las 4 pantallas de franja de §31.4 (incluida "perdido", desde que tiene overlay propio) abre este panel — su reintento (`_gpsReintentarDesdeOverlayDistancia()`) solo pide la posición nueva, porque a esas distancias el usuario ya tiene su objetivo real a la vista en el mapa principal y no necesita la ayuda adicional.
 
 **Estado de implementación:** ✅ implementado — overlay, botón, countdown y panel funcionan.
 
@@ -11452,11 +11496,13 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 | 31.1 | Sin internet | `imagen-no-internet.png` | `AUDIO.ERROR` + `!navigator.onLine` → `showInternetOverlay()` | ⚠️ parcial — overlay implementado; recuperación auto via evento `online` ✅ |
 | 31.2 | GPS sin señal (codes 2/3) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(code)` | ✅ implementado |
 | 31.3 | GPS sin permiso (code 1) | `imagen-no-gps.png` | `_watchPositionError` → `showGpsSignalOverlay(1)` (botón 🛰️→🌐→⚙️) | ✅ implementado |
-| 31.4a | Fuera de rango: 16-50m | `foto-fuera-rango.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
-| 31.4b | Fuera de rango: 51-2000m | `foto_lejos_ubicacion.png` | ídem | ✅ implementado |
-| 31.4c | Fuera de rango: >2000m del objetivo | `fotogpserror.png` | `GPS.RESTRINGIDO` → padre | ✅ implementado |
-| 31.5 | >5km de la ruta | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
-| 31.6 | Mecánica compartida (reintento + panel "Próxima parada") de 31.4c y 31.5 | `fotogpserror.png` | `_gpsReintentarDesdeOverlayDistancia()` / `showNextEntityOverlay()` | ✅ botón centrado + countdown 15s implementado |
+| 31.4a | Fuera de rango: rango real-50m (gracia 7 min) | `foto-rango-fuera.png` | `verificarDistanciaYActualizarBotones` en hijo2 → `GPS.RESTRINGIDO` → padre | ✅ implementado |
+| 31.4b | Desviado: 50-150m (gracia 15 min) | `foto-rango-desviado.png` | ídem | ✅ implementado |
+| 31.4c | Lejos: 150-2000m (sin gracia) | `foto-rango-lejos.png` | ídem | ✅ implementado |
+| 31.4d | Perdido: >2000m del elemento actual (sin gracia) | `foto-rango-perdido.png` | ídem | ✅ implementado |
+| 31.4e | Precisión GPS insuficiente (accuracy > `CONFIG.GPS.PRECISION_MINIMA`) | `imagen-no-gps.png` | hijo2 → `GPS.PRECISION_INSUFICIENTE`/`PRECISION_RECUPERADA` → padre | ✅ implementado |
+| 31.5 | >5km de toda la ruta (anti-piratería) | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
+| 31.6 | Panel "Próxima parada" (reintento + `showNextEntityOverlay()`) — exclusivo de 31.5 | `fotogpserror.png` | `_gpsReintentarDesdeOverlayDistancia()` / `showNextEntityOverlay()` | ✅ botón centrado + countdown 15s implementado |
 | 31.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` marca `pending.audio = true` + llama `intentarCompletarElemento` | ✅ corregido |
 | 31.7b | TTL pending nunca ejecutado | — | `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` | ✅ corregido |
 | 31.9 | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |
@@ -12010,7 +12056,7 @@ Los botones de la pantalla final (`#end-btns`) **no tienen etiqueta debajo** —
 | 12 | `scene12` | Panel puzzle 2×2 · 2 piezas scattered · drag gauntlet · Knight thumbs-up | [11] |
 | 13 | `sceneRetoMCQ` | Imagen reto 3 s + overlay MCQ · opción 0 errónea → opción 1 correcta | [12] |
 | 14 | `scene13` | Caballero cámara · countdown 5 min (5 s visibles) | [13] |
-| 15 | `scene14` | `foto-fuera-rango.png` 5s → `Knight.walk()` offPt→parada → M.up · botón banda verde | [14] |
+| 15 | `scene14` | `foto-rango-fuera.png` 5s → `Knight.walk()` offPt→parada → M.up · botón banda verde | [14] |
 | 16 | `scene16` | `farOff` · caballero durmiendo 3s · `Knight.hide()` → zoomBtn b6 5s → walk 6 waypoints → thumbsup | [16] |
 | 17 | `sceneListadoParadas` | `bl-listado` zoom-showcase (5 s) + gauntlet tipo `'L'` (botón en columna izquierda) → tap → overlay mock (fondo `#fff8e7`, borde `#F28500`, 2 círculos verdes llenos + 2 vacíos) | [20] |
 | 18 | `scene17` | bl-timer zoom-showcase + overlay timer → caballero llorando · Knight completo | [17] |
@@ -12410,7 +12456,9 @@ Para cada `sleep`/`setTimeout` que preceda a código que depende de que algo ext
 3. Si no existe ninguna señal real disponible: documentar explícitamente por qué el timer fijo es la única opción y qué margen de seguridad se eligió y por qué (no dejarlo como una suposición implícita sin comentario).
 4. Verifica que la sustitución no rompe otras partes del código que asumían el retraso fijo por otro motivo (p.ej. dar tiempo a un log a completarse) — separar el motivo real del efecto colateral aprovechado antes de eliminar el timer.
 
-**Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `_esperarHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea. Una variante más sutil de este patrón es una condición real que comprueba lo incorrecto: `initializeMap()` (`codigo-padre.html`) no resuelve su promesa hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está) — no basta con que el módulo JS tenga la referencia al mapa, hace falta que el **estilo** (tiles/sprite/glyphs, todo vía red) haya terminado de cargar, algo que en conexión lenta puede tardar más que cualquier cronómetro fijo. `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigen `isStyleLoaded()===true`; si no lo está, `_crearCapaDiferida()` (§4.6a) monta un proxy que crea la capa real en cuanto el mapa dispara `'load'` — en vez de un stub inerte sin reintento, así el círculo naranja de 15m o una polyline nunca se quedan sin dibujar, sea cual sea el instante en que el estilo tarde en estar listo.
+**Por qué hace falta este eje:** el resto del proyecto ya sigue mayoritariamente el patrón correcto — polling sobre una condición real con límite de iteraciones (`checkMapLibre` esperando `maplibregl`, `tryInit` esperando `inicializarServicioMapa()`, `_esperarHijoListo` esperando confirmación real por mensaje). Un `sleep` sin condición asociada es la excepción que rompe ese patrón, no la norma — y por eso es fácil que pase desapercibido en una lectura superficial: parece encajar con el resto del código de espera que lo rodea.
+
+> **Corrección (auditoría 2026-08-15):** `checkMapLibre` y `tryInit`, citados arriba como ejemplos del patrón correcto, no lo eran realmente hasta esa fecha — tenían la condición real correcta pero **sin límite de iteraciones** (`setTimeout` recursivo indefinido), el mismo defecto que este eje busca en los `sleep` ciegos, solo que aplicado al polling en vez de a una pausa fija. Se encontraron 5 instancias del mismo patrón sin límite en `codigo-padre.html` (las otras 3: `_esperarHijosCriticosRest()`, `_esperarHijosCargados()`, `esperarMapaListo()`) y las 5 se reescribieron sobre `retryUntilAvailable()` (`js/utils.js:340`, ver §11 "Patrón `retryUntilAvailable()`") — el helper bounded que ya existía en el proyecto pero que ninguno de los 5 sitios usaba todavía. Ahora sí son ejemplos válidos del patrón correcto. Una variante más sutil de este patrón es una condición real que comprueba lo incorrecto: `initializeMap()` (`codigo-padre.html`) no resuelve su promesa hasta `map.isStyleLoaded()===true` (o `map.once('load', ...)` si aún no lo está) — no basta con que el módulo JS tenga la referencia al mapa, hace falta que el **estilo** (tiles/sprite/glyphs, todo vía red) haya terminado de cargar, algo que en conexión lenta puede tardar más que cualquier cronómetro fijo. `_crearCirculoGeografico()`/`_crearPolyline()` (`js/funciones-mapa.js`) exigen `isStyleLoaded()===true`; si no lo está, `_crearCapaDiferida()` (§4.6a) monta un proxy que crea la capa real en cuanto el mapa dispara `'load'` — en vez de un stub inerte sin reintento, así el círculo naranja de 15m o una polyline nunca se quedan sin dibujar, sea cual sea el instante en que el estilo tarde en estar listo.
 
 ---
 

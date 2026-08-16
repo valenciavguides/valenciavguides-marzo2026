@@ -92,21 +92,4 @@ test.describe('DOM de iframes — estructura antes de selección de aventura', (
     const ok = await page.evaluate(() => typeof globalThis.__cargarDatosAventuraDiferidos === 'function');
     expect(ok).toBe(true);
   });
-
-  // ── iframe sistema-ui (siempre visible) ───────────────────────────────
-
-  test('iframe #sistema-ui existe con srcdoc (no src externo)', async ({ page }) => {
-    const info = await page.evaluate(() => {
-      const el = document.getElementById('sistema-ui');
-      return {
-        exists: !!el,
-        hasSrcdoc: el ? el.hasAttribute('srcdoc') : false,
-        srcAttribute: el ? el.getAttribute('src') : null,
-      };
-    });
-    expect(info.exists).toBe(true);
-    expect(info.hasSrcdoc).toBe(true);
-    // sistema-ui no debe tener src externo
-    expect(info.srcAttribute == null || info.srcAttribute === '').toBe(true);
-  });
 });

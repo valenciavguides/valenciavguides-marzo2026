@@ -381,10 +381,12 @@
                by hijo2 (same borders, close X, button sizes), appear above
                other children, and allow the secondary dialog to float above it.
             */
-            /* Base compartida por las 3 pantallas de aviso GPS por distancia (§30 de la guía):
-               fotogpserror (>2000m o accuracy>50m), foto-lejos (51-2000m), foto-fuera-rango
-               (16-50m). Cada una solo añade su propio z-index — ver reglas #gps-out-of-range-
-               overlay / #foto-lejos-overlay / #foto-fuera-rango-overlay más abajo. */
+            /* Base compartida por las pantallas de aviso GPS por distancia/precisión (§30/§31.4
+               de la guía): foto-perdido (>2000m del elemento actual), foto-lejos (150-2000m),
+               foto-desviado (50-150m), foto-fuera-rango (15m(parada)/toleranciaGPS(tramo)-50m),
+               gps-precision (accuracy insuficiente) y gps-out-of-range (anti-piratería, >5km
+               de TODA la ruta — caso aparte, no una franja por elemento). Cada una solo añade
+               su propio z-index — ver reglas más abajo. */
             .gps-overlay-distancia {
                     position: fixed;
                     top: 0;
@@ -413,10 +415,13 @@
             }
 
             #gps-out-of-range-overlay { z-index: 1000040 !important; }
-            #foto-lejos-overlay { z-index: 1000039 !important; }
-            #foto-fuera-rango-overlay { z-index: 1000038 !important; }
+            #foto-perdido-overlay { z-index: 1000039 !important; }
+            #foto-lejos-overlay { z-index: 1000038 !important; }
+            #foto-desviado-overlay { z-index: 1000037 !important; }
+            #foto-fuera-rango-overlay { z-index: 1000036 !important; }
+            #gps-precision-overlay { z-index: 1000035 !important; }
 
-            /* Inner container: centrado, mismo tamaño responsive en las 3 pantallas */
+            /* Inner container: centrado, mismo tamaño responsive en todas las pantallas de esta familia */
             .gps-overlay-distancia .gps-inner {
                 position: relative;
                 width: 80vw;
@@ -457,7 +462,7 @@
         }
 
         /* Banda inferior fija, propio espacio real para el botón de reintento — no flota
-           sobre la imagen. Compartida por las 3 pantallas de distancia. */
+           sobre la imagen. Compartida por todas las pantallas de distancia/precisión. */
         .gps-overlay-distancia .gps-banda-inferior {
             flex: 0 0 auto;
             width: 100%;
@@ -486,8 +491,8 @@
                 }
             }
 
-        /* Botón de reintento 🛰️🔄, compartido por las 3 pantallas de distancia — vive
-           dentro de .gps-banda-inferior, ya no flota encima de la imagen. */
+        /* Botón de reintento 🛰️🔄, compartido por todas las pantallas de distancia/precisión —
+           vive dentro de .gps-banda-inferior, ya no flota encima de la imagen. */
         .gps-overlay-distancia .gps-overlay-retry-btn {
             position: static !important;
             background: transparent !important;
@@ -627,8 +632,10 @@
         }
         #internet-action:active { transform: translateX(-50%) scale(0.98); }
 
-        /* Fila de distancia compartida por las 3 pantallas de aviso GPS por distancia
-           (foto-fuera-rango / foto-lejos / gps-out-of-range) — ver GUIA-COMPLETA §31. */
+        /* Fila de distancia compartida por las pantallas de aviso GPS por distancia
+           (foto-fuera-rango / foto-desviado / foto-lejos / foto-perdido / gps-out-of-range) —
+           gps-precision-overlay no la usa (no mide distancia, mide fiabilidad de la lectura).
+           Ver GUIA-COMPLETA §31. */
         .gps-distancia-row {
             position: absolute;
             top: 0.75rem;
@@ -2602,18 +2609,6 @@
         aria-label="Botón para cambiar entre modo Casa y Aventura"
         style="position:fixed; left:50%; transform:translateX(-50%); top:3px; height:22vh; width:99vw; z-index:1000000; pointer-events:auto; transition:width 0.3s; display:none; visibility:hidden; background: transparent;"></iframe>
 
-        <!-- Optional: sistema-ui for monitoring / important notifications
-             NOTE: kept in DOM to continue receiving postMessage events, but
-             intentionally hidden under the map so it doesn't block UI or
-             appear to users. pointer-events is disabled and aria-hidden
-             set to true per user preference. -->
-        <iframe id="sistema-ui"
-            title="Sistema UI - Notificaciones"
-            aria-label="Sistema de notificaciones y logs"
-            aria-hidden="true"
-            style="position:fixed; right:1vw; top:2vh; height:7.5rem; width:20rem; z-index:400; pointer-events:none; display:block; visibility:visible;"
-            srcdoc="<html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Sistema UI - Notificaciones</title><style>body{font-family:Arial,sans-serif;font-size:14px;margin:0;padding:8px;}#notificaciones{max-height:100%;overflow-y:auto;} .notif{border-radius:6px;padding:8px;margin-bottom:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);} .notif.info{border-left:6px solid #2196F3;} .notif.warn{border-left:6px solid #FFC107;} .notif.error{border-left:6px solid #F44336;}</style></head><body><h3>Notificaciones</h3><div id=\"notificaciones\"></div><script>globalThis.addEventListener('message',function(event){try{const data=event.data||{};if(!data||!data.tipo)return;if(data.tipo!=='SISTEMA.NOTIFICACION')return;const n=document.getElementById('notificaciones');const d=document.createElement('div');d.className='notif '+(data.datos&&data.datos.tipo||'info');const t=data.datos&&data.datos.titulo||'Notificación';const m=data.datos&&data.datos.mensaje||'';d.innerHTML='<strong>'+t+'</strong><div>'+m+'</div><small><em>'+data.origen+'</em></small>';n.insertBefore(d,n.firstChild);}catch(e){(globalThis.logger || console).warn('sistema-ui error parsing message',e);}});</script></body></html>"></iframe>
-
     <!-- Audio component con bordes redondeados -->
     <iframe id="hijo3" name="hijo3"
         title="Audio de la aventura"
@@ -2662,7 +2657,6 @@
                 { id: 'hijo1-opciones', loadId: 'hijo1-opciones' },
                 { id: 'hijo6-chat',     loadId: 'hijo6-chat' },
                 { id: 'hijo5',          loadId: 'hijo5' },
-                { id: 'sistema-ui',     loadId: 'sistema-ui' },
                 { id: 'hijo3',          loadId: 'hijo3-audio' },
                 { id: 'hijo2',          loadId: 'hijo2-coordenadas' },
                 { id: 'hijo4',          loadId: 'hijo4-retos' },
@@ -2824,8 +2818,9 @@
             (globalThis.logger || console).debug(`[LOADING] ${message}${details ? ' - ' + details : ''}`);
         };
 
-        import { resolverIdsParada, calcularDistancia, debounce } from './js/utils.js';
+        import { resolverIdsParada, calcularDistancia, debounce, retryUntilAvailable } from './js/utils.js';
         globalThis.resolverIdsParada = resolverIdsParada;
+        globalThis.retryUntilAvailable = retryUntilAvailable;
         import { DATOS_PADRE } from './js/aventuras-ID-padre.js';
         // DATOS_PADRE is now imported from module
         import { limpiarDatosAventura, verificarTimeoutAventura, armarRedDeSeguridad } from './js/reciclaje-digital.js';
@@ -3378,46 +3373,52 @@
                     document.body.appendChild(_brujulaModoDiv);
 
                     // Initialize map service - wait for funciones-mapa to be available
+                    // Bounded via retryUntilAvailable() (js/utils.js) — antes era un
+                    // setTimeout(tryInit,200) autoreprogramado sin límite, hallazgo de
+                    // la auditoría 2026-08-15 (ver docs/GUIA-COMPLETA.md §11, "Patrón retryUntilAvailable()").
                     const initializeMapService = () => {
-                        const tryInit = () => {
-                            if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.inicializarServicioMapa === 'function') {
-                                try {
-                                    const ok = globalThis.funcionesMapa.inicializarServicioMapa(map);
-                                    if (ok === true) {
-                                        (globalThis.logger || console).info('Map initialized successfully');
-
-                                        // NOTA: GPS se activa centralizadamente vía activarGPS() después de cargar iframes
-                                        // No inicializar GPS aquí (watchPosition duplicado eliminado)
-
-                                        // No resolver todavía si el ESTILO del mapa (tiles/sprite/glyphs, todo
-                                        // vía red) no ha terminado de cargar — inicializarServicioMapa() solo
-                                        // confirma que el módulo JS ya tiene la referencia al mapa, nada dice
-                                        // sobre si addSource/addLayer son seguros de llamar todavía.
-                                        // _crearPolyline()/_crearCirculoGeografico() (funciones-mapa.js) exigen
-                                        // isStyleLoaded()===true o devuelven un stub inerte sin reintento — de
-                                        // ahí que resolver aquí antes de tiempo pudiera dejar el círculo naranja
-                                        // de 20m o una polyline sin dibujar de forma permanente y silenciosa.
-                                        const _resolverConMapaListo = () => {
-                                            (globalThis.logger || console).info('Estilo del mapa cargado, mapa listo para addSource/addLayer');
-                                            resolve(map);
-                                        };
-                                        if (map.isStyleLoaded()) {
-                                            _resolverConMapaListo();
-                                        } else {
-                                            map.once('load', _resolverConMapaListo);
-                                        }
-                                        return;
-                                    } else {
-                                        (globalThis.logger || console).warn('inicializarServicioMapa devolvió false; reintentando');
-                                    }
-                                } catch (e) {
-                                    (globalThis.logger || console).warn('Error al llamar inicializarServicioMapa:', e);
-                                }
+                        retryUntilAvailable(() => {
+                            if (!(globalThis.funcionesMapa && typeof globalThis.funcionesMapa.inicializarServicioMapa === 'function')) return false;
+                            try {
+                                const ok = globalThis.funcionesMapa.inicializarServicioMapa(map);
+                                if (ok === true) return true;
+                                (globalThis.logger || console).warn('inicializarServicioMapa devolvió false; reintentando');
+                                return false;
+                            } catch (e) {
+                                (globalThis.logger || console).warn('Error al llamar inicializarServicioMapa:', e);
+                                return false;
                             }
-                            // Retry after a short delay
-                            setTimeout(tryInit, 200);
-                        };
-                        tryInit();
+                        }, { maxIntentos: 150, intervalo: 200, mensaje: '[Mapa] inicializarServicioMapa' }).then((disponible) => {
+                            if (!disponible) {
+                                const err = new Error('inicializarServicioMapa no disponible tras 30s de reintentos');
+                                (globalThis.logger || console).error('Error initializing map:', err);
+                                _mapInitializing = false;
+                                reject(err);
+                                return;
+                            }
+                            (globalThis.logger || console).info('Map initialized successfully');
+
+                            // NOTA: GPS se activa centralizadamente vía activarGPS() después de cargar iframes
+                            // No inicializar GPS aquí (watchPosition duplicado eliminado)
+
+                            // No resolver todavía si el ESTILO del mapa (tiles/sprite/glyphs, todo
+                            // vía red) no ha terminado de cargar — inicializarServicioMapa() solo
+                            // confirma que el módulo JS ya tiene la referencia al mapa, nada dice
+                            // sobre si addSource/addLayer son seguros de llamar todavía.
+                            // _crearPolyline()/_crearCirculoGeografico() (funciones-mapa.js) exigen
+                            // isStyleLoaded()===true o devuelven un stub inerte sin reintento — de
+                            // ahí que resolver aquí antes de tiempo pudiera dejar el círculo naranja
+                            // de 20m o una polyline sin dibujar de forma permanente y silenciosa.
+                            const _resolverConMapaListo = () => {
+                                (globalThis.logger || console).info('Estilo del mapa cargado, mapa listo para addSource/addLayer');
+                                resolve(map);
+                            };
+                            if (map.isStyleLoaded()) {
+                                _resolverConMapaListo();
+                            } else {
+                                map.once('load', _resolverConMapaListo);
+                            }
+                        });
                     };
                     initializeMapService();
 
@@ -4665,12 +4666,14 @@
                 if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
                     return globalThis.__stateManager.crearPromiseHijoListo(id);
                 }
-                return new Promise((resolve) => {
-                    const check = () => {
-                        if (estado.hijosInicializados.has(id)) resolve();
-                        else setTimeout(check, 200);
-                    };
-                    check();
+                // Fallback a polling, bounded via retryUntilAvailable() (js/utils.js) —
+                // antes era check()/setTimeout(check,200) sin límite, hallazgo de la
+                // auditoría 2026-08-15 (ver docs/GUIA-COMPLETA.md §11, "Patrón retryUntilAvailable()").
+                return retryUntilAvailable(
+                    () => estado.hijosInicializados.has(id),
+                    { maxIntentos: 150, intervalo: 200, mensaje: `[Hijos] ${id} listo (fallback polling)` }
+                ).then((listo) => {
+                    if (!listo) throw new Error(`Hijo ${id} no confirmó HIJO_LISTO tras 30s (fallback polling)`);
                 });
             });
             try {
@@ -5912,9 +5915,13 @@
         try { globalThis.showGpsOutOfRangeOverlay = showGpsOutOfRangeOverlay; globalThis.hideGpsOutOfRangeOverlay = hideGpsOutOfRangeOverlay; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
         // ──────────────────────────────────────────────────────────────
-        // Pantallas de aviso GPS por distancia (§30 de la guía): fotogpserror
-        // (>2000m o accuracy>50m, arriba), foto-lejos (51-2000m), foto-fuera-rango
-        // (16-50m). Solo una visible a la vez.
+        // Pantallas de aviso GPS por distancia (§30/§31.4 de la guía): foto-perdido
+        // (>2000m del elemento actual), foto-lejos (150-2000m), foto-desviado (50-150m),
+        // foto-fuera-rango (15m(parada)/toleranciaGPS(tramo)-50m). Solo una visible a la vez.
+        // fotogpserror/gps-out-of-range-overlay NO es una franja más — es el aviso aparte
+        // de anti-piratería (§31.5, >5km de TODA la ruta, no del elemento actual).
+        // gps-precision-overlay (accuracy insuficiente) es otro aviso aparte: no mide
+        // distancia, así que puede mostrarse en vez de cualquiera de las 4 franjas.
         // ──────────────────────────────────────────────────────────────
 
         function _actualizarFilaDistanciaOverlay(rowId, distanciaActual, distanciaMax) {
@@ -5930,16 +5937,19 @@
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
 
-        // Asegura que solo una de las 3 pantallas de distancia esté visible a la vez
+        // Asegura que solo una de las pantallas de distancia/precisión esté visible a la vez
         // (evita el problema original de dos overlays superpuestos).
         // Al cerrar manualmente una pantalla de distancia (✖), no vuelve a aparecer hasta
         // pasado este tiempo — así el usuario puede ver el mapa/polyline tranquilo, y la
         // pantalla reaparece periódicamente como recordatorio (y ocasión de pulsar reintentar).
         // Más lejos del objetivo → menos urgencia → intervalo más largo.
         const _SNOOZE_DURACION_MS = {
-            'gps-out-of-range-overlay': 150000, // muy lejos / posición no fiable — 150s
-            'foto-lejos-overlay': 120000,       // lejos (51-2000m) — 120s
-            'foto-fuera-rango-overlay': 60000   // fuera de rango real (16-50m) — 60s
+            'gps-out-of-range-overlay': 150000, // anti-piratería, >5km de toda la ruta — 150s
+            'foto-perdido-overlay': 150000,     // perdido, >2000m del elemento actual — 150s
+            'foto-lejos-overlay': 120000,       // lejos (150-2000m) — 120s
+            'foto-desviado-overlay': 90000,     // desviado (50-150m) — 90s
+            'foto-fuera-rango-overlay': 60000,  // fuera de rango real (15m/toleranciaGPS-50m) — 60s
+            'gps-precision-overlay': 90000      // precisión GPS insuficiente — 90s
         };
 
         function _snoozearOverlayDistancia(id) {
@@ -5960,7 +5970,7 @@
 
         function _ocultarOtrasPantallasDistanciaGPS(idQueSeMuestra) {
             try {
-                ['gps-out-of-range-overlay', 'foto-lejos-overlay', 'foto-fuera-rango-overlay'].forEach(id => {
+                ['gps-out-of-range-overlay', 'foto-perdido-overlay', 'foto-lejos-overlay', 'foto-desviado-overlay', 'foto-fuera-rango-overlay', 'gps-precision-overlay'].forEach(id => {
                     if (id === idQueSeMuestra) return;
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('show');
@@ -5974,9 +5984,11 @@
         }
         globalThis._ocultarTodasPantallasDistanciaGPS = _ocultarTodasPantallasDistanciaGPS;
 
-        // Reintento compartido por las 3 pantallas: recalcula posición y deja que el pipeline
-        // normal (hijo2 recibe la posición actualizada, recalcula distancia y reenvía
-        // GPS.RESTRINGIDO o GPS.DENTRO_DE_RANGO) decida sola qué pantalla corresponde ahora.
+        // Reintento compartido por todas las pantallas de esta familia: recalcula posición y
+        // deja que el pipeline normal (hijo2 recibe la posición actualizada, recalcula
+        // distancia/precisión y reenvía GPS.RESTRINGIDO, GPS.DENTRO_DE_RANGO,
+        // GPS.PRECISION_INSUFICIENTE o GPS.PRECISION_RECUPERADA) decida sola qué pantalla
+        // corresponde ahora.
         // Si el intento falla del todo (código 1 permiso / 2 sin señal / 3 timeout), cede a
         // showGpsSignalOverlay — misma lógica que ya usa fotogpserror hoy, sin duplicarla.
         function _gpsReintentarDesdeOverlayDistancia(logPrefix) {
@@ -6011,13 +6023,13 @@
 
             const img = document.createElement('img');
             img.className = 'gps-overlay-img';
-            img.src = 'imagenes/imagenes-aplicación/foto_lejos_ubicacion.png';
+            img.src = 'imagenes/imagenes-aplicación/foto-rango-lejos.png';
             img.alt = 'Estás lejos de tu objetivo';
 
             const distanciaRow = document.createElement('div');
             distanciaRow.className = 'gps-distancia-row';
             distanciaRow.id = 'foto-lejos-distancia-row';
-            distanciaRow.innerHTML = '<span class="gps-distancia-actual">0</span><span class="gps-distancia-unidad">m</span><span class="gps-distancia-separador">/</span><span class="gps-distancia-max">51</span><span class="gps-distancia-unidad">m</span>';
+            distanciaRow.innerHTML = '<span class="gps-distancia-actual">0</span><span class="gps-distancia-unidad">m</span><span class="gps-distancia-separador">/</span><span class="gps-distancia-max">150</span><span class="gps-distancia-unidad">m</span>';
 
             const btn = document.createElement('button');
             btn.id = 'foto-lejos-action';
@@ -6056,7 +6068,7 @@
                 _ensureFotoLejosOverlay();
                 const el = document.getElementById('foto-lejos-overlay');
                 if (!el) return;
-                _actualizarFilaDistanciaOverlay('foto-lejos-distancia-row', distancia, 51);
+                _actualizarFilaDistanciaOverlay('foto-lejos-distancia-row', distancia, 150);
                 _ocultarOtrasPantallasDistanciaGPS('foto-lejos-overlay');
                 el.classList.add('show');
             } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][LEJOS] Error mostrando overlay:', e && e.message); }
@@ -6084,7 +6096,7 @@
 
             const img = document.createElement('img');
             img.className = 'gps-overlay-img';
-            img.src = 'imagenes/imagenes-aplicación/foto-fuera-rango.png';
+            img.src = 'imagenes/imagenes-aplicación/foto-rango-fuera.png';
             img.alt = 'Estás fuera de rango';
 
             const distanciaRow = document.createElement('div');
@@ -6143,6 +6155,237 @@
             } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
         }
         globalThis.hideFotoFueraRangoOverlay = hideFotoFueraRangoOverlay;
+
+        // Franja "desviado" (50-150m) — nueva, añadida en la ronda 2026-08-16 (gracia por
+        // franjas). Mismo patrón exacto que foto-lejos/foto-fuera-rango.
+        function _ensureFotoDesviadoOverlay() {
+            if (document.getElementById('foto-desviado-overlay')) return;
+            const el = document.createElement('div');
+            el.id = 'foto-desviado-overlay';
+            el.className = 'gps-overlay-distancia';
+            el.setAttribute('role', 'status');
+            el.setAttribute('aria-live', 'polite');
+
+            const inner = document.createElement('div');
+            inner.className = 'gps-inner';
+
+            const img = document.createElement('img');
+            img.className = 'gps-overlay-img';
+            img.src = 'imagenes/imagenes-aplicación/foto-rango-desviado.png';
+            img.alt = 'Te has desviado de la ruta';
+
+            const distanciaRow = document.createElement('div');
+            distanciaRow.className = 'gps-distancia-row';
+            distanciaRow.id = 'foto-desviado-distancia-row';
+            distanciaRow.innerHTML = '<span class="gps-distancia-actual">0</span><span class="gps-distancia-unidad">m</span><span class="gps-distancia-separador">/</span><span class="gps-distancia-max">50</span><span class="gps-distancia-unidad">m</span>';
+
+            const btn = document.createElement('button');
+            btn.id = 'foto-desviado-action';
+            btn.className = 'gps-overlay-retry-btn';
+            btn.type = 'button';
+            btn.setAttribute('aria-label', 'Reintentar ubicación');
+            btn.title = 'Reintentar ubicación';
+            btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
+            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][DESVIADO]'));
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn-cerrar-overlay';
+            closeBtn.type = 'button';
+            closeBtn.setAttribute('aria-label', 'Cerrar overlay');
+            closeBtn.title = 'Cerrar';
+            closeBtn.innerHTML = '<span class="icono-x-cerrar">✗</span>';
+            closeBtn.addEventListener('click', () => { _snoozearOverlayDistancia('foto-desviado-overlay'); hideFotoDesviadoOverlay(); });
+
+            const bandaInferior = document.createElement('div');
+            bandaInferior.className = 'gps-banda-inferior';
+            bandaInferior.appendChild(btn);
+
+            inner.appendChild(img);
+            inner.appendChild(distanciaRow);
+            inner.appendChild(bandaInferior);
+            inner.appendChild(closeBtn);
+            el.appendChild(inner);
+            document.body.appendChild(el);
+        }
+
+        function showFotoDesviadoOverlay(distancia) {
+            try {
+                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
+                if (modoActual !== MODOS.AVENTURA) { hideFotoDesviadoOverlay(); return; }
+                if (_overlayDistanciaEnSnooze('foto-desviado-overlay')) return;
+                _ensureFotoDesviadoOverlay();
+                const el = document.getElementById('foto-desviado-overlay');
+                if (!el) return;
+                _actualizarFilaDistanciaOverlay('foto-desviado-distancia-row', distancia, 50);
+                _ocultarOtrasPantallasDistanciaGPS('foto-desviado-overlay');
+                el.classList.add('show');
+            } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][DESVIADO] Error mostrando overlay:', e && e.message); }
+        }
+        globalThis.showFotoDesviadoOverlay = showFotoDesviadoOverlay;
+
+        function hideFotoDesviadoOverlay() {
+            try {
+                const el = document.getElementById('foto-desviado-overlay');
+                if (el) el.classList.remove('show');
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+        globalThis.hideFotoDesviadoOverlay = hideFotoDesviadoOverlay;
+
+        // Franja "perdido" (>2000m del elemento actual) — nueva, añadida en la ronda
+        // 2026-08-16. Antes reutilizaba gps-out-of-range-overlay/fotogpserror.png junto con
+        // el bloqueo anti-piratería de >5km de toda la ruta (§31.5) — dos umbrales reales
+        // distintos (2000m vs 5000m) no pueden compartir una imagen con una cifra impresa
+        // fija sin que una de las dos quede mal etiquetada. Ahora tiene overlay/imagen
+        // propios; gps-out-of-range-overlay/fotogpserror.png quedan exclusivos del
+        // anti-piratería (ver _check5kmFromRoute).
+        function _ensureFotoPerdidoOverlay() {
+            if (document.getElementById('foto-perdido-overlay')) return;
+            const el = document.createElement('div');
+            el.id = 'foto-perdido-overlay';
+            el.className = 'gps-overlay-distancia';
+            el.setAttribute('role', 'status');
+            el.setAttribute('aria-live', 'polite');
+
+            const inner = document.createElement('div');
+            inner.className = 'gps-inner';
+
+            const img = document.createElement('img');
+            img.className = 'gps-overlay-img';
+            img.src = 'imagenes/imagenes-aplicación/foto-rango-perdido.png';
+            img.alt = 'Estás muy lejos de tu objetivo';
+
+            const distanciaRow = document.createElement('div');
+            distanciaRow.className = 'gps-distancia-row';
+            distanciaRow.id = 'foto-perdido-distancia-row';
+            distanciaRow.innerHTML = '<span class="gps-distancia-actual">0</span><span class="gps-distancia-unidad">m</span><span class="gps-distancia-separador">/</span><span class="gps-distancia-max">2000</span><span class="gps-distancia-unidad">m</span>';
+
+            const btn = document.createElement('button');
+            btn.id = 'foto-perdido-action';
+            btn.className = 'gps-overlay-retry-btn';
+            btn.type = 'button';
+            btn.setAttribute('aria-label', 'Reintentar ubicación');
+            btn.title = 'Reintentar ubicación';
+            btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
+            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][PERDIDO]'));
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn-cerrar-overlay';
+            closeBtn.type = 'button';
+            closeBtn.setAttribute('aria-label', 'Cerrar overlay');
+            closeBtn.title = 'Cerrar';
+            closeBtn.innerHTML = '<span class="icono-x-cerrar">✗</span>';
+            closeBtn.addEventListener('click', () => { _snoozearOverlayDistancia('foto-perdido-overlay'); hideFotoPerdidoOverlay(); });
+
+            const bandaInferior = document.createElement('div');
+            bandaInferior.className = 'gps-banda-inferior';
+            bandaInferior.appendChild(btn);
+
+            inner.appendChild(img);
+            inner.appendChild(distanciaRow);
+            inner.appendChild(bandaInferior);
+            inner.appendChild(closeBtn);
+            el.appendChild(inner);
+            document.body.appendChild(el);
+        }
+
+        function showFotoPerdidoOverlay(distancia) {
+            try {
+                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
+                if (modoActual !== MODOS.AVENTURA) { hideFotoPerdidoOverlay(); return; }
+                if (_overlayDistanciaEnSnooze('foto-perdido-overlay')) return;
+                _ensureFotoPerdidoOverlay();
+                const el = document.getElementById('foto-perdido-overlay');
+                if (!el) return;
+                _actualizarFilaDistanciaOverlay('foto-perdido-distancia-row', distancia, 2000);
+                _ocultarOtrasPantallasDistanciaGPS('foto-perdido-overlay');
+                el.classList.add('show');
+            } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][PERDIDO] Error mostrando overlay:', e && e.message); }
+        }
+        globalThis.showFotoPerdidoOverlay = showFotoPerdidoOverlay;
+
+        function hideFotoPerdidoOverlay() {
+            try {
+                const el = document.getElementById('foto-perdido-overlay');
+                if (el) el.classList.remove('show');
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+        globalThis.hideFotoPerdidoOverlay = hideFotoPerdidoOverlay;
+
+        // Precisión GPS insuficiente (accuracy > CONFIG.GPS.PRECISION_MINIMA) — nueva,
+        // añadida en la ronda 2026-08-16. Distinto de las 4 franjas de arriba: no mide
+        // distancia, mide si el propio dato de posición es fiable — hijo2 no calcula
+        // ninguna franja mientras la precisión sea mala (ver NAVEGACION.GPS.PRECISION_INSUFICIENTE
+        // en coordenadas-hijo2.html), así que este overlay y los 4 de franja nunca compiten
+        // entre sí de verdad, pero se añade igualmente al grupo de _ocultarOtrasPantallasDistanciaGPS
+        // por seguridad. Reutiliza imagen-no-gps.png (mismo icono que showGpsSignalOverlay
+        // para permiso denegado/sin señal) pero es un overlay propio, no ese mismo mecanismo
+        // — showGpsSignalOverlay tiene lógica específica de reintento por código de error
+        // (1/2/3) que no encaja con "la señal existe pero no es precisa".
+        function _ensureGpsPrecisionOverlay() {
+            if (document.getElementById('gps-precision-overlay')) return;
+            const el = document.createElement('div');
+            el.id = 'gps-precision-overlay';
+            el.className = 'gps-overlay-distancia';
+            el.setAttribute('role', 'status');
+            el.setAttribute('aria-live', 'polite');
+
+            const inner = document.createElement('div');
+            inner.className = 'gps-inner';
+
+            const img = document.createElement('img');
+            img.className = 'gps-overlay-img';
+            img.src = 'imagenes/imagenes-aplicación/imagen-no-gps.png';
+            img.alt = 'Señal GPS poco fiable';
+
+            const btn = document.createElement('button');
+            btn.id = 'gps-precision-action';
+            btn.className = 'gps-overlay-retry-btn';
+            btn.type = 'button';
+            btn.setAttribute('aria-label', 'Reintentar ubicación');
+            btn.title = 'Reintentar ubicación';
+            btn.innerHTML = '<span style="font-size:20px;line-height:1">🛰️🔄</span>';
+            btn.addEventListener('click', () => _gpsReintentarDesdeOverlayDistancia('[PADRE][GPS][PRECISION]'));
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn-cerrar-overlay';
+            closeBtn.type = 'button';
+            closeBtn.setAttribute('aria-label', 'Cerrar overlay');
+            closeBtn.title = 'Cerrar';
+            closeBtn.innerHTML = '<span class="icono-x-cerrar">✗</span>';
+            closeBtn.addEventListener('click', () => { _snoozearOverlayDistancia('gps-precision-overlay'); hideGpsPrecisionOverlay(); });
+
+            const bandaInferior = document.createElement('div');
+            bandaInferior.className = 'gps-banda-inferior';
+            bandaInferior.appendChild(btn);
+
+            inner.appendChild(img);
+            inner.appendChild(bandaInferior);
+            inner.appendChild(closeBtn);
+            el.appendChild(inner);
+            document.body.appendChild(el);
+        }
+
+        function showGpsPrecisionOverlay() {
+            try {
+                const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
+                if (modoActual !== MODOS.AVENTURA) { hideGpsPrecisionOverlay(); return; }
+                if (_overlayDistanciaEnSnooze('gps-precision-overlay')) return;
+                _ensureGpsPrecisionOverlay();
+                const el = document.getElementById('gps-precision-overlay');
+                if (!el) return;
+                _ocultarOtrasPantallasDistanciaGPS('gps-precision-overlay');
+                el.classList.add('show');
+            } catch (e) { (globalThis.logger || console).warn('[PADRE][GPS][PRECISION] Error mostrando overlay:', e && e.message); }
+        }
+        globalThis.showGpsPrecisionOverlay = showGpsPrecisionOverlay;
+
+        function hideGpsPrecisionOverlay() {
+            try {
+                const el = document.getElementById('gps-precision-overlay');
+                if (el) el.classList.remove('show');
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+        globalThis.hideGpsPrecisionOverlay = hideGpsPrecisionOverlay;
 
         // ──────────────────────────────────────────────────────────────
         // Utilidad compartida: countdown descendente para overlays
@@ -7740,16 +7983,22 @@
         }
 
         // Wait for MapLibre GL to load and initialize map
+        // Bounded via retryUntilAvailable() (js/utils.js) — antes era un
+        // setTimeout(checkMapLibre,100) autoreprogramado sin límite, hallazgo de
+        // la auditoría 2026-08-15 (ver docs/GUIA-COMPLETA.md §11, "Patrón retryUntilAvailable()").
         function waitForMapLibreAndInitialize() {
-            return new Promise((resolve) => {
-                const checkMapLibre = () => {
-                    if (globalThis.maplibregl !== undefined && maplibregl.Map) {
-                        initializeMap().then(resolve).catch(resolve); // Resolve even on error to continue app init
-                    } else {
-                        setTimeout(checkMapLibre, 100);
-                    }
-                };
-                checkMapLibre();
+            return retryUntilAvailable(
+                () => globalThis.maplibregl !== undefined && !!maplibregl.Map,
+                { maxIntentos: 150, intervalo: 100, mensaje: '[Mapa] MapLibre GL (CDN)' }
+            ).then((disponible) => {
+                if (!disponible) {
+                    (globalThis.logger || console).error('MapLibre GL no cargó tras 15s — el mapa no se inicializará');
+                    return null;
+                }
+                return initializeMap();
+            }).catch((e) => {
+                (globalThis.logger || console).warn('Error inicializando mapa tras cargar MapLibre GL:', e);
+                return null; // Resolve even on error to continue app init
             });
         }
 
@@ -10496,11 +10745,18 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        // Reparte la distancia real recibida de hijo2 entre las 3 pantallas de aviso (§30):
-        // >2000m → fotogpserror (reutilizada, mismo aviso que accuracy>50m/5km); 51-2000m →
-        // foto-lejos; 16-50m → foto-fuera-rango. hijo2 solo envía este mensaje cuando ya
-        // sabe que está por encima de su propio rango real (15m parada / toleranciaGPS
-        // tramo), así que aquí no hace falta volver a comprobarlo.
+        // Reparte la distancia real recibida de hijo2 entre las 4 pantallas de aviso (§30/§31.4):
+        // >2000m → foto-perdido; 150-2000m → foto-lejos; 50-150m → foto-desviado; 15m(parada)/
+        // toleranciaGPS(tramo)-50m → foto-fuera-rango. Estos cortes deben coincidir siempre con
+        // los de verificarDistanciaYActualizarBotones() en coordenadas-hijo2.html — están
+        // duplicados a propósito (el padre no confía ciegamente en la franja que le manda
+        // hijo2, recalcula la suya propia a partir de la distancia cruda), así que cualquier
+        // cambio de umbral hay que aplicarlo en los dos sitios a la vez. hijo2 solo envía este
+        // mensaje cuando ya sabe que está por encima de su propio rango real (15m parada /
+        // toleranciaGPS tramo), así que aquí no hace falta volver a comprobarlo.
+        // fotogpserror.png / gps-out-of-range-overlay quedan exclusivos del bloqueo
+        // anti-piratería de >5km de TODA la ruta (§31.5, _check5kmFromRoute) — no se
+        // muestran nunca desde aquí.
         async function _hdl_NAVEGACION_GPS_RESTRINGIDO(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.RESTRINGIDO][${mensaje?.origen || 'desconocido'}]`;
 
@@ -10509,9 +10765,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (typeof distancia !== 'number') return;
 
                 if (distancia > 2000) {
-                    showGpsOutOfRangeOverlay(0, `Ubicación a más de 2 km de tu objetivo`, distancia);
-                } else if (distancia > 50) {
+                    showFotoPerdidoOverlay(distancia);
+                } else if (distancia > 150) {
                     showFotoLejosOverlay(distancia);
+                } else if (distancia > 50) {
+                    showFotoDesviadoOverlay(distancia);
                 } else {
                     showFotoFueraRangoOverlay(distancia, rangoMaximo);
                 }
@@ -10551,6 +10809,28 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
+        // Precisión GPS insuficiente — hijo2 deja de calcular franjas/llegada mientras dure
+        // (ver coordenadas-hijo2.html, _notificarSenalNoFiable), así que aquí solo hace falta
+        // mostrar el aviso. No toca estado.usuarioFueraRango ni el audio/retosBtn — eso sigue
+        // siendo exclusivo de USUARIO_FUERA_RANGO/GPS.DENTRO_DE_RANGO.
+        async function _hdl_NAVEGACION_GPS_PRECISION_INSUFICIENTE(mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.PRECISION_INSUFICIENTE][${mensaje?.origen || 'desconocido'}]`;
+            try {
+                showGpsPrecisionOverlay();
+            } catch (error) {
+                (globalThis.logger || console).error(`${logPrefix} Error mostrando aviso de precisión insuficiente:`, error);
+            }
+        }
+
+        async function _hdl_NAVEGACION_GPS_PRECISION_RECUPERADA(mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[GPS.PRECISION_RECUPERADA][${mensaje?.origen || 'desconocido'}]`;
+            try {
+                hideGpsPrecisionOverlay();
+            } catch (error) {
+                (globalThis.logger || console).error(`${logPrefix} Error ocultando aviso de precisión insuficiente:`, error);
+            }
+        }
+
         function _regCtrl_GPS(TIPOS_MENSAJE) {
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, _hdl_NAVEGACION_GPS_ACTIVAR, { permanente: true });
 
@@ -10563,6 +10843,10 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.RESTRINGIDO, _hdl_NAVEGACION_GPS_RESTRINGIDO, { permanente: true });
 
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.DENTRO_DE_RANGO, _hdl_NAVEGACION_GPS_DENTRO_DE_RANGO, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.PRECISION_INSUFICIENTE, _hdl_NAVEGACION_GPS_PRECISION_INSUFICIENTE, { permanente: true });
+
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.PRECISION_RECUPERADA, _hdl_NAVEGACION_GPS_PRECISION_RECUPERADA, { permanente: true });
         }
 
         async function _obtenerUbicacionUsuario(ubicacionUsuario, logPrefix) {
@@ -12082,13 +12366,14 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
                     return globalThis.__stateManager.crearPromiseHijoListo(id);
                 }
-                // Fallback a polling
-                return new Promise((resolve) => {
-                    const check = () => {
-                        if (estado.hijosInicializados.has(id)) resolve();
-                        else setTimeout(check, 200);
-                    };
-                    check();
+                // Fallback a polling, bounded via retryUntilAvailable() (js/utils.js) —
+                // antes era check()/setTimeout(check,200) sin límite, hallazgo de la
+                // auditoría 2026-08-15 (ver docs/GUIA-COMPLETA.md §11, "Patrón retryUntilAvailable()").
+                return globalThis.retryUntilAvailable(
+                    () => estado.hijosInicializados.has(id),
+                    { maxIntentos: 150, intervalo: 200, mensaje: `[Hijos] ${id} listo (fallback polling)` }
+                ).then((listo) => {
+                    if (!listo) throw new Error(`Hijo ${id} no confirmó HIJO_LISTO tras 30s (fallback polling)`);
                 });
             });
             try {
@@ -12916,25 +13201,18 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Esperando inicialización del mapa...`);
 
         // Esperar a que el mapa esté realmente inicializado antes de invalidar tamaño
+        // Bounded via retryUntilAvailable() (js/utils.js) — antes era
+        // checkMap()/setTimeout(checkMap,100) autoreprogramado sin límite, hallazgo
+        // de la auditoría 2026-08-15 (ver docs/GUIA-COMPLETA.md §11, "Patrón retryUntilAvailable()").
         const esperarMapaListo = () => {
-            return new Promise((resolve) => {
-                const checkMap = () => {
-                    if (globalThis.funcionesMapa && typeof globalThis.funcionesMapa.isMapInitialized === 'function') {
-                        const initialized = globalThis.funcionesMapa.isMapInitialized();
-                        if (initialized) {
-                            resolve();
-                        } else {
-                            setTimeout(checkMap, 100);
-                        }
-                    } else {
-                        setTimeout(checkMap, 100);
-                    }
-                };
-                checkMap();
-            });
+            return globalThis.retryUntilAvailable(
+                () => !!(globalThis.funcionesMapa && typeof globalThis.funcionesMapa.isMapInitialized === 'function' && globalThis.funcionesMapa.isMapInitialized()),
+                { maxIntentos: 100, intervalo: 100, mensaje: '[Mapa] isMapInitialized (post-arranque)' }
+            );
         };
 
-        esperarMapaListo().then(() => {
+        esperarMapaListo().then((mapaListo) => {
+            if (!mapaListo) return;
             invalidarTamañoMapa().then(success => {
                 if (success) {
                     (globalThis.logger || console).info(`${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'} Tamaño del mapa actualizado`);

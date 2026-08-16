@@ -2713,6 +2713,10 @@ async function procesarPosicionGPSParaAventura(posicion) {
                         toleranciaGPS: toleranciaGPS,
                         lat: latitude,
                         lng: longitude,
+                        // Círculo de confianza de esta lectura (metros) — hijo2 lo compara
+                        // contra CONFIG.GPS.PRECISION_MINIMA antes de fiarse de cualquier
+                        // conclusión de distancia (llegada, franja de fuera de rango).
+                        accuracy: typeof accuracy === 'number' ? Math.ceil(accuracy) : null,
                         timestamp: Date.now()
                     }
                 });

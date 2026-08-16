@@ -185,14 +185,15 @@ export async function cargarTextos(aventuraId, idioma) {
             return { id: idLang, title, content };
         });
     } else {
-        // NOTE (PRODUCCIÓN): este endpoint devuelve el mapa crudo de párrafos,
-        // no el array [{id,title,content}] que necesita la app.
-        // Requiere un endpoint nuevo /api/textos/:aventuraId/:idioma que devuelva
-        // los textos ya ensamblados por aventura, o bien que el servidor conozca
-        // textos-aventuras.js (estructura de entradas) para poder ensamblarlos.
-        // Ver GUIA-COMPLETA.md § "Textos en producción".
-        const data = await fetchFromAPI(`/textos/${idioma}`);
-        result = data.parrafos; // BUG: devuelve mapa crudo, no array ensamblado
+        // PRODUCCIÓN: el endpoint debe devolver los textos YA ensamblados por
+        // aventura+idioma ({ textos: [{id,title,content}] }, mismo contrato que
+        // /audios/:aventuraId/:idioma → data.audios y /retos/:aventuraId/:idioma →
+        // data.retos) — el servidor es quien debe conocer textos-aventuras.js y
+        // el mapa de párrafos para ensamblarlos, no el cliente (evita reexponer
+        // el contenido de pago sin ensamblar). Endpoint aún no implementado
+        // (no hay backend real todavía, ver GUIA-COMPLETA.md §16).
+        const data = await fetchFromAPI(`/textos/${aventuraId}/${idioma}`);
+        result = data.textos;
     }
 
     if (_mapaParrafosCargado) {
