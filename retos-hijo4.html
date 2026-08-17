@@ -371,6 +371,39 @@
         .btn-mundo-verde:disabled .elemento-orbita { animation-play-state: paused; opacity: 0 !important; }
         .btn-mundo-verde:disabled { opacity: 0.35; cursor: not-allowed; }
 
+        /* ===== BOTÓN SALTAR RETO (btn-saltar-reto) ===== */
+        /* Mismo tamaño/forma redonda que btn-mundo-verde mundo verde, pero color distinto
+           y sin decoraciones en órbita — son acciones distintas (saltar vs. confirmar) y
+           no deben confundirse visualmente aunque compartan la geometría. */
+        .btn-saltar-reto {
+            width: clamp(60px, 15vmin, 80px);
+            height: clamp(60px, 15vmin, 80px);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            min-width: 0;
+            min-height: 0;
+            font-size: clamp(22px, 6vmin, 30px);
+            background: linear-gradient(180deg, #ffa726 0%, #fb8c00 50%, #e65100 100%);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35), inset 0 0.15rem 0.3rem rgba(255,255,255,0.35);
+            transition: all 0.2s ease;
+        }
+        .btn-saltar-reto:hover {
+            background: linear-gradient(180deg, #ffb74d 0%, #fb9800 50%, #ef6c00 100%);
+        }
+        .btn-saltar-reto:active {
+            transform: scale(0.93);
+            box-shadow: none;
+        }
+        .btn-saltar-reto:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
         /* Botón continuar puzzle: posición fija, solo visible en puzzle-mode */
         #btn-puzzle-continuar {
             display: none;
@@ -388,7 +421,7 @@
     /* --- Integración con Sistema de Mensajería --- */
 
     import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
-    import { MSG_RETOS_COMPLETOS, PLACEHOLDER_RESPUESTA_TEXTO } from './js/traducciones-ui.js';
+    import { MSG_RETOS_COMPLETOS, PLACEHOLDER_RESPUESTA_TEXTO, MSG_RETO_NO_DISPONIBLE } from './js/traducciones-ui.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {
@@ -709,6 +742,7 @@
     let retoDiv;
     let btnEnviar;
     let btnMostrarRespuesta;
+    let btnSaltarReto;
     let divRespuestaCorrecta;
     let btnNext;
     let fuegosDiv;
@@ -855,6 +889,7 @@
         btnEnviar.style.backgroundColor = "#0077cc";
 
         btnMostrarRespuesta = document.getElementById("btnMostrarRespuesta");
+        btnSaltarReto = document.getElementById("btnSaltarReto");
         divRespuestaCorrecta = document.getElementById("respuestaCorrectaTexto");
         btnNext = document.getElementById("btnNextAfterReto");
         fuegosDiv = document.getElementById("fuegos");
@@ -875,7 +910,7 @@
         }
 
         // Verificar que todos los elementos necesarios se encontraron
-        if (!retoDiv || !btnMostrarRespuesta || !divRespuestaCorrecta || !btnNext || !fuegosDiv) {
+        if (!retoDiv || !btnMostrarRespuesta || !btnSaltarReto || !divRespuestaCorrecta || !btnNext || !fuegosDiv) {
             logger.error("ERROR CRÍTICO: No se pudieron encontrar todos los elementos del DOM necesarios. Asegúrate de que los IDs sean correctos en el HTML.");
             return; // Detener la ejecución si faltan elementos clave
         }
@@ -891,6 +926,26 @@
             const reto = retosArray.find(r => r.id === retoId);
             if (!reto) {
                 logger.warn(`[hijo4] Reto ${retoId} no está en caché local — solicitando al padre`);
+                // No dejar en pantalla el contenido del reto anterior como si siguiera
+                // activo: se limpia y se avisa, aunque la petición de abajo pueda
+                // resolverse enseguida con un RETO.MOSTRAR de reintento (en ese caso, la
+                // siguiente llamada a mostrarReto() ya encuentra el reto y lo sustituye).
+                retoActual = null;
+                // Mismo reseteo que hace el camino normal (línea ~930) al mostrar un reto
+                // nuevo — sin esto, un btnNext dejado verde/habilitado por el reto anterior
+                // (respuesta correcta dada pero botón verde aún sin pulsar) seguiría
+                // pulsable y reenviaría la compleción de ESE reto, no de este roto.
+                _pendienteCompletado = null;
+                if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#ED2100"; }
+                ocultarControles();
+                retoDiv.innerHTML = "";
+                const avisoNoDisponible = document.createElement("p");
+                avisoNoDisponible.textContent = MSG_RETO_NO_DISPONIBLE[globalThis.__vv_idiomaActual] || MSG_RETO_NO_DISPONIBLE.es;
+                retoDiv.appendChild(avisoNoDisponible);
+                // A diferencia del resto de controles, el botón de saltar debe seguir
+                // habilitado precisamente aquí: es el único rescate real cuando el reto
+                // no carga por un fallo nuestro, no por falta de intento del usuario.
+                if (btnSaltarReto) btnSaltarReto.disabled = false;
                 try {
                     await enviarMensaje({
                         tipo: TIPOS_MENSAJE.DATOS.SOLICITAR_RETOS,
@@ -929,6 +984,7 @@
             // Los botones están siempre visibles, pero btnNext está deshabilitado hasta respuesta correcta
             if (btnNext) { btnNext.disabled = true; btnNext.style.backgroundColor = "#ED2100"; }
             if (btnMostrarRespuesta) btnMostrarRespuesta.disabled = false;
+            if (btnSaltarReto) btnSaltarReto.disabled = false;
             if (btnEnviar) { btnEnviar.textContent = "🫵"; btnEnviar.style.backgroundColor = "#0077cc"; }
 
             retoDiv.classList.remove("correct", "incorrect");
@@ -1011,6 +1067,63 @@
             }
         }
 
+        /* Función: _marcarRetoComoCompletado(retoId)
+           Deja el reto como aprobado: fuegos artificiales, btnEnviar a 👍, habilita
+           btnNext (verde) y guarda _pendienteCompletado para el envío real al pulsar el
+           botón verde. Compartida entre una respuesta correcta real (verificar()) y el
+           botón de saltar — recibe solo el id, no el objeto reto completo, porque en el
+           caso de saltar un reto roto/no encontrado no existe tal objeto (retoActual es
+           null; el id fiable en ese caso es estado.retoActualId, ver mostrarReto()).
+        */
+        function _marcarRetoComoCompletado(retoId) {
+            retoDiv.classList.add("correct");
+            retoDiv.classList.remove("incorrect");
+            fuegosArtificiales(); // Llama a la animación
+
+            // Cambiar btnEnviar a 👍 verde
+            ocultarControles();
+            if (btnEnviar) {
+                btnEnviar.textContent = "👍";
+                btnEnviar.style.backgroundColor = "#00FF00";
+                btnEnviar.style.display = "inline-block";
+                btnEnviar.disabled = true;
+            }
+            // Ya no hace falta seguir ofreciendo saltar un reto que ya está aprobado.
+            if (btnSaltarReto) btnSaltarReto.disabled = true;
+
+            // Habilitar btnNext y ponerlo verde: el padre es quien decide si hay más
+            // retos en la parada (estado.retoActual.cola, codigo-padre.html) y empuja
+            // el siguiente automáticamente vía RETO.MOSTRAR sin que el usuario tenga
+            // que pulsar nada — retosArray que recibe hijo4 siempre trae un único
+            // reto (ver _enviarRetoMostrar/_procesarResultadoReto), así que calcular
+            // "hayMasRetos" localmente aquí siempre daba false y dejaba btnNext
+            // deshabilitado también en el último reto — el único botón que cierra la
+            // ventana flotante, dejándola atascada. btnNext siempre significa "cerrar":
+            // se habilita en cuanto la respuesta es correcta, sin condición.
+            if (btnNext) {
+                btnNext.disabled = false;
+                btnNext.style.backgroundColor = "#00FF00";
+            }
+
+            // Enviar mensaje al padre indicando que el reto se completó
+            // Actualizar estado de progreso
+            estadoRetos.retosCompletados.add(retoId);
+            estadoRetos.progreso.completados = estadoRetos.retosCompletados.size;
+            estadoRetos.ultimoReto = retoId;
+            estadoRetos.estadisticas.aciertosConsecutivos++;
+
+            logger.info(`[hijo4] Reto completado: ${retoId}. Progreso: ${estadoRetos.progreso.completados}/${estadoRetos.progreso.total}`);
+            logger.info(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${retoId}. Pendiente de confirmación con el botón verde.`);
+
+            // El envío real a RETO.COMPLETADO ocurre al pulsar btnNext (más abajo) — no
+            // aquí. Guardamos los datos para ese momento.
+            _pendienteCompletado = {
+                retoId,
+                correcto: true,
+                progreso: estadoRetos.progreso
+            };
+        }
+
         /* Función: verificar()
            Comprueba si la respuesta del usuario para el reto actual es correcta.
         */
@@ -1081,49 +1194,7 @@
             }
 
             if (esCorrecto) {
-                retoDiv.classList.add("correct");
-                fuegosArtificiales(); // Llama a la animación
-
-                // Cambiar btnEnviar a 👍 verde
-                ocultarControles();
-                if (btnEnviar) {
-                    btnEnviar.textContent = "👍";
-                    btnEnviar.style.backgroundColor = "#00FF00";
-                    btnEnviar.style.display = "inline-block";
-                    btnEnviar.disabled = true;
-                }
-
-                // Habilitar btnNext y ponerlo verde: el padre es quien decide si hay más
-                // retos en la parada (estado.retoActual.cola, codigo-padre.html) y empuja
-                // el siguiente automáticamente vía RETO.MOSTRAR sin que el usuario tenga
-                // que pulsar nada — retosArray que recibe hijo4 siempre trae un único
-                // reto (ver _enviarRetoMostrar/_procesarResultadoReto), así que calcular
-                // "hayMasRetos" localmente aquí siempre daba false y dejaba btnNext
-                // deshabilitado también en el último reto — el único botón que cierra la
-                // ventana flotante, dejándola atascada. btnNext siempre significa "cerrar":
-                // se habilita en cuanto la respuesta es correcta, sin condición.
-                if (btnNext) {
-                    btnNext.disabled = false;
-                    btnNext.style.backgroundColor = "#00FF00";
-                }
-
-                // Enviar mensaje al padre indicando que el reto se completó
-                // Actualizar estado de progreso
-                estadoRetos.retosCompletados.add(reto.id);
-                estadoRetos.progreso.completados = estadoRetos.retosCompletados.size;
-                estadoRetos.ultimoReto = reto.id;
-                estadoRetos.estadisticas.aciertosConsecutivos++;
-
-                logger.info(`[hijo4] Reto completado: ${reto.id}. Progreso: ${estadoRetos.progreso.completados}/${estadoRetos.progreso.total}`);
-                logger.info(`[FLUJO-RETO] [HIJO4] Reto completado localmente: ${reto.id}. Pendiente de confirmación con el botón verde.`);
-
-                // El envío real a RETO.COMPLETADO ocurre al pulsar btnNext (más abajo) — no
-                // aquí. Guardamos los datos para ese momento.
-                _pendienteCompletado = {
-                    retoId: reto.id,
-                    correcto: true,
-                    progreso: estadoRetos.progreso
-                };
+                _marcarRetoComoCompletado(reto.id);
             } else {
                 retoDiv.classList.add("incorrect");
                 vibrar();
@@ -1139,6 +1210,30 @@
                 }, 3000);
             }
         }
+
+        /* Event Listener: btnSaltarReto
+           Da el reto por aprobado sin responder — rescate visible y decidido por el
+           usuario para cuando no ve/no quiere hacer el reto, cumpliendo igualmente la
+           regla de coordenadas+audio+reto. Si el reto sigue cargado, pinta la respuesta
+           correcta en el propio selector antes de aprobar (bonus); si está roto/no
+           encontrado (retoActual es null, ver mostrarReto()), usa estado.retoActualId
+           — el único id fiable en ese caso.
+        */
+        btnSaltarReto.addEventListener("click", () => {
+            if (!estado.retoActualId) return; // nada activo que saltar
+            const retoParaSaltar = retoActual;
+            if (retoParaSaltar) {
+                if (retoParaSaltar.tipo === "opcion" || retoParaSaltar.tipo === "opcion-multiple") {
+                    document.querySelectorAll('input[name="op"]').forEach(input => {
+                        input.checked = (retoParaSaltar.correctas || []).includes(input.value);
+                    });
+                } else if (retoParaSaltar.tipo === "texto") {
+                    const inputTexto = document.getElementById("respuestaTexto");
+                    if (inputTexto) inputTexto.value = (retoParaSaltar.correctas || [])[0] || '';
+                }
+            }
+            _marcarRetoComoCompletado(estado.retoActualId);
+        });
 
         /* Event Listener: btnMostrarRespuesta
            Muestra la respuesta correcta del reto actual.
@@ -1494,8 +1589,15 @@
                         logger.warn(`[hijo4] RETO.MOSTRAR sin retosArray para ${retoId} — se intentará resolver desde caché local`);
                     }
 
-                    await mostrarReto(retoId);
+                    // Se fija ANTES de llamar a mostrarReto(), no después: si el reto no
+                    // está en caché, mostrarReto() queda esperando la respuesta del padre
+                    // (SOLICITAR_RETOS) antes de devolver el control — con el orden
+                    // anterior, estado.retoActualId se quedaba sin actualizar durante toda
+                    // esa espera, dejando al botón de saltar sin saber qué reto saltar
+                    // justo cuando más falta hace (el reto roto que el usuario ya está
+                    // viendo en pantalla).
                     estado.retoActualId = retoId;
+                    await mostrarReto(retoId);
                     // Fase 2: confirmar al padre que el reto ha sido mostrado
                     try {
                         await enviarMensaje({ tipo: TIPOS_MENSAJE.RETO.MOSTRADO, origen: CONFIG_HIJO.IFRAME_ID, destino: resolverIdPadre(), datos: { retoId } });
@@ -1893,6 +1995,7 @@
 <div id="button-container">
     <div id="respuestaCorrectaTexto"></div>
     <button id="btnMostrarRespuesta">🆘❓</button>
+    <button id="btnSaltarReto" class="btn-saltar-reto" aria-label="Saltar reto">⏩</button>
     <button id="btnNextAfterReto" class="btn-mundo-verde">
         <div class="elemento-orbita retraso-1"><span class="flecha-v">➣</span></div>
         <div class="elemento-orbita retraso-2"><span class="diana">🎯</span></div>

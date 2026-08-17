@@ -851,14 +851,15 @@ Una vez en modo AVENTURA, estos emojis aparecen en la interfaz:
 | ✖ | Padre (pantallas de fuera de rango, §31.4) | Botón para cerrar el aviso de distancia al objetivo |
 | 🔄 | Puzzle (puzzle.html) | Reiniciar el puzzle |
 | ⏸️ / ▶️ | Puzzle (puzzle.html) | Pausar / reanudar el puzzle |
+| ⏩ | Puzzle (puzzle.html) y Retos (retos-hijo4.html) | Saltar el reto/puzzle sin resolverlo — se da por aprobado igualmente (§13, "Saltar un reto o puzzle roto") |
 
 ```mermaid
 flowchart TD
     A([AVENTURA activa]) --> B{Elemento actual}
 
     B -- Parada --> C{¿Reto tipo puzzle\nen esta parada?}
-    C -- No --> D["Sin controles de puzzle\notros tipos de reto no muestran ⏸️▶️🔄"]
-    C -- Sí --> E["⏸️▶️ controles en puzzle.html\n🔄 Reiniciar puzzle\n(mismo componente que P6/hijo4, ver §13)"]
+    C -- No --> D["Sin controles de puzzle\notros tipos de reto no muestran ⏸️▶️🔄⏩"]
+    C -- Sí --> E["🔄 ⏸️▶️ ⏩ en puzzle.html\n(solo icono, mismo componente que P6/hijo4, ver §13)"]
 
     G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\nfuera 50m / desviado 150m / lejos 2000m / perdido"}
     G2 --> H["Padre muestra la pantalla\nde distancia que corresponda (§31.4)\nBotón ✖ para cerrar"]
@@ -2794,7 +2795,7 @@ sequenceDiagram
 │    → opciones según tipo: radio | checkbox | input texto | iframe puzzle │
 │  #btn-puzzle-continuar   (solo visible tras puzzle-state-completed)      │
 │  #button-container (flex-shrink:0; altura fija)                          │
-│    [🆘 #btnMostrarRespuesta]    [🌍 #btnNextAfterReto]                  │
+│    [🫵 dinámico] [🆘 #btnMostrarRespuesta] [⏩ #btnSaltarReto] [🌍 #btnNextAfterReto] │
 │  #respuestaCorrectaTexto (flex-shrink:0; oculto por defecto → SOS)       │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -2804,7 +2805,8 @@ sequenceDiagram
 | Botón | ID | Estado inicial | Cuándo se habilita | Cuándo se deshabilita |
 |-------|----|----------------|--------------------|-----------------------|
 | SOS (mostrar respuesta) | `#btnMostrarRespuesta` | Visible, enabled | Siempre disponible | — |
-| Continuar (🌍) | `#btnNextAfterReto` | `disabled = true`, `opacity: 0.35`, órbita detenida | Cuando el usuario responde correctamente (clase `.activo` + `disabled = false`) | Antes de responder |
+| Saltar (⏩, 2026-08-18) | `#btnSaltarReto` | Habilitado | Mientras hay `estado.retoActualId` activo (incluido un reto roto/no encontrado) | Al completarse el reto (real o saltado) — ver §13 |
+| Continuar (🌍) | `#btnNextAfterReto` | `disabled = true`, `opacity: 0.35`, órbita detenida | Cuando el usuario responde correctamente **o pulsa ⏩** (clase `.activo` + `disabled = false`) | Antes de responder/saltar |
 | Puzzle continuar | `#btn-puzzle-continuar` | `display:none` | Al recibir `puzzle-state-completed` del sub-iframe | Se oculta al salir del reto |
 
 **Comportamiento del SOS (`#btnMostrarRespuesta`)**:
@@ -3294,13 +3296,18 @@ puzzle.html?aventura=Aventura1&id=PZ-reto-3&tipoReto=true
 La config se carga de `PUZZLES_AVENTURAS[aventura]['puzzle.html'].puzzle_id.find(p => p.id === id)`.  
 Si el puzzle no se encuentra en `aventura`, puzzle.html hace búsqueda global en todas las entradas de `PUZZLES_AVENTURAS`.
 
+**Si tampoco se encuentra así** (`puzzleConfigValido = false`): se muestra `#errorMsg` con el texto del error, pero el script **ya no aborta con un `throw`** (corregido 2026-08-18) — la lógica específica del puzzle (imagen, canvas, piezas, temporizador, listeners de `#restartBtn`/`#pauseBtn`) queda encapsulada en `if (puzzleConfigValido) {...}`, de forma que el resto del script siga ejecutándose con normalidad y los botones queden con su listener registrado. Antes de esta corrección, el `throw` abortaba el script justo antes de llegar a esa línea, dejando los botones visibles pero completamente muertos al pulsarlos — ver más abajo, §13 "Saltar un reto o puzzle roto".
+
 #### Elementos UI y botones
+
+Los tres botones de la barra superior (`#leftControls`) son **solo icono, sin texto** (corregido 2026-08-18: antes mostraban texto en español — "🔄 Reiniciar", "⏸️ Pausa" — a usuarios de cualquier idioma).
 
 | Elemento | ID | Función | Estado inicial | Habilitado cuando |
 |----------|----|---------|---------------|-------------------|
 | Grid piezas | (canvas o divs generados) | Área de juego con piezas arrastrables | Generado en `init()` | Siempre |
-| Reiniciar | `#restartBtn` | Llama `init()` → resetea piezas, timer, redibuja | Siempre habilitado | Siempre |
-| Pausa/Continuar | `#pauseBtn` | Toggle `paused` flag — para/reanuda el timer y el refresco visual | Habilitado | Siempre |
+| Reiniciar (🔄) | `#restartBtn` | Llama `init()` → resetea piezas, timer, redibuja | Siempre habilitado | Solo si `puzzleConfigValido` |
+| Pausa/Continuar (⏸️/▶️) | `#pauseBtn` | Toggle `paused` flag — para/reanuda el timer y el refresco visual | Habilitado | Solo si `puzzleConfigValido` |
+| Saltar (⏩) | `#skipBtn` | Da el puzzle por resuelto sin jugarlo — ver sección de saltar más abajo | Siempre habilitado | Siempre, cargue o no el puzzle |
 | Timer | `#timer` (display) | Muestra tiempo restante en `MM:SS` | Valor inicial = `puzzleConfig.tiempo` | Solo visual |
 
 #### Mecánica del puzzle
@@ -3315,7 +3322,7 @@ Si el puzzle no se encuentra en `aventura`, puzzle.html hace búsqueda global en
 // Pausa/continuar
 pauseBtn.addEventListener('click', () => {
   paused = !paused;
-  pauseBtn.textContent = paused ? '▶️ Continuar' : '⏸️ Pausa';
+  pauseBtn.textContent = paused ? '▶️' : '⏸️'; // solo icono, sin texto (ver arriba)
   if (paused) clearInterval(timerInterval);
   else { requestAnimationFrame(draw); startTimer(); }
 });
@@ -3329,6 +3336,8 @@ pauseBtn.addEventListener('click', () => {
 | `PUZZLE.TIMEOUT` | Timer llega a 0 | `{ tipo: 'PUZZLE.TIMEOUT', origen: 'puzzle', datos: { puzzleId, exito: false, timestamp } }` |
 
 > Nota: los receptores (`En-busca-del-tesoro.html` y `retos-hijo4.html`) también aceptan el formato legacy (`'puzzle-state-completed'`/`'puzzle-state-timeout'`) por compatibilidad con versiones antiguas, pero `puzzle.html` ya solo envía el formato actual.
+>
+> Nota (2026-08-18): `PUZZLE.COMPLETADO` con `exito: true` también puede originarse al pulsar `#skipBtn` (ver §13, "Saltar un reto o puzzle roto") — el receptor no distingue el origen, es el mismo mensaje que envía una resolución real. `notificarPuzzleAlPadre(success)` centraliza el envío para ambos casos.
 
 #### Efectos visuales al finalizar
 
@@ -4745,7 +4754,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-ae4830d1718b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-d3155af018e9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6883,10 +6892,32 @@ Todos los botones de avance en `retos-hijo4.html` usan la clase `.btn-mundo-verd
 | ID | Cuándo es visible | Estado inicial |
 | -- | ----------------- | -------------- |
 | `#botonRetos` | Antes de mostrar el reto — MODO AVENTURA: tras `RETO.HABILITAR`; MODO CASA: siempre visible en paradas/tramos | Deshabilitado — oculto hasta recibir el mensaje correspondiente |
+| `#btnSaltarReto` | En `#button-container`, entre `#btnMostrarRespuesta` y `#btnNextAfterReto` (orden visual: 🫵, 🆘, ⏩, mundo verde) | Habilitado mientras hay un `estado.retoActualId` activo — ver "Saltar un reto o puzzle roto" más abajo |
 | `#btnNextAfterReto` | Mientras hay reto activo (deshabilitado hasta responder correctamente) | Deshabilitado |
 | `#btn-puzzle-continuar` | Solo cuando `puzzle-state-completed` llega de `puzzle.html` | Oculto |
 
 **Botón SOS (`#btnMostrarRespuesta`):** botón rectangular verde pequeño con texto `🆘❓`. Al pulsarlo muestra `#respuestaCorrectaTexto` (panel de respuesta correcta). Al pulsarlo de nuevo lo oculta. El panel tiene `flex-shrink: 0; overflow-y: auto; max-height: 4.5em` para no desbordar la ventana flotante.
+
+### Saltar un reto o puzzle roto (o que el usuario no quiere hacer)
+
+Implementado 2026-08-18. Motivación: (a) el usuario puede no ver el reto o no querer hacerlo, y (b) — el motivo que obligó a auditar toda la cadena primero — un reto o puzzle puede fallar al cargar por un error nuestro (dato roto/no encontrado), sin que eso deba dejarle bloqueado sin salida. Es un rescate **visible y decidido por el usuario**, no un temporizador ciego: el usuario pulsa ⏩, la aventura sigue teniéndolo por aprobado a efectos de la regla coordenadas+audio+reto, exactamente igual que si hubiera respondido bien.
+
+**Robustez previa (paso 1) — dos callejones sin salida reales, verificados contra el código antes de tocar nada:**
+
+- `puzzle.html` lanzaba un `throw` cuando el puzzle no se encontraba (`!puzzleId || !puzzleConfig`), abortando el resto del script **antes** de llegar a la línea que registra los listeners de `#restartBtn`/`#pauseBtn` — los botones quedaban visibles en pantalla pero completamente muertos al pulsarlos. Corregido: el `throw` se sustituyó por un flag `puzzleConfigValido` que envuelve toda la lógica específica del puzzle en `if (puzzleConfigValido) {...}`; el resto del script (incluido el nuevo `#skipBtn`) se registra siempre.
+- `retos-hijo4.html`, al no encontrar el reto en `mostrarReto()`, dejaba en pantalla el contenido del reto **anterior** sin avisar de nada (ni limpiaba `#reto` ni reseteaba `#btnNextAfterReto`/`_pendienteCompletado`), y si el reintento del padre (`js/controladores-padre.js`, controlador de `DATOS.SOLICITAR_RETOS`) tampoco encontraba el dato, no respondía nada — silencio total en ambos lados de la cadena, sin ninguna señal de fallo. Corregido: se limpia `#reto`, se resetea `#btnNextAfterReto`/`_pendienteCompletado`, y se muestra el aviso `MSG_RETO_NO_DISPONIBLE` (`js/traducciones-ui.js`, 12 idiomas) mientras se reintenta en segundo plano. La causa raíz del lado del padre (el controlador no responde nada si tampoco encuentra el reto) queda sin corregir — anotada como pendiente, no bloqueaba el rescate visible.
+- Bug adicional descubierto durante el propio desarrollo del botón: `estado.retoActualId` se fijaba **después** de que `await mostrarReto(retoId)` completara — y `mostrarReto()` puede tardar (espera la respuesta del padre a `DATOS.SOLICITAR_RETOS` antes de devolver el control). Con ese orden, `estado.retoActualId` se quedaba sin actualizar durante toda esa espera, justo el escenario en que el botón de saltar más hace falta. Corregido: se fija **antes** de llamar a `mostrarReto()`.
+
+**Los botones:**
+
+- **`puzzle.html` (`#skipBtn`, ⏩ icono, junto a 🔄/⏸️):** llama a `notificarPuzzleAlPadre(true)` — la misma función que usa `endPuzzle()` al resolver de verdad, así que el padre recibe idéntico `PUZZLE.COMPLETADO`. Si el puzzle sí cargó con éxito (`puzzleConfigValido`), antes de avisar coloca todas las piezas en su posición correcta (`p.placed = true; p.x = p.correctX; p.y = p.correctY;`) y llama a `draw()` una vez — el usuario ve el puzzle **montado de verdad**, no solo un aviso de "completado". Si el puzzle está roto, se salta directo a `notificarPuzzleAlPadre(true)` sin tocar canvas ni piezas (no hay nada que montar). Funciona siempre, cargue o no el puzzle — es la pieza que Paso 1 tuvo que dejar lista.
+- **`retos-hijo4.html` (`#btnSaltarReto`, ⏩ icono redondo, mismo tamaño que `.btn-mundo-verde` pero color naranja y sin decoraciones en órbita — para no confundirse visualmente con el botón de confirmar):** llama a `_marcarRetoComoCompletado(estado.retoActualId)` — la misma función extraída del bloque `esCorrecto` de `verificar()`, cero lógica duplicada entre una respuesta correcta real y un salto. Si el reto sigue cargado (`retoActual` no es `null`), antes de marcar la compleción pinta la respuesta correcta en el propio selector: marca el/los radio/checkbox de `reto.correctas` para tipo `opcion`/`opcion-multiple`, o rellena `#respuestaTexto` con `reto.correctas[0]` para tipo `texto`. Si el reto está roto (`retoActual === null`), no hay nada que pintar y se usa directamente `estado.retoActualId` — el único id fiable en ese caso, ver más arriba. En ambos casos, el resultado es el mismo que una respuesta correcta real: fuegos artificiales, `#btnNextAfterReto` se habilita en verde, y el envío real de `RETO.COMPLETADO` sigue ocurriendo solo al pulsar ese botón verde — el salto no se confirma al padre por sí solo.
+
+**Alcance deliberado — qué NO hace:** el botón no está limitado ni requiere ningún tiempo de espera previo (a diferencia del TTL de tramos, §31.7b, que sí exige 10 minutos y limita a 5 saltos por aventura). La diferencia de fondo: aquí no hay ninguna garantía de presencia física en juego (el usuario ya completó esa parte vía GPS/`recorridoSuficiente` antes de llegar al reto), así que no hace falta ningún límite antiabuso — es puramente "¿quiere ver/hacer este contenido concreto, o prefiere seguir?".
+
+**Cobertura de tests:** `tests/e2e/43-saltar-reto-puzzle-roto.spec.js` — PZ-1/PZ-2 (puzzle válido y roto, ambos avisan al padre; el válido monta las piezas de verdad) y RT-1/RT-2 (reto de opción válido pinta la respuesta correcta y habilita el mundo verde; reto roto también lo habilita, sin excepciones). WebKit (proyecto `iphone12`) omitido para `puzzle.html` standalone por el mismo límite de arnés ya documentado en `26-reto-completado-boton-verde.spec.js` (SSL connect error al cargar como página de nivel superior, no reproducible cargando como iframe real).
+
+El usuario final ve este mecanismo explicado en lenguaje llano en la FAQ del asistente de soporte (§27), pregunta `RETOS_NO_CARGA` (grupo `RETOS`) — actualizada el mismo día para mencionar el botón ⏩ en vez de limitarse a sugerir recargar la página, que no soluciona un dato roto de verdad.
 
 ---
 
@@ -7453,6 +7484,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `40-orden-restauracion-modo-antes-parada.spec.js` | 2 | Mecanismo aislado que gobierna `ejecutarRestauracionAventura()` (§25.10): con `estado.modo.actual` en `casa` en el instante del `CAMBIO_PARADA` restaurado, el recordatorio de audio no arranca solo (OR-1); con el modo ya en `aventura` en ese mismo instante — el orden real que aplica `_activarModoRest()` antes que `_restaurarProgresoRest()` — sí arranca solo (OR-2) |
 | `41-temporizador-compra-real-y-devmode.spec.js` | 3 | `_iniciarTemporizadorAventura()` (§7.2, §9.10 paso 8): al reanudar sesión, el tiempo enviado a hijo1 descuenta el tiempo real transcurrido desde `datosGuardados.timestamp` (la compra), no el que quedaba al cerrar la app — con 1h real transcurrida, Aventura1 (216000s/60h) envía ~212400s, nunca los 216000s completos (TW-1); en modo dev no se envía `AVENTURA.INICIADA` en absoluto, aunque el modo sea AVENTURA y haya reanudación — no hay compra real que cronometrar mientras se prueba la app (TW-2); sin reanudación ni tiempo restante previo (arranque nuevo), se envía el máximo completo sin descontar nada (TW-3) |
 | `42-ttl-tramo-saltos-seguridad.spec.js` | 5 | `_ejecutarBarridoTTLPending()` (§31.7, exclusivo de tramos): sin saltos disponibles (0% de progreso desde el último), el audio se rescata pero la llegada no (TTL-1); con ≥20% de progreso real desde el último salto, la llegada sí se rescata y se consume un salto (TTL-2); con los 5 saltos ya gastados, la llegada no se fuerza aunque sobre progreso (TTL-3); un pending de parada no recibe ningún rescate, ni de audio (TTL-4); fuera de modo AVENTURA el barrido no toca nada (TTL-5) |
+| `43-saltar-reto-puzzle-roto.spec.js` | 4 (WebKit omite 2 de puzzle) | Botón ⏩ (§13, "Saltar un reto o puzzle roto"): en `puzzle.html`, un puzzle válido se salta montando las piezas de verdad y avisando `PUZZLE.COMPLETADO` (PZ-1); uno roto/no encontrado hace lo mismo sin excepciones (PZ-2); en `retos-hijo4.html`, un reto de opción válido se salta marcando la respuesta correcta en el selector y habilita el mundo verde, que sí intenta el envío de `RETO.COMPLETADO` al pulsarlo (RT-1); un reto roto/no encontrado deja el botón de saltar habilitado (a diferencia del resto de controles) y también habilita el mundo verde (RT-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7603,7 +7635,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ae4830d1718b'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-d3155af018e9'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8246,7 +8278,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ae4830d1718b';
+const CACHE_VERSION = 'v-d3155af018e9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9262,6 +9294,10 @@ Si acierta:
 - Aparecen fuegos artificiales 🎆.
 - El botón "Siguiente" (`.btn-mundo-verde`) se habilita (verde) — pero `RETO.COMPLETADO` **no** se envía todavía.
 - Solo al pulsar ese botón verde (`#btnNextAfterReto` en retos normales, `#btn-puzzle-continuar` en puzzles) se envía `RETO.COMPLETADO` al padre, justo antes de `RETO.OCULTAR` (cierra la ventana). Antes de esta corrección, el envío ocurría en el mismo instante en que la respuesta se verificaba correcta — con la ventana del reto todavía tapando la pantalla, el padre podía completar la parada y mostrar su cartel de transición (§4.7g) antes de que el usuario hubiera confirmado nada pulsando el botón. `retos-hijo4.html` guarda la compleción en una variable de módulo (`_pendienteCompletado`) en cuanto la respuesta es correcta, y el envío real se dispara desde el `click` del botón verde, no desde `verificar()` ni desde el listener del iframe del puzzle. Cubierto por `tests/e2e/26-reto-completado-boton-verde.spec.js`.
+
+**Botón de saltar (⏩, 2026-08-18):** junto a 🆘 en retos normales, y junto a 🔄/⏸️ dentro de `puzzle.html`. Da el reto/puzzle por aprobado sin responderlo, dejando exactamente el mismo estado que acertar de verdad: borde verde, fuegos artificiales, y el botón "Siguiente" se habilita y **retoma su animación de órbita** (`.elemento-orbita`, pausada y a `opacity:0` solo mientras el botón está `:disabled` — al habilitarse vuelve a orbitar con normalidad, sea por acierto real o por salto). Sigue haciendo falta pulsar ese botón verde para confirmar `RETO.COMPLETADO` al padre — saltar no lo envía por sí solo. Detalle completo, incluido el bonus de pintar la respuesta correcta en el propio selector, en §13 "Saltar un reto o puzzle roto".
+
+**Si el reto o el puzzle no llega a aparecer** (dato roto o no encontrado — un error nuestro, no del usuario): `retos-hijo4.html` limpia la ventana y muestra "Este reto no está disponible en este momento" (12 idiomas) mientras reintenta en segundo plano; `puzzle.html` muestra su aviso de error dentro del recuadro del puzzle. En ambos casos el botón ⏩ sigue disponible — es la única vía de rescate para este caso, ver §13.
 
 Cuando el usuario completa el **último reto disponible** de la secuencia, aparece una **alerta del navegador** en el idioma elegido por el usuario al inicio de la aventura confirmando que ha terminado todos los retos. Los 12 idiomas están soportados (español, inglés, francés, italiano, neerlandés, japonés, alemán, chino, polaco, portugués, ruso, ucraniano) — texto en `MSG_RETOS_COMPLETOS`, importado desde `js/traducciones-ui.js`. El placeholder del input de tipo `texto` (`PLACEHOLDER_RESPUESTA_TEXTO`) viene de la misma fuente.
 
@@ -10981,7 +11017,7 @@ Fuente de verdad: `js/traducciones-ui.js` (`PREGUNTAS_CHAT` / `RESPUESTAS_CHAT`)
 | ⏱️ Tiempo y progreso | `TIEMPO_FIN_AVENTURA` | ¿Qué ocurre cuando finalizo la aventura? | — |
 | 🧩 Retos | `RETOS_NO_ENTIENDO` | No entiendo un reto. ¿Qué puedo hacer? | — |
 | 🧩 Retos | `RETOS_RESPUESTA_INCORRECTA` | Creo que mi respuesta es correcta, pero aparece como incorrecta. | — |
-| 🧩 Retos | `RETOS_NO_CARGA` | Un reto no carga o parece haberse bloqueado. | — |
+| 🧩 Retos | `RETOS_NO_CARGA` | Un reto o puzzle no carga, o parece haberse bloqueado | — (menciona el botón ⏩, ver §13) |
 | 🧩 Retos | `RETOS_AVANZAR_DESACTIVADO` | ¿Por qué el botón «Avanzar» está desactivado? | `fotoruta-A-B` |
 | ⚙️ Configuración | `CONFIG_AHORRO_ENERGIA` | ¿Puedo utilizar el modo de ahorro de energía? | — |
 | ⚙️ Configuración | `CONFIG_USO_UBICACION` | ¿Cómo se utiliza mi ubicación? | — |
@@ -11322,7 +11358,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-ae4830d1718b';
+const CACHE_VERSION = 'v-d3155af018e9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

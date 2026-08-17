@@ -116,8 +116,9 @@
 <div id="puzzleWrapper">
   <div id="topBar">
     <div id="leftControls">
-      <button id="restartBtn">🔄 Reiniciar</button>
-      <button id="pauseBtn">⏸️ Pausa</button>
+      <button id="restartBtn" aria-label="Reiniciar">🔄</button>
+      <button id="pauseBtn" aria-label="Pausa">⏸️</button>
+      <button id="skipBtn" aria-label="Saltar puzzle">⏩</button>
     </div>
     <span id="timer">03:00</span>
   </div>
@@ -179,14 +180,50 @@ if (!puzzleConfig) {
     }
 }
 
-if (!puzzleId || !puzzleConfig) {
+// No relanzar como throw: un puzzle roto/no encontrado no debe abortar el resto del
+// script, o los botones (reiniciar/pausa y, más adelante, saltar) se quedarían sin su
+// listener registrado — visibles en pantalla pero completamente muertos al pulsarlos.
+const puzzleConfigValido = Boolean(puzzleId && puzzleConfig);
+if (!puzzleConfigValido) {
     const errorMsg = document.getElementById("errorMsg");
     const errorText = document.getElementById("errorText");
     errorText.textContent = `❌ Error: Puzzle "${puzzleId || 'sin ID'}" no encontrado en ${aventuraActual}`;
     errorMsg.style.display = "block";
-    throw new Error(`Puzzle ${puzzleId} no encontrado en PUZZLES_AVENTURAS.${aventuraActual}`);
+    (globalThis.logger || console).error(`[puzzle] Puzzle ${puzzleId} no encontrado en PUZZLES_AVENTURAS.${aventuraActual}`);
 }
 
+// Botón de saltar (⏩): la única vía de rescate real cuando el puzzle está roto/no
+// encontrado, así que su listener y el aviso al padre no pueden depender de que
+// puzzleConfigValido sea true — de ahí que notificarPuzzleAlPadre() solo necesite
+// puzzleId (ya resuelto arriba, válido o no) y viva fuera del bloque de abajo.
+let saltarPuzzleResuelto = null; // se rellena más abajo solo si el puzzle carga con éxito
+function notificarPuzzleAlPadre(success) {
+    try {
+        globalThis.parent.postMessage(
+            {
+                tipo: success ? TIPOS_MENSAJE.PUZZLE.COMPLETADO : TIPOS_MENSAJE.PUZZLE.TIMEOUT,
+                origen: 'puzzle',
+                datos: { puzzleId, exito: success, timestamp: Date.now() }
+            },
+            globalThis.location.origin
+        );
+    } catch (e) {
+        (globalThis.logger || console).warn('[puzzle] No se pudo enviar estado al padre:', e && e.message);
+    }
+}
+const skipBtn = document.getElementById("skipBtn");
+if (skipBtn) {
+    skipBtn.addEventListener("click", () => {
+        if (typeof saltarPuzzleResuelto === 'function') {
+            saltarPuzzleResuelto();
+        } else {
+            notificarPuzzleAlPadre(true);
+        }
+        skipBtn.disabled = true;
+    });
+}
+
+if (puzzleConfigValido) {
 // Obtener la configuración del puzzle (con valores por defecto para propiedades opcionales)
 const imageSrc = puzzleConfig.imagen;
 const rows = puzzleConfig.filas || 3;
@@ -319,7 +356,7 @@ function resizePieces() {
 function init() {
     puzzleEnded = false;
     paused = false;
-    pauseBtn.textContent = "⏸️ Pausa";
+    pauseBtn.textContent = "⏸️";
     
     // Asegurar que el canvas tenga dimensiones válidas antes de inicializar
     if (canvas.width <= 0 || canvas.height <= 0) {
@@ -464,15 +501,7 @@ function endPuzzle(success) {
     puzzleEnded = true;
     clearInterval(timerInterval);
 
-    const tipo = success ? TIPOS_MENSAJE.PUZZLE.COMPLETADO : TIPOS_MENSAJE.PUZZLE.TIMEOUT;
-    try {
-        globalThis.parent.postMessage(
-            { tipo, origen: 'puzzle', datos: { puzzleId, exito: success, timestamp: Date.now() } },
-            globalThis.location.origin
-        );
-    } catch (e) {
-        logger.warn('[puzzle] No se pudo enviar estado al padre:', e && e.message);
-    }
+    notificarPuzzleAlPadre(success);
 
     if (success) {
         successSound.play();
@@ -603,7 +632,7 @@ restartBtn.addEventListener("click", () => {
 
 pauseBtn.addEventListener("click", () => {
     paused = !paused;
-    pauseBtn.textContent = paused ? "▶️ Continuar" : "⏸️ Pausa";
+    pauseBtn.textContent = paused ? "▶️" : "⏸️";
     if (paused) {
         clearInterval(timerInterval);
     } else {
@@ -618,6 +647,18 @@ canvas.addEventListener("pointerup", onPointerUp);
 canvas.addEventListener("pointercancel", onPointerUp);
 canvas.addEventListener("pointerout", onPointerUp);
 canvas.addEventListener("pointerleave", onPointerUp);
+
+// Bonus del botón de saltar: coloca todas las piezas en su posición correcta antes de
+// dar el puzzle por resuelto, reutilizando el mismo draw()/endPuzzle() que el desenlace
+// real — no solo el aviso de "completado", el usuario ve el puzzle montado de verdad.
+saltarPuzzleResuelto = () => {
+    pieces.forEach(p => { p.placed = true; p.x = p.correctX; p.y = p.correctY; });
+    placedCount = pieces.length;
+    draw();
+    endPuzzle(true);
+};
+
+} // fin if (puzzleConfigValido) — cierra el bloque abierto antes de "Obtener la configuración"
 
 </script>
 </body>
