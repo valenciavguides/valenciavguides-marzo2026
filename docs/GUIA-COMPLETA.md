@@ -4745,7 +4745,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-0272142c3742'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-3bf6bd9ae684'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7603,7 +7603,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-0272142c3742'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-3bf6bd9ae684'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8246,7 +8246,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-0272142c3742';
+const CACHE_VERSION = 'v-3bf6bd9ae684';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10876,12 +10876,12 @@ Para el mecanismo completo — estructura del acordeón, marcadores `{{IMG:fiche
 
 ### Los 9 temas
 
-`ORDEN_TEMAS_CHAT` define el orden de aparición. Cada tema agrupa entre 1 y 17 preguntas (`TEMAS_AGRUPADOS_CHAT`):
+`ORDEN_TEMAS_CHAT` define el orden de aparición. Cada tema agrupa entre 1 y 18 preguntas (`TEMAS_AGRUPADOS_CHAT`):
 
 | Tema | Clave | Nº preguntas |
 | ---- | ----- | ------------ |
 | 🚦 Antes de comenzar | `ANTES_DE_COMENZAR` | 4 |
-| 📌 Ubicación y navegación | `UBICACION_NAVEGACION` | 17 |
+| 📌 Ubicación y navegación | `UBICACION_NAVEGACION` | 18 |
 | 🔊 Audio | `AUDIO` | 6 |
 | ⏱️ Tiempo y progreso | `TIEMPO_PROGRESO` | 7 |
 | 🧩 Retos | `RETOS` | 4 |
@@ -10890,7 +10890,7 @@ Para el mecanismo completo — estructura del acordeón, marcadores `{{IMG:fiche
 | ▶️ Ver introducción de nuevo | `VER_INTRODUCCION` | 1 |
 | ❤️ Agradecimientos | `AGRADECIMIENTOS` | 1 |
 
-Total: **46 preguntas**, completas en los 12 idiomas soportados (`IDIOMAS_CHAT`: es, en, fr, it, nl, ja, de, zh, pl, pt, ru, uk).
+Total: **47 preguntas**, completas en los 12 idiomas soportados (`IDIOMAS_CHAT`: es, en, fr, it, nl, ja, de, zh, pl, pt, ru, uk).
 
 ### Los datos: js/traducciones-ui.js
 
@@ -10938,7 +10938,7 @@ La lógica de fallback sigue el mismo patrón que en toda la app: si no hay text
 
 ---
 
-### Catálogo completo de las 46 preguntas
+### Catálogo completo de las 47 preguntas
 
 Fuente de verdad: `js/traducciones-ui.js` (`PREGUNTAS_CHAT` / `RESPUESTAS_CHAT`). La columna **Marcadores** lista los `{{IMG:fichero}}` que contiene la respuesta en español, en orden de aparición; **Enlace** es el valor de `RESPUESTAS_CHAT[clave][idioma].enlace` (`null` si no tiene).
 
@@ -10960,6 +10960,7 @@ Fuente de verdad: `js/traducciones-ui.js` (`PREGUNTAS_CHAT` / `RESPUESTAS_CHAT`)
 | 📌 Ubicación y navegación | `UBIC_PARADAS_RESTANTES` | ¿Cómo puedo consultar cuántas paradas quedan? | — |
 | 📌 Ubicación y navegación | `UBIC_ORDEN_PARADAS` | ¿Puedo visitar las paradas en cualquier orden? | — |
 | 📌 Ubicación y navegación | `UBIC_CAMINO_DIFERENTE` | ¿Puedo seguir un camino diferente al que aparece en el mapa? | — |
+| 📌 Ubicación y navegación | `UBIC_ATASCADO_TRAMO` | ¿Qué pasa si me quedo atascado en un tramo y no consigo avanzar? | — (explica en lenguaje llano el rescate por TTL de §31.7b: 10 min, máx. 5 veces por aventura) |
 | 📌 Ubicación y navegación | `UBIC_PASO_DE_LARGO` | ¿Qué ocurre si paso de largo una parada? | — |
 | 📌 Ubicación y navegación | `UBIC_CAMARA_MAPA` | ¿Por qué el mapa ha dejado de seguir mi posición mientras camino? | — (glifo ◎ literal, sin `{{IMG:}}` — el botón no tiene icono en PNG) |
 | 📌 Ubicación y navegación | `UBIC_AVISOS_CARTEL` | ¿Qué son los avisos que aparecen brevemente en la parte superior de la pantalla? | `fotoruta-A-B`, `boton-audio-central` |
@@ -11321,7 +11322,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-0272142c3742';
+const CACHE_VERSION = 'v-3bf6bd9ae684';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11593,6 +11594,8 @@ Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, con
 **Saltos de seguridad (`estado.tramoSkipsUsados` / `estado.progresoEnUltimoSkip`):** máximo **5 por aventura**, y cada uno exige un **20% de progreso real** (`estado.indiceProgreso / totalElementos`, vía `_calcularProgresoFraccion()`) desde el último salto usado. Pensado para un usuario genuinamente perdido por una causa real — obras, calle cortada, un evento — que de otro modo se frustraría y abandonaría la app sin ninguna salida; no como forma de avanzar sin moverse: 5 saltos en toda la aventura, espaciados por un quinto del recorrido cada vez, no permiten completarla entera sin presencia real, solo rescatan los tramos puntuales donde de verdad hizo falta. Al consumirse un salto, se persiste de inmediato (`persistProgressState()`) — a diferencia de la distancia recorrida (que se reinicia adrede al cerrar la PWA, ver §"Distancia recorrida"), estos dos campos **sí deben persistir**: son un límite antiabuso, no contabilidad de progreso — sin persistirlos, cerrar y reabrir la PWA antes de cada salto daría saltos ilimitados en vez de 5 por aventura. Se reinician a 0 al elegir otra aventura (mismo punto donde se resetea `estado.tiempoRestante`) — son de ESTA aventura, no deben heredarse a la siguiente.
 
 Cubierto por `tests/e2e/42-ttl-tramo-saltos-seguridad.spec.js`: audio se rescata siempre (TTL-1/2/3); sin saltos disponibles la llegada no se fuerza (TTL-1); con progreso suficiente sí, y consume un salto (TTL-2); con los 5 saltos ya gastados, no se fuerza aunque sobre progreso (TTL-3); un pending de parada no recibe ningún rescate (TTL-4); fuera de AVENTURA el barrido no toca nada (TTL-5).
+
+El usuario final ve este mecanismo explicado en lenguaje llano en la FAQ del asistente de soporte (§27), pregunta `UBIC_ATASCADO_TRAMO` (grupo `UBICACION_NAVEGACION`) — menciona los 10 minutos y el máximo de 5 veces por aventura a propósito, sin entrar en `indiceProgreso`/20% ni en la distinción audio/llegada.
 
 **Nota sobre tramos:** los tramos requieren `pending.audio && pending.llegada`. Si el audio no carga pero el GPS sí confirma llegada (con `recorridoSuficiente`, ver §"Distancia recorrida"), el tramo sigue bloqueado hasta que se resuelva el audio. La solución del punto 1 (AUDIO.ERROR → pending.audio = true) también desbloquea este caso — y, si el audio queda atascado más de 10 minutos, el TTL lo rescata igual, sin límite.
 
