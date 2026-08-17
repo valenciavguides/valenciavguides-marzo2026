@@ -37,10 +37,10 @@
            .logo-carga-circular-bg (En-busca-del-tesoro.html) — mismo lenguaje visual
            en las tres pantallas de espera de la app. */
         .logo-carga-circular-bg {
-            width: min(58vmin, 58vw, 52vh);
-            height: min(58vmin, 58vw, 52vh);
-            max-width: min(58vmin, 52vh);
-            max-height: min(58vmin, 52vh);
+            width: min(85vmin, 85vw, 70vh);
+            height: min(85vmin, 85vw, 70vh);
+            max-width: min(85vmin, 70vh);
+            max-height: min(85vmin, 70vh);
             background: #ff8c00;
             border-radius: 50%;
             display: flex;
@@ -68,6 +68,39 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        /* Misma barra+porcentaje que #loading-overlay/.carga-progreso-wrap — esta
+           pantalla casi nunca llega a pintarse (el <script> de <head> ya redirige
+           antes de que el body se parsee), pero si alguna vez se ve, mantiene el
+           mismo lenguaje visual que el resto de pantallas de espera aunque el
+           progreso aquí sea decorativo (no hay nada real que medir en un redirect). */
+        .carga-progreso-wrap {
+            width: min(92vw, 30rem);
+            margin: 0.25rem auto 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .carga-progreso-barra {
+            width: 100%;
+            height: clamp(0.9rem, 2.6vmin, 1.1rem);
+            border-radius: 999px;
+            overflow: hidden;
+            border: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.28);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+        }
+        .carga-progreso-barra::-webkit-progress-bar { background: rgba(255,255,255,0.28); border-radius: 999px; }
+        .carga-progreso-barra::-webkit-progress-value { background: linear-gradient(90deg,#ffd84d 0%,#ffb347 100%); border-radius: 999px; transition: width 0.35s ease; }
+        .carga-progreso-barra::-moz-progress-bar { background: linear-gradient(90deg,#ffd84d 0%,#ffb347 100%); border-radius: 999px; }
+        .carga-progreso-porcentaje {
+            font-size: clamp(1.1rem, 3.4vmin, 1.32rem);
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+        }
         p {
             text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.15);
         }
@@ -84,10 +117,28 @@
         <div class="logo-carga-circular-bg">
             <img class="logo-carga-spin" src="imagenes/imagenes-aplicación/logo-redondo.png" alt="Cargando">
         </div>
+        <div class="carga-progreso-wrap" aria-label="Progreso de carga">
+            <progress class="carga-progreso-barra" id="index-progreso-barra" max="100" value="0" aria-label="Carga"></progress>
+            <div class="carga-progreso-porcentaje" id="index-progreso-porcentaje">0%</div>
+        </div>
         <p>Redirigiendo a la aventura...</p>
         <p><small>Si no eres redirigido automáticamente, <a href="codigo-padre.html">haz clic aquí</a>.</small></p>
     </div>
     <script>
+        // Progreso decorativo (no hay nada real que medir en un redirect) — solo
+        // para mantener el mismo lenguaje visual que el resto de pantallas de
+        // espera en el rarísimo caso de que esta pantalla llegue a verse.
+        (function () {
+            var barra = document.getElementById('index-progreso-barra');
+            var porcentaje = document.getElementById('index-progreso-porcentaje');
+            var valor = 0;
+            var paso = setInterval(function () {
+                valor = Math.min(valor + 18, 100);
+                if (barra) barra.value = valor;
+                if (porcentaje) porcentaje.textContent = valor + '%';
+                if (valor >= 100) clearInterval(paso);
+            }, 60);
+        })();
         // Force HTTPS redirect for valenciavguides.es
         if (globalThis.location.protocol !== 'https:' && 
             globalThis.location.hostname === 'valenciavguides.es') {

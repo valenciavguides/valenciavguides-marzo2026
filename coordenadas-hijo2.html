@@ -1872,6 +1872,16 @@ try {
     function _resetarEstadoParaModo(modo, logPrefix) {
         estadoComponente.modo = modo;
         estadoComponente.tipoParadaActual = null;
+        // Sin esto, la parada/tramo de la sesión anterior seguía "seleccionada" al cambiar
+        // de modo — actualizarEstadoBotones() se ejecuta al final de esta función y
+        // habilitaba botones (avanzar incluido) como si el usuario ya hubiera elegido algo
+        // en el modo nuevo, sin haber tocado nada todavía (reporte de uso real 2026-08-17).
+        estadoComponente.idParadaActual = null;
+        estadoComponente.distanciaAlDestino = null;
+        estadoComponente.posicionActualUsuario = null;
+        estadoComponente.paradaPendiente = false;
+        estadoComponente.btnAvanzarCompletadoPorPadre = false;
+        estadoComponente.btnAvanzarDeshabilitadoExternamente = false;
         estadoComponente.retoActivo = false;
         estadoComponente.ubicacionActiva = false;
         estadoComponente.gpsActivo = false;

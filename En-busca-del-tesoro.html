@@ -77,10 +77,10 @@
       overflow-y: auto;
     }
     .logo-carga-circular-bg {
-      width: min(58vmin, 58vw, 52vh);
-      height: min(58vmin, 58vw, 52vh);
-      max-width: min(58vmin, 52vh);
-      max-height: min(58vmin, 52vh);
+      width: min(85vmin, 85vw, 70vh);
+      height: min(85vmin, 85vw, 70vh);
+      max-width: min(85vmin, 70vh);
+      max-height: min(85vmin, 70vh);
       background: #ff8c00;
       border-radius: 50%;
       display: flex;
@@ -141,12 +141,19 @@
       align-items: center;
       gap: 0.42rem;
     }
-    .carga-progreso-estado {
-      font-size: clamp(0.95rem, 2.8vmin, 1.1rem);
-      color: rgba(0,0,0,0.87);
-      font-weight: 700;
-      letter-spacing: 0.02em;
+    .carga-progreso-frase {
+      font-size: clamp(0.95rem, 3.7vmin, 1.2rem);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-style: italic;
+      color: #fff;
       text-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.2);
+      text-align: center;
+      min-height: 1.4em;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      max-width: 90vw;
     }
     .carga-progreso-barra {
       width: 100%;
@@ -175,9 +182,9 @@
       border-radius: 999px;
     }
     .carga-progreso-porcentaje {
-      font-size: clamp(1rem, 3vmin, 1.18rem);
+      font-size: clamp(1.1rem, 3.4vmin, 1.32rem);
       font-weight: 800;
-      color: #1a1a1a;
+      color: #ffffff;
       text-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.2);
     }
     @media (max-aspect-ratio: 3/4) {
@@ -187,10 +194,10 @@
         max-height: 90%;
       }
       .logo-carga-circular-bg {
-        width: min(44vmin, 44vw, 38vh);
-        height: min(44vmin, 44vw, 38vh);
-        max-width: min(44vmin, 38vh);
-        max-height: min(44vmin, 38vh);
+        width: min(64vmin, 64vw, 56vh);
+        height: min(64vmin, 64vw, 56vh);
+        max-width: min(64vmin, 56vh);
+        max-height: min(64vmin, 56vh);
       }
       .carga-progreso-wrap {
         width: min(92vw, 24rem);
@@ -202,10 +209,10 @@
         padding-top: min(3dvh, 1.25rem);
       }
       .logo-carga-circular-bg {
-        width: min(40vmin, 40vw, 34vh);
-        height: min(40vmin, 40vw, 34vh);
-        max-width: min(40vmin, 34vh);
-        max-height: min(40vmin, 34vh);
+        width: min(58vmin, 58vw, 50vh);
+        height: min(58vmin, 58vw, 50vh);
+        max-width: min(58vmin, 50vh);
+        max-height: min(58vmin, 50vh);
       }
       .carga-progreso-wrap {
         width: min(90vw, 22rem);
@@ -1009,9 +1016,9 @@
         <img src="imagenes/imagenes-aplicación/logo-redondo.png" class="logo-carga-spin" alt="Cargando">
       </div>
       <div class="carga-progreso-wrap" aria-label="Progreso de carga">
-        <div class="carga-progreso-estado" id="carga-progreso-estado">1/4</div>
         <progress class="carga-progreso-barra" id="carga-progreso-barra" max="100" value="0" aria-label="Carga"></progress>
         <div class="carga-progreso-porcentaje" id="carga-progreso-porcentaje">0%</div>
+        <div class="carga-progreso-frase" id="carga-progreso-frase"></div>
       </div>
     </div>
   </div>
@@ -1770,17 +1777,51 @@
       void mostrar(15);
     }
 
-    function actualizarProgresoCargaAventura(porcentaje, pasoActual = 1, pasosTotales = 4) {
+    function actualizarProgresoCargaAventura(porcentaje) {
       const overlay = document.getElementById('overlay-carga-aventura');
       const porcentajeEl = document.getElementById('carga-progreso-porcentaje');
-      const estadoEl = document.getElementById('carga-progreso-estado');
       const barra = document.getElementById('carga-progreso-barra');
       const valor = Math.max(0, Math.min(100, Math.round(Number(porcentaje) || 0)));
 
       if (overlay) overlay.dataset.progreso = String(valor);
       if (porcentajeEl) porcentajeEl.textContent = `${valor}%`;
-      if (estadoEl) estadoEl.textContent = `${pasoActual}/${pasosTotales}`;
       if (barra) barra.value = valor;
+    }
+
+    // Mismas frases rotatorias que #loading-overlay (codigo-padre.html) y la
+    // pantalla de reanudación — es el mismo componente visual (logo redondo +
+    // barra fake) en distintos momentos de espera, así que comparte el mismo
+    // banco de frases en vez de tener uno propio.
+    let _cargaFraseTimer = null;
+    let _cargaUltimaFraseIdx = -1;
+    function _iniciarFraseCargaAventura() {
+      if (_cargaFraseTimer) { clearInterval(_cargaFraseTimer); _cargaFraseTimer = null; }
+      const reanudacion = globalThis.TRADUCCIONES_REANUDACION || {};
+      const idioma = idiomaSeleccionado || 'es';
+      const t = reanudacion[idioma] || reanudacion['es'];
+      const frasesCarga = Array.isArray(t?.frasesCarga) ? t.frasesCarga : [];
+      const fraseEl = document.getElementById('carga-progreso-frase');
+      if (!fraseEl || frasesCarga.length === 0) return;
+      _cargaUltimaFraseIdx = -1;
+      const mostrarFraseAleatoria = () => {
+        let idx = Math.floor(Math.random() * frasesCarga.length);
+        if (frasesCarga.length > 1 && idx === _cargaUltimaFraseIdx) {
+          idx = (idx + 1) % frasesCarga.length;
+        }
+        _cargaUltimaFraseIdx = idx;
+        fraseEl.style.opacity = '0';
+        setTimeout(() => {
+          fraseEl.textContent = frasesCarga[idx];
+          fraseEl.style.opacity = '1';
+        }, 400);
+      };
+      mostrarFraseAleatoria();
+      _cargaFraseTimer = setInterval(mostrarFraseAleatoria, 5000);
+    }
+    function _detenerFraseCargaAventura() {
+      if (_cargaFraseTimer) { clearInterval(_cargaFraseTimer); _cargaFraseTimer = null; }
+      const fraseEl = document.getElementById('carga-progreso-frase');
+      if (fraseEl) { fraseEl.style.opacity = '0'; fraseEl.textContent = ''; }
     }
 
     function mostrarOverlayCargaAventura() {
@@ -1798,20 +1839,20 @@
         timerProgresoCarga = null;
       }
 
-      actualizarProgresoCargaAventura(8, 1, 4);
+      actualizarProgresoCargaAventura(8);
+      _iniciarFraseCargaAventura();
 
       // Incremento suave mientras esperamos confirmación del padre.
       timerProgresoCarga = setInterval(() => {
         const actual = Number(overlay.dataset.progreso || 0);
         if (actual >= 92) return;
         const siguiente = Math.min(actual + 3, 92);
-        const paso = Math.max(1, Math.min(4, Math.floor(siguiente / 25) + 1));
-        actualizarProgresoCargaAventura(siguiente, paso, 4);
+        actualizarProgresoCargaAventura(siguiente);
       }, 700);
 
       // Safety net: si tarda mucho, subimos a 95% y mantenemos espera visual.
       timerMensajeCarga = setTimeout(() => {
-        actualizarProgresoCargaAventura(95, 4, 4);
+        actualizarProgresoCargaAventura(95);
       }, 9000);
     }
 
@@ -1829,8 +1870,9 @@
         clearInterval(timerProgresoCarga);
         timerProgresoCarga = null;
       }
+      _detenerFraseCargaAventura();
 
-      actualizarProgresoCargaAventura(0, 1, 4);
+      actualizarProgresoCargaAventura(0);
     }
 
     // ============================================================
@@ -2269,11 +2311,12 @@
        mostrarOverlayCargaAventura, actualizarProgresoCargaAventura, timerProgresoCarga,
        ocultarOverlayCargaAventura */
     import { getEnviarMensaje, getRegistrarControlador, resolverIdPadre } from './js/utils.js';
-    import { TRADUCCIONES_DESPEDIDA, TRADUCCIONES_ACCESO_ERRONEO, TEXTOS_VALORACION } from './js/traducciones-ui.js';
+    import { TRADUCCIONES_DESPEDIDA, TRADUCCIONES_ACCESO_ERRONEO, TEXTOS_VALORACION, TRADUCCIONES_REANUDACION } from './js/traducciones-ui.js';
     import { enviarValoracion } from './js/feedback-forms.js';
     globalThis.TRADUCCIONES_DESPEDIDA = TRADUCCIONES_DESPEDIDA;
     globalThis.TRADUCCIONES_ACCESO_ERRONEO = TRADUCCIONES_ACCESO_ERRONEO;
     globalThis.TEXTOS_VALORACION = TEXTOS_VALORACION;
+    globalThis.TRADUCCIONES_REANUDACION = TRADUCCIONES_REANUDACION;
     globalThis.enviarValoracion = enviarValoracion;
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
@@ -2926,10 +2969,10 @@
         btnNormativa.style.opacity = '0.3';
       }
       mostrarOverlayCargaAventura();
-      actualizarProgresoCargaAventura(12, 1, 4);
+      actualizarProgresoCargaAventura(12);
 
         try {
-            actualizarProgresoCargaAventura(28, 2, 4);
+            actualizarProgresoCargaAventura(28);
             logger.debug('🚀 [SELECCION] iniciarAventura() LLAMADA');
             logger.debug('🚀 [SELECCION] Estado:', JSON.stringify({
                 aventura: estadoComponente.aventuraSeleccionada,
@@ -2941,7 +2984,7 @@
             
             const padreId = resolverIdPadre();
             logger.debug('🚀 [SELECCION] Destino (padre):', padreId);
-            actualizarProgresoCargaAventura(55, 3, 4);
+            actualizarProgresoCargaAventura(55);
             
             // Enviar mensaje de activación al padre (registra aventura, carga hijos, NO cambia modo)
             const mensajeEnviado = await enviarMensaje({
@@ -2956,7 +2999,7 @@
                 }
             });
 
-            actualizarProgresoCargaAventura(100, 4, 4);
+            actualizarProgresoCargaAventura(100);
             if (timerProgresoCarga) {
               clearInterval(timerProgresoCarga);
               globalThis._setTimerProgresoCarga(null);

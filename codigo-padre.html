@@ -2210,10 +2210,10 @@
     }
 
     #loading-spinner-shell {
-        width: min(70vmin, 70vw, 58vh);
-        height: min(70vmin, 70vw, 58vh);
-        max-width: min(70vmin, 58vh);
-        max-height: min(70vmin, 58vh);
+        width: min(85vmin, 85vw, 70vh);
+        height: min(85vmin, 85vw, 70vh);
+        max-width: min(85vmin, 70vh);
+        max-height: min(85vmin, 70vh);
         background: #ff8c00;
         border-radius: 50%;
         display: flex;
@@ -2223,7 +2223,7 @@
            se centra como conjunto via justify-content:center del padre) para que
            el circulo mas grande no deje la barra de progreso pegada al borde
            inferior de la pantalla. */
-        margin: -3vh 0 0.5rem 0;
+        margin: -3.6vh 0 0.5rem 0;
         border: none;
         box-shadow: none;
         flex: 0 0 auto;
@@ -2312,10 +2312,10 @@
 
     @media (max-aspect-ratio: 3/4) {
         #loading-spinner-shell {
-            width: min(53vmin, 53vw, 46vh);
-            height: min(53vmin, 53vw, 46vh);
-            max-width: min(53vmin, 46vh);
-            max-height: min(53vmin, 46vh);
+            width: min(64vmin, 64vw, 56vh);
+            height: min(64vmin, 64vw, 56vh);
+            max-width: min(64vmin, 56vh);
+            max-height: min(64vmin, 56vh);
         }
         #loading-progress-wrap {
             width: min(92vw, 24rem);
@@ -2324,10 +2324,10 @@
 
     @media (max-aspect-ratio: 9/16) {
         #loading-spinner-shell {
-            width: min(48vmin, 48vw, 41vh);
-            height: min(48vmin, 48vw, 41vh);
-            max-width: min(48vmin, 41vh);
-            max-height: min(48vmin, 41vh);
+            width: min(58vmin, 58vw, 50vh);
+            height: min(58vmin, 58vw, 50vh);
+            max-width: min(58vmin, 50vh);
+            max-height: min(58vmin, 50vh);
         }
         #loading-progress-wrap {
             width: min(90vw, 22rem);
@@ -3990,6 +3990,7 @@
                 error: null,
                 ultimaUbicacion: null,
                 visualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
+                proximidadReal: false, // Distancia real ≤50m al destino activo (funciones-mapa.js) — a diferencia de visualActivo, nunca se activa solo por revelarse el trazado
                 tramoAudioPendiente: false // Controla si hay audio de tramo pendiente de escuchar
             },
             audioEscuchadoPorParada: new Map(), // Rastrea si el audio ha sido escuchado al menos una vez por parada
@@ -7409,6 +7410,25 @@
 
         async function _hdl_SISTEMA_CAMBIO_MODO(mensaje) {
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[CAMBIO_MODO]`;
+            // Guard de secuencia completa — único guard de cambio de modo de toda la app
+            // (consolidado 2026-08-17; antes había uno separado dentro de manejarCambioModo()
+            // en js/app.js que solo protegía su propio interior y ya volvía a false antes de
+            // que se ejecutara la restauración de más abajo, dejando esa ventana sin proteger).
+            // Sin cubrir la secuencia completa, congelar estado.paradaRealCongelada (justo
+            // debajo) y restaurarlo (más abajo) no eran atómicos entre sí: un segundo
+            // SISTEMA.CAMBIO_MODO que llegara mientras el primero seguía resolviendo
+            // (freeze→manejarCambioModo→restauración) podía congelar un estado.paradaActual
+            // todavía sin restaurar del primero, sustituyendo el progreso real congelado por
+            // un valor de exploración en CASA — corrupción real de vv_progreso (reporte de
+            // uso real 2026-08-17: progreso real perdido tras alternar CASA/AVENTURA con
+            // rapidez). estado.sistema puede no existir todavía la primera vez (se crea de
+            // forma perezosa en manejarCambioModo(), que ya no se ejecuta antes de este punto).
+            estado.sistema = estado.sistema || {};
+            if (estado.sistema.cambiandoModo) {
+                (globalThis.logger || console).warn(`${logPrefix} Cambio de modo ya en curso — solicitud de ${mensaje.origen} rechazada para no corromper el progreso congelado`);
+                return { exito: false, error: 'Ya hay un cambio de modo en curso' };
+            }
+            estado.sistema.cambiandoModo = true;
             try {
                 (globalThis.logger || console).info(`${logPrefix} Procesando cambio de modo desde ${mensaje.origen}`);
 
@@ -7428,6 +7448,7 @@
                     // que lo detiene). Al volver a AVENTURA con progreso real congelado, la
                     // restauración de más abajo sí dispara CAMBIO_PARADA y lo reactiva solo.
                     globalThis._detenerRecordatorioAudio?.();
+                    globalThis._detenerRecordatorioReto?.();
                     // Mismo motivo: los carteles de "fuera de rango" (gps-out-of-range-overlay,
                     // foto-fuera-rango-overlay, foto-lejos-overlay) pudieron quedar en pantalla
                     // desde AVENTURA — nada los cierra solos al cambiar de modo, así que si
@@ -7437,6 +7458,10 @@
                     // ya no aplica en modo libre.
                     try { globalThis._ocultarTodasPantallasDistanciaGPS?.(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     estado.usuarioFueraRango = { activo: false, distancia: null, franja: null, elementoMasCercano: null, timestamp: null };
+                    // La polyline manual de navegación (verde, botón ubicación) es exclusiva de
+                    // AVENTURA — nada la limpiaba al cambiar de modo, así que se quedaba pegada
+                    // en pantalla en CASA junto al 🛸 simulado (reporte de uso real 2026-08-17).
+                    try { globalThis.funcionesMapa?.limpiarPolylineNavegacion?.(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     // _codigoValidadoP13 se pone a true justo antes de activarGPS() en P14
                     // (guard para que showGpsSignalOverlay() no se calle si el GPS falla ahí,
                     // antes de que el modo esté decidido) y nunca se resetea después — sin
@@ -7445,6 +7470,11 @@
                     // protege al cliente real durante la ventana de P14, sin seguir
                     // interfiriendo una vez se sabe con certeza que estamos en CASA.
                     globalThis._codigoValidadoP13 = false;
+                    // estado.retoActual (id/disponible/completado/cola) es del elemento de
+                    // AVENTURA que se dejó atrás — nada lo reseteaba al cambiar de modo (mismo
+                    // patrón que idParadaActual en hijo2, reporte de uso real 2026-08-17). Se
+                    // reconstruye limpio al volver a AVENTURA, vía la restauración de más abajo.
+                    estado.retoActual = { id: null, disponible: false, completado: false, cola: [], indiceCola: 0, colaCompletados: new Set() };
                 }
 
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
@@ -7463,6 +7493,14 @@
                 if (modo === MODOS.AVENTURA) {
                     const hijo5El = document.getElementById('hijo5');
                     if (hijo5El) hijo5El.style.display = 'none';
+                } else if (modo === MODOS.CASA && globalThis._devModeActivo) {
+                    // Simétrico al ocultado de arriba — sin esto, volver a CASA en caliente
+                    // con el propio botón 🛰️ de hijo5 (el camino normal) dejaba hijo5 oculto
+                    // para siempre, aunque el modo sí cambiara correctamente por dentro. Solo
+                    // si _devModeActivo: hijo5 es herramienta de desarrollo, nunca aparece en
+                    // la PWA real (ver CLAUDE.md / project_hijo5_devonly).
+                    const hijo5El = document.getElementById('hijo5');
+                    if (hijo5El) { hijo5El.style.display = 'block'; hijo5El.style.visibility = 'visible'; }
                 }
 
                 // Actualizar estado del mapa (estadoMapa.modo, limpiarPorEstado, reset vista).
@@ -7530,6 +7568,13 @@
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando cambio de modo:`, error);
                 return { exito: false, error: error.message };
+            } finally {
+                // Libera el guard pase lo que pase (éxito, error, excepción) — sin esto, un
+                // fallo a mitad de la secuencia dejaría el guard atascado en true para
+                // siempre, bloqueando todo cambio de modo futuro. Único punto de reset de
+                // estado.sistema.cambiandoModo en toda la app — manejarCambioModo() (js/app.js)
+                // ya no lo toca, para que esta ventana cubra hasta el final de la restauración.
+                estado.sistema.cambiandoModo = false;
             }
         }
 
@@ -8624,6 +8669,20 @@ await _comprobarReanudacionAventura(logPrefix);
             } catch (_e) { /* no crítico — sin vibración, el cartel sigue siendo visible */ }
         }
 
+        // Los 7 carteles de esta familia (5 de "algo acaba de pasar" + 2 recordatorios)
+        // comparten posición y capa (§4.7g-m) — nunca deben coincidir dos a la vez en
+        // pantalla, se solapan visualmente. Regla acordada: los 5 de "algo acaba de pasar"
+        // siempre ganan (cierran cualquier otro cartel y se muestran); los 2 recordatorios
+        // nunca fuerzan nada — si hay cualquier otro cartel visible, esperan a que se cierre
+        // (su propio setInterval vuelve a comprobar 2s después, sin perder el aviso).
+        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-reto'];
+        function _ocultarCualquierCartel() {
+            _TODOS_LOS_CARTELES_IDS.forEach(id => document.getElementById(id)?.remove());
+        }
+        function _hayCartelEnPantalla() {
+            return _TODOS_LOS_CARTELES_IDS.some(id => document.getElementById(id));
+        }
+
         // Cartel breve y no bloqueante al completar una parada/tramo, combinando lo que se
         // acaba de terminar con lo que viene a continuación (o solo lo terminado si es el
         // último elemento — ver la llamada en marcarParadaCompletada). Import dinámico de las
@@ -8652,7 +8711,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     cuerpo += ` — ${plantillaEmpieza.replace('{nombre}', _escapar(nombre2))}`;
                 }
 
-                document.getElementById('cartel-transicion')?.remove();
+                _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
                 cartel.id = 'cartel-transicion';
                 cartel.style.cssText = [
@@ -8733,7 +8792,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     }
                 }
 
-                document.getElementById('cartel-inicio-tramo')?.remove();
+                _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
                 cartel.id = 'cartel-inicio-tramo';
                 cartel.style.cssText = [
@@ -8802,7 +8861,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = (t.mensaje || '').replace('{nombre}', _escapar(nombreParada));
 
-                document.getElementById('cartel-llegada-parada')?.remove();
+                _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
                 cartel.id = 'cartel-llegada-parada';
                 cartel.style.cssText = [
@@ -8866,7 +8925,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = t.mensaje || '';
 
-                document.getElementById('cartel-bienvenida-tramo')?.remove();
+                _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
                 cartel.id = 'cartel-bienvenida-tramo';
                 cartel.style.cssText = [
@@ -8929,7 +8988,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 const _escapar = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
                 const cuerpo = t.mensaje || '';
 
-                document.getElementById('cartel-bienvenida-parada')?.remove();
+                _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
                 cartel.id = 'cartel-bienvenida-parada';
                 cartel.style.cssText = [
@@ -8976,10 +9035,13 @@ await _comprobarReanudacionAventura(logPrefix);
         // ── Recordatorio periódico de "pulse play" — parada y tramo, mismo criterio ──
         // Se muestra solo cuando se cumplen DOS condiciones a la vez: han pasado
         // RECORDATORIO_AUDIO_PRIMER_AVISO_MS desde que se activó el elemento actual, Y
-        // el GPS ya confirmó proximidad real a sus coordenadas (estado.gps.visualActivo
-        // — la misma señal que revela el trazado, sincronizada desde funciones-mapa vía
-        // sincronizarEstadoGPSConPadre). Cualquiera de las dos puede llegar antes que la
-        // otra; la que llega última es la que dispara el cartel. Si sigue sin pulsar
+        // el GPS ya confirmó proximidad real a sus coordenadas (estado.gps.proximidadReal,
+        // distancia real ≤50m calculada en cada lectura GPS, sincronizada desde funciones-mapa
+        // vía sincronizarEstadoGPSConPadre). No usa estado.gps.visualActivo: esa señal se activa
+        // al instante al revelarse el trazado desde el commit 7dda4d6 (2026-08-13), sin relación
+        // con la distancia real, y usarla aquí reintroducía el bug de campo que este gate se
+        // creó para arreglar (fb3f54a, 2026-08-10) — ver GUIA-COMPLETA §25.5c. Cualquiera de las
+        // dos puede llegar antes que la otra; la que llega última es la que dispara el cartel. Si sigue sin pulsar
         // play, se repite cada RECORDATORIO_AUDIO_INTERVALO_MS mientras ambas condiciones
         // sigan cumplidas. Deliberadamente compartido entre parada y tramo — no distingue
         // tipo, solo si hay audio disponible para el elemento activo. Los botones de play
@@ -8989,7 +9051,6 @@ await _comprobarReanudacionAventura(logPrefix);
         const RECORDATORIO_AUDIO_INTERVALO_MS = 20000;
         const RECORDATORIO_AUDIO_CHEQUEO_MS = 2000;
         let _recordatorioAudioCheckIntervalId = null;
-        let _recordatorioAudioPulsado = false;
         let _recordatorioAudioActivadoEn = null;
         let _recordatorioAudioUltimoMostradoEn = null;
 
@@ -9060,16 +9121,30 @@ await _comprobarReanudacionAventura(logPrefix);
         // más en cumplirse (el tiempo o la proximidad GPS), el siguiente tick la detecta.
         function _iniciarRecordatorioAudio() {
             _detenerRecordatorioAudio();
-            _recordatorioAudioPulsado = false;
             _recordatorioAudioActivadoEn = Date.now();
             _recordatorioAudioUltimoMostradoEn = null;
             _recordatorioAudioCheckIntervalId = setInterval(() => {
-                if (_recordatorioAudioPulsado) { _detenerRecordatorioAudio(); return; }
                 const ahora = Date.now();
                 const tiempoListo = (ahora - _recordatorioAudioActivadoEn) >= RECORDATORIO_AUDIO_PRIMER_AVISO_MS;
-                const proximidadLista = estado?.gps?.visualActivo === true;
+                const proximidadLista = estado?.gps?.proximidadReal === true;
                 const intervaloListo = _recordatorioAudioUltimoMostradoEn === null || (ahora - _recordatorioAudioUltimoMostradoEn) >= RECORDATORIO_AUDIO_INTERVALO_MS;
-                if (tiempoListo && proximidadLista && intervaloListo) {
+                // No se muestra mientras el audio está sonando de verdad ahora mismo
+                // (estado.audioActual, sincronizado desde hijo3 vía AUDIO.ESTADO_ACTUALIZADO en
+                // los eventos nativos play/pause del reproductor — no una suposición). El apagado
+                // PERMANENTE de este recordatorio no ocurre aquí ni al pulsar play — ocurre en el
+                // punto real de fin de audio (pending.audio=true, ver _hdl_AUDIO_FIN_REPRODUCCION),
+                // porque pulsar play no garantiza que el audio termine de escucharse: si el
+                // usuario se aleja o se interrumpe antes de que acabe, pending.audio sigue en
+                // false y este aviso debe poder volver a aparecer. Se compara también el id
+                // (obtenerAudioIdActivoPadre, la fuente real del elemento activo) — sin esto,
+                // un estado.audioActual['reproduciendo'] que quedara pegado de un audio de
+                // OTRO elemento (p.ej. tras "ver" en CASA sin pausarlo) bloquearía sin motivo
+                // el recordatorio del elemento realmente activo.
+                const _audioIdActivo = typeof obtenerAudioIdActivoPadre === 'function' ? obtenerAudioIdActivoPadre() : null;
+                const noEstaSonandoAhora = !(estado?.audioActual?.estado === 'reproduciendo' && estado?.audioActual?.id === _audioIdActivo);
+                // No fuerza nada: si hay cualquier otro cartel visible, espera — el propio
+                // intervalo (cada 2s) vuelve a comprobar sin perder el aviso (§4.7, "no antes").
+                if (tiempoListo && proximidadLista && intervaloListo && noEstaSonandoAhora && !_hayCartelEnPantalla()) {
                     _recordatorioAudioUltimoMostradoEn = ahora;
                     _mostrarCartelRecordatorioAudio();
                 }
@@ -9078,11 +9153,116 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis._iniciarRecordatorioAudio = _iniciarRecordatorioAudio;
 
         // Llamado desde el click real de #audio-action-play/#audio-action-replay en
-        // inicializarControlesAudioPadre() — play y replay cuentan igual como "ya lo pulsó",
-        // ambos arrancan reproducción real.
+        // inicializarControlesAudioPadre() — cierra el cartel si estaba visible en ese
+        // instante (antes de que llegue el AUDIO.ESTADO_ACTUALIZADO real de hijo3), pero NO
+        // apaga el recordatorio para siempre: eso solo ocurre en el fin de audio genuino.
         globalThis._marcarPlayPulsadoRecordatorio = function () {
-            _recordatorioAudioPulsado = true;
-            _detenerRecordatorioAudio();
+            document.getElementById('cartel-recordatorio-audio')?.remove();
+        };
+
+        // ── Recordatorio periódico de "pulse retos" — mismo patrón que el de audio de arriba ──
+        // Arranca solo cuando el reto del elemento activo se habilita de verdad (audio
+        // terminado + hijo4 listo, ver _procesarFinAudioElemento) — nunca antes, porque
+        // retosBtn sigue deshabilitado hasta ese momento, y nunca si el elemento activo no
+        // tiene reto. Se muestra solo cuando se cumplen DOS condiciones a la vez: han pasado
+        // RECORDATORIO_RETO_PRIMER_AVISO_MS desde que se habilitó el reto, Y el GPS confirma
+        // proximidad real (estado.gps.proximidadReal — mismo campo que usa el recordatorio de
+        // audio, ver §25.5c). Si sigue sin pulsar el botón de retos, se repite cada
+        // RECORDATORIO_RETO_INTERVALO_MS mientras ambas condiciones sigan cumplidas.
+        const RECORDATORIO_RETO_PRIMER_AVISO_MS = 10000;
+        const RECORDATORIO_RETO_INTERVALO_MS = 20000;
+        const RECORDATORIO_RETO_CHEQUEO_MS = 2000;
+        let _recordatorioRetoCheckIntervalId = null;
+        let _recordatorioRetoActivadoEn = null;
+        let _recordatorioRetoUltimoMostradoEn = null;
+
+        function _detenerRecordatorioReto() {
+            if (_recordatorioRetoCheckIntervalId) { clearInterval(_recordatorioRetoCheckIntervalId); _recordatorioRetoCheckIntervalId = null; }
+            _recordatorioRetoActivadoEn = null;
+            _recordatorioRetoUltimoMostradoEn = null;
+            document.getElementById('cartel-recordatorio-reto')?.remove();
+        }
+        globalThis._detenerRecordatorioReto = _detenerRecordatorioReto;
+
+        async function _mostrarCartelRecordatorioReto() {
+            try {
+                const { TRADUCCIONES_RECORDATORIO_RETO } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                const t = TRADUCCIONES_RECORDATORIO_RETO?.[idioma] || TRADUCCIONES_RECORDATORIO_RETO?.es;
+                if (!t) {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_RETO] Traducciones no disponibles');
+                    return;
+                }
+
+                document.getElementById('cartel-recordatorio-reto')?.remove();
+                const cartel = document.createElement('div');
+                cartel.id = 'cartel-recordatorio-reto';
+                cartel.style.cssText = [
+                    'position:fixed',
+                    'top:calc(10.7vh + 10px + 0.5rem)',
+                    'left:50%',
+                    'transform:translateX(-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'z-index:1000060',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:0.75rem 2.75rem 0.75rem 1rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                ].join(';');
+
+                cartel.innerHTML = `
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <img src="imagenes/imagenes-aplicación/H4-fotoretos.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${t.mensaje}</p>
+                    </div>
+                `;
+                document.body.appendChild(cartel);
+                _vibrarCartel();
+
+                const cerrar = () => cartel.remove();
+                cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
+                setTimeout(cerrar, 7000);
+
+                (globalThis.logger || console).info('[PADRE][CARTEL_RECORDATORIO_RETO] Mostrado');
+            } catch (error) {
+                (globalThis.logger || console).error('[PADRE][CARTEL_RECORDATORIO_RETO] Error mostrando cartel:', error);
+            }
+        }
+
+        // Llamado desde _procesarFinAudioElemento() en cuanto retosBtn se habilita de verdad.
+        function _iniciarRecordatorioReto() {
+            _detenerRecordatorioReto();
+            _recordatorioRetoActivadoEn = Date.now();
+            _recordatorioRetoUltimoMostradoEn = null;
+            _recordatorioRetoCheckIntervalId = setInterval(() => {
+                const ahora = Date.now();
+                const tiempoListo = (ahora - _recordatorioRetoActivadoEn) >= RECORDATORIO_RETO_PRIMER_AVISO_MS;
+                const proximidadLista = estado?.gps?.proximidadReal === true;
+                const intervaloListo = _recordatorioRetoUltimoMostradoEn === null || (ahora - _recordatorioRetoUltimoMostradoEn) >= RECORDATORIO_RETO_INTERVALO_MS;
+                // No fuerza nada: si hay cualquier otro cartel visible, espera — mismo criterio
+                // que el recordatorio de audio (§4.7, "no antes").
+                if (tiempoListo && proximidadLista && intervaloListo && !_hayCartelEnPantalla()) {
+                    _recordatorioRetoUltimoMostradoEn = ahora;
+                    _mostrarCartelRecordatorioReto();
+                }
+            }, RECORDATORIO_RETO_CHEQUEO_MS);
+        }
+        globalThis._iniciarRecordatorioReto = _iniciarRecordatorioReto;
+
+        // Llamado desde _hdl_RETO_SOLICITAR (click real de retosBtn en hijo3, mensaje
+        // RETO.SOLICITAR_RETO) — el usuario abrió el reto, pero abrirlo no es resolverlo (puede
+        // cerrarlo sin contestar y alejarse). Cierra el cartel si estaba visible y retrasa el
+        // próximo aviso un intervalo completo (le da margen para resolverlo) — el apagado
+        // PERMANENTE real ocurre en _retoColaCompletada(), cuando pending.reto se confirma de
+        // verdad. No para el intervalo: si el reto queda sin resolver, el aviso debe poder volver.
+        globalThis._marcarRetoPulsadoRecordatorio = function () {
+            document.getElementById('cartel-recordatorio-reto')?.remove();
+            _recordatorioRetoUltimoMostradoEn = Date.now();
         };
     </script>
 
@@ -9928,6 +10108,8 @@ await _comprobarReanudacionAventura(logPrefix);
             if (estado?.audioActual?.id) return estado.audioActual.id;
             return null;
         }
+        // Expuesta en globalThis: _iniciarRecordatorioAudio() la llama desde otro script.
+        globalThis.obtenerAudioIdActivoPadre = obtenerAudioIdActivoPadre;
 
         async function enviarAccionAudioAHijo3(comando) {
             const logPrefix = '[PADRE][AUDIO_CONTROLES]';
@@ -10191,6 +10373,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
             try {
                 (globalThis.logger || console).info(`${logPrefix} Solicitud de reto recibida de ${mensaje.origen}`);
+                globalThis._marcarRetoPulsadoRecordatorio?.();
 
                 // El padre decide basado en su estado y array DATOS_PADRE
                 const elementosIDpadre = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
@@ -10429,6 +10612,10 @@ await _comprobarReanudacionAventura(logPrefix);
                     pendingR.retosCompletadosCount = completados.size;
                     pendingR.timestamp = Date.now();
                     intentarCompletarElemento(claveR); // marcarParadaCompletada ya distingue por modo
+                    // Apagado permanente real del recordatorio "pulse retos" — aquí, no al abrir
+                    // el reto (ver globalThis._marcarRetoPulsadoRecordatorio): esto es la
+                    // confirmación genuina de que toda la cola de retos se resolvió.
+                    globalThis._detenerRecordatorioReto?.();
                 } else {
                     // Sin clave: fallback — respetar modo
                     if (modoActual === MODOS.CASA) {
@@ -11436,6 +11623,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     globalThis._detenerRecordatorioAudio?.();
                 }
+                // Recordatorio de reto: nunca arranca aquí (el reto de este elemento, si
+                // existe, todavía no está disponible — solo lo está tras terminar su audio,
+                // ver _procesarFinAudioElemento). Sí hay que pararlo: si el elemento anterior
+                // tenía uno corriendo, no debe sobrevivir al cambio de elemento.
+                globalThis._detenerRecordatorioReto?.();
 
                 (globalThis.logger || console).success(`${logPrefix} Cambio de parada completado exitosamente`);
 
@@ -11792,6 +11984,10 @@ await _comprobarReanudacionAventura(logPrefix);
                     destino: 'hijo4',
                     datos: { paradaId: estado.paradaActual, razon: 'audio_escuchado_1vez' }
                 });
+                // Recordatorio "pulse retos" — mismo criterio que el de audio (§25.5c), pero
+                // solo tiene sentido aquí: el botón retosBtn acaba de habilitarse de verdad
+                // en esta misma rama, no en las otras dos (hijo4 no listo, o modo casa).
+                globalThis._iniciarRecordatorioReto?.();
             } else if (tieneRetos && modoAventura) {
                 (globalThis.logger || console).warn(`${logPrefix} Audio finalizado en modo aventura, ${retosDelElemento.length} reto(s) disponible(s) pero hijo4 no está listo - botón no habilitado`);
                 estado.retoActual.id = retosDelElemento[0];
@@ -11864,6 +12060,10 @@ await _comprobarReanudacionAventura(logPrefix);
                         pendingAudio.audio = true;
                         pendingAudio.timestamp = Date.now();
                         intentarCompletarElemento(clave);
+                        // Apagado permanente real del recordatorio "pulse play" — aquí, no al
+                        // pulsar el botón (ver globalThis._marcarPlayPulsadoRecordatorio): esto
+                        // es la confirmación genuina de que el audio se escuchó entero.
+                        globalThis._detenerRecordatorioAudio?.();
                     }
                 } catch (error_) {
                     (globalThis.logger || console).warn(`${logPrefix} Error al marcar pending por fin de audio:`, error_);
@@ -11933,6 +12133,9 @@ await _comprobarReanudacionAventura(logPrefix);
                         if (!pendingAudio.audio) {
                             pendingAudio.audio = true;
                             intentarCompletarElemento(clave);
+                            // Desbloqueado por error, no por escucha real — pero pending.audio ya
+                            // quedó satisfecho, así que el recordatorio tampoco tiene ya sentido.
+                            globalThis._detenerRecordatorioAudio?.();
                         }
                     }
                 } catch (pendErr) {

@@ -493,6 +493,21 @@ export const TRADUCCIONES_RECORDATORIO_AUDIO = {
     uk: { mensaje: '⚠️ Не забудьте натиснути відтворити, щоб прослухати аудіо, пов\'язане з вашою пригодою.' }
 };
 
+export const TRADUCCIONES_RECORDATORIO_RETO = {
+    es: { mensaje: '⚠️ Recuerde pulsar el botón de retos para resolver su reto.' },
+    en: { mensaje: '⚠️ Remember to press the challenges button to solve your challenge.' },
+    fr: { mensaje: "⚠️ N'oubliez pas d'appuyer sur le bouton des défis pour résoudre votre défi." },
+    it: { mensaje: '⚠️ Ricordi di premere il pulsante delle sfide per risolvere la sua sfida.' },
+    nl: { mensaje: '⚠️ Vergeet niet op de knop uitdagingen te drukken om uw uitdaging op te lossen.' },
+    de: { mensaje: '⚠️ Denken Sie daran, auf die Aufgaben-Taste zu drücken, um Ihre Aufgabe zu lösen.' },
+    ja: { mensaje: '⚠️ チャレンジボタンを押して、チャレンジを解決するのをお忘れなく。' },
+    zh: { mensaje: '⚠️ 请记得点击挑战按钮以解决您的挑战。' },
+    pl: { mensaje: '⚠️ Proszę pamiętać, aby nacisnąć przycisk wyzwań i rozwiązać swoje wyzwanie.' },
+    pt: { mensaje: '⚠️ Lembre-se de apertar o botão de desafios para resolver o seu desafio.' },
+    ru: { mensaje: '⚠️ Не забудьте нажать кнопку заданий, чтобы решить своё задание.' },
+    uk: { mensaje: '⚠️ Не забудьте натиснути кнопку завдань, щоб виконати своє завдання.' }
+};
+
 export const TRADUCCIONES_BIENVENIDA_PARADA = {
     es: { mensaje: 'Ha vuelto a su aventura. Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado y continuar su caza del tesoro.' },
     en: { mensaje: 'You are back in your adventure. Please press the next button and press play to listen to the related audio and continue your treasure hunt.' },

@@ -50,6 +50,12 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
   test('MD-1. CAMBIO_MODO→casa aplica clase modo-casa al body', async ({ page }) => {
     await page.goto('retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
+    // Buffer de arranque: el registro del handler SISTEMA.CAMBIO_MODO (registrarControladorSeguro)
+    // corre en un <script type="module"> diferido, que puede terminar después de
+    // domcontentloaded — sin esperar, el postMessage sintético puede llegar antes de que el
+    // handler exista y se pierde en silencio (mensajeria.js no reintenta). Mismo buffer que ya
+    // usa 26-reto-completado-boton-verde.spec.js para esta misma página standalone.
+    await page.waitForTimeout(400);
     await enviarCambioModo(page, 'hijo4', 'casa');
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
     expect(await page.evaluate(() => document.body.classList.contains('modo-aventura'))).toBe(false);
@@ -58,6 +64,12 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
   test('MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body', async ({ page }) => {
     await page.goto('retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
+    // Buffer de arranque: el registro del handler SISTEMA.CAMBIO_MODO (registrarControladorSeguro)
+    // corre en un <script type="module"> diferido, que puede terminar después de
+    // domcontentloaded — sin esperar, el postMessage sintético puede llegar antes de que el
+    // handler exista y se pierde en silencio (mensajeria.js no reintenta). Mismo buffer que ya
+    // usa 26-reto-completado-boton-verde.spec.js para esta misma página standalone.
+    await page.waitForTimeout(400);
     await enviarCambioModo(page, 'hijo4', 'aventura');
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-aventura')), { timeout: 5000 }).toBe(true);
     expect(await page.evaluate(() => document.body.classList.contains('modo-casa'))).toBe(false);
@@ -77,6 +89,12 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
   test('MD-3. RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece botonRetos-wrapper en CASA', async ({ page }) => {
     await page.goto('retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
+    // Buffer de arranque: el registro del handler SISTEMA.CAMBIO_MODO (registrarControladorSeguro)
+    // corre en un <script type="module"> diferido, que puede terminar después de
+    // domcontentloaded — sin esperar, el postMessage sintético puede llegar antes de que el
+    // handler exista y se pierde en silencio (mensajeria.js no reintenta). Mismo buffer que ya
+    // usa 26-reto-completado-boton-verde.spec.js para esta misma página standalone.
+    await page.waitForTimeout(400);
     await enviarCambioModo(page, 'hijo4', 'casa');
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
 
@@ -91,6 +109,12 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
   test('MD-4. RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece botonRetos-wrapper en CASA', async ({ page }) => {
     await page.goto('retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
+    // Buffer de arranque: el registro del handler SISTEMA.CAMBIO_MODO (registrarControladorSeguro)
+    // corre en un <script type="module"> diferido, que puede terminar después de
+    // domcontentloaded — sin esperar, el postMessage sintético puede llegar antes de que el
+    // handler exista y se pierde en silencio (mensajeria.js no reintenta). Mismo buffer que ya
+    // usa 26-reto-completado-boton-verde.spec.js para esta misma página standalone.
+    await page.waitForTimeout(400);
     await enviarCambioModo(page, 'hijo4', 'casa');
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
 
@@ -104,6 +128,12 @@ test.describe('MD — sincronizarEstadoModo (hijo4) en ambas direcciones', () =>
   test('MD-5. RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad) también reaparece el wrapper en CASA', async ({ page }) => {
     await page.goto('retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');
+    // Buffer de arranque: el registro del handler SISTEMA.CAMBIO_MODO (registrarControladorSeguro)
+    // corre en un <script type="module"> diferido, que puede terminar después de
+    // domcontentloaded — sin esperar, el postMessage sintético puede llegar antes de que el
+    // handler exista y se pierde en silencio (mensajeria.js no reintenta). Mismo buffer que ya
+    // usa 26-reto-completado-boton-verde.spec.js para esta misma página standalone.
+    await page.waitForTimeout(400);
     await enviarCambioModo(page, 'hijo4', 'casa');
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
 
@@ -123,6 +153,12 @@ test.describe('MD — sincronizarSeekPorModo (hijo3) en ambas direcciones', () =
   test('MD-6. CAMBIO_MODO→casa aplica modo-casa y deja la barra de progreso arrastrable', async ({ page }) => {
     await page.goto('audio-hijo3.html');
     await page.waitForLoadState('domcontentloaded');
+    // Buffer de arranque: el registro del handler SISTEMA.CAMBIO_MODO (registrarControladorSeguro)
+    // corre en un <script type="module"> diferido, que puede terminar después de
+    // domcontentloaded — sin esperar, el postMessage sintético puede llegar antes de que el
+    // handler exista y se pierde en silencio (mensajeria.js no reintenta). Mismo buffer que ya
+    // usa 26-reto-completado-boton-verde.spec.js para esta misma página standalone.
+    await page.waitForTimeout(400);
     await enviarCambioModo(page, 'hijo3', 'casa');
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-casa')), { timeout: 5000 }).toBe(true);
     expect(await page.evaluate(() => document.getElementById('progressContainer').classList.contains('deshabilitado')), 'En CASA la barra debe quedar arrastrable aunque el padre no la haya habilitado explícitamente').toBe(false);
@@ -131,6 +167,12 @@ test.describe('MD — sincronizarSeekPorModo (hijo3) en ambas direcciones', () =
   test('MD-7. CAMBIO_MODO→aventura aplica modo-aventura y deja la barra deshabilitada si el padre no la habilitó', async ({ page }) => {
     await page.goto('audio-hijo3.html');
     await page.waitForLoadState('domcontentloaded');
+    // Buffer de arranque: el registro del handler SISTEMA.CAMBIO_MODO (registrarControladorSeguro)
+    // corre en un <script type="module"> diferido, que puede terminar después de
+    // domcontentloaded — sin esperar, el postMessage sintético puede llegar antes de que el
+    // handler exista y se pierde en silencio (mensajeria.js no reintenta). Mismo buffer que ya
+    // usa 26-reto-completado-boton-verde.spec.js para esta misma página standalone.
+    await page.waitForTimeout(400);
     await enviarCambioModo(page, 'hijo3', 'aventura');
     await expect.poll(() => page.evaluate(() => document.body.classList.contains('modo-aventura')), { timeout: 5000 }).toBe(true);
     expect(await page.evaluate(() => document.getElementById('progressContainer').classList.contains('deshabilitado')), 'En AVENTURA sin CONTROL.HABILITAR{control:progressBar} del padre, la barra debe seguir no-arrastrable').toBe(true);

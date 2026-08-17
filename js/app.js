@@ -594,16 +594,12 @@ export async function manejarCambioModo(estado, mensaje) {
             timestamp: new Date(timestamp).toISOString()
         });
 
-        // 7. Bloquear cambios concurrentes
-        if (estado.sistema?.cambiandoModo) {
-            const errorMsg = 'Ya hay un cambio de modo en curso';
-            logger.warn(`${logPrefix} ${errorMsg}`, { mensajeId });
-            return { exito: false, error: errorMsg };
-        }
-
-        // Marcar que estamos cambiando de modo
-        estado.sistema = estado.sistema || {};
-        estado.sistema.cambiandoModo = true;
+        // El bloqueo de cambios concurrentes (estado.sistema.cambiandoModo) ya lo aplica
+        // _hdl_SISTEMA_CAMBIO_MODO (codigo-padre.html) ANTES de llamar a esta función, cubriendo
+        // toda la secuencia (congelado→este cambio→restauración) — poner/quitar la misma
+        // bandera aquí también reabriría exactamente la ventana sin proteger que ese guard
+        // exterior cierra: este cuerpo terminaría y resetearía cambiandoModo=false antes de
+        // que la restauración de progreso real (posterior a esta función) llegara a ejecutarse.
 
         // OPTIMISTIC UPDATE: actualizar estado de modo inmediatamente (normalizado)
         try {
@@ -697,17 +693,12 @@ export async function manejarCambioModo(estado, mensaje) {
                 });
             }
 
-            return { 
-                exito: false, 
+            return {
+                exito: false,
                 error: errorMsg,
                 modoActual: estado.modo?.actual,
                 modoAnterior: modoActual
             };
-        } finally {
-            // Asegurarse de desbloquear el cambio de modo
-            if (estado.sistema) {
-                estado.sistema.cambiandoModo = false;
-            }
         }
 
     } catch (error) {
@@ -891,11 +882,6 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}) {
         // estado.gps y mandando ACTUALIZAR_ESTADO duplicados a hijo2.
         estado.gps = estado.gps || {};
         estado.gps.posicionUsuario = null;
-
-        // Resetear otros estados relacionados
-        estado.retoActivo = false;
-        estado.audioActivo = false;
-        estado.ubicacionActiva = false;
 
         logger.debug(`[APP][LIMPIAR_RECURSOS] Estado de navegación reseteado`);
 

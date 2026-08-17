@@ -196,6 +196,7 @@ module.exports = [
         // ── Globals propios — funciones de audio/aventura ────────────────
         solicitarAudioAHijo3: "readonly",
         obtenerAudioFiles: "readonly",
+        obtenerAudioIdActivoPadre: "readonly",
         actualizarEstadoControlesAudioPadre: "readonly",
         audioCargado: "readonly",
 

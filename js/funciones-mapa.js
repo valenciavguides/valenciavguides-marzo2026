@@ -191,6 +191,8 @@ const estadoMapa = {
     gpsError: null, // Último error GPS
     ultimaUbicacion: null, // { lat, lng } - última ubicación GPS recibida
     gpsVisualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
+    proximidadReal: false, // Distancia real ≤50m al destino activo, independiente de gpsVisualActivo (ver sincronizarEstadoGPSConPadre)
+    _cartelLlegadaInicioMostrado: false, // Evita repetir el cartel de llegada al inicio en cada lectura GPS mientras sigue dentro de rango
     siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
@@ -761,6 +763,7 @@ function sincronizarEstadoGPSConPadre() {
         globalThis.estadoPadre.gps.posicionUsuario = estadoMapa.posicionUsuario;
         globalThis.estadoPadre.gps.ultimaUbicacion = estadoMapa.ultimaUbicacion;
         globalThis.estadoPadre.gps.visualActivo = estadoMapa.gpsVisualActivo;
+        globalThis.estadoPadre.gps.proximidadReal = estadoMapa.proximidadReal;
     }
 }
 
@@ -1118,6 +1121,7 @@ export function limpiarRecursos() {
         estadoMapa.gpsActivo = false;
         estadoMapa.gpsError = null;
         estadoMapa.gpsVisualActivo = false;
+        estadoMapa.proximidadReal = false;
         estadoMapa.posicionUsuario = null;
         sincronizarEstadoGPSConPadre();
 
@@ -1765,6 +1769,9 @@ async function completarCambioParada() {
 
         // Resetear flag de interacción del usuario al cambiar de parada/tramo
         estadoMapa.usuarioMovioMapa = false;
+        // Permite que el cartel de llegada al inicio (si el nuevo elemento es 'inicio') vuelva
+        // a poder dispararse — solo importa para ese caso, pero resetear siempre es inofensivo.
+        estadoMapa._cartelLlegadaInicioMostrado = false;
         
         // Actualizar marcador si hay coordenadas
         if (coordenadas?.lat && coordenadas?.lng) {
@@ -1961,16 +1968,11 @@ async function completarCambioParada() {
             revelarNavegacion();
             logger.info(`${logPrefix} Trazado revelado de inmediato (paradaId=${paradaId}, tipo=${coordenadas?.tipo}, modo=${globalThis.estadoPadre?.modo?.actual})`);
 
-            // El punto de inicio de la aventura es la única excepción sin un elemento anterior
-            // cuya compleción dispare el cartel de llegada (marcarParadaCompletada() lo hace
-            // para todos los demás) — se dispara aquí, reusando el cartel de llegada.
-            if (coordenadas?.tipo === 'inicio' && coordenadas?.nombre) {
-                if (typeof globalThis.mostrarCartelLlegadaParada === 'function') {
-                    globalThis.mostrarCartelLlegadaParada(coordenadas.nombre);
-                } else {
-                    logger.warn(`${logPrefix} mostrarCartelLlegadaParada no disponible — aviso de llegada al inicio perdido`);
-                }
-            }
+            // El cartel de llegada al inicio de la aventura (única excepción sin un elemento
+            // anterior cuya compleción dispare el cartel — marcarParadaCompletada() lo hace para
+            // todos los demás) ya NO dispara aquí de forma instantánea — se movió a
+            // procesarPosicionGPSParaAventura(), gateado por llegadaDetectada real (GPS
+            // confirmado), igual que el resto de "ha llegado" de la app. Ver ronda 2026-08-17.
         } else {
             logger.warn(`${logPrefix} ⚠️ NO SE HIZO ZOOM - coordenadas inválidas:`, { 
                 lat: coordenadas?.lat, 
@@ -2698,6 +2700,14 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // hijo2 lo ignoraba en la práctica (su propio guard de modo en
         // verificarDistanciaYActualizarBotones), pero viajaba de todos modos sin motivo.
         if (estadoMapa.modo === MODOS.AVENTURA) {
+            // Proximidad real al elemento activo — a diferencia de gpsVisualActivo (que se
+            // activa al instante al revelarse el trazado, sin relación con la distancia real
+            // desde 7dda4d6), esto SÍ mide la distancia de esta misma lectura GPS. Único consumo
+            // hoy: el gate de proximidad del recordatorio "pulse play" en codigo-padre.html — no
+            // reutilizar gpsVisualActivo para eso otra vez (ver GUIA-COMPLETA §25.5c).
+            estadoMapa.proximidadReal = distancia <= 50;
+            sincronizarEstadoGPSConPadre();
+
             // 📤 Enviar actualización de distancia a hijo2 (botones) periódicamente
             // CRÍTICO: Incluir toleranciaGPS para que hijo2 ajuste lógica de botones dinámicamente
             try {
@@ -2751,6 +2761,26 @@ async function procesarPosicionGPSParaAventura(posicion) {
             siguienteParada
         );
 
+        // El punto de inicio de la aventura es la única excepción sin un elemento anterior
+        // cuya compleción dispare el cartel de llegada (marcarParadaCompletada() lo hace para
+        // todos los demás) — se dispara aquí, en cuanto el GPS confirma la llegada real, igual
+        // que hijo2 detecta la suya de forma independiente (_detectarLlegadaParada trata
+        // 'inicio' igual que cualquier parada, mismo radio de 15m) — dos sensores del mismo
+        // hecho, ninguno sustituye al otro. El guard evita repetir el cartel en cada lectura
+        // GPS mientras el usuario sigue dentro de rango sin haber avanzado todavía. Exclusivo
+        // de AVENTURA: esta función corre en cada lectura GPS real en los dos modos (el GPS
+        // nunca se detiene, ver _gpsProcesarPosicion), y en CASA el usuario puede estar
+        // "viendo" cualquier parada con hijo5 sin haber llegado a ella de verdad — el cartel
+        // de "ha llegado" no tiene sentido ahí.
+        if (estadoMapa.modo === MODOS.AVENTURA && siguienteParada.tipo === 'inicio' && llegadaDetectada && siguienteParada.nombre && !estadoMapa._cartelLlegadaInicioMostrado) {
+            estadoMapa._cartelLlegadaInicioMostrado = true;
+            if (typeof globalThis.mostrarCartelLlegadaParada === 'function') {
+                globalThis.mostrarCartelLlegadaParada(siguienteParada.nombre);
+            } else {
+                logger.warn(`${logPrefix} mostrarCartelLlegadaParada no disponible — aviso de llegada al inicio perdido`);
+            }
+        }
+
         // 🗺️ Limpieza de la polyline manual de navegación (verde, botón de ubicación) al
         // llegar de verdad o al volver al camino — NO se dibuja nunca sola aquí: la única
         // forma de que aparezca es que el usuario pulse el botón de ubicación
@@ -2787,17 +2817,21 @@ async function procesarPosicionGPSParaAventura(posicion) {
                 // El trazado persistente vuelve a mostrarse de inmediato — es la única razón por
                 // la que estaba oculto (§4.5), y el usuario acaba de volver a la zona real.
                 revelarNavegacion();
-                if (siguienteParada.tipo === 'tramo') {
-                    if (typeof globalThis.mostrarCartelBienvenidaTramo === 'function') {
-                        globalThis.mostrarCartelBienvenidaTramo();
-                    } else {
-                        logger.warn(`${logPrefix} mostrarCartelBienvenidaTramo no disponible — aviso de bienvenida perdido`);
-                    }
-                } else if (siguienteParada.nombre) {
-                    if (typeof globalThis.mostrarCartelBienvenidaParada === 'function') {
-                        globalThis.mostrarCartelBienvenidaParada(siguienteParada.nombre);
-                    } else {
-                        logger.warn(`${logPrefix} mostrarCartelBienvenidaParada no disponible — aviso de bienvenida perdido`);
+                // Exclusivo de AVENTURA — mismo motivo que el cartel de llegada al inicio (ver
+                // más arriba): esta función corre en los dos modos en cada lectura GPS real.
+                if (estadoMapa.modo === MODOS.AVENTURA) {
+                    if (siguienteParada.tipo === 'tramo') {
+                        if (typeof globalThis.mostrarCartelBienvenidaTramo === 'function') {
+                            globalThis.mostrarCartelBienvenidaTramo();
+                        } else {
+                            logger.warn(`${logPrefix} mostrarCartelBienvenidaTramo no disponible — aviso de bienvenida perdido`);
+                        }
+                    } else if (siguienteParada.nombre) {
+                        if (typeof globalThis.mostrarCartelBienvenidaParada === 'function') {
+                            globalThis.mostrarCartelBienvenidaParada(siguienteParada.nombre);
+                        } else {
+                            logger.warn(`${logPrefix} mostrarCartelBienvenidaParada no disponible — aviso de bienvenida perdido`);
+                        }
                     }
                 }
 
@@ -2895,6 +2929,7 @@ globalThis.funcionesMapa = {
     diagnosticarMapa,
     isMapInitialized,
     limpiarRecursos,
+    limpiarPolylineNavegacion,
     registrarManejadoresMensajes,
     limpiarPorEstado,
     calcularToleranciaGPS,

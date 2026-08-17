@@ -73,18 +73,26 @@ test.describe('DOM de iframes — estructura antes de selección de aventura', (
 
   // ── FASE 2 — datos diferidos nulos antes de selección ─────────────────
 
+  // Las 3 aserciones leen un snapshot tomado por gotoAndWaitForFase1() en el mismo
+  // tick del navegador en que detecta FASE 1 completa, no un page.evaluate() nuevo
+  // y posterior — FASE 2 (carga de datos de aventura) arranca justo después de FASE
+  // 1 en la secuencia de arranque real, así que una lectura separada más tarde deja
+  // una ventana real donde ya podría haber terminado, sobre todo en motores más
+  // lentos (WebKit). El snapshot aísla exactamente el instante que este test quiere
+  // comprobar: el estado justo al completarse FASE 1, antes de que FASE 2 empiece.
+
   test('1c. globalThis.__vv_DATOS_AVENTURAS es null antes de seleccionar aventura', async ({ page }) => {
-    const val = await page.evaluate(() => globalThis.__vv_DATOS_AVENTURAS);
+    const val = await page.evaluate(() => globalThis.__e2e_datosAventuraSnapshot?.datos);
     expect(val).toBeNull();
   });
 
   test('1c. globalThis.__vv_AUDIOS_AVENTURAS es null antes de seleccionar aventura', async ({ page }) => {
-    const val = await page.evaluate(() => globalThis.__vv_AUDIOS_AVENTURAS);
+    const val = await page.evaluate(() => globalThis.__e2e_datosAventuraSnapshot?.audios);
     expect(val).toBeNull();
   });
 
   test('1c. globalThis.__vv_RETOS_AVENTURAS es null antes de seleccionar aventura', async ({ page }) => {
-    const val = await page.evaluate(() => globalThis.__vv_RETOS_AVENTURAS);
+    const val = await page.evaluate(() => globalThis.__e2e_datosAventuraSnapshot?.retos);
     expect(val).toBeNull();
   });
 

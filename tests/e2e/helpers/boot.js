@@ -160,17 +160,29 @@ async function gotoAndWaitForFase1(page) {
   try {
     await page.waitForFunction(
       () => {
-        if (globalThis.__MENSAJERIA_INICIADA === true) return true;
-
-        const apiLista =
+        const listo = globalThis.__MENSAJERIA_INICIADA === true || (
           typeof globalThis.mensajeria === 'object' &&
           globalThis.mensajeria !== null &&
           typeof globalThis.registrarControlador === 'function' &&
           typeof globalThis.enviarMensaje === 'function' &&
           typeof globalThis.TIPOS_MENSAJE === 'object' &&
-          globalThis.TIPOS_MENSAJE !== null;
-
-        return apiLista;
+          globalThis.TIPOS_MENSAJE !== null
+        );
+        if (!listo) return false;
+        // Snapshot tomado en el mismo tick del navegador en que se detecta FASE 1
+        // completa — un page.evaluate() posterior y separado (como hacían las
+        // aserciones "1c." de 04-iframe-dom.spec.js) deja una ventana real en la
+        // que FASE 2 (carga de datos de aventura, arranca justo después de FASE 1
+        // en la misma secuencia de arranque) puede colarse antes de que el test
+        // llegue a leer el valor — más visible en motores más lentos (WebKit).
+        if (!globalThis.__e2e_datosAventuraSnapshot) {
+          globalThis.__e2e_datosAventuraSnapshot = {
+            datos: globalThis.__vv_DATOS_AVENTURAS ?? null,
+            audios: globalThis.__vv_AUDIOS_AVENTURAS ?? null,
+            retos: globalThis.__vv_RETOS_AVENTURAS ?? null,
+          };
+        }
+        return true;
       },
       null,
       { timeout: BOOT_TIMEOUT }
