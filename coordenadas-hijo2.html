@@ -1456,13 +1456,16 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 // Ahora se usa ACTUALIZAR_ESTADO que incluye distancia y otros datos
 
 function _aplicarDatosEstado(datos, logPrefix) {
-    const { distanciaAlDestino, distanciaAlCamino, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
+    const { distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
     if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
     // distanciaAlCamino: distancia al punto más cercano del camino (inicio->waypoints->fin
     // en tramos), no al destino final — solo la usa verificarDistanciaYActualizarBotones()
-    // para decidir "fuera de rango"; la llegada real sigue midiéndose contra el destino
-    // (distanciaAlDestino), sin cambios, en _detectarLlegadaTramo/_detectarLlegadaParada.
+    // para decidir "fuera de rango". La llegada real en tramos exige además
+    // recorridoSuficiente (distancia real recorrida ≥ 40% del camino, calculada en
+    // funciones-mapa.js) — distanciaAlCamino no sirve para esto: nunca puede ser mayor que
+    // distanciaAlDestino, porque el propio destino es parte del camino que mide.
     if (distanciaAlCamino !== undefined) estadoComponente.distanciaAlCamino = distanciaAlCamino;
+    if (recorridoSuficiente !== undefined) estadoComponente.recorridoSuficiente = recorridoSuficiente;
     if (idParada !== undefined) estadoComponente.idParadaActual = idParada;
     if (tipoParada !== undefined) estadoComponente.tipoParadaActual = tipoParada;
     if (toleranciaGPS !== undefined) {
@@ -1506,8 +1509,13 @@ function _registrarCandidataLlegada(dentroDeRadio, idParada) {
     return estadoComponente._llegadaVentana.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
 }
 
-async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix) {
-    const dentroDeRadio = distanciaAlDestino <= toleranciaGPS;
+async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, recorridoSuficiente, idParada, logPrefix) {
+    // recorridoSuficiente (calculada en funciones-mapa.js, ≥40% de la longitud real del
+    // camino recorrida) exige haber cubierto terreno real, no solo estar cerca del destino
+    // en línea recta — evita completar un tramo atravesando un obstáculo entre inicio y fin
+    // sin haber caminado la ruta ni un rodeo equivalente. Si el dato no llega (undefined,
+    // versión antigua del mensaje), no bloquea — solo distanciaAlDestino decide.
+    const dentroDeRadio = distanciaAlDestino <= toleranciaGPS && recorridoSuficiente !== false;
     const confirmada = _registrarCandidataLlegada(dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {
         if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
@@ -1578,7 +1586,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
     const logPrefix = '[hijo2][ACTUALIZAR_ESTADO]';
     try {
         const datos = mensaje.datos;
-        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, accuracy } = datos;
+        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, accuracy, recorridoSuficiente } = datos;
         _aplicarDatosEstado(datos, logPrefix);
 
         // Se comprueba ANTES de la detección de llegada y de
@@ -1603,7 +1611,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         // real 2026-08-10, ver docs/GUIA-COMPLETA.md §24.0/§25.5).
         if (estadoComponente.modo === 'aventura' && typeof distanciaAlDestino === 'number' && idParada) {
             if (tipoParada === 'tramo' && typeof toleranciaGPS === 'number') {
-                await _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, idParada, logPrefix);
+                await _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, recorridoSuficiente, idParada, logPrefix);
             } else if (tipoParada !== 'tramo') {
                 await _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix);
             }

@@ -3972,6 +3972,12 @@
             hijosInicializados: new Set(),
             modo: { actual: MODOS.CASA, anterior: null }, // Arranque siempre en CASA — decisión intencional y provisional
             paradaActual: null,
+            // Saltos de seguridad del TTL de tramos (§31.7b) — máx. 5 por aventura, cada uno
+            // exige 20% de progreso real desde el último. Persisten en vv_progreso (a
+            // diferencia de la distancia recorrida de funciones-mapa.js, que se reinicia
+            // adrede al reabrir la PWA): son un límite antiabuso, no contabilidad de progreso.
+            tramoSkipsUsados: 0,
+            progresoEnUltimoSkip: 0,
             mensajeriaInicializada: false,
             mapaInicializado: false,
             paradas: [],
@@ -4133,6 +4139,13 @@
                     audioActual: estado.audioActual || null,
                     totalParadas: totalParadas,
                     tiempoRestante: typeof estado.tiempoRestante === 'number' ? estado.tiempoRestante : null,
+                    // Saltos de seguridad del TTL de tramos (§31.7b) — a diferencia de la
+                    // distancia recorrida (js/funciones-mapa.js, que se reinicia adrede al
+                    // cerrar la app), esto SÍ debe persistir: es un límite antiabuso, no
+                    // contabilidad de progreso — sin persistirlo, cerrar y reabrir la PWA
+                    // antes de cada salto daría saltos ilimitados en vez de 5 por aventura.
+                    tramoSkipsUsados: typeof estado.tramoSkipsUsados === 'number' ? estado.tramoSkipsUsados : 0,
+                    progresoEnUltimoSkip: typeof estado.progresoEnUltimoSkip === 'number' ? estado.progresoEnUltimoSkip : 0,
                     aventura: globalThis.aventuraSeleccionada || null,
                     idioma: globalThis.idiomaSeleccionado || null,
                     timestamp: Date.now()
@@ -4148,6 +4161,26 @@
         try {
             if (globalThis.window !== undefined && globalThis.persistProgressState === undefined) {
                 globalThis.persistProgressState = persistProgressState;
+            }
+        } catch (e) { // NOSONAR
+            (globalThis.logger || console).debug('[VV]:', e?.message);
+        }
+
+        // Fracción de progreso (0-1) sobre el total de elementos de la aventura activa —
+        // usada por el TTL de saltos de seguridad (§31.7b) para exigir un 20% de avance
+        // real desde el último salto antes de conceder otro. DATOS_PADRE es un import de
+        // módulo, solo visible en este script — se expone para que el TTL (otro script)
+        // pueda llamarla sin necesitar su propio acceso a DATOS_PADRE.
+        function _calcularProgresoFraccion() {
+            try {
+                const total = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre?.length;
+                if (!total || typeof estado.indiceProgreso !== 'number') return 0;
+                return estado.indiceProgreso / total;
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); return 0; } // NOSONAR
+        }
+        try {
+            if (globalThis.window !== undefined && globalThis._calcularProgresoFraccion === undefined) {
+                globalThis._calcularProgresoFraccion = _calcularProgresoFraccion;
             }
         } catch (e) { // NOSONAR
             (globalThis.logger || console).debug('[VV]:', e?.message);
@@ -4214,6 +4247,8 @@
                 estado.tiempoRestante = obj.tiempoRestante;
                 (globalThis.logger || console).info(`${logPrefix} tiempoRestante restaurado: ${estado.tiempoRestante}s`);
             }
+            if (typeof obj.tramoSkipsUsados === 'number') estado.tramoSkipsUsados = obj.tramoSkipsUsados;
+            if (typeof obj.progresoEnUltimoSkip === 'number') estado.progresoEnUltimoSkip = obj.progresoEnUltimoSkip;
             const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
             if (obj.elementoActualId && Array.isArray(elementos)) {
                 const found = elementos.find(p => p.parada_id === obj.elementoActualId || p.tramo_id === obj.elementoActualId || p.padreid === obj.elementoActualId);
@@ -4475,6 +4510,11 @@
                     // aventura seleccionada arrancaría su temporizador con el tiempo que le
                     // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
                     estado.tiempoRestante = null;
+                    // Mismo motivo que tiempoRestante: los saltos de seguridad del TTL de
+                    // tramos (§31.7b) son de ESTA aventura — sin resetearlos aquí, la próxima
+                    // aventura heredaría los saltos ya gastados en la anterior.
+                    estado.tramoSkipsUsados = 0;
+                    estado.progresoEnUltimoSkip = 0;
                     // Este camino (a diferencia de "otra aventura" desde el modal de fin, que
                     // recarga la página) reutiliza el mismo module scope de funciones-mapa.js —
                     // sin esto, el modo de cámara ("Seguir mi rumbo"/"Norte fijo") de la aventura
@@ -4582,6 +4622,11 @@
                     // aventura seleccionada arrancaría su temporizador con el tiempo que le
                     // quedaba a esta (ver _iniciarTemporizadorAventura, tieneRestante).
                     estado.tiempoRestante = null;
+                    // Mismo motivo que tiempoRestante: los saltos de seguridad del TTL de
+                    // tramos (§31.7b) son de ESTA aventura — sin resetearlos aquí, la próxima
+                    // aventura heredaría los saltos ya gastados en la anterior.
+                    estado.tramoSkipsUsados = 0;
+                    estado.progresoEnUltimoSkip = 0;
                     // Esta aventura SÍ estaba realmente activa (por eso mostrarDialogoVueltaRapida
                     // se disparó) — hijo2/hijo3/chat/selector están visibles de verdad y hay que
                     // ocultarlos al volver a selección, ver _ocultarUIActivada().
@@ -9706,8 +9751,7 @@ await _comprobarReanudacionAventura(logPrefix);
         function _buildPendingConfig(elemento, globalPendingCfg) {
             const cfg = elemento.pending || elemento.pendingConfig || {};
             const ttlMs = typeof cfg.TTL_MS === 'number' ? cfg.TTL_MS : (globalPendingCfg.TTL_MS || 10 * 60 * 1000);
-            const arrivalRequired = typeof cfg.arrivalRequired === 'boolean' ? cfg.arrivalRequired : (elemento.arrivalRequired === true || elemento.tipo === 'tramo');
-            return { ttlMs, arrivalRequired };
+            return { ttlMs };
         }
 
         function ensurePending(padreId, tipo) {
@@ -9717,14 +9761,14 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!estado.pendingCompleciones[key]) {
                 const elemento = findElementoPorPadreId(key) || DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado].elementosIDpadre.find(p => p.padreid === key || p.parada_id === key || p.tramo_id === key) || {};
                 const globalPendingCfg = (globalThis.Config && globalThis.Config.PENDING) ? globalThis.Config.PENDING : {};
-                const { ttlMs, arrivalRequired } = _buildPendingConfig(elemento, globalPendingCfg);
+                const { ttlMs } = _buildPendingConfig(elemento, globalPendingCfg);
                 const retosIds = obtenerRetosIds(elemento);
-                estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), destinoCoords: null, ttlMs, arrivalRequired };
+                estado.pendingCompleciones[key] = { tipo: tipo || 'parada', llegada: false, audio: false, reto: false, retosTotal: retosIds.length, retosCompletadosCount: 0, timestamp: Date.now(), destinoCoords: null, ttlMs };
                 (async () => {
                     try { await populatePendingCoords(key); } catch (err) { (globalThis.logger || console).debug('[PADRE][PENDING] populatePendingCoords failed:', err); }
                 })();
                 try {
-                    const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs, arrivalRequired: estado.pendingCompleciones[key].arrivalRequired };
+                    const notifyData = { evento: 'PENDING_INICIADO', padreId: key, ttlMs: estado.pendingCompleciones[key].ttlMs };
                     enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo2', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo2:', e?.message)); // NOSONAR
                     enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo3', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo3:', e?.message)); // NOSONAR
                     enviarMensajePadre({ tipo: TIPOS_MENSAJE.SISTEMA.NOTIFICACION, origen: getPadreId(), destino: 'hijo4', datos: notifyData }).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING] Error notif hijo4:', e?.message)); // NOSONAR
@@ -13471,30 +13515,79 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         })();
 
         // ============================================================
-        // TTL de pending: fuerza compleción de elementos bloqueados (§31.7b)
-        // Corre cada 60s, solo en modo AVENTURA, y elimina los pending
-        // cuyo ttlMs ha expirado para que la aventura no quede congelada.
+        // TTL de pending: rescata SOLO tramos bloqueados por un fallo técnico (§31.7b).
+        // Corre cada 60s, solo en modo AVENTURA (incluido AVENTURA en dev — el guard mira
+        // el modo, no el flag de dev). Las paradas ya no reciben ningún rescate de este
+        // TTL, ni audio — se dejó fuera a propósito: el mismo problema (audio/reto
+        // atascado) puede darse en paradas y tramos por igual, y arreglarlo solo aquí para
+        // tramos habría sido un parche a medias. Pendiente como tarea aparte: un rescate
+        // real para audio/reto atascado que cubra los dos tipos, no un temporizador ciego.
+        //
+        // Para tramos: el audio se rescata siempre, sin límite — sigue siendo la garantía
+        // original contra un fallo técnico real (el audio nunca dispara su evento de fin).
+        // La llegada NUNCA se fuerza sin más — eso permitiría completar un tramo entero sin
+        // haber estado nunca cerca, con solo esperar (la app es una audioguía geolocalizada;
+        // completar la aventura sin presencia real no es aceptable). Se rescata solo si
+        // queda algún salto de seguridad disponible: máximo 5 por aventura, y cada uno exige
+        // un 20% de progreso real (sobre el total de elementos) desde el último salto usado
+        // — pensado para un usuario genuinamente perdido por una causa real (obras, calle
+        // cortada, un evento) que se frustraría y abandonaría la app sin ninguna salida,
+        // no como forma de completar la aventura entera sin moverse.
         // ============================================================
-        if (!globalThis.__VV_PENDING_CLEANUP) {
-            globalThis.__VV_PENDING_CLEANUP = setInterval(() => {
-                try {
-                    const est = getEstadoSafe();
-                    if (est?.modo?.actual !== MODOS.AVENTURA) return;
-                    const pendings = est.pendingCompleciones;
-                    if (!pendings) return;
-                    const now = Date.now();
-                    for (const [key, p] of Object.entries(pendings)) {
-                        if (typeof p.ttlMs === 'number' && (now - p.timestamp) > p.ttlMs) {
-                            (globalThis.logger || console).warn(`[PADRE][PENDING][TTL] Pending expirado (${Math.round((now - p.timestamp) / 1000)}s): ${key} — forzando compleción`);
-                            p.audio = true;
+        // Extraída a función con nombre (en vez de una arrow inline dentro del
+        // setInterval) para que los tests puedan invocar un barrido sin esperar los 60s
+        // reales del intervalo — mismo cuerpo, mismo comportamiento, expuesta en globalThis.
+        function _ejecutarBarridoTTLPending() {
+            try {
+                const est = getEstadoSafe();
+                if (est?.modo?.actual !== MODOS.AVENTURA) return;
+                const pendings = est.pendingCompleciones;
+                if (!pendings) return;
+                const now = Date.now();
+                const MAX_SALTOS_TRAMO = 5;
+                const PROGRESO_MINIMO_ENTRE_SALTOS = 0.2;
+                for (const [key, p] of Object.entries(pendings)) {
+                    if (p.tipo !== 'tramo') continue;
+                    if (typeof p.ttlMs !== 'number' || (now - p.timestamp) <= p.ttlMs) continue;
+
+                    let cambiado = false;
+                    if (!p.audio) {
+                        p.audio = true;
+                        cambiado = true;
+                        (globalThis.logger || console).warn(`[PADRE][PENDING][TTL] Audio rescatado por TTL en tramo ${key} (${Math.round((now - p.timestamp) / 1000)}s sin completar)`);
+                    }
+                    if (!p.llegada) {
+                        const skipsUsados = typeof est.tramoSkipsUsados === 'number' ? est.tramoSkipsUsados : 0;
+                        const progresoActual = (typeof globalThis._calcularProgresoFraccion === 'function') ? globalThis._calcularProgresoFraccion() : 0;
+                        const progresoUltimoSkip = typeof est.progresoEnUltimoSkip === 'number' ? est.progresoEnUltimoSkip : 0;
+                        if (skipsUsados < MAX_SALTOS_TRAMO && (progresoActual - progresoUltimoSkip) >= PROGRESO_MINIMO_ENTRE_SALTOS) {
                             p.llegada = true;
-                            intentarCompletarElemento(key).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error:', e?.message));
+                            est.tramoSkipsUsados = skipsUsados + 1;
+                            est.progresoEnUltimoSkip = progresoActual;
+                            cambiado = true;
+                            (globalThis.logger || console).warn(`[PADRE][PENDING][TTL] Salto de seguridad ${est.tramoSkipsUsados}/${MAX_SALTOS_TRAMO} usado en tramo ${key} — llegada forzada`);
+                            try { if (typeof globalThis.persistProgressState === 'function') globalThis.persistProgressState(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        } else {
+                            (globalThis.logger || console).debug(`[PADRE][PENDING][TTL] Tramo ${key} sigue sin llegada — sin salto disponible (usados ${skipsUsados}/${MAX_SALTOS_TRAMO}, progreso desde el último salto ${((progresoActual - progresoUltimoSkip) * 100).toFixed(0)}%)`);
                         }
                     }
-                } catch (e) {
-                    (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error en comprobación de TTL:', e?.message);
+                    if (cambiado) {
+                        intentarCompletarElemento(key).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error:', e?.message));
+                    }
                 }
-            }, 60_000);
+            } catch (e) {
+                (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error en comprobación de TTL:', e?.message);
+            }
+        }
+        try {
+            if (globalThis.window !== undefined && globalThis._ejecutarBarridoTTLPending === undefined) {
+                globalThis._ejecutarBarridoTTLPending = _ejecutarBarridoTTLPending;
+            }
+        } catch (e) { // NOSONAR
+            (globalThis.logger || console).debug('[VV]:', e?.message);
+        }
+        if (!globalThis.__VV_PENDING_CLEANUP) {
+            globalThis.__VV_PENDING_CLEANUP = setInterval(_ejecutarBarridoTTLPending, 60_000);
         }
     </script>
 

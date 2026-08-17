@@ -90,13 +90,14 @@ function calcularToleranciaGPS(elemento) {
         }
     }
 
-    // Suelo de 50m — mismo criterio que la tolerancia fija de parada (arriba). Sin él, un
-    // tramo con waypoints muy juntos podía bajar de 25-30m: fácil de superar por el ruido
-    // normal del GPS en calles estrechas (ver comentario más abajo en distanciaAlCamino),
-    // no solo por un desvío real. Este valor lo usan a la vez la visibilidad del trazado,
-    // la detección de llegada y el aviso de "fuera de rango" — un único suelo para los tres.
-    const tolerancia = Math.max(50, Math.ceil(distanciaMaxima + 20));
-    logger.debug(`📏 Tolerancia GPS para tramo "${elemento.id}": ${tolerancia}m (max waypoint: ${Math.ceil(distanciaMaxima)}m + 20m buffer, suelo 50m)`);
+    // Suelo de 35m (antes 50m — bajado tras comprobar los 239 tramos reales: ninguno cae
+    // en la franja de 25-30m que en su momento se demostró insuficiente frente al ruido de
+    // GPS urbano, y la ventana deslizante de confirmación — añadida después de fijar el
+    // suelo original — ya absorbe ese mismo ruido por otra vía). Sin suelo, un tramo con
+    // waypoints muy juntos podía bajar de 25-30m directamente. Este valor lo usan a la vez
+    // la visibilidad del trazado, la detección de llegada y el aviso de "fuera de rango".
+    const tolerancia = Math.max(35, Math.ceil(distanciaMaxima + 20));
+    logger.debug(`📏 Tolerancia GPS para tramo "${elemento.id}": ${tolerancia}m (max waypoint: ${Math.ceil(distanciaMaxima)}m + 20m buffer, suelo 35m)`);
 
     return tolerancia;
 }
@@ -153,6 +154,59 @@ function verificarLlegadaADestino(posicionUsuario, elementoActual) {
     return llegada;
 }
 
+/**
+ * Longitud real del camino de un tramo — suma de inicio→wp1→...→fin, no la línea recta
+ * inicio-fin. Es la referencia contra la que se mide si se ha recorrido "suficiente".
+ * @param {Object} elemento - Tramo con .inicio, .waypoints[], .fin
+ * @returns {number} Longitud en metros
+ */
+function _calcularLongitudRealTramo(elemento) {
+    const puntos = [elemento?.inicio, ...(elemento?.waypoints || []), elemento?.fin].filter(p => p?.lat && p?.lng);
+    let total = 0;
+    for (let i = 0; i < puntos.length - 1; i++) {
+        total += calcularDistancia(puntos[i].lat, puntos[i].lng, puntos[i + 1].lat, puntos[i + 1].lng);
+    }
+    return total;
+}
+
+/**
+ * Reinicia el acumulador de distancia recorrida cuando el tramo activo cambia de verdad.
+ * Compara contra estadoMapa._tramoDeRecorrido (propio), nunca contra estadoMapa.tramoActual
+ * — ese último lo pone a null limpiarRecursosInactivos() tras un rato de inactividad
+ * (pantalla apagada, app en segundo plano), y reiniciar ahí borraría progreso de caminata
+ * real de un usuario que sigue genuinamente en el mismo tramo.
+ * @param {string|null} tramoId - id del tramo activo, o null si no hay tramo activo
+ */
+function _resetDistanciaRecorridaSiNuevoTramo(tramoId) {
+    if (estadoMapa._tramoDeRecorrido !== tramoId) {
+        estadoMapa._tramoDeRecorrido = tramoId;
+        estadoMapa._distanciaRecorridaTramo = 0;
+        estadoMapa._ultimaPosParaRecorrido = null;
+    }
+}
+
+/**
+ * Acumula distancia real recorrida durante el tramo activo, filtrando ruido de GPS.
+ * No cuenta saltos menores que el ruido esperado (10m, o 1.5x el círculo de precisión de
+ * la lectura si es mayor) ni saltos mayores de 150m de una sola vez — ese techo evita que
+ * un único glitch de GPS complete el requisito de un tirón, sin penalizar tramos en
+ * bici/patinete con huecos de lectura más largos de lo normal.
+ * @param {number} lat
+ * @param {number} lng
+ * @param {number} [accuracy]
+ */
+function _acumularDistanciaRecorrida(lat, lng, accuracy) {
+    const SALTO_MAXIMO_PLAUSIBLE = 150;
+    if (estadoMapa._ultimaPosParaRecorrido) {
+        const salto = calcularDistancia(estadoMapa._ultimaPosParaRecorrido.lat, estadoMapa._ultimaPosParaRecorrido.lng, lat, lng);
+        const umbralRuido = Math.max(10, (typeof accuracy === 'number' ? accuracy : 0) * 1.5);
+        if (salto >= umbralRuido && salto <= SALTO_MAXIMO_PLAUSIBLE) {
+            estadoMapa._distanciaRecorridaTramo = (estadoMapa._distanciaRecorridaTramo || 0) + salto;
+        }
+    }
+    estadoMapa._ultimaPosParaRecorrido = { lat, lng };
+}
+
 import { esMovil } from './device-detection.js';
 
 // Estado del módulo
@@ -196,6 +250,14 @@ const estadoMapa = {
     siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
+    // Distancia real recorrida durante el tramo activo — segundo requisito para confirmar
+    // llegada, además de la proximidad al destino (ver _acumularDistanciaRecorrida). Se
+    // compara contra el id propio (_tramoDeRecorrido), no contra tramoActual — este último
+    // lo pone a null limpiarRecursosInactivos() sin que eso deba borrar progreso real de
+    // caminata ya acumulado.
+    _distanciaRecorridaTramo: 0,
+    _ultimaPosParaRecorrido: null, // {lat,lng} de la última lectura contabilizada
+    _tramoDeRecorrido: null,       // id del tramo al que pertenece _distanciaRecorridaTramo
     timestamp: Date.now(),
     // Estado para consultas de cambio de parada
     consultaParadaPendiente: null,
@@ -2745,6 +2807,25 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // de "fuera de rango", overlays e2, botones — sistema independiente, sin cambios) y la
         // limpieza de la propia polyline manual más abajo.
 
+        // Distancia recorrida real del tramo activo — segundo requisito para confirmar
+        // llegada (además de distancia al destino, ver más abajo). Se calcula en cada
+        // lectura GPS, sea cual sea el modo (igual que el resto de esta función) — se
+        // reinicia solo cuando el tramo activo cambia de verdad, nunca por
+        // limpiarRecursosInactivos(), que pone tramoActual a null sin que eso signifique
+        // abandono real del tramo.
+        const esTramoActivo = siguienteParada.tipo === 'tramo';
+        _resetDistanciaRecorridaSiNuevoTramo(esTramoActivo ? derivedParadaId : null);
+        if (esTramoActivo) {
+            _acumularDistanciaRecorrida(latitude, longitude, accuracy);
+        }
+        const longitudRealTramo = esTramoActivo ? _calcularLongitudRealTramo(siguienteParada) : 0;
+        // Umbral del 40% — no exige seguir el trazado exacto (un rodeo real por obras cuenta
+        // igual, ver GUIA-COMPLETA), solo haber cubierto terreno real comparable, no un atajo
+        // en línea recta que la sola proximidad al destino no distinguiría (§ investigación
+        // distanciaAlCamino, que resultó matemáticamente incapaz de detectar esto: nunca puede
+        // ser mayor que la distancia al destino, porque el propio destino es parte del camino).
+        const recorridoSuficiente = !esTramoActivo || estadoMapa._distanciaRecorridaTramo >= longitudRealTramo * 0.4;
+
         // Todo lo de aquí abajo (aviso a hijo2 de distancia real, reset de ubicacionActiva)
         // solo tiene sentido en AVENTURA — en CASA no hay "siguiente parada" real de la que
         // estar cerca o lejos, es selección libre. Antes se enviaba igual en los dos modos;
@@ -2769,6 +2850,7 @@ async function procesarPosicionGPSParaAventura(posicion) {
                     datos: {
                         distanciaAlDestino: Math.ceil(distancia),
                         distanciaAlCamino: Math.ceil(distanciaAlCamino),
+                        recorridoSuficiente,
                         idParada: siguienteParada.id,
                         tipoParada: siguienteParada.tipo || 'parada',
                         toleranciaGPS: toleranciaGPS,
@@ -2806,11 +2888,12 @@ async function procesarPosicionGPSParaAventura(posicion) {
             }
         }
 
-        // Verificar llegada usando tolerancia dinámica
+        // Verificar llegada usando tolerancia dinámica — en tramos, exige además haber
+        // recorrido terreno real (recorridoSuficiente), no solo estar cerca del destino.
         const llegadaDetectada = verificarLlegadaADestino(
             { lat: latitude, lng: longitude },
             siguienteParada
-        );
+        ) && recorridoSuficiente;
 
         // El punto de inicio de la aventura es la única excepción sin un elemento anterior
         // cuya compleción dispare el cartel de llegada (marcarParadaCompletada() lo hace para

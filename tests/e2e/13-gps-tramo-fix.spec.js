@@ -38,6 +38,25 @@
  *         no solo en los extremos.
  *   DC-3  Para una PARADA (no tramo), distanciaAlCamino coincide siempre con
  *         distanciaAlDestino — la separación de métricas es exclusiva de tramos.
+ *   TR-1  Sin haber recorrido nada, estar en .fin NO basta para confirmar llegada —
+ *         segundo requisito nuevo: distancia real recorrida ≥40% de la longitud del
+ *         camino, no solo proximidad al destino (ver investigación distanciaAlCamino:
+ *         nunca puede ser mayor que distanciaAlDestino, porque .fin es parte del propio
+ *         camino que mide, así que no sirve para detectar un atajo en línea recta).
+ *   TR-2  Tras caminar el camino oficial (inicio→waypoints) de verdad, SÍ confirma.
+ *   TR-3  Tras un rodeo que NO sigue los waypoints oficiales pero cubre distancia real
+ *         equivalente (obras, calle cortada), SÍ confirma igual — el requisito es
+ *         distancia recorrida, no seguir el trazado exacto.
+ *
+ * GT-3, GT-4, PD-2/PD-3 y PD-4 acumulan distancia con simularRodeoPorObras() antes de su
+ * comprobación real — no es lo que prueban, pero desde que existe el requisito de TR-* hace
+ * falta satisfacerlo primero para que su propia lectura en .fin pueda confirmar. Usan el
+ * rodeo y no el camino oficial (simularCaminataOficial, reservado para TR-2) a propósito:
+ * los últimos waypoints del camino oficial (wp2 56.8m, wp3 34.1m, wp4 21.5m de .fin) caen
+ * dentro de la tolerancia real (~61m) — el propio recorrido dispararía ya una "llegada"
+ * antes de que cada test empezara sus propias lecturas, contaminando la ventana deslizante
+ * que GT-3/PD-2/PD-3/PD-4 comprueban con precisión. El rodeo se queda siempre por encima de
+ * 86m de .fin, sin ese riesgo.
  */
 'use strict';
 
@@ -109,6 +128,62 @@ async function prepararEscenarioTramo(page) {
   }, TRAMO);
 }
 
+async function enviarLecturaGPS(page, coords, accuracy = 5) {
+  await page.evaluate(async ({ coords, accuracy }) => {
+    await globalThis.funcionesMapa.procesarPosicionGPSParaAventura({
+      coords: { latitude: coords.lat, longitude: coords.lng, accuracy },
+    });
+  }, { coords, accuracy });
+}
+
+// Punto a una distancia y rumbo dados de un origen — mismo cálculo geodésico que
+// 39-flujo-completo-parada-reto-tramo.spec.js, reutilizado aquí para el rodeo por obras.
+function puntoADistancia(lat, lng, metros, rumboDeg) {
+  const R = 6371000;
+  const brng = rumboDeg * Math.PI / 180;
+  const lat1 = lat * Math.PI / 180, lng1 = lng * Math.PI / 180;
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(metros / R) + Math.cos(lat1) * Math.sin(metros / R) * Math.cos(brng));
+  const lng2 = lng1 + Math.atan2(Math.sin(brng) * Math.sin(metros / R) * Math.cos(lat1), Math.cos(metros / R) - Math.sin(lat1) * Math.sin(lat2));
+  return { lat: lat2 * 180 / Math.PI, lng: lng2 * 180 / Math.PI };
+}
+
+// Camina inicio→wp1→wp2→wp3→wp4 de verdad (no incluye .fin — eso lo manda cada test por su
+// cuenta como parte de lo que realmente comprueba). Acumula prácticamente el 100% de la
+// longitud real del tramo, muy por encima del 40% exigido — satisface el requisito nuevo
+// de distancia recorrida sin ser en sí mismo lo que cada test comprueba.
+async function simularCaminataOficial(page, tramo) {
+  for (const punto of [tramo.inicio, ...tramo.waypoints]) {
+    await enviarLecturaGPS(page, punto);
+    await page.waitForTimeout(50);
+  }
+}
+
+function rumboEntre(lat1, lng1, lat2, lng2) {
+  const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180, Δλ = (lng2 - lng1) * Math.PI / 180;
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+// Rodeo que NO sigue ningún waypoint oficial — 4 saltos de 40m en línea recta, en el rumbo
+// exactamente opuesto a .fin desde .inicio, así la distancia a .fin crece sin parar en
+// cada paso (nunca se acerca lo bastante como para contaminar la ventana deslizante de
+// llegada de los tests que lo usan antes de sus propias lecturas). Acumula 3 saltos reales
+// de 40m = 120m (el primer punto no cuenta — no hay posición previa de la que medir un
+// salto), muy por encima de los ~57m que exige Av1-TR-1 (40% de su longitud real, 142m).
+// Reproduce un rodeo real por obras/calle cortada: nunca pasa por el camino oficial y aun
+// así cubre distancia real equivalente.
+async function simularRodeoPorObras(page, tramo) {
+  const rumboAFin = rumboEntre(tramo.inicio.lat, tramo.inicio.lng, tramo.fin.lat, tramo.fin.lng);
+  const rumboOpuesto = (rumboAFin + 180) % 360;
+  let punto = tramo.inicio;
+  for (let i = 0; i < 4; i++) {
+    punto = puntoADistancia(punto.lat, punto.lng, 40, rumboOpuesto);
+    await enviarLecturaGPS(page, punto);
+    await page.waitForTimeout(50);
+  }
+}
+
 test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
@@ -178,6 +253,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
 
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    await simularRodeoPorObras(page, TRAMO);
 
     // Primera lectura: solo arma la candidata, todavía no notifica (confirmación por
     // ventana deslizante de 2-de-4 lecturas — ver PD-2/PD-3/PD-4 para el detalle de
@@ -214,6 +290,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
 
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    await simularRodeoPorObras(page, TRAMO);
 
     await page.evaluate(async (tramo) => {
       const fm = globalThis.funcionesMapa;
@@ -255,6 +332,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
 
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    await simularRodeoPorObras(page, TRAMO);
 
     // Lectura 1: dentro de radio pero con precisión de 90m — antes se habría descartado
     // por completo; ahora se procesa y arma la candidata (sin notificar todavía).
@@ -288,6 +366,7 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
 
     const prep = await prepararEscenarioTramo(page);
     test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    await simularRodeoPorObras(page, TRAMO);
 
     await page.evaluate(async (tramo) => {
       const fm = globalThis.funcionesMapa;
@@ -308,6 +387,52 @@ test.describe('GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)', 
     }, TRAMO);
     await page.waitForTimeout(300);
     expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), '2 de las últimas 3-4 lecturas dentro de radio deben confirmar, aunque no sean consecutivas').toBe(true);
+  });
+
+  test('TR-1. Sin haber recorrido nada, estar en .fin no basta para confirmar llegada', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Sin simularCaminataOficial/simularRodeoPorObras: dos lecturas directas en .fin,
+    // exactamente el patrón que antes del requisito de distancia recorrida sí confirmaba.
+    await enviarLecturaGPS(page, TRAMO.fin);
+    await enviarLecturaGPS(page, TRAMO.fin);
+    await page.waitForTimeout(300);
+
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'Sin distancia recorrida, la llegada no debe confirmarse aunque la posición esté justo en .fin').toBe(false);
+  });
+
+  test('TR-2. Tras caminar el camino oficial (inicio→waypoints) de verdad, la llegada sí se confirma', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    await simularCaminataOficial(page, TRAMO);
+
+    await enviarLecturaGPS(page, TRAMO.fin);
+    await enviarLecturaGPS(page, TRAMO.fin);
+    await page.waitForTimeout(300);
+
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'Tras caminar el camino oficial, la llegada en .fin debe confirmarse').toBe(true);
+  });
+
+  test('TR-3. Tras un rodeo que no sigue los waypoints oficiales (obras/calle cortada) pero cubre distancia real equivalente, la llegada también se confirma', async ({ page }) => {
+    const logs = [];
+    page.on('console', msg => logs.push(msg.text()));
+
+    const prep = await prepararEscenarioTramo(page);
+    test.skip(!prep.tieneFunciones || !prep.tramoEncontrado, `Precondición no disponible: ${JSON.stringify(prep)}`);
+    await simularRodeoPorObras(page, TRAMO);
+
+    await enviarLecturaGPS(page, TRAMO.fin);
+    await enviarLecturaGPS(page, TRAMO.fin);
+    await page.waitForTimeout(300);
+
+    expect(logs.some(l => l.includes('Llegada GPS a') && l.includes('notificando')), 'El requisito es distancia recorrida real, no seguir el trazado exacto — un rodeo real equivalente también debe confirmar').toBe(true);
   });
 
   test('GT-5. verificarLlegadaADestino reconoce tipo:"inicio" (parada 0) igual que "parada"', async ({ page }) => {
