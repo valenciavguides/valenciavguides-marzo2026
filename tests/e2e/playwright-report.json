@@ -33,7 +33,7 @@
       },
       {
         "outputDir": "C:/Users/gomez/Desktop/proyecto ValenciaVguides Marzo 2026/test-results",
-        "repeatEach": 5,
+        "repeatEach": 1,
         "retries": 0,
         "metadata": {
           "actualWorkers": 1
@@ -149,12 +149,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5838,
+                      "duration": 6313,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-16T08:03:27.598Z",
+                      "startTime": "2026-08-17T11:44:40.035Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -183,12 +183,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5197,
+                      "duration": 5650,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-16T08:03:33.845Z",
+                      "startTime": "2026-08-17T11:44:46.830Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -198,7 +198,7 @@
               ],
               "id": "5d92b31c2557f47019a9-1e99db1400619a2f7264",
               "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 58,
+              "line": 64,
               "column": 3
             },
             {
@@ -217,12 +217,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5521,
+                      "duration": 5968,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-16T08:03:39.052Z",
+                      "startTime": "2026-08-17T11:44:52.491Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -232,7 +232,7 @@
               ],
               "id": "5d92b31c2557f47019a9-525dff026c9d9c2e8648",
               "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 77,
+              "line": 89,
               "column": 3
             },
             {
@@ -251,12 +251,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5205,
+                      "duration": 5645,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-16T08:03:44.585Z",
+                      "startTime": "2026-08-17T11:44:58.469Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -266,7 +266,7 @@
               ],
               "id": "5d92b31c2557f47019a9-698413adafcac5a7b2c9",
               "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 91,
+              "line": 109,
               "column": 3
             },
             {
@@ -285,12 +285,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5193,
+                      "duration": 5778,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-16T08:03:49.806Z",
+                      "startTime": "2026-08-17T11:45:04.133Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -300,687 +300,7 @@
               ],
               "id": "5d92b31c2557f47019a9-f9dbe909bf4bea9d5fdc",
               "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 104,
-              "column": 3
-            },
-            {
-              "title": "MD-1. CAMBIO_MODO→casa aplica clase modo-casa al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5827,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:02.249Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-d0bb00b3cb8322381dd9",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 50,
-              "column": 3
-            },
-            {
-              "title": "MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5207,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:08.482Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-6b3a607de348910969b0",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 58,
-              "column": 3
-            },
-            {
-              "title": "MD-3. RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5509,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:13.698Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-1563174f6db90369ca51",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 77,
-              "column": 3
-            },
-            {
-              "title": "MD-4. RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5189,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:19.217Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-8cc2a54a14fd1841b7fa",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 91,
-              "column": 3
-            },
-            {
-              "title": "MD-5. RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad) también reaparece el wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5211,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:24.418Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-c592f55cbc62bb597b20",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 104,
-              "column": 3
-            },
-            {
-              "title": "MD-1. CAMBIO_MODO→casa aplica clase modo-casa al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5836,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:36.862Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-426f7ed8b4bb3413e289",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 50,
-              "column": 3
-            },
-            {
-              "title": "MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5192,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:43.088Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-804c24377c69a39aeb6f",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 58,
-              "column": 3
-            },
-            {
-              "title": "MD-3. RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5494,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:48.290Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-d3bbdffc60dd8bb23b1d",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 77,
-              "column": 3
-            },
-            {
-              "title": "MD-4. RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5177,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:53.795Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-ef2dd4e0501d9d00c63b",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 91,
-              "column": 3
-            },
-            {
-              "title": "MD-5. RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad) también reaparece el wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5193,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:58.984Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-e9f1d068ad4defdaa92c",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 104,
-              "column": 3
-            },
-            {
-              "title": "MD-1. CAMBIO_MODO→casa aplica clase modo-casa al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5834,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:11.458Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-1c3444c87e3ac2669828",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 50,
-              "column": 3
-            },
-            {
-              "title": "MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5218,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:17.703Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-e6aa60eef15c8e8ebf46",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 58,
-              "column": 3
-            },
-            {
-              "title": "MD-3. RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5498,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:22.931Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-0f30a6eff71b5a07b6a2",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 77,
-              "column": 3
-            },
-            {
-              "title": "MD-4. RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5194,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:28.440Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-806bb6ea140f27b15d21",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 91,
-              "column": 3
-            },
-            {
-              "title": "MD-5. RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad) también reaparece el wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5208,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:33.646Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-04002e219eba87d8917c",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 104,
-              "column": 3
-            },
-            {
-              "title": "MD-1. CAMBIO_MODO→casa aplica clase modo-casa al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5837,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:46.116Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-6f3ab99e709e453912a5",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 50,
-              "column": 3
-            },
-            {
-              "title": "MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5223,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:52.365Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-a7a33787b66475179fd0",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 58,
-              "column": 3
-            },
-            {
-              "title": "MD-3. RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5513,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:57.597Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-ef96b14daefeb6dee131",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 77,
-              "column": 3
-            },
-            {
-              "title": "MD-4. RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece botonRetos-wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5201,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:06:03.120Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-892d9a3c8831d3062af2",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 91,
-              "column": 3
-            },
-            {
-              "title": "MD-5. RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad) también reaparece el wrapper en CASA",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5218,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:06:08.332Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-3c3af1850c8bd0d92313",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 104,
+              "line": 128,
               "column": 3
             }
           ]
@@ -988,7 +308,7 @@
         {
           "title": "MD — sincronizarSeekPorModo (hijo3) en ambas direcciones",
           "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-          "line": 118,
+          "line": 148,
           "column": 6,
           "specs": [
             {
@@ -1007,12 +327,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5274,
+                      "duration": 5694,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-16T08:03:55.012Z",
+                      "startTime": "2026-08-17T11:45:09.928Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1022,7 +342,7 @@
               ],
               "id": "5d92b31c2557f47019a9-55001f97b9add3511d5d",
               "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 123,
+              "line": 153,
               "column": 3
             },
             {
@@ -1041,12 +361,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 297,
+                      "duration": 769,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-16T08:04:00.294Z",
+                      "startTime": "2026-08-17T11:45:15.634Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1056,279 +376,7 @@
               ],
               "id": "5d92b31c2557f47019a9-21127a9233bd9fee0762",
               "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 131,
-              "column": 3
-            },
-            {
-              "title": "MD-6. CAMBIO_MODO→casa aplica modo-casa y deja la barra de progreso arrastrable",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5269,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:29.640Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-b6741d4e69705e29a153",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 123,
-              "column": 3
-            },
-            {
-              "title": "MD-7. CAMBIO_MODO→aventura aplica modo-aventura y deja la barra deshabilitada si el padre no la habilitó",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 297,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:04:34.920Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-d7ac1dd4c65934147b0a",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 131,
-              "column": 3
-            },
-            {
-              "title": "MD-6. CAMBIO_MODO→casa aplica modo-casa y deja la barra de progreso arrastrable",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5258,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:04.188Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-0be886dc573ce88797d2",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 123,
-              "column": 3
-            },
-            {
-              "title": "MD-7. CAMBIO_MODO→aventura aplica modo-aventura y deja la barra deshabilitada si el padre no la habilitó",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 302,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:09.457Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-9dbbe1fc67507fc2081a",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 131,
-              "column": 3
-            },
-            {
-              "title": "MD-6. CAMBIO_MODO→casa aplica modo-casa y deja la barra de progreso arrastrable",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5249,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:38.865Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-9d70a0f235e3b2497c4b",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 123,
-              "column": 3
-            },
-            {
-              "title": "MD-7. CAMBIO_MODO→aventura aplica modo-aventura y deja la barra deshabilitada si el padre no la habilitó",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 285,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:05:44.123Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-08da750ec29a7ee14e4b",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 131,
-              "column": 3
-            },
-            {
-              "title": "MD-6. CAMBIO_MODO→casa aplica modo-casa y deja la barra de progreso arrastrable",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5257,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:06:13.562Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-762589c0bbaaa16a5ca3",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 123,
-              "column": 3
-            },
-            {
-              "title": "MD-7. CAMBIO_MODO→aventura aplica modo-aventura y deja la barra deshabilitada si el padre no la habilitó",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 291,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-08-16T08:06:18.829Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "5d92b31c2557f47019a9-27c20e872ee57a3ae7ff",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 131,
+              "line": 167,
               "column": 3
             }
           ]
@@ -1338,9 +386,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-08-16T08:03:26.379Z",
-    "duration": 173210.473,
-    "expected": 35,
+    "startTime": "2026-08-17T11:44:37.705Z",
+    "duration": 39424.953,
+    "expected": 7,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

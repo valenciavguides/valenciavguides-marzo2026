@@ -4802,14 +4802,22 @@
                 // Esta función fija estado.modo.actual directamente (arriba) y difunde
                 // CAMBIO_MODO solo hacia fuera, a los hijos — nunca pasa por
                 // _hdl_SISTEMA_CAMBIO_MODO en el propio padre, que es el único sitio que
-                // normalmente activa el GPS al entrar en AVENTURA (_gestionarGpsSegunModo).
-                // Sin esto, una sesión restaurada directamente en AVENTURA se queda con el
-                // modo correcto pero sin watchPosition corriendo.
+                // normalmente activa el GPS al entrar en AVENTURA (_gestionarGpsSegunModo)
+                // y arranca el temporizador de hijo1 (_activarHeartbeatAventura). Sin esto,
+                // una sesión restaurada directamente en AVENTURA se queda con el modo
+                // correcto pero sin watchPosition corriendo ni reloj de compra visible.
                 if (_modoRest === MODOS.AVENTURA) {
                     try {
                         await activarGPS();
                     } catch (gpsErr) {
                         (globalThis.logger || console).warn(`${logPrefix} GPS no pudo activarse tras reanudación:`, gpsErr?.message);
+                    }
+                    if (typeof globalThis._iniciarTemporizadorAventura === 'function' && datosGuardados?.aventura && typeof datosGuardados?.timestamp === 'number') {
+                        try {
+                            await globalThis._iniciarTemporizadorAventura(datosGuardados.aventura, datosGuardados.idioma, estado, logPrefix, null, datosGuardados.timestamp);
+                        } catch (timerErr) {
+                            (globalThis.logger || console).warn(`${logPrefix} Temporizador de hijo1 no pudo reanudarse:`, timerErr?.message);
+                        }
                     }
                 }
 
@@ -4901,8 +4909,21 @@
                 await _esperarHijosCriticosRest(logPrefix);
                 await _distribuirDatosRest(logPrefix, datosGuardados);
                 await _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados);
-                await _restaurarProgresoRest(logPrefix);
+                // _activarModoRest() antes que _restaurarProgresoRest(): esta última dispara
+                // el NAVEGACION.CAMBIO_PARADA real del elemento restaurado (_restoreBroadcast
+                // -> __triggerCambioParadaInterno -> _hdl_NAVEGACION_CAMBIO_PARADA), cuya lógica
+                // depende de estado.modo?.actual === MODOS.AVENTURA (arranque del recordatorio
+                // de audio/reto, botón GPS en tramos, deshabilitar btnAvanzar hasta completar) —
+                // y estado.modo.actual solo se fija dentro de _activarModoRest(). En el orden
+                // anterior, ese CAMBIO_PARADA se procesaba con el modo aún en su valor por
+                // defecto de arranque (CASA), así que esas ramas nunca se activaban para el
+                // elemento restaurado. Además, el CAMBIO_MODO que _activarModoRest() difunde a
+                // los hijos dispara en hijo2 _resetarEstadoParaModo(), que resetea
+                // idParadaActual/btnAvanzarCompletadoPorPadre — con el orden anterior ese reset
+                // llegaba DESPUÉS del CAMBIO_PARADA restaurado y podía borrar los datos de la
+                // parada que se acababan de fijar.
                 await _activarModoRest(logPrefix, datosGuardados);
+                await _restaurarProgresoRest(logPrefix);
                 await _solicitarRecursosRest(logPrefix);
             } catch (err) {
                 (globalThis.logger || console).error(`${logPrefix} Error restaurando aventura:`, err);
@@ -12715,8 +12736,14 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
-        async function _iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix, tiempoRestanteOverride) {
+        async function _iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix, tiempoRestanteOverride, timestampInicioRest) {
             const modoActual = estado.modo?.actual || MODOS.CASA;
+            if (globalThis._devModeActivo) {
+                // El temporizador cuenta tiempo de compra real — en modo dev no hay compra,
+                // así que no debe arrancar ni consumir ese cupo mientras se está probando.
+                (globalThis.logger || console).info(`${logPrefix} 🧪 Modo dev activo → Timer de compra NO iniciado (no hay tiempo comprado que consumir)`);
+                return;
+            }
             if (modoActual !== MODOS.AVENTURA) {
                 (globalThis.logger || console).info(`${logPrefix} 🏠 Modo CASA detectado → Timer NO iniciado (desarrollo sin tiempo límite)`);
                 return;
@@ -12736,8 +12763,23 @@ await _comprobarReanudacionAventura(logPrefix);
                 // reiniciar al máximo — hijo1 resetea su propio reloj visible en cada
                 // entrada a CASA (extrainfo-hijo1.html, resetearTemporizador()), así que
                 // hay que decirle el tiempo restante real cada vez que vuelve a AVENTURA.
-                const tieneRestante = typeof tiempoRestanteOverride === 'number' && tiempoRestanteOverride > 0;
-                const tiempoAEnviar = tieneRestante ? tiempoRestanteOverride : tiempoEstimado;
+                let tiempoAEnviar;
+                let tieneRestante;
+                if (typeof timestampInicioRest === 'number' && timestampInicioRest > 0) {
+                    // Reanudación tras cerrar y reabrir la PWA: el tiempo comprado corre en
+                    // tiempo real desde la compra (datosGuardados.timestamp de
+                    // vv_aventura_iniciada), esté la app abierta o cerrada — igual que
+                    // verificarTimeoutAventura() (js/reciclaje-digital.js), que ya corta el
+                    // acceso con esta misma cuenta. Reenviar sin más el último tiempoRestante
+                    // conocido pausaría el reloj visible mientras la PWA estuvo cerrada,
+                    // mostrando más tiempo del que realmente queda.
+                    const transcurridoSeg = Math.floor((Date.now() - timestampInicioRest) / 1000);
+                    tiempoAEnviar = Math.max(0, tiempoEstimado - transcurridoSeg);
+                    tieneRestante = true;
+                } else {
+                    tieneRestante = typeof tiempoRestanteOverride === 'number' && tiempoRestanteOverride > 0;
+                    tiempoAEnviar = tieneRestante ? tiempoRestanteOverride : tiempoEstimado;
+                }
                 const iframeOpciones = document.getElementById('hijo1-opciones');
                 if (iframeOpciones && iframeOpciones.contentWindow) {
                     iframeOpciones.contentWindow.postMessage({
@@ -12754,8 +12796,11 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error iniciando temporizador:`, temporizadorError);
             }
         }
-        // Expuesta para Script 1 — _activarHeartbeatAventura la llama en cada transición
-        // a modo AVENTURA (activación inicial, reanudación, o retorno desde CASA en dev).
+        // Expuesta para Script 1 — dos llamadores: _activarHeartbeatAventura (activación
+        // inicial o retorno desde CASA en la misma sesión, vía _hdl_SISTEMA_CAMBIO_MODO) y
+        // _activarModoRest (reanudación tras cerrar/reabrir la PWA, que nunca pasa por ese
+        // handler — ver el comentario de _activarModoRest). En dev mode ambas llamadas
+        // devuelven sin hacer nada: el temporizador cuenta tiempo de compra real.
         try { globalThis._iniciarTemporizadorAventura = _iniciarTemporizadorAventura; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
 async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
