@@ -121,20 +121,20 @@
   },
   "suites": [
     {
-      "title": "31-sincronizar-modo-ambas-direcciones.spec.js",
-      "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
+      "title": "13-gps-tramo-fix.spec.js",
+      "file": "13-gps-tramo-fix.spec.js",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "MD — sincronizarEstadoModo (hijo4) en ambas direcciones",
-          "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-          "line": 45,
+          "title": "GT — Distancia y llegada a tramos por GPS (fix .inicio/.fin)",
+          "file": "13-gps-tramo-fix.spec.js",
+          "line": 112,
           "column": 6,
           "specs": [
             {
-              "title": "MD-1. CAMBIO_MODO→casa aplica clase modo-casa al body",
+              "title": "GT-1. verificarLlegadaADestino con datos reales: false en .inicio, true en .fin",
               "ok": true,
               "tags": [],
               "tests": [
@@ -142,19 +142,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6313,
+                      "duration": 4140,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T11:44:40.035Z",
+                      "startTime": "2026-08-17T12:14:39.738Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -162,13 +162,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "5d92b31c2557f47019a9-7f75ac355bd675e83737",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 50,
+              "id": "ac588689c668b1a30931-89fd0bcb34fd35ce5bce",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 120,
               "column": 3
             },
             {
-              "title": "MD-2. CAMBIO_MODO→aventura aplica clase modo-aventura al body",
+              "title": "GT-2. verificarLlegadaADestino usa .fin, no el último waypoint (caso sintético discriminante)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -176,19 +176,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5650,
+                      "duration": 1665,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T11:44:46.830Z",
+                      "startTime": "2026-08-17T12:14:45.202Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -196,13 +196,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "5d92b31c2557f47019a9-1e99db1400619a2f7264",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 64,
+              "id": "ac588689c668b1a30931-85b1834b9dbfdc173f96",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 137,
               "column": 3
             },
             {
-              "title": "MD-3. RETO.LIMPIAR_ESTADO con retoSigueActivo:false NO reaparece botonRetos-wrapper en CASA",
+              "title": "GT-3. procesarPosicionGPSParaAventura en .fin notifica LLEGADA_DETECTADA tras 2 lecturas seguidas, nunca CAMBIO_PARADA directo",
               "ok": true,
               "tags": [],
               "tests": [
@@ -210,19 +210,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5968,
+                      "duration": 2149,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T11:44:52.491Z",
+                      "startTime": "2026-08-17T12:14:46.881Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -230,13 +230,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "5d92b31c2557f47019a9-525dff026c9d9c2e8648",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 89,
+              "id": "ac588689c668b1a30931-f370f1198bedac07e40f",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 175,
               "column": 3
             },
             {
-              "title": "MD-4. RETO.LIMPIAR_ESTADO con retoSigueActivo:true SÍ reaparece botonRetos-wrapper en CASA",
+              "title": "GT-4. Una tercera lectura en el mismo punto no reenvía la notificación (dedup tras confirmar)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -244,19 +244,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5645,
+                      "duration": 1990,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T11:44:58.469Z",
+                      "startTime": "2026-08-17T12:14:49.044Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -264,13 +264,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "5d92b31c2557f47019a9-698413adafcac5a7b2c9",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 109,
+              "id": "ac588689c668b1a30931-126560867bff51efeede",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 211,
               "column": 3
             },
             {
-              "title": "MD-5. RETO.LIMPIAR_ESTADO sin campo retoSigueActivo (compatibilidad) también reaparece el wrapper en CASA",
+              "title": "PD-1. Precisión GPS mala (>50m) ya no descarta la lectura: la distancia se calcula igual",
               "ok": true,
               "tags": [],
               "tests": [
@@ -278,19 +278,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5778,
+                      "duration": 1986,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T11:45:04.133Z",
+                      "startTime": "2026-08-17T12:14:51.050Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -298,21 +298,531 @@
                   "status": "expected"
                 }
               ],
-              "id": "5d92b31c2557f47019a9-f9dbe909bf4bea9d5fdc",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 128,
+              "id": "ac588689c668b1a30931-e69aea3c3f7a385bbe38",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 234,
+              "column": 3
+            },
+            {
+              "title": "PD-2/PD-3. Confirmación por 2 lecturas seguidas dentro de radio (con precisión mala incluida)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2158,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:14:53.051Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-4ea2760b306cd9205a1a",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 252,
+              "column": 3
+            },
+            {
+              "title": "PD-4. Ventana deslizante: 2 lecturas dentro de radio NO seguidas (con una fuera entre medias) sí confirman",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2283,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:14:55.223Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-bc60771f109d956be49d",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 279,
+              "column": 3
+            },
+            {
+              "title": "GT-5. verificarLlegadaADestino reconoce tipo:\"inicio\" (parada 0) igual que \"parada\"",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1696,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:14:57.517Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-b15139f98400987fb2ca",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 313,
+              "column": 3
+            },
+            {
+              "title": "GT-6. El GPS apunta al elemento activo (paradaActual), no al siguiente en el array",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2010,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:14:59.227Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-e21dfddd8f0c4b1c44b4",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 333,
+              "column": 3
+            },
+            {
+              "title": "PM-1. Volver a .inicio (≤50m) limpia la polyline manual",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2005,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:01.250Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-194c9b150dc16c7e440a",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 378,
+              "column": 3
+            },
+            {
+              "title": "PM-2. Lejos de .inicio (en .fin, ~120m) la polyline manual no se toca",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2010,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:03.269Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-9f51eeccfdd17629bcd0",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 406,
+              "column": 3
+            },
+            {
+              "title": "DC-1. En el punto de INICIO de un tramo, distanciaAlCamino ≈0 mientras distanciaAlDestino se mantiene grande",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1994,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:05.291Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-e410f87ee9524b542e32",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 444,
+              "column": 3
+            },
+            {
+              "title": "DC-2. Cerca de un waypoint intermedio (lejos de .fin), distanciaAlCamino es pequeña",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2040,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:07.299Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-ed3506a5aadf8c1769a5",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 468,
+              "column": 3
+            },
+            {
+              "title": "DC-3. Para una PARADA (no tramo), distanciaAlCamino coincide siempre con distanciaAlDestino",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1969,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:09.351Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac588689c668b1a30931-0abe63e3325e49bbd6d2",
+              "file": "13-gps-tramo-fix.spec.js",
+              "line": 494,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "17-flecha-brujula-continuidad.spec.js",
+      "file": "17-flecha-brujula-continuidad.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FB — Continuidad de la flecha GPS entre recreaciones del marcador",
+          "file": "17-flecha-brujula-continuidad.spec.js",
+          "line": 46,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FB-1. La recreación del marcador reutiliza el ángulo acumulado de la brújula, no el heading GPS",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1672,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:11.340Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3efe395a158c2e8bde31-9b75ae688ddc1ab82eba",
+              "file": "17-flecha-brujula-continuidad.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "GA-1. El ápice del triángulo de la flecha se queda clavado en el punto GPS real al rotar, no orbita",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1722,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:13.027Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3efe395a158c2e8bde31-ebad3c54ba1edac366b8",
+              "file": "17-flecha-brujula-continuidad.spec.js",
+              "line": 99,
+              "column": 3
+            },
+            {
+              "title": "HD-1. alpha+beta+gamma (Android) se convierten a rumbo compensando la inclinación; webkitCompassHeading (iOS) pasa sin tocar",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1665,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:14.762Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3efe395a158c2e8bde31-b5b7e440498ace802e36",
+              "file": "17-flecha-brujula-continuidad.spec.js",
+              "line": 172,
+              "column": 3
+            },
+            {
+              "title": "RB-1. La rotación en pantalla resta el bearing actual del mapa",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1801,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:16.441Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3efe395a158c2e8bde31-4b944cea4e0bbdd85398",
+              "file": "17-flecha-brujula-continuidad.spec.js",
+              "line": 227,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "20-tramo-inicio-y-revelado.spec.js",
+      "file": "20-tramo-inicio-y-revelado.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "PC — Polyline manual a .inicio en tramos (no P-0)",
+          "file": "20-tramo-inicio-y-revelado.spec.js",
+          "line": 88,
+          "column": 6,
+          "specs": [
+            {
+              "title": "PC-1. MOSTRAR_UBICACION_POLYLINE con un tramo activo dibuja hasta .inicio, no hasta P-0",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1789,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:18.268Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9fb49fa693961d5545d4-65eafd199a0af7c47716",
+              "file": "20-tramo-inicio-y-revelado.spec.js",
+              "line": 107,
               "column": 3
             }
           ]
         },
         {
-          "title": "MD — sincronizarSeekPorModo (hijo3) en ambas direcciones",
-          "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-          "line": 148,
+          "title": "RV — El trazado se revela de inmediato y no se oculta nunca por distancia",
+          "file": "20-tramo-inicio-y-revelado.spec.js",
+          "line": 168,
           "column": 6,
           "specs": [
             {
-              "title": "MD-6. CAMBIO_MODO→casa aplica modo-casa y deja la barra de progreso arrastrable",
+              "title": "RV-1. revelarNavegacion() deja el trazado visible sin depender de ninguna lectura GPS",
               "ok": true,
               "tags": [],
               "tests": [
@@ -320,19 +830,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5694,
+                      "duration": 1746,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T11:45:09.928Z",
+                      "startTime": "2026-08-17T12:15:20.074Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -340,13 +850,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "5d92b31c2557f47019a9-55001f97b9add3511d5d",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 153,
+              "id": "9fb49fa693961d5545d4-8a2dbd05104269bc6c6b",
+              "file": "20-tramo-inicio-y-revelado.spec.js",
+              "line": 176,
               "column": 3
             },
             {
-              "title": "MD-7. CAMBIO_MODO→aventura aplica modo-aventura y deja la barra deshabilitada si el padre no la habilitó",
+              "title": "RV-2. Una vez revelado, el trazado permanece visible aunque el usuario esté lejos de .inicio y de todo el camino",
               "ok": true,
               "tags": [],
               "tests": [
@@ -354,19 +864,19 @@
                   "timeout": 60000,
                   "annotations": [],
                   "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
                   "results": [
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 769,
+                      "duration": 2944,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-08-17T11:45:15.634Z",
+                      "startTime": "2026-08-17T12:15:21.835Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -374,9 +884,289 @@
                   "status": "expected"
                 }
               ],
-              "id": "5d92b31c2557f47019a9-21127a9233bd9fee0762",
-              "file": "31-sincronizar-modo-ambas-direcciones.spec.js",
-              "line": 167,
+              "id": "9fb49fa693961d5545d4-eb841e8bc7c957dcc3af",
+              "file": "20-tramo-inicio-y-revelado.spec.js",
+              "line": 197,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "PL — La polyline manual oculta el trazado; solo volver a .inicio la limpia y lo revela",
+          "file": "20-tramo-inicio-y-revelado.spec.js",
+          "line": 225,
+          "column": 6,
+          "specs": [
+            {
+              "title": "PL-1. dibujarPolylineNavegacion oculta el trazado ya revelado de inmediato",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1808,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:24.793Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9fb49fa693961d5545d4-b386147f2b1ac5ee539c",
+              "file": "20-tramo-inicio-y-revelado.spec.js",
+              "line": 236,
+              "column": 3
+            },
+            {
+              "title": "PL-2. Con la línea manual activa, estar cerca de un punto del camino que no es .inicio no la limpia ni revela el trazado",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2096,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:26.613Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9fb49fa693961d5545d4-3670792dd62eea3ce683",
+              "file": "20-tramo-inicio-y-revelado.spec.js",
+              "line": 266,
+              "column": 3
+            },
+            {
+              "title": "PL-3. Volver al radio de .inicio con la línea manual activa la limpia y revela el trazado",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1947,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:28.723Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9fb49fa693961d5545d4-95eef8d6cc8509a45b8d",
+              "file": "20-tramo-inicio-y-revelado.spec.js",
+              "line": 300,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "23-polyline-autoreparacion.spec.js",
+      "file": "23-polyline-autoreparacion.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "PR — Auto-reparación de polyline/círculo cuando el estilo no está listo",
+          "file": "23-polyline-autoreparacion.spec.js",
+          "line": 38,
+          "column": 6,
+          "specs": [
+            {
+              "title": "PR-1. Estilo no listo: la capa real se crea sola en cuanto el mapa dispara 'load'",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1685,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:30.685Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8078faeb0a3afe8a8402-54595c10d27af02dd3c2",
+              "file": "23-polyline-autoreparacion.spec.js",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "PR-2. dibujarPolylineNavegacion() llamado antes de 'load' (setStyle sobre el proxy) no se pierde — se aplica sobre la capa real",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1613,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:32.385Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8078faeb0a3afe8a8402-3fbec7035d83bc47da65",
+              "file": "23-polyline-autoreparacion.spec.js",
+              "line": 93,
+              "column": 3
+            },
+            {
+              "title": "PR-3. Estilo ya cargado: la capa real se crea al instante, sin esperar a 'load'",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1602,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:34.010Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8078faeb0a3afe8a8402-75e384b44efb482db76a",
+              "file": "23-polyline-autoreparacion.spec.js",
+              "line": 145,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "24-camara-sigue-usuario.spec.js",
+      "file": "24-camara-sigue-usuario.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "CAM — Cámara siguiendo al usuario",
+          "file": "24-camara-sigue-usuario.spec.js",
+          "line": 40,
+          "column": 6,
+          "specs": [
+            {
+              "title": "CAM-1/2/3/4. Ciclo completo: sigue, se pausa por arrastre real, ignora arrastre programático, y se reactiva",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1634,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-17T12:15:35.626Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f73a5f28f070d92f096d-60843c95e048ace2acac",
+              "file": "24-camara-sigue-usuario.spec.js",
+              "line": 50,
               "column": 3
             }
           ]
@@ -386,9 +1176,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-08-17T11:44:37.705Z",
-    "duration": 39424.953,
-    "expected": 7,
+    "startTime": "2026-08-17T12:14:37.230Z",
+    "duration": 60309.309,
+    "expected": 28,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

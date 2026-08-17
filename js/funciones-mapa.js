@@ -484,11 +484,25 @@ const ESCALA_BASE = {
     // Referencia de escala
     PANTALLA_REF: 400,          // Pantalla de referencia (vmin)
     ZOOM_REF: 15,               // Zoom de referencia
-    ZOOM_FACTOR: 1.15           // Factor de escala por nivel de zoom
+    // Dos curvas de crecimiento por zoom, no una sola:
+    // - ZOOM_FACTOR: diana de parada/tramo, 📌 de inicio de tramo y las polylines — la familia
+    //   de "marcadores de ruta" que el usuario ve encogerse en relación al mapa cuanto más zoom
+    //   real aplica (el mapa dobla su detalle en cada nivel; con un factor de 1.15 el marcador
+    //   solo llegaba a ×1.75 en el zoom máximo real de la app, 19 — visualmente insuficiente).
+    // - ZOOM_FACTOR_USUARIO: el marcador de posición propia (🛸 en CASA, flecha en AVENTURA) no
+    //   forma parte de esta familia — ya se percibía con tamaño correcto en el zoom máximo real
+    //   y aplicarle la misma curva más agresiva lo habría dejado desproporcionadamente grande.
+    ZOOM_FACTOR: 1.35,
+    ZOOM_FACTOR_USUARIO: 1.15,
+    // Tope de seguridad de la curva de marcadores/polylines — "hasta cierto punto", no
+    // crecimiento sin límite. Con ZOOM_FACTOR=1.35, se alcanza justo por encima del zoom
+    // máximo real de la app (19), así que en la práctica actúa como red de seguridad para un
+    // zoom mayor que el hoy disponible, no como un techo que recorte el crecimiento normal.
+    ZOOM_TOPE: 3.5
 };
 
 /**
- * Cache de escala actual para evitar recálculos frecuentes
+ * Cache de escala actual para evitar recálculos frecuentes (curva de marcadores/polylines)
  */
 let _escalaCache = {
     valor: 1,
@@ -497,43 +511,74 @@ let _escalaCache = {
 };
 
 /**
- * Calcula la escala combinada según pantalla y zoom del mapa
- * @param {maplibregl.Map} [mapaInstance] - Instancia del mapa (opcional, usa _mapaInstance si no se proporciona)
+ * Cache de escala para el marcador de posición propia (curva independiente, más suave)
+ */
+let _escalaCacheUsuario = {
+    valor: 1,
+    timestamp: 0,
+    zoom: 15
+};
+
+/**
+ * Calcula un factor de escala combinando pantalla + zoom, con caché y límites propios.
+ * Función interna compartida por getEscalaMapa() y getEscalaMapaUsuario() — cada una le pasa
+ * su propio factor de crecimiento, tope y objeto de caché, así que un zoom idéntico puede dar
+ * dos escalas distintas según la familia de elemento que la pida.
+ * @param {maplibregl.Map|null} mapaInstance
+ * @param {number} factorZoom - ZOOM_FACTOR o ZOOM_FACTOR_USUARIO
+ * @param {number} tope - Límite superior de la escala
+ * @param {{valor:number,timestamp:number,zoom:number}} cache - Objeto de caché a leer/escribir
  * @returns {number} Factor de escala (1.0 = tamaño base)
  */
-function getEscalaMapa(mapaInstance = null) {
+function _calcularEscala(mapaInstance, factorZoom, tope, cache) {
     const mapa = mapaInstance || _mapaInstance;
     const ahora = Date.now();
-    
+
     // Usar cache si es reciente (< 100ms) y el zoom no cambió
     const zoomActual = mapa ? mapa.getZoom() : ESCALA_BASE.ZOOM_REF;
-    if (ahora - _escalaCache.timestamp < 100 && _escalaCache.zoom === zoomActual) {
-        return _escalaCache.valor;
+    if (ahora - cache.timestamp < 100 && cache.zoom === zoomActual) {
+        return cache.valor;
     }
-    
+
     // Factor 1: Tamaño de pantalla
     const vmin = Math.min(globalThis.innerWidth || 400, globalThis.innerHeight || 400);
     const escalaPantalla = vmin / ESCALA_BASE.PANTALLA_REF;
-    
+
     // Factor 2: Nivel de zoom del mapa
-    const escalaZoom = Math.pow(ESCALA_BASE.ZOOM_FACTOR, zoomActual - ESCALA_BASE.ZOOM_REF);
-    
+    const escalaZoom = Math.pow(factorZoom, zoomActual - ESCALA_BASE.ZOOM_REF);
+
     // Combinación con límites seguros
     const escalaFinal = escalaPantalla * escalaZoom;
-    const escalaLimitada = Math.max(0.5, Math.min(escalaFinal, 2.5));
-    
-    // Actualizar cache
-    _escalaCache = {
-        valor: escalaLimitada,
-        timestamp: ahora,
-        zoom: zoomActual
-    };
-    
+    const escalaLimitada = Math.max(0.5, Math.min(escalaFinal, tope));
+
+    // Actualizar cache (mutación in-place: cache es _escalaCache o _escalaCacheUsuario)
+    cache.valor = escalaLimitada;
+    cache.timestamp = ahora;
+    cache.zoom = zoomActual;
+
     return escalaLimitada;
 }
 
 /**
- * Obtiene valores escalados para polylines
+ * Escala para diana de parada/tramo, 📌 de inicio de tramo y polylines.
+ * @param {maplibregl.Map} [mapaInstance] - Instancia del mapa (opcional, usa _mapaInstance si no se proporciona)
+ * @returns {number} Factor de escala (1.0 = tamaño base)
+ */
+function getEscalaMapa(mapaInstance = null) {
+    return _calcularEscala(mapaInstance, ESCALA_BASE.ZOOM_FACTOR, ESCALA_BASE.ZOOM_TOPE, _escalaCache);
+}
+
+/**
+ * Escala para el marcador de posición propia (🛸 CASA / flecha AVENTURA) — curva independiente.
+ * @param {maplibregl.Map} [mapaInstance]
+ * @returns {number} Factor de escala (1.0 = tamaño base)
+ */
+function getEscalaMapaUsuario(mapaInstance = null) {
+    return _calcularEscala(mapaInstance, ESCALA_BASE.ZOOM_FACTOR_USUARIO, 2.5, _escalaCacheUsuario);
+}
+
+/**
+ * Obtiene valores escalados para polylines (curva de marcadores/polylines — ver ZOOM_FACTOR)
  * @returns {Object} Valores escalados { ruta, tramo, destacado, navegacion }
  */
 function getPolylineEscalado() {
@@ -547,17 +592,19 @@ function getPolylineEscalado() {
 }
 
 /**
- * Obtiene valores escalados para iconos
+ * Obtiene valores escalados para iconos. parada/inicio/destino usan la curva de marcadores
+ * (ZOOM_FACTOR); usuarioCasa/usuarioAventura usan la curva propia, más suave (ZOOM_FACTOR_USUARIO).
  * @returns {Object} Valores escalados para cada tipo de icono
  */
 function getIconoEscalado() {
     const escala = getEscalaMapa();
+    const escalaUsuario = getEscalaMapaUsuario();
     return {
         parada: Math.round(ESCALA_BASE.ICONO_PARADA * escala),
         inicio: Math.round(ESCALA_BASE.ICONO_INICIO * escala),
         destino: Math.round(ESCALA_BASE.ICONO_DESTINO * escala),
-        usuarioCasa: Math.round(ESCALA_BASE.ICONO_USUARIO_CASA * escala),
-        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escala)
+        usuarioCasa: Math.round(ESCALA_BASE.ICONO_USUARIO_CASA * escalaUsuario),
+        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escalaUsuario)
     };
 }
 
@@ -627,11 +674,15 @@ function registrarListenerZoom() {
             polylineNavegacion.setStyle({ weight: peso.navegacion });
         }
         
-        // Re-escalar rutasActivas
+        // Re-escalar rutasActivas — el único tipo de polyline que se guarda ahí es el tramo
+        // azul de dibujarTramo(tramoData, false) (peso.tramo, base 4px). Usar peso.ruta (base
+        // 6px, pensado para una ruta completa que este array nunca contiene) lo dejaba un 50%
+        // más grueso de lo que su propio diseño pedía en cuanto se disparaba el primer zoomend
+        // tras dibujarlo.
         rutasActivas.forEach(polyline => {
             if (polyline?.setStyle) {
                 const peso = getPolylineEscalado();
-                polyline.setStyle({ weight: peso.ruta });
+                polyline.setStyle({ weight: peso.tramo });
             }
         });
         
