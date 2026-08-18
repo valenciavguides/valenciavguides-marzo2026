@@ -88,7 +88,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-d3155af018e9';
+const CACHE_VERSION = 'v-c450a8a8eb90';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
@@ -177,9 +177,13 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Videos: nunca interceptar — las range requests del browser deben ir directas
-  // a red para evitar latencia extra por request y bugs de cache con 206 parciales.
+  // Videos y audios: nunca interceptar — las range requests del browser deben ir
+  // directas a red para evitar latencia extra por request y bugs de cache con 206
+  // parciales. Ya está aceptado que el audio requiere conexión en el momento de
+  // reproducirse (§25.17); esta exclusión lo hace cierto sin excepción, en vez de
+  // depender de si esa parada ya se cacheó antes por casualidad.
   if (url.pathname.startsWith('/videos-aventuras/')) return;
+  if (url.pathname.startsWith('/audios-aventuras/')) return;
 
   // API: Network Only (sin caché)
   if (esApi(url)) {

@@ -4753,8 +4753,8 @@ Toda la comunicación entre componentes se canaliza a través de `js/mensajeria.
 El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
-- Media (audios, vídeos, imágenes de aventuras) **nunca cacheado** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-d3155af018e9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c450a8a8eb90'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7221,7 +7221,7 @@ Ni local ni GitHub Pages pueden revelar problemas de rendimiento específicos de
 - **CORS con wildcard (`Access-Control-Allow-Origin: '*'`, `js/server.js`):** inofensivo mientras frontend y backend comparten origen. En cuanto vivan en dominios distintos, restringir al dominio real de producción (ya estaba en el checklist de §22.4 como tarea de seguridad; con arquitectura distribuida deja de ser opcional).
 - **La protección pasiva por parada (`_solicitarAudioParaParada()`, ver §16) ya hace una petición por parada, no una petición bulk por aventura — a propósito, para no exponer todo el contenido de golpe (ver §17).** Esto significa que cuando exista backend real, cada cambio de parada disparará una petición HTTP nueva. Es el diseño correcto para el objetivo de protección, pero implica que la latencia *por petición* del backend (no el volumen total de datos) será lo que el usuario note al caminar de parada en parada — merece medirse específicamente, no asumir que "poco tráfico total" equivale a "rápido".
 - **`js/api-client.js` ya tiene un timeout de 15s** (`API_CONFIG.timeout`) — generoso para latencia de red + procesamiento real de backend, no hace falta tocarlo preventivamente.
-- **Cabeceras de caché en las respuestas del backend:** hoy los ficheros estáticos de media no pasan por caché del Service Worker para vídeo (ver §19) y sí para audio/imágenes (Cache First + LRU-100). Cuando el backend sirva estos mismos recursos vía API autenticada, hay que decidir explícitamente si esa respuesta es cacheable (`Cache-Control`) o si la autenticación por petición lo impide — no dar por hecho que el comportamiento actual se mantiene solo porque la URL cambió de estática a `/api/...`.
+- **Cabeceras de caché en las respuestas del backend:** hoy los ficheros estáticos de media no pasan por caché del Service Worker para vídeo ni audio (ver §19) y sí para imágenes (Cache First + LRU-100). Cuando el backend sirva estos mismos recursos vía API autenticada, hay que decidir explícitamente si esa respuesta es cacheable (`Cache-Control`) o si la autenticación por petición lo impide — no dar por hecho que el comportamiento actual se mantiene solo porque la URL cambió de estática a `/api/...`.
 - **Cuando el backend exista, repetir la verificación de red real** (igual que se hizo con `curl` contra GitHub Pages para el vídeo, ver [[project-video-faststart-fix]]) contra el backend real, no solo contra un entorno de desarrollo local del backend — la latencia real entre frontend y backend en producción es la única forma fiable de saber si hace falta CDN delante del backend para media, o si las peticiones por parada son lo bastante rápidas.
 
 ### 16.2 Flujo completo de compra y activación (diseño para producción)
@@ -7571,7 +7571,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 | Caché | Nombre | Estrategia | Contenido |
 |-------|--------|-----------|-----------|
 | Shell | `vvguides-shell-{CACHE_VERSION}` | **Network First** | HTML, JS, manifest, iconos — contenido versionado |
-| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Audios MP3, imágenes de aventuras y mapas vintage — **NO vídeos** |
+| Media | `vvguides-media-v1` | **Cache First + LRU (100 entradas)** | Imágenes de aventuras y mapas vintage — **NI vídeos ni audios** |
 | Vídeos (`/videos-aventuras/`) | — | **Network Only (sin interceptar)** | El `fetch` handler devuelve sin gestionar la petición (`return` en el listener, antes de llegar a `esMedia()`) para que las peticiones `Range` del `<video>` vayan directas a red — cachear respuestas `206 Partial Content` es una fuente conocida de bugs |
 | API | — | **Network Only** | Peticiones a `/api/*` — sin caché, 503 si sin conexión |
 
@@ -7579,7 +7579,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 **Network First (shell):** intenta la red; si falla, sirve desde caché. El shell (HTML/JS) siempre recibe la versión más reciente cuando hay conexión.
 
-**Cache First con LRU (media, sin vídeos):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de los audios ya escuchados y las imágenes ya vistas. **Los vídeos quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) incluye textualmente `/videos-aventuras/` en su lista, pero es código inerte para ese caso — el `fetch` handler tiene un `return` explícito para esa ruta *antes* de consultar `esMedia()`, así que nunca llega a esa lógica. Los vídeos siempre van directos a red, sin caché SW en absoluto (ver §15 para el mecanismo de reproducción, `reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`).
+**Cache First con LRU (media, sin vídeos ni audios):** busca primero en caché local (rápido, sin consumir datos). Si no está, lo descarga y lo guarda. Si hay más de 100 entradas, elimina las más antiguas. Esto permite uso offline de las imágenes ya vistas. **Vídeos y audios quedan fuera de esta estrategia a propósito**: `esMedia()` (`sw.js`) incluye textualmente `/videos-aventuras/` y `/audios-aventuras/` en su lista, pero es código inerte para ambos casos — el `fetch` handler tiene un `return` explícito para esas dos rutas *antes* de consultar `esMedia()`, así que nunca llega a esa lógica. Vídeos y audios siempre van directos a red, sin caché SW en absoluto — para vídeo, ver §15 (`reproducirVideoConBuffer`, que gestiona el buffering en el propio `<video>`); para audio, la razón es la misma que para vídeo (evitar bugs de caché con peticiones Range/206 parciales), y además ya está aceptado que el audio requiere conexión en el momento de reproducirse (§25.17) — esta exclusión lo hace cierto siempre, sin la excepción oculta de una parada que ya se hubiera cacheado antes por casualidad.
 
 **Network Only (API):** las llamadas a la API nunca se cachean; si no hay red, devuelve 503 con mensaje legible.
 
@@ -7635,7 +7635,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d3155af018e9'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-c450a8a8eb90'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7741,7 +7741,7 @@ proyecto/
 ├── paginas-oficiales-valencia.html
 │
 ├── manifest.json                     ← Configuración PWA (iconos, shortcuts, categorías)
-├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos — esos van siempre directos a red)
+├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos ni audios — esos van siempre directos a red)
 ├── CNAME                             ← Dominio para GitHub Pages (valenciavguides.es)
 ├── package.json                      ← Dependencias y scripts (lint, test, dev)
 ├── eslint.config.js                  ← Configuración ESLint
@@ -8278,7 +8278,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d3155af018e9';
+const CACHE_VERSION = 'v-c450a8a8eb90';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8512,7 +8512,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | Término | Significado |
 |---------|-------------|
 | **PWA** | Progressive Web App — aplicación web instalable como app nativa en el dispositivo |
-| **Service Worker** | Script registrado en el navegador (`sw.js`) que gestiona dos niveles de caché: shell (Network First) y media/audios (Cache First + LRU‑100 entradas, no incluye vídeos — siempre directos a red) |
+| **Service Worker** | Script registrado en el navegador (`sw.js`) que gestiona dos niveles de caché: shell (Network First) y media/imágenes (Cache First + LRU‑100 entradas, no incluye vídeos ni audios — siempre directos a red) |
 | **Sanitización** | Limpieza de datos de entrada para evitar ataques (XSS, inyección) |
 | **Mutex** | Patrón de promesa compartida usado en `codigo-padre.html` para evitar que operaciones críticas (como `activarGPS()`) se ejecuten en paralelo |
 | **ESLint** | Herramienta de análisis estático de código configurada en `eslint.config.js`. Se ejecuta con `npm run lint` |
@@ -11358,7 +11358,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-d3155af018e9';
+const CACHE_VERSION = 'v-c450a8a8eb90';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
