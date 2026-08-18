@@ -1122,34 +1122,42 @@ El control de audio **no está en hijo3** — está en `codigo-padre.html` como 
 
 | ID | Imagen PNG | Función |
 |----|-----------|---------|
-| `#audio-main-toggle-btn` | `boton-audio-central.png` | Botón principal. Abre/cierra el dropdown de acciones. **Verde** si la parada tiene audio, **rojo** si no |
+| `#audio-main-toggle-btn` | `boton-audio-central.png` | Botón principal. Abre/cierra el dropdown de acciones. **Verde** si hay un fichero de audio real reproducible, **rojo** si no |
 | `#audio-action-play` (`.audio-action-btn`) | `boton-audio-play.png` | Reproducir audio |
 | `#audio-action-pause` (`.audio-action-btn`) | `boton-audio-pausa.png` | Pausar audio |
 | `#audio-action-stop` (`.audio-action-btn`) | `boton-audio-stop.png` | Detener audio |
 | `#audio-action-replay` (`.audio-action-btn`) | `boton-audio-replay.png` | Volver a escuchar desde el inicio |
+| `#audio-action-skip` (`.audio-action-btn`) | `boton-audio-avanzar.png` | Saltar audio no disponible — ver §25.5f |
 
-Los 4 botones de acción están dentro de `#audio-control-dropdown` y son invisibles hasta que el usuario pulsa `#audio-main-toggle-btn` (el overlay adquiere la clase `.open`).
+Los 4 botones de acción están dentro de `#audio-control-dropdown` y son invisibles hasta que el usuario pulsa `#audio-main-toggle-btn` (el overlay adquiere la clase `.open`). `#audio-action-skip` es distinto: vive fuera de `#audio-control-dropdown`, en el mismo hueco visual (justo encima del botón central), y su visibilidad no depende de `.open` — la controla `actualizarEstadoControlesAudioPadre()` con la clase `.mostrar-saltar-audio` en el overlay, nunca a la vez que el botón central está habilitado (ver más abajo y §25.5f).
 
 **Lógica de habilitación** — `actualizarEstadoControlesAudioPadre()` en `codigo-padre.html`:
 
 ```javascript
 const fueraDeRango = estado.modo?.actual === MODOS.AVENTURA && estado.usuarioFueraRango?.activo === true;
-const hayAudio = !fueraDeRango && !!obtenerAudioIdActivoPadre();
-mainBtn.disabled = !hayAudio;          // verde si hay audio, rojo si no
-if (!hayAudio) overlay.classList.remove('open'); // cierra dropdown si no hay audio
+const audioId = obtenerAudioIdActivoPadre();
+const hayAudio = !fueraDeRango && !!audioId;
+// hayFicheroAudioReal() comprueba el campo .file, no solo si existe la referencia —
+// ver §25.5f para los dos motivos por los que puede fallar (estático y runtime).
+const ficheroFalla = hayAudio && (!hayFicheroAudioReal(audioId) || estado._audioFalloId === audioId);
+const hayAudioUtilizable = hayAudio && !ficheroFalla;
+mainBtn.disabled = !hayAudioUtilizable;              // verde si hay fichero real, rojo si no
+if (!hayAudioUtilizable) overlay.classList.remove('open'); // cierra dropdown si no es utilizable
+// _actualizarBotonSaltarAudio(overlay, ficheroFalla, ...) muestra/oculta #audio-action-skip
 ```
 
-Solo `#audio-main-toggle-btn` recibe `disabled` — los 4 botones de acción **no se deshabilitan uno a uno**. Cerrar el overlay ya los deja `pointer-events:none`/`visibility:hidden` (`#audio-control-overlay.open #audio-control-dropdown`, ver CSS) al instante, no al terminar la transición de 0.3s, porque esas propiedades no se animan. Con el botón central ya deshabilitado (bloquea nativamente el click que reabriría el desplegable), un único estado `disabled` basta para impedir toda interacción — deshabilitar también los 4 botones de acción sería trabajo redundante, ya cubierto por el cierre del desplegable.
+Solo `#audio-main-toggle-btn` recibe `disabled` — los 4 botones de acción del desplegable **no se deshabilitan uno a uno**. Cerrar el overlay ya los deja `pointer-events:none`/`visibility:hidden` (`#audio-control-overlay.open #audio-control-dropdown`, ver CSS) al instante, no al terminar la transición de 0.3s, porque esas propiedades no se animan. Con el botón central ya deshabilitado (bloquea nativamente el click que reabriría el desplegable), un único estado `disabled` basta para impedir toda interacción — deshabilitar también los 4 botones de acción sería trabajo redundante, ya cubierto por el cierre del desplegable. `#audio-action-skip` nunca recibe `disabled` — cuando se muestra, ES la acción disponible; su visibilidad (no su estado) es lo que la habilita u oculta.
 
-`hayAudio` es `false` en dos casos independientes: la parada activa no tiene audio (`obtenerAudioIdActivoPadre()` devuelve `null`), o el usuario está confirmado fuera de rango en modo AVENTURA (`estado.usuarioFueraRango.activo`) — no tiene sentido escuchar el audio de un monumento al que no se ha llegado. La función se llama tanto en cada cambio de parada como en las transiciones de `NAVEGACION.GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO` (ver "Sistema fuera de rango real" más abajo). **Importante**: esto solo bloquea *empezar* o *reanudar* audio — si ya estaba sonando cuando se confirma fuera de rango, sigue sonando hasta el final; nada llama a `pause()`/`stop()` sobre el `<audio>` de hijo3 desde aquí. Es una decisión deliberada, no un descuido: interrumpir un audio a mitad de frase por alejarse unos metros sería peor experiencia que dejarlo terminar.
+`hayAudioUtilizable` es `false` en tres casos independientes: la parada activa no tiene ninguna referencia de audio (`obtenerAudioIdActivoPadre()` devuelve `null`), el usuario está confirmado fuera de rango en modo AVENTURA (`estado.usuarioFueraRango.activo`) — no tiene sentido escuchar el audio de un monumento al que no se ha llegado —, o el fichero real detrás de la referencia falla (`ficheroFalla`, §25.5f). Solo el tercer caso muestra `#audio-action-skip`: los otros dos no son "audio roto", son "aquí no toca ofrecer nada todavía". La función se llama tanto en cada cambio de parada como en las transiciones de `NAVEGACION.GPS.RESTRINGIDO`/`GPS.DENTRO_DE_RANGO` (ver "Sistema fuera de rango real" más abajo) y en la confirmación de un fallo de audio (`_hdl_AUDIO_ERROR`). **Importante**: esto solo bloquea *empezar* o *reanudar* audio — si ya estaba sonando cuando se confirma fuera de rango, sigue sonando hasta el final; nada llama a `pause()`/`stop()` sobre el `<audio>` de hijo3 desde aquí. Es una decisión deliberada, no un descuido: interrumpir un audio a mitad de frase por alejarse unos metros sería peor experiencia que dejarlo terminar.
 
-> **Nota sobre el glow:** Los selectores CSS de glow (`#audio-main-toggle-btn:not(:disabled):not(.spinning)` y `.audio-action-btn:not(:disabled)`) no usan prefijo de modo. El `body` de `codigo-padre.html` nunca recibe la clase `modo-aventura` (solo los hijos la reciben vía CAMBIO_MODO), por lo que un prefijo `.modo-aventura` haría que el glow nunca disparara en el padre. Los 4 `.audio-action-btn` ya no reciben `disabled` desde JS, así que ese selector para ellos coincide siempre — el glow depende en la práctica de que el desplegable esté visible (`.open`), no de su propio atributo `disabled`.
+> **Nota sobre el glow:** Los selectores CSS de glow (`#audio-main-toggle-btn:not(:disabled):not(.spinning)` y `.audio-action-btn:not(:disabled)`) no usan prefijo de modo. El `body` de `codigo-padre.html` nunca recibe la clase `modo-aventura` (solo los hijos la reciben vía CAMBIO_MODO), por lo que un prefijo `.modo-aventura` haría que el glow nunca disparara en el padre. Los 5 `.audio-action-btn` (los 4 del desplegable más `#audio-action-skip`) ya no reciben `disabled` desde JS, así que ese selector para ellos coincide siempre — el glow depende en la práctica de que estén visibles (`.open` para los 4 del desplegable, `.mostrar-saltar-audio` para el de saltar), no de su propio atributo `disabled`.
 
 ```mermaid
 flowchart TD
-    A([Cambio de parada / GPS.RESTRINGIDO / GPS.DENTRO_DE_RANGO]) --> B{¿Hay audio y dentro de rango?}
-    B -- Sí --> C["#audio-main-toggle-btn verde (habilitado)"]
-    B -- No --> D["#audio-main-toggle-btn rojo (deshabilitado)\nDropdown forzado cerrado e inaccesible"]
+    A([Cambio de parada / GPS.RESTRINGIDO / GPS.DENTRO_DE_RANGO / AUDIO.ERROR confirmado]) --> B{¿Hay audio,\ndentro de rango,\ny el fichero es real?}
+    B -- Sí --> C["#audio-main-toggle-btn verde (habilitado)\n#audio-action-skip oculto"]
+    B -- "No: sin audio o fuera de rango" --> D["#audio-main-toggle-btn rojo (deshabilitado)\nDropdown forzado cerrado e inaccesible\n#audio-action-skip oculto"]
+    B -- "No: fichero falla (§25.5f)" --> S["#audio-main-toggle-btn rojo (deshabilitado)\n#audio-action-skip visible"]
 
     C --> E([Usuario pulsa #audio-main-toggle-btn])
     E --> F["Overlay añade clase .open\nDropdown visible con 4 botones"]
@@ -1158,6 +1166,9 @@ flowchart TD
     G -- pause --> I["Pausa audio"]
     G -- stop --> J["Detiene audio"]
     G -- replay --> K["Reinicia desde el principio"]
+
+    S --> T([Usuario pulsa #audio-action-skip])
+    T --> U["pending.audio = true + retosBtn habilitado si procede\nmismo camino que un fin de audio real, §25.5f"]
 ```
 
 `#audio-control-overlay` es un `<fieldset>` estático, visible por CSS desde el primer pintado — no se crea ni se oculta por fase. Se apoya en la regla `body.loading` para no verse encima de los diálogos de reanudación de sesión (`mostrarDialogoReanudacion`/`mostrarDialogoVueltaRapida`, §34.3) ni de `#loading-overlay` — ver "Por qué nada puede verse nunca por encima de `#loading-overlay`" en §9.10.
@@ -1372,11 +1383,11 @@ Dos iconos en ambas variantes, igual que §4.7h: avanzar (`fotoruta-A-B.png`) y 
 
 **Contenido:** mismo estilo visual que el resto de la familia. Cuerpo de `TRADUCCIONES_BIENVENIDA_PARADA` (12 idiomas, clave `mensaje`, sin `{nombre}`) — en español: *"Ha vuelto a su aventura. Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado y continuar su caza del tesoro."* Dos iconos: avanzar y audio.
 
-### 4.7m. Vibración al mostrar cualquiera de los 7 carteles
+### 4.7m. Vibración al mostrar cualquiera de los 8 carteles
 
 **Por qué existe:** glow, spin y los propios carteles (§4.7h-l, §25.5c-d) son señales visuales — todas exigen que el usuario esté mirando la pantalla en el instante exacto en que aparecen. Un usuario mirando el monumento, no el móvil, puede no darse cuenta de ninguna de ellas. La vibración es la única señal de las cuatro que llega igual sin mirar.
 
-**Implementación:** `_vibrarCartel()` (`codigo-padre.html`, función de módulo justo antes de `mostrarCartelTransicion`) — `if (typeof navigator.vibrate === 'function') navigator.vibrate(200);` envuelto en `try/catch`. Se llama una vez, al final de cada una de las 7 funciones de cartel (los 5 de uso único — `mostrarCartelTransicion`, `mostrarCartelInicioTramo`, `mostrarCartelLlegadaParada`, `mostrarCartelBienvenidaTramo`, `mostrarCartelBienvenidaParada` — más los 2 recordatorios periódicos — `_mostrarCartelRecordatorioAudio`, `_mostrarCartelRecordatorioReto`, §25.5c-d), justo después de `document.body.appendChild(cartel)`.
+**Implementación:** `_vibrarCartel()` (`codigo-padre.html`, función de módulo justo antes de `mostrarCartelTransicion`) — `if (typeof navigator.vibrate === 'function') navigator.vibrate(200);` envuelto en `try/catch`. Se llama una vez, al final de cada una de las 8 funciones de cartel (los 5 de uso único — `mostrarCartelTransicion`, `mostrarCartelInicioTramo`, `mostrarCartelLlegadaParada`, `mostrarCartelBienvenidaTramo`, `mostrarCartelBienvenidaParada` — más los 3 recordatorios periódicos — `_mostrarCartelRecordatorioAudio`, `_mostrarCartelRecordatorioReto`, `_mostrarCartelRecordatorioSaltarAudio`, §25.5c/d/g), justo después de `document.body.appendChild(cartel)`.
 
 **Por qué comprueba soporte antes de llamar:** `navigator.vibrate` no existe en navegadores de escritorio ni en Safari/iOS (nunca lo ha implementado) — llamarlo sin comprobar lanzaría `TypeError: navigator.vibrate is not a function` en esos casos. La comprobación hace que el cartel se muestre exactamente igual, solo sin el vibrado, en cualquier entorno sin soporte — nunca bloquea ni degrada el resto de la función.
 
@@ -4754,7 +4765,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c450a8a8eb90'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-9ca4c2cab77c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7483,7 +7494,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `39-flujo-completo-parada-reto-tramo.spec.js` | 2 | Flujo completo real con datos de Aventura1 (Av1-P-0 → Av1-TR-1 → Av1-P-1): llegada GPS real + fin de audio real (habilita el reto) + `RETO.COMPLETADO` real completan la parada entera y muestran el cartel correcto según qué sigue — `cartel-inicio-tramo`, nunca `cartel-transicion` genérico, cuando el siguiente elemento es un tramo (FC-1); tras avanzar al tramo y caminarlo con lecturas GPS reales hasta la parada siguiente, la llegada se registra bajo el padreid del propio tramo (FC-2) |
 | `40-orden-restauracion-modo-antes-parada.spec.js` | 2 | Mecanismo aislado que gobierna `ejecutarRestauracionAventura()` (§25.10): con `estado.modo.actual` en `casa` en el instante del `CAMBIO_PARADA` restaurado, el recordatorio de audio no arranca solo (OR-1); con el modo ya en `aventura` en ese mismo instante — el orden real que aplica `_activarModoRest()` antes que `_restaurarProgresoRest()` — sí arranca solo (OR-2) |
 | `41-temporizador-compra-real-y-devmode.spec.js` | 3 | `_iniciarTemporizadorAventura()` (§7.2, §9.10 paso 8): al reanudar sesión, el tiempo enviado a hijo1 descuenta el tiempo real transcurrido desde `datosGuardados.timestamp` (la compra), no el que quedaba al cerrar la app — con 1h real transcurrida, Aventura1 (216000s/60h) envía ~212400s, nunca los 216000s completos (TW-1); en modo dev no se envía `AVENTURA.INICIADA` en absoluto, aunque el modo sea AVENTURA y haya reanudación — no hay compra real que cronometrar mientras se prueba la app (TW-2); sin reanudación ni tiempo restante previo (arranque nuevo), se envía el máximo completo sin descontar nada (TW-3) |
-| `42-ttl-tramo-saltos-seguridad.spec.js` | 5 | `_ejecutarBarridoTTLPending()` (§31.7, exclusivo de tramos): sin saltos disponibles (0% de progreso desde el último), el audio se rescata pero la llegada no (TTL-1); con ≥20% de progreso real desde el último salto, la llegada sí se rescata y se consume un salto (TTL-2); con los 5 saltos ya gastados, la llegada no se fuerza aunque sobre progreso (TTL-3); un pending de parada no recibe ningún rescate, ni de audio (TTL-4); fuera de modo AVENTURA el barrido no toca nada (TTL-5) |
+| `42-ttl-tramo-saltos-seguridad.spec.js` | 5 | `_ejecutarBarridoTTLPending()` (§31.7, exclusivo de la llegada de tramos — el audio ya no se toca en ningún escenario de este barrido): sin saltos disponibles (0% de progreso desde el último), la llegada no se fuerza (TTL-1); con ≥20% de progreso real desde el último salto, la llegada sí se rescata y se consume un salto (TTL-2); con los 5 saltos ya gastados, la llegada no se fuerza aunque sobre progreso (TTL-3); un pending de parada no recibe ningún rescate (TTL-4); fuera de modo AVENTURA el barrido no toca nada (TTL-5) |
 | `43-saltar-reto-puzzle-roto.spec.js` | 4 (WebKit omite 2 de puzzle) | Botón ⏩ (§13, "Saltar un reto o puzzle roto"): en `puzzle.html`, un puzzle válido se salta montando las piezas de verdad y avisando `PUZZLE.COMPLETADO` (PZ-1); uno roto/no encontrado hace lo mismo sin excepciones (PZ-2); en `retos-hijo4.html`, un reto de opción válido se salta marcando la respuesta correcta en el selector y habilita el mundo verde, que sí intenta el envío de `RETO.COMPLETADO` al pulsarlo (RT-1); un reto roto/no encontrado deja el botón de saltar habilitado (a diferencia del resto de controles) y también habilita el mundo verde (RT-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
@@ -7635,7 +7646,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c450a8a8eb90'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-9ca4c2cab77c'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8278,7 +8289,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c450a8a8eb90';
+const CACHE_VERSION = 'v-9ca4c2cab77c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9157,7 +9168,7 @@ Internamente, un único `setInterval` barato (`RECORDATORIO_AUDIO_CHEQUEO_MS`, c
 
 **Enganches (tres sitios, todos vía `globalThis.` porque cruzan bloques `<script type="module">` distintos — ver la nota de scope de CLAUDE.md):**
 
-- `_hdl_NAVEGACION_CAMBIO_PARADA`: al activarse cualquier elemento nuevo en AVENTURA con audio disponible (`obtenerAudioIdActivoPadre()`), llama a `globalThis._iniciarRecordatorioAudio()` — que primero cancela cualquier check del elemento anterior, así que no hace falta comparar IDs a mano. Si el elemento no tiene audio, o el modo no es AVENTURA, llama a `globalThis._detenerRecordatorioAudio()` en su lugar.
+- `_hdl_NAVEGACION_CAMBIO_PARADA`: al activarse cualquier elemento nuevo en AVENTURA con audio disponible Y con fichero real (`obtenerAudioIdActivoPadre()` Y `hayFicheroAudioReal()` a la vez — §25.5f), llama a `globalThis._iniciarRecordatorioAudio()` — que primero cancela cualquier check del elemento anterior, así que no hace falta comparar IDs a mano. Si el elemento no tiene audio, el modo no es AVENTURA, o el fichero no está disponible, llama a `globalThis._detenerRecordatorioAudio()` en su lugar — insistir en pulsar play cuando lo que corresponde es pulsar saltar (§25.5f) sería confuso, no solo inútil.
 - El click de `#audio-action-play`/`#audio-action-replay` llama a `globalThis._marcarPlayPulsadoRecordatorio()` (cierre temporal, ver arriba).
 - `_hdl_SISTEMA_CAMBIO_MODO`, rama CASA: llama a `globalThis._detenerRecordatorioAudio()` explícitamente — entrar en CASA no dispara `CAMBIO_PARADA` (el elemento activo no cambia solo por cambiar de modo), así que sin este apagado explícito el recordatorio seguiría sonando fuera de AVENTURA. Al volver a AVENTURA con progreso real congelado, la restauración de `estado.paradaRealCongelada` sí dispara `CAMBIO_PARADA` y lo reactiva sola.
 
@@ -9190,6 +9201,55 @@ Cubierto por `tests/e2e/34-recordatorio-reto.spec.js` (RR-1..RR-4, mismo patrón
 **Dónde vive:** `codigo-padre.html` — `_TODOS_LOS_CARTELES_IDS` (lista los 7 ids), `_ocultarCualquierCartel()`, `_hayCartelEnPantalla()`.
 
 Cubierto por `tests/e2e/35-guardian-anti-solape-carteles.spec.js` (GS-1..GS-3).
+
+---
+
+### 25.5f. Botón de saltar audio no disponible (`#audio-action-skip`)
+
+**Por qué existe:** una parada/tramo puede tener una referencia de audio asignada (`audio_id`) sin que el fichero real exista todavía — hoy la norma en 11 de los 12 idiomas mientras no se termine de grabar (`file: ""` en `js/audios-aventuras.js`; solo español tiene los ficheros reales). Sin este botón, esas paradas quedarían bloqueadas para siempre: `pending.audio` nunca se satisface, y con él tampoco `retosBtn`. Cubre además dos casos runtime distintos: el mensaje que pide el audio no llega a hijo3 (§31.7), o llega pero el fichero falla al reproducirse de verdad (corte de red, fallo puntual del servidor) tras agotar sus propios reintentos automáticos (ver más abajo).
+
+**Los tres motivos por los que aparece — `ficheroFalla` en `actualizarEstadoControlesAudioPadre()`:**
+
+1. **Estático** — `hayFicheroAudioReal(audioId)` (`codigo-padre.html`) comprueba el campo `.file` de la referencia en `globalThis.__vv_AUDIOS_AVENTURAS[aventura][idioma]` (poblado en Fase 2, síncrono e independiente de `DATA_MODE`), no solo si la referencia existe — eso ya lo hace `obtenerAudioIdActivoPadre()`, que solo mira `estado.elementoActual.audio_id`/`estado.audioActual.id`. Se sabe en el instante en que la parada/tramo se activa, sin necesidad de intentar reproducir nada.
+2. **Runtime, entrega del mensaje** — `AUDIO.REPRODUCIR_REQUEST` nunca llegó a hijo3 pese a los reintentos de `_enviarAudioRequestConReintento()` (§31.7): se llama a `_marcarAudioNoDisponible()` directamente desde el padre, sin pasar por `AUDIO.ERROR` — no hace falta un mensaje de vuelta cuando el problema es precisamente que los mensajes no llegan.
+3. **Runtime, reproducción** — `estado._audioFalloId === audioId`: hijo3 confirmó que este audioId concreto no se puede reproducir, tras agotar sus propios reintentos (ver "Reintentos en hijo3" más abajo). Se marca en `_hdl_AUDIO_ERROR` al recibir `AUDIO.ERROR`, comparando primero contra el elemento activo real (`estado.elementoActual.audio_id === audioId`) para descartar un aviso tardío de una parada ya abandonada. Se limpia solo cuando el audio activo cambia (comparación exacta de id — un cambio de parada/tramo ya lo neutraliza sin resetearlo aparte) o cuando hijo3 confirma que sí está reproduciendo de verdad (`estado.audioActual.estado === 'reproduciendo'`).
+
+Los motivos 2 y 3 comparten el mismo desenlace — `_marcarAudioNoDisponible(audioId, logPrefix)`, función compartida en `codigo-padre.html` — así que da igual si el problema fue de entrega o de reproducción: el usuario ve exactamente el mismo botón, con el mismo efecto.
+
+**Reintentos en hijo3 antes de rendirse** (`audio-hijo3.html`, mismo patrón que `reproducirVideoConBuffer()` en `js/video-playback-utils.js` para vídeo, adaptado — a diferencia de vídeo, audio no tiene un "arrancar igualmente" con el que rendirse: tras agotar los reintentos, avisa al padre):
+
+- **`stalled`/`waiting`** (micro-cortes, buffer vacío): reintenta `audioPlayer.play()` tras 300ms/500ms respectivamente, en silencio, sin avisar a nadie — la inmensa mayoría se recupera solo. Un contador (`MAX_STALLS_CONSECUTIVOS = 6`) cuenta cuántos van seguidos sin una recuperación real entre medias; el evento `playing` (no `play` — confirma que de verdad hay datos fluyendo, no solo que se llamó a `.play()`) lo resetea a cero. Al superarlo, deja de reintentar en silencio y envía `AUDIO.ERROR` al padre con `error: 'reproduccion_atascada'`.
+- **`error`** nativo (fallo real de carga): reintenta recargando el mismo `src` (`audioPlayer.load()` + `.play()`) con backoff de `600ms * intento`, hasta `MAX_REINTENTOS_AUDIO = 2` veces. El listener no es `{once:true}` a propósito — cada recarga de reintento puede volver a disparar `error`, y hace falta seguir escuchando para reintentar de nuevo. Agotados los 2 reintentos, envía `AUDIO.ERROR` con el mensaje nativo del navegador.
+- Ambos caminos reutilizan la misma función interna (`_avisarFalloAudioAlPadre`) y el mismo mensaje ya existente (`AUDIO.ERROR`) — el padre no necesita distinguir el origen técnico exacto, solo que este audio no se puede reproducir.
+- El contador de reintentos de `error` y el de `stalled`/`waiting` se resetean ambos en cada `cargarYReproducirAudio()` nuevo — un fallo de una parada anterior nunca cuenta contra la siguiente.
+
+**`_marcarAudioNoDisponible(audioId, logPrefix)`** (`codigo-padre.html`) es la función compartida que hace el trabajo real, llamada tanto por `_hdl_AUDIO_ERROR` (ante cualquier `AUDIO.ERROR`, venga de hijo3 o de cualquier otro origen) como directamente por `_solicitarAudioParaParada()` cuando la entrega del mensaje se agota (motivo 2 de arriba): marca `estado._audioFalloId` (si el audioId sigue siendo el del elemento activo) y refresca los controles; rescata `pending.audio` si no estaba ya resuelto (evita que la parada quede bloqueada) y, en la misma rama, llama a `_procesarFinAudioElemento()` — la misma función que habilita `retosBtn` tras un fin de audio real, así que un rescate automático no deja los retos bloqueados donde el botón de saltar sí los habilitaría; también detiene el recordatorio "pulse play" (§25.5c).
+
+**Al pulsar `#audio-action-skip`** — `_saltarAudioPulsado()` (`codigo-padre.html`): reutiliza exactamente la misma tubería que un fin de audio real — `pending.audio = true` seguido de `_procesarFinAudioElemento(audioId, estado, logPrefix)` — en vez de una lógica paralela. Guard de idempotencia (`if (pendingAudio.audio) return`): una segunda pulsada, o una que llega después de que el fallo runtime ya lo hubiera resuelto automáticamente, es un no-op seguro. Detiene también el recordatorio de audio. El botón permanece visible tras pulsarlo si el motivo era estático (el fichero sigue sin existir) — solo desaparece si más adelante el elemento activo cambia o el fichero pasa a estar disponible.
+
+**Posición y transición:** `#audio-action-skip` ocupa el mismo hueco visual que el desplegable (justo encima del botón central, `position:absolute; bottom:calc(100% + gap)`), pero vive fuera de `#audio-control-dropdown` — su visibilidad la controla directamente `actualizarEstadoControlesAudioPadre()` con la clase `.mostrar-saltar-audio` en el overlay, no `.open`. Si el desplegable estaba abierto en el instante en que el fichero falla, se cierra al instante pero el botón de saltar espera 300ms (la duración de la propia transición de cierre del desplegable) antes de aparecer, para no solaparse visualmente con ella; si el desplegable ya estaba cerrado (el caso normal, con diferencia el más frecuente), aparece sin ninguna espera. Un generador incremental (`_saltarAudioGen`) invalida cualquier espera pendiente si el estado deseado cambia antes de que se cumplan los 300ms.
+
+**Mutua exclusión con el botón central:** `#audio-main-toggle-btn` se deshabilita exactamente cuando `#audio-action-skip` se muestra (`ficheroFalla`), no solo cuando no hay audio en absoluto — nunca están ambos habilitados a la vez, ni el central habilitado con el desplegable abierto mientras el fichero falla.
+
+Además del propio botón, un cartel-recordatorio periódico ("pulse saltar") insiste mientras el fichero siga sin estar disponible — ver §25.5g.
+
+Cubierto por `tests/e2e/44-boton-saltar-audio.spec.js` (25 tests: `hayFicheroAudioReal()` en sus 5 casos borde; habilitado/deshabilitado del central y visibilidad del de saltar en los 4 motivos — fichero vacío, fichero real, sin audio en absoluto, fuera de rango —, y la espera de 300ms con el desplegable abierto; pulsar saltar resuelve `pending.audio` y habilita retosBtn, con idempotencia; `AUDIO.ERROR` de un fallo runtime hace lo mismo y no se confunde con un audioId ya abandonado; los reintentos de `stalled`/`waiting`/`error` en `audio-hijo3.html`, incluida la escalada tras el límite y el reseteo por `playing`; `_enviarAudioRequestConReintento()` reintenta exactamente el máximo configurado si nunca confirma y deja de reintentar en cuanto confirma, grupo BSA-F; el cartel-recordatorio de saltar, grupo BSA-G; la puerta que decide cuál de los dos recordatorios arranca según el fichero, grupo BSA-H).
+
+---
+
+### 25.5g. Cartel recordatorio "pulse saltar" (audio no disponible)
+
+**Por qué existe:** espejo del recordatorio "pulse play" (§25.5c) para el caso contrario — el elemento activo sí tiene `audio_id`, pero el fichero real no existe (§25.5f). Sin este cartel, la única señal de que hay que pulsar saltar sería el propio botón (verde/con glow, mismo sitio donde el usuario ya espera el control de audio) — suficiente para muchos casos, pero un recordatorio periódico insiste igual que su espejo por si el usuario no repara en el cambio de color del botón central.
+
+**Cuándo se muestra:** mismas dos condiciones que el de play — han pasado `RECORDATORIO_SALTAR_AUDIO_PRIMER_AVISO_MS` (10.000ms) desde que se activó el elemento actual, Y `estado.gps.proximidadReal === true`. Se repite cada `RECORDATORIO_SALTAR_AUDIO_INTERVALO_MS` (20.000ms) mientras ambas sigan cumplidas, autocerrándose a los 7s como el resto de carteles no bloqueantes de esta familia, y respeta el guardián anti-solape (§25.5e) igual que los demás.
+
+**Más simple que el de play — un único apagado, sin distinción temporal/permanente:** a diferencia de "pulse play" (donde pulsar play no garantiza que el audio termine de escucharse, así que ese cartel distingue entre "cerrar lo visible ahora" y "apagar para siempre"), pulsar el botón de saltar real SÍ resuelve `pending.audio` de forma definitiva en el mismo click — no hay margen para que "se interrumpa antes de terminar". Por eso `_detenerRecordatorioSaltarAudio()` es la única función de apagado, llamada directamente desde `_saltarAudioPulsado()` — sin una función equivalente a `_marcarPlayPulsadoRecordatorio`. Cerrar el cartel con su propia ✗ (o su autocierre a los 7s) sí es solo temporal, igual que en el de play — el aviso puede reaparecer en el siguiente ciclo de 20s si el usuario no llegó a pulsar el botón real.
+
+**Mutuamente excluyente con "pulse play":** un mismo elemento activo nunca dispara los dos a la vez — `_hdl_NAVEGACION_CAMBIO_PARADA` decide cuál arranca según `hayFicheroAudioReal()` (fichero real → play; audio_id sin fichero → saltar; sin audio_id en absoluto o fuera de AVENTURA → ninguno de los dos), deteniendo siempre explícitamente el que no aplica.
+
+**Dónde vive el código:** `codigo-padre.html`, junto a las funciones del recordatorio de play (`_mostrarCartelRecordatorioSaltarAudio()`, `_iniciarRecordatorioSaltarAudio()`, `_detenerRecordatorioSaltarAudio()`) — mismo estilo visual (fondo `#fff8e7`, borde naranja `#FF8C00`, `z-index:1000060`), icono `boton-audio-avanzar.png` en vez del icono del botón central. Las traducciones de los 12 idiomas viven en `TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO` (`js/traducciones-ui.js`).
+
+Cubierto por `tests/e2e/44-boton-saltar-audio.spec.js` (grupo BSA-G: aparece a los 10s con proximidad real, autocierre a los 7s, reaparición a los 20s (G-1); pulsar el botón real de saltar lo apaga para siempre, a diferencia del cierre temporal del propio cartel (G-2); reiniciar cancela el timer anterior en vez de acumularlo (G-3); grupo BSA-H: con fichero real arranca el de play y nunca el de saltar (H-1), sin fichero arranca el de saltar y nunca el de play (H-2)).
 
 ---
 
@@ -11358,7 +11418,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-c450a8a8eb90';
+const CACHE_VERSION = 'v-9ca4c2cab77c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11432,7 +11492,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Qué queda bloqueado:**
 
-- Carga de nuevos MP3 si no están en caché del SW → `FIN_REPRODUCCION` nunca llega → la parada queda bloqueada (ver §31.7)
+- Carga de nuevos MP3 si no están en caché del SW → `FIN_REPRODUCCION` nunca llega — no deja la parada bloqueada indefinidamente: hijo3 reintenta el audio y, si sigue sin poder, el padre ofrece saltarlo (ver §31.7, §25.5f)
 - Cualquier llamada a la API del backend
 
 **Estado de implementación:** ✅ implementado. El overlay se muestra vía `showInternetOverlay()` / se oculta vía `hideInternetOverlay()` en `codigo-padre.html`; se autooculta además con el evento `online` del navegador sin necesidad de que el usuario pulse nada.
@@ -11602,46 +11662,39 @@ El botón 🛰️🔄 de `#gps-out-of-range-overlay` (anti-piratería, §31.5) t
 
 ---
 
-### 31.7 Audio no carga por internet caído — parada bloqueada indefinidamente
+### 31.7 Audio que no llega a reproducirse — parada bloqueada
 
-**Qué ocurre:** internet cae justo antes de que hijo3 empiece a cargar un MP3. El audio nunca se carga, `FIN_REPRODUCCION` nunca llega al padre, y la parada queda bloqueada.
+**Qué puede ocurrir:** el mensaje `AUDIO.REPRODUCIR_REQUEST` no llega a hijo3 (iframe momentáneamente no listo, `postMessage` perdido), o llega pero el fichero no se puede reproducir (fallo puntual del servidor, corte de red a mitad, o el fichero directamente no está grabado — 11 de los 12 idiomas hoy). En cualquiera de los tres casos, sin nada que lo resuelva, `pending.audio` se quedaría en `false` para siempre y la parada nunca se completaría.
 
 **Sistema de pending:** el padre rastrea la compleción de cada parada/tramo con un objeto `pending` en `estado.pendingCompleciones`. Una parada se completa cuando:
 
 - `pending.llegada = true` (GPS confirma llegada)
-- `pending.audio = true` (llega `FIN_REPRODUCCION`)
+- `pending.audio = true` (llega `FIN_REPRODUCCION`, o se resuelve por alguno de los caminos de abajo)
 - `pending.reto = true` (si la parada tiene reto)
 
-Si `FIN_REPRODUCCION` nunca llega, `pending.audio` se queda `false` para siempre y `intentarCompletarElemento()` nunca avanza al siguiente elemento.
+**Los tres caminos que evitan el bloqueo, de más temprano a más tardío:**
 
-**Corrección 31.7a — `AUDIO.ERROR` desbloquea el pending:**
-El handler `_hdl_AUDIO_ERROR()` ([codigo-padre.html:11688](codigo-padre.html#L11688)) localiza el elemento por `audioId` con `findElementoPorAudio()`, resuelve su pending vía `ensurePending()` y, si `pending.audio` aún no estaba a `true`, lo marca y llama a `intentarCompletarElemento()`. El error de audio se trata como fin de audio a efectos de progresión — la parada no queda bloqueada aunque el MP3 nunca cargue.
+1. **Entrega reforzada del mensaje** (`_enviarAudioRequestConReintento()`, `_solicitarAudioParaParada()`) — `AUDIO.REPRODUCIR_REQUEST` se envía con `enviarMensajeConConfirmacion()`, exigiendo un ACK real de la capa de mensajería de hijo3, con reintentos hasta `MAX_REINTENTOS_ENVIO_AUDIO` (2) antes de darse por vencido, con un timeout de 1.2s por intento (2.4s como máximo en total). Con `autoplay:false` (siempre, en este flujo) el handler de hijo3 no espera ninguna descarga de red antes de confirmar, así que el timeout no se dispara por lentitud normal, solo por una entrega realmente fallida — y se mantiene deliberadamente por debajo de los 10s del primer aviso de los recordatorios de audio (§25.5c/g): así la entrega reforzada siempre termina (con éxito o agotando reintentos) antes de que un recordatorio pudiera llegar a comprobar nada, sin ninguna carrera entre ambos mecanismos. Si los 2 intentos fallan, se llama a `_marcarAudioNoDisponible()` directamente — sin esperar a nada más.
+2. **Reintentos dentro de hijo3** (`audio-hijo3.html`, ver §25.5f) — una vez que el mensaje SÍ llega, si el propio audio falla al cargar o se atasca a mitad de reproducción, hijo3 reintenta por su cuenta (backoff en errores de carga, recuperación silenciosa de `stalled`/`waiting`) antes de rendirse y enviar `AUDIO.ERROR` al padre.
+3. **`AUDIO.ERROR` desbloquea el pending** — el handler `_hdl_AUDIO_ERROR()` recibe ese aviso (venga de hijo3 tras agotar sus reintentos, o se dispare internamente tras agotar el paso 1) y llama a `_marcarAudioNoDisponible()`: marca `pending.audio = true`, llama a `intentarCompletarElemento()`, habilita `retosBtn` si procede, y muestra el botón de saltar (`#audio-action-skip`, §25.5f) para que quede constancia visible de que algo no funcionó, en vez de una progresión silenciosa.
 
-**Corrección 31.7b — TTL activo, exclusivo de tramos:**
-Cada pending se crea con `ttlMs` (por defecto `10 * 60 * 1000` = 10 minutos, configurable por elemento en `_buildPendingConfig()`). Un `setInterval` global (`globalThis.__VV_PENDING_CLEANUP`) corre cada 60 segundos, solo en modo AVENTURA (incluido AVENTURA en modo dev — el guard mira `estado.modo.actual`, no el flag de dev), llamando a `_ejecutarBarridoTTLPending()` — extraída a función con nombre y expuesta en `globalThis` específicamente para que los tests puedan invocarla sin esperar los 60s reales del intervalo.
+En los tres casos el resultado es el mismo: la parada no queda bloqueada, y todo se resuelve en segundos, no en minutos.
 
-**Las paradas ya no reciben ningún rescate de este TTL, ni siquiera el de audio.** Se dejó fuera a propósito, no es un descuido: el mismo problema (audio o reto atascado por un fallo técnico) puede darse en paradas y en tramos por igual, y arreglarlo solo para tramos habría sido un parche a medias. Queda como tarea pendiente aparte: diseñar un rescate real para audio/reto atascado que cubra los dos tipos, no un temporizador ciego que fuerza condiciones sin comprobar nada.
+**El TTL de pending (`globalThis.__VV_PENDING_CLEANUP` → `_ejecutarBarridoTTLPending()`, `setInterval` de 60s) no rescata audio, ni para paradas ni para tramos.** Un rescate ciego por timeout tendría que forzar `pending.audio = true` sin ninguna señal real de que el audio de verdad falló, y sin nada visible para el usuario mientras tanto — la entrega reforzada del punto 1 y los reintentos de hijo3 ya resuelven un fallo real en segundos, con el botón de saltar como señal visible, así que no hace falta ningún respaldo por timeout para audio.
 
-**Para tramos, el barrido trata `audio` y `llegada` de forma completamente distinta:**
-
-- **Audio**: se rescata siempre, sin límite — sigue siendo la garantía original contra un fallo técnico real (el audio nunca dispara su evento de fin).
-- **Llegada**: **nunca se fuerza sin más.** Forzarla incondicionalmente permitiría completar un tramo entero — y, encadenando pending tras pending, la aventura completa — sin haber estado nunca cerca, con solo esperar 10 minutos y pulsar avanzar repetidamente. Esta app es una audioguía geolocalizada; completarla sin presencia física real no es aceptable, sea cual sea la causa de que el GPS nunca confirmara. En su lugar, la llegada de un tramo solo se rescata si queda algún **salto de seguridad** disponible — ver más abajo.
+**El TTL sigue existiendo para la `llegada` de tramos** — un mecanismo GPS, no de mensajería, y una decisión de diseño completamente distinta (ver más abajo): **nunca se fuerza sin más.** Forzarla incondicionalmente permitiría completar un tramo entero — y, encadenando pending tras pending, la aventura completa — sin haber estado nunca cerca, con solo esperar 10 minutos y pulsar avanzar repetidamente. Esta app es una audioguía geolocalizada; completarla sin presencia física real no es aceptable, sea cual sea la causa de que el GPS nunca confirmara. En su lugar, la llegada de un tramo solo se rescata si queda algún **salto de seguridad** disponible — ver más abajo. Las paradas nunca reciben ningún rescate de este TTL (ni de llegada ni, ya, de audio) — sigue siendo tarea pendiente diseñar algo equivalente para un reto atascado en una parada por un fallo técnico, que no comparte el mecanismo de audio.
 
 **Saltos de seguridad (`estado.tramoSkipsUsados` / `estado.progresoEnUltimoSkip`):** máximo **5 por aventura**, y cada uno exige un **20% de progreso real** (`estado.indiceProgreso / totalElementos`, vía `_calcularProgresoFraccion()`) desde el último salto usado. Pensado para un usuario genuinamente perdido por una causa real — obras, calle cortada, un evento — que de otro modo se frustraría y abandonaría la app sin ninguna salida; no como forma de avanzar sin moverse: 5 saltos en toda la aventura, espaciados por un quinto del recorrido cada vez, no permiten completarla entera sin presencia real, solo rescatan los tramos puntuales donde de verdad hizo falta. Al consumirse un salto, se persiste de inmediato (`persistProgressState()`) — a diferencia de la distancia recorrida (que se reinicia adrede al cerrar la PWA, ver §"Distancia recorrida"), estos dos campos **sí deben persistir**: son un límite antiabuso, no contabilidad de progreso — sin persistirlos, cerrar y reabrir la PWA antes de cada salto daría saltos ilimitados en vez de 5 por aventura. Se reinician a 0 al elegir otra aventura (mismo punto donde se resetea `estado.tiempoRestante`) — son de ESTA aventura, no deben heredarse a la siguiente.
 
-Cubierto por `tests/e2e/42-ttl-tramo-saltos-seguridad.spec.js`: audio se rescata siempre (TTL-1/2/3); sin saltos disponibles la llegada no se fuerza (TTL-1); con progreso suficiente sí, y consume un salto (TTL-2); con los 5 saltos ya gastados, no se fuerza aunque sobre progreso (TTL-3); un pending de parada no recibe ningún rescate (TTL-4); fuera de AVENTURA el barrido no toca nada (TTL-5).
+Cubierto por `tests/e2e/42-ttl-tramo-saltos-seguridad.spec.js`: el audio ya no se toca en ningún escenario (TTL-1/2/3/4); sin saltos disponibles la llegada no se fuerza (TTL-1); con progreso suficiente sí, y consume un salto (TTL-2); con los 5 saltos ya gastados, no se fuerza aunque sobre progreso (TTL-3); un pending de parada no recibe ningún rescate (TTL-4); fuera de AVENTURA el barrido no toca nada (TTL-5). La entrega reforzada del mensaje está cubierta por `tests/e2e/44-boton-saltar-audio.spec.js` (grupo BSA-F): reintenta exactamente `MAX_REINTENTOS_ENVIO_AUDIO` veces si nunca confirma (F-1), y deja de reintentar en cuanto confirma (F-2).
 
-El usuario final ve este mecanismo explicado en lenguaje llano en la FAQ del asistente de soporte (§27), pregunta `UBIC_ATASCADO_TRAMO` (grupo `UBICACION_NAVEGACION`) — menciona los 10 minutos y el máximo de 5 veces por aventura a propósito, sin entrar en `indiceProgreso`/20% ni en la distinción audio/llegada.
+El usuario final ve el mecanismo de saltos de seguridad de tramos explicado en lenguaje llano en la FAQ del asistente de soporte (§27), pregunta `UBIC_ATASCADO_TRAMO` (grupo `UBICACION_NAVEGACION`) — menciona los 10 minutos y el máximo de 5 veces por aventura a propósito, sin entrar en `indiceProgreso`/20%. El caso de audio no disponible tiene su propia señal directa en pantalla (el botón de saltar, §25.5f), no depende de esta FAQ.
 
-**Nota sobre tramos:** los tramos requieren `pending.audio && pending.llegada`. Si el audio no carga pero el GPS sí confirma llegada (con `recorridoSuficiente`, ver §"Distancia recorrida"), el tramo sigue bloqueado hasta que se resuelva el audio. La solución del punto 1 (AUDIO.ERROR → pending.audio = true) también desbloquea este caso — y, si el audio queda atascado más de 10 minutos, el TTL lo rescata igual, sin límite.
-
-**Caso adicional — audio buffereado que termina correctamente:** si el MP3 ya estaba cargado y en reproducción cuando cae internet, el audio completa su reproducción y `FIN_REPRODUCCION` llega al padre con normalidad. En este caso no hay bloqueo. El problema solo ocurre cuando internet cae antes de que hijo3 empiece a fetchear el archivo.
+**Nota sobre tramos:** los tramos requieren `pending.audio && pending.llegada`. Si el audio no llega a resolverse pero el GPS sí confirma llegada (con `recorridoSuficiente`, ver §"Distancia recorrida"), el tramo sigue bloqueado hasta que se resuelva el audio por alguno de los tres caminos de arriba — en la práctica, segundos u decenas de segundos, no minutos.
 
 **Pendiente de análisis — comportamiento de otros hijos ante caída de internet:** este análisis se ha centrado en hijo3 (audio) por ser el más dependiente de red durante la aventura. Los demás hijos también deben auditarse para determinar si tienen dependencias de red propias que puedan generar bloqueos similares. Queda como tarea pendiente revisar hijo1, hijo2, hijo4, hijo5 y hijo6 bajo el mismo criterio.
 
-**Pendiente de decisión — timeout de seguridad en el padre:** si tanto `AUDIO.ERROR` como el TTL activo fallan por algún motivo, el padre podría implementar un timeout de seguridad de último recurso que fuerce la progresión tras un tiempo máximo configurable. Este mecanismo es más agresivo que el TTL (no distingue entre audio fallido y audio simplemente largo) y requiere decisión de diseño antes de implementarse.
-
-**Estado de implementación:** ✅ ambas correcciones aplicadas (31.7a y 31.7b).
+**Estado de implementación:** ✅ los tres caminos de audio implementados; saltos de seguridad de llegada de tramos implementados.
 
 ---
 
@@ -11659,8 +11712,8 @@ El usuario final ve este mecanismo explicado en lenguaje llano en la FAQ del asi
 | 31.4e | Precisión GPS insuficiente (accuracy > `CONFIG.GPS.PRECISION_MINIMA`) | `imagen-no-gps.png` | hijo2 → `GPS.PRECISION_INSUFICIENTE`/`PRECISION_RECUPERADA` → padre | ✅ implementado |
 | 31.5 | >5km de toda la ruta (anti-piratería) | `fotogpserror.png` | `_watchPositionSuccess` → `_check5kmFromRoute()` (throttle 3min) | ✅ implementado |
 | 31.6 | Panel "Próxima parada" (reintento + `showNextEntityOverlay()`) — exclusivo de 31.5 | `fotogpserror.png` | `_gpsReintentarDesdeOverlayDistancia()` / `showNextEntityOverlay()` | ✅ botón centrado + countdown 15s implementado |
-| 31.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` marca `pending.audio = true` + llama `intentarCompletarElemento` | ✅ corregido |
-| 31.7b | TTL pending nunca ejecutado | — | `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` — exclusivo de tramos, llegada solo con saltos de seguridad disponibles (máx. 5/aventura, §31.7) | ✅ corregido |
+| 31.7a | AUDIO.ERROR no desbloquea pending | — | `_hdl_AUDIO_ERROR` → `_marcarAudioNoDisponible` marca `pending.audio = true`, habilita retosBtn y muestra el botón de saltar (§25.5f) | ✅ corregido |
+| 31.7b | Entrega de AUDIO.REPRODUCIR_REQUEST sin garantía / TTL pending para llegada de tramos | — | `_enviarAudioRequestConReintento` (confirmación + reintentos, §31.7) para el mensaje; `setInterval` cada 60s en `globalThis.__VV_PENDING_CLEANUP` — exclusivo de la llegada de tramos, con saltos de seguridad disponibles (máx. 5/aventura, §31.7) | ✅ corregido |
 | 31.9 | Navegador incompatible (sin ES modules) | `#vv-compat-warning` div | `<script nomodule>` | ✅ implementado |
 | 31.9 | iOS PWA sin meta tags correctos | — | meta tags `apple-mobile-web-app-*` | ✅ implementado |
 

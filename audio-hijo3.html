@@ -676,6 +676,15 @@
     }
 
     let currentAudioId = null;
+    // Reintentos consecutivos de carga agotados para el audio actual — se resetea
+    // en cada cargarYReproducirAudio() nuevo (ver ahí). No cuenta contra un audio
+    // distinto ni contra una recarga futura del mismo id.
+    let _erroresAudioConsecutivos = 0;
+    const MAX_REINTENTOS_AUDIO = 2;
+    // stalled/waiting consecutivos sin una recuperación real ('playing') entre medias
+    // — mismo reseteo que el contador de arriba, más el propio evento 'playing'.
+    let _stallsConsecutivos = 0;
+    const MAX_STALLS_CONSECUTIVOS = 6;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // 🔧 UTILIDADES - AJUSTE DINÁMICO DE TIMEOUTS
@@ -731,6 +740,8 @@
         // Preparar la fuente siempre (permite que el usuario pulse Play más tarde)
         audioPlayer.src = audioData.file;
         currentAudioId = audioId;
+        _erroresAudioConsecutivos = 0;
+        _stallsConsecutivos = 0;
         // La barra de progreso es un <div> propio, no el control nativo del <audio> - solo
         // se actualiza via el listener de 'timeupdate', que no dispara hasta que empieza la
         // reproduccion real. Con autoplay:false (siempre, en este flujo) eso no pasa hasta
@@ -1109,14 +1120,75 @@
         }
     });
 
-    audioPlayer.addEventListener('error', async () => {
-        // Enviar AUDIO.ERROR al padre en caso de fallo
+    // Reutilizado por el error nativo agotado y por el atasco de stalled/waiting sin
+    // recuperar (más abajo): el padre no necesita distinguir el origen técnico, solo
+    // que este audio no se puede reproducir — ya rescata pending.audio (§30.7a).
+    async function _avisarFalloAudioAlPadre(motivo) {
         await enviarMensaje({
             tipo: TIPOS_MENSAJE.AUDIO.ERROR,
             origen: CONFIG_HIJO.IFRAME_ID,
             destino: resolverIdPadre(),
-            datos: { audioId: currentAudioId, error: audioPlayer.error?.message || 'Error desconocido' }
+            datos: { audioId: currentAudioId, error: motivo }
         });
+    }
+
+    // Micro-cortes durante la reproducción: el navegador dispara 'stalled' (no llegan
+    // datos nuevos) o 'waiting' (se quedó sin buffer) sin que sea un error real — casi
+    // siempre se recupera solo. Reintentar play() tras una espera corta resuelve el
+    // hipo sin molestar al padre, igual que ya hace reproducirVideoConBuffer() en
+    // js/video-playback-utils.js para vídeo. Pero a diferencia de vídeo, aquí no hay
+    // ningún timeout de seguridad que lo acote — sin el contador de abajo, un atasco
+    // real (no un hipo) reintentaría en silencio para siempre.
+    audioPlayer.addEventListener('stalled', () => {
+        if (_registrarStallYComprobarLimite()) return;
+        setTimeout(() => { audioPlayer.play().catch(() => {}); }, 300);
+    });
+
+    audioPlayer.addEventListener('waiting', () => {
+        if (_registrarStallYComprobarLimite()) return;
+        setTimeout(() => { audioPlayer.play().catch(() => {}); }, 500);
+    });
+
+    // 'playing' (no 'play') confirma que de verdad hay datos fluyendo de nuevo, no solo
+    // que se llamó a .play() — es la señal de recuperación real que resetea el contador.
+    audioPlayer.addEventListener('playing', () => {
+        _stallsConsecutivos = 0;
+    });
+
+    // Cuenta stalled/waiting consecutivos sin una recuperación real entre medias.
+    // Devuelve true cuando ya se ha agotado el límite (y en ese caso el listener que
+    // llama debe abstenerse de reintentar) — una sola vez se envía el aviso al padre,
+    // las llamadas siguientes siguen devolviendo true sin volver a avisar.
+    function _registrarStallYComprobarLimite() {
+        if (_stallsConsecutivos > MAX_STALLS_CONSECUTIVOS) return true;
+        _stallsConsecutivos++;
+        if (_stallsConsecutivos <= MAX_STALLS_CONSECUTIVOS) return false;
+        logger.warn(`[hijo3] ${_stallsConsecutivos} stalled/waiting consecutivos sin recuperar, se avisa al padre`);
+        _avisarFalloAudioAlPadre('reproduccion_atascada');
+        return true;
+    }
+
+    audioPlayer.addEventListener('error', async () => {
+        // Fallo real de carga (fallo puntual del servidor para este fichero, corte de
+        // cobertura móvil): un fallo aislado no debe avisar al padre a la primera —
+        // reintentar recargando el mismo src con backoff, igual que
+        // reproducirVideoConBuffer() hace para vídeo (js/video-playback-utils.js). El
+        // listener no es {once:true} a propósito: cada audioPlayer.load() de reintento
+        // puede volver a disparar 'error', y hace falta seguir escuchando para
+        // reintentar de nuevo hasta agotar MAX_REINTENTOS_AUDIO.
+        if (_erroresAudioConsecutivos < MAX_REINTENTOS_AUDIO) {
+            _erroresAudioConsecutivos++;
+            const intento = _erroresAudioConsecutivos;
+            logger.warn(`[hijo3] Error de audio, reintento ${intento}/${MAX_REINTENTOS_AUDIO}: ${audioPlayer.currentSrc || audioPlayer.src}`);
+            setTimeout(() => {
+                audioPlayer.load();
+                audioPlayer.play().catch(() => {});
+            }, 600 * intento);
+            return;
+        }
+
+        // Reintentos agotados: fallo real, avisar al padre.
+        await _avisarFalloAudioAlPadre(audioPlayer.error?.message || 'Error desconocido');
     });
 
     // Normaliza un valor de modo (acepta string u objeto) y devuelve

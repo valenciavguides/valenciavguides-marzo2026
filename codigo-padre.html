@@ -1462,6 +1462,31 @@
             pointer-events: auto;
         }
 
+        /* Botón de saltar audio no disponible: mismo hueco que el desplegable (justo
+           encima del central), pero fuera de #audio-control-dropdown — su visibilidad
+           no depende de .open, la controla actualizarEstadoControlesAudioPadre() vía
+           la clase .mostrar-saltar-audio en el overlay (con espera si el desplegable
+           estaba abierto, ver _actualizarBotonSaltarAudio). Reutiliza el estilo de
+           .audio-action-btn (tamaño, círculo, glow) — nunca queda :disabled, solo
+           oculto: cuando se muestra, ES la acción disponible. */
+        #audio-action-skip {
+            position: absolute;
+            bottom: calc(100% + var(--audio-btn-gap));
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+        }
+
+        #audio-control-overlay.mostrar-saltar-audio #audio-action-skip {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.3s ease, visibility 0s linear 0s;
+        }
+
     </style>
 
     <!-- Create map container early with inline script -->
@@ -2619,6 +2644,9 @@
         <legend style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Controles de audio</legend>
         <button type="button" id="audio-main-toggle-btn" aria-label="Abrir controles de audio" title="Controles de audio">
             <img src="imagenes/imagenes-aplicación/boton-audio-central.png" alt="Control audio">
+        </button>
+        <button type="button" id="audio-action-skip" class="audio-action-btn" aria-label="Saltar audio no disponible" title="Saltar audio no disponible">
+            <img src="imagenes/imagenes-aplicación/boton-audio-avanzar.png" alt="Saltar audio">
         </button>
         <div id="audio-control-dropdown" aria-label="Acciones de audio">
             <button type="button" id="audio-action-play" class="audio-action-btn" data-audio-command="play" aria-label="Reproducir" title="Reproducir">
@@ -4047,6 +4075,10 @@
                 estado: null,
                 timestamp: null
             },
+            // audioId cuyo AUDIO.ERROR ya fue confirmado por hijo3 (tras agotar sus propios
+            // reintentos) — se compara contra el audioId activo en cada momento, así que un
+            // cambio de parada/tramo lo vuelve irrelevante sin necesidad de resetearlo aparte.
+            _audioFalloId: null,
             retoActual: {
                 id: null,
                 disponible: false,
@@ -7514,6 +7546,7 @@
                     // que lo detiene). Al volver a AVENTURA con progreso real congelado, la
                     // restauración de más abajo sí dispara CAMBIO_PARADA y lo reactiva solo.
                     globalThis._detenerRecordatorioAudio?.();
+                    globalThis._detenerRecordatorioSaltarAudio?.();
                     globalThis._detenerRecordatorioReto?.();
                     // Mismo motivo: los carteles de "fuera de rango" (gps-out-of-range-overlay,
                     // foto-fuera-rango-overlay, foto-lejos-overlay) pudieron quedar en pantalla
@@ -8741,7 +8774,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // siempre ganan (cierran cualquier otro cartel y se muestran); los 2 recordatorios
         // nunca fuerzan nada — si hay cualquier otro cartel visible, esperan a que se cierre
         // (su propio setInterval vuelve a comprobar 2s después, sin perder el aviso).
-        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-reto'];
+        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto'];
         function _ocultarCualquierCartel() {
             _TODOS_LOS_CARTELES_IDS.forEach(id => document.getElementById(id)?.remove());
         }
@@ -9225,6 +9258,100 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis._marcarPlayPulsadoRecordatorio = function () {
             document.getElementById('cartel-recordatorio-audio')?.remove();
         };
+
+        // ── Recordatorio periódico de "pulse saltar" (audio no disponible) — mismo patrón que
+        // el de "pulse play" de arriba, para el caso contrario: el elemento activo SÍ tiene
+        // audio_id pero el fichero real no existe (§25.5f). Mutuamente excluyente con el
+        // recordatorio de play — un elemento nunca dispara los dos a la vez, ver
+        // _hdl_NAVEGACION_CAMBIO_PARADA. Más simple que el de play: saltar SÍ garantiza la
+        // resolución (pending.audio queda satisfecho en el mismo click, sin margen para que
+        // "se interrumpa antes de terminar"), así que un único _detenerRecordatorioSaltarAudio()
+        // basta — sin distinción entre cierre temporal del cartel y apagado permanente.
+        const RECORDATORIO_SALTAR_AUDIO_PRIMER_AVISO_MS = 10000;
+        const RECORDATORIO_SALTAR_AUDIO_INTERVALO_MS = 20000;
+        const RECORDATORIO_SALTAR_AUDIO_CHEQUEO_MS = 2000;
+        let _recordatorioSaltarAudioCheckIntervalId = null;
+        let _recordatorioSaltarAudioActivadoEn = null;
+        let _recordatorioSaltarAudioUltimoMostradoEn = null;
+
+        function _detenerRecordatorioSaltarAudio() {
+            if (_recordatorioSaltarAudioCheckIntervalId) { clearInterval(_recordatorioSaltarAudioCheckIntervalId); _recordatorioSaltarAudioCheckIntervalId = null; }
+            _recordatorioSaltarAudioActivadoEn = null;
+            _recordatorioSaltarAudioUltimoMostradoEn = null;
+            document.getElementById('cartel-recordatorio-saltar-audio')?.remove();
+        }
+        globalThis._detenerRecordatorioSaltarAudio = _detenerRecordatorioSaltarAudio;
+
+        async function _mostrarCartelRecordatorioSaltarAudio() {
+            try {
+                const { TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                const t = TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO?.[idioma] || TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO?.es;
+                if (!t) {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_SALTAR_AUDIO] Traducciones no disponibles');
+                    return;
+                }
+
+                document.getElementById('cartel-recordatorio-saltar-audio')?.remove();
+                const cartel = document.createElement('div');
+                cartel.id = 'cartel-recordatorio-saltar-audio';
+                cartel.style.cssText = [
+                    'position:fixed',
+                    'top:calc(10.7vh + 10px + 0.5rem)',
+                    'left:50%',
+                    'transform:translateX(-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'z-index:1000060',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:0.75rem 2.75rem 0.75rem 1rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                ].join(';');
+
+                cartel.innerHTML = `
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <img src="imagenes/imagenes-aplicación/boton-audio-avanzar.png" alt="" style="width:1.75rem;height:1.75rem;flex-shrink:0;object-fit:contain;">
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${t.mensaje}</p>
+                    </div>
+                `;
+                document.body.appendChild(cartel);
+                _vibrarCartel();
+
+                const cerrar = () => cartel.remove();
+                cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
+                setTimeout(cerrar, 7000);
+
+                (globalThis.logger || console).info('[PADRE][CARTEL_RECORDATORIO_SALTAR_AUDIO] Mostrado');
+            } catch (error) {
+                (globalThis.logger || console).error('[PADRE][CARTEL_RECORDATORIO_SALTAR_AUDIO] Error mostrando cartel:', error);
+            }
+        }
+
+        // Llamado al activarse cualquier elemento nuevo (parada o tramo) en AVENTURA con
+        // audio_id asignado pero sin fichero real — ver _hdl_NAVEGACION_CAMBIO_PARADA.
+        // _detenerRecordatorioSaltarAudio() al principio cancela cualquier check del
+        // elemento anterior, así que no hace falta comparar IDs aparte.
+        function _iniciarRecordatorioSaltarAudio() {
+            _detenerRecordatorioSaltarAudio();
+            _recordatorioSaltarAudioActivadoEn = Date.now();
+            _recordatorioSaltarAudioUltimoMostradoEn = null;
+            _recordatorioSaltarAudioCheckIntervalId = setInterval(() => {
+                const ahora = Date.now();
+                const tiempoListo = (ahora - _recordatorioSaltarAudioActivadoEn) >= RECORDATORIO_SALTAR_AUDIO_PRIMER_AVISO_MS;
+                const proximidadLista = estado?.gps?.proximidadReal === true;
+                const intervaloListo = _recordatorioSaltarAudioUltimoMostradoEn === null || (ahora - _recordatorioSaltarAudioUltimoMostradoEn) >= RECORDATORIO_SALTAR_AUDIO_INTERVALO_MS;
+                if (tiempoListo && proximidadLista && intervaloListo && !_hayCartelEnPantalla()) {
+                    _recordatorioSaltarAudioUltimoMostradoEn = ahora;
+                    _mostrarCartelRecordatorioSaltarAudio();
+                }
+            }, RECORDATORIO_SALTAR_AUDIO_CHEQUEO_MS);
+        }
+        globalThis._iniciarRecordatorioSaltarAudio = _iniciarRecordatorioSaltarAudio;
 
         // ── Recordatorio periódico de "pulse retos" — mismo patrón que el de audio de arriba ──
         // Arranca solo cuando el reto del elemento activo se habilita de verdad (audio
@@ -10176,6 +10303,29 @@ await _comprobarReanudacionAventura(logPrefix);
         // Expuesta en globalThis: _iniciarRecordatorioAudio() la llama desde otro script.
         globalThis.obtenerAudioIdActivoPadre = obtenerAudioIdActivoPadre;
 
+        // A diferencia de obtenerAudioIdActivoPadre (solo mira si HAY una referencia de
+        // audio asignada a la parada/tramo), esta comprueba si el fichero real detrás de
+        // esa referencia existe (campo .file no vacío) — hoy vacío en los 12 idiomas
+        // salvo español mientras no se termine de grabar (ver aventuras-ID-padre.js).
+        // Lee __vv_AUDIOS_AVENTURAS directamente (poblado en Fase 2, siempre síncrono e
+        // independiente de DATA_MODE) en vez de pasar por data-loader.js/_resolverAudioData,
+        // que son async — esta función se llama desde contextos síncronos reactivos.
+        function hayFicheroAudioReal(audioId) {
+            if (!audioId) return false;
+            try {
+                const aventura = globalThis.aventuraSeleccionada;
+                const idioma = globalThis.idiomaSeleccionado;
+                const lista = globalThis.__vv_AUDIOS_AVENTURAS?.[aventura]?.[idioma];
+                if (!Array.isArray(lista)) return false;
+                const encontrado = lista.find(a => a && a.id === audioId);
+                return !!(encontrado && encontrado.file);
+            } catch (error) {
+                (globalThis.logger || console).debug('[PADRE] Error en hayFicheroAudioReal:', error?.message);
+                return false;
+            }
+        }
+        globalThis.hayFicheroAudioReal = hayFicheroAudioReal;
+
         async function enviarAccionAudioAHijo3(comando) {
             const logPrefix = '[PADRE][AUDIO_CONTROLES]';
             const audioId = obtenerAudioIdActivoPadre();
@@ -10205,6 +10355,7 @@ await _comprobarReanudacionAventura(logPrefix);
         }
 
         let _ultimoHayAudioNotificadoAHijo3 = null;
+        let _saltarAudioGen = 0;
         function actualizarEstadoControlesAudioPadre() {
             const overlay = document.getElementById('audio-control-overlay');
             if (!overlay) return;
@@ -10215,33 +10366,88 @@ await _comprobarReanudacionAventura(logPrefix);
             // botones de hijo2 (_desactivarBotonesRangoExcedido), aplicado aquí porque
             // el control de audio vive en el padre, no en hijo2.
             const fueraDeRango = estado.modo?.actual === MODOS.AVENTURA && estado.usuarioFueraRango?.activo === true;
-            const hayAudio = !fueraDeRango && !!obtenerAudioIdActivoPadre();
+            const audioId = obtenerAudioIdActivoPadre();
+            const hayAudio = !fueraDeRango && !!audioId;
 
-            if (mainBtn) mainBtn.disabled = !hayAudio;
+            // Un fallo confirmado deja de ser relevante en cuanto el audio activo cambia
+            // (comparación exacta de audioId — un cambio de parada/tramo ya lo neutraliza
+            // sin necesidad de resetearlo aparte, ver estado._audioFalloId) o en cuanto
+            // hijo3 confirma que sí está reproduciendo de verdad.
+            if (estado._audioFalloId && (estado._audioFalloId !== audioId || estado.audioActual?.estado === 'reproduciendo')) {
+                estado._audioFalloId = null;
+            }
+
+            // Dentro de hayAudio, ¿el fichero real detrás de esa referencia está
+            // disponible? Caso estático: dato sin grabar (file vacío, hoy la norma en 11
+            // de 12 idiomas — ver hayFicheroAudioReal). Caso runtime: el dato dice que hay
+            // fichero, pero hijo3 ya confirmó el fallo de este audioId tras agotar sus
+            // propios reintentos (audio-hijo3.html: error/stalled → AUDIO.ERROR → aquí).
+            const ficheroFalla = hayAudio && (!hayFicheroAudioReal(audioId) || estado._audioFalloId === audioId);
+            const hayAudioUtilizable = hayAudio && !ficheroFalla;
+
+            if (mainBtn) mainBtn.disabled = !hayAudioUtilizable;
+
+            // Capturado ANTES de quitar 'open' de aquí abajo — _actualizarBotonSaltarAudio
+            // necesita saber si el desplegable ESTABA abierto al entrar a esta función, no
+            // después de que esta misma función ya lo haya cerrado (si se comprobara ahí
+            // dentro, 'open' ya habría desaparecido siempre que ficheroFalla es true, porque
+            // hayAudioUtilizable es falso en ese caso — la espera de 300ms nunca se activaría).
+            const estabaAbiertoAlEntrar = overlay.classList.contains('open');
 
             // Los 4 botones del desplegable (.audio-action-btn) NO se deshabilitan uno a
             // uno: cerrar el overlay ya los deja con pointer-events:none/visibility:hidden
             // (ver #audio-control-overlay.open #audio-control-dropdown en el CSS) — al
             // instante, no al terminar la transición de 0.3s, porque esas propiedades no
             // se animan. Con el botón central ya deshabilitado (bloquea nativamente el
-            // click que reabriría el desplegable), un solo estado disabled basta.
-            if (!hayAudio) overlay.classList.remove('open');
+            // click que reabriría el desplegable), un solo estado disabled basta. Se cierra
+            // también cuando falla el fichero (no solo cuando no hay audio en absoluto) —
+            // el central queda deshabilitado por la misma razón, así que no debe quedar
+            // abierto un desplegable cuyo botón que lo abrió ya no es pulsable.
+            if (!hayAudioUtilizable) overlay.classList.remove('open');
+
+            _actualizarBotonSaltarAudio(overlay, ficheroFalla, estabaAbiertoAlEntrar);
 
             // El thumb de la barra de progreso de hijo3 sigue este mismo estado (además
             // de habilitarse también en modo CASA, decisión que toma hijo3 localmente) —
             // solo se notifica si cambia, para no saturar de mensajes idénticos en cada
             // llamada (esta función se invoca desde varios sitios reactivos).
-            if (hayAudio !== _ultimoHayAudioNotificadoAHijo3) {
-                _ultimoHayAudioNotificadoAHijo3 = hayAudio;
+            if (hayAudioUtilizable !== _ultimoHayAudioNotificadoAHijo3) {
+                _ultimoHayAudioNotificadoAHijo3 = hayAudioUtilizable;
                 enviarMensajePadre({
-                    tipo: hayAudio ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
+                    tipo: hayAudioUtilizable ? TIPOS_MENSAJE.CONTROL.HABILITAR : TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                     origen: getPadreId(),
                     destino: 'hijo3',
-                    datos: { control: 'progressBar', razon: hayAudio ? 'audio_activo' : 'sin_audio_o_fuera_de_rango' }
+                    datos: { control: 'progressBar', razon: hayAudioUtilizable ? 'audio_activo' : 'sin_audio_o_fuera_de_rango' }
                 }).catch(error => (globalThis.logger || console).debug('[PADRE] Error notificando progressBar a hijo3:', error?.message));
             }
         }
         globalThis.actualizarEstadoControlesAudioPadre = actualizarEstadoControlesAudioPadre;
+
+        // El botón de saltar ocupa el mismo hueco visual que el desplegable (justo
+        // encima del central, ver CSS #audio-action-skip). Si el desplegable estaba
+        // abierto en ese instante, se espera a que termine su propia transición de
+        // cierre (0.3s) antes de mostrarlo, para no solaparse visualmente con ella —
+        // en el caso normal (desplegable ya cerrado, la inmensa mayoría de las veces)
+        // aparece al instante. El generador invalida cualquier setTimeout pendiente si
+        // el estado deseado vuelve a cambiar antes de que se cumplan los 300ms (p.ej.
+        // el usuario avanza de parada/tramo en ese margen).
+        function _actualizarBotonSaltarAudio(overlay, mostrar, estabaAbierto) {
+            _saltarAudioGen++;
+            const miGen = _saltarAudioGen;
+            const yaVisible = overlay.classList.contains('mostrar-saltar-audio');
+            if (mostrar === yaVisible) return;
+            if (!mostrar) {
+                overlay.classList.remove('mostrar-saltar-audio');
+                return;
+            }
+            if (estabaAbierto) {
+                setTimeout(() => {
+                    if (miGen === _saltarAudioGen) overlay.classList.add('mostrar-saltar-audio');
+                }, 300);
+            } else {
+                overlay.classList.add('mostrar-saltar-audio');
+            }
+        }
 
         function sincronizarDiametroControlesAudioPadre() {
             const mainBtn = document.getElementById('audio-main-toggle-btn');
@@ -10268,6 +10474,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const overlay = document.getElementById('audio-control-overlay');
             const mainBtn = document.getElementById('audio-main-toggle-btn');
             const dropdown = document.getElementById('audio-control-dropdown');
+            const skipBtn = document.getElementById('audio-action-skip');
             if (!overlay || !mainBtn || !dropdown || overlay.dataset.initOk === 'true') return;
 
             const cerrarDropdown = () => overlay.classList.remove('open');
@@ -10291,6 +10498,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
             // touchstart vacío por botón: activa :active en iOS Safari (documento principal)
             const todosLosBotones = [mainBtn, ...dropdown.querySelectorAll('.audio-action-btn')];
+            if (skipBtn) todosLosBotones.push(skipBtn);
             todosLosBotones.forEach((btn) => {
                 btn.addEventListener('touchstart', () => {}, { passive: true });
             });
@@ -10317,6 +10525,13 @@ await _comprobarReanudacionAventura(logPrefix);
                     // o pulsando fuera del overlay.
                 });
             });
+
+            if (skipBtn) {
+                skipBtn.addEventListener('click', async (event) => {
+                    event.stopPropagation();
+                    await _saltarAudioPulsado();
+                });
+            }
 
             document.addEventListener('click', (event) => {
                 if (!overlay.contains(event.target)) cerrarDropdown();
@@ -11255,20 +11470,63 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
+        // AUDIO.REPRODUCIR_REQUEST necesita llegar de verdad a hijo3 — sin confirmación, un
+        // mensaje perdido (iframe momentáneamente no listo, postMessage descartado) dejaba
+        // pending.audio en false para siempre, sin ninguna señal, hasta que el TTL de
+        // seguridad de tramos lo rescatara a ciegas muchos minutos después (§31.7b, ya
+        // retirado para audio — ver _ejecutarBarridoTTLPending). enviarMensajeConConfirmacion
+        // exige un ACK real de la capa de mensajería de hijo3 (automático en cuanto su
+        // handler procesa el mensaje, sin que hijo3 tenga que hacer nada especial); si no
+        // llega en el timeout, reintenta hasta MAX_REINTENTOS_ENVIO_AUDIO veces. Con
+        // autoplay:false (siempre, en este flujo) el handler de hijo3 no espera a ninguna
+        // descarga de red antes de confirmar — solo asigna audioPlayer.src — así que el
+        // timeout no se dispara por lentitud normal de red, solo por una entrega real
+        // fallida. Deliberadamente rápido (1.2s × 2 = 2.4s máximo, no 4s × 3): esto corre en
+        // segundo plano sin bloquear _hdl_NAVEGACION_CAMBIO_PARADA (fire-and-forget, ver
+        // solicitudes.audio?.catch(...) más abajo), pero si tardara más que el primer aviso
+        // del recordatorio "pulse play"/"pulse saltar" (10s, §25.5c/f) se arriesgaría a una
+        // carrera real: agotar los reintentos justo después de que el recordatorio ya
+        // hubiera arrancado apagaría uno que no tocaba, por una alarma que en producción
+        // (hijo3 real, siempre listo tras P14) se resuelve en milisegundos.
+        const MAX_REINTENTOS_ENVIO_AUDIO = 2;
+        async function _enviarAudioRequestConReintento(datosMensaje, logPrefix) {
+            for (let intento = 1; intento <= MAX_REINTENTOS_ENVIO_AUDIO; intento++) {
+                try {
+                    await globalThis.enviarMensajeConConfirmacion({
+                        tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
+                        origen: getPadreId(),
+                        destino: 'hijo3',
+                        datos: datosMensaje,
+                        timeout: 1200
+                    });
+                    return true;
+                } catch (error) {
+                    (globalThis.logger || console).warn(`${logPrefix} AUDIO.REPRODUCIR_REQUEST intento ${intento}/${MAX_REINTENTOS_ENVIO_AUDIO} sin confirmación de hijo3: ${error?.message}`);
+                }
+            }
+            return false;
+        }
+        // Expuesta para poder testear el reintento de entrega de forma aislada (mockeando
+        // globalThis.enviarMensajeConConfirmacion) sin tener que montar todo el pipeline de
+        // CAMBIO_PARADA — mismo criterio que el resto de funciones testables del padre.
+        globalThis._enviarAudioRequestConReintento = _enviarAudioRequestConReintento;
+        globalThis.MAX_REINTENTOS_ENVIO_AUDIO = MAX_REINTENTOS_ENVIO_AUDIO;
+
         function _solicitarAudioParaParada(parada, estado, solicitudes, logPrefix) {
             if (!parada.audio_id) return;
             const paradaIdSolicitud = parada.parada_id || parada.tramo_id || parada.audio_id;
             (globalThis.logger || console).debug(`${logPrefix} Solicitando reproducción de audio a hijo3 con ID: ${parada.audio_id} (modo: ${estado.modo?.actual})`);
-            solicitudes.audio = _resolverAudioData(parada.audio_id, logPrefix).then(audioData => {
+            solicitudes.audio = _resolverAudioData(parada.audio_id, logPrefix).then(async audioData => {
                 // Tracking para snapshot de reload (igual que _enviarRetoMostrar con retoActual):
                 // sin esto, un reload de hijo3 por heartbeat no puede restaurar el audio en curso.
                 _snapshotRecuperacion.audioActual = { audioId: parada.audio_id, audioData, autoplay: false, contexto: { parada: paradaIdSolicitud, tipo: parada.tipo } };
-                return enviarMensajePadre({
-                    tipo: TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST,
-                    origen: getPadreId(),
-                    destino: 'hijo3',
-                    datos: { audioId: parada.audio_id, audioData, autoplay: false, contexto: { parada: paradaIdSolicitud, tipo: parada.tipo } }
-                });
+                const datosMensaje = { audioId: parada.audio_id, audioData, autoplay: false, contexto: { parada: paradaIdSolicitud, tipo: parada.tipo } };
+                const entregado = await _enviarAudioRequestConReintento(datosMensaje, logPrefix);
+                if (!entregado) {
+                    (globalThis.logger || console).error(`${logPrefix} AUDIO.REPRODUCIR_REQUEST no llegó a hijo3 tras ${MAX_REINTENTOS_ENVIO_AUDIO} intentos — se ofrece saltar en su lugar`);
+                    await _marcarAudioNoDisponible(parada.audio_id, logPrefix);
+                }
+                return entregado;
             }).catch(error => {
                 (globalThis.logger || console).warn(`${logPrefix} Error solicitando audio a hijo3:`, error);
                 return null;
@@ -11679,14 +11937,23 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 actualizarEstadoControlesAudioPadre();
 
-                // Recordatorio "pulse play" — solo en AVENTURA y solo si este elemento tiene
-                // audio de verdad (obtenerAudioIdActivoPadre() ya lo lee de estado.elementoActual,
-                // que _actualizarEstadoParada() acaba de fijar más arriba). Reemplaza cualquier
-                // recordatorio del elemento anterior (parada o tramo, mismo criterio).
-                if (estado.modo?.actual === MODOS.AVENTURA && typeof obtenerAudioIdActivoPadre === 'function' && obtenerAudioIdActivoPadre()) {
+                // Recordatorio "pulse play" vs "pulse saltar" — mutuamente excluyentes, solo
+                // en AVENTURA. obtenerAudioIdActivoPadre() ya lee de estado.elementoActual, que
+                // _actualizarEstadoParada() acaba de fijar más arriba; hayFicheroAudioReal()
+                // decide cuál de los dos corresponde (fichero real → insistir en play; audio_id
+                // sin fichero → insistir en saltar, §25.5f). Reemplaza cualquier recordatorio
+                // del elemento anterior (parada o tramo, mismo criterio) — se detiene siempre
+                // explícitamente el que no aplica, no basta con arrancar el otro.
+                const _audioIdParaRecordatorio = typeof obtenerAudioIdActivoPadre === 'function' ? obtenerAudioIdActivoPadre() : null;
+                if (estado.modo?.actual === MODOS.AVENTURA && _audioIdParaRecordatorio && hayFicheroAudioReal(_audioIdParaRecordatorio)) {
+                    globalThis._detenerRecordatorioSaltarAudio?.();
                     globalThis._iniciarRecordatorioAudio?.();
+                } else if (estado.modo?.actual === MODOS.AVENTURA && _audioIdParaRecordatorio) {
+                    globalThis._detenerRecordatorioAudio?.();
+                    globalThis._iniciarRecordatorioSaltarAudio?.();
                 } else {
                     globalThis._detenerRecordatorioAudio?.();
+                    globalThis._detenerRecordatorioSaltarAudio?.();
                 }
                 // Recordatorio de reto: nunca arranca aquí (el reto de este elemento, si
                 // existe, todavía no está disponible — solo lo está tras terminar su audio,
@@ -12074,6 +12341,34 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
 
+        // Botón de saltar audio no disponible (#audio-action-skip, solo visible cuando
+        // actualizarEstadoControlesAudioPadre detecta ficheroFalla): reutiliza la misma
+        // tubería de finalización real que _hdl_AUDIO_FIN_REPRODUCCION (pending.audio +
+        // _procesarFinAudioElemento habilitando retosBtn si procede) en vez de inventar
+        // un camino paralelo — la parada/tramo no distingue "se escuchó" de "se saltó".
+        async function _saltarAudioPulsado() {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AUDIO_SALTAR]`;
+            const audioId = obtenerAudioIdActivoPadre();
+            if (!audioId || !estado.elementoActual || estado.elementoActual.audio_id !== audioId) return;
+
+            const elementoAudio = findElementoPorAudio(audioId);
+            if (!elementoAudio) return;
+            const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
+            const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
+            if (pendingAudio.audio) return; // ya resuelto por otra vía — idempotencia
+
+            (globalThis.logger || console).info(`${logPrefix} Usuario saltó audio no disponible: ${audioId}`);
+            pendingAudio.audio = true;
+            pendingAudio.timestamp = Date.now();
+            intentarCompletarElemento(clave);
+            globalThis._detenerRecordatorioAudio?.();
+            globalThis._detenerRecordatorioSaltarAudio?.();
+
+            await _procesarFinAudioElemento(audioId, estado, logPrefix);
+
+            registrarEventoScript2('AUDIO_SALTADO', { audioId, motivo: 'boton_saltar_usuario' }, 'info');
+        }
+
         async function _hdl_AUDIO_FIN_REPRODUCCION(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[AUDIO.FIN_REPRODUCCION]`;
 
@@ -12127,8 +12422,12 @@ await _comprobarReanudacionAventura(logPrefix);
                         intentarCompletarElemento(clave);
                         // Apagado permanente real del recordatorio "pulse play" — aquí, no al
                         // pulsar el botón (ver globalThis._marcarPlayPulsadoRecordatorio): esto
-                        // es la confirmación genuina de que el audio se escuchó entero.
+                        // es la confirmación genuina de que el audio se escuchó entero. El de
+                        // saltar no debería estar corriendo para este elemento (mutuamente
+                        // excluyentes, ver _hdl_NAVEGACION_CAMBIO_PARADA), pero apagarlo aquí
+                        // también es gratis y evita depender de esa garantía por completo.
                         globalThis._detenerRecordatorioAudio?.();
+                        globalThis._detenerRecordatorioSaltarAudio?.();
                     }
                 } catch (error_) {
                     (globalThis.logger || console).warn(`${logPrefix} Error al marcar pending por fin de audio:`, error_);
@@ -12150,6 +12449,41 @@ await _comprobarReanudacionAventura(logPrefix);
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando fin de reproducción:`, error);
+            }
+        }
+
+        // Compartido por _hdl_AUDIO_ERROR (hijo3 confirma un fallo real, tras agotar sus
+        // propios reintentos) y por _enviarAudioRequestConReintento (el mensaje ni siquiera
+        // llega a hijo3, agotados también sus reintentos de entrega) — en ambos casos el
+        // resultado para el usuario es el mismo: mostrar el botón de saltar y no dejar la
+        // parada bloqueada, sin necesidad de esperar al TTL de seguridad (§31.7b).
+        async function _marcarAudioNoDisponible(audioId, logPrefix) {
+            // Comparación exacta contra el elemento activo: descarta un aviso tardío de una
+            // parada/tramo ya abandonado.
+            if (audioId && estado.elementoActual?.audio_id === audioId) {
+                estado._audioFalloId = audioId;
+            }
+            actualizarEstadoControlesAudioPadre();
+
+            // Desbloquear pending para que la parada no quede bloqueada (§31.7a) — misma
+            // tubería que un fin de audio real o que el botón de saltar
+            // (_saltarAudioPulsado): también habilita retosBtn si procede.
+            try {
+                const elementoAudio = findElementoPorAudio(audioId);
+                if (elementoAudio) {
+                    const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
+                    const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
+                    if (!pendingAudio.audio) {
+                        pendingAudio.audio = true;
+                        intentarCompletarElemento(clave);
+                        // No es una escucha real, pero pending.audio ya quedó satisfecho, así
+                        // que el recordatorio tampoco tiene ya sentido.
+                        globalThis._detenerRecordatorioAudio?.();
+                        await _procesarFinAudioElemento(audioId, estado, logPrefix);
+                    }
+                }
+            } catch (pendErr) {
+                (globalThis.logger || console).debug(`${logPrefix} Error marcando pending por audio no disponible:`, pendErr?.message);
             }
         }
 
@@ -12189,23 +12523,9 @@ await _comprobarReanudacionAventura(logPrefix);
                     estado.monitoreo.metricas.errores++;
                 }
 
-                // Desbloquear pending para que la parada no quede bloqueada por audio fallido (§30.7a)
-                try {
-                    const elementoAudio = findElementoPorAudio(audioId);
-                    if (elementoAudio) {
-                        const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
-                        const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
-                        if (!pendingAudio.audio) {
-                            pendingAudio.audio = true;
-                            intentarCompletarElemento(clave);
-                            // Desbloqueado por error, no por escucha real — pero pending.audio ya
-                            // quedó satisfecho, así que el recordatorio tampoco tiene ya sentido.
-                            globalThis._detenerRecordatorioAudio?.();
-                        }
-                    }
-                } catch (pendErr) {
-                    (globalThis.logger || console).debug(`${logPrefix} Error marcando pending por AUDIO.ERROR:`, pendErr?.message);
-                }
+                // Este audioId ya falló de verdad — hijo3 solo envía AUDIO.ERROR tras agotar
+                // sus propios reintentos (ver audio-hijo3.html).
+                await _marcarAudioNoDisponible(audioId, logPrefix);
 
                 // Mostrar overlay de no-internet si el error coincide con pérdida de conexión
                 if (!navigator.onLine) {
@@ -13551,11 +13871,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                     if (typeof p.ttlMs !== 'number' || (now - p.timestamp) <= p.ttlMs) continue;
 
                     let cambiado = false;
-                    if (!p.audio) {
-                        p.audio = true;
-                        cambiado = true;
-                        (globalThis.logger || console).warn(`[PADRE][PENDING][TTL] Audio rescatado por TTL en tramo ${key} (${Math.round((now - p.timestamp) / 1000)}s sin completar)`);
-                    }
+                    // El audio ya NO se rescata aquí a ciegas — AUDIO.REPRODUCIR_REQUEST se
+                    // envía con confirmación y reintentos (_enviarAudioRequestConReintento,
+                    // ver _solicitarAudioParaParada), y un fallo real (de entrega o de
+                    // reproducción) ya muestra el botón de saltar al instante
+                    // (_marcarAudioNoDisponible) en vez de dejar pending.audio en false
+                    // durante minutos hasta que este barrido pasara por aquí.
                     if (!p.llegada) {
                         const skipsUsados = typeof est.tramoSkipsUsados === 'number' ? est.tramoSkipsUsados : 0;
                         const progresoActual = (typeof globalThis._calcularProgresoFraccion === 'function') ? globalThis._calcularProgresoFraccion() : 0;

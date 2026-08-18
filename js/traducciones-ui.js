@@ -172,11 +172,11 @@ export const TRADUCCIONES_REANUDACION = {
         info: 'アクティブな冒険があります：',
         idioma: '言語',
         progreso: '進捗',
-        parada: 'ストップ',
+        parada: '地点',
         de: '/',
         continuar: '冒険を続ける',
         elegirOtra: '別の冒険を選ぶ',
-        autoContinuar: '自動的に続行します',
+        autoContinuar: '自動継続まであと',
         segundos: '秒',
         advertenciaTitulo: '⚠️ 注意',
         advertenciaTexto1: '現在の冒険のすべての進捗を失います：',
@@ -240,7 +240,7 @@ export const TRADUCCIONES_REANUDACION = {
         de: '/',
         continuar: '继续我的冒险',
         elegirOtra: '选择其他冒险',
-        autoContinuar: '自动继续，倒计时',
+        autoContinuar: '自动继续倒计时',
         segundos: '秒',
         advertenciaTitulo: '⚠️ 注意',
         advertenciaTexto1: '您将失去当前冒险的所有进度：',
@@ -491,6 +491,25 @@ export const TRADUCCIONES_RECORDATORIO_AUDIO = {
     pt: { mensaje: '⚠️ Lembre-se de apertar o play para ouvir o áudio relacionado à sua aventura.' },
     ru: { mensaje: '⚠️ Не забудьте нажать play, чтобы прослушать аудио, связанное с вашим приключением.' },
     uk: { mensaje: '⚠️ Не забудьте натиснути відтворити, щоб прослухати аудіо, пов\'язане з вашою пригодою.' }
+};
+
+// Cartel recordatorio, no bloqueante, que reaparece cada cierto tiempo mientras el audio
+// de la parada/tramo activo no está disponible (fichero sin grabar) — espejo del de arriba
+// pero para el botón de saltar (#audio-action-skip) en vez del de play. Se apaga para
+// siempre al pulsar ese botón real, ver _saltarAudioPulsado() en codigo-padre.html.
+export const TRADUCCIONES_RECORDATORIO_SALTAR_AUDIO = {
+    es: { mensaje: '⚠️ Esta parada no tiene audio disponible en este momento. Por favor, pulse ⏩ para continuar, sentimos las molestias.' },
+    en: { mensaje: "⚠️ Audio isn't available for this stop right now. Please press ⏩ to continue — sorry for the inconvenience." },
+    fr: { mensaje: "⚠️ L'audio n'est pas disponible pour cet arrêt en ce moment. Veuillez appuyer sur ⏩ pour continuer, nous sommes désolés pour la gêne occasionnée." },
+    it: { mensaje: '⚠️ In questo momento l\'audio non è disponibile per questa tappa. La preghiamo di premere ⏩ per continuare, ci scusiamo per l\'inconveniente.' },
+    nl: { mensaje: '⚠️ Audio is op dit moment niet beschikbaar voor deze stop. Druk op ⏩ om verder te gaan, onze excuses voor het ongemak.' },
+    de: { mensaje: '⚠️ Für diesen Stopp ist im Moment kein Audio verfügbar. Bitte drücken Sie auf ⏩, um fortzufahren — wir entschuldigen uns für die Unannehmlichkeiten.' },
+    ja: { mensaje: '⚠️ 現在、この地点の音声はご利用いただけません。⏩を押して続けてください。ご不便をおかけして申し訳ございません。' },
+    zh: { mensaje: '⚠️ 此站点暂时没有可用音频。请按 ⏩ 继续，给您带来不便，敬请谅解。' },
+    pl: { mensaje: '⚠️ W tej chwili nagranie dla tego przystanku nie jest dostępne. Proszę nacisnąć ⏩, aby kontynuować — przepraszamy za niedogodności.' },
+    pt: { mensaje: '⚠️ No momento, não há áudio disponível para esta parada. Por favor, aperte ⏩ para continuar, pedimos desculpas pelo transtorno.' },
+    ru: { mensaje: '⚠️ Сейчас аудио для этой остановки недоступно. Пожалуйста, нажмите ⏩, чтобы продолжить — приносим извинения за неудобства.' },
+    uk: { mensaje: '⚠️ Наразі аудіо для цієї зупинки недоступне. Будь ласка, натисніть ⏩, щоб продовжити — перепрошуємо за незручності.' }
 };
 
 export const TRADUCCIONES_RECORDATORIO_RETO = {

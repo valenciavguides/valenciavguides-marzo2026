@@ -58,6 +58,12 @@ async function prepararEscenario(page) {
       if (coords?.length) globalThis.AVENTURA_PARADAS = coords;
     }
     globalThis._devModeActivo = true;
+    // __triggerCambioParadaInterno no monta un hijo3 real que pueda confirmar la
+    // recepción de AUDIO.REPRODUCIR_REQUEST (_enviarAudioRequestConReintento, §31.7) —
+    // sin este stub, esos reintentos se agotarían de verdad (~2.4s) en segundo plano y,
+    // al no haber llegado nunca confirmación real, _marcarAudioNoDisponible() alteraría
+    // pending/estado por una falsa alarma ajena al flujo que este test verifica.
+    globalThis.enviarMensajeConConfirmacion = () => Promise.resolve({ exito: true });
     await globalThis._vv_triggerCambioModo('aventura');
     if (globalThis.estado) {
       globalThis.estado.hijosInicializados = new Set(['hijo2', 'hijo3', 'hijo4']);

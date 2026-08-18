@@ -3,23 +3,29 @@
  *
  * El TTL de pending (10 min por defecto, §31.7b) ya no puede forzar la llegada de un
  * tramo sin más — permitiría completar la aventura entera sin haber estado nunca cerca,
- * con solo esperar (esta app es una audioguía geolocalizada). El audio se sigue rescatando
- * siempre, sin límite (protección original contra un fallo técnico real). La llegada solo
- * se rescata si queda algún salto de seguridad: máximo 5 por aventura, y cada uno exige un
- * 20% de progreso real (sobre el total de elementos) desde el último salto usado — pensado
- * para un usuario genuinamente perdido por una causa real (obras, calle cortada, un
- * evento), no como forma de avanzar sin moverse. Las paradas ya no reciben ningún rescate
- * de este TTL, ni audio — se dejó fuera a propósito (ver codigo-padre.html).
+ * con solo esperar (esta app es una audioguía geolocalizada). La llegada solo se rescata
+ * si queda algún salto de seguridad: máximo 5 por aventura, y cada uno exige un 20% de
+ * progreso real (sobre el total de elementos) desde el último salto usado — pensado para
+ * un usuario genuinamente perdido por una causa real (obras, calle cortada, un evento), no
+ * como forma de avanzar sin moverse. Las paradas ya no reciben ningún rescate de este TTL.
+ *
+ * El audio ya NO se rescata aquí — se retiró el rescate ciego a favor de reforzar la
+ * entrega en origen: AUDIO.REPRODUCIR_REQUEST se envía con confirmación real y reintentos
+ * (`_enviarAudioRequestConReintento`, `_solicitarAudioParaParada`), y cualquier fallo —de
+ * entrega o de reproducción, ver §25.5f— muestra el botón de saltar al instante
+ * (`_marcarAudioNoDisponible`) en vez de depender de este barrido de 60s en 60s hasta que
+ * pasen minutos.
  *
  * `_ejecutarBarridoTTLPending()` (codigo-padre.html) es el cuerpo del setInterval de 60s,
  * extraído a función con nombre y expuesto en globalThis específicamente para poder
  * invocarlo directamente en estos tests sin esperar el intervalo real.
  *
  *   TTL-1  Tramo con TTL expirado, sin saltos disponibles (0% de progreso desde el
- *          último salto, el mínimo real): el audio se rescata, la llegada no.
+ *          último salto, el mínimo real): la llegada no se rescata, el audio tampoco se
+ *          toca (ya no es cosa de este barrido).
  *   TTL-2  Mismo escenario pero con ≥20% de progreso real desde el último salto: la
  *          llegada SÍ se rescata, tramoSkipsUsados sube a 1 y progresoEnUltimoSkip se
- *          actualiza al progreso actual.
+ *          actualiza al progreso actual; el audio sigue sin tocarse.
  *   TTL-3  Con tramoSkipsUsados ya en 5 (el máximo) y progreso de sobra: la llegada NO
  *          se rescata — el límite de saltos manda por encima del progreso.
  *   TTL-4  Un pending de PARADA con TTL expirado: ni audio ni llegada se tocan — el TTL
@@ -69,7 +75,7 @@ const TTL_EXPIRADO_MS = 10 * 60 * 1000; // debe coincidir con el ttlMs por defec
 const HACE_15_MIN = TTL_EXPIRADO_MS + 5 * 60 * 1000; // sobra margen sobre el TTL
 
 test.describe('TTL — Rescate de tramos por TTL y saltos de seguridad (§31.7b)', () => {
-  test('TTL-1. Sin saltos disponibles (0% de progreso desde el último salto): audio se rescata, llegada no', async ({ page }) => {
+  test('TTL-1. Sin saltos disponibles (0% de progreso desde el último salto): la llegada no se rescata, el audio no se toca', async ({ page }) => {
     const prep = await prepararConAventura(page);
     test.skip(!prep.tieneFuncion || !prep.totalElementos, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
@@ -84,7 +90,7 @@ test.describe('TTL — Rescate de tramos por TTL y saltos de seguridad (§31.7b)
       return { audio: p.audio, llegada: p.llegada, skipsUsados: globalThis.estadoPadre.tramoSkipsUsados };
     }, HACE_15_MIN);
 
-    expect(resultado.audio, 'el audio debe rescatarse siempre, sin límite').toBe(true);
+    expect(resultado.audio, 'el audio ya no es cosa de este barrido — se refuerza en origen, ver §25.5f').toBe(false);
     expect(resultado.llegada, 'sin saltos disponibles (0% de progreso), la llegada no debe forzarse').toBe(false);
     expect(resultado.skipsUsados, 'no se debe haber consumido ningún salto').toBe(0);
   });
@@ -117,7 +123,7 @@ test.describe('TTL — Rescate de tramos por TTL y saltos de seguridad (§31.7b)
     }, { haceMs: HACE_15_MIN, total: prep.totalElementos });
 
     expect(resultado.progresoEsperado, 'el progreso fijado debe superar el 20% mínimo para que el escenario tenga sentido').toBeGreaterThanOrEqual(0.2);
-    expect(resultado.audio).toBe(true);
+    expect(resultado.audio, 'el audio ya no es cosa de este barrido').toBe(false);
     expect(resultado.llegada, 'con ≥20% de progreso real, la llegada sí debe forzarse').toBe(true);
     expect(resultado.skipsUsados, 'debe haberse consumido exactamente 1 salto').toBe(1);
     expect(resultado.progresoEnUltimoSkip, 'progresoEnUltimoSkip debe actualizarse al progreso actual').toBeCloseTo(resultado.progresoEsperado, 5);
@@ -140,7 +146,7 @@ test.describe('TTL — Rescate de tramos por TTL y saltos de seguridad (§31.7b)
       return { audio: p.audio, llegada: p.llegada, skipsUsados: globalThis.estadoPadre.tramoSkipsUsados };
     }, { haceMs: HACE_15_MIN, total: prep.totalElementos });
 
-    expect(resultado.audio, 'el audio se sigue rescatando aunque no queden saltos').toBe(true);
+    expect(resultado.audio, 'el audio ya no es cosa de este barrido').toBe(false);
     expect(resultado.llegada, 'con los 5 saltos ya consumidos, la llegada no debe forzarse pase lo que pase con el progreso').toBe(false);
     expect(resultado.skipsUsados, 'el contador no debe superar el máximo').toBe(5);
   });

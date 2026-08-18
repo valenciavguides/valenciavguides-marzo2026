@@ -52,6 +52,13 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
       if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') await globalThis.__cargarDatosAventuraDiferidos();
       globalThis._devModeActivo = true;
       globalThis.estado.hijosInicializados = new Set(['hijo2', 'hijo3', 'hijo4']);
+      // __triggerCambioParadaInterno no monta un hijo3 real que pueda confirmar la
+      // recepción de AUDIO.REPRODUCIR_REQUEST (_enviarAudioRequestConReintento, §31.7) —
+      // sin este stub, esos reintentos se agotarían de verdad (~2.4s) y, al no haber
+      // llegado nunca ninguna confirmación real, _marcarAudioNoDisponible() apagaría el
+      // recordatorio que este test está verificando, por una falsa alarma ajena a lo que
+      // se prueba aquí.
+      globalThis.enviarMensajeConConfirmacion = () => Promise.resolve({ exito: true });
     });
   });
 
