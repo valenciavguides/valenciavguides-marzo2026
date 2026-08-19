@@ -617,6 +617,66 @@ export const MSG_RETO_NO_DISPONIBLE = {
     uk: 'Це завдання зараз недоступне.'
 };
 
+export const MSG_TEXTO_PARADA_NO_DISPONIBLE = {
+    es: 'No se ha podido cargar el texto de esta parada en este momento.',
+    en: "This stop's text couldn't load right now.",
+    fr: "Le texte de cette étape n'a pas pu se charger pour le moment.",
+    it: 'Il testo di questa tappa non è stato possibile caricarlo al momento.',
+    nl: 'De tekst van deze stop kon nu niet worden geladen.',
+    ja: 'このスポットのテキストは現在読み込めませんでした。',
+    de: 'Der Text zu diesem Stopp konnte gerade nicht geladen werden.',
+    zh: '暂时无法加载此地点的文字介绍。',
+    pl: 'Nie udało się teraz wczytać tekstu tego przystanku.',
+    pt: 'Não foi possível carregar o texto desta paragem neste momento.',
+    ru: 'Не удалось загрузить текст этой остановки прямо сейчас.',
+    uk: 'Не вдалося завантажити текст цієї зупинки зараз.'
+};
+
+export const MSG_TEXTO_INTRO_NO_DISPONIBLE = {
+    es: 'No se ha podido cargar el texto introductorio en este momento.',
+    en: "The introductory text couldn't load right now.",
+    fr: "Le texte d'introduction n'a pas pu se charger pour le moment.",
+    it: 'Il testo introduttivo non è stato possibile caricarlo al momento.',
+    nl: 'De introductietekst kon nu niet worden geladen.',
+    ja: '紹介文は現在読み込めませんでした。',
+    de: 'Der Einführungstext konnte gerade nicht geladen werden.',
+    zh: '暂时无法加载介绍文字。',
+    pl: 'Nie udało się teraz wczytać tekstu wprowadzającego.',
+    pt: 'Não foi possível carregar o texto introdutório neste momento.',
+    ru: 'Не удалось загрузить вступительный текст прямо сейчас.',
+    uk: 'Не вдалося завантажити вступний текст зараз.'
+};
+
+export const MSG_ERROR_CARGA_APP = {
+    es: 'Ha habido un problema al cargar la aplicación. Por favor, recarga la página.',
+    en: 'There was a problem loading the app. Please reload the page.',
+    fr: "Un problème est survenu lors du chargement de l'application. Veuillez recharger la page.",
+    it: "Si è verificato un problema durante il caricamento dell'app. Ricarica la pagina.",
+    nl: 'Er is een probleem opgetreden bij het laden van de app. Vernieuw de pagina.',
+    ja: 'アプリの読み込み中に問題が発生しました。ページを再読み込みしてください。',
+    de: 'Beim Laden der App ist ein Problem aufgetreten. Bitte lade die Seite neu.',
+    zh: '加载应用时出现问题。请刷新页面。',
+    pl: 'Wystąpił problem podczas ładowania aplikacji. Odśwież stronę.',
+    pt: 'Ocorreu um problema ao carregar a aplicação. Por favor, recarregue a página.',
+    ru: 'При загрузке приложения возникла проблема. Пожалуйста, перезагрузите страницу.',
+    uk: 'Під час завантаження застосунку виникла проблема. Будь ласка, перезавантажте сторінку.'
+};
+
+export const MSG_PROGRESO_NO_GUARDADO = {
+    es: 'No se ha podido guardar tu progreso en este dispositivo. Si cierras la aplicación, podrías perderlo.',
+    en: "We couldn't save your progress on this device. If you close the app, you might lose it.",
+    fr: "Nous n'avons pas pu enregistrer votre progression sur cet appareil. Si vous fermez l'application, vous risquez de la perdre.",
+    it: 'Non è stato possibile salvare i tuoi progressi su questo dispositivo. Se chiudi l\'app, potresti perderli.',
+    nl: 'We konden uw voortgang niet opslaan op dit apparaat. Als u de app sluit, kunt u deze kwijtraken.',
+    ja: 'この端末に進行状況を保存できませんでした。アプリを閉じると内容が失われる可能性があります。',
+    de: 'Ihr Fortschritt konnte auf diesem Gerät nicht gespeichert werden. Wenn Sie die App schließen, könnten Sie ihn verlieren.',
+    zh: '无法在此设备上保存您的进度。如果关闭应用，进度可能会丢失。',
+    pl: 'Nie udało się zapisać Twojego postępu na tym urządzeniu. Jeśli zamkniesz aplikację, możesz go utracić.',
+    pt: 'Não foi possível guardar o seu progresso neste dispositivo. Se fechar a aplicação, poderá perdê-lo.',
+    ru: 'Не удалось сохранить ваш прогресс на этом устройстве. Если вы закроете приложение, он может быть утерян.',
+    uk: 'Не вдалося зберегти ваш прогрес на цьому пристрої. Якщо ви закриєте застосунок, він може бути втрачений.'
+};
+
 export const TITULOS_CHAT = {
     es: 'Soporte', en: 'Support', fr: 'Assistance',
     it: 'Supporto', nl: 'Ondersteuning', ja: 'サポート',

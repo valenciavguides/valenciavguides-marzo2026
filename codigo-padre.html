@@ -2179,7 +2179,7 @@
 
             overlay.classList.add('visible');
             // Notify mapa-completo that it's visible so it can call invalidateSize+fitBounds.
-            // Send mapa-visible ONCE. mapa-completo.html handles internal retries (300ms, 700ms).
+            // Send mapa-visible ONCE. mapa-completo.html handles an internal retry (300ms).
             // Cancelling the fallback timer prevents a double-send if load fires first.
             const _iframeEl = overlay.querySelector('iframe');
             if (_iframeEl) {
@@ -3734,6 +3734,26 @@
             };
         }
 
+        // Aviso de último recurso, compartido por los 3 fallos de infraestructura que
+        // pueden dejar la app rota sin ninguna explicación (distribuirDatosAventura no
+        // disponible ×2 más abajo, iframe permanentemente caído tras reconexión, MapLibre
+        // no carga) — alert() nativo, sin depender de errorUI (pendiente de implementar,
+        // ver §4.7f/§10.19/§10.21) ni de la misma maquinaria que puede haber fallado.
+        // Una sola vez por sesión: si el origen es compartido (p. ej. un despliegue roto),
+        // varios de estos podrían dispararse a la vez, y no tiene sentido apilar varios
+        // alert() seguidos por el mismo motivo de fondo (auditoría 2026-08-19).
+        let _avisoFalloCargaAppMostrado = false;
+        async function _avisarFalloCargaAppUnaVez() {
+            if (_avisoFalloCargaAppMostrado) return;
+            _avisoFalloCargaAppMostrado = true;
+            try {
+                const { MSG_ERROR_CARGA_APP } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                alert(MSG_ERROR_CARGA_APP[idioma] || MSG_ERROR_CARGA_APP.es);
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+        globalThis._avisarFalloCargaAppUnaVez = _avisarFalloCargaAppUnaVez;
+
         // 🔥 PROCESAR DISTRIBUCIONES PENDIENTES
         // Si hay distribuciones pendientes esperando a que enviarMensaje_S1 esté disponible
         if (globalThis.__pendingDistribucion && typeof enviarMensaje_S1 === 'function') {
@@ -3746,6 +3766,7 @@
                 }
                 if (typeof globalThis.distribuirDatosAventura !== 'function') {
                     (globalThis.logger || console).error('[PADRE] ❌ distribuirDatosAventura no disponible tras 10s — distribución pendiente cancelada');
+                    await _avisarFalloCargaAppUnaVez();
                     globalThis.__pendingDistribucion = undefined;
                 } else {
                     const resultados = await globalThis.distribuirDatosAventura(aventura, idioma);
@@ -4186,6 +4207,18 @@
                 (globalThis.logger || console).debug('[PADRE][PROGRESO] Estado de progreso persistido', payload);
             } catch (e) {
                 (globalThis.logger || console).warn('[PADRE][PROGRESO] No se pudo persistir vv_progreso', e);
+                // Un único aviso por sesión — persistProgressState() se llama muy a menudo
+                // (cada cambio de parada, cada sincronización de modo); si localStorage está
+                // roto, suele estarlo para toda la sesión, así que repetir el aviso en cada
+                // llamada sería spam. No hace async la función en sí (se llama sin await en
+                // varios sitios) — el aviso se resuelve aparte, en segundo plano, con el
+                // cartel dedicado (9º miembro de la familia de carteles — ver
+                // _mostrarCartelAvisoProgreso más abajo; sustituye a errorUI, que nunca
+                // llegó a implementarse — auditoría 2026-08-19).
+                if (!estado._avisoPersistenciaMostrado) {
+                    estado._avisoPersistenciaMostrado = true;
+                    try { _mostrarCartelAvisoProgresoConReintento(); } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
+                }
             }
         }
 
@@ -4779,7 +4812,10 @@
                     if (res?.pospuesto) { (globalThis.logger || console).warn(`${logPrefix} distribuirDatosAventura aún pospuesto tras reintentos`); }
                 }
                 (globalThis.logger || console).success(`${logPrefix} ✅ Datos distribuidos a hijos tras reanudación`);
-            } catch (distErr) { (globalThis.logger || console).warn(`${logPrefix} Error distribuyendo datos en reanudación:`, distErr); }
+            } catch (distErr) {
+                (globalThis.logger || console).warn(`${logPrefix} Error distribuyendo datos en reanudación:`, distErr);
+                await _avisarFalloCargaAppUnaVez();
+            }
         }
         async function _enviarRespuestaParadasHijosRest(logPrefix, datosGuardados) {
             const av = datosGuardados.aventura;
@@ -7831,6 +7867,19 @@
                 if (textoFresco?.content) textoFinal = textoFresco;
                 else if (!textoFinal) textoFinal = textoFresco;
             }
+            // Si tras el reintento sigue sin contenido real, mostrar un aviso en el propio
+            // hueco del texto — mismo patrón que _mostrarVideoSinUrl()/_mostrarOverlaySinImagenes()
+            // para vídeo/imagen — en vez de dejarlo en blanco sin ninguna explicación
+            // (auditoría 2026-08-19). `content` pasa por _galeriaSanitizarHTML() en
+            // _mostrarOverlayGaleria(), que permite <p>/style, así que el HTML sobrevive.
+            if (!textoFinal?.content) {
+                try {
+                    const { MSG_TEXTO_PARADA_NO_DISPONIBLE } = await import('./js/traducciones-ui.js');
+                    const idioma = globalThis.idiomaSeleccionado || 'es';
+                    const mensaje = MSG_TEXTO_PARADA_NO_DISPONIBLE[idioma] || MSG_TEXTO_PARADA_NO_DISPONIBLE.es;
+                    textoFinal = { title: '', content: `<p style="color:#666;font-size:0.9em;text-align:center;margin:0;">📖 ${mensaje}</p>` };
+                } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error cargando aviso de texto no disponible:`, e?.message); }
+            }
             if (typeof globalThis.mostrarImagenOverlay === 'function') {
                 globalThis.mostrarImagenOverlay(urlImagen, nombre || '', mensajeError, textoFinal, {
                     imagenes: imagenes || [],
@@ -8119,6 +8168,7 @@
             (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 📊 REPORTE: ✅ Reconectados: ${reconectados.length}/${hijosFallidos.length}`);
             if (fallidos.length > 0) {
                 (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX}    ❌ Fallos permanentes: ${fallidos.map(h => h.id).join(', ')}`);
+                await _avisarFalloCargaAppUnaVez();
             }
             (globalThis.logger || console).info(`${CONFIG_PADRE.LOG_PREFIX} 🏁 Sistema de reconexión finalizado`);
         }
@@ -8131,9 +8181,10 @@
             return retryUntilAvailable(
                 () => globalThis.maplibregl !== undefined && !!maplibregl.Map,
                 { maxIntentos: 150, intervalo: 100, mensaje: '[Mapa] MapLibre GL (CDN)' }
-            ).then((disponible) => {
+            ).then(async (disponible) => {
                 if (!disponible) {
                     (globalThis.logger || console).error('MapLibre GL no cargó tras 15s — el mapa no se inicializará');
+                    await _avisarFalloCargaAppUnaVez();
                     return null;
                 }
                 return initializeMap();
@@ -8768,13 +8819,13 @@ await _comprobarReanudacionAventura(logPrefix);
             } catch (_e) { /* no crítico — sin vibración, el cartel sigue siendo visible */ }
         }
 
-        // Los 7 carteles de esta familia (5 de "algo acaba de pasar" + 2 recordatorios)
+        // Los 8 carteles de esta familia (5 de "algo acaba de pasar" + 3 recordatorios)
         // comparten posición y capa (§4.7g-m) — nunca deben coincidir dos a la vez en
         // pantalla, se solapan visualmente. Regla acordada: los 5 de "algo acaba de pasar"
-        // siempre ganan (cierran cualquier otro cartel y se muestran); los 2 recordatorios
+        // siempre ganan (cierran cualquier otro cartel y se muestran); los 3 recordatorios
         // nunca fuerzan nada — si hay cualquier otro cartel visible, esperan a que se cierre
         // (su propio setInterval vuelve a comprobar 2s después, sin perder el aviso).
-        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto'];
+        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto', 'cartel-aviso-progreso'];
         function _ocultarCualquierCartel() {
             _TODOS_LOS_CARTELES_IDS.forEach(id => document.getElementById(id)?.remove());
         }
@@ -9457,6 +9508,78 @@ await _comprobarReanudacionAventura(logPrefix);
             document.getElementById('cartel-recordatorio-reto')?.remove();
             _recordatorioRetoUltimoMostradoEn = Date.now();
         };
+
+        // Aviso no bloqueante de que localStorage falló al guardar el progreso — único
+        // caso real que queda de errorUI (auditoría 2026-08-19, ver GUIA-COMPLETA.md
+        // "errorUI"), sustituido por este 9º miembro de la familia de carteles en vez de
+        // por un componente nuevo. Como un recordatorio (nunca fuerza nada): si hay otro
+        // cartel visible, espera y reintenta — sin esto, el único intento (guardado por
+        // estado._avisoPersistenciaMostrado, que ya queda en true antes de este punto)
+        // se perdería en silencio para toda la sesión si coincide con, por ejemplo, el
+        // cartel de llegada a parada — una colisión real, no hipotética, porque
+        // persistProgressState() se llama precisamente en cada cambio de parada.
+        async function _mostrarCartelAvisoProgreso() {
+            try {
+                const { MSG_PROGRESO_NO_GUARDADO } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                const mensaje = MSG_PROGRESO_NO_GUARDADO?.[idioma] || MSG_PROGRESO_NO_GUARDADO?.es;
+                if (!mensaje) {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_AVISO_PROGRESO] Traducción no disponible');
+                    return;
+                }
+
+                document.getElementById('cartel-aviso-progreso')?.remove();
+                const cartel = document.createElement('div');
+                cartel.id = 'cartel-aviso-progreso';
+                cartel.style.cssText = [
+                    'position:fixed',
+                    'top:calc(10.7vh + 10px + 0.5rem)',
+                    'left:50%',
+                    'transform:translateX(-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'z-index:1000060',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:0.75rem 2.75rem 0.75rem 1rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                ].join(';');
+
+                cartel.innerHTML = `
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="icono-x-cerrar">✗</span></button>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <span style="font-size:1.5rem;line-height:1;flex-shrink:0;" aria-hidden="true">⚠️</span>
+                        <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${mensaje}</p>
+                    </div>
+                `;
+                document.body.appendChild(cartel);
+                _vibrarCartel();
+
+                const cerrar = () => cartel.remove();
+                cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
+                setTimeout(cerrar, 7000);
+
+                (globalThis.logger || console).info('[PADRE][CARTEL_AVISO_PROGRESO] Mostrado');
+            } catch (error) {
+                (globalThis.logger || console).error('[PADRE][CARTEL_AVISO_PROGRESO] Error mostrando cartel:', error);
+            }
+        }
+
+        const MAX_INTENTOS_AVISO_PROGRESO = 5; // 5 intentos x 3s = hasta 15s esperando hueco libre
+        function _mostrarCartelAvisoProgresoConReintento(intento = 0) {
+            if (_hayCartelEnPantalla()) {
+                if (intento < MAX_INTENTOS_AVISO_PROGRESO) {
+                    setTimeout(() => _mostrarCartelAvisoProgresoConReintento(intento + 1), 3000);
+                } else {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_AVISO_PROGRESO] Sin hueco libre tras 5 intentos, aviso omitido esta sesión');
+                }
+                return;
+            }
+            _mostrarCartelAvisoProgreso();
+        }
     </script>
 
     <script>
@@ -11275,7 +11398,17 @@ await _comprobarReanudacionAventura(logPrefix);
                             resolve({ lat, lng, accuracy, timestamp: position.timestamp });
                         },
                         (error) => { reject(error); },
-                        { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S1(CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION), maximumAge: 30000 }
+                        // Bug real (auditoría 2026-08-17): esta línea usaba CONFIG y
+                        // ajustarTimeoutPorConexion_S1 — ambos son alias LOCALES de Script 1
+                        // (const CONFIG = CONFIG_S1, línea ~3703; import con sufijo _S1), pero
+                        // esta función vive en Script 2, donde ninguno de los dos existe como
+                        // identificador. Lanzaba ReferenceError en el executor de la Promise,
+                        // rechazándola en silencio (capturada por el catch de abajo) — el
+                        // intento de GPS fresco por getCurrentPosition() nunca llegaba siquiera
+                        // a ejecutarse. globalThis.__vv_config lo expone js/config.js para
+                        // cualquier script (ver §10.21); ajustarTimeoutPorConexion_S2 es el
+                        // alias propio de Script 2 (línea ~9552), no el de Script 1.
+                        { enableHighAccuracy: true, timeout: ajustarTimeoutPorConexion_S2(globalThis.__vv_config?.MENSAJERIA?.TIMEOUTS?.CONFIRMACION ?? 5000), maximumAge: 30000 }
                     );
                 });
                 (globalThis.logger || console).debug(`${logPrefix} Ubicación obtenida: [${coords.lat}, ${coords.lng}]`);
@@ -12590,8 +12723,16 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).warn(`${logPrefix} ${codigo || 'sin código'}: ${mensajeError || '(sin mensaje)'}${comando ? ` (comando: ${comando})` : ''}`);
 
                 if (codigo === 'AUDIO_CONTROL_FALLIDO') {
+                    // No basta con avisar — sin esto, un fallo persistente (no solo el intento
+                    // puntual que acaba de fallar) dejaba al usuario sin ninguna salida real más
+                    // que reintentar indefinidamente. _marcarAudioNoDisponible() es la misma
+                    // función que usan los otros dos caminos de fallo de audio (AUDIO.ERROR de
+                    // hijo3, TTL de tramos) — activa el botón de saltar (§25.5f) para que el
+                    // usuario tenga una vía de rescate real, no solo un mensaje.
+                    const audioIdActivo = typeof obtenerAudioIdActivoPadre === 'function' ? obtenerAudioIdActivoPadre() : null;
+                    await _marcarAudioNoDisponible(audioIdActivo, logPrefix);
                     try {
-                        globalThis.errorUI?.showToast('No se ha podido reproducir el audio. Inténtalo de nuevo.', { type: 'warning', duration: 6000 });
+                        globalThis.errorUI?.showToast('No se ha podido reproducir el audio. Puede saltarlo con el botón ⏩.', { type: 'warning', duration: 6000 });
                     } catch (e) { (globalThis.logger || console).debug(`${logPrefix} Error mostrando toast:`, e?.message); }
                 }
             } catch (error) {
@@ -13411,6 +13552,25 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error manejando tiempo agotado:`, error);
+                // Último recurso — el paso 1 ya dejó los iframes bloqueados (pointer-events:none)
+                // antes de que la construcción del modal fallara; sin esto, el usuario se queda
+                // con la aventura inerte y sin ninguna explicación, peor que no bloquear nada.
+                // No reutiliza el mismo mecanismo que acaba de fallar (DOM/CSS propio) — revertir
+                // el bloqueo es una asignación de estilo trivial, y alert() nativo del navegador
+                // no depende de nada que pueda estar roto igual que lo que acaba de fallar arriba.
+                try {
+                    const iframesToRestore = ['hijo2', 'hijo3', 'hijo1-opciones', 'hijo5'];
+                    for (const iframeId of iframesToRestore) {
+                        const iframe = document.getElementById(iframeId);
+                        if (iframe) { iframe.style.pointerEvents = ''; iframe.style.opacity = ''; }
+                    }
+                } catch (e2) { (globalThis.logger || console).debug('[VV]:', e2?.message); } // NOSONAR
+                try {
+                    const idiomaFallback = globalThis.idiomaSeleccionado || 'es';
+                    const tFallback = TRADUCCIONES_TIEMPO_AGOTADO[idiomaFallback] || TRADUCCIONES_TIEMPO_AGOTADO['es'];
+                    alert(`${tFallback.titulo}\n\n${tFallback.cuerpo}`);
+                    globalThis.location.reload();
+                } catch (e3) { (globalThis.logger || console).debug('[VV]:', e3?.message); } // NOSONAR
             }
         }
         // Expuesta para que Script 1 (_comprobarReanudacionAventura, _restoreCheckTimeout) pueda

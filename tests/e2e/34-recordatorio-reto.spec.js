@@ -14,7 +14,10 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
+const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 test.describe('RR — Recordatorio periódico de resolver el reto', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -23,6 +26,13 @@ test.describe('RR — Recordatorio periódico de resolver el reto', () => {
     // (CM-6) y la memoria feedback_e2e_geolocation_firefox.
     await context.grantPermissions(['geolocation']);
     await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    // Sin este stub, retryUntilAvailable() esperando MapLibre real corre sobre el MISMO
+    // reloj simulado que el test avanza a mano — con page.clock.install() los 15s reales
+    // de esa espera nunca transcurren solos, así que un test que avanza el reloj más de
+    // 15s cruza ese umbral y dispara _avisarFalloCargaAppUnaVez() (alert() real) a mitad
+    // del test, desincronizando los timers que sí está probando (regresión real detectada
+    // 2026-08-19 en RR-3 tras añadir el alert() a esa rama — ver GUIA-COMPLETA.md).
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
     await page.clock.install();

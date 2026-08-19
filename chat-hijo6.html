@@ -649,14 +649,21 @@
             origen: CONFIG_HIJO.IFRAME_ID,
             datos: { componenteId: CONFIG_HIJO.COMPONENTE_ID, iframeId: CONFIG_HIJO.IFRAME_ID, timestamp: Date.now() }
           });
+          logger.info(`[hijo6] HIJO_LISTO enviado al padre (intento ${_reintentosHijoListo + 1}/${MAX_REINTENTOS_HIJO_LISTO})`);
+        } catch (e) {
+          logger.error('[hijo6] Error enviando HIJO_LISTO:', e && e.message);
+        } finally {
+          // En finally, no en el try: un fallo puntual de enviarMensaje() no debe matar
+          // el resto de la secuencia de reintentos (bug real encontrado en auditoría
+          // 2026-08-18 — antes, una excepción aquí paraba el bucle para siempre en
+          // silencio, sin programar el siguiente intento).
           _reintentosHijoListo++;
-          logger.info(`[hijo6] HIJO_LISTO enviado al padre (reintento ${_reintentosHijoListo}/${MAX_REINTENTOS_HIJO_LISTO})`);
           if (_reintentosHijoListo < MAX_REINTENTOS_HIJO_LISTO) {
             _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
           } else {
             logger.warn('[hijo6] Máximo de reintentos alcanzado');
           }
-        } catch (e) { logger.error('[hijo6] Error enviando HIJO_LISTO:', e && e.message); }
+        }
       }
       enviarHijoListoConReintento();
     }

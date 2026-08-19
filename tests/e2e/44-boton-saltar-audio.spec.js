@@ -533,3 +533,60 @@ test.describe('BSA-H — _hdl_NAVEGACION_CAMBIO_PARADA: arranca el recordatorio 
     expect(llamadas, 'sin fichero debe arrancar el recordatorio de saltar, nunca el de play').toEqual(['saltar']);
   });
 });
+
+test.describe('BSA-I — _hdl_SISTEMA_ERROR: AUDIO_CONTROL_FALLIDO (comando manual) también conecta con el botón de saltar', () => {
+  test.beforeEach(async ({ page }) => { await prepararPadreConAventura(page); });
+
+  // Auditoría 2026-08-19: antes de este fix, un fallo al pulsar play/pausa/stop/replay
+  // manualmente (comando de usuario, no reproducción automática) solo mostraba un aviso
+  // — sin activar _marcarAudioNoDisponible(), un fallo persistente dejaba al usuario
+  // reintentando indefinidamente sin ninguna vía de rescate real. A diferencia de
+  // BSA-D (AUDIO.ERROR), este mensaje no trae audioId en el payload — el fix lo resuelve
+  // con obtenerAudioIdActivoPadre().
+  test('I-1. SISTEMA.ERROR con codigo AUDIO_CONTROL_FALLIDO marca el audio activo como no disponible y muestra el botón de saltar', async ({ page }) => {
+    await activarAv1P1(page, 'es'); // fichero SÍ existe — el fallo es del comando manual, no del fichero
+
+    let mostrarSaltarAntes = await page.evaluate(() => document.getElementById('audio-control-overlay').classList.contains('mostrar-saltar-audio'));
+    expect(mostrarSaltarAntes, 'antes del error no debe verse el botón de saltar').toBe(false);
+
+    await page.evaluate(() => {
+      globalThis.postMessage({
+        tipo: globalThis.TIPOS_MENSAJE.SISTEMA.ERROR,
+        origen: 'hijo3',
+        destino: 'padre',
+        datos: { codigo: 'AUDIO_CONTROL_FALLIDO', mensaje: 'autoplay bloqueado', comando: 'play' },
+      }, globalThis.location.origin);
+    });
+    await page.waitForTimeout(500);
+
+    const resultado = await page.evaluate(() => ({
+      audioFalloId: globalThis.estadoPadre._audioFalloId,
+      mostrarSaltar: document.getElementById('audio-control-overlay').classList.contains('mostrar-saltar-audio'),
+      mainDisabled: document.getElementById('audio-main-toggle-btn').disabled,
+    }));
+    expect(resultado.audioFalloId, 'debe resolver el audioId activo vía obtenerAudioIdActivoPadre(), aunque el mensaje no lo traiga').toBe('audio-Av1-P-1-es');
+    expect(resultado.mostrarSaltar, 'el botón de saltar debe aparecer tras un fallo de comando manual, igual que un fallo runtime').toBe(true);
+    expect(resultado.mainDisabled).toBe(true);
+  });
+
+  test('I-2. SISTEMA.ERROR con otro código no relacionado con audio no activa el botón de saltar', async ({ page }) => {
+    await activarAv1P1(page, 'es');
+
+    await page.evaluate(() => {
+      globalThis.postMessage({
+        tipo: globalThis.TIPOS_MENSAJE.SISTEMA.ERROR,
+        origen: 'hijo3',
+        destino: 'padre',
+        datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: 'sin relación con audio' },
+      }, globalThis.location.origin);
+    });
+    await page.waitForTimeout(500);
+
+    const resultado = await page.evaluate(() => ({
+      audioFalloId: globalThis.estadoPadre._audioFalloId,
+      mostrarSaltar: document.getElementById('audio-control-overlay').classList.contains('mostrar-saltar-audio'),
+    }));
+    expect(resultado.audioFalloId, 'un código no relacionado con audio no debe tocar _audioFalloId').toBeFalsy();
+    expect(resultado.mostrarSaltar).toBe(false);
+  });
+});

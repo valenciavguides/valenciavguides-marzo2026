@@ -329,3 +329,64 @@ test.describe('PL — La polyline manual oculta el trazado; solo volver a .inici
     expect(visualActivo, 'De vuelta en .inicio, la línea manual debe limpiarse y el trazado revelarse').toBe(true);
   });
 });
+
+test.describe('UB — _obtenerUbicacionUsuario(): fallback a GPS fresco cuando el mensaje no trae ubicación', () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  });
+
+  // Auditoría 2026-08-17/2026-08-19: _obtenerUbicacionUsuario() (Script 2) construía las
+  // opciones de getCurrentPosition() con CONFIG y ajustarTimeoutPorConexion_S1 — ambos
+  // alias LOCALES de Script 1, indefinidos en Script 2. El ReferenceError se lanzaba
+  // dentro del executor de la Promise y quedaba enmascarado por el catch de la propia
+  // función (cae a estado.gps.posicionUsuario o null) — getCurrentPosition() nunca
+  // llegaba a ejecutarse en ningún caso desde que se escribió esta función.
+  test('UB-1. Sin ubicacionUsuario en el mensaje, getCurrentPosition() se llama de verdad, con timeout numérico real', async ({ page }) => {
+    await page.waitForFunction(
+      () => typeof globalThis.__cargarDatosAventuraDiferidos === 'function',
+      null, { timeout: 15_000 }
+    ).catch(() => {});
+    await page.evaluate(() => {
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.idiomaSeleccionado = 'es';
+    });
+    await page.evaluate(async () => {
+      if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
+        await globalThis.__cargarDatosAventuraDiferidos();
+      }
+    });
+
+    // El registro del controlador NAVEGACION.MOSTRAR_UBICACION_POLYLINE en el state-manager
+    // ocurre de forma asíncrona (IIFE de Script 2). Sin esta espera, el postMessage de abajo
+    // puede llegar antes de que exista handler registrado y se pierde (sin buffering/replay).
+    await page.waitForFunction(() => {
+      const sm = globalThis.__stateManager || globalThis.__vv_stateManager;
+      return !!sm?.getMapaControladoresSync?.()?.has('NAVEGACION.MOSTRAR_UBICACION_POLYLINE');
+    }, null, { timeout: 15_000 });
+
+    const resultado = await page.evaluate(() => {
+      return new Promise((resolve) => {
+        const original = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
+        navigator.geolocation.getCurrentPosition = (success, error, options) => {
+          resolve({ llamado: true, timeout: options?.timeout });
+          original(success, error, options);
+        };
+        globalThis.postMessage({
+          tipo: globalThis.TIPOS_MENSAJE.NAVEGACION.MOSTRAR_UBICACION_POLYLINE,
+          origen: 'hijo2',
+          destino: 'padre',
+          datos: { ubicacionUsuario: null, proximoElemento: null, elementoId: 'Av1-P-1' },
+        }, globalThis.location.origin);
+        setTimeout(() => resolve({ llamado: false }), 4000);
+      });
+    });
+
+    expect(resultado.llamado, 'getCurrentPosition() debe llamarse de verdad — antes del fix, el ReferenceError ocurría evaluando el objeto de opciones, antes de llegar aquí').toBe(true);
+    expect(resultado.timeout, 'timeout debe ser un número real (CONFIG.MENSAJERIA.TIMEOUTS.CONFIRMACION = 5000 vía globalThis.__vv_config), no NaN/undefined por una referencia rota').toBe(5000);
+  });
+});

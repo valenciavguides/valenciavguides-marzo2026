@@ -39,7 +39,10 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
+const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 test.describe('RA — Recordatorio periódico de pulsar play', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -49,6 +52,13 @@ test.describe('RA — Recordatorio periódico de pulsar play', () => {
     // (CM-6) y la memoria feedback_e2e_geolocation_firefox.
     await context.grantPermissions(['geolocation']);
     await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    // Sin este stub, retryUntilAvailable() esperando MapLibre real corre sobre el mismo
+    // reloj simulado que este archivo avanza a mano (algunos tests hasta 60s) — cruzar
+    // los 15s reales de esa espera dispara _avisarFalloCargaAppUnaVez() (alert() real) a
+    // mitad de test. No rompía ninguna aserción de este archivo en la práctica (regresión
+    // real confirmada en el espejo de este test, RR-3 de 34-recordatorio-reto.spec.js,
+    // 2026-08-19), pero es el mismo riesgo latente — se cierra aquí también.
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
     await page.clock.install();

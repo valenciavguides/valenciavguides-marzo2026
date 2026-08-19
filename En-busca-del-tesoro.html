@@ -653,18 +653,37 @@
     .guante-play-hint {
       position: absolute;
       width: clamp(5rem, 16vw, 7.5rem);
-      top: clamp(4.5rem, 14vh, 6.5rem);
-      right: -20vw;
+      top: 0;
+      left: -20vw;
       opacity: 0;
       pointer-events: none;
       z-index: 50;
       filter: drop-shadow(0 0.25rem 0.5rem rgba(0,0,0,0.35));
-      transition: right 1.2s ease-out, opacity 0.6s ease-out;
+      transition: left 1.2s ease-out, opacity 0.6s ease-out;
     }
     .guante-play-hint.show {
-      right: 80vw; /* aproximado: junto al botón play nativo del reproductor, ajustar a ojo si hace falta */
+      /* top/left final los fija _posicionarGuanteSobreBoton() por JS, con la posición
+         real de #audio-intro-toggle-btn (getBoundingClientRect) — antes era un right:80vw
+         fijo "a ojo" que solo acertaba en una pantalla/navegador concretos. */
       opacity: 1;
     }
+    .audio-intro-toggle-btn {
+      width: clamp(2.75rem, 9vw, 3.75rem);
+      height: clamp(2.75rem, 9vw, 3.75rem);
+      flex-shrink: 0;
+      border: none;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .audio-intro-toggle-btn img { width: 100%; height: 100%; object-fit: contain; }
+    .audio-intro-progreso-wrap { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+    .audio-intro-progreso-barra { width: 100%; height: 0.4rem; background: #e0d8c8; border-radius: 0.25rem; overflow: hidden; }
+    .audio-intro-progreso-relleno { width: 0%; height: 100%; background: #0074d9; border-radius: 0.25rem; transition: width 0.15s linear; }
+    .audio-intro-tiempo { font-size: clamp(0.7rem, 2.5vmin, 0.85rem); color: #555; font-family: Arial, sans-serif; }
     #pantalla11 .logo-alargado {
       margin-top: 0;
       margin-bottom: 0;
@@ -857,8 +876,15 @@
     <img src="imagenes/imagenes-aplicación/logo_alargado_3.png" class="logo-alargado" alt="" style="display:block; margin-left:auto; margin-right:auto; margin-top:0; margin-bottom:0;">
     <img id="guante-play-hint" class="guante-play-hint" src="imagenes/imagenes video intro/guantelete_mira_arriba.png" alt="">
     <div class="audio-btn-row" style="margin-top:0; margin-bottom:0.7rem;">
-      <div class="audio-player-container" style="background:#fff8e7; border-radius:1.25rem; box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.3); margin-top:0; margin-bottom:0;">
-        <audio id="audio-intro-player" controls controlsList="nodownload">
+      <div class="audio-player-container" id="audio-player-container" style="background:#fff8e7; border-radius:1.25rem; box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.3); margin-top:0; margin-bottom:0; display:flex; align-items:center; gap:clamp(0.5rem, 2vw, 0.9rem); padding: clamp(0.5rem, 2vw, 0.9rem);">
+        <button type="button" id="audio-intro-toggle-btn" class="audio-intro-toggle-btn" title="Reproducir" aria-label="Reproducir">
+          <img id="audio-intro-toggle-icon" src="imagenes/imagenes-aplicación/boton-audio-play.png" alt="">
+        </button>
+        <div class="audio-intro-progreso-wrap">
+          <div class="audio-intro-progreso-barra"><div id="audio-intro-progreso-relleno" class="audio-intro-progreso-relleno"></div></div>
+          <span id="audio-intro-tiempo" class="audio-intro-tiempo">0:00 / 0:00</span>
+        </div>
+        <audio id="audio-intro-player" controlsList="nodownload" style="display:none;">
           <source id="audio-intro-source" src="" type="audio/mpeg">
           Tu navegador no soporta el audio.
         </audio>
@@ -1130,18 +1156,40 @@
     }
 
     // P10 (pantalla11): recuerda periódicamente al usuario pulsar play con el guante
-    // guantelete_mira_arriba — entra desde la derecha, apunta al botón play nativo del
-    // reproductor, y se retira. Se repite hasta que el usuario pulsa play de verdad;
-    // btn-siguiente-audio-intro permanece deshabilitado hasta ese mismo instante.
+    // guantelete_mira_arriba — entra desde la izquierda, apunta al botón play propio del
+    // reproductor (#audio-intro-toggle-btn), y se retira. Se repite hasta que el usuario
+    // pulsa play de verdad; btn-siguiente-audio-intro permanece deshabilitado hasta ese
+    // mismo instante.
     let _audioIntroYaReproducido = false;
     let _guanteHintIntervalId = null;
+
+    // Calcula la posición real del botón de play propio (getBoundingClientRect, relativo
+    // a #pantalla11, que es el bloque position:relative que contiene al guante) — antes
+    // se usaba un right:80vw fijo "a ojo", que solo acertaba en una pantalla/navegador
+    // concretos porque el reproductor nativo se dibuja distinto en cada uno (2026-08-19).
+    // Con el botón propio, sabemos su posición exacta en cualquier pantalla.
+    function _posicionarGuanteSobreBoton(guante, boton) {
+      const pantalla = document.getElementById('pantalla11');
+      if (!pantalla) return;
+      const rPantalla = pantalla.getBoundingClientRect();
+      const rBoton = boton.getBoundingClientRect();
+      const rGuante = guante.getBoundingClientRect();
+      // Centrado horizontalmente sobre el botón, apoyado justo encima de él.
+      const left = (rBoton.left - rPantalla.left) + (rBoton.width / 2) - (rGuante.width / 2);
+      const top = (rBoton.top - rPantalla.top) - rGuante.height * 0.7;
+      guante.style.left = `${left}px`;
+      guante.style.top = `${top}px`;
+    }
+
     function _iniciarGuantePlayHint() {
       if (_audioIntroYaReproducido) return;
       const guante = document.getElementById('guante-play-hint');
       const audioPlayer = document.getElementById('audio-intro-player');
-      if (!guante || !audioPlayer) return;
+      const botonToggle = document.getElementById('audio-intro-toggle-btn');
+      if (!guante || !audioPlayer || !botonToggle) return;
+      _posicionarGuanteSobreBoton(guante, botonToggle);
 
-      // Tiempos: 1200ms en entrar (transition 'right' de .guante-play-hint) + 2000ms
+      // Tiempos: 1200ms en entrar (transition 'left' de .guante-play-hint) + 2000ms
       // quieto ya sobre el botón play, antes de empezar a retirarse (que tarda otros
       // 1200ms) — los 2s de pausa se cuentan desde que termina de llegar, no desde que
       // empieza a moverse.
@@ -1149,6 +1197,7 @@
       const PAUSA_SOBRE_PLAY_MS = 2000;
       const ciclo = () => {
         if (_audioIntroYaReproducido) { clearInterval(_guanteHintIntervalId); guante.classList.remove('show'); return; }
+        _posicionarGuanteSobreBoton(guante, botonToggle);
         guante.classList.add('show');
         setTimeout(() => guante.classList.remove('show'), DURACION_ENTRADA_MS + PAUSA_SOBRE_PLAY_MS);
       };
@@ -1187,7 +1236,16 @@
       7:  () => void cargarAventurasDinamicamente(),
       8:  () => { if (!retoCargadoR1) void cargarRetoR1(); },
       10: () => { if (!terminosCargados) void cargarTerminos(); },
-      11: () => { if (!audioCargado) { void cargarAudioIntro(); } if (!textoCargado) { void cargarTextoIntro(); } _iniciarGuantePlayHint(); },
+      // async porque _iniciarGuantePlayHint() necesita esperar a que cargarAudioIntro()
+      // decida si hay botón real que señalar (o lo oculta, sin audio) antes de animar el
+      // guante — llamarlos en paralelo (como antes) dejaba una carrera real: el guante
+      // podía arrancar contra un botón que un instante después quedaba oculto (2026-08-19).
+      // No afecta a quien llama mostrar(11) — sigue sin esperar el resultado (fire-and-forget).
+      11: async () => {
+        if (!audioCargado) { await cargarAudioIntro(); }
+        if (!textoCargado) { void cargarTextoIntro(); }
+        _iniciarGuantePlayHint();
+      },
       12: () => mostrarPulsoValoracion('P12'),
       14: () => _accionPantalla15(),
       15: () => { if (!retoCargadoR2) void cargarRetoR2(); },
@@ -1297,33 +1355,81 @@
     // P11: CARGAR AUDIO INTRO DESDE js/audios-aventuras.js
     // (audio_id dinámico: audio-intro-xx según idioma)
     // ============================================================
+    function _formatearTiempoAudioIntro(segundos) {
+      if (!Number.isFinite(segundos) || segundos < 0) return '0:00';
+      const m = Math.floor(segundos / 60);
+      const s = Math.floor(segundos % 60);
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    // Reproductor propio (botón + barra de progreso) en vez de <audio controls> nativo —
+    // el control nativo se dibuja distinto en cada navegador/SO, así que ni el guante
+    // (_iniciarGuantePlayHint) ni ningún otro elemento de esta página pueden apuntar de
+    // forma fiable a su botón play interno (2026-08-19). Con un botón propio, su posición
+    // y tamaño son exactos y conocidos en cualquier pantalla — misma altura/posición
+    // visual que tenía el control nativo, pero ahora con coordenadas reales, no a ojo.
+    function _inicializarControlesAudioIntroPropios(audioPlayer) {
+      const btn = document.getElementById('audio-intro-toggle-btn');
+      const icon = document.getElementById('audio-intro-toggle-icon');
+      const relleno = document.getElementById('audio-intro-progreso-relleno');
+      const tiempo = document.getElementById('audio-intro-tiempo');
+      if (!btn || !icon || !relleno || !tiempo) return;
+
+      btn.onclick = () => {
+        if (audioPlayer.paused) void audioPlayer.play();
+        else audioPlayer.pause();
+      };
+      audioPlayer.addEventListener('play', () => { icon.src = 'imagenes/imagenes-aplicación/boton-audio-pausa.png'; });
+      audioPlayer.addEventListener('pause', () => { icon.src = 'imagenes/imagenes-aplicación/boton-audio-play.png'; });
+      audioPlayer.addEventListener('ended', () => {
+        icon.src = 'imagenes/imagenes-aplicación/boton-audio-play.png';
+        audioPlayer.currentTime = 0;
+      });
+      audioPlayer.addEventListener('loadedmetadata', () => {
+        tiempo.textContent = `${_formatearTiempoAudioIntro(0)} / ${_formatearTiempoAudioIntro(audioPlayer.duration)}`;
+      });
+      audioPlayer.addEventListener('timeupdate', () => {
+        const pct = audioPlayer.duration ? (audioPlayer.currentTime / audioPlayer.duration) * 100 : 0;
+        relleno.style.width = `${pct}%`;
+        tiempo.textContent = `${_formatearTiempoAudioIntro(audioPlayer.currentTime)} / ${_formatearTiempoAudioIntro(audioPlayer.duration)}`;
+      });
+    }
+
     async function cargarAudioIntro() {
       const audioPlayer = document.getElementById('audio-intro-player');
       const audioSource = document.getElementById('audio-intro-source');
-      
+
       try {
         if (!AUDIOS_DATOS) {
           const modulo = await import('./js/audios-aventuras.js');
           AUDIOS_DATOS = modulo.AUDIOS_AVENTURAS;
         }
-        
+
         const idioma = idiomaSeleccionado || 'es';
         const aventura = aventuraSeleccionada || 'Aventura1';
         const audiosIdioma = AUDIOS_DATOS?.[aventura]?.[idioma];
-        
-        if (audiosIdioma && Array.isArray(audiosIdioma)) {
-          const audioIntro = audiosIdioma.find(a => a.id === `audio-intro-${idioma}`);
-          
-          if (audioIntro) {
-            audioSource.src = audioIntro.file;
-            audioPlayer.load();
-            audioCargado = true;
-            _log.info('[SELECCION] Audio intro cargado:', audioIntro.file);
-          } else {
-            _log.warn('[SELECCION] Audio intro no encontrado para id: audio-intro-' + idioma);
-          }
+        const audioIntro = Array.isArray(audiosIdioma) ? audiosIdioma.find(a => a.id === `audio-intro-${idioma}`) : null;
+
+        if (audioIntro && audioIntro.file) {
+          audioSource.src = audioIntro.file;
+          audioPlayer.load();
+          _inicializarControlesAudioIntroPropios(audioPlayer);
+          audioCargado = true;
+          _log.info('[SELECCION] Audio intro cargado:', audioIntro.file);
         } else {
-          _log.warn('[SELECCION] No hay audios para', aventura, idioma);
+          // Sin audio real para este idioma en esta página — P9 ya avisó y el usuario
+          // ya aceptó continuar sin audio (tieneAudiosDisponibles/mostrarAvisoSinAudio).
+          // btn-siguiente-audio-intro solo se habilitaba con el evento 'play' real, que
+          // nunca llega sin fichero — se quedaba bloqueado para siempre (2026-08-19).
+          // Sin fichero, tampoco tiene sentido mostrar un reproductor inerte ni animar el
+          // guante hacia un botón que nunca podrá reproducir nada.
+          _log.warn('[SELECCION] Audio intro no disponible para', aventura, idioma);
+          audioCargado = true;
+          _audioIntroYaReproducido = true;
+          const container = document.getElementById('audio-player-container');
+          if (container) container.style.display = 'none';
+          const btn = document.getElementById('btn-siguiente-audio-intro');
+          if (btn) btn.disabled = false;
         }
       } catch (error) {
         _log.error('[SELECCION] Error cargando audio:', error);
@@ -2134,8 +2240,22 @@
     // ============================================================
     async function cargarTextoIntro() {
       const contenedor = document.getElementById('texto-intro-contenido');
+      const idioma = idiomaSeleccionado || 'es';
+      // Los 3 fallbacks de abajo (entrada ausente/incompleta, sin array real, excepción)
+      // usaban texto español fijo sin mirar el idioma elegido — a diferencia del resto de
+      // la app, que traduce siempre sus avisos de fallback a los 12 idiomas (auditoría
+      // 2026-08-19). Import dinámico porque este es un <script> clásico, no module.
+      const _mostrarFallbackIntro = async () => {
+        try {
+          const { MSG_TEXTO_INTRO_NO_DISPONIBLE } = await import('./js/traducciones-ui.js');
+          const mensaje = MSG_TEXTO_INTRO_NO_DISPONIBLE[idioma] || MSG_TEXTO_INTRO_NO_DISPONIBLE.es;
+          contenedor.innerHTML = `<div style="padding:1.2rem;"><p>${mensaje}</p></div>`;
+        } catch (e) {
+          _log.error('[SELECCION] Error cargando traducción del fallback de texto intro:', e);
+          contenedor.innerHTML = '<div style="padding:1.2rem;"><p>Texto introductorio no disponible aún.</p></div>';
+        }
+      };
       try {
-        const idioma = idiomaSeleccionado || 'es';
         const aventura = aventuraSeleccionada || 'Aventura1';
         const { cargarTextos } = await import('./js/data-loader.js');
         const textosIdioma = await cargarTextos(aventura, idioma);
@@ -2146,14 +2266,14 @@
             textoCargado = true;
             _log.info('[SELECCION] Texto intro cargado para idioma:', idioma);
           } else {
-            contenedor.innerHTML = '<div style="padding:1.2rem;"><p>Texto introductorio no disponible aún.</p></div>';
+            await _mostrarFallbackIntro();
           }
         } else {
-          contenedor.innerHTML = '<div style="padding:1.2rem;"><p>No hay textos para este idioma.</p></div>';
+          await _mostrarFallbackIntro();
         }
       } catch (error) {
         _log.error('[SELECCION] Error cargando texto intro:', error);
-        contenedor.innerHTML = '<div style="padding:1.2rem;"><p>Error cargando texto.</p></div>';
+        await _mostrarFallbackIntro();
       }
     }
 

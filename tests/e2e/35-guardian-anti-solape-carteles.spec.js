@@ -12,10 +12,19 @@
 'use strict';
 
 const { test, expect } = require('@playwright/test');
+const path = require('path');
 const { injectInitSpy, stubCDNResources, gotoAndWaitForFase1 } = require('./helpers/boot');
+
+const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
 test.describe('GS — Guardián anti-solape entre carteles', () => {
   test.beforeEach(async ({ page }) => {
+    // Sin este stub, retryUntilAvailable() esperando MapLibre real corre sobre el mismo
+    // reloj simulado que este archivo avanza a mano — cruzar los 15s reales de esa espera
+    // dispara _avisarFalloCargaAppUnaVez() (alert() real) a mitad de test y desincroniza
+    // los timers bajo prueba (regresión real confirmada en el espejo de este archivo, RR-3
+    // de 34-recordatorio-reto.spec.js, 2026-08-19).
+    await page.addInitScript({ path: MAPLIBRE_STUB });
     await injectInitSpy(page);
     await stubCDNResources(page);
     await page.clock.install();
@@ -105,5 +114,74 @@ test.describe('GS — Guardián anti-solape entre carteles', () => {
     }));
     expect(info.recordatorio, 'El de "algo acaba de pasar" debe cerrar el recordatorio').toBe(false);
     expect(info.llegada, 'Y mostrarse él mismo').toBe(true);
+  });
+});
+
+test.describe('AP — Aviso de progreso no guardado (persistProgressState → cartel-aviso-progreso, 9º miembro de la familia)', () => {
+  test.beforeEach(async ({ page }) => {
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await page.clock.install();
+    await gotoAndWaitForFase1(page);
+    await page.evaluate(() => { globalThis.idiomaSeleccionado = 'es'; });
+    await page.waitForFunction(
+      () => typeof globalThis.persistProgressState === 'function'
+        && typeof globalThis.mostrarCartelTransicion === 'function',
+      null, { timeout: 15_000 }
+    ).catch(() => {});
+    await page.evaluate(() => {
+      globalThis.estadoPadre.modo = { actual: 'aventura' };
+      globalThis.estadoPadre._avisoPersistenciaMostrado = false;
+      const original = Storage.prototype.setItem;
+      globalThis.__origSetItem = original;
+      Storage.prototype.setItem = function (k, v) {
+        if (k === 'vv_progreso') throw new Error('QuotaExceededError simulado');
+        return original.call(this, k, v);
+      };
+    });
+  });
+
+  test.afterEach(async ({ page }) => {
+    await page.evaluate(() => { if (globalThis.__origSetItem) Storage.prototype.setItem = globalThis.__origSetItem; });
+  });
+
+  test('AP-1. localStorage.setItem falla en AVENTURA: aparece el cartel con el mensaje correcto, una sola vez por sesión', async ({ page }) => {
+    await page.evaluate(() => globalThis.persistProgressState());
+    await page.waitForTimeout(100);
+
+    const texto = await page.evaluate(() => document.getElementById('cartel-aviso-progreso')?.textContent || '');
+    expect(texto).toContain('No se ha podido guardar tu progreso en este dispositivo');
+
+    // Guard de una sola vez por sesión (estado._avisoPersistenciaMostrado): cerrado el
+    // cartel, una segunda llamada de persistProgressState() no debe reabrirlo.
+    await page.evaluate(() => document.getElementById('cartel-aviso-progreso')?.remove());
+    await page.evaluate(() => globalThis.persistProgressState());
+    await page.waitForTimeout(100);
+    const reaparecio = await page.evaluate(() => !!document.getElementById('cartel-aviso-progreso'));
+    expect(reaparecio, 'No debe volver a mostrarse en la misma sesión').toBe(false);
+  });
+
+  test('AP-2. Si un cartel de "algo acaba de pasar" ya está en pantalla, el aviso espera (no lo cierra) y aparece en cuanto queda libre', async ({ page }) => {
+    await page.evaluate(() => {
+      globalThis.mostrarCartelTransicion('parada', 'Torres de Serranos', 'parada', 'Plaza de la Crida');
+    });
+    await page.waitForTimeout(50);
+
+    await page.evaluate(() => globalThis.persistProgressState());
+    await page.waitForTimeout(100);
+
+    let info = await page.evaluate(() => ({
+      transicion: !!document.getElementById('cartel-transicion'),
+      aviso: !!document.getElementById('cartel-aviso-progreso'),
+    }));
+    expect(info.transicion, 'El cartel de transición sigue visible, el aviso no debe cerrarlo').toBe(true);
+    expect(info.aviso, 'El aviso de progreso no debe forzar su aparición mientras el otro cartel está en pantalla').toBe(false);
+
+    await page.evaluate(() => document.getElementById('cartel-transicion')?.remove());
+    await page.clock.runFor(3000); // primer reintento del aviso (cada 3s, ver MAX_INTENTOS_AVISO_PROGRESO)
+    await page.waitForTimeout(50);
+
+    info = await page.evaluate(() => ({ aviso: !!document.getElementById('cartel-aviso-progreso') }));
+    expect(info.aviso, 'El aviso debe aparecer en cuanto el hueco queda libre, sin perderse').toBe(true);
   });
 });
