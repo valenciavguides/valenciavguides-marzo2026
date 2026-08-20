@@ -49,6 +49,7 @@ Hay tareas críticas sin resolver antes de publicar en `valenciavguides.es`. Ver
 34. [Gestión de UI distribuida: menús, audio y navegación](#34-gestión-de-ui-distribuida-menús-audio-y-navegación)
 35. [Video-intro — pantalla inicial de la PWA](#35-video-intro--pantalla-inicial-de-la-pwa)
 36. [Metodología de auditoría completa](#36-metodología-de-auditoría-completa)
+37. [Mapa de conexiones compartidas](#37-mapa-de-conexiones-compartidas)
 
 ---
 
@@ -4780,7 +4781,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-c959177c3c59'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-43dff04ddf7a'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7677,7 +7678,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-c959177c3c59'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-43dff04ddf7a'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8320,7 +8321,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-c959177c3c59';
+const CACHE_VERSION = 'v-43dff04ddf7a';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11469,7 +11470,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-c959177c3c59';
+const CACHE_VERSION = 'v-43dff04ddf7a';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12763,3 +12764,445 @@ Fix exacto: el cambio mínimo necesario (código o descripción precisa)
 **Orden de entrega:** primero todos los ❌ CRÍTICO ordenados por impacto, luego ⚠️ MEDIO, luego 🕳️ HUÉRFANO y 💀 MUERTO. Agrupar por eje cuando hay múltiples hallazgos en el mismo eje.
 
 **Antes de reportar un hallazgo:** verificar que es real leyendo el código exacto — no reportar por inferencia. Si el bug ya está corregido en el código actual, marcarlo como ✅ OK con nota "corregido en [commit/fecha]".
+
+---
+
+## 37. Mapa de conexiones compartidas
+
+**Por qué existe:** antes de tocar cualquier elemento de la app, esta sección responde a "¿qué más se ve afectado?" — sin tener que descubrirlo rompiendo algo primero. Cubre lo compartido y lo cruzado (entre scripts, entre archivos, entre padre e hijos) más una lista curada de reglas no obvias que ya han causado bugs reales. No pretende sustituir la lectura del código — es el punto de partida antes de decidir si un cambio es seguro.
+
+**Cómo se mantiene al día:** las tres primeras tablas (§37.2-37.4) son generadas por herramientas reales, no escritas a mano — `npm run inventory:conexiones`, `npm run inventory:assets`, `node tools/verificar-mensajeria.js --todos`. Si el código cambia, estas tablas se desactualizan pero son baratas de regenerar; no hay que mantenerlas sincronizadas a mano. La tabla de puntos calientes (§37.5) sí es curada — se añade una fila cada vez que aparece un "toqué A y rompió C sin saberlo" real, como parte de cerrar ese arreglo (mismo hábito que el checklist de pre-push de documentación).
+
+### 37.1 Diagrama general
+
+```mermaid
+graph TB
+    subgraph Padre["codigo-padre.html — 5 scripts type=module"]
+        S1["Script 1<br/>arranque, fases 1-3, GPS, overlays"]
+        S2["Script 2<br/>lógica post-carga, progreso, audio/reto por parada"]
+        S3["Script 3<br/>visibilidad de iframes"]
+        S4["Script 4<br/>migración de controladores, diagnóstico GPS"]
+        S5["Script 5<br/>panel de logs en pantalla"]
+    end
+
+    subgraph Modulos["Módulos JS compartidos (js/*.js)"]
+        MSG["mensajeria.js"]
+        SM["state-manager.js"]
+        DL["data-loader.js"]
+        CFG["config.js"]
+        UTIL["utils.js"]
+        TRAD["traducciones-ui.js"]
+        CTRL["controladores-padre.js"]
+        FM["funciones-mapa.js"]
+    end
+
+    subgraph Hijos["Iframes hijo (postMessage, nunca globalThis compartido)"]
+        SEL["En-busca-del-tesoro.html"]
+        H1["extrainfo-hijo1.html"]
+        H2["coordenadas-hijo2.html"]
+        H3["audio-hijo3.html"]
+        H4["retos-hijo4.html"]
+        H5["boton-casa-hijo5.html (dev only)"]
+        H6["chat-hijo6.html"]
+    end
+
+    Padre <-->|postMessage| SEL
+    Padre <-->|postMessage| H1
+    Padre <-->|postMessage| H2
+    Padre <-->|postMessage| H3
+    Padre <-->|postMessage| H4
+    Padre <-->|postMessage| H5
+    Padre <-->|postMessage| H6
+
+    Padre -->|import| MSG
+    Padre -->|import| SM
+    Padre -->|import| DL
+    Padre -->|import| CFG
+    Padre -->|import| UTIL
+    Padre -->|import| TRAD
+    Padre -->|import| CTRL
+    Padre -->|import| FM
+    H2 -->|import directo, no solo postMessage| FM
+    MSG -->|delega registro| SM
+
+    S1 -.->|globalThis, 67 identificadores| S2
+    S2 -.->|globalThis, 18 identificadores| S1
+```
+
+Los 6 hijos y `En-busca-del-tesoro.html` nunca comparten `globalThis` con el padre ni entre ellos — cada iframe es un documento/contexto de JS completamente aislado. Toda conexión hijo↔padre pasa por `postMessage` (ver §37.3). Dentro del padre, en cambio, los 5 scripts comparten un único `globalThis` real — de ahí que las conexiones entre ellos (§37.2) sean invisibles a simple vista (parece un archivo, son 5 scopes).
+
+### 37.2 `globalThis` compartido entre bloques `<script>` inline (todos los archivos)
+
+Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` — cualquier archivo con 2+ bloques `<script>` inline (clásico o `type="module"`, nunca `<script src="...">`, que no tiene cuerpo propio) puede tener este mismo problema. Son 6 archivos en total: `codigo-padre.html`, `En-busca-del-tesoro.html`, `video-intro.html`, `audio-hijo3.html`, `retos-hijo4.html`, `chat-hijo6.html` — **123 identificadores cruzados en total**. Cada bloque se etiqueta como "módulo N" o "clásico N" (numerados dentro de su propio tipo) — "módulo 1" de `codigo-padre.html` es siempre el mismo "Script 1" que usa el resto de esta guía y CLAUDE.md, tenga o no bloques clásicos intercalados entre medias. "Tipo" es una heurística (¿el valor asignado parece una función/objeto, o un dato simple?) — no perfecta, pero orientativa.
+
+<details>
+<summary><code>codigo-padre.html</code> — 102 identificadores cruzados, de 158 expuestos (20 bloques &lt;script&gt; inline: 5 módulo + 15 clásicos) — clic para desplegar</summary>
+
+| Identificador | Definido en | Usado también en | Tipo |
+|---|---|---|---|
+| `modoActual` | clásico 13 (L14223) | módulo 1, módulo 2 | función/objeto |
+| `__setRealActivarGPS` | clásico 3 (L75) | módulo 1 | función/objeto |
+| `activarGPS` | clásico 3 (L65) | módulo 1, módulo 2 | función/objeto |
+| `handleIframeError` | clásico 5 (L95) | clásico 9 | función/objeto |
+| `handleIframeLoad` | clásico 5 (L203) | clásico 9 | función/objeto |
+| `actualizarVisibilidadSelectorMapa` | clásico 7 (L1555) | clásico 8, módulo 1, módulo 2, módulo 3 | función/objeto |
+| `mostrarIframeOverlay` | clásico 8 (L2149) | módulo 2 | función/objeto |
+| `mostrarImagenOverlay` | clásico 8 (L1732) | módulo 1, módulo 2 | función/objeto |
+| `mostrarVideoOverlay` | clásico 8 (L1981) | módulo 1, módulo 2 | función/objeto |
+| `__cargarDatosAventuraDiferidos` | módulo 1 (L3597) | módulo 2 | función/objeto |
+| `__CONTROLADOR_REGISTRADOS` | módulo 1 (L5055) | clásico 13 | estado |
+| `__HEARTBEAT_INICIADO` | módulo 1 (L3840) | clásico 13, módulo 4 | función/objeto |
+| `__vv_AUDIOS_AVENTURAS` | módulo 1 (L3585) | módulo 2 | función/objeto |
+| `__vv_DATOS_AVENTURAS` | módulo 1 (L3584) | módulo 2 | función/objeto |
+| `__VV_GPS_OVERLAY_TIMER` | módulo 1 (L5947) | clásico 13 | estado |
+| `__VV_GPS_SIGNAL_TIMER` | módulo 1 (L6619) | clásico 13 | estado |
+| `__vv_INDICE_AVENTURAS` | módulo 1 (L3588) | módulo 2 | función/objeto |
+| `__VV_INET_OVERLAY_TIMER` | módulo 1 (L6759) | clásico 13 | estado |
+| `__vv_RETOS_AVENTURAS` | módulo 1 (L3586) | módulo 2 | función/objeto |
+| `__vv_salidaEnlaceExterno` | módulo 1 (L4743) | módulo 2 | función/objeto |
+| `__vv_TEXTOS_AVENTURAS` | módulo 1 (L3587) | módulo 2 | función/objeto |
+| `_calcularProgresoFraccion` | módulo 1 (L4248) | módulo 2 | función/objeto |
+| `_codigoValidadoP13` | módulo 1 (L7607) | módulo 2 | función/objeto |
+| `_detenerRecordatorioAudio` | módulo 1 (L9213) | módulo 2 | función/objeto |
+| `_detenerRecordatorioReto` | módulo 1 (L9429) | módulo 2 | función/objeto |
+| `_detenerRecordatorioSaltarAudio` | módulo 1 (L9334) | módulo 2 | función/objeto |
+| `_devModeActivo` | módulo 1 (L3988) | módulo 2 | estado |
+| `_iniciarRecordatorioAudio` | módulo 1 (L9303) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioReto` | módulo 1 (L9499) | módulo 2 | función/objeto |
+| `_iniciarRecordatorioSaltarAudio` | módulo 1 (L9405) | módulo 2 | función/objeto |
+| `_lastCambioParada` | módulo 1 (L4328) | módulo 2 | función/objeto |
+| `_marcarPlayPulsadoRecordatorio` | módulo 1 (L9309) | módulo 2 | función/objeto |
+| `_marcarRetoPulsadoRecordatorio` | módulo 1 (L9507) | módulo 2 | función/objeto |
+| `_obtenerCoordenadasP0Fallback` | módulo 1 (L5236) | módulo 2 | función/objeto |
+| `_ocultarTodasPantallasDistanciaGPS` | módulo 1 (L6120) | módulo 2 | función/objeto |
+| `_vv_triggerCambioModo` | módulo 1 (L3998) | módulo 2 | función/objeto |
+| `ajustarTimeoutPorConexion` | módulo 1 (L3722) | módulo 2, módulo 4 | función/objeto |
+| `ajustarTimeoutPorConexionSafe` | módulo 1 (L3729) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 1 (L4567) | clásico 7, módulo 2 | función/objeto |
+| `cargarHijoCasa` | módulo 1 (L8493) | módulo 2 | función/objeto |
+| `cargarIframeSecuencial` | módulo 1 (L8492) | módulo 2 | función/objeto |
+| `cargarRestoDeiframes` | módulo 1 (L8491) | módulo 2 | función/objeto |
+| `CONFIG_PADRE` | módulo 1 (L3856) | clásico 6, clásico 8, módulo 2 | función/objeto |
+| `desactivarGPS` | módulo 1 (L5897) | módulo 2 | función/objeto |
+| `enviarMensaje` | módulo 1 (L3716) | módulo 2, módulo 3, módulo 4 | función/objeto |
+| `enviarMensajeConConfirmacion` | módulo 1 (L3717) | módulo 2 | función/objeto |
+| `estadoPadre` | módulo 1 (L4020) | clásico 7, módulo 2, módulo 4 | función/objeto |
+| `findIndexByPadreIdOrId` | módulo 1 (L4362) | módulo 2 | función/objeto |
+| `getEstadoSafe` | módulo 1 (L4161) | módulo 2 | función/objeto |
+| `getPadreId` | módulo 1 (L3870) | clásico 6, módulo 2 | función/objeto |
+| `hideGpsPrecisionOverlay` | módulo 1 (L6523) | módulo 2 | función/objeto |
+| `hideParentLoadingOverlay` | módulo 1 (L2820) | módulo 2 | función/objeto |
+| `idiomaSeleccionado` | módulo 1 (L4568) | clásico 7, módulo 2, clásico 14 | función/objeto |
+| `limpiarDatosAventura` | módulo 1 (L2855) | módulo 2 | función/objeto |
+| `MODOS` | módulo 1 (L3714) | módulo 2, módulo 4 | función/objeto |
+| `mostrarCartelInicioTramo` | módulo 1 (L8987) | módulo 2 | función/objeto |
+| `mostrarCartelLlegadaParada` | módulo 1 (L9056) | módulo 2 | función/objeto |
+| `mostrarCartelTransicion` | módulo 1 (L8910) | módulo 2 | función/objeto |
+| `mostrarModalFinalizacion` | módulo 1 (L8763) | módulo 2 | función/objeto |
+| `mostrarPulsoValoracionPadre` | módulo 1 (L8806) | módulo 2 | función/objeto |
+| `persistProgressState` | módulo 1 (L4228) | módulo 2 | función/objeto |
+| `registrarControlador` | módulo 1 (L3715) | módulo 2 | función/objeto |
+| `registrarControladorSeguro` | módulo 1 (L5068) | módulo 2, módulo 4 | función/objeto |
+| `registrarEvento` | módulo 1 (L5127) | clásico 7, módulo 2 | función/objeto |
+| `reproducirVideoConBuffer` | módulo 1 (L2861) | clásico 8 | función/objeto |
+| `resolverIdsParada` | módulo 1 (L2850) | módulo 2 | función/objeto |
+| `retryUntilAvailable` | módulo 1 (L2851) | módulo 2 | función/objeto |
+| `showFotoDesviadoOverlay` | módulo 1 (L6359) | módulo 2 | función/objeto |
+| `showFotoFueraRangoOverlay` | módulo 1 (L6284) | módulo 2 | función/objeto |
+| `showFotoLejosOverlay` | módulo 1 (L6211) | módulo 2 | función/objeto |
+| `showFotoPerdidoOverlay` | módulo 1 (L6439) | módulo 2 | función/objeto |
+| `showGpsPrecisionOverlay` | módulo 1 (L6515) | módulo 2 | función/objeto |
+| `showGpsSignalOverlay` | módulo 1 (L6816) | módulo 2 | función/objeto |
+| `showInternetOverlay` | módulo 1 (L6815) | módulo 2 | función/objeto |
+| `showParentLoadingOverlay` | módulo 1 (L2808) | módulo 2 | función/objeto |
+| `sleep` | módulo 1 (L2730) | módulo 2, módulo 3, módulo 4 | función/objeto |
+| `solicitarCoordenadasHijo` | módulo 1 (L5861) | módulo 2 | función/objeto |
+| `TIPOS_MENSAJE` | módulo 1 (L3713) | clásico 5, clásico 7, clásico 8, módulo 2, módulo 3, módulo 4 | función/objeto |
+| `TRADUCCIONES_SW_UPDATE` | módulo 1 (L2859) | clásico 14 | función/objeto |
+| `updateLoadingStatus` | módulo 1 (L2836) | módulo 2 | función/objeto |
+| `verificarTimeoutAventura` | módulo 1 (L2856) | módulo 2 | función/objeto |
+| `waitForMapLibreAndInitialize` | módulo 1 (L8494) | módulo 2 | función/objeto |
+| `__distribuirReadyPromise` | módulo 2 (L9614) | módulo 1 | estado |
+| `__triggerCambioParadaInterno` | módulo 2 (L12223) | módulo 1 | función/objeto |
+| `__VV_PENDING_CLEANUP` | módulo 2 (L14071) | clásico 13 | estado |
+| `_buscarParadaEnDatos` | módulo 2 (L11578) | módulo 1 | función/objeto |
+| `_configurarRetoBtn` | módulo 2 (L11778) | módulo 1 | función/objeto |
+| `_iniciarTemporizadorAventura` | módulo 2 (L13309) | módulo 1 | función/objeto |
+| `_verificarCodigoDevPWA` | módulo 2 (L13344) | módulo 5 | función/objeto |
+| `_vv_afterHijoListo` | módulo 2 (L9658) | módulo 1 | función/objeto |
+| `actualizarEstadoControlesAudioPadre` | módulo 2 (L10547) | módulo 1 | función/objeto |
+| `AVENTURA_PARADAS` | módulo 2 (L9769) | clásico 7, módulo 1 | función/objeto |
+| `distribuirDatosAventura` | módulo 2 (L9858) | módulo 1 | función/objeto |
+| `enviarMensajePadre` | módulo 2 (L9939) | módulo 1 | función/objeto |
+| `marcarParadaCompletada` | módulo 2 (L10361) | módulo 1 | función/objeto |
+| `mostrarModalTiempoAgotado` | módulo 2 (L13580) | módulo 1 | función/objeto |
+| `obtenerAudioIdActivoPadre` | módulo 2 (L10427) | módulo 1 | función/objeto |
+| `obtenerElementoActual` | módulo 2 (L9963) | módulo 1 | función/objeto |
+| `obtenerRetosIds` | módulo 2 (L9980) | módulo 1 | función/objeto |
+| `solicitarAudioAHijo3` | módulo 2 (L10419) | módulo 1 | función/objeto |
+| `solicitarCoordenadasAHijo2` | módulo 2 (L10390) | módulo 1 | función/objeto |
+| `mostrarHijo4` | módulo 3 (L14134) | módulo 2 | función/objeto |
+
+</details>
+
+**Lectura rápida de `codigo-padre.html`:** casi todo el tráfico módulo↔módulo es módulo 1 → módulo 2 (Script 1 hace el arranque/setup y expone su API; Script 2, "lógica post-carga", la consume). Menos evidente: los bloques **clásicos** no son un compartimento aislado — `TIPOS_MENSAJE`, `CONFIG_PADRE`, `estadoPadre`, `idiomaSeleccionado`/`aventuraSeleccionada` y varios timers de overlay (`__VV_GPS_OVERLAY_TIMER` y hermanos) cruzan entre bloques clásicos y módulos por igual. El caso más alejado: `modoActual`, definido en clásico 13 (cerca del final del archivo), se usa desde módulo 1 y módulo 2.
+
+<details>
+<summary><code>En-busca-del-tesoro.html</code> — 15 identificadores cruzados, de 36 expuestos (7 bloques) — clic para desplegar</summary>
+
+| Identificador | Definido en | Usado también en | Tipo |
+|---|---|---|---|
+| `_devCasaMode` | clásico 3 (L1084) | módulo 2 | estado |
+| `_puzzleListener` | clásico 3 (L1560) | módulo 2 | función/objeto |
+| `_resetearFlagsContenido` | clásico 3 (L2403) | módulo 2 | función/objeto |
+| `_setAventuraIniciando` | clásico 3 (L2401) | módulo 2 | función/objeto |
+| `_setIdiomaSeleccionado` | clásico 3 (L2400) | módulo 2 | función/objeto |
+| `_setTimerProgresoCarga` | clásico 3 (L2402) | módulo 2 | función/objeto |
+| `mostrarMapaVintage` | clásico 3 (L2422) | módulo 2 | función/objeto |
+| `aventuraSeleccionada` | módulo 2 (L3062) | clásico 3 | función/objeto |
+| `enviarValoracion` | módulo 2 (L2440) | clásico 3 | función/objeto |
+| `idiomaSeleccionado` | módulo 2 (L2990) | clásico 3 | función/objeto |
+| `seleccionarAventura` | módulo 2 (L3058) | clásico 3 | función/objeto |
+| `TEXTOS_VALORACION` | módulo 2 (L2438) | clásico 3 | función/objeto |
+| `TRADUCCIONES_ACCESO_ERRONEO` | módulo 2 (L2437) | clásico 3 | función/objeto |
+| `TRADUCCIONES_DESPEDIDA` | módulo 2 (L2436) | clásico 3 | función/objeto |
+| `TRADUCCIONES_REANUDACION` | módulo 2 (L2439) | clásico 3 | función/objeto |
+
+</details>
+
+El módulo único de `En-busca-del-tesoro.html` (§7.1, el "bridge" para las traducciones/mensajería) expone 4 objetos de traducciones que el bloque clásico grande (donde viven `cargarTextoIntro`/`cargarAudioIntro`, §7.1) consume — y ese mismo bloque clásico expone de vuelta varios setters (`_setIdiomaSeleccionado` y hermanos) para que el módulo pueda sincronizar estado hacia él. Es la misma forma de conexión que en `codigo-padre.html`, a menor escala.
+
+<details>
+<summary><code>video-intro.html</code>, <code>audio-hijo3.html</code>, <code>retos-hijo4.html</code>, <code>chat-hijo6.html</code> — clic para desplegar</summary>
+
+| Archivo | Identificador | Definido en | Usado también en | Tipo |
+|---|---|---|---|---|
+| `video-intro.html` | `JAIME_SCENES` | módulo 1 (L591) | clásico 1 | función/objeto |
+| `video-intro.html` | `reproducirVideoConBuffer` | módulo 1 (L592) | clásico 1 | función/objeto |
+| `audio-hijo3.html` | `_guardarAudioEnCache` | módulo 1 (L409) | módulo 2 | función/objeto |
+| `audio-hijo3.html` | `obtenerAudioFiles` | módulo 1 (L418) | módulo 2 | función/objeto |
+| `retos-hijo4.html` | `ejecutarValidacion` | clásico 2 (L26) | módulo 1 | función/objeto |
+| `chat-hijo6.html` | `cerrarChatVentana` | clásico 2 (L382) | módulo 1 | función/objeto |
+
+</details>
+
+### 37.3 Mensajes (`TIPOS_MENSAJE`) — emisor(es) → receptor(es)
+
+Generado con `node tools/verificar-mensajeria.js --todos`. 100 tipos de mensaje totales. `*(ninguno detectado)*` no significa necesariamente huérfano — puede ser un falso negativo de la heurística (indirección vía variable) o un tipo ya identificado como huérfano real en auditorías previas (`NAVEGACION.GPS.DESACTIVAR`/`.ERROR`, `PUZZLE.LEGACY_*` — ver §36.13); verificar leyendo el código antes de actuar sobre cualquiera de ellos.
+
+<details>
+<summary>Tabla completa (100 filas) — clic para desplegar</summary>
+
+| Tipo | Emisor(es) | Receptor(es) |
+|---|---|---|
+| `AUDIO.ERROR` | audio-hijo3.html | codigo-padre.html |
+| `AUDIO.ESTADO_ACTUALIZADO` | audio-hijo3.html | codigo-padre.html |
+| `AUDIO.FIN_REPRODUCCION` | audio-hijo3.html | codigo-padre.html |
+| `AUDIO.REPRODUCIR_REQUEST` | codigo-padre.html, js/controladores-padre.js | audio-hijo3.html |
+| `AUDIO.REPRODUCIR_RESPONSE` | audio-hijo3.html | codigo-padre.html |
+| `AVENTURA.DETENER` | codigo-padre.html | extrainfo-hijo1.html |
+| `AVENTURA.ESTADISTICAS_TIEMPO` | extrainfo-hijo1.html | codigo-padre.html |
+| `AVENTURA.FINALIZADA` | codigo-padre.html | codigo-padre.html, extrainfo-hijo1.html |
+| `AVENTURA.INICIADA` | codigo-padre.html | extrainfo-hijo1.html |
+| `AVENTURA.TIEMPO_ACTUALIZADO` | extrainfo-hijo1.html | codigo-padre.html |
+| `AVENTURA.TIEMPO_AGOTADO` | extrainfo-hijo1.html | codigo-padre.html |
+| `CHAT.CERRAR` | *(ninguno detectado)* | codigo-padre.html |
+| `CHAT.ESTADO_PADRE` | codigo-padre.html | chat-hijo6.html |
+| `CONTROL.DESHABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `CONTROL.DEV_CINCO_TOQUES` | extrainfo-hijo1.html | codigo-padre.html |
+| `CONTROL.HABILITAR` | codigo-padre.html | audio-hijo3.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `DATOS.CARGADOS_RECIBIDO` | codigo-padre.html | coordenadas-hijo2.html |
+| `DATOS.CARGAR_COORDENADAS` | codigo-padre.html | coordenadas-hijo2.html |
+| `DATOS.CARGAR_TEXTOS` | codigo-padre.html, js/controladores-padre.js | coordenadas-hijo2.html |
+| `DATOS.COORDENADAS_CARGADAS` | coordenadas-hijo2.html | codigo-padre.html |
+| `DATOS.COORDENADAS_PARADAS_REQUEST` | codigo-padre.html | coordenadas-hijo2.html |
+| `DATOS.COORDENADAS_PARADAS_RESPONSE` | coordenadas-hijo2.html | codigo-padre.html |
+| `DATOS.SOLICITAR_AUDIOS` | audio-hijo3.html | js/controladores-padre.js |
+| `DATOS.SOLICITAR_COORDENADAS` | coordenadas-hijo2.html | codigo-padre.html |
+| `DATOS.SOLICITAR_RETOS` | retos-hijo4.html | js/controladores-padre.js |
+| `DATOS.SOLICITAR_TEXTOS` | coordenadas-hijo2.html | js/controladores-padre.js |
+| `DATOS.TEXTOS_CARGADOS` | coordenadas-hijo2.html | codigo-padre.html |
+| `MONITOREO.METRICA` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION_PANTALLA` | codigo-padre.html | tools/renumber-pantallas.js |
+| `NAVEGACION.ACTUALIZAR_ESTADO` | codigo-padre.html, js/funciones-mapa.js, js/mensajeria.js | coordenadas-hijo2.html |
+| `NAVEGACION.CAMBIO_PARADA` | boton-casa-hijo5.html, codigo-padre.html | audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `NAVEGACION.CAMBIO_PARADA_CONFIRMADO` | audio-hijo3.html, js/funciones-mapa.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |
+| `NAVEGACION.GPS.ACTIVAR` | coordenadas-hijo2.html, js/funciones-mapa.js | codigo-padre.html |
+| `NAVEGACION.GPS.DENTRO_DE_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.GPS.DESACTIVAR` | *(ninguno detectado)* | *(ninguno detectado)* |
+| `NAVEGACION.GPS.ERROR` | *(ninguno detectado)* | *(ninguno detectado)* |
+| `NAVEGACION.GPS.ESTADO_ACTUALIZADO` | codigo-padre.html | coordenadas-hijo2.html |
+| `NAVEGACION.GPS.PRECISION_INSUFICIENTE` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.GPS.PRECISION_RECUPERADA` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.GPS.RESTRINGIDO` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.LLEGADA_DETECTADA` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | coordenadas-hijo2.html | codigo-padre.html |
+| `NAVEGACION.RESPUESTA_COORDENADAS` | coordenadas-hijo2.html | js/funciones-mapa.js |
+| `NAVEGACION.RESPUESTA_DATOS_PARADAS` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | boton-casa-hijo5.html, coordenadas-hijo2.html |
+| `NAVEGACION.SOLICITAR_COORDENADAS` | js/funciones-mapa.js | coordenadas-hijo2.html |
+| `NAVEGACION.SOLICITAR_DATOS_PARADAS` | boton-casa-hijo5.html | codigo-padre.html |
+| `NAVEGACION.SUPRIMIR_ROTACION` | En-busca-del-tesoro.html | codigo-padre.html |
+| `NAVEGACION.USUARIO_FUERA_RANGO` | coordenadas-hijo2.html | codigo-padre.html |
+| `PARADAS.LISTADO_TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
+| `PARADAS.READY` | boton-casa-hijo5.html | *(ninguno detectado)* |
+| `PUZZLE.COMPLETADO` | puzzle.html | *(ninguno detectado)* |
+| `PUZZLE.LEGACY_COMPLETADO` | *(ninguno detectado)* | *(ninguno detectado)* |
+| `PUZZLE.LEGACY_TIMEOUT` | *(ninguno detectado)* | *(ninguno detectado)* |
+| `PUZZLE.TIMEOUT` | puzzle.html | *(ninguno detectado)* |
+| `RETO.COMPLETADO` | retos-hijo4.html | codigo-padre.html |
+| `RETO.CONFIRMADO` | codigo-padre.html | retos-hijo4.html |
+| `RETO.ESTADO_CASA` | codigo-padre.html | retos-hijo4.html |
+| `RETO.HABILITAR` | codigo-padre.html | retos-hijo4.html |
+| `RETO.LIMPIAR_ESTADO` | codigo-padre.html | retos-hijo4.html |
+| `RETO.MOSTRADO` | retos-hijo4.html | codigo-padre.html |
+| `RETO.MOSTRAR` | codigo-padre.html, js/controladores-padre.js | retos-hijo4.html |
+| `RETO.OCULTAR` | retos-hijo4.html | codigo-padre.html |
+| `RETO.SOLICITAR_RETO` | audio-hijo3.html, retos-hijo4.html | codigo-padre.html |
+| `SELECCION.AVENTURA_ACTIVADA` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.AVENTURA_SELECCIONADA` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.CODIGO_VALIDADO` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.DEV_MODE_TOGGLE` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.IDIOMA_SELECCIONADO` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.P14_MOSTRADA` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.PREPARAR_HIJOS` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.REINICIAR` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.TERMINOS_ACEPTADOS` | En-busca-del-tesoro.html | codigo-padre.html |
+| `SELECCION.VIDEO_INTRO_TERMINADO` | video-intro.html | En-busca-del-tesoro.html, chat-hijo6.html, tools/renumber-pantallas.js |
+| `SISTEMA.ACK` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, retos-hijo4.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SISTEMA.ADVERTENCIA` | js/funciones-mapa.js | codigo-padre.html |
+| `SISTEMA.APLICACION_INICIALIZADA` | codigo-padre.html | codigo-padre.html |
+| `SISTEMA.CAMBIO_MODO` | boton-casa-hijo5.html, codigo-padre.html, js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SISTEMA.CAMBIO_MODO_APLICADO` | js/app.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SISTEMA.CAMBIO_MODO_EFECTUADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | *(ninguno detectado)* |
+| `SISTEMA.CAMBIO_MODO_ENTENDIDO` | En-busca-del-tesoro.html, chat-hijo6.html, extrainfo-hijo1.html | js/app.js |
+| `SISTEMA.CONFIRMACION` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | En-busca-del-tesoro.html, boton-casa-hijo5.html |
+| `SISTEMA.ERROR` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, js/app.js, js/funciones-mapa.js, retos-hijo4.html | boton-casa-hijo5.html, codigo-padre.html |
+| `SISTEMA.HEARTBEAT` | boton-casa-hijo5.html, codigo-padre.html, js/mensajeria.js, js/monitoreo.js | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT_ESTADO` | codigo-padre.html | codigo-padre.html |
+| `SISTEMA.HEARTBEAT_PAUSE` | codigo-padre.html | audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `SISTEMA.HEARTBEAT_RESPONSE` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
+| `SISTEMA.HEARTBEAT_START` | codigo-padre.html | audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, retos-hijo4.html |
+| `SISTEMA.HIJO_FALLIDO` | En-busca-del-tesoro.html, extrainfo-hijo1.html | codigo-padre.html |
+| `SISTEMA.HIJO_LISTO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
+| `SISTEMA.HIJO_PREPARADO` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | codigo-padre.html |
+| `SISTEMA.NACK` | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html | js/app.js |
+| `SISTEMA.NOTIFICACION` | codigo-padre.html, js/app.js | retos-hijo4.html |
+| `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | codigo-padre.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `SISTEMA.PADRE_DATOS` | codigo-padre.html | En-busca-del-tesoro.html, audio-hijo3.html, boton-casa-hijo5.html, chat-hijo6.html, coordenadas-hijo2.html, extrainfo-hijo1.html, retos-hijo4.html |
+| `TEMPORIZADOR.TOGGLE` | extrainfo-hijo1.html | codigo-padre.html |
+| `UI.ACCION_USUARIO` | codigo-padre.html, coordenadas-hijo2.html, extrainfo-hijo1.html | audio-hijo3.html, codigo-padre.html |
+| `UI.CLOSE_MENUS` | extrainfo-hijo1.html | codigo-padre.html, extrainfo-hijo1.html |
+| `UI.NAVEGACION_EXTERNA` | extrainfo-hijo1.html | codigo-padre.html |
+
+</details>
+
+### 37.4 Assets compartidos (imágenes usadas en 2+ archivos)
+
+Generado con `npm run inventory:assets`. Barre `*.html` de raíz, `js/**`, `tools/**`, `sw.js` y `manifest.json` (65 archivos) — **76 imágenes compartidas de 355 referenciadas en total**. Muchas de las apariciones en `video-intro.html` son porque esa página reutiliza los mismos iconos de audio/mapa en sus propias escenas, no porque dependa del padre — pero un cambio de nombre de fichero rompe ambos igual. Los pares `js/coordenadas-aventuras.js` ↔ `js/puzzles-aventuras.js` (fotos de parada reutilizadas como imagen de puzzle) son el grupo más numeroso — mover o renombrar una de esas fotos rompe el puzzle de esa parada sin que nada lo avise hasta que se prueba.
+
+<details>
+<summary>Tabla completa (76 filas) — clic para desplegar</summary>
+
+| Asset | Usado en |
+|---|---|
+| `logo-redondo.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `index.html`, `manifest.json`, `sw.js`, `tools/renumber-pantallas.js`, `video-intro.html` |
+| `logo_alargado_3.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `js/agradecimientos-aventuras.js`, `js/normativa-cumplimiento.js`, `js/terminos-aventuras.js`, `tools/renumber-pantallas.js` |
+| `H4-fotoretos.png` | `audio-hijo3.html`, `codigo-padre.html`, `video-intro.html` |
+| `boton-audio-play.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
+| `boton-audio-pausa.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
+| `imagen-no-gps.png` | `En-busca-del-tesoro.html`, `codigo-padre.html`, `video-intro.html` |
+| `fotoruta-A-B.png` | `codigo-padre.html`, `coordenadas-hijo2.html`, `video-intro.html` |
+| `plaza_de_la_almoina.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `plaza_de_la_virgen.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `Av1_mapa.jpg` | `En-busca-del-tesoro.html`, `js/mapa-vintage-aventuras.js`, `video-intro.html` |
+| `serranos_back.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js`, `video-intro.html` |
+| `fotochat-boton.png` | `codigo-padre.html`, `video-intro.html` |
+| `boton-audio-central.png` | `codigo-padre.html`, `video-intro.html` |
+| `boton-audio-stop.png` | `codigo-padre.html`, `video-intro.html` |
+| `boton-audio-replay.png` | `codigo-padre.html`, `video-intro.html` |
+| `foto-rango-fuera.png` | `codigo-padre.html`, `video-intro.html` |
+| `imagen-no-internet.png` | `codigo-padre.html`, `video-intro.html` |
+| `caballero_llorando.png` | `codigo-padre.html`, `video-intro.html` |
+| `ol.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-ingles.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-frances.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-italiano.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-neerlandes.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-japones.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-aleman.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-chino-simplificado.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-polaco.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-portugues.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-ruso.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `en-busca-ucraniano.png` | `En-busca-del-tesoro.html`, `codigo-padre.html` |
+| `H2-fotomapa-moderno.png` | `coordenadas-hijo2.html`, `video-intro.html` |
+| `H2-fotomapa-vintage.png` | `coordenadas-hijo2.html`, `video-intro.html` |
+| `H2-fotodron.png` | `coordenadas-hijo2.html`, `video-intro.html` |
+| `H2-fotoproximo-monumento.png` | `coordenadas-hijo2.html`, `video-intro.html` |
+| `H2-fotodistancia.png` | `coordenadas-hijo2.html`, `video-intro.html` |
+| `a.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_inglesa.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_francia.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_italia.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_paises_bajos.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_japon.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_alemania.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_china.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_polonia.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_portugal.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_rusia.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `bandera_ucrania.png` | `En-busca-del-tesoro.html`, `js/indice-aventuras.js` |
+| `pano_CAC.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js` |
+| `cabecera_lake_side.jpg` | `En-busca-del-tesoro.html`, `js/coordenadas-aventuras.js` |
+| `Av2_Mapa.jpg` | `En-busca-del-tesoro.html`, `js/mapa-vintage-aventuras.js` |
+| `foto-opciones.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `boton_listado_paradas.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `H1-fotogastronomia.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `foto-informacion.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `H1-videohistoriavalencia.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `foto-paginas-oficiales.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `foto-temporizador.png` | `extrainfo-hijo1.html`, `video-intro.html` |
+| `mercado_central.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `lonja.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `torres_de_serranos_front.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `plaza_de_toros_y_estacion_del_norte.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `iglesia_san_nicolas_front.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `torre_santa_catalina.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `plaza_redonda.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `ruinas_turia.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `viveros_entrada.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `puente_Assut_2.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `casa_rocas.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `estadio_atletismo.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `parque_de_cabecera_el_morro_middle.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `bioparc.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `torres_de_quart.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `biblioteca_hospital.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `mercado_de_colon_2.jpg` | `js/coordenadas-aventuras.js`, `js/puzzles-aventuras.js` |
+| `logo-splash-192.png` | `manifest.json`, `sw.js` |
+| `logo-splash-512.png` | `manifest.json`, `sw.js` |
+
+</details>
+
+### 37.5 Puntos calientes — reglas no obvias que ya han roto algo
+
+A diferencia de las tres tablas anteriores, esta es curada a mano — no hay forma mecánica de detectar "esto sorprende". Cada fila es un caso real, no hipotético. Se añade una fila nueva cada vez que aparece uno, como parte de cerrar ese arreglo — no es una lista cerrada.
+
+| Elemento | Por qué no es obvio | Qué se rompe si se ignora | Detalle |
+|---|---|---|---|
+| `_TODOS_LOS_CARTELES_IDS` (`codigo-padre.html`) | Un cartel nuevo parece autocontenido — solo su propio `id`, su propia función | Si no se añade a esta lista, puede solaparse visualmente con cualquiera de los otros 8 | §25.5e |
+| `page.clock.install()` + arranque real de `codigo-padre.html` en tests | El polling de MapLibre corre sobre el mismo reloj simulado que el test avanza a mano — nada en el test lo sugiere | Un test puede cruzar el umbral de 15s y disparar un `alert()` real a mitad de ejecución, desincronizando cualquier timer que esté verificando | §10.19 |
+| `.file: ""` en `audios-aventuras.js`/`textos-aventuras.js` para idiomas sin grabar/traducir | La entrada existe (no falta), así que un `if (entry)` simple no lo detecta | Cualquier código que lea `.file`/`.content` sin comprobar vacío se cuelga esperando un evento que nunca llega, o se queda en blanco | §7.1, §25.5f |
+| `logo-redondo.png` | Es "solo una imagen", parece intercambiable con cualquier otra | Tiene que seguir siendo transparente — 7+ usos como logo suelto sobre fondos de color; ponerle fondo opaco rompe todos esos usos | §7 |
+| `CONFIG`/`ajustarTimeoutPorConexion_S1` y equivalentes con sufijo `_S1`/`_S2` | El nombre sin sufijo (`CONFIG`, sin más) parece disponible desde cualquier script del mismo archivo | Es un alias LOCAL de un solo script — usarlo desde otro lanza `ReferenceError` en tiempo de ejecución, no en tiempo de escritura | §10.21, CLAUDE.md "Funciones en scope separado" |
+| `purpose:"maskable"` en `manifest.json` | Parece que solo gobierna el icono del launcher/pantalla de inicio | También genera la pantalla de splash nativa de Android — un maskable transparente pinta ambos de negro | §7 |
+| `<audio controls>`/`<video controls>` nativos | Parecen un elemento HTML normal, estilizable como cualquier otro | Su UI interna la dibuja el navegador — ningún CSS/JS de la página puede conocer ni la posición ni el tamaño exacto de sus botones internos | §7.1 |
+| `watchPosition()` del GPS | Cambiar de modo (CASA↔AVENTURA) parece el momento natural para parar/arrancar sensores | Nunca se detiene entre modos — solo deja de validar distancias; pararlo rompe la reanudación de posición al volver a AVENTURA | §2.6 |
+| `background-image` vs `background-color` en botones | Un `style.backgroundColor` inline parece suficiente para forzar un color puntual | `background-image` (incluido un `linear-gradient()` de un único color) siempre pinta por encima de `background-color` — de ahí que todos los estados de color de botones usen `linear-gradient()`, nunca `background-color` | §4.8 |
+| `estado.paradaRealCongelada` | Parece una copia más del progreso, como cualquier otro campo de `estado` | Vive solo en memoria, nunca se persiste a `localStorage` — es lo que permite "ver" una parada en CASA sin mover el progreso real; persistirlo rompería esa separación | §25.10 |
+| `z-index` 1000005-1000030 (chrome de la app) | Un overlay nuevo de pantalla completa parece necesitar solo un z-index "alto" | Tiene que superar 1000030 en concreto, o usar uno de los 3 mecanismos de ocultado ya existentes — si no, queda tapado por elementos del chrome que deberían estar por debajo | Ver memoria del proyecto, `project_zindex_chrome_vs_overlays` |
+| Iframes hijo1-hijo5 | Parecen poder cargarse en cuanto el DOM esté listo, como cualquier iframe | Solo se cargan en P14_MOSTRADA — cargarlos antes (o en `CODIGO_VALIDADO`) rompe el modelo de seguridad de activación | §17 |
+
+---
