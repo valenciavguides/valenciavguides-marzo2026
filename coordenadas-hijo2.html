@@ -451,7 +451,7 @@ const enviarMensajeConConfirmacion = async (...args) => {
                 ajustarTimeoutPorConexion(5000));
 
             const confirmListener = (event) => {
-                if (event.source === globalThis.parent && event.data && event.data.tipo === 'SISTEMA.CONFIRMACION' && event.data.idOriginal === idMensaje) {
+                if (event.source === globalThis.parent && event.data && event.data.tipo === TIPOS_MENSAJE.SISTEMA.CONFIRMACION && event.data.idOriginal === idMensaje) {
                     clearTimeout(timeout);
                     globalThis.removeEventListener('message', confirmListener);
                     resolve();
@@ -518,7 +518,7 @@ if (globalThis !== undefined && globalThis.messagingAdapter === undefined) {
                         // Enviar confirmación automática si el mensaje lo requiere
                         if (event.data.requiereConfirmacion && event.data.id) {
                             globalThis.parent.postMessage({
-                                tipo: 'SISTEMA.CONFIRMACION',
+                                tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
                                 idOriginal: event.data.id,
                                 datos: resultado,
                                 timestamp: Date.now(),
@@ -531,7 +531,7 @@ if (globalThis !== undefined && globalThis.messagingAdapter === undefined) {
                         // Enviar confirmación de error si el mensaje lo requiere
                         if (event.data.requiereConfirmacion && event.data.id) {
                             globalThis.parent.postMessage({
-                                tipo: 'SISTEMA.CONFIRMACION',
+                                tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
                                 idOriginal: event.data.id,
                                 datos: { error: e && e.message },
                                 timestamp: Date.now(),

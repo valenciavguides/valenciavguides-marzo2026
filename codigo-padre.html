@@ -2385,7 +2385,7 @@
     body.loading #brujula-modo,
     body.loading #btn-chat-soporte,
     body.loading #audio-control-overlay,
-    body.loading iframe {
+    body.loading iframe:not(#hijo5) {
         visibility: hidden !important;
         opacity: 0 !important;
     }
@@ -14184,7 +14184,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 try {
                     if (iframe.contentWindow) {
                         iframe.contentWindow.postMessage({
-                            tipo: 'SISTEMA.HEARTBEAT',
+                            tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT,
                             origen: 'padre',
                             datos: { timestamp: Date.now(), razon: 'visibilitychange' }
                         }, globalThis.location.origin);

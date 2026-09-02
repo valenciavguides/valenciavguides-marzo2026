@@ -724,7 +724,22 @@ function reescalarMarcadoresEmoji() {
  */
 function registrarListenerZoom() {
     if (!_mapaInstance) return;
-    
+
+    // 'zoom' dispara en cada frame del gesto (pinch/scroll/botones), a diferencia de
+    // 'zoomend' que solo dispara una vez al soltar. _calcularEscala() ya lee
+    // mapa.getZoom() en vivo y su cache se invalida sola en cuanto el zoom cambia, así
+    // que reescalarMarcadoresEmoji() da el tamaño correcto en cualquier punto del gesto.
+    // El RAF evita re-renderizar el innerHTML de cada marcador más de una vez por frame
+    // mientras 'zoom' dispara a mayor frecuencia que la pantalla.
+    let _zoomRAF = null;
+    _mapaInstance.on('zoom', () => {
+        if (_zoomRAF !== null) return;
+        _zoomRAF = requestAnimationFrame(() => {
+            _zoomRAF = null;
+            reescalarMarcadoresEmoji();
+        });
+    });
+
     _mapaInstance.on('zoomend', () => {
         // Invalidar cache de escala
         _escalaCache.timestamp = 0;
