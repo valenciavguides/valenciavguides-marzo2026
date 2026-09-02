@@ -1634,6 +1634,9 @@
 
                 // Expose a global hard-close API so child can always close chat even if messaging fails.
                 globalThis.cerrarChatSoporte = cerrarChat;
+                // Expuesto para que el handshake genérico HIJO_PREPARADO→PADRE_DATOS (Script 1,
+                // otro scope) pueda incluir el idioma real en la primera apertura del chat.
+                globalThis.construirEstadoChat = construirEstadoChat;
 
                 // setTimeout como red de seguridad real (no solo animationend): un
                 // classList.toggle concurrente en el mismo click puede hacer que el
@@ -7215,14 +7218,21 @@
                 // Enviar PADRE_DATOS para completar el handshake (sigue siendo necesario)
                 try {
                     if (typeof enviarMensaje_S1 === 'function') {
+                        const datosPadreDatos = {
+                            modo: estado.modo?.actual || globalThis.estadoPadre?.modo?.actual || MODOS.CASA,
+                            timestamp: Date.now()
+                        };
+                        // hijo6-chat construye su FAQ con el idioma de este mismo mensaje — sin esto
+                        // renderiza siempre en español en su primera apertura (construirEstadoChat()
+                        // solo se usaba antes al reabrir el chat, vía CHAT.ESTADO_PADRE).
+                        if (hijoId === 'hijo6-chat' && typeof globalThis.construirEstadoChat === 'function') {
+                            Object.assign(datosPadreDatos, globalThis.construirEstadoChat());
+                        }
                         await enviarMensaje_S1({
                             destino: hijoId,
                             tipo: TIPOS_MENSAJE_S1.SISTEMA.PADRE_DATOS,
                             origen: getPadreId(),
-                            datos: {
-                                modo: estado.modo?.actual || globalThis.estadoPadre?.modo?.actual || MODOS.CASA,
-                                timestamp: Date.now()
-                            }
+                            datos: datosPadreDatos
                         });
                         (globalThis.logger || console).info(`${logPrefix} PADRE_DATOS enviado a ${hijoId}`);
                     }

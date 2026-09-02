@@ -932,6 +932,8 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 
 **Tamaño de los emoji 📌/🎯 y reescalado con el zoom.** Tamaño base (antes de escalar): 📌 inicio de tramo 16px, 🎯 parada/fin de tramo 20px, 🎯 destino de la línea de navegación manual 26px (el más grande de los tres, para destacarlo sobre el resto). `reescalarMarcadoresEmoji()` (`js/funciones-mapa.js`) recorre el `Map` `marcadoresParadas` en cada evento `zoom` del mapa (no solo `zoomend`: el listener de `zoom` dispara en cada frame del gesto de pinch/scroll/botones, acotado a una llamada por frame vía `requestAnimationFrame` para no re-renderizar cada marcador más veces de las que la pantalla puede pintar — así el tamaño sigue el gesto en vivo en vez de saltar solo al soltar) y reescribe el `font-size` de cada marcador según la clase CSS que tenga (`custom-marker-emoji`/`finish-flag-icon`/`tramo-fin-icon` → 🎯 parada; `start-flag-icon`/`tramo-inicio-icon` → 📌 inicio) — solo los marcadores registrados en ese `Map` reciben este reescalado; el marcador de destino de navegación (`marcadorDestinoNavegacion`) se reescala aparte, en la misma función. El marcador 🎯 de una parada normal (no de tramo) se registra en `marcadoresParadas` bajo la clave `'parada-actual'` al crearse y se retira de ahí al limpiarse — mismo patrón que ya usaban los marcadores de tramo (`'tramo-inicio-ruta'`/`'tramo-fin-ruta'`) desde siempre. El factor de escala que multiplica estos tres tamaños base es el mismo que usan las polylines — ver "Escalado dinámico: dos curvas, no una" en §4.6.
 
+**Una única función construye el HTML de estos tres emoji, tanto al crearlos como al reescalarlos.** `_htmlEmojiRuta(emoji, size, centrado)` (`js/funciones-mapa.js`) es el único punto del código que arma la plantilla `<div style="font-size:...">` de 📌/🎯 — la usan `completarCambioParada()` (marcadores de tramo e inicio) y `dibujarPolylineNavegacion()` (marcador de destino) al crear el elemento, y `reescalarMarcadoresEmoji()` al reescribirlo en cada evento de zoom. Antes de existir este helper, la misma plantilla estaba copiada por separado en cada uno de esos cuatro sitios — funcionalmente idéntica hoy, pero con cuatro copias que un cambio futuro en una de ellas podía dejar desincronizadas con las otras tres sin que ningún test lo detectara. El marcador de posición propia (▲/🛸) no usa esta función — su HTML vive aparte en `actualizarMarcadorUsuario()`, con su propia curva de escala (ver tabla de abajo).
+
 **`completarCambioParada()` es la única cadena que dibuja marcadores/polyline en el mapa por cambio de parada/tramo, en los dos modos.** Los tests de auto-reparación de polyline (`23-polyline-autoreparacion.spec.js`) verifican el mecanismo de creación diferida de capas llamando directamente a `dibujarPolylineNavegacion()` (la función real del botón de ubicación, §4.6a). Ningún emisor real de `DATOS.COORDENADAS_PARADAS_REQUEST` necesita que su respuesta dibuje nada en el mapa — ver la tabla de `DATOS.COORDENADAS_PARADAS_REQUEST/RESPONSE` más abajo para el detalle de los tres emisores reales y por qué ninguno depende de ningún dibujado.
 
 **El vértice (ápice) del triángulo de la flecha GPS, no su base ni su centro geométrico, es el punto que queda anclado sobre la posición GPS real al rotar.** Cada uno de los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul — construidos con la técnica CSS `width:0;height:0;border-left/right:transparent;border-bottom:solid`) lleva `transform:translate(-50%,0%)`, no `translate(-50%,-50%)`: con la técnica de bordes, el vértice de un triángulo así se renderiza en el borde superior de su caja, no en el centro, así que centrar solo el eje horizontal (`-50%,0%`) deja el vértice exactamente en el origen local — el mismo punto sobre el que gira `.gps-arrow-heading`, su contenedor. Centrar también el eje vertical (`-50%,-50%`) desplazaría el vértice por encima de ese punto, a medio alto del triángulo. La diferencia importa porque `.gps-arrow-heading` es lo que rota (vía `rotate(Xdeg)`, con la brújula del dispositivo): si el vértice no coincide exactamente con el pivote de esa rotación, la punta de la flecha describe un pequeño círculo alrededor de la posición real en vez de quedarse clavada ahí señalando solo la dirección — medido empíricamente (icono de 40px): con `-50%,-50%` la punta oscilaría en un radio de ~16px alrededor del punto real según el ángulo; con `-50%,0%` no se mueve ni un píxel al rotar, y es la base la que barre el arco por detrás, como una aguja de brújula. Cubierto por el test `GA-1` (`tests/e2e/17-flecha-brujula-continuidad.spec.js`), que mide con `getBoundingClientRect()` en vez de asumir la geometría.
@@ -1632,7 +1634,7 @@ Padre                                Hijo
 **Notas de implementación:**
 
 - El ACK es **best-effort**: solo se envía si `enviarMensaje_S1` ya está disponible. No es crítico para la funcionalidad — PADRE_DATOS sigue igualmente.
-- `PADRE_DATOS` del handshake lleva únicamente `{ modo, timestamp }`. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16).
+- `PADRE_DATOS` del handshake lleva `{ modo, timestamp }` para todos los hijos. Los datos completos de la aventura (idioma, coordenadas) **no viajan en este mensaje** — llegan mediante mensajes específicos (`DATOS.CARGAR_COORDENADAS`, `NAVEGACION.RESPUESTA_DATOS_PARADAS`, etc.) después de que el hijo ya está listo. Audio y retos no se distribuyen en el handshake en absoluto — se resuelven parada a parada (ver §16). **Única excepción: `hijo6-chat`** — su `PADRE_DATOS` añade además `idioma`, `aventura`, `paradaActualNombre`, `siguienteParadaNombre` y `paradasRestantes` (`globalThis.construirEstadoChat()`, expuesto por el IIFE de apertura del chat para que `_hdl_SISTEMA_HIJO_PREPARADO` — otro scope — pueda leerlo). Sin esto, la primera apertura del chat en la sesión construía su FAQ con el idioma por defecto (`'es'`) en vez del idioma real seleccionado — ver §7.7 para el detalle.
 - El padre registra los handlers `HIJO_PREPARADO` y `HIJO_LISTO` en Script 1 **antes de asignar `src` a ningún iframe** — esto garantiza que los mensajes tempranos nunca se pierdan.
 - Diseño intencional: el timeout de 30 s en `state-manager.js` es el último recurso si el hijo se cuelga antes de enviar `HIJO_LISTO` (crash total), no como mecanismo normal de espera. El heartbeat continuo detecta hijos caídos tras arrancar y permite reenviar `CAMBIO_MODO` pendiente si llega un `HIJO_LISTO` tardío.
 
@@ -3240,7 +3242,7 @@ El estado que `CHAT.ESTADO_PADRE` entrega (`paradaActualNombre`, `siguienteParad
 
 | Controlador | Qué hace |
 |---|---|
-| `SISTEMA.PADRE_DATOS` | Recibe `{ modo, timestamp }` (sin idioma — el padre no lo envía aquí); actualiza `estadoPadre`; como no hay campo `idioma`, llama `construirFAQ()` con idioma `'es'` por defecto; envía `HIJO_LISTO` (con reintentos cada 1s, máx 30s). El idioma real solo llega después vía `CHAT.ESTADO_PADRE` cuando el usuario abre el chat |
+| `SISTEMA.PADRE_DATOS` | Recibe `{ modo, timestamp, idioma, aventura, paradaActualNombre, siguienteParadaNombre, paradasRestantes }` — única excepción entre los hijos: el padre añade aquí el resultado de `construirEstadoChat()` (ver nota debajo de la tabla del handshake general, §6). Actualiza `estadoPadre`; si `idioma` está presente, llama `actualizarIdioma()`, que reconstruye el título y el FAQ con el idioma real; envía `HIJO_LISTO` (con reintentos cada 1s, máx 30s) |
 | `SISTEMA.PADRE_CONFIRMA_HIJO_LISTO` | Cancela el timer de reintentos de `HIJO_LISTO` |
 | `CHAT.ESTADO_PADRE` | Actualiza `estadoPadre` interno; si cambia el idioma → `actualizarIdioma()` → reconstruye FAQ |
 | `SISTEMA.CAMBIO_MODO` | Envía `CAMBIO_MODO_ENTENDIDO` + `CAMBIO_MODO_EFECTUADO { exito: true }` al padre |
@@ -3265,10 +3267,10 @@ sequenceDiagram
     Note over H6: src="" — aún no cargado
     U->>P: click en #btn-chat-soporte (1ª vez)
     P->>H6: asigna src = 'chat-hijo6.html' + display:block
-    H6->>H6: registra controladores → construirFAQ() inicial (idioma 'es')
+    H6->>H6: registra controladores → construirFAQ() inicial (idioma 'es', se sustituye abajo)
     H6-->>P: SISTEMA.HIJO_PREPARADO
-    P->>H6: SISTEMA.PADRE_DATOS { modo, timestamp }
-    H6->>H6: construirFAQ() con idioma 'es' (por defecto; PADRE_DATOS no incluye idioma)
+    P->>H6: SISTEMA.PADRE_DATOS { modo, timestamp, idioma, aventura, paradaActualNombre, ... }
+    H6->>H6: actualizarIdioma() con el idioma real recibido — reconstruye título y FAQ
     H6-->>P: SISTEMA.HIJO_LISTO (con reintentos cada 1s)
     P->>H6: SISTEMA.PADRE_CONFIRMA_HIJO_LISTO
     H6->>H6: cancela timer de reintentos
@@ -3617,7 +3619,7 @@ sequenceDiagram
 **Detalles del handshake**:
 
 - `HIJO_PREPARADO` — el hijo lo envía nada más terminar su inicialización JS, antes de recibir datos.
-- `PADRE_DATOS` — contiene solo `{ modo, timestamp }`. Los hijos comprueban defensivamente otros campos (`paradas`, `paradaActual`, `idioma`) pero el padre no los envía en esta fase; esos datos llegan por mensajes posteriores (`DATOS.CARGAR_*`, `NAVEGACION.CARGAR_PARADAS`, `CHAT.ESTADO_PADRE`).
+- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Los hijos comprueban defensivamente otros campos (`paradas`, `paradaActual`, `idioma`) pero el padre no los envía en esta fase; esos datos llegan por mensajes posteriores (`DATOS.CARGAR_*`, `NAVEGACION.CARGAR_PARADAS`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`siguienteParadaNombre`/`paradasRestantes` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
 - `HIJO_LISTO` — el hijo confirma que ha procesado los datos. En el padre desencadena `marcarHijoListo(hijoId)`, que resuelve la Promise de `crearPromiseHijoListo(hijoId)`.
 - `PADRE_CONFIRMA_HIJO_LISTO` — señal para que el hijo muestre su UI. Hasta recibirlo la interfaz permanece oculta.
 - **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega, los hijos críticos muestran su UI igualmente (ver §5 — invariante `_normalizarSetHijos`).
@@ -4782,7 +4784,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-86dd01bb8eb6'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-fdd31812baee'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7679,7 +7681,7 @@ Recargar sobre una versión que ya era la última es inofensivo (una recarga de 
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-86dd01bb8eb6'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-fdd31812baee'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8322,7 +8324,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-86dd01bb8eb6';
+const CACHE_VERSION = 'v-fdd31812baee';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11470,7 +11472,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 89
 
 ```js
-const CACHE_VERSION = 'v-86dd01bb8eb6';
+const CACHE_VERSION = 'v-fdd31812baee';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

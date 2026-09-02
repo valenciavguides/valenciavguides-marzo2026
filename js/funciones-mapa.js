@@ -677,6 +677,23 @@ function getIconoEscalado() {
 let _elementosParaReescalar = [];
 
 /**
+ * HTML de un marcador emoji de ruta (📌 inicio, 🎯 parada/fin de tramo/destino de navegación)
+ * para un tamaño dado. Única función que construye esta plantilla — la usan tanto la creación
+ * del marcador (completarCambioParada, dibujarPolylineNavegacion) como reescalarMarcadoresEmoji()
+ * en cada evento de zoom, para que ambos momentos no puedan divergir por mantener la plantilla
+ * duplicada en dos sitios. No aplica al marcador de posición propia (▲/🛸, familia aparte con su
+ * propio HTML en actualizarMarcadorUsuario()).
+ * @param {string} emoji - '📌' o '🎯'
+ * @param {number} size - Tamaño en px ya escalado (getIconoEscalado())
+ * @param {boolean} [centrado=false] - true solo para el destino de navegación (mismo estilo previo)
+ * @returns {string}
+ */
+function _htmlEmojiRuta(emoji, size, centrado = false) {
+    const align = centrado ? 'text-align:center;' : '';
+    return `<div style="font-size:${size}px;${align}line-height:${size}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">${emoji}</div>`;
+}
+
+/**
  * Re-escala todos los marcadores emoji visibles según zoom y pantalla.
  * Llamado desde el listener zoomend.
  */
@@ -690,30 +707,26 @@ function reescalarMarcadoresEmoji() {
             const clase = el?.className;
             if (!clase) return;
 
-            let size, emoji, shadow;
+            let size, emoji;
 
             if (clase === 'custom-marker-emoji' || clase === 'finish-flag-icon' || clase === 'tramo-fin-icon') {
                 size = iconos.parada;
                 emoji = '🎯';
-                shadow = 'text-shadow:0 2px 4px rgba(0,0,0,0.3);';
             } else if (clase === 'start-flag-icon' || clase === 'tramo-inicio-icon') {
                 size = iconos.inicio;
                 emoji = '📌';
-                shadow = 'text-shadow:0 2px 4px rgba(0,0,0,0.3);';
             } else {
                 return;
             }
 
-            el.innerHTML = `<div style="font-size:${size}px;line-height:${size}px;${shadow}">${emoji}</div>`;
+            el.innerHTML = _htmlEmojiRuta(emoji, size);
         } catch (_e) { /* ignore individual marker errors */ } // NOSONAR
     });
 
     // Re-escalar marcador de destino de navegación (🎯)
     if (marcadorDestinoNavegacion) {
         try {
-            const size = iconos.destino;
-            marcadorDestinoNavegacion.getElement().innerHTML =
-                `<div style="font-size:${size}px;text-align:center;line-height:${size}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`;
+            marcadorDestinoNavegacion.getElement().innerHTML = _htmlEmojiRuta('🎯', iconos.destino, true);
         } catch (_e) { /* ignore */ } // NOSONAR
     }
 }
@@ -1991,14 +2004,14 @@ async function completarCambioParada() {
                     });
                     if (tramoData.inicio) {
                         const mI = _crearMarcadorHTML(tramoData.inicio,
-                            `<div style="font-size:${_ic.inicio}px;line-height:${_ic.inicio}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">📌</div>`,
+                            _htmlEmojiRuta('📌', _ic.inicio),
                             { className: 'tramo-inicio-icon', zIndex: 600 }
                         );
                         marcadoresParadas.set('tramo-inicio-ruta', mI);
                     }
                     if (tramoData.fin) {
                         const mF = _crearMarcadorHTML(tramoData.fin,
-                            `<div style="font-size:${_ic.parada}px;line-height:${_ic.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
+                            _htmlEmojiRuta('🎯', _ic.parada),
                             { className: 'tramo-fin-icon', zIndex: 600 }
                         );
                         marcadoresParadas.set('tramo-fin-ruta', mF);
@@ -2043,7 +2056,7 @@ async function completarCambioParada() {
                 try {
                     const _ic = getIconoEscalado();
                     const mP = _crearMarcadorHTML(coordenadas,
-                        `<div style="font-size:${_ic.parada}px;line-height:${_ic.parada}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
+                        _htmlEmojiRuta('🎯', _ic.parada),
                         { className: 'custom-marker-emoji', title: paradaId, zIndex: 600 }
                     );
                     marcadorParadaActual = mP;
@@ -3213,7 +3226,7 @@ export function dibujarPolylineNavegacion(opciones = {}) {
 
         // Crear marcador de destino con emoji 🎯
         marcadorDestinoNavegacion = _crearMarcadorHTML(destino,
-            `<div style="font-size:${iconos.destino}px;text-align:center;line-height:${iconos.destino}px;text-shadow:0 2px 4px rgba(0,0,0,0.3);">🎯</div>`,
+            _htmlEmojiRuta('🎯', iconos.destino, true),
             { className: 'marcador-destino-navegacion', title: 'Tu destino', zIndex: 500 }
         );
         
