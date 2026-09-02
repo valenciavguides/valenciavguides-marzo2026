@@ -9,6 +9,8 @@
     "inventory": "node tools/inventory.js",
     "inventory:dupes": "node tools/inventory.js --duplicates",
     "inventory:file": "node tools/inventory.js --by-file",
+    "inventory:conexiones": "node tools/inventory-conexiones.js",
+    "inventory:assets": "node tools/inventory-conexiones.js --assets",
     "verificar-mensajeria": "node tools/verificar-mensajeria.js",
     "verificar-media": "node tools/verificar-media.js",
     "verificar-docs": "node tools/verificar-docs.js",

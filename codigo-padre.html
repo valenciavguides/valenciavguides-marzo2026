@@ -4580,6 +4580,10 @@
                     // aventura heredaría los saltos ya gastados en la anterior.
                     estado.tramoSkipsUsados = 0;
                     estado.progresoEnUltimoSkip = 0;
+                    // paradasCompletadas es de ESTA aventura — sin resetearlo, si el usuario
+                    // elige la misma aventura de nuevo, todas sus paradas aparecerían ya
+                    // completadas desde el primer momento.
+                    estado.paradasCompletadas = new Map();
                     // Este camino (a diferencia de "otra aventura" desde el modal de fin, que
                     // recarga la página) reutiliza el mismo module scope de funciones-mapa.js —
                     // sin esto, el modo de cámara ("Seguir mi rumbo"/"Norte fijo") de la aventura
@@ -4692,6 +4696,10 @@
                     // aventura heredaría los saltos ya gastados en la anterior.
                     estado.tramoSkipsUsados = 0;
                     estado.progresoEnUltimoSkip = 0;
+                    // paradasCompletadas es de ESTA aventura — sin resetearlo, si el usuario
+                    // elige la misma aventura de nuevo, todas sus paradas aparecerían ya
+                    // completadas desde el primer momento.
+                    estado.paradasCompletadas = new Map();
                     // Esta aventura SÍ estaba realmente activa (por eso mostrarDialogoVueltaRapida
                     // se disparó) — hijo2/hijo3/chat/selector están visibles de verdad y hay que
                     // ocultarlos al volver a selección, ver _ocultarUIActivada().
@@ -5037,6 +5045,16 @@
                 // parada que se acababan de fijar.
                 await _activarModoRest(logPrefix, datosGuardados);
                 await _restaurarProgresoRest(logPrefix);
+                // Si la sesión se restauró en modo CASA, paradaRealCongelada nunca fue fijada
+                // por _hdl_SISTEMA_CAMBIO_MODO (esa función no se ejecuta durante la restauración).
+                // Sin este punto, el primer cambio CASA→AVENTURA de la sesión restaurada deja el
+                // mapa vacío: limpiarRecursosPorModo() borra estado.paradaActual pero la condición
+                // `if (modo===AVENTURA && paradaRealCongelada)` es false → __triggerCambioParadaInterno
+                // no se llama → mapa queda vacío y estado.paradaActual queda null.
+                if (estado.modo?.actual === MODOS.CASA && estado.paradaActual) {
+                    estado.paradaRealCongelada = estado.paradaActual;
+                    (globalThis.logger || console).debug(`${logPrefix} paradaRealCongelada inicializada desde restauración CASA: ${estado.paradaRealCongelada}`);
+                }
                 await _solicitarRecursosRest(logPrefix);
             } catch (err) {
                 (globalThis.logger || console).error(`${logPrefix} Error restaurando aventura:`, err);

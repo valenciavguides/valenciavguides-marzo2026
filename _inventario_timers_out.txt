@@ -1,0 +1,174 @@
+audio-hijo3.html:798: [setInterval] _retosBtnSpinInterval = setInterval(() => {
+audio-hijo3.html:1264: [setTimeout] _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+boton-casa-hijo5.html:1013: [setTimeout] _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+chat-hijo6.html:627: [setTimeout] setTimeout(() => { buzonGraciasEl.classList.remove('visible'); buzonBotonEl.disabled = false; }, 3000);
+chat-hijo6.html:655: [setTimeout] _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+codigo-padre.html:175: [setTimeout] setTimeout(applyStylingOnce, 250);
+codigo-padre.html:1618: [setTimeout] _btnChatSpinTimeoutId = setTimeout(_quitarSpinBtnChat, 950); // duración de spin-audio-main (0.9s) + margen
+codigo-padre.html:1731: [setTimeout] setTimeout(() => {
+codigo-padre.html:2026: [setTimeout] setTimeout(() => {
+codigo-padre.html:2107: [setTimeout] setTimeout(() => {
+codigo-padre.html:2160: [setTimeout] _mapaVisibleFallback = setTimeout(_sendMapaVisible, 1500);
+codigo-padre.html:2175: [setTimeout] setTimeout(() => {
+codigo-padre.html:2706: [setTimeout] function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+codigo-padre.html:2765: [setTimeout] setTimeout(() => {
+codigo-padre.html:2771: [setInterval] _loadingFraseTimer = setInterval(mostrarFraseAleatoria, 5000);
+codigo-padre.html:2804: [setTimeout] setTimeout(() => {
+codigo-padre.html:2857: [setInterval] const waitForMap = setInterval(() => {
+codigo-padre.html:3356: [setTimeout] setTimeout(() => {
+codigo-padre.html:3418: [setTimeout] setTimeout(tryInit, 200);
+codigo-padre.html:3716: [sleep(] await sleep(250);
+codigo-padre.html:4430: [setInterval] const restoreProgressTimer = setInterval(() => {
+codigo-padre.html:4508: [setInterval] timerInterval = setInterval(() => {
+codigo-padre.html:4671: [setTimeout] else setTimeout(check, 200);
+codigo-padre.html:4687: [sleep(] else { let _i = 0; while (typeof globalThis.distribuirDatosAventura !== 'function' && _i++ < 120) { await sleep(250); } }
+codigo-padre.html:4694: [sleep(] while (!globalThis.sistemaInicializado && (Date.now() - t0 < delay * 5)) { await sleep(delay); }
+codigo-padre.html:4721: [sleep(] await sleep(250);
+codigo-padre.html:4792: [setTimeout] const carrera = await Promise.race([cambioModoPromise.then(() => 'ok'), new Promise(r => setTimeout(() => r('timeout'), 2500))]);
+codigo-padre.html:4794: [setTimeout] const gracia = await Promise.race([cambioModoPromise.then(() => true).catch(() => true), new Promise(r => setTimeout(() => r(false), 1200))]
+codigo-padre.html:5127: [setTimeout] else setTimeout(check, 200);
+codigo-padre.html:5132: [setTimeout] const race = await Promise.race([waitPromise, new Promise(r => setTimeout(() => r({ timeout: true }), dynamicTimeout))]);
+codigo-padre.html:5327: [watchPosition] est.gps.watchId = navigator.geolocation.watchPosition(
+codigo-padre.html:5348: [setTimeout] est.gps.retryTimeoutId = setTimeout(() => {
+codigo-padre.html:5606: [watchPosition] est.gps.watchId = navigator.geolocation.watchPosition(
+codigo-padre.html:5727: [setTimeout] const to = setTimeout(() => {
+codigo-padre.html:6155: [setInterval] const tid = setInterval(() => {
+codigo-padre.html:7563: [setTimeout] const timeoutFallback = setTimeout(() => {
+codigo-padre.html:7583: [setTimeout] setTimeout(() => {
+codigo-padre.html:7686: [sleep(] await sleep(espera);
+codigo-padre.html:7749: [setTimeout] setTimeout(checkMapLibre, 100);
+codigo-padre.html:7795: [sleep(] await sleep(intervaloPorReintento);
+codigo-padre.html:7972: [setTimeout] setTimeout(() => _finalizarInicializacion(logPrefix), 300);
+codigo-padre.html:8096: [setTimeout] setTimeout(() => {
+codigo-padre.html:8349: [setTimeout] setTimeout(() => card.remove(), 350);
+codigo-padre.html:8363: [setTimeout] setTimeout(cerrar, 7000);
+codigo-padre.html:8448: [setTimeout] setTimeout(cerrar, 10000);
+codigo-padre.html:8525: [setTimeout] setTimeout(cerrar, 10000);
+codigo-padre.html:8594: [setTimeout] setTimeout(cerrar, 10000);
+codigo-padre.html:8658: [setTimeout] setTimeout(cerrar, 10000);
+codigo-padre.html:8721: [setTimeout] setTimeout(cerrar, 10000);
+codigo-padre.html:8800: [setTimeout] setTimeout(cerrar, 7000);
+codigo-padre.html:8820: [setInterval] _recordatorioAudioCheckIntervalId = setInterval(() => {
+codigo-padre.html:8888: [setTimeout] const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
+codigo-padre.html:8951: [sleep(] await sleep(50);
+codigo-padre.html:9839: [setInterval] _audioMainSpinInterval = setInterval(() => {
+codigo-padre.html:9940: [sleep(] await sleep(100);
+codigo-padre.html:10129: [sleep(] await sleep(0);
+codigo-padre.html:10136: [sleep(] await sleep(50);
+codigo-padre.html:10172: [setTimeout] setTimeout(() => {
+codigo-padre.html:12039: [setTimeout] const timeout = setTimeout(() => {
+codigo-padre.html:12089: [setTimeout] else setTimeout(check, 200);
+codigo-padre.html:12236: [setTimeout] setTimeout(() => globalThis.hideParentLoadingOverlay?.(), 250);
+codigo-padre.html:12927: [setTimeout] setTimeout(checkMap, 100);
+codigo-padre.html:12930: [setTimeout] setTimeout(checkMap, 100);
+codigo-padre.html:12966: [setTimeout] const timeoutSeguridad = setTimeout(() => {
+codigo-padre.html:12991: [setTimeout] setTimeout(() => {
+codigo-padre.html:13006: [setInterval] globalThis.__VV_PENDING_CLEANUP = setInterval(() => {
+codigo-padre.html:13041: [setTimeout] const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
+codigo-padre.html:13046: [sleep(] await sleep(50);
+codigo-padre.html:13069: [sleep(] await sleep(50);
+codigo-padre.html:13113: [setTimeout] setTimeout(() => {
+codigo-padre.html:13202: [setTimeout] const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
+codigo-padre.html:13207: [sleep(] await sleep(50);
+codigo-padre.html:13216: [sleep(] await sleep(50);
+codigo-padre.html:13376: [sleep(] await sleep(150);
+codigo-padre.html:13383: [sleep(] await sleep(150);
+codigo-padre.html:13389: [sleep(] await sleep(200);
+codigo-padre.html:13565: [setTimeout] await new Promise(r => setTimeout(r, 50));
+codigo-padre.html:13687: [setTimeout] setTimeout(() => { btnCopiar.textContent = 'Copiar todo'; }, 1500);
+codigo-padre.html:13704: [setInterval] const intervalo = setInterval(refrescar, 1000);
+coordenadas-hijo2.html:442: [setTimeout] const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmación')),
+coordenadas-hijo2.html:1082: [setInterval] state.intervalId = setInterval(() => {
+coordenadas-hijo2.html:1131: [setTimeout] spinTimeoutId = setTimeout(quitarSpin, 950); // duración de spin-btn (0.9s) + margen
+coordenadas-hijo2.html:1190: [setTimeout] await new Promise(r => setTimeout(r, 100));
+coordenadas-hijo2.html:1635: [setTimeout] _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+coordenadas-hijo2.html:1715: [setTimeout] setTimeout(() => {
+En-busca-del-tesoro.html:1146: [setTimeout] setTimeout(() => guante.classList.remove('show'), DURACION_ENTRADA_MS + PAUSA_SOBRE_PLAY_MS);
+En-busca-del-tesoro.html:1150: [setInterval] _guanteHintIntervalId = setInterval(ciclo, 5000);
+En-busca-del-tesoro.html:1222: [setTimeout] setTimeout(() => card.remove(), 350);
+En-busca-del-tesoro.html:1239: [setTimeout] setTimeout(cerrar, 7000); // se descarta sola si el usuario la ignora
+En-busca-del-tesoro.html:1418: [setTimeout] setTimeout(() => { void mostrar(9); }, 1500);
+En-busca-del-tesoro.html:1424: [setTimeout] setTimeout(() => {
+En-busca-del-tesoro.html:1728: [setTimeout] await new Promise(r => setTimeout(r, 2000));
+En-busca-del-tesoro.html:1804: [setInterval] timerProgresoCarga = setInterval(() => {
+En-busca-del-tesoro.html:1813: [setTimeout] timerMensajeCarga = setTimeout(() => {
+En-busca-del-tesoro.html:1822: [setTimeout] setTimeout(() => { overlay.style.display = 'none'; }, 250);
+En-busca-del-tesoro.html:2208: [setTimeout] setTimeout(() => { void mostrar(16); }, 1500);
+En-busca-del-tesoro.html:2214: [setTimeout] setTimeout(() => {
+En-busca-del-tesoro.html:2535: [setTimeout] await new Promise(resolve => setTimeout(resolve, 100));
+En-busca-del-tesoro.html:3036: [setTimeout] _tapTimer = setTimeout(() => { _tapCount = 0; }, 5000);
+extrainfo-hijo1.html:300: [setTimeout] await new Promise(resolve => setTimeout(resolve, 100));
+extrainfo-hijo1.html:429: [setTimeout] _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+extrainfo-hijo1.html:1179: [setTimeout] _devTapTimer = setTimeout(() => { _devTapCount = 0; _gestureInProgress = false; }, 5000);
+extrainfo-hijo1.html:1303: [setInterval] estadoTemporizador.intervalId = setInterval(async () => {
+index.html:97: [setTimeout] setTimeout(function() {
+js\api-client.js:189: [sleep(] await sleep(delay);
+js\api-client.js:201: [setTimeout] const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+js\app.js:177: [setInterval] const intervaloLimpiezaPromesas = setInterval(() => {
+js\app.js:191: [setTimeout] new Promise(resolve => setTimeout(() => {
+js\app.js:294: [setTimeout] await new Promise(resolve => setTimeout(resolve, intervaloChequeo));
+js\app.js:448: [setTimeout] new Promise(resolve => setTimeout(() => resolve({ timeout: true }), cfgConfirmTimeout * 2))
+js\app.js:792: [setInterval] const iv = setInterval(async () => {
+js\app.js:913: [setTimeout] setTimeout(checkMap, 100);
+js\app.js:916: [setTimeout] setTimeout(() => resolve(), 5000); // Timeout de 5 segundos
+js\app.js:1067: [setInterval] globalThis.__vv_intervaloMemoria = setInterval(() => {
+js\app.js:1449: [setInterval] const intervaloReintentoModo = setInterval(async () => {
+js\funciones-mapa.js:823: [setInterval] intervaloLimpiezaAutomatica = setInterval(limpiarRecursosInactivos, intervaloLimpiezaMs);
+js\funciones-mapa.js:1590: [setTimeout] const _timeoutSeguridad = setTimeout(() => {
+js\funciones-mapa.js:1779: [setTimeout] await new Promise(resolve => setTimeout(resolve, checkInterval));
+js\funciones-mapa.js:1831: [setTimeout] const fallback = setTimeout(resolver, durFase * 1000 + 600 + extraMs);
+js\mensajeria.js:393: [setTimeout] const timeoutId = setTimeout(() => {
+js\mensajeria.js:762: [setInterval] const intervalId = setInterval(async () => {
+js\mensajeria.js:808: [setTimeout] new Promise(resolve => setTimeout(resolve, timeout))
+js\mensajeria.js:1055: [setInterval] setInterval(() => {
+js\monitoreo.js:76: [setInterval] estadoMonitoreo.intervaloMetricas = setInterval(() => {
+js\monitoreo.js:82: [setInterval] estadoMonitoreo.intervaloHeartbeat = setInterval(() => {
+js\proteccion.js:101: [setTimeout] setTimeout(_bucleAntiDebug, 3500 + Math.random() * 2000);
+js\proteccion.js:121: [setTimeout] setTimeout(_bucleAntiDebug, 3000 + Math.random() * 2000);
+js\reciclaje-digital.js:185: [setTimeout] const timerId = setTimeout(() => ejecutar('timeout-10min'), TIMEOUT_ABANDONO_MS);
+js\state-manager.js:197: [setTimeout] entry.timeout = setTimeout(() => {
+js\state-manager.js:626: [setInterval] setInterval(() => limpiarMensajesAntiguos(500), 60000);
+js\utils.js:323: [setTimeout] setTimeout(() => resolve({ success: true, simulado: true }), 100);
+js\utils.js:369: [setTimeout] setTimeout(intentar, intervalo);
+js\utils.js:401: [setTimeout] setTimeout(intentar, intervalo);
+js\utils.js:419: [setTimeout] timeoutId = setTimeout(() => fn.apply(this, args), espera);
+js\utils.js:447: [setTimeout] return new Promise(resolve => setTimeout(resolve, ms));
+js\vendor\maplibre-gl-csp-worker.js:5: [setTimeout] var maplibregl=function(){"use strict";function t(t,e,r,n){return new(r||(r=Promise))((function(i,s){function o(t){try{l(n.next(t))}catch(t)
+js\vendor\maplibre-gl-csp.js:5: [setTimeout] !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t
+js\vendor\maplibre-gl-csp.js:5: [watchPosition] !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t
+js\vendor\page-flip.browser.js:1: [setTimeout] !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e
+js\video-playback-utils.js:31: [setTimeout] function _onStalled() { setTimeout(() => this.play().catch(() => {}), 300); }
+js\video-playback-utils.js:32: [setTimeout] function _onWaiting() { setTimeout(() => this.play().catch(() => {}), 500); }
+js\video-playback-utils.js:68: [setTimeout] timeoutId = setTimeout(arrancar, timeoutMs);
+js\video-playback-utils.js:87: [setTimeout] setTimeout(() => {
+mapa-completo.html:268: [setTimeout] setTimeout(_reajustarVista, 300);
+puzzle.html:256: [setTimeout] globalThis.addEventListener("orientationchange", () => setTimeout(resizePieces, 300)); // Pequeño retraso para que el navegador se ajuste
+puzzle.html:265: [setTimeout] setTimeout(resizePieces, VISIBILITY_RESIZE_DELAY_MS);
+puzzle.html:446: [setInterval] timerInterval = setInterval(() => {
+retos-hijo4.html:448: [setTimeout] const timeout = setTimeout(() => reject(new Error('Timeout esperando confirmación')),
+retos-hijo4.html:792: [setTimeout] setTimeout(() => {
+retos-hijo4.html:827: [setTimeout] setTimeout(() => {
+retos-hijo4.html:835: [setTimeout] setTimeout(() => {
+retos-hijo4.html:996: [setTimeout] setTimeout(() => inputTexto.focus(), 200);
+retos-hijo4.html:1134: [setTimeout] _timeoutResetBtnEnviar = setTimeout(() => {
+retos-hijo4.html:1409: [setTimeout] _intervaloReintento = setTimeout(enviarHijoListoConReintento, INTERVALO_REINTENTO);
+tools\renumber-pantallas.js:164: [setTimeout] 'setTimeout(() => { void mostrar(12); }, 1500);',
+tools\renumber-pantallas.js:165: [setTimeout] 'setTimeout(() => { void mostrar(9); }, 1500);',
+tools\renumber-pantallas.js:206: [setTimeout] 'setTimeout(() => { void _procesarAfirmativaR2(); }, 1500);',
+tools\renumber-pantallas.js:207: [setTimeout] 'setTimeout(() => { void mostrar(16); }, 1500);',
+tools\watch-sw.js:42: [setTimeout] timer = setTimeout(recalcular, DEBOUNCE_MS);
+video-intro.html:691: [setTimeout] const wait = ms => new Promise(r => setTimeout(r, ms));
+video-intro.html:754: [setTimeout] setTimeout(cleanup, 1400);
+video-intro.html:809: [setTimeout] _bandHideTimer = setTimeout(_flushBandHide, 2000);
+video-intro.html:913: [setTimeout] setTimeout(()=>{
+video-intro.html:1418: [setInterval] const checker = setInterval(()=>{ if (_skipRequested) done(); }, 300);
+video-intro.html:1670: [setTimeout] setTimeout(()=>$('cpanel').classList.add('open'),60);
+video-intro.html:1678: [setTimeout] await Gauntlet.tapEl(cx,'DL',()=>{ $('cpanel').classList.remove('open'); setTimeout(()=>clearOv(),440) });
+video-intro.html:1697: [setInterval] timerRef.iv=setInterval(()=>{
+video-intro.html:1714: [setTimeout] setTimeout(()=>{
+video-intro.html:1720: [setTimeout] setTimeout(()=>MC.moveUser(offPt),150);
+video-intro.html:1748: [setTimeout] setTimeout(()=>{
+video-intro.html:1754: [setTimeout] setTimeout(()=>MC.moveUser(farOff),150);
+video-intro.html:1766: [setTimeout] setTimeout(()=>{ const el=MC.uM?.getElement()?.querySelector('div'); if(el) el.style.fontSize='44px' },300);
+video-intro.html:1834: [setInterval] const iv=setInterval(()=>{
+video-intro.html:1841: [setTimeout] setTimeout(()=>{

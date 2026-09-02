@@ -7,6 +7,7 @@
  * Uso:
  *   node tools/verificar-mensajeria.js            → informe completo
  *   node tools/verificar-mensajeria.js --quiet     → solo huérfanos (para CI)
+ *   node tools/verificar-mensajeria.js --todos     → tabla markdown de los 100 tipos, emisor(es) → receptor(es)
  *
  * Qué hace:
  *   1. Aplana TIPOS_MENSAJE de js/constants.js (incluye categorías anidadas
@@ -32,6 +33,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const QUIET = process.argv.slice(2).includes('--quiet');
+const TODOS = process.argv.slice(2).includes('--todos');
 
 function walk(dir, exts, exclude, out = []) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -88,7 +90,7 @@ function main() {
     const TIPOS_MENSAJE = cargarTiposMensaje();
     const tipos = aplanarTipos(TIPOS_MENSAJE);
 
-    const contents = files.map(f => ({ file: path.relative(ROOT, f), text: readNoBom(f) }));
+    const contents = files.map(f => ({ file: path.relative(ROOT, f).replace(/\\/g, '/'), text: readNoBom(f) }));
 
     const report = new Map();
     for (const t of tipos) report.set(t.dotPath, { emitters: new Set(), receivers: new Set(), value: t.value });
@@ -125,6 +127,17 @@ function main() {
     if (!QUIET) {
         console.log(`Archivos analizados: ${files.length}`);
         console.log(`Tipos de mensaje totales: ${tipos.length} (${conAmbos} con emisor y receptor detectados)\n`);
+    }
+
+    if (TODOS) {
+        console.log('| Tipo | Emisor(es) | Receptor(es) |');
+        console.log('|---|---|---|');
+        for (const [dotPath, e] of [...report.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+            const em = [...e.emitters].sort().join(', ') || '*(ninguno detectado)*';
+            const re = [...e.receivers].sort().join(', ') || '*(ninguno detectado)*';
+            console.log(`| \`${dotPath}\` | ${em} | ${re} |`);
+        }
+        return;
     }
 
     console.log('=== Tipos SIN receptor detectado (se emiten pero nadie escucha) ===');

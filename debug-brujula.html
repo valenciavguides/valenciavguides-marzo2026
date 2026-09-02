@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Diagnóstico brújula — temporal</title>
+<title>Diagnóstico brújula</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -88,7 +88,7 @@
 </head>
 <body>
 
-<h1>⚠️ Diagnóstico de brújula — página temporal, no forma parte de la app</h1>
+<h1>Diagnóstico de brújula — herramienta de desarrollo, no forma parte de la app</h1>
 <p class="aviso">Sujeta el móvil como cuando andas mirando el mapa (vertical, pantalla hacia ti). Gira tu cuerpo, no la muñeca.</p>
 
 <button id="btnEmpezar" type="button">Empezar</button>
@@ -128,7 +128,9 @@
 
   let ultimoLog = 0;
 
-  // ── Misma fórmula EXACTA que actualizarOrientacionFlecha() en js/funciones-mapa.js ──
+  // ── Misma fórmula que actualizarOrientacionFlecha() en js/funciones-mapa.js ──
+  // Muestra el heading crudo (0=norte, 90=este). En la app real, _rumboEnPantalla()
+  // resta el bearing actual del mapa antes del rotate() — no aplica aquí sin mapa.
   function calcularHeading(event) {
     let heading = null;
     let origen = '';
