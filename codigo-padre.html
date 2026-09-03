@@ -14512,6 +14512,12 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // sin este flag el aviso se perdía para siempre y el usuario podía quedarse
             // en la versión vieja sin saberlo ni tener botón para arreglarlo.
             const SW_PENDIENTE_KEY = 'vv_sw_update_pendiente';
+            // Última versión que este navegador ha visto confirmada activa de verdad —
+            // solo vía SW_ACTIVADO real (más abajo), nunca por suposición. Es la base de
+            // comparación del probe de version.json: si lo que responde el servidor
+            // difiere de esto, hay una actualización real que este navegador todavía no
+            // ha aplicado.
+            const SW_VERSION_ACTIVA_KEY = 'vv_version_activa';
             function _marcarActualizacionPendiente(version) {
                 try { localStorage.setItem(SW_PENDIENTE_KEY, version || 'desconocida'); } catch (_e) { /* ignore */ }
             }
@@ -14536,7 +14542,19 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const btn = document.createElement('button');
                 btn.textContent = _t.boton;
                 btn.style.cssText = 'background:#ff8c00;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;';
-                btn.addEventListener('click', () => { _limpiarActualizacionPendiente(); globalThis.location.reload(); });
+                // No limpia SW_PENDIENTE_KEY antes de navegar — se limpia solo cuando el
+                // arranque siguiente confirma de verdad la nueva versión (ver el listener
+                // de SW_ACTIVADO, más abajo). Si esta recarga concreta no consigue traer la
+                // versión nueva (red intermitente, o sw.js todavía sirviéndose desde una
+                // caché de borde vieja del hosting), el aviso sigue marcado como pendiente y
+                // el probe de version.json lo vuelve a mostrar solo — sin esto, un intento
+                // fallido borraría el aviso para siempre sin haber conseguido nada.
+                btn.addEventListener('click', () => {
+                    btn.disabled = true;
+                    const _urlRecarga = new URL(globalThis.location.href);
+                    _urlRecarga.searchParams.set('_v', Date.now());
+                    globalThis.location.href = _urlRecarga.toString();
+                });
                 banner.appendChild(label);
                 banner.appendChild(btn);
                 document.body.appendChild(banner);
@@ -14551,9 +14569,27 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             });
             navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data?.tipo !== 'SW_ACTIVADO') return;
+                const _v = event.data.version || null;
+                // ¿Esta activación trajo justo la versión que se esperaba? (pulsar
+                // "Actualizar" deja SW_PENDIENTE_KEY con el valor objetivo). Si coincide,
+                // es la confirmación real de que la actualización sí se aplicó — no una
+                // suposición del probe de version.json, sino el propio SW confirmándolo.
+                let _eraElObjetivo = false;
+                try {
+                    _eraElObjetivo = !!_v && localStorage.getItem(SW_PENDIENTE_KEY) === _v;
+                    if (_v) localStorage.setItem(SW_VERSION_ACTIVA_KEY, _v);
+                } catch (_e) { /* ignore */ }
+                if (_eraElObjetivo) {
+                    // Confirmado: se limpia el aviso y se retira el banner si
+                    // controllerchange (casi simultáneo) llegó a crearlo un instante antes.
+                    _limpiarActualizacionPendiente();
+                    document.getElementById('sw-update-banner')?.remove();
+                    _swBannerMostrado = false;
+                    return;
+                }
                 if (!previousController) return; // primera instalación — sin banner
                 if (_swBannerMostrado) return;
-                _mostrarBannerSW(event.data.version || null);
+                _mostrarBannerSW(_v);
             });
 
             // Arranque: si una sesión anterior dejó el aviso sin resolver (el usuario
@@ -14566,6 +14602,46 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const _pendiente = localStorage.getItem(SW_PENDIENTE_KEY);
                 if (_pendiente) _mostrarBannerSW(_pendiente === 'desconocida' ? null : _pendiente);
             } catch (_e) { /* ignore */ }
+
+            // ── Probe de versión real, independiente del ciclo de vida del SW ────────
+            // GitHub Pages sirve detrás de un CDN (Fastly) con Cache-Control:max-age=600
+            // fijo, sin forma de configurarlo desde este proyecto — ni cache:'no-store'
+            // en las peticiones del SW ni updateViaCache:'none' en el register() de más
+            // abajo pueden con eso, porque ambos solo bypasean la caché LOCAL del
+            // navegador, nunca la del CDN por delante del hosting. version.json,
+            // consultado siempre con un parámetro de cache-busting distinto en cada
+            // petición, es la única forma de conocer la versión real desplegada sin
+            // depender de que esa caché de borde ya haya expirado en el nodo que
+            // responda. No sustituye a registration.update() (sigue llamándose más abajo,
+            // sigue siendo lo único que de verdad actualiza el SW) — solo decide cuándo
+            // avisar, y cuándo dar por buena una actualización ya intentada.
+            const _esLocal = globalThis.location.hostname === 'localhost' || globalThis.location.hostname === '127.0.0.1';
+            const VERSION_PROBE_INTERVALO_MS = 15 * 60 * 1000; // 15 min — no es tan urgente como el GPS/heartbeat
+            function _comprobarVersionRemota() {
+                if (_esLocal) return; // en local no hay CDN de por medio que desmentir
+                fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+                    .then(r => (r && r.ok) ? r.json() : null)
+                    .then(datos => {
+                        const remota = datos && datos.version;
+                        if (!remota) return; // fichero ausente o malformado — se reintenta en el próximo disparador
+                        let _activa = null;
+                        try { _activa = localStorage.getItem(SW_VERSION_ACTIVA_KEY); } catch (_e) { /* ignore */ }
+                        if (_activa === null) {
+                            // Primera comprobación de la que este navegador tiene constancia
+                            // (o SW_ACTIVADO todavía no ha llegado a confirmar ninguna) — fija
+                            // la base de comparación sin avisar, no hay "antes" real con el
+                            // que contrastar todavía.
+                            try { localStorage.setItem(SW_VERSION_ACTIVA_KEY, remota); } catch (_e) { /* ignore */ }
+                            return;
+                        }
+                        if (remota === _activa) return; // nada nuevo desplegado
+                        if (_swBannerMostrado) return; // ya se está avisando de esto mismo
+                        _mostrarBannerSW(remota);
+                    })
+                    .catch(_e => { /* sin conexión o version.json no disponible — nunca bloquea nada, se reintenta solo en el próximo disparador */ });
+            }
+            _comprobarVersionRemota();
+            if (!_esLocal) setInterval(_comprobarVersionRemota, VERSION_PROBE_INTERVALO_MS);
 
             navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
                 .then(registration => {
@@ -14585,11 +14661,13 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                             // segundo plano en vez de recargarse de verdad, este es el único
                             // momento en que se puede re-mostrar un aviso pendiente — un
                             // arranque nuevo (el bloque de arriba) no llega a ejecutarse en
-                            // ese caso porque no hay ningún arranque nuevo.
+                            // ese caso porque no hay ningún arranque nuevo. Se aprovecha el
+                            // mismo instante para relanzar el probe de version.json.
                             try {
                                 const _pendienteAlVolver = localStorage.getItem(SW_PENDIENTE_KEY);
                                 if (_pendienteAlVolver) _mostrarBannerSW(_pendienteAlVolver === 'desconocida' ? null : _pendienteAlVolver);
                             } catch (_e) { /* ignore */ }
+                            _comprobarVersionRemota();
                         }
                     });
                 })

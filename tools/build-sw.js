@@ -24,6 +24,12 @@
  *      contexto — el mismo mecanismo simple de "sustituir el slug viejo por
  *      el nuevo en todo el documento" ya usado a mano toda la sesión) en
  *      sw.js y en todas las apariciones dentro de docs/GUIA-COMPLETA.md.
+ *   5. Escribe/corrige version.json en la raíz con { "version": nuevoValor },
+ *      siempre — no solo cuando CACHE_VERSION cambia — para que exista desde
+ *      el primer build:sw tras añadirse este mecanismo y se autocorrija si
+ *      alguien lo edita a mano por error. codigo-padre.html lo consulta con
+ *      cache-busting propio para saber la versión real del servidor incluso
+ *      cuando el CDN por delante del hosting sigue sirviendo un sw.js viejo.
  *
  * Por qué --staged lee con `git show :ruta` y no con fs.readFileSync:
  *   este proyecto no tiene .gitattributes y core.autocrlf=true — el working
@@ -58,6 +64,7 @@ const { execFileSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const SW_PATH = path.join(ROOT, 'sw.js');
 const GUIA_PATH = path.join(ROOT, 'docs', 'GUIA-COMPLETA.md');
+const VERSION_JSON_PATH = path.join(ROOT, 'version.json');
 const PLACEHOLDER = '__CACHE_VERSION_PLACEHOLDER__';
 
 function parsearAppShell(swContent) {
@@ -133,26 +140,41 @@ function aplicarCacheVersion(nuevoValor, { quiet = false } = {}) {
     const actual = valorActualCacheVersion(swContent);
     if (actual == null) throw new Error('No se pudo localizar la línea CACHE_VERSION en sw.js');
 
-    if (actual === nuevoValor) {
+    const modificados = [];
+    const cambioReal = actual !== nuevoValor;
+
+    if (cambioReal) {
+        fs.writeFileSync(SW_PATH, swContent.split(actual).join(nuevoValor), 'utf8');
+        modificados.push('sw.js');
+
+        if (fs.existsSync(GUIA_PATH)) {
+            const guiaContent = fs.readFileSync(GUIA_PATH, 'utf8');
+            if (guiaContent.includes(actual)) {
+                fs.writeFileSync(GUIA_PATH, guiaContent.split(actual).join(nuevoValor), 'utf8');
+                modificados.push(path.join('docs', 'GUIA-COMPLETA.md'));
+            }
+        }
+    }
+
+    // version.json se comprueba siempre, no solo cuando CACHE_VERSION cambia de
+    // verdad — así el primer build:sw tras añadir este fichero lo crea, y una
+    // edición manual accidental (o su ausencia) se corrige sola en el siguiente
+    // commit o `npm run dev:watch`.
+    const versionJsonNuevo = JSON.stringify({ version: nuevoValor }, null, 2) + '\n';
+    const versionJsonActual = fs.existsSync(VERSION_JSON_PATH) ? fs.readFileSync(VERSION_JSON_PATH, 'utf8') : null;
+    if (versionJsonActual !== versionJsonNuevo) {
+        fs.writeFileSync(VERSION_JSON_PATH, versionJsonNuevo, 'utf8');
+        modificados.push('version.json');
+    }
+
+    if (!modificados.length) {
         if (!quiet) console.log(`[build-sw] CACHE_VERSION ya está al día (${actual}) — nada que hacer.`);
         return [];
     }
 
-    const modificados = [];
-
-    fs.writeFileSync(SW_PATH, swContent.split(actual).join(nuevoValor), 'utf8');
-    modificados.push('sw.js');
-
-    if (fs.existsSync(GUIA_PATH)) {
-        const guiaContent = fs.readFileSync(GUIA_PATH, 'utf8');
-        if (guiaContent.includes(actual)) {
-            fs.writeFileSync(GUIA_PATH, guiaContent.split(actual).join(nuevoValor), 'utf8');
-            modificados.push(path.join('docs', 'GUIA-COMPLETA.md'));
-        }
-    }
-
     if (!quiet) {
-        console.log(`[build-sw] CACHE_VERSION actualizado: ${actual} → ${nuevoValor}`);
+        if (cambioReal) console.log(`[build-sw] CACHE_VERSION actualizado: ${actual} → ${nuevoValor}`);
+        else console.log(`[build-sw] CACHE_VERSION sin cambios (${actual}) — solo version.json`);
         modificados.forEach(f => console.log(`  - ${f}`));
     }
 

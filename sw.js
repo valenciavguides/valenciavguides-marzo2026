@@ -88,7 +88,7 @@ const APP_SHELL = [
 // Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
 // la versión de caché automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-fdd31812baee';
+const CACHE_VERSION = 'v-e054a60087af';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
@@ -244,9 +244,26 @@ self.addEventListener('fetch', event => {
   // → Intenta red primero (contenido fresco), bypasseando el caché HTTP
   //   del navegador (cache:'no-store') para que el SW siempre vea la versión
   //   real del servidor y no una copia vieja del caché HTTP.
-  // → Si falla (sin conexión), sirve desde caché SW
+  // → La petición de red real lleva CACHE_VERSION como parámetro de la URL
+  //   (invisible para el resto de la app: event.request, sin ese parámetro,
+  //   sigue siendo la única clave de caché usada en cache.put() más abajo).
+  //   GitHub Pages sirve detrás de un CDN (Fastly) con Cache-Control:max-age=600
+  //   fijo, sin forma de configurarlo desde este proyecto — ese CDN puede
+  //   seguir sirviendo una copia de hasta 10 minutos a una petición
+  //   cache:'no-store' normal, porque esa opción solo bypasea la caché LOCAL
+  //   del navegador, nunca la del CDN. En cuanto este SW pasa a controlar con
+  //   un CACHE_VERSION nuevo, sus peticiones de shell usan una URL que ese
+  //   CDN no puede tener cacheada de antes, forzando un fallo de caché real
+  //   ahí también.
+  // → Si falla del todo (sin conexión), sirve desde caché SW —
+  //   ignoreSearch:true porque la recarga que dispara el banner de
+  //   actualización (ver codigo-padre.html) añade su propio parámetro de
+  //   cache-busting a la navegación, y el precache de `install` solo tiene
+  //   la ruta limpia, sin parámetros.
+  const _urlVersionada = new URL(event.request.url);
+  _urlVersionada.searchParams.set('_swv', CACHE_VERSION);
   event.respondWith(
-    fetch(new Request(event.request, { cache: 'no-store' }))
+    fetch(new Request(_urlVersionada.toString(), { cache: 'no-store' }))
       .then(response => {
         // Solo cachear respuestas válidas (200 OK)
         if (response.ok && response.status !== 206) {
@@ -255,7 +272,7 @@ self.addEventListener('fetch', event => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request)
+      .catch(() => caches.match(event.request, { ignoreSearch: true })
         .then(cached => cached || new Response('Sin conexión', {
           status: 503,
           headers: { 'Content-Type': 'text/plain; charset=utf-8' }

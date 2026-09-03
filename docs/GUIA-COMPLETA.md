@@ -4784,7 +4784,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-fdd31812baee'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca `APP_SHELL` (valor actual: `'v-e054a60087af'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4793,7 +4793,7 @@ No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bu
 | Archivo | Comportamiento |
 |---------|----------------|
 | `index.html` | Solo registra el SW. Sin listener de actualización. La página redirige inmediatamente a `codigo-padre.html`. |
-| `codigo-padre.html` | Muestra banner no bloqueante `#sw-update-banner` (`z-index:1100000`) con texto y botón en el idioma del usuario (`TRADUCCIONES_SW_UPDATE`, 12 idiomas, expuesta en `globalThis` desde Script 1). Idioma detectado vía `globalThis.idiomaSeleccionado` o `localStorage('vv_idioma')`, fallback `'es'`. El usuario decide cuándo recargar. Guard `previousController` evita el banner en primera instalación. Guard `_swBannerMostrado` evita duplicar si `controllerchange` y `SW_ACTIVADO` llegan simultáneamente. **Persistente entre sesiones** — ver detalle más abajo. |
+| `codigo-padre.html` | Muestra banner no bloqueante `#sw-update-banner` (`z-index:1100000`) con texto y botón en el idioma del usuario (`TRADUCCIONES_SW_UPDATE`, 12 idiomas, expuesta en `globalThis` desde Script 1). Idioma detectado vía `globalThis.idiomaSeleccionado` o `localStorage('vv_idioma')`, fallback `'es'`. El usuario decide cuándo recargar; el botón navega con cache-busting propio, sin depender de que el evento `SW_ACTIVADO` lo confirme antes. Guard `previousController` evita el banner en primera instalación. Guard `_swBannerMostrado` evita duplicar si `controllerchange` y `SW_ACTIVADO` llegan simultáneamente. **Persistente entre sesiones y verificado, no solo detectado** — un probe independiente contra `version.json` detecta la actualización incluso si el propio `sw.js` tarda en propagarse a través del CDN del hosting, y una activación real confirma o vuelve a avisar — ver detalle más abajo. |
 
 En ambos listeners (`controllerchange` y mensaje `SW_ACTIVADO`) se ignora la primera instalación (`!previousController → return`).
 
@@ -7470,7 +7470,7 @@ Para ejecutarlos: `http://localhost:8080/tests/master-test.html` (panel de orque
 | `test_auditoria_completa.html` | Auditoría global de handlers, race conditions y estado |
 | `test_heartbeat.html` | Mecanismo de ping/pong heartbeat con hijos |
 | `test_carga_secuencial_iframes.html` | Orden de carga FASE 1 → FASE 2 → iframes |
-| `test_sw_update_notification.html` | Banner SW no bloqueante: z-index, guards `previousController`/`_swBannerMostrado`, ausencia de auto-reload, botón Actualizar; T11–T13 verifican traducciones (en→"Update", idioma desconocido→fallback español, de→"Aktualisieren") |
+| `test_sw_update_notification.html` | Banner SW no bloqueante: z-index, guards `previousController`/`_swBannerMostrado`, el botón navega sin limpiar el aviso pendiente antes (T4), confirmación/limpieza del aviso cuando `SW_ACTIVADO` trae justo la versión esperada (T14–T15) y comparación del probe de `version.json` contra la base guardada (T16–T18); T11–T13 verifican traducciones (en→"Update", idioma desconocido→fallback español, de→"Aktualisieren") |
 | `test_cargar_textos.html` | `cargarTextos` retorna entradas con content no vacío; mock de logger sin `.log()` detecta errores silenciosos en el success-path de `cargarMapaParrafos` |
 
 ### 18.3 Tests E2E con Playwright (tests/e2e/)
@@ -7644,7 +7644,7 @@ Gestiona el caché de la aplicación para funcionamiento offline. Usa **dos cach
 
 Cuando un cliente (`codigo-padre.html`) recibe la señal de actualización — por `controllerchange` o por el mensaje `SW_ACTIVADO` — **no recarga automáticamente**. Muestra un banner no bloqueante en la parte superior de la pantalla:
 
-- **`#sw-update-banner`** (`position:fixed; top:0; z-index:1100000`): mensaje y botón [Actualizar] en el idioma del usuario (12 idiomas vía `TRADUCCIONES_SW_UPDATE` de `js/traducciones-ui.js`, expuesta en `globalThis.TRADUCCIONES_SW_UPDATE` desde Script 1). El idioma se lee de `globalThis.idiomaSeleccionado` o de `localStorage.getItem('vv_idioma')`; si ninguno está disponible, cae a `'es'`. El botón llama `location.reload()`. El z-index 1100000 garantiza que aparece por encima del overlay del mapa (`z-index:1000010`).
+- **`#sw-update-banner`** (`position:fixed; top:0; z-index:1100000`): mensaje y botón [Actualizar] en el idioma del usuario (12 idiomas vía `TRADUCCIONES_SW_UPDATE` de `js/traducciones-ui.js`, expuesta en `globalThis.TRADUCCIONES_SW_UPDATE` desde Script 1). El idioma se lee de `globalThis.idiomaSeleccionado` o de `localStorage.getItem('vv_idioma')`; si ninguno está disponible, cae a `'es'`. El botón navega a `location.href` con un parámetro `_v=Date.now()` añadido (en vez de `location.reload()`) — ver "Por qué la recarga necesita cache-busting propio", más abajo. El z-index 1100000 garantiza que aparece por encima del overlay del mapa (`z-index:1000010`).
 - **Guard `previousController`**: si no había un SW previo (primera instalación), no se muestra el banner.
 - **Guard `_swBannerMostrado`**: bandera en scope del bloque, evita mostrar el banner dos veces si `controllerchange` y `SW_ACTIVADO` llegan casi simultáneamente.
 
@@ -7660,28 +7660,70 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 });
 navigator.serviceWorker.addEventListener('message', event => {
     if (event.data?.tipo !== 'SW_ACTIVADO') return;
+    const _v = event.data.version || null;
+    let _eraElObjetivo = false;
+    try {
+        _eraElObjetivo = !!_v && localStorage.getItem(SW_PENDIENTE_KEY) === _v;
+        if (_v) localStorage.setItem(SW_VERSION_ACTIVA_KEY, _v);
+    } catch (_e) { /* ignore */ }
+    if (_eraElObjetivo) {
+        _limpiarActualizacionPendiente();
+        document.getElementById('sw-update-banner')?.remove();
+        _swBannerMostrado = false;
+        return;
+    }
     if (!previousController) return;
     if (_swBannerMostrado) return;
-    _mostrarBannerSW(event.data.version || null);
+    _mostrarBannerSW(_v);
 });
 ```
 
 **Persistencia del aviso entre sesiones (`vv_sw_update_pendiente` en `localStorage`).** `controllerchange` y `SW_ACTIVADO` son eventos de una sola vez, disparados solo en la sesión donde el SW nuevo se activa de verdad — en cualquier sesión posterior el controlador ya es el nuevo desde el primer instante, así que no hay ningún "cambio" que detectar y ninguno de los dos eventos vuelve a dispararse para esa misma actualización. Sin más protección, un usuario que cierra la PWA antes de pulsar "Actualizar" pierde el aviso para siempre y puede quedarse en una versión vieja sin saberlo ni tener botón para arreglarlo.
 
-`_mostrarBannerSW(version)` escribe `localStorage['vv_sw_update_pendiente'] = version` cada vez que se llama (tanto si crea el banner como si ya existía). El botón [Actualizar] limpia esa clave (`localStorage.removeItem(...)`) antes de `location.reload()`. Dos puntos comprueban el flag y vuelven a mostrar el banner sin esperar a un evento nuevo:
+`_mostrarBannerSW(version)` escribe `localStorage['vv_sw_update_pendiente'] = version` cada vez que se llama (tanto si crea el banner como si ya existía). El botón [Actualizar] **no** limpia esa clave antes de navegar — se limpia únicamente cuando una activación real del SW confirma que la versión pendiente ya está aplicada (ver "Confirmación tras pulsar Actualizar", más abajo). Dos puntos comprueban el flag y vuelven a mostrar el banner sin esperar a un evento nuevo:
 
 1. **Al arrancar** (justo después de registrar los listeners, antes de `register()`): si `vv_sw_update_pendiente` existe, se llama a `_mostrarBannerSW()` de inmediato — cubre el caso de una recarga/navegación real tras cerrar la PWA.
-2. **Al recuperar el foco** (`visibilitychange` → `visible`, en el `.then(registration => ...)` de `register()`, junto al `registration.update()` que ya corría en `hidden`): cubre el caso en el que el proceso de la PWA sobrevive cerrado o en segundo plano sin una recarga real de por medio — ahí no se ejecuta ningún arranque nuevo, así que el punto 1 nunca llegaría a correr.
+2. **Al recuperar el foco** (`visibilitychange` → `visible`, en el `.then(registration => ...)` de `register()`, junto al `registration.update()` que ya corría en `hidden`): cubre el caso en el que el proceso de la PWA sobrevive cerrado o en segundo plano sin una recarga real de por medio — ahí no se ejecuta ningún arranque nuevo, así que el punto 1 nunca llegaría a correr. Este mismo punto relanza también el probe de `version.json` (ver más abajo).
 
-Recargar sobre una versión que ya era la última es inofensivo (una recarga de más, sin efecto visible); perder el aviso para siempre no lo es — ante la duda, el banner se vuelve a mostrar. Verificado con Playwright: banner ausente sin flag, reaparece con el texto/versión correctos tras una recarga con flag pendiente, el clic real en el botón limpia el flag antes de navegar, no reaparece en la siguiente carga ya limpio, y reaparece también al simular `visibilitychange` sin ningún reload de por medio.
+Recargar sobre una versión que ya era la última es inofensivo (una recarga de más, sin efecto visible); perder el aviso para siempre no lo es — ante la duda, el banner se vuelve a mostrar. Verificado con Playwright (`tests/test_sw_update_notification.html`, parte del master-test): banner ausente sin flag, reaparece con el texto/versión correctos tras una recarga con flag pendiente, reaparece también al simular `visibilitychange` sin ningún reload de por medio, el clic real en el botón navega sin limpiar el flag pendiente, y una activación `SW_ACTIVADO` con la versión exacta que estaba pendiente sí lo limpia y retira el banner.
 
 `registration.update()` se llama dos veces: inmediatamente al resolver `register()` (así cada carga de la página fuerza una comprobación explícita, en vez de depender solo del throttle interno del navegador — variable según versión, sin este disparo explícito una sucesión rápida de recargas de prueba podía seguir sirviendo la versión vieja durante horas aunque el servidor ya tuviera una nueva) y en `visibilitychange → hidden` (cada vez que el usuario cambia de app).
+
+#### Por qué la recarga necesita cache-busting propio
+
+GitHub Pages sirve el sitio detrás de un CDN (Fastly) con `Cache-Control: max-age=600` fijo en todas las respuestas, sin forma de configurarlo desde este proyecto — confirmado con `curl -sI` contra el dominio real. Ni `cache:'no-store'` en los `fetch()` del SW ni `updateViaCache:'none'` en `register()` bastan para evitarlo: ambos solo bypasean la caché **local del navegador**, nunca la del CDN que está por delante del hosting. Un `registration.update()` o una recarga normal pueden seguir recibiendo, durante hasta 10 minutos tras cada despliegue real, exactamente los mismos bytes que ese nodo de Fastly ya tenía cacheados — la actualización parece "no aplicarse" aunque el servidor ya tenga la versión nueva.
+
+La solución, en dos piezas que cooperan:
+
+1. **`sw.js` versiona sus propias peticiones de red.** Cada fetch de shell (Network First) añade `?_swv=CACHE_VERSION` a la URL real de red — invisible para el resto de la app, porque `cache.put()` sigue usando `event.request` (sin ese parámetro) como clave de caché. En cuanto un SW nuevo pasa a controlar, sus peticiones usan una URL que el CDN no puede tener cacheada de antes, forzando un fallo de caché real ahí también. El fallback offline (`catch` del Network First) usa `caches.match(event.request, { ignoreSearch: true })` — sin `ignoreSearch`, una petición con parámetro de cache-busting nunca encontraría la entrada precacheada bajo la ruta limpia.
+2. **El botón "Actualizar" navega con `?_v=Date.now()`** en vez de `location.reload()` — un valor distinto en cada clic garantiza que la petición de navegación al HTML tampoco puede coincidir con nada que el CDN sirviera minutos antes.
+
+#### El probe de `version.json`, independiente del ciclo de vida del SW
+
+`registration.update()` solo revisa si `sw.js` cambió — y esa propia revisión puede seguir topándose con la caché del CDN, dejando al usuario sin ningún aviso durante un rato indeterminado aunque haya una versión nueva desplegada. `version.json` (fichero estático en la raíz, `{ "version": "<CACHE_VERSION>" }`, generado por `tools/build-sw.js` — ver §21.1) se consulta por separado, siempre con un parámetro de cache-busting distinto (`?t=Date.now()`) y `cache:'no-store'`, para conocer la versión real desplegada sin depender de que la caché del CDN ya haya expirado en el nodo que responda.
+
+`_comprobarVersionRemota()` compara el valor recibido contra `localStorage['vv_version_activa']` (`SW_VERSION_ACTIVA_KEY`):
+
+- **Sin base previa** (primera comprobación de este navegador, o ningún `SW_ACTIVADO` ha confirmado nunca nada): fija la base con el valor recibido, sin avisar — no hay "antes" real con el que contrastar todavía.
+- **Coincide con la base:** nada nuevo, no hace nada.
+- **Difiere de la base:** llama a `_mostrarBannerSW(remota)`. La base (`SW_VERSION_ACTIVA_KEY`) **no** se actualiza aquí — solo se actualiza cuando `SW_ACTIVADO` confirma una activación real (ver abajo); así una comprobación posterior sigue viendo la discrepancia si la anterior no llegó a aplicarse.
+
+El probe se ejecuta al cargar, en cada `visibilitychange → visible` (mismo disparador que ya usa el resto del bloque), y en un `setInterval` propio cada 15 minutos mientras la pestaña permanece abierta — sin gating explícito por visibilidad, el propio throttling de temporizadores en segundo plano de los navegadores ya lo hace irrelevante en la práctica. Se omite por completo en local (`localhost`/`127.0.0.1`) — no hay CDN que desmentir ahí. Un fallo de red en el `fetch` a `version.json` se ignora en silencio (`catch` vacío): nunca bloquea nada, se reintenta solo en el siguiente disparador.
+
+#### Confirmación tras pulsar "Actualizar"
+
+Version.json solo dice qué versión tiene el servidor — no puede saber si la recarga de un navegador concreto consiguió aplicarla de verdad (podría haber servido de nuevo el shell viejo desde caché SW, por conectividad intermitente). La confirmación real solo puede venir del propio SW: el listener de `SW_ACTIVADO` (código arriba) compara la versión de la activación contra `localStorage['vv_sw_update_pendiente']` —
+
+- **Coinciden exactamente:** esta activación es la que se esperaba. Se limpia `vv_sw_update_pendiente`, se actualiza `vv_version_activa` a ese valor, y se retira el banner del DOM si ya existía (cubre el caso en que `controllerchange`, casi simultáneo, lo hubiera creado un instante antes) — sin volver a avisar.
+- **No coinciden (versión distinta, o no había nada pendiente):** activación no relacionada con una confirmación esperada — se actualiza igualmente `vv_version_activa` a la versión recibida, y se sigue el flujo normal de aviso (`_mostrarBannerSW`).
+
+Si la recarga del botón no consiguió traer la versión nueva (red intermitente, o `sw.js` sirviéndose todavía desde una caché de borde vieja del CDN), no llega ningún `SW_ACTIVADO` con la versión esperada en ese arranque — `vv_sw_update_pendiente` sigue marcado, y el probe de `version.json` (que corre también al cargar) detecta la misma discrepancia de antes y vuelve a mostrar el banner, dándole al usuario otra oportunidad de pulsar "Actualizar". `registration.update()` sigue reintentando en segundo plano en cada carga y cada cambio de visibilidad, así que basta con volver a abrir o usar la app con normalidad para que, en algún momento dentro de esa ventana de hasta 10 minutos, la actualización real se complete sola.
 
 `index.html` solo registra el SW (`navigator.serviceWorker.register`) sin ningún listener de actualización, ya que esa página redirige inmediatamente a `codigo-padre.html`. El redirect (`location.replace()` en un `<script>` inline en `<head>`) es efectivamente instantáneo, así que el `<body>` casi nunca llega a pintarse — pero existe como respaldo visible si algo lo retrasa (red lenta, script bloqueado), y usa el mismo lenguaje visual que el resto de pantallas de espera de la app: fondo naranja `#ff8c00`, `logo-redondo.png` girando dentro del mismo círculo (`85vmin`) y con la misma animación de 7s que `#loading-overlay` (`codigo-padre.html`) y `.logo-carga-circular-bg` (`En-busca-del-tesoro.html`), más la misma barra de progreso y porcentaje blanco (decorativos, animados con un `setInterval` local ya que no hay nada real que medir en un redirect). Detalle completo en "Frases aleatorias durante la espera — todas las pantallas de carga", §9.10.
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-fdd31812baee'`, línea 89 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-e054a60087af'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero de `APP_SHELL`, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero de `APP_SHELL`, normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos un blob de `APP_SHELL` en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -7941,7 +7983,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 
 ### 21.1 Sistema de auto-actualización de `CACHE_VERSION`
 
-`CACHE_VERSION` se actualiza sola cada vez que cambia algún fichero de `APP_SHELL` — nunca a mano. Actualizarla manualmente (editar el string en `sw.js` línea 89 y sus 4 apariciones en este documento) sería un proceso fácil de dejar a medias, con el riesgo real de olvidar una de las referencias. El sistema, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
+`CACHE_VERSION` se actualiza sola cada vez que cambia algún fichero de `APP_SHELL` — nunca a mano. Actualizarla manualmente (editar el string en `sw.js` línea 91 y sus 4 apariciones en este documento) sería un proceso fácil de dejar a medias, con el riesgo real de olvidar una de las referencias. El sistema, construido en `tools/build-sw.js`, `tools/install-hooks.js` y `tools/watch-sw.js`, lo hace automático:
 
 **`tools/build-sw.js`** es el núcleo — expone `computeCacheVersion({staged})` y `aplicarCacheVersion(valor)`, reusadas por los otros dos scripts (ninguna lógica de hash duplicada):
 
@@ -7949,6 +7991,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 2. Calcula SHA-256 de `sw.js` completo (con la línea `const CACHE_VERSION = '...'` sustituida por un placeholder fijo, para que el valor no se autorreferencie) concatenado con el contenido de cada fichero de `APP_SHELL`, en el orden del array.
 3. El nuevo valor es `'v-' + hash.slice(0, 12)` — un slug de 12 caracteres hexadecimales, no un nombre descriptivo escrito a mano como antes de automatizarlo.
 4. Si difiere del valor actual, sustituye el string exacto (no una regex por contexto) en `sw.js` y en todas sus apariciones dentro de este documento — el mismo mecanismo simple usado a mano antes de existir el script, ahora automático.
+5. Escribe `version.json` en la raíz del repositorio con `{ "version": "<CACHE_VERSION>" }` — siempre, no solo cuando `CACHE_VERSION` cambia de verdad, así se autocorrige si el fichero no existe todavía o si alguien lo edita a mano por error. `codigo-padre.html` lo consulta con su propio cache-busting para conocer la versión real desplegada incluso cuando el CDN del hosting sigue sirviendo un `sw.js` viejo — ver "El probe de `version.json`" en §19.5. `version.json` no está en `PROTECTED_FILES` (`js/server.js`) ni pensado para estarlo: tiene que ser consultable siempre, sin autenticación, desde cualquier estado de la app.
 
 **Por qué el modo `--staged` lee con `git show :ruta` y no con `fs.readFileSync`:** este proyecto no tiene `.gitattributes` y tiene `core.autocrlf=true` — el working tree en Windows normaliza a CRLF, pero el blob que git realmente guarda (y el working tree en Linux/Mac) tiene LF. Confirmado con una prueba directa: el mismo `video-intro.html` mide 93.086 caracteres leído del disco en Windows y 91.155 vía `git show :video-intro.html` — una diferencia real, no cosmética. `git show :ruta` lee el contenido indexado, estable entre plataformas — el modo correcto para el hook de pre-commit, que debe reflejar exactamente lo que se va a commitear.
 
@@ -7958,7 +8001,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 
 **`tools/watch-sw.js`** (`npm run dev:watch`) usa `fs.watch` sobre `sw.js` y cada fichero de `APP_SHELL`, con un debounce de 300ms para no recalcular en cada evento suelto del filesystem. Llama al mismo núcleo en modo working-tree (sin `--staged`, no tiene sentido leer del índice de git en modo desarrollo) y no hace `git add` — el usuario decide cuándo commitear.
 
-**Propiedades garantizadas del sistema:** `computeCacheVersion` es determinista (mismo resultado en dos llamadas sin cambios); tras la normalización CRLF→LF, el modo `--staged` y el modo working-tree dan el mismo hash sobre el mismo estado del repositorio; `npm run build:sw` actualiza `sw.js` y las 4 referencias de este documento a la vez, con el mismo valor, y una segunda ejecución sin cambios reporta "ya está al día" sin reescribir nada; `install-hooks.js` es idempotente y no pisa un hook ajeno. El hook, ejecutado directamente sobre un cambio staged, recalcula y vuelve a hacer `git add` correctamente. `execFileSync` necesita un `maxBuffer` explícito de 64MB: el límite por defecto de Node es 1MB, y ficheros reales de `APP_SHELL` como `audios-aventuras.js` o `aventuras-ID-padre.js` (~1,8MB cada uno) lo superan, lanzando `ENOBUFS` en silencio (capturado como "fichero no se pudo leer") si el buffer no se amplía. Con `tools/watch-sw.js` corriendo en segundo plano, un commit real tras el debounce de 300ms deja `git status` limpio — la normalización se aplica incluso con los dos procesos activos a la vez.
+**Propiedades garantizadas del sistema:** `computeCacheVersion` es determinista (mismo resultado en dos llamadas sin cambios); tras la normalización CRLF→LF, el modo `--staged` y el modo working-tree dan el mismo hash sobre el mismo estado del repositorio; `npm run build:sw` actualiza `sw.js`, las 4 referencias de este documento y `version.json` a la vez, con el mismo valor, y una segunda ejecución sin cambios reporta "ya está al día" sin reescribir nada; `install-hooks.js` es idempotente y no pisa un hook ajeno. El hook, ejecutado directamente sobre un cambio staged, recalcula y vuelve a hacer `git add` correctamente. `execFileSync` necesita un `maxBuffer` explícito de 64MB: el límite por defecto de Node es 1MB, y ficheros reales de `APP_SHELL` como `audios-aventuras.js` o `aventuras-ID-padre.js` (~1,8MB cada uno) lo superan, lanzando `ENOBUFS` en silencio (capturado como "fichero no se pudo leer") si el buffer no se amplía. Con `tools/watch-sw.js` corriendo en segundo plano, un commit real tras el debounce de 300ms deja `git status` limpio — la normalización se aplica incluso con los dos procesos activos a la vez.
 
 ---
 
@@ -8320,11 +8363,11 @@ Actualmente en APP_SHELL (sw.js):
 
 ### 22.10 `CACHE_VERSION` al desplegar
 
-`CACHE_VERSION` en `sw.js` (línea 89) se actualiza sola en cada commit que toca algún fichero de `APP_SHELL`, vía el hook de pre-commit instalado por `tools/install-hooks.js` (`postinstall`, automático tras `npm install`) — ver §21.1 para el mecanismo completo. No requiere ninguna acción manual antes de desplegar.
+`CACHE_VERSION` en `sw.js` (línea 91) se actualiza sola en cada commit que toca algún fichero de `APP_SHELL`, vía el hook de pre-commit instalado por `tools/install-hooks.js` (`postinstall`, automático tras `npm install`) — ver §21.1 para el mecanismo completo. No requiere ninguna acción manual antes de desplegar.
 
 ```javascript
-// sw.js línea 89 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-fdd31812baee';
+// sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
+const CACHE_VERSION = 'v-e054a60087af';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11469,10 +11512,10 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 
 ### 30.4 Ciclo de vida del Service Worker — CACHE_VERSION
 
-**Archivo:** `sw.js` línea 89
+**Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-fdd31812baee';
+const CACHE_VERSION = 'v-e054a60087af';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

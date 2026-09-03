@@ -49,7 +49,9 @@
                 if (el) el.remove();
             }
 
-            // Copia exacta de _mostrarBannerSW de codigo-padre.html (sin location.reload real)
+            // Copia exacta de _mostrarBannerSW de codigo-padre.html (sin navegación real —
+            // el clic solo marca reloadRef.called, no toca localStorage['vv_sw_update_pendiente']
+            // porque el botón real ya no lo limpia antes de navegar, ver T4)
             function _makeMostrarBannerSW(reloadRef) {
                 let _swBannerMostrado = false;
                 function _mostrarBannerSW(version) {
@@ -76,6 +78,40 @@
                 return { mostrar: _mostrarBannerSW, getMostrado: () => _swBannerMostrado };
             }
 
+            // Mock del listener de mensaje SW_ACTIVADO de codigo-padre.html: misma lógica
+            // de decisión (¿esta activación trae justo la versión pendiente?), sin
+            // navigator.serviceWorker real.
+            function _confirmarOMostrar(version, mostrarFn) {
+                const PEND = 'vv_sw_update_pendiente';
+                const ACTIVA = 'vv_version_activa';
+                let eraElObjetivo = false;
+                try {
+                    eraElObjetivo = !!version && localStorage.getItem(PEND) === version;
+                    if (version) localStorage.setItem(ACTIVA, version);
+                } catch (_e) { /* ignore */ }
+                if (eraElObjetivo) {
+                    try { localStorage.removeItem(PEND); } catch (_e) { /* ignore */ }
+                    const b = document.getElementById('sw-update-banner');
+                    if (b) b.remove();
+                    return 'confirmado';
+                }
+                mostrarFn(version);
+                return 'avisado';
+            }
+
+            // Mock de la comparación de _comprobarVersionRemota de codigo-padre.html
+            // (misma lógica de decisión, sin el fetch real a version.json).
+            function _decidirProbe(remota, activaKey) {
+                let activa = null;
+                try { activa = localStorage.getItem(activaKey); } catch (_e) { /* ignore */ }
+                if (activa === null) {
+                    try { localStorage.setItem(activaKey, remota); } catch (_e) { /* ignore */ }
+                    return 'base-fijada';
+                }
+                if (remota === activa) return 'sin-cambios';
+                return 'avisar';
+            }
+
             // ── SUITE A: comportamiento básico ───────────────────────────────
             const reloadA = { called: false };
             const suiteA = _makeMostrarBannerSW(reloadA);
@@ -100,11 +136,14 @@
             check('El banner tiene botón de actualizar', t3);
             if (t3) passed++; else failed++;
 
-            // T4
+            // T4 — el botón navega (cache-busting) SIN limpiar el aviso pendiente antes;
+            // se limpia solo cuando la activación siguiente confirma la versión (T14/T15).
+            try { localStorage.setItem('vv_sw_update_pendiente', 'v-test-1'); } catch (_e) { /* ignore */ }
             banner1?.querySelector('button')?.click();
-            const t4 = reloadA.called;
-            check('El botón dispara location.reload()', t4);
+            const t4 = reloadA.called && localStorage.getItem('vv_sw_update_pendiente') === 'v-test-1';
+            check('El botón navega y no limpia el aviso pendiente antes de recargar', t4);
             if (t4) passed++; else failed++;
+            try { localStorage.removeItem('vv_sw_update_pendiente'); } catch (_e) { /* ignore */ }
 
             // T5
             suiteA.mostrar('v-test-2');
@@ -178,6 +217,59 @@
             check('Idioma "de": botón "Aktualisieren"', t13);
             if (t13) passed++; else failed++;
             cleanupBanner();
+
+            // ── SUITE E: confirmación de SW_ACTIVADO frente al pendiente ─────
+            cleanupBanner();
+            try { localStorage.removeItem('vv_sw_update_pendiente'); localStorage.removeItem('vv_version_activa'); } catch (_e) { /* ignore */ }
+
+            // T14: SW_ACTIVADO trae justo la versión pendiente → confirma, limpia el flag,
+            // retira el banner (aunque controllerchange lo hubiera creado ya).
+            const suiteE1 = _makeMostrarBannerSW({ called: false });
+            suiteE1.mostrar('v-9'); // simula que controllerchange ya mostró el banner
+            try { localStorage.setItem('vv_sw_update_pendiente', 'v-9'); } catch (_e) { /* ignore */ }
+            const r14 = _confirmarOMostrar('v-9', suiteE1.mostrar);
+            const t14 = r14 === 'confirmado'
+                && localStorage.getItem('vv_sw_update_pendiente') === null
+                && !document.getElementById('sw-update-banner');
+            check('SW_ACTIVADO con la versión pendiente exacta: confirma, limpia el flag y retira el banner', t14);
+            if (t14) passed++; else failed++;
+            cleanupBanner();
+
+            // T15: SW_ACTIVADO trae una versión distinta a la pendiente → no confirma,
+            // el flag pendiente no se toca, se avisa con la versión recibida.
+            try { localStorage.setItem('vv_sw_update_pendiente', 'v-9'); } catch (_e) { /* ignore */ }
+            const suiteE2 = _makeMostrarBannerSW({ called: false });
+            const r15 = _confirmarOMostrar('v-otra', suiteE2.mostrar);
+            const t15 = r15 === 'avisado'
+                && localStorage.getItem('vv_sw_update_pendiente') === 'v-9'
+                && !!document.getElementById('sw-update-banner');
+            check('SW_ACTIVADO con versión distinta a la pendiente: no confirma, avisa igualmente', t15);
+            if (t15) passed++; else failed++;
+            cleanupBanner();
+            try { localStorage.removeItem('vv_sw_update_pendiente'); localStorage.removeItem('vv_version_activa'); } catch (_e) { /* ignore */ }
+
+            // ── SUITE F: comparación del probe de version.json ────────────────
+            const CLAVE_PROBE = 'vv_version_activa_test_probe';
+            try { localStorage.removeItem(CLAVE_PROBE); } catch (_e) { /* ignore */ }
+
+            // T16: primera comprobación (sin base previa) fija la base, sin avisar
+            const r16 = _decidirProbe('v-1', CLAVE_PROBE);
+            const t16 = r16 === 'base-fijada' && localStorage.getItem(CLAVE_PROBE) === 'v-1';
+            check('Probe version.json — primera comprobación: fija la base sin avisar', t16);
+            if (t16) passed++; else failed++;
+
+            // T17: misma versión que la base → sin cambios, no avisa
+            const r17 = _decidirProbe('v-1', CLAVE_PROBE);
+            const t17 = r17 === 'sin-cambios';
+            check('Probe version.json — misma versión que la base: no avisa', t17);
+            if (t17) passed++; else failed++;
+
+            // T18: versión distinta a la base → avisar
+            const r18 = _decidirProbe('v-2', CLAVE_PROBE);
+            const t18 = r18 === 'avisar';
+            check('Probe version.json — versión distinta a la base: avisa', t18);
+            if (t18) passed++; else failed++;
+            try { localStorage.removeItem(CLAVE_PROBE); } catch (_e) { /* ignore */ }
 
             // Restaurar
             globalThis.idiomaSeleccionado = null;
