@@ -63,6 +63,12 @@ const APP_SHELL = [
   '/js/feedback-forms.js',
   '/js/data-loader.js',
   '/js/video-playback-utils.js',
+  // Librerías de terceros que el shell carga como código (<script>/<link>):
+  // MapLibre desde codigo-padre.html, page-flip desde video-intro.html.
+  '/js/vendor/maplibre-gl-csp.js',
+  '/js/vendor/maplibre-gl-csp-worker.js',
+  '/js/vendor/maplibre-gl.css',
+  '/js/vendor/page-flip.browser.js',
   // Datos de aventuras (se actualizan con Network First en runtime)
   '/js/indice-aventuras.js',
   '/js/coordenadas-aventuras.js',
@@ -84,11 +90,15 @@ const APP_SHELL = [
 // ─── CACHE_VERSION: Auto-generada en pre-commit ──────────────────────────────
 // El archivo tools/build-sw.js calcula un SHA-256 de:
 // 1) sw.js normalizado (ignorando la línea CACHE_VERSION) y
-// 2) contenido completo de todos los archivos listados en APP_SHELL.
-// Así, cualquier cambio real de shell (HTML/JS/CSS/manifest/íconos) actualiza
-// la versión de caché automáticamente en pre-commit y en dev:watch.
+// 2) el contenido de todos los ficheros del shell, descubiertos automáticamente
+//    (ficherosDelShell) — todo el HTML/JS/CSS/JSON que el navegador carga como
+//    código, no la lista de APP_SHELL de arriba. Son cosas distintas a propósito:
+//    APP_SHELL dice qué se PRECARGA para uso offline; el hash dice qué cuenta
+//    como versión. Un fichero de app nuevo entra en el hash solo, sin tocar nada.
+// Así, cualquier cambio real de shell actualiza la versión de caché
+// automáticamente en pre-commit y en dev:watch.
 // El navegador detecta el cambio byte-a-byte y re-registra el SW automáticamente.
-const CACHE_VERSION = 'v-e054a60087af';
+const CACHE_VERSION = 'v-8d6ba01b2fbd';
 const IS_DEV = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 const MEDIA_CACHE_NAME = 'vvguides-media-v1';
@@ -161,6 +171,17 @@ self.addEventListener('activate', event => {
   );
 });
 
+// ─── MESSAGE: responder qué versión está corriendo ───────────────────────────
+// La página (codigo-padre.html) necesita saber qué CACHE_VERSION ejecuta el SW
+// que la controla AHORA para poder compararla con la desplegada (version.json).
+// Es el único dato fiable: cualquier valor guardado en localStorage puede haber
+// quedado de otra sesión y describir una versión que ya no es la que corre.
+// Se responde solo al cliente que pregunta (event.source), nunca en broadcast.
+self.addEventListener('message', event => {
+  if (event.data?.tipo !== 'SW_VERSION_REQUEST') return;
+  event.source?.postMessage({ tipo: 'SW_VERSION', version: CACHE_VERSION });
+});
+
 // ─── FETCH: estrategias diferenciadas ────────────────────────────────────────
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
@@ -170,6 +191,16 @@ self.addEventListener('fetch', event => {
 
   // Solo peticiones GET
   if (event.request.method !== 'GET') return;
+
+  // version.json: Network Only, nunca cacheado. Es el fichero que dice qué
+  // versión hay desplegada; una copia cacheada respondería con la versión
+  // vieja y haría imposible detectar que existe una nueva. Además la página lo
+  // pide con un parámetro distinto en cada consulta, así que cachearlo dejaría
+  // una entrada basura por consulta en una caché que no tiene límite LRU.
+  if (url.pathname === '/version.json') {
+    event.respondWith(fetch(new Request(event.request, { cache: 'no-store' })));
+    return;
+  }
 
   // Localhost/dev: siempre red directa, sin caché SW — el dev siempre ve la versión más reciente
   if (IS_DEV) {
@@ -243,32 +274,26 @@ self.addEventListener('fetch', event => {
   // Shell y módulos JS: Network First
   // → Intenta red primero (contenido fresco), bypasseando el caché HTTP
   //   del navegador (cache:'no-store') para que el SW siempre vea la versión
-  //   real del servidor y no una copia vieja del caché HTTP.
-  // → La petición de red real lleva CACHE_VERSION como parámetro de la URL
-  //   (invisible para el resto de la app: event.request, sin ese parámetro,
-  //   sigue siendo la única clave de caché usada en cache.put() más abajo).
-  //   GitHub Pages sirve detrás de un CDN (Fastly) con Cache-Control:max-age=600
-  //   fijo, sin forma de configurarlo desde este proyecto — ese CDN puede
-  //   seguir sirviendo una copia de hasta 10 minutos a una petición
-  //   cache:'no-store' normal, porque esa opción solo bypasea la caché LOCAL
-  //   del navegador, nunca la del CDN. En cuanto este SW pasa a controlar con
-  //   un CACHE_VERSION nuevo, sus peticiones de shell usan una URL que ese
-  //   CDN no puede tener cacheada de antes, forzando un fallo de caché real
-  //   ahí también.
+  //   real del servidor y no una copia vieja del caché HTTP. Se construye
+  //   desde event.request para conservar cabeceras, credenciales y modo de
+  //   redirección originales — una navegación tiene redirect:'manual', y
+  //   responder a una navegación con una respuesta redirigida lanza TypeError.
+  // → Clave de caché normalizada (sin `_v`): el botón "Actualizar" recarga con
+  //   un `_v=<timestamp>` distinto cada vez, así que sin normalizar cada intento
+  //   dejaría otra copia entera de la misma página en una caché que no tiene
+  //   límite LRU. Todas las variantes de una misma ruta comparten entrada.
   // → Si falla del todo (sin conexión), sirve desde caché SW —
-  //   ignoreSearch:true porque la recarga que dispara el banner de
-  //   actualización (ver codigo-padre.html) añade su propio parámetro de
-  //   cache-busting a la navegación, y el precache de `install` solo tiene
-  //   la ruta limpia, sin parámetros.
-  const _urlVersionada = new URL(event.request.url);
-  _urlVersionada.searchParams.set('_swv', CACHE_VERSION);
+  //   ignoreSearch:true porque esa misma recarga añade su parámetro a la
+  //   navegación y el precache de `install` solo tiene la ruta limpia.
+  const _claveCache = new URL(event.request.url);
+  _claveCache.searchParams.delete('_v');
   event.respondWith(
-    fetch(new Request(_urlVersionada.toString(), { cache: 'no-store' }))
+    fetch(new Request(event.request, { cache: 'no-store' }))
       .then(response => {
         // Solo cachear respuestas válidas (200 OK)
         if (response.ok && response.status !== 206) {
           const clon = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clon));
+          caches.open(CACHE_NAME).then(cache => cache.put(_claveCache.toString(), clon));
         }
         return response;
       })

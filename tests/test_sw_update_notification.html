@@ -55,7 +55,15 @@
             function _makeMostrarBannerSW(reloadRef) {
                 let _swBannerMostrado = false;
                 function _mostrarBannerSW(version) {
-                    if (document.getElementById('sw-update-banner')) return;
+                    const _existente = document.getElementById('sw-update-banner');
+                    if (_existente) {
+                        const _span = _existente.querySelector('span');
+                        if (_span && version) {
+                            const _base = _span.textContent.replace(/\s*\([^)]*\)\s*$/, '');
+                            _span.textContent = _base + ' (' + version + ')';
+                        }
+                        return;
+                    }
                     _swBannerMostrado = true;
                     const _lang = globalThis.idiomaSeleccionado
                         || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_) { return null; } })()
@@ -78,38 +86,75 @@
                 return { mostrar: _mostrarBannerSW, getMostrado: () => _swBannerMostrado };
             }
 
-            // Mock del listener de mensaje SW_ACTIVADO de codigo-padre.html: misma lógica
-            // de decisión (¿esta activación trae justo la versión pendiente?), sin
-            // navigator.serviceWorker real.
-            function _confirmarOMostrar(version, mostrarFn) {
+            // Mirror del criterio de codigo-padre.html (una instancia = una carga de
+            // página), sin navigator.serviceWorker ni fetch reales: los eventos se
+            // inyectan a mano en el mismo orden en que los dispara el navegador.
+            // Reproduce _evaluarVersiones y los tres caminos que desembocan en ella.
+            function _crearMecanismoSW({ previousController = true } = {}) {
                 const PEND = 'vv_sw_update_pendiente';
-                const ACTIVA = 'vv_version_activa';
-                let eraElObjetivo = false;
-                try {
-                    eraElObjetivo = !!version && localStorage.getItem(PEND) === version;
-                    if (version) localStorage.setItem(ACTIVA, version);
-                } catch (_e) { /* ignore */ }
-                if (eraElObjetivo) {
-                    try { localStorage.removeItem(PEND); } catch (_e) { /* ignore */ }
-                    const b = document.getElementById('sw-update-banner');
-                    if (b) b.remove();
-                    return 'confirmado';
-                }
-                mostrarFn(version);
-                return 'avisado';
-            }
+                let _swBannerMostrado = false;
+                let _paginaObsoleta = false;
+                let _versionDeCarga = null;
+                let _versionDesplegada = null;
+                let _reciclando = false;
 
-            // Mock de la comparación de _comprobarVersionRemota de codigo-padre.html
-            // (misma lógica de decisión, sin el fetch real a version.json).
-            function _decidirProbe(remota, activaKey) {
-                let activa = null;
-                try { activa = localStorage.getItem(activaKey); } catch (_e) { /* ignore */ }
-                if (activa === null) {
-                    try { localStorage.setItem(activaKey, remota); } catch (_e) { /* ignore */ }
-                    return 'base-fijada';
+                function marcar(v) { try { localStorage.setItem(PEND, v || 'desconocida'); } catch (_e) { /* ignore */ } }
+                function limpiar() { try { localStorage.removeItem(PEND); } catch (_e) { /* ignore */ } }
+                function retirar() {
+                    document.getElementById('sw-update-banner')?.remove();
+                    _swBannerMostrado = false;
                 }
-                if (remota === activa) return 'sin-cambios';
-                return 'avisar';
+                function mostrar(version) {
+                    marcar(version);
+                    const ex = document.getElementById('sw-update-banner');
+                    if (ex) {
+                        const s = ex.querySelector('span');
+                        if (s && version) s.textContent = s.textContent.replace(/\s*\([^)]*\)\s*$/, '') + ' (' + version + ')';
+                        return;
+                    }
+                    _swBannerMostrado = true;
+                    const b = document.createElement('div');
+                    b.id = 'sw-update-banner';
+                    const s = document.createElement('span');
+                    s.textContent = '🔄 Nueva versión disponible' + (version ? ' (' + version + ')' : '');
+                    b.appendChild(s);
+                    document.body.appendChild(b);
+                }
+                function evaluar() {
+                    if (_reciclando) return; // la app se está borrando: nada que anunciar
+                    if (_paginaObsoleta) { mostrar(_versionDesplegada); return; }
+                    if (!_versionDesplegada) return;
+                    if (!_versionDeCarga) return;
+                    if (_versionDeCarga === _versionDesplegada) { limpiar(); retirar(); return; }
+                    mostrar(_versionDesplegada);
+                }
+
+                return {
+                    // Arranque: repinta el banner si una sesión anterior lo dejó pendiente
+                    arrancar() {
+                        let p = null;
+                        try { p = localStorage.getItem(PEND); } catch (_e) { /* ignore */ }
+                        if (p) mostrar(p === 'desconocida' ? null : p);
+                    },
+                    controllerchange() {
+                        if (!previousController) return;
+                        _paginaObsoleta = true;
+                        if (_swBannerMostrado) return;
+                        evaluar();
+                    },
+                    swActivado(v) {
+                        if (!previousController) return;
+                        _paginaObsoleta = true;
+                        if (v) _versionDesplegada = v;
+                        if (_swBannerMostrado) return;
+                        evaluar();
+                    },
+                    swVersion(v) { if (!_versionDeCarga && v) { _versionDeCarga = v; evaluar(); } },
+                    versionRemota(v) { _versionDesplegada = v; evaluar(); },
+                    empezarReciclaje() { _reciclando = true; },
+                    hayBanner: () => !!document.getElementById('sw-update-banner'),
+                    pendiente: () => { try { return localStorage.getItem(PEND); } catch (_e) { return null; } },
+                };
             }
 
             // ── SUITE A: comportamiento básico ───────────────────────────────
@@ -218,58 +263,97 @@
             if (t13) passed++; else failed++;
             cleanupBanner();
 
-            // ── SUITE E: confirmación de SW_ACTIVADO frente al pendiente ─────
+            // ── SUITE E: secuencia real de actualización, página a página ─────
+            // Reproduce el ciclo completo con los eventos en el orden real del
+            // navegador. T15 es la regresión del banner que se quedaba pegado
+            // para siempre: con el criterio anterior (comparar la versión activada
+            // contra el pendiente) fallaba, porque controllerchange llega antes que
+            // SW_ACTIVADO y deja el pendiente en 'desconocida', valor que ninguna
+            // versión concreta puede igualar nunca.
             cleanupBanner();
-            try { localStorage.removeItem('vv_sw_update_pendiente'); localStorage.removeItem('vv_version_activa'); } catch (_e) { /* ignore */ }
+            try { localStorage.removeItem('vv_sw_update_pendiente'); } catch (_e) { /* ignore */ }
 
-            // T14: SW_ACTIVADO trae justo la versión pendiente → confirma, limpia el flag,
-            // retira el banner (aunque controllerchange lo hubiera creado ya).
-            const suiteE1 = _makeMostrarBannerSW({ called: false });
-            suiteE1.mostrar('v-9'); // simula que controllerchange ya mostró el banner
-            try { localStorage.setItem('vv_sw_update_pendiente', 'v-9'); } catch (_e) { /* ignore */ }
-            const r14 = _confirmarOMostrar('v-9', suiteE1.mostrar);
-            const t14 = r14 === 'confirmado'
-                && localStorage.getItem('vv_sw_update_pendiente') === null
-                && !document.getElementById('sw-update-banner');
-            check('SW_ACTIVADO con la versión pendiente exacta: confirma, limpia el flag y retira el banner', t14);
+            // T14: se activa un SW nuevo bajo la página → banner y aviso pendiente
+            const pagina1 = _crearMecanismoSW();
+            pagina1.controllerchange();   // el navegador dispara este primero…
+            pagina1.swActivado('v-2');    // …y el mensaje del SW justo después
+            const t14 = pagina1.hayBanner() && pagina1.pendiente() === 'desconocida';
+            check('Update real (controllerchange → SW_ACTIVADO): avisa y deja el aviso pendiente', t14);
             if (t14) passed++; else failed++;
             cleanupBanner();
 
-            // T15: SW_ACTIVADO trae una versión distinta a la pendiente → no confirma,
-            // el flag pendiente no se toca, se avisa con la versión recibida.
-            try { localStorage.setItem('vv_sw_update_pendiente', 'v-9'); } catch (_e) { /* ignore */ }
-            const suiteE2 = _makeMostrarBannerSW({ called: false });
-            const r15 = _confirmarOMostrar('v-otra', suiteE2.mostrar);
-            const t15 = r15 === 'avisado'
-                && localStorage.getItem('vv_sw_update_pendiente') === 'v-9'
-                && !!document.getElementById('sw-update-banner');
-            check('SW_ACTIVADO con versión distinta a la pendiente: no confirma, avisa igualmente', t15);
+            // T15 (REGRESIÓN): tras recargar, la página nueva YA es la desplegada →
+            // el aviso se limpia y el banner desaparece. Sin esto, el banner reaparecía
+            // en cada arranque para siempre por mucho que el cliente lo pulsara.
+            const pagina2 = _crearMecanismoSW();
+            pagina2.arrancar();           // repinta el banner por el flag pendiente
+            pagina2.swVersion('v-2');     // el SW dice con qué versión se cargó
+            pagina2.versionRemota('v-2'); // version.json dice qué hay desplegado
+            const t15 = !pagina2.hayBanner() && pagina2.pendiente() === null;
+            check('REGRESIÓN — tras recargar en la versión desplegada: limpia el aviso y retira el banner', t15);
             if (t15) passed++; else failed++;
             cleanupBanner();
-            try { localStorage.removeItem('vv_sw_update_pendiente'); localStorage.removeItem('vv_version_activa'); } catch (_e) { /* ignore */ }
 
-            // ── SUITE F: comparación del probe de version.json ────────────────
-            const CLAVE_PROBE = 'vv_version_activa_test_probe';
-            try { localStorage.removeItem(CLAVE_PROBE); } catch (_e) { /* ignore */ }
-
-            // T16: primera comprobación (sin base previa) fija la base, sin avisar
-            const r16 = _decidirProbe('v-1', CLAVE_PROBE);
-            const t16 = r16 === 'base-fijada' && localStorage.getItem(CLAVE_PROBE) === 'v-1';
-            check('Probe version.json — primera comprobación: fija la base sin avisar', t16);
+            // T16: si la recarga NO trajo la versión nueva, el aviso se mantiene y se
+            // re-anuncia con la versión desplegada (segunda oportunidad de pulsar)
+            try { localStorage.setItem('vv_sw_update_pendiente', 'desconocida'); } catch (_e) { /* ignore */ }
+            const pagina3 = _crearMecanismoSW();
+            pagina3.arrancar();
+            pagina3.swVersion('v-1');     // sigue corriendo la vieja
+            pagina3.versionRemota('v-2');
+            const t16 = pagina3.hayBanner() && pagina3.pendiente() === 'v-2';
+            check('Recarga que no aplicó la nueva versión: mantiene el aviso y re-anuncia la desplegada', t16);
             if (t16) passed++; else failed++;
+            cleanupBanner();
+            try { localStorage.removeItem('vv_sw_update_pendiente'); } catch (_e) { /* ignore */ }
 
-            // T17: misma versión que la base → sin cambios, no avisa
-            const r17 = _decidirProbe('v-1', CLAVE_PROBE);
-            const t17 = r17 === 'sin-cambios';
-            check('Probe version.json — misma versión que la base: no avisa', t17);
+            // T17: página ya al día y sin nada pendiente → nunca aparece banner
+            const pagina4 = _crearMecanismoSW();
+            pagina4.swVersion('v-2');
+            pagina4.versionRemota('v-2');
+            const t17 = !pagina4.hayBanner() && pagina4.pendiente() === null;
+            check('Página al día y sin aviso pendiente: no aparece banner', t17);
             if (t17) passed++; else failed++;
+            cleanupBanner();
 
-            // T18: versión distinta a la base → avisar
-            const r18 = _decidirProbe('v-2', CLAVE_PROBE);
-            const t18 = r18 === 'avisar';
-            check('Probe version.json — versión distinta a la base: avisa', t18);
+            // T18: una página obsoleta no se "des-obsoleta" aunque las versiones
+            // coincidan — el SW nuevo tendrá la versión desplegada, pero el código que
+            // el usuario está viendo se cargó antes y sigue siendo el viejo.
+            const pagina5 = _crearMecanismoSW();
+            pagina5.controllerchange();
+            pagina5.swVersion('v-2');
+            pagina5.versionRemota('v-2');
+            const t18 = pagina5.hayBanner() && pagina5.pendiente() !== null;
+            check('Página obsoleta por activación: sigue avisando aunque las versiones coincidan', t18);
             if (t18) passed++; else failed++;
-            try { localStorage.removeItem(CLAVE_PROBE); } catch (_e) { /* ignore */ }
+            cleanupBanner();
+            try { localStorage.removeItem('vv_sw_update_pendiente'); } catch (_e) { /* ignore */ }
+
+            // T19: si el SW no contesta (versión de carga desconocida) no se decide
+            // nada: el aviso pendiente NO se limpia por suposición.
+            try { localStorage.setItem('vv_sw_update_pendiente', 'v-9'); } catch (_e) { /* ignore */ }
+            const pagina6 = _crearMecanismoSW();
+            pagina6.arrancar();
+            pagina6.versionRemota('v-9'); // sin swVersion: no hay base fiable
+            const t19 = pagina6.hayBanner() && pagina6.pendiente() === 'v-9';
+            check('Sin respuesta del SW: no se limpia el aviso por suposición', t19);
+            if (t19) passed++; else failed++;
+            cleanupBanner();
+            try { localStorage.removeItem('vv_sw_update_pendiente'); } catch (_e) { /* ignore */ }
+
+            // T20: durante el reciclaje digital (limpiarDatosAventura) el mecanismo se
+            // calla. Desregistrar el SW dispara controllerchange, que sin esto sacaría el
+            // banner al cliente justo al terminar su aventura y reescribiría la clave en
+            // el localStorage recién vaciado.
+            const pagina7 = _crearMecanismoSW();
+            pagina7.empezarReciclaje();
+            pagina7.controllerchange();   // lo que provoca el desregistro del SW
+            pagina7.versionRemota('v-3'); // y un probe en vuelo que llega después
+            const t20 = !pagina7.hayBanner() && pagina7.pendiente() === null;
+            check('Durante el reciclaje digital: ni banner ni escritura en localStorage', t20);
+            if (t20) passed++; else failed++;
+            cleanupBanner();
+            try { localStorage.removeItem('vv_sw_update_pendiente'); } catch (_e) { /* ignore */ }
 
             // Restaurar
             globalThis.idiomaSeleccionado = null;

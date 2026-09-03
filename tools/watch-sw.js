@@ -17,10 +17,9 @@
 
 const fs = require('fs');
 const path = require('path');
-const { computeCacheVersion, aplicarCacheVersion, parsearAppShell } = require('./build-sw.js');
+const { computeCacheVersion, aplicarCacheVersion, ficherosDelShell } = require('./build-sw.js');
 
 const ROOT = path.resolve(__dirname, '..');
-const SW_PATH = path.join(ROOT, 'sw.js');
 const DEBOUNCE_MS = 300;
 
 let timer = null;
@@ -43,9 +42,9 @@ function programarRecalculo() {
 }
 
 function main() {
-    const swContent = fs.readFileSync(SW_PATH, 'utf8');
-    const appShell = parsearAppShell(swContent);
-    const rutasAVigilar = ['sw.js', ...appShell.map(r => r.replace(/^\//, ''))];
+    // Misma fuente que el hash (ficherosDelShell en build-sw.js): lo que se vigila
+    // en desarrollo y lo que entra en CACHE_VERSION no pueden divergir.
+    const rutasAVigilar = ['sw.js', ...ficherosDelShell()];
 
     const watchers = [];
     for (const rel of rutasAVigilar) {
@@ -61,7 +60,7 @@ function main() {
         }
     }
 
-    console.log(`[watch-sw] Vigilando ${watchers.length} ficheros del App Shell. Ctrl+C para salir.`);
+    console.log(`[watch-sw] Vigilando ${watchers.length} ficheros del shell. Ctrl+C para salir.`);
     recalcular();
 
     process.on('SIGINT', () => {

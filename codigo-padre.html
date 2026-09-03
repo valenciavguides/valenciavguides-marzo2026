@@ -14512,22 +14512,57 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             // sin este flag el aviso se perdía para siempre y el usuario podía quedarse
             // en la versión vieja sin saberlo ni tener botón para arreglarlo.
             const SW_PENDIENTE_KEY = 'vv_sw_update_pendiente';
-            // Última versión que este navegador ha visto confirmada activa de verdad —
-            // solo vía SW_ACTIVADO real (más abajo), nunca por suposición. Es la base de
-            // comparación del probe de version.json: si lo que responde el servidor
-            // difiere de esto, hay una actualización real que este navegador todavía no
-            // ha aplicado.
-            const SW_VERSION_ACTIVA_KEY = 'vv_version_activa';
+
+            // ── Criterio único: ¿el código que esta página ejecuta es el desplegado? ──
+            // Dos datos independientes lo responden, y solo cuando los dos están
+            // disponibles se decide algo (ver _evaluarVersiones más abajo):
+            //  · _versionDeCarga: CACHE_VERSION del SW que controlaba esta página al
+            //    cargarse — la declara el propio SW al preguntárselo, nunca se persiste
+            //    ni se supone. Es lo único que describe con certeza qué código corre.
+            //  · _versionDesplegada: la que responde version.json, cache-busteada.
+            // _paginaObsoleta hace el criterio monótono: si durante la vida de esta
+            // página se activa un SW nuevo, el código que el usuario está viendo pasa a
+            // ser viejo para siempre — ninguna comprobación posterior puede "des-obsoletar"
+            // una página, solo una recarga puede.
+            let _paginaObsoleta = false;
+            let _versionDeCarga = null;
+            let _versionDesplegada = null;
+            let _versionProbeIntervalId = null;
+
+            // Reciclaje digital en curso: limpiarDatosAventura() (js/reciclaje-digital.js)
+            // levanta esta bandera interna —sin efecto visual ninguno— antes de vaciar el
+            // almacenamiento y desregistrar el Service Worker. Desregistrarlo dispara
+            // controllerchange, que sin esta comprobación se leería como "hay versión nueva"
+            // y le sacaría al cliente el banner justo al terminar su aventura, además de
+            // reescribir vv_sw_update_pendiente en un almacenamiento que se acaba de dejar
+            // vacío a propósito. No se vuelve a bajar: una página que se está reciclando ya
+            // no tiene nada que anunciar hasta que se recargue.
+            function _reciclandoDatos() { return globalThis.__VV_RECICLANDO === true; }
+
             function _marcarActualizacionPendiente(version) {
                 try { localStorage.setItem(SW_PENDIENTE_KEY, version || 'desconocida'); } catch (_e) { /* ignore */ }
             }
             function _limpiarActualizacionPendiente() {
                 try { localStorage.removeItem(SW_PENDIENTE_KEY); } catch (_e) { /* ignore */ }
             }
+            function _retirarBannerSW() {
+                document.getElementById('sw-update-banner')?.remove();
+                _swBannerMostrado = false;
+            }
 
             function _mostrarBannerSW(version) {
                 _marcarActualizacionPendiente(version);
-                if (document.getElementById('sw-update-banner')) return;
+                const _existente = document.getElementById('sw-update-banner');
+                if (_existente) {
+                    // Ya hay banner: solo se refresca la versión anunciada, por si mientras
+                    // estaba puesto se ha desplegado otra más nueva.
+                    const _spanExistente = _existente.querySelector('span');
+                    if (_spanExistente && version) {
+                        const _base = _spanExistente.textContent.replace(/\s*\([^)]*\)\s*$/, '');
+                        _spanExistente.textContent = _base + ' (' + version + ')';
+                    }
+                    return;
+                }
                 _swBannerMostrado = true;
                 const _lang = globalThis.idiomaSeleccionado
                     || (() => { try { return localStorage.getItem('vv_idioma'); } catch (_) { return null; } })()
@@ -14542,13 +14577,14 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const btn = document.createElement('button');
                 btn.textContent = _t.boton;
                 btn.style.cssText = 'background:#ff8c00;color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;';
-                // No limpia SW_PENDIENTE_KEY antes de navegar — se limpia solo cuando el
-                // arranque siguiente confirma de verdad la nueva versión (ver el listener
-                // de SW_ACTIVADO, más abajo). Si esta recarga concreta no consigue traer la
-                // versión nueva (red intermitente, o sw.js todavía sirviéndose desde una
-                // caché de borde vieja del hosting), el aviso sigue marcado como pendiente y
-                // el probe de version.json lo vuelve a mostrar solo — sin esto, un intento
+                // No limpia SW_PENDIENTE_KEY antes de navegar: quien lo limpia es
+                // _evaluarVersiones en el arranque siguiente, y solo si comprueba que la
+                // página cargada ya ES la desplegada. Si esta recarga no consigue traer la
+                // versión nueva (red intermitente, o el sw.js todavía sin actualizarse), el
+                // aviso sigue pendiente y vuelve a mostrarse solo — sin esto, un intento
                 // fallido borraría el aviso para siempre sin haber conseguido nada.
+                // El `_v` distinto en cada clic evita que la navegación la resuelva la caché
+                // HTTP del navegador (Cache-Control: max-age=600 en el hosting actual).
                 btn.addEventListener('click', () => {
                     btn.disabled = true;
                     const _urlRecarga = new URL(globalThis.location.href);
@@ -14560,36 +14596,61 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 document.body.appendChild(banner);
             }
 
+            // Única función que decide si hay que avisar o si el aviso ya está resuelto.
+            // Todos los caminos (respuesta del SW, probe de version.json, activación de un
+            // SW nuevo) desembocan aquí — no hay ninguna otra rama que muestre o retire el
+            // banner por su cuenta.
+            function _evaluarVersiones() {
+                if (_reciclandoDatos()) return; // la app se está borrando: nada que anunciar
+                // Se comprueba primero, y a propósito antes que nada: una activación basta
+                // por sí sola para saber que el código visible es viejo, sin depender de
+                // que version.json haya contestado (puede no haber red).
+                if (_paginaObsoleta) {
+                    _mostrarBannerSW(_versionDesplegada);
+                    return;
+                }
+                if (!_versionDesplegada) return;      // todavía no se sabe qué hay desplegado
+                if (!_versionDeCarga) return;          // sin base fiable no se decide nada
+                if (_versionDeCarga === _versionDesplegada) {
+                    // Esta página ES la versión desplegada: cualquier aviso que quedara
+                    // pendiente de un intento anterior ya está resuelto.
+                    _limpiarActualizacionPendiente();
+                    _retirarBannerSW();
+                    return;
+                }
+                _mostrarBannerSW(_versionDesplegada);
+            }
+
             // Listener ANTES del register: no perder controllerchange si ya hay SW en espera
             const previousController = navigator.serviceWorker.controller;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!previousController) return; // primera instalación — sin banner
+                _paginaObsoleta = true;
                 if (_swBannerMostrado) return;
-                _mostrarBannerSW(null);
+                _evaluarVersiones();
             });
             navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data?.tipo !== 'SW_ACTIVADO') return;
-                const _v = event.data.version || null;
-                // ¿Esta activación trajo justo la versión que se esperaba? (pulsar
-                // "Actualizar" deja SW_PENDIENTE_KEY con el valor objetivo). Si coincide,
-                // es la confirmación real de que la actualización sí se aplicó — no una
-                // suposición del probe de version.json, sino el propio SW confirmándolo.
-                let _eraElObjetivo = false;
-                try {
-                    _eraElObjetivo = !!_v && localStorage.getItem(SW_PENDIENTE_KEY) === _v;
-                    if (_v) localStorage.setItem(SW_VERSION_ACTIVA_KEY, _v);
-                } catch (_e) { /* ignore */ }
-                if (_eraElObjetivo) {
-                    // Confirmado: se limpia el aviso y se retira el banner si
-                    // controllerchange (casi simultáneo) llegó a crearlo un instante antes.
-                    _limpiarActualizacionPendiente();
-                    document.getElementById('sw-update-banner')?.remove();
-                    _swBannerMostrado = false;
+                const _datos = event.data;
+                // Respuesta a SW_VERSION_REQUEST: la versión con la que se cargó esta
+                // página. Solo se acepta la primera — una respuesta posterior vendría de
+                // un SW ya distinto al que sirvió este código, y describiría otra cosa.
+                if (_datos?.tipo === 'SW_VERSION') {
+                    if (!_versionDeCarga && _datos.version) {
+                        _versionDeCarga = _datos.version;
+                        _evaluarVersiones();
+                    }
                     return;
                 }
+                if (_datos?.tipo !== 'SW_ACTIVADO') return;
                 if (!previousController) return; // primera instalación — sin banner
+                // Un SW nuevo acaba de tomar el control: el código que el usuario está
+                // viendo es viejo desde este instante, sin importar qué versiones coincidan.
+                // Su CACHE_VERSION es, por construcción, la que hay desplegada (se acaba de
+                // instalar desde el servidor), así que sirve para etiquetar el aviso.
+                _paginaObsoleta = true;
+                if (_datos.version) _versionDesplegada = _datos.version;
                 if (_swBannerMostrado) return;
-                _mostrarBannerSW(_v);
+                _evaluarVersiones();
             });
 
             // Arranque: si una sesión anterior dejó el aviso sin resolver (el usuario
@@ -14603,45 +14664,51 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 if (_pendiente) _mostrarBannerSW(_pendiente === 'desconocida' ? null : _pendiente);
             } catch (_e) { /* ignore */ }
 
-            // ── Probe de versión real, independiente del ciclo de vida del SW ────────
-            // GitHub Pages sirve detrás de un CDN (Fastly) con Cache-Control:max-age=600
-            // fijo, sin forma de configurarlo desde este proyecto — ni cache:'no-store'
-            // en las peticiones del SW ni updateViaCache:'none' en el register() de más
-            // abajo pueden con eso, porque ambos solo bypasean la caché LOCAL del
-            // navegador, nunca la del CDN por delante del hosting. version.json,
-            // consultado siempre con un parámetro de cache-busting distinto en cada
-            // petición, es la única forma de conocer la versión real desplegada sin
-            // depender de que esa caché de borde ya haya expirado en el nodo que
-            // responda. No sustituye a registration.update() (sigue llamándose más abajo,
-            // sigue siendo lo único que de verdad actualiza el SW) — solo decide cuándo
-            // avisar, y cuándo dar por buena una actualización ya intentada.
-            const _esLocal = globalThis.location.hostname === 'localhost' || globalThis.location.hostname === '127.0.0.1';
+            // ── Los dos datos que alimentan _evaluarVersiones ───────────────────────
+            // 1) Qué versión corre: se la pregunta al propio SW que controla la página.
+            //    Sin cronómetro de espera: si no hay controlador (primera visita, o el SW
+            //    quedó desregistrado por limpiarDatosAventura) o el SW es anterior a este
+            //    mecanismo y no contesta, _versionDeCarga se queda a null y
+            //    _evaluarVersiones simplemente no decide nada — nunca supone.
+            // 2) Qué versión hay desplegada: version.json, un fichero estático de dos
+            //    líneas que el SW nunca cachea (rama Network Only en sw.js) y que se pide
+            //    con un parámetro distinto cada vez, así que tampoco puede servirlo la
+            //    caché HTTP del navegador. Es independiente del ciclo de vida del SW: dice
+            //    la verdad aunque registration.update() todavía no haya detectado nada.
             const VERSION_PROBE_INTERVALO_MS = 15 * 60 * 1000; // 15 min — no es tan urgente como el GPS/heartbeat
+
+            // El mecanismo corre igual en local que en producción, a propósito: es la única
+            // forma de ensayar el ciclo completo (avisa → pulsar → confirma → limpia el
+            // aviso) sin desplegar. Un mecanismo que solo se puede probar publicando es un
+            // mecanismo que se prueba encima de los clientes.
+            function _pedirVersionAlSW() {
+                if (_versionDeCarga) return; // ya contestó; una respuesta posterior sería de otro SW
+                try { navigator.serviceWorker.controller?.postMessage({ tipo: 'SW_VERSION_REQUEST' }); } catch (_e) { /* ignore */ }
+            }
+
             function _comprobarVersionRemota() {
-                if (_esLocal) return; // en local no hay CDN de por medio que desmentir
+                if (_reciclandoDatos()) {
+                    if (_versionProbeIntervalId !== null) { clearInterval(_versionProbeIntervalId); _versionProbeIntervalId = null; }
+                    return;
+                }
                 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
                     .then(r => (r && r.ok) ? r.json() : null)
                     .then(datos => {
                         const remota = datos && datos.version;
                         if (!remota) return; // fichero ausente o malformado — se reintenta en el próximo disparador
-                        let _activa = null;
-                        try { _activa = localStorage.getItem(SW_VERSION_ACTIVA_KEY); } catch (_e) { /* ignore */ }
-                        if (_activa === null) {
-                            // Primera comprobación de la que este navegador tiene constancia
-                            // (o SW_ACTIVADO todavía no ha llegado a confirmar ninguna) — fija
-                            // la base de comparación sin avisar, no hay "antes" real con el
-                            // que contrastar todavía.
-                            try { localStorage.setItem(SW_VERSION_ACTIVA_KEY, remota); } catch (_e) { /* ignore */ }
-                            return;
-                        }
-                        if (remota === _activa) return; // nada nuevo desplegado
-                        if (_swBannerMostrado) return; // ya se está avisando de esto mismo
-                        _mostrarBannerSW(remota);
+                        _versionDesplegada = remota;
+                        _evaluarVersiones();
                     })
                     .catch(_e => { /* sin conexión o version.json no disponible — nunca bloquea nada, se reintenta solo en el próximo disparador */ });
             }
+
+            // Vive lo que vive la página, como el resto de listeners permanentes del final
+            // del body: mientras la app siga abierta siempre interesa saber si hay versión
+            // nueva. El único momento en que deja de interesar es el reciclaje digital, y
+            // ahí el propio _comprobarVersionRemota se cancela con este ID.
+            _pedirVersionAlSW();
             _comprobarVersionRemota();
-            if (!_esLocal) setInterval(_comprobarVersionRemota, VERSION_PROBE_INTERVALO_MS);
+            _versionProbeIntervalId = setInterval(_comprobarVersionRemota, VERSION_PROBE_INTERVALO_MS);
 
             navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
                 .then(registration => {
@@ -14662,11 +14729,13 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                             // momento en que se puede re-mostrar un aviso pendiente — un
                             // arranque nuevo (el bloque de arriba) no llega a ejecutarse en
                             // ese caso porque no hay ningún arranque nuevo. Se aprovecha el
-                            // mismo instante para relanzar el probe de version.json.
+                            // mismo instante para volver a preguntar por las dos versiones:
+                            // la PWA puede llevar horas dormida y el mundo real haber cambiado.
                             try {
                                 const _pendienteAlVolver = localStorage.getItem(SW_PENDIENTE_KEY);
                                 if (_pendienteAlVolver) _mostrarBannerSW(_pendienteAlVolver === 'desconocida' ? null : _pendienteAlVolver);
                             } catch (_e) { /* ignore */ }
+                            _pedirVersionAlSW();
                             _comprobarVersionRemota();
                         }
                     });

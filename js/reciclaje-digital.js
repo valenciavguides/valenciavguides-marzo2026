@@ -50,7 +50,17 @@ async function _limpiarCaches(logger, logPrefix) {
 export async function limpiarDatosAventura(motivo = 'desconocido') {
     const logPrefix = '[RECICLAJE_DIGITAL]';
     const logger = globalThis.logger || console;
-    
+
+    // Bandera interna, sin efecto visual: avisa al bloque de actualización del SW
+    // (codigo-padre.html) de que esta página se está reciclando, para que se calle.
+    // Sin ella, el paso 4 —desregistrar el Service Worker— dispara controllerchange,
+    // que ese bloque lee como "hay versión nueva": le sacaría al cliente el banner de
+    // actualización justo al terminar su aventura y volvería a escribir
+    // vv_sw_update_pendiente en el localStorage que el paso 1 acaba de vaciar,
+    // rompiendo la huella de 0 bytes que promete esta función. Se levanta antes de
+    // tocar nada y no se vuelve a bajar: la página termina recargándose.
+    globalThis.__VV_RECICLANDO = true;
+
     try {
         logger.info(`${logPrefix} 🗑️ Iniciando limpieza TOTAL del dispositivo. Motivo: ${motivo}`);
         
