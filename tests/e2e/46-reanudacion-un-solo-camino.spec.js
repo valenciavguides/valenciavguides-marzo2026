@@ -177,3 +177,65 @@ test.describe('RU — La reanudación usa el mismo camino que cualquier cambio d
     ).toBe(true);
   });
 });
+
+/**
+ * Ventana real de compra antes de ofrecer reanudar.
+ *
+ * _comprobarReanudacionAventura() solo miraba un TTL fijo de 7 días. La ventana real
+ * (tiempoEstimado: 60h en Av1-5/Fallas, 150h en Av34km) es SIEMPRE más corta, y se
+ * comprobaba DESPUÉS de que el usuario aceptara continuar — así que se le ofrecía
+ * reanudar una aventura ya caducada y se le limpiaba la sesión justo tras decir que sí.
+ *
+ * Se prueba por el arranque real (localStorage sembrado antes de cargar la página), no
+ * invocando la función a mano: lo que importa aquí es cuál de los dos diálogos llega a
+ * salirle al usuario.
+ */
+test.describe('RC — Ventana de compra comprobada antes de ofrecer reanudar', () => {
+  const HORA_MS = 60 * 60 * 1000;
+
+  async function arrancarConSesion(page, context, edadHoras) {
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: 39.47876, longitude: -0.37626 });
+    await page.addInitScript({ path: MAPLIBRE_STUB });
+    await page.addInitScript(([edad, hora]) => {
+      try {
+        localStorage.setItem('vv_aventura_iniciada', JSON.stringify({
+          aventura: 'Aventura1', idioma: 'es', modo: 'aventura', dev: false,
+          timestamp: Date.now() - (edad * hora)
+        }));
+      } catch (_e) { /* almacenamiento no disponible: el test lo detectará */ }
+    }, [edadHoras, HORA_MS]);
+    await injectInitSpy(page);
+    await stubCDNResources(page);
+    await gotoAndWaitForFase1(page);
+  }
+
+  /** Espera a que salga uno de los dos diálogos y devuelve cuál. */
+  async function cualSalio(page) {
+    await page.waitForFunction(
+      () => !!document.getElementById('modal-tiempo-agotado') || !!document.getElementById('dialogo-reanudacion-overlay'),
+      null, { timeout: 45000 }
+    );
+    return page.evaluate(() => ({
+      tiempoAgotado: !!document.getElementById('modal-tiempo-agotado'),
+      reanudacion: !!document.getElementById('dialogo-reanudacion-overlay')
+    }));
+  }
+
+  test('RC-1. Sesión de Aventura1 con 61h (ventana de compra: 60h) NO se ofrece para reanudar', async ({ page, context }) => {
+    await arrancarConSesion(page, context, 61);
+    const r = await cualSalio(page);
+    expect(
+      r.tiempoAgotado,
+      'pasada la ventana de compra debe salir el modal de tiempo agotado, no una invitación a continuar'
+    ).toBe(true);
+    expect(r.reanudacion, 'no se puede ofrecer reanudar una aventura ya caducada').toBe(false);
+  });
+
+  test('RC-2. Sesión de Aventura1 con 2h sigue ofreciéndose para reanudar (el corte no se ha vuelto agresivo)', async ({ page, context }) => {
+    await arrancarConSesion(page, context, 2);
+    const r = await cualSalio(page);
+    expect(r.reanudacion, 'dentro de la ventana de compra la sesión debe seguir siendo reanudable').toBe(true);
+    expect(r.tiempoAgotado, 'una sesión viva no puede tratarse como caducada').toBe(false);
+  });
+});

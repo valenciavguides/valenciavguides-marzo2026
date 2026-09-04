@@ -8409,9 +8409,25 @@ if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = ne
                 if (aventuraGuardada) {
                     const datosGuardados = JSON.parse(aventuraGuardada);
                     if (datosGuardados && datosGuardados.aventura) {
+                        // La ventana real de compra (tiempoEstimado de la aventura: 60h en
+                        // Av1-5/Fallas, 150h en Av34km) es SIEMPRE más corta que el TTL de
+                        // 7 días, así que es ella la que de verdad decide si esta sesión
+                        // sigue viva. Antes aquí solo se miraba el TTL de 7 días y la
+                        // ventana real se comprobaba DESPUÉS de que el usuario aceptara
+                        // continuar (_restoreCheckTimeout, dentro de la restauración): se le
+                        // ofrecía reanudar una aventura ya caducada y se le limpiaba la
+                        // sesión justo después de decir que sí. Ahora se pregunta antes de
+                        // ofrecer nada. El TTL de 7 días se conserva como red de seguridad
+                        // para un payload sin metadatos de aventura utilizables, donde
+                        // verificarTimeoutAventura() no puede concluir nada.
                         const _TTL_AVENTURA = 7 * 24 * 60 * 60 * 1000;
-                        if (datosGuardados.timestamp && Date.now() - datosGuardados.timestamp > _TTL_AVENTURA) {
-                            (globalThis.logger || console).info(`${logPrefix} vv_aventura_iniciada expirada (${Math.round((Date.now() - datosGuardados.timestamp) / 86400000)} días) — mostrando modal de tiempo agotado en vez de descartar en silencio`);
+                        const _ttlSuperado = !!datosGuardados.timestamp && (Date.now() - datosGuardados.timestamp > _TTL_AVENTURA);
+                        let _ventanaCompraExcedida = false;
+                        try {
+                            _ventanaCompraExcedida = (typeof verificarTimeoutAventura === 'function') && verificarTimeoutAventura()?.excedido === true;
+                        } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        if (_ttlSuperado || _ventanaCompraExcedida) {
+                            (globalThis.logger || console).info(`${logPrefix} Sesión guardada caducada (${_ventanaCompraExcedida ? 'ventana de compra agotada' : 'TTL de 7 días'}, ${Math.round((Date.now() - datosGuardados.timestamp) / 3600000)}h) — mostrando modal de tiempo agotado en vez de ofrecer reanudarla`);
                             // Aún no ha pasado por ninguna pantalla de selección en este arranque
                             // en frío — sin esto, el modal (que lee globalThis.idiomaSeleccionado)
                             // caería siempre a español, ignorando el idioma real de la aventura
