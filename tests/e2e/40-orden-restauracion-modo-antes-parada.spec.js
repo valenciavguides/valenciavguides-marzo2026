@@ -1,16 +1,20 @@
 /**
  * 40-orden-restauracion-modo-antes-parada.spec.js
  *
- * ejecutarRestauracionAventura() (reanudar sesión al cerrar y reabrir la PWA) es una
- * función separada de _hdl_SISTEMA_CAMBIO_MODO — nunca pasa por ahí, tiene su propia
- * lógica de modo dentro de _activarModoRest(). estado.modo.actual solo se asigna en
- * un único punto de todo codigo-padre.html: dentro de _activarModoRest(). El orden de
- * llamadas dentro de ejecutarRestauracionAventura() importa porque _restaurarProgresoRest()
+ * ejecutarRestauracionAventura() (reanudar sesión al cerrar y reabrir la PWA) aplica su
+ * modo a través de _activarModoRest(), que desde la unificación de caminos delega en el
+ * mismo _hdl_SISTEMA_CAMBIO_MODO que cualquier otro cambio de modo, marcando el mensaje
+ * con restaurado:true (ver tests/e2e/46-reanudacion-un-solo-camino.spec.js). Lo que este
+ * archivo fija es independiente de ese enrutado: el ORDEN de llamadas dentro de
+ * ejecutarRestauracionAventura() importa porque _restaurarProgresoRest()
  * dispara el NAVEGACION.CAMBIO_PARADA real del elemento restaurado (_restoreBroadcast()
  * -> __triggerCambioParadaInterno() -> _hdl_NAVEGACION_CAMBIO_PARADA), y esa función
  * decide varias cosas según estado.modo?.actual === MODOS.AVENTURA: si arranca el
  * recordatorio de audio, la lógica de botón GPS en tramos, y si deshabilita btnAvanzar
  * hasta completar audio+reto.
+ *
+ * estado.modo.actual se aplica en un único punto de la reanudación: dentro de
+ * _activarModoRest() (hoy, vía el handler único).
  *
  * _activarModoRest() ahora se llama ANTES que _restaurarProgresoRest() — con el modo
  * ya aplicado cuando se procesa el CAMBIO_PARADA restaurado, en vez de con el modo

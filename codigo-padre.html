@@ -4908,15 +4908,23 @@
                 const _modoRest = (datosGuardados?.modo === MODOS.CASA || datosGuardados?.modo === MODOS.AVENTURA)
                     ? datosGuardados.modo
                     : (globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA);
-                if (_modoRest === MODOS.CASA) globalThis._devModeActivo = true;
-                estado.modo = estado.modo || {};
-                estado.modo.actual = _modoRest;
-                // Sincroniza estadoMapa.modo (funciones-mapa.js) sin pasar por el pipeline
-                // completo de manejarCambioModoMapa() (que reactivaría GPS y resetearía la
-                // vista del mapa) — ver el comentario de sincronizarModoMapa() para el porqué.
-                // Sin esto, la vigilancia continua de trazado/llegada por GPS se queda inerte
-                // toda la sesión reanudada, aunque el resto de la app ya esté en AVENTURA.
-                try { globalThis.funcionesMapa?.sincronizarModoMapa?.(_modoRest); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
+                // El modo dev se persiste APARTE del modo (campo `dev` de vv_aventura_iniciada)
+                // y se restaura antes de disparar nada: de él dependen la visibilidad de hijo5,
+                // que _transicionarAModoCasa() no confunda una vuelta a CASA con un abandono
+                // real, y que el reloj de compra no corra en desarrollo. Antes se deducía de
+                // `modo === CASA`, lo que hacía imposible representar una sesión dev guardada
+                // en AVENTURA: al reabrirla se restauraba como sesión de producción, con hijo5
+                // oculto y el temporizador de compra corriendo. El `else if` cubre los payloads
+                // guardados antes de que este campo existiera.
+                if (typeof datosGuardados?.dev === 'boolean') {
+                    globalThis._devModeActivo = datosGuardados.dev;
+                } else if (_modoRest === MODOS.CASA) {
+                    globalThis._devModeActivo = true;
+                }
+
+                // hijo5 se resuelve aquí, no en el handler: su visibilidad depende del modo
+                // DEV, no del modo de la app. Herramienta de desarrollo, nunca en la PWA real.
                 const hijo5El = document.getElementById('hijo5');
                 if (hijo5El) {
                     if (globalThis._devModeActivo) {
@@ -4925,42 +4933,47 @@
                         hijo5El.style.display = 'none';
                     }
                 }
-                if (typeof enviarMensaje_S1 !== 'function') { (globalThis.logger || console).success(`${logPrefix} 🎉 AVENTURA REANUDADA: ${datosGuardados.aventura} (${datosGuardados.idioma})`); return; }
-                let cambioModoResuelto = false;
-                const cambioModoPromise = Promise.resolve(enviarMensaje_S1({ tipo: TIPOS_MENSAJE.SISTEMA.CAMBIO_MODO, origen: CONFIG_PADRE.ID, destino: 'todos', datos: { modo: _modoRest, aventura: datosGuardados.aventura, idioma: datosGuardados.idioma, restaurado: true, secuenciaCompleta: true, timestamp: Date.now() } }))
-                    .then((r) => { cambioModoResuelto = true; return r; })
-                    .catch((e) => { cambioModoResuelto = true; (globalThis.logger || console).warn(`${logPrefix} Error en envío de CAMBIO_MODO durante reanudación:`, e); return null; });
-                const carrera = await Promise.race([cambioModoPromise.then(() => 'ok'), new Promise(r => setTimeout(() => r('timeout'), 2500))]);
-                if (carrera === 'timeout') {
-                    const gracia = await Promise.race([cambioModoPromise.then(() => true).catch(() => true), new Promise(r => setTimeout(() => r(false), 1200))]);
-                    if (!gracia && !cambioModoResuelto) { (globalThis.logger || console).warn(`${logPrefix} ⏱ CAMBIO_MODO sigue pendiente en reanudación; continuando sin bloquear la carga`); }
-                    else { (globalThis.logger || console).debug(`${logPrefix} CAMBIO_MODO confirmó justo tras timeout inicial; warning omitido`); }
+
+                // UN SOLO CAMINO. La reanudación pasa por el mismo _hdl_SISTEMA_CAMBIO_MODO que
+                // cualquier otro cambio de modo, en vez de reimplementar la mitad de sus efectos.
+                // Así hereda lo que esta función se saltaba en silencio: el guard de concurrencia
+                // (estado.sistema.cambiandoModo), la propagación real a los hijos esperando
+                // ENTENDIDO+EFECTUADO (antes: un broadcast a ciegas con una carrera de 2.5s que
+                // seguía adelante sin saber si algún hijo se había enterado), limpiarRecursosPorModo,
+                // el heartbeat, el GPS y la persistencia de vv_aventura_iniciada.modo.
+                // Las 3 únicas diferencias reales de una reanudación viajan en el propio mensaje
+                // (restaurado:true) y están marcadas una a una dentro del handler.
+                if (typeof _hdl_SISTEMA_CAMBIO_MODO !== 'function') {
+                    (globalThis.logger || console).error(`${logPrefix} _hdl_SISTEMA_CAMBIO_MODO no disponible — la sesión no puede restaurar su modo`);
+                    return;
                 }
-                // Esta función fija estado.modo.actual directamente (arriba) y difunde
-                // CAMBIO_MODO solo hacia fuera, a los hijos — nunca pasa por
-                // _hdl_SISTEMA_CAMBIO_MODO en el propio padre, que es el único sitio que
-                // normalmente activa el GPS al entrar en AVENTURA (_gestionarGpsSegunModo)
-                // y arranca el temporizador de hijo1 (_activarHeartbeatAventura). Sin esto,
-                // una sesión restaurada directamente en AVENTURA se queda con el modo
-                // correcto pero sin watchPosition corriendo ni reloj de compra visible.
-                if (_modoRest === MODOS.AVENTURA) {
-                    try {
-                        await activarGPS();
-                    } catch (gpsErr) {
-                        (globalThis.logger || console).warn(`${logPrefix} GPS no pudo activarse tras reanudación:`, gpsErr?.message);
+                const _resultadoModo = await _hdl_SISTEMA_CAMBIO_MODO({
+                    origen: 'restauracion',
+                    datos: {
+                        modo: _modoRest,
+                        origen: 'restauracion',
+                        restaurado: true,
+                        // Fecha real de compra: el reloj de hijo1 descuenta el tiempo
+                        // transcurrido con la app cerrada, no reanuda el último tick visto.
+                        timestampCompra: (typeof datosGuardados?.timestamp === 'number') ? datosGuardados.timestamp : undefined,
+                        aventura: datosGuardados?.aventura,
+                        idioma: datosGuardados?.idioma,
+                        secuenciaCompleta: true,
+                        timestamp: Date.now()
                     }
-                    if (typeof globalThis._iniciarTemporizadorAventura === 'function' && datosGuardados?.aventura && typeof datosGuardados?.timestamp === 'number') {
-                        try {
-                            await globalThis._iniciarTemporizadorAventura(datosGuardados.aventura, datosGuardados.idioma, estado, logPrefix, null, datosGuardados.timestamp);
-                        } catch (timerErr) {
-                            (globalThis.logger || console).warn(`${logPrefix} Temporizador de hijo1 no pudo reanudarse:`, timerErr?.message);
-                        }
-                    }
+                });
+                if (!_resultadoModo?.exito) {
+                    (globalThis.logger || console).error(`${logPrefix} El cambio de modo de la reanudación NO se aplicó: ${_resultadoModo?.error || 'sin detalle'}`);
                 }
 
-                (globalThis.logger || console).success(`${logPrefix} 🎉 AVENTURA REANUDADA: ${datosGuardados.aventura} (${datosGuardados.idioma})`);
+                (globalThis.logger || console).success(`${logPrefix} 🎉 AVENTURA REANUDADA: ${datosGuardados.aventura} (${datosGuardados.idioma}) en modo ${_modoRest}${globalThis._devModeActivo ? ' [dev]' : ''}`);
             } catch (modoErr) { (globalThis.logger || console).error(`${logPrefix} Error activando modo aventura:`, modoErr); }
         }
+        // Expuesta para pruebas: es el único punto de entrada del modo en una reanudación
+        // de sesión, y su contrato (delegar en el handler único, restaurar el flag dev
+        // persistido, no borrar jamás la sesión que está restaurando) necesita verificarse
+        // de forma directa — ver tests/e2e/46-reanudacion-un-solo-camino.spec.js.
+        globalThis._activarModoRest = _activarModoRest;
         function _normalizarIdRest(value) {
             if (value === null || value === undefined) return null;
             const limpio = String(value).trim();
@@ -7506,10 +7519,27 @@
             for (const h of hijosCriticos) {
                 await _enviarHeartbeatStartAHijo(h, mensaje.origen, logPrefix);
             }
-            try { await ensureDefaultParada(); } catch (err) { (globalThis.logger || console).warn('[CAMBIO_MODO] ensureDefaultParada error', err); }
+            const _restaurando = mensaje?.datos?.restaurado === true;
+            // Excepción 2 de 3 de la reanudación: no fijar la parada por defecto. En una
+            // reanudación este punto se alcanza ANTES de _restaurarProgresoRest(), con
+            // estado.paradaActual todavía a null — así que el guard `if (estado.paradaActual)
+            // return` de ensureDefaultParada() no la frenaría y activaría el elemento
+            // 'inicio', enviando un CAMBIO_PARADA completo (audio incluido) para la parada
+            // equivocada, que el progreso real sobrescribe medio segundo después.
+            if (!_restaurando) {
+                try { await ensureDefaultParada(); } catch (err) { (globalThis.logger || console).warn('[CAMBIO_MODO] ensureDefaultParada error', err); }
+            }
             try {
                 if (typeof globalThis._iniciarTemporizadorAventura === 'function' && globalThis.aventuraSeleccionada) {
-                    await globalThis._iniciarTemporizadorAventura(globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado, estado, logPrefix, estado.tiempoRestante);
+                    // Al reanudar, el reloj de compra se recalcula desde la fecha real de
+                    // compra (6º parámetro) en vez del último tick conocido antes de cerrar
+                    // (5º): el tiempo comprado corre esté la app abierta o cerrada. Ver §7.2.
+                    const _tsCompra = mensaje?.datos?.timestampCompra;
+                    await globalThis._iniciarTemporizadorAventura(
+                        globalThis.aventuraSeleccionada, globalThis.idiomaSeleccionado, estado, logPrefix,
+                        _restaurando ? null : estado.tiempoRestante,
+                        (_restaurando && typeof _tsCompra === 'number') ? _tsCompra : undefined
+                    );
                 }
             } catch (err) { (globalThis.logger || console).warn(`${logPrefix} Error iniciando temporizador de aventura:`, err); }
         }
@@ -7520,7 +7550,13 @@
             // borrar el progreso. El flujo de abandono/fin real (limpiarDatosAventura(),
             // js/reciclaje-digital.js) es independiente de esto y sigue limpiando todo
             // igual, en dev o no.
-            if (!globalThis._devModeActivo) {
+            // Excepción 3 de 3 de la reanudación: reanudar una sesión guardada NUNCA es un
+            // abandono, así que no puede borrar la sesión que se está restaurando. Sin este
+            // guard, restaurar en CASA con el modo dev desactivado borraría en el acto
+            // vv_aventura_iniciada/vv_progreso/vv_paradas_completadas — justo los datos que
+            // la restauración acaba de leer y está aplicando.
+            const _reanudando = mensaje?.datos?.restaurado === true;
+            if (!globalThis._devModeActivo && !_reanudando) {
                 try {
                     localStorage.removeItem('vv_aventura_iniciada');
                     localStorage.removeItem('vv_progreso');
@@ -7607,7 +7643,15 @@
             try {
                 (globalThis.logger || console).info(`${logPrefix} Procesando cambio de modo desde ${mensaje.origen}`);
 
-                const { origen, modo } = mensaje.datos || {};
+                // `restaurado` marca una reanudación de sesión (ejecutarRestauracionAventura).
+                // Es el MISMO camino que cualquier otro cambio de modo — no una rama paralela:
+                // solo ajusta las tres cosas que de verdad no aplican al reanudar, cada una
+                // señalada en su punto exacto más abajo (mapa, parada por defecto, borrado de
+                // localStorage). Antes de unificar, la reanudación reimplementaba medio handler
+                // por su cuenta y se saltaba en silencio el guard de concurrencia, la
+                // propagación con ENTENDIDO/EFECTUADO, limpiarRecursosPorModo, el heartbeat y
+                // la persistencia del modo.
+                const { origen, modo, restaurado } = mensaje.datos || {};
 
                 // Al entrar en CASA: congelar el progreso real actual. El usuario puede
                 // navegar libremente a otras paradas/tramos en CASA (hijo5) para "verlos"
@@ -7684,7 +7728,17 @@
                 // carrera de inserción en getMapaControladoresSync vs este handler permanente),
                 // así que lo llamamos directamente aquí.
                 try {
-                    await globalThis.funcionesMapa?.manejarCambioModoMapa?.(mensaje);
+                    if (restaurado) {
+                        // Excepción 1 de 3 de la reanudación: sincronizar solo estadoMapa.modo,
+                        // sin el resto de manejarCambioModoMapa() (limpiarPorEstado con
+                        // resetCompleto + vuelta de la vista a CENTRO_DEFECTO/ZOOM_INICIAL).
+                        // El elemento restaurado se dibuja inmediatamente después, en
+                        // _restaurarProgresoRest(); resetear la vista aquí solo metería un
+                        // salto visible a la vista por defecto entre medias.
+                        globalThis.funcionesMapa?.sincronizarModoMapa?.(modo);
+                    } else {
+                        await globalThis.funcionesMapa?.manejarCambioModoMapa?.(mensaje);
+                    }
                 } catch (mapaErr) {
                     (globalThis.logger || console).warn(`${logPrefix} Error en actualización de mapa:`, mapaErr?.message);
                 }
@@ -7699,14 +7753,20 @@
                     // Factor 2, alternar CASA↔AVENTURA con el botón GPS de hijo5) se perdía al
                     // cerrar y reabrir la app: _activarModoRest() siempre restauraba el modo de
                     // la primera activación, nunca el real de justo antes de cerrar.
+                    // Se persiste el modo Y el flag dev juntos: son dos dimensiones
+                    // independientes (dev/CASA, dev/AVENTURA, prod/AVENTURA), y deducir una
+                    // de la otra al reabrir era justo lo que impedía representar una sesión
+                    // dev guardada en AVENTURA. Ver _activarModoRest().
                     try {
                         const _aventuraGuardadaRaw = localStorage.getItem('vv_aventura_iniciada');
                         if (_aventuraGuardadaRaw) {
                             const _aventuraGuardada = JSON.parse(_aventuraGuardadaRaw);
-                            if (_aventuraGuardada && _aventuraGuardada.modo !== modo) {
+                            const _devActual = !!globalThis._devModeActivo;
+                            if (_aventuraGuardada && (_aventuraGuardada.modo !== modo || _aventuraGuardada.dev !== _devActual)) {
                                 _aventuraGuardada.modo = modo;
+                                _aventuraGuardada.dev = _devActual;
                                 localStorage.setItem('vv_aventura_iniciada', JSON.stringify(_aventuraGuardada));
-                                (globalThis.logger || console).debug(`${logPrefix} vv_aventura_iniciada.modo sincronizado a '${modo}'`);
+                                (globalThis.logger || console).debug(`${logPrefix} vv_aventura_iniciada sincronizada — modo:'${modo}' dev:${_devActual}`);
                             }
                         }
                     } catch (persistErr) { (globalThis.logger || console).debug('[VV]:', persistErr?.message); } // NOSONAR
@@ -13223,8 +13283,10 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 const _modoInicio = globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA;
                 try {
-                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura, idioma: idioma || 'es', modo: _modoInicio, timestamp: Date.now() }));
-                    (globalThis.logger || console).debug(`${logPrefix} Aventura persistida en localStorage (modo ${_modoInicio})`);
+                    // `dev` se guarda como campo propio, no se deduce del modo: modo y modo
+                    // dev son dimensiones independientes (dev/CASA, dev/AVENTURA, prod/AVENTURA).
+                    localStorage.setItem('vv_aventura_iniciada', JSON.stringify({ aventura, idioma: idioma || 'es', modo: _modoInicio, dev: !!globalThis._devModeActivo, timestamp: Date.now() }));
+                    (globalThis.logger || console).debug(`${logPrefix} Aventura persistida en localStorage (modo ${_modoInicio}, dev ${!!globalThis._devModeActivo})`);
                 } catch (_e) { (globalThis.logger || console).debug('[VV]:', _e?.message); }
 
                 await _distribuirDatosActivacion(aventura, idioma, logPrefix);
