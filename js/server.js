@@ -53,7 +53,15 @@ const mimeTypes = {
   '.css': 'text/css',
   '.json': 'application/json',
   '.png': 'image/png',
-  '.jpg': 'image/jpg',
+  // Las cuatro extensiones habituales de JPEG. `image/jpeg` es el tipo MIME real
+  // registrado; `image/jpg` no existe como tipo. Y una extensión ausente de esta tabla
+  // cae en 'application/octet-stream', con lo que el navegador puede negarse a
+  // renderizarla en un <img>: `.jfif` es la que pone Windows a veces al guardar un
+  // JPEG, y `.jpeg` la usa ya alguna imagen del proyecto.
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.jfif': 'image/jpeg',
+  '.webp': 'image/webp',
   '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
   '.mp3': 'audio/mpeg',

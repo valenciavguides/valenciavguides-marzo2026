@@ -59,3 +59,13 @@ codigo-padre-current.html
 
 # Documentos de negocio — solo local, NUNCA a GitHub (infraestructura, pagos, legal/fiscal)
 docs/plan-produccion-infraestructura.md
+
+# Imágenes de contenido por idioma — fuera de git DE MOMENTO, por decisión explícita:
+# todavía no están referenciadas desde ninguna parte de la PWA, así que subirlas solo
+# añadiría peso al repositorio, y este repositorio es PÚBLICO (lo que entra en el
+# historial de git sigue siendo accesible aunque después se borre del árbol).
+# Para empezar a versionarlas, borrar estas líneas y hacer el `git add` normal.
+imagenes/01-imagenes-español/
+imagenes/02-imagenes-ingles/
+imagenes/03-imagenes-frances/
+imagenes/04-imagenes-italiano/

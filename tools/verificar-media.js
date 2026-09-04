@@ -39,9 +39,25 @@ const LIMITES = {
     video: { bytes: 12 * 1024 * 1024, label: '12 MB' },
 };
 
+const EXT_IMAGEN = ['.jpg', '.jpeg', '.jfif', '.png', '.webp'];
+
+/**
+ * Descubre las carpetas de imágenes en vez de mantener una lista fija: `imagenes/` gana
+ * subcarpetas cada vez que se añade contenido (idiomas, tandas nuevas), y una lista escrita
+ * a mano deja de cubrirlas en silencio — el informe sigue saliendo, pero sin mirarlas, que
+ * es peor que no tener herramienta porque parece que sí las ha revisado.
+ * @returns {Array<{dir: string, tipo: string, ext: string[]}>}
+ */
+function carpetasDeImagenes() {
+    const base = path.join(ROOT, 'imagenes');
+    if (!fs.existsSync(base)) return [];
+    return fs.readdirSync(base, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+        .map(d => ({ dir: `imagenes/${d.name}`, tipo: 'imagen', ext: EXT_IMAGEN }));
+}
+
 const CARPETAS = [
-    { dir: 'imagenes/imagenes-aventuras', tipo: 'imagen', ext: ['.jpg', '.jpeg', '.png', '.webp'] },
-    { dir: 'imagenes/imagenes-mapas-vintage', tipo: 'imagen', ext: ['.jpg', '.jpeg', '.png', '.webp'] },
+    ...carpetasDeImagenes(),
     { dir: 'audios-aventuras', tipo: 'audio', ext: ['.mp3', '.wav', '.m4a'] },
     { dir: 'videos-aventuras', tipo: 'video', ext: ['.mp4', '.webm', '.mov'] },
 ];
