@@ -1516,7 +1516,15 @@ async function scene11(){
   await wait(300);
   await Gauntlet.hover(amain,'R',350);
   await Gauntlet.tapEl(amain,'R',()=>{ spin(amain); $('astrip').classList.add('open') });
+  // Espera a que la tira termine de desplegarse (.audio-strip, transition .32s) antes
+  // de ir a por el play: el guantelete debe caer sobre un botón ya colocado, no sobre
+  // uno a mitad de animación.
   await wait(800);
+  // El play se pulsa de verdad, igual que el botón central de arriba: la barra de
+  // progreso y el ecualizador (animAP) arrancan COMO CONSECUENCIA de este toque, no
+  // por su cuenta. Misma dirección 'R' que el toque anterior — el guantelete entra por
+  // el mismo lado y solo sube, sin cambiar de mano a mitad de escena.
+  await Gauntlet.tapEl($('aplay'),'R',()=>{ spin($('aplay')) });
   await animAP(0, 87, 6000);
   await waitForNextBtn();
   hideBubble();
