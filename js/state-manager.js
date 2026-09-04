@@ -46,7 +46,10 @@ const state = {
   retosCargados: false,
   estadoPadre: {
     hijosInicializados: new Set(),
-    modo: { actual: 'casa', anterior: null },
+    // null = todavía sin decidir. Ver el comentario extenso junto a la misma
+    // inicialización en codigo-padre.html (globalThis.estadoPadre): arrancar en 'casa'
+    // hacía que la primera transición real pudiera confundirse con "ya estamos ahí".
+    modo: { actual: null, anterior: null },
     paradaActual: 0,
     mensajeriaInicializada: false,
     mapaInicializado: false,

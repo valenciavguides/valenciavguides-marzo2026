@@ -4022,7 +4022,16 @@
         // ============================================================
         globalThis.estadoPadre = {
             hijosInicializados: new Set(),
-            modo: { actual: MODOS.CASA, anterior: null }, // Arranque siempre en CASA — decisión intencional y provisional
+            // Arranca SIN modo decidido (null), no en CASA. Arrancar en CASA hacía que la
+            // primerísima transición real de la sesión pudiera coincidir con el modo ya
+            // "puesto" — y manejarCambioModo() (js/app.js) trataba ese caso como "no hay
+            // nada que hacer", devolviendo exito:true sin propagar CAMBIO_MODO a ningún
+            // hijo. El camino de producción (→AVENTURA) funcionaba por accidente, solo
+            // porque AVENTURA nunca coincide con el CASA de arranque; el camino dev
+            // (→CASA) sí coincidía y se saltaba la propagación en silencio. Con null, la
+            // primera transición es siempre real, sea cual sea su destino. Los tres
+            // estados posibles son ahora null (sin decidir) | 'casa' | 'aventura'.
+            modo: { actual: null, anterior: null },
             paradaActual: null,
             // Saltos de seguridad del TTL de tramos (§31.7b) — máx. 5 por aventura, cada uno
             // exige 20% de progreso real desde el último. Persisten en vv_progreso (a
@@ -4178,8 +4187,12 @@
                 // está en CASA cierra ese hueco: vv_progreso conserva siempre el último
                 // valor real persistido en AVENTURA, y se actualiza de nuevo en cuanto se
                 // vuelve a AVENTURA (la resincronización automática también pasa por aquí).
-                if (estado.modo?.actual === MODOS.CASA) {
-                    (globalThis.logger || console).debug('[PADRE][PROGRESO] Persistencia de vv_progreso omitida en modo CASA');
+                // Se comprueba "no es AVENTURA" en vez de "es CASA": el progreso es un
+                // concepto exclusivo de AVENTURA, y desde que el modo arranca en null
+                // (sin decidir) "no es CASA" ya no equivale a "es AVENTURA". Para los dos
+                // modos reales el comportamiento es idéntico al de antes.
+                if (estado.modo?.actual !== MODOS.AVENTURA) {
+                    (globalThis.logger || console).debug(`[PADRE][PROGRESO] Persistencia de vv_progreso omitida (modo: ${estado.modo?.actual ?? 'sin decidir'})`);
                     return;
                 }
                 // Calcular total de paradas para mostrar progreso en diálogo de reanudación

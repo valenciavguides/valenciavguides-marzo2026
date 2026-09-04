@@ -556,11 +556,28 @@ export async function manejarCambioModo(estado, mensaje) {
             return { exito: false, error: errorMsg };
         }
 
-        // 3. Validar transición de modos
-        const modoActual = estado.modo?.actual || MODOS.CASA;
+        // 3. ¿Ya estamos en ese modo?
+        // Sin fallback a CASA: el modo arranca en null (sin decidir), y con el fallback
+        // antiguo la primera transición real hacia CASA se confundía con "ya estamos ahí".
+        const modoActual = estado.modo?.actual ?? null;
         if (modoNormalized === modoActual) {
-            logger.info(`${logPrefix} El modo ya está establecido a '${modoNormalized}'`, { mensajeId });
-            return { exito: true, cambiado: false, modoActual };
+            // "El padre ya cree estar en ese modo" NO significa "todos los hijos lo saben".
+            // Antes se devolvía aquí sin más y el caller (_hdl_SISTEMA_CAMBIO_MODO) leía ese
+            // exito:true como "todo aplicado", siguiendo con heartbeat/GPS/restauración
+            // mientras los hijos nunca habían recibido CAMBIO_MODO — su UI se quedaba en el
+            // modo anterior sin que nada lo delatara. Ahora se reenvía la propagación
+            // (actualizarInterfazModo es la única fuente de verdad de la UI de los hijos) y
+            // se omiten solo los efectos que sí sería incorrecto repetir: limpieza de
+            // recursos, pre-warm y el registro de un cambio de modo que no ha ocurrido.
+            logger.info(`${logPrefix} Modo ya establecido a '${modoNormalized}' — resincronizando hijos sin repetir efectos`, { mensajeId });
+            let resincronizado = false;
+            try {
+                await withTimeout(actualizarInterfazModo(estado, modoNormalized), 15000, 'actualizarInterfazModo(resync)');
+                resincronizado = true;
+            } catch (errResync) { // NOSONAR
+                logger.warn(`${logPrefix} Resincronización de hijos falló: ${errResync?.message}`, { mensajeId });
+            }
+            return { exito: true, cambiado: false, resincronizado, modoActual };
         }
 
         // 4. Registrar evento de cambio de modo
@@ -763,13 +780,19 @@ export async function iniciarPrewarmEnCasa(estado = globalThis.estadoPadre) {
     }
 }
 
-// Auto-run seguro: si el estado del padre ya existe y está en CASA, iniciar pre-warm.
-// Si no está disponible aún, comprobar periódicamente durante unos segundos.
+// Auto-run seguro: si el estado del padre ya existe y todavía no está en AVENTURA
+// (CASA o sin modo decidido), iniciar pre-warm. Si no está disponible aún, comprobar
+// periódicamente durante unos segundos.
+// El caso "sin decidir" se comprueba por el valor (=== null), no por la ausencia del
+// objeto `modo`: desde que el modo arranca en `{ actual: null }` ese objeto SIEMPRE
+// existe, así que la comprobación antigua (`!estadoPadre.modo`) dejaría de cumplirse
+// nunca y el pre-warm de arranque no llegaría a iniciarse en ninguna sesión.
 if (globalThis.window !== undefined) {
     (async () => {
         try {
             const tryStart = async () => {
-                if (globalThis.estadoPadre && (globalThis.estadoPadre.modo?.actual === MODOS.CASA || !globalThis.estadoPadre.modo)) {
+                const _modoPrewarm = globalThis.estadoPadre?.modo?.actual ?? null;
+                if (globalThis.estadoPadre && (_modoPrewarm === MODOS.CASA || _modoPrewarm === null)) {
                     await iniciarPrewarmEnCasa(globalThis.estadoPadre);
                     return true;
                 }
