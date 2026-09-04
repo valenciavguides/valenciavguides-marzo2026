@@ -1123,13 +1123,23 @@
     // Reutilizado por el error nativo agotado y por el atasco de stalled/waiting sin
     // recuperar (más abajo): el padre no necesita distinguir el origen técnico, solo
     // que este audio no se puede reproducir — ya rescata pending.audio (§30.7a).
+    // Se llama fire-and-forget desde el detector de stalls, así que el rechazo hay que
+    // recogerlo aquí dentro: enviarMensaje() rechaza por cuatro vías reales (timeout de
+    // confirmación, envío fallido, mensajería limpiada, confirmación expirada). Sin este
+    // try/catch, un rechazo quedaba sin recoger y —lo importante— el padre no llegaba a
+    // enterarse de que el audio está atascado, así que nunca ofrecía saltarlo: el cliente
+    // se quedaba con el audio colgado y sin salida.
     async function _avisarFalloAudioAlPadre(motivo) {
-        await enviarMensaje({
-            tipo: TIPOS_MENSAJE.AUDIO.ERROR,
-            origen: CONFIG_HIJO.IFRAME_ID,
-            destino: resolverIdPadre(),
-            datos: { audioId: currentAudioId, error: motivo }
-        });
+        try {
+            await enviarMensaje({
+                tipo: TIPOS_MENSAJE.AUDIO.ERROR,
+                origen: CONFIG_HIJO.IFRAME_ID,
+                destino: resolverIdPadre(),
+                datos: { audioId: currentAudioId, error: motivo }
+            });
+        } catch (e) {
+            logger.error(`[hijo3] No se pudo avisar al padre del fallo de audio (${motivo}): ${e?.message}`);
+        }
     }
 
     // Micro-cortes durante la reproducción: el navegador dispara 'stalled' (no llegan

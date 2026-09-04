@@ -9720,6 +9720,13 @@ await _comprobarReanudacionAventura(logPrefix);
             if (++_waitMs2 > 200) { (globalThis.logger || console).error('[PADRE Script2] mensajeria/estadoPadre no disponible tras 10s'); break; }
             await sleep(50);
         }
+        // La espera de arriba puede terminar por agotarse (break a los 10 s). Sin esta
+        // comprobación, la desestructuración de abajo revienta con "Cannot destructure
+        // property ... of undefined" y Script 2 aborta ahí, dejando sin registrar todos
+        // sus controladores, con un error que no dice ni qué script era ni qué se pierde.
+        if (!globalThis.mensajeria?.enviarMensaje) {
+            throw new Error('[PADRE Script2] mensajeria no disponible tras 10s — Script 2 abortado: sus controladores (reto, audio, parada) no se registran');
+        }
         const { registrarControlador: registrarControlador_S2, enviarMensaje: enviarMensaje_S2 } = globalThis.mensajeria;
         // Capturar la implementación de Script 1 ANTES de importar app.js — ese módulo asigna
         // su propio globalThis.registrarEvento en su top-level (misma propiedad, formato de log
@@ -14120,6 +14127,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             if (++_waitMs3 > 200) { (globalThis.logger || console).error('[PADRE Script3] mensajeria no disponible tras 10s'); break; }
             await sleep(50);
         }
+        // Ver la nota equivalente en Script 2: la espera de arriba puede agotarse.
+        if (!globalThis.mensajeria?.enviarMensaje) {
+            throw new Error('[PADRE Script3] mensajeria no disponible tras 10s — Script 3 abortado: los iframes hijo no se cargan');
+        }
         const { enviarMensaje: enviarMensajeIframe } = globalThis.mensajeria;
 
         // Función utilitaria para cargar iframes y enviar PADRE_DATOS solo después de onload real
@@ -14289,6 +14300,10 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         while (typeof globalThis.registrarControladorSeguro !== 'function') {
             if (++_waitRcs4 > 200) { (globalThis.logger || console).error('[PADRE Script4] registrarControladorSeguro no disponible tras 10s'); break; }
             await sleep(50);
+        }
+        // Ver la nota equivalente en Script 2: las dos esperas de arriba pueden agotarse.
+        if (!globalThis.mensajeria?.enviarMensaje) {
+            throw new Error('[PADRE Script4] mensajeria no disponible tras 10s — Script 4 abortado: migración de controladores y diagnóstico GPS sin registrar');
         }
         const { enviarMensaje: enviarMensaje_S4 } = globalThis.mensajeria;
         const { ajustarTimeoutPorConexion } = await import('./js/utils.js');
