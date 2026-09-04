@@ -1614,6 +1614,22 @@
                         // Si aún no está listo, el handshake HIJO_PREPARADO→PADRE_DATOS entregará el estado
                     } else {
                         chatCargado = true;
+                        // Registrar el iframe en la mensajería ANTES de asignarle src, igual que
+                        // hacen los tres cargadores de iframes (_cargarSingleIframe,
+                        // _cargarUnIframeHijo, _cargarSoloIframeActivacion). `_enviarDesdePadre`
+                        // (js/mensajeria.js) resuelve el destino buscándolo en `iframesRegistrados`:
+                        // un iframe que no esté ahí no es alcanzable desde el padre, y todo mensaje
+                        // dirigido a él se descarta con un simple warn. Sin este registro, el
+                        // SISTEMA.ACK y el SISTEMA.PADRE_DATOS que el padre responde al
+                        // HIJO_PREPARADO de hijo6 se pierden — y como hijo6 espera PADRE_DATOS para
+                        // conocer el idioma y para enviar su HIJO_LISTO, el chat se construía
+                        // siempre en español y nunca entraba en `hijosInicializados` (lo que además
+                        // dejaba muerta la vía de refresco de `chatListoParaMensajes`, arriba).
+                        // El sentido hijo→padre nunca dependió de esto: es un postMessage directo
+                        // a `window.parent`, por eso el HIJO_PREPARADO sí llegaba.
+                        try {
+                            globalThis.mensajeria?.registrarIframe?.('hijo6-chat', iframeChat);
+                        } catch (e) { (globalThis.logger || console).warn('[PADRE] No se pudo registrar hijo6-chat en la mensajería', e && e.message); }
                         iframeChat.src = 'chat-hijo6.html';
                         // Estado inicial se transmite vía handshake HIJO_PREPARADO → PADRE_DATOS
                     }
