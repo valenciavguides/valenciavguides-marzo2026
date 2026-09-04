@@ -170,10 +170,19 @@ test.describe('MU — El marcador de posición propia sigue al zoom', () => {
     });
 
     const anchoZoom18 = await anchoMarcadorUsuario(page);
+    // La flecha es un cartel indicador, no terreno (familia PANTALLA, ver ESCALA_BASE en
+    // js/funciones-mapa.js): al ACERCAR el zoom debe ENCOGER, para no tapar el detalle de
+    // calle justo cuando el usuario necesita ver el portal exacto. Lo que se comprueba aquí
+    // es que reacciona al zoom sin ninguna posición GPS nueva — antes se quedaba congelada
+    // hasta la siguiente lectura, unos 7 s después.
     expect(
       anchoZoom18,
-      'con más zoom la flecha debe crecer: sin reescalado quedaba congelada hasta la siguiente lectura de GPS'
-    ).toBeGreaterThan(anchoZoom15);
+      'la flecha debe reaccionar al zoom sin esperar una posición GPS nueva'
+    ).not.toBe(anchoZoom15);
+    expect(
+      anchoZoom18,
+      'al acercar el zoom la flecha debe encoger: es un indicador de pantalla, no un objeto del terreno'
+    ).toBeLessThan(anchoZoom15);
   });
 
   test('MU-2. El reescalado no borra el marcador ni pierde la flecha', async ({ page, context }) => {
@@ -209,6 +218,68 @@ test.describe('MU — El marcador de posición propia sigue al zoom', () => {
     });
     expect(estructura.existe, 'el marcador debe seguir en el mapa tras reescalar').toBe(true);
     expect(estructura.tieneContenedorDeRumbo, 'el reescalado debe conservar .gps-arrow-heading, o la brújula deja de rotar la flecha').toBe(true);
+  });
+
+  test('MU-3. Iconos y polylines escalan en sentidos OPUESTOS al acercar el zoom', async ({ page, context }) => {
+    // El invariante de fondo de todo el sistema de escalado, y el que más fácil sería
+    // romper por accidente "unificando" curvas: una polyline es una calle pintada (debe
+    // engordar al acercar, para seguir encajando en la calle) y un icono es un cartel
+    // indicador (debe encoger al acercar, para no tapar el detalle justo cuando hace falta
+    // ver el portal exacto). Si alguna vez las dos familias empiezan a moverse en el mismo
+    // sentido, este test cae — que es justo lo que debe pasar.
+    await arrancar(page, context, { conInternosExpuestos: true });
+    await page.waitForFunction(() => !!globalThis.funcionesMapa?.inicializarServicioMapa, null, { timeout: 25000 });
+
+    const medir = async (zoom) => page.evaluate(async (z) => {
+      const mod = await import('/js/funciones-mapa.js');
+      // Mapa de mentira con el zoom fijado, como en 23-polyline-autoreparacion: guarda las
+      // capas creadas para poder leer el grosor real con el que nacieron.
+      const capas = {};
+      const fakeMap = {
+        _l: {},
+        isStyleLoaded: () => true,
+        loaded: () => true,
+        on() { return fakeMap; }, once() { return fakeMap; }, off() { return fakeMap; },
+        addSource() { return fakeMap; },
+        addLayer(layer) { capas[layer.id] = layer; return fakeMap; },
+        getSource() { return { setData() {} }; },
+        getLayer(id) { return capas[id] ? {} : undefined; },
+        removeLayer() {}, removeSource() {}, setPaintProperty() {},
+        getZoom() { return z; },
+      };
+      globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
+      const antes = (globalThis.__vv_marcadoresStub || []).length;
+      mod.dibujarPolylineNavegacion({
+        origen: { lat: 39.4795, lng: -0.3758 },
+        destino: { lat: 39.4799, lng: -0.3762 },
+      });
+      // Grosor con el que nació la polyline
+      const capa = Object.values(capas).find(c => c?.paint?.['line-width'] !== undefined);
+      // Tamaño con el que nació el 🎯 de destino (el marcador creado por esa misma llamada)
+      const nuevos = (globalThis.__vv_marcadoresStub || []).slice(antes);
+      const iconoEl = nuevos.map(m => m.getElement?.()).find(el => el && /marcador-destino-navegacion/.test(el.className || ''));
+      const interior = iconoEl?.firstElementChild;
+      return {
+        grosorPolyline: capa ? capa.paint['line-width'] : null,
+        tamanoIcono: interior ? parseFloat(interior.style.fontSize) : null,
+      };
+    }, zoom);
+
+    const lejos = await medir(15);
+    const cerca = await medir(18);
+
+    expect(lejos.grosorPolyline, 'la polyline debe nacer con un grosor legible').toBeGreaterThan(0);
+    expect(lejos.tamanoIcono, 'el icono de destino debe nacer con un tamaño legible').toBeGreaterThan(0);
+
+    expect(
+      cerca.grosorPolyline,
+      'al acercar, la polyline debe ENGORDAR: es una calle pintada y la calle también se ensancha'
+    ).toBeGreaterThan(lejos.grosorPolyline);
+
+    expect(
+      cerca.tamanoIcono,
+      'al acercar, el icono debe ENCOGER: es un cartel indicador, no terreno'
+    ).toBeLessThan(lejos.tamanoIcono);
   });
 });
 

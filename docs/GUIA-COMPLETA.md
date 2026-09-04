@@ -940,7 +940,7 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 
 **No existe ningún marcador proyectado sobre la ruta, más allá del triángulo ▲ y el círculo naranja de arriba.** Un segundo marcador de posición (flecha + halo, proyectado sobre el punto de la polyline más cercano en vez de la posición GPS real) duplicaría esa misma información sin aportar guía turn-by-turn real (ver §4.6b, esa decisión de diseño sigue vigente) y arriesgaría una paleta de color inconsistente con el resto de la app (naranja = zona de activación, azul = tú) — se descarta por diseño.
 
-**Tamaño de los emoji 📌/🎯 y reescalado con el zoom.** Tamaño base (antes de escalar): 📌 inicio de tramo 16px, 🎯 parada/fin de tramo 20px, 🎯 destino de la línea de navegación manual 26px (el más grande de los tres, para destacarlo sobre el resto). `reescalarMarcadoresEmoji()` (`js/funciones-mapa.js`) recorre el `Map` `marcadoresParadas` en cada evento `zoom` del mapa (no solo `zoomend`: el listener de `zoom` dispara en cada frame del gesto de pinch/scroll/botones, acotado a una llamada por frame vía `requestAnimationFrame` para no re-renderizar cada marcador más veces de las que la pantalla puede pintar — así el tamaño sigue el gesto en vivo en vez de saltar solo al soltar) y reescribe el `font-size` de cada marcador según la clase CSS que tenga (`custom-marker-emoji`/`finish-flag-icon`/`tramo-fin-icon` → 🎯 parada; `start-flag-icon`/`tramo-inicio-icon` → 📌 inicio) — solo los marcadores registrados en ese `Map` reciben este reescalado; el marcador de destino de navegación (`marcadorDestinoNavegacion`) se reescala aparte, en la misma función. El marcador 🎯 de una parada normal (no de tramo) se registra en `marcadoresParadas` bajo la clave `'parada-actual'` al crearse y se retira de ahí al limpiarse — mismo patrón que ya usaban los marcadores de tramo (`'tramo-inicio-ruta'`/`'tramo-fin-ruta'`) desde siempre. El factor de escala que multiplica estos tres tamaños base es el mismo que usan las polylines — ver "Escalado dinámico: dos curvas, no una" en §4.6.
+**Tamaño de los emoji 📌/🎯 y reescalado con el zoom.** Tamaño base (antes de escalar): 📌 inicio de tramo y 🎯 parada/fin de tramo **20px los dos** — son dos señales del mismo rango y su símbolo ya dice cuál es cuál sin necesidad de una diferencia de tamaño —, y 🎯 destino de la línea de navegación manual 26px (el más grande, para destacarlo sobre el resto). `reescalarMarcadoresEmoji()` (`js/funciones-mapa.js`) recorre el `Map` `marcadoresParadas` en cada evento `zoom` del mapa (no solo `zoomend`: el listener de `zoom` dispara en cada frame del gesto de pinch/scroll/botones, acotado a una llamada por frame vía `requestAnimationFrame` para no re-renderizar cada marcador más veces de las que la pantalla puede pintar — así el tamaño sigue el gesto en vivo en vez de saltar solo al soltar) y reescribe el `font-size` de cada marcador según la clase CSS que tenga (`custom-marker-emoji`/`finish-flag-icon`/`tramo-fin-icon` → 🎯 parada; `start-flag-icon`/`tramo-inicio-icon` → 📌 inicio) — solo los marcadores registrados en ese `Map` reciben este reescalado; el marcador de destino de navegación (`marcadorDestinoNavegacion`) se reescala aparte, en la misma función. El marcador 🎯 de una parada normal (no de tramo) se registra en `marcadoresParadas` bajo la clave `'parada-actual'` al crearse y se retira de ahí al limpiarse — mismo patrón que ya usaban los marcadores de tramo (`'tramo-inicio-ruta'`/`'tramo-fin-ruta'`) desde siempre. El factor de escala que multiplica estos tres tamaños base es el mismo que usan las polylines — ver "Escalado dinámico: dos curvas, no una" en §4.6.
 
 **Una única función construye el HTML de estos tres emoji, tanto al crearlos como al reescalarlos.** `_htmlEmojiRuta(emoji, size, centrado)` (`js/funciones-mapa.js`) es el único punto del código que arma la plantilla `<div style="font-size:...">` de 📌/🎯 — la usan `completarCambioParada()` (marcadores de tramo e inicio) y `dibujarPolylineNavegacion()` (marcador de destino) al crear el elemento, y `reescalarMarcadoresEmoji()` al reescribirlo en cada evento de zoom. Antes de existir este helper, la misma plantilla estaba copiada por separado en cada uno de esos cuatro sitios — funcionalmente idéntica hoy, pero con cuatro copias que un cambio futuro en una de ellas podía dejar desincronizadas con las otras tres sin que ningún test lo detectara. El marcador de posición propia (▲/🛸) no usa esta función: es otra familia, con su propia plantilla y su propia curva de escala (ver tabla de abajo). Sigue exactamente el mismo principio de fuente única, con su propio helper — `_htmlMarcadorUsuario(modo, heading)` (`js/funciones-mapa.js`) es el único punto que arma el HTML de la flecha y del 🛸, y lo usan tanto `actualizarMarcadorUsuario()` al recrear el marcador en cada posición GPS como `reescalarMarcadorUsuario()` al reescribirlo en cada evento de zoom.
 
@@ -975,29 +975,37 @@ flowchart TD
 
 ### 4.6. Polylines (líneas de ruta en el mapa)
 
-Las polylines son las líneas que se dibujan en el mapa para mostrar rutas, tramos y navegación. Sus estilos varían según el tipo:
+La app dibuja exactamente **dos** polylines, y comparten grosor a propósito: lo que las distingue es el color y el patrón, no el grosor — azul continua para el tramo, verde discontinua para la ayuda del botón de ubicación. Un grosor distinto sería una tercera señal redundante:
 
 | Tipo de polyline | Color | Grosor base | Opacidad | Patrón | Cuándo se dibuja |
 |-----------------|-------|-------------|----------|--------|------------------|
-| **Tramo normal** | `#3388ff` (azul claro) | 4 px | 0.7 | Sólido | Al seleccionar un tramo específico entre dos paradas |
-| **Tramo destacado** | `#ff4500` (naranja-rojo) | 6 px | 0.9 | Sólido | Cuando un tramo está activo o enfatizado (el actual) |
-| **Línea de navegación manual** | `#3eff3f` (verde) | 7 px | 0.8 | Discontinuo (segmento 0, hueco 2 — el `0, 2` del patrón `dashArray` es el propio dibujo del trazo punteado, no el grosor de la línea) | Solo al pulsar `btn-ubicacion`. Nunca se dibuja sola |
+| **Tramo normal** | `#3388ff` (azul claro) | 5 px | 0.7 | Sólido | Al seleccionar un tramo específico entre dos paradas |
+| **Línea de navegación manual** | `#3eff3f` (verde) | 5 px | 0.8 | Discontinuo (segmento 0, hueco 2 — el `0, 2` del patrón `dashArray` es el propio dibujo del trazo punteado, no el grosor de la línea) | Solo al pulsar `btn-ubicacion`. Nunca se dibuja sola |
 
-**Escalado dinámico: dos curvas, no una.** Todos los grosores de polyline y los tamaños de 📌/🎯 (§4.5) se multiplican por un factor de escala que combina tamaño de pantalla (`vmin` del dispositivo entre 400, la pantalla de referencia) × nivel de zoom del mapa (`getEscalaMapa()`, `getPolylineEscalado()`, `getIconoEscalado()`, todas en `js/funciones-mapa.js`). Pero no existe una sola curva de zoom para todo el mapa — hay dos, deliberadamente distintas:
+**Escalado dinámico: dos familias con curvas de sentido OPUESTO.** Todo lo que se dibuja sobre el mapa se multiplica por un factor que combina tamaño de pantalla (`vmin` del dispositivo entre 400, la pantalla de referencia) × nivel de zoom del mapa. La división no es estética: responde a qué **es** cada cosa, y de ahí sale si debe crecer o encoger al acercar el zoom.
 
-| | 📌/🎯 (parada, tramo, destino de navegación) y las 4 polylines | ▲/🛸 (marcador de posición propia) |
+| | **TERRENO** — las polylines | **PANTALLA** — los 5 iconos |
 |---|---|---|
-| Constante | `ZOOM_FACTOR = 1.35` | `ZOOM_FACTOR_USUARIO = 1.15` |
-| Tope de la escala | `ZOOM_TOPE = 3.5` | `2.5` (sin cambios) |
-| Por qué | Un mapa raster dobla su detalle visual en cada nivel de zoom — con un factor de crecimiento de solo 1.15 por nivel, el emoji sí crecía en píxeles absolutos pero se quedaba cada vez más pequeño *en relación* al propio mapa cuanto más de cerca se miraba, cayendo muy por detrás del ritmo al que crece el contenido real de los tiles | Ya se percibía con tamaño correcto en el zoom máximo real de la app (19) con la curva original — aplicarle la misma curva marcada de arriba lo habría dejado desproporcionadamente grande frente a las paradas |
+| Qué cubre | Línea azul del tramo, línea verde del botón de ubicación | 🎯 parada, 📌 inicio de tramo, 🎯 destino de navegación, ▲ flecha, 🛸 ovni |
+| Qué es | **Una calle pintada.** Su trabajo es tumbarse encima del camino real | **Un cartel indicador.** Su trabajo es que lo encuentres |
+| Al ACERCAR | **Engorda** — la calle bajo ella también se ensancha; si adelgazara dejaría de encajar | **Encoge** — a esa distancia hace falta ver el detalle de calle y el portal exacto, no un icono tapándolo |
+| Al ALEJAR | **Adelgaza** — si engordara, la ruta sería un gusano tapando media ciudad | **Crece** — hay mucho mapa que barrer y hay que localizarlo de un vistazo |
+| Constante | `ZOOM_FACTOR_TERRENO = 1.35` (>1) | `ZOOM_FACTOR_ICONO = 0.9` (<1) |
+| Función | `getEscalaTerreno()` → `getPolylineEscalado()` | `getEscalaIcono()` → `getIconoEscalado()` |
+| Red de seguridad | El **techo** (`ZOOM_TOPE_TERRENO = 3.5`): limita cuánto engorda al acercar | El **techo** (`ZOOM_TOPE_ICONO = 2.2`): limita cuánto crece al ALEJAR, que es donde dos iconos del mismo elemento pueden taparse entre sí — a zoom 14, 50 m reales son unos 7 px en pantalla, así que la 📌 y la 🎯 de un tramo corto se solaparían sin este límite |
+| Suelo | `ZOOM_SUELO_TERRENO = 0.5` | `ZOOM_SUELO_ICONO = 0.45` |
 
-Ambas usan la misma fórmula base — `factor_pantalla × factor_zoom^(zoom_actual − 15)`, acotada entre 0.5× y su propio tope — implementada una sola vez en `_calcularEscala()` (función interna compartida), con cada curva leyendo de su propio objeto de caché (`_escalaCache` / `_escalaCacheUsuario`) para no interferir entre sí cuando ambas se calculan en el mismo instante. Con `ZOOM_FACTOR=1.35`, el tope de 3.5 se alcanza justo por encima del zoom máximo real de la app (19) — en la práctica actúa como red de seguridad para un zoom mayor que el hoy disponible, no como un techo que recorte el crecimiento normal dentro del rango que el usuario puede alcanzar.
+**Los cinco iconos comparten una única curva**, de modo que la proporción entre ellos es la misma a cualquier zoom (la flecha mide siempre ~2,2× la diana) en vez de deslizarse según cuánto zoom tenga puesto el usuario.
 
-**Las dos familias se reescalan en los mismos dos momentos.** `registrarListenerZoom()` engancha ambos recálculos a los dos eventos del mapa: `zoom` (dispara en cada frame del gesto de pinch/scroll/botones, acotado a una llamada por frame vía `requestAnimationFrame`) y `zoomend` (pasada final con el zoom ya asentado). En los dos se llama a `reescalarMarcadoresEmoji()` **y** a `reescalarMarcadorUsuario()`, en ese orden y dentro del mismo frame: son curvas distintas, pero deben moverse a la vez o la proporción entre la flecha y las dianas daría saltos a mitad del gesto. La diferencia que queda entre las dos familias es solo la curva de escala de la tabla de arriba, no la frecuencia ni el momento de recálculo.
+**El círculo naranja de 15 m no pertenece a ninguna de las dos familias** y no pasa por ninguna de estas escalas: es geografía pura, un polígono de radio constante en **metros** (`_crearCirculoGeografico()`, §4.5) que crece ×2 por nivel igual que el propio mapa. Es correcto que sea así — con una curva de icono dejaría de marcar 15 metros reales y pasaría a ser un adorno. El texto de nombres de calle (`_calcularTextSizeCalles()`, `codigo-padre.html`) sigue el criterio de TERRENO por el mismo motivo: es mobiliario del mapa, no un indicador.
+
+Las dos curvas usan la misma fórmula — `factor_pantalla × factor_zoom^(zoom_actual − 15)`, acotada entre su propio suelo y su propio techo — implementada una sola vez en `_calcularEscala()`, con cada familia leyendo de su propio objeto de caché (`_escalaCacheTerreno` / `_escalaCacheIcono`): ambas se calculan en el mismo instante y compartir caché haría que la segunda leyera el valor de la primera.
+
+**Los cinco iconos se reescalan en los mismos dos momentos.** `registrarListenerZoom()` engancha los recálculos a los dos eventos del mapa: `zoom` (dispara en cada frame del gesto de pinch/scroll/botones, acotado a una llamada por frame vía `requestAnimationFrame`) y `zoomend` (pasada final con el zoom ya asentado). En los dos se llama a `reescalarMarcadoresEmoji()` **y** a `reescalarMarcadorUsuario()`, en ese orden y dentro del mismo frame: comparten curva y deben moverse a la vez, o la proporción entre la flecha y las dianas daría saltos a mitad del gesto. Las polylines se reescalan en `zoomend` (`setStyle({weight})` sobre `polylineNavegacion` y `rutasActivas`). El invariante de que las dos familias van en sentidos opuestos está fijado en `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (MU-3).
 
 El marcador ▲/🛸 recalcula además su tamaño en cada posición GPS, porque `actualizarMarcadorUsuario()` lo destruye y lo recrea entero para reposicionarlo. Ese camino por sí solo no basta: entre dos lecturas de GPS (~7 s) el usuario puede hacer zoom varias veces, y sin `reescalarMarcadorUsuario()` el marcador se quedaría con el tamaño de la lectura anterior mientras el círculo naranja de 15 m — geográfico, atado al terreno (§4.5) — sí crece con el mapa; la flecha aparentaría encoger dentro de su propio círculo. `reescalarMarcadorUsuario()` solo reescribe el HTML interior del marcador existente (no lo recrea: para eso hace falta una posición nueva) y no pierde la rotación de la brújula, porque `_htmlMarcadorUsuario()` la reconstruye a partir del mismo ángulo suavizado acumulado (`_flechaGpsAnguloAcumulado`) que usa la recreación normal. Cubierto por `tests/e2e/47-reescalado-marcador-usuario-y-chat.spec.js` (grupo MU).
 
-**El reescalado en `zoomend` usa el grosor de cada tipo de polyline, no uno solo para todas.** El listener registrado por `registrarListenerZoom()` recorre dos colecciones: la `polylineNavegacion` suelta (grosor `peso.navegacion`) y el array `rutasActivas`, que en esta app solo contiene la polyline azul del tramo activo (`dibujarTramo(tramoData, false)`, grosor `peso.tramo`, 4px base — nunca `peso.ruta`, 6px base, pensado para una ruta completa que este array no llega a contener). Reaplicar `peso.ruta` a las entradas de `rutasActivas` en cada zoom las dejaba un 50% más gruesas de lo que su propio tipo de polyline pedía, en cuanto se disparaba el primer `zoomend` tras dibujar el tramo. A diferencia de los marcadores 📌/🎯 (arriba), las polylines solo se reescalan en `zoomend` — no hay listener de `zoom` en vivo para ellas; su grosor en píxeles es menos sensible al ojo durante el propio gesto que el tamaño de un emoji, así que no se justificó el coste extra de recalcular `setStyle()` en cada frame.
+**El reescalado en `zoomend` cubre las dos polylines.** El listener registrado por `registrarListenerZoom()` recorre dos colecciones: la `polylineNavegacion` suelta (grosor `peso.navegacion`) y el array `rutasActivas`, que solo llega a contener la línea azul del tramo activo creada por `dibujarTramo()` (grosor `peso.tramo`). Las dos comparten el mismo grosor base, así que ambas ramas del reescalado aplican el mismo valor — se mantienen separadas porque son colecciones distintas (una referencia suelta y un array), no porque el grosor difiera.
 
 **Comportamiento — solo manual, nunca automático:**
 
@@ -1010,9 +1018,9 @@ El marcador ▲/🛸 recalcula además su tamaño en cada posición GPS, porque 
 flowchart TD
     A([Aventura activada]) --> C{Padre envía CAMBIO_PARADA}
     C -- tipo: parada --> D["Solo 🎯 de la parada visible"]
-    C -- tipo: tramo --> E["Tramo normal #3388ff 4px\n+ Tramo destacado #ff4500 6px\n📌🎯 + polyline, con auto-reparación\nsi el estilo del mapa aún no cargó (§4.6a)"]
+    C -- tipo: tramo --> E["Tramo azul #3388ff 5px\n📌🎯 + polyline, con auto-reparación\nsi el estilo del mapa aún no cargó (§4.6a)"]
 
-    L([Usuario pulsa btn-ubicación]) --> M["dibujarPolylineNavegacion()\nverde #3eff3f discontinua 7px\ncon waypoints del tramo\nfuerza _ocultarNavegacion() del\ntrazado persistente de inmediato"]
+    L([Usuario pulsa btn-ubicación]) --> M["dibujarPolylineNavegacion()\nverde #3eff3f discontinua 5px\ncon waypoints del tramo\nfuerza _ocultarNavegacion() del\ntrazado persistente de inmediato"]
     M --> N{"Cada lectura GPS:\n¿≤50m de .inicio (tramo)\no del punto (parada)?\n(ver §4.7d)"}
     N -- "sí" --> O["limpiarPolylineNavegacion()\npolyline + 🎯 eliminados juntos"]
     N -- "no" --> M
@@ -4823,7 +4831,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-42a78906e0b9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a32a38356fac'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7586,7 +7594,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `43-saltar-reto-puzzle-roto.spec.js` | 4 (WebKit omite 2 de puzzle) | Botón ⏩ (§13, "Saltar un reto o puzzle roto"): en `puzzle.html`, un puzzle válido se salta montando las piezas de verdad y avisando `PUZZLE.COMPLETADO` (PZ-1); uno roto/no encontrado hace lo mismo sin excepciones (PZ-2); en `retos-hijo4.html`, un reto de opción válido se salta marcando la respuesta correcta en el selector y habilita el mundo verde, que sí intenta el envío de `RETO.COMPLETADO` al pulsarlo (RT-1); un reto roto/no encontrado deja el botón de saltar habilitado (a diferencia del resto de controles) y también habilita el mundo verde (RT-2) |
 | `45-texto-intro-fallback-idioma.spec.js` | 4 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: un fallo real de red cargando los párrafos del idioma elegido muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
 | `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, el arranque del heartbeat, no por el mero valor del modo (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
-| `47-reescalado-marcador-usuario-y-chat.spec.js` | 4 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2). Grupo CH (§7.7): al pulsar `#btn-chat-soporte` (camino real del usuario, no una llamada a `abrirChat()`), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino ya no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
+| `47-reescalado-marcador-usuario-y-chat.spec.js` | 5 | Dos contratos que comparten arranque. Grupo MU (§4.6, escalado dinámico): con una única lectura de GPS y el zoom cambiado después, el marcador de posición propia se reescala, y encoge al acercar como corresponde a su familia — se ejercita disparando el evento de zoom del mapa, no llamando a `reescalarMarcadorUsuario()` a mano, porque el fallo que cubre no es que esa función no funcione sino que nadie la invoque (MU-1); y ese reescalado conserva `.gps-arrow-heading`, el div que `actualizarRotacionFlechaGPS()` busca en cada lectura de brújula — sin él la flecha dejaría de girar en silencio (MU-2); y el invariante de fondo de todo el sistema de escalado — al acercar el zoom, la polyline ENGORDA y el icono ENCOGE, cada familia en su sentido — medido sobre los valores reales con los que nacen (MU-3, el que cae si alguien intenta "unificar" las dos curvas). Grupo CH (§7.7): al pulsar `#btn-chat-soporte` (camino real del usuario, no una llamada a `abrirChat()`), `hijo6-chat` queda en `iframesRegistrados` (CH-1) y un envío del padre a ese destino ya no resuelve `false` por destino desconocido (CH-2). El arnés envuelve `maplibregl.Map`/`Marker` del stub para poder cambiar el zoom y leer el elemento real del marcador — el `addTo()` del stub es un no-op y el elemento nunca llega al documento |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7794,7 +7802,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-42a78906e0b9'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-a32a38356fac'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8440,7 +8448,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-42a78906e0b9';
+const CACHE_VERSION = 'v-a32a38356fac';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11594,7 +11602,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-42a78906e0b9';
+const CACHE_VERSION = 'v-a32a38356fac';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12499,7 +12507,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 ## 36. Metodología de auditoría completa
 
-Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 23 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 25 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
 
 **Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 23 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada aunque el documento ya no lo esté). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 23 ejes, nunca una muestra priorizada por riesgo.
 
@@ -12508,6 +12516,8 @@ Esta sección define el protocolo estándar para pedir una auditoría exhaustiva
 1. Ejecuta `npm run inventory` para tener el inventario de funciones actualizado y `npm run inventory:dupes` para detectar duplicados de nombre.
 2. Ejecuta `npm run test:e2e` (Playwright) y anota qué specs pasan y cuáles fallan. Usa el resultado como base para EJE 22 y para no re-auditar a mano lo que la suite ya cubre y confirma (EJE 5 ↔ `01-fase1-boot`, EJE 6 ↔ `09-mode-change`, EJE 8 ↔ `06-race-conditions`, EJE 18 ↔ `08-children-handshake`).
 3. Ejecuta `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) como punto de partida para EJE 4 y EJE 13 — señala tipos de `TIPOS_MENSAJE` sin receptor, sin emisor o sin ninguno de los dos. Tiene falsos positivos conocidos (indirección vía variable, handler registrado en una línea posterior a su definición): cada hallazgo se verifica leyendo el código real, nunca se actúa solo con esta salida.
+
+**Herramienta transversal — la cronología con marca de tiempo.** Para cualquier síntoma de "se queda colgado", "tarda mucho" o "a veces no llega", captura la consola completa con un sello de tiempo por línea y busca **huecos**: tramos de varios segundos sin una sola línea. Un hueco es una espera bloqueada, y su duración suele identificar al culpable por sí sola, porque coincide con el plazo de algún temporizador del código (5 s, 15 s, 30 s...). Es más rápido y más concluyente que leer el log de arriba abajo, porque el problema no está en lo que el log dice sino justo en lo que no dice. Filtrar el log por palabras clave antes de mirarlo puede ocultar precisamente el hueco — conviene medir primero sobre la captura entera y filtrar después.
 
 **Nota de contexto:** el proyecto se desarrolla actualmente en local y el flujo de pago aún no está implementado. Los hallazgos de EJE 21 (servidor) relacionados con hardening de producción son informativos mientras dure esta etapa — no bloquean el trabajo salvo que representen pérdida de datos o crash en local.
 
@@ -12673,6 +12683,10 @@ El modo actual se gestiona en múltiples capas. Las fuentes de verdad son `estad
 4. Lista funciones expuestas via `globalThis.fn = fn` que nunca se llaman como `globalThis.fn(...)` en ningún archivo → exposición innecesaria.
 5. Lista exports de módulos (`export function`, `export const`) que ningún archivo importa.
 6. Distingue: huérfano intencional (documentado para uso futuro) vs. huérfano accidental (olvidado).
+
+> **Busca el identificador PELADO, sin paréntesis.** Un `grep "nombreFuncion("` es una optimización que puede ocultar exactamente lo que se quiere confirmar, y produce falsos "está muerto" por dos vías reales: **optional chaining** (`objeto?.metodo?.(args)` no contiene la subcadena `metodo(` — el `?.` se interpone) y **alias con sufijo** (`const fn_S1 = modulo.fn;` seguido de `fn_S1(args)` tampoco la contiene). Busca `grep "nombreFuncion"` a secas y revisa cada resultado a mano para distinguir definición/export de uso real. La verificación es barata y la acción que se toma a partir de ella (borrar código) es cara e irreversible, así que el orden correcto es siempre ese.
+>
+> **Y no te quedes en el grep: comprueba también si el punto de entrada es alcanzable desde fuera.** Una función interna de módulo, no exportada ni expuesta en `globalThis`, solo puede llamarla el propio módulo — así que basta con auditar sus llamadas internas para cerrar el caso. Una exportada, no: cualquiera puede invocarla con parámetros que el código actual nunca usa, y un parámetro que hoy siempre llega con el mismo valor solo está muerto si además nadie de fuera puede cambiarlo.
 7. **Exports/propiedades de objetos `globalThis.X` sin caller real, no solo mensajes:** los pasos de arriba tienden a centrarse en emisor/receptor de mensajería — aplica el mismo rigor a cada `export function` de un módulo y a cada propiedad de un objeto `globalThis.X = {...}` construido a mano (p.ej. `globalThis.funcionesMapa`): para cada una, grep el nombre exacto en todo el proyecto y confirma que existe al menos un llamador real fuera de su propia línea de definición/exportación. Ejemplo del tipo de export vulnerable a este gap: una función exportada y expuesta en un objeto `globalThis.X` construido a mano, con JSDoc completo, sin ningún llamador real en ningún sitio — ni código, ni handler de mensaje, ni test — invisible mientras la auditoría se centra en el flujo de mensajes en vez de recorrer, una por una, las propiedades de ese objeto.
 
 ---
@@ -12784,6 +12798,7 @@ Para cada función que implementa comportamiento crítico de usuario (detección
 2. `grep` de todos los call-sites reales en el código.
 3. Para cada trigger esperado: ¿está llamando realmente a la función? ¿O solo confía en que alguien más lo hará?
 4. Verifica guards: ¿pueden los triggers llamar a la función cuando no debería ejecutarse (modo CASA, sin datos GPS, iframe no cargado)?
+5. **Para cada mecanismo de recuperación/reintento, audita sus ALIMENTADORES, no solo su motor.** Una máquina puede estar construida, probada y ejecutándose —su bucle corre, su backoff funciona, sus llamadas están conectadas— y aun así no cubrir el caso para el que existe, porque la estructura de datos que consume solo se rellena desde una parte de los caminos que deberían rellenarla. Ningún eje de huérfanos lo detecta: hay emisor, hay receptor, hay uso real. Pregunta por cada mecanismo: **¿qué situaciones deberían meter trabajo en esta cola, y cuáles lo hacen de verdad?** El patrón típico es que se cubra el fallo *que avisa* (un componente que responde "no puedo ahora") y quede sin cubrir el fallo *silencioso* (un componente que no responde nada), que suele ser el más frecuente en producción.
 
 **Por qué hace falta este eje:** EJE 4 confirma que el mensaje existe y que el handler existe, pero no verifica que el handler realmente invoca la función de negocio. EJE 13 busca huérfanos postMessage, pero no verifica call-sites dentro de los handlers. Ejemplo real: `verificarDistanciaYActualizarBotones()` estaba bien implementada pero el handler de `ACTUALIZAR_ESTADO` nunca la llamaba — el sistema fuera-de-rango estaba completamente muerto en producción y ninguna auditoría anterior lo detectó.
 
@@ -12849,7 +12864,32 @@ Para cada `sleep`/`setTimeout` que preceda a código que depende de que algo ext
 
 ---
 
-### 36.24 Checklist de cierre pre-producción
+### 36.24 EJE 24 — Tests en verde que no ejercitan el camino real
+
+Un test que pasa no prueba que la funcionalidad funcione: prueba que *lo que el test hace* funciona. Son dos cosas distintas, y la diferencia es exactamente donde se esconden los fallos que sobreviven meses a pesar de tener cobertura.
+
+Para cada spec que cubra un comportamiento de usuario:
+
+1. **¿Dispara el camino real o llama a la función por dentro?** Si el test invoca `globalThis.miFuncionInterna(...)` en vez de simular el gesto del usuario (un click en el botón, un mensaje entrante, una posición GPS), solo verifica que la función responde cuando alguien la llama — nunca que alguien la llame. Un mecanismo cuyo único disparador real esté roto, oculto o inalcanzable seguirá dando verde para siempre.
+2. **¿El montaje del test provee lo que el fallo hace faltar?** Un test que inyecta a mano el objeto, el flag o el iframe que en producción no llega, comprueba el código *después* del punto donde falla. El verde es real y la funcionalidad está rota a la vez, sin contradicción.
+3. **¿Has visto este test en rojo?** Un test escrito junto a su arreglo hay que validarlo desactivando el arreglo y comprobando que efectivamente falla. Si sigue verde con el código roto, no está midiendo lo que dice medir. Este paso es barato y es el único que distingue un test de una decoración.
+4. **Cuando código, documentación y test en verde coinciden en afirmar que algo funciona, trátalo como la señal MÁS sospechosa, no como confirmación.** Tres fuentes alineadas dan una sensación de certeza que ninguna revisión superficial va a cuestionar; si las tres derivan de la misma suposición no verificada, las tres mienten a la vez. Traza hasta la definición real y hasta el disparador real.
+
+**Por qué hace falta este eje:** EJE 22 cubre la higiene de los ficheros de test (huérfanos, referencias rotas, suites que no corren). Este cubre lo contrario: suites que corren perfectamente y pasan, sobre un camino que el usuario no recorre nunca.
+
+---
+
+### 36.25 EJE 25 — Suposiciones sobre el comportamiento de librerías externas
+
+Todo punto donde el código propio compara, lee o depende de algo que una librería de terceros también toca es una suposición, y hay que verificarla ejecutándola, no leyendo el código propio.
+
+1. **Comparaciones estrictas contra propiedades que la librería puede modificar.** El caso clásico es `elemento.className === 'mi-clase'`: si la librería añade sus propias clases al mismo elemento, la comparación no se cumple jamás y el bloque entero queda inerte — sin error, sin log, sin síntoma inmediato. Usa `classList.contains()` o el equivalente que tolere lo que la librería añada, y comprueba primero qué añade de verdad.
+2. **Verifícalo con una sonda real, no con la documentación ni con el código propio.** Una página mínima que cree el objeto tal y como lo crea la app y vuelque la propiedad en cuestión resuelve la duda en un minuto y de forma incontestable.
+3. **Un código de estado no es una validación del contenido.** Un recurso externo puede responder `200 OK` y devolver un contenido degradado, marcado o de aviso — y ninguna rama de error del código se disparará, porque para el código la petición fue un éxito. Cuando un recurso externo se vea "mal" pero no haya errores en consola, descarga el artefacto y míralo.
+
+---
+
+### 36.26 Checklist de cierre pre-producción
 
 El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 23 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
 
@@ -12865,7 +12905,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 
 ---
 
-### 36.25 Formato del reporte de auditoría
+### 36.27 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 

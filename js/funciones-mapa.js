@@ -529,53 +529,73 @@ function _crearCirculoGeografico(coords, radioM, estilo = {}) {
 /**
  * Valores base de referencia (para pantalla 400px y zoom 15)
  */
+// Todo lo que se dibuja sobre el mapa cae en una de dos familias, y la diferencia no es
+// estética sino conceptual — determina si algo debe crecer o encoger al acercar el zoom:
+//
+//   TERRENO  — la polyline es una calle pintada: su trabajo es tumbarse encima del camino
+//              real. Debe engordar al acercarse (para seguir encajando en la calle, que
+//              también se ensancha) y adelgazar al alejarse (si no, la ruta sería un gusano
+//              tapando media ciudad).
+//   PANTALLA — el icono es un cartel indicador: su trabajo es que lo encuentres. Debe ser
+//              grande cuando hay mucho mapa que barrer y hay que localizarlo de un vistazo,
+//              y discreto cuando ya estás encima y lo que necesitas ver es el portal exacto.
+//
+// El círculo naranja de 15 m no pertenece a ninguna de las dos: es geografía pura (un
+// polígono de radio constante en METROS, ver _crearCirculoGeografico), crece ×2 por nivel
+// como el propio mapa y no pasa por ninguna de estas escalas. Es correcto que sea así — si
+// se le aplicara una curva de icono dejaría de marcar 15 metros reales.
 const ESCALA_BASE = {
-    // Polylines
-    POLYLINE_RUTA: 6,           // Grosor ruta principal
-    POLYLINE_TRAMO: 4,          // Grosor tramo normal
-    POLYLINE_DESTACADO: 6,      // Grosor tramo destacado
-    POLYLINE_NAVEGACION: 7,     // Grosor línea navegación
+    // Polylines (familia TERRENO). Los dos únicos trazados reales de la app comparten
+    // grosor: lo que los distingue es el color y el patrón, no el grosor — la del tramo es
+    // azul continua (#3388ff) y la del botón de ubicación verde discontinua (#3eff3f con
+    // dashArray '0, 2'). Un grosor distinto era una tercera señal redundante.
+    POLYLINE_TRAMO: 5,          // Grosor tramo normal (línea azul del tramo activo)
+    POLYLINE_NAVEGACION: 5,     // Grosor línea navegación (verde del botón ubicación)
 
-    // Marcadores
+    // Marcadores (familia PANTALLA). 📌 y 🎯 miden lo mismo: son dos señales del mismo
+    // rango, y su símbolo ya dice cuál es cuál sin necesidad de una diferencia de tamaño.
     ICONO_PARADA: 20,           // Tamaño emoji parada 🎯
-    ICONO_INICIO: 16,           // Tamaño círculo inicio
-    ICONO_DESTINO: 26,          // Tamaño emoji destino 🎯
+    ICONO_INICIO: 20,           // Tamaño emoji inicio de tramo 📌
+    ICONO_DESTINO: 26,          // Tamaño emoji destino 🎯 (el del botón de ubicación)
     ICONO_USUARIO_CASA: 48,     // Tamaño emoji 🛸 modo casa
     ICONO_USUARIO_AVENTURA: 44, // Tamaño flecha + punto modo aventura
 
     // Referencia de escala
     PANTALLA_REF: 400,          // Pantalla de referencia (vmin)
     ZOOM_REF: 15,               // Zoom de referencia
-    // Dos curvas de crecimiento por zoom, no una sola:
-    // - ZOOM_FACTOR: diana de parada/tramo, 📌 de inicio de tramo y las polylines — la familia
-    //   de "marcadores de ruta" que el usuario ve encogerse en relación al mapa cuanto más zoom
-    //   real aplica (el mapa dobla su detalle en cada nivel; con un factor de 1.15 el marcador
-    //   solo llegaba a ×1.75 en el zoom máximo real de la app, 19 — visualmente insuficiente).
-    // - ZOOM_FACTOR_USUARIO: el marcador de posición propia (🛸 en CASA, flecha en AVENTURA) no
-    //   forma parte de esta familia — ya se percibía con tamaño correcto en el zoom máximo real
-    //   y aplicarle la misma curva más agresiva lo habría dejado desproporcionadamente grande.
-    ZOOM_FACTOR: 1.35,
-    ZOOM_FACTOR_USUARIO: 1.15,
-    // Tope de seguridad de la curva de marcadores/polylines — "hasta cierto punto", no
-    // crecimiento sin límite. Con ZOOM_FACTOR=1.35, se alcanza justo por encima del zoom
-    // máximo real de la app (19), así que en la práctica actúa como red de seguridad para un
-    // zoom mayor que el hoy disponible, no como un techo que recorte el crecimiento normal.
-    ZOOM_TOPE: 3.5
+    // Una curva por familia, con sentidos OPUESTOS a propósito (ver el bloque de arriba).
+    ZOOM_FACTOR_TERRENO: 1.35,  // >1: las polylines engordan al acercar
+    ZOOM_FACTOR_ICONO: 0.9,     // <1: los iconos encogen al acercar
+    // Cada curva necesita su propio suelo y techo, y con sentidos opuestos los papeles se
+    // invierten: en TERRENO el techo es la red de seguridad (limita cuánto puede engordar
+    // al acercar) y en PANTALLA lo es el suelo (limita cuánto puede encoger). Los dos
+    // valores sobrantes de cada par siguen ahí porque la fórmula es común y acota por los
+    // dos lados pase lo que pase.
+    ZOOM_TOPE_TERRENO: 3.5,
+    ZOOM_SUELO_TERRENO: 0.5,
+    // El techo de PANTALLA no es decorativo: acota el crecimiento al alejarse, que es donde
+    // dos iconos del MISMO elemento pueden llegar a taparse entre sí. A zoom 14, 50 m de
+    // separación real son unos 7 px en pantalla — sin techo, la 📌 y la 🎯 de un tramo corto
+    // se solaparían por completo.
+    ZOOM_TOPE_ICONO: 2.2,
+    ZOOM_SUELO_ICONO: 0.45
 };
 
 /**
- * Cache de escala actual para evitar recálculos frecuentes (curva de marcadores/polylines)
+ * Cache de escala de la familia TERRENO (polylines), para evitar recálculos frecuentes.
  */
-let _escalaCache = {
+let _escalaCacheTerreno = {
     valor: 1,
     timestamp: 0,
     zoom: 15
 };
 
 /**
- * Cache de escala para el marcador de posición propia (curva independiente, más suave)
+ * Cache de escala de la familia PANTALLA (los cinco iconos). Cada curva necesita la suya:
+ * ambas se calculan en el mismo instante y compartirla haría que la segunda leyera el valor
+ * de la primera.
  */
-let _escalaCacheUsuario = {
+let _escalaCacheIcono = {
     valor: 1,
     timestamp: 0,
     zoom: 15
@@ -583,16 +603,16 @@ let _escalaCacheUsuario = {
 
 /**
  * Calcula un factor de escala combinando pantalla + zoom, con caché y límites propios.
- * Función interna compartida por getEscalaMapa() y getEscalaMapaUsuario() — cada una le pasa
+ * Función interna compartida por getEscalaTerreno() y getEscalaIcono() — cada una le pasa
  * su propio factor de crecimiento, tope y objeto de caché, así que un zoom idéntico puede dar
  * dos escalas distintas según la familia de elemento que la pida.
  * @param {maplibregl.Map|null} mapaInstance
- * @param {number} factorZoom - ZOOM_FACTOR o ZOOM_FACTOR_USUARIO
+ * @param {number} factorZoom - ZOOM_FACTOR_TERRENO (>1, engorda al acercar) o ZOOM_FACTOR_ICONO (<1, encoge al acercar)
  * @param {number} tope - Límite superior de la escala
  * @param {{valor:number,timestamp:number,zoom:number}} cache - Objeto de caché a leer/escribir
  * @returns {number} Factor de escala (1.0 = tamaño base)
  */
-function _calcularEscala(mapaInstance, factorZoom, tope, cache) {
+function _calcularEscala(mapaInstance, factorZoom, tope, cache, suelo) {
     const mapa = mapaInstance || _mapaInstance;
     const ahora = Date.now();
 
@@ -609,11 +629,13 @@ function _calcularEscala(mapaInstance, factorZoom, tope, cache) {
     // Factor 2: Nivel de zoom del mapa
     const escalaZoom = Math.pow(factorZoom, zoomActual - ESCALA_BASE.ZOOM_REF);
 
-    // Combinación con límites seguros
+    // Combinación con límites seguros. El suelo llega por parámetro, no fijo: con curvas de
+    // sentidos opuestos (ver ESCALA_BASE) cada familia necesita el suyo — en la de iconos,
+    // que encoge al acercar, es el suelo el que hace de red de seguridad, no el techo.
     const escalaFinal = escalaPantalla * escalaZoom;
-    const escalaLimitada = Math.max(0.5, Math.min(escalaFinal, tope));
+    const escalaLimitada = Math.max(suelo, Math.min(escalaFinal, tope));
 
-    // Actualizar cache (mutación in-place: cache es _escalaCache o _escalaCacheUsuario)
+    // Actualizar cache (mutación in-place: cache es _escalaCacheTerreno o _escalaCacheIcono)
     cache.valor = escalaLimitada;
     cache.timestamp = ahora;
     cache.zoom = zoomActual;
@@ -622,51 +644,57 @@ function _calcularEscala(mapaInstance, factorZoom, tope, cache) {
 }
 
 /**
- * Escala para diana de parada/tramo, 📌 de inicio de tramo y polylines.
+ * Escala de la familia TERRENO: las polylines, que se tumban sobre la calle real y por tanto
+ * engordan al acercar el zoom, igual que se ensancha la calle bajo ellas.
  * @param {maplibregl.Map} [mapaInstance] - Instancia del mapa (opcional, usa _mapaInstance si no se proporciona)
  * @returns {number} Factor de escala (1.0 = tamaño base)
  */
-function getEscalaMapa(mapaInstance = null) {
-    return _calcularEscala(mapaInstance, ESCALA_BASE.ZOOM_FACTOR, ESCALA_BASE.ZOOM_TOPE, _escalaCache);
+function getEscalaTerreno(mapaInstance = null) {
+    return _calcularEscala(mapaInstance, ESCALA_BASE.ZOOM_FACTOR_TERRENO, ESCALA_BASE.ZOOM_TOPE_TERRENO, _escalaCacheTerreno, ESCALA_BASE.ZOOM_SUELO_TERRENO);
 }
 
 /**
- * Escala para el marcador de posición propia (🛸 CASA / flecha AVENTURA) — curva independiente.
+ * Escala de la familia PANTALLA: los CINCO iconos (🎯 de parada, 📌 de inicio de tramo, 🎯 de
+ * destino del botón de ubicación, flecha de AVENTURA y 🛸 de CASA). Son carteles indicadores,
+ * no terreno: encogen al acercar el zoom, porque a esa distancia lo que hace falta es ver el
+ * detalle de la calle y el punto exacto, no un icono grande tapándolo. Al alejar crecen, que
+ * es cuando hay mucho mapa que barrer y hay que encontrarlos de un vistazo.
+ *
+ * Los cinco comparten esta única curva a propósito: así la proporción entre ellos queda fija
+ * a cualquier zoom en vez de deslizarse según cuánto zoom tengas puesto.
  * @param {maplibregl.Map} [mapaInstance]
  * @returns {number} Factor de escala (1.0 = tamaño base)
  */
-function getEscalaMapaUsuario(mapaInstance = null) {
-    return _calcularEscala(mapaInstance, ESCALA_BASE.ZOOM_FACTOR_USUARIO, 2.5, _escalaCacheUsuario);
+function getEscalaIcono(mapaInstance = null) {
+    return _calcularEscala(mapaInstance, ESCALA_BASE.ZOOM_FACTOR_ICONO, ESCALA_BASE.ZOOM_TOPE_ICONO, _escalaCacheIcono, ESCALA_BASE.ZOOM_SUELO_ICONO);
 }
 
 /**
- * Obtiene valores escalados para polylines (curva de marcadores/polylines — ver ZOOM_FACTOR)
- * @returns {Object} Valores escalados { ruta, tramo, destacado, navegacion }
+ * Obtiene los grosores escalados de las polylines (familia TERRENO — ver ESCALA_BASE).
+ * @returns {Object} Valores escalados { tramo, navegacion } — los dos únicos trazados de la app
  */
 function getPolylineEscalado() {
-    const escala = getEscalaMapa();
+    const escala = getEscalaTerreno();
     return {
-        ruta: Math.round(ESCALA_BASE.POLYLINE_RUTA * escala),
         tramo: Math.round(ESCALA_BASE.POLYLINE_TRAMO * escala),
-        destacado: Math.round(ESCALA_BASE.POLYLINE_DESTACADO * escala),
         navegacion: Math.round(ESCALA_BASE.POLYLINE_NAVEGACION * escala)
     };
 }
 
 /**
- * Obtiene valores escalados para iconos. parada/inicio/destino usan la curva de marcadores
- * (ZOOM_FACTOR); usuarioCasa/usuarioAventura usan la curva propia, más suave (ZOOM_FACTOR_USUARIO).
+ * Obtiene los tamaños escalados de los CINCO iconos. Todos comparten la misma curva
+ * (familia PANTALLA — ver ESCALA_BASE): así la proporción entre ellos es la misma a
+ * cualquier zoom, en vez de deslizarse según cuánto zoom tenga puesto el usuario.
  * @returns {Object} Valores escalados para cada tipo de icono
  */
 function getIconoEscalado() {
-    const escala = getEscalaMapa();
-    const escalaUsuario = getEscalaMapaUsuario();
+    const escala = getEscalaIcono();
     return {
         parada: Math.round(ESCALA_BASE.ICONO_PARADA * escala),
         inicio: Math.round(ESCALA_BASE.ICONO_INICIO * escala),
         destino: Math.round(ESCALA_BASE.ICONO_DESTINO * escala),
-        usuarioCasa: Math.round(ESCALA_BASE.ICONO_USUARIO_CASA * escalaUsuario),
-        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escalaUsuario)
+        usuarioCasa: Math.round(ESCALA_BASE.ICONO_USUARIO_CASA * escala),
+        usuarioAventura: Math.round(ESCALA_BASE.ICONO_USUARIO_AVENTURA * escala)
     };
 }
 
@@ -751,17 +779,18 @@ function registrarListenerZoom() {
             _zoomRAF = null;
             reescalarMarcadoresEmoji();
             // El marcador de posición propia se reescala en el MISMO frame que los emojis
-            // de ruta: son familias con curva de crecimiento distinta (ZOOM_FACTOR vs
-            // ZOOM_FACTOR_USUARIO), pero deben moverse a la vez para que la relación entre
-            // ellos no dé saltos a mitad del gesto.
+            // de ruta: son los cinco de la misma familia (PANTALLA) y comparten curva, así
+            // que deben moverse a la vez o la relación entre ellos daría saltos a mitad del
+            // gesto. Las polylines, de la otra familia, se reescalan en 'zoomend'.
             reescalarMarcadorUsuario();
         });
     });
 
     _mapaInstance.on('zoomend', () => {
         // Invalidar cache de escala
-        _escalaCache.timestamp = 0;
-        logger.debug(`[MAPA] Zoom cambiado a ${_mapaInstance.getZoom()}, escala: ${getEscalaMapa().toFixed(2)}`);
+        _escalaCacheTerreno.timestamp = 0;
+        _escalaCacheIcono.timestamp = 0;
+        logger.debug(`[MAPA] Zoom cambiado a ${_mapaInstance.getZoom()}, escala terreno: ${getEscalaTerreno().toFixed(2)}, escala icono: ${getEscalaIcono().toFixed(2)}`);
         
         // Re-escalar polyline de navegación si existe
         if (polylineNavegacion) {
@@ -769,11 +798,8 @@ function registrarListenerZoom() {
             polylineNavegacion.setStyle({ weight: peso.navegacion });
         }
         
-        // Re-escalar rutasActivas — el único tipo de polyline que se guarda ahí es el tramo
-        // azul de dibujarTramo(tramoData, false) (peso.tramo, base 4px). Usar peso.ruta (base
-        // 6px, pensado para una ruta completa que este array nunca contiene) lo dejaba un 50%
-        // más grueso de lo que su propio diseño pedía en cuanto se disparaba el primer zoomend
-        // tras dibujarlo.
+        // Re-escalar rutasActivas — el único tipo de polyline que se guarda ahí es la línea
+        // azul del tramo, creada por dibujarTramo().
         rutasActivas.forEach(polyline => {
             if (polyline?.setStyle) {
                 const peso = getPolylineEscalado();
@@ -1285,12 +1311,13 @@ export function limpiarRecursos() {
 }
 
 /**
- * Dibuja un tramo específico en el mapa.
+ * Dibuja un tramo específico en el mapa: la línea azul del tramo activo, el único trazado
+ * de ruta que la app dibuja (la otra polyline, la verde discontinua, la crea
+ * dibujarPolylineNavegacion() para el botón de ubicación).
  * @param {Object} tramo - Objeto tramo con inicio, fin y waypoints.
- * @param {boolean} destacado - Si es true, se muestra con énfasis.
  * @returns {Object} La polilínea creada (wrapper de _crearPolyline).
  */
-function dibujarTramo(tramo, destacado = false) {
+function dibujarTramo(tramo) {
     try {
         // TEMP DEBUG: imprimir objeto `tramo` en consola cuando se active la bandera global
         try {
@@ -1320,9 +1347,9 @@ function dibujarTramo(tramo, destacado = false) {
         // Usar valores escalados según pantalla y zoom
         const peso = getPolylineEscalado();
         return _crearPolyline(puntos, {
-            color: destacado ? '#ff4500' : '#3388ff',
-            weight: destacado ? peso.destacado : peso.tramo,
-            opacity: destacado ? 0.9 : 0.7
+            color: '#3388ff',
+            weight: peso.tramo,
+            opacity: 0.7
         });
     } catch (error) {
         logger.error('Error al dibujar tramo:', error);
@@ -1999,7 +2026,7 @@ async function completarCambioParada() {
                     fin: coordenadas.coordenadasFin,
                     waypoints: coordenadas.waypoints || []
                 };
-                const polyline = dibujarTramo(tramoData, false);
+                const polyline = dibujarTramo(tramoData);
                 if (polyline) {
                     rutasActivas.push(polyline);
                     logger.info(`${logPrefix} Tramo dibujado para ${paradaId}`);
