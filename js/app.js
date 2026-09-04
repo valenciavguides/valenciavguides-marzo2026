@@ -184,15 +184,25 @@ const intervaloLimpiezaPromesas = setInterval(() => {
 
 // ==================== FUNCIONES AUXILIARES ====================
 
-// Helper: wrap a promise with a conservative timeout that resolves to null on timeout
+// Helper: wrap a promise with a conservative timeout that resolves to null on timeout.
+//
+// El temporizador se cancela en cuanto la promesa se resuelve o se rechaza. Sin ese
+// clearTimeout, `Promise.race` deja el `setTimeout` vivo aunque ya haya ganado la
+// promesa real, y su callback acaba escribiendo un `[withTimeout] ... timed out`
+// que es FALSO: la operación había terminado a tiempo (un cambio de modo que dura
+// 113 ms deja igualmente tres avisos de "timed out after 15000ms" quince segundos
+// después). No rompía nada — el valor bueno ya se había usado — pero convertía el
+// log en una fuente de alarmas inventadas justo donde se va a mirar para diagnosticar
+// cualquier otra cosa. `.finally()` propaga el rechazo igual que antes.
 function withTimeout(promise, ms = 5000, desc = 'operation') {
-    return Promise.race([
-        promise,
-        new Promise(resolve => setTimeout(() => {
+    let timeoutId = null;
+    const temporizador = new Promise(resolve => {
+        timeoutId = setTimeout(() => {
             logger.warn(`[withTimeout] ${desc} timed out after ${ms}ms`);
             resolve(null);
-        }, ms))
-    ]);
+        }, ms);
+    });
+    return Promise.race([promise, temporizador]).finally(() => clearTimeout(timeoutId));
 }
 
 
