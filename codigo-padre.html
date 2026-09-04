@@ -10424,7 +10424,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         // Modo casa: limpiar estado del reto, no avanzar — usuario elige via hijo5
                         estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
-                    } else {
+                    } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} ${esTramo ? 'Tramo' : 'Parada'} completado en aventura — habilitando btnAvanzar, esperando confirmación del usuario`);
                         enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: esTramo ? 'tramo_completado' : 'parada_completada' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
@@ -11148,7 +11148,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     if (modoActual === MODOS.CASA) {
                         estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
-                    } else {
+                    } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
                         (globalThis.logger || console).info(`${logPrefix} Parada aventura (sin clave): habilitando btnAvanzar, esperando usuario`);
                         enviarMensajePadre({ tipo: TIPOS_MENSAJE.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'parada_completada_fallback' } }).catch(e => (globalThis.logger || console).warn(`${logPrefix} Error habilitando btnAvanzar:`, e));
@@ -11156,7 +11156,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
             } catch (error_) {
                 (globalThis.logger || console).warn(`${logPrefix} Error marcando pending por cola completa:`, error_);
-                if (modoActual !== MODOS.CASA) await progresarSiguienteElemento();
+                // Exige AVENTURA confirmada, no "cualquier cosa que no sea CASA": el modo
+                // puede estar todavía sin decidir (null) y avanzar de elemento sin modo es
+                // una acción exclusiva de AVENTURA.
+                if (modoActual === MODOS.AVENTURA) await progresarSiguienteElemento();
             }
         }
 
@@ -12532,7 +12535,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     if (modoActual === MODOS.CASA) {
                         estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
-                    } else {
+                    } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         // Tramo y parada se tratan igual aquí también — habilitar btnAvanzar y
                         // esperar confirmación, nunca progresar solo (ver marcarParadaCompletada).
                         estado.paradaListaParaAvanzar = true;
@@ -12542,8 +12545,10 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
             } catch (error_) {
                 (globalThis.logger || console).warn(`${logPrefix} Error intentando completar tras fin de audio:`, error_);
-                // En aventura se puede intentar progresar; en casa no avanzar sin confirmación del usuario
-                if (modoActual !== MODOS.CASA) await progresarSiguienteElemento();
+                // En aventura se puede intentar progresar; en casa no avanzar sin confirmación
+                // del usuario. Se exige AVENTURA confirmada, no "cualquier cosa que no sea
+                // CASA": el modo puede estar todavía sin decidir (null).
+                if (modoActual === MODOS.AVENTURA) await progresarSiguienteElemento();
             }
         }
 
