@@ -4947,6 +4947,12 @@
                     (globalThis.logger || console).error(`${logPrefix} _hdl_SISTEMA_CAMBIO_MODO no disponible — la sesión no puede restaurar su modo`);
                     return;
                 }
+                // El payload lleva solo lo que alguien lee de verdad: `modo` y `origen` los
+                // usa manejarCambioModo(); `restaurado` y `timestampCompra`, el propio
+                // handler y _activarHeartbeatAventura(). No se incluyen aventura/idioma/
+                // secuenciaCompleta/timestamp: ningún receptor los consulta en un
+                // CAMBIO_MODO (actualizarInterfazModo construye su propio payload para los
+                // hijos), y arrastrarlos solo aparenta un contrato que no existe.
                 const _resultadoModo = await _hdl_SISTEMA_CAMBIO_MODO({
                     origen: 'restauracion',
                     datos: {
@@ -4955,11 +4961,7 @@
                         restaurado: true,
                         // Fecha real de compra: el reloj de hijo1 descuenta el tiempo
                         // transcurrido con la app cerrada, no reanuda el último tick visto.
-                        timestampCompra: (typeof datosGuardados?.timestamp === 'number') ? datosGuardados.timestamp : undefined,
-                        aventura: datosGuardados?.aventura,
-                        idioma: datosGuardados?.idioma,
-                        secuenciaCompleta: true,
-                        timestamp: Date.now()
+                        timestampCompra: (typeof datosGuardados?.timestamp === 'number') ? datosGuardados.timestamp : undefined
                     }
                 });
                 if (!_resultadoModo?.exito) {
@@ -13432,11 +13434,12 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error iniciando temporizador:`, temporizadorError);
             }
         }
-        // Expuesta para Script 1 — dos llamadores: _activarHeartbeatAventura (activación
-        // inicial o retorno desde CASA en la misma sesión, vía _hdl_SISTEMA_CAMBIO_MODO) y
-        // _activarModoRest (reanudación tras cerrar/reabrir la PWA, que nunca pasa por ese
-        // handler — ver el comentario de _activarModoRest). En dev mode ambas llamadas
-        // devuelven sin hacer nada: el temporizador cuenta tiempo de compra real.
+        // Expuesta para Script 1 — un único llamador: _activarHeartbeatAventura, dentro de
+        // _hdl_SISTEMA_CAMBIO_MODO. Cubre los tres casos por igual (activación inicial,
+        // retorno desde CASA en la misma sesión, y reanudación tras cerrar/reabrir la PWA),
+        // porque la reanudación pasa por ese mismo handler con restaurado:true — de ahí
+        // saca también el 6º parámetro, la fecha real de compra. En dev mode devuelve sin
+        // hacer nada: el temporizador cuenta tiempo de compra real, y en dev no hay compra.
         try { globalThis._iniciarTemporizadorAventura = _iniciarTemporizadorAventura; } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
 
 async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {

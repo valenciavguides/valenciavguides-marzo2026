@@ -106,13 +106,15 @@ La grabación de audio narrado es el único hueco real de contenido en las 7 ave
 
 ## 2. Los modos de la aplicación (CASA y AVENTURA)
 
-La aplicación opera en dos modos fundamentales que determinan el comportamiento de cada componente, cada botón y cada mensaje. El modo activo se almacena en `estado.modo.actual` (string: `'casa'` | `'aventura'`) y se propaga a todos los hijos críticos cada vez que cambia.
+La aplicación opera en dos modos fundamentales que determinan el comportamiento de cada componente, cada botón y cada mensaje. El modo activo se almacena en `estado.modo.actual` y se propaga a todos los hijos críticos cada vez que cambia.
 
-**Fuente de verdad del modo** (`globalThis.estadoPadre.modo`, `codigo-padre.html`, línea 3267):
+**`estado.modo.actual` tiene tres valores posibles, no dos:** `null` (todavía sin decidir, valor de arranque), `'casa'` y `'aventura'`. `null` no es un modo — es la ausencia de decisión, y dura desde el arranque hasta la primera transición real (la activación de una aventura o la reanudación de una sesión guardada).
+
+**Fuente de verdad del modo** (`globalThis.estadoPadre.modo`, `codigo-padre.html`; misma inicialización en `js/state-manager.js`):
 
 ```javascript
-// Estado inicial al arrancar
-modo: { actual: MODOS.CASA, anterior: null }
+// Estado inicial al arrancar — sin modo decidido
+modo: { actual: null, anterior: null }
 
 // Tras el primer cambio de modo (app.js lo amplía dinámicamente):
 modo: {
@@ -127,7 +129,15 @@ modo: {
 }
 ```
 
-**Persistencia**: el modo se guarda en `localStorage` como parte del objeto `vv_aventura_iniciada`. Al restaurar una sesión previa, `ejecutarRestauracionAventura()` lo lee y reposiciona el sistema.
+**Por qué se arranca en `null` y no en CASA:** `manejarCambioModo()` (`js/app.js`) trata "el modo solicitado ya es el actual" como un caso sin transición. Arrancando en CASA, la primerísima transición de la sesión podía coincidir con ese valor ya puesto y caer en esa rama. El camino de producción (→AVENTURA) no lo notaba nunca, porque AVENTURA jamás coincide con el CASA de arranque; el camino de desarrollo (→CASA) sí coincidía. Con `null`, la primera transición es siempre real, sea cual sea su destino.
+
+**Cómo leer el modo con tres estados.** Un binario del tipo `if (modo !== MODOS.CASA)` o un `else` sin condición mete `null` en la rama de AVENTURA. La forma correcta en cualquier punto que vaya a ejecutar lógica de aventura es exigir el modo confirmado (`=== MODOS.AVENTURA`); para lógica de CASA, `=== MODOS.CASA`. Un `|| MODOS.CASA` al leer es válido solo donde "sin decidir" y "en casa" deban tratarse igual a propósito — es el caso del pre-warm (`iniciarPrewarmEnCasa()`) y del `modoInicial` que viaja en `PADRE_CONFIRMA_HIJO_LISTO`.
+
+**Los hijos nunca ven `null`.** `actualizarInterfazModo()` propaga siempre un modo ya canonicalizado, y la sincronización inicial de `_hijoListo_sincronizarModoCriticos()` usa `|| MODOS.CASA`. El tercer estado es interno del padre.
+
+**`estadoMapa.modo` (`js/funciones-mapa.js`) sí arranca en `'casa'`, y es correcto que difiera** del padre durante esa ventana: `actualizarMarcadorUsuario()` elige el icono con `estadoMapa.modo === MODOS.CASA ? 'casa' : 'aventura'`, así que un `null` ahí pintaría la flecha ▲ de AVENTURA en lugar del 🛸 antes de que haya modo. Sus dos únicos escritores (`manejarCambioModoMapa()` y `sincronizarModoMapa()`) rechazan cualquier valor que no sea `'casa'`/`'aventura'`, de modo que `null` es inalcanzable en esa variable.
+
+**Persistencia**: el modo se guarda en `localStorage` como parte del objeto `vv_aventura_iniciada`, junto al flag `dev` (ver §10.19 y §24). Al restaurar una sesión previa, `ejecutarRestauracionAventura()` lee ambos y reposiciona el sistema.
 
 ---
 
@@ -137,7 +147,7 @@ modo: {
 
 **Cuándo está activo**:
 
-- Al arrancar la aplicación por primera vez (valor por defecto: `MODOS.CASA`, definido en `js/constants.js` línea 20-23).
+- Tras la activación de una aventura con el modo DEV activo (ver §24). **No al arrancar**: el arranque deja el modo sin decidir (`null`), no en CASA — ver "Fuente de verdad del modo" al principio de §2.
 - Inmediatamente tras completar las pantallas de demo y recibir `SELECCION.AVENTURA_ACTIVADA`.
 - Cuando el usuario desactiva el GPS desde hijo5 estando en AVENTURA.
 
@@ -216,7 +226,7 @@ flowchart TD
 
 Al arrancar `codigo-padre.html`:
 
-1. El modo inicial es `MODOS.CASA` (hardcoded en estado inicial, línea 3267).
+1. El modo arranca **sin decidir** (`estado.modo.actual === null`) — ver "Fuente de verdad del modo" en §2. La primera transición real lo fija: `AVENTURA_ACTIVADA` (§9.5) o la reanudación de una sesión guardada (§9.10).
 2. Se comprueba si existe `vv_aventura_iniciada` en `localStorage`.
    - Si existe → `ejecutarRestauracionAventura()` (línea 4152) restaura el estado anterior.
    - Si no existe → la app queda en MODO CASA esperando que el usuario complete el flujo de incorporación.
@@ -226,7 +236,7 @@ Al arrancar `codigo-padre.html`:
 
 ```mermaid
 flowchart TD
-    A([Arranque codigo-padre.html\nestado.modo.actual = MODOS.CASA]) --> B{¿vv_aventura_iniciada\nen localStorage?}
+    A([Arranque codigo-padre.html\nestado.modo.actual = null — sin modo decidido]) --> B{¿vv_aventura_iniciada\nen localStorage?}
     B -- No --> C[Demo P1→P11\nIdioma · aventura · puzzle · pago]
     B -- Sí --> D[ejecutarRestauracionAventura\nRestaurar progreso guardado]
     C --> DEV{¿_devModeActivo?\nFactor 1 activado antes de P12}
@@ -553,7 +563,7 @@ sequenceDiagram
 | `ejecutarRestauracionAventura()` | 4152 | Restaura sesión desde `localStorage` |
 | `_activarParadaDefectoAventura()` | `js/app.js` | Envía `CAMBIO_PARADA` para `padre-P0`. Se llama desde `_reanudarSubsistemasTrasPrewarm()` salvo que el pre-warm de arranque ya esté "iniciado y pausado"; en la práctica corre en casi todas las activaciones de AVENTURA salvo la primera de la sesión (detalle en §2.5) |
 | `cambiarModo(modo)` | `js/funciones-mapa.js` | Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
-| `limpiarPorEstado({ modo, resetCompleto })` | `js/funciones-mapa.js` | Elimina capas activas del mapa (polylines, marcadores, rutas) y restablece la vista a `CENTRO_DEFECTO` / `ZOOM_INICIAL`. `resetCompleto:true` es obligatorio cuando se llama tras un cambio de modo, porque en ese punto `estadoMapa.modo` ya fue actualizado y la comprobación interna fallaría sin el flag explícito. |
+| `limpiarPorEstado({ modo, resetCompleto })` | `js/funciones-mapa.js` | Elimina capas activas del mapa (polylines, marcadores, rutas). **No toca la cámara**: el `setMapView()` a `CENTRO_DEFECTO`/`ZOOM_INICIAL` lo hace `manejarCambioModoMapa()` después de llamarla, no esta función — de ahí que la reanudación de sesión pueda saltarse el reset de vista sin renunciar a la limpieza de capas (§9.10). `resetCompleto:true` es obligatorio cuando se llama tras un cambio de modo, porque en ese punto `estadoMapa.modo` ya fue actualizado y la comprobación interna fallaría sin el flag explícito. |
 
 ---
 
@@ -693,7 +703,7 @@ flowchart TD
 
 ### 3.4. Modo CASA vs modo AVENTURA — qué cambia
 
-La app siempre arranca en **modo CASA** (`estado.modo.actual = 'casa'`), antes de que el usuario haya elegido ninguna aventura. Al completar el onboarding y confirmar el inicio (`AVENTURA_ACTIVADA`), el padre pasa directo a **modo AVENTURA** en producción — no hace falta ningún botón; hijo5 y su botón GPS son exclusivos del modo DEV (ver §9.5/§24). Desde que el modo cambia, el padre gestiona los dos modos de forma radicalmente diferente. La misma acción — cambiar de parada — produce efectos distintos según el modo activo.
+La app arranca **sin modo decidido** (`estado.modo.actual === null`, ver §2), antes de que el usuario haya elegido ninguna aventura: hasta la primera transición real no hay ni CASA ni AVENTURA. Al completar el onboarding y confirmar el inicio (`AVENTURA_ACTIVADA`), el padre pasa directo a **modo AVENTURA** en producción — no hace falta ningún botón; hijo5 y su botón GPS son exclusivos del modo DEV (ver §9.5/§24). Desde que el modo cambia, el padre gestiona los dos modos de forma radicalmente diferente. La misma acción — cambiar de parada — produce efectos distintos según el modo activo.
 
 **Resumen ejecutivo:**
 
@@ -1820,20 +1830,21 @@ El archivo `codigo-padre.html` (~13.700 líneas) es el **orquestador** de toda l
 5. **Navegación**: decide cuándo cambiar de parada, cuándo mostrar un reto, cuándo reproducir un audio.
 6. **Modos**: gestiona la transición entre `'casa'` y `'aventura'`, propagando `CAMBIO_MODO` a los hijos críticos y coordinando heartbeat y GPS.
 
-### Estructura interna: los cuatro scripts module
+### Estructura interna: los cinco scripts module
 
-`codigo-padre.html` contiene **cuatro** bloques `<script type="module">` con roles distintos. Más varios `<script>` regulares para utilidades síncronas (HTTPS redirect, stub `activarGPS`, image fallback, etc.).
+`codigo-padre.html` contiene **cinco** bloques `<script type="module">` con roles distintos. Más varios `<script>` regulares para utilidades síncronas (HTTPS redirect, stub `activarGPS`, image fallback, overlays de imagen/vídeo/error…) — los clásicos tampoco son un compartimento aislado, comparten identificadores con los módulos vía `globalThis` (§37.2).
 
-| Script | Líneas (aprox., crecen con cada sesión de trabajo — verificar con `grep -n '<script type="module">' codigo-padre.html` si hace falta el número exacto) | Rol principal |
+| Script | Empieza en (aprox., se desplaza con cada edición — `grep -n '<script type="module">' codigo-padre.html` da el número exacto) | Rol principal |
 |--------|--------|--------------|
-| **Script 1** | ~2665–8778 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra handlers del ciclo de vida: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`. Al final carga `js/controladores-padre.js`. |
-| **Script 2** | ~8779–12883 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`, `SISTEMA.ADVERTENCIA`. Contiene `distribuirDatosAventura`. |
-| **Script 3** | ~12884–13044 | Utilidades de carga de iframes: `cargarIframeConDatos()` y backup de distribución `CARGAR_*`. |
-| **Script 4** | ~13045–fin | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`), `js/monitoreo.js` y `js/utils.js`; arranca el heartbeat GPS. |
+| **Script 1** | ~2716 | Orquestador de arranque: FASE 1 infra → FASE 2 datos → FASE 3 iframes. Registra handlers del ciclo de vida: `SISTEMA.HIJO_PREPARADO`, `SISTEMA.HIJO_LISTO`, `SISTEMA.CAMBIO_MODO`, `SISTEMA.HEARTBEAT`, `SISTEMA.HIJO_FALLIDO`, `UI.ACCION_USUARIO`. Contiene también la reanudación de sesión (`ejecutarRestauracionAventura`) y los carteles. Al final carga `js/controladores-padre.js`. |
+| **Script 2** | ~9727 | Handlers de dominio: todos los `NAVEGACION.*` (GPS, CAMBIO_PARADA, LLEGADA_DETECTADA…), `RETO.*`, `SELECCION.*`, `AUDIO.*`, `UI.NAVEGACION_EXTERNA`, `SISTEMA.ADVERTENCIA`. Contiene `distribuirDatosAventura`, `marcarParadaCompletada` y `_iniciarTemporizadorAventura`. |
+| **Script 3** | ~14216 | Gestión de visibilidad de iframes (`mostrarHijo4`) y reconexión en `visibilitychange`. |
+| **Script 4** | ~14381 | "Migración de controladores y diagnóstico GPS": registra los controladores de `js/app.js` (`registrarControladoresApp`), `js/monitoreo.js` y `js/utils.js`; arranca el heartbeat. **No llega hasta el final del archivo.** |
+| **Script 5** | ~14896 | Panel de logs en pantalla (gesto de 7 toques, ver §24). Último bloque del documento, autocontenido. |
 
 > **Por qué Script 1 registra solo los handlers del ciclo de vida y Script 2 el resto:** Script 1 debe completar el registro de `HIJO_PREPARADO` / `HIJO_LISTO` / `CAMBIO_MODO` **antes** de asignar `src` a cualquier iframe. Los handlers de dominio (`NAVEGACION.*`, `RETO.*`, `SELECCION.*`) solo son necesarios una vez que los iframes están cargados, por lo que pueden vivir en Script 2 sin riesgo de llegar tarde.
 >
-> **Aislamiento de scope entre scripts:** Cada `<script type="module">` tiene su propio scope léxico. Las variables definidas localmente en Script 1 (p.ej. `sleep`, `enviarMensaje_S1`, `registrarIframe_S1`) **no son accesibles** en Scripts 2, 3 ni 4 a menos que se expongan explícitamente en `globalThis`. Por este motivo cada script define su propio alias de seguridad al inicio: `const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));`. Del mismo modo, las notificaciones de broadcast `AVENTURA_ACTIVADA` y `AVENTURA_INICIADA` que emite el handler de `SELECCION.AVENTURA_ACTIVADA` (Script 2) usan `enviarMensaje_S2` — intentar usar `enviarMensaje_S1` en Script 2 siempre devolvería `typeof === 'undefined'` y los broadcasts se perderían.
+> **Aislamiento de scope entre scripts:** Cada `<script type="module">` tiene su propio scope léxico. Las variables definidas localmente en Script 1 (p.ej. `sleep`, `enviarMensaje_S1`, `registrarIframe_S1`) **no son accesibles** en los otros cuatro módulos a menos que se expongan explícitamente en `globalThis`. Por este motivo cada script define su propio alias de seguridad al inicio: `const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));`. Del mismo modo, las notificaciones de broadcast `AVENTURA_ACTIVADA` y `AVENTURA_INICIADA` que emite el handler de `SELECCION.AVENTURA_ACTIVADA` (Script 2) usan `enviarMensaje_S2` — intentar usar `enviarMensaje_S1` en Script 2 siempre devolvería `typeof === 'undefined'` y los broadcasts se perderían.
 >
 > **Ejemplo real — `ajustarTimeoutPorConexionSafe(ms)`:** wrapper que llama a `ajustarTimeoutPorConexion` (el ajuste real de timeouts según calidad de conexión, `js/device-detection.js`) protegido con try/catch, devolviendo `ms` sin modificar si algo falla. Se llama desde sitios de Script 1 y Script 2 (intervalo del heartbeat, timeouts de `solicitarCoordenadasHijo`...). Una única definición, cerca del principio de Script 1 (`globalThis.ajustarTimeoutPorConexionSafe = function ajustarTimeoutPorConexionSafe(ms) {...}`), basta para cubrir ambos scripts — al ser una asignación a `globalThis` en vez de una declaración `function` normal, el identificador queda disponible como global real desde el instante en que se ejecuta esa línea, sin necesidad de una función local por script ni de un "early fallback" aparte con su propia lógica duplicada (llegó a haber tres definiciones distintas del mismo wrapper repartidas por el fichero antes de consolidarlo en esta única).
 
@@ -2410,7 +2421,7 @@ Al pulsar cualquier icono con URL, hijo1 envía `UI.NAVEGACION_EXTERNA` al padre
 
 El temporizador es una cuenta atrás autónoma dentro de hijo1. El tiempo total se recibe via `AVENTURA.INICIADA` como `tiempoEstimado` **en segundos** (definido en `js/indice-aventuras.js`): 216 000 s (60 h) para Aventuras 1–5 y Fallas, 540 000 s (150 h) para Aventura34km. Actualiza su display cada 1 s con `setInterval` en formato `HH:MM:SS`.
 
-**Quién envía `AVENTURA.INICIADA` y cuándo:** `_iniciarTemporizadorAventura()` (`codigo-padre.html`, Script 2, expuesta a `globalThis` para que Script 1 pueda llamarla) tiene dos llamadores distintos, no uno: `_activarHeartbeatAventura()` (activación inicial de la aventura o retorno a AVENTURA tras haber estado en CASA, ambos dentro de la misma sesión, vía `_hdl_SISTEMA_CAMBIO_MODO`) y `_activarModoRest()` (reanudación tras cerrar y reabrir la PWA, que nunca pasa por `_hdl_SISTEMA_CAMBIO_MODO` ni por tanto por `_activarHeartbeatAventura` — ver §9.10). Antes de nada, la función comprueba `globalThis._devModeActivo`: si está activo, no envía nada y termina — el temporizador cuenta tiempo de compra real, y en modo dev no hay compra que cronometrar (ver §24). Solo si no es dev mode comprueba el modo (`estado.modo?.actual !== MODOS.AVENTURA` → tampoco hace nada), así que es seguro llamarla siempre en esa transición sin comprobar nada antes.
+**Quién envía `AVENTURA.INICIADA` y cuándo:** `_iniciarTemporizadorAventura()` (`codigo-padre.html`, Script 2, expuesta a `globalThis` para que Script 1 pueda llamarla) tiene **un único llamador**: `_activarHeartbeatAventura()`, dentro de `_hdl_SISTEMA_CAMBIO_MODO`. Ese único punto cubre los tres casos en que el reloj debe arrancar — activación inicial de la aventura, retorno a AVENTURA tras haber estado en CASA (ambos en la misma sesión) y reanudación tras cerrar y reabrir la PWA —, porque la reanudación pasa por ese mismo handler marcada con `restaurado:true` (§9.10). Antes de nada, la función comprueba `globalThis._devModeActivo`: si está activo, no envía nada y termina — el temporizador cuenta tiempo de compra real, y en modo dev no hay compra que cronometrar (ver §24). Solo si no es dev mode comprueba el modo (`estado.modo?.actual !== MODOS.AVENTURA` → tampoco hace nada), así que es seguro llamarla siempre en esa transición sin comprobar nada antes.
 
 **Por qué hijo1 necesita que le recuerden el tiempo restante en cada entrada a AVENTURA:** `resetearTemporizador()` (`extrainfo-hijo1.html`) pone `tiempoRestante` a 0 cada vez que el modo pasa a CASA — hijo1 no recuerda nada por su cuenta entre visitas a CASA. `_iniciarTemporizadorAventura(aventura, idioma, estado, logPrefix, tiempoRestanteOverride, timestampInicioRest)` cubre esto con dos parámetros opcionales, uno por escenario:
 
@@ -4586,13 +4597,22 @@ El intervalo se calcula con `ajustarTimeoutPorConexion_S1(5000)` — base de 5 s
 
 Los hijos (hijo3, hijo4, hijo5) sí tienen handlers para `HEARTBEAT_START` y `HEARTBEAT_PAUSE` que actualizan su flag `globalThis.__HEARTBEAT_ACTIVO`. Esos mensajes se envían correctamente desde padre a los iframes hijos vía `_enviarHeartbeatStartAHijo`.
 
-Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']` antes de pausar el heartbeat — **excepto en modo dev** (`globalThis._devModeActivo === true`, ver §24), donde no borra nada. Razón: la propia activación en dev entra en CASA como paso de bootstrap (atajo para saltar pago/código), no como abandono real — sin esta excepción, el progreso recién guardado se autoborraba en el instante de activar, y una recarga posterior nunca ofrecía el modal de reanudación. El flujo real de abandono/fin (`limpiarDatosAventura()`, `js/reciclaje-digital.js`) es independiente de esto y sigue limpiando todo por completo, en dev o no.
+Cuando el modo vuelve a CASA, `_transicionarAModoCasa` elimina `localStorage['vv_aventura_iniciada']`, `['vv_progreso']` y `['vv_paradas_completadas']` antes de pausar el heartbeat — con **dos excepciones**, y basta con que se dé una para que no borre nada: en modo dev (`globalThis._devModeActivo === true`, ver §24) y cuando el cambio de modo viene marcado como reanudación de sesión (`mensaje.datos.restaurado === true`, §9.10) — reanudar no es abandonar, y sin ese segundo guard una sesión guardada en CASA sin dev se borraría a sí misma en el instante de restaurarse. Razón: la propia activación en dev entra en CASA como paso de bootstrap (atajo para saltar pago/código), no como abandono real — sin esta excepción, el progreso recién guardado se autoborraba en el instante de activar, y una recarga posterior nunca ofrecía el modal de reanudación. El flujo real de abandono/fin (`limpiarDatosAventura()`, `js/reciclaje-digital.js`) es independiente de esto y sigue limpiando todo por completo, en dev o no.
 
 ---
 
 ### 9.10 Reanudación de sesión (ejecutarRestauracionAventura)
 
-Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre muestra un overlay "Continuar / Nueva aventura" — pero antes comprueba su antigüedad: `_comprobarReanudacionAventura()` descarta la clave (junto con `vv_progreso`) y no muestra el overlay si `Date.now() - datosGuardados.timestamp` supera 7 días (`_TTL_AVENTURA`). Pasado ese plazo, la app arranca como si no hubiera nada guardado. Si el usuario elige **continuar**, se ejecuta `ejecutarRestauracionAventura(datosGuardados)`:
+Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre comprueba **antes de ofrecer nada** si esa sesión sigue viva. `_comprobarReanudacionAventura()` aplica dos criterios, y basta con que se cumpla uno para no ofrecer la reanudación:
+
+| Criterio | Cómo se calcula | Para qué está |
+|---|---|---|
+| **Ventana real de compra** | `verificarTimeoutAventura()` (`js/reciclaje-digital.js`): `Date.now() - timestamp > INDICE_AVENTURAS[aventura].tiempoEstimado × 1000` — 60 h en Av1-5/Fallas, 150 h en Av34km | Es el criterio que de verdad decide: la ventana comprada es **siempre** más corta que los 7 días de abajo |
+| **TTL de 7 días** (`_TTL_AVENTURA`) | `Date.now() - datosGuardados.timestamp > 7 × 24 h` | Red de seguridad para un payload sin metadatos de aventura utilizables, donde `verificarTimeoutAventura()` no puede concluir nada y devuelve `{excedido:false}` |
+
+Si alguno se cumple, en lugar del diálogo de reanudación se muestra el modal de tiempo agotado (§25.12, disparador 2) — el usuario ve por qué perdió la sesión en vez de que desaparezca en silencio. La comprobación va **antes** de ofrecer continuar, no después: `_restoreCheckTimeout()` (paso 9) vuelve a consultar `verificarTimeoutAventura()` como defensa en profundidad, para el caso de una sesión que caduque entre que se muestra el diálogo y el usuario responde.
+
+Si la sesión sigue viva y el usuario elige **continuar**, se ejecuta `ejecutarRestauracionAventura(datosGuardados)`:
 
 1. Restaura `globalThis.aventuraSeleccionada`, `idiomaSeleccionado`, `estado.seleccion`
 2. Restaura `estado.paradasCompletadas` desde `localStorage['vv_paradas_completadas']`
@@ -4601,9 +4621,23 @@ Al cargar la app, si `localStorage['vv_aventura_iniciada']` existe, el padre mue
 5. `_esperarHijosCriticosRest` — espera que hijo2, hijo3 y hijo4 estén en `estado.hijosInicializados` (polling cada 200 ms vía `retryUntilAvailable()`, acotado a 150 intentos/30 s, ver §11 "Patrón `retryUntilAvailable()`"). Con el paso 4 ya hecho, esto resuelve en cuanto los `HIJO_LISTO` reales llegan — antes de tener el paso 4, esta espera no tenía nada real que esperar y, antes de acotarla, se quedaba colgada para siempre.
 6. `_distribuirDatosRest` — redistribuye coordenadas/audios/retos/textos vía `distribuirDatosAventura()`
 7. `_enviarRespuestaParadasHijosRest` — envía `NAVEGACION.RESPUESTA_DATOS_PARADAS` a hijo2 (array normalizado de `elementosIDpadre`) y a hijo5 (array mapeado desde coordenadas)
-8. `_activarModoRest` — fija `estado.modo.actual` a partir de `datosGuardados.modo` (el campo persistido en `vv_aventura_iniciada` junto con `aventura`/`idioma`, ver el bloque de activación en §9.5), no de `globalThis._devModeActivo`: ese flag es una variable solo en memoria que no sobrevive a ninguna recarga de página, así que en el momento de la reanudación ya está siempre perdido y no sirve como fuente de verdad. Si `datosGuardados.modo` falta o trae un valor que no es ni `MODOS.CASA` ni `MODOS.AVENTURA` (payload corrupto o de una versión anterior sin este campo), cae al flag actual como aproximación (`globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`). Cuando el modo restaurado es CASA, `_activarModoRest` también reactiva `globalThis._devModeActivo = true` — `modo:'casa'` solo puede haberse persistido con el dev mode activo en su momento (única vía de entrada a CASA, ver §24), y la visibilidad de `#hijo5` más abajo depende de ese mismo flag. Tras fijar el modo, emite `SISTEMA.CAMBIO_MODO` a todos los hijos. Este envío es un broadcast saliente puro — nunca pasa por `_hdl_SISTEMA_CAMBIO_MODO` en el propio padre, que es el único sitio que normalmente llama a `activarGPS()` y arranca el temporizador de hijo1 (`_activarHeartbeatAventura`) al entrar en AVENTURA. Por eso, si el modo restaurado es AVENTURA, `_activarModoRest` llama explícitamente, al final, tanto a `activarGPS()` como a `_iniciarTemporizadorAventura('aventura', 'idioma', estado, logPrefix, null, datosGuardados.timestamp)` — sin esto, una sesión restaurada en AVENTURA se quedaba con el modo correcto pero sin `watchPosition` corriendo ni reloj de compra visible. El 6º parámetro (`datosGuardados.timestamp`, la fecha real de la compra) hace que el tiempo enviado a hijo1 sea `tiempoEstimado - tiempo real transcurrido desde la compra`, no el máximo de la aventura ni el último tick conocido antes de cerrar la app — ver "Temporizador" en §7.2 y `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`. Por el mismo motivo que con el GPS, `_activarModoRest` también llama a `globalThis.funcionesMapa.sincronizarModoMapa(_modoRest)` justo al fijar `estado.modo.actual` — sin ella, `estadoMapa.modo` (la copia local de `funciones-mapa.js`, una variable distinta) se quedaba en su valor de arranque toda la sesión reanudada, con las consecuencias detalladas en "Sincronización de `estadoMapa.modo` al reanudar sesión" (§11).
+8. `_activarModoRest` — resuelve **qué modo y qué modo dev** restaurar, y delega el resto en el handler único de cambio de modo. Tres pasos, en este orden:
+
+   1. **Modo**: sale de `datosGuardados.modo` (campo persistido en `vv_aventura_iniciada`, §10.19), no de `globalThis._devModeActivo` — ese flag vive solo en memoria y no sobrevive a ninguna recarga, así que al reanudar ya está siempre perdido. Con el campo ausente o con un valor que no sea `MODOS.CASA`/`MODOS.AVENTURA` (payload de una versión anterior), cae a `globalThis._devModeActivo ? MODOS.CASA : MODOS.AVENTURA`.
+   2. **Modo dev**: sale de `datosGuardados.dev`, un campo propio e independiente del modo. Se restaura **antes** de disparar el cambio de modo, porque de él dependen la visibilidad de `#hijo5`, que `_transicionarAModoCasa()` no confunda una vuelta a CASA con un abandono real, y que el reloj de compra no corra en desarrollo (§24). Si el payload no trae `dev` (guardado antes de que el campo existiera), se deduce `dev = true` solo cuando el modo restaurado es CASA. `#hijo5` se resuelve aquí y no en el handler: su visibilidad depende del modo DEV, no del modo de la app.
+   3. **Delegación**: llama a `_hdl_SISTEMA_CAMBIO_MODO` con `datos: { modo, origen: 'restauracion', restaurado: true, timestampCompra }` — solo los campos que algún receptor lee de verdad; `actualizarInterfazModo()` construye aparte el payload que llega a los hijos. Es **el mismo handler** que usa cualquier otro cambio de modo, así que la reanudación hereda el guard de concurrencia (`estado.sistema.cambiandoModo`), la propagación real a los hijos esperando `ENTENDIDO`+`EFECTUADO`, `limpiarRecursosPorModo()`, el heartbeat, el GPS (`_gestionarGpsSegunModo`, que llama a `activarGPS()` solo si `!estado.gps.activo`) y la persistencia de `vv_aventura_iniciada`. Si el handler devuelve `exito:false`, se registra como error en vez de continuar en silencio.
+
+   **Las 3 diferencias de una reanudación viajan en `restaurado:true`** y están marcadas una a una dentro del handler:
+
+   | # | Qué cambia | Por qué |
+   |---|---|---|
+   | 1 | `sincronizarModoMapa(modo)` en lugar de `manejarCambioModoMapa(mensaje)` | Evita el `setMapView()` a la vista por defecto: el elemento restaurado se dibuja en el paso 9 con su propio `flyTo`, y resetear la cámara aquí solo mete un salto visible entre medias. Las capas se limpian igualmente vía `limpiarRecursosPorModo()` (§11) |
+   | 2 | No se llama a `ensureDefaultParada()` dentro de `_activarHeartbeatAventura()` | En una reanudación este punto se alcanza con `estado.paradaActual` todavía a `null` (el paso 9 aún no ha corrido), así que su guard `if (estado.paradaActual) return` no lo frenaría: activaría el elemento `'inicio'` y enviaría un `CAMBIO_PARADA` completo, audio incluido, para la parada equivocada |
+   | 3 | `_transicionarAModoCasa()` no borra `vv_aventura_iniciada`/`vv_progreso`/`vv_paradas_completadas` | Reanudar no es abandonar. Sin este guard, restaurar en CASA con el modo dev desactivado borraría en el acto los datos que la propia restauración acaba de leer |
+
+   El reloj de compra de hijo1 lo arranca `_activarHeartbeatAventura()` con el 6º parámetro `timestampCompra` (la fecha real de compra), de modo que el tiempo enviado es `tiempoEstimado − tiempo real transcurrido`, no el máximo de la aventura ni el último tick conocido antes de cerrar — ver "Temporizador" en §7.2 y `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`. Contrato completo del paso 8 en `tests/e2e/46-reanudacion-un-solo-camino.spec.js`.
 9. `_restaurarProgresoRest` — lee `indiceProgreso` y `paradaActual` directamente de `localStorage['vv_progreso']` (no recalcula desde `paradasCompletadas`). Llama internamente a `restoreProgressFromStorage()`, que antes de aplicar nada pasa por sus propios guards: `_restoreCheckTimeout()` (si `verificarTimeoutAventura()` indica que la aventura ya excedió su duración estimada, ejecuta `limpiarDatosAventura('timeout')` y aborta la restauración — el timeout de la aventura tiene prioridad sobre reanudarla), `_restoreLoadFromStorage()` (lee y parsea `vv_progreso`), `_restoreCheckStale()` (mismo TTL de 7 días que `vv_aventura_iniciada`, pero aplicado al propio payload de progreso — puede haber sobrevivido uno y caducado el otro si se editan por separado) y `_restoreCheckMismatch()` (descarta `vv_progreso` si su `aventura` o `idioma` no coincide con los ya seleccionados — progreso de una sesión distinta no debe aplicarse a la actual). Si los cuatro pasan, `_restoreApplyState()` aplica el estado (también restaura `estado.tiempoRestante` si el payload lo trae, ver §7.2) → `_restoreBroadcast()`, que dispara el `NAVEGACION.CAMBIO_PARADA` real del elemento restaurado. Este paso va **después** del 8, no antes: la lógica de `_hdl_NAVEGACION_CAMBIO_PARADA` que depende de `estado.modo?.actual === MODOS.AVENTURA` (recordatorio de audio, botón GPS en tramos, deshabilitar `btnAvanzar` hasta completar) necesita el modo ya fijado para activarse correctamente — con el orden invertido, se procesaba con el modo todavía en su valor de arranque (CASA). Verificado en `tests/e2e/40-orden-restauracion-modo-antes-parada.spec.js`.
-9b. **Inicialización de `estado.paradaRealCongelada` para restauraciones en CASA** — solo si `estado.modo.actual === MODOS.CASA` (y `estado.paradaActual` existe tras el paso 9): se asigna `estado.paradaRealCongelada = estado.paradaActual`. La restauración nunca pasa por `_hdl_SISTEMA_CAMBIO_MODO`, que es el único otro sitio que lo asigna (lo hace al entrar en CASA durante una sesión activa, §2.5). Sin este paso, el primer cambio CASA→AVENTURA de la sesión restaurada ejecutaría `limpiarRecursosPorModo()` (que borra `estado.paradaActual = null`) pero la condición `if (modo===AVENTURA && paradaRealCongelada)` sería falsa → `__triggerCambioParadaInterno` no se llamaría → mapa vacío y `paradaActual` null para el resto de la sesión. CASA solo es alcanzable en dev mode, así que en una PWA real este escenario no puede ocurrirle a un usuario final.
+9b. **Inicialización de `estado.paradaRealCongelada` para restauraciones en CASA** — solo si `estado.modo.actual === MODOS.CASA` (y `estado.paradaActual` existe tras el paso 9): se asigna `estado.paradaRealCongelada = estado.paradaActual`. Hace falta aunque el paso 8 ya pase por `_hdl_SISTEMA_CAMBIO_MODO` (que es el otro sitio que lo asigna, al entrar en CASA, §2.5): en el paso 8 `estado.paradaActual` todavía es `null` — el progreso no se restaura hasta el paso 9 —, así que allí se congela `null`. Este paso lo rellena con el valor real ya restaurado. Sin él, el primer cambio CASA→AVENTURA de la sesión restaurada ejecutaría `limpiarRecursosPorModo()` (que borra `estado.paradaActual = null`) pero la condición `if (modo===AVENTURA && paradaRealCongelada)` sería falsa → `__triggerCambioParadaInterno` no se llamaría → mapa vacío y `paradaActual` null para el resto de la sesión. CASA solo es alcanzable en dev mode, así que en una PWA real este escenario no puede ocurrirle a un usuario final.
 10. `_solicitarRecursosRest` — solicita coordenadas a hijo2 vía S2 para el elemento actual. El audio ya llegó en el paso 9 vía `_restoreBroadcast` → pipeline CAMBIO_PARADA.
 
 Verificado end-to-end con Playwright (GPS simulado, `vv_aventura_iniciada`/`vv_progreso` en `localStorage` antes de cargar la página): tras pulsar "continuar", el modo, `indiceProgreso` y el GPS (`watchId` real) quedan exactamente como estaban antes de cerrar la app. Esto incluye una sesión guardada en modo CASA: `#hijo5` vuelve a hacerse visible (`display:block`/`visibility:visible`) tras la reanudación, porque `datosGuardados.modo` (no `globalThis._devModeActivo`, perdido en la recarga) es la fuente de verdad para `_activarModoRest` — ver el punto 8 más arriba. Para una sesión guardada en modo AVENTURA, hijo5 permanece oculto durante todo el proceso, verificado con vigilancia continua por `requestAnimationFrame` (2779 muestras).
@@ -4784,7 +4818,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-87ca106ec568'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-1b28f485edb9'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5990,7 +6024,7 @@ El padre dirige cada mensaje directamente al hijo que le corresponde con `destin
 
 | Clave | Escritor | Lector adicional | Contenido | Cuándo se borra |
 |-------|---------|-----------------|-----------|-----------------|
-| `vv_aventura_iniciada` | padre L12263 (activación inicial) + padre L7304 (`_hdl_SISTEMA_CAMBIO_MODO`, en cada cambio de modo real de la sesión — incluida la activación de dev mode) | `reciclaje-digital.js` (lee para log antes de borrar) | `{ aventura, idioma, modo, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()`; `modo` refleja el modo real de la sesión en cada momento | `limpiarDatosAventura()` (fin/reset) |
+| `vv_aventura_iniciada` | padre L12263 (activación inicial) + padre L7304 (`_hdl_SISTEMA_CAMBIO_MODO`, en cada cambio de modo real de la sesión — incluida la activación de dev mode) | `reciclaje-digital.js` (lee para log antes de borrar; `verificarTimeoutAventura()` lee `aventura`+`timestamp` para la ventana de compra) | `{ aventura, idioma, modo, dev, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()`. `modo` (`'casa'`\|`'aventura'`) y `dev` (booleano) son **dimensiones independientes**, no derivables una de otra: existen dev/CASA, dev/AVENTURA y prod/AVENTURA. Ambos reflejan el estado real de la sesión en cada momento — se escriben en la activación y se resincronizan en cada cambio de modo. Un payload sin `dev` (guardado antes de que el campo existiera) se sigue restaurando: se deduce `dev = true` solo si `modo === 'casa'` | `limpiarDatosAventura()` (fin/reset) |
 | `vv_progreso` | padre (`persistProgressState()`, en cada `CAMBIO_PARADA` y sincronización de modo — nombre de función corregido en la tabla, `_persistirProgreso` no existe en el código) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActualId, audioActual, totalParadas, tiempoRestante, tramoSkipsUsados, progresoEnUltimoSkip, aventura, idioma, timestamp }` | `limpiarDatosAventura()` |
 | `vv_idioma` | padre L10384/L10460 | `En-busca-del-tesoro.html` `_ejecutarDespedida()` (lee idioma antes de limpiar) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
 | `idioma_seleccionado` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
@@ -6274,11 +6308,21 @@ No existe una tercera copia en `state-manager.js` — la única sincronización 
 
 ### Sincronización de `estadoMapa.modo` al reanudar sesión
 
-`estadoMapa.modo` (`js/funciones-mapa.js`) y `estadoPadre.modo.actual` (`codigo-padre.html`) son dos variables independientes que casi siempre cambian juntas, porque el único punto normal de entrada a AVENTURA — `_hdl_SISTEMA_CAMBIO_MODO` → `manejarCambioModoMapa()` — actualiza las dos a la vez. La reanudación de sesión (`ejecutarRestauracionAventura()` → `_activarModoRest()`, ver §25.10) es la única excepción: fija `estado.modo.actual` directamente y difunde `CAMBIO_MODO` solo hacia los hijos, sin pasar por `_hdl_SISTEMA_CAMBIO_MODO` en el propio padre — deliberado, para no reactivar el GPS dos veces (`_gestionarGpsSegunModo` lo haría si el handler completo se ejecutara ahí).
+`estadoMapa.modo` (`js/funciones-mapa.js`) y `estadoPadre.modo.actual` (`codigo-padre.html`) son dos variables independientes que cambian juntas, porque el único punto de entrada a un cambio de modo — `_hdl_SISTEMA_CAMBIO_MODO` — actualiza las dos. Eso vale también para la reanudación de sesión: `_activarModoRest()` **pasa por ese mismo handler** (§9.10, paso 8), no por una ruta propia.
 
-`manejarCambioModoMapa()` no es solo un setter de `estadoMapa.modo`: también reactiva GPS (redundante en la reanudación, donde `_activarModoRest()` ya llama a `activarGPS()` por su cuenta), limpia recursos del mapa con `resetCompleto:true` y resetea la vista al centro/zoom por defecto (`CONFIG.MAPA.CENTRO_DEFECTO`/`ZOOM_INICIAL`) — efectos que, llamados en plena reanudación, deshacían el zoom y el trazado que `completarCambioParada()` ya había dejado correctamente puestos para la parada/tramo restaurado. Por eso `_activarModoRest()` no puede llamar a la función completa.
+Lo único que la reanudación cambia respecto a cualquier otro cambio de modo es **cómo** se actualiza `estadoMapa.modo`, y es la excepción 1 de las 3 que marca `restaurado:true`:
 
-`sincronizarModoMapa(modo)` (`js/funciones-mapa.js`, expuesta en `globalThis.funcionesMapa`) resuelve esto: fija únicamente `estadoMapa.modo` y `estadoMapa.timestamp`, sin ningún otro efecto secundario. `_activarModoRest()` la llama justo al fijar `estado.modo.actual`, así las dos variables quedan sincronizadas en el mismo punto de la reanudación, antes de que cualquier lectura GPS llegue a depender de ninguna de las dos.
+| | Cambio de modo normal | Reanudación (`restaurado:true`) |
+|---|---|---|
+| Función usada | `manejarCambioModoMapa(mensaje)` | `sincronizarModoMapa(modo)` |
+| Fija `estadoMapa.modo`/`timestamp` | ✅ | ✅ |
+| `manejarGPSActivar()` al entrar en AVENTURA | ✅ | ❌ — ya lo cubre `_gestionarGpsSegunModo` al final del handler |
+| `limpiarPorEstado()` de capas | ✅ | ❌ aquí, pero **sí** vía `limpiarRecursosPorModo()` dentro de `manejarCambioModo()` |
+| `setMapView()` a `CENTRO_DEFECTO`/`ZOOM_INICIAL` | ✅ | ❌ |
+
+El motivo de la excepción es el `setMapView()`: en una reanudación, el elemento restaurado se dibuja inmediatamente después (paso 9, `_restaurarProgresoRest()` → `completarCambioParada()`, con su propio `flyTo`), así que resetear la cámara aquí solo mete un salto visible a la vista por defecto entre medias. Las capas sí se limpian igualmente, por la otra vía — no se pierde limpieza, solo el movimiento de cámara redundante.
+
+`sincronizarModoMapa(modo)` (`js/funciones-mapa.js`, expuesta en `globalThis.funcionesMapa`) fija únicamente `estadoMapa.modo` y `estadoMapa.timestamp`, sin ningún otro efecto secundario, y rechaza cualquier valor que no sea `'casa'`/`'aventura'`.
 
 **Qué depende de `estadoMapa.modo` y por qué necesitaba esta sincronización:**
 
@@ -6289,8 +6333,12 @@ No existe una tercera copia en `state-manager.js` — la única sincronización 
 
 Al pasar a CASA, `limpiarPorEstado({ modo, resetCompleto: true })` en
 `funciones-mapa.js` elimina todas las capas activas (polylines de ruta,
-marcadores de parada, referencias visuales) y restablece la vista al centro y
-zoom por defecto (`CONFIG.MAPA.CENTRO_DEFECTO`, `CONFIG.MAPA.ZOOM_INICIAL`).
+marcadores de parada, referencias visuales). La vista se restablece al centro y
+zoom por defecto (`CONFIG.MAPA.CENTRO_DEFECTO`, `CONFIG.MAPA.ZOOM_INICIAL`) en
+un paso aparte: el `setMapView()` que `manejarCambioModoMapa()` ejecuta justo
+después de esa limpieza — no dentro de `limpiarPorEstado()`, que no toca la
+cámara. Los dos efectos son separables, y la reanudación de sesión se aprovecha
+de ello (§9.10).
 
 El parámetro `resetCompleto` debe pasarse explícitamente porque `estadoMapa.modo`
 ya ha sido actualizado al momento de la llamada — la comprobación interna
@@ -7532,6 +7580,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `42-ttl-tramo-saltos-seguridad.spec.js` | 5 | `_ejecutarBarridoTTLPending()` (§31.7, exclusivo de la llegada de tramos — el audio ya no se toca en ningún escenario de este barrido): sin saltos disponibles (0% de progreso desde el último), la llegada no se fuerza (TTL-1); con ≥20% de progreso real desde el último salto, la llegada sí se rescata y se consume un salto (TTL-2); con los 5 saltos ya gastados, la llegada no se fuerza aunque sobre progreso (TTL-3); un pending de parada no recibe ningún rescate (TTL-4); fuera de modo AVENTURA el barrido no toca nada (TTL-5) |
 | `43-saltar-reto-puzzle-roto.spec.js` | 4 (WebKit omite 2 de puzzle) | Botón ⏩ (§13, "Saltar un reto o puzzle roto"): en `puzzle.html`, un puzzle válido se salta montando las piezas de verdad y avisando `PUZZLE.COMPLETADO` (PZ-1); uno roto/no encontrado hace lo mismo sin excepciones (PZ-2); en `retos-hijo4.html`, un reto de opción válido se salta marcando la respuesta correcta en el selector y habilita el mundo verde, que sí intenta el envío de `RETO.COMPLETADO` al pulsarlo (RT-1); un reto roto/no encontrado deja el botón de saltar habilitado (a diferencia del resto de controles) y también habilita el mundo verde (RT-2) |
 | `45-texto-intro-fallback-idioma.spec.js` | 4 | P11 (`En-busca-del-tesoro.html`, §7.1) — grupo TI, `cargarTextoIntro()`: un fallo real de red cargando los párrafos del idioma elegido muestra el fallback traducido en ESE idioma, nunca español fijo (TI-1); sin fallo, sigue mostrando el texto real de la aventura (TI-2). Grupo AI, `cargarAudioIntro()`: sin fichero real de audio (inglés), `#btn-siguiente-audio-intro` se habilita directamente en vez de quedar bloqueado esperando un evento `play` que nunca llega (AI-1); con fichero real (español), el botón sigue exigiendo el `play` real como siempre (AI-2). `En-busca-del-tesoro.html` se inserta como `<iframe>` real en el arnés — navegarlo directamente dispara su guardia de redirección a `codigo-padre.html` |
+| `46-reanudacion-un-solo-camino.spec.js` | 9 | La reanudación de sesión usa el mismo camino que cualquier cambio de modo (§9.10 paso 8). Grupo RU: el modo arranca sin decidir (`null`), no en CASA (RU-0); reanudar aplica el modo persistido pasando por `_hdl_SISTEMA_CAMBIO_MODO` — verificado por un efecto que solo produce el handler, el arranque del heartbeat, no por el mero valor del modo (RU-1); el flag `dev` se restaura del campo persistido, de modo que dev+AVENTURA es representable (RU-2) y dev+CASA deja `#hijo5` visible (RU-2b); **reanudar en CASA sin dev no borra la sesión que está restaurando** (RU-3, el caso que `_transicionarAModoCasa()` destruiría sin su guard); un cambio a CASA que no es reanudación sí limpia el progreso, o sea que el guard no desactiva el abandono real (RU-4); y "ya estoy en ese modo" reenvía la propagación a los hijos en vez de devolver `exito:true` sin que nadie se entere (RU-5). Grupo RC, por arranque real con `localStorage` sembrado: una sesión de Aventura1 con 61 h (ventana de compra 60 h) no se ofrece para reanudar (RC-1) y una de 2 h sí (RC-2) |
 
 **Configuración: 4 perfiles de browser** (chromium, firefox, pixel5, iphone12). El recuento de tests aumenta con cada spec añadido — ejecutar `npm run test:e2e:chromium` para el número actual en Chromium.
 
@@ -7739,7 +7788,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-87ca106ec568'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-1b28f485edb9'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8385,7 +8434,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-87ca106ec568';
+const CACHE_VERSION = 'v-1b28f485edb9';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8649,10 +8698,14 @@ El modo DEV permite al desarrollador:
 
 | Variable | Scope | Persistencia |
 |----------|-------|-------------|
-| `globalThis._devModeActivo` | `codigo-padre.html` (todos los scripts) | No — reinicia con cada recarga de página |
+| `globalThis._devModeActivo` | `codigo-padre.html` (todos los scripts) | La variable no — reinicia con cada recarga. Se reconstruye al reanudar una aventura guardada, desde el campo `dev` de `vv_aventura_iniciada` |
 | `globalThis._devCasaMode` | `En-busca-del-tesoro.html` (script clásico + módulo) | No — reinicia con recarga |
 
-Ambas variables son puramente en memoria. Una recarga de página deja la app en estado limpio, sin rastro de activación.
+Ambas variables son puramente en memoria: ninguna recarga las conserva por sí sola.
+
+**Matiz — una sesión de aventura ya activada sí recuerda que era dev.** Cuando existe una aventura en curso, `vv_aventura_iniciada` guarda un campo `dev` (booleano) junto al modo, y al reanudar esa sesión `_activarModoRest()` restaura `globalThis._devModeActivo` a partir de él (§9.10, paso 8). Es lo que permite que las tres combinaciones reales existan y sobrevivan a cerrar la app: dev/CASA, dev/AVENTURA y prod/AVENTURA — antes el modo dev se deducía al reabrir de `modo === 'casa'`, así que una sesión dev guardada en AVENTURA volvía como sesión de producción, con el reloj de compra corriendo.
+
+Fuera de ese caso, el estado sigue siendo limpio: si no hay aventura activada, una recarga no deja ningún rastro de la activación, y el campo desaparece con el resto de la sesión en `limpiarDatosAventura()`.
 
 `_devModeActivo` se establece siempre con `= true` (nunca toggle). Las activaciones redundantes son idempotentes.
 
@@ -8821,7 +8874,7 @@ A partir del segundo tap, `_gestureInProgress = true` hace que el listener captu
 
 | Propiedad | Comportamiento |
 |-----------|---------------|
-| Persistencia | Ninguna — `_devModeActivo` y `_devCasaMode` son variables en memoria |
+| Persistencia | Las variables (`_devModeActivo`, `_devCasaMode`) son solo de memoria. Con una aventura ya activada, el hecho de que la sesión sea dev sí se persiste en el campo `dev` de `vv_aventura_iniciada` y se restaura al reanudarla (ver arriba); el código de acceso nunca se guarda en ningún sitio |
 | Recarga de página | Reinicia el modo DEV; hijo5 vuelve a `display:none` |
 | Código de acceso | [solo conocido por el desarrollador — verificado por hash SHA-256 en `codigo-padre.html` y `En-busca-del-tesoro.html`; no documentado en materiales de usuario, soporte ni chat] |
 | Visibilidad al usuario final | Badge naranja `MODO DEV/CASA` en esquina superior-derecha de P1-P5 cuando está activo; hijo5 visible durante la aventura |
@@ -9042,7 +9095,7 @@ En segundo plano, el padre:
 - Prepara el mapa base (MapLibre GL).
 - Carga el iframe de selección (`En-busca-del-tesoro.html`).
 
-La aplicación arranca en **modo CASA** — el estado "neutro" donde aún no hay aventura activa.
+La aplicación arranca **sin modo decidido** (`estado.modo.actual === null`, ver §2): todavía no hay ni CASA ni AVENTURA, porque no hay aventura activa que gobernar. El modo se fija en la primera transición real.
 
 Si el turista sostiene el móvil en horizontal al abrir la app, lo primero que ve no es el logo sino un **overlay de pantalla completa** con la imagen de un móvil en vertical y una flecha. No hay texto — el mensaje es universal. En cuanto gira el dispositivo a portrait el overlay desaparece automáticamente y la experiencia continúa con normalidad. En tablets y PC este overlay nunca aparece. Ver §19.7 para la implementación técnica.
 
@@ -9503,7 +9556,7 @@ Si el usuario **cierra el navegador** o **recarga la página** (por accidente, p
 |-------|-----------|------------------|
 | `vv_idioma` | Idioma seleccionado (ej: `es`) | Al seleccionar idioma en P2 |
 | `vv_aventura` | Aventura seleccionada (ej: `1`) | Al seleccionar aventura en P7 |
-| `vv_aventura_iniciada` | JSON con aventura, idioma y timestamp | Al completar Reto R-2 (P15) — padre lo guarda al recibir `SELECCION.AVENTURA_ACTIVADA` |
+| `vv_aventura_iniciada` | JSON con aventura, idioma, modo, `dev` y timestamp (§10.19) | Al completar Reto R-2 (P15) — padre lo guarda al recibir `SELECCION.AVENTURA_ACTIVADA`, y lo resincroniza en cada cambio de modo real |
 | `vv_progreso` | JSON con índice, parada actual, total de paradas | En cada cambio de parada |
 | `vv_paradas_completadas` | Mapa serializado de paradas completadas | Al completar cada parada |
 
@@ -9647,7 +9700,7 @@ Antes de tocar nada, `limpiarDatosAventura()` levanta `globalThis.__VV_RECICLAND
 | # | Disparador | Dónde | Qué detecta |
 |---|---|---|---|
 | 1 | `AVENTURA.TIEMPO_AGOTADO` (postMessage) | hijo1 → padre, contador llega a 0 en sesión activa | El usuario está jugando ahora mismo y se le acaba el tiempo delante de sus ojos |
-| 2 | `_comprobarReanudacionAventura()` (L7741, Script 1) | Arranque en frío, antes de ofrecer el diálogo "¿continuar?" | `vv_aventura_iniciada` en `localStorage` lleva más de 7 días sin tocarse |
+| 2 | `_comprobarReanudacionAventura()` (Script 1) | Arranque en frío, antes de ofrecer el diálogo "¿continuar?" | La sesión guardada ya no está viva: superó su ventana real de compra (60 h / 150 h según aventura, vía `verificarTimeoutAventura()`) o el TTL de respaldo de 7 días — ver §9.10 |
 | 3 | `_restoreCheckTimeout()` (L3989, Script 1), vía `verificarTimeoutAventura()` | Durante la restauración, tras confirmar "Continuar mi aventura" | La duración máxima de la aventura (60h/150h) se superó mientras la app estaba cerrada |
 
 Los disparadores 2 y 3 existían antes solo como limpieza silenciosa (`localStorage.removeItem`/`limpiarDatosAventura()` directos, sin ningún aviso) — el usuario simplemente perdía su aventura sin explicación. Ahora los tres muestran el mismo modal y dejan la decisión (y la limpieza real) en manos del usuario, igual que ya ocurría con el disparador 1.
@@ -9760,7 +9813,7 @@ El flag `activado` garantiza que `accionLimpieza()` se ejecuta como máximo una 
 - **Condición de carrera en P17 con `pagehide`:** `_ejecutarDespedida()` necesita `js/reciclaje-digital.js` para limpiar; si la red de seguridad se dispara por cierre real de pestaña (`pagehide`), la latencia de un `import()` dinámico en ese momento podría impedir que la limpieza llegue a completarse antes de que el navegador destruya la página. El import se precarga (`void import('./js/reciclaje-digital.js')`, sin esperar la promesa) dentro de `_armarLimpiezaPorAbandonoP17()` (L2421), de modo que cuando `_ejecutarDespedida()` lo necesita ya está en caché.
 - **Idempotencia en P17:** si el botón verde y la red de seguridad coincidieran (carrera entre clic manual y disparo automático), `_despedidaEjecutada` (L1495-1496) garantiza que `_ejecutarDespedida()` solo se ejecuta una vez.
 
-**Modo CASA: solo el disparador del temporizador en vivo está dormido, no los otros dos.** `_iniciarTemporizadorAventura()` (`codigo-padre.html` L11641) nunca arranca el contador de hijo1 fuera de modo AVENTURA — registra `"Timer NO iniciado (desarrollo sin tiempo límite)"` y retorna. Como `AVENTURA.TIEMPO_AGOTADO` solo puede emitirse cuando ese contador llega a 0, el disparador 1 (§25.12) es inalcanzable en modo CASA — el desarrollador puede trabajar indefinidamente en modo CASA sin riesgo de que una sesión activa se autolimpie por esta vía. Los disparadores 2 y 3 (§25.12) **no están condicionados al modo**: comprueban `localStorage` directamente al arrancar, antes de que la app decida en qué modo entrar esta sesión — si hay datos de una aventura real abandonada hace más de 7 días, el modal puede aparecer incluso en una sesión de desarrollo en modo CASA (disparador 2), y el disparador 3 puede darse en modo CASA si la sesión reanudada quedó guardada en modo CASA (`_activarModoRest` fija CASA cuando `datosGuardados.modo === MODOS.CASA`, ver §9.10 y §11).
+**Modo CASA: solo el disparador del temporizador en vivo está dormido, no los otros dos.** `_iniciarTemporizadorAventura()` (`codigo-padre.html` L11641) nunca arranca el contador de hijo1 fuera de modo AVENTURA — registra `"Timer NO iniciado (desarrollo sin tiempo límite)"` y retorna. Como `AVENTURA.TIEMPO_AGOTADO` solo puede emitirse cuando ese contador llega a 0, el disparador 1 (§25.12) es inalcanzable en modo CASA — el desarrollador puede trabajar indefinidamente en modo CASA sin riesgo de que una sesión activa se autolimpie por esta vía. Los disparadores 2 y 3 (§25.12) **no están condicionados al modo**: comprueban `localStorage` directamente al arrancar, antes de que la app decida en qué modo entrar esta sesión — si hay datos de una aventura real cuya ventana de compra ya expiró (o que superó el TTL de respaldo de 7 días, §9.10), el modal puede aparecer incluso en una sesión de desarrollo en modo CASA (disparador 2), y el disparador 3 puede darse en modo CASA si la sesión reanudada quedó guardada en modo CASA (`_activarModoRest` fija CASA cuando `datosGuardados.modo === MODOS.CASA`, ver §9.10 y §11).
 
 **Caso hipotético: el tiempo se agota mientras el usuario está en una pestaña externa.**
 
@@ -11535,7 +11588,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-87ca106ec568';
+const CACHE_VERSION = 'v-1b28f485edb9';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13269,5 +13322,9 @@ A diferencia de las tres tablas anteriores, esta es curada a mano — no hay for
 | `estado.paradaRealCongelada` | Parece una copia más del progreso, como cualquier otro campo de `estado` | Vive solo en memoria, nunca se persiste a `localStorage` — es lo que permite "ver" una parada en CASA sin mover el progreso real; persistirlo rompería esa separación | §25.10 |
 | `z-index` 1000005-1000030 (chrome de la app) | Un overlay nuevo de pantalla completa parece necesitar solo un z-index "alto" | Tiene que superar 1000030 en concreto, o usar uno de los 3 mecanismos de ocultado ya existentes — si no, queda tapado por elementos del chrome que deberían estar por debajo | Ver memoria del proyecto, `project_zindex_chrome_vs_overlays` |
 | Iframes hijo1-hijo5 | Parecen poder cargarse en cuanto el DOM esté listo, como cualquier iframe | Solo se cargan en P14_MOSTRADA — cargarlos antes (o en `CODIGO_VALIDADO`) rompe el modelo de seguridad de activación | §17 |
+| `estado.modo.actual` | Parece un binario CASA/AVENTURA | Tiene **tres** estados: `null` (sin decidir), `'casa'`, `'aventura'`. Cualquier `!== MODOS.CASA` o `else` sin condición mete el `null` de arranque en la rama de AVENTURA — hay que exigir `=== MODOS.AVENTURA` en toda lógica de aventura | §2 |
+| `estadoMapa.modo` vs `estadoPadre.modo.actual` | Parecen la misma cosa duplicada, y lo lógico sería inicializarlas igual | Arrancan distinto **a propósito**: el padre en `null` y el mapa en `'casa'`. `actualizarMarcadorUsuario()` decide el icono con `=== MODOS.CASA ? 🛸 : ▲`, así que un `null` ahí pintaría la flecha de AVENTURA sin haber aventura | §2, §11 |
+| `_transicionarAModoCasa()` | Entrar en CASA parece siempre el momento de limpiar el progreso guardado | Entrar en CASA también ocurre **restaurando** una sesión guardada: sin el guard de `restaurado:true`, la reanudación borra los datos que acaba de leer | §9.9, §9.10 |
+| `modo` y `dev` en `vv_aventura_iniciada` | Parece que con guardar el modo basta, porque CASA solo se alcanza en dev | Son dimensiones independientes: dev/AVENTURA existe y es indistinguible de prod/AVENTURA si `dev` no se guarda aparte | §10.19, §24 |
 
 ---

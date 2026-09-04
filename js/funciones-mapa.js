@@ -2510,11 +2510,12 @@ async function manejarCambioModoMapa(mensaje) {
 // (manejarCambioModoMapa también reactiva GPS, limpia recursos con resetCompleto y resetea
 // la vista del mapa al centro/zoom por defecto — nada de eso es deseable aquí).
 //
-// Hace falta porque _activarModoRest() (codigo-padre.html, reanudación de sesión) fija
-// estado.modo.actual directamente y difunde CAMBIO_MODO solo hacia los hijos — nunca pasa
-// por _hdl_SISTEMA_CAMBIO_MODO en el propio padre (evita reactivar el GPS dos veces), que
-// es el único sitio que llama a manejarCambioModoMapa(). Sin esta sincronización,
-// estadoMapa.modo se queda en su valor de arranque ('casa') toda la sesión reanudada: la
+// La usa _hdl_SISTEMA_CAMBIO_MODO cuando el cambio viene marcado como reanudación de
+// sesión (restaurado:true), en lugar de manejarCambioModoMapa(): el elemento restaurado se
+// dibuja inmediatamente después, con su propio flyTo, así que resetear aquí la cámara solo
+// metería un salto visible a la vista por defecto entre medias. Las capas se limpian
+// igualmente, por la otra vía (limpiarRecursosPorModo dentro de manejarCambioModo). Sin
+// esta sincronización, estadoMapa.modo se queda en su valor de arranque ('casa'): la
 // vigilancia continua de trazado/llegada en procesarPosicionGPSParaAventura() exige
 // estadoMapa.modo === 'aventura' y nunca se cumple, aunque el resto de la app sí esté en
 // modo aventura de verdad (estadoPadre.modo.actual, una variable distinta y ya sincronizada).
