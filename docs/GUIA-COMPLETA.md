@@ -960,7 +960,7 @@ La fórmula general aplica la matriz de rotación completa (Z(alpha)·X(beta)·Y
 
 ```mermaid
 flowchart TD
-    A([Aventura activada]) --> B["📌 Punto de inicio dibujado\n🎯 Todas las paradas dibujadas\n🏛️ Referencias visuales dibujadas\n(permanentes durante la aventura)"]
+    A([Aventura activada]) --> B["Solo los marcadores del elemento ACTIVO\nparada: 🎯 · tramo: 📌 inicio + 🎯 fin + polyline\nse reemplazan en cada cambio de elemento\n(el mapa de aventura nunca dibuja la ruta entera)"]
 
     C([Actualización GPS]) --> D{Modo actual}
     D -- AVENTURA --> E["▲ Triángulo azul #4285F4\nrota con brújula del dispositivo\nhasta 30 veces/segundo"]
@@ -968,8 +968,10 @@ flowchart TD
 
     E --> G["▲ triángulo + ○ círculo naranja 15m\nsiempre sobre la posición real\nigual en parada o en tramo"]
 
-    J([Usuario pulsa referencia 🏛️]) --> K["Popup con nombre del monumento\n(no genera CAMBIO_PARADA)"]
+    J([Usuario pulsa referencia 🏛️ en mapa-completo.html]) --> K["Popup con nombre del monumento\n(no genera CAMBIO_PARADA)"]
 ```
+
+> **El mapa de aventura no dibuja nunca la ruta completa.** Solo muestra los marcadores del elemento activo, y los reemplaza en cada `NAVEGACION.CAMBIO_PARADA` — `completarCambioParada()` es la única función que dibuja por ese evento (§4.5). La vista de "toda la ruta de un vistazo" —todas las paradas numeradas más los marcadores 🏛️ `tipo:"referencia"`— vive en **`mapa-completo.html`**, una página Leaflet independiente que se abre con el botón de mapa moderno de hijo2 y tiene su propia implementación, sin relación con `js/funciones-mapa.js` (§25.10). Son dos mapas distintos con dos propósitos distintos: el de aventura te dice a dónde vas ahora, el completo te enseña el recorrido entero.
 
 **Herramienta de diagnóstico del sensor de brújula en dispositivo real: `debug-brujula.html`** (raíz del proyecto). Página standalone — no forma parte de la app, no se referencia desde ningún fichero de producción, nunca se carga en el SW. Sirve para comprobar en un móvil real: qué evento de orientación está activo (`deviceorientationabsolute` vs `deviceorientation`), si el permiso iOS se concede, y los valores crudos de alpha/beta/gamma + `webkitCompassHeading`, junto con el rumbo calculado por `actualizarOrientacionFlecha()` y un triángulo que lo visualiza. Muestra el heading crudo (sin `_rumboEnPantalla()`) — lo correcto para diagnosticar el sensor independientemente del bearing del mapa. Se sirve con el servidor local existente (`node js/server.js`, puerto 8080).
 
