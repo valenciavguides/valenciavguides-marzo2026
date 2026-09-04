@@ -2935,7 +2935,9 @@
                     const _CAPAS_TEXTO_CALLES = ['calles-texto-mayor', 'calles-texto-menor', 'calles-texto-sendero'];
 
                     // Tamaño responsivo: mismo espíritu que el clamp()+vmin del resto de la app
-                    // (ver getEscalaMapa() en funciones-mapa.js — PANTALLA_REF=400 igual que aquí).
+                    // (ver getEscalaTerreno()/getEscalaIcono() en funciones-mapa.js — PANTALLA_REF=400
+                    // igual que aquí). El texto de calles pertenece al mapa, como las polylines:
+                    // crece al acercar, no encoge como los iconos.
                     // 19 es el zoom máximo del mapa (_MAPA_MAX_ZOOM): al no haber parada de zoom
                     // más allá, el texto deja de crecer ahí — ese es el tope de crecimiento.
                     // 18px de techo porque en pruebas anteriores con symbol-placement:'line' el
