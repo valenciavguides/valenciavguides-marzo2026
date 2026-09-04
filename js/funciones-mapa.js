@@ -750,6 +750,11 @@ function registrarListenerZoom() {
         _zoomRAF = requestAnimationFrame(() => {
             _zoomRAF = null;
             reescalarMarcadoresEmoji();
+            // El marcador de posición propia se reescala en el MISMO frame que los emojis
+            // de ruta: son familias con curva de crecimiento distinta (ZOOM_FACTOR vs
+            // ZOOM_FACTOR_USUARIO), pero deben moverse a la vez para que la relación entre
+            // ellos no dé saltos a mitad del gesto.
+            reescalarMarcadorUsuario();
         });
     });
 
@@ -778,6 +783,11 @@ function registrarListenerZoom() {
         
         // Re-escalar marcadores emoji (📌🎯) según nuevo zoom y pantalla
         reescalarMarcadoresEmoji();
+
+        // Y el marcador de posición propia (🛸/flecha), en los dos listeners igual que
+        // los emojis de ruta: 'zoom' lo mantiene al día durante el gesto y este 'zoomend'
+        // es la pasada final con el zoom ya asentado.
+        reescalarMarcadorUsuario();
     });
     
     logger.debug('[MAPA] Listener de zoom registrado para escalado dinámico');
@@ -3246,6 +3256,125 @@ let marcadorUsuarioGPS = null; // Marcador del usuario con flecha azul
 let circuloActivacion = null;  // Círculo naranja 15m — zona de activación de parada
 
 /**
+ * Modo con el que se construyó el marcador de posición propia que hay ahora en pantalla.
+ * Lo necesita reescalarMarcadorUsuario(): al reescalar por zoom no llega ninguna posición
+ * GPS nueva, así que no hay ningún parámetro `modo` del que partir, y el marcador tiene
+ * dos formas incompatibles (🛸 en CASA, flecha en AVENTURA) que no se pueden deducir del
+ * elemento ya dibujado sin inspeccionar su HTML.
+ * @private
+ */
+let _modoMarcadorUsuario = 'aventura';
+
+/**
+ * HTML del marcador de posición propia (🛸 en CASA, flecha azul en AVENTURA) para el
+ * tamaño que toque ahora mismo. Única función que construye esta plantilla — la usan
+ * tanto la creación del marcador (actualizarMarcadorUsuario, en cada posición GPS) como
+ * reescalarMarcadorUsuario() en cada evento de zoom, para que ambos momentos no puedan
+ * divergir por mantener la plantilla duplicada en dos sitios. Mismo criterio que
+ * _htmlEmojiRuta() para los 📌/🎯 de ruta, que son la otra familia de marcadores.
+ * @param {string} modo - 'casa' (🛸) o 'aventura' (flecha)
+ * @param {number} heading - Rumbo en grados; solo se usa como respaldo cuando la brújula
+ *   no tiene todavía un ángulo suavizado acumulado
+ * @returns {string}
+ */
+function _htmlMarcadorUsuario(modo, heading = 0) {
+    // Obtener valores escalados según pantalla y zoom
+    const iconos = getIconoEscalado();
+    const tamCasa = iconos.usuarioCasa;
+    const tamAventura = iconos.usuarioAventura;
+
+    // Crear icono según el modo
+    let iconHtml;
+    if (modo === 'casa') {
+        // Modo CASA: Emoji 🛸 escalado
+        const emojiSize = Math.round(tamCasa * 0.9);
+        iconHtml = `<div style="width:${tamCasa}px;height:${tamCasa}px;position:relative;display:flex;align-items:center;justify-content:center;">
+                <!-- Emoji ovni grande -->
+                <div style="font-size:${emojiSize}px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                    🛸
+                </div>
+                <!-- Pulso sutil alrededor -->
+                <div style="position:absolute;top:50%;left:50%;width:100%;height:100%;border-radius:50%;background:rgba(100,200,255,0.2);transform:translate(-50%,-50%);animation:gpsPulse 2s infinite;"></div>
+            </div>`;
+    } else {
+        // Modo AVENTURA: Flecha azul estilo Google Maps escalada
+        //
+        // El marcador entero se destruye y se recrea en cada posición GPS
+        // (actualizarMarcadorUsuario, marcadorUsuarioGPS.remove()) — hace falta para
+        // reposicionarlo, pero de paso reinicia el transform de .gps-arrow-heading. Usar
+        // aquí el `heading` de coords.heading (velocidad/rumbo de desplazamiento del GPS,
+        // no la brújula) es la causa real de la "flecha loca": ese valor es 0 o poco fiable
+        // en cuanto el usuario no camina a buena velocidad (parado leyendo el móvil, andando
+        // despacio...), así que cada recreación (~7s, un tick de GPS) saltaba de golpe al
+        // ángulo suavizado que llevaba la brújula (actualizarRotacionFlechaGPS) a este
+        // heading GPS poco fiable — con la transition de 0.3s, se veía como la flecha dando
+        // un giro brusco cada pocos segundos, encima del ruido normal de la brújula entre
+        // medias. Si la brújula está activa y ya tiene un ángulo acumulado, se reutiliza ese
+        // mismo valor como rotación inicial del marcador nuevo — la recreación ya no
+        // interrumpe el suavizado, solo lo continúa desde donde estaba. Esto vale igual para
+        // el reescalado por zoom, que reconstruye este mismo HTML sin posición GPS nueva.
+        const rotation = (compassActiva && _flechaGpsAnguloAcumulado !== null) ? _flechaGpsAnguloAcumulado : (heading || 0);
+        const flechaBorde = Math.round(tamAventura * 0.325);  // ~13px a 40px
+        const flechaInterior = Math.round(tamAventura * 0.275); // ~11px a 40px
+        const flechaAltura = Math.round(tamAventura * 0.8);    // ~32px a 40px
+
+        // Sin punto central: la flecha sola representa posición + rumbo. Cada triángulo
+        // lleva su propio translate(-50%,0%) ANTES del pequeño offset de sombreado — con
+        // la técnica de bordes CSS, un triángulo width:0;height:0 se renderiza con su
+        // vértice (ápice) en el borde superior de su caja y la base colgando hacia abajo.
+        // translate(-50%,0%) centra solo el eje horizontal y deja el vértice exactamente
+        // en el origen local (el punto GPS real, ya que el contenedor .gps-arrow-heading
+        // gira sobre ese mismo punto) — así el ápice, que es el que señala la dirección,
+        // queda clavado sobre la posición real del usuario en cualquier ángulo, y es la
+        // base la que barre un arco al girar (medido: con -50%/-50%, que centra la caja
+        // entera en vez de solo el ápice, la punta oscilaba ±16px alrededor del punto real
+        // en un icono de 40px; con -50%/0% la punta no se mueve ni un píxel al rotar).
+        iconHtml = `<div style="width:${tamAventura}px;height:${tamAventura}px;position:relative;">
+                <!-- Flecha principal estilo Google Maps — clase gps-arrow-heading para rotación en tiempo real -->
+                <div class="gps-arrow-heading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(${_rumboEnPantalla(rotation)}deg);transition:transform 0.3s ease-out;">
+                    <!-- Sombra de la flecha -->
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.94)}px solid rgba(0,0,0,0.2);filter:blur(3px);transform:translate(-50%,0%) translate(2px,2px);"></div>
+                    <!-- Borde blanco de la flecha -->
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaBorde}px solid transparent;border-right:${flechaBorde}px solid transparent;border-bottom:${flechaAltura}px solid white;transform:translate(-50%,0%);"></div>
+                    <!-- Flecha azul principal (Google Maps style) -->
+                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.875)}px solid #4285F4;transform:translate(-50%,0%) translate(1px,2px);"></div>
+                </div>
+            </div>`;
+    }
+
+    return iconHtml + `
+                <style>
+                    @keyframes gpsPulse {
+                        0%, 100% { box-shadow: 0 0 12px rgba(66,133,244,0.8), 0 0 0 0 rgba(66,133,244,0.4); }
+                        50% { box-shadow: 0 0 12px rgba(66,133,244,0.8), 0 0 0 8px rgba(66,133,244,0); }
+                    }
+                </style>`;
+}
+
+/**
+ * Re-escala el marcador de posición propia (🛸 / flecha) según el zoom actual.
+ * Llamado desde los listeners de zoom, junto a reescalarMarcadoresEmoji().
+ *
+ * El tamaño de este marcador se calcula únicamente al construirlo, y hasta ahora solo se
+ * construía al llegar una posición GPS nueva — así que entre dos lecturas de GPS el zoom
+ * podía cambiar varias veces y el marcador se quedaba clavado a su tamaño anterior,
+ * mientras el círculo naranja de 15 m (geográfico, pegado al terreno) sí crecía. De ahí
+ * que al hacer zoom la flecha pareciera encoger dentro de su propio círculo.
+ *
+ * Solo reescribe el HTML interior; no recrea el marcador (eso sí requiere posición nueva).
+ * La rotación no se pierde: _htmlMarcadorUsuario() la reconstruye a partir del mismo
+ * ángulo suavizado de la brújula (_flechaGpsAnguloAcumulado) que usa la recreación normal.
+ */
+function reescalarMarcadorUsuario() {
+    if (!marcadorUsuarioGPS) return;
+    try {
+        const el = marcadorUsuarioGPS.getElement?.();
+        if (!el) return;
+        el.innerHTML = _htmlMarcadorUsuario(_modoMarcadorUsuario);
+    } catch (_e) { /* ignore */ } // NOSONAR
+}
+
+/**
  * Actualiza o crea el marcador del usuario en el mapa
  * @param {number} lat - Latitud del usuario
  * @param {number} lng - Longitud del usuario
@@ -3278,76 +3407,11 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
             marcadorUsuarioGPS = null;
         }
         
-        // Obtener valores escalados según pantalla y zoom
-        const iconos = getIconoEscalado();
-        const tamCasa = iconos.usuarioCasa;
-        const tamAventura = iconos.usuarioAventura;
-        
-        // Crear icono según el modo
-        let iconHtml;
-        if (modo === 'casa') {
-            // Modo CASA: Emoji 🛸 escalado
-            const emojiSize = Math.round(tamCasa * 0.9);
-            iconHtml = `<div style="width:${tamCasa}px;height:${tamCasa}px;position:relative;display:flex;align-items:center;justify-content:center;">
-                <!-- Emoji ovni grande -->
-                <div style="font-size:${emojiSize}px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
-                    🛸
-                </div>
-                <!-- Pulso sutil alrededor -->
-                <div style="position:absolute;top:50%;left:50%;width:100%;height:100%;border-radius:50%;background:rgba(100,200,255,0.2);transform:translate(-50%,-50%);animation:gpsPulse 2s infinite;"></div>
-            </div>`;
-        } else {
-            // Modo AVENTURA: Flecha azul estilo Google Maps escalada
-            //
-            // El marcador entero se destruye y se recrea en cada posición GPS (unas líneas
-            // más abajo, marcadorUsuarioGPS.remove()) — hace falta para reposicionarlo, pero
-            // de paso reinicia el transform de .gps-arrow-heading. Usar aquí el `heading` de
-            // coords.heading (velocidad/rumbo de desplazamiento del GPS, no la brújula) es la
-            // causa real de la "flecha loca": ese valor es 0 o poco fiable en cuanto el usuario
-            // no camina a buena velocidad (parado leyendo el móvil, andando despacio...), así
-            // que cada recreación (~7s, un tick de GPS) saltaba de golpe al ángulo suavizado que
-            // llevaba la brújula (actualizarRotacionFlechaGPS, más arriba) a este heading GPS
-            // poco fiable — con la transition de 0.3s, se veía como la flecha dando un giro
-            // brusco cada pocos segundos, encima del ruido normal de la brújula entre medias.
-            // Si la brújula está activa y ya tiene un ángulo acumulado, se reutiliza ese mismo
-            // valor como rotación inicial del marcador nuevo — la recreación ya no interrumpe
-            // el suavizado, solo lo continúa desde donde estaba.
-            const rotation = (compassActiva && _flechaGpsAnguloAcumulado !== null) ? _flechaGpsAnguloAcumulado : (heading || 0);
-            const flechaBorde = Math.round(tamAventura * 0.325);  // ~13px a 40px
-            const flechaInterior = Math.round(tamAventura * 0.275); // ~11px a 40px
-            const flechaAltura = Math.round(tamAventura * 0.8);    // ~32px a 40px
-
-            // Sin punto central: la flecha sola representa posición + rumbo. Cada triángulo
-            // lleva su propio translate(-50%,0%) ANTES del pequeño offset de sombreado — con
-            // la técnica de bordes CSS, un triángulo width:0;height:0 se renderiza con su
-            // vértice (ápice) en el borde superior de su caja y la base colgando hacia abajo.
-            // translate(-50%,0%) centra solo el eje horizontal y deja el vértice exactamente
-            // en el origen local (el punto GPS real, ya que el contenedor .gps-arrow-heading
-            // gira sobre ese mismo punto) — así el ápice, que es el que señala la dirección,
-            // queda clavado sobre la posición real del usuario en cualquier ángulo, y es la
-            // base la que barre un arco al girar (medido: con -50%/-50%, que centra la caja
-            // entera en vez de solo el ápice, la punta oscilaba ±16px alrededor del punto real
-            // en un icono de 40px; con -50%/0% la punta no se mueve ni un píxel al rotar).
-            iconHtml = `<div style="width:${tamAventura}px;height:${tamAventura}px;position:relative;">
-                <!-- Flecha principal estilo Google Maps — clase gps-arrow-heading para rotación en tiempo real -->
-                <div class="gps-arrow-heading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(${_rumboEnPantalla(rotation)}deg);transition:transform 0.3s ease-out;">
-                    <!-- Sombra de la flecha -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.94)}px solid rgba(0,0,0,0.2);filter:blur(3px);transform:translate(-50%,0%) translate(2px,2px);"></div>
-                    <!-- Borde blanco de la flecha -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaBorde}px solid transparent;border-right:${flechaBorde}px solid transparent;border-bottom:${flechaAltura}px solid white;transform:translate(-50%,0%);"></div>
-                    <!-- Flecha azul principal (Google Maps style) -->
-                    <div style="position:absolute;width:0;height:0;border-left:${flechaInterior}px solid transparent;border-right:${flechaInterior}px solid transparent;border-bottom:${Math.round(flechaAltura * 0.875)}px solid #4285F4;transform:translate(-50%,0%) translate(1px,2px);"></div>
-                </div>
-            </div>`;
-        }
-        
-        const htmlCompleto = iconHtml + `
-                <style>
-                    @keyframes gpsPulse {
-                        0%, 100% { box-shadow: 0 0 12px rgba(66,133,244,0.8), 0 0 0 0 rgba(66,133,244,0.4); }
-                        50% { box-shadow: 0 0 12px rgba(66,133,244,0.8), 0 0 0 8px rgba(66,133,244,0); }
-                    }
-                </style>`;
+        // Una sola plantilla, compartida con el reescalado por zoom — ver
+        // _htmlMarcadorUsuario(). El modo se guarda porque el reescalado no recibe
+        // ninguna posicion GPS de la que deducirlo.
+        _modoMarcadorUsuario = modo;
+        const htmlCompleto = _htmlMarcadorUsuario(modo, heading);
         marcadorUsuarioGPS = _crearMarcadorHTML({ lat, lng }, htmlCompleto, {
             className: modo === 'casa' ? 'marcador-usuario-gps-ovni' : 'marcador-usuario-gps-flecha',
             title: modo === 'casa'
