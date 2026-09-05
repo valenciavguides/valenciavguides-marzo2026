@@ -1149,12 +1149,34 @@
     // js/video-playback-utils.js para vídeo. Pero a diferencia de vídeo, aquí no hay
     // ningún timeout de seguridad que lo acote — sin el contador de abajo, un atasco
     // real (no un hipo) reintentaría en silencio para siempre.
+    // El guard va ANTES del contador, no solo antes del play(), y es deliberado:
+    // 'stalled' y 'waiting' los dispara el navegador tambien mientras CARGA, no solo
+    // mientras reproduce, y este flujo carga todos los audios con autoplay:false
+    // (_solicitarAudioParaParada en el padre). Sin el guard pasaban dos cosas:
+    //
+    //   1. El setTimeout arrancaba el audio SIN que nadie pulsara play — el usuario
+    //      llega a la parada, la red hipa al cargar, y 300ms despues suena solo.
+    //   2. Cada hipo de carga sumaba en _stallsConsecutivos y, al sexto,
+    //      _avisarFalloAudioAlPadre('reproduccion_atascada') mandaba AUDIO.ERROR ->
+    //      _marcarAudioNoDisponible() -> pending.audio = true. Es decir, el audio
+    //      quedaba dado por escuchado por una carga lenta (§31.7a).
+    //
+    // `!audioPlayer.paused` es el mismo criterio que ya usa el seek de este fichero
+    // (wasPlayingDuringSeek): durante una reproduccion real interrumpida por falta de
+    // datos el elemento NO esta paused, asi que el micro-corte legitimo se sigue
+    // recuperando exactamente igual que antes.
+    function _hayReproduccionEnCurso() {
+        return !audioPlayer.paused && !audioPlayer.ended;
+    }
+
     audioPlayer.addEventListener('stalled', () => {
+        if (!_hayReproduccionEnCurso()) return;
         if (_registrarStallYComprobarLimite()) return;
         setTimeout(() => { audioPlayer.play().catch(() => {}); }, 300);
     });
 
     audioPlayer.addEventListener('waiting', () => {
+        if (!_hayReproduccionEnCurso()) return;
         if (_registrarStallYComprobarLimite()) return;
         setTimeout(() => { audioPlayer.play().catch(() => {}); }, 500);
     });
@@ -1179,6 +1201,13 @@
     }
 
     audioPlayer.addEventListener('error', async () => {
+        // A diferencia de stalled/waiting, aqui el reintento de CARGA si es legitimo
+        // con el audio en pausa: un fichero que no existe o un corte de red al
+        // descargarlo es un fallo real que hay que reintentar y, si persiste, avisar al
+        // padre (es el caso previsto para los 11 idiomas sin grabar todavia, §25.5f).
+        // Lo que no es legitimo es el play() posterior: recargar no autoriza a sonar.
+        // Se captura ANTES del load(), porque load() deja el elemento en paused.
+        const _sonabaAlFallar = !audioPlayer.paused && !audioPlayer.ended;
         // Fallo real de carga (fallo puntual del servidor para este fichero, corte de
         // cobertura móvil): un fallo aislado no debe avisar al padre a la primera —
         // reintentar recargando el mismo src con backoff, igual que
@@ -1192,7 +1221,7 @@
             logger.warn(`[hijo3] Error de audio, reintento ${intento}/${MAX_REINTENTOS_AUDIO}: ${audioPlayer.currentSrc || audioPlayer.src}`);
             setTimeout(() => {
                 audioPlayer.load();
-                audioPlayer.play().catch(() => {});
+                if (_sonabaAlFallar) audioPlayer.play().catch(() => {});
             }, 600 * intento);
             return;
         }
@@ -1466,6 +1495,21 @@
                         ...(resultado ? { reproducido: !!resultado.reproducido, autoplayBlocked: !!resultado.autoplayBlocked } : {})
                     }
                 });
+
+                // Devolver el resultado es lo que dispara la auto-confirmacion del adapter:
+                // _enviarAutoConfirmacion() se sale sin enviar nada si `resultado === undefined`.
+                // Sin este return, el padre —que pide este mensaje con
+                // enviarMensajeConConfirmacion (§7.4)— nunca recibia su SISTEMA.CONFIRMACION,
+                // agotaba sus dos intentos y llamaba a _marcarAudioNoDisponible(), que da el
+                // audio por escuchado (pending.audio = true) sin que sonara un segundo. Pasaba
+                // en TODAS las paradas, tambien con el fichero presente y sonando bien.
+                // Mismo contrato que ya cumple hijo2 en COORDENADAS_PARADAS_REQUEST.
+                return {
+                    audioId,
+                    exito: resultado.exito === true,
+                    reproducido: !!resultado?.reproducido,
+                    autoplayBlocked: !!resultado?.autoplayBlocked
+                };
             } catch (error) {
                 logger.error(`[hijo3] Error procesando REPRODUCIR_REQUEST:`, error);
                 await enviarMensaje({
@@ -1478,6 +1522,16 @@
                         mensajeOriginal: mensaje.id
                     }
                 });
+
+                // Tambien aqui: un fallo real de carga debe CONFIRMARSE igualmente. Lo que el
+                // padre pregunta con la confirmacion es "te llego el mensaje", no "salio bien";
+                // el resultado va dentro. Sin este return el catch salia con undefined y el
+                // padre no distinguia "hijo3 no contesta" de "hijo3 contesta que fallo".
+                return {
+                    audioId,
+                    exito: false,
+                    error: error.message
+                };
             }
         });
 

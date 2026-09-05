@@ -12944,19 +12944,24 @@ await _comprobarReanudacionAventura(logPrefix);
                     return;
                 }
 
-                // Actualizar estado global del audio
-                if (!estado.audioActual) {
-                    estado.audioActual = {};
-                }
-
-                estado.audioActual = {
-                    id: audioId,
-                    estado: estadoAudio || 'reproduciendo',
-                    timestamp: Date.now(),
-                    origen: mensaje.origen
-                };
-
-                (globalThis.logger || console).debug(`${logPrefix} Estado de audio actualizado: ${audioId} -> ${estadoAudio}`);
+                // NO se escribe estado.audioActual aqui. Su unico dueno es
+                // AUDIO.ESTADO_ACTUALIZADO, que hijo3 emite desde los eventos nativos
+                // 'play'/'pause' del reproductor — es decir, hechos, no suposiciones
+                // (lo exige el comentario de _iniciarRecordatorioAudio, que lee este
+                // estado para callarse mientras suena el audio).
+                //
+                // Este handler escribia estado:'reproduciendo' al recibir la respuesta de
+                // CARGA, con la peticion enviada con autoplay:false — o sea, con el audio
+                // cargado y en pausa. Y como hijo3 nunca manda el campo `estado`, el
+                // `|| 'reproduciendo'` ganaba siempre. Consecuencia: el padre creia que
+                // sonaba desde el instante de cargarlo y el cartel recordatorio de
+                // "pulse play" no llegaba a aparecer nunca.
+                //
+                // No deja ciego a nadie: obtenerAudioIdActivoPadre() resuelve por
+                // estado.elementoActual.audio_id, que el propio padre escribe en
+                // _actualizarEstadoParada() ANTES de pedir el audio; audioActual.id era
+                // solo su segundo fallback.
+                (globalThis.logger || console).debug(`${logPrefix} Carga confirmada por ${mensaje.origen}: ${audioId} (estado de reproduccion: lo fija AUDIO.ESTADO_ACTUALIZADO)`);
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando respuesta de audio:`, error);

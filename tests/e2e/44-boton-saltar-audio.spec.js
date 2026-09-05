@@ -309,6 +309,12 @@ test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error',
 
     const llamadas = await page.evaluate(async () => {
       const audioPlayer = document.getElementById('audioPlayer');
+      // Los listeners de stalled/waiting solo actuan durante una reproduccion real
+      // (audio-hijo3.html): el navegador tambien los dispara mientras CARGA, y este
+      // flujo carga siempre con autoplay:false, asi que reaccionar ahi haria sonar el
+      // audio sin que el usuario pulse play — prohibido por §7.4/§25.5c. El escenario
+      // que este test quiere probar es el micro-corte a mitad de reproduccion.
+      Object.defineProperty(audioPlayer, 'paused', { value: false, configurable: true });
       let contador = 0;
       audioPlayer.play = () => { contador++; return Promise.resolve(); };
       audioPlayer.dispatchEvent(new Event('stalled'));
@@ -347,6 +353,12 @@ test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error',
 
     await page.evaluate(async () => {
       const audioPlayer = document.getElementById('audioPlayer');
+      // Los listeners de stalled/waiting solo actuan durante una reproduccion real
+      // (audio-hijo3.html): el navegador tambien los dispara mientras CARGA, y este
+      // flujo carga siempre con autoplay:false, asi que reaccionar ahi haria sonar el
+      // audio sin que el usuario pulse play — prohibido por §7.4/§25.5c. El escenario
+      // que este test quiere probar es el micro-corte a mitad de reproduccion.
+      Object.defineProperty(audioPlayer, 'paused', { value: false, configurable: true });
       audioPlayer.play = () => Promise.resolve();
       for (let i = 0; i < 6; i++) {
         audioPlayer.dispatchEvent(new Event(i % 2 === 0 ? 'stalled' : 'waiting'));
@@ -358,6 +370,7 @@ test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error',
 
     await page.evaluate(async () => {
       const audioPlayer = document.getElementById('audioPlayer');
+      Object.defineProperty(audioPlayer, 'paused', { value: false, configurable: true });
       audioPlayer.dispatchEvent(new Event('waiting')); // 7º consecutivo, supera el límite
       await new Promise((r) => setTimeout(r, 100));
     });
@@ -372,6 +385,12 @@ test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error',
 
     await page.evaluate(async () => {
       const audioPlayer = document.getElementById('audioPlayer');
+      // Los listeners de stalled/waiting solo actuan durante una reproduccion real
+      // (audio-hijo3.html): el navegador tambien los dispara mientras CARGA, y este
+      // flujo carga siempre con autoplay:false, asi que reaccionar ahi haria sonar el
+      // audio sin que el usuario pulse play — prohibido por §7.4/§25.5c. El escenario
+      // que este test quiere probar es el micro-corte a mitad de reproduccion.
+      Object.defineProperty(audioPlayer, 'paused', { value: false, configurable: true });
       audioPlayer.play = () => Promise.resolve();
       for (let tanda = 0; tanda < 3; tanda++) {
         for (let i = 0; i < 5; i++) {

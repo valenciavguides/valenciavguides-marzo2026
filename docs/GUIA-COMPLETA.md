@@ -3742,7 +3742,7 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Hijo2 → Padre | Devuelve `{ coordenadas[], total, exito, paradaId? }` — padre lo procesa y dibuja en mapa |
 | | `DATOS.SOLICITAR_COORDENADAS` | Hijo2 → Padre | Fallback: hijo2 solicita sus coordenadas si no las recibió en handshake; padre responde con `DATOS.CARGAR_COORDENADAS` |
 | **AUDIO** | `AUDIO.REPRODUCIR_REQUEST` | Padre → Hijo3 | Reproduce este audio (`{ audioId, audioData, autoplay }`) — `audioData` resuelto en línea vía `cargarAudios()`, protección pasiva por parada (ver §16) |
-| | `AUDIO.REPRODUCIR_RESPONSE` | Hijo3 → Padre | Confirmación de carga/inicio de audio |
+| | `AUDIO.REPRODUCIR_RESPONSE` | Hijo3 → Padre | Confirmación de **carga**; no dice nada sobre si suena (§7.4) |
 | | `AUDIO.FIN_REPRODUCCION` | Hijo3 → Padre | Audio terminó de forma natural |
 | | `AUDIO.ESTADO_ACTUALIZADO` | Hijo3 → Padre | Cambio de estado (play/pause/stop) |
 | | `AUDIO.ERROR` | Hijo3 → Padre | Error durante reproducción |
@@ -3952,7 +3952,7 @@ Gestiona la reproducción de audio narrativo por parada y el botón de retos `#r
 | `SISTEMA.CAMBIO_MODO_ENTENDIDO` | `{ modo, mensajeId }` | Al recibir CAMBIO_MODO |
 | `SISTEMA.CAMBIO_MODO_EFECTUADO` | `{ modo, exito, mensajeId }` | Tras aplicar modo |
 | `SISTEMA.HEARTBEAT_RESPONSE` | `{ timestamp, componente, estado }` | Al recibir HEARTBEAT |
-| `AUDIO.REPRODUCIR_RESPONSE` | `{ audioId, exito, reproducido, autoplayBlocked, mensajeOriginal }` | Confirmación de carga/inicio de audio |
+| `AUDIO.REPRODUCIR_RESPONSE` | `{ audioId, exito, reproducido, autoplayBlocked, mensajeOriginal }` | Confirmación de **carga**; no es el ACK que espera `enviarMensajeConConfirmacion()` (§7.4) |
 | `AUDIO.ESTADO_ACTUALIZADO` | `{ audioId, estado:'reproduciendo'/'pausado' }` | Al hacer play/pause |
 | `AUDIO.FIN_REPRODUCCION` | `{ audioId, estado:'finalizado' }` | Audio termina de forma natural |
 | `AUDIO.ERROR` | `{ audioId, error }` | Error durante reproducción |
@@ -4841,7 +4841,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-a6aa8e963fb3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-fc3da246037d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5348,6 +5348,8 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Handler en padre | `_hdl_AUDIO_ESTADO_ACTUALIZADO` |
 | Acción | Actualiza `estado.audioActual`, refresca controles de audio del padre |
 
+> **Es el único escritor de `estado.audioActual`.** hijo3 lo emite desde los listeners de los eventos nativos `play` y `pause` de su `<audio>` (`audio-hijo3.html`), así que ese estado refleja hechos observados, nunca suposiciones. Importa porque `_iniciarRecordatorioAudio()` (§25.5c) lo lee para callarse mientras el audio suena de verdad: cualquier otro sitio que escribiera ahí `'reproduciendo'` por adelantado apagaría ese cartel sin que sonara nada. `AUDIO.REPRODUCIR_RESPONSE` **no** escribe `estado.audioActual` justamente por esto. Los únicos que además lo mutan son `_hdl_AUDIO_FIN_REPRODUCCION` y `_hdl_AUDIO_ERROR`, y solo el campo `.estado` de un `audioId` que ya coincide con el activo.
+
 **AUDIO.FIN_REPRODUCCION** (hijo3 → padre)
 
 | Campo | Valor |
@@ -5361,9 +5363,13 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | hijo3 (ACK inmediato al recibir REPRODUCIR_REQUEST) |
-| Handler en padre | `_hdl_AUDIO_REPRODUCIR_RESPONSE` L10026 |
-| Acción | Logging |
+| Emitido por | hijo3, tras resolver la carga del audio (no su reproducción: el flujo envía `autoplay:false`) |
+| Handler en padre | `_hdl_AUDIO_REPRODUCIR_RESPONSE` |
+| Acción | Logging. **No escribe `estado.audioActual`** — ver el aviso de `AUDIO.ESTADO_ACTUALIZADO` arriba |
+
+> **No es el ACK que desbloquea `_enviarAudioRequestConReintento()`.** Ese ACK es un `SISTEMA.CONFIRMACION` con `idOriginal`, y en los hijos lo emite `_enviarAutoConfirmacion()` del `messagingAdapter`, que **solo lo envía si el handler devuelve un valor distinto de `undefined`** (guard `resultado === undefined`). Por eso el controlador de `AUDIO.REPRODUCIR_REQUEST` en `audio-hijo3.html` hace `return` en sus dos ramas — la de éxito y la del `catch` — con `{ audioId, exito, ... }`. Ese objeto viaja como `datos` de la confirmación y es lo que resuelve la promesa del padre. Es el mismo contrato que cumple hijo2 en `DATOS.COORDENADAS_PARADAS_REQUEST`, el otro único mensaje que el padre envía con confirmación exigida.
+>
+> Un handler de hijo que reciba un mensaje con `requiereConfirmacion` y termine sin `return` deja al emisor esperando hasta su timeout, sin ningún error visible por ninguno de los dos lados.
 
 **AUDIO.ERROR** (hijo3 → padre)
 
@@ -7372,6 +7378,30 @@ Ni local ni GitHub Pages pueden revelar problemas de rendimiento específicos de
 - **Cabeceras de caché en las respuestas del backend:** hoy los ficheros estáticos de media no pasan por caché del Service Worker para vídeo ni audio (ver §19) y sí para imágenes (Cache First + LRU-100). Cuando el backend sirva estos mismos recursos vía API autenticada, hay que decidir explícitamente si esa respuesta es cacheable (`Cache-Control`) o si la autenticación por petición lo impide — no dar por hecho que el comportamiento actual se mantiene solo porque la URL cambió de estática a `/api/...`.
 - **Cuando el backend exista, repetir la verificación de red real** (igual que se hizo con `curl` contra GitHub Pages para el vídeo, ver [[project-video-faststart-fix]]) contra el backend real, no solo contra un entorno de desarrollo local del backend — la latencia real entre frontend y backend en producción es la única forma fiable de saber si hace falta CDN delante del backend para media, o si las peticiones por parada son lo bastante rápidas.
 
+#### Dos rutas de red para los mismos datos, y un contrato que decidir antes de escribir el backend
+
+`js/api-client.js` y `js/data-loader.js` implementan **cada uno su propia petición HTTP a los mismos endpoints**, y hoy solo el primero reintenta:
+
+| | `api-client.js` → `fetchWithRetry()` | `data-loader.js` → `fetchFromAPI()` |
+|---|---|---|
+| Reintentos | 4, backoff 1s → 2s → 4s → 8s | ninguno |
+| Timeout | 15 s con `AbortController` | **ninguno** |
+| Endpoints | coordenadas, audios, retos, **y los granulares** (`getParada`, `getTramo`, `getAudioParada`, `getReto`) | coordenadas, textos, audios, retos |
+| Éxito de la respuesta | `response.ok && !data.error` | `data.exito` |
+
+`fetchFromAPI()` lo dice en su propio comentario: el `TokenManager` de `api-client.js` está *"pendiente de conectar cuando el backend esté desplegado"*. Se conectó a medias — lee el token de ahí, pero hace su propio `fetch`.
+
+**Un `fetch` sin timeout no falla rápido: se queda colgado sin límite.** Con el backend en marcha y cobertura mala, el modo de fallo de cualquier dato por parada no sería un error, sería la app congelada en silencio.
+
+**La decisión a tomar antes de escribir el backend** (hoy es gratis; después es una migración):
+
+1. **Forma de la respuesta de éxito.** Las dos rutas discrepan: `{exito: true}` frente a la ausencia de `data.error`. El backend solo puede hablar un idioma — elegirlo ahora y ajustar la ruta que sobreviva.
+2. **Ruta superviviente: `api-client.js`.** Es superconjunto: mismos endpoints y además los granulares por parada/tramo, que son los que pide la descarga bajo demanda. `fetchFromAPI()` desaparece y `data-loader.js` pasa a llamar a `ApiClient`.
+3. **Falta `getTextos()` en `ApiClient`** — es el único endpoint que `data-loader` cubre y `api-client` no.
+4. **`validarRespuesta()` (data-loader) y `validarReto()` (api-client) son la misma función duplicada**; se resuelve con la fusión.
+
+**Antes de fusionar hay que arreglar `fetchWithRetry()`, porque sus 4 reintentos hoy no se alcanzan** — ver §36.26, que documenta el caso con las medidas por motor.
+
 ### 16.2 Flujo completo de compra y activación (diseño para producción)
 
 El acceso de pago tiene tres fases secuenciales. La plataforma de pago concreta (Stripe, Paddle, Lemon Squeezy u otra) está pendiente de decidir; el flujo es el mismo independientemente de cuál se elija.
@@ -7843,7 +7873,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-a6aa8e963fb3'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-fc3da246037d'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8489,7 +8519,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-a6aa8e963fb3';
+const CACHE_VERSION = 'v-fc3da246037d';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10576,7 +10606,7 @@ Reproductor HTML5 con barra de progreso personalizada. No sabe en qué parada es
 | Padre → Hijo | `SISTEMA.PADRE_DATOS` | Handshake — sin audio; el contenido llega parada a parada (ver §16) |
 | Padre → Hijo | `AUDIO.REPRODUCIR_REQUEST` | Con el audio resuelto (`audioData`) de la parada actual, en línea |
 | Padre → Hijo | `UI.ACCION_USUARIO` | Comandos `audio_control` para `play`, `pause`, `stop` y `replay` |
-| Hijo → Padre | `AUDIO.REPRODUCIR_RESPONSE` | Confirmando que el audio ha empezado |
+| Hijo → Padre | `AUDIO.REPRODUCIR_RESPONSE` | Confirmando que el audio se ha cargado (no que suene) |
 | Hijo → Padre | `AUDIO.FIN_REPRODUCCION` | Cuando el audio termina |
 | Hijo → Padre | `AUDIO.ESTADO_ACTUALIZADO` | Periódicamente con el tiempo de reproducción |
 | Padre → Hijo | `SISTEMA.CAMBIO_MODO` | Pausa y resetea el audio en curso en cualquier cambio de modo (no solo al entrar en CASA) y recalcula si la barra de progreso es arrastrable |
@@ -10712,7 +10742,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo 2 (botón de mapa completo) | `_hdl_NAVEGACION_MOSTRAR_MAPA_COMPLETO`: abre `mapa-completo.html` en overlay de pantalla completa | (ninguna) | — | Vista interactiva del mapa Leaflet con todas las paradas |
 | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo 2 (botón de mapa vintage) | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE`: muestra imagen JPG del mapa vintage en overlay | (ninguna) | — | Vista alternativa del mapa con estética histórica |
 | `AUDIO.ESTADO_ACTUALIZADO` | Hijo 3 (cambio de estado play/pause/stop) | `_hdl_AUDIO_ESTADO_ACTUALIZADO`: actualiza `estadoAudio` interno; sin reenvío | (ninguna) | — | Tracking del estado de reproducción para lógica de pending |
-| `AUDIO.REPRODUCIR_RESPONSE` | Hijo 3 (confirmación de inicio de reproducción) | `_hdl_AUDIO_REPRODUCIR_RESPONSE`: registra que el audio empezó; sin acción adicional | (ninguna) | — | ACK del comando `REPRODUCIR_REQUEST` |
+| `AUDIO.REPRODUCIR_RESPONSE` | Hijo 3 (confirmación de carga) | `_hdl_AUDIO_REPRODUCIR_RESPONSE`: solo logging; no toca `estado.audioActual` | (ninguna) | — | No es el ACK de `REPRODUCIR_REQUEST`: ese es `SISTEMA.CONFIRMACION`, ver §7.4 |
 | `AUDIO.ERROR` | Hijo 3 (error durante reproducción) | `_hdl_AUDIO_ERROR`: registra en log; habilita el reto igualmente si la parada tiene reto (el audio no es bloqueante ante error) | `RETO.HABILITAR` condicional | Hijo 4 | El error de audio no debe impedir al usuario completar el reto |
 | `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: marca coordenadas como listas en el estado de carga | (ninguna) | — | Tracking de completitud de carga de datos |
 | `DATOS.TEXTOS_CARGADOS` | Hijo 2 (confirmación de carga de textos descriptivos) | `_hdl_DATOS_TEXTOS_CARGADOS`: marca textos como listos | (ninguna) | — | Ídem |
@@ -11652,7 +11682,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-a6aa8e963fb3';
+const CACHE_VERSION = 'v-fc3da246037d';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11908,7 +11938,7 @@ El botón 🛰️🔄 de `#gps-out-of-range-overlay` (anti-piratería, §31.5) t
 
 **Los tres caminos que evitan el bloqueo, de más temprano a más tardío:**
 
-1. **Entrega reforzada del mensaje** (`_enviarAudioRequestConReintento()`, `_solicitarAudioParaParada()`) — `AUDIO.REPRODUCIR_REQUEST` se envía con `enviarMensajeConConfirmacion()`, exigiendo un ACK real de la capa de mensajería de hijo3, con reintentos hasta `MAX_REINTENTOS_ENVIO_AUDIO` (2) antes de darse por vencido, con un timeout de 1.2s por intento (2.4s como máximo en total). Con `autoplay:false` (siempre, en este flujo) el handler de hijo3 no espera ninguna descarga de red antes de confirmar, así que el timeout no se dispara por lentitud normal, solo por una entrega realmente fallida — y se mantiene deliberadamente por debajo de los 10s del primer aviso de los recordatorios de audio (§25.5c/g): así la entrega reforzada siempre termina (con éxito o agotando reintentos) antes de que un recordatorio pudiera llegar a comprobar nada, sin ninguna carrera entre ambos mecanismos. Si los 2 intentos fallan, se llama a `_marcarAudioNoDisponible()` directamente — sin esperar a nada más.
+1. **Entrega reforzada del mensaje** (`_enviarAudioRequestConReintento()`, `_solicitarAudioParaParada()`) — `AUDIO.REPRODUCIR_REQUEST` se envía con `enviarMensajeConConfirmacion()`, exigiendo un ACK real de la capa de mensajería de hijo3 — un `SISTEMA.CONFIRMACION` que solo se emite si el controlador de `AUDIO.REPRODUCIR_REQUEST` devuelve un valor (ver §7.4) —, con reintentos hasta `MAX_REINTENTOS_ENVIO_AUDIO` (2) antes de darse por vencido, con un timeout de 1.2s por intento (2.4s como máximo en total). Con `autoplay:false` (siempre, en este flujo) el handler de hijo3 no espera ninguna descarga de red antes de confirmar, así que el timeout no se dispara por lentitud normal, solo por una entrega realmente fallida — y se mantiene deliberadamente por debajo de los 10s del primer aviso de los recordatorios de audio (§25.5c/g): así la entrega reforzada siempre termina (con éxito o agotando reintentos) antes de que un recordatorio pudiera llegar a comprobar nada, sin ninguna carrera entre ambos mecanismos. Si los 2 intentos fallan, se llama a `_marcarAudioNoDisponible()` directamente — sin esperar a nada más.
 2. **Reintentos dentro de hijo3** (`audio-hijo3.html`, ver §25.5f) — una vez que el mensaje SÍ llega, si el propio audio falla al cargar o se atasca a mitad de reproducción, hijo3 reintenta por su cuenta (backoff en errores de carga, recuperación silenciosa de `stalled`/`waiting`) antes de rendirse y enviar `AUDIO.ERROR` al padre.
 3. **`AUDIO.ERROR` desbloquea el pending** — el handler `_hdl_AUDIO_ERROR()` recibe ese aviso (venga de hijo3 tras agotar sus reintentos, o se dispare internamente tras agotar el paso 1) y llama a `_marcarAudioNoDisponible()`: marca `pending.audio = true`, llama a `intentarCompletarElemento()`, habilita `retosBtn` si procede, y muestra el botón de saltar (`#audio-action-skip`, §25.5f) para que quede constancia visible de que algo no funcionó, en vez de una progresión silenciosa.
 
@@ -12952,7 +12982,36 @@ Todo punto donde el código propio compara, lee o depende de algo que una librer
 
 ---
 
-### 36.26 Checklist de cierre pre-producción
+### 36.26 EJE 26 — El mecanismo que existe pero nunca se dispara
+
+**La pregunta del eje no es "¿está implementado?" sino "¿llega a ejecutarse alguna vez?".** Son preguntas distintas y en este proyecto la segunda ha fallado repetidamente mientras la primera daba verde.
+
+Complementa a EJE 24 sin solaparse: aquel busca **tests** que pasan sin ejercitar el camino real; este busca **código de producción** completo, correcto y comentado que en la práctica no se ejecuta nunca — o se ejecuta siempre por la rama equivocada.
+
+Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se la llama?*** (busca call-sites que faltan); **EJE 26 pregunta *cuando se la llama, ¿entra en la rama que importa?*** — la función se ejecuta con normalidad y lo inalcanzable es su interior. `fetchWithRetry()` corre en cada petición y sus cuatro reintentos no se alcanzan nunca.
+
+**Casos reales del proyecto, todos con la misma firma:**
+
+| Mecanismo | Escrito | Por qué no se disparaba |
+|---|---|---|
+| Registro de `hijo5` en la mensajería | Cargador completo | Faltaba `registrarIframe()`: el padre no podía escribirle |
+| Idioma del chat (`hijo6`) | Payload corregido | El mensaje que lo llevaba se descartaba antes de salir |
+| Confirmación de `AUDIO.REPRODUCIR_REQUEST` | El padre la exige con reintentos | El handler de hijo3 no devolvía valor, así que el adapter no la emitía |
+| `coordenadasYaResueltas` | Se empaqueta en cada cambio de parada | Ningún fichero la ha leído nunca en toda la historia del repo |
+| Los 4 reintentos de `fetchWithRetry()` | Backoff exponencial completo | El `AbortError` del timeout se lanza **antes** de llegar al reintento, y el filtro `error.message.includes('fetch')` no encaja con el texto de WebKit |
+| `data-loader.js` → `api-client.js` | Comentario "pendiente de conectar" | Conectado a medias: usa su `TokenManager`, no su `fetchWithRetry` |
+
+**Cómo auditarlo — la sonda:**
+
+1. Por cada mecanismo defensivo (reintento, fallback, timeout, guard, rescate), localizar **la condición exacta** que lo activa.
+2. Preguntarse qué valor real tiene esa condición en ejecución, y **medirlo**, no razonarlo. Un `logger.info` temporal en la rama, o un test de sonda que la fuerce.
+3. Si la condición depende de texto producido por el navegador (mensajes de error, `userAgent`, nombres de eventos), **medirlo en los tres motores**: `npx playwright test <sonda> --project=chromium --project=firefox --project=iphone12`. Los mensajes de error de red difieren: `"Failed to fetch"` (Chromium), `"NetworkError when attempting to fetch resource."` (Firefox), `"Load failed"` (WebKit).
+4. Comprobar el **orden** de las comprobaciones dentro del handler: una rama que lanza o retorna antes puede hacer inalcanzable a la de después, aunque las dos estén bien escritas por separado.
+5. Para código muerto en el otro sentido, `git log -S"<identificador>" --all` sobre el fichero que debería leerlo: si no hay ni un commit, nunca se usó.
+
+**Señal de alarma en revisión de código:** un comentario que explica con detalle *por qué* un mecanismo es necesario es, paradójicamente, donde más hay que comprobar que se dispara. Los seis casos de arriba están todos bien comentados; el comentario describe la intención, no lo que ocurre.
+
+### 36.27 Checklist de cierre pre-producción
 
 El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 23 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
 
@@ -12968,7 +13027,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 
 ---
 
-### 36.27 Formato del reporte de auditoría
+### 36.28 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 
