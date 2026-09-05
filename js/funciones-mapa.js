@@ -732,15 +732,20 @@ function reescalarMarcadoresEmoji() {
     marcadoresParadas.forEach((marker) => {
         try {
             const el = marker.getElement?.();
-            const clase = el?.className;
-            if (!clase) return;
+            if (!el) return;
 
             let size, emoji;
 
-            if (clase === 'custom-marker-emoji' || clase === 'finish-flag-icon' || clase === 'tramo-fin-icon') {
+            // classList.contains(), NO una comparación estricta contra className: MapLibre
+            // añade sus propias clases ('maplibregl-marker' y la de anclaje) en el constructor
+            // de TODO Marker, también cuando se le pasa un elemento propio. Contra el className
+            // completo, un `=== 'tramo-fin-icon'` no puede cumplirse jamás y esta función entera
+            // queda inerte sin dar ningún error — los emoji se congelan al tamaño que tenían al
+            // nacer y no vuelven a reaccionar al zoom nunca.
+            if (el.classList.contains('custom-marker-emoji') || el.classList.contains('tramo-fin-icon')) {
                 size = iconos.parada;
                 emoji = '🎯';
-            } else if (clase === 'start-flag-icon' || clase === 'tramo-inicio-icon') {
+            } else if (el.classList.contains('tramo-inicio-icon')) {
                 size = iconos.inicio;
                 emoji = '📌';
             } else {
@@ -1396,16 +1401,14 @@ export function limpiarPorEstado(nuevoEstado) {
             logger.debug(`[funciones-mapa] Reset completo ejecutado para modo ${modo}`);
         } else {
             // Limpieza por cambio de parada
+            // No hay marcadores que retirar aquí: las tres claves que `marcadoresParadas`
+            // llega a contener ('parada-actual', 'tramo-inicio-ruta', 'tramo-fin-ruta') las
+            // sustituye completarCambioParada() al dibujar el elemento nuevo. Este bloque solo
+            // deja constancia del cambio en el valor de retorno, que sus dos consumidores usan
+            // únicamente para el log.
             if (paradaActual !== estadoMapa.paradaActual && paradaActual !== null) {
-                // Limpiar marcadores de rutas anteriores (mantener marcadores de paradas)
-                marcadoresParadas.forEach((marcador, id) => {
-                    if (id.startsWith('ruta-')) {
-                        marcador.remove();
-                        marcadoresParadas.delete(id);
-                    }
-                });
                 limpiado = true;
-                logger.debug(`Limpieza automática: Cambio de parada a ${paradaActual}, marcadores de ruta limpiados`);
+                logger.debug(`Limpieza automática: cambio de parada a ${paradaActual}`);
             }
 
             // Limpieza por cambio de tramo

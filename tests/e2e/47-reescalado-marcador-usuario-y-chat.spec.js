@@ -281,6 +281,85 @@ test.describe('MU — El marcador de posición propia sigue al zoom', () => {
       'al acercar, el icono debe ENCOGER: es un cartel indicador, no terreno'
     ).toBeLessThan(lejos.tamanoIcono);
   });
+  test('MU-4. Los emoji 📌/🎯 de ruta se reescalan con el zoom', async ({ page, context }) => {
+    // El caso que reporto el usuario: dianas y chinchetas de tamaños distintos sin patron
+    // aparente. reescalarMarcadoresEmoji() identificaba sus marcadores comparando className
+    // con igualdad ESTRICTA, y MapLibre añade sus propias clases en el constructor de todo
+    // Marker — la comparacion no podia cumplirse nunca, la funcion entera era un no-op
+    // silencioso, y cada emoji quedaba congelado al zoom que hubiera cuando nacio.
+    //
+    // Se dispara el pipeline REAL de cambio de parada (__triggerCambioParadaInterno, el mismo
+    // que usa el boton avanzar), no se fabrica el marcador a mano: el fallo no era que la
+    // funcion no supiera reescalar, sino que no reconocia a sus propios marcadores.
+    //
+    // Ojo con el montaje: NO se fija estadoMapa.paradaActual a la misma parada que luego se
+    // activa — completarCambioParada() tiene un guard de reconfirmacion y descartaria el
+    // cambio por no haber cambiado nada, sin dibujar el marcador.
+    await arrancar(page, context, { conInternosExpuestos: true });
+    await page.waitForFunction(
+      () => typeof globalThis.__triggerCambioParadaInterno === 'function'
+        && typeof globalThis.__cargarDatosAventuraDiferidos === 'function'
+        && (globalThis.__vv_mapasStub || []).length > 0,
+      null, { timeout: 25000 }
+    );
+
+    const paradas = await page.evaluate(async () => {
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.idiomaSeleccionado = 'es';
+      await globalThis.__cargarDatosAventuraDiferidos();
+      if (!globalThis.AVENTURA_PARADAS?.length && globalThis.__vv_DATOS_AVENTURAS?.Aventura1) {
+        const c = globalThis.__vv_DATOS_AVENTURAS.Aventura1['coordenadas-hijo2.html']?.coordenadas;
+        if (c?.length) globalThis.AVENTURA_PARADAS = c;
+      }
+      globalThis.funcionesMapa.sincronizarModoMapa('aventura');
+      globalThis.estado.hijosInicializados = new Set(['hijo2', 'hijo3', 'hijo4']);
+      // Sin un hijo3 real que confirme AUDIO.REPRODUCIR_REQUEST, sus reintentos se agotarian
+      // de verdad y ensuciarian el test con una alarma ajena a lo que aqui se mide.
+      globalThis.enviarMensajeConConfirmacion = () => Promise.resolve({ exito: true });
+      return globalThis.AVENTURA_PARADAS?.length || 0;
+    });
+    test.skip(!paradas, 'los datos de Aventura1 no se cargaron en este entorno');
+
+    await page.evaluate(async (parada) => {
+      await globalThis.__triggerCambioParadaInterno({ paradaId: parada.id });
+    }, PARADA);
+
+    const leerDiana = () => page.evaluate(() => {
+      const ms = globalThis.__vv_marcadoresStub || [];
+      for (let i = ms.length - 1; i >= 0; i--) {
+        const el = ms[i].getElement?.();
+        if (el?.classList?.contains('custom-marker-emoji')) {
+          const dentro = el.firstElementChild;
+          return dentro ? parseFloat(dentro.style.fontSize) : null;
+        }
+      }
+      return null;
+    });
+
+    await page.waitForFunction(
+      () => (globalThis.__vv_marcadoresStub || []).some(m => m.getElement?.()?.classList?.contains('custom-marker-emoji')),
+      null, { timeout: 15000 }
+    );
+    const alNacer = await leerDiana();
+    expect(alNacer, 'la diana de la parada debe haberse dibujado').toBeGreaterThan(0);
+
+    // Cambiar el zoom SIN volver a dibujar nada
+    await page.evaluate(() => {
+      const m = globalThis.__vv_mapasStub[globalThis.__vv_mapasStub.length - 1];
+      m.getZoom = () => 18;
+      m.fire('zoomend');
+    });
+
+    const trasZoom = await leerDiana();
+    expect(
+      trasZoom,
+      'la diana debe reaccionar al zoom: antes quedaba congelada al tamaño con el que nacio'
+    ).not.toBe(alNacer);
+    expect(
+      trasZoom,
+      'al acercar debe encoger, como el resto de la familia PANTALLA'
+    ).toBeLessThan(alNacer);
+  });
 });
 
 test.describe('CH — El chat es alcanzable desde el padre', () => {

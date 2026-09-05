@@ -65,6 +65,15 @@
 
   function fakeMarker(opts) {
     var el = (opts && opts.element) || document.createElement('div');
+    // El MapLibre real añade SIEMPRE estas clases en el constructor de Marker, también
+    // cuando se le pasa un elemento propio (verificado ejecutando js/vendor/maplibre-gl-csp.js:
+    // `this._element.classList.add('maplibregl-marker')` incondicional, más la clase de
+    // anclaje). El stub debe hacer lo mismo o miente a todo test que mire la clase de un
+    // marcador: un `el.className === 'mi-clase'` pasaria aqui y fallaria en produccion, que
+    // es exactamente el bug que dejo reescalarMarcadoresEmoji() inerte durante meses sin que
+    // ninguna prueba lo notara.
+    el.classList.add('maplibregl-marker');
+    el.classList.add('maplibregl-marker-anchor-' + ((opts && opts.anchor) || 'center'));
     var lngLat = { lng: 0, lat: 0 };
     var marker = {
       setLngLat: function (ll) {
