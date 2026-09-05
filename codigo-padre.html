@@ -8641,6 +8641,35 @@ await _comprobarReanudacionAventura(logPrefix);
                 const iframeEl = document.getElementById(iframeCasa.id);
                 if (!iframeEl) throw new Error(`Iframe ${iframeCasa.id} no encontrado en DOM`);
 
+                // Registrar en la mensajería ANTES de las dos ramas de abajo, igual que hacen
+                // los otros tres cargadores (_cargarSingleIframe, _cargarUnIframeHijo,
+                // _cargarSoloIframeActivacion). Esta era la única que no lo hacía, y
+                // `_enviarDesdePadre` (js/mensajeria.js) resuelve todo destino padre→hijo
+                // buscándolo en `iframesRegistrados`: un iframe que no esté ahí es inalcanzable
+                // desde el padre y cada mensaje dirigido a él se descarta con un simple warn.
+                //
+                // Sin este registro, la cadena era: PADRE_DATOS se descarta → hijo5 nunca envía
+                // su HIJO_LISTO (lo emite desde dentro de ese handler) → _esperarHijoListo()
+                // agota su timeout y el catch se lo traga → hijo5 no entra en
+                // hijosInicializados (el cambio de modo llegaba a 5 hijos, no a 6) → sin
+                // PADRE_CONFIRMA_HIJO_LISTO su mostrarUI() hace return y su propio document.body
+                // se queda en display:none. El iframe estaba visible y vacío.
+                //
+                // El sentido hijo→padre nunca dependió de esto: es un postMessage directo a
+                // window.parent, por eso su HIJO_PREPARADO sí llegaba. Mismo fallo y misma
+                // forma que el de hijo6-chat, en otro cargador.
+                //
+                // Estuvo tapado: la rama fallback de AVENTURA_ACTIVADA usa
+                // _cargarSoloIframeActivacion, que sí registra, y esa rama se disparaba siempre
+                // porque _iframesPreCargadosP14 esperaba al GPS. Al arreglar aquello, el parche
+                // accidental desapareció y hijo5 dejó de aparecer en pantalla.
+                if (typeof registrarIframe_S1 === 'function') {
+                    registrarIframe_S1(iframeCasa.id, iframeEl);
+                    (globalThis.logger || console).debug(`${logPrefix} Iframe ${iframeCasa.id} registrado en mensajería`);
+                } else {
+                    (globalThis.logger || console).warn(`${logPrefix} registrarIframe_S1 no disponible — hijo5 quedará inalcanzable desde el padre`);
+                }
+
                 if (iframeEl.src?.includes(iframeCasa.src)) {
                     (globalThis.logger || console).info(`${logPrefix} ✅ hijo5 ya está cargado (se mostrará en AVENTURA_SELECCIONADA)`);
                     await _esperarHijoListo(iframeCasa.id);
