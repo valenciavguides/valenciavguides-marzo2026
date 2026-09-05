@@ -2611,13 +2611,17 @@ Los 4 botones "que requieren atención del usuario" (`btn-video`, `btn-avanzar`,
 
 > El selector de capa de mapa **no pertenece a hijo2** — está creado dinámicamente en `codigo-padre.html` (dentro de `initializeMap()`, buscar el comentario `// ── Capas de mapa + selector desplegable ──`) y posicionado encima del mapa del padre (`position:fixed; bottom; right`, justo encima de `#btn-chat-soporte`, ver más abajo). hijo2 no lo controla.
 
-| Modo | ID capa | Nombre UI | Proveedor tiles |
-|------|---------|-----------|-----------------|
-| Satélite (por defecto) | `'satelite'` | "Satélite" | ArcGIS World Imagery, con capa de etiquetas CARTO Voyager superpuesta (resplandor dorado) |
-| Callejero | `'osm'` | "Callejero" | OpenStreetMap estándar (`tile.openstreetmap.org`) — el mismo tile que usa `mapa-completo.html` (botón "mapa moderno" de hijo2). Nombres de calle ya integrados en el tile, sin capa de etiquetas aparte |
-| Nocturno | `'nocturno'` | "Nocturno" | CARTO Dark Matter, con filtro CSS `brightness(1.35) contrast(1.15)` en su propio pane y capa de etiquetas noche superpuesta (texto blanco nativo, sin resplandor) |
+| Modo | ID | Capas (`capaIds`) | Base |
+|------|----|-------------------|------|
+| Satélite (por defecto) | `'satelite'` | `['satelite-layer']` | Raster: ArcGIS World Imagery. Los nombres de calle los pone la app con capas de texto vectoriales (ver abajo), no el proveedor |
+| Callejero | `'osm'` | `['callejero-layer']` | Raster: OpenStreetMap estándar (`tile.openstreetmap.org`) — el mismo tile que usa `mapa-completo.html` (botón "mapa moderno" de hijo2). Trae los nombres integrados en la propia imagen, así que la app oculta sus capas de texto en este modo |
+| Nocturno | `'nocturno'` | `_CAPAS_BASE_NOCTURNO` (5 capas) | **Vectorial**, dibujado por la app sobre las mismas teselas de OpenFreeMap que ya alimentan calles y nombres. No hay basemap raster oscuro detrás |
 
-Solo hay un modo claro ("Callejero"): dos estilos CARTO claros distintos resultarían visualmente casi indistinguibles como botones separados, así que el selector ofrece uno solo, con el tile OSM estándar que ya usa `mapa-completo.html`.
+**Por qué el Nocturno es el único vectorial:** no queda ningún proveedor de teselas raster oscuras gratuito y sin clave. CARTO Dark Matter, que era el que se usaba, dejó de servir tiles anónimos: ahora devuelve un PNG de 2,3 KB con el texto "API KEY REQUIRED" y ningún dato de mapa. Como el aspecto oscuro hay que construirlo de todas formas, se construye con la fuente vectorial que la app ya carga — sin añadir ninguna dependencia de red nueva y sin tope de nitidez al acercar.
+
+El campo se llama `capaIds` **en plural para los tres**, aunque Satélite y Callejero solo tengan un elemento: así `_cambiarModo()` trata a los tres igual y no necesita saber cuál es de qué tipo.
+
+Solo hay un modo claro ("Callejero"): un segundo estilo claro resultaría visualmente casi indistinguible como botón separado, así que el selector ofrece uno solo.
 
 #### Lógica de proximidad y LLEGADA_DETECTADA
 
@@ -4833,7 +4837,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ece9f2ed6a11'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d628e0c4961f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -6574,14 +6578,25 @@ El mapa entero tiene `maxZoom: 19` (`_MAPA_MAX_ZOOM`, pasado al constructor `new
 
 ##### Modo Nocturno
 
-```text
-source 'nocturno-src': CARTO Dark Matter sin etiquetas
-https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png  (+ b./c./d.)
-maxzoom: 20
-paint: { 'raster-brightness-min': 0.2, 'raster-contrast': 0.15 }
-```
+No tiene fuente propia: usa la misma `'openmaptiles'` vectorial que las calles y los nombres. Cinco capas, listadas en `_CAPAS_BASE_NOCTURNO`, que se dibujan en este orden (el array `layers` decide qué tapa a qué):
 
-El shader de MapLibre calcula `color_final = brightness-min + color_original × (brightness-max − brightness-min)` (`raster-brightness-max` no se toca aquí, se queda en su valor por defecto, 1). Subir `brightness-min` desde su valor por defecto (0) es lo que aclara los negros del tile sin quemar los blancos — es el valor de salida que recibe un píxel que originalmente era negro puro. El Dark Matter de CARTO, sin este ajuste, resulta demasiado oscuro para distinguir las calles.
+| Capa | Tipo | `source-layer` | Pintura |
+|------|------|----------------|---------|
+| `nocturno-fondo` | `background` | — | `#242424` |
+| `nocturno-verde` | `fill` | `landcover` | `#26301f`, opacidad 0.7 |
+| `nocturno-agua` | `fill` | `water` | `#22303d` |
+| `nocturno-edificios` | `fill` | `building` (desde z14) | relleno `#2d2d2d`, borde `#6d6134` |
+| `nocturno-monumentos` | `symbol` | `poi` (desde z15) | texto `#e8d7a0`, halo negro |
+
+El **borde amarillo apagado de los edificios** (`fill-outline-color`) es lo que hace legible el casco antiguo: con relleno solo, las manzanas se funden con el fondo y el centro de Valencia queda como una mancha uniforme.
+
+`nocturno-monumentos` va **la última de todo el array**, después incluso de los nombres de calle, para que el nombre de un monumento nunca quede tapado por una etiqueta de vía.
+
+**Qué monumentos se muestran (`_FILTRO_MONUMENTOS`):** lista blanca por `subclass`, no por `class`. La clase es demasiado gruesa — `art_gallery` mete en el mismo saco las galerías comerciales y `artwork`, que son las estatuas y monumentos de la calle. Pasan: `attraction`, `monument`, `castle`, `ruins`, `museum`, `christian`, `theatre`, `artwork`, `garden`, `park`, `marketplace`. Queda fuera todo lo comercial y de servicio (bares, tiendas, restaurantes, cajeros, hoteles, paneles informativos), que no pinta nada en una audioguía. Las fallas se excluyen con una condición aparte sobre el nombre: van etiquetadas como monumento en OSM pero son el casal de una asociación cultural, no un punto de visita.
+
+> Los datos son de OpenStreetMap y su etiquetado no siempre es correcto: algún local comercial aparece marcado como `museum` y por tanto pasa el filtro. No es un fallo de la lista blanca — corregirlo caso por caso exigiría una excepción por nombre.
+
+El tamaño del texto de monumento lo calcula `_calcularTextSizeMonumentos()`, con el mismo patrón responsivo que `_calcularTextSizeCalles()` pero más pequeño (10→13 px × escala, frente a 11→18): el nombre de un monumento compite con el de la calle que lo rodea y no debe ganarle. Se recalcula en `resize` junto con el de las calles.
 
 ##### Nombres de calle — solo Satélite y Nocturno
 
@@ -6592,7 +6607,9 @@ source 'openmaptiles' (vector): https://tiles.openfreemap.org/planet  (OpenFreeM
 glyphs: https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf
 ```
 
-Tres capas `symbol` sobre `source-layer: 'transportation_name'` (`calles-texto-mayor`/`-menor`/`-sendero`), con `symbol-placement:'line'` y `text-rotation-alignment:'map'` — el texto sigue el ángulo real de la calle y rota junto con el mapa, sin el desajuste que tendría una etiqueta de tile PNG fijo. Los filtros de clase de vía (qué cuenta como "mayor", "menor" o "sendero") y los umbrales de zoom a los que aparece cada nivel están calcados del estilo Liberty oficial de OpenFreeMap, que ya resuelve correctamente esa jerarquía; el color (`#ffffff` con halo negro, legible tanto sobre foto de satélite como sobre el basemap oscuro) y el tamaño son propios de esta app.
+Tres capas `symbol` sobre `source-layer: 'transportation_name'` (`calles-texto-mayor`/`-menor`/`-sendero`), con `symbol-placement:'line'` y `text-rotation-alignment:'map'` — el texto sigue el ángulo real de la calle y rota junto con el mapa, sin el desajuste que tendría una etiqueta de tile PNG fijo. Los filtros de clase de vía (qué cuenta como "mayor", "menor" o "sendero") y los umbrales de zoom a los que aparece cada nivel están calcados del estilo Liberty oficial de OpenFreeMap, que ya resuelve correctamente esa jerarquía; el color (`#ffffff` con halo negro, legible tanto sobre foto de satélite como sobre el fondo oscuro) y el tamaño son propios de esta app.
+
+**Idioma de los nombres (`_TEXT_FIELD_CALLE`):** se usa el nombre **local** (`name`, con `name:latin` de reserva para los POI que no traen `name`), no la traducción inglesa. Es lo que el usuario va a leer en la placa de la esquina del edificio, que en Valencia está en valenciano: si el mapa dijera "Valencia Cathedral" y la placa "Carrer del Micalet", el mapa dejaría de servir para orientarse. Aplica igual a los tres modos — el Callejero ya lo cumple de serie porque sus nombres vienen en el propio tile de OSM.
 
 El tamaño del texto se calcula en JavaScript (`_calcularTextSizeCalles()`) con el mismo espíritu que el resto de la app (`clamp()` + vmin de pantalla), como una expresión `interpolate` por zoom que va de 13→16→19 (el tope de zoom del propio mapa, que actúa como techo de crecimiento del texto — más allá de 18px el texto con `symbol-placement:'line'` deja de encajar bien siguiendo la curva de la calle). Se recalcula en cada evento `resize` de la ventana.
 
@@ -6603,9 +6620,19 @@ Satélite ya muestra las calles en la propia fotografía (dibujar líneas encima
 ```text
 misma fuente 'openmaptiles', source-layer: 'transportation'
 3 niveles: mayor (motorway/trunk/primary/secondary/tertiary), menor (minor/service/track), peatonal (path/pedestrian)
-mayor y menor: casing (línea negra, más ancha, debajo) + fill (línea clara, más estrecha, encima)
-peatonal: solo línea discontinua gris, sin casing (ya es fina de por sí)
+los 3 con el mismo tratamiento: casing (más ancho, debajo) + fill (más estrecho, encima)
+= 6 capas, listadas en _CAPAS_LINEA_CALLES
 ```
+
+| Nivel | Casing | Fill | Desde zoom |
+|-------|--------|------|-----------|
+| mayor | `#585858` | `#474747` | 12 |
+| menor | `#585858` | `#3b3b3b` | 14 |
+| peatonal | `#585858` | `#343434` | 14 |
+
+**El casing es más claro que el relleno, no más oscuro.** Sobre fondo oscuro lo que dibuja la calle es su contorno; un borde negro sobre un mapa casi negro no separa nada.
+
+**La peatonal se dibuja como una calle más, no como línea de puntos.** El casco antiguo de Valencia es casi todo peatonal, y en una audioguía a pie son exactamente las calles por las que va el usuario: dibujadas como raya fina discontinua, el centro se quedaba sin callejero legible.
 
 No distinguen puentes ni túneles (se dibujan igual que una vía a nivel de calle) ni ferrocarril — simplificación deliberada frente a las ~20 capas de línea que usa el estilo oficial de OpenFreeMap para esa jerarquía completa, innecesaria para un mapa de paseo a pie.
 
@@ -6620,7 +6647,9 @@ maxPitch: 0,             // cinturón de seguridad: el pitch no puede moverse de
 
 #### Arquitectura de capas MapLibre
 
-MapLibre no tiene panes ni una propiedad `zIndex` numérica — el orden de renderizado lo decide la posición de cada capa dentro del array `layers` del `style` (las últimas se dibujan encima de las primeras). El estilo del mapa de aventura ordena sus capas así: 3 capas raster base (una visible a la vez) → 5 capas de línea de calle (solo visibles en Nocturno) → 3 capas de texto de calle (visibles en Satélite/Nocturno). Cambiar de modo nunca reordena el array — solo alterna qué capas están `visible` vía `layout.visibility`.
+MapLibre no tiene panes ni una propiedad `zIndex` numérica — el orden de renderizado lo decide la posición de cada capa dentro del array `layers` del `style` (las últimas se dibujan encima de las primeras). El estilo del mapa de aventura ordena sus capas así: fondo del Nocturno → 2 capas raster base (Satélite y Callejero) → 3 capas de relleno del Nocturno (verde, agua, edificios) → 6 capas de línea de calle (solo visibles en Nocturno) → 3 capas de texto de calle (visibles en Satélite/Nocturno) → 1 capa de monumentos (solo Nocturno). Cambiar de modo nunca reordena el array — solo alterna qué capas están `visible` vía `layout.visibility`.
+
+> **Cuidado si algún día se añade un cuarto modo.** `nocturno-fondo` es de tipo `background`, y una capa `background` pinta sobre **todo** lo que tenga por debajo en el array. Está colocada después de `satelite-layer` y `callejero-layer`, así que taparía a las dos si llegaran a estar visibles a la vez que ella. Hoy no puede ocurrir: `_cambiarModo()` apaga el grupo saliente **antes** de encender el entrante, y los tres grupos son mutuamente excluyentes. Pero cualquier modo nuevo que comparta capas con otro, o cualquier cambio que encienda dos grupos a la vez (una transición con fundido, por ejemplo), tiene que colocar `nocturno-fondo` en la posición 0 o dejar de usar `background` para el fondo del Nocturno.
 
 #### El botón selector desplegable
 
@@ -6637,13 +6666,15 @@ Estructura del selector — el desplegable se abre **hacia arriba** (`flex-direc
 [Botón principal]   ← imagen fija (mapa-cambio-modo.png), sin borde propio — punto de anclaje fijo
 ```
 
-La miniatura de cada botón es un **tile real** de Valencia descargado directamente del proveedor al nivel de zoom 13 (coordenadas de tile x=4088, y=3115):
+La miniatura de cada botón muestra una porción real de Valencia:
 
-| Modo | URL del thumbnail |
-|------|------------------|
-| Satélite | `https://server.arcgisonline.com/.../tile/13/3115/4088` |
-| Callejero | `https://a.tile.openstreetmap.org/13/4088/3115.png` |
-| Nocturno | `https://a.basemaps.cartocdn.com/dark_all/13/4088/3115.png` |
+| Modo | Miniatura |
+|------|-----------|
+| Satélite | `https://server.arcgisonline.com/.../tile/13/3115/4088` — tile del proveedor, zoom 13 (x=4088, y=3115) |
+| Callejero | `https://a.tile.openstreetmap.org/13/4088/3115.png` — ídem |
+| Nocturno | `imagenes/imagenes-aplicación/mapa-thumb-nocturno.png` — **fichero local** |
+
+El Nocturno no puede usar un tile de proveedor porque su base no es raster: la miniatura es un render del propio modo nocturno de la app (centro de Valencia a zoom 16, sin capas de texto — a tamaño de botón las letras serían ilegibles). Ventaja lateral: no depende de la red ni de terceros para pintarse.
 
 Propiedades del botón:
 
@@ -6660,7 +6691,7 @@ Propiedades del botón:
 
 El botón se añade a `document.body` (no al contenedor del mapa) porque el `<div id="mapa">` tiene z-index 500, lo que haría que cualquier `position: absolute` dentro de él quedara por debajo de hijo5 (z-index 1000000). Al usar `position: fixed` sobre `body`, el z-index se resuelve en el contexto raíz del documento.
 
-**El botón principal muestra la miniatura del modo de mapa activo** — la misma imagen de tile real que su opción correspondiente en el desplegable (tabla de arriba), no un icono genérico fijo. `_actualizarBtnPrincipal()` la fija leyendo `_modoActivo` en `_MODOS_MAPA`, y se llama tanto al crear el selector como dentro de `_cambiarModo()` — así el botón colapsado siempre refleja de un vistazo qué tipo de mapa está puesto, sin necesidad de abrir el desplegable para comprobarlo.
+**El botón principal muestra siempre la misma imagen fija** (`imagenes/imagenes-aplicación/mapa-cambio-modo.png`), no la miniatura del modo activo: el botón dice lo que *hace* (cambiar de mapa), no en qué estado está. Qué modo hay puesto se ve en el propio mapa, que ocupa la pantalla entera. Mismo criterio que el botón principal de `#brujula-modo` (§4.6b), que tampoco refleja su modo activo.
 
 **Alineación con `#btn-chat-soporte`:** el botón principal queda centrado horizontalmente sobre el botón de chat, justo encima de él. El cálculo de `right` replica el centro horizontal del chat (`right: 4px; width: var(--franja-lateral)`, sin borde) y le resta la mitad del propio ancho del selector:
 
@@ -6684,8 +6715,11 @@ function _cambiarModo(nuevoId) {
     const actual = _MODOS_MAPA.find(m => m.id === _modoActivo);
     const nuevo  = _MODOS_MAPA.find(m => m.id === nuevoId);
 
-    map.setLayoutProperty(actual.capaId, 'visibility', 'none');
-    map.setLayoutProperty(nuevo.capaId, 'visibility', 'visible');
+    const _verCapas = (ids, visible) => ids.forEach(id => {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+    });
+    _verCapas(actual.capaIds, false);
+    _verCapas(nuevo.capaIds, true);
 
     // Nombres de calle vectoriales: solo donde la base no trae texto propio
     // (Callejero ya lo tiene integrado en su tile OSM estándar).
@@ -6701,11 +6735,10 @@ function _cambiarModo(nuevoId) {
     });
 
     _modoActivo = nuevoId;
-    _actualizarBtnPrincipal();
 }
 ```
 
-Solo hay una capa base activa en cada momento; las capas de texto y de línea de calle se activan o desactivan como grupo según el modo destino. `_actualizarBtnPrincipal()` (ver arriba) es la última línea de `_cambiarModo()` — actualiza la miniatura del botón principal al nuevo modo justo después de aplicar las capas. En `codigo-padre.html` las variables llevan prefijo `_` (`_cambiarModo`, `_actualizarBtnPrincipal`, `_MODOS_MAPA`, etc.) para no contaminar el ámbito global.
+Solo hay un grupo de capas base activo en cada momento; las capas de texto y de línea de calle se activan o desactivan como grupo según el modo destino. El botón principal no se toca aquí: su imagen es fija (ver arriba), así que cambiar de modo no tiene que actualizar nada de la interfaz. En `codigo-padre.html` las variables llevan prefijo `_` (`_cambiarModo`, `_MODOS_MAPA`, etc.) para no contaminar el ámbito global.
 
 ---
 
@@ -7804,7 +7837,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ece9f2ed6a11'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-d628e0c4961f'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8450,7 +8483,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ece9f2ed6a11';
+const CACHE_VERSION = 'v-d628e0c4961f';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10184,7 +10217,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 | Módulo | Rol | Expone |
 |--------|-----|--------|
 | `app.js` | Exporta funciones que `codigo-padre.html` importa. Gestiona el protocolo bidireccional de cambio de modo, notificación de errores, coordinación entre hijos, métricas. La lógica de inicialización principal vive en los Scripts inline del HTML, no aquí. El intervalo de monitoreo de memoria se guarda en `globalThis.__vv_intervaloMemoria` con guard contra doble inicialización. | `actualizarInterfazModo()`, `manejarCambioModo()`, `solicitarDatosAHijo()`, `coordinarAccion()`, etc. |
-| `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas de satélite/Carto ya cargadas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. El HTML de este marcador lo construye una única función, `_htmlMarcadorUsuario(modo, heading)`, compartida por la creación y por `reescalarMarcadorUsuario()` (el reescalado por zoom, §4.6) para que ambos momentos no puedan divergir. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo); el ángulo inicial del elemento nuevo reutiliza el ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`) cuando ésta está activa, en vez del `heading` que trae la propia posición GPS (`coords.heading`, el rumbo de desplazamiento — 0 o poco fiable en cuanto el usuario no camina a velocidad suficiente). Sin esto, cada recreación (un tick de GPS, ~7s) saltaba de golpe al rumbo GPS y la brújula tenía que volver a corregirlo desde cero — un giro brusco periódico percibido como "la flecha se vuelve loca", superpuesto al ruido normal de la brújula entre medias. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). Calcula `calcularToleranciaGPS()`: 50 m fijo para paradas, dinámica para tramos. El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
+| `funciones-mapa.js` | El módulo más grande. Recibe la instancia MapLibre ya creada en `codigo-padre.html` (con las capas base de los tres modos ya definidas) y la registra mediante `inicializarServicioMapa(mapInstance)`. Gestiona: (1) **marcador GPS del usuario** (`actualizarMarcadorUsuario()`): triángulo azul `#4285F4` estilo Google Maps (sin punto central — el triángulo solo ya representa posición y rumbo) que rota con la brújula en tiempo real vía `DeviceOrientationEvent`; en modo CASA aparece como 🛸. Los 3 triángulos que forman la flecha (sombra, borde blanco, relleno azul) llevan cada uno `transform: translate(-50%,-50%)` antes de su pequeño offset de sombreado — con la técnica CSS de bordes (`width:0;height:0;border-*`), un triángulo se renderiza con su vértice en la esquina superior izquierda de su caja, no en el centro; sin ese `-50%/-50%` el vértice queda anclado en el punto GPS real y el resto del triángulo cuelga hacia abajo, así que al rotar `.gps-arrow-heading` la flecha entera orbita alrededor del punto en vez de girar sobre sí misma. El HTML de este marcador lo construye una única función, `_htmlMarcadorUsuario(modo, heading)`, compartida por la creación y por `reescalarMarcadorUsuario()` (el reescalado por zoom, §4.6) para que ambos momentos no puedan divergir. `actualizarMarcadorUsuario()` destruye y recrea el marcador entero en cada posición GPS (hace falta para reposicionarlo — no hay un `setLatLng` barato para un marcador HTML completo); el ángulo inicial del elemento nuevo reutiliza el ángulo acumulado de la brújula (`_flechaGpsAnguloAcumulado`) cuando ésta está activa, en vez del `heading` que trae la propia posición GPS (`coords.heading`, el rumbo de desplazamiento — 0 o poco fiable en cuanto el usuario no camina a velocidad suficiente). Sin esto, cada recreación (un tick de GPS, ~7s) saltaba de golpe al rumbo GPS y la brújula tenía que volver a corregirlo desde cero — un giro brusco periódico percibido como "la flecha se vuelve loca", superpuesto al ruido normal de la brújula entre medias. (2) **Cámara siguiendo al usuario** (§4.6b): `actualizarMarcadorUsuario()` centra la cámara en cada posición GPS real (`_camaraSiguiendoUsuario`), salvo mientras un `flyTo` de cambio de parada/tramo está en curso o tras un arrastre manual del mapa (`_registrarSeguimientoCamara()`, escucha `'dragstart'`) — retomado por `reactivarSeguimientoCamara()`, el botón de recentrar. (3) Brújula en tiempo real (`activarBrujula()`/`desactivarBrujula()`). (4) Polylines de ruta, con auto-reparación si el estilo del mapa aún no cargó (§4.6a). Calcula `calcularToleranciaGPS()`: 50 m fijo para paradas, dinámica para tramos. El efecto de pulso de llegada usa `_pulseTimeout` (módulo) con `clearTimeout` para evitar acumulación si llegan confirmaciones consecutivas. | `invalidarTamañoMapa()`, `diagnosticarMapa()`, `isMapInitialized()` |
 | `proteccion.js` | IIFE de protección anti-inspección. Se ejecuta antes que cualquier módulo. Cuatro capas: teclas DevTools, clic derecho, arrastre de media, detector por timing/resize. Borra `window.RETOS_AVENTURAS` y coordenadas si detecta ≥2 intentos de debugger o ≥3 de resize. | — |
 
 #### Ficheros de datos (sin lógica)
@@ -10467,7 +10500,7 @@ Un mensaje de una página externa maliciosa es descartado sin dejar rastro.
 
 - Solo permite scripts de `'self'` (`script-src 'self' 'unsafe-inline'`) — sin orígenes externos
 - Solo permite estilos de `'self'` y Google Fonts (`fonts.googleapis.com`)
-- `connect-src` restringido a `'self'` más una lista explícita de destinos concretos: los proveedores de teselas del mapa (`tiles.openfreemap.org`, `server.arcgisonline.com`, `*.tile.openstreetmap.org`, `*.basemaps.cartocdn.com`) y `docs.google.com` (envíos de §10.21 — buzón de sugerencias y valoraciones). Nada más está permitido; añadir un nuevo destino de red desde `codigo-padre.html` requiere sumarlo aquí explícitamente o el navegador lo bloquea en silencio.
+- `connect-src` restringido a `'self'` más una lista explícita de destinos concretos: los proveedores de teselas del mapa (`tiles.openfreemap.org`, `server.arcgisonline.com`, `*.tile.openstreetmap.org`) y `docs.google.com` (envíos de §10.21 — buzón de sugerencias y valoraciones). Nada más está permitido; añadir un nuevo destino de red desde `codigo-padre.html` requiere sumarlo aquí explícitamente o el navegador lo bloquea en silencio.
 - Convierte HTTP → HTTPS (`upgrade-insecure-requests`)
 
 > **Sin CDN de librerías:** MapLibre GL (el único motor de mapas que usa `codigo-padre.html` — no carga Leaflet) se sirve desde `js/vendor/`, lo que permite que `script-src` y `style-src` no necesiten `https://unpkg.com` ni `https://cdnjs.cloudflare.com`, reduciendo la superficie de ataque de supply-chain. Esos dos orígenes sí los usan `mapa-completo.html` y `video-intro.html` para su propio Leaflet — pero ninguno de los dos tiene cabecera CSP propia, así que no aplica. `connect-src` sí necesita destinos externos concretos (teselas de mapa, formularios) — ver punto anterior.
@@ -11604,7 +11637,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-ece9f2ed6a11';
+const CACHE_VERSION = 'v-d628e0c4961f';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

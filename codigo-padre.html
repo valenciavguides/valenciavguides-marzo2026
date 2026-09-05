@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VGuides">
     <link rel="apple-touch-icon" sizes="180x180" href="imagenes/imagenes-aplicación/logo-redondo.png">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://docs.google.com; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://tiles.openfreemap.org https://server.arcgisonline.com https://*.tile.openstreetmap.org https://docs.google.com; font-src 'self' https://fonts.gstatic.com; worker-src 'self'; upgrade-insecure-requests" />
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(self)" />
     <title>Aventura 1 - Padre</title>
@@ -2922,11 +2922,15 @@
                     // ── Capas de mapa + selector desplegable ──────────────────
                     const _THUMB_SAT      = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3115/4088';
                     const _THUMB_OSM      = 'https://a.tile.openstreetmap.org/13/4088/3115.png';
-                    const _THUMB_NOCTURNO = 'https://a.basemaps.cartocdn.com/dark_all/13/4088/3115.png';
+                    // Nocturno: miniatura local. Es un render del propio modo nocturno de esta
+                    // app (no un tile de proveedor), así que no depende de red ni de terceros y
+                    // muestra exactamente lo que el usuario va a ver al elegirlo.
+                    const _THUMB_NOCTURNO = 'imagenes/imagenes-aplicación/mapa-thumb-nocturno.png';
 
                     // 19 porque el modo Callejero (OSM estándar) no tiene tiles más allá de ese
                     // nivel — pasado ese punto esa capa deja de dibujar y el mapa se queda en
-                    // blanco. Satélite/Nocturno sí soportan más, pero el tope lo marca el más corto.
+                    // blanco. Satélite llega más lejos y el Nocturno es vectorial (no tiene tope
+                    // real), pero el tope lo marca el más corto de los tres.
                     const _MAPA_MAX_ZOOM = 19;
 
                     // ── Nombres de calle (texto vectorial, OpenFreeMap) ────────
@@ -2957,7 +2961,7 @@
                     const _TEXT_FIELD_CALLE = ['case',
                         ['has', 'name:nonlatin'],
                         ['concat', ['get', 'name:latin'], ' ', ['get', 'name:nonlatin']],
-                        ['coalesce', ['get', 'name_en'], ['get', 'name']],
+                        ['coalesce', ['get', 'name'], ['get', 'name:latin']],
                     ];
                     const _PAINT_TEXTO_CALLE = {
                         // Blanco + halo negro: legible tanto sobre foto de satélite como sobre el
@@ -2977,10 +2981,39 @@
                     // (misma fuente/source-layer que el texto); simplificado a 3 niveles en
                     // vez de sus ~20 capas — no se distinguen puentes/túneles (se dibujan
                     // como vía normal) ni ferrocarril, que no aportan a un mapa de paseo a pie.
-                    const _CAPAS_LINEA_CALLES = ['calles-linea-mayor-casing', 'calles-linea-mayor', 'calles-linea-menor-casing', 'calles-linea-menor', 'calles-linea-peatonal'];
+                    const _CAPAS_LINEA_CALLES = ['calles-linea-mayor-casing', 'calles-linea-mayor', 'calles-linea-menor-casing', 'calles-linea-menor', 'calles-linea-peatonal-casing', 'calles-linea-peatonal'];
                     const _FILTRO_VIA_MAYOR = ['match', ['get', 'class'], ['motorway', 'trunk', 'primary', 'secondary', 'tertiary'], true, false];
                     const _FILTRO_VIA_MENOR = ['match', ['get', 'class'], ['minor', 'service', 'track'], true, false];
                     const _FILTRO_VIA_PEATONAL = ['match', ['get', 'class'], ['path', 'pedestrian'], true, false];
+
+                    // ── Monumentos del Nocturno ────────────────────────────────
+                    // Lista blanca por SUBCLASE, no por clase: 'class' es demasiado grueso y mete
+                    // en el mismo saco cosas opuestas (la clase 'art_gallery' contiene tanto las
+                    // galerías comerciales como 'artwork', que son las estatuas y monumentos de
+                    // la calle). Fuera queda todo lo comercial y de servicio — bares, tiendas,
+                    // restaurantes, cajeros, paneles informativos — que no pinta nada en una
+                    // audioguía. Las fallas se excluyen aparte: van etiquetadas como monumento
+                    // pero son el casal de una asociación cultural, no un punto de visita.
+                    const _FILTRO_MONUMENTOS = ['all',
+                        ['match', ['get', 'subclass'],
+                            ['attraction', 'monument', 'castle', 'ruins', 'museum', 'christian',
+                             'theatre', 'artwork', 'garden', 'park', 'marketplace'],
+                            true, false],
+                        ['!', ['in', 'Falla', ['coalesce', ['get', 'name'], '']]],
+                    ];
+                    const _CAPAS_BASE_NOCTURNO = ['nocturno-fondo', 'nocturno-verde', 'nocturno-agua', 'nocturno-edificios', 'nocturno-monumentos'];
+
+                    // Mismo patrón responsivo que _calcularTextSizeCalles (ver arriba), pero más
+                    // pequeño: el nombre de un monumento compite con el de la calle que lo rodea y
+                    // no debe ganarle.
+                    function _calcularTextSizeMonumentos() {
+                        const vmin = Math.min(globalThis.innerWidth || 400, globalThis.innerHeight || 400);
+                        const escala = Math.max(0.8, Math.min(vmin / 400, 1.6));
+                        return ['interpolate', ['linear'], ['zoom'],
+                            15, 10 * escala,
+                            19, 13 * escala,
+                        ];
+                    }
 
                     const _ESTILO_MAPA = {
                         version: 8,
@@ -3001,45 +3034,52 @@
                                 maxzoom: 19,
                                 attribution: '© OpenStreetMap contributors',
                             },
-                            'nocturno-src': {
-                                type: 'raster',
-                                tiles: [
-                                    'https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
-                                    'https://b.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
-                                    'https://c.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
-                                    'https://d.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
-                                ],
-                                tileSize: 256,
-                                maxzoom: 20,
-                                attribution: '© OpenStreetMap contributors © CARTO',
-                            },
                         },
                         layers: [
                             { id: 'satelite-layer', type: 'raster', source: 'satelite-src', layout: { visibility: 'visible' } },
                             { id: 'callejero-layer', type: 'raster', source: 'callejero-src', layout: { visibility: 'none' } },
+                            // ── Base del Nocturno (vectorial, OpenFreeMap) ──────────────
+                            // No hay basemap raster oscuro: CARTO dejó de servir sus tiles sin
+                            // clave de API (devuelve un PNG con "API KEY REQUIRED" y ningún dato).
+                            // Se dibuja aquí con las mismas teselas vectoriales que ya alimentan
+                            // las calles y los nombres, así que no añade ninguna dependencia nueva.
+                            // El orden importa: fondo, luego suelo, luego agua, luego edificios.
+                            { id: 'nocturno-fondo', type: 'background', layout: { visibility: 'none' }, paint: { 'background-color': '#242424' } },
                             {
-                                id: 'nocturno-layer', type: 'raster', source: 'nocturno-src', layout: { visibility: 'none' },
-                                // Ajuste de brillo/contraste del tile nocturno — el Dark Matter de
-                                // CARTO resulta demasiado oscuro para leer bien sin ajustar.
-                                // Verificado directamente contra el shader de MapLibre (js/vendor/maplibre-gl-csp.js):
-                                // output = brightness-min + rgb*(brightness-max - brightness-min). O sea:
-                                // brightness-max es el valor de salida para los blancos (bajarlo OSCURECE los
-                                // brillos, no aclara nada) — los intentos anteriores (0.8, luego 0.35) tocaban
-                                // la propiedad equivocada. brightness-min es el valor de salida para los negros:
-                                // subirlo es lo que realmente levanta las sombras sin quemar los blancos.
-                                // Pendiente de afinar visualmente en el navegador real.
-                                paint: { 'raster-brightness-min': 0.2, 'raster-contrast': 0.15 },
+                                id: 'nocturno-verde', type: 'fill', source: 'openmaptiles', 'source-layer': 'landcover',
+                                layout: { visibility: 'none' },
+                                paint: { 'fill-color': '#26301f', 'fill-opacity': 0.7 },
+                            },
+                            {
+                                id: 'nocturno-agua', type: 'fill', source: 'openmaptiles', 'source-layer': 'water',
+                                layout: { visibility: 'none' },
+                                paint: { 'fill-color': '#22303d' },
+                            },
+                            {
+                                // El borde amarillo apagado es lo que define la manzana: sin él los
+                                // edificios se funden con el fondo y el casco antiguo se vuelve una
+                                // mancha. Mismo tono que el texto de calle menor.
+                                id: 'nocturno-edificios', type: 'fill', source: 'openmaptiles', 'source-layer': 'building',
+                                minzoom: 14, layout: { visibility: 'none' },
+                                paint: { 'fill-color': '#2d2d2d', 'fill-outline-color': '#6d6134' },
                             },
                             // ── Líneas de calle vectoriales (OpenFreeMap, source-layer transportation) ──
-                            // Cada nivel es casing (borde oscuro, más ancho, debajo) + fill (línea clara,
-                            // más estrecha, encima) — mismo patrón que usa OpenFreeMap para dar la
-                            // sensación de calle "bordeada" en vez de una línea plana.
+                            // Solo Nocturno las usa: Satélite ya muestra las calles en la propia
+                            // foto (dibujarlas encima sería ruido y desalineación) y Callejero las
+                            // trae en su tile OSM. Filtros de clase de vía calcados del estilo
+                            // Liberty de OpenFreeMap (misma fuente que el texto), simplificado a
+                            // 3 niveles en vez de sus ~20 capas: no se distinguen puentes/túneles
+                            // (se dibujan como vía normal) ni ferrocarril, que no aportan a pie.
+                            //
+                            // Cada nivel es casing (borde, más ancho, debajo) + fill (interior, más
+                            // estrecho, encima). Aquí el casing es MÁS CLARO que el interior: sobre
+                            // fondo oscuro lo que dibuja la calle es su contorno, no su relleno.
                             {
                                 id: 'calles-linea-mayor-casing', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
                                 filter: _FILTRO_VIA_MAYOR,
                                 layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
                                 paint: {
-                                    'line-color': '#000000',
+                                    'line-color': '#585858',
                                     'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 16, 4, 19, 7],
                                 },
                             },
@@ -3048,7 +3088,7 @@
                                 filter: _FILTRO_VIA_MAYOR,
                                 layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
                                 paint: {
-                                    'line-color': '#e8e8e8',
+                                    'line-color': '#474747',
                                     'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.8, 16, 2.5, 19, 4.5],
                                 },
                             },
@@ -3058,7 +3098,7 @@
                                 filter: _FILTRO_VIA_MENOR,
                                 layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
                                 paint: {
-                                    'line-color': '#000000',
+                                    'line-color': '#585858',
                                     'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 1.5, 19, 4],
                                 },
                             },
@@ -3068,21 +3108,33 @@
                                 filter: _FILTRO_VIA_MENOR,
                                 layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
                                 paint: {
-                                    'line-color': '#b0b0b0',
+                                    'line-color': '#3b3b3b',
                                     'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 0.8, 19, 2.5],
                                 },
                             },
                             {
-                                // Senderos/zonas peatonales: solo línea discontinua, sin casing (son
-                                // finas de por sí, un borde restaría claridad en vez de sumarla).
+                                // Peatonales con el MISMO tratamiento que el resto (casing + fill
+                                // sólidos), no una línea de puntos: el casco antiguo de Valencia es
+                                // casi todo peatonal, y en una audioguía a pie son precisamente las
+                                // calles por las que va el usuario. Dibujadas como raya fina, el
+                                // centro quedaba sin callejero legible.
+                                id: 'calles-linea-peatonal-casing', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
+                                minzoom: 14,
+                                filter: _FILTRO_VIA_PEATONAL,
+                                layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
+                                paint: {
+                                    'line-color': '#585858',
+                                    'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 1.4, 19, 4.5],
+                                },
+                            },
+                            {
                                 id: 'calles-linea-peatonal', type: 'line', source: 'openmaptiles', 'source-layer': 'transportation',
                                 minzoom: 14,
                                 filter: _FILTRO_VIA_PEATONAL,
-                                layout: { visibility: 'none', 'line-join': 'round' },
+                                layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
                                 paint: {
-                                    'line-color': '#888888',
-                                    'line-dasharray': [2, 1.5],
-                                    'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 1, 19, 3],
+                                    'line-color': '#343434',
+                                    'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0, 15, 0.9, 19, 3],
                                 },
                             },
                             // ── Nombres de calle vectoriales (OpenFreeMap, source-layer transportation_name) ──
@@ -3138,6 +3190,24 @@
                                 },
                                 paint: _PAINT_TEXTO_CALLE,
                             },
+                            {
+                                // Va la última del array a propósito: MapLibre dibuja en orden, así
+                                // que el nombre de un monumento nunca queda tapado por una calle.
+                                id: 'nocturno-monumentos', type: 'symbol', source: 'openmaptiles', 'source-layer': 'poi',
+                                minzoom: 15,
+                                filter: _FILTRO_MONUMENTOS,
+                                layout: {
+                                    visibility: 'none',
+                                    'text-field': _TEXT_FIELD_CALLE,
+                                    'text-font': ['Noto Sans Regular'],
+                                    'text-size': _calcularTextSizeMonumentos(),
+                                    'text-max-width': 9,
+                                    'text-padding': 4,
+                                },
+                                // Dorado apagado en vez del blanco de las calles: distingue "sitio
+                                // que visitar" de "calle por la que pasar" sin necesidad de icono.
+                                paint: { 'text-color': '#e8d7a0', 'text-halo-color': '#000000', 'text-halo-width': 1.4 },
+                            },
                         ],
                     };
 
@@ -3162,9 +3232,13 @@
                     _mapInstance = map;
 
                     const _MODOS_MAPA = [
-                        { id: 'satelite', nombre: 'Satélite',  thumb: _THUMB_SAT,      capaId: 'satelite-layer' },
-                        { id: 'osm',      nombre: 'Callejero',  thumb: _THUMB_OSM,      capaId: 'callejero-layer' },
-                        { id: 'nocturno', nombre: 'Nocturno',   thumb: _THUMB_NOCTURNO, capaId: 'nocturno-layer' },
+                        // capaIds (plural): Satélite y Callejero son una sola capa raster, pero
+                        // el Nocturno se dibuja con varias capas vectoriales — no existe basemap
+                        // raster oscuro gratuito. Por eso todos declaran una lista, aunque dos de
+                        // ellos solo tengan un elemento.
+                        { id: 'satelite', nombre: 'Satélite',  thumb: _THUMB_SAT,      capaIds: ['satelite-layer'] },
+                        { id: 'osm',      nombre: 'Callejero',  thumb: _THUMB_OSM,      capaIds: ['callejero-layer'] },
+                        { id: 'nocturno', nombre: 'Nocturno',   thumb: _THUMB_NOCTURNO, capaIds: _CAPAS_BASE_NOCTURNO },
                     ];
 
                     let _modoActivo = 'satelite';
@@ -3195,6 +3269,10 @@
 
                     const _btnPrincipal = document.createElement('div');
                     _btnPrincipal.style.cssText = _BTN_STYLE_MAIN;
+                    // Icono fijo, no la miniatura del modo activo: el botón dice lo que HACE
+                    // (cambiar de mapa), no en qué estado está. Qué modo hay puesto se ve en el
+                    // propio mapa, que ocupa la pantalla entera.
+                    _btnPrincipal.style.backgroundImage = "url('imagenes/imagenes-aplicación/mapa-cambio-modo.png')";
                     _btnPrincipal.title = 'Cambiar tipo de mapa';
                     _selectorDiv.appendChild(_btnPrincipal);
 
@@ -3242,21 +3320,16 @@
 
                     function _cerrarDropdown() { _dropdownAbierto = false; _dropdownDiv.style.maxHeight = '0'; }
 
-                    // El botón principal (colapsado) muestra la miniatura del modo ACTIVO, no un
-                    // icono genérico — así el usuario ve de un vistazo qué tipo de mapa tiene
-                    // puesto sin necesidad de abrir el desplegable.
-                    function _actualizarBtnPrincipal() {
-                        const modo = _MODOS_MAPA.find(m => m.id === _modoActivo);
-                        _btnPrincipal.style.backgroundImage = `url('${modo.thumb}')`;
-                    }
-
                     function _cambiarModo(nuevoId) {
                         if (nuevoId === _modoActivo) return;
                         const actual = _MODOS_MAPA.find(m => m.id === _modoActivo);
                         const nuevo  = _MODOS_MAPA.find(m => m.id === nuevoId);
 
-                        map.setLayoutProperty(actual.capaId, 'visibility', 'none');
-                        map.setLayoutProperty(nuevo.capaId, 'visibility', 'visible');
+                        const _verCapas = (ids, visible) => ids.forEach(id => {
+                            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+                        });
+                        _verCapas(actual.capaIds, false);
+                        _verCapas(nuevo.capaIds, true);
 
                         // Nombres de calle vectoriales: solo donde la base no trae texto propio
                         // (Callejero ya lo tiene integrado en su tile OSM estándar).
@@ -3274,10 +3347,8 @@
                         });
 
                         _modoActivo = nuevoId;
-                        _actualizarBtnPrincipal();
                     }
 
-                    _actualizarBtnPrincipal();
                     document.body.appendChild(_selectorDiv);
 
                     // Recalcular tamaño del texto de calles al cambiar el tamaño de ventana/pantalla
@@ -3287,6 +3358,9 @@
                         _CAPAS_TEXTO_CALLES.forEach(id => {
                             if (map.getLayer(id)) map.setLayoutProperty(id, 'text-size', expr);
                         });
+                        if (map.getLayer('nocturno-monumentos')) {
+                            map.setLayoutProperty('nocturno-monumentos', 'text-size', _calcularTextSizeMonumentos());
+                        }
                     }, 250));
 
                     // ── Menú de modo de cámara (#brujula-modo) ─────────────────────────
