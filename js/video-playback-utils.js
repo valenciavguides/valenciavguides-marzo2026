@@ -21,15 +21,40 @@
  * vídeos largos).
  */
 // Handlers de recuperación de micro-cortes, definidos una sola vez a nivel de
-// módulo (no dentro de reproducirVideoConBuffer). Si un mismo <video> se
-// reutiliza entre llamadas — es el caso de mostrarVideoOverlay() en
-// codigo-padre.html, que reutiliza el overlay/elemento para cada vídeo de
-// parada que el usuario abre en una misma sesión — addEventListener con la
-// MISMA referencia de función es un no-op la segunda vez (deduplica según
-// especificación), así que nunca se acumulan listeners duplicados aunque
-// reproducirVideoConBuffer se llame muchas veces sobre el mismo elemento.
-function _onStalled() { setTimeout(() => this.play().catch(() => {}), 300); }
-function _onWaiting() { setTimeout(() => this.play().catch(() => {}), 500); }
+// módulo (no dentro de reproducirVideoConBuffer): addEventListener con la MISMA
+// referencia de función es un no-op la segunda vez (deduplica según
+// especificación), así que nunca se acumulan duplicados aunque
+// reproducirVideoConBuffer se llame varias veces sobre el mismo elemento.
+//
+// Ojo con el ciclo de vida real del <video> de #video-overlay, porque es fácil
+// razonar mal sobre él: NO es persistente entre visionados. cerrarVideoOverlay()
+// (codigo-padre.html) hace overlay.remove() 400 ms después de cerrar, y
+// _crearVideoOverlayEl() lo reconstruye cuando vuelve a hacer falta. El elemento
+// vive desde que lo crea la primera precarga o el primer visionado hasta el
+// siguiente cierre, y los listeners de abajo mueren con él.
+// El guard de `paused` no es una precaucion: cubre una ventana concreta. Estos dos
+// listeners no se retiran en limpiar() (a proposito, para seguir cubriendo micro-cortes
+// durante toda la reproduccion), asi que estan armados desde que el usuario abre un video
+// hasta que ese elemento muere. Y en esa ventana _precargarVideoParada()
+// (codigo-padre.html) puede reutilizar ese mismo elemento para descargar el video del
+// siguiente tramo en segundo plano: un hipo de red durante esa precarga disparaba play() y
+// el video se reproducia sin que nadie pulsara #btn-video, el unico camino legitimo.
+// Los videos no llevan pista de audio, asi que no se oia nada — el usuario se lo
+// encontraba empezado o terminado al abrirlo, mas el gasto de datos y bateria.
+//
+// _precargarVideoParada() lleva ademas su propio guard (no toca el elemento si el overlay
+// esta visible). Los dos son necesarios y cubren cosas distintas: aquel protege el video
+// que el usuario esta viendo AHORA; este protege los ~400 ms entre cerrar el overlay y su
+// remove(), en los que `visible` ya es false pero el elemento sigue vivo y armado.
+//
+// `paused` sigue siendo false durante un stalled/waiting real (la especificacion no pausa
+// el elemento por falta de datos: solo refleja si se pidio reproducir), asi que el
+// micro-corte legitimo a mitad de reproduccion se recupera igual que antes. Mismo criterio
+// que audio-hijo3.html aplica a sus tres listeners de red, y que el seek de ese fichero ya
+// usaba en wasPlayingDuringSeek.
+function _sonando(el) { return !el.paused && !el.ended; }
+function _onStalled() { if (!_sonando(this)) return; setTimeout(() => this.play().catch(() => {}), 300); }
+function _onWaiting() { if (!_sonando(this)) return; setTimeout(() => this.play().catch(() => {}), 500); }
 
 export function reproducirVideoConBuffer(videoEl, { timeoutMs = 15000, maxReintentos = 2 } = {}) {
     return new Promise((resolve) => {

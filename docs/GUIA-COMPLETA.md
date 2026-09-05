@@ -4841,7 +4841,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-fc3da246037d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2b3d8a636c6f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7329,6 +7329,19 @@ Este mecanismo **no depende del tamaño total del archivo** — solo espera a qu
 **Dos casos borde que el diseño cubre explícitamente:**
 
 - **Acumulación de listeners `stalled`/`waiting` en `<video>` reutilizados:** `mostrarVideoOverlay()` reutiliza el mismo elemento `<video>` entre paradas distintas dentro de una misma aventura (no lo recrea cada vez). Los handlers `stalled`/`waiting` están definidos como funciones **con nombre a nivel de módulo** (no closures anónimas creadas en cada llamada) precisamente por esto: `addEventListener` con la misma referencia de función es un no-op la segunda vez (deduplica según especificación DOM), así que `reproducirVideoConBuffer()` puede llamarse muchas veces sobre el mismo elemento sin acumular listeners duplicados. El listener de `error`, en cambio, se registra sin `{once:true}` a propósito: cada `video.load()` de reintento puede volver a disparar `error`, y hace falta seguir escuchándolo para reintentar de nuevo.
+
+  **Ciclo de vida real del `<video>` de `#video-overlay`** — conviene tenerlo claro porque es fácil razonar mal sobre él: **no es persistente entre visionados**. `cerrarVideoOverlay()` hace `overlay.remove()` 400 ms después de cerrar, y `_crearVideoOverlayEl()` lo reconstruye cuando vuelve a hacer falta. El elemento vive desde que lo crea la primera precarga o el primer visionado hasta el siguiente cierre; los listeners de `stalled`/`waiting` mueren con él.
+
+  **Un solo elemento hace los dos trabajos —precargar y reproducir— y de ahí salen dos protecciones distintas, ambas necesarias:**
+
+  1. **`_precargarVideoParada()` se abstiene si el overlay está `visible`.** Asignar `source.src` y llamar a `video.load()` sobre un vídeo que el usuario está viendo se lo cambiaría por el del tramo siguiente a mitad de reproducción. Es alcanzable: el vídeo del tramo es la vista previa del camino, **nada lo cierra al cambiar de parada** (solo el botón de cerrar, `Escape`, o un cambio de MODO vía `_limpiarRecursos()` en `js/app.js`), y la llegada a la parada siguiente la dispara el GPS. Al posponerse no hay reintento: ese tramo se queda sin precarga y su vídeo se descarga al pulsar `#btn-video` —`reproducirVideoConBuffer()` espera a `canplaythrough`, así que funciona, solo tarda más—. Intercambio deliberado: perder una precarga en un caso raro frente a pisarle el vídeo al usuario.
+  2. **`_onStalled`/`_onWaiting` comprueban `!videoEl.paused && !videoEl.ended` antes de reanudar.** Cubre la ventana que la protección anterior no alcanza: los ~400 ms entre `cerrarVideoOverlay()` y el `remove()`, en los que `visible` ya es `false` pero el elemento sigue vivo y con los listeners armados. Sin el guard, un `stalled` durante una precarga ahí disparaba `play()` y el vídeo se reproducía sin que nadie pulsara `#btn-video`, el único camino legítimo. Los vídeos no llevan pista de audio, así que no se oía nada: el usuario se lo encontraba empezado o terminado al abrirlo, más el gasto de datos y batería. `paused` sigue siendo `false` durante un `stalled`/`waiting` real —la especificación no pausa el elemento por falta de datos, solo refleja si se pidió reproducir—, así que la recuperación legítima a mitad de reproducción no cambia. Mismo criterio que aplican los tres listeners de red de `audio-hijo3.html` y que su propio seek ya usaba en `wasPlayingDuringSeek`.
+
+  **De dónde sale la URL del vídeo: de `coordenadas-aventuras.js`, no de `elementosIDpadre`.** `_precargarVideoParada()` usa `elementosIDpadre` solo para el **orden** —qué elemento va después de la parada activa, que es su cometido— y resuelve la URL buscando ese `tramo_id` en `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`. Es la misma fuente que usa el camino de reproducción: hijo2 lee de ahí y manda `UI.ACCION_USUARIO { urlVideo }` al pulsar `#btn-video`. Una sola fuente para el mismo dato; si precarga y reproducción leyeran de sitios distintos, podrían acabar apuntando a vídeos distintos.
+  Importa porque los elementos de `js/aventuras-ID-padre.js` **no tienen campo `video`** (solo `padreid`, `tipo`, `nombre`, `tramo_id`, `numero_mapa`, `texto_id`, `audio_id`): leer `siguiente.video` daba `undefined` siempre y la precarga salía sin hacer nada **y sin dejar log**, indistinguible de "este tramo no tiene vídeo". Con los 239 tramos a `video: ""` el efecto es invisible hoy, pero habría persistido al grabarlos. Cubierto por `tests/e2e/48-precarga-video-no-pisa-abierto.spec.js`, que inyecta una URL en la entrada de coordenadas para ejercitar el camino real: si alguien revierte la lectura a `siguiente.video`, PV-1 falla.
+  Cuando `aventuras-ID-padre.js` migre a `data-loader.js` (§22.12, pendiente nº 13 del checklist de cierre — hoy es el único import directo de datos sin función equivalente), conviene revisar esta resolución: si la representación de backend de `elementosIDpadre` acabara incluyendo el vídeo, habría que elegir una de las dos fuentes, no dejar ambas.
+
+  **Solución estructural pendiente, con criterio para retomarla.** Lo que hace falta de verdad es separar los dos trabajos: un `<video>` dedicado solo a precargar —igual que `globalThis._vidPreload` en `video-intro.html`, que por eso es inmune por construcción— y traspasarlo al overlay al abrir con `replaceWith()`, como hace `sceneVid` con `#vid-slot`. Eso eliminaría las dos protecciones de arriba en vez de necesitarlas, y además recuperaría la precarga que hoy se pospone. **No se ha hecho por tres razones concretas:** el traspaso de un elemento multimedia con buffer en vuelo es delicado y un fallo ahí deja al usuario sin vídeo —peor que el bug que evita—; `reproducirVideoConBuffer()` no tiene ni un test que cubra esa zona; y el proyecto tiene hoy un solo `.mp4`, así que la precarga apenas se ejercita. **Retomarlo cuando existan los vídeos reales de los tramos**, y escribir antes los tests del traspaso.
 - **`canplaythrough`/`error` llegando después de cerrar el overlay:** si el usuario cierra el vídeo (`cerrarVideoOverlay()` en el padre, o `clearOv()` tras pulsar "saltar intro" en `sceneVid`) mientras `reproducirVideoConBuffer()` todavía está esperando el buffer, el elemento se pausa y se elimina del DOM ~400ms después, pero la promesa pendiente sigue viva — un evento que llegue tarde podría hacer que `arrancar()` llame `.play()` sobre un `<video>` ya desconectado, reanudando la reproducción en memoria de forma invisible. `arrancar()` comprueba `videoEl.isConnected` antes de llamar `.play()` para evitarlo — si el elemento ya no está en el DOM, no hace nada.
 
 ### Precarga en segundo plano — el vídeo ya debe estar listo cuando el usuario lo pide
@@ -7400,7 +7413,39 @@ Ni local ni GitHub Pages pueden revelar problemas de rendimiento específicos de
 3. **Falta `getTextos()` en `ApiClient`** — es el único endpoint que `data-loader` cubre y `api-client` no.
 4. **`validarRespuesta()` (data-loader) y `validarReto()` (api-client) son la misma función duplicada**; se resuelve con la fusión.
 
-**Antes de fusionar hay que arreglar `fetchWithRetry()`, porque sus 4 reintentos hoy no se alcanzan** — ver §36.26, que documenta el caso con las medidas por motor.
+#### Los 4 reintentos de `fetchWithRetry()` no se alcanzan — dos huecos que arreglar antes de fusionar
+
+`API_CONFIG` declara `retries: 4` con backoff exponencial (1 s → 2 s → 4 s → 8 s) y `timeout: 15000` aplicado de verdad con `AbortController`. La máquina está completa. **Pero en la práctica no se ejecuta ni un reintento**, por dos motivos independientes que se suman:
+
+**Hueco 1 — el timeout se rinde antes de llegar al reintento.** En el `catch` de `fetchWithRetry()`, la comprobación del abort va **antes** que la del reintento y lanza:
+
+```js
+if (error.name === 'AbortError') {
+    throw new ApiClientError('TIMEOUT', 'La solicitud tardó demasiado tiempo');  // ← sale aquí
+}
+const retryResult = await maybeRetryOrThrowNetworkError(error);                   // ← nunca llega
+```
+
+Justo el caso que más necesita reintentar —la petición que se queda colgada y agota los 15 s— es el único que no reintenta. Los 4 intentos solo cubren el fallo instantáneo.
+
+**Hueco 2 — el filtro del reintento depende del texto que escribe cada navegador.** `maybeRetryOrThrowNetworkError()` solo reintenta si `error.name === 'TypeError'` **y** `error.message.includes('fetch')`. Ese texto no está estandarizado. Medido sobre los tres motores con una sonda (`fetch` a un host inexistente):
+
+| Motor | `error.name` | `error.message` | ¿Reintenta? |
+|---|---|---|---|
+| Chromium | `TypeError` | `"Failed to fetch"` | ✅ |
+| Firefox | `TypeError` | `"NetworkError when attempting to fetch resource."` | ✅ |
+| **WebKit (iPhone/Safari)** | `TypeError` | **`"Load failed"`** | ❌ |
+
+`"Load failed"` no contiene la palabra `fetch`, así que **en iPhone no se reintenta ningún fallo de red**. El `error.name` sí coincide en los tres.
+
+**Efecto combinado:** en un iPhone con cobertura mala, los dos únicos modos de fallo que existen son precisamente esos dos, así que **los cuatro reintentos configurados son inalcanzables: no se ejecuta ninguno**. En Android/Chrome se cubre la mitad — el fallo instantáneo sí, el cuelgue no.
+
+**Los dos arreglos:**
+
+1. Mover el tratamiento de `AbortError` para que **también reintente** en vez de rendirse antes de mirarlo.
+2. Quitar `.includes('fetch')` y quedarse con `error.name === 'TypeError'`, que es lo único que sí coincide en los tres motores.
+
+Es un caso de manual de EJE 26 (§36.26): un mecanismo escrito entero, comentado y con sus constantes bien puestas, que en ejecución no se dispara jamás.
 
 ### 16.2 Flujo completo de compra y activación (diseño para producción)
 
@@ -7873,7 +7918,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-fc3da246037d'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2b3d8a636c6f'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8191,6 +8236,8 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 14 | Compatibilidad iOS PWA y navegadores antiguos (meta tags, Permissions-Policy vía cabecera) | §22.13 | ⏳ pendiente |
 | 15 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | §22.14 | ⏳ pendiente |
 | 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ pendiente |
+| 17 | Arreglar los dos huecos de `fetchWithRetry()` — el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera a WebKit: **hoy no se ejecuta ni un reintento en iPhone** | §16.1b | ⏳ pendiente |
+| 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
 
 ---
 
@@ -8519,7 +8566,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-fc3da246037d';
+const CACHE_VERSION = 'v-2b3d8a636c6f';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10127,6 +10174,74 @@ El usuario no ve ningún aviso especial en estos casos — la aventura simplemen
 
 ---
 
+### 25.18. Esperas de red durante la aventura: gracia, aviso y rendición
+
+Cuando la app necesita un recurso que aún no tiene, hay tres respuestas posibles y las tres son malas por sí solas: quedarse callada (el usuario cree que se ha colgado), enseñar un spinner a la primera (parpadeo constante en cargas normales), o rendirse al primer fallo. La escalera combina las tres en el orden correcto.
+
+**Los tres escalones:**
+
+| Escalón | Cuándo | Qué ocurre |
+|---|---|---|
+| **Gracia** | 0 – 4 s | Nada visible. La mayoría de las cargas terminan aquí, sobre todo con `Cache First` del Service Worker |
+| **Aviso** | a partir de 4 s | Aparece el spinner **y se reintenta**. Un reintento por escalón, cada 4 s |
+| **Rendición** | tras 3 reintentos | Se deja de intentar y se revela el resultado, sea el que sea |
+
+**El spinner no es un cartel: mientras se ve, hay un reintento real en curso.** Un spinner sin nada detrás miente al usuario, que espera creyendo que la app trabaja.
+
+El escalón «no hay internet de verdad» no forma parte de esta escalera: lo cubre `#internet-overlay` (§30.1), que el evento `offline` del navegador dispara por su cuenta.
+
+#### Implementación para imágenes de parada
+
+Dos piezas complementarias en `codigo-padre.html`:
+
+**1. `_precargarImagenParada(paradaNormalized, logPrefix)` — evitar la espera.** Llamada desde `_hdl_NAVEGACION_CAMBIO_PARADA` en cuanto se resuelven los datos de la parada, calienta la caché del Service Worker con `imagen`, `imagen2` y las de la galería mientras el usuario escucha el audio y resuelve el reto. Usa `new Image()` con `fetchPriority:'low'` para no competir con el audio, que sí corre prisa en ese momento. Mismo criterio que `_precargarVideoParada()` aplica al vídeo del tramo siguiente (§15). Como el SW sirve `/imagenes/imagenes-aventuras/` con **Cache First + LRU de 100 entradas**, esto solo cuesta la primera vez que se ve cada imagen.
+
+**2. `_escaleraCargaImagen(wrapper, img, url)` — cubrir la espera cuando la hay.** Sustituye al antiguo par `img.onload`/`img.onerror` de `_galeriaRenderizar()`. El spinner es un `::before` sobre `.galeria-imagen-wrapper.cargando`: ningún elemento nuevo, ninguna clase duplicada — reutiliza el logo y la animación `logo-carga-spin-padre` que ya usa `#loading-spinner`.
+
+> **Por qué un `::before` y no el `#loading-overlay` de pantalla completa:** su `z-index` es 999999 y el de `.media-overlay` es 1000010, así que quedaría **detrás** de la propia galería. La imagen se descarga con su overlay ya abierto, de modo que el aviso tiene que vivir dentro.
+
+#### Tres trampas que solo se ven ejecutándolo
+
+Las tres se detectaron midiendo, no leyendo, y las tres dejaban la escalera inservible sin dar ningún error:
+
+1. **Reasignar `img.src` aborta la petición en vuelo y dispara `error`.** Si el manejador de error reintenta, cada reintento provoca el siguiente en cadena: los tres se consumían en **14 ms** y el spinner no llegaba a pintarse. Por eso `img.onerror` **solo registra**; quien reintenta es el temporizador.
+2. **Por el mismo motivo, `onerror` tampoco decide rendirse.** El `error` que recibe es casi siempre el del aborto del intento anterior, no el veredicto del que está en curso: rendirse ahí descartaba el último reintento en el mismo instante de lanzarlo, sin tiempo de red.
+3. **El fallback global de imágenes rotas la derrotaba entera.** Hay un listener de `error` en **fase de captura** sobre `document` (Script 1) que sustituye el `src` de cualquier `<img>` fallida por un SVG transparente para evitar 404 en consola. Corre **antes** que el `onerror` de la escalera, así que la imagen «cargaba» al instante con el placeholder y la escalera lo tomaba por éxito.
+   **Se resuelve con un solo dueño:** la escalera marca su imagen con `dataset.vvEscalera = '1'`, el fallback global se salta cualquier `<img>` marcada, y la escalera aplica ese mismo placeholder por su cuenta cuando se rinde de verdad. Al terminar retira la marca.
+
+**Comportamiento medido** (`tests/e2e/49-escalera-espera-imagen.spec.js`), con la petición retenida a propósito:
+
+```text
+1-3s   ·       gracia, nada visible
+4s     SPIN    spinner + reintento 1
+8s     SPIN    reintento 2
+12s    SPIN    reintento 3
+16s    ·!      se rinde y aplica el placeholder (clase img-fallback)
+```
+
+Y una imagen que carga con normalidad pasa a `opacity:1` sin que el spinner llegue a aparecer.
+
+#### La escalera es solo para imágenes — decisión, no omisión
+
+**Audio y vídeo no llevan spinner, y es deliberado.** No conviene añadírselo "por coherencia": cada recurso ya tiene la respuesta que le corresponde.
+
+| Recurso | Reintenta | Espera visible | Salida si falla |
+|---|---|---|---|
+| **Imagen** | ✅ escalera | ✅ spinner de la escalera | placeholder |
+| **Audio** | ✅ `audio-hijo3.html` (§25.5f) | **no, a propósito** | botón de saltar (§25.5f) |
+| **Vídeo** | ✅ `reproducirVideoConBuffer()` (§15) | ya tiene el suyo | — |
+| **Datos** | ❌ `data-loader.js` no reintenta ni tiene timeout (§16.1b) | — | — |
+
+**El vídeo ya tiene su propio aviso.** `reproducirVideoConBuffer()` espera a `canplaythrough` antes de arrancar y `video-intro.html` enseña `#vid-loading` mientras tanto. Meterle además la escalera sería un segundo mecanismo para el mismo hecho — exactamente lo que este proyecto lleva pagando caro en otros sitios (§36.26).
+
+**El audio no lo lleva porque su espera ya está resuelta de otra forma.** Su recurso es largo por naturaleza y su salida cuando no llega no es esperar, sino el botón de saltar (§25.5f), que además cubre el caso mayoritario de hoy: el fichero no existe todavía en 11 de los 12 idiomas.
+
+**Y la imagen sí lo lleva justo por lo contrario: una imagen debe cargar rápido.** Es el único de los tres del que se espera respuesta inmediata, así que una espera larga no es lentitud normal — significa que esa imagen no está. Ahí el aviso informa de algo real en vez de acompañar una espera esperable.
+
+Los datos no tienen espera real hasta que exista el backend, y entonces lo primero no es el aviso sino conectar `data-loader.js` con `fetchWithRetry()` (§16.1b, §36.26).
+
+---
+
 ## 26. Los controladores JS: roles, comunicación e inicialización
 
 Esta sección documenta el estado actual del código: qué módulo hace qué, en qué orden arranca todo, cómo viaja cada mensaje entre padre e hijos, quién lo recibe, por quién pasa, qué responde el receptor y cómo se gestiona esa comunicación.
@@ -11682,7 +11797,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-fc3da246037d';
+const CACHE_VERSION = 'v-2b3d8a636c6f';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
