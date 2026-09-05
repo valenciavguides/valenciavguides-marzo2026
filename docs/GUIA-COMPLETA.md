@@ -232,7 +232,7 @@ Al arrancar `codigo-padre.html`:
    - Si no existe → la app queda en MODO CASA esperando que el usuario complete el flujo de incorporación.
 3. En el flujo de incorporación, el padre no carga iframes ni activa GPS hasta P14 (`SELECCION.P14_MOSTRADA`). Los HTML de los iframes hijo contienen lógica de pago y no se sirven antes de que el usuario valide su código en P13. Antes de P14, el padre solo anota idioma y aventura en el estado interno. **Excepción modo DEV (Factor 1, ver §24):** si `_devModeActivo` es `true`, `mostrar()` intercepta P12 y P13 y redirige directamente a P14 sin validar código. El GPS **sí** se activa en P14 en modo DEV, igual que en producción — `_hdl_SELECCION_P14_MOSTRADA` llama a `activarGPS()` incondicionalmente. Encenderlo ya en P14 evita el coste de reingresar GPS más tarde (`watchPosition` nunca se detiene al cambiar de modo — ver §2.6); el filtro CASA/AVENTURA no está en si el GPS está encendido, sino en si sus posiciones fuerzan avance automático (`estadoMapa.modo !== MODOS.AVENTURA` en `funciones-mapa.js:procesarPosicionGPSParaAventura`).
 4. Cuando `SELECCION.CODIGO_VALIDADO` llega (P13, solo prod): el handler está vacío — solo registra que el código fue validado con un log. GPS, iframes y datos de aventura se activan en P14.
-5. Cuando `SELECCION.P14_MOSTRADA` llega: carga hijo1-5 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo; después activa GPS, en prod y en dev por igual. En prod, el orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
+5. Cuando `SELECCION.P14_MOSTRADA` llega: carga hijo1-5 (`cargarRestoDeiframes` + `cargarHijoCasa`) y datos (`_fase2CargarDatos`) en paralelo, marca `_iframesPreCargadosP14 = true` en cuanto eso termina, y **después** activa GPS, en prod y en dev por igual. En prod, el orden garantiza que hijo2 ya está en modo CASA cuando llegan las primeras posiciones GPS — la proximidad no avanza la aventura hasta que el modo cambia a AVENTURA. Cuando `SELECCION.AVENTURA_ACTIVADA` llega (P16): fast-path si `_iframesPreCargadosP14 === true` (salta recarga); si no, carga iframes como fallback.
 
 ```mermaid
 flowchart TD
@@ -1900,7 +1900,7 @@ Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el 
 - `SELECCION.AVENTURA_SELECCIONADA` (P7) → solo almacena `{ aventura, idioma }` en `estado.seleccion`; resetea flags `_codigoValidadoP13` y `_iframesPreCargadosP14`; **no carga iframes ni activa GPS**
 - `SELECCION.PREPARAR_HIJOS` (P9) → solo almacena `{ idioma, aventura, timestamp }` en `estado.seleccion`; **no carga iframes**
 - `SELECCION.CODIGO_VALIDADO` (P13, solo prod) → handler vacío — registra con un log que el código fue validado; nada más
-- `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; después: `activarGPS()` siempre, en prod y en dev; si GPS deniega → overlay + abort
+- `SELECCION.P14_MOSTRADA` (P14) → en paralelo: `_fase2CargarDatos()` + `cargarRestoDeiframes()` + `cargarHijoCasa()`; en cuanto eso termina marca `_iframesPreCargadosP14 = true`; **después**: `activarGPS()` siempre, en prod y en dev; si GPS deniega → overlay + abort, pero el flag ya está puesto y el abort no lo deshace
 - `SELECCION.AVENTURA_ACTIVADA` (P15/P16) → fast-path si `_iframesPreCargadosP14` (salta recarga); si no, carga hijo1-5 como fallback; siempre distribuye datos; el modo final depende de `_devModeActivo` — CASA solo en modo DEV, AVENTURA directo en cualquier otro caso (el real en producción, ver §9.5)
 
 ```mermaid
@@ -3824,7 +3824,7 @@ sequenceDiagram
 | `SELECCION.AVENTURA_SELECCIONADA` | P7 | `{ aventura, idioma }` | Almacena estado; resetea `_codigoValidadoP13`; no carga iframes |
 | `SELECCION.PREPARAR_HIJOS` | P9 | `{ idioma, aventura, timestamp }` | Almacena `estado.seleccion`; no carga iframes |
 | `SELECCION.CODIGO_VALIDADO` | P13 (prod) | `{ aventura, idioma, email, timestamp }` | Handler vacío — registra con log que el código fue validado; GPS, iframes y datos se activan en P14. Dev mode: no se envía. |
-| `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `activarGPS()` siempre, en prod y en dev |
+| `SELECCION.P14_MOSTRADA` | P14 | `{ timestamp }` | `cargarRestoDeiframes()` + `cargarHijoCasa()` + `_fase2CargarDatos()` en paralelo → `_iframesPreCargadosP14 = true` → `activarGPS()` siempre, en prod y en dev |
 | `SELECCION.AVENTURA_ACTIVADA` | P15 | `{ aventura, idioma, terminosAceptados, timestamp }` | Fast-path si `_iframesPreCargadosP14` (salta recarga); si no: normaliza hijos, carga hijo1/hijo2/hijo3/hijo4/hijo5 en paralelo, espera `HIJO_LISTO`; distribuye datos y muestra UI |
 | `SISTEMA.HIJO_PREPARADO` | Arranque | `{ componenteId, version, capacidades:[], timestamp }` | Handshake estándar (la pantalla también hace handshake) |
 | `SISTEMA.HIJO_LISTO` | Tras PADRE_DATOS | `{ componenteId, iframeId }` | Handshake estándar |
@@ -4837,7 +4837,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d628e0c4961f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-75db7e2f3b36'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5026,7 +5026,9 @@ El iframe `En-busca-del-tesoro.html` es el punto de entrada del usuario.
 |-------|-------|
 | Payload | `{ timestamp }` |
 | Handler en padre | `_hdl_SELECCION_P14_MOSTRADA` |
-| Acción | En paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4) + `cargarHijoCasa()` (hijo5). Después: `activarGPS()` siempre, en prod y en dev por igual. Si GPS deniega: `showGpsSignalOverlay(1)` y aborta sin setear `_iframesPreCargadosP14`. Guard `_iframesPreCargadosP14` evita doble carga. |
+| Acción | En paralelo: `_fase2CargarDatos()` (precarga módulos JS) + `cargarRestoDeiframes()` (hijo1-4) + `cargarHijoCasa()` (hijo5). En cuanto ese `Promise.all` termina se marca `_iframesPreCargadosP14 = true`. Después: `activarGPS()` siempre, en prod y en dev por igual; si GPS deniega, `showGpsSignalOverlay(1)` y aborta — **el flag ya está puesto y así se queda**. Guard `_iframesPreCargadosP14` evita doble carga. |
+
+> **El flag se marca con los iframes, no con el GPS.** `_iframesPreCargadosP14` afirma exactamente lo que dice su nombre, y sus dos únicos lectores (el `return` temprano de `_hdl_SELECCION_P14_MOSTRADA` y el `if` de `_hdl_SELECCION_AVENTURA_ACTIVADA`) solo preguntan por los iframes. Marcarlo después del bloque del GPS lo convertía en una afirmación falsa por dos vías, ambas con los iframes ya cargados: si el GPS tardaba —su bucle de reintentos alcanza 48 s con el backoff exponencial— y el usuario aceptaba la normativa antes, o si el GPS se denegaba, en cuyo caso el `return` salía sin marcarlo **nunca**. Esto último no era una carrera sino un determinismo: cualquier usuario que deniegue la ubicación entraba siempre por la rama fallback de `AVENTURA_ACTIVADA`, que reasigna el `src` de los cinco iframes ya cargados.
 
 **SELECCION.AVENTURA_ACTIVADA** (seleccion → padre)
 
@@ -7837,7 +7839,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d628e0c4961f'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-75db7e2f3b36'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8483,7 +8485,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d628e0c4961f';
+const CACHE_VERSION = 'v-75db7e2f3b36';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8781,7 +8783,7 @@ flowchart TD
     NORMAL --> P12_13{mostrar(12) o mostrar(13)}
     P12_13 -- "_devCasaMode === true" --> BYPASS["id = 14 directamente (sin CODIGO_VALIDADO)\nsin código de compra · GPS SÍ se activa en P14, igual que en prod"]
     P12_13 -- "_devCasaMode === false" --> NORMAL2["Flujo normal:\nP12 pago → P13 código de compra → GPS"]
-    BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos\nactivarGPS() siempre, prod y dev"]
+    BYPASS --> HDLP14["P14 visible → _accionPantalla15()\nSELECCION.P14_MOSTRADA → padre\n_hdl_SELECCION_P14_MOSTRADA\ncargarRestoDeiframes + cargarHijoCasa + _fase2CargarDatos\n_iframesPreCargadosP14 = true\nactivarGPS() siempre, prod y dev"]
     HDLP14 --> P14[P14 — Normativa]
     NORMAL2 --> P14
     P14 --> P15[P15 — Reto R-2\nseleccion envía AVENTURA_ACTIVADA]
@@ -8972,9 +8974,10 @@ El desarrollador ve la pantalla de normativa. Es obligatoria incluso en modo DEV
 El padre ejecuta `_hdl_SELECCION_P14_MOSTRADA` en este orden:
 
 1. En paralelo: carga iframes hijo1–4 (`cargarRestoDeiframes()`), hijo5 (`cargarHijoCasa()`), y datos de aventura (`_fase2CargarDatos()`)
-2. Setea `globalThis._codigoValidadoP13 = true`
+2. Setea `globalThis._iframesPreCargadosP14 = true` — en cuanto el paso 1 termina, porque es justo lo que el flag afirma. No espera al GPS (ver §9.11)
+3. Setea `globalThis._codigoValidadoP13 = true`
 3. Llama a `activarGPS()` — igual que en producción, `_devModeActivo` no cambia este paso. Encenderlo ya aquí evita el coste de reingresar GPS más tarde: una vez arrancado, `watchPosition` no se detiene al cambiar de modo (ver §2.6). Si GPS deniega, el overlay de señal perdida aparece igual que en producción — el desarrollador puede seguir en modo CASA (que no requiere GPS para nada) hasta resolverlo.
-4. Setea `globalThis._iframesPreCargadosP14 = true`
+4. (el flag ya quedó puesto en el paso 2; si el GPS falla, el `return` no lo deshace)
 
 El desarrollador sigue viendo la normativa mientras todo esto ocurre en segundo plano. No hay ningún spinner ni indicador de carga — la pantalla permanece estática.
 
@@ -9213,6 +9216,8 @@ Actualmente todas las aventuras (1, 2, 3, 4, 5, Fallas y 34km) están disponible
 Cuando el padre recibe `SELECCION.AVENTURA_ACTIVADA`:
 
 1. Si los iframes no se precargaron ya en P14 (`_iframesPreCargadosP14`), re-activa hijo1/hijo2/hijo3/**hijo4**/hijo5 en **paralelo** (`Promise.all` vía `_cargarSoloIframeActivacion`) — los cinco, hijo4 incluido (ver §5/§9.11). Si ya se precargaron en P14 (el caso común), este paso se salta entero para los cinco por igual.
+
+> **`_cargarIframeConTimeout()` NO es idempotente, y no debe serlo.** A diferencia de los otros tres cargadores, esta reasigna el `src` sin comprobar si el iframe ya apunta al documento pedido — y eso destruye el documento y lo reconstruye desde cero. Aquí eso es lo correcto: `_normalizarSetHijos()` acaba de borrar a los cinco hijos de `hijosInicializados`, y `_esperarHijosCargados()` espera a continuación un `HIJO_LISTO` **nuevo** de cada uno. Un iframe que no se recarga nunca lo emite, y la espera se cuelga los 30 s del timeout con `AVENTURA_ACTIVADA` bloqueada — exactamente el fallo que describe el invariante de `_normalizarSetHijos` más arriba. La forma de que esta rama no destruya trabajo ya hecho no es hacerla idempotente, sino que **no llegue a dispararse**: por eso `_iframesPreCargadosP14` se marca en cuanto los iframes están, sin esperar al GPS.
 2. Espera a que cada hijo confirmado complete el handshake `HIJO_LISTO`.
 3. Guarda en `localStorage` la clave `vv_aventura_iniciada`.
 4. Distribuye los datos de la aventura a todos los hijos (`distribuirDatosAventura()`).
@@ -11637,7 +11642,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-d628e0c4961f';
+const CACHE_VERSION = 'v-75db7e2f3b36';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

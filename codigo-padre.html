@@ -13202,6 +13202,24 @@ await _comprobarReanudacionAventura(logPrefix);
                 // en funciones-mapa.js:procesarPosicionGPSParaAventura — esa es la barrera real,
                 // no el watch), así que encenderlo ya en P14 evita el coste de reingresar
                 // GPS más tarde y deja el dev mode fiel al comportamiento de producción.
+                // El flag se pone AQUÍ, en cuanto el Promise.all de arriba termina, porque
+                // eso es exactamente lo que su nombre afirma: los iframes están precargados.
+                // Ponerlo después del bloque del GPS lo convertía en una mentira, con dos
+                // consecuencias — ambas con los iframes ya perfectamente cargados:
+                //   · GPS lento: su bucle de reintentos llega a 48 s con el backoff; si el
+                //     usuario terminaba de leer la normativa antes, el flag seguía en false.
+                //   · GPS denegado: el `return` de abajo salía sin ponerlo nunca. Eso no es
+                //     una carrera sino un determinismo — quien deniegue la ubicación entra
+                //     siempre por el camino equivocado.
+                // En los dos casos _hdl_SELECCION_AVENTURA_ACTIVADA tomaba su rama de
+                // emergencia, que reasigna el src de los 5 iframes; y reasignar el src
+                // destruye el documento y lo reconstruye, abortando la carga en curso.
+                // Si el GPS está listo o no es otra pregunta, y los dos únicos lectores del
+                // flag (el return temprano de esta misma función y el `if` de
+                // AVENTURA_ACTIVADA) solo necesitan saber lo de los iframes.
+                globalThis._iframesPreCargadosP14 = true;
+                (globalThis.logger || console).info(`${logPrefix} ✅ Iframes + datos listos para AVENTURA_ACTIVADA`);
+
                 globalThis._codigoValidadoP13 = true; // guard para showGpsSignalOverlay
                 try {
                     await activarGPS();
@@ -13210,8 +13228,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     showGpsSignalOverlay(1, gpsErr?.message);
                     return;
                 }
-                globalThis._iframesPreCargadosP14 = true;
-                (globalThis.logger || console).info(`${logPrefix} ✅ Iframes + datos + GPS listos para AVENTURA_ACTIVADA`);
+                (globalThis.logger || console).info(`${logPrefix} ✅ GPS activo`);
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error en P14_MOSTRADA:`, error, error?.stack);
             }
@@ -13237,6 +13254,15 @@ await _comprobarReanudacionAventura(logPrefix);
                     (globalThis.logger || console).error(`${logPrefix} ❌ Error cargando ${iframeConfig.id}`);
                     resolve(false);
                 };
+                // NO hacer esto idempotente. Reasignar el src destruye y reconstruye el
+                // iframe, sí — pero eso es justo lo que esta rama necesita: _normalizarSetHijos()
+                // acaba de borrar a los cinco de hijosInicializados, y _esperarHijosCargados()
+                // (más abajo) espera un HIJO_LISTO NUEVO de cada uno. Un iframe que no se
+                // recarga no lo emite, y la espera se cuelga 30 s con AVENTURA_ACTIVADA
+                // bloqueada — el mismo fallo que documenta el invariante de _normalizarSetHijos.
+                // La forma correcta de que esta rama no destruya nada es que no llegue a
+                // dispararse: para eso _iframesPreCargadosP14 se marca en cuanto los iframes
+                // están, sin esperar al GPS (ver _hdl_SELECCION_P14_MOSTRADA).
                 iframeEl.addEventListener('load', onLoad, { once: true });
                 iframeEl.addEventListener('error', onError, { once: true });
                 iframeEl.src = iframeConfig.src;
