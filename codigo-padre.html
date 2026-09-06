@@ -12505,10 +12505,28 @@ await _comprobarReanudacionAventura(logPrefix);
                 // (funciones-mapa escucha 'vv-parada-cambiada' en vez de registrar CAMBIO_PARADA)
                 // Se incluyen las coordenadas ya resueltas para evitar una segunda petición a hijo2
                 try {
+                    // `paradaId` va con el id REAL del elemento (`Av1-P-2`), no con el que
+                    // llegó en el mensaje. Importa porque hijo5 pide los cambios de parada con
+                    // su propio formato (`padre-P2`) y `manejarCambiarParada()`
+                    // (js/funciones-mapa.js) resuelve el elemento buscándolo en
+                    // AVENTURA_PARADAS, cuyos elementos solo llevan `id` con el formato
+                    // `Av1-P-2`/`Av1-TR-1`. Su única normalización es quitar el prefijo
+                    // `padre-`, que deja `P2` — - tampoco existe. Resultado: lanzaba
+                    // "Parada padre-P2 no encontrada en datos base" y el mapa no dibujaba el
+                    // marcador ni centraba la vista.
+                    //
+                    // El padre ya tiene el id resuelto aquí (`paradaIdBase`, unas líneas más
+                    // arriba) y de hecho lo usa para pedirle los datos a hijo2 — solo faltaba
+                    // pasárselo también al mapa en vez del id crudo.
+                    //
+                    // Para la progresión real de la aventura esto es un no-op:
+                    // progresarSiguienteElemento() ya envía `Av1-P-2` como paradaId, así que el
+                    // valor coincide. Solo cambia el caso que antes fallaba.
                     const mensajeParaMapa = {
                         ...mensaje,
                         datos: {
                             ...mensaje.datos,
+                            paradaId: paradaIdBase || mensaje.datos?.paradaId,
                             coordenadasYaResueltas: paradaNormalized || null
                         }
                     };
