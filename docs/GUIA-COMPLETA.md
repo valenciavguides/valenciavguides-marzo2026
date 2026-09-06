@@ -7900,7 +7900,17 @@ Con eso medido, la pieza que resuelve el problema no es pelear con las cachés s
 >
 > Añadir un texto del tipo "espera unos segundos" se descartó: obliga a traducir a 12 idiomas un mensaje que no cambia lo que la gente hace (volver a pulsar) y no resuelve el fondo.
 >
-> **Dirección a probar, apoyada en algo ya medido:** `version.json` **sí** llega fresco a través del mismo borde, y se pide con `fetch(..., { cache: 'no-store' })`. Si `no-store` atraviesa la caché de borde para ese fichero, debería hacerlo también para el HTML del shell. La forma sería que el Service Worker haga ese `fetch` con `no-store`, guarde la respuesta en su propia caché y solo entonces recargue — la página se serviría desde el SW, sin depender de que el borde haya caducado. **Falta comprobar con `curl` que el borde honra `no-store` para un `.html`**, igual que se comprobó que descarta la query string: puede que la diferencia con `version.json` sea otra (tamaño, tipo MIME, o que Fastly no lo cachee por su cabecera propia). Pendiente nº 19.
+> **Medido contra el dominio real (2026-09-06) — no hay ningún camino privilegiado, y la restricción se asume:**
+>
+> | Prueba | Resultado |
+> |---|---|
+> | Tres query strings distintas y nuevas sobre `codigo-padre.html` | las tres `X-Cache: HIT`, mismo `ETag`, mismo `Age` |
+> | Cabeceras `Cache-Control: no-cache`, `no-store` y `Pragma: no-cache` | las tres `X-Cache: HIT` — el borde no revalida |
+> | `version.json` | `Cache-Control: max-age=600`, **el mismo cacheo que el resto** |
+>
+> Ese último resultado corrige lo que este documento daba a entender: `version.json` **no** llega fresco por ningún mecanismo especial — cuando lo hace es porque nadie lo había pedido en esa región hacía rato (`X-Cache: MISS`). Consecuencia real, que conviene tener presente: **el banner puede tardar hasta 10 minutos en aparecer siquiera**, porque el propio `version.json` puede venir de caché.
+>
+> `Cache-Control: max-age=600` lo fija GitHub Pages y no es configurable desde el proyecto. La única solución de raíz sería un hosting con cabeceras configurables (Cloudflare Pages, Netlify), y eso es infraestructura, no código. **Decisión tomada: se asume el retraso de hasta 10 minutos.**
 
 #### Los dos datos que deciden si hay que avisar
 
@@ -8264,7 +8274,7 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ pendiente |
 | 17 | Arreglar los dos huecos de `fetchWithRetry()` — el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera a WebKit: **hoy no se ejecuta ni un reintento en iPhone** | §16.1b | ⏳ pendiente |
 | 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
-| 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min, así que la recarga devuelve la misma página y el banner reaparece | §19 (cache-busting) | ⏳ pendiente |
+| 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido (2026-09-06) |
 
 ---
 
@@ -8358,6 +8368,14 @@ node js/server.js
 # Sirve en http://localhost:8080
 # PROTECT_DATA=false por defecto (todos los ficheros accesibles)
 ```
+
+**Retira `upgrade-insecure-requests` del CSP de cada HTML que sirve.** Los 15 HTML del proyecto llevan esa directiva en su `<meta>` CSP, y este servidor habla HTTP plano. WebKit aplica la directiva **también a `localhost`**, así que eleva cada recurso a `https://localhost:8080/…` y falla con *SSL connect error*: 22 peticiones muertas y la app congelada en la pantalla de carga, porque los módulos de FASE 1 nunca llegan a importarse. Chromium no lo hace — considera `localhost` un origen confiable y exime la directiva. Junto a ella se retira la `<meta http-equiv="Strict-Transport-Security">`, que provoca el mismo salto en WebKit (según la especificación HSTS solo es válida como cabecera HTTP y un `<meta>` debería ignorarse; WebKit no lo ignora).
+
+La sustitución opera sobre la etiqueta `<meta>` entera, no sobre la cadena suelta, porque la directiva aparece de **dos formas**: como última de un CSP largo (`codigo-padre.html`) y como contenido **único** de la meta (los otros 14 HTML). Un reemplazo que exija el `;` previo se deja fuera la segunda forma, que es la mayoritaria. El resto del CSP —`default-src`, `script-src`, `connect-src`…— se sirve intacto.
+
+> **No cambia el CSP efectivo de producción.** Allí todo se sirve por HTTPS desde GitHub Pages, donde la directiva no tiene nada que elevar, y **este servidor no se ejecuta nunca**: GitHub Pages sirve ficheros estáticos con su propia infraestructura. El ajuste vive solo en desarrollo y tests.
+
+**Por qué importa más de lo que parece:** sin esto, el proyecto `iphone12` de Playwright ejecutaba ~300 tests contra una app que ni siquiera arrancaba. Pasaban sin ejercitar nada — verde vacuo del tipo que describe el EJE 26 (§36.26) — y cualquier fallo real de Safari quedaba invisible. Con el ajuste, WebKit arranca la app completa en ~2 s y 0 peticiones fallidas.
 
 #### Protección de datos en producción: `PROTECT_DATA=true`
 
@@ -10221,6 +10239,8 @@ El escalón «no hay internet de verdad» no forma parte de esta escalera: lo cu
 Dos piezas complementarias en `codigo-padre.html`:
 
 **1. `_precargarImagenParada(paradaNormalized, logPrefix)` — evitar la espera.** Llamada desde `_hdl_NAVEGACION_CAMBIO_PARADA` en cuanto se resuelven los datos de la parada, calienta la caché del Service Worker con `imagen`, `imagen2` y las de la galería mientras el usuario escucha el audio y resuelve el reto. Usa `new Image()` con `fetchPriority:'low'` para no competir con el audio, que sí corre prisa en ese momento. Mismo criterio que `_precargarVideoParada()` aplica al vídeo del tramo siguiente (§15). Como el SW sirve `/imagenes/imagenes-aventuras/` con **Cache First + LRU de 100 entradas**, esto solo cuesta la primera vez que se ve cada imagen.
+
+> **Verificado en los dos motores** (EI-4): un `new Image()` desatendido **sí dispara la descarga** en Chromium y en WebKit. Se comprueba con `performance.getEntriesByType('resource')` y una marca en la query string, no con `page.route()`: Playwright no intercepta en WebKit las peticiones que nacen de un `new Image()`, y la interceptación devolvía una lista vacía pese a que la descarga ocurría — ver el punto 6 de la sonda del EJE 26 (§36.26).
 
 **2. `_escaleraCargaImagen(wrapper, img, url)` — cubrir la espera cuando la hay.** Sustituye al antiguo par `img.onload`/`img.onerror` de `_galeriaRenderizar()`. El spinner es un `::before` sobre `.galeria-imagen-wrapper.cargando`: ningún elemento nuevo, ninguna clase duplicada — reutiliza el logo y la animación `logo-carga-spin-padre` que ya usa `#loading-spinner`.
 
@@ -13149,6 +13169,11 @@ Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se l
 3. Si la condición depende de texto producido por el navegador (mensajes de error, `userAgent`, nombres de eventos), **medirlo en los tres motores**: `npx playwright test <sonda> --project=chromium --project=firefox --project=iphone12`. Los mensajes de error de red difieren: `"Failed to fetch"` (Chromium), `"NetworkError when attempting to fetch resource."` (Firefox), `"Load failed"` (WebKit).
 4. Comprobar el **orden** de las comprobaciones dentro del handler: una rama que lanza o retorna antes puede hacer inalcanzable a la de después, aunque las dos estén bien escritas por separado.
 5. Para código muerto en el otro sentido, `git log -S"<identificador>" --all` sobre el fichero que debería leerlo: si no hay ni un commit, nunca se usó.
+6. **Descartar antes el arnés que el código.** Una sonda que solo falla en un motor suele estar midiendo mal, no encontrando un fallo. Dos casos ya vividos, los dos en WebKit:
+   - `page.route()` **no intercepta las peticiones nacidas de un `new Image()`** en WebKit, así que la lista de interceptadas sale vacía aunque la descarga ocurra. La medición fiable es la API nativa del motor: `performance.getEntriesByType('resource')`, filtrando por una marca puesta en la query string. Es la que usa EI-4 (§25.18).
+   - Un fallo de carga generalizado en un motor puede venir del **servidor de desarrollo**, no de la app: `upgrade-insecure-requests` tumbaba WebKit entero hasta que `js/server.js` empezó a retirarla (§22).
+
+   Regla práctica: antes de concluir "esto no funciona en Safari", reproducirlo con un **segundo método de medición**. Si los dos coinciden, es del código; si no, es del arnés.
 
 **Señal de alarma en revisión de código:** un comentario que explica con detalle *por qué* un mecanismo es necesario es, paradójicamente, donde más hay que comprobar que se dispara. Los seis casos de arriba están todos bien comentados; el comentario describe la intención, no lo que ocurre.
 
@@ -13158,7 +13183,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 
 1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 23 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
 2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
-3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium.
+3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium. **Ejecutarlos de uno en uno** (`--project=<nombre>`), no los cuatro en la misma invocación: los 1256 tests seguidos agotan los recursos de proceso de Windows y los workers empiezan a morir con `worker process exited unexpectedly (code=3221225794)` — `0xC0000142`, el proceso no llega a arrancar. Se manifiesta como el primer test de **cada** fichero fallando a partir de cierto punto, con el resto marcado "did not run": patrón de arnés agotado, no de regresión. `workers: 1` ya está fijado en `playwright.config.js` y no lo evita, porque el agotamiento es acumulativo.
 4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado como sin emisor o sin receptor por la herramienta ha sido verificado a mano y clasificado (huérfano real → eliminado; falso positivo de la heurística → descartado con motivo).
 5. **`npm run inventory:dupes` sin duplicados sin resolver** — cada nombre duplicado tiene una decisión explícita (una versión es la única real y la otra se eliminó, o ambas coexisten por una razón documentada).
 6. Contraste guía vs. código (EJE 20) ejecutado sobre la totalidad de `docs/GUIA-COMPLETA.md`, no solo sobre las secciones tocadas en la última ronda de cambios.

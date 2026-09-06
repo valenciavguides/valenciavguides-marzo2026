@@ -157,25 +157,31 @@ test.describe('EI — Escalera de espera para imágenes (§25.18)', () => {
     // en este entorno las páginas hijas no completan el handshake (misma limitación que
     // documenta 12-carga-por-parada.spec.js), así que `paradaData` llega null desde hijo2 y
     // `paradaNormalized` —el argumento real de la precarga— nunca se resuelve.
-    const pedidas = [];
-    await page.route('**/imagenes/imagenes-aventuras/**', async (route) => {
-      pedidas.push(route.request().url().split('/').pop());
-      await route.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from([]) });
-    });
+    // Se mide con la API de Resource Timing del propio navegador, NO con page.route():
+    // en WebKit, Playwright no intercepta las peticiones que nacen de un `new Image()`,
+    // así que la interceptación daba una lista vacía y el test fallaba solo en iphone12
+    // pese a que la precarga sí ocurre (verificado por separado en los dos motores).
+    // Resource Timing es nativo del motor y no depende del arnés.
     await prepararPadre(page);
     await esperarScript2(page);
 
-    await page.evaluate(() => {
+    const pedidas = await page.evaluate(async () => {
+      const marca = 'vv-test-precarga';
       globalThis._precargarImagenParada({
         id: 'Av1-P-0',
-        imagen: 'imagenes/imagenes-aventuras/uno.jpg',
-        imagen2: 'imagenes/imagenes-aventuras/dos.jpg',
-        imagenes: ['imagenes/imagenes-aventuras/uno.jpg', 'imagenes/imagenes-aventuras/tres.jpg']
+        imagen: `imagenes/imagenes-aventuras/uno.jpg?${marca}`,
+        imagen2: `imagenes/imagenes-aventuras/dos.jpg?${marca}`,
+        imagenes: [`imagenes/imagenes-aventuras/uno.jpg?${marca}`, `imagenes/imagenes-aventuras/tres.jpg?${marca}`]
       }, '[TEST]');
+      await new Promise((r) => setTimeout(r, 1500));
+      return performance.getEntriesByType('resource')
+        .map((e) => e.name)
+        .filter((u) => u.includes(marca))
+        .map((u) => u.split('/').pop().split('?')[0])
+        .sort();
     });
-    await page.waitForTimeout(800);
 
-    expect(pedidas.sort(), 'precarga las 3 únicas, sin repetir la duplicada').toEqual(
+    expect(pedidas, 'precarga las 3 únicas, sin repetir la duplicada').toEqual(
       ['dos.jpg', 'tres.jpg', 'uno.jpg']
     );
   });

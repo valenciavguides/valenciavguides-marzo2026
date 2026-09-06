@@ -74,6 +74,9 @@ const mimeTypes = {
   '.wasm': 'application/wasm'
 };
 
+// Se avisa una sola vez por arranque, no en cada fichero servido.
+let avisadoUpgrade = false;
+
 const server = http.createServer((req, res) => {
   console.log(`${req.method} ${req.url}`);
 
@@ -149,8 +152,54 @@ const server = http.createServer((req, res) => {
       const headers = { 'Content-Type': mimeType };
       // El SW debe llegar siempre fresco para que el navegador detecte cambios de versión
       if (urlPath === '/sw.js') headers['Cache-Control'] = 'no-store';
+
+      // Este servidor sirve por HTTP plano, y todos los HTML llevan
+      // `upgrade-insecure-requests` en su meta CSP. WebKit la aplica TAMBIÉN a
+      // localhost, así que eleva cada recurso a `https://localhost:8080/...` y falla
+      // con SSL connect error: medido, 22 peticiones fallidas y la app clavada en la
+      // pantalla de carga porque los módulos de FASE 1 no llegan a importarse. Chromium
+      // no lo hace porque considera localhost un origen confiable y exime la directiva.
+      //
+      // Consecuencia: sin esto, el proyecto `iphone12` de Playwright ejecuta ~300 tests
+      // sobre una app que ni siquiera arranca — pasan sin ejercitar nada, y cualquier
+      // fallo real de Safari queda invisible.
+      //
+      // Quitarla aquí NO cambia el CSP efectivo de producción: allí todo se sirve ya por
+      // HTTPS desde GitHub Pages, donde la directiva no tiene nada que elevar y este
+      // servidor no se ejecuta nunca (es solo desarrollo y tests). El resto del CSP
+      // —default-src, script-src, connect-src…— se sirve intacto.
+      let cuerpo = content;
+      if (extname === '.html') {
+        const original = content.toString('utf-8');
+        // Se procesa la meta CSP entera, no la cadena suelta: `upgrade-insecure-requests`
+        // aparece de DOS formas en el proyecto — como ultima directiva de un CSP largo
+        // (codigo-padre.html) y como contenido UNICO de la meta (los otros 14 HTML, entre
+        // ellos En-busca-del-tesoro.html y todos los hijos). Un replace que exigiera el `;`
+        // previo se dejaba fuera la segunda forma, que es la mayoritaria.
+        const ajustado = original
+          .replace(/<meta[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/gi, (tag) => {
+            if (!/upgrade-insecure-requests/i.test(tag)) return tag;
+            const limpio = tag.replace(/\s*;?\s*upgrade-insecure-requests\s*;?/gi, '');
+            // Si la directiva era lo unico que habia, la meta entera sobra.
+            return /content=["']\s*["']/i.test(limpio) ? '' : limpio;
+          })
+          // La meta de HSTS es el segundo motivo del mismo salto a https. Segun la
+          // especificacion, Strict-Transport-Security SOLO es valida como cabecera HTTP y
+          // un <meta http-equiv> deberia ignorarse — WebKit no lo ignora. En produccion
+          // esta meta no aporta nada por ese mismo motivo (quien aplica HSTS de verdad es
+          // la cabecera que envia GitHub Pages), asi que retirarla aqui tampoco cambia el
+          // comportamiento real.
+          .replace(/\s*<meta[^>]*http-equiv=["']Strict-Transport-Security["'][^>]*>/gi, '');
+        if (ajustado !== original) {
+          cuerpo = Buffer.from(ajustado, 'utf-8');
+          if (!avisadoUpgrade) {
+            console.log('ℹ️  upgrade-insecure-requests retirado del CSP al servir por HTTP (solo desarrollo — ver comentario en js/server.js)');
+            avisadoUpgrade = true;
+          }
+        }
+      }
       res.writeHead(200, headers);
-      res.end(content, 'utf-8');
+      res.end(cuerpo, 'utf-8');
     }
   });
 });
