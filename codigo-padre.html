@@ -5483,7 +5483,7 @@
             return { lat: 39.47876, lng: -0.37626 };
         }
         // Expuesta en globalThis por consistencia con el resto de helpers GPS de este bloque
-        // (activarGPS, desactivarGPS, calcularDistancia...), accesibles así desde cualquiera
+        // (activarGPS, calcularDistancia...), accesibles así desde cualquiera
         // de los 4 scripts de codigo-padre.html aunque hoy solo se llame desde este mismo script.
         globalThis._obtenerCoordenadasP0Fallback = _obtenerCoordenadasP0Fallback;
 
@@ -6029,34 +6029,6 @@
             }
         }
 
-        /**
-         * Desactiva GPS
-         */
-        function desactivarGPS() {
-            const logPrefix = '[PADRE][GPS][DESACTIVAR]';
-
-            // Cancelar cualquier reintento de TIMEOUT pendiente — si no, revive el
-            // watchPosition más tarde aunque el usuario ya haya desactivado el GPS.
-            if (estado.gps.retryTimeoutId) {
-                clearTimeout(estado.gps.retryTimeoutId);
-                estado.gps.retryTimeoutId = null;
-            }
-
-            if (estado.gps.watchId !== null) {
-                navigator.geolocation.clearWatch(estado.gps.watchId);
-                estado.gps.watchId = null;
-                estado.gps.activo = false;
-                estado.gps.posicionUsuario = null;
-                (globalThis.logger || console).info(`${logPrefix} GPS desactivado`);
-                // Notificar a hijos que GPS se desactivó
-                try {
-                    enviarMensaje_S1({ tipo: TIPOS_MENSAJE.NAVEGACION.GPS.ESTADO_ACTUALIZADO, origen: getPadreId(), destino: 'hijo2', datos: { activo: false, permisos: false, precision: null, error: null } });
-                } catch (e) {
-                    (globalThis.logger || console).warn(`${logPrefix} Error notificando desactivación GPS a hijos:`, e);
-                }
-            }
-        }
-
         // Exponer funciones GPS en `window` para garantizar disponibilidad
         // entre distintos bloques <script> que puedan ejecutarse en otro scope.
 
@@ -6146,7 +6118,6 @@
         try {
             if (globalThis.window !== undefined) {
                 globalThis.activarGPS = activarGPS;
-                globalThis.desactivarGPS = desactivarGPS;
                 globalThis.desregistrarControladorSeguro = desregistrarControladorSeguro;
             }
         } catch (e) {
@@ -11740,7 +11711,8 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.GPS.ACTIVAR, _hdl_NAVEGACION_GPS_ACTIVAR, { permanente: true });
 
         // NAVEGACION.GPS.DESACTIVAR no tiene handler propio: nada en el proyecto lo emite
-        // (GPS se desactiva siempre por llamada directa a desactivarGPS(), nunca por
+        // (el GPS no se desactiva nunca en vida de la página: la navegación de fin de
+        // aventura destruye el documento y el navegador cancela el watch; nunca por
         // postMessage — confirmado por auditoría, ver docs/GUIA-COMPLETA.md §36) — el
         // handler que existía era inalcanzable, se retiró. La constante se conserva
         // (§11-constants-integrity.spec.js la comprueba) por si en el futuro un hijo

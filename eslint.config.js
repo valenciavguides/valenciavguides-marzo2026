@@ -184,7 +184,6 @@ module.exports = [
 
         // ── Globals propios — funciones de mapa/GPS ──────────────────────
         activarGPS: "readonly",
-        desactivarGPS: "readonly",
         showGpsOutOfRangeOverlay: "readonly",
         _ocultarTodasPantallasDistanciaGPS: "readonly",
         _iniciarTemporizadorAventura: "readonly",

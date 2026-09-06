@@ -938,7 +938,24 @@ export function desactivarSeguimientoRumbo() {
  */
 function sincronizarEstadoGPSConPadre() {
     if (globalThis.window !== undefined && globalThis.estadoPadre?.gps) {
-        globalThis.estadoPadre.gps.activo = estadoMapa.gpsActivo;
+        // `activo` NO se copia aqui: lo posee el padre. Lo pone activarGPS() en el mismo
+        // tick que watchPosition() devuelve el watchId, y lo quita _watchPositionError
+        // ante un error real (§11).
+        //
+        // Copiarlo desde estadoMapa.gpsActivo era escribir una mentira: en el padre ese
+        // campo NUNCA llega a true. manejarGPSActivar() delega en globalThis.activarGPS()
+        // y no lo marca (solo lo hace su rama de fallback, cuando activarGPS no existe), y
+        // el unico otro sitio que lo pondria a true —verificarPermisosGeolocalizacion()—
+        // no lo llama nadie. Asi que este espejo pisaba con `false` el `true` legitimo del
+        // padre en cada una de sus llamadas, incluida CADA posicion GPS recibida.
+        //
+        // Consecuencia: el guard de activarGPS() (`est.gps.activo && est.gps.watchId !== null`)
+        // no reconocia el watch vivo, y cada entrada en AVENTURA hacia una activacion
+        // completa —~6 s de interfaz congelada, medidos en uso real— creando ademas un
+        // SEGUNDO watchPosition imposible de cancelar. Es la misma familia de fallo que se
+        // corrigio en 2026-07-31 con `watchId`; entonces se cerro media puerta.
+        //
+        // Los demas campos si son propiedad de estadoMapa y se siguen copiando.
         globalThis.estadoPadre.gps.permisos = estadoMapa.gpsPermisos;
         globalThis.estadoPadre.gps.precision = estadoMapa.gpsPrecision;
         globalThis.estadoPadre.gps.error = estadoMapa.gpsError;
@@ -1299,8 +1316,24 @@ export function limpiarRecursos() {
             intervaloLimpiezaAutomatica = null;
         }
 
-        // Resetear estado GPS de estadoMapa
-        estadoMapa.gpsActivo = false;
+        // Resetear estado GPS de estadoMapa. `gpsActivo` NO entra aqui, a proposito:
+        // esta funcion no apaga el sensor —no puede, `watchId` es propiedad exclusiva del
+        // padre— asi que ponerlo en false es afirmar algo falso. Y como la linea siguiente
+        // sincroniza con el padre, ese false viajaba directo a estadoPadre.gps.activo y
+        // rompia el guard de activarGPS() (`est.gps.activo && est.gps.watchId !== null`):
+        // el siguiente cambio a AVENTURA no reconocia el watch vivo, hacia una activacion
+        // completa —~6 s de interfaz congelada, medidos en uso real— y creaba un SEGUNDO
+        // watchPosition imposible de cancelar.
+        //
+        // watchPosition() nunca se detiene al cambiar de modo (§2.6): el modo decide si las
+        // posiciones fuerzan avance, no si el sensor corre. No existe ninguna funcion que
+        // lo apague: al terminar o abandonar la aventura la app navega fuera y el navegador
+        // cancela el watch al destruir el documento. Quien marca el sensor como inactivo es
+        // activarGPS() en el padre, y _watchPositionError ante un error real.
+        //
+        // Misma correccion que se hizo en 2026-07-31 con `watchId` en limpiarRecursosPorModo()
+        // (js/app.js): el guard necesita las dos condiciones, arreglar solo una no bastaba.
+        // Los demas campos si son estado de comportamiento del mapa y se resetean igual.
         estadoMapa.gpsError = null;
         estadoMapa.gpsVisualActivo = false;
         estadoMapa.proximidadReal = false;
@@ -1392,7 +1425,23 @@ export function limpiarPorEstado(nuevoEstado) {
             estadoMapa.paradaActual = null;
             estadoMapa.tramoActual = null;
             estadoMapa.posicionUsuario = null;
-            estadoMapa.gpsActivo = false;
+            // `gpsActivo` NO se resetea aqui, a proposito: no es estado del mapa, es el
+            // estado del SENSOR, y watchPosition() nunca se detiene al cambiar de modo
+            // (§2.6 de GUIA-COMPLETA; el modo decide si las posiciones fuerzan avance, no
+            // si el sensor corre). Ponerlo en false con el watch vivo hacia que
+            // sincronizarEstadoGPSConPadre() copiara ese false a estadoPadre.gps.activo en
+            // la siguiente posicion recibida, y entonces el guard de activarGPS()
+            // (`est.gps.activo && est.gps.watchId !== null`) dejaba de reconocer el watch
+            // existente: el siguiente cambio a AVENTURA hacia una activacion completa —
+            // ~6 s de interfaz congelada esperando a getCurrentPosition, medidos en uso
+            // real— y creaba un SEGUNDO watchPosition en paralelo, imposible de cancelar
+            // porque estadoPadre.gps.watchId ya apuntaba al nuevo.
+            //
+            // Es la otra mitad del mismo fallo que se corrigio en 2026-07-31 quitando
+            // `watchId` de limpiarRecursosPorModo() (js/app.js): el guard necesita las dos
+            // condiciones, asi que arreglar solo una lo dejaba igual de roto.
+            // Quien decide de verdad si el sensor esta vivo es activarGPS() en el padre,
+            // y _watchPositionError ante un error real.
             estadoMapa.siguiendoRuta = false;
             estadoMapa.modo = modo;
             estadoMapa.timestamp = Date.now();
@@ -3482,7 +3531,19 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
         // Cámara siguiendo al usuario — pausada si arrastró el mapa a mano (ver
         // _registrarSeguimientoCamara) y saltada mientras un flyTo de cambio de
         // parada/tramo está en curso, para no competir con esa animación.
-        if (_camaraSiguiendoUsuario && !estadoMapa.zoomEnCurso && _mapaInstance) {
+        //
+        // `modo !== 'casa'` va aquí por el mismo criterio que la brújula y el círculo de
+        // activación unas líneas más arriba: en CASA el GPS no manda sobre el mapa. Es un
+        // modo de exploración libre, donde el usuario recorre las paradas a su aire desde
+        // hijo5 — que la cámara le devolviera a su ubicación en cada lectura hacía dos
+        // cosas molestas: impedía mirar otra zona del mapa, y deshacía el vuelo a la parada
+        // recién pulsada menos de un segundo después de completarse.
+        //
+        // El marcador 🛸 sí se sigue dibujando y moviendo en CASA: sirve para ver de un
+        // vistazo que el sensor sigue vivo. Y "Centrar en mi ubicación" del menú de cámara
+        // sigue funcionando, porque reactivarSeguimientoCamara() hace su propio easeTo
+        // directo — centra una vez, a petición, sin quedarse pegado después.
+        if (modo !== 'casa' && _camaraSiguiendoUsuario && !estadoMapa.zoomEnCurso && _mapaInstance) {
             _mapaInstance.easeTo({ center: aLngLat({ lat, lng }), duration: 800 });
         }
 

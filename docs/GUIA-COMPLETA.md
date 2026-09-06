@@ -444,7 +444,7 @@ navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
 | `CAMBIO_PARADA` automático | No | No — GPS solo marca `pending.llegada`; `CAMBIO_PARADA` del siguiente elemento requiere pulsar `btn-avanzar` (§2.2) |
 | Overlay "fuera de rango" | Oculto | Visible si >50m de la ruta |
 | Marcador del usuario en mapa | 🛸 | ▲ triángulo azul `#4285F4`, rota con brújula |
-| Cámara sigue al usuario | Sí | Sí — en los dos modos, pausable arrastrando el mapa a mano (§4.6c) |
+| Cámara sigue al usuario | Sí | **No en CASA** — solo en AVENTURA, y ahí pausable arrastrando el mapa a mano (§4.6c) |
 
 **Ciclo de vida del GPS**:
 
@@ -479,7 +479,7 @@ flowchart TD
     N --> H
 ```
 
-Los dos caminos de `LLEGADA_DETECTADA` (funciones-mapa y hijo2) son sensores redundantes del mismo hecho — ninguno de los dos envía `CAMBIO_PARADA`; ambos solo marcan `pending.llegada` en el padre (§2.2). `desactivarGPS()` existe y `clearWatch()` funcionaría si se llamara, pero nada en la app lo dispara vía postMessage — `NAVEGACION.GPS.DESACTIVAR` no tiene handler (la constante existe, sin uso, por si algún día un hijo necesita pedirlo de verdad). En la práctica, el GPS no se detiene nunca tras arrancar en P14.
+Los dos caminos de `LLEGADA_DETECTADA` (funciones-mapa y hijo2) son sensores redundantes del mismo hecho — ninguno de los dos envía `CAMBIO_PARADA`; ambos solo marcan `pending.llegada` en el padre (§2.2). no existe ninguna función que desactive el GPS, y nada en la app lo dispararía vía postMessage — `NAVEGACION.GPS.DESACTIVAR` no tiene handler (la constante existe, sin uso, por si algún día un hijo necesita pedirlo de verdad). En la práctica, el GPS no se detiene nunca tras arrancar en P14.
 
 **Matiz verificado sobre "sin validaciones" en CASA:** `procesarPosicionGPSParaAventura()` se ejecuta en cada lectura GPS sea cual sea el modo (no hay guard de modo a la entrada de la función). Dentro de ella, solo dos cosas están explícitamente condicionadas a `estadoMapa.modo === MODOS.AVENTURA`: la visibilidad del trazado y el propio sensor de llegada de funciones-mapa (`if (estadoMapa.modo !== MODOS.AVENTURA)` corta ahí sin notificar). El envío de `ACTUALIZAR_ESTADO` a hijo2 **no** está condicionado por modo — se envía igual en CASA. El sensor de llegada de hijo2 (`_detectarLlegadaTramo`/`_detectarLlegadaParada`, disparado por ese mismo `ACTUALIZAR_ESTADO`) tampoco comprueba el modo, y el handler del padre para `LLEGADA_DETECTADA` (`_hdl_NAVEGACION_LLEGADA_DETECTADA`) solo comprueba que el `paradaId` coincida con `estado.elementoActual` — que `_transicionarAModoCasa()` no vacía al volver a CASA. En la práctica esto es invisible para el usuario (CASA no muestra botón de avanzar de estilo AVENTURA ni depende de `pending.llegada`), pero la afirmación de la tabla de arriba ("Validación de distancia a paradas: No" en CASA) describe el efecto visible, no una ausencia real de guard en ese tramo del código — solo el overlay "fuera de rango" y el trazado están realmente bloqueados por modo.
 
@@ -559,7 +559,6 @@ sequenceDiagram
 | `_transicionarAModoCasa()` | — | Limpia localStorage de progreso (salvo en modo dev, ver §24), pausa heartbeat y notifica a los hijos |
 | `_gestionarGpsSegunModo()` | 6433 | Gestiona overlays GPS según modo; si modo=AVENTURA y `!estado.gps.activo` llama `activarGPS()` |
 | `activarGPS()` | 4895 | Inicia `watchPosition` (con mutex anti-duplicado) |
-| `desactivarGPS()` | 4982 | Llama `clearWatch()` |
 | `ejecutarRestauracionAventura()` | 4152 | Restaura sesión desde `localStorage` |
 | `_activarParadaDefectoAventura()` | `js/app.js` | Envía `CAMBIO_PARADA` para `padre-P0`. Se llama desde `_reanudarSubsistemasTrasPrewarm()` salvo que el pre-warm de arranque ya esté "iniciado y pausado"; en la práctica corre en casi todas las activaciones de AVENTURA salvo la primera de la sesión (detalle en §2.5) |
 | `cambiarModo(modo)` | `js/funciones-mapa.js` | Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
@@ -1048,6 +1047,8 @@ Cubierto por `tests/e2e/23-polyline-autoreparacion.spec.js` (PR-1/2/3): con un m
 
 Antes, la cámara del mapa de aventura solo se movía con los `flyTo` puntuales de cambio de parada/tramo (§4.7d) — nunca seguía al usuario mientras caminaba entre esos puntos, así que podía quedar descentrado durante todo un tramo largo. `actualizarMarcadorUsuario()` ahora centra la cámara (`_mapaInstance.easeTo({center, duration:800})`) en cada posición GPS real, en los dos modos (CASA y AVENTURA), salvo dos excepciones:
 
+- **Modo CASA** — el seguimiento **no actúa**. CASA es exploración libre: el usuario recorre las paradas a su aire desde hijo5, y que la cámara le devolviera a su ubicación en cada lectura GPS impedía mirar otra zona del mapa **y deshacía el `flyTo` a la parada recién pulsada** menos de un segundo después de completarse. Es la misma condición `modo !== 'casa'` que ya gobierna la brújula y el círculo de activación de 15 m en `actualizarMarcadorUsuario()`.
+  El marcador 🛸 **sí se sigue dibujando y moviendo en CASA** — sirve para comprobar de un vistazo que el sensor sigue vivo—, y «Centrar mapa en mi ubicación» del menú de cámara sigue funcionando: `reactivarSeguimientoCamara()` hace su propio `easeTo` directo, así que centra una vez a petición del usuario sin quedarse pegado después. Cubierto por `tests/e2e/53-camara-no-sigue-en-casa.spec.js`.
 - **`estadoMapa.zoomEnCurso`** — mientras un `flyTo` de cambio de parada/tramo está en curso (`completarCambioParada()`), el seguimiento se salta para no competir con esa animación ya en marcha.
 - **Arrastre manual del usuario** — `_registrarSeguimientoCamara()` (llamada una vez desde `inicializarServicioMapa()`) escucha el evento nativo `'dragstart'` del mapa; si `event.originalEvent` está presente (el gesto viene de verdad de un ratón/dedo, no de un `easeTo()`/`flyTo()` programático — el propio seguimiento incluido), pone `_camaraSiguiendoUsuario = false` y dejan de aplicarse los `easeTo()` de seguimiento. Así el usuario conserva la libertad de arrastrar el mapa para mirar algo (p. ej. una referencia 🏛️ más adelante) sin que la siguiente lectura GPS deshaga el gesto de golpe.
 
@@ -4841,7 +4842,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d9f683602543'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-98a99d5ebe03'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5261,7 +5262,7 @@ padre emite → _hdl_NAVEGACION_CAMBIO_PARADA (padre) → enriquece datos
 |------|-----------------|------|
 | `GPS.RESTRINGIDO` | `_hdl_NAVEGACION_GPS_RESTRINGIDO` | Hijo2 → padre cuando usuario está fuera de rango |
 
-Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no tiene handler (ver la nota junto a `desactivarGPS()` más arriba en este documento). Ver §10.15 para el conflicto de registro con `funciones-mapa.js`.
+Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no tiene handler, ni emisor, ni ninguna función que desactive el GPS (ver §11). Ver §10.15 para el conflicto de registro con `funciones-mapa.js`.
 
 **NAVEGACION.LLEGADA_DETECTADA** (hijo2 → padre, y funciones-mapa → padre)
 
@@ -5949,7 +5950,7 @@ Los 3 handlers reales viven en Script 4, registrados justo antes del bloque de a
 
 #### `GPS.ACTIVAR` — registro exclusivo en Script 2
 
-`NAVEGACION.GPS.ACTIVAR` lo registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. El handler (`_hdl_NAVEGACION_GPS_ACTIVAR`) verifica que el modo activo sea AVENTURA, evalúa `paradaListaParaAvanzar` para decidir si progresar al siguiente elemento o revelar la navegación (vía `revelarNavegacion()`), y en cualquier caso llama a `activarGPS()`. `NAVEGACION.GPS.DESACTIVAR` no tiene handler simétrico — nada en la app lo emite (ver la nota junto a `desactivarGPS()` en §2.2).
+`NAVEGACION.GPS.ACTIVAR` lo registra Script 2 de `codigo-padre.html` mediante `registrarControladorSeguro`. El handler (`_hdl_NAVEGACION_GPS_ACTIVAR`) verifica que el modo activo sea AVENTURA, evalúa `paradaListaParaAvanzar` para decidir si progresar al siguiente elemento o revelar la navegación (vía `revelarNavegacion()`), y en cualquier caso llama a `activarGPS()`. `NAVEGACION.GPS.DESACTIVAR` no tiene handler simétrico — nada en la app lo emite, y tampoco existe función que desactive el GPS (ver §2.2).
 
 `funciones-mapa.js` contiene `manejarGPSActivar` (el adaptador — ver «Fuente única de verdad del estado GPS», §11) para llamadas internas directas dentro del módulo — la usa `manejarCambioModoMapa()` al entrar en AVENTURA — pero no se registra en el bus de mensajes. `state-manager.js` garantiza exactamente un handler por tipo de mensaje; cualquier segundo intento de registro para el mismo tipo retorna `false` silenciosamente.
 
@@ -6063,9 +6064,8 @@ El padre dirige cada mensaje directamente al hijo que le corresponde con `destin
 |----------|--------------|
 | GPS activado (`activarGPS`) | `GPS.ESTADO_ACTUALIZADO` → destino: 'hijo2' |
 | Error de geolocalización en watchPosition | `GPS.ERROR` → destino: 'hijo2' |
-| `desactivarGPS()` | `GPS.ESTADO_ACTUALIZADO` → destino: 'hijo2' |
 
-`desactivarGPS()` notifica a hijo2 directamente mediante `GPS.ESTADO_ACTUALIZADO`, sea cual sea el código que la llame (siempre por llamada directa — no hay handler de mensaje que la dispare, ver §2.2). GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre recibe desde hijo2.
+GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre recibe desde hijo2.
 
 ---
 
@@ -6330,7 +6330,7 @@ Los nombres de ambas funciones conservan el sufijo histórico "P0"/"P-0", pero n
 
 Los pasos 1-2 ocurren en **ambos modos** (CASA y AVENTURA). Los pasos 3-5 solo ocurren en **modo AVENTURA** — en CASA el GPS no fuerza ningún avance automático ni notifica nada a hijo2.
 
-1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` puede detenerse: `desactivarGPS()` llama a `clearWatch()` para cancelarlo.
+1. El padre activa el GPS del dispositivo usando `navigator.geolocation.watchPosition()` en `activarGPS()` de `codigo-padre.html`. `watchPosition` solo se detiene al destruirse el documento (navegación de fin o abandono de aventura); ninguna función de la app lo cancela en vida de la página.
 2. Toda posición válida, sea cual sea su precisión, pasa de `_watchPositionSuccess()` a `_gpsProcesarPosicion(position, logPrefix)` — un puente delgado que comprueba que `funcionesMapa.procesarPosicionGPSParaAventura` existe (si no, solo avisa por log y no lanza), llama a esa función dentro de un try/catch propio, y si tiene éxito llama también a `hideGpsOutOfRangeOverlay()`. Esto es independiente del `hideGpsSignalOverlay()` que `_watchPositionSuccess()` ya llamó antes: cada overlay de error GPS (sin señal vs. fuera de rango real) se oculta por su cuenta en cuanto llega una posición que lo desmiente. El handler real, `procesarPosicionGPSParaAventura()`, vive en `funciones-mapa.js` (cargado en padre). El mapa (`<div id="mapa">`, instancia MapLibre GL) está en el propio DOM de padre; `funciones-mapa.js` actualiza el marcador del usuario **directamente** con `actualizarMarcadorUsuario()`, sin pasar por postMessage — con el icono que corresponde al modo real (`estadoMapa.modo`): ▲ triángulo en AVENTURA, 🛸 en CASA (ver tabla de marcadores, §4.5).
 3. *(solo AVENTURA)* `funciones-mapa.js` calcula la **distancia** al siguiente elemento y envía `NAVEGACION.ACTUALIZAR_ESTADO` a hijo2 con `{ distanciaAlDestino, toleranciaGPS, idParada, tipoParada }`. En CASA, `siguienteParada` puede ser cualquier elemento que el usuario esté simplemente mirando con hijo5 (reutiliza el mismo `CAMBIO_PARADA`), no uno que esté visitando de verdad — enviar este mensaje igualmente en CASA no aporta nada (hijo2 lo ignora, ver paso 4) y solo añadía tráfico de mensajería sin propósito.
 4. *(solo AVENTURA)* hijo2 actualiza sus **controles de navegación** (botones GPS, vídeo, reto) según la distancia recibida y ejecuta `_detectarLlegadaParada()` o `_detectarLlegadaTramo()`. El propio handler de `NAVEGACION.ACTUALIZAR_ESTADO` en hijo2 exige `estadoComponente.modo === 'aventura'` antes de llamar a cualquiera de las dos — sin este guard, una posición GPS real que cayera dentro del radio de una parada que el usuario solo está "viendo" en CASA disparaba una llegada real para un elemento nunca visitado.
@@ -6347,7 +6347,7 @@ El estado GPS está repartido entre dos propietarios con responsabilidades disti
 Cada vez que alguno de estos campos cambia, `sincronizarEstadoGPSConPadre()` los copia a `window.estadoPadre.gps`, permitiendo que el resto del padre los lea sin acceder directamente a las variables internas de `funciones-mapa.js`.
 
 **`estadoPadre.gps.watchId` (`codigo-padre.html`)** — propiedad exclusiva del padre.
-Solo `activarGPS()` lo asigna (al llamar a `navigator.geolocation.watchPosition`) y solo `desactivarGPS()` lo limpia (al llamar a `clearWatch`). `funciones-mapa.js` no tiene campo `watchId` en `estadoMapa` ni escribe en `estadoPadre.gps.watchId`. `sincronizarEstadoGPSConPadre()` deliberadamente no sincroniza este campo. **`limpiarRecursosPorModo()` (`js/app.js`), que corre en cada `SISTEMA.CAMBIO_MODO`, NO toca `watchId` ni `activo`** — antes sí lo hacía (los ponía a `null`/`false` en cada cambio de modo), lo que mentía sobre el estado real: el watch nativo seguía vivo (nunca se apaga al cambiar de modo, ver más arriba), y `activarGPS()` usa exactamente `activo && watchId !== null` para reconocer un watch ya en marcha — con `watchId` a `null`, la siguiente activación no lo reconocía y arrancaba un segundo `watchPosition` en paralelo, sin poder cancelar nunca el primero (su id ya se había perdido). Cada vuelta CASA↔AVENTURA sumaba un watch huérfano más.
+Solo `activarGPS()` lo asigna, al llamar a `navigator.geolocation.watchPosition`. **Nada lo limpia en vida de la página**: no existe ninguna función que apague el GPS — al terminar o abandonar la aventura la app navega a `En-busca-del-tesoro.html`, y el navegador cancela el watch al destruir el documento. Los `clearWatch()` que quedan en `activarGPS()`/`_watchPositionError` son internos del reintento, para no dejar un watch huérfano al crear el siguiente. `funciones-mapa.js` no tiene campo `watchId` en `estadoMapa` ni escribe en `estadoPadre.gps.watchId`. `sincronizarEstadoGPSConPadre()` deliberadamente no sincroniza este campo. **`limpiarRecursosPorModo()` (`js/app.js`), que corre en cada `SISTEMA.CAMBIO_MODO`, NO toca `watchId` ni `activo`** — antes sí lo hacía (los ponía a `null`/`false` en cada cambio de modo), lo que mentía sobre el estado real: el watch nativo seguía vivo (nunca se apaga al cambiar de modo, ver más arriba), y `activarGPS()` usa exactamente `activo && watchId !== null` para reconocer un watch ya en marcha — con `watchId` a `null`, la siguiente activación no lo reconocía y arrancaba un segundo `watchPosition` en paralelo, sin poder cancelar nunca el primero (su id ya se había perdido). Cada vuelta CASA↔AVENTURA sumaba un watch huérfano más.
 
 No existe una tercera copia en `state-manager.js` — la única sincronización de campos de comportamiento es `funciones-mapa.js → window.estadoPadre.gps`.
 
@@ -6398,7 +6398,7 @@ ya ha sido actualizado al momento de la llamada — la comprobación interna
 actualizar el estado para calcular el flag correctamente.
 
 > **Nota de diseño — hub + adaptador, no duplicación.**
-> `activarGPS()` / `desactivarGPS()` en `codigo-padre.html` son el **hub**: la única implementación real que llama a `navigator.geolocation.watchPosition`. `manejarGPSActivar()` en `funciones-mapa.js` es el **adaptador**: detecta si está en el padre (`window.parent === window`) y delega al hub, o si está en un iframe, envía postMessage al padre para que el hub actúe. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P14 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento. No existe un adaptador simétrico para desactivar: `desactivarGPS()` solo se llama directamente dentro del propio padre (nunca vía mensaje — no hay handler para `NAVEGACION.GPS.DESACTIVAR`) — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
+> `activarGPS()` en `codigo-padre.html` es el **hub**: la única implementación real que llama a `navigator.geolocation.watchPosition`. `manejarGPSActivar()` en `funciones-mapa.js` es el **adaptador**: detecta si está en el padre (`window.parent === window`) y delega al hub, o si está en un iframe, envía postMessage al padre para que el hub actúe. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P14 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento. No existe adaptador de desactivación porque no existe desactivación: el sensor vive lo que vive el documento (nunca vía mensaje — no hay handler para `NAVEGACION.GPS.DESACTIVAR`) — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
 
 ### Infraestructura GPS pendiente — preparada, sin feeder activo
 
@@ -7896,6 +7896,12 @@ GitHub Pages responde con `Cache-Control: max-age=600` fijo en todas las respues
 
 Con eso medido, la pieza que resuelve el problema no es pelear con las cachés sino **preguntar por separado qué hay desplegado**, y el `?_v=Date.now()` del botón "Actualizar" cubre exactamente un hueco concreto: que la navegación de recarga la resuelva la caché HTTP del navegador. El fallback offline del Network First usa `caches.match(event.request, { ignoreSearch: true })` para que ese parámetro no impida encontrar la entrada precacheada bajo la ruta limpia, y `cache.put()` guarda siempre bajo la URL sin `_v`, para que cada clic no deje otra copia entera de la misma página en una caché que no tiene límite LRU.
 
+> **Detectar la versión nueva está resuelto; traerla, no.** El botón "Actualizar" hace `location.href` con un `?_v=` nuevo, pero el borde descarta la query string: si la copia de 10 minutos sigue viva, la recarga devuelve **la misma página vieja**, la app vuelve a detectar que está desfasada y el banner reaparece. Desde fuera parece que el botón no hace nada, y el usuario vuelve a pulsar — cada pulsación es una recarga completa, con su pantalla de carga y su barra de progreso empezando de cero. Comportamiento reportado en uso real.
+>
+> Añadir un texto del tipo "espera unos segundos" se descartó: obliga a traducir a 12 idiomas un mensaje que no cambia lo que la gente hace (volver a pulsar) y no resuelve el fondo.
+>
+> **Dirección a probar, apoyada en algo ya medido:** `version.json` **sí** llega fresco a través del mismo borde, y se pide con `fetch(..., { cache: 'no-store' })`. Si `no-store` atraviesa la caché de borde para ese fichero, debería hacerlo también para el HTML del shell. La forma sería que el Service Worker haga ese `fetch` con `no-store`, guarde la respuesta en su propia caché y solo entonces recargue — la página se serviría desde el SW, sin depender de que el borde haya caducado. **Falta comprobar con `curl` que el borde honra `no-store` para un `.html`**, igual que se comprobó que descarta la query string: puede que la diferencia con `version.json` sea otra (tamaño, tipo MIME, o que Fastly no lo cachee por su cabecera propia). Pendiente nº 19.
+
 #### Los dos datos que deciden si hay que avisar
 
 El criterio es uno solo: **¿el código que esta página está ejecutando es el desplegado?** Se responde con dos datos independientes, y hasta que no están los dos no se decide nada.
@@ -7938,7 +7944,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d9f683602543'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-98a99d5ebe03'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8258,6 +8264,7 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ pendiente |
 | 17 | Arreglar los dos huecos de `fetchWithRetry()` — el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera a WebKit: **hoy no se ejecuta ni un reintento en iPhone** | §16.1b | ⏳ pendiente |
 | 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
+| 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min, así que la recarga devuelve la misma página y el banner reaparece | §19 (cache-busting) | ⏳ pendiente |
 
 ---
 
@@ -8586,7 +8593,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d9f683602543';
+const CACHE_VERSION = 'v-98a99d5ebe03';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11816,7 +11823,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-d9f683602543';
+const CACHE_VERSION = 'v-98a99d5ebe03';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -11940,7 +11947,7 @@ Además, botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que e
 
 **Estado de implementación:** ✅ implementado. El overlay se muestra vía `showGpsSignalOverlay(code)` desde `_watchPositionError`. El mecanismo de reintento para código 3 usa `_gpsRetryOnTimeout`.
 
-**Por qué el reintento de TIMEOUT guarda su propio `setTimeout` ID:** `_gpsDoRetrySetup` programa el siguiente intento de `watchPosition` vía `setTimeout`, guardado en `est.gps.retryTimeoutId`. Sin esto, si `activarGPS()` se llamara de nuevo mientras ese reintento sigue pendiente (por ejemplo, un `CAMBIO_MODO` durante el bucle de reintento de `pendingModeChanges`), se crearían dos `watchPosition` simultáneos — el segundo quedaría huérfano al perder su referencia, sin `clearWatch()` posible, corriendo indefinidamente en segundo plano (desgaste de batería, no un crash visible). `activarGPS()` y `desactivarGPS()` cancelan cualquier reintento pendiente (`clearTimeout(est.gps.retryTimeoutId)`) antes de crear un watch nuevo o apagar el GPS.
+**Por qué el reintento de TIMEOUT guarda su propio `setTimeout` ID:** `_gpsDoRetrySetup` programa el siguiente intento de `watchPosition` vía `setTimeout`, guardado en `est.gps.retryTimeoutId`. Sin esto, si `activarGPS()` se llamara de nuevo mientras ese reintento sigue pendiente (por ejemplo, un `CAMBIO_MODO` durante el bucle de reintento de `pendingModeChanges`), se crearían dos `watchPosition` simultáneos — el segundo quedaría huérfano al perder su referencia, sin `clearWatch()` posible, corriendo indefinidamente en segundo plano (desgaste de batería, no un crash visible). `activarGPS()` cancela cualquier reintento pendiente (`clearTimeout(est.gps.retryTimeoutId)`) antes de crear un watch nuevo o apagar el GPS.
 
 ---
 
@@ -13303,7 +13310,6 @@ Generado con `npm run inventory:conexiones`. No se limita a `codigo-padre.html` 
 | `cargarIframeSecuencial` | módulo 1 (L8492) | módulo 2 | función/objeto |
 | `cargarRestoDeiframes` | módulo 1 (L8491) | módulo 2 | función/objeto |
 | `CONFIG_PADRE` | módulo 1 (L3856) | clásico 6, clásico 8, módulo 2 | función/objeto |
-| `desactivarGPS` | módulo 1 (L5897) | módulo 2 | función/objeto |
 | `enviarMensaje` | módulo 1 (L3716) | módulo 2, módulo 3, módulo 4 | función/objeto |
 | `enviarMensajeConConfirmacion` | módulo 1 (L3717) | módulo 2 | función/objeto |
 | `estadoPadre` | módulo 1 (L4020) | clásico 7, módulo 2, módulo 4 | función/objeto |
