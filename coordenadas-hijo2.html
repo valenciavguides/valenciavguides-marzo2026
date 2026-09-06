@@ -697,7 +697,6 @@ const estadoComponente = {
     },
     retoActivo: false, // Flag para saber si hay un reto en progreso
     ubicacionActiva: false, // Flag para saber si ubicación está activa
-    paradaPendiente: false, // Flag para saber si la parada tiene pending en el padre
     posicionActualUsuario: null, // {lat, lng} Posición GPS recibida del padre
     timestampSalioDeRango: null, // Timestamp cuando salió del rango real (rangoMaximo: 15m parada / toleranciaGPS tramo)
     ayudaFueraDeRangoActiva: false, // Flag: true en cuanto se detecta fuera de rango real — habilita ubicación/mapas AL INSTANTE, sin esperar la gracia (ver _habilitarAyudaFueraDeRango)
@@ -1892,7 +1891,6 @@ try {
         estadoComponente.idParadaActual = null;
         estadoComponente.distanciaAlDestino = null;
         estadoComponente.posicionActualUsuario = null;
-        estadoComponente.paradaPendiente = false;
         estadoComponente.btnAvanzarCompletadoPorPadre = false;
         estadoComponente.btnAvanzarDeshabilitadoExternamente = false;
         estadoComponente.retoActivo = false;
@@ -2651,7 +2649,6 @@ globalThis.addEventListener('pagehide', () => {
         const ttlMs = datos?.ttlMs || null;
         logger.info(`${logPrefix} PENDING_INICIADO para ${padreId} ttl=${ttlMs}`);
         if (_esPadreIdActual(padreId)) {
-            estadoComponente.paradaPendiente = true;
             if (elementosDOM.btnUbicacion) { desactivarBoton(elementosDOM.btnUbicacion); estadoComponente.botonesActivos.ubicacion = false; }
             actualizarEstado('Pendiente creado: esperando condiciones', 'info');
         }

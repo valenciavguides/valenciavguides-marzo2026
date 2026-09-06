@@ -681,7 +681,6 @@
         inicializado: false,
         modo: { actual: 'aventura' }
         ,padreIdActual: null
-        ,paradaPendiente: false
         ,hijoListoEnviado: false  // Flag para evitar envío duplicado de HIJO_LISTO
     };
 
@@ -1926,11 +1925,29 @@
                         const motivo = mensaje.datos?.motivo || 'iniciado';
                         logger.info(`${logPrefix} PENDING_INICIADO para ${padreId}: ${motivo}`);
                         if (padreId && padreId === estado.padreIdActual) {
-                            // Hide any active reto UI and prevent further interaction until pending resolves
+                            // Solo se acusa recibo. NO se toca la UI del reto, y es deliberado:
+                            // este aviso significa "el padre ha empezado a seguir la complecion de
+                            // esta parada" (§13), no "el usuario ha salido del reto".
+                            //
+                            // Antes hacia `estado.retoActualId = null` + `ocultarControles()`, y eso
+                            // borraba el reto que el usuario tenia abierto:
+                            //   · btnEnviar → display:none, desaparecia
+                            //   · btnMostrarRespuesta → disabled, visible pero inerte
+                            //   · btnSaltarReto → intacto, pero su listener abre con
+                            //     `if (!estado.retoActualId) return`, asi que dejaba de hacer nada
+                            // Tres botones rotos de golpe, unos segundos despues de abrir el reto.
+                            //
+                            // Ocurre porque ensurePending() (codigo-padre.html) emite este aviso al
+                            // CREAR el pending, y eso puede pasar con el reto ya abierto. En modo
+                            // CASA es lo normal: el boton de retos se habilita nada mas cambiar de
+                            // parada (§29.8), asi que el reto se abre antes de que exista pending
+                            // alguno. En AVENTURA el reto solo se abre tras acabar el audio (§29.7)
+                            // y para entonces el pending ya esta creado — protegido por el orden,
+                            // no por diseño.
+                            //
+                            // El antiguo `estado.paradaPendiente` de este fichero se elimino con
+                            // esto: no lo leia nadie. hijo2 tiene un campo homonimo, aparte.
                             try {
-                                estado.retoActualId = null;
-                                estado.paradaPendiente = true;
-                                ocultarControles();
                                 await enviarMensaje({ tipo: TIPOS_MENSAJE.SISTEMA.ACK, origen: CONFIG_HIJO.IFRAME_ID, destino: mensaje.origen, datos: { mensaje: 'PENDING_INICIADO recibid' } });
                             } catch (err) { logger.warn(`${logPrefix} Error procesando PENDING_INICIADO:`, err); }
                         }

@@ -2882,7 +2882,7 @@ click 2: classList.remove('mostrado') // #respuestaCorrectaTexto oculto
 |------|--------------|-----------|-----------------|
 | `opcion` (radio) | `<input type="radio" name="reto-opts">` × N | Solo 1 seleccionable | Borde verde/rojo en el label seleccionado |
 | `opcion-multiple` (checkbox) | `<input type="checkbox">` × N | N seleccionables | Mismo esquema visual |
-| `texto` | `<input type="text" id="reto-texto-input">` | Comparación string normalizada | Borde del input |
+| `texto` | `<input type="text" id="respuestaTexto">` | **Ninguna: siempre correcta** (`esCorrecto = true` en `verificar()`) — pregunta de reflexión libre, ver §13 | Borde del input |
 | `puzzle` | `<iframe id="puzzle-iframe-reto">` (ocupa `100dvh`) | `puzzle-state-completed` recibido | Border verde (via puzzle.html) |
 
 #### Sub-iframe puzzle.html en modo reto
@@ -4841,7 +4841,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2b3d8a636c6f'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-2f27bc905895'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -5975,6 +5975,20 @@ padre ensurePending(key) L9300
   → populatePendingCoords(key) — obtiene coords del destino async (via solicitarCoordenadasHijo)
 padre → hijo2/3/4   SISTEMA.NOTIFICACION { evento:'PENDING_INICIADO', padreId, ttlMs }
 ```
+
+**Qué hace cada hijo al recibirlo — y qué no debe hacer:**
+
+| Hijo | Acción |
+|---|---|
+| **hijo2** | `_manejarPendingIniciado()`: **deshabilita `#btn-ubicacion`** mientras el pending esté abierto |
+| **hijo3** | No tiene handler. El padre se lo envía igualmente |
+| **hijo4** | **Solo acusa recibo con `SISTEMA.ACK`. No toca la UI del reto** |
+
+> **El aviso significa "el padre ha empezado a seguir la compleción de esta parada", no "el usuario ha salido del reto".** hijo4 llegaba a hacer `estado.retoActualId = null` + `ocultarControles()` al recibirlo, y eso rompía tres botones de golpe con el reto ya abierto: `btnEnviar` pasaba a `display:none` (desaparecía), `btnMostrarRespuesta` quedaba `disabled` (visible pero inerte) y `btnSaltarReto`, aunque intacto, dejaba de funcionar porque su listener abre con `if (!estado.retoActualId) return`.
+>
+> Ocurría porque `ensurePending()` emite el aviso **al crear** el pending, y eso puede pasar con el reto ya abierto. **En modo CASA es el caso normal**: `#botonRetos` se habilita nada más cambiar de parada (§29.8), así que el usuario abre el reto antes de que exista pending alguno; el primer `ensurePending()` llega después, desde el camino del audio o de la llegada. En AVENTURA el reto solo se abre tras terminar el audio (§29.7) y para entonces el pending ya está creado — **protegido por el orden de los eventos, no por diseño**, que es exactamente por lo que hacía falta arreglarlo en hijo4 y no confiar en la secuencia.
+>
+> Ninguno de los dos hijos guarda ya un flag `paradaPendiente`: tanto el de `retos-hijo4.html` como el de `coordenadas-hijo2.html` se escribían y **no los leía ningún punto de sus ficheros**, así que se eliminaron. Lo que sí persiste es el efecto real en hijo2: `#btn-ubicacion` queda deshabilitado. Cubierto por `tests/e2e/50-pending-iniciado-no-borra-reto.spec.js`; PI-4 comprueba el control —un aviso de otra parada tampoco toca nada—.
 
 **`PENDING_CANCELADO` eliminado (ronda 2026-08-16)** — su único emisor real era `cancelarPending()`, que a su vez solo la llamaba el mecanismo de fuera-de-rango de `pendingCompleciones` eliminado en §9.2.3 (nunca se activaba en la práctica). Se quitaron `cancelarPending()`, el evento, y sus 2 handlers receptores reales (`_manejarPendingCancelado` en hijo2 L2762; el bloque equivalente en hijo4 — hijo3 nunca lo manejó, era ya un hueco preexistente sin relación con este cambio).
 
@@ -7918,7 +7932,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-2b3d8a636c6f'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-2f27bc905895'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8566,7 +8580,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-2b3d8a636c6f';
+const CACHE_VERSION = 'v-2f27bc905895';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9136,7 +9150,6 @@ Si el desarrollador quiere inspeccionar el estado sin reiniciar la sesión (por 
    - `idParadaActual` → `null`
    - `distanciaAlDestino` → `null`
    - `posicionActualUsuario` → `null`
-   - `paradaPendiente` → `false`
    - `btnAvanzarCompletadoPorPadre` → `false` — impide que `btn-avanzar` quede "pegado" habilitado (§29.6) al volver a CASA aunque hubiera quedado genuinamente habilitado en AVENTURA
    - `btnAvanzarDeshabilitadoExternamente` → `false`
    - `timestampSalioDeRango` → `null` (dato informativo de cuándo empezó la salida de rango, no gatea ningún countdown visual — ver §31.4)
@@ -11797,7 +11810,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-2b3d8a636c6f';
+const CACHE_VERSION = 'v-2f27bc905895';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
