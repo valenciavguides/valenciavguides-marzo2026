@@ -8620,6 +8620,28 @@ if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = ne
                         // verificarTimeoutAventura() no puede concluir nada.
                         const _TTL_AVENTURA = 7 * 24 * 60 * 60 * 1000;
                         const _ttlSuperado = !!datosGuardados.timestamp && (Date.now() - datosGuardados.timestamp > _TTL_AVENTURA);
+
+                        // El INDICE hace falta AQUI, antes de decidir. verificarTimeoutAventura()
+                        // lee `tiempoEstimado` de __vv_INDICE_AVENTURAS y, si no lo encuentra,
+                        // devuelve { excedido: false } — es decir, "no puedo medir" se convierte
+                        // en "no ha caducado" y se ofrece reanudar una sesión muerta. Falla
+                        // ABIERTO, que en una ventana de compra es el lado malo.
+                        //
+                        // El índice NO es contenido de pago: son 6 KB de catálogo (nombres,
+                        // duración, disponibilidad) que las pantallas gratuitas necesitan para
+                        // listar aventuras. Por eso se carga aquí y no espera a P14 — a
+                        // diferencia de coordenadas, audios, retos, mapas vintage y puzzles, que
+                        // sí lo son y siguen cargándose en P14 (§7.1).
+                        if (!globalThis.__vv_INDICE_AVENTURAS) {
+                            try {
+                                const { INDICE_AVENTURAS: _IDX, MAPEO_IDIOMAS: _MAP } = await import('./js/indice-aventuras.js');
+                                globalThis.__vv_INDICE_AVENTURAS = _IDX;
+                                globalThis.__vv_MAPEO_IDIOMAS = globalThis.__vv_MAPEO_IDIOMAS || _MAP;
+                            } catch (idxErr) {
+                                (globalThis.logger || console).error(`${logPrefix} No se pudo cargar el índice para comprobar la ventana de compra:`, idxErr?.message);
+                            }
+                        }
+
                         let _ventanaCompraExcedida = false;
                         try {
                             _ventanaCompraExcedida = (typeof verificarTimeoutAventura === 'function') && verificarTimeoutAventura()?.excedido === true;
@@ -8682,26 +8704,23 @@ await _comprobarReanudacionAventura(logPrefix);
                 (globalThis.logger || console).success(`${logPrefix} ✅ Mensajería validada`);
 
                 // ============================================================
-                // 📦 FASE 2: CARGAR DATOS DE AVENTURAS (archivos .js)
-                // Los datos deben estar completamente cargados ANTES de FASE 3
+                // 📦 FASE 2 (datos de aventura): NO se ejecuta aqui — se ejecuta en P14.
                 // ============================================================
-                (globalThis.logger || console).info(`${logPrefix} 🚀 Ejecutando FASE 2: Carga de datos de aventuras...`);
-                updateLoadingStatus('Cargando datos...', 'Preparando información de aventuras');
-                try {
-                    if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
-                        const datosCargados = await globalThis.__cargarDatosAventuraDiferidos();
-                        if (datosCargados) {
-                            (globalThis.logger || console).success(`${logPrefix} ✅ FASE 2 COMPLETADA - Datos de aventuras listos`);
-                            (globalThis.logger || console).info(`${logPrefix} 📊 Datos cargados: coordenadas, audios, retos, índice`);
-                        } else {
-                            (globalThis.logger || console).error(`${logPrefix} ❌ FASE 2 falló - Los datos no se cargaron correctamente`);
-                        }
-                    } else {
-                        (globalThis.logger || console).warn(`${logPrefix} ⚠️ Función __cargarDatosAventuraDiferidos no disponible`);
-                    }
-                } catch (fase2Error) {
-                    (globalThis.logger || console).error(`${logPrefix} ❌ Error en FASE 2:`, fase2Error);
-                }
+                // Aqui habia una llamada a __cargarDatosAventuraDiferidos() sin condicion
+                // alguna. Medido: dejaba las 7 aventuras en memoria —coordenadas, audios,
+                // indice, mapas vintage, puzzles— con `aventuraSeleccionada` vacia y
+                // `_codigoValidadoP13` en false. Es decir, antes de pagar.
+                //
+                // Las pantallas anteriores a P12 son gratuitas: no deben descargar contenido
+                // de pago. La carga pertenece a _hdl_SELECCION_P14_MOSTRADA, que ya la hace
+                // en paralelo con los iframes y el GPS (§7.1, modelo P14).
+                //
+                // Era ademas redundante: P14 la llamaba igual, y el corto-circuito de "ya
+                // cargado" hacia que la segunda vez no hiciera nada.
+                //
+                // Los lectores de __vv_DATOS_AVENTURAS estan cubiertos: todos usan `?.` y
+                // dependen de `aventuraSeleccionada`; el de hijo5 (SOLICITAR_DATOS_PARADAS)
+                // tiene ademas su propia espera con timeout y error ruidoso.
 
                 // ============================================================
                 // 📄 FASE 3: CARGAR IFRAMES HTML (necesitan datos de FASE 2)

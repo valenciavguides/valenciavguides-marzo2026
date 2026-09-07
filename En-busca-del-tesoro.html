@@ -2132,17 +2132,6 @@
       contenedor.appendChild(boton);
     }
 
-    function _calcularTotalesAventura(id, meta, modPadre, modCoord, modRetos, modAudios) {
-      const elementos = modPadre.DATOS_PADRE?.[id]?.es?.elementosIDpadre || [];
-      meta.totalParadas    = elementos.filter(e => e.tipo === 'parada' || e.tipo === 'inicio').length;
-      meta.totalTramos     = elementos.filter(e => e.tipo === 'tramo').length;
-      const retos          = modRetos.RETOS_AVENTURAS?.[id]?.es;
-      meta.totalRetos      = Array.isArray(retos) ? retos.length : 0;
-      const coords         = modCoord.DATOS_AVENTURAS?.[id]?.[meta.claveCoord]?.coordenadas || [];
-      meta.totalMonumentos = coords.filter(c => c.tipo === 'referencia').length;
-      const audios         = modAudios.AUDIOS_AVENTURAS?.[id]?.es;
-      meta.totalAudios     = Array.isArray(audios) ? audios.filter(a => a.file && a.file.trim() !== '').length : 0;
-    }
 
     async function cargarAventurasDinamicamente() {
       const contenedor = document.getElementById('aventuras-dinamicas');
@@ -2151,20 +2140,21 @@
         const modulo = await import(`./js/indice-aventuras.js?v=${Date.now()}`);
         INDICE_AVENTURAS_DATOS = modulo.INDICE_AVENTURAS;
 
-        // 2. Intentar calcular totales dinámicamente (no bloqueante)
-        try {
-          const [modPadre, modCoord, modRetos, modAudios] = await Promise.all([
-            import('./js/aventuras-ID-padre.js'),
-            import('./js/coordenadas-aventuras.js'),
-            import('./js/retos-aventuras.js'),
-            import('./js/audios-aventuras.js')
-          ]);
-          for (const [id, meta] of Object.entries(INDICE_AVENTURAS_DATOS)) {
-            _calcularTotalesAventura(id, meta, modPadre, modCoord, modRetos, modAudios);
-          }
-          _log.info('[SELECCION] Totales calculados dinámicamente');
-        } catch (totalesErr) {
-          _log.warn('[SELECCION] No se pudieron calcular totales dinámicos, usando 0:', totalesErr);
+        // 2. Los totales vienen YA en el índice, precalculados.
+        //
+        // Antes se importaban aqui los CUATRO ficheros de datos —aventuras-ID-padre (1,8 MB),
+        // coordenadas (562 KB), retos (946 KB) y audios— para calcular 35 numeros enteros:
+        // ~2 MB de contenido de pago descargados en la pantalla de seleccion, antes de
+        // introducir ningun codigo (§22.12).
+        //
+        // El indice son 6 KB y ya se carga de todos modos. Que los numeros no se queden
+        // obsoletos lo vigila `npm run verificar-totales`, que los recalcula desde la fuente
+        // y falla si difieren — un dato precalculado sin verificador miente en silencio.
+        const _sinTotales = Object.entries(INDICE_AVENTURAS_DATOS)
+          .filter(([, meta]) => meta.totalParadas === undefined)
+          .map(([id]) => id);
+        if (_sinTotales.length > 0) {
+          _log.error(`[SELECCION] Sin totales en el índice para: ${_sinTotales.join(', ')} — regenerar con: npm run verificar-totales -- --escribir`);
         }
 
         const idioma = idiomaSeleccionado || 'es';

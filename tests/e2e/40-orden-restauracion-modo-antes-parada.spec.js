@@ -89,8 +89,14 @@ test.describe('OR — Orden modo/parada en la restauración de sesión', () => {
     expect(modoEnElMomento).toBe('aventura');
 
     await page.evaluate(() => { globalThis.estadoPadre.gps = globalThis.estadoPadre.gps || {}; globalThis.estadoPadre.gps.proximidadReal = true; });
-    await page.waitForTimeout(11000);
-    const cartel = await page.evaluate(() => !!document.getElementById('cartel-recordatorio-audio'));
+    // Se espera AL CARTEL, no a un tiempo. Antes eran 11 s fijos para un aviso que aparece
+    // a los 10: un segundo de margen, que la máquina cargada se come — cayendo solo en
+    // tandas completas (EJE 23). El margen amplio de aquí no oculta nada: si el cartel no
+    // llegara, el test sigue fallando, solo que sin depender de cuán rápida sea la máquina.
+    const cartel = await page.waitForFunction(
+      () => !!document.getElementById('cartel-recordatorio-audio'),
+      null, { timeout: 30000 }
+    ).then(() => true).catch(() => false);
     expect(cartel, 'con el modo ya en aventura cuando se procesa la parada, el recordatorio debe arrancar solo').toBe(true);
   });
 });

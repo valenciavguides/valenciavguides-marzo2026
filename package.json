@@ -15,6 +15,7 @@
     "verificar-media": "node tools/verificar-media.js",
     "verificar-docs": "node tools/verificar-docs.js",
     "verificar-esperas": "node tools/verificar-esperas.js",
+    "verificar-totales": "node tools/verificar-totales-indice.js",
     "generar-guiones": "node tools/generar-guiones-aventuras.mjs",
     "generar-tramos-video": "node tools/generar-tramos-para-videos.mjs",
     "lint": "eslint \"js/**/*.js\" \"*.html\"",

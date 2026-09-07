@@ -38,6 +38,15 @@ test.describe('TW — Temporizador de compra: reloj real al reanudar y bloqueo e
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
+    // Los datos de aventura ya NO se cargan en el arranque: pertenecen a P14, porque las
+    // pantallas anteriores son gratuitas y no deben descargar contenido de pago (§7.1).
+    // Este spec necesita el índice, así que lo pide explícitamente — como ya hacían los
+    // otros 16 specs que leen datos.
+    await page.evaluate(async () => {
+      if (typeof globalThis.__cargarDatosAventuraDiferidos === 'function') {
+        await globalThis.__cargarDatosAventuraDiferidos();
+      }
+    });
     await page.waitForFunction(
       () => typeof globalThis._iniciarTemporizadorAventura === 'function'
         && !!globalThis.__vv_INDICE_AVENTURAS?.Aventura1,
