@@ -91,13 +91,51 @@ test.describe('DOM de iframes — estructura antes de selección de aventura', (
     expect(val).toBeNull();
   });
 
-  test('1c. globalThis.__vv_RETOS_AVENTURAS es null antes de seleccionar aventura', async ({ page }) => {
-    const val = await page.evaluate(() => globalThis.__e2e_datosAventuraSnapshot?.retos);
-    expect(val).toBeNull();
-  });
+  // Se retiro el test equivalente para __vv_RETOS_AVENTURAS: retos-aventuras.js ya no se
+  // carga en Fase 2 (nadie leia su contenido, ver §22.12), asi que ese global no se puebla
+  // NUNCA y el test pasaria siempre — con y sin el fallo que pretendia detectar. Un verde
+  // vacuo del tipo que describe el EJE 24. Los otros dos siguen midiendo algo real, porque
+  // datos y audios si se pueblan en Fase 2.
 
   test('1c. globalThis.__cargarDatosAventuraDiferidos existe como función', async ({ page }) => {
     const ok = await page.evaluate(() => typeof globalThis.__cargarDatosAventuraDiferidos === 'function');
     expect(ok).toBe(true);
+  });
+
+  /**
+   * La Fase 2 se llama desde TRES sitios (P14, restauración y AVENTURA_ACTIVADA), así que
+   * su corto-circuito de "ya cargado" no es una optimización opcional: sin él, cada llamada
+   * reimporta y reasigna los datos.
+   *
+   * Este test existe porque ese corto-circuito comprobaba `__vv_RETOS_AVENTURAS`, un global
+   * que dejó de poblarse al sacar retos-aventuras.js de la Fase 2 (§22.12).
+   *
+   * NO se mide por tiempo. Se intentó, y era un test VACUO: con los módulos ya en caché la
+   * segunda ejecución completa tarda lo mismo que el corto-circuito, así que pasaba con y
+   * sin el fallo. Se detecta con un centinela: se sustituye el global por un objeto marcado
+   * —que sigue siendo truthy, de modo que el corto-circuito real lo respeta— y se comprueba
+   * que sobrevive. Si la Fase 2 se re-ejecutara, lo machacaría con los datos de verdad.
+   */
+  test('1c. La segunda llamada a __cargarDatosAventuraDiferidos no recarga los datos', async ({ page }) => {
+    const r = await page.evaluate(async () => {
+      globalThis.aventuraSeleccionada = 'Aventura1';
+      globalThis.idiomaSeleccionado = 'es';
+      await globalThis.__cargarDatosAventuraDiferidos();
+      const cargoLaPrimera = globalThis.__vv_DATOS_AVENTURAS != null;
+
+      globalThis.__vv_DATOS_AVENTURAS = { __centinela: true };
+      await globalThis.__cargarDatosAventuraDiferidos();
+
+      return {
+        cargoLaPrimera,
+        centinelaSobrevive: globalThis.__vv_DATOS_AVENTURAS?.__centinela === true,
+      };
+    });
+
+    expect(r.cargoLaPrimera, 'la primera llamada debe cargar los datos').toBe(true);
+    expect(
+      r.centinelaSobrevive,
+      'la segunda llamada ha vuelto a cargar: el corto-circuito no está cortando'
+    ).toBe(true);
   });
 });

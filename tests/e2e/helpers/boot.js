@@ -162,7 +162,6 @@ async function gotoAndWaitForFase1(page) {
           globalThis.__e2e_datosAventuraSnapshot = {
             datos: globalThis.__vv_DATOS_AVENTURAS ?? null,
             audios: globalThis.__vv_AUDIOS_AVENTURAS ?? null,
-            retos: globalThis.__vv_RETOS_AVENTURAS ?? null,
           };
         }
         return true;

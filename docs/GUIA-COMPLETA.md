@@ -4842,7 +4842,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7a9fdf1e2391'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-155691a7eb34'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7956,7 +7956,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-7a9fdf1e2391'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-155691a7eb34'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8621,7 +8621,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-7a9fdf1e2391';
+const CACHE_VERSION = 'v-155691a7eb34';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11853,7 +11853,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-7a9fdf1e2391';
+const CACHE_VERSION = 'v-155691a7eb34';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13188,6 +13188,27 @@ Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se l
 
    Regla práctica: antes de concluir "esto no funciona en Safari", reproducirlo con un **segundo método de medición**. Si los dos coinciden, es del código; si no, es del arnés.
 
+#### La herramienta: `npm run verificar-esperas` — un trinquete, no una prohibición
+
+La regla "espera a una condición, no a un tiempo" se aplicaba **al auditar** y se olvidaba **al escribir**. El resultado, en una sola sesión: tres esperas ciegas nuevas, las tres detectadas *después*, al ver el rojo en una tanda completa.
+
+`tools/verificar-esperas.js` las detecta al escribirlas. No prohíbe —hay 160 heredadas y 160 avisos taparían la señal—: fija una **línea base que solo puede bajar**. Añadir una espera ciega nueva falla con código 1; arreglar una vieja permite bajar la base con `--actualizar`, y ya no puede volver a subir.
+
+| Comando | Qué hace |
+|---|---|
+| `npm run verificar-esperas` | comprueba contra la base (falla si sube) |
+| `npm run verificar-esperas -- --listar` | enseña dónde están todas |
+| `npm run verificar-esperas -- --actualizar` | baja la base cuando el número ha bajado |
+
+**La excepción legítima es la ventana de observación**: comprobar que algo **no** ocurre no se puede hacer esperando a una condición — no hay condición a la que esperar. Se marca con un comentario que obliga a explicar el motivo, y entonces no cuenta:
+
+```js
+// VENTANA-OBSERVACION: RC-2 comprueba que sin pulsar el botón verde NUNCA se envía RETO.COMPLETADO
+await page.waitForTimeout(8000);
+```
+
+Marcarlas sin motivo derrota la herramienta: la marca es para las cuatro o cinco esperas que de verdad lo son, no para silenciar el aviso.
+
 #### Caso resuelto: la rama lenta de `enviarMensaje()` en los hijos cargados sueltos
 
 El caso más instructivo de sleep ciego del proyecto, porque la causa era **aritmética exacta** y no se veía sin medirla.
@@ -13296,6 +13317,7 @@ El proyecto se desarrolla actualmente en local, sin el flujo de pago implementad
 7. **`npm run verificar-docs` revisado** — cada fichero que aparece en su salida se ha comprobado a mano en la guía; las secciones que necesitaban actualizarse ya lo están.
 8. **Ningún `test.skip` sin revalidar** (EJE 27.3) — cada uno se ha quitado y ejecutado al menos una vez en esta ronda; los que sigan puestos llevan escrita la causa que falla **hoy**, medida, y ninguno se justifica citando a otro `skip`.
 9. **Ninguna decisión resuelta por dos caminos** (EJE 27.1) — por cada mecanismo duplicado, o se ha eliminado uno, o el fallback es **ruidoso**: si el camino principal cae, alguien se entera.
+10. **`npm run verificar-esperas` sin esperas nuevas** (EJE 23) — la línea base solo baja. Las marcadas como `VENTANA-OBSERVACION` llevan escrito por qué esperar un tiempo fijo es ahí lo correcto.
 
 **Por qué hace falta esta lista:** los ejes 1-27 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
 

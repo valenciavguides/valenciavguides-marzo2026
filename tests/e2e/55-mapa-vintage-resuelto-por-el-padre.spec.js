@@ -50,14 +50,34 @@ async function prepararPadreConDatos(page) {
   });
 }
 
-async function pedirMapaVintage(page, datos) {
-  await page.evaluate((d) => {
-    globalThis.postMessage({
-      tipo: 'NAVEGACION.MOSTRAR_MAPA_VINTAGE', origen: 'hijo2', destino: 'padre', datos: d,
-    }, globalThis.location.origin);
-  }, datos);
-  await page.waitForTimeout(700);
+/**
+ * Envía la petición REINTENTANDO hasta que el padre la procesa.
+ *
+ * `mensajeria.js` no reintenta: un mensaje que llega antes de que su handler esté
+ * registrado se pierde en silencio. Un `waitForTimeout` fijo bastaba en local y fallaba en
+ * tandas completas —medido— porque el registro tarda más con la máquina cargada. Y esperar
+ * al registro tampoco sirve: los handlers del padre no aparecen en el registro central del
+ * state-manager (`getControladoresPorTipo()` devuelve 0), así que no hay señal que observar.
+ *
+ * Se reenvía hasta que `haOcurrido()` dice que sí. Es el mismo patrón que ya usan
+ * 43-saltar-reto-puzzle-roto y 50-pending-iniciado-no-borra-reto para el mismo problema.
+ */
+async function pedirMapaVintageHasta(page, datos, haOcurrido, descripcion) {
+  const limite = Date.now() + 20000;
+  while (Date.now() < limite) {
+    await page.evaluate((d) => {
+      globalThis.postMessage({
+        tipo: 'NAVEGACION.MOSTRAR_MAPA_VINTAGE', origen: 'hijo2', destino: 'padre', datos: d,
+      }, globalThis.location.origin);
+    }, datos);
+    await page.waitForTimeout(400);
+    if (await haOcurrido()) return;
+  }
+  throw new Error(`No ocurrió tras 20s: ${descripcion}`);
 }
+
+/** Cuántas veces se ha abierto el overlay de imagen. */
+const vecesOverlay = (page) => page.evaluate(() => globalThis.__vv_overlayLlamadas.length);
 
 test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
 
@@ -65,6 +85,7 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
     // Resource Timing, no page.route(): en WebKit la interceptación no ve todo (ver EI-4).
     await page.goto('/coordenadas-hijo2.html');
     await page.waitForLoadState('networkidle');
+    // VENTANA-OBSERVACION: MV-1 comprueba que hijo2 NO pide el fichero de datos; hay que dar tiempo a que se pidiera si fuera a pedirse
     await page.waitForTimeout(1200);
 
     const pedidos = await page.evaluate(() =>
@@ -77,10 +98,11 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
 
   test('MV-2. El padre resuelve la URL de una aventura con mapa', async ({ page }) => {
     await prepararPadreConDatos(page);
-    await pedirMapaVintage(page, { accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'Aventura1' });
-
+    await pedirMapaVintageHasta(
+      page, { accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'Aventura1' },
+      async () => (await vecesOverlay(page)) > 0, 'el overlay no se abrió'
+    );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
-    expect(llamadas.length, 'debe abrirse el overlay con la imagen').toBeGreaterThan(0);
     expect(llamadas[0].url, `url recibida: ${llamadas[0]?.url}`).toContain('imagenes-mapas-vintage');
   });
 
@@ -89,26 +111,29 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
     page.on('console', (m) => logs.push(m.text()));
     await prepararPadreConDatos(page);
     // AventuraFallas está comentada en mapa-vintage-aventuras.js: su mapa no existe aún.
-    await pedirMapaVintage(page, { accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'AventuraFallas' });
+    // Se espera al AVISO, que es la señal de que el padre ya procesó el mensaje, y solo
+    // entonces se comprueba que no abrió nada. Al revés se daría por bueno un "no pasó
+    // nada" que en realidad era "aún no ha pasado".
+    await pedirMapaVintageHasta(
+      page, { accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'AventuraFallas' },
+      async () => logs.some((l) => l.includes('No hay mapa vintage')), 'no hubo aviso en consola'
+    );
 
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
     expect(llamadas.length, 'sin mapa no debe abrirse ningún overlay').toBe(0);
-    expect(
-      logs.some((l) => l.includes('No hay mapa vintage')),
-      'y debe quedar constancia en consola'
-    ).toBe(true);
   });
 
   test('MV-4. El padre ignora una url enviada en el mensaje y usa su propia fuente', async ({ page }) => {
     await prepararPadreConDatos(page);
     // Si el padre confiara en la url del mensaje, habría DOS fuentes para el mismo dato.
-    await pedirMapaVintage(page, {
-      accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'Aventura1',
-      url: 'imagenes/SUPLANTADA.jpg',
-    });
-
+    await pedirMapaVintageHasta(
+      page, {
+        accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'Aventura1',
+        url: 'imagenes/SUPLANTADA.jpg',
+      },
+      async () => (await vecesOverlay(page)) > 0, 'el overlay no se abrió'
+    );
     const llamadas = await page.evaluate(() => globalThis.__vv_overlayLlamadas);
-    expect(llamadas.length).toBeGreaterThan(0);
     expect(llamadas[0].url, 'la url del mensaje no debe usarse').not.toContain('SUPLANTADA');
     expect(llamadas[0].url).toContain('imagenes-mapas-vintage');
   });

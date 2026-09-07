@@ -97,8 +97,9 @@ export function registrarControladoresDatos({
                 logger.debug(`${logPrefix} Contexto no listo (aventura/idioma), omitiendo envío`);
                 return;
             }
-            // __vv_TEXTOS_AVENTURAS tiene arrays planos sin clave de idioma.
-            // cargarTextos() ensambla {id, title, content} correctamente.
+            // cargarTextos() es el unico camino a los textos: textos-aventuras.js ya no se
+            // carga en ningun global (§22.12). Ademas ensambla {id, title, content} con los
+            // parrafos del idioma — el fichero crudo son arrays planos sin clave de idioma.
             const { cargarTextos } = await import('./data-loader.js');
             const textos = await cargarTextos(aventura, idioma) || [];
             if (textos.length === 0) {

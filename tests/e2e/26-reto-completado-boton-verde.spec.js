@@ -131,6 +131,7 @@ test.describe('RC — RETO.COMPLETADO se confirma al pulsar el botón verde, no 
     await enviarRetoMostrarYEsperar(page);
 
     await page.locator('.btn', { hasText: '🫵' }).click({ timeout: 5000 });
+    // VENTANA-OBSERVACION: RC-2 comprueba que sin pulsar el botón verde NUNCA se envía RETO.COMPLETADO
     await page.waitForTimeout(8000);
 
     expect(huboIntentoDeEnvio(logs), 'Sin pulsar el botón verde, nunca debe intentarse el envío de RETO.COMPLETADO').toBe(false);

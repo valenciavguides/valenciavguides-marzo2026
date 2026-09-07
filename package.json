@@ -14,6 +14,7 @@
     "verificar-mensajeria": "node tools/verificar-mensajeria.js",
     "verificar-media": "node tools/verificar-media.js",
     "verificar-docs": "node tools/verificar-docs.js",
+    "verificar-esperas": "node tools/verificar-esperas.js",
     "generar-guiones": "node tools/generar-guiones-aventuras.mjs",
     "generar-tramos-video": "node tools/generar-tramos-para-videos.mjs",
     "lint": "eslint \"js/**/*.js\" \"*.html\"",

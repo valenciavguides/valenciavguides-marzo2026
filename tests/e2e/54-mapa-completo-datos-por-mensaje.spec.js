@@ -30,6 +30,7 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
   test('MC-1. Abierto por URL no muestra ruta ni monumentos, y avisa', async ({ page }) => {
     await page.goto('/mapa-completo.html?aventura=Aventura1');
     await page.waitForLoadState('networkidle');
+    // VENTANA-OBSERVACION: MC-1 comprueba que sin padre NO se pinta nada; hay que dar margen a que se pintara si fuera a pintarse
     await page.waitForTimeout(1500);
 
     const r = await page.evaluate(() => ({
@@ -48,6 +49,7 @@ test.describe('MC — mapa-completo recibe los datos por mensaje, no por import'
     // ve todas las peticiones (ver EI-4 en 49-escalera-espera-imagen.spec.js).
     await page.goto('/mapa-completo.html?aventura=Aventura1');
     await page.waitForLoadState('networkidle');
+    // VENTANA-OBSERVACION: MC-2 comprueba que NO se descarga coordenadas-aventuras.js; una condición no puede esperar a algo que no ocurre
     await page.waitForTimeout(1000);
 
     const pedidos = await page.evaluate(() =>
