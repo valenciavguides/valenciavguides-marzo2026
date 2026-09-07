@@ -63,24 +63,16 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
     expect(borderColor).toBe('rgb(0, 128, 0)');
   });
 
-  // PZ-2 sigue saltado en WebKit por un fallo REAL de puzzle.html, no del arnés:
+  // Este test corre en los CUATRO motores desde que puzzle.html recalcula la escala en
+  // `load`. Antes fallaba solo en WebKit por un fallo real del fichero, no del arnés: el
+  // <script> de cabecera fija la fuente raíz ANTES del <meta name="viewport">, cuando
+  // innerWidth aún vale 980, y WebKit no dispara `resize` para corregirlo (Chromium sí).
+  // Se quedaba en 980*0.025 = 24.5px —2,5x de más— y como el fichero mide todo en `em`,
+  // #errorMsg se inflaba de y 288-439 a y 77-588, sepultaba la barra de botones y
+  // elementFromPoint sobre #skipBtn devolvía #errorMsg: el clic nunca llegaba.
   //
-  // El <script> de la cabecera (puzzle.html ~L4-L16) fija el tamaño de fuente raíz por
-  // estilo en línea —que gana al clamp() del CSS— con `Math.min(w,h) * 0.025`, pero corre
-  // ANTES del <meta name="viewport"> de la línea 19. En ese instante innerWidth vale 980
-  // en los dos motores (medido). Chromium se autocorrige después; WebKit no dispara
-  // `resize`, así que conserva 980 * 0.025 = 24.5px de raíz — 2.5x de más. Como el fichero
-  // dimensiona todo en `em`, #errorMsg (1.5em de fuente, 2em de padding) se infla de
-  // y 288-439 a y 77-588 y sepulta la barra de botones: elementFromPoint sobre #skipBtn
-  // devuelve #errorMsg, y el clic nunca llega.
-  //
-  // Disparando un `resize` a mano, WebKit baja a 9.75px y el clic entra. Ese es el arreglo
-  // pendiente (llamar a escalar() también en `load`); mientras no se aplique, este test no
-  // puede pasar en WebKit porque el fallo que describe es cierto.
-  //
-  // PZ-1 sí corre en WebKit: no muestra #errorMsg, así que nada tapa el botón.
-  test('PZ-2. Puzzle roto/no encontrado: saltar no explota y avisa al padre igualmente', async ({ page, browserName }) => {
-    test.skip(browserName === 'webkit', 'Bug real de puzzle.html en WebKit: escalar() corre antes del meta viewport y #errorMsg tapa #skipBtn (ver comentario arriba)');
+  // Medido tras el arreglo: #errorMsg queda en y 257-407 y el clic entra en #skipBtn.
+  test('PZ-2. Puzzle roto/no encontrado: saltar no explota y avisa al padre igualmente', async ({ page }) => {
     const errores = [];
     page.on('pageerror', (e) => errores.push(e.message));
     await page.addInitScript(() => {

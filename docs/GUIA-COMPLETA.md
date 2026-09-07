@@ -4842,7 +4842,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-8362fef87095'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-4c1cd97970c1'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7089,9 +7089,9 @@ Junto a los controles normales de cada reto hay un botón ⏩: da el reto/puzzle
 
 **Alcance deliberado — qué NO hace:** el botón no tiene límite de usos ni exige ningún tiempo de espera previo (a diferencia del TTL de tramos, §31.7b, que sí exige 10 minutos y limita a 5 saltos por aventura). La diferencia de fondo: aquí no hay ninguna garantía de presencia física en juego (el usuario ya completó esa parte vía GPS/`recorridoSuficiente` antes de llegar al reto), así que no hace falta ningún límite antiabuso — es puramente "¿quiere ver/hacer este contenido concreto, o prefiere seguir?".
 
-**Cobertura de tests:** `tests/e2e/43-saltar-reto-puzzle-roto.spec.js` — PZ-1/PZ-2 (puzzle válido y roto, ambos avisan al padre; el válido monta las piezas de verdad) y RT-1/RT-2 (reto de opción válido pinta la respuesta correcta y habilita el mundo verde; reto roto también lo habilita, sin excepciones). Los cuatro corren también en WebKit **salvo PZ-2**, que sigue omitido por un fallo real de `puzzle.html` en ese motor (ver abajo).
+**Cobertura de tests:** `tests/e2e/43-saltar-reto-puzzle-roto.spec.js` — PZ-1/PZ-2 (puzzle válido y roto, ambos avisan al padre; el válido monta las piezas de verdad) y RT-1/RT-2 (reto de opción válido pinta la respuesta correcta y habilita el mundo verde; reto roto también lo habilita, sin excepciones). Los cuatro corren en los cuatro motores.
 
-> **PZ-2 en WebKit — fallo del código, no del arnés.** El `<script>` de cabecera de `puzzle.html` fija el tamaño de fuente raíz por estilo en línea (que gana al `clamp()` del CSS) con `Math.min(w,h) * 0.025`, pero corre **antes** del `<meta name="viewport">`. En ese instante `innerWidth` vale 980 en los dos motores; Chromium se autocorrige después, WebKit **no dispara `resize`** y conserva `980 × 0.025 = 24.5px` — 2,5× de más. Como el fichero dimensiona todo en `em`, `#errorMsg` (1.5em de fuente, 2em de padding) pasa de `y 288–439` a `y 77–588`, sepulta la barra de botones y `elementFromPoint` sobre `#skipBtn` devuelve `#errorMsg`: el usuario **no puede saltar un puzzle roto**. Disparando un `resize` a mano baja a 9.75px y el clic entra. Pendiente nº 20.
+> **PZ-2 en WebKit — resuelto.** El `<script>` de cabecera de `puzzle.html` fija el tamaño de fuente raíz por estilo en línea (que gana al `clamp()` del CSS) con `Math.min(w,h) * 0.025`, pero corre **antes** del `<meta name="viewport">`: en ese instante `innerWidth` vale 980 en los dos motores. Chromium se autocorrige después; WebKit **no dispara `resize`** y conservaba `980 × 0.025 = 24.5px` — 2,5× de más. Como el fichero dimensiona todo en `em`, `#errorMsg` se inflaba de `y 288–439` a `y 77–588`, sepultaba la barra de botones y `elementFromPoint` sobre `#skipBtn` devolvía `#errorMsg`. **Arreglado recalculando en `load`**; medido: `#errorMsg` queda en `y 257–407` y el clic entra en `#skipBtn`. En iframe —como vive en la app— nunca hubo problema (9.75px, correcto) y el recálculo es un no-op. Los cuatro tests de la spec corren ya en los cuatro motores.
 
 El usuario final ve este mecanismo explicado en lenguaje llano en la FAQ del asistente de soporte (§27), pregunta `RETOS_NO_CARGA` (grupo `RETOS`): si un reto o puzzle no carga o parece bloqueado, la recomendación es actualizar la página o reabrir la aventura y, si el problema persiste, usar el botón ⏩ para darlo por completado y continuar.
 
@@ -7956,7 +7956,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-8362fef87095'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-4c1cd97970c1'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8277,7 +8277,7 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 17 | Arreglar los dos huecos de `fetchWithRetry()` — el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera a WebKit: **hoy no se ejecuta ni un reintento en iPhone** | §16.1b | ⏳ pendiente |
 | 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
 | 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido (2026-09-06) |
-| 20 | `puzzle.html`: el `<script>` de cabecera calcula la fuente raíz antes del `<meta name="viewport">` y WebKit no dispara `resize` para corregirlo. **No afecta a la app real** (medido: en iframe lee `top.innerWidth`, ya correcto, y da 9.75px en los dos motores); solo se manifiesta cargando la página suelta, donde WebKit conserva 24.5px y `#errorMsg` tapa `#skipBtn`. Mantiene PZ-2 omitido en WebKit. Arreglo: llamar a `escalar()` también en `load` | §7.5 (cobertura de tests) | ⏳ pendiente (bajo) |
+| 20 | `puzzle.html` calculaba la fuente raíz antes del `<meta viewport>` y WebKit no disparaba `resize` | §7.5 | ✅ **resuelto** — recalcula en `load`; PZ-2 encendido y **0 `test.skip` de WebKit en el proyecto** |
 | 21 | Dos mecanismos solapados retiraban el CSP en tests | §22 (servidor de desarrollo) | ✅ **resuelto** — `stripCSPForTesting()` eliminado; queda solo `js/server.js` |
 | 22 | Ningún test carga los hijos como **iframes reales** dentro de `codigo-padre.html`: todos los cargan como página de nivel superior con `postMessage` sintético. Es posible hoy en local —`_hdl_SELECCION_P14_MOSTRADA` es un handler normal y basta con enviarle el mensaje— pero está sin escribir | §7.1 (modelo P14) | ⏳ pendiente |
 | 23 | MD-2/MD-3 caían de forma intermitente en tandas completas | §36.26 (EJE 23) | ✅ **resuelto** — empate exacto a 5.000 ms entre la rama lenta de `enviarMensaje()` y el `expect.poll`; ver §36.26 |
@@ -8621,7 +8621,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-8362fef87095';
+const CACHE_VERSION = 'v-4c1cd97970c1';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11853,7 +11853,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-8362fef87095';
+const CACHE_VERSION = 'v-4c1cd97970c1';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -12758,7 +12758,7 @@ Cada cambio de escena se ve como una hoja de papel real girando sobre sí misma,
 
 ## 36. Metodología de auditoría completa
 
-Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 26 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
+Esta sección define el protocolo estándar para pedir una auditoría exhaustiva del proyecto. Cubre 27 ejes de análisis, cada uno con pasos numerados y formato de reporte estandarizado. Cuando se solicite una auditoría completa, Claude debe recorrer **todos** los ejes en orden, sin omitir ninguno.
 
 **Modalidad ligera (no es auditoría formal):** cuando la petición es una opinión o un vistazo general ("qué opinas", "échale un buen vistazo", "si ves algo que no cuadra apúntalo") sin invocar explícitamente "auditoría completa", no aplica el recorrido obligatorio de los 23 ejes de abajo. Es válido partir del contexto ya acumulado en la sesión (código y documentación ya leídos) en vez de releer todo desde cero — pero cada afirmación concreta que se vaya a reportar como hallazgo, y en particular cualquier cosa citada desde memoria como "pendiente"/"sin arreglar", se verifica puntualmente contra el archivo real antes de darla por cierta (la memoria puede estar desactualizada aunque el documento ya no lo esté). Se reporta la opinión más los hallazgos ya verificados, sin implementar nada hasta que el usuario confirme qué quiere tocar. Esta modalidad NO sustituye el protocolo completo de abajo: si el usuario pide auditoría completa o "revisa todo en cada sección", aplica cobertura total de los 23 ejes, nunca una muestra priorizada por riesgo.
 
@@ -13219,23 +13219,89 @@ Dos matices que conviene no perder:
 
 **Señal de alarma en revisión de código:** un comentario que explica con detalle *por qué* un mecanismo es necesario es, paradójicamente, donde más hay que comprobar que se dispara. Los seis casos de arriba están todos bien comentados; el comentario describe la intención, no lo que ocurre.
 
-### 36.27 Checklist de cierre pre-producción
+### 36.27 EJE 27 — El instrumento también miente
+
+Los veintiséis ejes anteriores auditan **el código**. Este audita **aquello con lo que se comprueba el código**: la suite de tests, el servidor de desarrollo, los `skip`, los comentarios que explican por qué algo es como es, y la propia guía.
+
+**Por qué hace falta un eje aparte.** Un termómetro roto no da error: da números. Si el aparato de medida está mal, todas las medidas salen bien y ninguna auditoría del objeto medido encuentra nada. En dos sesiones aparecieron cinco fallos que habían sobrevivido a auditorías completas, y **ninguno estaba en la app**: estaban en el anillo que la rodea. Los ejes existían —EJE 24 ya avisaba de los verdes vacuos— pero se aplicaban al código, no al instrumento.
+
+#### 27.1 Dos caminos para la misma decisión
+
+> *"No quiero dos caminos, quiero uno solo. La lógica sigue A-B-C: si falla B, C no funciona, y si A funciona ya sabemos dónde está el problema."*
+
+El daño de un segundo camino no es la duplicación: es que **esconde que el primero está roto**. Mientras el fallback funcione, nadie se entera de que la ruta principal murió, y el diagnóstico se vuelve imposible porque el síntoma no aparece donde está la causa.
+
+Casos reales del proyecto, los tres con la misma firma:
+
+| Decisión | Camino 1 | Camino 2 | Qué escondía |
+|---|---|---|---|
+| Retirar el CSP en tests | `js/server.js` (solo `upgrade-insecure-requests`) | `stripCSPForTesting()` (la meta **entera**) | Que el culpable era la directiva de upgrade. Además dejaba la suite **sin CSP**, así que ninguna violación se detectaba |
+| Pedir datos por red | `api-client.js` → `fetchWithRetry()` | `data-loader.js` → `fetchFromAPI()` (sin reintento ni timeout) | Que los cuatro reintentos no se alcanzan nunca (§16.1b) |
+| Apagar el GPS | el guard `activo && watchId` | `desactivarGPS()` | Nada: no tenía ni un llamador. El camino muerto sobrevivió meses porque el vivo funcionaba |
+
+**Cómo auditarlo:** por cada decisión que el sistema toma, contar cuántos mecanismos pueden resolverla. Si hay dos, preguntar cuál está roto sin que nadie se entere — y comprobarlo desactivando el otro.
+
+> **Un fallback de verdad sí vale, pero tiene que ser RUIDOSO.** La regla no es "prohibido el plan B": es que un plan B silencioso convierte un fallo en invisible. Si el camino principal cae, hay que enterarse.
+
+#### 27.2 Verificación asimétrica: lo que me da la razón no cuenta
+
+El sesgo se manifiesta como una asimetría de esfuerzo: **una medida que me contradice la repito; una que me confirma la acepto**. Es al revés de como debería ser.
+
+**La regla:** toda comprobación que confirma lo que ya esperabas hay que repetirla con un **método distinto** antes de reportarla. Las que te contradicen ya se auto-verifican, porque nadie acepta un resultado incómodo sin mirarlo dos veces.
+
+Dos casos medidos:
+
+- **`new Image()` en WebKit.** Con `page.route()` de Playwright la lista de peticiones salía vacía → "WebKit no precarga". Confirmaba la sospecha, así que se dio por buena. Con `performance.getEntriesByType('resource')` —API nativa del motor— **los dos motores descargan**. La primera medida no medía la descarga: medía qué intercepta Playwright.
+- **`#errorMsg` tapando `#skipBtn`.** La primera hipótesis fue geometría y `z-index`. Al medir, no había solape. La causa real era el tamaño de fuente raíz, 2,5× mayor por leer `innerWidth` antes del `<meta viewport>`.
+
+#### 27.3 Un `test.skip` es una afirmación con fecha de caducidad
+
+Un `skip` con su razón escrita no parece una hipótesis: **parece un hecho establecido**. Y a diferencia del código, nadie lo vuelve a ejecutar nunca, así que su justificación no puede caducar a la vista de nadie.
+
+Nueve `test.skip` de WebKit en ocho ficheros se citaban entre ellos —"misma limitación conocida que…"— repitiendo una causa (*SSL connect error*) que había dejado de existir. Al retirarlos, **48 de 49 tests pasaban**. Eran 22 tests apagados en iPhone: botones de retos, control de audio, cambio de modo, saltar reto.
+
+**Cómo auditarlo:** por cada `skip`, quitarlo y ejecutar. Si pasa, la razón caducó. Si falla, reescribir la razón con lo que falla **hoy**, medido — no heredar la redacción anterior. Y nunca justificar un `skip` citando otro `skip`: la cadena hace que una sola causa falsa se propague por todo el proyecto.
+
+#### 27.4 El arnés y el entorno de desarrollo se auditan como se audita la app
+
+`js/server.js` no llega al navegador del usuario, así que quedaba fuera de toda auditoría. Servía los HTML con `upgrade-insecure-requests`, WebKit elevaba `http://localhost` a `https://`, y **la app no arrancaba en el proyecto `iphone12`**: ~300 tests pasando sobre una pantalla de carga congelada.
+
+Antes de concluir *"esto no funciona en \<motor\>"*, reproducirlo con un **segundo método de medición** (EJE 26, punto 6). Si los dos coinciden, es del código; si no, es del arnés.
+
+#### 27.5 Una explicación detallada es el mejor disfraz
+
+Todos los casos de arriba venían con un comentario seguro y bien redactado. El EJE 24 ya lo advierte —*"código, documentación y test en verde coincidiendo es la señal MÁS sospechosa"*— y aun así funcionó, porque **una explicación se lee como evidencia**.
+
+| Lo que decía el comentario | Lo que se midió |
+|---|---|
+| "SSL connect error — limitación del arnés" (×8 ficheros) | Era `upgrade-insecure-requests`; hoy carga con 0 peticiones fallidas |
+| "`'unsafe-inline'` no cubre `<script type=module>` inline en WebKit" | 0 violaciones de CSP y 0 errores con el CSP real |
+| "El postMessage puede llegar antes de que exista el handler" | El handler ya está registrado en `domcontentloaded` (12-18 ms) |
+| "Mapa local para responder a postMessage directos" | `__local_controladores`: 0 lecturas en todo el repo |
+
+**La regla operativa:** cuanto más convincente es el comentario, antes hay que medir lo que afirma. Un mecanismo sin explicar levanta sospechas solo; uno bien explicado se salta la revisión.
+
+---
+
+### 36.28 Checklist de cierre pre-producción
 
 El proyecto se desarrolla actualmente en local, sin el flujo de pago implementado, con la producción como objetivo cercano pero no inmediato. Antes de considerar el proyecto listo para ese lanzamiento, los 23 ejes deben cerrarse con este criterio de aceptación — no basta con "auditoría hecha", hace falta "auditoría en verde":
 
-1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 23 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
+1. **0 hallazgos ❌ CRÍTICO y 0 🕳️ HUÉRFANO sin triar** en los 27 ejes. Los ⚠️ MEDIO deben estar todos con una decisión explícita (corregido, o aceptado y documentado con motivo).
 2. **`npm run lint` sin errores** sobre `js/**/*.js` y `*.html` — incluye la regla `no-console` (todo log pasa por el logger centralizado o tiene su excepción documentada en `eslint.config.js`).
 3. **`npm run test:e2e` en verde en los 4 proyectos de Playwright** (chromium, firefox, pixel5, iphone12), no solo chromium. **Ejecutarlos de uno en uno** (`--project=<nombre>`), no los cuatro en la misma invocación: los 1256 tests seguidos agotan los recursos de proceso de Windows y los workers empiezan a morir con `worker process exited unexpectedly (code=3221225794)` — `0xC0000142`, el proceso no llega a arrancar. Se manifiesta como el primer test de **cada** fichero fallando a partir de cierto punto, con el resto marcado "did not run": patrón de arnés agotado, no de regresión. `workers: 1` ya está fijado en `playwright.config.js` y no lo evita, porque el agotamiento es acumulativo.
 4. **`npm run verificar-mensajeria` sin huérfanos sin revisar** — todo tipo de `TIPOS_MENSAJE` marcado como sin emisor o sin receptor por la herramienta ha sido verificado a mano y clasificado (huérfano real → eliminado; falso positivo de la heurística → descartado con motivo).
 5. **`npm run inventory:dupes` sin duplicados sin resolver** — cada nombre duplicado tiene una decisión explícita (una versión es la única real y la otra se eliminó, o ambas coexisten por una razón documentada).
 6. Contraste guía vs. código (EJE 20) ejecutado sobre la totalidad de `docs/GUIA-COMPLETA.md`, no solo sobre las secciones tocadas en la última ronda de cambios.
 7. **`npm run verificar-docs` revisado** — cada fichero que aparece en su salida se ha comprobado a mano en la guía; las secciones que necesitaban actualizarse ya lo están.
+8. **Ningún `test.skip` sin revalidar** (EJE 27.3) — cada uno se ha quitado y ejecutado al menos una vez en esta ronda; los que sigan puestos llevan escrita la causa que falla **hoy**, medida, y ninguno se justifica citando a otro `skip`.
+9. **Ninguna decisión resuelta por dos caminos** (EJE 27.1) — por cada mecanismo duplicado, o se ha eliminado uno, o el fallback es **ruidoso**: si el camino principal cae, alguien se entera.
 
-**Por qué hace falta esta lista:** los ejes 1-22 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
+**Por qué hace falta esta lista:** los ejes 1-27 dicen cómo auditar cada aspecto, pero ninguno define cuándo el conjunto completo está "suficientemente limpio" para lanzar. Sin un criterio de cierre explícito, es posible declarar "auditoría completa" con hallazgos ⚠️ o 🕳️ todavía abiertos y perder de vista cuáles quedaron pendientes de una ronda a la siguiente.
 
 ---
 
-### 36.28 Formato del reporte de auditoría
+### 36.29 Formato del reporte de auditoría
 
 Para cada hallazgo, usar exactamente este formato:
 
