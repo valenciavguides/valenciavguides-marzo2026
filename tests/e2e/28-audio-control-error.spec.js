@@ -66,12 +66,6 @@ async function enviarComandoPlayYEsperar(page) {
 }
 
 test.describe('AC — _manejarAudioControl() no confirma éxito ni pierde el fallo en silencio', () => {
-  test.beforeEach(async ({ page, browserName }) => {
-    // Misma limitación conocida que RC (26-reto-completado-boton-verde.spec.js): WebKit no
-    // carga estos hijos como página standalone en este entorno.
-    test.skip(browserName === 'webkit', 'WebKit no carga audio-hijo3.html como página standalone en este entorno — limitación del arnés de test, no del código');
-  });
-
   test('AC-1. play() de un audioId inexistente registra el fallo explícitamente, no lo pierde', async ({ page }) => {
     const logs = [];
     page.on('console', (msg) => logs.push(msg.text()));

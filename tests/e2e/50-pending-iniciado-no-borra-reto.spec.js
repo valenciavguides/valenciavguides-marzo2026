@@ -102,10 +102,6 @@ async function estadoBotones(page) {
 }
 
 test.describe('PI — PENDING_INICIADO no debe borrar el reto abierto', () => {
-  test.beforeEach(async ({ browserName }) => {
-    test.skip(browserName === 'webkit', 'WebKit no carga retos-hijo4.html standalone (misma limitación que RT-1/RT-2 en 43-saltar-reto-puzzle-roto)');
-  });
-
   test('PI-1. Reto de texto libre: los botones siguen usables tras PENDING_INICIADO', async ({ page }) => {
     await page.goto('retos-hijo4.html');
     await page.waitForLoadState('domcontentloaded');

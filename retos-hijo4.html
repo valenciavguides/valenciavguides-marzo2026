@@ -602,10 +602,6 @@
                 }
                 globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
 
-                // ALSO keep a local map of handlers so we can respond to direct postMessage calls
-                globalThis.__local_controladores = globalThis.__local_controladores || new Map();
-                try { globalThis.__local_controladores.set(tipo, handler); } catch(_){ } // NOSONAR
-
                 // Prefer central registration via messagingAdapter/state-manager when available
                 try {
                     const iframeId = (globalThis.name || (globalThis.CONFIG_HIJO !== undefined && globalThis.CONFIG_HIJO.IFRAME_ID) || 'hijo');

@@ -63,10 +63,30 @@ test.describe('PB-A — Polyline manual se limpia al cambiar a CASA', () => {
 // hijo2 cargado como página de nivel superior (sin padre real), mismo patrón que
 // 31-sincronizar-modo-ambas-direcciones.spec.js usa para hijo3/hijo4 — evita el
 // conflicto de que el pipeline real de AVENTURA reemplace el iframe #hijo2 manual.
-test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de modo', () => {
-  test.beforeEach(async ({ page, browserName }) => {
-    test.skip(browserName === 'webkit', 'Misma limitación conocida que 31-sincronizar-modo-ambas-direcciones.spec.js');
+/**
+ * Provee el `globalThis.mensajeria` que el hijo espera cuando NO vive en un iframe.
+ *
+ * `enviarMensaje()` de los hijos bifurca por `parent !== window`. En produccion el hijo
+ * SIEMPRE es un iframe y toma la rama rapida de postMessage. Cargado como pagina suelta
+ * —lo que hacen estos tests— cae al `else`, que hace `retryUntilAvailable(..., 10, 500)`
+ * sobre `globalThis.mensajeria`, objeto que no existe standalone porque el hijo no carga
+ * mensajeria.js: agota los 10 intentos, **5.000 ms exactos**, y el handler hace `await`
+ * de eso antes de seguir.
+ *
+ * Con el stub la rama lenta resuelve al instante. No debilita lo que se prueba y se
+ * parece mas a produccion, donde ese envio tampoco bloquea. Mismo arreglo que en
+ * 31-sincronizar-modo-ambas-direcciones.spec.js, donde se diagnostico el problema.
+ */
+async function proveerMensajeriaStub(page) {
+  await page.addInitScript(() => {
+    globalThis.mensajeria = globalThis.mensajeria || {
+      enviarMensaje: () => Promise.resolve({ exito: true, metodo: 'stub-e2e' }),
+    };
   });
+}
+
+test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de modo', () => {
+  test.beforeEach(async ({ page }) => { await proveerMensajeriaStub(page); });
 
   async function enviarMensaje(page, tipo, datos) {
     await page.evaluate(({ tipo, datos }) => {
@@ -83,13 +103,10 @@ test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de m
     //    avanzar deshabilitado sin mirar nada más — hace falta AVENTURA para que el
     //    escenario "sucio" (parada completada) sea real).
     // Espera larga (6s): en esta página standalone (sin padre real, parent===self),
-    // el enviarMensaje() local de hijo2 (coordenadas-hijo2.html ~L396) cae en su rama
-    // de fallback retryUntilAvailable(globalThis.mensajeria...) que agota 10 intentos
-    // (~4.5s) antes de continuar — nunca ocurre en producción real, donde hijo2 vive
-    // siempre dentro de un iframe (parent!==self) y usa la rama rápida de postMessage
-    // directo. Confirmado leyendo los logs de esta llamada en detalle.
+    // La espera de 6 s que habia aqui compensaba la rama lenta de enviarMensaje() de hijo2
+    // (10 x 500 ms = 5.000 ms agotando retryUntilAvailable sobre un globalThis.mensajeria
+    // inexistente). proveerMensajeriaStub() la elimina de raiz, asi que la espera sobra.
     await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'aventura', secuenciaCompleta: true });
-    await page.waitForTimeout(6000);
     await enviarMensaje(page, 'NAVEGACION.ACTUALIZAR_ESTADO', {
       idParada: 'Av1-TR-1', tipoParada: 'tramo', distanciaAlDestino: 5, toleranciaGPS: 50, timestamp: Date.now(),
     });
@@ -103,7 +120,6 @@ test.describe('PB-B — Reset de idParadaActual/botones en hijo2 al cambiar de m
 
     // 3. Cambiar a CASA sin seleccionar nada — el escenario real del bug.
     await enviarMensaje(page, 'SISTEMA.CAMBIO_MODO', { modo: 'casa', secuenciaCompleta: true });
-    await page.waitForTimeout(6000);
 
     const despues = await page.evaluate(() => document.getElementById('btn-avanzar')?.disabled);
     expect(despues, 'Tras volver a CASA, avanzar debe quedar deshabilitado pese a haber estado habilitado de verdad en AVENTURA').toBe(true);

@@ -299,10 +299,6 @@ test.describe('BSA-D — _hdl_AUDIO_ERROR: fallo runtime confirmado también ofr
 });
 
 test.describe('BSA-E — audio-hijo3.html: reintentos de stalled/waiting/error', () => {
-  test.beforeEach(async ({ browserName }) => {
-    test.skip(browserName === 'webkit', 'WebKit no carga audio-hijo3.html como página standalone en este entorno — misma limitación documentada en 28-audio-control-error.spec.js');
-  });
-
   test('E-1. stalled dispara un reintento silencioso de play() tras ~300ms', async ({ page }) => {
     await page.goto('audio-hijo3.html');
     await page.waitForLoadState('domcontentloaded');

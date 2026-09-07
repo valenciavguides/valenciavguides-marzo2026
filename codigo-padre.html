@@ -12498,8 +12498,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         ...mensaje,
                         datos: {
                             ...mensaje.datos,
-                            paradaId: paradaIdBase || mensaje.datos?.paradaId,
-                            coordenadasYaResueltas: paradaNormalized || null
+                            paradaId: paradaIdBase || mensaje.datos?.paradaId
                         }
                     };
                     globalThis.dispatchEvent(new CustomEvent('vv-parada-cambiada', { detail: mensajeParaMapa }));

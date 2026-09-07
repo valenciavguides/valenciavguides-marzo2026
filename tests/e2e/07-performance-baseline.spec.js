@@ -19,7 +19,7 @@
 
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const { BOOT_TIMEOUT, stubCDNResources, stripCSPForTesting } = require('./helpers/boot');
+const { BOOT_TIMEOUT, stubCDNResources } = require('./helpers/boot');
 
 const MAPLIBRE_STUB = path.join(__dirname, 'helpers/maplibre-stub.js');
 
@@ -57,7 +57,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
     });
 
     await stubCDNResources(page);
-    await stripCSPForTesting(page);
 
     // Navegar y esperar a que el boot complete
     const startTs = Date.now();
@@ -113,7 +112,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
   test('PB-2. Baseline: conteo de handlers registrados en state-manager', async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await stubCDNResources(page);
-    await stripCSPForTesting(page);
     await page.goto('/codigo-padre.html');
     await page.waitForFunction(() => globalThis.__MENSAJERIA_INICIADA === true, { timeout: BOOT_TIMEOUT_THRESHOLD_MS });
 
@@ -188,7 +186,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
   test('PB-3. Baseline: variables globales críticas presentes y con los tipos correctos', async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await stubCDNResources(page);
-    await stripCSPForTesting(page);
     await page.goto('/codigo-padre.html');
     await page.waitForFunction(() => globalThis.__MENSAJERIA_INICIADA === true, { timeout: BOOT_TIMEOUT_THRESHOLD_MS });
 
@@ -242,7 +239,6 @@ test.describe('Performance baseline — arranque FASE 1 (pre-refactor)', () => {
   test('PB-4. DT-1 criterio #5: __vv_manejadoresLocales está vacío (handlers en state-manager, no en local)', async ({ page }) => {
     await page.addInitScript({ path: MAPLIBRE_STUB });
     await stubCDNResources(page);
-    await stripCSPForTesting(page);
     await page.goto('/codigo-padre.html');
     await page.waitForFunction(() => globalThis.__MENSAJERIA_INICIADA === true, { timeout: BOOT_TIMEOUT_THRESHOLD_MS });
 

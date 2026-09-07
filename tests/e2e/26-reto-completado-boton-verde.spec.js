@@ -75,17 +75,30 @@ async function enviarRetoMostrarYEsperar(page) {
   await page.waitForSelector('#respuestaTexto', { timeout: 5000 });
 }
 
-test.describe('RC — RETO.COMPLETADO se confirma al pulsar el botón verde, no antes', () => {
-  test.beforeEach(async ({ page, browserName }) => {
-    // WebKit (proyecto iphone12) falla al cargar retos-hijo4.html como página de nivel
-    // superior con "SSL connect error" repetido antes de que cualquier script de la página
-    // llegue a ejecutarse (obtenerRetos queda undefined) — reproducido de forma consistente,
-    // limitado a esta forma de carga standalone (ningún otro spec, incluidos los que sí
-    // cargan retos-hijo4.html como iframe real dentro de codigo-padre.html, lo sufre). No es
-    // un síntoma del código bajo prueba — mismo patrón que la limitación conocida de hijo2
-    // en Playwright (ver PC-1 en 20-tramo-inicio-y-revelado.spec.js).
-    test.skip(browserName === 'webkit', 'WebKit no carga retos-hijo4.html como página standalone en este entorno (SSL connect error antes de ejecutar ningún script) — limitación del arnés de test, no del código');
+/**
+ * Provee el `globalThis.mensajeria` que el hijo espera cuando NO vive en un iframe.
+ *
+ * `enviarMensaje()` de los hijos bifurca por `parent !== window`. En produccion el hijo
+ * SIEMPRE es un iframe y toma la rama rapida de postMessage. Cargado como pagina suelta
+ * —lo que hacen estos tests— cae al `else`, que hace `retryUntilAvailable(..., 10, 500)`
+ * sobre `globalThis.mensajeria`, objeto que no existe standalone porque el hijo no carga
+ * mensajeria.js: agota los 10 intentos, **5.000 ms exactos**, y el handler hace `await`
+ * de eso antes de seguir.
+ *
+ * Con el stub la rama lenta resuelve al instante. No debilita lo que se prueba y se
+ * parece mas a produccion, donde ese envio tampoco bloquea. Mismo arreglo que en
+ * 31-sincronizar-modo-ambas-direcciones.spec.js, donde se diagnostico el problema.
+ */
+async function proveerMensajeriaStub(page) {
+  await page.addInitScript(() => {
+    globalThis.mensajeria = globalThis.mensajeria || {
+      enviarMensaje: () => Promise.resolve({ exito: true, metodo: 'stub-e2e' }),
+    };
   });
+}
+
+test.describe('RC — RETO.COMPLETADO se confirma al pulsar el botón verde, no antes', () => {
+  test.beforeEach(async ({ page }) => { await proveerMensajeriaStub(page); });
 
   test('RC-1. Tras responder correcto, no se intenta enviar hasta pulsar el botón verde', async ({ page }) => {
     const logs = [];

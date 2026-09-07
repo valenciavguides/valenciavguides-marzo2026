@@ -101,30 +101,6 @@ async function stubCDNResources(page) {
 }
 
 /**
- * Intercepta /codigo-padre.html y elimina la meta Content-Security-Policy.
- *
- * Necesario en WebKit (CSP Level 3 estricto): 'unsafe-inline' no cubre
- * <script type="module"> inline, lo que bloquea los 4 módulos del padre
- * y FASE 1 nunca arranca. En tests no necesitamos la CSP de producción.
- *
- * DEBE llamarse ANTES de page.goto().
- */
-async function stripCSPForTesting(page) {
-  await page.route('**/codigo-padre.html', async route => {
-    const response = await route.fetch();
-    const body = (await response.text()).replace(
-      /<meta[^>]*Content-Security-Policy[^>]*>/gi,
-      ''
-    );
-    await route.fulfill({
-      response,
-      body,
-      contentType: response.headers()['content-type'] || 'text/html; charset=utf-8',
-    });
-  });
-}
-
-/**
  * Navega a /codigo-padre.html y espera hasta que FASE 1 haya completado.
  *
  * Indicador: globalThis.__MENSAJERIA_INICIADA === true
@@ -136,7 +112,14 @@ async function stripCSPForTesting(page) {
  * @param {import('@playwright/test').Page} page
  */
 async function gotoAndWaitForFase1(page) {
-  await stripCSPForTesting(page);
+  // Los tests corren con el CSP de produccion TAL CUAL, salvo la directiva
+  // upgrade-insecure-requests que js/server.js retira al servir por HTTP (ver §22).
+  // Antes se borraba aqui la meta CSP entera, con esta justificacion: "'unsafe-inline'
+  // no cubre <script type=module> inline, asi que WebKit bloquea los modulos del padre".
+  // Es FALSA — medido: con el CSP intacto menos esa directiva, WebKit completa FASE 1
+  // con 0 violaciones y 0 errores. Lo que rompia WebKit era upgrade-insecure-requests,
+  // y borrar la meta entera se lo llevaba de paso. Manteniendo el CSP real, una
+  // violacion de CSP si la detectan los tests; con el borrado no la detectaba nadie.
 
   // Suprimir errores de consola que no son relevantes para los tests
   // (p. ej. warnings de serviceworker, stub de MapLibre, etc.)
@@ -217,7 +200,6 @@ module.exports = {
   BOOT_TIMEOUT,
   injectInitSpy,
   stubCDNResources,
-  stripCSPForTesting,
   gotoAndWaitForFase1,
   getMensajeriaReadySnapshot,
 };

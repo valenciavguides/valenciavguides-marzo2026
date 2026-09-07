@@ -4842,7 +4842,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-98a99d5ebe03'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-8362fef87095'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -4874,13 +4874,13 @@ Al cargar el padre, por orden de ejecución:
 |--------|-----------------|-----------------|---------|
 | `mensajeriaReady` | `mensajeria.js` (tras `inicializarMensajeria`) | `js/app.js` (`addEventListener once`) | — |
 | `vv:paradas-disponibles` | padre (en distribuirDatosAventura, L7162) | `js/funciones-mapa.js:2853` (`addEventListener passive`) — solo actualiza el caché local `arrayParadasLocal`, sin dibujar nada en el mapa | `coords[]` (array directo — `event.detail` es el array de coordenadas, no un objeto `{ paradas, aventura }`) |
-| `vv-parada-cambiada` | padre (`_hdl_NAVEGACION_CAMBIO_PARADA`) | `js/funciones-mapa.js` | mensaje CAMBIO_PARADA con `paradaId` **ya resuelto** y `coordenadasYaResueltas` |
+| `vv-parada-cambiada` | padre (`_hdl_NAVEGACION_CAMBIO_PARADA`) | `js/funciones-mapa.js` | mensaje CAMBIO_PARADA con `paradaId` **ya resuelto** |
 
 > **`paradaId` viaja resuelto (`Av1-P-2`), no como llegó en el mensaje.** `manejarCambiarParada()` resuelve el elemento buscándolo en `globalThis.AVENTURA_PARADAS`, cuyos elementos solo llevan `id` con el formato `Av1-P-2`/`Av1-TR-1`; su única normalización es quitar el prefijo `padre-`. Eso basta para el camino de la progresión real —`progresarSiguienteElemento()` ya envía `Av1-P-2`— pero no para **hijo5**, que pide los cambios con su propio formato `padre-P2`: quitarle el prefijo deja `P2`, que tampoco existe en esos datos. El resultado era `Parada padre-P2 no encontrada en datos base` y el mapa no dibujaba el marcador ni centraba la vista, solo desde hijo5.
 >
 > El padre ya tenía el id resuelto en ese punto (`paradaIdBase`, calculado unas líneas antes y usado para pedirle los datos a hijo2): solo faltaba pasárselo también al mapa. Para la progresión real el valor es idéntico, así que el cambio es un no-op ahí. Cubierto por `tests/e2e/51-mapa-id-parada-resuelto.spec.js`, cuyo MI-3 es precisamente el control de que ese camino no cambia.
 >
-> `coordenadasYaResueltas` se sigue empaquetando pero **ningún fichero la lee** — ver §15, donde se documenta que las coordenadas se resuelven por la "Ruta 1: caché local" de `manejarCambiarParada()`.
+> El campo `coordenadasYaResueltas` que este evento acarreaba se eliminó: **ningún fichero lo leyó nunca**. Las coordenadas se resuelven por la "Ruta 1: caché local" de `manejarCambiarParada()` (§15).
 
 ---
 
@@ -7089,7 +7089,9 @@ Junto a los controles normales de cada reto hay un botón ⏩: da el reto/puzzle
 
 **Alcance deliberado — qué NO hace:** el botón no tiene límite de usos ni exige ningún tiempo de espera previo (a diferencia del TTL de tramos, §31.7b, que sí exige 10 minutos y limita a 5 saltos por aventura). La diferencia de fondo: aquí no hay ninguna garantía de presencia física en juego (el usuario ya completó esa parte vía GPS/`recorridoSuficiente` antes de llegar al reto), así que no hace falta ningún límite antiabuso — es puramente "¿quiere ver/hacer este contenido concreto, o prefiere seguir?".
 
-**Cobertura de tests:** `tests/e2e/43-saltar-reto-puzzle-roto.spec.js` — PZ-1/PZ-2 (puzzle válido y roto, ambos avisan al padre; el válido monta las piezas de verdad) y RT-1/RT-2 (reto de opción válido pinta la respuesta correcta y habilita el mundo verde; reto roto también lo habilita, sin excepciones). WebKit (proyecto `iphone12`) omitido para `puzzle.html` standalone por el mismo límite de arnés ya documentado en `26-reto-completado-boton-verde.spec.js` (SSL connect error al cargar como página de nivel superior, no reproducible cargando como iframe real).
+**Cobertura de tests:** `tests/e2e/43-saltar-reto-puzzle-roto.spec.js` — PZ-1/PZ-2 (puzzle válido y roto, ambos avisan al padre; el válido monta las piezas de verdad) y RT-1/RT-2 (reto de opción válido pinta la respuesta correcta y habilita el mundo verde; reto roto también lo habilita, sin excepciones). Los cuatro corren también en WebKit **salvo PZ-2**, que sigue omitido por un fallo real de `puzzle.html` en ese motor (ver abajo).
+
+> **PZ-2 en WebKit — fallo del código, no del arnés.** El `<script>` de cabecera de `puzzle.html` fija el tamaño de fuente raíz por estilo en línea (que gana al `clamp()` del CSS) con `Math.min(w,h) * 0.025`, pero corre **antes** del `<meta name="viewport">`. En ese instante `innerWidth` vale 980 en los dos motores; Chromium se autocorrige después, WebKit **no dispara `resize`** y conserva `980 × 0.025 = 24.5px` — 2,5× de más. Como el fichero dimensiona todo en `em`, `#errorMsg` (1.5em de fuente, 2em de padding) pasa de `y 288–439` a `y 77–588`, sepulta la barra de botones y `elementFromPoint` sobre `#skipBtn` devuelve `#errorMsg`: el usuario **no puede saltar un puzzle roto**. Disparando un `resize` a mano baja a 9.75px y el clic entra. Pendiente nº 20.
 
 El usuario final ve este mecanismo explicado en lenguaje llano en la FAQ del asistente de soporte (§27), pregunta `RETOS_NO_CARGA` (grupo `RETOS`): si un reto o puzzle no carga o parece bloqueado, la recomendación es actualizar la página o reabrir la aventura y, si el problema persiste, usar el botón ⏩ para darlo por completado y continuar.
 
@@ -7954,7 +7956,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-98a99d5ebe03'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-8362fef87095'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8275,6 +8277,10 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 17 | Arreglar los dos huecos de `fetchWithRetry()` — el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera a WebKit: **hoy no se ejecuta ni un reintento en iPhone** | §16.1b | ⏳ pendiente |
 | 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
 | 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido (2026-09-06) |
+| 20 | `puzzle.html`: el `<script>` de cabecera calcula la fuente raíz antes del `<meta name="viewport">` y WebKit no dispara `resize` para corregirlo. **No afecta a la app real** (medido: en iframe lee `top.innerWidth`, ya correcto, y da 9.75px en los dos motores); solo se manifiesta cargando la página suelta, donde WebKit conserva 24.5px y `#errorMsg` tapa `#skipBtn`. Mantiene PZ-2 omitido en WebKit. Arreglo: llamar a `escalar()` también en `load` | §7.5 (cobertura de tests) | ⏳ pendiente (bajo) |
+| 21 | Dos mecanismos solapados retiraban el CSP en tests | §22 (servidor de desarrollo) | ✅ **resuelto** — `stripCSPForTesting()` eliminado; queda solo `js/server.js` |
+| 22 | Ningún test carga los hijos como **iframes reales** dentro de `codigo-padre.html`: todos los cargan como página de nivel superior con `postMessage` sintético. Es posible hoy en local —`_hdl_SELECCION_P14_MOSTRADA` es un handler normal y basta con enviarle el mensaje— pero está sin escribir | §7.1 (modelo P14) | ⏳ pendiente |
+| 23 | MD-2/MD-3 caían de forma intermitente en tandas completas | §36.26 (EJE 23) | ✅ **resuelto** — empate exacto a 5.000 ms entre la rama lenta de `enviarMensaje()` y el `expect.poll`; ver §36.26 |
 
 ---
 
@@ -8376,6 +8382,10 @@ La sustitución opera sobre la etiqueta `<meta>` entera, no sobre la cadena suel
 > **No cambia el CSP efectivo de producción.** Allí todo se sirve por HTTPS desde GitHub Pages, donde la directiva no tiene nada que elevar, y **este servidor no se ejecuta nunca**: GitHub Pages sirve ficheros estáticos con su propia infraestructura. El ajuste vive solo en desarrollo y tests.
 
 **Por qué importa más de lo que parece:** sin esto, el proyecto `iphone12` de Playwright ejecutaba ~300 tests contra una app que ni siquiera arrancaba. Pasaban sin ejercitar nada — verde vacuo del tipo que describe el EJE 26 (§36.26) — y cualquier fallo real de Safari quedaba invisible. Con el ajuste, WebKit arranca la app completa en ~2 s y 0 peticiones fallidas.
+
+**Es el único mecanismo: los tests corren con el CSP de producción.** Antes había un segundo camino, `stripCSPForTesting()` en `tests/e2e/helpers/boot.js`, que interceptaba `codigo-padre.html` y le borraba la meta CSP **entera**. Se eliminó. Su justificación escrita —*"'unsafe-inline' no cubre `<script type="module">` inline, así que WebKit bloquea los módulos del padre y FASE 1 nunca arranca"*— **es falsa**: medido, con el CSP intacto salvo `upgrade-insecure-requests`, WebKit completa FASE 1 con **0 violaciones de CSP y 0 errores de página**, igual que Chromium. Lo que rompía WebKit era la directiva de upgrade, y borrar la meta completa se la llevaba de paso, ocultando la causa.
+
+Dos consecuencias, las dos buenas: **el CSP de producción no rompe la app en iPhone** (ese miedo no tenía base), y ahora una violación de CSP **sí la detectan los tests** — con el borrado no la detectaba nadie. Los cuatro proyectos pasan con el CSP real.
 
 #### Protección de datos en producción: `PROTECT_DATA=true`
 
@@ -8611,7 +8621,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-98a99d5ebe03';
+const CACHE_VERSION = 'v-8362fef87095';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11843,7 +11853,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-98a99d5ebe03';
+const CACHE_VERSION = 'v-8362fef87095';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13158,9 +13168,12 @@ Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se l
 | Registro de `hijo5` en la mensajería | Cargador completo | Faltaba `registrarIframe()`: el padre no podía escribirle |
 | Idioma del chat (`hijo6`) | Payload corregido | El mensaje que lo llevaba se descartaba antes de salir |
 | Confirmación de `AUDIO.REPRODUCIR_REQUEST` | El padre la exige con reintentos | El handler de hijo3 no devolvía valor, así que el adapter no la emitía |
-| `coordenadasYaResueltas` | Se empaqueta en cada cambio de parada | Ningún fichero la ha leído nunca en toda la historia del repo |
+| `coordenadasYaResueltas` | Se empaquetaba en cada cambio de parada | Ningún fichero la leyó nunca en toda la historia del repo. Eliminada |
 | Los 4 reintentos de `fetchWithRetry()` | Backoff exponencial completo | El `AbortError` del timeout se lanza **antes** de llegar al reintento, y el filtro `error.message.includes('fetch')` no encaja con el texto de WebKit |
 | `data-loader.js` → `api-client.js` | Comentario "pendiente de conectar" | Conectado a medias: usa su `TokenManager`, no su `fetchWithRetry` |
+| `__local_controladores` (hijo4) | Se rellenaba en cada `registrarControladorSeguro()` | **Ningún fichero lo leía** — el postMessage lo atiende `messagingAdapter._listenerRegistry`. Eliminado |
+| `stripCSPForTesting()` (helpers de test) | Docblock detallado: "'unsafe-inline' no cubre `<script type=module>` inline" | La razón era **falsa** — medido: con el CSP real menos `upgrade-insecure-requests`, WebKit completa FASE 1 con 0 violaciones. Borraba el CSP entero y dejaba los tests sin detectar ninguna violación. Eliminado |
+| El buffer de 400 ms de `31-sincronizar-modo-ambas-direcciones` | Comentario que describe una carrera concreta | La carrera **no existe**: los `<script type=module>` son diferidos, el handler ya está registrado en `domcontentloaded` (medido, 12-18 ms) |
 
 **Cómo auditarlo — la sonda:**
 
@@ -13174,6 +13187,35 @@ Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se l
    - Un fallo de carga generalizado en un motor puede venir del **servidor de desarrollo**, no de la app: `upgrade-insecure-requests` tumbaba WebKit entero hasta que `js/server.js` empezó a retirarla (§22).
 
    Regla práctica: antes de concluir "esto no funciona en Safari", reproducirlo con un **segundo método de medición**. Si los dos coinciden, es del código; si no, es del arnés.
+
+#### Caso resuelto: la rama lenta de `enviarMensaje()` en los hijos cargados sueltos
+
+El caso más instructivo de sleep ciego del proyecto, porque la causa era **aritmética exacta** y no se veía sin medirla.
+
+`enviarMensaje()` de los hijos (`retos-hijo4.html` ~L429, `coordenadas-hijo2.html` ~L396) bifurca por `parent !== window`:
+
+| Rama | Cuándo | Coste |
+|---|---|---|
+| `postMessage` directo al padre | **producción** — el hijo siempre es un iframe | inmediato |
+| `retryUntilAvailable(..., 10, 500)` sobre `globalThis.mensajeria` | **solo** cargando el hijo como página suelta | **10 × 500 ms = 5.000 ms** |
+
+`globalThis.mensajeria` no existe standalone —el hijo no carga `mensajeria.js`—, así que la segunda rama agota siempre los diez intentos. Y el handler de `SISTEMA.CAMBIO_MODO` hace `await` de ese envío (el `CAMBIO_MODO_ENTENDIDO`) **antes** de llamar a `sincronizarEstadoModo()`, que es quien aplica la clase al `body`.
+
+El `expect.poll` de MD-2/MD-3 esperaba `timeout: 5000`. **Empate exacto**: 5.000 contra 5.000, resuelto por el planificador. De ahí que pasaran sueltos (7/7 tres veces seguidas) y cayeran solo en tandas completas con la máquina cargada.
+
+**El arreglo va en el test, nunca en producción**, porque esa rama no se pisa jamás en la app real. Un `addInitScript` provee el `globalThis.mensajeria` que el código busca (`proveerMensajeriaStub()`), y la rama lenta resuelve al instante.
+
+**Verificado por el reloj, no por el verde** — que es lo que distingue un arreglo real de un timeout ensanchado:
+
+| Spec | Antes | Después |
+|---|---|---|
+| `31-sincronizar-modo-ambas-direcciones` (3 motores) | ~2 min | **11,9 s** |
+| `26` + `38` (chromium) | 46,3 s | **31,5 s** |
+
+Dos matices que conviene no perder:
+
+- **La espera de 8 s de RC-2 (`26-reto-completado-boton-verde`) se conserva.** Es un test negativo —"sin pulsar el botón verde nunca debe enviarse `RETO.COMPLETADO`"— y ahí la espera es una **ventana de observación**, no una compensación: no se puede esperar a que algo *no* ocurra mediante una condición.
+- **El autor de `38-polyline-y-reset-botones` sí había diagnosticado la causa**: su comentario nombraba los "10 intentos (~4.5s)". Conocer la causa y aun así compensarla con un sleep deja el problema vivo; la diferencia está en eliminar la espera, no en tolerarla.
 
 **Señal de alarma en revisión de código:** un comentario que explica con detalle *por qué* un mecanismo es necesario es, paradójicamente, donde más hay que comprobar que se dispara. Los seis casos de arriba están todos bien comentados; el comentario describe la intención, no lo que ocurre.
 
