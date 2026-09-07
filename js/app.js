@@ -49,7 +49,6 @@ import { generarIdUnico, resolverIdPadre, canonicalizarModo } from './utils.js';
 import { promesasPendientes, registrarMetrica as registrarMetricaMonitoreo } from './monitoreo.js';
 import { esMovil } from './device-detection.js';
 
-import { DATOS_PADRE } from './aventuras-ID-padre.js';
 
 // Access global mensajeria functions - ahora esperan a que esté lista
 const enviarMensaje = (...args) => {
@@ -372,7 +371,17 @@ const MODOS_OPERACION = {
 
 async function _activarParadaDefectoAventura() {
     try {
-        const { elementosIDpadre } = DATOS_PADRE[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado];
+        // Se lee del global, no de un import propio: `aventuras-ID-padre.js` lo publica al
+        // evaluarse (globalThis.DATOS_PADRE) y `codigo-padre.html` lo importa de forma
+        // ESTATICA, asi que esta puesto antes de que corra nada de este modulo. Dejar un solo
+        // punto de importacion es lo que permitira cambiarlo por cargarDatosPadre() cuando
+        // exista el backend, sin tocar este fichero (§22.12).
+        const datosPadre = globalThis.DATOS_PADRE;
+        if (!datosPadre) {
+            logger.error('[APP][CAMBIO_MODO] globalThis.DATOS_PADRE no disponible — no se puede activar la parada por defecto');
+            return;
+        }
+        const { elementosIDpadre } = datosPadre[globalThis.aventuraSeleccionada][globalThis.idiomaSeleccionado];
         if (elementosIDpadre && elementosIDpadre.length > 0) {
             const paradaDefecto = elementosIDpadre.find(p => p.padreid === 'padre-P0') || elementosIDpadre[0];
             const paradaId = paradaDefecto.parada_id || paradaDefecto.tramo_id || paradaDefecto.id;

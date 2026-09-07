@@ -18,7 +18,6 @@ import { CONFIG } from './config.js';
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import { validarCoordenadas } from './validacion.js';
 import { generarIdUnico, ajustarTimeoutPorConexion, calcularDistancia, normalizarParadas, resolverIdsParada, resolverIdPadre, puntoMasCercanoEnLinea } from './utils.js';
-import { DATOS_PADRE } from './aventuras-ID-padre.js';
 import logger from './logger.js';
 
 /**
@@ -2784,8 +2783,19 @@ const _TIPOS_ELEMENTO_NAVEGABLE = ['inicio', 'parada', 'tramo'];
 // después (nunca se detectaba la llegada real a lo que estaba activo, incluida la
 // parada 0 al empezar la aventura).
 function _siguienteIdElementoNavegable(aventura, idioma, paradaActualId) {
-    const elementos = DATOS_PADRE?.[aventura]?.[idioma]?.elementosIDpadre;
-    if (!Array.isArray(elementos) || elementos.length === 0) return null;
+    // Mismo motivo que en app.js: un solo punto de importacion, en codigo-padre.html.
+    const datosPadre = globalThis.DATOS_PADRE;
+    if (!datosPadre) {
+        logger.error('[funciones-mapa] globalThis.DATOS_PADRE no disponible — no se puede resolver el siguiente elemento navegable');
+        return null;
+    }
+    const elementos = datosPadre?.[aventura]?.[idioma]?.elementosIDpadre;
+    // Antes esto devolvia null en silencio: si el dato faltaba, la navegacion dejaba de
+    // avanzar sin dejar rastro. Ahora se queja (EJE 27: un fallo mudo es peor que uno ruidoso).
+    if (!Array.isArray(elementos) || elementos.length === 0) {
+        logger.warn(`[funciones-mapa] Sin elementosIDpadre para ${aventura}/${idioma} — no hay siguiente elemento navegable`);
+        return null;
+    }
 
     const indiceActual = paradaActualId
         ? elementos.findIndex(e => e.parada_id === paradaActualId || e.tramo_id === paradaActualId)

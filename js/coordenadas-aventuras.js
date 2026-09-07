@@ -7409,7 +7409,7 @@ export const DATOS_AVENTURAS = {
         mapa_numero: 20,
         coordenadas: { lat: Number('39.470617'), lng: Number('-0.365080') },
         nombre: "Cisterna Puente de las Flores",
-        imagen: "imagenes/imagenes-aventuras/puente_flores-down.jpg",
+        imagen: "C:\Users\gomez\Desktop\proyecto ValenciaVguides Marzo 2026\imagenes\imagenes-aventuras\puente_flores_agua.jpg",
     },
     {
         tipo: "referencia",
