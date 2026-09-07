@@ -1051,7 +1051,11 @@
                 document.body.classList.add('puzzle-mode');
                 const puzzleIframe = document.createElement("iframe");
                 puzzleIframe.id = "puzzleIframe";
-                puzzleIframe.src = reto.src;
+                // La imagen viaja dentro del reto (el padre la anade al resolverlo), asi
+                // que puzzle.html ya no necesita importar puzzles-aventuras.js.
+                puzzleIframe.src = reto.imagenPuzzle
+                    ? `${reto.src}${reto.src.includes('?') ? '&' : '?'}imagen=${encodeURIComponent(reto.imagenPuzzle)}`
+                    : reto.src;
                 puzzleIframe.frameBorder = "0";
                 puzzleIframe.allowFullscreen = true;
                 retoDiv.appendChild(puzzleIframe);

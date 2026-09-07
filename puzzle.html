@@ -137,31 +137,28 @@
   </div>
 </div>
 <script type="module">
-import { PUZZLES_AVENTURAS } from './js/puzzles-aventuras.js';
 import { TIPOS_MENSAJE } from './js/constants.js';
 
 // Obtener el ID del puzzle de la URL
 const urlParams = new URLSearchParams(globalThis.location.search);
 const puzzleId = urlParams.get('id');
 
-// Localizar el puzzle. UN SOLO CAMINO: por id dentro del pool.
+// La configuracion del puzzle LLEGA POR URL, no se importa.
 //
-// Antes habia cinco pasos encadenados y ninguno funcionaba:
-//   1. `parent.__vv_aventuraActual`   → lo define hijo2, pero el padre de esta pagina es
-//                                        hijo4, que no lo define. Muerto.
-//   2. `parent.aventuraSeleccionada`  → hijo4 tampoco lo define. Muerto.
-//   3. default 'Aventura1'            → lo unico que quedaba en pie
-//   4. `PUZZLES_AVENTURAS['Aventura1']` → undefined: la UNICA clave del fichero es 'INTRO'.
-//                                        La busqueda "por aventura" fallaba SIEMPRE.
-//   5. barrido global por id          → hacia el 100% del trabajo, disfrazado de fallback.
+// Antes esta pagina importaba puzzles-aventuras.js y buscaba su puzzle en el pool. Eso
+// la convertia en uno de los caminos que se saltaban data-loader.js (§22.12) y duplicaba
+// una busqueda que el llamante ya habia hecho: En-busca-del-tesoro.html resolvia el
+// puzzle para comprobar su imagen y luego esta pagina lo resolvia otra vez.
 //
-// Los 21 puzzles tienen ids UNICOS (verificado), asi que el id basta y sobra para
-// identificarlos: no hace falta saber la aventura para encontrarlos.
-let puzzleConfig = null;
-for (const data of Object.values(PUZZLES_AVENTURAS)) {
-    const encontrado = (data?.['puzzle.html']?.puzzle_id || []).find(p => p.id === puzzleId);
-    if (encontrado) { puzzleConfig = encontrado; break; }
-}
+// Ahora la imagen viaja con quien invoca el puzzle:
+//   · desde hijo4  → el padre la anade al reto (reto.imagenPuzzle) al resolverlo
+//   · desde P9     → En-busca-del-tesoro.html ya la tenia, la pasa en la URL
+//
+// Es lo unico que hace falta: los 21 puzzles solo definen {id, imagen}. Los otros campos
+// que se leen mas abajo (filas/columnas/tiempo/nombre) no existen en ninguno y siempre
+// caen a sus valores por defecto — verificado sobre los 21.
+const imagenParam = urlParams.get('imagen');
+const puzzleConfig = imagenParam ? { id: puzzleId, imagen: imagenParam } : null;
 
 // No relanzar como throw: un puzzle roto/no encontrado no debe abortar el resto del
 // script, o los botones (reiniciar/pausa y, más adelante, saltar) se quedarían sin su
@@ -172,7 +169,7 @@ if (!puzzleConfigValido) {
     const errorText = document.getElementById("errorText");
     errorText.textContent = `❌ Error: Puzzle "${puzzleId || 'sin ID'}" no encontrado`;
     errorMsg.style.display = "block";
-    (globalThis.logger || console).error(`[puzzle] Puzzle ${puzzleId} no encontrado en PUZZLES_AVENTURAS (ids disponibles: ${Object.values(PUZZLES_AVENTURAS).flatMap(d => (d?.['puzzle.html']?.puzzle_id || []).map(p => p.id)).join(', ')})`);
+    (globalThis.logger || console).error(`[puzzle] Sin configuracion para ${puzzleId}: falta el parametro 'imagen' en la URL. Lo pone quien abre el puzzle (hijo4 via reto.imagenPuzzle, o P9 en En-busca-del-tesoro.html).`);
 }
 
 // Botón de saltar (⏩): la única vía de rescate real cuando el puzzle está roto/no

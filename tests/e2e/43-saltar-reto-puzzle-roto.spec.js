@@ -49,7 +49,10 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
         if (e.data && e.data.origen === 'puzzle') globalThis.__mensajesRecibidos.push(e.data);
       });
     });
-    await page.goto('/puzzle.html?id=PZ-intro&aventura=Aventura1');
+    // La imagen va en la URL: puzzle.html ya no importa puzzles-aventuras.js. Quien abre
+    // el puzzle la pone — hijo4 desde reto.imagenPuzzle, o P9 en En-busca-del-tesoro.html
+    // (§22.12). Aquí se reproduce esa invocación real.
+    await page.goto('/puzzle.html?id=PZ-intro&aventura=Aventura1&imagen=' + encodeURIComponent('imagenes/imagenes-aplicación/logo-luna.png'));
     await page.waitForTimeout(600);
     await page.click('#skipBtn');
     await expect.poll(() => page.evaluate(() => globalThis.__mensajesRecibidos.length)).toBeGreaterThan(0);
@@ -81,6 +84,8 @@ test.describe('PZ — puzzle.html: botón de saltar (⏩)', () => {
         if (e.data && e.data.origen === 'puzzle') globalThis.__mensajesRecibidos.push(e.data);
       });
     });
+    // Sin parámetro `imagen`: es el caso "puzzle roto" tras el cambio — quien lo abre no
+    // supo resolverlo, así que la página no recibe configuración.
     await page.goto('/puzzle.html?id=PZ-NO-EXISTE&aventura=Aventura1');
     await expect(page.locator('#errorMsg')).toBeVisible();
 

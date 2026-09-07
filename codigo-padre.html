@@ -3828,6 +3828,8 @@
         globalThis.__vv_TEXTOS_AVENTURAS = null; // Se cargará en Fase 2
         globalThis.__vv_INDICE_AVENTURAS = null; // Se cargará en Fase 2 (opcional, no usado por selección)
         globalThis.__vv_MAPEO_IDIOMAS = null;    // Se cargará en Fase 2 (opcional, no usado por selección)
+        globalThis.__vv_MAPAS_VINTAGE = null;    // Se cargará en Fase 2 (lo pide hijo2 vía MOSTRAR_MAPA_VINTAGE)
+        globalThis.__vv_PUZZLES = null;          // Se cargará en Fase 2 (viaja dentro del reto hacia hijo4)
 
         /**
          * Carga diferida de datos pesados de aventura (Fase 2)
@@ -3857,13 +3859,24 @@
                     audiosModule,
                     retosModule,
                     textosModule,
-                    indiceModule
+                    indiceModule,
+                    mapasVintageModule,
+                    puzzlesModule
                 ] = await Promise.all([
                     import('./js/coordenadas-aventuras.js'),
                     import('./js/audios-aventuras.js'),
                     import('./js/retos-aventuras.js'),
                     import('./js/textos-aventuras.js'),
-                    import('./js/indice-aventuras.js')
+                    import('./js/indice-aventuras.js'),
+                    // El mapa vintage lo importaba coordenadas-hijo2.html por su cuenta —
+                    // el unico hijo que se traia datos, saltandose el patron de sus cinco
+                    // hermanos. Ahora vive aqui, con el resto: una sola puerta (§22.12).
+                    import('./js/mapa-vintage-aventuras.js'),
+                    // Los puzzles los importaba puzzle.html por su cuenta. Ahora la imagen
+                    // viaja DENTRO del reto que la invoca (§22.12): el reto ya esta
+                    // organizado por aventura e idioma, asi que no hace falta una funcion
+                    // aparte en data-loader — solo enriquecer lo que ya se envia.
+                    import('./js/puzzles-aventuras.js')
                 ]);
 
                 // Asignar datos de aventuras
@@ -3881,6 +3894,8 @@
                 globalThis.__vv_TEXTOS_AVENTURAS = TEXTOS_AVENTURAS;
                 globalThis.__vv_INDICE_AVENTURAS = INDICE_AVENTURAS;
                 globalThis.__vv_MAPEO_IDIOMAS = MAPEO_IDIOMAS;
+                globalThis.__vv_MAPAS_VINTAGE = mapasVintageModule.MAPAS_VINTAGE;
+                globalThis.__vv_PUZZLES = puzzlesModule.PUZZLES_AVENTURAS;
 
                 const fase2Fin = performance.now();
                 (globalThis.logger || console).info(`%c${logPrefix} ✅ FASE 2 COMPLETADA - Datos de aventuras cargados (${Math.round(fase2Fin - fase2Inicio)}ms)`, 'color: #00ff00; font-weight: bold');
@@ -11206,6 +11221,21 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (!_retoData) {
                     (globalThis.logger || console).warn(`${logPrefix} Reto ${retoIdToUsar} no encontrado en ${_aventura}/${_idioma}`);
                 }
+                // Si el reto es un puzzle, su imagen viaja CON el: puzzle.html ya no
+                // importa puzzles-aventuras.js. Los 21 ids son unicos, asi que basta el id
+                // para localizarlo — y lo unico que necesita la pagina es `imagen` (los
+                // otros campos que lee, filas/columnas/tiempo/nombre, no existen en ningun
+                // puzzle y siempre caen a sus valores por defecto).
+                if (_retoData && _retoData.tipo === 'puzzle') {
+                    const _idPuzzle = _retoData.id;
+                    let _imagenPuzzle = null;
+                    for (const _d of Object.values(globalThis.__vv_PUZZLES || {})) {
+                        const _hallado = (_d?.['puzzle.html']?.puzzle_id || []).find(p => p.id === _idPuzzle);
+                        if (_hallado) { _imagenPuzzle = _hallado.imagen; break; }
+                    }
+                    if (_imagenPuzzle) _retoData.imagenPuzzle = _imagenPuzzle;
+                    else (globalThis.logger || console).error(`${logPrefix} Puzzle ${_idPuzzle} sin imagen en __vv_PUZZLES — el puzzle no podra montarse`);
+                }
                 const _retosArray = _retoData ? [_retoData] : [];
 
                 await _enviarRetoMostrar(retoIdToUsar, _retosArray, logPrefix);
@@ -11908,11 +11938,20 @@ await _comprobarReanudacionAventura(logPrefix);
         async function _hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[MOSTRAR_MAPA_VINTAGE][${mensaje?.origen || 'desconocido'}]`;
             try {
-                const { url, aventura } = mensaje.datos || {};
+                // La URL la resuelve el PADRE, no el hijo. Antes coordenadas-hijo2.html
+                // importaba mapa-vintage-aventuras.js, resolvia la URL y se la mandaba aqui
+                // — el hijo se traia datos solo para pasarlos. Ahora pide, y el padre
+                // responde desde __vv_MAPAS_VINTAGE (Fase 2). Un solo camino (§22.12).
+                const aventura = mensaje.datos?.aventura
+                    || globalThis.aventuraSeleccionada
+                    || estado?.seleccion?.aventura;
+                const url = globalThis.__vv_MAPAS_VINTAGE?.[aventura] || null;
                 (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa vintage — aventura: ${aventura}, url: ${url}`);
                 if (!url) {
-                    (globalThis.logger || console).warn(`${logPrefix} URL de mapa vintage no proporcionada`);
-                    return { exito: false, error: 'URL de mapa vintage no proporcionada' };
+                    // Normal en AventuraFallas y Aventura34km: su mapa aun no existe
+                    // (estan comentadas en js/mapa-vintage-aventuras.js).
+                    (globalThis.logger || console).warn(`${logPrefix} No hay mapa vintage para ${aventura}`);
+                    return { exito: false, error: `Sin mapa vintage para ${aventura}` };
                 }
                 globalThis.mostrarImagenOverlay(url, `Mapa vintage — ${aventura || 'Aventura'}`, null, null, { objectFit: 'fill', fullHeight: true });
                 return { exito: true, url, aventura };

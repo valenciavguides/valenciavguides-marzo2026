@@ -1571,7 +1571,8 @@
         const puzzleIntro = PUZZLES_DATOS?.INTRO?.['puzzle.html']?.puzzle_id?.find(p => p.id === 'PZ-intro');
         if (puzzleIntro) {
           const imagenPuzzle = puzzleIntro.imagen || 'fotos-botones/logo-luna.jpg';
-          iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1`;
+          // La imagen se pasa por URL: puzzle.html ya no importa puzzles-aventuras.js.
+          iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1&imagen=${encodeURIComponent(imagenPuzzle)}`;
           _log.info('[SELECCION] Puzzle cargado:', puzzleIntro.id, imagenPuzzle);
           if (globalThis._puzzleListener) {
             globalThis.removeEventListener('message', globalThis._puzzleListener);
