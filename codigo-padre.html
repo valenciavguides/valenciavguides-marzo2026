@@ -2327,6 +2327,41 @@
             (globalThis.logger || console).info('Iframe mostrado en overlay:', urlIframe);
         };
 
+        /*
+         * Sirve las coordenadas a mapa-completo.html cuando las pide.
+         *
+         * Esa pagina importaba coordenadas-aventuras.js directamente, asi que abrirla
+         * por URL entregaba la ruta completa de las 7 aventuras sin codigo ni GPS
+         * (medido). Ahora no importa nada: pide, y aqui se le responde. Sin padre no
+         * hay a quien pedir, y el mapa sale vacio — sin necesidad de ningun guard.
+         *
+         * Se responde SOLO al iframe del overlay (event.source), no a cualquiera que
+         * mande el mensaje desde el mismo origen.
+         *
+         * El dia del backend cambia solo esta lectura: los datos vendran con token y
+         * mapa-completo.html no se entera.
+         */
+        globalThis.addEventListener('message', (ev) => {
+            if (ev.origin !== globalThis.location.origin) return;
+            if (ev.data?.tipo !== 'mapa-completo-solicitar-datos') return;
+
+            const iframeOverlay = document.querySelector('#iframe-overlay iframe');
+            if (!iframeOverlay || ev.source !== iframeOverlay.contentWindow) {
+                (globalThis.logger || console).warn('[PADRE][MAPA_COMPLETO] Peticion de datos desde un origen que no es el iframe del overlay — ignorada');
+                return;
+            }
+
+            const av = ev.data.aventura;
+            const coordenadas = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
+            if (!Array.isArray(coordenadas) || coordenadas.length === 0) {
+                (globalThis.logger || console).error(`[PADRE][MAPA_COMPLETO] Sin coordenadas para ${av} — el mapa quedara vacio`);
+                return;
+            }
+
+            ev.source.postMessage({ tipo: 'mapa-completo-datos', coordenadas }, globalThis.location.origin);
+            (globalThis.logger || console).info(`[PADRE][MAPA_COMPLETO] Enviadas ${coordenadas.length} coordenadas de ${av}`);
+        });
+
         globalThis.cerrarIframeOverlay = function() {
             const overlay = document.getElementById('iframe-overlay');
             if (overlay) {

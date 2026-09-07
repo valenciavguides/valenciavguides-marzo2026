@@ -146,88 +146,40 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script type="module">
-    import { DATOS_AVENTURAS } from './js/coordenadas-aventuras.js';
-
-    // ── Aventura desde URL ──────────────────────────────────────────────────
+    /*
+     * DATOS POR MENSAJE, NUNCA POR IMPORT.
+     *
+     * Esta pagina importaba `DATOS_AVENTURAS` de coordenadas-aventuras.js, con dos
+     * consecuencias: era el unico camino de datos que se saltaba a data-loader.js
+     * (§22.12), y abriendo la URL a pelo mostraba la ruta COMPLETA de la aventura
+     * —88 paradas con nombre y coordenadas— sin codigo de compra ni GPS. Medido.
+     *
+     * Ahora sigue el mismo patron que hijo1/hijo3/hijo4/hijo5/hijo6: el hijo no
+     * importa datos, los pide a su padre. Sin padre no hay datos y el mapa sale
+     * vacio — no porque se le prohiba, sino porque no tiene nada que pintar. No
+     * hace falta ningun guard, ni por tanto una puerta trasera para los tests.
+     *
+     * Cuando los datos vengan del backend, esta pagina no se entera: el padre los
+     * pedira con token y le mandara lo mismo.
+     */
     const params   = new URLSearchParams(globalThis.location.search);
     const aventura = params.get('aventura') || 'Aventura1';
 
-    const datos = DATOS_AVENTURAS[aventura];
-    if (!datos || !datos['coordenadas-hijo2.html']) {
-      document.getElementById('map').innerHTML =
-        `<p style="padding:2rem;font-size:1.5rem;">Aventura "${aventura}" no encontrada.</p>`;
-      throw new Error(`Aventura "${aventura}" no existe en DATOS_AVENTURAS`);
-    }
-
-    const coordenadas = datos['coordenadas-hijo2.html'].coordenadas;
-
-    // ── Construir polyline ──────────────────────────────────────────────────
-    const rutaPuntos = [];
-    coordenadas.forEach(entry => {
-      if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
-        rutaPuntos.push([entry.coordenadas.lat, entry.coordenadas.lng]);
-      } else if (entry.tipo === 'tramo') {
-        rutaPuntos.push([entry.inicio.lat, entry.inicio.lng]);
-        entry.waypoints.forEach(wp => rutaPuntos.push([wp.lat, wp.lng]));
-        rutaPuntos.push([entry.fin.lat, entry.fin.lng]);
-      }
-    });
-
-    // ── Payload para solicitar-ruta ─────────────────────────────────────────
-    const rutaCompleta = [];
-    coordenadas.forEach(entry => {
-      if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
-        rutaCompleta.push({ tipo: 'parada', nombre: entry.nombre, lat: entry.coordenadas.lat, lng: entry.coordenadas.lng });
-      } else if (entry.tipo === 'tramo') {
-        rutaCompleta.push({ tipo: 'waypoint', lat: entry.inicio.lat, lng: entry.inicio.lng });
-        entry.waypoints.forEach(wp => rutaCompleta.push({ tipo: 'waypoint', lat: wp.lat, lng: wp.lng }));
-        rutaCompleta.push({ tipo: 'waypoint', lat: entry.fin.lat, lng: entry.fin.lng });
-      }
-    });
-
-    // ── Inicializar mapa ────────────────────────────────────────────────────
     const map = L.map('map', { center: [39.476, -0.375], zoom: 15, maxZoom: 21 });
-
-    // Bounds al scope del módulo para que mapa-visible pueda llamar fitBounds
     let _bounds = null;
+    let rutaCompleta = [];          // lo consume el handler `solicitar-ruta`
 
-    // ── Polyline ────────────────────────────────────────────────────────────
-    if (rutaPuntos.length > 0) {
-      const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
-      _bounds = polyline.getBounds();
-    }
-
-    // ── Marcadores de referencia desde coordenadas-aventuras.js ────────────
-    coordenadas.filter(c => c.tipo === 'referencia').forEach(ref => {
-      if (!ref.coordenadas || ref.coordenadas.lat == null) return;
-      const icono = L.divIcon({
-        html: `<div class="monumento-marker">🏛️ ${ref.mapa_numero}</div>`,
-        className: '', iconSize: null, iconAnchor: [0, 0]
-      });
-      L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
-        icon: icono,
-        title: ref.nombre || `Monumento ${ref.mapa_numero}`,
-        zIndexOffset: 400
-      }).addTo(map).on('click', () => mostrarMonumento(ref));
-    });
-
-    // ── Centrar vista: invalidateSize + fitBounds ───────────────────────────
-    // Reutilizado también desde el handler mapa-visible para corregir
-    // cualquier problema de dimensiones al abrirse el overlay.
-    function _reajustarVista() {
-      map.invalidateSize();
-      if (_bounds) map.fitBounds(_bounds, { padding: [24, 24] });
-    }
-
-    _reajustarVista();
-
-    // ── Tiles DESPUÉS de fijar la vista ────────────────────────────────────
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // ── Popup de monumento ──────────────────────────────────────────────────
+    function _reajustarVista() {
+      map.invalidateSize();
+      if (_bounds) map.fitBounds(_bounds, { padding: [24, 24] });
+    }
+
+    // ── Popup de monumento ────────────────────────────────────────────────
     const overlay   = document.getElementById('monumento-overlay');
     const imgWrap   = document.getElementById('monumento-imagen-wrap');
     const numEl     = document.getElementById('monumento-numero');
@@ -247,12 +199,65 @@
     btnCerrar.addEventListener('click', cerrarOverlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) cerrarOverlay(); });
 
-    // ── Resize ─────────────────────────────────────────────────────────────
     globalThis.addEventListener('resize', () => map.invalidateSize());
 
-    // ── Comunicación con el padre ───────────────────────────────────────────
+    // ── Pintado: se ejecuta cuando llegan las coordenadas del padre ───────
+    let _pintado = false;
+    function pintarRuta(coordenadas) {
+      if (_pintado || !Array.isArray(coordenadas) || coordenadas.length === 0) return;
+      _pintado = true;
+
+      const rutaPuntos = [];
+      coordenadas.forEach(entry => {
+        if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
+          rutaPuntos.push([entry.coordenadas.lat, entry.coordenadas.lng]);
+        } else if (entry.tipo === 'tramo') {
+          rutaPuntos.push([entry.inicio.lat, entry.inicio.lng]);
+          entry.waypoints.forEach(wp => rutaPuntos.push([wp.lat, wp.lng]));
+          rutaPuntos.push([entry.fin.lat, entry.fin.lng]);
+        }
+      });
+
+      rutaCompleta = [];
+      coordenadas.forEach(entry => {
+        if (entry.tipo === 'parada' || entry.tipo === 'inicio') {
+          rutaCompleta.push({ tipo: 'parada', nombre: entry.nombre, lat: entry.coordenadas.lat, lng: entry.coordenadas.lng });
+        } else if (entry.tipo === 'tramo') {
+          rutaCompleta.push({ tipo: 'waypoint', lat: entry.inicio.lat, lng: entry.inicio.lng });
+          entry.waypoints.forEach(wp => rutaCompleta.push({ tipo: 'waypoint', lat: wp.lat, lng: wp.lng }));
+          rutaCompleta.push({ tipo: 'waypoint', lat: entry.fin.lat, lng: entry.fin.lng });
+        }
+      });
+
+      if (rutaPuntos.length > 0) {
+        const polyline = L.polyline(rutaPuntos, { color: '#2255cc', weight: 5, opacity: 0.85 }).addTo(map);
+        _bounds = polyline.getBounds();
+      }
+
+      coordenadas.filter(c => c.tipo === 'referencia').forEach(ref => {
+        if (!ref.coordenadas || ref.coordenadas.lat == null) return;
+        const icono = L.divIcon({
+          html: `<div class="monumento-marker">🏛️ ${ref.mapa_numero}</div>`,
+          className: '', iconSize: null, iconAnchor: [0, 0]
+        });
+        L.marker([ref.coordenadas.lat, ref.coordenadas.lng], {
+          icon: icono,
+          title: ref.nombre || `Monumento ${ref.mapa_numero}`,
+          zIndexOffset: 400
+        }).addTo(map).on('click', () => mostrarMonumento(ref));
+      });
+
+      _reajustarVista();
+    }
+
+    // ── Comunicación con el padre ─────────────────────────────────────────
     globalThis.addEventListener('message', event => {
       if (event.origin !== globalThis.location.origin) return;
+
+      if (event.data?.tipo === 'mapa-completo-datos') {
+        pintarRuta(event.data.coordenadas);
+        return;
+      }
 
       if (event.data?.tipo === 'solicitar-ruta') {
         globalThis.parent.postMessage({
@@ -268,6 +273,14 @@
         setTimeout(_reajustarVista, 300);
       }
     });
+
+    // Pedir los datos. Sin padre no hay a quien pedirselos: el mapa queda vacio.
+    if (globalThis.parent && globalThis.parent !== globalThis) {
+      globalThis.parent.postMessage({ tipo: 'mapa-completo-solicitar-datos', aventura }, globalThis.location.origin);
+    } else {
+      document.getElementById('map').innerHTML =
+        `<p style="padding:2rem;font-size:1.25rem;text-align:center;">Este mapa forma parte de la aventura y necesita abrirse desde ella.</p>`;
+    }
   </script>
 </body>
 </html>
