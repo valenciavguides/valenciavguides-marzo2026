@@ -5801,7 +5801,13 @@
             try {
                 globalThis.funcionesMapa.procesarPosicionGPSParaAventura(position);
                 (globalThis.logger || console).debug(`${logPrefix} ✅ Posición GPS procesada por funciones-mapa`);
-                try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                // El ocultado NO puede ser incondicional: se ejecuta en CADA posicion GPS y
+                // borraba el aviso de "fuera de zona" dos lineas despues de mostrarlo
+                // (_check5kmFromRoute corre justo antes). Mientras haya bloqueo por distancia,
+                // el aviso se queda.
+                if (globalThis.__VV_5KM_BLOCKED !== true) {
+                    try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                }
             } catch (procesarError) {
                 (globalThis.logger || console).error(`${logPrefix} ❌ Error procesando posición GPS:`, procesarError);
             }
@@ -5835,13 +5841,48 @@
 
             (globalThis.logger || console).debug(`${logPrefix} 📍 Ubicación GPS: [${lat.toFixed(6)}, ${lng.toFixed(6)}] (±${Math.round(accuracy)}m)`);
 
-            // Chequeo anti-piratería: usuario a >5km de la ruta (§30.5) — throttle 3 minutos
-            _check5kmFromRoute(lat, lng);
+            // Chequeo de integridad: usuario a >5km de la ruta (§30.5) — throttle 3 minutos.
+            // Se le pasa la precisión: una lectura mala no puede bastar para bloquear.
+            _check5kmFromRoute(lat, lng, accuracy);
 
             _gpsProcesarPosicion(position, logPrefix);
         }
 
-        function _check5kmFromRoute(lat, lng) {
+        /*
+         * Comprobación de integridad: ¿está el usuario a más de 5 km de TODA la ruta?
+         *
+         * Tenía tres fallos que lo dejaban inerte, y uno de ellos hacía daño de verdad:
+         *
+         *  1. NO PODIA MEDIR. Buscaba las coordenadas en `elementosIDpadre`, que no las
+         *     tiene — sus elementos solo llevan padreid/tipo/nombre/parada_id/texto_id/
+         *     audio_id/reto_id/tramo_id (verificado sobre los 68 de Av1). Así que minDistM
+         *     se quedaba en Infinity SIEMPRE, e `Infinity > 5000` es siempre cierto: creía
+         *     que todo el mundo estaba lejos. Las coordenadas viven en
+         *     __vv_DATOS_AVENTURAS[av]['coordenadas-hijo2.html'].coordenadas, que es de
+         *     donde las lee el resto del padre.
+         *
+         *  2. EL DAÑO REAL: al "bloquear" ocultaba #gps-error-action (el botón de reintentar
+         *     GPS) y solo lo restauraba en la rama de desbloqueo — que nunca se ejecutaba
+         *     porque minDistM jamás bajaba de Infinity. Resultado: en cada aventura, el botón
+         *     de reintentar GPS desaparecía a los pocos segundos y no volvía.
+         *
+         *  3. EL AVISO SE BORRABA SOLO. _gpsProcesarPosicion() llama a
+         *     hideGpsOutOfRangeOverlay() en CADA posición, sin mirar si hay bloqueo — dos
+         *     líneas después de mostrarlo. Ahora ese ocultado respeta __VV_5KM_BLOCKED.
+         *
+         * AUSENCIA DE DATO NO ES VEREDICTO. Si no se puede medir, no se bloquea: se registra
+         * un error ruidoso y se sale. Confundir "no pude medir" con "está lejos" es el fallo
+         * que causaba todo lo anterior.
+         *
+         * TOLERANCIA AL GPS MALO. La precisión dejó de descartar lecturas en el flujo normal
+         * (en calles estrechas se degrada constantemente), así que aquí llegan lecturas de
+         * ±km. Bloquear con una sola sería cortarle la aventura a alguien legítimo bajo un
+         * edificio. Se exigen LECTURAS_PARA_BLOQUEAR seguidas fuera de rango, y las de
+         * precisión peor que PRECISION_MAXIMA_M ni se cuentan. Con el throttle de 3 minutos,
+         * eso son ~9 minutos hasta bloquear: al pirata no le sirve de nada, al usuario real
+         * no le arruina la visita.
+         */
+        function _check5kmFromRoute(lat, lng, accuracy) {
             try {
                 const modoActual = (globalThis.estadoPadre?.modo?.actual) || (typeof estado !== 'undefined' && estado?.modo?.actual);
                 if (modoActual !== MODOS.AVENTURA) return;
@@ -5851,19 +5892,32 @@
                 if (globalThis.__VV_5KM_LAST_CHECK && (now - globalThis.__VV_5KM_LAST_CHECK) < THROTTLE_MS) return;
                 globalThis.__VV_5KM_LAST_CHECK = now;
 
-                const av = DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado];
-                const elementos = av?.elementosIDpadre;
-                if (!elementos || elementos.length === 0) return;
-
                 const LIMIT_M = 5000;
+                const PRECISION_MAXIMA_M = 100;
+                const LECTURAS_PARA_BLOQUEAR = 3;
+
+                // Una lectura imprecisa no cuenta ni a favor ni en contra: se ignora entera.
+                if (typeof accuracy === 'number' && accuracy > PRECISION_MAXIMA_M) {
+                    (globalThis.logger || console).debug(`[PADRE][GPS][5KM] Lectura ignorada por precisión ±${Math.round(accuracy)}m (> ${PRECISION_MAXIMA_M}m)`);
+                    return;
+                }
+
+                const av = globalThis.aventuraSeleccionada;
+                const coordenadas = globalThis.__vv_DATOS_AVENTURAS?.[av]?.['coordenadas-hijo2.html']?.coordenadas;
+                if (!Array.isArray(coordenadas) || coordenadas.length === 0) {
+                    // Ruidoso a propósito: sin datos no se bloquea a nadie, pero que se sepa.
+                    (globalThis.logger || console).error(`[PADRE][GPS][5KM] Sin coordenadas para ${av} — no se puede comprobar la distancia a la ruta`);
+                    return;
+                }
+
                 let minDistM = Infinity;
-                for (const el of elementos) {
-                    const checkPoints = [];
-                    if (el.coordenadas?.lat) checkPoints.push(el.coordenadas);
-                    if (el.inicio?.lat) checkPoints.push(el.inicio);
-                    if (el.fin?.lat) checkPoints.push(el.fin);
-                    if (Array.isArray(el.waypoints)) checkPoints.push(...el.waypoints.filter(p => p?.lat));
-                    for (const p of checkPoints) {
+                for (const entrada of coordenadas) {
+                    const puntos = [];
+                    if (entrada.coordenadas?.lat) puntos.push(entrada.coordenadas);
+                    if (entrada.inicio?.lat) puntos.push(entrada.inicio);
+                    if (entrada.fin?.lat) puntos.push(entrada.fin);
+                    if (Array.isArray(entrada.waypoints)) puntos.push(...entrada.waypoints.filter(p => p?.lat));
+                    for (const p of puntos) {
                         const d = calcularDistancia(lat, lng, p.lat, p.lng);
                         if (d < minDistM) minDistM = d;
                         if (minDistM < LIMIT_M) break;
@@ -5871,34 +5925,48 @@
                     if (minDistM < LIMIT_M) break;
                 }
 
+                if (!Number.isFinite(minDistM)) {
+                    (globalThis.logger || console).error(`[PADRE][GPS][5KM] Ningún punto con lat/lng en ${coordenadas.length} entradas de ${av} — no se puede medir`);
+                    return;
+                }
+
+                const fuera = minDistM > LIMIT_M;
                 const wasBlocked = globalThis.__VV_5KM_BLOCKED === true;
-                if (minDistM > LIMIT_M) {
+                globalThis.__VV_5KM_SEGUIDAS = fuera ? (globalThis.__VV_5KM_SEGUIDAS || 0) + 1 : 0;
+
+                if (fuera && globalThis.__VV_5KM_SEGUIDAS >= LECTURAS_PARA_BLOQUEAR) {
                     if (!wasBlocked) {
-                        (globalThis.logger || console).warn(`[PADRE][GPS][5KM] Usuario a ${Math.round(minDistM / 1000)}km de la ruta — bloqueando aventura`);
+                        (globalThis.logger || console).warn(`[PADRE][GPS][5KM] Usuario a ${Math.round(minDistM / 1000)}km de la ruta tras ${globalThis.__VV_5KM_SEGUIDAS} lecturas — bloqueando aventura`);
                         globalThis.__VV_5KM_BLOCKED = true;
-                        // Ocultar botón de retry y mostrar solo X (overlay de baja precisión reaprovechado)
                         const actionBtn = document.getElementById('gps-error-action');
                         if (actionBtn) actionBtn.style.display = 'none';
-                        try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(0, `Ubicación fuera de la zona de la aventura, a más de ${LIMIT_M / 1000} km de la ruta`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                        // Deshabilitar botón de avanzar en hijo2
-                        try {
-                            enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.DESHABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'usuario_fuera_zona' } });
-                        } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                        try { if (typeof showGpsOutOfRangeOverlay === 'function') showGpsOutOfRangeOverlay(0, `Ubicación fuera de la zona de la aventura, a más de ${Math.round(minDistM / 1000)} km`); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     }
-                } else if (wasBlocked) {
-                    (globalThis.logger || console).info(`[PADRE][GPS][5KM] Usuario volvió dentro de la ruta — desbloqueando`);
+                    // Se REAFIRMA en cada comprobación mientras siga bloqueado: la progresión
+                    // normal reenvía CONTROL.HABILITAR para btnAvanzar desde otros tres sitios,
+                    // y un bloqueo de un solo disparo se perdía en cuanto uno de ellos saltaba.
+                    try {
+                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.DESHABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'fuera_de_zona_5km' } });
+                    } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+                } else if (!fuera && wasBlocked) {
+                    (globalThis.logger || console).info(`[PADRE][GPS][5KM] Usuario volvió dentro de la ruta (${Math.round(minDistM)}m) — desbloqueando`);
                     globalThis.__VV_5KM_BLOCKED = false;
                     const actionBtn = document.getElementById('gps-error-action');
                     if (actionBtn) actionBtn.style.display = '';
                     try { if (typeof hideGpsOutOfRangeOverlay === 'function') hideGpsOutOfRangeOverlay(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                     try {
-                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'usuario_en_zona' } });
+                        enviarMensaje_S1({ tipo: TIPOS_MENSAJE_S1.CONTROL.HABILITAR, origen: getPadreId(), destino: 'hijo2', datos: { control: 'btnAvanzar', razon: 'de_vuelta_en_zona' } });
                     } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 }
             } catch (e) {
                 (globalThis.logger || console).debug('[PADRE][GPS][5KM] Error en chequeo 5km:', e?.message);
             }
         }
+        // Expuesta para poder ejercitarla desde los tests sin fabricar posiciones GPS reales
+        // — mismo motivo y misma convencion que __triggerCambioParadaInterno y
+        // _vv_triggerCambioModo. Este control no tenia NINGUNA cobertura, y por eso llevaba
+        // roto sin que nadie lo notara.
+        globalThis._vv_check5km = _check5kmFromRoute;
 
         function _watchPositionError(error, est, logPrefix) {
             let errorMsg = 'Error GPS desconocido';
