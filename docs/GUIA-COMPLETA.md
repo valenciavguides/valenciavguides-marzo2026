@@ -4775,7 +4775,7 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P6 se c
 
 ---
 
-Toda la información de las aventuras (coordenadas GPS, textos, audios, retos, puzzles) se almacena en ficheros JavaScript en la carpeta `js/` y en ficheros JSON en `backend/data/`.
+Toda la información de las aventuras (coordenadas GPS, textos, audios, retos, puzzles) se almacena hoy en ficheros JavaScript de la carpeta `js/`. `backend/data/` es dónde irán sus equivalentes JSON cuando exista la API — hoy `backend/` está vacío (ver "Datos en el backend", más abajo).
 
 ### Datos en el frontend (`js/`)
 
@@ -8093,7 +8093,9 @@ proyecto/
 │
 ├── manifest.json                     ← Configuración PWA (iconos, shortcuts, categorías)
 ├── sw.js                             ← Service Worker: caché shell (Network First) + media (Cache First LRU-100, sin vídeos ni audios — esos van siempre directos a red)
+├── version.json                      ← `{ "version": "v-..." }` — la única fuente consultable de qué CACHE_VERSION hay desplegada (§19)
 ├── CNAME                             ← Dominio para GitHub Pages (valenciavguides.es)
+├── debug-brujula.html                ← Diagnóstico del sensor de brújula en móvil real — no se referencia desde la app ni entra en el SW (§4.5)
 ├── package.json                      ← Dependencias y scripts (lint, test, dev)
 ├── eslint.config.js                  ← Configuración ESLint
 ├── playwright.config.js              ← Configuración tests E2E
@@ -8181,11 +8183,26 @@ proyecto/
 │   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura
 │   └── imagenes-mapas-vintage/       ← Tiles del mapa vintage artístico
 │
+├── tools/                            ← Scripts de mantenimiento, no forman parte de la PWA (ver §21, "Scripts npm disponibles")
+│   ├── build-sw.js                   ← Recalcula CACHE_VERSION en sw.js, version.json y la guía (§21.1)
+│   ├── install-hooks.js              ← Instala el hook de pre-commit que dispara build-sw.js
+│   ├── inventory.js                  ← Inventario de funciones del proyecto (`npm run inventory`)
+│   ├── inventory-conexiones.js       ← Genera las tablas de §37.2 y §37.4
+│   ├── verificar-mensajeria.js       ← Genera la tabla de §37.3 (emisores/receptores por tipo)
+│   ├── codigo-muerto.js              ← Funciones sin llamador y campos de estado solo-escritura
+│   └── ...                           (verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, renumber-pantallas, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
+│
+├── backend/                          ← **Vacío.** Reservado para los JSON de la API cuando exista (ver §10, "Datos en el backend")
+│
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 29 specs, ver §18.3 para el listado completo
+│   └── e2e/                          ← Tests Playwright — 57 specs, 340 tests por navegador; ver §18.3 para el listado completo
 │
 └── docs/                             ← Esta documentación
-    └── aventuras_ordenado/           ← Guiones legibles por aventura + tramos-para-videos.md — generados, no se editan a mano (ver §21)
+    ├── GUIA-COMPLETA.md              ← Este documento
+    ├── README.md
+    ├── fonetica.md
+    ├── plan-produccion-infraestructura.md
+    └── aventuras_ordenado/           ← Guiones legibles por aventura + parrafos_ordenados.md y tramos-para-videos.md — generados, no se editan a mano (ver §21)
 ```
 
 ---
