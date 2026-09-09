@@ -2726,7 +2726,7 @@ sequenceDiagram
 |----------|-----------|-----------|----|
 | Elemento audio | (interno, sin ID público) | `src = ""`, sin reproducir | Al recibir `AUDIO.REPRODUCIR_REQUEST` → se asigna `src`, se actualiza el título, la barra de progreso se resetea a 0 (`_resetearProgresoVisual()`); `.play()` solo si `autoplay===true` (el padre siempre envía `autoplay:false`) |
 | Barra de progreso | `#progressContainer` (contenedor, no un `<input>`) / `#progressBar` (relleno `#0BDA51`) | Valor 0, clase `deshabilitado` (thumb rojo `#ED2100`, sin interacción) | El relleno se actualiza con evento `timeupdate` del audio cada ~250 ms. Vuelve a 0 en tres momentos: al cargar un audio nuevo (arriba), al terminar de reproducirse (evento `ended`, antes de notificar `AUDIO.FIN_REPRODUCCION`), y al recibir el comando `stop` del overlay de audio del padre (`_manejarAudioControl('stop', ...)`) — nunca se queda con el progreso del audio anterior mientras el padre resuelve cuál toca a continuación, ni con el de un audio que el usuario detuvo a mano. El thumb (barra vertical, `.progress-container::after`) solo se puede arrastrar (clic/touch/teclado) cuando el padre confirma `#audio-main-toggle-btn` habilitado (`CONTROL.HABILITAR/DESHABILITAR {control:'progressBar'}`) o en modo CASA — clase `deshabilitado` quitada/puesta por `_actualizarSeekHabilitado()` |
-| Título de pista | `#track-title-display` / `.content-left` | Texto vacío | Muestra nombre de la parada/tramo cuando se asigna el audio |
+| Título de pista | `#titulo-parada` › `#titulo-parada-text`, dentro de `.content-left` | Texto vacío | Muestra nombre de la parada/tramo cuando se asigna el audio |
 | Botón retos | `#retosBtn` | `disabled = true`, `opacity: 0.5`, `pointer-events: none` | Ver tabla de habilitación ↓ |
 
 #### Habilitación y deshabilitación de `#retosBtn`
@@ -3342,21 +3342,32 @@ El destino real (URL de envío, campo de destino) vive únicamente en las consta
 **Configuración via URL**: recibe todos sus parámetros por querystring:
 
 ```text
-puzzle.html?aventura=INTRO&id=PZ-intro&noOverlay=1
-puzzle.html?aventura=Aventura1&id=PZ-reto-3&tipoReto=true
+puzzle.html?id=PZ-01&imagen=imagenes%2Fpuzzles%2F...
+puzzle.html?aventura=INTRO&id=PZ-intro&noOverlay=1&imagen=imagenes%2Fpuzzles%2F...
 ```
+
+**`puzzle.html` lee exactamente dos parámetros**, y no importa ningún módulo de datos:
 
 | Parámetro | Valor ejemplo | Descripción |
 |-----------|--------------|-------------|
-| `aventura` | `'INTRO'` / `'Aventura1'` | Qué entrada de `PUZZLES_AVENTURAS` usar |
-| `id` | `'PZ-intro'` / `'PZ-reto-3'` | ID del puzzle dentro de la aventura |
-| `noOverlay` | `'1'` | Sin overlays extra (para P9 en seleccion) |
-| `tipoReto` | `'true'` | Indica que es reto de juego (para hijo4) |
+| `id` | `'PZ-intro'` / `'PZ-01'` | ID del puzzle. Solo se usa para el mensaje de error y para identificarse al terminar |
+| `imagen` | ruta codificada con `encodeURIComponent` | **La imagen a montar.** Sin él no hay puzzle |
 
-La config se carga de `PUZZLES_AVENTURAS[aventura]['puzzle.html'].puzzle_id.find(p => p.id === id)`.  
-Si el puzzle no se encuentra en `aventura`, puzzle.html hace búsqueda global en todas las entradas de `PUZZLES_AVENTURAS`.
+```js
+const puzzleConfig = imagenParam ? { id: puzzleId, imagen: imagenParam } : null;
+const puzzleConfigValido = Boolean(puzzleId && puzzleConfig);
+```
 
-**Si tampoco se encuentra así** (`puzzleConfigValido = false`): se muestra `#errorMsg` con el texto del error. La lógica específica del puzzle (imagen, canvas, piezas, temporizador, listeners de `#restartBtn`/`#pauseBtn`) queda encapsulada en `if (puzzleConfigValido) {...}`, así que el resto del script sigue ejecutándose con normalidad y los botones quedan con su listener registrado — ver más abajo, §13 "Saltar un reto o puzzle roto".
+Esos son los dos únicos campos que la página necesita, y coinciden con lo único que definen los 21 puzzles de `PUZZLES_AVENTURAS` (`{id, imagen}`): filas, columnas, tiempo y nombre no existen en ninguno de los 21 y siempre caen a sus valores por defecto.
+
+**La configuración llega por URL; `puzzle.html` no la busca.** Quien invoca el puzzle ya la tiene resuelta y la pasa:
+
+- **desde hijo4** — el padre añade `reto.imagenPuzzle` al resolver el reto, y `retos-hijo4.html` la concatena al `reto.src` que trae `js/retos-aventuras.js` (`puzzle.html?id=PZ-01`);
+- **desde P6** — `En-busca-del-tesoro.html` ya la tenía para comprobar que el fichero existe, y la pone en la URL.
+
+> **`aventura` y `noOverlay` viajan en la URL de P6 pero `puzzle.html` no los lee.** No hay ningún `urlParams.get()` para ellos. Son dos parámetros inertes.
+
+**Si falta `imagen`** (`puzzleConfigValido = false`): se muestra `#errorMsg` con el texto del error. La lógica específica del puzzle (imagen, canvas, piezas, temporizador, listeners de `#restartBtn`/`#pauseBtn`) queda encapsulada en `if (puzzleConfigValido) {...}`, así que el resto del script sigue ejecutándose con normalidad y los botones quedan con su listener registrado — ver más abajo, §13 "Saltar un reto o puzzle roto".
 
 #### Elementos UI y botones
 
@@ -3767,11 +3778,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `PUZZLE.TIMEOUT` / `puzzle-state-timeout` | Iframe puzzle → Hijo4 | Puzzle sin resolver por tiempo |
 | | `PUZZLE.LEGACY_COMPLETADO` | Iframe puzzle → Hijo4 | Variante legacy de PUZZLE.COMPLETADO (compatibilidad puzzles antiguos) |
 | | `PUZZLE.LEGACY_TIMEOUT` | Iframe puzzle → Hijo4 | Variante legacy de PUZZLE.TIMEOUT (compatibilidad puzzles antiguos) |
-| **MAPA** | `MAPA.INVALIDAR_TAMAÑO` | Padre (interno) | Forzar recálculo del tamaño del mapa — handler en `funciones-mapa.js`; sin emisor activo (ver §10.9) |
-| | `MAPA.SET_VIEW` | Padre (interno) | Centrar vista del mapa — handler en `funciones-mapa.js`; sin emisor activo |
-| | `MAPA.GET_CENTER` | Padre (interno) | Obtener centro actual del mapa — handler en `funciones-mapa.js`; sin emisor activo |
-| | `MAPA.ADD_MARKER` / `REMOVE_MARKER` | Padre (interno) | Añadir/quitar marcador — handler en `funciones-mapa.js`; sin emisor activo |
-| | `MAPA.CLEAR_LAYERS` | Padre (interno) | Limpiar capas del mapa — handler en `funciones-mapa.js`; sin emisor activo |
 | **MONITOREO** | `MONITOREO.METRICA` | Hijo → Padre | Telemetría interna |
 | **OTROS** | `NAVEGAR_PANTALLA` | Interno | Navegación a una pantalla por ID |
 
@@ -4949,7 +4955,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 | Emitido por (normal) | Padre (intervalo periódico) → todos (broadcast) |
 | Payload | `{ timestamp, secuencia }` |
 | Handler en hijos | hijo1 L569, hijo2 L2358, hijo3 L1658, hijo4 L1779, **hijo5 L1153**, hijo6 L396 |
-| Acción hijo | Actualiza `_ultimoHeartbeat`, responde HEARTBEAT_RESPONSE |
+| Acción hijo | Responde `SISTEMA.HEARTBEAT_RESPONSE`. Quien lleva la cuenta es el padre: `js/mensajeria.js` actualiza el `Map` `ultimoHeartbeat` del estado al recibir la respuesta |
 | Handler en padre | Inline L6165 — también maneja HEARTBEAT entrante de hijos: responde con `HEARTBEAT_RESPONSE { estado:'activo', modo, hijosActivos }`, actualiza `ultimoPing` y resetea `heartbeatsFallidos` en `estadoHijos` |
 | Emitido raw en visibilitychange | Script 3 de `codigo-padre.html` (bloque `<script type="module">` de reconexión de iframes) — al restaurar visibilidad de la peña, padre recorre todos los iframes con atributo `name` y les envía `{ tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT, razon:'visibilitychange' }` vía `contentWindow.postMessage` directo (fuera del bus, por diseño, ver §10.18). El tipo se escribe con la constante `TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT` (importada en ese mismo bloque como alias de `TIPOS_MENSAJE`), nunca con el literal `'SISTEMA.HEARTBEAT'`. |
 | hijo5 en visibilitychange | `boton-casa-hijo5.html:1527` — además del handler normal, hijo5 envía proactivamente `SISTEMA.HEARTBEAT_RESPONSE` al padre cuando la pestaña vuelve a ser visible (`razon:'visibilitychange'`), sin esperar un HEARTBEAT entrante |
@@ -4970,7 +4976,7 @@ El padre inicia un ciclo de heartbeat para monitorizar que los hijos siguen acti
 |-------|-------|
 | Emitido por | Todos los hijos |
 | Destino | `padre` |
-| Handler en padre | `_hdl_SISTEMA_HEARTBEAT_RESPONSE` en codigo-padre.html |
+| Handler en padre | Callback anónimo registrado con `registrarControladorSeguro(TIPOS_MENSAJE_S1.SISTEMA.HEARTBEAT_RESPONSE, ...)` en el Script 1 de `codigo-padre.html` — no es una función `_hdl_*` con nombre |
 | Acción | Actualiza timestamp último heartbeat del hijo en `estado.hijosVivos` |
 
 ---
@@ -5512,7 +5518,7 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 
 | Campo | Valor |
 |-------|-------|
-| Emitido en hijo1 | `enviarMensaje` L1325, tipo L1327 — dentro del `setInterval` de 1s de `iniciarCuentaAtras` |
+| Emitido en hijo1 | `enviarMensaje` L1325, tipo L1327 — dentro del `setInterval` de 1s que abre `iniciarTemporizador()` |
 | Handler en padre | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` L11264 |
 | Acción | Actualiza display de tiempo en la UI del padre |
 
@@ -5776,22 +5782,15 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 
 ---
 
-### 10.9 Categoría MAPA — control interno del mapa padre
+### 10.9 El mapa no se controla por mensajes
 
-Los mensajes `MAPA.*` son del contexto interno del padre. Los handlers están en `js/funciones-mapa.js` (L3469-3474), que corre en el mismo contexto de ventana que padre. Todos responden con `SISTEMA.CONFIRMACION` (éxito) o `SISTEMA.ERROR` (fallo).
+**No existe ninguna familia `MAPA.*`.** `js/constants.js` no la declara (sus únicas entradas con esa palabra son `CODIGOS_ERROR.MAPA` y `ERROR_MAPA`, que son códigos de error, no tipos de mensaje), y `js/funciones-mapa.js` no registra ningún controlador para ella.
 
-**Estado actual**: ningún componente emite actualmente ningún tipo `MAPA.*`. El padre llama `globalThis.funcionesMapa.*` directamente en lugar de enviar mensajes por el bus. Los tipos y handlers se conservan como API preparada para uso futuro.
+El motivo es que no hace falta: `js/funciones-mapa.js` corre en el **mismo contexto de ventana** que el padre, así que el padre lo llama directamente por `globalThis.funcionesMapa.*` — sin serializar, sin `postMessage` y sin esperar confirmación. Por ejemplo `_onNextEntityShowMapClick()` (botón "mostrar en mapa" del overlay GPS, `codigo-padre.html`) hace `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })`. Meter un bus por medio entre dos funciones del mismo `window` añadiría un segundo camino para lo mismo, con peores garantías (ver §32.3: el padre no puede enviarse mensajes a sí mismo por `enviarMensaje`).
 
-| Mensaje | Handler | Acción |
-|---------|---------|--------|
-| `MAPA.INVALIDAR_TAMAÑO` | `manejarInvalidarTamanio` L2804 | Llama `invalidarTamañoMapa()` — recalcula el tamaño del lienzo del mapa al cambiar el contenedor (`map.resize()` de MapLibre) |
-| `MAPA.SET_VIEW` | `manejarSetView` L2863 | Centra y hace zoom a coordenadas dadas |
-| `MAPA.GET_CENTER` | `manejarGetCenter` L2929 | Devuelve centro actual del mapa en la respuesta |
-| `MAPA.ADD_MARKER` | `manejarAddMarker` L2998 | Añade marcador con popup al mapa |
-| `MAPA.REMOVE_MARKER` | `manejarRemoveMarker` L3099 | Elimina marcador por ID |
-| `MAPA.CLEAR_LAYERS` | `manejarClearLayers` L3171 | Limpia capas del mapa (polylines, marcadores) |
+La superficie pública del módulo es el objeto `globalThis.funcionesMapa`, con 19 entradas — entre ellas `setMapView`, `invalidarTamañoMapa`, `limpiarPorEstado`, `calcularToleranciaGPS`, `procesarPosicionGPSParaAventura`, `sincronizarModoMapa`, `activarSeguimientoRumbo`/`desactivarSeguimientoRumbo` y `diagnosticarMapa`.
 
-`_onNextEntityShowMapClick` (~L5527, botón "mostrar en mapa" del overlay GPS) llama `await globalThis.funcionesMapa?.setMapView([lat, lng], 16, { animate: true })` directamente, sin pasar por el bus. Todos los tipos `MAPA.*` quedan sin emisores activos.
+**Un único controlador de mensajes sí vive en `funciones-mapa.js`:** `NAVEGACION.RESPUESTA_COORDENADAS`, registrado con `registrarControlador()` dentro de `registrarManejadoresMensajes()`. Es el único, porque es lo único que llega de fuera del contexto del padre (lo responde hijo2).
 
 ---
 
@@ -5986,7 +5985,6 @@ Tres eventos adicionales enviados por `js/app.js` durante el pipeline de `SISTEM
 
 | Contexto | Emisor | Campo crítico |
 |----------|--------|---------------|
-| Respuesta a `MAPA.*` | funciones-mapa.js | `{ estado:'procesado', accion }` |
 | ACK de `enviarMensajeConConfirmacion` | hijo2 L608, hijo3 L500 | **`idOriginal: mensajeId`** — resuelve la promesa pendiente |
 | UI_VISIBLE (handshake visual) | hijo1 L459, hijo2 L1952, hijo3 L1316, hijo5 L1069 | `{ tipo:'UI_VISIBLE', timestamp }` |
 | Respuesta a acciones de audio | hijo3 L1842/1863 | `{ accion:'click_ejecutado', exito:true }` |
@@ -6001,7 +5999,6 @@ El campo `idOriginal` es **crítico para `enviarMensajeConConfirmacion`**: mensa
 | hijo2 L2088 | Error en operaciones de navegación/datos | padre |
 | hijo3 L1587 | Error en playback/operaciones audio | padre |
 | hijo1 L474/789/1092/1153 | Error en temporizador/opciones/init | padre |
-| funciones-mapa.js | Error en `MAPA.*` | emisor original |
 | padre L8579/8613/8656/10315 | Error interno (datos, GPS, selección) | destino específico |
 | `js/utils.js` (los seis hijos) | Error no capturado o promesa rechazada sin capturar — captura automática, ver abajo | padre |
 
@@ -9304,7 +9301,9 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 
 **Pantalla 4 — Vídeo introductorio (`video-intro.html`).** Un vídeo-demostración animado en HTML/CSS que muestra al usuario cómo funciona la aplicación antes de empezar. Se carga perezosamente en un iframe al confirmar el idioma (con `?lang=` para localización). Su contenido:
 
-- **Bocadillo Jaime I (las 20 escenas):** El caballero aparece en esquina inferior izquierda; un bocadillo `.jaime-bubble` (también esquina inferior izquierda, sobre el caballero, flecha apunta hacia abajo, z-index 450) muestra el texto de la escena en el idioma seleccionado. Las 20 escenas llaman a `showBubble(idx)`, así que todas llevan bocadillo. Los textos viven en `JAIME_SCENES`, exportado desde `js/traducciones-ui.js` en 12 idiomas y expuesto vía `globalThis` a un `<script>` clásico. El helper `showBubble(idx)` crea el elemento y devuelve `hideBubble()` para eliminarlo al terminar la escena.
+- **Banda de texto de Jaime I (las 20 escenas):** El caballero (`#knight`) aparece abajo a la izquierda, y el texto de la escena en el idioma seleccionado sale en `#jaime-band` — **una banda a todo el ancho anclada al fondo, no un bocadillo sobre el caballero**: `position:absolute; bottom:0; left:0; width:100%; min-height:20vh`, fondo `#fff8e7`, `z-index:350`, que aparece y desaparece por `opacity` (`.4s`) al poner o quitar la clase `.on`. El texto vive en el `<p>` `#jaime-band-text` (`clamp(15px,4.5vmin,19px)`, color `#1a3a1a`), y a su derecha la banda aloja `#band-next-btn`.
+
+  **La banda ocupa sitio de verdad, no se superpone.** Su altura se publica en la variable CSS `--band-h` del `#stage`, y tanto `#scene-layer` como `#overlay-layer` llevan `bottom:var(--band-h,0px)` con `transition:bottom .4s`: la escena se encoge exactamente lo que crece la banda, a la misma velocidad con la que la banda se funde. El propio caballero se apoya en ella (`bottom:max(20vh,var(--band-h,0px))`). Al ocultarse se devuelve `--band-h` a `0px` y se llama a `MC.map.invalidateSize()`, porque el mapa de la escena acaba de cambiar de tamaño. Las 20 escenas llaman a `showBubble(idx)`, así que todas llevan bocadillo. Los textos viven en `JAIME_SCENES`, exportado desde `js/traducciones-ui.js` en 12 idiomas y expuesto vía `globalThis` a un `<script>` clásico. El helper `showBubble(idx)` crea el elemento y devuelve `hideBubble()` para eliminarlo al terminar la escena.
 
   **El índice no es el número de escena.** `JAIME_SCENES` tiene **21** entradas (0–20) para 20 escenas, y el orden del array no es el orden de reproducción: `scene2` pide el índice 1 pero se reproduce la segunda, `scene8` pide el 5 y se reproduce la sexta, `sceneListadoParadas` pide el 20 y se reproduce la decimoséptima. Los índices que sí se usan son 0–14 y 16–20; **el 15 vale `null` y ninguna escena lo pide** — es un hueco del array, no una escena muda.
 - **20 escenas animadas** que muestran el mapa, los botones de hijo2, el audio, los retos, los overlays de error GPS/internet, y el modal de fin de aventura. El guantelete (`guantelete_*.png`) actúa de cursor animado.
