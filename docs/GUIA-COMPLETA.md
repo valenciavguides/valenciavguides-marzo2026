@@ -8302,6 +8302,8 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 
 ### 22.0 Checklist rápida de despliegue
 
+Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌ bloqueada** (por hacer, pero hoy no se puede sin romper otra cosa) y **✅** (cerrada, con la decisión tomada).
+
 | # | Tarea | Subsección | Estado |
 |---|-------|-----------|--------|
 | 1 | HTTPS + DNS/hosting | §22.1 | ⏳ pendiente |
@@ -8319,11 +8321,11 @@ Esta sección es la referencia única para todo lo relacionado con el despliegue
 | 13 | Migrar imports directos (`aventuras-ID-padre.js`, puzzles) a `data-loader.js` antes de activar `PROTECT_DATA=true` | §22.12 | ⏳ pendiente |
 | 14 | Compatibilidad iOS PWA y navegadores antiguos (meta tags, Permissions-Policy vía cabecera) | §22.13 | ⏳ pendiente |
 | 15 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | §22.14 | ⏳ pendiente |
-| 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ pendiente |
+| 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ bloqueada — privatizar el repositorio hoy tumba el HTTPS de GitHub Pages |
 | 17 | Arreglar los dos huecos de `fetchWithRetry()` — el `AbortError` del timeout no reintenta, y `.includes('fetch')` deja fuera a WebKit: **hoy no se ejecuta ni un reintento en iPhone** | §16.1b | ⏳ pendiente |
 | 18 | Fusionar las dos rutas de red: `data-loader.js` debe usar `fetchWithRetry()` de `api-client.js` en vez de su propio `fetch` sin reintento ni timeout. Decidir antes la forma de la respuesta de éxito (`data.exito` vs `!data.error`) | §16.1b | ⏳ pendiente |
 | 19 | El botón "Actualizar" no puede forzar la versión nueva: el borde descarta la query string y la copia dura 10 min | §19 (cache-busting) | ✅ **restricción aceptada** — medido y asumido |
-| 22 | Ningún test carga los hijos como **iframes reales** dentro de `codigo-padre.html`: todos los cargan como página de nivel superior con `postMessage` sintético. Es posible hoy en local —`_hdl_SELECCION_P14_MOSTRADA` es un handler normal y basta con enviarle el mensaje— pero está sin escribir | §7.1 (modelo P14) | ⏳ pendiente |
+| 20 | Ningún test carga los hijos como **iframes reales** dentro de `codigo-padre.html`: todos los cargan como página de nivel superior con `postMessage` sintético. Es posible hoy en local —`_hdl_SELECCION_P14_MOSTRADA` es un handler normal y basta con enviarle el mensaje— pero está sin escribir | §7.1 (modelo P14) | ⏳ pendiente |
 
 ---
 
