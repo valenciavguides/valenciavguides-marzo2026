@@ -2973,7 +2973,7 @@ btnPuzzleContinuar.addEventListener('click', async () => {
 }
 ```
 
-> **Nota**: el payload real es más simple que versiones anteriores de la documentación. No incluye `tipo_reto`, `respuesta_usuario`, `respuesta_correcta`, `tiempo_resolucion` ni `intentos` — solo los campos mínimos que el padre necesita para avanzar.
+> **Nota**: el payload lleva solo los campos mínimos que el padre necesita para avanzar. Ni el tipo de reto, ni la respuesta que dio el usuario, ni la correcta, ni el tiempo que tardó, ni el número de intentos viajan en él: el padre no usa nada de eso.
 
 #### Controladores que registra
 
@@ -6066,9 +6066,8 @@ GPS.RESTRINGIDO **no** es un broadcast del padre — es un handler que padre rec
 | Clave | Escritor | Lector adicional | Contenido | Cuándo se borra |
 |-------|---------|-----------------|-----------|-----------------|
 | `vv_aventura_iniciada` | padre L12263 (activación inicial) + padre L7304 (`_hdl_SISTEMA_CAMBIO_MODO`, en cada cambio de modo real de la sesión — incluida la activación de dev mode) | `reciclaje-digital.js` (lee para log antes de borrar; `verificarTimeoutAventura()` lee `aventura`+`timestamp` para la ventana de compra) | `{ aventura, idioma, modo, dev, timestamp }` — punto de entrada de `ejecutarRestauracionAventura()`. `modo` (`'casa'`\|`'aventura'`) y `dev` (booleano) son **dimensiones independientes**, no derivables una de otra: existen dev/CASA, dev/AVENTURA y prod/AVENTURA. Ambos reflejan el estado real de la sesión en cada momento — se escriben en la activación y se resincronizan en cada cambio de modo. Un payload sin `dev` (guardado antes de que el campo existiera) se sigue restaurando: se deduce `dev = true` solo si `modo === 'casa'` | `limpiarDatosAventura()` (fin/reset) |
-| `vv_progreso` | padre (`persistProgressState()`, en cada `CAMBIO_PARADA` y sincronización de modo — nombre de función corregido en la tabla, `_persistirProgreso` no existe en el código) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActualId, audioActual, totalParadas, tiempoRestante, tramoSkipsUsados, progresoEnUltimoSkip, aventura, idioma, timestamp }` | `limpiarDatosAventura()` |
+| `vv_progreso` | padre (`persistProgressState()`, en cada `CAMBIO_PARADA` y sincronización de modo) | padre al restaurar | `{ indiceProgreso, paradaActual, elementoActualId, audioActual, totalParadas, tiempoRestante, tramoSkipsUsados, progresoEnUltimoSkip, aventura, idioma, timestamp }` | `limpiarDatosAventura()` |
 | `vv_idioma` | padre L10384/L10460 | `En-busca-del-tesoro.html` `_ejecutarDespedida()` (lee idioma antes de limpiar) | Código de idioma: `'es'`, `'en'`, etc. | `limpiarDatosAventura()` |
-| `idioma_seleccionado` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
 | `idioma` | — (legado, no se escribe) | — | Clave legada de versiones anteriores; sin lector activo | — |
 | `vv_aventura` | padre | — | ID de aventura: `'Aventura1'`, etc. | `limpiarDatosAventura()` |
 | `vv_paradas_completadas` | padre | padre al restaurar | Array de pares `[[id, registro], ...]` — formato nativo de `Map.entries()`. Se restaura con `new Map(paradasObj)`, **no** con `Object.entries()` (este último produce claves numéricas y rompe el dedup). | `limpiarDatosAventura()` |
@@ -10911,7 +10910,7 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `RETO.SOLICITAR_RETO` | Hijo 3 (click en `#retosBtn`) o Hijo 4 (click en `#botonRetos`) | `_hdl_RETO_SOLICITAR`: llama `mostrarReto(estado.paradaActual)` → envía `RETO.MOSTRAR` a hijo4 con los datos del reto | `RETO.MOSTRAR` | Hijo 4 | El padre es el árbitro de qué reto mostrar; hijos no acceden directamente a los datos |
 | `RETO.OCULTAR` | Hijo 4 (usuario cierra el reto) | `_hdl_RETO_OCULTAR`: oculta iframe hijo4 + backdrop. No limpia ningún estado propio del padre — solo relé y DOM | `CONTROL.HABILITAR` (hijo2, hijo3) + `RETO.LIMPIAR_ESTADO` (hijo4) | Hijo2, Hijo3, Hijo4 | Rehabilitar navegación/audio tras cerrar el reto, y que hijo4 limpie su propio estado interno |
 | `RETO.MOSTRADO` | Hijo 4 (reto renderizado en UI) | `_hdl_RETO_MOSTRADO`: registra que el reto está visible; sin acción adicional | (ninguna) | — | Confirmación de que hijo4 completó la renderización del reto |
-| `AVENTURA.TIEMPO_ACTUALIZADO` | Hijo 1 (cada segundo mientras el temporizador corre) | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`: actualiza la UI del temporizador del padre (`#tiempo-restante`) | (ninguna) | — | Mantener el contador visible en el padre sincronizado con hijo1 |
+| `AVENTURA.TIEMPO_ACTUALIZADO` | Hijo 1 (cada segundo mientras el temporizador corre) | `_hdl_AVENTURA_TIEMPO_ACTUALIZADO`: guarda el valor en `estado.tiempoRestante` (siempre, esté o no visible la ventana) y, si `#ventana-temporizador-padre` está desplegada, escribe el display `#tiempo-display-padre` y le pone la clase de color que corresponda | (ninguna) | — | Mantener el contador visible en el padre sincronizado con hijo1 |
 | `AVENTURA.TIEMPO_AGOTADO` | Hijo 1 (contador a 0) | `_hdl_AVENTURA_TIEMPO_AGOTADO`: lanza el flujo de fin de aventura por tiempo (modal + despedida) | (ninguna directa) | — | Gestionar el caso de límite de tiempo alcanzado |
 | `AVENTURA.FINALIZADA` | Hijo 1 (tras `AVENTURA.DETENER` procesado) | `_hdl_AVENTURA_FINALIZADA`: confirma fin del temporizador; coordina con el flujo de despedida | (ninguna) | — | ACK de que hijo1 procesó la orden de parar el temporizador |
 | `AVENTURA.ESTADISTICAS_TIEMPO` | Hijo 1 (al finalizar) | `_hdl_AVENTURA_ESTADISTICAS_TIEMPO`: guarda estadísticas de tiempo para mostrar en la pantalla de despedida | (ninguna) | — | Preservar datos de rendimiento del recorrido |
