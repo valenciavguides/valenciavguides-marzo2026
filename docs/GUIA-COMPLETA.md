@@ -3646,7 +3646,7 @@ sequenceDiagram
 **Detalles del handshake**:
 
 - `HIJO_PREPARADO` — el hijo lo envía nada más terminar su inicialización JS, antes de recibir datos.
-- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Los hijos comprueban defensivamente otros campos (`paradas`, `paradaActual`, `idioma`) pero el padre no los envía en esta fase; esos datos llegan por mensajes posteriores (`DATOS.CARGAR_*`, `NAVEGACION.CARGAR_PARADAS`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`siguienteParadaNombre`/`paradasRestantes` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
+- `PADRE_DATOS` — contiene `{ modo, timestamp }` para todos los hijos. Los hijos comprueban defensivamente otros campos (`paradas`, `paradaActual`, `idioma`) pero el padre no los envía en esta fase; esos datos llegan por mensajes posteriores (`DATOS.CARGAR_*`, `CHAT.ESTADO_PADRE`). **Excepción: `hijo6-chat`** recibe además `idioma`/`aventura`/`paradaActualNombre`/`siguienteParadaNombre`/`paradasRestantes` en este mismo mensaje — ver la nota de `hijo6-chat` en §6 y el detalle completo en §7.7.
 - `HIJO_LISTO` — el hijo confirma que ha procesado los datos. En el padre desencadena `marcarHijoListo(hijoId)`, que resuelve la Promise de `crearPromiseHijoListo(hijoId)`.
 - `PADRE_CONFIRMA_HIJO_LISTO` — señal para que el hijo muestre su UI. Hasta recibirlo la interfaz permanece oculta.
 - **Fallback de 30 s**: si `PADRE_CONFIRMA_HIJO_LISTO` no llega, los hijos críticos muestran su UI igualmente (ver §5 — invariante `_normalizarSetHijos`).
@@ -3714,8 +3714,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `NAVEGACION.LLEGADA_DETECTADA` | Hijo2 → Padre | Usuario ha llegado a la parada (solo AVENTURA) |
 | | `NAVEGACION.USUARIO_FUERA_RANGO` | Hijo2 → Padre | Usuario fuera del radio de la parada |
 | | `NAVEGACION.ACTUALIZAR_ESTADO` | Padre → Hijo2 | Actualización de estado de navegación |
-| | `NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO` | Sin emisor activo | Handler en padre; ningún hijo lo envía actualmente — handler de `funciones-mapa.js` "MOVIDO A PADRE" pero sin callers en prod |
-| | `NAVEGACION.CENTRAR_EN_UBICACION` | Sin emisor activo → Padre | Handler en padre (`_hdl_NAVEGACION_CENTRAR_EN_UBICACION`); nadie lo envía actualmente — sin callers activos |
 | | `NAVEGACION.MOSTRAR_UBICACION_POLYLINE` | Hijo2 → Padre | Dibujar polyline hasta el usuario |
 | | `NAVEGACION.MOSTRAR_MAPA_COMPLETO` | Hijo2 → Padre | Abrir mapa interactivo Leaflet (mapa-completo.html) en overlay |
 | | `NAVEGACION.MOSTRAR_MAPA_VINTAGE` | Hijo2 → Padre | Mostrar imagen JPG del mapa vintage en overlay |
@@ -3729,8 +3727,6 @@ Todos los tipos están definidos en `js/constants.js` como `TIPOS_MENSAJE.*`:
 | | `DATOS.SOLICITAR_AUDIOS` | Hijo3 → Padre | Cache-miss: pide un `audioId` concreto (no la aventura completa); el padre responde con `AUDIO.REPRODUCIR_REQUEST` |
 | | `DATOS.SOLICITAR_RETOS` | Hijo4 → Padre | Cache-miss: pide un `retoId` concreto; el padre responde con `RETO.MOSTRAR` |
 | | `DATOS.SOLICITAR_TEXTOS` | Hijo2 → Padre | Solicita textos si no los recibió en handshake |
-| | ~~`DATOS.SOLICITAR_PARADAS`~~ | ❌ Eliminado | Constante muerta — cero referencias en el código, sin handler. La ruta real es `NAVEGACION.SOLICITAR_DATOS_PARADAS` |
-| | ~~`DATOS.RESPUESTA_PARADAS`~~ | ❌ Eliminado | Constante muerta — nunca hubo handler activo. El mecanismo real es `NAVEGACION.RESPUESTA_DATOS_PARADAS` |
 | | `DATOS.COORDENADAS_PARADAS_REQUEST` | Padre → Hijo2 | Pide coordenadas de una o todas las paradas (`paradaId` opcional; si se omite devuelve todas) |
 | | `DATOS.COORDENADAS_PARADAS_RESPONSE` | Hijo2 → Padre | Devuelve `{ coordenadas[], total, exito, paradaId? }` — padre lo procesa y dibuja en mapa |
 | | `DATOS.SOLICITAR_COORDENADAS` | Hijo2 → Padre | Fallback: hijo2 solicita sus coordenadas si no las recibió en handshake; padre responde con `DATOS.CARGAR_COORDENADAS` |
@@ -5264,13 +5260,6 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Acción | Normaliza ID, llama `_marcarPendingPorLlegada` → `pending.llegada = true` → `intentarCompletarElemento` (que solo avanza si además `pending.audio` y, si hay retos, `pending.reto` ya están a `true`) |
 | Nota | Audio NO se envía aquí — ya fue enviado en CAMBIO_PARADA |
 
-**NAVEGACION.ACTUALIZAR_MARCADOR_USUARIO** ⚠️ sin emisor activo
-
-| Campo | Valor |
-|-------|-------|
-| Handler en padre | `_hdl_NAVEGACION_ACTUALIZAR_MARCADOR_USUARIO` (registrado pero sin emisor real) |
-| Acción | Actualizaría el marcador de posición del usuario en el mapa, pero ningún hijo envía este mensaje actualmente (ver §8.3) |
-
 **NAVEGACION.ACTUALIZAR_ESTADO** (funciones-mapa → hijo2)
 
 | Campo | Valor |
@@ -5312,16 +5301,6 @@ Dirección: hijo → padre. `NAVEGACION.GPS.DESACTIVAR` no aparece aquí — no 
 | Handler en padre | `_hdl_NAVEGACION_MOSTRAR_MAPA_VINTAGE` |
 | Payload | `{ formato: 'jpg', url: <urlMapaVintage>, aventura, paradaActual }` |
 | Acción | Llama directamente `mostrarImagenOverlay` con la URL del JPG vintage de la aventura. Sin detección de tipo — este canal es exclusivamente para imágenes. |
-
-**NAVEGACION.CENTRAR_EN_UBICACION** ⚠️ sin emisor activo
-
-| Campo | Valor |
-|-------|-------|
-| Emitido por | Ninguno actualmente — handler en padre registrado pero nadie lo envía |
-| Payload | `{ posicion: {lat,lng}?, paradaActual?, zoom?, suavizado? }` |
-| Handler en padre | `_hdl_NAVEGACION_CENTRAR_EN_UBICACION` L8715 |
-| Acción | Resuelve `posicion` directa o coords de `paradaActual`; llama `funcionesMapa.setMapView` |
-| Nota | Handler en padre (`_hdl_NAVEGACION_CENTRAR_EN_UBICACION`); sin callers activos. `funciones-mapa.js` L3820 tiene comentario "MOVIDO A PADRE" como referencia |
 
 ---
 
@@ -5894,8 +5873,6 @@ También lo reciben: hijo2 L2409 (almacena en `arrayParadasLocal` para cálculos
 | Fuente datos | `DATOS_PADRE[av][idioma].elementosIDpadre` (primaria) + `__vv_DATOS_AVENTURAS` (fallback) |
 | Incluye reto | ❌ |
 | Emisor conocido | hijo5, funciones-mapa (hijo2 **no** lo emite) |
-
-> `DATOS.SOLICITAR_PARADAS`/`DATOS.RESPUESTA_PARADAS` (un supuesto "segundo flujo" con datos de reto incluidos) no existe en el código — cero referencias en `codigo-padre.html`, `controladores-padre.js` ni `constants.js`. Es una constante muerta, nunca tuvo handler activo (ver §8.3). El único mecanismo real para obtener paradas es el descrito arriba.
 
 ---
 
@@ -10876,7 +10853,7 @@ El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-compl
 - **Heartbeat**: el padre detecta hijos sin respuesta y puede recargar el iframe.
 - **puzzleListener lifecycle**: `window._puzzleListener` almacena el listener activo; se elimina y sustituye en cada re-inicialización para evitar acumulación de listeners.
 - **Registro de handlers con fallbacks en cadena**: `registrarControlador_S1` → `sm.registrarManejador` es la vía primaria; si mensajería no está lista, cae a `__vv_manejadoresLocales` y encola en `__CONTROLADORES_PENDIENTES`, que se drena garantizadamente tras `mensajeriaReady`. El Set `__CONTROLADOR_REGISTRADOS` evita dobles registros. Diseño defensivo intencional, no una duplicación accidental.
-- **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia (`DATOS.SOLICITAR_PARADAS` es una constante distinta, sin ninguna referencia en el código — ver §10.12).
+- **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
 - **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
 - **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor, o sin ninguno de los dos. Es una heurística con falsos positivos conocidos (indirección vía variable, handlers registrados en una línea posterior a su definición) — cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
 - **Verificación automática de documentación desactualizada**: `npm run verificar-docs` (`tools/verificar-docs.js`) calcula qué ficheros HTML/JS/CSS cambiaron (working tree + commits sin empujar, o un rango con `--since=REF`) y señala, agrupadas por sección, las menciones de esos ficheros en esta guía — incluye ficheros borrados que sigan mencionados (p.ej., un fichero eliminado que siga citado en el árbol de carpetas de §20 varias ediciones después de borrarse). Busca por nombre de fichero, no por función/mensaje concreto, y no verifica que el texto sea correcto — solo evita el fallo de no pararse a mirar. Pensado para correr antes de cada `git push` que toque código de producción.
@@ -10944,7 +10921,6 @@ El padre es el único que conoce el estado global. Todos los mensajes de los hij
 | `AUDIO.ERROR` | Hijo 3 (error durante reproducción) | `_hdl_AUDIO_ERROR`: registra en log; habilita el reto igualmente si la parada tiene reto (el audio no es bloqueante ante error) | `RETO.HABILITAR` condicional | Hijo 4 | El error de audio no debe impedir al usuario completar el reto |
 | `DATOS.COORDENADAS_CARGADAS` | Hijo 2 (confirmación de carga) | `_hdl_DATOS_COORDENADAS_CARGADAS`: marca coordenadas como listas en el estado de carga | (ninguna) | — | Tracking de completitud de carga de datos |
 | `DATOS.TEXTOS_CARGADOS` | Hijo 2 (confirmación de carga de textos descriptivos) | `_hdl_DATOS_TEXTOS_CARGADOS`: marca textos como listos | (ninguna) | — | Ídem |
-| ~~`DATOS.SOLICITAR_PARADAS`~~ | ❌ Eliminado | Constante muerta — cero referencias en `codigo-padre.html`, `controladores-padre.js` ni `constants.js`; no existe ningún `_hdl_DATOS_SOLICITAR_PARADAS`. El mecanismo real es `NAVEGACION.SOLICITAR_DATOS_PARADAS` (ver §10.12) | — | — | — |
 | `MONITOREO.METRICA` | Hijo 1 (errores de geolocalización detectados) | `_hdl_MONITOREO_METRICA`: registra la métrica en log; sin reenvío | (ninguna) | — | Telemetría interna de calidad de GPS |
 
 ---
@@ -11319,42 +11295,6 @@ Todos los hijos implementan `enviarHijoListoConReintento`. Nótese que hijo6 no 
 ```
 
 Los pasos 3 a 5 son el cuerpo del handler de `PADRE_DATOS`. Sin el paso 2 no ocurre ninguno — ver el aviso de arriba.
-
----
-
-### 26.14 Eliminación de la arquitectura relay `correlacionesMensajes` (B3, Junio 2026)
-
-#### Diagnóstico
-
-El código contenía un **segundo sistema de correlación** paralelo a `mensajeria.js`, basado en `estadoPadre.correlacionesMensajes` (un `Map`). Su propósito era permitir que padre actuara como proxy entre hijos: un hijo enviaba `SOLICITAR_PARADAS`, padre lo reenviaba a hijo2, hijo2 respondía con `RESPUESTA_PARADAS`, y padre debía relayar la respuesta al solicitante original con un tipo dinámico ad-hoc:
-
-```javascript
-tipo: `${TIPOS_MENSAJE.DATOS.SOLICITAR_PARADAS}_RESPONSE_${mensajeOriginal.id}`
-```
-
-El diseño nunca llegó a completarse. **El Map se inicializaba en la línea ~4215 pero jamás se llamaba `.set()` en ningún punto del código.** En consecuencia, los tres handlers que dependían de él salían siempre en el primer guard:
-
-| Handler | Mensaje esperado | Comportamiento real |
-|---|---|---|
-| `_hdl_NAVEGACION_GPS_ESTADO_ACTUALIZADO` | `NAVEGACION.GPS.ESTADO_ACTUALIZADO` desde hijos | Siempre salía: `"CorrelationId GPS no encontrado"` |
-| `_hdl_NAVEGACION_GPS_ERROR` | `NAVEGACION.GPS.ERROR` desde hijos | Ídem |
-| `_hdl_DATOS_RESPUESTA_PARADAS` | `DATOS.RESPUESTA_PARADAS` desde hijo2 | Ídem |
-
-Además, el mecanismo real de datos de paradas es otro, sin relación con este: `NAVEGACION.SOLICITAR_DATOS_PARADAS` (nótese el prefijo `NAVEGACION`, no `DATOS`), manejado en Script 1 de `codigo-padre.html` directamente desde los datos en memoria (`DATOS_PADRE`), sin reenviar a hijo2. Nadie envía `RESPUESTA_PARADAS` a padre; `DATOS.SOLICITAR_PARADAS` y `DATOS.RESPUESTA_PARADAS` no tienen ninguna referencia en el código — ni la constante, ni ningún handler (ver §10.12).
-
-Para el GPS: padre emite `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` **hacia hijo2** vía `enviarMensaje_S1({destino:'hijo2',...})` — directo, no broadcast. La dirección inversa (hijo2 → padre) no existe.
-
-#### Lo que existe
-
-- `enviarMensajeConConfirmacion` (líneas ~9394–9518) — usa `confirmacionesPendientes` de `mensajeria.js`, resuelve por `idOriginal`, tiene timeout de 5 s con `Promise.reject()` explícito. Sistema completamente distinto al relay, activo y correcto.
-- `GPS.ESTADO_ACTUALIZADO` y `GPS.ERROR` en `constants.js` — los usa padre para emitir hacia hijos. No afectados.
-- El handler de Script 1 para `NAVEGACION.SOLICITAR_DATOS_PARADAS` — resuelve directamente desde `DATOS_PADRE` en memoria y responde con `NAVEGACION.RESPUESTA_DATOS_PARADAS`. Es el diseño actual y funciona (ver §10.12). No debe confundirse con `DATOS.SOLICITAR_PARADAS`/`_hdl_DATOS_SOLICITAR_PARADAS`, que no existen en el código.
-
-#### Lección sobre riesgos de correlación dinámica
-
-El tipo ad-hoc `SOLICITAR_PARADAS_RESPONSE_<uuid>` era frágil por diseño: si el emisor y el receptor construían el string de forma diferente (distintas versiones del código, refactors parciales), la respuesta desaparecería sin error. La forma robusta de request-response es la de `mensajeria.js`: el receptor resuelve la Promise por `idOriginal`, sin depender de que ambas partes generen el mismo string.
-
----
 
 ---
 
@@ -12246,7 +12186,7 @@ Esta sección documenta restricciones de diseño que no deben violarse. Son inva
 
 **Efectos en cascada si se limpia en `CAMBIO_MODO`:**
 
-- hijo3 pierde su handler de `HEARTBEAT` y `RETO.HABILITADO` → `#retosBtn` nunca se habilita
+- hijo3 pierde su handler de `HEARTBEAT` y `CONTROL.HABILITAR` → `#retosBtn` nunca se habilita
 - hijo4 pierde su handler de `RETO.MOSTRAR` → panel de retos permanece vacío
 - El heartbeat detecta falsos negativos (no recibe ACK) y recarga iframes innecesariamente
 
