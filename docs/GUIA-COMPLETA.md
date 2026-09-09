@@ -8404,7 +8404,7 @@ pm2 restart vv-static
   if (process.env.NODE_ENV === 'production') { console.log = console.debug = () => {}; }
   ```
 
-- **Opción B (limpia):** Reemplazar los `console.*` directos por llamadas a `logger.*` en cada archivo. `logger.js` ya tiene niveles configurables — en producción basta con `logger.setLevel('WARN')`.
+- **Opción B (limpia):** Reemplazar los `console.*` directos por llamadas a `logger.*` en cada archivo. `logger.js` ya tiene niveles configurables — en producción basta con `logger.setNivel(LOG_LEVELS.WARN)` (el método se llama `setNivel`, y toma el valor numérico de `LOG_LEVELS`, no la cadena).
 
 ---
 
@@ -10388,7 +10388,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
          funciones-mapa.js
            └─ mensajeria.js
                 └─ constants.js       (TIPOS_MENSAJE, TTL_LIMPIEZA, MODOS)
-                └─ logger.js          (buffer 500 líneas, niveles DEBUG..NONE)
+                └─ logger.js          (buffer de 500 entradas; DEBUG/INFO/WARN/ERROR)
                 └─ utils.js           (generarIdUnico, getPadreId, canonicalizarModo)
                 └─ device-detection.js
 
@@ -10463,7 +10463,7 @@ Nota de arquitectura: el audio quedó centralizado en el padre; `audio-hijo3.htm
 |--------|-----|--------|
 | `constants.js` | Fuente de verdad de todas las constantes. Define `TIPOS_MENSAJE` (árbol jerárquico con ~60 tipos), `MODOS`, `TTL_LIMPIEZA`, `ERRORES`, `ESTADOS`. Al final aplana el árbol en `TIPOS_MENSAJE_VALIDOS` para validación O(1). | `window.TIPOS_MENSAJE` (copia global para scripts no-módulo) |
 | `state-manager.js` | Gestor de estado global con acceso serializado. Un `SimpleMutex` (Promise chain nativa, sin dependencias externas) por campo. Almacena `estadoPadre` (modo, parada, hijos, GPS, monitoreo), `aventuraSeleccionada`, `idiomaSeleccionado`, `controladores` (el Map de handlers), y flags booleanos de carga. | `window.__vv_stateManager` |
-| `logger.js` | Logging centralizado con niveles DEBUG/INFO/WARN/ERROR/NONE. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
+| `logger.js` | Logging centralizado. `LOG_LEVELS` (`constants.js`) declara cinco niveles — DEBUG, INFO, WARN, ERROR y NONE — pero **el logger solo acepta los cuatro primeros**: su tabla interna `PRIORIDAD_NIVELES` no incluye `NONE`, y `setNivel()` valida contra esa tabla, así que pedir `NONE` responde `Nivel de log inválido` y no cambia nada. No hay forma de silenciarlo del todo por su API. Buffer en memoria de 500 entradas (FIFO — elimina la entrada más antigua cuando se llena). **Sin limpieza periódica por TTL** — `TTL_LIMPIEZA.LOGGER` está definido en `constants.js` pero `logger.js` no lo importa ni lo usa. Colorea la consola por nivel. | `default export logger` |
 | `utils.js` | Funciones sin efectos secundarios: `generarIdUnico(prefijo)` → `prefijo-timestamp-base36`, `canonicalizarModo()` → `'casa'`\|`'aventura'`\|`null`, `getPadreId()`, `normalizarParadas()`. | Named exports |
 | `device-detection.js` | Detecta tipo de dispositivo analizando `userAgent`. Resultados cacheados en el primer acceso. Solo exporta `esMovil()` (usada en `mensajeria.js` para elegir el TTL de limpieza de mensajes, `TTL_LIMPIEZA.MENSAJERIA.MOVIL`/`.DESKTOP`, definido en `constants.js`) y `esTelefonoMovil()` (usada en `codigo-padre.html` para el aviso de "gira el móvil" en horizontal). No expone ninguna otra detección (tablet/iOS/Android/navegador/táctil/giroscopio/acelerómetro/geolocalización/notificaciones/service workers/PWA instalada) — ningún caller en todo el proyecto las necesita, y no hay ningún agregador de debug alrededor: ni `getInfoDispositivo()` ni `globalThis.__vv_deviceInfo` existen en el repositorio. | `esMovil()`, `esTelefonoMovil()` |
 | `validacion.js` | Solo exporta `validarCoordenadas()` (usada en `funciones-mapa.js`) — sin validación por tipo con soporte de opciones, validación de mensajes, validación de paradas, validación por schema, sanitización XSS de strings/objetos, ni registro de validadores personalizados; nada de eso tiene ningún caller en el proyecto, solo alcanzable vía `globalThis.__vv_validacion` desde consola. `state-manager.js` tiene su propia validación de mensajes independiente (`_assertMensajeValido`, lanza en vez de devolver `{valido, errores}`), sin relación con este módulo. | `validarCoordenadas()` |
