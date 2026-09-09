@@ -7263,15 +7263,10 @@ Los vídeos están en `videos-aventuras/` organizados por aventura:
 
 ```text
 videos-aventuras/
-├── av1/           (Aventura 1)
-│   ├── parada_0.mp4
-│   ├── parada_1.mp4
-│   └── ...
-├── av2/           (Aventura 2)
-├── av3/           (Aventura 3)
-├── Av34km/        (Aventura 34km)
-└── avfallas/      (Aventura Fallas)
+└── video_intro_ejemplo.mp4    ← lo único que hay hoy: el clip de sceneVid (§35)
 ```
+
+**Todavía no hay vídeos de parada, ni las carpetas para ellos.** Cuando se graben irán aquí, una carpeta por aventura (`av1/`, `av2/`…) con un fichero por parada. El código no depende de que existan: los **241** campos `video:` de `js/coordenadas-aventuras.js` valen `""` sin excepción, y con el campo vacío `#btn-video` muestra su mensaje de "sin vídeo" en vez de intentar cargar nada.
 
 ### Cómo se usan
 
@@ -8173,10 +8168,7 @@ proyecto/
 │   ├── japones/
 │   └── ...                           (aleman, chino, polaco, portugues, ruso, ucraniano)
 │
-├── videos-aventuras/                 ← Vídeos MP4 de dron organizados por aventura
-│   ├── av1/
-│   ├── av2/
-│   └── ...
+├── videos-aventuras/                 ← Vídeos MP4 de dron. Hoy solo `video_intro_ejemplo.mp4`; las carpetas por aventura se crearán al grabarlos (§15)
 │
 ├── imagenes/                         ← Imágenes estáticas
 │   ├── imagenes-aplicación/          ← Iconos de botones, logos, UI, banderas
