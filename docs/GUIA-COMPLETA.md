@@ -240,7 +240,6 @@ Al arrancar `codigo-padre.html`:
 >
 > **Cuidado al medir esto.** Una sonda que stubee MapLibre con contenido vacío detiene el arranque antes de llegar a la Fase 2 y hace creer que los datos no se cargan. Hay que usar `tests/e2e/helpers/maplibre-stub.js`, que sí deja completar el arranque (EJE 27.4: descartar el arnés antes que el código).
 
-
 ```mermaid
 flowchart TD
     A([Arranque codigo-padre.html\nestado.modo.actual = null — sin modo decidido]) --> B{¿vv_aventura_iniciada\nen localStorage?}
@@ -607,37 +606,23 @@ El padre es el único que tiene visión global del sistema. Conoce el modo actua
 
 ### 3.1. La pila de iframes (orden z-index)
 
-```text
-┌────────────────────────────────────────────────────┐
-│                codigo-padre.html                    │
-│                (orquestador central)                │
-│                                                     │
-│  ▲ z-index más alto                                 │
-│  │                                                  │
-│  │  ┌─────────────────────────────────────────┐     │
-│  │  │ boton-casa-hijo5.html  [DEV]            │     │
-│  │  │ herramienta de desarrollo — no en PWA  │     │ ← simula navegación en modo CASA desde escritorio
-│  │  └─────────────────────────────────────────┘     │
-│  │  ┌─────────────────────────────────────────┐     │
-│  │  │ retos-hijo4.html                        │     │ ← visible SOLO cuando el usuario inicia un reto
-│  │  │ extrainfo-hijo1.html                    │     │ ← panel lateral de opciones extra
-│  │  │ chat-hijo6.html  (carga lazy, 1er uso)  │     │ ← asistente de soporte FAQ
-│  │  └─────────────────────────────────────────┘     │
-│  │  ┌─────────────────────────────────────────┐     │
-│  │  │ audio-hijo3.html  (invisible, siempre   │     │
-│  │  │  activo en segundo plano)               │     │ ← solo reproduce audio, nunca visible
-│  │  └─────────────────────────────────────────┘     │
-│  │  ┌─────────────────────────────────────────┐     │
-│  │  │ coordenadas-hijo2.html  (GPS + botones) │     │ ← siempre visible durante la aventura
-│  │  └─────────────────────────────────────────┘     │
-│  ▼ z-index más bajo                                 │
-│                                                     │
-│  Al inicio, En-busca-del-tesoro.html cubre          │
-│  toda la pantalla (z-index máximo). Contiene        │
-│  puzzle.html como sub-iframe propio — NO es         │
-│  un hijo directo del padre.                         │
-└────────────────────────────────────────────────────┘
-```
+| Capa | Elemento | `z-index` | Dónde se fija |
+|---|---|---|---|
+| Selector de mapa | `#selector-tipo-mapa` | 1000030 | estilo en línea, creado por JS |
+| Brújula | `#brujula-modo` | 1000025 | estilo en línea, creado por JS |
+| Chat de soporte | `#hijo6-chat` (`chat-hijo6.html`) | 1000020 | CSS con `!important` + estilo en línea |
+| Retos | `#hijo4` (`retos-hijo4.html`) | 1000010 | CSS |
+| Botón del chat | `#btn-chat-soporte` | 1000005 | estilo en línea |
+| Herramienta DEV | `#hijo5` (`boton-casa-hijo5.html`) | 1000000 | CSS |
+| Fondo blanco | `#fondo-blanco` | 2999 | CSS |
+| Coordenadas y botones | `#hijo2` (`coordenadas-hijo2.html`) | 1501 | CSS |
+| Audio | `#hijo3` (`audio-hijo3.html`) | 1500 | CSS |
+| Mapa | `#mapa` | 500 | CSS |
+| Opciones extra | `#hijo1-opciones` (`extrainfo-hijo1.html`) | — | `position:fixed` sin `z-index`: se apila por su orden en el DOM |
+
+`En-busca-del-tesoro.html` (`#seleccion`) cubre la pantalla completa durante el flujo de incorporación y contiene `puzzle.html` como sub-iframe propio: no es un hijo directo del padre.
+
+`#hijo3` nunca es visible — solo reproduce audio en segundo plano —, así que su posición relativa a `#hijo2` no tiene efecto en pantalla. `#hijo4` solo se muestra mientras el usuario resuelve un reto.
 
 **Notas sobre visibilidad**:
 
@@ -719,7 +704,7 @@ La app arranca **sin modo decidido** (`estado.modo.actual === null`, ver §2), a
 | **Heartbeat** | Pausado | Activo cada ~5 s |
 | **Quién cambia de parada** | El usuario — pulsa una parada en hijo5 | El usuario — pulsa `btn-avanzar` una vez llegada GPS + audio (+ reto) están completos. El GPS nunca envía `CAMBIO_PARADA` por sí solo (§2.2) |
 | **`retosBtn` al llegar a una parada** | Se habilita **inmediatamente** si la parada tiene reto | Arranca **deshabilitado** — se habilita solo cuando termina el audio |
-| **Botón vídeo/dron (`#btn-video`)** | Habilitado inmediatamente si el elemento es tramo | Habilitado si elemento es tramo Y reto no activo |
+| **Botón vídeo/dron (`#btn-video`)** | Habilitado si el elemento es tramo y no hay reto activo | Igual que en CASA: `_actualizarBotonVideo()` (hijo2) no recibe el modo, aplica la misma regla en los dos |
 | **Audio** | No se reproduce automáticamente | Se carga y queda listo al activarse cada parada/tramo, pero tampoco se reproduce solo — el usuario pulsa play. `_solicitarAudioParaParada()` manda siempre `AUDIO.REPRODUCIR_REQUEST` con `autoplay: false` (verificado: cero apariciones de `autoplay: true` en `codigo-padre.html`); `cargarYReproducirAudio()` en hijo3 solo llama a `audioPlayer.play()` si `autoplay` es `true` |
 | **Botón "Avanzar" (hijo2)** | Sin efecto — no hay progresión automática por GPS | Se bloquea al entrar en cada parada; se desbloquea al completar audio + reto |
 | **Polylines y marcadores del mapa** | Visibles **inmediatamente** tras dibujar, sin condición | Visibles **inmediatamente** tras dibujar, sin condición — se ocultan únicamente al pulsar `btn-ubicacion` (§4.7d) |
