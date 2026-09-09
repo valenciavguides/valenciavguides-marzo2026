@@ -5737,13 +5737,13 @@ Algunos mensajes son procesados por listeners raw `window.addEventListener('mess
 
 #### CHAT.CERRAR (unidireccional — hijo6 → padre, raw)
 
-> ⚠️ **Corrección**: este mensaje es unidireccional hijo6 → padre. Padre **nunca** envía `CHAT.CERRAR` a hijo6. Padre L1498 envía `CHAT.ESTADO_PADRE`, no `CHAT.CERRAR`. `cerrarChat()` (L1517) solo oculta el iframe — no envía ningún mensaje.
+> **Unidireccional: hijo6 → padre, y solo en ese sentido.** El padre no envía `CHAT.CERRAR` a hijo6 en ningún caso — lo que envía hacia el chat es `CHAT.ESTADO_PADRE`. Su `cerrarChat()` se limita a ocultar el iframe, sin emitir ningún mensaje.
 
 | Campo | Valor |
 |-------|-------|
-| Emitido por | `cerrarChatVentana()` hijo6 L197: primero intenta `globalThis.parent.cerrarChatSoporte()` (L200, función expuesta por padre en L1526); si falla, cae a `parent.postMessage` en L221 con `tipo:'CHAT.CERRAR'` |
+| Emitido por | `cerrarChatVentana()` (`chat-hijo6.html`): primero intenta la llamada directa `globalThis.parent.cerrarChatSoporte()` — el padre expone ahí su propia `cerrarChat()`; si esa función no está disponible, cae a `parent.postMessage` con `tipo:'CHAT.CERRAR'` |
 | Tipo | `TIPOS_MENSAJE.CHAT.CERRAR` = `'CHAT.CERRAR'` (con fallback string literal) |
-| Listener en padre | L1530 — raw `globalThis.addEventListener('message')` → llama `cerrarChat()` (L1517, que solo oculta el iframe) |
+| Listener en padre | Raw `globalThis.addEventListener('message')` en un `<script>` clásico → llama a `cerrarChat()`, que solo oculta el iframe |
 | Acción | Padre oculta el iframe hijo6 |
 | Canal | Raw `parent.postMessage` desde hijo6; padre escucha con raw `addEventListener` |
 
@@ -8252,6 +8252,11 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run inventory` | Lista completa de funciones del proyecto en orden alfabético (`tools/inventory.js`) — consultar antes de escribir cualquier función nueva |
 | `npm run inventory:dupes` | Solo nombres de función que aparecen en más de un archivo |
 | `npm run inventory:file` | Inventario de funciones agrupado por archivo |
+| `npm run inventory:conexiones` | Genera la tabla de §37.2: qué identificadores cruzan entre bloques `<script>` inline, en los 11 ficheros que tienen dos o más (`tools/inventory-conexiones.js`) |
+| `npm run inventory:assets` | Mismo script con `--assets`: genera la tabla de §37.4, imágenes usadas en 2 o más ficheros |
+| `npm run verificar-media` | Comprueba tamaño, bitrate y perfil de imágenes, audios y vídeos antes de subirlos (`tools/verificar-media.js`) — obligatorio antes de añadir cualquier fichero de media, ver §15 |
+| `npm run verificar-esperas` | Trinquete contra las esperas ciegas de los tests E2E: cuenta los `page.waitForTimeout(n)` y falla si suben respecto a la base de `tools/esperas-base.json` (`tools/verificar-esperas.js`, EJE 23) |
+| `npm run verificar-totales` | Comprueba que los totales precalculados de `js/indice-aventuras.js` (paradas, tramos, retos, monumentos, audios de las 7 aventuras) siguen coincidiendo con los ficheros de datos reales (`tools/verificar-totales-indice.js`) |
 | `npm run verificar-mensajeria` | Detecta tipos de `TIPOS_MENSAJE` sin emisor, sin receptor, o sin ninguna referencia (`tools/verificar-mensajeria.js`) — tiene falsos positivos documentados, verificar cada hallazgo en el código real |
 | `npm run verificar-docs` | Señala qué secciones de esta guía mencionan ficheros HTML/JS/CSS cambiados en la sesión/rama actual (`tools/verificar-docs.js`) — no verifica que el texto sea correcto, solo evita el fallo de no pararse a mirar. Admite `--since=REF` para comparar contra un punto concreto |
 | `npm run build:sw` | Recalcula `CACHE_VERSION` a mano desde el working tree (`tools/build-sw.js`) — normalmente no hace falta, el hook de pre-commit ya lo hace solo |
