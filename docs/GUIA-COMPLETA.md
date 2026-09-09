@@ -378,12 +378,12 @@ aventura — se restaura al volver a AVENTURA (§2.4, paso 4).
 
 > La excepción "salvo modo dev" del paso de borrado de `localStorage` es el flag `_devModeActivo` — detalle completo del modo DEV en §24.
 
-**Implementación de `limpiarPorEstado`**: `cambiarModo()` en `funciones-mapa.js`
-asigna `estadoMapa.modo = modo` **antes** de llamar a `limpiarPorEstado`. Sin el
-parámetro explícito `resetCompleto: true`, la comprobación interna
-`modo !== estadoMapa.modo` siempre sería falsa (ya son iguales) y la rama de
-limpieza de capas nunca se ejecutaría. La corrección captura el modo anterior en
-`modoAnterior` antes de actualizar el estado:
+**Implementación de `limpiarPorEstado`**: `manejarCambioModoMapa()` (`js/funciones-mapa.js`,
+el controlador de `SISTEMA.CAMBIO_MODO` del módulo de mapa) asigna `estadoMapa.modo = modo`
+**antes** de llamar a `limpiarPorEstado`. Por eso `resetCompleto` no puede omitirse: la
+comprobación interna `modo !== estadoMapa.modo` ya sería falsa en ese punto (los dos valen
+lo mismo) y la rama de limpieza de capas no se ejecutaría nunca. La función guarda el modo
+anterior justo antes de sobreescribirlo y lo pasa explícitamente:
 `limpiarPorEstado({ modo, resetCompleto: modoAnterior !== modo })`.
 
 **Estado en memoria durante CASA**: el borrado de localStorage afecta solo a la
@@ -567,7 +567,7 @@ sequenceDiagram
 | `activarGPS()` | 4895 | Inicia `watchPosition` (con mutex anti-duplicado) |
 | `ejecutarRestauracionAventura()` | 4152 | Restaura sesión desde `localStorage` |
 | `_activarParadaDefectoAventura()` | `js/app.js` | Envía `CAMBIO_PARADA` para `padre-P0`. Se llama desde `_reanudarSubsistemasTrasPrewarm()` salvo que el pre-warm de arranque ya esté "iniciado y pausado"; en la práctica corre en casi todas las activaciones de AVENTURA salvo la primera de la sesión (detalle en §2.5) |
-| `cambiarModo(modo)` | `js/funciones-mapa.js` | Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
+| `manejarCambioModoMapa(mensaje)` | `js/funciones-mapa.js` | Controlador de `SISTEMA.CAMBIO_MODO` en el módulo de mapa. Captura `modoAnterior`, actualiza `estadoMapa.modo` y llama `limpiarPorEstado`. El orden de operaciones es crítico: `modoAnterior` debe capturarse **antes** de mutar `estadoMapa.modo`. |
 | `limpiarPorEstado({ modo, resetCompleto })` | `js/funciones-mapa.js` | Elimina capas activas del mapa (polylines, marcadores, rutas). **No toca la cámara**: el `setMapView()` a `CENTRO_DEFECTO`/`ZOOM_INICIAL` lo hace `manejarCambioModoMapa()` después de llamarla, no esta función — de ahí que la reanudación de sesión pueda saltarse el reset de vista sin renunciar a la limpieza de capas (§9.10). `resetCompleto:true` es obligatorio cuando se llama tras un cambio de modo, porque en ese punto `estadoMapa.modo` ya fue actualizado y la comprobación interna fallaría sin el flag explícito. |
 
 ---
@@ -6390,8 +6390,10 @@ de ello (§9.10).
 El parámetro `resetCompleto` debe pasarse explícitamente porque `estadoMapa.modo`
 ya ha sido actualizado al momento de la llamada — la comprobación interna
 `modo !== estadoMapa.modo` devolvería `false` sin él y las capas no se limpiarían.
-`cambiarModo()` captura `const modoAnterior = estadoMapa.modo` antes de
-actualizar el estado para calcular el flag correctamente.
+`manejarCambioModoMapa()` captura `const modoAnterior = estadoMapa.modo` antes de
+actualizar el estado para calcular el flag correctamente. **No confundirla con
+`_cambiarModo(nuevoId)`** (`codigo-padre.html`), que es otra cosa: el conmutador de
+**estilo** del mapa (satélite / callejero / nocturno), sin relación con CASA/AVENTURA.
 
 > **Nota de diseño — hub + adaptador, no duplicación.**
 > `activarGPS()` en `codigo-padre.html` es el **hub**: la única implementación real que llama a `navigator.geolocation.watchPosition`. `manejarGPSActivar()` en `funciones-mapa.js` es el **adaptador**: detecta si está en el padre (`window.parent === window`) y delega al hub, o si está en un iframe, envía postMessage al padre para que el hub actúe. `manejarCambioModoMapa()` lo llama al entrar en AVENTURA — como red de seguridad, ya que el GPS normalmente ya está activo desde P14 (ver «Cuándo se activa el GPS por primera vez», arriba). No hay lógica duplicada — hay un único punto de ejecución real con una capa de enrutamiento. No existe adaptador de desactivación porque no existe desactivación: el sensor vive lo que vive el documento (nunca vía mensaje — no hay handler para `NAVEGACION.GPS.DESACTIVAR`) — no hay ningún caso de uso hoy en que un iframe necesite pedir la desactivación, y el GPS está diseñado para no apagarse nunca al cambiar de modo (ver tabla de comportamiento por modo, §2.6).
