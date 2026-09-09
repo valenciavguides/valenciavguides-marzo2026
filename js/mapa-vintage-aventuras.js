@@ -12,11 +12,3 @@ export const MAPAS_VINTAGE = {
     // Aventura34km: 'imagenes/imagenes-mapas-vintage/Av34km_Mapa.jpg',    // pendiente: mapa aún no disponible
 };
 
-/**
- * Obtiene la URL del mapa vintage para una aventura dada
- * @param {string} aventura - Nombre de la aventura (ej: 'Aventura1')
- * @returns {string|null} URL de la imagen o null si no existe
- */
-export function obtenerMapaVintage(aventura) {
-    return MAPAS_VINTAGE[aventura] || null;
-}

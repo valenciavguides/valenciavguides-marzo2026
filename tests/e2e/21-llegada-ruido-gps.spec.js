@@ -19,9 +19,12 @@
  * DISTINTOS — no confundir uno con otro al leer los umbrales de este archivo:
  *   - coordenadas-hijo2.html — `_detectarLlegadaParada()`, radio real = `RADIO_PARADA`
  *     (15m hoy; era 10m, y 20m antes de eso — dos correcciones posteriores a este mismo arreglo).
- *   - js/funciones-mapa.js — sensor redundante, `verificarLlegadaADestino()` →
- *     `calcularToleranciaGPS()`, radio fijo de 50m para paradas — nunca tuvo relación
- *     con `RADIO_PARADA`, ni antes ni ahora.
+ *   - js/funciones-mapa.js — `verificarLlegadaADestino()` → `calcularToleranciaGPS()`,
+ *     que para paradas devuelve HOY los mismos 15m (`RADIO_LLEGADA_PARADA_M`). Tuvo un
+ *     radio fijo de 50m que nunca tuvo relación con `RADIO_PARADA`: mientras este sensor
+ *     estuvo muerto daba igual, pero al revivirlo pasó a ganar siempre (50 > 15) y el radio
+ *     efectivo de una parada cambió de 15 a 50m sin que nadie tocara ningún umbral —
+ *     reportado en campo, una parada dada por alcanzada a 50m. Los dos miden ya lo mismo.
  * Este archivo carga hijo2 como iframe real (`cargarHijo2Real`, necesario para que RG-4
  * pueda comprobar el enrutamiento del mensaje), pero `enviarLectura()` llama siempre a
  * `funcionesMapa.procesarPosicionGPSParaAventura()` directamente — es decir, RG-1/2/3
@@ -177,15 +180,18 @@ test.describe('RG — Llegada por ventana deslizante, tolerante a ruido GPS real
     expect(pending, 'Una única lectura dentro de radio (aislada) no debe confirmar llegada').not.toBe(true);
   });
 
-  test('RG-3. Ruido 45m/55m alrededor del radio real de 50m SÍ confirma llegada (reporte de campo)', async ({ page }) => {
+  test('RG-3. Ruido 12m/18m alrededor del radio real de 15m SÍ confirma llegada (reporte de campo)', async ({ page }) => {
     const prep = await prepararEscenario(page);
     test.skip(!prep.tieneFunciones || !prep.paradaEncontrada, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
-    // 45m/55m straddlean el radio real de 50m de calcularToleranciaGPS() para paradas
+    // 12m/18m straddlean el radio real de 15m de calcularToleranciaGPS() para paradas
     // (funciones-mapa.js) — nunca 2 lecturas SEGUIDAS dentro por construcción. Antes del
-    // arreglo esto no confirmaba llegada nunca, por muchas lecturas que pasaran.
+    // arreglo esto no confirmaba llegada nunca, por muchas lecturas que pasaran. Los valores
+    // se movieron de 45/55 a 12/18 cuando el radio de parada bajó de 50m a 15m: lo que este
+    // test comprueba es la ventana deslizante, no el radio, así que tienen que seguir
+    // cayendo uno a cada lado de ese radio, sea el que sea.
     for (let i = 0; i < 12; i++) {
-      const metros = i % 2 === 0 ? 45 : 55;
+      const metros = i % 2 === 0 ? 12 : 18;
       const pt = puntoADistancia(PARADA.lat, PARADA.lng, metros, 90);
       await enviarLectura(page, pt);
       await page.waitForTimeout(180);
@@ -209,5 +215,27 @@ test.describe('RG — Llegada por ventana deslizante, tolerante a ruido GPS real
 
     const huboDescartePorAutoenvio = logs.some(l => /Iframe no encontrado o sin contentWindow: padre/i.test(l));
     expect(huboDescartePorAutoenvio, 'El autoenvío de funciones-mapa.js no debe volver a descartarse por falta de destino').toBe(false);
+  });
+  // RG-3 comprueba la ventana deslizante, no el radio: 12m y 18m caerían los dos dentro de
+  // un radio de 50m y pasaría igual. Este fija el radio en sí — que es lo que cambió, y lo
+  // que se vio mal en campo (una parada dada por alcanzada a 50m de distancia).
+  test('RG-5. El radio de llegada a una parada es 15 m, el mismo que RADIO_PARADA de hijo2', async ({ page }) => {
+    const prep = await prepararEscenario(page);
+    test.skip(!prep.tieneFunciones || !prep.paradaEncontrada, `Precondición no disponible: ${JSON.stringify(prep)}`);
+
+    // Primero lejos y luego cerca, en la misma página: así no hace falta una segunda (que no
+    // pasaría por el arranque del beforeEach y dejaría el test saltado, sin probar nada) y
+    // además se ve la transición, no solo los dos extremos por separado.
+    for (let i = 0; i < 6; i++) await enviarLectura(page, puntoADistancia(PARADA.lat, PARADA.lng, 25, 30));
+    expect(
+      await leerPendingLlegada(page, prep.padreid),
+      'a 25 m NO se puede dar la parada por alcanzada: ese era el fallo, marcarla desde 50 m'
+    ).not.toBe(true);
+
+    for (let i = 0; i < 6; i++) await enviarLectura(page, puntoADistancia(PARADA.lat, PARADA.lng, 14, 30));
+    expect(
+      await leerPendingLlegada(page, prep.padreid),
+      'a 14 m de la parada la llegada sí debe confirmarse'
+    ).toBe(true);
   });
 });

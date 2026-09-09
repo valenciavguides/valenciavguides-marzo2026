@@ -59,23 +59,51 @@ function _getLatLng(obj) {
  * @param {Object} elemento - Elemento actual (parada o tramo)
  * @returns {number} Tolerancia en metros
  */
+// Radio de llegada a una parada o inicio, en metros. Gemelo de RADIO_PARADA en
+// _detectarLlegadaParada() (coordenadas-hijo2.html): los dos sensores de llegada miden lo
+// mismo, así que si uno cambia el otro cambia con él.
+const RADIO_LLEGADA_PARADA_M = 15;
+
 function calcularToleranciaGPS(elemento) {
     if (!elemento) {
         logger.warn('⚠️ calcularToleranciaGPS: elemento no proporcionado, usando tolerancia por defecto 50m');
         return 50;
     }
 
-    // Para paradas: tolerancia fija de 50m
-    if (elemento.tipo === 'parada' || !elemento.waypoints || elemento.waypoints.length === 0) {
-        logger.debug(`📏 Tolerancia GPS para parada "${elemento.id}": 50m (fija)`);
-        return 50;
+    // Paradas e inicios: el MISMO radio que usa _detectarLlegadaParada() en hijo2
+    // (RADIO_PARADA). Los dos sensores de llegada tienen que medir lo mismo.
+    //
+    // POR QUÉ CAMBIÓ
+    //
+    // Aquí había 50 m fijos desde el commit inicial del proyecto. Mientras el sensor de este
+    // módulo estuvo muerto —se autoenviaba LLEGADA_DETECTADA a resolverIdPadre(), un destino
+    // que _enviarDesdePadre() nunca encuentra, así que el mensaje se descartaba en silencio—
+    // quien decidía la llegada a una parada era hijo2, con su radio de 15 m. Al revivirlo
+    // (6b219a3) empezó a disparar de verdad y, como 50 > 15, pasó a ganar siempre: el radio
+    // efectivo de una parada cambió de 15 a 50 m sin que nadie tocara ningún umbral. Cuatro
+    // días después se afinaba el de hijo2 de 10 a 15 m "porque 10 m resultaba demasiado
+    // estricto en campo" (bfe357f) — sobre un sensor que ya no decidía nada. Reportado en uso
+    // real (una parada dada por alcanzada a 50 m) y reproducido midiendo: llega a 49 m, no
+    // llega a 52 m.
+    //
+    // El suelo de 50 m de los TRAMOS ya se bajó a 35 m por este mismo motivo, demasiado
+    // permisivo, en d96f44c; su comentario decía que ese 50 era "el mismo criterio que la
+    // tolerancia fija de parada". Se bajó la copia y se dejó el original: esto lo termina.
+    if (elemento.tipo !== 'tramo') {
+        logger.debug(`📏 Tolerancia GPS para parada "${elemento.id}": ${RADIO_LLEGADA_PARADA_M}m`);
+        return RADIO_LLEGADA_PARADA_M;
     }
 
-    // Para tramos: calcular distancia máxima entre waypoints consecutivos + 20m buffer
+    // Para tramos: distancia máxima entre waypoints consecutivos + 20m buffer.
+    // La lista puede faltar o venir vacía — 6 de los 239 tramos no tienen waypoints. Antes
+    // esos caían en la rama de arriba por el guard `!elemento.waypoints` y se llevaban los
+    // 50 m de las paradas; ahora recorren esta con distanciaMaxima = 0 y se quedan en el
+    // suelo de 35 m, que es el valor que la revisión de los 239 tramos fijó para tramos.
+    const waypoints = elemento.waypoints || [];
     let distanciaMaxima = 0;
-    for (let i = 0; i < elemento.waypoints.length - 1; i++) {
-        const wp1 = elemento.waypoints[i];
-        const wp2 = elemento.waypoints[i + 1];
+    for (let i = 0; i < waypoints.length - 1; i++) {
+        const wp1 = waypoints[i];
+        const wp2 = waypoints[i + 1];
         const coord1 = _getLatLng(wp1);
         const coord2 = _getLatLng(wp2);
         if (!coord1 || !coord2) {
@@ -181,29 +209,133 @@ function _resetDistanciaRecorridaSiNuevoTramo(tramoId) {
         estadoMapa._tramoDeRecorrido = tramoId;
         estadoMapa._distanciaRecorridaTramo = 0;
         estadoMapa._ultimaPosParaRecorrido = null;
+        estadoMapa._saltoPendienteRecorrido = null;
     }
 }
 
 /**
- * Acumula distancia real recorrida durante el tramo activo, filtrando ruido de GPS.
- * No cuenta saltos menores que el ruido esperado (10m, o 1.5x el círculo de precisión de
- * la lectura si es mayor) ni saltos mayores de 150m de una sola vez — ese techo evita que
- * un único glitch de GPS complete el requisito de un tirón, sin penalizar tramos en
+ * Acumula distancia REAL recorrida durante el tramo activo, filtrando ruido de GPS.
+ *
+ * EL FALLO QUE ESTO CORRIGE (2026-09-08)
+ *
+ * La versión anterior movía la referencia (`_ultimaPosParaRecorrido`) en CADA lectura y
+ * exigía que el salto respecto a ella superase el ruido esperado. Andando, dos lecturas
+ * consecutivas distan 1-2 m y el umbral pide 15-45 m: no sumaba NUNCA. Como la llegada a
+ * un tramo exige haber recorrido el 40% de su camino, ningún tramo llegaba a completarse
+ * por GPS — reportado en uso real ("nunca he acabado un tramo") y reproducido ejecutando
+ * el código: recorrido entero de Av1-TR-1 más 20 lecturas parado en el destino, 0 llegadas
+ * notificadas. Anulando `recorridoSuficiente` a mano, notificaba.
+ *
+ * Medía, en realidad, el ruido ENTRE LECTURAS CONSECUTIVAS, no el desplazamiento — que es
+ * justo al revés de lo que hace falta. Por eso fallaba en las dos direcciones: andando con
+ * buena señal no sumaba nada, y quieto con señal mala (±20 m) sumaba el paseo aleatorio del
+ * GPS y llegaba a dar el tramo por recorrido sin moverse. El test TA-2 falla contra la
+ * versión anterior por ese segundo motivo.
+ *
+ * Los dos sensores quedaban bloqueados a la vez, porque comparten este cálculo: el del
+ * padre lo aplica con `&& recorridoSuficiente`, y hijo2 recibe ese mismo valor en
+ * NAVEGACION.ACTUALIZAR_ESTADO y lo vuelve a aplicar. La redundancia era aparente.
+ *
+ * QUÉ CAMBIA
+ *
+ * La referencia solo se mueve cuando el desplazamiento cuenta. Así se mide "cuánto me he
+ * alejado del último punto confirmado" en vez de "cuánto me he movido desde la lectura
+ * anterior", que es lo que hace que el andar real sume.
+ *
+ * POR QUÉ ADEMÁS SE EXIGE CONFIRMACIÓN
+ *
+ * Mover la referencia a la primera lectura que supera el umbral reabre el agujero que este
+ * filtro existe para tapar: una lectura ruidosa lejos cuenta, la referencia salta allí, y
+ * volver al sitio real cuenta otra vez. Medido sobre el camino real de Av1-TR-1, 300
+ * simulaciones de estar QUIETO 2 minutos en el destino:
+ *
+ *     precisión   sin confirmación   con confirmación
+ *       ±10 m      completa el  8%        0%
+ *       ±20 m      completa el 14%        0%
+ *       ±30 m      completa el 10%        0%
+ *
+ * Es decir: sin confirmar, una de cada siete veces el tramo se completaba SIN MOVERSE.
+ * Exigiendo que el alejamiento se mantenga en la lectura siguiente, cae a cero, y andando
+ * solo cuesta unos segundos más (43→45 s con ±5 m; 38→46 s con ±20 m).
+ *
+ * El techo de SALTO_MAXIMO_PLAUSIBLE se conserva por su motivo original: evita que un
+ * único glitch de GPS complete el requisito de un tirón, sin penalizar tramos en
  * bici/patinete con huecos de lectura más largos de lo normal.
+ *
  * @param {number} lat
  * @param {number} lng
- * @param {number} [accuracy]
+ * @param {number} [accuracy] Radio de precisión de la lectura, en metros
  */
-function _acumularDistanciaRecorrida(lat, lng, accuracy) {
+function _acumularDistanciaRecorrida(lat, lng, accuracy, distanciaExigida) {
     const SALTO_MAXIMO_PLAUSIBLE = 150;
-    if (estadoMapa._ultimaPosParaRecorrido) {
-        const salto = calcularDistancia(estadoMapa._ultimaPosParaRecorrido.lat, estadoMapa._ultimaPosParaRecorrido.lng, lat, lng);
-        const umbralRuido = Math.max(10, (typeof accuracy === 'number' ? accuracy : 0) * 1.5);
-        if (salto >= umbralRuido && salto <= SALTO_MAXIMO_PLAUSIBLE) {
-            estadoMapa._distanciaRecorridaTramo = (estadoMapa._distanciaRecorridaTramo || 0) + salto;
-        }
+
+    if (!estadoMapa._ultimaPosParaRecorrido) {
+        estadoMapa._ultimaPosParaRecorrido = { lat, lng };
+        estadoMapa._saltoPendienteRecorrido = null;
+        return;
     }
+
+    const salto = calcularDistancia(estadoMapa._ultimaPosParaRecorrido.lat, estadoMapa._ultimaPosParaRecorrido.lng, lat, lng);
+
+    // El umbral de ruido nunca puede pedir un paso mayor que la distancia que el propio
+    // tramo exige. Sin este techo, un tramo más corto que el umbral es IMPOSIBLE de
+    // completar: en uno de 12 m, con ±15 m de precisión, el umbral pide 22,5 m y el tramo
+    // entero mide menos, así que no se cuenta nunca nada. Medido sobre los 239 tramos
+    // reales: con ±15 m quedaban 6 bloqueados y con ±30 m, 24 (el 10 %). Andando Av1-TR-18
+    // (12 m) de punta a punta, la llegada se confirmaba el 20 % de las veces con ±15 m y el
+    // 7 % con ±30; con el techo, el 100 % en los dos casos.
+    //
+    // Solo puede afectar a tramos CORTOS, y eso es demostrable: la distancia exigida es el
+    // 40 % de la longitud, así que solo baja del umbral cuando el tramo es corto. Medido en
+    // los de 142 m y 1917 m: idéntico comportamiento, antes y después, a ±5/±15/±30.
+    //
+    // El precio, dicho claro: en esos tramos cortos se pierde la protección de "estar
+    // quieto no completa". Pero ahí esa protección no puede existir — con ±15 m de error,
+    // andar 12 m y no moverse son indistinguibles para el GPS; es física, no código. Y
+    // estar dentro del radio de llegada de un tramo de 12 m significa estar en el sitio.
+    const umbralBase = Math.max(10, (typeof accuracy === 'number' ? accuracy : 0) * 1.5);
+    const umbralRuido = (typeof distanciaExigida === 'number' && distanciaExigida > 0)
+        ? Math.min(umbralBase, distanciaExigida)
+        : umbralBase;
+    const plausible = salto >= umbralRuido && salto <= SALTO_MAXIMO_PLAUSIBLE;
+
+    if (salto > SALTO_MAXIMO_PLAUSIBLE) {
+        // Salto imposible andando: no cuenta, pero la referencia SÍ se re-ancla aquí.
+        //
+        // Sin esto, anclar la referencia y moverla solo al contar deja un agujero: un hueco
+        // de GPS (móvil en el bolsillo, señal perdida en un callejón) de más de 150 m deja la
+        // referencia atrás para siempre, porque toda lectura posterior está también a más de
+        // 150 m de ella y ninguna vuelve a contar nunca. Medido sobre Av4-TR-15 (1917 m,
+        // exige 767 m), andado entero: sin re-anclar, un corte de 200 m o de 400 m da 0
+        // llegadas; con re-anclaje, los dos completan. Afecta a los 70 tramos de más de
+        // 375 m, donde un corte así cabe dentro del 40 % exigido.
+        //
+        // Re-anclar no puede regalar distancia: nunca suma. Un glitch que salta lejos y
+        // vuelve re-ancla dos veces y no acumula nada, que es justo lo que se quiere.
+        estadoMapa._ultimaPosParaRecorrido = { lat, lng };
+        estadoMapa._saltoPendienteRecorrido = null;
+        return;
+    }
+
+    if (!plausible) {
+        // Alejamiento por debajo del ruido esperado: ni suma, ni mueve la referencia. Estar
+        // quieto —con el temblor del GPS oscilando alrededor del mismo punto— pasa siempre
+        // por aquí, y es lo que impide completar un tramo sin andarlo.
+        estadoMapa._saltoPendienteRecorrido = null;
+        return;
+    }
+
+    if (estadoMapa._saltoPendienteRecorrido === null) {
+        // Primera lectura lejos: puede ser movimiento real o una lectura ruidosa suelta.
+        // Se anota y se espera a la siguiente antes de contarla.
+        estadoMapa._saltoPendienteRecorrido = salto;
+        return;
+    }
+
+    // Segunda lectura seguida lejos de la referencia: es desplazamiento real.
+    estadoMapa._distanciaRecorridaTramo = (estadoMapa._distanciaRecorridaTramo || 0) + salto;
     estadoMapa._ultimaPosParaRecorrido = { lat, lng };
+    estadoMapa._saltoPendienteRecorrido = null;
 }
 
 import { esMovil } from './device-detection.js';
@@ -257,6 +389,7 @@ const estadoMapa = {
     _distanciaRecorridaTramo: 0,
     _ultimaPosParaRecorrido: null, // {lat,lng} de la última lectura contabilizada
     _tramoDeRecorrido: null,       // id del tramo al que pertenece _distanciaRecorridaTramo
+    _saltoPendienteRecorrido: null, // desplazamiento a la espera de confirmarse en la lectura siguiente
     timestamp: Date.now(),
     // Estado para consultas de cambio de parada
     consultaParadaPendiente: null,
@@ -2943,10 +3076,12 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // abandono real del tramo.
         const esTramoActivo = siguienteParada.tipo === 'tramo';
         _resetDistanciaRecorridaSiNuevoTramo(esTramoActivo ? derivedParadaId : null);
-        if (esTramoActivo) {
-            _acumularDistanciaRecorrida(latitude, longitude, accuracy);
-        }
+        // La longitud se calcula ANTES de acumular: el acumulador necesita saber cuánta
+        // distancia exige este tramo para no pedir nunca un paso mayor que ella.
         const longitudRealTramo = esTramoActivo ? _calcularLongitudRealTramo(siguienteParada) : 0;
+        if (esTramoActivo) {
+            _acumularDistanciaRecorrida(latitude, longitude, accuracy, longitudRealTramo * 0.4);
+        }
         // Umbral del 40% — no exige seguir el trazado exacto (un rodeo real por obras cuenta
         // igual, ver GUIA-COMPLETA), solo haber cubierto terreno real comparable, no un atajo
         // en línea recta que la sola proximidad al destino no distinguiría (§ investigación

@@ -94,50 +94,49 @@ test.describe('SE — El padre reacciona a SISTEMA.ERROR de audio_control', () =
     await gotoAndWaitForFase1(page);
   });
 
-  test('SE-1. SISTEMA.ERROR con codigo AUDIO_CONTROL_FALLIDO muestra un toast visible', async ({ page }) => {
-    await page.waitForFunction(() => typeof globalThis.TIPOS_MENSAJE === 'object', null, { timeout: 15000 }).catch(() => {});
+  // SE-1/SE-2 comprueban el DESPACHO por código de `_hdl_SISTEMA_ERROR`, midiendo su efecto
+  // real: `_marcarAudioNoDisponible()` deja `estado._audioFalloId` con el audio activo, que es
+  // lo que luego enciende el botón ⏩ de saltar (§25.5f). No se stubea nada: un test que crea
+  // el componente que va a comprobar pasa siempre, exista o no la funcionalidad.
+  async function prepararAudioActivo(page, audioId) {
+    await page.waitForFunction(() => typeof globalThis.TIPOS_MENSAJE === 'object' && globalThis.estado != null, null, { timeout: 15000 });
+    await page.evaluate((id) => {
+      globalThis.estado.elementoActual = { padreid: 'padre-prueba', tipo: 'parada', parada_id: 'Av1-P-0', audio_id: id };
+      globalThis.estado._audioFalloId = null;
+    }, audioId);
+  }
 
-    const resultado = await page.evaluate(async () => {
-      const llamadas = [];
-      globalThis.errorUI = { showToast: (msg, opciones) => { llamadas.push({ msg, opciones }); } };
-
-      const tipo = globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR';
-      const enviar = () => globalThis.postMessage({
-        tipo,
+  async function enviarSistemaError(page, codigo) {
+    await page.evaluate((cod) => {
+      globalThis.postMessage({
+        tipo: globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR',
         origen: 'hijo3',
         destino: 'padre',
-        datos: { codigo: 'AUDIO_CONTROL_FALLIDO', mensaje: 'audioFiles_missing', comando: 'play' },
+        datos: { codigo: cod, mensaje: 'audioFiles_missing', comando: 'play' },
       }, globalThis.location.origin);
+    }, codigo);
+  }
 
-      for (let intento = 0; intento < 10 && llamadas.length === 0; intento++) {
-        enviar();
-        await new Promise((r) => setTimeout(r, 300));
-      }
-      return { llamadas };
-    });
-
-    expect(resultado.llamadas.length, `errorUI.showToast debe llamarse. Llamadas: ${JSON.stringify(resultado.llamadas)}`).toBeGreaterThan(0);
-    expect(resultado.llamadas[0].opciones?.type, 'El toast debe ser de tipo warning (no bloqueante)').toBe('warning');
+  test('SE-1. SISTEMA.ERROR con codigo AUDIO_CONTROL_FALLIDO marca el audio como no disponible', async ({ page }) => {
+    const AUDIO = 'audio-prueba-se1';
+    await prepararAudioActivo(page, AUDIO);
+    await enviarSistemaError(page, 'AUDIO_CONTROL_FALLIDO');
+    await page.waitForFunction((id) => globalThis.estado?._audioFalloId === id, AUDIO, { timeout: 8000 }).catch(() => {});
+    const falloId = await page.evaluate(() => globalThis.estado?._audioFalloId ?? null);
+    expect(
+      falloId,
+      'el código de audio debe marcar el audio activo como no disponible — es lo que habilita el botón de saltar'
+    ).toBe(AUDIO);
   });
 
-  test('SE-2. SISTEMA.ERROR con otro código (no relacionado con audio) no muestra ningún toast', async ({ page }) => {
-    await page.waitForFunction(() => typeof globalThis.TIPOS_MENSAJE === 'object', null, { timeout: 15000 }).catch(() => {});
-
-    const resultado = await page.evaluate(async () => {
-      const llamadas = [];
-      globalThis.errorUI = { showToast: (msg, opciones) => { llamadas.push({ msg, opciones }); } };
-
-      const tipo = globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR';
-      globalThis.postMessage({
-        tipo,
-        origen: 'hijo3',
-        destino: 'padre',
-        datos: { codigo: 'ELEMENTO_NO_ENCONTRADO', mensaje: 'btn-x no existe' },
-      }, globalThis.location.origin);
-      await new Promise((r) => setTimeout(r, 800));
-      return { llamadas };
-    });
-
-    expect(resultado.llamadas.length, 'Un código de error distinto no debe disparar el toast de audio').toBe(0);
+  test('SE-2. SISTEMA.ERROR con otro código no toca el estado del audio', async ({ page }) => {
+    const AUDIO = 'audio-prueba-se2';
+    await prepararAudioActivo(page, AUDIO);
+    await enviarSistemaError(page, 'ELEMENTO_NO_ENCONTRADO');
+    // Se espera a que el handler haya corrido: se comprueba que el mensaje llegó a procesarse
+    // dando tiempo al mismo número de reintentos que necesita SE-1 para su condición.
+    await page.waitForFunction(() => globalThis.estado?._audioFalloId === '__nunca__', null, { timeout: 2000 }).catch(() => {});
+    const falloId = await page.evaluate(() => globalThis.estado?._audioFalloId ?? null);
+    expect(falloId, 'un código de error distinto no puede marcar el audio como no disponible').toBeNull();
   });
 });

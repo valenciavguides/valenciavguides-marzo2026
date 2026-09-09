@@ -125,7 +125,6 @@ async function cargarMapaParrafos(idioma) {
             const logger = globalThis.logger || console;
             logger.error(`[DataLoader] No se pudo cargar párrafos: ${url} (HTTP ${resp.status})`);
             // No cacheamos el fallo para que el siguiente intento reintente la red
-            try { globalThis.errorUI?.showToast(`No se pudieron cargar los textos (${idioma}, HTTP ${resp.status})`, { type: 'warning', duration: 8000 }); } catch (_) {}
             return {};
         }
         const mapa = await resp.json();
@@ -136,7 +135,6 @@ async function cargarMapaParrafos(idioma) {
         const logger = globalThis.logger || console;
         logger.error(`[DataLoader] Error cargando párrafos para "${idioma}":`, err);
         // No cacheamos el fallo para que el siguiente intento reintente la red
-        try { globalThis.errorUI?.showToast(`No se pudieron cargar los textos (${idioma})`, { type: 'warning', duration: 8000 }); } catch (_) {}
         return {};
     }
 }

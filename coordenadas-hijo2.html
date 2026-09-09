@@ -675,7 +675,11 @@ const estadoComponente = {
     distanciaAlDestino: null,
     tipoParadaActual: null, // 'parada' o 'tramo'
     idParadaActual: null,  // 'P-X' o 'TR-X'
-    toleranciaGPS: 50, // Tolerancia dinámica recibida de funciones-mapa (50m paradas, variable tramos)
+    toleranciaGPS: 50, // Valor de arranque, solo vigente hasta el primer ACTUALIZAR_ESTADO.
+                       // Lo que llega después se usa SOLO en tramos (dinámico, mín. 35 m); en
+                       // paradas este componente usa siempre su propio RADIO_PARADA de 15 m e
+                       // ignora lo recibido — desde que funciones-mapa manda también 15 para
+                       // paradas (RADIO_LLEGADA_PARADA_M), los dos coinciden de todos modos.
     controlesHabilitados: true,
     btnAvanzarDeshabilitadoExternamente: false,
     // true desde que el padre confirma audio+llegada(+reto) hasta el próximo CAMBIO_PARADA.
@@ -892,6 +896,8 @@ function actualizarEstadoBotones() {
         retoActivo
     } = estadoComponente;
 
+    // El 50 es el valor de arranque de estadoComponente (arriba), no un umbral: esto solo
+    // evita registrar la traza mientras todavía no ha llegado ningún ACTUALIZAR_ESTADO.
     if (tipoParadaActual === 'tramo' && toleranciaGPS !== 50) {
         logger.debug(`[hijo2] 📏 Usando tolerancia GPS dinámica: ${toleranciaGPS}m para ${idParadaActual}`);
     }

@@ -724,6 +724,141 @@ if (globalThis.window !== undefined) {
     };
 }
 
+/* ─── Reporte automático de errores no controlados (hijo → padre) ─────────────
+ *
+ * Un error no capturado dentro de un iframe hijo se quedaba solo en su propia consola:
+ * `js/monitoreo.js` los recoge en un array local, pero de ese módulo solo sale el
+ * heartbeat. El padre no se enteraba de que a un hijo le había explotado algo.
+ *
+ * Esto lo conecta al canal que YA existe y funciona, `SISTEMA.ERROR`, con un código
+ * más — no un tipo de mensaje nuevo ni un handler nuevo. `_hdl_SISTEMA_ERROR` en
+ * codigo-padre.html es un despachador por `codigo`: registra siempre, y actúa solo en
+ * los códigos que tienen acción asociada. `ERROR_NO_CONTROLADO` no la tiene a
+ * propósito: un fallo interno no es accionable por el usuario, no se le saca cartel.
+ *
+ * Vive aquí, en utils.js, porque es el único módulo que cargan los SEIS hijos —
+ * `monitoreo.js` solo lo cargan hijo1 y hijo5, y ponerlo ahí cubriría 2 de 6
+ * pareciendo que cubre todo.
+ *
+ * Se instala solo al cargarse el módulo. No hace falta llamar a nada: si dependiera de
+ * que alguien se acuerde en seis ficheros, bastaría un olvido para dejarlo mudo.
+ */
+
+const _ERRORES_MAX_DISTINTOS = 20;
+const _ERRORES_COLA_MAX = 10;
+const _erroresEnviados = new Set();
+const _erroresEnCola = [];
+let _topeYaAvisado = false;
+let _capturaInstalada = false;
+let _drenajePedido = false;
+
+/** Manda un SISTEMA.ERROR ya formado. Devuelve false si la mensajería aún no existe. */
+function _mandarErrorAlPadre(mensajeTexto) {
+    const enviar = globalThis.mensajeria?.enviarMensaje;
+    if (typeof enviar !== 'function') return false;
+    try {
+        enviar({
+            tipo: globalThis.TIPOS_MENSAJE?.SISTEMA?.ERROR || 'SISTEMA.ERROR',
+            origen: globalThis.name || 'hijo-desconocido',
+            destino: resolverIdPadre(),
+            datos: { codigo: 'ERROR_NO_CONTROLADO', mensaje: mensajeTexto }
+        });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Vuelca los errores ocurridos antes de que existiera la mensajería. Si nunca llega a
+ * existir, se queja en consola con la cola entera: no se pierde en silencio.
+ */
+function _drenarColaErrores() {
+    if (_drenajePedido || _erroresEnCola.length === 0) return;
+    _drenajePedido = true;
+    // retryUntilAvailable devuelve una Promise<boolean>: resuelve true en cuanto checkFn
+    // da true, y false al agotar los intentos. No admite callbacks.
+    retryUntilAvailable(
+        () => typeof globalThis.mensajeria?.enviarMensaje === 'function',
+        { maxIntentos: 40, intervalo: 250 }
+    ).then((listo) => {
+        if (listo) {
+            while (_erroresEnCola.length) _mandarErrorAlPadre(_erroresEnCola.shift());
+        } else {
+            (globalThis.logger || console).error(
+                `[utils][ERROR_NO_CONTROLADO] La mensajería nunca estuvo disponible: ${_erroresEnCola.length} error(es) de arranque no llegaron al padre`,
+                _erroresEnCola.slice()
+            );
+            _erroresEnCola.length = 0;
+        }
+        _drenajePedido = false;
+    });
+}
+
+/** Encola o manda un error, aplicando deduplicación y tope. */
+function _reportarErrorNoControlado(clase, texto, fichero, linea) {
+    const ubicacion = fichero ? ` (${fichero}${linea ? ':' + linea : ''})` : '';
+    const firma = `${clase}|${texto}|${fichero}|${linea}`;
+
+    // Deduplicación: la misma firma se manda UNA vez por sesión. Un error dentro de un
+    // bucle, o en un render que se repite, inundaría el bus del padre.
+    if (_erroresEnviados.has(firma)) return;
+
+    if (_erroresEnviados.size >= _ERRORES_MAX_DISTINTOS) {
+        (globalThis.logger || console).warn(`[utils][ERROR_NO_CONTROLADO] suprimido (tope alcanzado): ${texto}${ubicacion}`);
+        // El tope se anuncia UNA vez: callarse sin avisar haría el silencio
+        // indistinguible de "no ha vuelto a pasar nada".
+        if (!_topeYaAvisado) {
+            _topeYaAvisado = true;
+            _mandarErrorAlPadre(`Tope de ${_ERRORES_MAX_DISTINTOS} errores distintos alcanzado; los siguientes solo se registran en la consola del hijo`);
+        }
+        return;
+    }
+
+    _erroresEnviados.add(firma);
+    const mensajeTexto = `${clase}: ${texto}${ubicacion}`;
+    if (_mandarErrorAlPadre(mensajeTexto)) return;
+
+    // Todavía no hay mensajería (error durante el arranque): a la cola.
+    if (_erroresEnCola.length < _ERRORES_COLA_MAX) _erroresEnCola.push(mensajeTexto);
+    _drenarColaErrores();
+}
+
+/**
+ * Instala la captura. Solo dentro de un iframe: en el padre, un `enviarMensaje` con
+ * destino a sí mismo no encuentra su id en `iframesRegistrados` y se descarta en
+ * silencio — y sus errores ya están en su propia consola.
+ *
+ * @returns {boolean} true si quedó instalada en esta llamada
+ */
+export function instalarReporteErroresAlPadre() {
+    if (_capturaInstalada) return false;
+    if (typeof globalThis.addEventListener !== 'function') return false;
+    if (!globalThis.parent || globalThis.parent === globalThis.window) return false;
+    _capturaInstalada = true;
+
+    globalThis.addEventListener('error', (evento) => {
+        _reportarErrorNoControlado(
+            'Error no capturado',
+            evento?.message || String(evento?.error || 'desconocido'),
+            evento?.filename || null,
+            evento?.lineno || null
+        );
+    });
+    globalThis.addEventListener('unhandledrejection', (evento) => {
+        const motivo = evento?.reason;
+        _reportarErrorNoControlado(
+            'Promesa rechazada sin capturar',
+            motivo?.message || String(motivo ?? 'desconocido'),
+            null,
+            null
+        );
+    });
+    return true;
+}
+
+instalarReporteErroresAlPadre();
+
 export default {
     generarIdUnico,
     resolverIdPadre,
@@ -746,5 +881,6 @@ export default {
     getByPath,
     setByPath,
     sonIguales,
-    canonicalizarModo
+    canonicalizarModo,
+    instalarReporteErroresAlPadre
 };
