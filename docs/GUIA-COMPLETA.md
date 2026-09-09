@@ -8179,7 +8179,7 @@ proyecto/
 │   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura
 │   ├── imagenes-mapas-vintage/       ← Los mapas vintage, un JPG completo por aventura (no son tiles) — 5 de 7 hoy: faltan Fallas y Av34km
 │   ├── imagenes video intro/         ← Caballeros, guantelete y decorados de `video-intro.html` (§35)
-│   └── ...                           (material de trabajo sin ninguna referencia en el código: `01-imagenes-español/` a `04-imagenes-italiano/`, `Banderas aplicacion/`, `Botones fondo transparente/` y varios JPG sueltos en la raíz)
+│   └── ...                           (material de trabajo, sin referencias en el código. `01-imagenes-español/` a `04-imagenes-italiano/` están **en `.gitignore` por decisión explícita** — no se versionan mientras no se usen, porque el repositorio es público y lo que entra en el historial se queda. `Banderas aplicacion/` y `Botones fondo transparente/` sí están versionadas)
 │
 ├── tools/                            ← Scripts de mantenimiento, no forman parte de la PWA (ver §21, "Scripts npm disponibles")
 │   ├── build-sw.js                   ← Recalcula CACHE_VERSION en sw.js, version.json y la guía (§21.1)
