@@ -2087,7 +2087,7 @@ Esta reconexión es **solo para fallos de carga inicial**. Los fallos de heartbe
 
 El estado de la aplicación se guarda en un único lugar: `js/state-manager.js`. **Todos** los campos de estado tienen su propio `SimpleMutex` que serializa lecturas y escrituras concurrentes. `SimpleMutex` es una implementación nativa de Promise-chain (sin dependencias externas) definida al principio del archivo.
 
-**13 mutexes definidos** (verificado por conteo exhaustivo de `new SimpleMutex()` — antes eran 18, cinco campos 100% huérfanos —`aventuraSeleccionada`, `idiomaSeleccionado`, `uiConfirmado`, `estadoComponenteInicializado`, `estadoMenuAbierto`— se eliminaron por completo, mutex+campo+getter+setter, en una auditoría anterior; ninguno de los cinco tiene ya ninguna referencia en `state-manager.js`):
+**13 mutexes definidos**, uno por campo protegido — conteo verificable con `grep -c 'new SimpleMutex()' js/state-manager.js`. Cada campo del estado que se lee o escribe desde más de un sitio tiene el suyo; un campo sin consumidores fuera de `state-manager.js` no lo necesita, y no lo lleva:
 
 | Campo | Tipo | Propósito |
 | --- | --- | --- |
