@@ -6885,7 +6885,7 @@ ffmpeg -i entrada.mp3 -c:a libmp3lame -b:a 128k salida.mp3
 
 Se usa CBR en vez de VBR porque el tamaño resultante es predecible de antemano, útil para estimar el volumen total con docenas de paradas × 7 aventuras × 12 idiomas por grabar.
 
-**No hay compresión automática:** subir un audio nuevo al proyecto no lo recodifica — hay que aplicar este comando (o pedírselo a Claude) sobre cada archivo antes de darlo por bueno en producción. `npm run verificar-media` (ver más abajo) detecta los que no cumplen el estándar, pero no los corrige.
+**No hay compresión automática:** subir un audio nuevo al proyecto no lo recodifica — hay que aplicar este comando (o pedírselo a Claude) sobre cada archivo antes de darlo por bueno en producción. `npm run verificar-media` (ver más abajo) avisa, pero no corrige, y su umbral es más laxo que el estándar: marca lo que pase de **160 kbps**, así que un fichero a 160 pasa su comprobación sin cumplir los 128 de aquí. La herramienta atrapa el error grande (un 320 kbps colado); el estándar sigue siendo 128.
 
 Con docenas de paradas × 7 aventuras × 12 idiomas por grabar, este era el mayor riesgo de peso total de todo el proyecto si se replicaba el error de 320kbps a escala — mayor que el de las imágenes. Ver checklist completa (aplica a imagen/audio/vídeo) y `npm run verificar-media` en §15.
 
