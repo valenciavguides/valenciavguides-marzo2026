@@ -8173,7 +8173,9 @@ proyecto/
 ├── imagenes/                         ← Imágenes estáticas
 │   ├── imagenes-aplicación/          ← Iconos de botones, logos, UI, banderas
 │   ├── imagenes-aventuras/           ← Fotos de monumentos por aventura
-│   └── imagenes-mapas-vintage/       ← Tiles del mapa vintage artístico
+│   ├── imagenes-mapas-vintage/       ← Los mapas vintage, un JPG completo por aventura (no son tiles) — 5 de 7 hoy: faltan Fallas y Av34km
+│   ├── imagenes video intro/         ← Caballeros, guantelete y decorados de `video-intro.html` (§35)
+│   └── ...                           (material de trabajo sin ninguna referencia en el código: `01-imagenes-español/` a `04-imagenes-italiano/`, `Banderas aplicacion/`, `Botones fondo transparente/` y varios JPG sueltos en la raíz)
 │
 ├── tools/                            ← Scripts de mantenimiento, no forman parte de la PWA (ver §21, "Scripts npm disponibles")
 │   ├── build-sw.js                   ← Recalcula CACHE_VERSION en sw.js, version.json y la guía (§21.1)
