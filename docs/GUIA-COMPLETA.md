@@ -2334,9 +2334,14 @@ El spinner es el contenido inicial del elemento; cuando la función de carga asi
 
 ```javascript
 // En cargarPuzzle() dentro de En-busca-del-tesoro.html
-const iframe = document.getElementById('puzzle-iframe-intro');
-iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleConfig.id}&noOverlay=1`;
+const iframe = document.getElementById('puzzle-iframe');
+const modulo = await import('./js/puzzles-aventuras.js');
+const puzzleIntro = modulo.PUZZLES_AVENTURAS?.INTRO?.['puzzle.html']?.puzzle_id?.find(p => p.id === 'PZ-intro');
+const imagenPuzzle = puzzleIntro.imagen || 'fotos-botones/logo-luna.jpg';
+iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1&imagen=${encodeURIComponent(imagenPuzzle)}`;
 ```
+
+`imagen` es el único parámetro que `puzzle.html` necesita además de `id` — `aventura` y `noOverlay` viajan en la URL pero la página no los lee (§13). Esta pantalla ya tenía resuelto el puzzle para comprobar que su imagen existe, así que pasarla cuesta cero y ahorra que `puzzle.html` importe `puzzles-aventuras.js` por su cuenta (§22.12).
 
 El iframe escucha `window.addEventListener('message', _onPuzzleMessage)`. Cuando `puzzle.html` envía `{ tipo: 'puzzle-state-completed' }`, aparece el botón `#btn-continuar-puzzle`. Si `puzzle-state-timeout` llega antes, el botón también aparece (timeout = completado forzado). Ver detalles completos en §7.9.
 
@@ -2410,7 +2415,7 @@ flowchart TD
 
 **Propósito**: columna lateral izquierda con acceso a contenido complementario (gastronomía, historia, consejos, páginas oficiales), temporizador de cuenta atrás de la aventura y listado de progreso de paradas. Su comunicación con el sistema es unidireccional para el contenido: hijo1 pide al padre que abra URLs flotantes, pero no recibe datos de juego ni afecta la lógica de navegación. El temporizador y el listado de paradas son toggles bidireccionales: hijo1 dispara el mensaje, el padre lleva el estado real y construye la ventana.
 
-**Inicialización**: pre-cargado en el arranque por `cargarRestoDeiframes()`, oculto (`display:none`). Hace su UI visible tras `PADRE_CONFIRMA_HIJO_LISTO`. Calcula la posición de los iconos con JS en cada resize del viewport.
+**Inicialización**: cargado por `cargarRestoDeiframes()` cuando el usuario llega a P14 (nunca en el arranque — ver §6, FASE 3), oculto (`display:none`). Hace su UI visible tras `PADRE_CONFIRMA_HIJO_LISTO`. Calcula la posición de los iconos con JS en cada resize del viewport.
 
 **Posición**: `position:fixed; left:1.5px; bottom:var(--gap-inferior)` — `var(--franja-lateral)` de ancho, `calc(7 × var(--franja-lateral) + 26px)` de alto. Está anclado a la **izquierda** de la pantalla.
 
@@ -2434,7 +2439,7 @@ D = anchoIframe - 2   // = --btn-size = diámetro del botón
 i = 0..5 (listado, gastronomia, informacion, historia, páginas, temporizador)
 ```
 
-`listado` es el primero del array `iconosArriba` (índice `i=0`) — por eso queda pegado al botón principal, el más fácil de alcanzar con el pulgar; el resto conserva el orden anterior.
+`listado` es el primero del array `iconosArriba` (índice `i=0`) — por eso queda pegado al botón principal, el más fácil de alcanzar con el pulgar.
 
 Al pulsar cualquier icono con URL, hijo1 envía `UI.NAVEGACION_EXTERNA` al padre. El padre abre la URL en una ventana flotante/modal superpuesta al mapa. Al mismo tiempo cierra el menú enviando `UI.CLOSE_MENUS` a todos los iframes con `datos: { except: 'mas-opciones' }`.
 
@@ -2455,19 +2460,26 @@ Si ninguno de los dos parámetros aplica (arranque nuevo de una aventura), se en
 
 Verificado en `tests/e2e/41-temporizador-compra-real-y-devmode.spec.js`: TW-1 comprueba que con 1h real transcurrida desde `timestampInicioRest`, el `tiempoEstimado` enviado desciende esa hora exacta (no los 216000s completos de Aventura1); TW-2 comprueba que en modo dev no se envía `AVENTURA.INICIADA` en absoluto, aunque el modo sea AVENTURA y haya reanudación; TW-3 comprueba que sin reanudación ni tiempo restante previo se envía el máximo completo.
 
+El color lo decide hijo1 y lo pinta el padre: `obtenerEstadoColor()` (`extrainfo-hijo1.html`) devuelve `'verde'`, `'amarillo'` o `'rojo'` según el porcentaje restante, viaja en `AVENTURA.TIEMPO_ACTUALIZADO` y `_hdl_AVENTURA_TIEMPO_ACTUALIZADO` lo aplica como `tiempo-${estadoColor}` sobre `#ventana-temporizador-padre`. Las tres reglas CSS viven en `codigo-padre.html`, no en hijo1.
+
 | Porcentaje restante | Clase CSS | Color |
 |--------------------|-----------|-------|
 | ≥ 60% | `.tiempo-verde` | Verde |
-| 20%–60% | `.tiempo-amarillo` | Amarillo |
+| ≥ 20% y < 60% | `.tiempo-amarillo` | Amarillo |
 | < 20% | `.tiempo-rojo` | Rojo |
 
+Con `tiempoTotal === 0` devuelve `'verde'` sin dividir, para no calcular un porcentaje sobre cero.
+
 ```javascript
-// Formato de display: HHH:MM:SS
+// Formato de display: HHH:MM:SS — las horas se rellenan a 3 dígitos, no a 2:
+// una aventura dura hasta 150 h y "150:00:00" no cabe en dos.
 // Nota: se llama formatearReloj (no formatearTiempo) para distinguirla de
 // utils.js/formatearTiempo, que formatea milisegundos para logs de depuración.
-function formatearReloj(s) {
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
-  return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+function formatearReloj(segundos) {
+  const horas = Math.floor(segundos / 3600);
+  const minutos = Math.floor((segundos % 3600) / 60);
+  const segs = segundos % 60;
+  return `${String(horas).padStart(3,'0')}:${String(minutos).padStart(2,'0')}:${String(segs).padStart(2,'0')}`;
 }
 ```
 
