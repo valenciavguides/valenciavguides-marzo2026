@@ -789,26 +789,26 @@ Estos emojis aparecen durante las 17 pantallas de demo/selección, antes de que 
 
 | Emoji | Dónde aparece | Para qué sirve |
 |-------|---------------|-----------------|
-| → | Botones de avanzar/confirmar (P1, P4, P5, P9, P11, P12, P16) | Flecha de navegación "ir a la siguiente pantalla" |
-| ➜ | Botón grande del puzzle (P6) | Flecha gruesa para continuar tras completar el puzzle |
-| ✗ | Botones rojos de rechazo (P3, P9), feedback de formato de código insuficiente (P13, <4 caracteres) | Cancelar selección o indicar formato inválido — P13 no muestra ✓ de "código correcto" porque no hay nada que validar localmente (ver §16.2) |
+| ➣ | El botón de avanzar de **catorce** de las diecisiete pantallas: P1, P3, P5, P6, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17 | Flecha de navegación "ir a la siguiente pantalla". Nunca va suelta: cada botón lleva **dos**, en `<div class="contenedor-flecha">` y `<div class="contenedor-flecha segunda">`, que es lo que produce la animación de flecha doble. Las tres pantallas sin ➣ no tienen botón propio de avanzar: P2 avanza al tocar una bandera, P4 lo cede al iframe de `video-intro.html` y P7 al tocar una tarjeta de aventura |
+| ✗ | Los dos botones rojos de rechazo (P3 e P9), el botón de cerrar del overlay de mapa vintage (`.icono-x-cerrar`) y el feedback de formato de código insuficiente (P13, `<span class="visual-feedback error">`, menos de 4 caracteres) | Cancelar selección, cerrar o indicar formato inválido. **P13 no muestra ✓ de "código correcto"** porque no hay nada que validar localmente (ver §16.2) |
+| ✓ / ✗ | Cada opción de los retos R-1 (P8) y R-2 (P15), como `<span class="tick">` y `<span class="x">` | Nacen con `display:none` y se revelan al responder: acierto y fallo por opción |
 | 💳 | Pantalla de pago (P12) | Icono de la pasarela de pago (aún no implementada) |
-| 🔑 | Pantalla de activación (P13) | Indica que se necesita un código de acceso |
-| ✒️ | Pantalla de activación (P13) | Acompañamiento visual del campo de entrada |
-| ❓ | Pantalla de activación (P13) | Indica ayuda o instrucciones |
-| 🚀 | Botón de iniciar aventura (P13) | Avanza a P14 (normativa); la aventura se lanza al aceptar en P15 |
-| 🔇 | Overlay de aviso (confirmación en P9) | Indica que no hay audio disponible para la combinación idioma+aventura |
+| 🔑 ✒️ ❓ | Pantalla de activación (P13), los tres seguidos a `font-size:3rem` | Se necesita un código de acceso; acompañamiento del campo de entrada; ayuda e instrucciones |
+| 🛰️→🌐→⚙️ | Aviso `#gps-denegado-p13`, oculto salvo si el usuario deniega la geolocalización | Ruta visual "satélite → red → ajustes": dónde ir a conceder el permiso. Es el **único** sitio de la pantalla donde `→` se ve; en el resto del fichero solo aparece dentro de comentarios y atributos `title` |
+| 🔇 | Overlay `#audio-warning-overlay` (se abre al confirmar la aventura en P9) | No hay audio disponible para la combinación idioma+aventura; los dos botones ofrecen seguir sin audio o volver |
+
+El botón de iniciar aventura de P13 es `#btn-iniciar-aventura`, y lleva el mismo ➣ doble que el resto: nace `disabled` y al pulsarlo llama a `_irANormativa()`, que avanza a P14. La aventura se lanza después, al aceptar en P15.
 
 ```mermaid
 flowchart TD
     P1([P1\nBienvenida\nlogo, pantalla inicial]) -- btn-mundo-verde --> P2
     P2[P2\nSelección de idioma\n12 banderas]
-    P2 --> P3{P3\nConfirmar idioma\n✓ / ✗}
-    P3 -- ✓ --> P4[P4\nvideo-intro.html en iframe\n20 escenas, ver §35]
+    P2 --> P3{P3\nConfirmar idioma\n➣ / ✗}
+    P3 -- ➣ --> P4[P4\nvideo-intro.html en iframe\n20 escenas, ver §35]
     P3 -- ✗ --> P2
     P4 --> P5[P5\nImagen En Busca del Tesoro]
     P5 --> P6{P6\nPuzzle interactivo}
-    P6 -- imagen existe --> P6b[Usuario resuelve puzzle\n➜ para continuar] --> P7
+    P6 -- imagen existe --> P6b[Usuario resuelve puzzle\n#btn-continuar-puzzle ➣ aparece] --> P7
     P6 -- no existe --> P7
     P7[P7\nSelección de aventura\noverlay mapa vintage al elegir]
     P7 --> P8{P8\nReto R-1\ntipo test}
@@ -834,13 +834,17 @@ Cada aventura muestra una línea de estadísticas con emojis universales (no nec
 | Emoji | Significado | Ejemplo |
 |-------|-------------|---------|
 | 👣 | Vehículo: a pie | Aventuras 1, 2 y Fallas |
-| 🚲 | Vehículo: bicicleta | Aventuras 3, 4 y 5 |
-| 🛴 | Vehículo: patinete | Aventuras 3, 4 y 5 (combinado con 🚲) |
-|🏛️  🚲🛴👣 | Vehículo: mixto | Aventura 34km |
-| | Número de monumentos | `🏛️19` = 19 monumentos |
+| 🚲 | Vehículo: bicicleta | Aventuras 3, 4 y 5 (siempre junto a 🛴) |
+| 🛴 | Vehículo: patinete | Aventuras 3, 4 y 5 (siempre junto a 🚲) |
+| 🚲🛴👣 | Vehículo: mixto | Aventura 34km, en ese orden |
+| 🏛️ | Número de monumentos | `🏛️23` = 23 monumentos |
 | 📍 | Número de paradas | `📍41` = 41 paradas |
-| 🧩 | Número de retos | `🧩30` = 30 retos |
+| 🧩 | Número de retos | `🧩36` = 36 retos |
 | ⏳ | Tiempo máximo para completar | `⏳max60h` = 60 horas |
+
+Los cuatro números del ejemplo son los de Aventura1. Los valores reales de cada aventura salen de `js/indice-aventuras.js` (`totalMonumentos`, `totalParadas`, `totalRetos`, `tiempoEstimado` en segundos). Seis de las siete declaran `tiempoEstimado: 216000` (60 h); Aventura34km declara `540000` (150 h), así que su línea muestra `⏳max150h`.
+
+La misma línea se compone en dos sitios distintos de `En-busca-del-tesoro.html` y **no se ve exactamente igual en los dos**: la tarjeta de selección de P7 escribe `max${tiempoHoras}h` (sin espacio: `max60h`) y la ficha de detalle escribe `max ${tiempoHoras}h` (con espacio: `max 60h`).
 
 ### 4.3. Emojis durante la aventura activa
 
@@ -848,7 +852,7 @@ Una vez en modo AVENTURA, estos emojis aparecen en la interfaz:
 
 | Emoji | Componente | Para qué sirve |
 |-------|------------|-----------------|
-| ✖ | Padre (pantallas de fuera de rango, §31.4) | Botón para cerrar el aviso de distancia al objetivo |
+| ✗ | Padre — **todos** sus overlays, no solo los de fuera de rango (§31.4) | Botón de cerrar. Siempre el mismo marcado: `<button class="btn-cerrar-overlay"><span class="icono-x-cerrar">✗</span></button>`, repetido 25 veces idénticas en `codigo-padre.html` (imagen, vídeo, error, las cuatro pantallas de distancia, sin internet…). La pantalla de selección usa el mismo `.icono-x-cerrar` para cerrar el mapa vintage |
 | 🔄 | Puzzle (puzzle.html) | Reiniciar el puzzle |
 | ⏸️ / ▶️ | Puzzle (puzzle.html) | Pausar / reanudar el puzzle |
 | ⏩ | Puzzle (puzzle.html) y Retos (retos-hijo4.html) | Saltar el reto/puzzle sin resolverlo — se da por aprobado igualmente (§13, "Saltar un reto o puzzle roto") |
@@ -861,9 +865,9 @@ flowchart TD
     C -- No --> D["Sin controles de puzzle\notros tipos de reto no muestran ⏸️▶️🔄⏩"]
     C -- Sí --> E["🔄 ⏸️▶️ ⏩ en puzzle.html\n(solo icono, mismo componente que P6/hijo4, ver §13)"]
 
-    G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\nfuera 50m / desviado 150m / lejos 2000m / perdido"}
-    G2 --> H["Padre muestra la pantalla\nde distancia que corresponda (§31.4)\nBotón ✖ para cerrar"]
-    H --> I([Usuario pulsa ✖])
+    G([hijo2: verificarDistanciaYActualizarBotones\ndistancia > rangoMaximo]) --> G2{"¿Qué franja?\nfuera: rango–50 m\ndesviado: 50–150 m\nlejos: 150–2000 m\nperdido: >2000 m"}
+    G2 --> H["Padre muestra la pantalla\nde distancia que corresponda (§31.4)\nBotón ✗ para cerrar"]
+    H --> I([Usuario pulsa ✗])
     I --> J["El overlay se cierra\nGPS.RESTRINGIDO sigue llegando\nsi el usuario sigue fuera de rango\n→ el aviso puede reaparecer (snooze, §31.4)"]
 ```
 
@@ -5828,7 +5832,7 @@ hijo → padre   SISTEMA.NACK { esperarPermiso: true, modoSolicitado, tipoOrigin
   ↓
 app.js L1605 maneja NACK
   → si datos.esperarPermiso === true: guarda en pendingModeChanges.Map(hijoId, { modo, intentos, nextAttemptAt })
-  → calcula backoff exponencial: base * 2^(intentos-1) + jitter ±20%
+  → calcula backoff: min(MODE_RETRY_BASE_MS 2000 ms × 2^(intentos-1), MODE_RETRY_MAX_MS 60000 ms) ± jitter del 10%
   → max reintentos: MODE_RETRY_MAX_INTENTOS
   ↓
 setInterval app.js L1633 (background retry loop)
@@ -9300,7 +9304,9 @@ Una vez cargado todo, el usuario ve la primera pantalla con el logo de Valencia 
 
 **Pantalla 4 — Vídeo introductorio (`video-intro.html`).** Un vídeo-demostración animado en HTML/CSS que muestra al usuario cómo funciona la aplicación antes de empezar. Se carga perezosamente en un iframe al confirmar el idioma (con `?lang=` para localización). Su contenido:
 
-- **Bocadillo Jaime I (20 de las 21 escenas):** El caballero aparece en esquina inferior izquierda; un bocadillo `.jaime-bubble` (también esquina inferior izquierda, sobre el caballero, flecha apunta hacia abajo, z-index 450) muestra el texto de la escena en el idioma seleccionado. Los textos viven en `JAIME_SCENES` — array de 21 entradas, índice 15 = `null` (escena visual sin bocadillo, dentro de `scene16`) — exportado desde `js/traducciones-ui.js` en 12 idiomas y expuesto vía `globalThis` a un `<script>` clásico. El helper `showBubble(idx)` crea el elemento y devuelve `hideBubble()` para eliminarlo al terminar la escena.
+- **Bocadillo Jaime I (las 20 escenas):** El caballero aparece en esquina inferior izquierda; un bocadillo `.jaime-bubble` (también esquina inferior izquierda, sobre el caballero, flecha apunta hacia abajo, z-index 450) muestra el texto de la escena en el idioma seleccionado. Las 20 escenas llaman a `showBubble(idx)`, así que todas llevan bocadillo. Los textos viven en `JAIME_SCENES`, exportado desde `js/traducciones-ui.js` en 12 idiomas y expuesto vía `globalThis` a un `<script>` clásico. El helper `showBubble(idx)` crea el elemento y devuelve `hideBubble()` para eliminarlo al terminar la escena.
+
+  **El índice no es el número de escena.** `JAIME_SCENES` tiene **21** entradas (0–20) para 20 escenas, y el orden del array no es el orden de reproducción: `scene2` pide el índice 1 pero se reproduce la segunda, `scene8` pide el 5 y se reproduce la sexta, `sceneListadoParadas` pide el 20 y se reproduce la decimoséptima. Los índices que sí se usan son 0–14 y 16–20; **el 15 vale `null` y ninguna escena lo pide** — es un hueco del array, no una escena muda.
 - **20 escenas animadas** que muestran el mapa, los botones de hijo2, el audio, los retos, los overlays de error GPS/internet, y el modal de fin de aventura. El guantelete (`guantelete_*.png`) actúa de cursor animado.
 - **Botones al final:** globo rojo ↺ (izquierda, replay) y globo verde ➤ (derecha, continuar). Al pulsar ➤ se envía `postMessage({ tipo: 'SELECCION.VIDEO_INTRO_TERMINADO' })` al padre (`En-busca-del-tesoro.html`), que ejecuta `mostrar(5)`.
 - **Localización:** el idioma se pasa como `?lang=es` (o el código elegido). Las imágenes del caballero y el guantelete están en `imagenes/imagenes video intro/`.
@@ -10037,7 +10043,7 @@ Hay dos overlays distintos relacionados con GPS que no deben confundirse:
 Una imagen a pantalla completa (`imagenes/imagenes-aplicación/fotogpserror.png`) con dos botones:
 
 - **🛰️🔄** — botón de reintento: lanza `getCurrentPosition()`, procesa la nueva lectura (sea cual sea su precisión) y cierra el overlay — la distancia recalculada decide, a través del pipeline normal, si sigue justificando el aviso.
-- **✖** — botón de cierre: descarta el overlay sin reintentar (el `watchPosition` sigue activo en segundo plano).
+- **✗** — botón de cierre: descarta el overlay sin reintentar (el `watchPosition` sigue activo en segundo plano).
 
 El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la distancia sea grande.
 
@@ -10047,9 +10053,9 @@ El overlay solo aparece en **modo AVENTURA**. En modo CASA se suprime aunque la 
 |---|---|---|
 | Permiso denegado | `PERMISSION_DENIED` | Muestra overlay, no reintenta (el usuario debe activar el permiso en ajustes del dispositivo) |
 | Señal no disponible | `POSITION_UNAVAILABLE` | Muestra overlay |
-| Timeout | `TIMEOUT` | Reintenta hasta `MAX_REINTENTOS_GPS` (3) veces con backoff exponencial (500ms × intento). Si agota los reintentos, muestra overlay |
+| Timeout | `TIMEOUT` | Reintenta hasta `MAX_REINTENTOS_GPS` (3) veces. La espera antes de lanzar cada reintento crece **linealmente**: `500 * est.gps.retries` ms, o sea 500 → 1000 → 1500 ms. Si agota los reintentos, muestra overlay |
 
-El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }`. En cada reintento por timeout, `enableHighAccuracy` se baja a `false` y el timeout se duplica (máximo 60 s). Estos errores son de **señal** (sin datos de posición en absoluto) — un caso distinto de precisión baja (hay posición, pero con un margen de error grande), que ya no bloquea nada.
+El `watchPosition` principal usa `{ enableHighAccuracy: true, timeout: 35000, maximumAge: 0 }`. En cada reintento por timeout, `enableHighAccuracy` se baja a `false` y el `timeout` se recalcula desde una base propia de 15 s que sí se duplica en cada intento, con tope de 60 s: 15 s → 30 s → 60 s. No parte de los 35 s del watch principal, así que el primer reintento concede **menos** tiempo que el intento original. Estos errores son de **señal** (sin datos de posición en absoluto) — un caso distinto de precisión baja (hay posición, pero con un margen de error grande), que ya no bloquea nada.
 
 > Esta sección cubre el Overlay B. Para el resto de situaciones de error que el usuario puede encontrar durante la aventura (sin internet, GPS sin señal, GPS sin permiso, usuario a >5 km de la ruta), ver **§25.17**.
 
@@ -11872,7 +11878,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 
 **Qué ocurre:** el dispositivo pierde la conexión a internet durante la aventura. Se detecta de dos formas complementarias: al instante, vía el evento `offline` del navegador (`globalThis.addEventListener('offline', showInternetOverlay)`, registrado incondicionalmente — `showInternetOverlay()` ya filtra por modo AVENTURA internamente); y de forma reactiva, como red de seguridad, cuando una petición real (p. ej. un audio) falla con `!navigator.onLine` — por si `offline` no llegara a dispararse en algún dispositivo.
 
-**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png`. En la parte inferior centrada, botón de reintento sin texto: 🌐🔄. Botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha — cerrarlo manualmente no soluciona la falta de conexión, solo oculta el aviso; si la conexión sigue caída, el overlay puede volver a aparecer en el siguiente fallo de red.
+**Qué ve el usuario:** overlay a pantalla completa con `imagen-no-internet.png`. En la parte inferior centrada, botón de reintento sin texto: 🌐🔄. Botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha — cerrarlo manualmente no soluciona la falta de conexión, solo oculta el aviso; si la conexión sigue caída, el overlay puede volver a aparecer en el siguiente fallo de red.
 
 **Comportamiento del botón:**
 
@@ -11924,7 +11930,7 @@ Esta sección documenta el comportamiento de la aplicación ante fallos que pued
 | 2 (POSITION_UNAVAILABLE) | 🛰️🔄 | GPS sin más contexto — reintento genérico |
 | 3 (TIMEOUT) | 🛰️⏳ | El reloj de arena marca específicamente "se agotó el tiempo de espera (30s)", no "no disponible" |
 
-Además, botón de cierre ✖ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha, independiente del botón de reintento.
+Además, botón de cierre ✗ (`.btn-cerrar-overlay`, mismo patrón visual que el resto de overlays de la app) en la esquina superior derecha, independiente del botón de reintento.
 
 **Comportamiento del botón de reintento (🛰️🔄 o 🛰️⏳, misma lógica para ambos):**
 
@@ -12005,7 +12011,7 @@ Ubicación, mapa completo y mapa vintage se agrupan juntos — los tres ayudan a
 
 **El panel "Próxima parada" es exclusivo del bloqueo anti-piratería (§31.6), no de ninguna de las 4 franjas** — ni siquiera de "perdido". Las 4 franjas actuales solo piden la posición nueva al reintentar (`_gpsReintentarDesdeOverlayDistancia()`).
 
-**Botón de cierre ✖ y reaparición periódica ("snooze"):** las 4 pantallas usan el mismo botón naranja/verde arriba a la derecha que el resto de overlays del padre — cerrarlo solo descarta el aviso en pantalla, no cambia ningún estado ni desbloquea nada. Como hijo2 reenvía `GPS.RESTRINGIDO` en cada posición fuera de rango (continuo mientras dure el GPS activo), cerrar la pantalla no la silencia para siempre: cada una tiene su propio tiempo de espera antes de poder reaparecer (`globalThis.__VV_GPS_OVERLAY_SNOOZE`, comprobado por `_overlayDistanciaEnSnooze()` al principio de cada `show*Overlay()`), más largo cuanta menos urgencia hay:
+**Botón de cierre ✗ y reaparición periódica ("snooze"):** las 4 pantallas usan el mismo botón naranja/verde arriba a la derecha que el resto de overlays del padre — cerrarlo solo descarta el aviso en pantalla, no cambia ningún estado ni desbloquea nada. Como hijo2 reenvía `GPS.RESTRINGIDO` en cada posición fuera de rango (continuo mientras dure el GPS activo), cerrar la pantalla no la silencia para siempre: cada una tiene su propio tiempo de espera antes de poder reaparecer (`globalThis.__VV_GPS_OVERLAY_SNOOZE`, comprobado por `_overlayDistanciaEnSnooze()` al principio de cada `show*Overlay()`), más largo cuanta menos urgencia hay:
 
 | Pantalla | Tiempo de espera tras cerrar |
 |---|---|
@@ -12042,7 +12048,7 @@ Pasado ese tiempo, la pantalla vuelve a aparecer una vez como recordatorio (de q
 
 **Cómo mide la distancia:** recorre `elementosIDpadre` de la aventura/idioma activos y calcula, con `calcularDistancia()` (`js/utils.js`, fórmula Haversine), la distancia a cada punto candidato de cada elemento (`coordenadas`, `inicio`, `fin`, `waypoints`), quedándose con la mínima encontrada y cortando el recorrido en cuanto encuentra un punto a menos de 5.000m (`LIMIT_M`) — no necesita comprobar el resto de la ruta si ya hay un punto cercano.
 
-**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true`):** overlay `#gps-out-of-range-overlay` (`fotogpserror.png`) con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de 5 km de la ruta") — distinto del texto que usa el disparador de §31.4 ("Ubicación a más de 2 km de tu objetivo"), para que un lector de pantalla diga la causa real y no confunda ambos casos. El botón de reintento 🛰️🔄 (`#gps-error-action`) se oculta (repetir la lectura GPS no resuelve estar fuera de Valencia); el botón de cierre ✖ sigue visible y solo descarta el aviso en pantalla, sin desbloquear nada. En paralelo, el padre envía `CONTROL.DESHABILITAR` a hijo2 con `{ control: 'btnAvanzar', razon: 'usuario_fuera_zona' }`; hijo2 marca `estadoComponente.btnAvanzarDeshabilitadoExternamente = true`, que `_actualizarBotonGps()` comprueba antes que cualquier otra condición — ninguna actualización de proximidad posterior puede reactivar el botón mientras el flag siga activo.
+**Qué ve el usuario al bloquearse (`globalThis.__VV_5KM_BLOCKED` pasa a `true`):** overlay `#gps-out-of-range-overlay` (`fotogpserror.png`) con un texto accesible propio ("Ubicación fuera de la zona de la aventura, a más de 5 km de la ruta") — distinto del texto que usa el disparador de §31.4 ("Ubicación a más de 2 km de tu objetivo"), para que un lector de pantalla diga la causa real y no confunda ambos casos. El botón de reintento 🛰️🔄 (`#gps-error-action`) se oculta (repetir la lectura GPS no resuelve estar fuera de Valencia); el botón de cierre ✗ sigue visible y solo descarta el aviso en pantalla, sin desbloquear nada. En paralelo, el padre envía `CONTROL.DESHABILITAR` a hijo2 con `{ control: 'btnAvanzar', razon: 'usuario_fuera_zona' }`; hijo2 marca `estadoComponente.btnAvanzarDeshabilitadoExternamente = true`, que `_actualizarBotonGps()` comprueba antes que cualquier otra condición — ninguna actualización de proximidad posterior puede reactivar el botón mientras el flag siga activo.
 
 **Recuperación:** en la siguiente posición válida que sí caiga dentro de los 5km, `__VV_5KM_BLOCKED` vuelve a `false`, se restaura el botón de reintento, se llama `hideGpsOutOfRangeOverlay()` y se envía `CONTROL.HABILITAR` a hijo2 (`razon: 'usuario_en_zona'`), que limpia el flag externo y deja que la lógica normal de proximidad vuelva a decidir el estado del botón.
 
