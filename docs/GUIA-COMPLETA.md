@@ -4775,9 +4775,9 @@ Los stats (paradas, tramos, retos, monumentos, audios) en los botones de P6 se c
 
 ---
 
-Toda la información de las aventuras (coordenadas GPS, textos, audios, retos, puzzles) se almacena hoy en ficheros JavaScript de la carpeta `js/`. `backend/data/` es dónde irán sus equivalentes JSON cuando exista la API — hoy `backend/` está vacío (ver "Datos en el backend", más abajo).
+Toda la información de las aventuras (coordenadas GPS, textos, audios, retos, puzzles) se almacena hoy en ficheros JavaScript de la carpeta `js/`. `backend/data/` es dónde irán sus equivalentes JSON cuando exista la API — hoy `backend/` está vacío (§10.2).
 
-### Datos en el frontend (`js/`)
+### 10.1 Datos en el frontend (`js/`)
 
 Estos ficheros se cargan directamente en el navegador:
 
@@ -4796,7 +4796,7 @@ Estos ficheros se cargan directamente en el navegador:
 | `normativa-cumplimiento.js` | Aviso legal de seguridad vial (requerido antes de iniciar aventura) en 12 idiomas | `NORMATIVA_CUMPLIMIENTO.normativa_idiomas.es`, … |
 | `traducciones-ui.js` | Textos cortos de interfaz en 12 idiomas, centralizados desde 7 archivos consumidores: modal de reanudación, fin de aventura, tiempo agotado, despedida (P5), retos, chat, video-intro, banner SW de actualización | `TRADUCCIONES_REANUDACION`, `TRADUCCIONES_FINALIZACION`, `TRADUCCIONES_TIEMPO_AGOTADO`, `TRADUCCIONES_DESPEDIDA`, `MSG_RETOS_COMPLETOS`, `PLACEHOLDER_RESPUESTA_TEXTO`, `TITULOS_CHAT`, `JAIME_SCENES` (array 21 entradas × 12 idiomas, índice 15 = `null`), `TRADUCCIONES_SW_UPDATE` (label + boton del banner de actualización) |
 
-### Datos en el backend (`backend/data/`) — pendiente de crear
+### 10.2 Datos en el backend (`backend/data/`) — pendiente de crear
 
 El directorio `backend/` existe pero está vacío. Los ficheros JSON equivalentes a los JS del frontend **no se han creado todavía**. Están planificados para cuando se implemente la API autenticada de producción:
 
@@ -4808,7 +4808,7 @@ El directorio `backend/` existe pero está vacío. Los ficheros JSON equivalente
 | `backend/data/puzzles-aventuras.json` | `js/puzzles-aventuras.js` |
 | `backend/data/retos-aventuras.json` | `js/retos-aventuras.js` |
 
-### ¿Por qué existen los datos en dos sitios?
+### 10.3 ¿Por qué existen los datos en dos sitios?
 
 Por una razón de diseño pensando en la seguridad futura:
 
@@ -8192,7 +8192,7 @@ proyecto/
 │   ├── codigo-muerto.js              ← Funciones sin llamador y campos de estado solo-escritura
 │   └── ...                           (verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, renumber-pantallas, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
 │
-├── backend/                          ← **Vacío.** Reservado para los JSON de la API cuando exista (ver §10, "Datos en el backend")
+├── backend/                          ← **Vacío.** Reservado para los JSON de la API cuando exista (§10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
 │   └── e2e/                          ← Tests Playwright — 57 specs, 340 tests por navegador; ver §18.3 para el listado completo
@@ -11252,13 +11252,13 @@ GPS detecta que el usuario llegó al final de un TRAMO (distancia ≤ tolerancia
 
 ---
 
-### 26.13 Upgrade: Sistema de reintentos activos para HIJO_LISTO (Junio 2026)
+### 26.13 Reintentos activos de HIJO_LISTO
 
-#### Problema resuelto
+#### Qué problema resuelve
 
-**Problema crítico:** Los hijos ocultaban su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`. Si ese mensaje se perdía (postMessage no garantiza entrega), la UI quedaba invisible para siempre.
+Cada hijo mantiene su UI con `display: none` hasta recibir `PADRE_CONFIRMA_HIJO_LISTO`. `postMessage` no garantiza entrega, así que si ese mensaje se pierde la UI quedaría invisible para siempre.
 
-**Por qué un timeout simple no era suficiente:**
+**Por qué no basta un timeout simple:**
 
 - Un timeout fijo no es solución permanente en dispositivos lentos
 - Si el dispositivo tarda más que el timeout, la UI sigue invisible
@@ -11350,9 +11350,9 @@ Los pasos 3 a 5 son el cuerpo del handler de `PADRE_DATOS`. Sin el paso 2 no ocu
 
 ---
 
-### 26.16 Sistema de snapshot para recuperación tras heartbeat reload (Julio 2026)
+### 26.14 Snapshot de recuperación tras un reload por heartbeat
 
-#### Contexto y problema
+#### Qué problema resuelve
 
 El sistema de heartbeat (`js/mensajeria.js`) puede forzar el reload de un iframe si pierde `maxFallidos` heartbeats consecutivos (`intentarReconectarHijo`: self-assign de `iframe.src`). Tras el reload, el iframe pasa por el handshake normal (HIJO_PREPARADO → PADRE_DATOS → HIJO_LISTO → PADRE_CONFIRMA_HIJO_LISTO). El problema es que el estado dinámico de la aventura en ese iframe se pierde: el temporizador de hijo1 se reinicia, el audio de hijo3 se corta, el reto visible en hijo4 desaparece.
 
