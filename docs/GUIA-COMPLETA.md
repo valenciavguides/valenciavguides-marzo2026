@@ -1830,14 +1830,14 @@ sequenceDiagram
 
 ## 6. El código padre: el cerebro de todo
 
-El archivo `codigo-padre.html` (~13.700 líneas) es el **orquestador** de toda la aplicación: coordina la carga de iframes, gestiona el estado global, distribuye mensajes, ejecuta el GPS y toma todas las decisiones de navegación.
+El archivo `codigo-padre.html` (unas 15.500 líneas) es el **orquestador** de toda la aplicación: coordina la carga de iframes, gestiona el estado global, distribuye mensajes, ejecuta el GPS y toma todas las decisiones de navegación.
 
 ### Responsabilidades del padre
 
 1. **Gestión de iframes**: carga, muestra, oculta y reconecta los hijos según el contexto.
 2. **Estado centralizado**: guarda aventura seleccionada, idioma, parada actual, modo y estado GPS en `js/state-manager.js`.
 3. **Mensajería**: recibe mensajes de todos los hijos y les responde a través de `js/mensajeria.js`.
-4. **GPS**: ejecuta el único `navigator.geolocation.watchPosition()` de la app, directamente en `activarGPS()` (línea 4895 de `codigo-padre.html`). `funciones-mapa.js` solo actúa como adaptador — delega a `globalThis.activarGPS()` del padre. Las posiciones se distribuyen a hijo2 vía `NAVEGACION.ACTUALIZAR_ESTADO`. hijo2 no tiene `watchPosition` propio.
+4. **GPS**: ejecuta el único `navigator.geolocation.watchPosition()` de la app, directamente en `activarGPS()` (`codigo-padre.html`). `funciones-mapa.js` solo actúa como adaptador — delega a `globalThis.activarGPS()` del padre. Las posiciones se distribuyen a hijo2 vía `NAVEGACION.ACTUALIZAR_ESTADO`. hijo2 no tiene `watchPosition` propio.
 5. **Navegación**: decide cuándo cambiar de parada, cuándo mostrar un reto, cuándo reproducir un audio.
 6. **Modos**: gestiona la transición entre `'casa'` y `'aventura'`, propagando `CAMBIO_MODO` a los hijos críticos y coordinando heartbeat y GPS.
 
@@ -1857,7 +1857,7 @@ El archivo `codigo-padre.html` (~13.700 líneas) es el **orquestador** de toda l
 >
 > **Aislamiento de scope entre scripts:** Cada `<script type="module">` tiene su propio scope léxico. Las variables definidas localmente en Script 1 (p.ej. `sleep`, `enviarMensaje_S1`, `registrarIframe_S1`) **no son accesibles** en los otros cuatro módulos a menos que se expongan explícitamente en `globalThis`. Por este motivo cada script define su propio alias de seguridad al inicio: `const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));`. Del mismo modo, la notificación de broadcast que emite el handler de `SELECCION.AVENTURA_ACTIVADA` (Script 2) —un único `SISTEMA.NOTIFICACION` con `evento: 'AVENTURA_ACTIVADA'`— usa `enviarMensaje_S2` — intentar usar `enviarMensaje_S1` en Script 2 siempre devolvería `typeof === 'undefined'` y los broadcasts se perderían.
 >
-> **Ejemplo real — `ajustarTimeoutPorConexionSafe(ms)`:** wrapper que llama a `ajustarTimeoutPorConexion` (el ajuste real de timeouts según calidad de conexión, `js/device-detection.js`) protegido con try/catch, devolviendo `ms` sin modificar si algo falla. Se llama desde sitios de Script 1 y Script 2 (intervalo del heartbeat, timeouts de `solicitarCoordenadasHijo`...). Una única definición, cerca del principio de Script 1 (`globalThis.ajustarTimeoutPorConexionSafe = function ajustarTimeoutPorConexionSafe(ms) {...}`), basta para cubrir ambos scripts — al ser una asignación a `globalThis` en vez de una declaración `function` normal, el identificador queda disponible como global real desde el instante en que se ejecuta esa línea, sin necesidad de una función local por script ni de un "early fallback" aparte con su propia lógica duplicada (llegó a haber tres definiciones distintas del mismo wrapper repartidas por el fichero antes de consolidarlo en esta única).
+> **Ejemplo real — `ajustarTimeoutPorConexionSafe(ms)`:** wrapper que llama a `ajustarTimeoutPorConexion` (el ajuste real de timeouts según calidad de conexión, `js/utils.js`) protegido con try/catch, devolviendo `ms` sin modificar si algo falla. Se llama desde sitios de Script 1 y Script 2 (intervalo del heartbeat, timeouts de `solicitarCoordenadasHijo`...). Una única definición, cerca del principio de Script 1 (`globalThis.ajustarTimeoutPorConexionSafe = function ajustarTimeoutPorConexionSafe(ms) {...}`), basta para cubrir ambos scripts — al ser una asignación a `globalThis` en vez de una declaración `function` normal, el identificador queda disponible como global real desde el instante en que se ejecuta esa línea, sin necesidad de una función local por script ni de un "early fallback" aparte con su propia lógica duplicada.
 
 ### Fases de inicialización
 
@@ -1893,11 +1893,16 @@ Por el mismo motivo `mapa-vintage-aventuras.js` y `puzzles-aventuras.js` sí est
 
 #### FASE 3 — Iframes
 
-Necesita FASE 2 completa. Todo ocurre en el arranque, dentro de `ejecutarInicializacionAutomatica()`, antes de cualquier interacción del usuario:
+Necesita FASE 2 completa. Ocurre dentro de `ejecutarInicializacionAutomatica()`, antes de cualquier interacción del usuario, y **carga un solo iframe**:
 
-1. `cargarIframeSoloSeleccion()` — asigna `src` a `seleccion` y espera su handshake
-2. `cargarRestoDeiframes()` — carga hijo1-opciones/hijo2/hijo3/hijo4 en **paralelo** (`Promise.all`, tolerando fallos individuales) mientras `cargarHijoCasa()` carga hijo5, todos ocultos (`display:none`). No espera señal alguna de seleccion. El listener `load` de cada iframe incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
-3. Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `SISTEMA.APLICACION_INICIALIZADA` vía `window.postMessage` (origen `'handshake-interno'`), que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus. Este handler es puramente informativo (registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
+1. `cargarIframeSoloSeleccion()` — asigna `src` a `seleccion` y espera su handshake.
+2. Marca `sistemaInicializado`, procesa las distribuciones pendientes y retira el overlay de carga.
+
+> **Los iframes hijo (hijo1–hijo5) NO se cargan en el arranque, y esa es la regla, no un detalle.** Contienen contenido de pago, así que su `src` no se asigna hasta que el usuario ha validado su código en P13. Solo dos sitios en toda la app los cargan: `_hdl_SELECCION_P14_MOSTRADA` (el camino normal, con `cargarRestoDeiframes()` + `cargarHijoCasa()`) y `ejecutarRestauracionAventura()` (la reanudación de sesión, que nunca pasa por P14 — sin esa llamada ningún iframe tendría `src` y `_esperarHijosCriticosRest()` esperaría un `HIJO_LISTO` que nadie ha pedido: un interbloqueo determinista en cualquier reapertura con aventura guardada). Las dos funciones son idempotentes: comprueban el `src` actual antes de reasignarlo, así que no interfieren entre sí. Ver §17 para el modelo de seguridad completo.
+
+Cuando esos iframes sí se cargan, van en **paralelo** (`Promise.all`, tolerando fallos individuales) y ocultos (`display:none`). El listener `load` de cada uno incluye una guardia `about:blank`: si `contentWindow.location.href === 'about:blank'` retorna sin llamar a `handleIframeLoad`, evitando un falso "loaded successfully" antes de que se asigne el `src` real.
+
+Cuando hijo2+hijo3+hijo4 completan el handshake, `_hijoListo_onTodosListos` envía `CAMBIO_MODO { razon:'sincronizacion_inicial' }` a hijo2/hijo3/hijo4 y dispara `SISTEMA.APLICACION_INICIALIZADA` vía `window.postMessage` (origen `'handshake-interno'`), que llega al handler `_hdl_APLICACION_INICIALIZADA` registrado en el bus. Este handler es puramente informativo (registra el evento y notifica `aplicacion_lista` a los hijos ya inicializados) — no inicializa ninguna aventura por su cuenta. La activación de una aventura ocurre siempre por una vía explícita: el flujo normal `SELECCION.AVENTURA_ACTIVADA`, o la reanudación vía el modal "continuar aventura" (`ejecutarRestauracionAventura()`, ver §10.14). Ningún CAMBIO_PARADA se envía hasta que una de esas dos vías se complete.
 
 Las señales `SELECCION.*` llegan **más tarde**, cuando el usuario completa el flujo de onboarding:
 
