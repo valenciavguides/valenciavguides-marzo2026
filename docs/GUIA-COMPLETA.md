@@ -2343,7 +2343,7 @@ iframe.src = `puzzle.html?aventura=INTRO&id=${puzzleIntro.id}&noOverlay=1&imagen
 
 `imagen` es el único parámetro que `puzzle.html` necesita además de `id` — `aventura` y `noOverlay` viajan en la URL pero la página no los lee (§13). Esta pantalla ya tenía resuelto el puzzle para comprobar que su imagen existe, así que pasarla cuesta cero y ahorra que `puzzle.html` importe `puzzles-aventuras.js` por su cuenta (§22.12).
 
-El iframe escucha `window.addEventListener('message', _onPuzzleMessage)`. Cuando `puzzle.html` envía `{ tipo: 'puzzle-state-completed' }`, aparece el botón `#btn-continuar-puzzle`. Si `puzzle-state-timeout` llega antes, el botón también aparece (timeout = completado forzado). Ver detalles completos en §7.9.
+El iframe escucha `globalThis.addEventListener('message', _onPuzzleMessage)`, que primero descarta todo lo que no venga de `globalThis.location.origin`. Lo que `puzzle.html` envía hoy es un objeto tipado: `{ tipo: 'PUZZLE.COMPLETADO' }` al resolverlo o al saltarlo, `{ tipo: 'PUZZLE.TIMEOUT' }` al agotarse el tiempo. Con cualquiera de los dos aparece `#btn-continuar-puzzle` — un timeout cuenta como completado forzado. El listener acepta además los dos strings crudos del formato antiguo (`'puzzle-state-completed'` / `'puzzle-state-timeout'`) por compatibilidad, aunque ningún emisor los envíe. Ver detalles completos en §7.8.
 
 #### Secuencia completa P1→P17
 
