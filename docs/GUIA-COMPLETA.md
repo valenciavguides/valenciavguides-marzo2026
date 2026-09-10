@@ -450,7 +450,7 @@ navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
 | `CAMBIO_PARADA` automático | No | No — GPS solo marca `pending.llegada`; `CAMBIO_PARADA` del siguiente elemento requiere pulsar `btn-avanzar` (§2.2) |
 | Overlay "fuera de rango" | Oculto | Visible si >50m de la ruta |
 | Marcador del usuario en mapa | 🛸 | ▲ triángulo azul `#4285F4`, rota con brújula |
-| Cámara sigue al usuario | Sí | **No en CASA** — solo en AVENTURA, y ahí pausable arrastrando el mapa a mano (§4.6c) |
+| Cámara sigue al usuario | Sí | **No en CASA** — solo en AVENTURA, y ahí pausable arrastrando el mapa a mano (§4.6b) |
 
 **Ciclo de vida del GPS**:
 
@@ -933,7 +933,7 @@ El mapa usa emojis y formas coloreadas como marcadores sobre las paradas:
 
 **Las referencias visuales (🏛️, monumentos mencionados en el texto que el usuario nunca visita físicamente) no se dibujan en el mapa de aventura, por decisión de diseño** — solo aparecen en `mapa-completo.html` (§11, "El mapa completo"), la página aparte a la que lleva `#btn-mapa-completo`. El mapa de aventura solo dibuja los 5 tipos de marcador de la tabla de arriba.
 
-**No existe ningún marcador proyectado sobre la ruta, más allá del triángulo ▲ y el círculo naranja de arriba.** Un segundo marcador de posición (flecha + halo, proyectado sobre el punto de la polyline más cercano en vez de la posición GPS real) duplicaría esa misma información sin aportar guía turn-by-turn real (ver §4.6b, esa decisión de diseño sigue vigente) y arriesgaría una paleta de color inconsistente con el resto de la app (naranja = zona de activación, azul = tú) — se descarta por diseño.
+**No existe ningún marcador proyectado sobre la ruta, más allá del triángulo ▲ y el círculo naranja de arriba.** Un segundo marcador de posición (flecha + halo, proyectado sobre el punto de la polyline más cercano en vez de la posición GPS real) duplicaría esa misma información sin añadir ninguna guía que el usuario no tenga ya, y arriesgaría una paleta de color inconsistente con el resto de la app (naranja = zona de activación, azul = tú) — se descarta por diseño.
 
 **Tamaño de los emoji 📌/🎯 y reescalado con el zoom.** Tamaño base (antes de escalar): 📌 inicio de tramo y 🎯 parada/fin de tramo **20px los dos** — son dos señales del mismo rango y su símbolo ya dice cuál es cuál sin necesidad de una diferencia de tamaño —, y 🎯 destino de la línea de navegación manual 26px (el más grande, para destacarlo sobre el resto). `reescalarMarcadoresEmoji()` (`js/funciones-mapa.js`) recorre el `Map` `marcadoresParadas` en cada evento `zoom` del mapa (no solo `zoomend`: el listener de `zoom` dispara en cada frame del gesto de pinch/scroll/botones, acotado a una llamada por frame vía `requestAnimationFrame` para no re-renderizar cada marcador más veces de las que la pantalla puede pintar — así el tamaño sigue el gesto en vivo en vez de saltar solo al soltar) y reescribe el `font-size` de cada marcador según la clase CSS que tenga: `custom-marker-emoji` o `tramo-fin-icon` → 🎯 parada, `tramo-inicio-icon` → 📌 inicio. **Esa comprobación se hace con `classList.contains()`, nunca comparando `className` con `===`**, y es una restricción de la librería, no una preferencia de estilo: MapLibre añade sus propias clases (`maplibregl-marker` y la de anclaje) en el constructor de **todo** `Marker`, también cuando se le pasa un elemento propio, así que el `className` completo nunca puede ser igual a la clase que puso la app. Una comparación estricta ahí no falla ni avisa: simplemente no se cumple jamás, la función entera queda inerte y los emoji se congelan al tamaño con el que nacieron — solo los marcadores registrados en ese `Map` reciben este reescalado; el marcador de destino de navegación (`marcadorDestinoNavegacion`) se reescala aparte, en la misma función. El marcador 🎯 de una parada normal (no de tramo) se registra en `marcadoresParadas` bajo la clave `'parada-actual'` al crearse y se retira de ahí al limpiarse — mismo patrón que ya usaban los marcadores de tramo (`'tramo-inicio-ruta'`/`'tramo-fin-ruta'`) desde siempre. El factor de escala que multiplica estos tres tamaños base es el mismo que usan las polylines — ver "Escalado dinámico: dos curvas, no una" en §4.6.
 
@@ -1075,23 +1075,6 @@ Retomar el seguimiento de posición manualmente centra sobre `estadoMapa.posicio
 **La reversión automática por brújula caída usa un identificador de activación, no solo el modo activo.** `_elegirBrujulaModo('brujula-modo-seguimiento')` incrementa `_brujulaModoSeguimientoActivacionId` y captura su valor local (`idActivacion`) antes de armar el `setTimeout` de 1.5s; el timeout compara `idActivacion === _brujulaModoSeguimientoActivacionId` además de `_brujulaModoActivo === 'brujula-modo-seguimiento'`. Sin el identificador, alternar rumbo→norte→rumbo dos veces en menos de 1.5s dejaba un timeout de la PRIMERA elección vivo, que revertía la SEGUNDA antes de que esta cumpliera su propio plazo de gracia.
 
 Cubierto por `tests/e2e/24-camara-sigue-usuario.spec.js` (CAM-1/2/3/4): confirma que la primera posición centra la cámara, que un `dragstart` sin `originalEvent` (programático) no pausa nada, que uno con `originalEvent` sí lo hace, y que `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato. El guard de `zoomEnCurso` (en el seguimiento por-tick y en las tres funciones del menú) no tiene test aislado — forzarlo exigiría reproducir el flujo completo de `CAMBIO_PARADA` solo para una comprobación de una línea; queda verificado por revisión directa del código. El menú en sí está cubierto por `tests/e2e/25-brujula-modo.spec.js` (BR-1 a BR-9): existe y empieza oculto, alineación/tamaño respecto a `#selector-tipo-mapa`, el botón principal despliega/pliega las 3 opciones, cada una de las 3 invoca la función correcta, la reversión automática por brújula caída (BR-7), el reset bajo demanda (BR-8), y que un timeout de auto-reversión viejo no revierte una elección de "rumbo" más reciente (BR-9) — verificado en los tres últimos casos contando invocaciones a `funcionesMapa.*`, no por ningún icono (el botón principal no refleja el modo activo, ver arriba). El seguimiento de rumbo en sí (activar/desactivar, y que `actualizarRotacionFlechaGPS()` mueva el `bearing` del mapa solo mientras el modo está activo) está cubierto por `tests/e2e/27-seguimiento-rumbo.spec.js` (SR-1/2/3).
-
-### 4.6c. Por qué la app no da instrucciones paso a paso (turn-by-turn)
-
-**No hay nada de turn-by-turn implementado, ni a medias.** No existe ninguna función que calcule el ángulo entre waypoints, ni umbral de aviso de giro, ni UI de instrucción, ni tipo de mensaje para transportarla. Es una **decisión de producto**, no una tarea a medio hacer ni algo que espere al backend: todo lo que haría falta es local y podría escribirse hoy.
-
-**Los datos sí están, y ese es justo el punto.** Los tramos llevan `waypoints` con las coordenadas exactas de cada giro (230 de los 236 tramos de las 7 aventuras los tienen), el GPS actualiza la posición en tiempo real, y `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) ya construye `[inicio, ...waypoints, fin]` en cada lectura para proyectar al usuario sobre el camino. Quien quisiera implementarlo tendría ahí el punto de entrada y todo lo que necesita. No se hace porque no se quiere.
-
-**La razón:** el modelo de experiencia prioriza la exploración libre. El usuario ve la polyline completa del tramo activo (§4.6) y puede pedir la línea de vuelta cuando quiera con `btn-ubicacion`. Eso orienta sin imponer un camino: "gira aquí" convertiría la aventura en un trámite mecánico y le quitaría el placer de encontrar el camino. Por la misma razón se descarta una flecha *snap-to-route* que proyecte la posición sobre la ruta (ver la nota de §4.5).
-
-**Qué orienta al usuario en su lugar** — cuatro mecanismos que existen por sí mismos, no como piezas sueltas de un turn-by-turn a medio construir:
-
-| Mecanismo | Dónde |
-|---|---|
-| Polyline del tramo activo: 📌/🎯 + línea azul, visibles en cuanto el tramo se activa | §4.7d |
-| Línea de vuelta verde, solo si el usuario la pide con `btn-ubicacion` | §4.6 |
-| Detección de proximidad: 15 m fijos para paradas, derivada de la separación entre waypoints para tramos | §25.6 |
-| Distancia al destino, recalculada en cada lectura GPS | hijo2, §4.7 |
 
 ### 4.7. Botones del hijo 2 (coordenadas) — iconos por imagen
 
