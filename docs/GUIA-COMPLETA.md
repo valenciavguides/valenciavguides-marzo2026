@@ -2225,7 +2225,7 @@ graph TD
 | `hijo3` | Reproduce los audios. Notifica al padre cuando terminan → desencadena habilitar retos | En cada CAMBIO_PARADA con audio |
 | `hijo4` | Muestra y valida el reto de la parada activa. Notifica resultado | Cuando padre envía RETO.MOSTRAR |
 | `hijo5` | Permite navegar en CASA sin GPS y togglear el modo | Solo en modo CASA o al activar AVENTURA |
-| `hijo6` | FAQ de soporte estático (9 temas, 46 preguntas). Sin efecto en la lógica de juego | Cuando el usuario abre el chat |
+| `hijo6` | FAQ de soporte estático (9 temas, 47 preguntas). Sin efecto en la lógica de juego | Cuando el usuario abre el chat |
 
 ---
 
@@ -3351,7 +3351,7 @@ sequenceDiagram
 
 **Modo AVENTURA / CASA**: las respuestas del FAQ son idénticas en ambos modos y en cualquier parada — no hay contexto que adaptar. `CHAT.ESTADO_PADRE` solo importa para el idioma (reconstruye el acordeón si cambia) y para el contexto adjunto al buzón de sugerencias. No hay diferencia visual de layout entre modos. El acordeón mantiene su estado abierto/cerrado incluso al ocultarse y reabrirse.
 
-> Para el catálogo completo de los 9 temas y las 46 preguntas, el sistema de marcadores `{{IMG:...}}` y enlaces internos, el código de `construirEstadoChat()`, y el namespace `CHAT.*`, ver **§27 — El asistente de soporte (hijo 6)**.
+> Para el catálogo completo de los 9 temas y las 47 preguntas, el sistema de marcadores `{{IMG:...}}` y enlaces internos, el código de `construirEstadoChat()`, y el namespace `CHAT.*`, ver **§27 — El asistente de soporte (hijo 6)**.
 
 #### Buzón de sugerencias
 
@@ -8848,7 +8848,7 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | **Hijo 3** | `audio-hijo3.html` — reproductor de audio. Muestra barra de progreso, título de pista y botón de retos. El padre controla play/pause/stop enviando comandos a este iframe |
 | **Hijo 4** | `retos-hijo4.html` — pantalla de retos. Muestra la pregunta de cada parada, valida la respuesta y notifica al padre cuando el reto se completa |
 | **Hijo 5** | `boton-casa-hijo5.html` — herramienta de desarrollo local únicamente. Botón de cambio de modo y selector de paradas. **No aparece en la PWA final** |
-| **Hijo 6** | `chat-hijo6.html` — FAQ de soporte en acordeón de dos niveles (9 temas, 46 preguntas), con imágenes incrustadas y enlaces a términos, agradecimientos y el vídeo de introducción. Contenido estático, igual en cualquier parada |
+| **Hijo 6** | `chat-hijo6.html` — FAQ de soporte en acordeón de dos niveles (9 temas, 47 preguntas), con imágenes incrustadas y enlaces a términos, agradecimientos y el vídeo de introducción. Contenido estático, igual en cualquier parada |
 | **Selector** | `En-busca-del-tesoro.html` — iframe de selección. Guía al usuario por las 17 pantallas de demo, idioma, aventura, pago y activación antes de iniciar el recorrido |
 | **Iframe** | Ventana incrustada dentro de otra página web |
 
@@ -11480,7 +11480,7 @@ Al recibir `CHAT.ESTADO_PADRE` o `SISTEMA.PADRE_DATOS`, el hijo actualiza `estad
 
 ### Soporte de idiomas
 
-Al construir el acordeón, se filtra cada pregunta: si el texto está vacío en el idioma actual **y** en el español de fallback, la pregunta no aparece. En la práctica esto no ocurre hoy — las 46 preguntas están completas en los 12 idiomas — pero el filtro se mantiene como red de seguridad ante contenido futuro parcial.
+Al construir el acordeón, se filtra cada pregunta: si el texto está vacío en el idioma actual **y** en el español de fallback, la pregunta no aparece. En la práctica esto no ocurre hoy — las 47 preguntas están completas en los 12 idiomas — pero el filtro se mantiene como red de seguridad ante contenido futuro parcial.
 
 La lógica de fallback sigue el mismo patrón que en toda la app: si no hay texto para el idioma activo, se usa el español.
 
