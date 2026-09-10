@@ -7646,12 +7646,15 @@ Los ficheros `.test.js` en `tests/` prueban el **backend Express** (API, servici
 | `errors.test.js` | Formato consistente de errores de API |
 | `health.test.js` | Endpoint GET /api/health |
 | `dataService.test.js` | Carga y búsqueda de datos JSON |
+| `coverage-extra.test.js` | Casos de cobertura adicionales sobre los servicios anteriores |
 
 ### 18.2 Tests HTML manuales (navegador)
 
-Ficheros `test_*.html` en `tests/` que se abren directamente en el navegador. Son necesarios porque la comunicación padre-hijo mediante iframes **no se puede simular en Jest** — requieren un entorno de navegador real.
+Ficheros `.html` en `tests/` que se abren directamente en el navegador. Son necesarios porque la comunicación padre-hijo mediante iframes **no se puede simular en Jest** — requieren un entorno de navegador real.
 
 Para ejecutarlos: `http://localhost:8080/tests/master-test.html` (panel de orquestación) o abrir el HTML directamente.
+
+**Son 50 ficheros, y `master-test.html` orquesta 46 de ellos.** Los tres que quedan fuera del panel — `test-carga-hijos.html`, `test-codigo-padre.html` y `test-iframe-basico.html`, los únicos con guión en vez de guión bajo — solo se abren a mano. Buena parte del conjunto son arneses de un solo uso, escritos para reproducir un fallo concreto y conservados como red (los `test_fix_*` son literalmente eso). **La tabla siguiente no es el inventario completo: recoge los que siguen siendo útiles como referencia.** La cobertura de regresión real la da la suite E2E de §18.3, que es la que corre sola.
 
 | Fichero | Qué verifica |
 |---------|-------------|
@@ -8851,10 +8854,10 @@ El repositorio (`valenciavguides/valenciavguides-marzo2026`) es público en GitH
 | Término | Significado |
 |---------|-------------|
 | **PostMessage** | API del navegador para enviar mensajes entre ventanas (padre ↔ hijo) |
-| **Handshake** | Protocolo de saludo al arrancar: el hijo envía `HIJO_LISTO`, el padre responde con datos de aventura e idioma |
-| **HIJO_LISTO** | Mensaje que cada iframe hijo envía al padre cuando ha terminado de inicializarse y está listo para recibir datos |
+| **Handshake** | Protocolo de saludo al arrancar, en cuatro pasos: el hijo envía `HIJO_PREPARADO`, el padre responde `PADRE_DATOS` con el modo, el hijo confirma con `HIJO_LISTO` y el padre cierra con `PADRE_CONFIRMA_HIJO_LISTO` — solo entonces el hijo hace visible su UI (§5). Los datos de aventura e idioma llegan después, en mensajes aparte |
+| **HIJO_LISTO** | Tercer paso del handshake: el hijo lo envía cuando ya ha procesado el `PADRE_DATOS` que recibió. No es el primer mensaje que manda — ese es `HIJO_PREPARADO` |
 | **CAMBIO_PARADA** | El mensaje más central de la app. Lo envía el padre a todos los hijos cada vez que el usuario avanza a un nuevo elemento (parada o tramo), con los datos del nuevo elemento |
-| **CAMBIO_MODO** | Mensaje que notifica a todos los hijos el cambio entre modo CASA y modo AVENTURA. Los hijos limpian sus handlers al recibirlo |
+| **CAMBIO_MODO** | Mensaje que notifica a todos los hijos el cambio entre modo CASA y modo AVENTURA. Cada hijo adapta su interfaz y responde `ENTENDIDO` y `EFECTUADO` (§9.7). **Lo que no hace ninguno es limpiar sus handlers**: `_listenerRegistry.clear()` solo puede llamarse en `pagehide`, y hacerlo en un cambio de modo dejaría al iframe permanentemente sordo (§28, §32.1) |
 | **Heartbeat** | Ping periódico del padre a los hijos (`SISTEMA.HEARTBEAT`) para verificar que siguen activos; los hijos responden con `SISTEMA.HEARTBEAT_RESPONSE` |
 | **ACK** | Confirmación de que un mensaje fue recibido correctamente |
 | **registrarControladorSeguro** | Función que registra un handler de `postMessage` con gestión de errores y soporte de cleanup. Punto de entrada estándar para todos los iframes |
