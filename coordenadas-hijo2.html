@@ -2313,7 +2313,6 @@ try {
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_START, async (mensaje) => {
         const logPrefix = `[hijo2][HEARTBEAT_START][${mensaje?.origen || 'desconocido'}]`;
         try {
-            estadoComponente.heartbeatActivo = true;
             logger.debug(`${logPrefix} Activado heartbeat local`);
             return { started: true };
         } catch (error) {
@@ -2326,7 +2325,6 @@ try {
     registrarControladorSeguro(TIPOS_MENSAJE.SISTEMA.HEARTBEAT_PAUSE, async (mensaje) => {
         const logPrefix = `[hijo2][HEARTBEAT_PAUSE][${mensaje?.origen || 'desconocido'}]`;
         try {
-            estadoComponente.heartbeatActivo = false;
             logger.debug(`${logPrefix} Pausado heartbeat local`);
             return { paused: true };
         } catch (error) {

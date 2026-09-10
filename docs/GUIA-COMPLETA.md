@@ -236,7 +236,7 @@ Al arrancar `codigo-padre.html`:
 
 > **Antes de P14 no se descarga ningún dato de aventura.** La carga la dispara únicamente `SELECCION.P14_MOSTRADA`: ni la secuencia de arranque ni `SELECCION.CODIGO_VALIDADO` la provocan. Con `aventuraSeleccionada` vacía no hay en memoria ni coordenadas, ni audios, ni índice, ni mapas vintage, ni puzzles — y tampoco GPS ni iframes hijo.
 >
-> **Lo que sí sigue bajando antes de pagar** es `aventuras-ID-padre.js` (1,8 MB), porque `codigo-padre.html` lo importa de forma **estática** (§22.12): es el único import estático de datos que queda y la puerta única que se convertirá en `cargarDatosPadre()`. Hasta entonces, ese fichero se descarga en el arranque.
+> **Lo que sí baja en el arranque, antes de P13, es `aventuras-ID-padre.js`** (1,7 MB), porque `codigo-padre.html` lo importa de forma **estática** — el único import estático de datos que queda (§22.12). **No es una fuga de contenido de pago, y es una decisión tomada:** ese fichero no lleva ni un texto, ni un audio, ni una respuesta de reto. Solo `padreid`, `tipo`, `nombre` de parada, `parada_id`/`tramo_id`, `numero_mapa` y los **ids** de texto, audio y reto — punteros a un contenido que sí está protegido. Lo que revela es el itinerario, y que el itinerario se vea no importa. Queda por tanto **fuera de `PROTECTED_FILES` a propósito**; lo único que sigue en pie de esos 1,7 MB es su coste de descarga en el arranque, que es una cuestión de rendimiento, no de seguridad.
 >
 > **Cuidado al medir esto.** Una sonda que stubee MapLibre con contenido vacío detiene el arranque antes de llegar a la Fase 2 y hace creer que los datos no se cargan. Hay que usar `tests/e2e/helpers/maplibre-stub.js`, que sí deja completar el arranque (EJE 27.4: descartar el arnés antes que el código).
 
@@ -4841,7 +4841,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-b3649c284e28'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-e5a9ddffc9b7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7351,7 +7351,7 @@ Este mecanismo **no depende del tamaño total del archivo** — solo espera a qu
 
   **De dónde sale la URL del vídeo: de `coordenadas-aventuras.js`, no de `elementosIDpadre`.** `_precargarVideoParada()` usa `elementosIDpadre` solo para el **orden** —qué elemento va después de la parada activa, que es su cometido— y resuelve la URL buscando ese `tramo_id` en `globalThis.__vv_DATOS_AVENTURAS[aventura]['coordenadas-hijo2.html'].coordenadas`. Es la misma fuente que usa el camino de reproducción: hijo2 lee de ahí y manda `UI.ACCION_USUARIO { urlVideo }` al pulsar `#btn-video`. Una sola fuente para el mismo dato; si precarga y reproducción leyeran de sitios distintos, podrían acabar apuntando a vídeos distintos.
   Importa porque los elementos de `js/aventuras-ID-padre.js` **no tienen campo `video`** (solo `padreid`, `tipo`, `nombre`, `tramo_id`, `numero_mapa`, `texto_id`, `audio_id`): leer `siguiente.video` daba `undefined` siempre y la precarga salía sin hacer nada **y sin dejar log**, indistinguible de "este tramo no tiene vídeo". Con los 239 tramos a `video: ""` el efecto es invisible hoy, pero habría persistido al grabarlos. Cubierto por `tests/e2e/48-precarga-video-no-pisa-abierto.spec.js`, que inyecta una URL en la entrada de coordenadas para ejercitar el camino real: si alguien revierte la lectura a `siguiente.video`, PV-1 falla.
-  Cuando `aventuras-ID-padre.js` migre a `data-loader.js` (§22.12, pendiente nº 13 del checklist de cierre — hoy es el único import directo de datos sin función equivalente), conviene revisar esta resolución: si la representación de backend de `elementosIDpadre` acabara incluyendo el vídeo, habría que elegir una de las dos fuentes, no dejar ambas.
+  Si algún día `aventuras-ID-padre.js` pasa por `data-loader.js` (§22.12), conviene revisar esta resolución: si la representación de backend de `elementosIDpadre` acabara incluyendo el vídeo, habría que elegir una de las dos fuentes, no dejar ambas.
 
   **Solución estructural pendiente, con criterio para retomarla.** Lo que hace falta de verdad es separar los dos trabajos: un `<video>` dedicado solo a precargar —igual que `globalThis._vidPreload` en `video-intro.html`, que por eso es inmune por construcción— y traspasarlo al overlay al abrir con `replaceWith()`, como hace `sceneVid` con `#vid-slot`. Eso eliminaría las dos protecciones de arriba en vez de necesitarlas, y además recuperaría la precarga que hoy se pospone. **No se ha hecho por tres razones concretas:** el traspaso de un elemento multimedia con buffer en vuelo es delicado y un fallo ahí deja al usuario sin vídeo —peor que el bug que evita—; `reproducirVideoConBuffer()` no tiene ni un test que cubra esa zona; y el proyecto tiene hoy un solo `.mp4`, así que la precarga apenas se ejercita. **Retomarlo cuando existan los vídeos reales de los tramos**, y escribir antes los tests del traspaso.
 - **`canplaythrough`/`error` llegando después de cerrar el overlay:** si el usuario cierra el vídeo (`cerrarVideoOverlay()` en el padre, o `clearOv()` tras pulsar "saltar intro" en `sceneVid`) mientras `reproducirVideoConBuffer()` todavía está esperando el buffer, el elemento se pausa y se elimina del DOM ~400ms después, pero la promesa pendiente sigue viva — un evento que llegue tarde podría hacer que `arrancar()` llame `.play()` sobre un `<video>` ya desconectado, reanudando la reproducción en memoria de forma invisible. `arrancar()` comprueba `videoEl.isConnected` antes de llamar `.play()` para evitarlo — si el elemento ya no está en el DOM, no hace nada.
@@ -7591,7 +7591,7 @@ Para la arquitectura completa de `data-loader.js` y su modo dual, ver **§10.21 
 |------|---------|--------|
 | **PostMessage con origen específico** | Todos los `postMessage` usan `globalThis.location.origin` en vez de `'*'`. Todos los receptores verifican `event.origin` antes de procesar. El bus central (`js/mensajeria.js`) acepta también `event.origin === 'null'` (file:// en local) y `event.source === window` (auto-mensajes). Los listeners raw fuera del bus que validan origin son: `_handlePreModuleMessage` (padre, origin+source hijo5), CHAT.CERRAR (padre:1660), SUPRIMIR_ROTACION (padre:3394), NAVEGACION_PANTALLA (En-busca-del-tesoro.html:2749), `_onPuzzleMessage` (En-busca-del-tesoro.html:1271), listener puzzle (retos-hijo4.html:1188). Los messagingAdapters de todos los hijos validan `event.source === globalThis.parent`. | `js/mensajeria.js`, `codigo-padre.html`, `En-busca-del-tesoro.html`, `retos-hijo4.html` |
 | **confirmListener por ID único** | Cada mensaje con confirmación genera un `idMensaje` único; el listener filtra por `event.data.idOriginal === idMensaje` para evitar resoluciones cruzadas | `js/mensajeria.js` |
-| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. **La lista no está completa todavía**: `js/aventuras-ID-padre.js` (1,7 MB con la secuencia entera de las 7 aventuras) no está en ella, porque `codigo-padre.html` aún lo importa de forma estática y protegerlo hoy rompería el arranque — es el pendiente nº 13 del checklist de §22.12, y hay que cerrarlo **antes** de activar `PROTECT_DATA=true`. | `js/server.js` |
+| **Protección de ficheros** | Bloquea acceso directo GET con 403 cuando `PROTECT_DATA=true`. Ficheros protegidos: `coordenadas-aventuras.js`, `textos-aventuras.js`, `retos-aventuras.js`, `puzzles-aventuras.js`, `audios-aventuras.js`, `parrafos-textos/` (JSONs), `audios-aventuras/` (MP3), `imagenes/imagenes-aventuras/` (fotos), `videos-aventuras/` (vídeos), `backend/` — todos son contenido de pago. **`js/aventuras-ID-padre.js` no está en la lista, y es deliberado**: contiene el itinerario y los ids, no el contenido (ver §2.2). Que se vea el orden de las paradas no compromete nada; lo que hay detrás de cada `texto_id`/`audio_id`/`reto_id` sí está protegido. | `js/server.js` |
 | **Path traversal** | Rechaza cualquier URL que intente salir del directorio raíz (p.ej. `../../etc/passwd`) | `js/server.js` |
 | **CORS** | Cabeceras `Access-Control-Allow-Origin: *` en el servidor estático. Deberá restringirse al dominio en producción. | `js/server.js` |
 | **Permissions Policy** | Permite solo geolocalización (`self`); bloquea explícitamente cámara, micrófono, pagos, USB y bluetooth. También se envía la cabecera `Feature-Policy` (alias legacy). | `js/server.js` |
@@ -7958,7 +7958,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-b3649c284e28'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-e5a9ddffc9b7'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8295,7 +8295,7 @@ Los estados son tres: **⏳ pendiente** (por hacer, sin bloqueo conocido), **❌
 | 10 | `CACHE_VERSION` al desplegar | §22.10 | ⏳ pendiente |
 | 11 | `BACKEND_READY = true` en `js/data-loader.js` (activa `DATA_MODE='api'` en dominios no locales) | §22.11 | ⏳ pendiente |
 | 12 | Validación del código DEV en el backend (mover de hash cliente a endpoint autenticado) | §22.4 | ⏳ pendiente |
-| 13 | Migrar imports directos (`aventuras-ID-padre.js`, puzzles) a `data-loader.js` antes de activar `PROTECT_DATA=true` | §22.12 | ⏳ pendiente |
+| 13 | Decidir si `puzzles-aventuras.js` y `mapa-vintage-aventuras.js` entran en `PROTECTED_FILES`, y con qué función de `data-loader.js` se cargarían. `aventuras-ID-padre.js` queda fuera por decisión (§2.2) | §22.12 | ⏳ pendiente |
 | 14 | Compatibilidad iOS PWA y navegadores antiguos (meta tags, Permissions-Policy vía cabecera) | §22.13 | ⏳ pendiente |
 | 15 | Quitar el mensaje de error real del navegador del overlay de GPS sin señal (`#gps-signal-detalle`) | §22.14 | ⏳ pendiente |
 | 16 | Sacar `docs/` del repositorio público (contenido de aventuras + guía interna) | §22.15 | ❌ bloqueada — privatizar el repositorio hoy tumba el HTTPS de GitHub Pages |
@@ -8435,7 +8435,7 @@ Cuando `PROTECT_DATA=true`, el servidor devuelve `403 Forbidden` ante cualquier 
 **Pendiente añadir a `PROTECTED_FILES` antes de producción:**
 
 ```text
-/js/aventuras-ID-padre.js       ← estructura de IDs de aventura (IP del producto)
+/js/aventuras-ID-padre.js       ← itinerario e ids. NO se considera sensible (ver §2.2): sin textos, audios ni respuestas
 ```
 
 **Arrancar con protección activa:**
@@ -8621,7 +8621,7 @@ Actualmente en APP_SHELL (sw.js):
 /js/retos-aventuras.js          ← preguntas Y respuestas de todos los retos
 /js/puzzles-aventuras.js        ← datos de puzzles
 /js/audios-aventuras.js         ← índice de audios
-/js/aventuras-ID-padre.js       ← estructura completa de IDs de aventura
+/js/aventuras-ID-padre.js       ← itinerario e ids — deliberadamente sin proteger (§2.2)
 ```
 
 **El problema:** Aunque `PROTECT_DATA=true` bloquea el acceso HTTP directo a estos ficheros, la copia que el SW ha guardado en caché **bypasa completamente el servidor**. Un usuario que haya instalado la app puede acceder a estos archivos desde la caché del navegador sin necesidad de conexión ni autenticación.
@@ -8643,7 +8643,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-b3649c284e28';
+const CACHE_VERSION = 'v-e5a9ddffc9b7';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -8693,16 +8693,14 @@ Mientras `BACKEND_READY = false`, `DATA_MODE` es siempre `'local'` sin importar 
 
 `js/data-loader.js` también exporta `validarRespuesta()`, `limpiarCacheDatos()` y `getDataMode()` que son independientes de PROTECT_DATA.
 
-**Pasos para completar la migración:**
+**Qué queda por decidir y por hacer:**
 
-1. Añadir `cargarDatosPadre()` a `js/data-loader.js` — en modo `'local'` importa `DATOS_PADRE` del JS; en modo `'api'` llama a `GET /api/aventuras/:id/padre` con el token JWT.
-2. Reemplazar el import estático `import { DATOS_PADRE } from './js/aventuras-ID-padre.js'` en `codigo-padre.html` ~L2661 por una llamada async a `cargarDatosPadre()`.
-3. Para los demás archivos: reemplazar los `import()` dinámicos por llamadas a las funciones de data-loader ya existentes (que ya gestionan la bifurcación local/api internamente).
-4. Añadir `aventuras-ID-padre.js` a la lista de archivos protegidos en `js/server.js` (§22.4).
-5. Decidir si los puzzles necesitan protección: hoy `puzzle.html` importa `puzzles-aventuras.js` directamente y siempre carga el pool completo, sin pasar por `data-loader.js`/`DATA_MODE` (ver §22.12). Si se decide proteger, hace falta (a) una función `cargarPuzzle(puzzleId)` en `data-loader.js` que resuelva un único id — análoga a `cargarAudios()`/`cargarRetos()` — y (b) reescribir `puzzle.html` para pedir solo ese id en vez de importar el archivo completo.
-6. Verificar que `En-busca-del-tesoro.html` tampoco hace imports directos de los archivos protegidos restantes.
+1. **`aventuras-ID-padre.js`: decidido, no se protege** (§2.2). Su `import` estático puede quedarse. Lo único que sigue abierto es si merece la pena cargarlo bajo demanda por sus 1,7 MB en el arranque — decisión de rendimiento, no de seguridad, y sin urgencia.
+2. **`puzzles-aventuras.js` y `mapa-vintage-aventuras.js`: sin decidir.** Ninguno tiene función en `data-loader.js`, y la forma de los puzzles (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`. Si se deciden proteger, hay que inventarles su función primero.
+3. **Los cuatro ficheros que sí están en `PROTECTED_FILES`** (`coordenadas`, `textos`, `retos`, `audios`) se cargan hoy con `await import()` en FASE 2 en lugar de con sus funciones de `data-loader.js`, que ya existen. Con `PROTECT_DATA=true` esos `import()` recibirán un 403: hay que sustituirlos por `cargarCoordenadas()` / `cargarAudios()` / `cargarIndice()`, que son las que añadirán el token en modo `'api'`. **Este es el trabajo real del pendiente.**
+4. Verificar que `En-busca-del-tesoro.html` tampoco carga por su cuenta ninguno de los protegidos.
 
-> **Nota:** `mapa-completo.html` importa directamente `coordenadas-aventuras.js` (~L144). Es una herramienta de visualización auxiliar — evaluar si necesita autenticación o si puede permanecer pública.
+> **Nota:** `mapa-completo.html` recibe hoy las coordenadas del padre por mensaje, no las importa.
 
 ---
 
@@ -11844,7 +11842,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-b3649c284e28';
+const CACHE_VERSION = 'v-e5a9ddffc9b7';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

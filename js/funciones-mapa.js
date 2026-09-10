@@ -378,7 +378,6 @@ const estadoMapa = {
     gpsVisualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
     proximidadReal: false, // Distancia real ≤50m al destino activo, independiente de gpsVisualActivo (ver sincronizarEstadoGPSConPadre)
     _cartelLlegadaInicioMostrado: false, // Evita repetir el cartel de llegada al inicio en cada lectura GPS mientras sigue dentro de rango
-    siguiendoRuta: false,
     paradaActual: null,
     tramoActual: null,
     // Distancia real recorrida durante el tramo activo — segundo requisito para confirmar
@@ -402,8 +401,6 @@ const estadoMapa = {
     _cambioParadaEncolado: null,
     // Control de zoom: evitar múltiples operaciones y respetar interacción del usuario
     zoomEnCurso: false,       // true mientras una animación de zoom está en progreso
-    usuarioMovioMapa: false,  // true si el usuario hizo pan/drag manualmente
-    ultimoZoomAuto: 0,        // timestamp del último zoom automático aplicado
     // id del elemento para el que ya se envió LLEGADA_DETECTADA — evita reenviar el
     // mismo aviso en cada lectura GPS mientras el usuario permanece parado en el sitio
     // (misma idea que estadoComponente._llegadaNotificada en coordenadas-hijo2.html)
@@ -1574,7 +1571,6 @@ export function limpiarPorEstado(nuevoEstado) {
             // condiciones, asi que arreglar solo una lo dejaba igual de roto.
             // Quien decide de verdad si el sensor esta vivo es activarGPS() en el padre,
             // y _watchPositionError ante un error real.
-            estadoMapa.siguiendoRuta = false;
             estadoMapa.modo = modo;
             estadoMapa.timestamp = Date.now();
 
@@ -2129,8 +2125,6 @@ async function completarCambioParada() {
         logger.info(`${logPrefix} ⚡ Completando cambio de parada ${paradaId}`);
         logger.debug(`${logPrefix} DEBUG coordenadas:`, coordenadas);
 
-        // Resetear flag de interacción del usuario al cambiar de parada/tramo
-        estadoMapa.usuarioMovioMapa = false;
         // Permite que el cartel de llegada al inicio (si el nuevo elemento es 'inicio') vuelva
         // a poder dispararse — solo importa para ese caso, pero resetear siempre es inofensivo.
         estadoMapa._cartelLlegadaInicioMostrado = false;
@@ -2316,7 +2310,6 @@ async function completarCambioParada() {
                 logger.info(`${logPrefix} ✅ Zoom PARADA completado`);
             }
             
-            estadoMapa.ultimoZoomAuto = Date.now();
             logger.info(`${logPrefix} 🎯 Zoom único aplicado para ${paradaId}`);
 
             // El trazado se revela siempre de inmediato al activar el elemento — en los dos

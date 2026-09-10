@@ -51,7 +51,6 @@ const state = {
     // hacía que la primera transición real pudiera confundirse con "ya estamos ahí".
     modo: { actual: null, anterior: null },
     paradaActual: 0,
-    mensajeriaInicializada: false,
     mapaInicializado: false,
     paradas: [],
     inicializacionPromises: new Map(),
@@ -99,7 +98,6 @@ const state = {
     ubicacionActiva: false,
     tramoActual: null,
     elementoActual: null,
-    siguiendoRuta: false,
     hijosQueRecibieronPadreListo: new Set()
   },
   controladores: new Map(),

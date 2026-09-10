@@ -4282,7 +4282,6 @@
             // adrede al reabrir la PWA): son un límite antiabuso, no contabilidad de progreso.
             tramoSkipsUsados: 0,
             progresoEnUltimoSkip: 0,
-            mensajeriaInicializada: false,
             mapaInicializado: false,
             paradas: [],
             inicializacionPromises: new Map(),
@@ -4301,7 +4300,6 @@
                 ultimaUbicacion: null,
                 visualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
                 proximidadReal: false, // Distancia real ≤50m al destino activo (funciones-mapa.js) — a diferencia de visualActivo, nunca se activa solo por revelarse el trazado
-                tramoAudioPendiente: false // Controla si hay audio de tramo pendiente de escuchar
             },
             audioEscuchadoPorParada: new Map(), // Rastrea si el audio ha sido escuchado al menos una vez por parada
 
@@ -4361,7 +4359,6 @@
                 completado: false,
                 // Cola multi-reto: lista ordenada de IDs y set de completados
                 cola: [],           // ["R7-Av1-es", "PZ-01"] — todos los retos de la parada
-                indiceCola: 0,      // índice actual dentro de cola
                 colaCompletados: new Set()  // IDs completados correctamente
             },
             retosCompletados: new Map(),
@@ -4583,7 +4580,6 @@
             try {
                 const padreIdRest = estado.elementoActual?.padreid || (estado.paradaActual ? `padre-${estado.paradaActual}` : null);
                 const datos = { paradaId: estado.paradaActual || null, parada_id: estado.paradaActual || null, padreId: padreIdRest, padreid: padreIdRest, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), restaurado: true };
-                globalThis._lastCambioParada = datos;
                 // Llamar al handler directamente vía globalThis: postMessage self-send no funciona
                 // porque mensajeria.js descarta mensajes con origen===componenteId
                 if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
@@ -4648,7 +4644,6 @@
                 persistProgressState();
                 try {
                     const datosDefault = { paradaId: estado.paradaActual, parada_id: estado.paradaActual, padreId: padreIdDefault, padreid: padreIdDefault, indiceProgreso: estado.indiceProgreso, timestamp: Date.now(), razon: 'default_parada' };
-                    globalThis._lastCambioParada = datosDefault;
                     if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
                         await globalThis.__triggerCambioParadaInterno(datosDefault);
                     } else {
@@ -5549,14 +5544,14 @@
                 if (sm && typeof sm.crearPromiseHijoListo === 'function') {
                     waitPromise = sm.crearPromiseHijoListo('hijo2');
                 } else {
-                    // Fallback: polling hijosInicializados (mismo patrón que _esperarHijosCriticosRest)
-                    waitPromise = new Promise(resolve => {
-                        const check = () => {
-                            if (globalThis.estadoPadre?.hijosInicializados?.has('hijo2')) resolve();
-                            else setTimeout(check, 200);
-                        };
-                        check();
-                    });
+                    // Fallback sin state-manager. Polling ACOTADO (25 x 200ms = 5s), no un
+                    // setTimeout recursivo a mano: la carrera contra el timeout de abajo hacia
+                    // que el `await` terminase pero la cadena de temporizadores siguiera viva
+                    // indefinidamente si hijo2 no llegaba nunca (EJE 23, ver §11).
+                    waitPromise = globalThis.retryUntilAvailable(
+                        () => globalThis.estadoPadre?.hijosInicializados?.has('hijo2') === true,
+                        { maxIntentos: 25, intervalo: 200, mensaje: `${logPrefix} hijo2 listo (fallback polling)` }
+                    );
                 }
                 const race = await Promise.race([waitPromise, new Promise(r => setTimeout(() => r({ timeout: true }), dynamicTimeout))]);
                 if (race && race.timeout) {
@@ -6076,7 +6071,6 @@
                 // ✅ DIAGNÓSTICO GPS: Historial de posiciones para análisis
                 if (!globalThis._gpsHistorial) {
                     globalThis._gpsHistorial = [];
-                    globalThis._gpsActivadoEn = Date.now();
                 }
 
                 // Cancelar cualquier reintento de TIMEOUT pendiente (_gpsDoRetrySetup) — si no,
@@ -7454,7 +7448,6 @@
         // HIJO_LISTO en absoluto (crash total), no como mecanismo normal de espera.
         async function _hdl_SISTEMA_HIJO_PREPARADO(mensaje) {
             const logPrefix = `${CONFIG_PADRE.LOG_PREFIX}[HIJO_PREPARADO]`;
-            const timestamp = Date.now();
 
             (globalThis.logger || console).info(`🔥 [PADRE] HIJO_PREPARADO RECIBIDO de ${mensaje?.origen}:`, mensaje);
 
@@ -7485,7 +7478,6 @@
                 globalThis.estadoPadre.estadoHijos.set(hijoId, {
                     ...estadoHijo,
                     preparado: true,
-                    ultimoPing: timestamp,
                     version
                 });
 
@@ -7668,7 +7660,7 @@
                 const { version = '1.0.0', capacidades = [], tiempoInicializacion = 0 } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Hijo listo: ${hijoId}`, { version, capacidades: capacidades.length, tiempoInicializacion });
                 const estadoHijo = estado.estadoHijos.get(hijoId) || {};
-                estado.estadoHijos.set(hijoId, { ...estadoHijo, activo: true, listo: true, ultimoPing: timestamp, fallosConsecutivos: 0, version, tiempoInicializacion });
+                estado.estadoHijos.set(hijoId, { ...estadoHijo, activo: true, listo: true, fallosConsecutivos: 0, version, tiempoInicializacion });
                 (globalThis.logger || console).info(`${logPrefix} ✅ ${hijoId} listo y estado actualizado.`);
                 await _hijoListo_confirmarAlHijo(hijoId, logPrefix);
                 // Hook de recuperación: si el hijo fue recargado por heartbeat, restaurar su estado
@@ -7959,7 +7951,7 @@
                     // AVENTURA que se dejó atrás — nada lo reseteaba al cambiar de modo (mismo
                     // patrón que idParadaActual en hijo2, reporte de uso real 2026-08-17). Se
                     // reconstruye limpio al volver a AVENTURA, vía la restauración de más abajo.
-                    estado.retoActual = { id: null, disponible: false, completado: false, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                    estado.retoActual = { id: null, disponible: false, completado: false, cola: [], colaCompletados: new Set() };
                 }
 
                 // Ocultar hijo5 inmediatamente al cambiar a AVENTURA, sin esperar el await
@@ -8116,13 +8108,11 @@
 
                 if (estado.estadoHijos.has(mensaje.origen)) {
                     const hijoEstado = estado.estadoHijos.get(mensaje.origen);
-                    hijoEstado.ultimoPing = Date.now();
                     hijoEstado.fallosConsecutivos = 0;
                     hijoEstado.activo = true;
                 } else {
                     estado.estadoHijos.set(mensaje.origen, {
                         activo: true,
-                        ultimoPing: Date.now(),
                         fallosConsecutivos: 0
                     });
                 }
@@ -8147,7 +8137,6 @@
 
                 if (estado.estadoHijos.has(mensaje.origen)) {
                     const hijoEstado = estado.estadoHijos.get(mensaje.origen);
-                    hijoEstado.ultimoPing = Date.now();
                     hijoEstado.fallosConsecutivos = 0;
                     hijoEstado.activo = true;
 
@@ -8156,7 +8145,6 @@
                 } else {
                     estado.estadoHijos.set(mensaje.origen, {
                         activo: true,
-                        ultimoPing: Date.now(),
                         fallosConsecutivos: 0
                     });
 
@@ -8189,7 +8177,6 @@
                     const hijoEstado = estado.estadoHijos.get(mensaje.origen);
                     hijoEstado.activo = false;
                     hijoEstado.fallido = true;
-                    hijoEstado.errorFallo = errorHijo;
                 }
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando HIJO_FALLIDO:`, error);
@@ -8298,7 +8285,6 @@
                     version = '1.0.0'
                 } = mensaje.datos || {};
 
-                estado.mensajeriaInicializada = true;
 
                 registrarEvento('APLICACION_INICIALIZADA', {
                     timestamp,
@@ -8394,7 +8380,7 @@
                 const estadoHijo = globalThis.estadoPadre.estadoHijos.get(iframeId);
                 if (estadoHijo) { estadoHijo.fallosConsecutivos = (estadoHijo.fallosConsecutivos || 0) + 1; estadoHijo.ultimoError = error.message; }
             } else {
-                globalThis.estadoPadre.estadoHijos.set(iframeId, { activo: false, fallosConsecutivos: 1, ultimoPing: null, ultimoError: error.message });
+                globalThis.estadoPadre.estadoHijos.set(iframeId, { activo: false, fallosConsecutivos: 1, ultimoError: error.message });
             }
         }
 
@@ -8508,7 +8494,6 @@
                     if (estadoHijo) {
                         estadoHijo.activo = true;
                         estadoHijo.fallosConsecutivos = 0;
-                        estadoHijo.ultimoPing = Date.now();
                         estadoHijo.ultimoError = null;
                     }
                 } catch (error) {
@@ -8519,7 +8504,7 @@
                 (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX} ❌ ${id} - RECONEXIÓN FALLIDA después de ${MAX_REINTENTOS} intentos`);
                 (globalThis.logger || console).error(`${CONFIG_PADRE.LOG_PREFIX} ⚠️ La aplicación continuará sin ${id} - Funcionalidad reducida`);
                 const estadoHijo = globalThis.estadoPadre.estadoHijos.get(id);
-                if (estadoHijo) { estadoHijo.activo = false; estadoHijo.reconexionFallida = true; }
+                if (estadoHijo) { estadoHijo.activo = false; }
             }
         }
 
@@ -8613,7 +8598,7 @@
             if (!globalThis.estadoPadre.hijosPreparados) globalThis.estadoPadre.hijosPreparados = new Set();
 if (!globalThis.estadoPadre.estadoHijos) globalThis.estadoPadre.estadoHijos = new Map();
             if (!globalThis.estadoPadre.retoActual) {
-                globalThis.estadoPadre.retoActual = { id: null, disponible: false, completado: false, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                globalThis.estadoPadre.retoActual = { id: null, disponible: false, completado: false, cola: [], colaCompletados: new Set() };
             }
 
             // Verificar que enviarMensaje_S1 también esté disponible (alias usado en iframes)
@@ -10605,7 +10590,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     disponible: false,
                     completado: false,
                     cola: retosIds,
-                    indiceCola: 0,
                     colaCompletados: new Set()
                 };
 
@@ -10621,7 +10605,6 @@ await _comprobarReanudacionAventura(logPrefix);
                     // Se invoca el handler directamente porque enviarMensajePadre con destino=padreId
                     // falla silenciosamente (padre no está en iframesRegistrados).
                     const datosCambio = { paradaId, parada_id: paradaId, padreId, padreid: padreId, contexto: 'progresion_aventura', timestamp: Date.now() };
-                    globalThis._lastCambioParada = datosCambio;
                     if (typeof globalThis.__triggerCambioParadaInterno === 'function') {
                         await globalThis.__triggerCambioParadaInterno(datosCambio);
                     } else {
@@ -10749,7 +10732,7 @@ await _comprobarReanudacionAventura(logPrefix);
 
                     if (modoActual === MODOS.CASA) {
                         // Modo casa: limpiar estado del reto, no avanzar — usuario elige via hijo5
-                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA: estado limpiado, usuario elige siguiente parada via hijo5`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -11159,7 +11142,6 @@ await _comprobarReanudacionAventura(logPrefix);
             if (!retoActual.cola || retoActual.cola.length === 0) return null;
             for (let i = 0; i < retoActual.cola.length; i++) {
                 if (!retoActual.colaCompletados.has(retoActual.cola[i])) {
-                    retoActual.indiceCola = i;
                     return retoActual.cola[i];
                 }
             }
@@ -11253,7 +11235,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Guard: inicializar retoActual si no existe (puede ocurrir si estadoPadre
                 // fue recreado con el fallback mínimo sin incluir retoActual)
                 if (!estado.retoActual) {
-                    estado.retoActual = { id: null, disponible: false, completado: false, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                    estado.retoActual = { id: null, disponible: false, completado: false, cola: [], colaCompletados: new Set() };
                 }
 
                 // Determinar qué reto mostrar: el siguiente no completado de la cola
@@ -11262,7 +11244,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 if (!retoIdToUsar && retosIds.length > 0) {
                     retoIdToUsar = retosIds[0];
                     estado.retoActual.cola = retosIds;
-                    estado.retoActual.indiceCola = 0;
                     estado.retoActual.colaCompletados = estado.retoActual.colaCompletados || new Set();
                 }
 
@@ -11488,7 +11469,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback — respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         estado.paradaListaParaAvanzar = true;
@@ -11519,7 +11500,6 @@ await _comprobarReanudacionAventura(logPrefix);
             if (siguienteRetoEnCola) {
                 (globalThis.logger || console).info(`${logPrefix} Reto ${retoId} completado, mostrando siguiente en cola: ${siguienteRetoEnCola}`);
                 estado.retoActual.id = siguienteRetoEnCola;
-                estado.retoActual.indiceCola = cola.indexOf(siguienteRetoEnCola);
                 estado.retoActual.completado = false;
                 try {
                     // Protección pasiva por parada: resolver solo este reto, no la aventura completa.
@@ -12286,7 +12266,7 @@ await _comprobarReanudacionAventura(logPrefix);
                     // Con audio: el botón se habilita solo tras terminar el audio (_procesarFinAudioElemento).
                     // TODO: cuando toda la app tenga audios, este será el único camino en aventura —
                     //       eliminar la rama sin audio y habilitar únicamente desde el audio-finish path.
-                    estado.retoActual = { id: retosDeParada[0], disponible: false, completado: false, cola: retosDeParada, indiceCola: 0, colaCompletados: new Set() };
+                    estado.retoActual = { id: retosDeParada[0], disponible: false, completado: false, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.DESHABILITAR,
                         origen: getPadreId(),
@@ -12294,7 +12274,7 @@ await _comprobarReanudacionAventura(logPrefix);
                         datos: { control: 'retosBtn', razon: 'esperar_fin_audio_aventura' }
                     });
                 } else if (tieneReto) {
-                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, indiceCola: 0, colaCompletados: new Set() };
+                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                         origen: getPadreId(),
@@ -12317,7 +12297,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 }
             } else {
                 if (tieneReto) {
-                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, indiceCola: 0, colaCompletados: new Set() };
+                    estado.retoActual = { id: retosDeParada[0], disponible: true, completado: false, cola: retosDeParada, colaCompletados: new Set() };
                     await enviarMensajePadre({
                         tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
                         origen: getPadreId(),
@@ -12362,7 +12342,6 @@ await _comprobarReanudacionAventura(logPrefix);
         function _actualizarEstadoParada(paradaId, parada, estado) {
             estado.paradaActual = paradaId;
             estado.elementoActual = parada;
-            estado.ultimoCambioParada = Date.now();
             try {
                 const idx = findIndexByPadreIdOrId(paradaId);
                 if (idx >= 0) estado.indiceProgreso = idx;
@@ -12576,10 +12555,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 const esTramo = parada.tipo === 'tramo';
                 if (esTramo && estado.modo?.actual === MODOS.AVENTURA) {
                     // En tramo: botón GPS controlado por distancia en hijo2 (rojo lejos, verde al acercarse al destino)
-                    estado.gps.tramoAudioPendiente = true;
                     (globalThis.logger || console).info(`${logPrefix} Tramo detectado, audio pendiente de llegada`);
                 } else if (!esTramo && estado.modo?.actual === MODOS.AVENTURA) {
-                    estado.gps.tramoAudioPendiente = false;
                     (globalThis.logger || console).info(`${logPrefix} Parada detectada, btnAvanzar deshabilitado hasta completar audio+reto`);
                     try {
                         await enviarMensajePadre({
@@ -12984,7 +12961,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 } else {
                     // Sin clave: fallback directo, respetar modo
                     if (modoActual === MODOS.CASA) {
-                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], indiceCola: 0, colaCompletados: new Set() };
+                        estado.retoActual = { id: null, disponible: false, completado: true, cola: [], colaCompletados: new Set() };
                         (globalThis.logger || console).info(`${logPrefix} Modo CASA (sin clave): estado limpiado`);
                     } else if (modoActual === MODOS.AVENTURA) { // no "else": el modo puede estar sin decidir (null)
                         // Tramo y parada se tratan igual aquí también — habilitar btnAvanzar y
@@ -13015,7 +12992,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.retoActual.disponible = true;
                 estado.retoActual.completado = false;
                 estado.retoActual.cola = retosDelElemento;
-                estado.retoActual.indiceCola = 0;
                 estado.retoActual.colaCompletados = new Set();
                 await enviarMensajePadre({
                     tipo: TIPOS_MENSAJE.CONTROL.HABILITAR,
@@ -13039,7 +13015,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.retoActual.disponible = true;
                 estado.retoActual.completado = false;
                 estado.retoActual.cola = retosDelElemento;
-                estado.retoActual.indiceCola = 0;
                 estado.retoActual.colaCompletados = new Set();
             } else if (tieneRetos) {
                 (globalThis.logger || console).info(`${logPrefix} Audio finalizado en modo casa, ${retosDelElemento.length} reto(s) disponible(s) pero no habilitado automáticamente`);
@@ -13047,7 +13022,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 estado.retoActual.disponible = true;
                 estado.retoActual.completado = false;
                 estado.retoActual.cola = retosDelElemento;
-                estado.retoActual.indiceCola = 0;
                 estado.retoActual.colaCompletados = new Set();
             } else {
                 await _audioFinalizadoSinReto(audioId, estado, logPrefix);
@@ -13374,12 +13348,8 @@ await _comprobarReanudacionAventura(logPrefix);
                 const { exito, aventura, idioma, totalCargados, error: errorMsg } = mensaje.datos || {};
                 if (exito) {
                     (globalThis.logger || console).success(`${logPrefix} ✅ hijo2 confirmó: ${totalCargados} textos cargados (${aventura}/${idioma})`);
-                    if (!estado.seleccion) estado.seleccion = {};
-                    estado.seleccion.textosCargados = true;
                 } else {
                     (globalThis.logger || console).error(`${logPrefix} ⚠️ hijo2 reportó error cargando textos: ${errorMsg}`);
-                    if (!estado.seleccion) estado.seleccion = {};
-                    estado.seleccion.textosCargados = false;
                 }
                 // Fase 3: confirmar recepción al hijo
                 try {
@@ -13432,7 +13402,7 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.IDIOMA]`;
 
             try {
-                const { idioma, timestamp } = mensaje.datos || {};
+                const { idioma } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Idioma seleccionado: ${idioma} desde ${mensaje.origen}`);
 
@@ -13443,7 +13413,6 @@ await _comprobarReanudacionAventura(logPrefix);
                 // Almacenar idioma en estado global
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.idioma = idioma;
-                estado.seleccion.timestampIdioma = timestamp;
 
                 // Exponer globalmente para otros componentes
                 globalThis.idiomaSeleccionado = idioma;
@@ -13492,13 +13461,12 @@ await _comprobarReanudacionAventura(logPrefix);
             }
             _aventuraEnProceso = true;
             try {
-                const { aventura, idioma, timestamp } = mensaje.datos || {};
+                const { aventura, idioma } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Aventura seleccionada: ${aventura} (idioma: ${idioma}) desde ${mensaje.origen}`);
 
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.aventura = aventura;
                 estado.seleccion.idioma = idioma || estado.seleccion.idioma;
-                estado.seleccion.timestampAventura = timestamp;
                 globalThis.aventuraSeleccionada = aventura;
                 globalThis.idiomaSeleccionado = idioma || globalThis.idiomaSeleccionado;
                 try {
@@ -13523,13 +13491,12 @@ await _comprobarReanudacionAventura(logPrefix);
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[PREPARAR_HIJOS]`;
 
             try {
-                const { idioma, aventura, timestamp } = mensaje.datos || {};
+                const { idioma, aventura } = mensaje.datos || {};
                 (globalThis.logger || console).info(`${logPrefix} Pre-selección recibida: ${aventura} (${idioma})`);
 
                 if (!estado.seleccion) estado.seleccion = {};
                 if (aventura) estado.seleccion.aventura = aventura;
                 if (idioma) estado.seleccion.idioma = idioma;
-                estado.seleccion.preSeleccionTimestamp = timestamp;
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando pre-selección:`, error, error?.stack);
                 (globalThis.logger || console).error(`${logPrefix} DEBUG en catch - estado:`, typeof estado, !!estado);
@@ -13923,7 +13890,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[SELECCION.TERMINOS]`;
 
             try {
-                const { aceptados, timestamp } = mensaje.datos || {};
+                const { aceptados } = mensaje.datos || {};
 
                 (globalThis.logger || console).info(`${logPrefix} Términos aceptados: ${aceptados}`);
 
@@ -13933,7 +13900,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 // Almacenar en estado
                 if (!estado.seleccion) estado.seleccion = {};
                 estado.seleccion.terminosAceptados = aceptados;
-                estado.seleccion.timestampTerminos = timestamp;
 
             } catch (error) {
                 (globalThis.logger || console).error(`${logPrefix} Error procesando aceptación de términos:`, error, error?.stack);
@@ -14034,7 +14000,6 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 (globalThis.logger || console).info(`${logPrefix} Estadísticas recibidas: usado=${tiempoUsado}s, restante=${tiempoRestante}s, completado=${completado}`);
 
                 if (!estado.seleccion) estado.seleccion = {};
-                estado.seleccion.estadisticasTiempo = mensaje.datos;
 
                 // Mostrar modal de finalización solo en modo AVENTURA
                 const modoActual = estado?.modo?.actual || MODOS.CASA;

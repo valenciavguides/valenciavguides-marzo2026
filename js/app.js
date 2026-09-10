@@ -45,7 +45,7 @@ mensajeriaReadyPromise.then(() => {
 import { TIPOS_MENSAJE, MODOS } from './constants.js';
 import logger from './logger.js';
 import { CONFIG } from './config.js';
-import { generarIdUnico, resolverIdPadre, canonicalizarModo } from './utils.js';
+import { generarIdUnico, resolverIdPadre, canonicalizarModo, retryUntilAvailable } from './utils.js';
 import { promesasPendientes, registrarMetrica as registrarMetricaMonitoreo } from './monitoreo.js';
 import { esMovil } from './device-detection.js';
 
@@ -907,7 +907,6 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}) {
         estado.paradaActual = null;
         estado.tramoActual = null;
         estado.elementoActual = null;
-        estado.siguiendoRuta = false;
 
         // Resetear estado GPS — NUNCA tocar aquí estado.gps.activo ni estado.gps.watchId.
         // watchPosition() se enciende una sola vez en P14 y no se apaga al cambiar de modo
@@ -932,18 +931,14 @@ async function limpiarRecursosPorModo(estado, modo, opciones = {}) {
             // Esperar a que el mapa esté inicializado si no lo está
             if (!globalThis.funcionesMapa.isMapInitialized?.()) {
                 logger.info(`[APP][LIMPIAR_RECURSOS] Mapa no inicializado, esperando...`);
-                // Esperar hasta 5 segundos a que el mapa se inicialice
-                await new Promise(resolve => {
-                    const checkMap = () => {
-                        if (globalThis.funcionesMapa.isMapInitialized?.()) {
-                            resolve();
-                        } else {
-                            setTimeout(checkMap, 100);
-                        }
-                    };
-                    setTimeout(() => resolve(), 5000); // Timeout de 5 segundos
-                    checkMap();
-                });
+                // Polling ACOTADO: 50 x 100ms = 5s. Con un setTimeout recursivo a mano, la
+                // carrera contra el timeout hacia que el `await` terminase pero la cadena de
+                // temporizadores siguiera reprogramandose para siempre si el mapa no llegaba
+                // a inicializarse nunca (EJE 23, ver GUIA-COMPLETA.md §11).
+                await retryUntilAvailable(
+                    () => globalThis.funcionesMapa.isMapInitialized?.() === true,
+                    { maxIntentos: 50, intervalo: 100, mensaje: '[APP][LIMPIAR_RECURSOS] mapa inicializado' }
+                );
             }
 
             const estadoLimpieza = {

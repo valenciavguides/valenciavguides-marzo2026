@@ -257,7 +257,6 @@ test.describe('Handshake padre↔hijos — infraestructura (escenario 1d)', () =
       m.set('test-hijo', {
         activo: false,
         fallosConsecutivos: 1,
-        ultimoPing: null,
         ultimoError: 'test'
       });
       const entry = m.get('test-hijo');

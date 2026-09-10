@@ -722,7 +722,6 @@
     const estadoRetos = {
         retosCompletados: new Set(),
         progreso: { completados: 0, total: obtenerRetos().length },
-        ultimoReto: null,
         estadisticas: {
             tiempoPromedio: 0,
             intentosPromedio: 0,
@@ -1105,7 +1104,6 @@
             // Actualizar estado de progreso
             estadoRetos.retosCompletados.add(retoId);
             estadoRetos.progreso.completados = estadoRetos.retosCompletados.size;
-            estadoRetos.ultimoReto = retoId;
             estadoRetos.estadisticas.aciertosConsecutivos++;
 
             logger.info(`[hijo4] Reto completado: ${retoId}. Progreso: ${estadoRetos.progreso.completados}/${estadoRetos.progreso.total}`);
