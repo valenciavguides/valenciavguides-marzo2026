@@ -1555,10 +1555,6 @@
       const esTimeout    = tipoPuzzle === 'PUZZLE.TIMEOUT'    || msg === 'puzzle-state-timeout';
       if (esCompletado || esTimeout) {
         if (btnContinuar) btnContinuar.style.display = 'flex';
-      } else if (msg === 'advance-to-next') {
-        globalThis.removeEventListener('message', globalThis._puzzleListener);
-        globalThis._puzzleListener = null;
-        completarPuzzle();
       }
     }
 

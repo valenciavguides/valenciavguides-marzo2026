@@ -1076,32 +1076,22 @@ Retomar el seguimiento de posición manualmente centra sobre `estadoMapa.posicio
 
 Cubierto por `tests/e2e/24-camara-sigue-usuario.spec.js` (CAM-1/2/3/4): confirma que la primera posición centra la cámara, que un `dragstart` sin `originalEvent` (programático) no pausa nada, que uno con `originalEvent` sí lo hace, y que `reactivarSeguimientoCamara()` retoma el seguimiento y centra de inmediato. El guard de `zoomEnCurso` (en el seguimiento por-tick y en las tres funciones del menú) no tiene test aislado — forzarlo exigiría reproducir el flujo completo de `CAMBIO_PARADA` solo para una comprobación de una línea; queda verificado por revisión directa del código. El menú en sí está cubierto por `tests/e2e/25-brujula-modo.spec.js` (BR-1 a BR-9): existe y empieza oculto, alineación/tamaño respecto a `#selector-tipo-mapa`, el botón principal despliega/pliega las 3 opciones, cada una de las 3 invoca la función correcta, la reversión automática por brújula caída (BR-7), el reset bajo demanda (BR-8), y que un timeout de auto-reversión viejo no revierte una elección de "rumbo" más reciente (BR-9) — verificado en los tres últimos casos contando invocaciones a `funcionesMapa.*`, no por ningún icono (el botón principal no refleja el modo activo, ver arriba). El seguimiento de rumbo en sí (activar/desactivar, y que `actualizarRotacionFlechaGPS()` mueva el `bearing` del mapa solo mientras el modo está activo) está cubierto por `tests/e2e/27-seguimiento-rumbo.spec.js` (SR-1/2/3).
 
-### 4.6c. Navegación guiada paso a paso (turn-by-turn) — decisión de diseño
+### 4.6c. Por qué la app no da instrucciones paso a paso (turn-by-turn)
 
-**Estado: parcialmente implementado. Detenido intencionalmente.**
+**No hay nada de turn-by-turn implementado, ni a medias.** No existe ninguna función que calcule el ángulo entre waypoints, ni umbral de aviso de giro, ni UI de instrucción, ni tipo de mensaje para transportarla. Es una **decisión de producto**, no una tarea a medio hacer ni algo que espere al backend: todo lo que haría falta es local y podría escribirse hoy.
 
-La app dispone de todos los datos necesarios para implementar instrucciones paso a paso tipo "gira a la derecha en 50 metros": los tramos tienen `waypoints` con coordenadas exactas de cada giro, y el GPS actualiza posición en tiempo real.
+**Los datos sí están, y ese es justo el punto.** Los tramos llevan `waypoints` con las coordenadas exactas de cada giro (230 de los 236 tramos de las 7 aventuras los tienen), el GPS actualiza la posición en tiempo real, y `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) ya construye `[inicio, ...waypoints, fin]` en cada lectura para proyectar al usuario sobre el camino. Quien quisiera implementarlo tendría ahí el punto de entrada y todo lo que necesita. No se hace porque no se quiere.
 
-**Razón por la que no se ha terminado**: El modelo de experiencia elegido prioriza la exploración libre. El usuario ve la polyline completa del tramo activo (📌/🎯 + línea azul, §4.6) y puede pedir la polyline de navegación de vuelta cuando quiera (`btn-ubicacion`). Eso es suficiente orientación sin imponer un camino rígido. Las instrucciones tipo GPS ("gira aquí") harían la aventura mecánica y reduciría el placer de descubrir el camino. (Un sistema de flecha "snap-to-route" que proyectara una posición sobre la ruta tampoco encajaría con este modelo, por la misma razón — ver la nota en §4.5).
+**La razón:** el modelo de experiencia prioriza la exploración libre. El usuario ve la polyline completa del tramo activo (§4.6) y puede pedir la línea de vuelta cuando quiera con `btn-ubicacion`. Eso orienta sin imponer un camino: "gira aquí" convertiría la aventura en un trámite mecánico y le quitaría el placer de encontrar el camino. Por la misma razón se descarta una flecha *snap-to-route* que proyecte la posición sobre la ruta (ver la nota de §4.5).
 
-**Lo que está implementado hoy:**
+**Qué orienta al usuario en su lugar** — cuatro mecanismos que existen por sí mismos, no como piezas sueltas de un turn-by-turn a medio construir:
 
-| Elemento | Implementado | Descripción |
-|---|---|---|
-| Polyline del tramo activo | ✅ | 📌/🎯 + línea azul, revelados de inmediato al activarse el tramo (§4.7d) |
-| Polyline de navegación (vuelta) | ✅ | Solo manual, al pulsar `btn-ubicacion` (§4.6) |
-| Detección de proximidad a parada | ✅ | Radio configurable por aventura |
-| Distancia al destino (en hijo2) | ✅ | Se actualiza con cada GPS |
-
-**Lo que faltaría para turn-by-turn completo:**
-
-1. Función que calcule la instrucción de giro: leer ángulo entre waypoints consecutivos del tramo activo y determinar "recto / izquierda / derecha" según la posición del usuario.
-2. Umbral de activación: disparar la instrucción cuando el usuario esté a X metros del waypoint de giro.
-3. Tipo de mensaje nuevo (`NAVEGACION.INSTRUCCION_TURNO`) para enviar la instrucción a hijo2 o al padre.
-4. UI en hijo2 (o banner en el padre) que muestre la instrucción.
-5. Opcional: síntesis de voz con `speechSynthesis` en hijo3 o en padre.
-
-Si se decide implementar en el futuro, el punto de entrada natural es `procesarPosicionGPSParaAventura()` en `funciones-mapa.js`, que ya se ejecuta en cada actualización GPS y tiene acceso a los waypoints del tramo activo (`siguienteParada.waypoints`) y a `estadoMapa.posicionUsuario`.
+| Mecanismo | Dónde |
+|---|---|
+| Polyline del tramo activo: 📌/🎯 + línea azul, visibles en cuanto el tramo se activa | §4.7d |
+| Línea de vuelta verde, solo si el usuario la pide con `btn-ubicacion` | §4.6 |
+| Detección de proximidad: 15 m fijos para paradas, derivada de la separación entre waypoints para tramos | §25.6 |
+| Distancia al destino, recalculada en cada lectura GPS | hijo2, §4.7 |
 
 ### 4.7. Botones del hijo 2 (coordenadas) — iconos por imagen
 
@@ -4798,7 +4788,7 @@ Estos ficheros se cargan directamente en el navegador:
 | `terminos-aventuras.js` | Texto legal de términos y condiciones en 12 idiomas | `TERMINOS_AVENTURAS.terminos_idiomas.es`, `.en`, … |
 | `agradecimientos-aventuras.js` | Texto de créditos/agradecimientos en 12 idiomas | `AGRADECIMIENTOS_AVENTURAS.agradecimientos_idiomas.es`, … |
 | `normativa-cumplimiento.js` | Aviso legal de seguridad vial (requerido antes de iniciar aventura) en 12 idiomas | `NORMATIVA_CUMPLIMIENTO.normativa_idiomas.es`, … |
-| `traducciones-ui.js` | Textos cortos de interfaz en 12 idiomas, centralizados desde 7 archivos consumidores: modal de reanudación, fin de aventura, tiempo agotado, despedida (P5), retos, chat, video-intro, banner SW de actualización | `TRADUCCIONES_REANUDACION`, `TRADUCCIONES_FINALIZACION`, `TRADUCCIONES_TIEMPO_AGOTADO`, `TRADUCCIONES_DESPEDIDA`, `MSG_RETOS_COMPLETOS`, `PLACEHOLDER_RESPUESTA_TEXTO`, `TITULOS_CHAT`, `JAIME_SCENES` (array 21 entradas × 12 idiomas, índice 15 = `null`), `TRADUCCIONES_SW_UPDATE` (label + boton del banner de actualización) |
+| `traducciones-ui.js` | Textos cortos de interfaz en 12 idiomas, centralizados desde 7 archivos consumidores: modal de reanudación, fin de aventura, tiempo agotado, despedida (P5), retos, chat, video-intro, banner SW de actualización | `TRADUCCIONES_REANUDACION`, `TRADUCCIONES_FINALIZACION`, `TRADUCCIONES_TIEMPO_AGOTADO`, `TRADUCCIONES_DESPEDIDA`, `PLACEHOLDER_RESPUESTA_TEXTO`, `TITULOS_CHAT`, `JAIME_SCENES` (array 21 entradas × 12 idiomas, índice 15 = `null`), `TRADUCCIONES_SW_UPDATE` (label + boton del banner de actualización) |
 
 ### 10.2 Datos en el backend (`backend/data/`) — pendiente de crear
 
@@ -4866,7 +4856,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-517d1ba47863'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-63d1385f0c83'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7039,8 +7029,6 @@ idéntico en ambos modos.
 completado. La navegación de retos es estrictamente secuencial hacia adelante.
 No existe botón "volver" ni historial de retos en la sesión.
 
-**Mensaje de fin de retos (multilidioma)**: cuando se agotan todos los retos del array (`indiceReto >= retosArray.length`), hijo4 muestra una alerta nativa del navegador con el mensaje traducido al idioma activo (`globalThis.__vv_idiomaActual`). La traducción (`MSG_RETOS_COMPLETOS`) se importa desde `js/traducciones-ui.js` (12 idiomas). Fallback: español si el idioma no está en el mapa.
-
 ### Los puzzles
 
 Los puzzles son retos visuales donde el usuario debe recomponer una imagen. Cada puzzle tiene:
@@ -7985,7 +7973,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-517d1ba47863'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-63d1385f0c83'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8670,7 +8658,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-517d1ba47863';
+const CACHE_VERSION = 'v-63d1385f0c83';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9770,7 +9758,7 @@ Si acierta:
 
 **Si el reto o el puzzle no llega a aparecer** (dato roto o no encontrado — un error nuestro, no del usuario): `retos-hijo4.html` limpia la ventana y muestra "Este reto no está disponible en este momento" (12 idiomas) mientras reintenta en segundo plano; `puzzle.html` muestra su aviso de error dentro del recuadro del puzzle. En ambos casos el botón ⏩ sigue disponible — es la única vía de rescate para este caso, ver §13.
 
-Cuando el usuario completa el **último reto disponible** de la secuencia, aparece una **alerta del navegador** en el idioma elegido por el usuario al inicio de la aventura confirmando que ha terminado todos los retos. Los 12 idiomas están soportados (español, inglés, francés, italiano, neerlandés, japonés, alemán, chino, polaco, portugués, ruso, ucraniano) — texto en `MSG_RETOS_COMPLETOS`, importado desde `js/traducciones-ui.js`. El placeholder del input de tipo `texto` (`PLACEHOLDER_RESPUESTA_TEXTO`) viene de la misma fuente.
+**hijo4 no navega entre retos por su cuenta.** No lleva ningún índice propio ni avanza al siguiente reto de la parada: quién decide qué reto toca es el padre, que lo manda con `RETO.MOSTRAR`. El botón verde de hijo4 cierra la ventana y nada más — por eso no depende de si quedan retos (§4.4). Del mismo modo, no existe ninguna alerta de "ha completado todos los retos": el fin de la secuencia lo gobierna el padre, y lo que el usuario ve al terminar la aventura es el modal de fin (§25.11), no un `alert()` del navegador. El placeholder del input de tipo `texto` (`PLACEHOLDER_RESPUESTA_TEXTO`) sí viene de `js/traducciones-ui.js`.
 
 ---
 
@@ -11648,22 +11636,18 @@ El asistente es 100% offline:
 
 ---
 
-### Spec de tipos de mensaje CHAT.* futuros (pendiente de implementar)
+### La familia `CHAT.*` completa: dos tipos, y por qué no hacen falta más
 
-Este namespace fue diseñado para una versión futura del asistente con texto libre y procesamiento de intenciones. No está en `constants.js` ni implementado aún. Se documenta como referencia para la implementación futura:
+`js/constants.js` declara exactamente dos:
 
-```javascript
-SOPORTE: {
-    ABRIR:                'SOPORTE.ABRIR',                // padre muestra hijo6
-    CERRAR:               'SOPORTE.CERRAR',               // hijo6 solicita cerrarse
-    CONSULTA:             'SOPORTE.CONSULTA',             // hijo6 → padre: pregunta de texto libre
-    RESPUESTA:            'SOPORTE.RESPUESTA',            // padre → hijo6: respuesta procesada
-    CONTEXTO_ACTUALIZADO: 'SOPORTE.CONTEXTO_ACTUALIZADO', // padre → hijo6: parada cambió
-    LIMPIAR_HISTORIAL:    'SOPORTE.LIMPIAR_HISTORIAL'     // padre → hijo6: resetear
-}
-```
+| Tipo | Sentido | Qué hace |
+|---|---|---|
+| `CHAT.CERRAR` | hijo6 → padre | El usuario pulsa la ✗ del panel. Vía de reserva: `cerrarChatVentana()` intenta primero la llamada directa `globalThis.parent.cerrarChatSoporte()` y solo cae al mensaje si esa función no está |
+| `CHAT.ESTADO_PADRE` | padre → hijo6 | Idioma y contexto de la aventura (`construirEstadoChat()`). El idioma es lo único que cambia lo que se pinta: el acordeón se reconstruye entero en el idioma nuevo |
 
----
+**Con dos basta porque hijo6 no conversa.** Es un acordéon estático de 9 temas y 47 preguntas (`RESPUESTAS_CHAT`, `js/traducciones-ui.js`, 12 idiomas) más un buzón de sugerencias de una sola dirección (`enviarSugerencia()`, `js/feedback-forms.js`, `mode:'no-cors'` — se envía y no se lee respuesta). No hay pregunta libre que responder, ni intenciones que interpretar, ni hilo que mantener: **hijo6 no guarda historial de ninguna clase** — ni `localStorage`, ni `sessionStorage`, ni array de conversación en memoria.
+
+De ahí que las dos operaciones que un chat conversacional sí necesitaría — mandar una consulta y recibir su respuesta — no existan, y que tampoco exista nada que "limpiar" al cambiar de parada o de aventura. Y abrir el panel no necesita mensaje: `abrirChat()` corre en el mismo `window` que el padre, así que es una llamada directa (mismo criterio que §10.9 y §32.3).
 
 ## 28. Cleanup de listeners en cambio de aventura o modo
 
@@ -11870,7 +11854,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-517d1ba47863';
+const CACHE_VERSION = 'v-63d1385f0c83';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

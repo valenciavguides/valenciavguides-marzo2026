@@ -587,21 +587,6 @@ export const TRADUCCIONES_ACCESO_ERRONEO = {
     uk: { titulo: 'Невірний код або email', cuerpo: 'Перевірте введені дані та спробуйте ще раз.' }
 };
 
-export const MSG_RETOS_COMPLETOS = {
-    es: '¡Ha completado todos los retos!',
-    en: "You've completed all the challenges!",
-    fr: 'Vous avez terminé tous les défis !',
-    it: 'Ha completato tutte le sfide!',
-    nl: 'U heeft alle uitdagingen voltooid!',
-    ja: 'すべてのチャレンジをクリアしました！',
-    de: 'Sie haben alle Herausforderungen gemeistert!',
-    zh: '您已完成所有挑战！',
-    pl: 'Ukończono wszystkie wyzwania!',
-    pt: 'Completou todos os desafios!',
-    ru: 'Вы завершили все задания!',
-    uk: 'Ви завершили всі завдання!'
-};
-
 export const MSG_RETO_NO_DISPONIBLE = {
     es: 'Este reto no está disponible en este momento.',
     en: "This challenge isn't available right now.",

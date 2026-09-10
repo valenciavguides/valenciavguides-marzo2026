@@ -421,7 +421,7 @@
     /* --- Integración con Sistema de Mensajería --- */
 
     import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
-    import { MSG_RETOS_COMPLETOS, PLACEHOLDER_RESPUESTA_TEXTO, MSG_RETO_NO_DISPONIBLE } from './js/traducciones-ui.js';
+    import { PLACEHOLDER_RESPUESTA_TEXTO, MSG_RETO_NO_DISPONIBLE } from './js/traducciones-ui.js';
 
     // Fallbacks que esperan a que globalThis.mensajeria esté disponible
     const enviarMensaje = async (...args) => {
@@ -744,7 +744,6 @@
     let botonRetos;
 
     let retoActual = null; // Objeto del reto actual
-        let indiceReto = 0; // Índice del reto actualmente mostrado (inicializado en 0)
 
     // Timer del reset visual de btnEnviar tras una respuesta incorrecta (ver verificar()) —
     // se guarda para poder cancelarlo si llega un reto nuevo o una respuesta nueva antes de
@@ -958,8 +957,6 @@
             // ✅ CRÍTICO: Asignar retoActual para que verificar() funcione
             retoActual = reto;
             estado.retoActualId = retoId;
-            // Actualizar indiceReto para que la navegación (advance-to-next) funcione correctamente
-            try { indiceReto = retosArray.findIndex(r => r && r.id === retoId); if (indiceReto === -1) indiceReto = 0; } catch (_e) { indiceReto = 0; } // NOSONAR
 
             // Ocultar todos los botones y mensajes al inicio de un nuevo reto
             ocultarControles();
@@ -1370,22 +1367,6 @@
                 _pendienteCompletado = { retoId: retoActual.id, completado: true };
                 const btnPuzzleContinuar = document.getElementById('btn-puzzle-continuar');
                 if (btnPuzzleContinuar) btnPuzzleContinuar.style.display = 'flex';
-            }
-            else if (event.data === "advance-to-next") {
-                divRespuestaCorrecta.style.display = "none";
-                indiceReto++;
-                const retosArray = obtenerRetos();
-                if (indiceReto >= retosArray.length) {
-                    const _lang = globalThis.__vv_idiomaActual || 'es';
-                    alert(MSG_RETOS_COMPLETOS[_lang] || MSG_RETOS_COMPLETOS.es);
-                    indiceReto = 0;
-                }
-                const siguiente = retosArray[indiceReto];
-                if (siguiente) {
-                    await mostrarReto(siguiente.id);
-                } else {
-                    logger.warn('[hijo4] No hay siguiente reto para índice', indiceReto);
-                }
             }
         });
 
