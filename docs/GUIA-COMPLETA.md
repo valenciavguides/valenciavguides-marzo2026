@@ -8913,7 +8913,7 @@ El modo DEV permite al desarrollador:
 
 #### Visibilidad de hijo5
 
-`hijo5` arranca siempre oculto (`display:none; visibility:hidden` en el HTML del padre, línea ~2460). Solo se hace visible cuando el modo DEV está activo. La propiedad `z-index: 1000000 !important` en CSS garantiza que cuando está visible quede por encima de todos los overlays. El mecanismo de ocultación es `display:none/block` — no z-index — para evitar interferencias con los overlays del mapa.
+`hijo5` arranca siempre oculto: su `<iframe>` lleva `display:none; visibility:hidden` en el atributo `style`, y la regla `#hijo5` del CSS deja anotado que esas dos propiedades las gobierna JS desde `_mostrarUIActivada()`. Solo se hace visible cuando el modo DEV está activo. La propiedad `z-index: 1000000 !important` en CSS garantiza que cuando está visible quede por encima de todos los overlays. El mecanismo de ocultación es `display:none/block` — no z-index — para evitar interferencias con los overlays del mapa.
 
 #### Flag de estado: `globalThis._devModeActivo`
 
@@ -8924,7 +8924,7 @@ El modo DEV permite al desarrollador:
 
 Ambas variables son puramente en memoria: ninguna recarga las conserva por sí sola.
 
-**Matiz — una sesión de aventura ya activada sí recuerda que era dev.** Cuando existe una aventura en curso, `vv_aventura_iniciada` guarda un campo `dev` (booleano) junto al modo, y al reanudar esa sesión `_activarModoRest()` restaura `globalThis._devModeActivo` a partir de él (§9.10, paso 8). Es lo que permite que las tres combinaciones reales existan y sobrevivan a cerrar la app: dev/CASA, dev/AVENTURA y prod/AVENTURA — antes el modo dev se deducía al reabrir de `modo === 'casa'`, así que una sesión dev guardada en AVENTURA volvía como sesión de producción, con el reloj de compra corriendo.
+**Matiz — una sesión de aventura ya activada sí recuerda que era dev.** Cuando existe una aventura en curso, `vv_aventura_iniciada` guarda un campo `dev` (booleano) junto al modo, y al reanudar esa sesión `_activarModoRest()` restaura `globalThis._devModeActivo` a partir de él (§9.10, paso 8). Es lo que permite que las tres combinaciones reales existan y sobrevivan a cerrar la app: dev/CASA, dev/AVENTURA y prod/AVENTURA. Guardar el flag aparte del modo es lo que permite representar una sesión dev en AVENTURA: deducirlo de `modo === 'casa'` la haría indistinguible de una de producción al reabrir, con el reloj de compra corriendo.
 
 Fuera de ese caso, el estado sigue siendo limpio: si no hay aventura activada, una recarga no deja ningún rastro de la activación, y el campo desaparece con el resto de la sesión en `limpiarDatosAventura()`.
 
@@ -11669,10 +11669,10 @@ La razón: `messagingAdapter._listenerRegistry` contiene los handlers registrado
 Cada hijo (excepto hijo6) limpia `_listenerRegistry` en el evento `pagehide`:
 
 ```javascript
-globalThis.addEventListener('pagehide', () => {
-    if (globalThis.messagingAdapter?._listenerRegistry) {
-        for (const [tipo, fn] of globalThis.messagingAdapter._listenerRegistry) {
-            globalThis.removeEventListener(tipo, fn);
+globalThis.addEventListener('pagehide', function() {
+    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
+        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
+            globalThis.removeEventListener('message', listener);
         }
         globalThis.messagingAdapter._listenerRegistry.clear();
     }
@@ -11680,6 +11680,8 @@ globalThis.addEventListener('pagehide', () => {
 ```
 
 Este es el momento correcto: el iframe se está descargando, no necesitará más esos listeners, y limpiarlos evita fugas de memoria.
+
+**El primer argumento de `removeEventListener` es siempre `'message'`, nunca la clave del `Map`.** El registro está indexado por tipo de mensaje (`'SISTEMA.HEARTBEAT'`, `'RETO.MOSTRAR'`…), pero eso es una convención de la app: en el DOM **todos** esos listeners están suscritos al mismo evento, `'message'`, y se distinguen dentro del propio handler. Iterar el `Map` como `[tipo, fn]` y llamar a `removeEventListener(tipo, fn)` no lanza ningún error — simplemente no quita nada, porque no existe ningún listener registrado bajo un evento llamado `'SISTEMA.HEARTBEAT'`. Por eso se recorre `.values()` y se pasa el literal.
 
 ### 28.4 Cleanup del padre
 
