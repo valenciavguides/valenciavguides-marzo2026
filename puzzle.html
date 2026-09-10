@@ -138,6 +138,12 @@
 </div>
 <script type="module">
 import { TIPOS_MENSAJE } from './js/constants.js';
+import logger from './js/logger.js';
+// Publica el logger en el globalThis de ESTA ventana. Sin esta linea, los
+// `(globalThis.logger || console).x` de mas abajo caian al console crudo y se
+// saltaban el nivel de log. eslint NO los marca —el objeto no es literalmente
+// `console`, va envuelto en el `||`— asi que nada volveria a recordarlo.
+globalThis.logger = logger;
 
 // Obtener el ID del puzzle de la URL
 const urlParams = new URLSearchParams(globalThis.location.search);

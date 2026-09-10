@@ -80,4 +80,25 @@ test.describe('NH — El nivel de log alcanza a los hijos', () => {
     expect(medidos.length).toBeGreaterThan(0);
     for (const [id, v] of medidos) expect(`${id}=${v}`).toBe(`${id}=obedece`);
   });
+
+  test('NH-3. puzzle.html y video-intro.html tambien publican el logger real', async ({ page }) => {
+    // Son sub-iframes (de seleccion / hijo4), no hijos directos del padre: se cargan a mano
+    // en una ventana suelta para poder medirlos. Sus `(globalThis.logger || console).x`
+    // eslint NO los marca —el objeto va envuelto en el `||`— asi que sin este test nada
+    // avisaria si volvieran a quedarse sin logger.
+    const r = {};
+    for (const url of ['puzzle.html?id=PZ-intro&imagen=imagenes%2Ffotos-botones%2Flogo-luna.jpg', 'video-intro.html']) {
+      const p2 = await page.context().newPage();
+      try {
+        await p2.goto('http://localhost:8080/' + url, { waitUntil: 'load' });
+        await p2.waitForFunction(() => typeof globalThis.logger === 'object' && globalThis.logger !== null,
+          null, { timeout: 15000 }).catch(() => {});
+        r[url.split('?')[0]] = await p2.evaluate(() => {
+          const lg = globalThis.logger;
+          return (lg && typeof lg.setNivel === 'function') ? 'logger' : (lg ? 'NO es el logger' : 'undefined');
+        });
+      } finally { await p2.close(); }
+    }
+    for (const [k, v] of Object.entries(r)) expect(`${k}=${v}`).toBe(`${k}=logger`);
+  });
 });

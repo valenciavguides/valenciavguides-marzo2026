@@ -25,11 +25,11 @@
         // Definir ejecutarValidacion globalmente lo antes posible para evitar errores de "not defined"
         globalThis.ejecutarValidacion = function(reto, _respuestaUsuario) {
             try {
-                console.info(`[hijo4] ejecutarValidacion: Validación personalizada por defecto para reto ${reto?.id || 'desconocido'}`); // script clásico pre-módulo
+                console.info(`[hijo4] ejecutarValidacion: Validación personalizada por defecto para reto ${reto?.id || 'desconocido'}`); // eslint-disable-line no-console -- script clasico pre-modulo: logger.js aun no se ha importado aqui
                 // Validación personalizada por defecto - siempre pasa
                 return true;
             } catch (error) {
-                console.error('Error en ejecutarValidacion:', error); // script clásico pre-módulo
+                console.error('Error en ejecutarValidacion:', error); // eslint-disable-line no-console -- script clasico pre-modulo: logger.js aun no se ha importado aqui
                 return false;
             }
         };

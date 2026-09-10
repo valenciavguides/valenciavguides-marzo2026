@@ -588,8 +588,15 @@ html,body{overflow:hidden;width:100%;height:100%;background:#fff;font-family:-ap
 <script type="module">
   import { JAIME_SCENES } from './js/traducciones-ui.js';
   import { reproducirVideoConBuffer } from './js/video-playback-utils.js';
+  import logger from './js/logger.js';
   globalThis.JAIME_SCENES = JAIME_SCENES;
   globalThis.reproducirVideoConBuffer = reproducirVideoConBuffer;
+  // Mismo motivo que JAIME_SCENES: el `<script>` clasico de abajo no puede leer los
+  // bindings de este modulo, asi que lo que necesita viaja por globalThis. Sus dos
+  // `(globalThis.logger || console).warn` estan dentro de catch, en funciones que corren
+  // durante la animacion —mucho despues de que este modulo diferido haya terminado—,
+  // asi que para entonces `globalThis.logger` ya es el logger real.
+  globalThis.logger = logger;
 </script>
 <script>
 'use strict';
