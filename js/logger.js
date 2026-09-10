@@ -15,6 +15,13 @@ import { LOG_LEVELS } from './constants.js';
 let nivelActual = LOG_LEVELS.DEBUG;
 
 /**
+ * True en cuanto alguien llama a setNivel(). A partir de ahi manda `nivelActual` y se deja
+ * de mirar CONFIG: una orden explicita en runtime gana sobre el fichero de configuracion.
+ * @type {boolean}
+ */
+let _nivelForzadoEnRuntime = false;
+
+/**
  * Buffer para almacenar logs cuando se requiere persistencia
  * @type {Array<Object>}
  */
@@ -46,7 +53,12 @@ const PRIORIDAD_NIVELES = {
     [LOG_LEVELS.DEBUG]: 0,
     [LOG_LEVELS.INFO]: 1,
     [LOG_LEVELS.WARN]: 2,
-    [LOG_LEVELS.ERROR]: 3
+    [LOG_LEVELS.ERROR]: 3,
+    // NONE tiene que estar aqui aunque ningun mensaje se emita con el: setNivel() valida
+    // contra esta tabla, asi que sin esta entrada pedir NONE se rechazaba y el logger no
+    // podia silenciarse por su API. Como es el valor mas alto, ningun nivel lo alcanza y
+    // debeLoguear() devuelve false para todos.
+    [LOG_LEVELS.NONE]: 4
 };
 
 /**
@@ -85,8 +97,20 @@ function formatearTimestamp() {
  * @param {string} nivel - Nivel del mensaje
  * @returns {boolean} True si debe loguearse
  */
+function nivelEfectivo() {
+    // Se consulta CONFIG en CADA llamada, no una sola vez al principio. `logger.js` y
+    // `config.js` se cargan en el mismo Promise.all de la FASE 1, sin orden garantizado
+    // entre ellos: resolverlo una vez sola dejaria el nivel clavado en su valor por defecto
+    // si el primer log ocurriera antes de que config.js publicara su global. Se lee de
+    // `globalThis.__vv_config` en vez de importar el modulo para no crear una dependencia
+    // entre dos modulos que hoy no la tienen.
+    if (_nivelForzadoEnRuntime) return nivelActual;
+    const configurado = globalThis.__vv_config?.DEBUG?.NIVEL_LOG;
+    return Object.prototype.hasOwnProperty.call(PRIORIDAD_NIVELES, configurado) ? configurado : nivelActual;
+}
+
 function debeLoguear(nivel) {
-    return PRIORIDAD_NIVELES[nivel] >= PRIORIDAD_NIVELES[nivelActual];
+    return PRIORIDAD_NIVELES[nivel] >= PRIORIDAD_NIVELES[nivelEfectivo()];
 }
 
 /**
@@ -198,8 +222,9 @@ const logger = {
      * @param {string} nivel - Nuevo nivel
      */
     setNivel(nivel) {
-        if (PRIORIDAD_NIVELES.hasOwnProperty(nivel)) {
+        if (Object.prototype.hasOwnProperty.call(PRIORIDAD_NIVELES, nivel)) {
             nivelActual = nivel;
+            _nivelForzadoEnRuntime = true;   // una orden explicita gana sobre CONFIG
             this.info(`Nivel de log cambiado a: ${nivel}`);
         } else {
             this.warn(`Nivel de log inválido: ${nivel}`);
@@ -211,7 +236,7 @@ const logger = {
      * @returns {string} Nivel actual
      */
     getNivel() {
-        return nivelActual;
+        return nivelEfectivo();
     },
     
     /**
