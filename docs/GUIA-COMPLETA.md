@@ -8676,15 +8676,20 @@ Mientras `BACKEND_READY = false`, `DATA_MODE` es siempre `'local'` sin importar 
 
 `js/data-loader.js` ya tiene funciones para la mayoría de los archivos de datos sensibles, salvo dos. La tabla siguiente lista cada import directo que romperá con `PROTECT_DATA=true` y su equivalente en data-loader:
 
-| Archivo importado | Dónde se importa | Función en data-loader | Estado |
+| Archivo | Cómo se carga hoy | Función en data-loader | Estado |
 |---|---|---|---|
-| `coordenadas-aventuras.js` | `codigo-padre.html` ~L3051, `En-busca-del-tesoro.html` ~L1780 | `cargarCoordenadas(aventuraId)` | ✅ existe |
-| `audios-aventuras.js` | `codigo-padre.html` ~L3052, `En-busca-del-tesoro.html` ~L1135,1679 | `cargarAudios(aventuraId, idioma)` | ✅ existe |
-| `retos-aventuras.js` | `codigo-padre.html` ~L3053, `En-busca-del-tesoro.html` ~L1781 | `cargarRetos(aventuraId, idioma)` | ✅ existe |
-| `textos-aventuras.js` | `codigo-padre.html` ~L3054 | `cargarTextos(aventuraId, idioma)` | ✅ existe |
-| `puzzles-aventuras.js` | `En-busca-del-tesoro.html` ~L1040,1292, `puzzle.html` ~L130 | ninguna — la forma real de los datos (pool compartido, no organizado por aventura) no encaja con el patrón `cargarX(aventuraId)`; mecanismo real sigue siendo el import directo en `puzzle.html`, ver §22.12 | ❌ **falta** |
-| `indice-aventuras.js` | `codigo-padre.html` ~L3055, `En-busca-del-tesoro.html` ~L1773 | `cargarIndice()` | ✅ existe |
-| **`aventuras-ID-padre.js`** | **`codigo-padre.html` ~L2661 (import estático)** | **ninguna — `cargarDatosPadre()` no existe** | ❌ **falta** |
+| **`aventuras-ID-padre.js`** | **`import` estático en la cabecera del Script 1 de `codigo-padre.html`** (más un `await import()` en Script 2, que reaprovecha el módulo ya cacheado por el navegador) | **ninguna — `cargarDatosPadre()` no existe** | ❌ **el único bloqueante** |
+| `coordenadas-aventuras.js` | `await import()` en el `Promise.all` de FASE 2 | `cargarCoordenadas(aventuraId)` | ⚠️ la función existe pero FASE 2 no la usa |
+| `audios-aventuras.js` | `await import()` en FASE 2; también en `En-busca-del-tesoro.html` | `cargarAudios(aventuraId, idioma)` | ⚠️ ídem |
+| `indice-aventuras.js` | `await import()` en FASE 2 y en `En-busca-del-tesoro.html` | `cargarIndice()` | ⚠️ ídem |
+| `puzzles-aventuras.js` | `await import()` en FASE 2 y en `En-busca-del-tesoro.html` | ninguna — el pool es compartido, no está organizado por aventura, y no encaja con el patrón `cargarX(aventuraId)` | ⚠️ a decidir |
+| `mapa-vintage-aventuras.js` | `await import()` en FASE 2 | ninguna | ⚠️ a decidir |
+| `retos-aventuras.js` | solo vía `cargarRetos()` | `cargarRetos(aventuraId, idioma)` | ✅ ya migrado |
+| `textos-aventuras.js` | solo vía `cargarTextos()` | `cargarTextos(aventuraId, idioma)` | ✅ ya migrado |
+
+**La diferencia entre estático y dinámico importa, y es la razón de que solo uno bloquee.** Con `PROTECT_DATA=true` el servidor responde 403 a los ficheros protegidos. Un `await import()` que recibe un 403 lanza una promesa rechazada, que se puede capturar y gestionar; un `import` estático que recibe un 403 impide que el `<script type="module">` **llegue a parsearse**, y con él se cae el arranque entero de la app. Por eso `aventuras-ID-padre.js` no puede entrar en `PROTECTED_FILES` mientras esa línea siga ahí — y por eso, mientras siga ahí, sus 1,7 MB se descargan en cada arranque, antes de P13, antes de que el usuario haya pagado o validado nada.
+
+`puzzle.html` ya no importa `puzzles-aventuras.js`: recibe la imagen por URL de quien lo invoca.
 
 `js/data-loader.js` también exporta `validarRespuesta()`, `limpiarCacheDatos()` y `getDataMode()` que son independientes de PROTECT_DATA.
 
