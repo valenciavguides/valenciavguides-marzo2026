@@ -105,7 +105,16 @@ function nivelEfectivo() {
     // `globalThis.__vv_config` en vez de importar el modulo para no crear una dependencia
     // entre dos modulos que hoy no la tienen.
     if (_nivelForzadoEnRuntime) return nivelActual;
-    const configurado = globalThis.__vv_config?.DEBUG?.NIVEL_LOG;
+    // Primero la ventana propia; si no lo tiene, la del padre. Cada iframe tiene su
+    // `globalThis`, y solo `coordenadas-hijo2.html` importa `config.js`: sin este segundo
+    // paso, el nivel no llegaria a los otros cinco hijos y seguirian logueandolo todo.
+    // Mirar hacia arriba en vez de importar `config.js` en cada hijo deja ademas UNA sola
+    // fuente del nivel para toda la app. Mismo origen, asi que la lectura es legal; el
+    // try/catch cubre el dia en que deje de serlo. En el padre, `parent === globalThis`.
+    let configurado = globalThis.__vv_config?.DEBUG?.NIVEL_LOG;
+    if (configurado === undefined) {
+        try { configurado = globalThis.parent?.__vv_config?.DEBUG?.NIVEL_LOG; } catch (e) { void e; }
+    }
     return Object.prototype.hasOwnProperty.call(PRIORIDAD_NIVELES, configurado) ? configurado : nivelActual;
 }
 

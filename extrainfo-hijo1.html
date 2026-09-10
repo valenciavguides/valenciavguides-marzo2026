@@ -232,6 +232,11 @@
     }
     import { TIPOS_MENSAJE } from './js/constants.js';
     import logger from './js/logger.js';
+    // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
+    // `globalThis.logger = ...` de codigo-padre.html solo alcanza al del padre: sin esta
+    // linea, los `(globalThis.logger || console).x` de este fichero caian al console crudo
+    // y se saltaban el nivel de log (ver GUIA-COMPLETA.md §26.3).
+    globalThis.logger = logger;
 
     // NOTA: Bloque IIFE "RESPALDO" para PADRE_PIDE_MANEJADORES eliminado (obsoleto).
     // El sistema actual usa state-manager centralizado sin necesidad de migración manual.
