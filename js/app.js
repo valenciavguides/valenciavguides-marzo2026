@@ -1434,7 +1434,9 @@ function _computeBackoff(attempt) {
     // exponential backoff with jitter
     const exp = Math.pow(2, Math.max(0, attempt - 1));
     const base = Math.min(MODE_RETRY_BASE_MS * exp, MODE_RETRY_MAX_MS);
-    // Add small jitter +/-20%
+    // Jitter de +/-10%: (random-0.5) va de -0.5 a +0.5, asi que el factor 0.2 da una
+    // banda del 20% de ancho repartida a los dos lados. Sirve para que varios hijos que
+    // hayan hecho NACK en el mismo tick no reintenten todos en el mismo milisegundo.
     const jitter = base * (0.2 * (Math.random() - 0.5));
     return Math.round(base + jitter);
 }
