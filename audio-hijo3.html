@@ -1471,9 +1471,13 @@
 
         // Controlador para reproducir audio (REQUEST del padre)
         registrarControladorSeguro(TIPOS_MENSAJE.AUDIO.REPRODUCIR_REQUEST, async (mensaje) => {
+            // Fuera del try A PROPOSITO: el catch de abajo devuelve { audioId, exito:false }
+            // para que el padre distinga "hijo3 no contesta" de "hijo3 contesta que fallo".
+            // Con el `const` dentro del try, audioId es de bloque y no existe en el catch:
+            // ese return lanzaba ReferenceError y el propio camino de error se rompia.
+            const { audioId, autoplay = false } = mensaje.datos || {};
             try {
                 logger.debug(`[hijo3] REPRODUCIR_REQUEST recibido:`, mensaje.datos);
-                const { audioId, autoplay = false } = mensaje.datos || {};
 
                 const { audioData } = mensaje.datos || {};
                 if (audioData) {

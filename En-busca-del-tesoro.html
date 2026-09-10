@@ -1078,7 +1078,7 @@
     let AUDIOS_DATOS = null;
     let PUZZLES_DATOS = null;
     let INDICE_AVENTURAS_DATOS = null;
-    let aventuraIniciando = false;
+    let aventuraIniciando = false; // eslint-disable-line no-unused-vars -- lo usa el <script type="module" de abajo, que lo declara en su /* global */
     let timerMensajeCarga = null;
     // _devCasaMode se comparte entre script clásico y módulo via globalThis
     globalThis._devCasaMode = globalThis._devCasaMode || false;
@@ -1588,7 +1588,7 @@
     // ============================================================
     // P10: COMPLETAR PUZZLE Y CONTINUAR
     // ============================================================
-    function completarPuzzle() {
+    function completarPuzzle() { // eslint-disable-line no-unused-vars -- lo invoca el onclick de #btn-continuar-puzzle
       void mostrar(7);
     }
     
@@ -1927,7 +1927,7 @@
       if (fraseEl) { fraseEl.style.opacity = '0'; fraseEl.textContent = ''; }
     }
 
-    function mostrarOverlayCargaAventura() {
+    function mostrarOverlayCargaAventura() { // eslint-disable-line no-unused-vars -- lo usa el <script type="module" de abajo, que lo declara en su /* global */
       const overlay = document.getElementById('overlay-carga-aventura');
       if (!overlay) return;
       overlay.style.display = 'flex';
@@ -1959,7 +1959,7 @@
       }, 9000);
     }
 
-    function ocultarOverlayCargaAventura() {
+    function ocultarOverlayCargaAventura() { // eslint-disable-line no-unused-vars -- lo usa el <script type="module" de abajo, que lo declara en su /* global */
       const overlay = document.getElementById('overlay-carga-aventura');
       if (!overlay) return;
       overlay.classList.remove('visible');
@@ -2414,9 +2414,14 @@
 
   <!-- MÓDULO DE MENSAJERÍA - Comunicación con el Padre -->
   <script type="module">
-    /* global modoDespedida, _desarmarAbandonoP17, _ejecutarDespedida, _log, aventuraIniciando,
+    /* global _ejecutarDespedida, _log, aventuraIniciando,
        mostrarOverlayCargaAventura, actualizarProgresoCargaAventura, timerProgresoCarga,
        ocultarOverlayCargaAventura */
+    // Estos dos van aparte porque este bloque solo los ESCRIBE; quien los lee es el script
+    // clasico de mas arriba. Sin declararlos, eslint marcaria no-undef al asignarlos; al
+    // declararlos, marca no-unused-vars por no leerlos. Ninguna de las dos cosas es un
+    // problema: es el patron de globalThis compartido entre bloques (ver 37.2 de la guia).
+    /* global modoDespedida, _desarmarAbandonoP17 */ // eslint-disable-line no-unused-vars
     import { getEnviarMensaje, getRegistrarControlador, resolverIdPadre } from './js/utils.js';
     import { TRADUCCIONES_DESPEDIDA, TRADUCCIONES_ACCESO_ERRONEO, TEXTOS_VALORACION, TRADUCCIONES_REANUDACION } from './js/traducciones-ui.js';
     import { enviarValoracion } from './js/feedback-forms.js';

@@ -82,6 +82,7 @@ module.exports = [
         fetch: "readonly",
         URL: "readonly",
         URLSearchParams: "readonly",
+        DeviceOrientationEvent: "readonly",   // brujula: js/funciones-mapa.js y debug-brujula.html
         localStorage: "readonly",
         sessionStorage: "readonly",
         navigator: "readonly",

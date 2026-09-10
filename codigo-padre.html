@@ -14658,6 +14658,11 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
 
         // Importar sistema de mensajería y utilidades
         const { TIPOS_MENSAJE: TIPOS_MENSAJE_IFRAME } = await import('./js/constants.js');
+        // Publicado en globalThis porque el handler de visibilitychange vive en el
+        // <script> CLASICO de mas abajo, que no ve los const de este modulo. Sin esto,
+        // ese handler lanzaba ReferenceError en cada iframe, lo tragaba su propio
+        // try/catch y no enviaba ni un heartbeat: fallaba en silencio (EJE 26).
+        globalThis.TIPOS_MENSAJE_IFRAME = TIPOS_MENSAJE_IFRAME;
         await import('./js/config.js');
         const loggerIframe = (await import('./js/logger.js')).default;
         const sleep = globalThis.sleep || (ms => new Promise(r => setTimeout(r, ms)));
@@ -14767,7 +14772,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 try {
                     if (iframe.contentWindow) {
                         iframe.contentWindow.postMessage({
-                            tipo: TIPOS_MENSAJE_IFRAME.SISTEMA.HEARTBEAT,
+                            tipo: globalThis.TIPOS_MENSAJE_IFRAME?.SISTEMA?.HEARTBEAT || 'SISTEMA.HEARTBEAT',
                             origen: 'padre',
                             datos: { timestamp: Date.now(), razon: 'visibilitychange' }
                         }, globalThis.location.origin);
