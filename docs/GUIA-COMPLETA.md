@@ -13163,19 +13163,17 @@ Complementa a EJE 24 sin solaparse: aquel busca **tests** que pasan sin ejercita
 
 Tampoco se solapa con EJE 19, y la diferencia importa: **EJE 19 pregunta *¿se la llama?*** (busca call-sites que faltan); **EJE 26 pregunta *cuando se la llama, ¿entra en la rama que importa?*** — la función se ejecuta con normalidad y lo inalcanzable es su interior. `fetchWithRetry()` corre en cada petición y sus cuatro reintentos no se alcanzan nunca.
 
-**Casos reales del proyecto, todos con la misma firma:**
+**Las firmas con las que se presenta.** Un mecanismo puede estar completo, comentado y sin errores, y aun así no ejecutarse jamás. Estas son las formas en que ocurre, y qué buscar en cada una:
 
-| Mecanismo | Escrito | Por qué no se disparaba |
-|---|---|---|
-| Registro de `hijo5` en la mensajería | Cargador completo | Faltaba `registrarIframe()`: el padre no podía escribirle |
-| Idioma del chat (`hijo6`) | Payload corregido | El mensaje que lo llevaba se descartaba antes de salir |
-| Confirmación de `AUDIO.REPRODUCIR_REQUEST` | El padre la exige con reintentos | El handler de hijo3 devuelve valor y el adapter la emite |
-| `coordenadasYaResueltas` | Se empaquetaba en cada cambio de parada | Ningún fichero la leyó nunca en toda la historia del repo. Eliminada |
-| Los 4 reintentos de `fetchWithRetry()` | Backoff exponencial completo | El `AbortError` del timeout se lanza **antes** de llegar al reintento, y el filtro `error.message.includes('fetch')` no encaja con el texto de WebKit |
-| `data-loader.js` → `api-client.js` | Comentario "pendiente de conectar" | Conectado a medias: usa su `TokenManager`, no su `fetchWithRetry` |
-| `__local_controladores` (hijo4) | Se rellenaba en cada `registrarControladorSeguro()` | **Ningún fichero lo leía** — el postMessage lo atiende `messagingAdapter._listenerRegistry`. Eliminado |
-| `stripCSPForTesting()` (helpers de test) | Docblock detallado: "'unsafe-inline' no cubre `<script type=module>` inline" | La razón era **falsa** — medido: con el CSP real menos `upgrade-insecure-requests`, WebKit completa FASE 1 con 0 violaciones. Borraba el CSP entero y dejaba los tests sin detectar ninguna violación. Eliminado |
-| El buffer de 400 ms de `31-sincronizar-modo-ambas-direcciones` | Comentario que describe una carrera concreta | La carrera **no existe**: los `<script type=module>` son diferidos, el handler ya está registrado en `domcontentloaded` (medido, 12-18 ms) |
+| Firma | Cómo se reconoce |
+|---|---|
+| **Falta el registro previo** | El emisor manda bien, pero el destinatario nunca se dio de alta donde el bus lo busca. El envío se descarta en silencio |
+| **El mensaje muere antes de salir** | El payload es correcto y el handler existe, pero algo lo descarta en el camino — un guard, un destino que no resuelve, un `await` que nadie espera |
+| **Estado que se escribe y nadie lee** | Un campo se mantiene al día en cada ciclo. Ningún fichero lo consulta. Buscar lecturas, no escrituras |
+| **El guard se rinde antes que el mecanismo** | Un reintento con backoff perfecto detrás de una comprobación que lanza primero: la rama del reintento es inalcanzable |
+| **Conectado a medias** | Dos módulos que deberían fusionarse comparten una pieza (un token, una constante) y cada uno mantiene el resto por su cuenta |
+| **El comentario justifica lo que no ocurre** | Un docblock explica con detalle una condición que, medida, no se da. La prosa convence; el código no la ejerce |
+| **La espera protege de una carrera inexistente** | Un buffer fijo "por si acaso" delante de algo que ya está garantizado por otra vía |
 
 **Cómo auditarlo — la sonda:**
 
@@ -13254,13 +13252,13 @@ Los veintiséis ejes anteriores auditan **el código**. Este audita **aquello co
 
 El daño de un segundo camino no es la duplicación: es que **esconde que el primero está roto**. Mientras el fallback funcione, nadie se entera de que la ruta principal murió, y el diagnóstico se vuelve imposible porque el síntoma no aparece donde está la causa.
 
-Casos reales del proyecto, los tres con la misma firma:
+Dónde aparecen dos caminos para una misma decisión:
 
-| Decisión | Camino 1 | Camino 2 | Qué escondía |
-|---|---|---|---|
-| Retirar el CSP en tests | `js/server.js` (solo `upgrade-insecure-requests`) | `stripCSPForTesting()` (la meta **entera**) | Que el culpable era la directiva de upgrade. Además dejaba la suite **sin CSP**, así que ninguna violación se detectaba |
-| Pedir datos por red | `api-client.js` → `fetchWithRetry()` | `data-loader.js` → `fetchFromAPI()` (sin reintento ni timeout) | Que los cuatro reintentos no se alcanzan nunca (§16.1b) |
-| Apagar el GPS | el guard `activo && watchId` | `desactivarGPS()` | Nada: no tenía ni un llamador. El camino muerto sobrevivió meses porque el vivo funcionaba |
+| Decisión | Síntoma de que hay dos |
+|---|---|
+| **Servir configuración distinta a los tests que a producción** | El arnés retira o sustituye algo que en producción sí está. Lo que el test valida deja de ser lo que el usuario ejecuta |
+| **Pedir datos por red** | Dos módulos con su propio `fetch` contra los mismos endpoints, con garantías distintas (uno reintenta, el otro no; uno tiene timeout, el otro no) |
+| **Apagar o encender un recurso compartido** | Un guard que decide, y además una función explícita que hace lo mismo. Mientras el guard funcione, nadie nota si la función está muerta o rota |
 
 **Cómo auditarlo:** por cada decisión que el sistema toma, contar cuántos mecanismos pueden resolverla. Si hay dos, preguntar cuál está roto sin que nadie se entere — y comprobarlo desactivando el otro.
 
@@ -13293,14 +13291,14 @@ Antes de concluir *"esto no funciona en \<motor\>"*, reproducirlo con un **segun
 
 #### 27.5 Una explicación detallada es el mejor disfraz
 
-Todos los casos de arriba venían con un comentario seguro y bien redactado. El EJE 24 ya lo advierte —*"código, documentación y test en verde coincidiendo es la señal MÁS sospechosa"*— y aun así funcionó, porque **una explicación se lee como evidencia**.
+Un comentario seguro y bien redactado no es prueba de nada. Estas son las formas típicas en que la prosa afirma algo que la medición desmiente:
 
-| Lo que decía el comentario | Lo que se midió |
+| Lo que suele decir el comentario | Lo que hay que medir |
 |---|---|
-| "SSL connect error — limitación del arnés" (×8 ficheros) | Era `upgrade-insecure-requests`; hoy carga con 0 peticiones fallidas |
-| "`'unsafe-inline'` no cubre `<script type=module>` inline en WebKit" | 0 violaciones de CSP y 0 errores con el CSP real |
-| "El postMessage puede llegar antes de que exista el handler" | El handler ya está registrado en `domcontentloaded` (12-18 ms) |
-| "Mapa local para responder a postMessage directos" | `__local_controladores`: 0 lecturas en todo el repo |
+| "Limitación del arnés / del navegador" | Cargar con la configuración real y contar peticiones fallidas. Suele ser una directiva concreta, no el arnés |
+| "Esta cabecera no cubre tal caso" | Contar violaciones reales con la cabecera puesta, en el motor que supuestamente falla |
+| "El mensaje puede llegar antes de que exista el handler" | Medir cuándo queda registrado el handler. Los `<script type="module">` son diferidos: suele estar listo mucho antes |
+| "Este mapa/caché local hace falta para X" | Contar **lecturas**, no escrituras. Un almacén que solo se rellena no hace falta para nada |
 
 **La regla operativa:** cuanto más convincente es el comentario, antes hay que medir lo que afirma. Un mecanismo sin explicar levanta sospechas solo; uno bien explicado se salta la revisión.
 
