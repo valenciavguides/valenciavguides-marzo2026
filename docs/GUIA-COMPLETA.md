@@ -11866,8 +11866,9 @@ function _esperarHijoListo(iframeId) {
     if (globalThis.__stateManager && typeof globalThis.__stateManager.crearPromiseHijoListo === 'function') {
         return globalThis.__stateManager.crearPromiseHijoListo(iframeId);
     }
+    // Fallback simple sin sleep (solo verificar estado actual)
     return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
+        setTimeout(() => {
             if (globalThis.estadoPadre.hijosInicializados.has(iframeId)) {
                 resolve();
             } else {
@@ -12225,15 +12226,17 @@ Esta sección documenta restricciones de diseño que no deben violarse. Son inva
 **Dónde sí debe estar la limpieza** (patrón correcto — todos los hijos excepto hijo6):
 
 ```javascript
-globalThis.addEventListener('pagehide', () => {
-    if (globalThis.messagingAdapter?._listenerRegistry) {
-        for (const [tipo, fn] of globalThis.messagingAdapter._listenerRegistry) {
-            globalThis.removeEventListener(tipo, fn);
+globalThis.addEventListener('pagehide', function() {
+    if (globalThis.messagingAdapter && globalThis.messagingAdapter._listenerRegistry) {
+        for (const listener of globalThis.messagingAdapter._listenerRegistry.values()) {
+            globalThis.removeEventListener('message', listener);
         }
         globalThis.messagingAdapter._listenerRegistry.clear();
     }
 });
 ```
+
+**El primer argumento es `'message'`, no la clave del `Map`** — ver §28.3 para por qué recorrer `.values()` en vez de `[tipo, fn]`.
 
 Para el estado por archivo, ver §28.5.
 
