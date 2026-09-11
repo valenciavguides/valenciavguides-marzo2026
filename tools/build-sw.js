@@ -92,7 +92,6 @@ const FICHEROS_FUERA = [
                         // de su propia salida y nunca convergería (reescritura infinita)
     'js/server.js',     // servidor, nunca llega al navegador
     'package.json', 'package-lock.json', 'playwright.config.js', 'eslint.config.js',
-    '_inventario_timers.js',
 ];
 
 function esDelShell(rel) {

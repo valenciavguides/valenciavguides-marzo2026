@@ -8169,6 +8169,7 @@ proyecto/
 │   ├── inventory-conexiones.js       ← Genera las tablas de §37.2 y §37.4
 │   ├── verificar-mensajeria.js       ← Genera la tabla de §37.3 (emisores/receptores por tipo)
 │   ├── codigo-muerto.js              ← Funciones sin llamador y campos de estado solo-escritura
+│   ├── inventario-timers.js         ← Los setTimeout/setInterval/watchPosition de producción (`npm run inventory:timers`)
 │   └── ...                           (verificar-media, verificar-docs, verificar-esperas, verificar-totales-indice, renumber-pantallas, generar-guiones-aventuras, generar-tramos-para-videos, watch-sw)
 │
 ├── backend/                          ← **Vacío.** Reservado para los JSON de la API cuando exista (§10.2)
@@ -8233,6 +8234,7 @@ Abre `http://localhost:8080/codigo-padre.html` en el navegador (o simplemente `h
 | `npm run inventory:file` | Inventario de funciones agrupado por archivo |
 | `npm run inventory:conexiones` | Genera la tabla de §37.2: qué identificadores cruzan entre bloques `<script>` inline, en los 11 ficheros que tienen dos o más (`tools/inventory-conexiones.js`) |
 | `npm run inventory:assets` | Mismo script con `--assets`: genera la tabla de §37.4, imágenes usadas en 2 o más ficheros |
+| `npm run inventory:timers` | Inventario de `setTimeout`/`setInterval`/`await sleep(`/`.watchPosition(` en el código de producción — `tests/`, `docs/` y `tools/` quedan fuera (`tools/inventario-timers.js`). Es la materia prima de los EJE 23 y 26: un temporizador suelto no dice nada, el patrón sí. No es un trinquete y no falla nunca — complementa a `verificar-esperas`, que solo mira `page.waitForTimeout()` dentro de `tests/` |
 | `npm run verificar-media` | Comprueba tamaño, bitrate y perfil de imágenes, audios y vídeos antes de subirlos (`tools/verificar-media.js`) — obligatorio antes de añadir cualquier fichero de media, ver §15 |
 | `npm run verificar-esperas` | Trinquete contra las esperas ciegas de los tests E2E: cuenta los `page.waitForTimeout(n)` y falla si suben respecto a la base de `tools/esperas-base.json` (`tools/verificar-esperas.js`, EJE 23) |
 | `npm run verificar-totales` | Comprueba que los totales precalculados de `js/indice-aventuras.js` (paradas, tramos, retos, monumentos, audios de las 7 aventuras) siguen coincidiendo con los ficheros de datos reales (`tools/verificar-totales-indice.js`) |
