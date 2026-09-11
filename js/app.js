@@ -206,10 +206,10 @@ function withTimeout(promise, ms = 5000, desc = 'operation') {
 
 
 // ============================================================
-// NOTA: La función inicializar() ha sido movida a codigo-padre.html
-// siguiendo el patrón arquitectónico donde cada componente (padre o hijo)
-// tiene sus controladores y lógica de inicialización en su propio archivo HTML.
-// Las siguientes funciones export se mantienen como utilidades para el padre.
+// Este modulo no arranca nada por su cuenta: no tiene funcion de inicializacion.
+// Cada componente (el padre y cada hijo) registra sus controladores y hace su
+// arranque dentro de su propio HTML — el del padre es inline en su Script 1.
+// Lo que sale de aqui son utilidades que el padre importa.
 // ============================================================
 
 /**
@@ -1144,37 +1144,11 @@ globalThis.addEventListener('load', () => {
 // Controladores AUDIO implementados en audio-hijo3.html (hijo3)
 // Controladores NAVEGACIóN en funciones-mapa.js
 
-/**
- * Maneja la confirmación de inicialización de componentes.
- * Este controlador procesa las notificaciones de finalización de inicialización
- * de componentes, actualizando su estado y coordinando las acciones posteriores.
- * 
- * @param {Object} mensaje - Mensaje de confirmación
- * @param {string} mensaje.origen - ID del componente que envía la confirmación
- * @param {Object} mensaje.datos - Datos de confirmación
- * @param {string} mensaje.datos.componenteId - ID del componente inicializado
- * @param {string} mensaje.datos.estado - Estado de la inicialización ('inicializado', 'error', etc.)
- * @param {number} [mensaje.datos.timestamp] - Marca de tiempo de la inicialización
- * @param {string} [mensaje.datos.mensajeId] - ID del mensaje original (opcional)
- * @param {Object} [mensaje.datos.metricas] - Métricas de rendimiento de la inicialización
- * @param {Object} [mensaje.datos.detalles] - Detalles adicionales de la inicialización
- */
-// Los tipos SISTEMA.INICIALIZACION_COMPLETADA, SISTEMA.COMPONENTE_INICIALIZADO y
-// SISTEMA.INICIALIZACION_FINALIZADA no tienen handler activo en ningún archivo.
-// Son tipos definidos en constants.js pero no se usan en la codebase actual.
+// Quien avisa de que un hijo esta listo es SISTEMA.HIJO_PREPARADO; su handler vive en
+// codigo-padre.html y de ahi sale la llamada a mensajeria.registrarHijo() (~L7485).
+// En este fichero no hay ningun handler de inicializacion.
 
-// ❌ CONTROLADOR RESPUESTA_PARADA (singular) ELIMINADO - OBSOLETO
-// El sistema actual usa NAVEGACION.RESPUESTA_DATOS_PARADAS para recibir arrays completos
-// y DATOS.COORDENADAS_PARADAS_REQUEST/RESPONSE para solicitudes específicas
-
-// Confirmado: No hay dependencias de generarHashContenido, configurarUtils, registrarListener, removerListener o removerTodosLosListeners.
-
-// ============================================================
-// NOTA: La inicialización de la aplicación se realiza en codigo-padre.html
-// La función inicializar() fue eliminada - la inicialización ahora es inline en Script 1
-// ============================================================
-
-// Add: Logic to handle connection loss
+// Logica para la perdida de conexion
 /**
  * Maneja la pérdida de conexión
  * @param {Object} estado - Estado global de la aplicación
@@ -1375,46 +1349,10 @@ async function ejecutarAccionCoordinada(accion) {
 // exportada coordinarAccion() y en los handlers registrados en el script
 // inline de codigo-padre.html (~línea 2087).
 
-/**
- * Maneja las respuestas de datos de múltiples paradas (PUSH NOTIFICATION).
- * Este controlador procesa la información de varias paradas recibidas
- * de un componente del sistema, como el módulo de datos o un servicio externo.
- * 
- * ?? IMPORTANTE: Este es un controlador de PUSH (no request/response).
- * Se usa cuando el padre o un servicio ENVÍA actualizaciones de paradas de forma
- * asíncrona (no solicitadas), como notificaciones de cambios.
- * 
- *
- * @param {Object} mensaje - Mensaje con los datos de las paradas
- * @param {string} mensaje.origen - ID del componente que envía la respuesta
- * @param {Object} mensaje.datos - Datos de las paradas
- * @param {Array<Object>} mensaje.datos.paradas - Lista de objetos de paradas
- * @param {string} mensaje.datos.paradas[].paradaId - Identificador único de la parada
- * @param {string} [mensaje.datos.paradas[].nombre] - Nombre de la parada
- * @param {Object} mensaje.datos.paradas[].ubicacion - Coordenadas de ubicación {lat: number, lng: number}
- * @param {Array<Object>} [mensaje.datos.paradas[].rutas] - Rutas que pasan por esta parada
- * @param {Object} [mensaje.datos.paradas[].metadatos] - Metadatos adicionales de la parada
- * @param {string} [mensaje.datos.paradas[].estado] - Estado de la parada
- * @param {Object} [mensaje.datos.metadatos] - Metadatos adicionales del conjunto de paradas
- * @param {string} [mensaje.datos.estado] - Estado general del conjunto de paradas
- * @param {string} [mensaje.datos.mensajeId] - ID del mensaje original que solicitó los datos
- * @param {boolean} [mensaje.datos.actualizacionParcial=false] - Indica si es una actualización parcial
- * @param {boolean} [mensaje.datos.notificarSistema=true] - Si se debe notificar a otros componentes
- * @param {boolean} [mensaje.datos.requiereConfirmacion=true] - Si se requiere confirmación de recepción
- * 
- * @example
- * // USO: Enviar actualización desde el padre
- * enviarMensaje({
- *     tipo: TIPOS_MENSAJE.NAVEGACION.RESPUESTA_DATOS_PARADAS,
- *     destino: 'broadcast', // O un hijo específico
- *     datos: {
- *         paradas: [...],
- *         actualizacionParcial: false,
- *         notificarSistema: true
- *     }
- * });
- */
-// El handler de NAVEGACION.RESPUESTA_DATOS_PARADAS está registrado en codigo-padre.html.
+// NAVEGACION.RESPUESTA_DATOS_PARADAS no se maneja aqui: lo emite codigo-padre.html y lo
+// reciben hijo2 (coordenadas-hijo2.html) y hijo5 (boton-casa-hijo5.html), cada uno con su
+// propio registrarControladorSeguro(). El payload real es { paradas, aventura?, timestamp },
+// y cada parada tiene la forma que le da normalizarParada() en js/utils.js.
 
 // --- Automatic resend logic for CAMBIO_MODO on NACK with esperarPermiso ---
 // pendingModeChanges: hijoId -> { modo, datos, intentos, nextAttemptAt }
