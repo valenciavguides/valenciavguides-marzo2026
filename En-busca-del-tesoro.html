@@ -1050,8 +1050,29 @@
   </div>
 
   <script>
-    // Logger wrapper — avoids direct console usage (SonarLint S106)
-    const _log = { info: Function.prototype, warn: Function.prototype, error: Function.prototype, debug: Function.prototype, log: Function.prototype };
+    // Envoltorio de log de este fichero: delega en el logger central.
+    //
+    // NO convertir estos metodos en no-ops (`Function.prototype` y similares) para callar a
+    // SonarLint S106 o a la regla no-console de eslint. Las dos se callan igual delegando
+    // —el objeto que reciben no es `console`— y un no-op tira las 34 llamadas del fichero,
+    // entre ellas todos los fallos de carga de esta pantalla y el error de validacion de
+    // acceso de P13: se quedan sin salida a ninguna consola y el fallo pasa a ser invisible.
+    // Delegando, ademas, quedan bajo CONFIG.DEBUG.NIVEL_LOG como el resto del proyecto.
+    // Cubierto por tests/e2e/62-log-seleccion-no-es-mudo.spec.js.
+    //
+    // `globalThis.logger` se resuelve en CADA llamada, nunca aqui: lo publica el
+    // <script type="module"> de mas abajo, que es diferido y no ha corrido todavia cuando
+    // se evalua este bloque. Hasta que exista se cae a `console`, que es justo lo que hace
+    // falta para un fallo de arranque temprano.
+    //
+    // `.log` va a `.info` a proposito: `console` tiene `.log` y el logger no.
+    const _log = {
+      debug: (...a) => (globalThis.logger || console).debug(...a),
+      info:  (...a) => (globalThis.logger || console).info(...a),
+      warn:  (...a) => (globalThis.logger || console).warn(...a),
+      error: (...a) => (globalThis.logger || console).error(...a),
+      log:   (...a) => (globalThis.logger || console).info(...a),
+    };
     // ============================================================
     // ESTADO GLOBAL DE SELECCIÓN
     // ============================================================

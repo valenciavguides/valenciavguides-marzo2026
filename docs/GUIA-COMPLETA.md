@@ -4844,7 +4844,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-8d336a3e03f8'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ffc21f21945d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7742,6 +7742,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `57-llegada-tramo-recorrido.spec.js` | 9 | `_acumularDistanciaRecorrida()` y el 40 % de recorrido real que exige la llegada a un tramo, ejercitado **a paso humano** (1,4 m/s, lecturas a 1 Hz, ruido determinista) — el régimen que ningún otro test cubría, ver §36.27.6 — más que estar quieto no completa y que un corte de GPS no deja el contador clavado. |
 | `58-reporte-errores-no-controlados.spec.js` | 3 | `instalarReporteErroresAlPadre()` (`js/utils.js`, §10.17): los errores no capturados y las promesas rechazadas de un hijo viajan al padre como `SISTEMA.ERROR` con código `ERROR_NO_CONTROLADO`. Cubre la instalación solo en iframe, la deduplicación por firma, el tope de 20 con su aviso, y la cola de los errores anteriores a que exista la mensajería. |
 | `59-nivel-de-log.spec.js` | 5 | El nivel de log es configurable de verdad (§22.3): `setNivel(NONE)` se aplica en vez de rechazarse (NL-1); un nivel inválido no cambia nada (NL-2); con `ERROR` solo pasan los errores (NL-3); con `NONE` no pasa nada, ni los errores (NL-4); y cambiar `CONFIG.DEBUG.NIVEL_LOG` en caliente cambia lo que sale por consola y se revierte al restaurarlo — medido por efecto observable, no comparando `getNivel()` contra el valor configurado, que hoy coincidiría solo o no (NL-5) |
+| `62-log-seleccion-no-es-mudo.spec.js` | 3 | El envoltorio `_log` de `En-busca-del-tesoro.html` escribe de verdad —se mide **salida en consola**, no que el objeto exista, porque un envoltorio no-op también existe y también tiene los cuatro métodos (LS-1)—, obedece a `CONFIG.DEBUG.NIVEL_LOG` en las dos direcciones (LS-2), y su `.log` va a `.info` porque `console` tiene `.log` y el logger no (LS-3) |
 | `61-puzzle-p10-tipos-desde-constants.spec.js` | 4 | El puzzle de P10 (`En-busca-del-tesoro.html`) reconoce los mensajes por `TIPOS_MENSAJE.PUZZLE`, no por cadenas escritas a mano: el bloque module publica el puente `globalThis.TIPOS_MENSAJE` y el `<script>` clásico lo lee (PZ-1); un `PUZZLE.COMPLETADO`/`TIMEOUT` tipado saca el botón de continuar (PZ-2) y el formato legacy también (PZ-3); y un mensaje ajeno **sin** campo `tipo` no lo saca (PZ-4) — sin el puente, comparar contra los campos de un objeto inexistente sería comparar `undefined` con `undefined` |
 | `60-nivel-de-log-alcanza-hijos.spec.js` | 3 | El nivel alcanza también a los iframes: cada hijo publica el logger real en su propio `globalThis` — comprobado por la presencia de `setNivel`/`getNivel`, que `console` no tiene, no por que el objeto exista (NH-1); y bajar `NIVEL_LOG` a `NONE` cambia el nivel que devuelve el logger **de dentro del iframe**, no solo el del padre (NH-2). `puzzle.html` y `video-intro.html` — sub-iframes, no hijos directos — se abren en una ventana suelta y se comprueba lo mismo (NH-3): eslint no puede vigilarlos, porque el patrón `(globalThis.logger \|\| console)` no es literalmente `console`, así que este test es lo único que avisaría si volvieran a quedarse sin logger |
 
@@ -7967,7 +7968,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-8d336a3e03f8'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-ffc21f21945d'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8176,7 +8177,7 @@ proyecto/
 ├── backend/                          ← **Vacío.** Reservado para los JSON de la API cuando exista (§10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 60 specs; ver §18.3 para el listado completo y `npm run test:e2e:chromium` para el recuento actual
+│   └── e2e/                          ← Tests Playwright — 61 specs; ver §18.3 para el listado completo y `npm run test:e2e:chromium` para el recuento actual
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8654,7 +8655,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-8d336a3e03f8';
+const CACHE_VERSION = 'v-ffc21f21945d';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -10894,7 +10895,7 @@ El marcador es una píldora blanca (clase CSS `.monumento-marker` en `mapa-compl
 - **puzzleListener lifecycle**: `window._puzzleListener` almacena el listener activo; se elimina y sustituye en cada re-inicialización para evitar acumulación de listeners.
 - **Registro de handlers con fallbacks en cadena**: `registrarControlador_S1` → `sm.registrarManejador` es la vía primaria; si mensajería no está lista, cae a `__vv_manejadoresLocales` y encola en `__CONTROLADORES_PENDIENTES`, que se drena garantizadamente tras `mensajeriaReady`. El Set `__CONTROLADOR_REGISTRADOS` evita dobles registros. Diseño defensivo intencional, no una duplicación accidental.
 - **`NAVEGACION.SOLICITAR_DATOS_PARADAS`**: el padre lo maneja directamente desde `DATOS_PADRE` en memoria, sin capa de correlación intermedia.
-- **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
+- **Logging centralizado y verificado**: toda llamada de log en `js/**/*.js` y en los `<script>` de los HTML de producción pasa por `js/logger.js` (import directo donde el módulo lo permite, o el patrón `(globalThis.logger || console).X(...)` en scripts clásicos/pre-módulo). **`no-console` en verde no prueba que los logs lleguen a ninguna parte**: un envoltorio cuyos métodos sean no-ops (`Function.prototype`, `() => {}`) satisface la regla perfectamente y tira todos los mensajes. Lo que lo prueba es medir salida real en consola — `62-log-seleccion-no-es-mudo.spec.js` lo hace para el envoltorio `_log` de `En-busca-del-tesoro.html`. La regla ESLint `no-console` (en `eslint.config.js`, cubre tanto `js/**/*.js` como `*.html` desde `npm run lint`) impide que se cuele una llamada directa a `console.*` fuera de las excepciones documentadas por archivo (`js/logger.js`, `js/server.js`, `js/vendor/**`, `js/suppress-warnings.js`, y los scripts clásicos pre-módulo de los hijos, cada uno con su comentario explicando por qué el logger no está disponible ahí). `js/suppress-warnings.js` filtra ruido conocido sobrescribiendo `console.warn/error/debug` de forma global y muy temprana (antes de que cargue cualquier módulo) — como `logger.js` llama a esos mismos métodos de `console` internamente, el filtrado aplica también a los logs que pasan por el logger, sin necesidad de duplicar esa lógica.
 - **Verificación automática de emisor/receptor**: `npm run verificar-mensajeria` (`tools/verificar-mensajeria.js`) cruza cada tipo de `TIPOS_MENSAJE` contra quién lo emite y quién lo escucha en todo el proyecto, señalando tipos sin receptor, sin emisor, o sin ninguno de los dos. Es una heurística con falsos positivos conocidos (indirección vía variable, handlers registrados en una línea posterior a su definición) — cada hallazgo debe verificarse leyendo el código antes de actuar, tal como exige la metodología de auditoría (§35).
 - **Verificación automática de documentación desactualizada**: `npm run verificar-docs` (`tools/verificar-docs.js`) calcula qué ficheros HTML/JS/CSS cambiaron (working tree + commits sin empujar, o un rango con `--since=REF`) y señala, agrupadas por sección, las menciones de esos ficheros en esta guía — incluye ficheros borrados que sigan mencionados (p.ej., un fichero eliminado que siga citado en el árbol de carpetas de §20 varias ediciones después de borrarse). Busca por nombre de fichero, no por función/mensaje concreto, y no verifica que el texto sea correcto — solo evita el fallo de no pararse a mirar. Pensado para correr antes de cada `git push` que toque código de producción.
 
@@ -11855,7 +11856,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-8d336a3e03f8';
+const CACHE_VERSION = 'v-ffc21f21945d';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13300,6 +13301,7 @@ Un comentario seguro y bien redactado no es prueba de nada. Estas son las formas
 | "Esta cabecera no cubre tal caso" | Contar violaciones reales con la cabecera puesta, en el motor que supuestamente falla |
 | "El mensaje puede llegar antes de que exista el handler" | Medir cuándo queda registrado el handler. Los `<script type="module">` son diferidos: suele estar listo mucho antes |
 | "Este mapa/caché local hace falta para X" | Contar **lecturas**, no escrituras. Un almacén que solo se rellena no hace falta para nada |
+| "Wrapper de log para no usar `console` directamente" | Llamarlo y contar lo que sale por consola. Un envoltorio cuyos métodos no hacen nada calla al linter igual de bien que uno que funciona, y deja el subsistema entero sin diagnóstico |
 
 **La regla operativa:** cuanto más convincente es el comentario, antes hay que medir lo que afirma. Un mecanismo sin explicar levanta sospechas solo; uno bien explicado se salta la revisión.
 
