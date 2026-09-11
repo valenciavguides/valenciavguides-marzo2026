@@ -4301,7 +4301,6 @@
                 visualActivo: false, // Controla si polyline y emojis se muestran en modo AVENTURA
                 proximidadReal: false, // Distancia real ≤50m al destino activo (funciones-mapa.js) — a diferencia de visualActivo, nunca se activa solo por revelarse el trazado
             },
-            audioEscuchadoPorParada: new Map(), // Rastrea si el audio ha sido escuchado al menos una vez por parada
 
             monitoreo: {
                 metricas: {
@@ -13080,15 +13079,9 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 actualizarEstadoControlesAudioPadre();
 
-                // Registrar que el audio fue escuchado (estado de progresión; habilitar retos es responsabilidad de _procesarFinAudioElemento)
-                const modoActual = estado.modo?.actual || MODOS.CASA;
-                if (modoActual === MODOS.AVENTURA) {
-                    const paradaActual = estado.paradaActual;
-                    if (paradaActual) {
-                        estado.audioEscuchadoPorParada.set(paradaActual, true);
-                        (globalThis.logger || console).info(`${logPrefix} Audio escuchado registrado para parada ${paradaActual}`);
-                    }
-                }
+                // Que el audio de este elemento ha terminado lo registra pending.audio, en
+                // _procesarFinAudioElemento() — es lo que lee intentarCompletarElemento()
+                // junto a pending.llegada. Aqui no hace falta anotarlo por segunda vez.
 
                 // Registrar evento
                 registrarEventoScript2('AUDIO_FINALIZADO', {

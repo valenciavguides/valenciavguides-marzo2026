@@ -14,16 +14,20 @@
  *   2. CAMPOS DE ESTADO SOLO-ESCRITURA — propiedades a las que se asigna valor pero que nunca
  *      se leen. Son el caso más silencioso: el código parece vivo porque alguien lo mantiene.
  *   3. CONSTANTES SIN USO — declaradas y nunca referenciadas fuera de su propia línea.
+ *   4. CONTENEDORES QUE SOLO SE RELLENAN — `Map`/`Set` que se mutan (`.set`/`.add`) y nunca
+ *      se consultan (`.get`/`.has`/`.size`/iteración). La categoría 2 no los ve: busca
+ *      `objeto.campo = …` y un contenedor no se reasigna nunca, solo se muta.
  *
  * NO decide nada: imprime candidatos para revisarlos UNO A UNO. Tiene falsos positivos
  * conocidos y esperables — nombres alcanzados por string (`globalThis[nombre]`), APIs
  * pensadas para los tests, handlers registrados por tabla. Verificar antes de borrar.
  *
  * Uso:
- *   node tools/codigo-muerto.js              → las tres categorías
+ *   node tools/codigo-muerto.js              → las cuatro categorías
  *   node tools/codigo-muerto.js --funciones  → solo funciones sin llamador
  *   node tools/codigo-muerto.js --campos     → solo campos solo-escritura
  *   node tools/codigo-muerto.js --constantes → solo constantes sin uso
+ *   node tools/codigo-muerto.js --contenedores → solo Map/Set que nadie consulta
  */
 const fs = require('fs');
 const path = require('path');
@@ -168,6 +172,52 @@ function constantesSinUso() {
     return muertas;
 }
 
+// ── 4. Contenedores que solo se rellenan ───────────────────────────────────
+//
+// Un `Map`/`Set` nunca se REASIGNA: se declara una vez y se muta con `.set()`/`.add()`.
+// La categoría 2 busca `objeto.campo = …`, así que un contenedor así ni siquiera entra en
+// su lista de candidatos — es un punto ciego de clase entera, no un caso suelto.
+// (`audioEscuchadoPorParada` vivió así: un `.set()`, cero lecturas, invisible para la
+// categoría 2 porque nadie le asignó nunca nada con `=`.)
+//
+// Aquí se cuentan las MUTACIONES contra las CONSULTAS. Un contenedor que solo crece y
+// nunca se pregunta no responde a nadie: es una anotación que nadie lee.
+const MUTAN = ['set', 'add', 'push', 'unshift', 'delete', 'clear'];
+const CONSULTAN = ['get', 'has', 'size', 'length', 'keys', 'values', 'entries', 'forEach',
+    'find', 'filter', 'map', 'some', 'every', 'includes', 'indexOf', 'join', 'reduce', 'slice'];
+
+function contenedoresSoloEscritura() {
+    const decl = new Map();   // nombre -> { fichero, tipo }
+    for (const [rel, txt] of contenido) {
+        if (NO_ES_APP(rel)) continue;
+        // `campo: new Map()` en un literal, o `const x = new Set()`
+        for (const m of txt.matchAll(/(?:^[ \t]*(?:const|let|var)\s+|[,{]\s*)(_?[a-zA-Z][\w$]{3,})\s*[:=]\s*new\s+(Map|Set|WeakMap|WeakSet)\s*\(/gm)) {
+            if (!decl.has(m[1])) decl.set(m[1], { donde: rel, tipo: m[2] });
+        }
+    }
+    const muertos = [];
+    for (const [nombre, info] of decl) {
+        let total = 0, declara = 0, muta = 0, consulta = 0;
+        for (const [, txt] of contenido) {
+            total += (txt.match(new RegExp('\\b' + nombre + '\\b', 'g')) || []).length;
+            declara += (txt.match(new RegExp('\\b' + nombre + '\\s*[:=]\\s*new\\s+(?:Weak)?(?:Map|Set)\\b', 'g')) || []).length;
+            for (const met of MUTAN) muta += (txt.match(new RegExp('\\b' + nombre + '\\.' + met + '\\s*\\(', 'g')) || []).length;
+            for (const met of CONSULTAN) consulta += (txt.match(new RegExp('\\b' + nombre + '\\.' + met + '\\b', 'g')) || []).length;
+        }
+        // Todo lo que no sea su declaración, una mutación o una consulta es el contenedor
+        // ESCAPANDO del scope: `return mapa`, `return { k: mapa }`, `f(mapa)`. Quien lo
+        // recibe es su consumidor, y desde aquí no se ve qué hace con él.
+        //
+        // Esto no es prudencia genérica: sin ello la categoría daba 6 falsos positivos por
+        // cada acierto —`deepClone` devolviendo su clon, `mensajeria` devolviendo el Map
+        // nuevo dentro de un literal, `esperarRespuestas(_respuestasEntendidoActual, …)`—
+        // y una lista así no la mira nadie. Solo queda lo que se rellena y se queda quieto.
+        const escapa = total - declara - muta - consulta;
+        if (muta > 0 && consulta === 0 && escapa <= 0) muertos.push({ nombre, ...info, muta });
+    }
+    return muertos;
+}
+
 function imprimir(titulo, filas, formato) {
     console.log(`\n${'─'.repeat(78)}\n${titulo}\n${'─'.repeat(78)}`);
     if (!filas.length) { console.log('  (ninguno)'); return; }
@@ -183,6 +233,11 @@ if (!SOLO || SOLO === 'campos') {
     const c = camposSoloEscritura().sort((a, b) => a.campo.localeCompare(b.campo));
     imprimir('2. CAMPOS DE ESTADO SOLO-ESCRITURA (se asignan, nadie los lee)', c,
         (x) => `${x.campo.padEnd(42)} ${String(x.escrituras).padStart(2)} escrituras, ${String(x.lecturas).padStart(2)} lecturas   ${x.donde.join(', ')}`);
+}
+if (!SOLO || SOLO === 'contenedores') {
+    const m = contenedoresSoloEscritura().sort((a, b) => a.nombre.localeCompare(b.nombre));
+    imprimir('4. CONTENEDORES QUE SOLO SE RELLENAN (Map/Set mutados, nunca consultados)', m,
+        (x) => `${x.nombre.padEnd(42)} ${x.tipo.padEnd(8)} ${String(x.muta).padStart(2)} mutaciones, 0 consultas   ${x.donde}`);
 }
 if (!SOLO || SOLO === 'constantes') {
     const k = constantesSinUso().sort((a, b) => a.nombre.localeCompare(b.nombre));
