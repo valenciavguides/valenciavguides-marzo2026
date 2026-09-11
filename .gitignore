@@ -21,9 +21,16 @@ backend/node_modules/
 .cache/
 dist/
 
-# Artefactos de tests generados automáticamente (no trackear)
+# Artefactos de tests generados automáticamente (no trackear).
+# Las dos primeras líneas son las rutas por defecto de Playwright; las dos siguientes son
+# las que este proyecto configura de verdad en playwright.config.js (reporter html ->
+# tests/e2e/report/, reporter json -> tests/e2e/playwright-report.json). Sin ellas, cada
+# tanda de tests metía 1,3 MB de informe regenerado en el commit siguiente.
+# Si se cambia outputFolder/outputFile en playwright.config.js, cambiar también esto.
 test-results/
 playwright-report/
+tests/e2e/report/
+tests/e2e/playwright-report.json
 
 # Editor
 .vscode/

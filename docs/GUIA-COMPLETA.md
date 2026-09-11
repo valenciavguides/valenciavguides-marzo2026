@@ -7776,7 +7776,7 @@ node js/server.js
 npm run test:e2e:chromium
 ```
 
-El informe de fallos se guarda en `tests/e2e/report/`. Los artefactos de fallos individuales (screenshots, error-context) se generan en `test-results/` pero están en `.gitignore` — no se commitean.
+El informe de fallos se guarda en `tests/e2e/report/` (HTML) y `tests/e2e/playwright-report.json` (JSON) — las dos rutas salen de los `reporter` de `playwright.config.js`. Los tres destinos están en `.gitignore`, junto con los artefactos de fallos individuales (screenshots, error-context) de `test-results/`: **ninguno se commitea**, porque se regeneran enteros en cada tanda. Al cambiar `outputFolder`/`outputFile` en `playwright.config.js` hay que actualizar también `.gitignore` — los patrones por defecto de Playwright (`playwright-report/`) no cubren estas rutas.
 
 ---
 
