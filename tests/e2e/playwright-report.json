@@ -121,20 +121,20 @@
   },
   "suites": [
     {
-      "title": "45-texto-intro-fallback-idioma.spec.js",
-      "file": "45-texto-intro-fallback-idioma.spec.js",
+      "title": "11-constants-integrity.spec.js",
+      "file": "11-constants-integrity.spec.js",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "TI — cargarTextoIntro(): fallback traducido cuando falla la carga del texto (P11)",
-          "file": "45-texto-intro-fallback-idioma.spec.js",
-          "line": 63,
+          "title": "CI — Integridad de constantes y funciones globales",
+          "file": "11-constants-integrity.spec.js",
+          "line": 25,
           "column": 6,
           "specs": [
             {
-              "title": "TI-1. Fallo de red cargando párrafos en un idioma no español: el fallback sale en ese idioma, no en español fijo",
+              "title": "CI-1. GPS.VISUAL_ACTIVAR NO existe en TIPOS_MENSAJE (handler huérfano eliminado)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -149,12 +149,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4709,
+                      "duration": 4492,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-09-11T17:03:58.440Z",
+                      "startTime": "2026-09-11T17:41:24.149Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -162,13 +162,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "367833b2641aa2c35fe0-5a2510dfd2081d022f94",
-              "file": "45-texto-intro-fallback-idioma.spec.js",
-              "line": 64,
+              "id": "688b8754fc15f862cc73-ae1adbdfa139a415d6f0",
+              "file": "11-constants-integrity.spec.js",
+              "line": 35,
               "column": 3
             },
             {
-              "title": "TI-2. Carga correcta (sin fallo) sigue mostrando el texto real, no el fallback",
+              "title": "CI-2. GPS.VISUAL_DESACTIVAR NO existe en TIPOS_MENSAJE (handler huérfano eliminado)",
               "ok": true,
               "tags": [],
               "tests": [
@@ -183,12 +183,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2033,
+                      "duration": 2095,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-09-11T17:04:04.553Z",
+                      "startTime": "2026-09-11T17:41:30.311Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -196,153 +196,213 @@
                   "status": "expected"
                 }
               ],
-              "id": "367833b2641aa2c35fe0-36e22910cc811d30eca0",
-              "file": "45-texto-intro-fallback-idioma.spec.js",
+              "id": "688b8754fc15f862cc73-4ff2898cf891500ecba6",
+              "file": "11-constants-integrity.spec.js",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "CI-3a. GPS.ACTIVAR existe en TIPOS_MENSAJE",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2170,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-11T17:41:32.423Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "688b8754fc15f862cc73-ef82b0db5206a108d149",
+              "file": "11-constants-integrity.spec.js",
+              "line": 51,
+              "column": 3
+            },
+            {
+              "title": "CI-3b. GPS.DESACTIVAR existe en TIPOS_MENSAJE",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2059,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-11T17:41:34.607Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "688b8754fc15f862cc73-a88104775054d7a14ae4",
+              "file": "11-constants-integrity.spec.js",
+              "line": 57,
+              "column": 3
+            },
+            {
+              "title": "CI-3c. GPS.RESTRINGIDO existe en TIPOS_MENSAJE",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2044,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-11T17:41:36.683Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "688b8754fc15f862cc73-4156847126dfd8ea7c15",
+              "file": "11-constants-integrity.spec.js",
+              "line": 63,
+              "column": 3
+            },
+            {
+              "title": "CI-4. TIPOS_MENSAJE.CHAT.ESTADO_PADRE existe",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2095,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-11T17:41:38.745Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "688b8754fc15f862cc73-447925435a0604179aec",
+              "file": "11-constants-integrity.spec.js",
+              "line": 71,
+              "column": 3
+            },
+            {
+              "title": "CI-5a. limpiarDatosAventura está expuesta como función global",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2082,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-11T17:41:40.858Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "688b8754fc15f862cc73-dce97acba8c8394f04c8",
+              "file": "11-constants-integrity.spec.js",
+              "line": 79,
+              "column": 3
+            },
+            {
+              "title": "CI-5b. verificarTimeoutAventura está expuesta como función global",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2063,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-11T17:41:42.955Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "688b8754fc15f862cc73-4c1ed4f6c99ebad4ed61",
+              "file": "11-constants-integrity.spec.js",
               "line": 84,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "AI — cargarAudioIntro(): #btn-siguiente-audio-intro no se queda bloqueado sin audio real",
-          "file": "45-texto-intro-fallback-idioma.spec.js",
-          "line": 97,
-          "column": 6,
-          "specs": [
-            {
-              "title": "AI-1. Sin fichero real de audio (inglés): el botón se habilita directamente y el reproductor se oculta",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2022,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-09-11T17:04:06.601Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "367833b2641aa2c35fe0-39a5f34d3a52933d24ea",
-              "file": "45-texto-intro-fallback-idioma.spec.js",
-              "line": 98,
-              "column": 3
-            },
-            {
-              "title": "AI-2. Con fichero real de audio (español): el botón NO se habilita solo — sigue exigiendo el evento play real",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1937,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-09-11T17:04:08.637Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "367833b2641aa2c35fe0-ee2f2b536e2720a8546d",
-              "file": "45-texto-intro-fallback-idioma.spec.js",
-              "line": 114,
-              "column": 3
-            },
-            {
-              "title": "AI-3. Pulsar el botón propio reproduce el audio real, cambia el icono a pausa, y habilita \"siguiente\"",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 3048,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-09-11T17:04:10.594Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "367833b2641aa2c35fe0-ddffbf2a9b2ee62d34d9",
-              "file": "45-texto-intro-fallback-idioma.spec.js",
-              "line": 130,
-              "column": 3
-            },
-            {
-              "title": "AI-4. _posicionarGuanteSobreBoton() calcula left/top a partir de la posición real del botón, no una coordenada fija adivinada",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1778,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-09-11T17:04:13.658Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "367833b2641aa2c35fe0-cfe920f7acdd2fd618e7",
-              "file": "45-texto-intro-fallback-idioma.spec.js",
-              "line": 167,
               "column": 3
             }
           ]
@@ -352,9 +412,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-11T17:03:56.820Z",
-    "duration": 18909.771999999997,
-    "expected": 6,
+    "startTime": "2026-09-11T17:41:22.343Z",
+    "duration": 23096.088,
+    "expected": 8,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

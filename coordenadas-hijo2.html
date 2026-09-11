@@ -355,7 +355,7 @@
 
     <!-- ARRAY DE COORDENADAS - COMENTADO: Los datos ahora vienen centralizados del padre via CARGAR_COORDENADAS -->
     <script type="module">
-        import { normalizarParadas, retryUntilAvailable, resolverIdPadre } from './js/utils.js';
+        import { normalizarParadas, retryUntilAvailable, resolverIdPadre, esIdDeTramo } from './js/utils.js';
 
         // ============================================================
         // 🔄 DATOS CENTRALIZADOS: Las coordenadas ahora se reciben del padre
@@ -788,7 +788,7 @@ function activarBoton(boton, titulo = '') {
 
 function _actualizarBotonVideo(elementosDOM, retoActivo, tipoParadaActual, idParadaActual) {
     if (!elementosDOM.btnVideo) return;
-    const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    const esTramo = tipoParadaActual === 'tramo' || esIdDeTramo(idParadaActual);
     if (retoActivo) {
         desactivarBoton(elementosDOM.btnVideo);
         logger.debug('🎥 Botón video DESACTIVADO: reto activo');
@@ -807,7 +807,7 @@ function _actualizarBotonGps(elementosDOM, modo, retoActivo, tipoParadaActual, i
         desactivarBoton(elementosDOM.btnAvanzar);
         return;
     }
-    const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    const esTramo = tipoParadaActual === 'tramo' || esIdDeTramo(idParadaActual);
     if (modo === 'casa') {
         desactivarBoton(elementosDOM.btnAvanzar);
         logger.debug('🛰️ Botón GPS DESACTIVADO: modo casa (forzado)');
@@ -1036,7 +1036,7 @@ function verificarDistanciaYActualizarBotones() {
         return;
     }
 
-    const esTramo = tipoParadaActual === 'tramo' || (idParadaActual && idParadaActual.startsWith('TR-'));
+    const esTramo = tipoParadaActual === 'tramo' || esIdDeTramo(idParadaActual);
     // El aviso de "fuera de rango" mide desviación del CAMINO, no cercanía al destino —
     // en un tramo, comparar contra el punto de fin marcaba "fuera de rango" nada más
     // empezar a caminar (el propio punto de inicio ya puede estar a varias decenas de
@@ -1286,7 +1286,7 @@ elementosDOM.btnImagen?.addEventListener('click', async () => {
             .filter(url => url && typeof url === 'string' && url.trim() !== '');
         const urlImagen = todasImagenes.length > 0 ? todasImagenes[0] : null;
         const hayImagen = todasImagenes.length > 0;
-        const tipoEntrada = (parada.id && parada.id.startsWith('TR')) || estadoComponente.tipoParadaActual === 'tramo' ? 'tramo' : 'parada';
+        const tipoEntrada = esIdDeTramo(parada.id) || estadoComponente.tipoParadaActual === 'tramo' ? 'tramo' : 'parada';
         const mapaNumero = parada.mapa_numero == null ? null : parada.mapa_numero;
 
         if (!hayImagen) logger.warn(`[hijo2] No hay imagen para parada ${estadoComponente.idParadaActual} - abriendo ventana con mensaje`);
@@ -1332,7 +1332,7 @@ elementosDOM.btnVideo?.addEventListener('click', async () => {
         logger.info(`[hijo2][BOTON_VIDEO] ID actual confirmado: "${estadoComponente.idParadaActual}" (tipo: ${typeof estadoComponente.idParadaActual})`);
 
         const esTramo = estadoComponente.tipoParadaActual === 'tramo' ||
-                       (estadoComponente.idParadaActual && estadoComponente.idParadaActual.includes('-TR-'));
+                       esIdDeTramo(estadoComponente.idParadaActual);
 
         if (esTramo && !estadoComponente.retoActivo) {
             await _reproducirVideoParada(estadoComponente.idParadaActual);
@@ -2216,7 +2216,7 @@ try {
                 // ✅ Actualizar tipoParadaActual e idParadaActual para que los botones reflejen
                 // el elemento seleccionado (especialmente el botón de video en modo casa)
                 const tipoDetectado = coordenadasFiltradas[0]?.tipo
-                    || (paradaId.startsWith('TR-') ? 'tramo' : 'parada');
+                    || (esIdDeTramo(paradaId) ? 'tramo' : 'parada');
                 estadoComponente.idParadaActual = paradaId;
                 estadoComponente.tipoParadaActual = tipoDetectado;
                 actualizarEstadoBotones();
@@ -2372,7 +2372,7 @@ try {
             // ✅ Si se especifica paradaActual, actualizar el estado
             if (mensaje.datos.paradaActual) {
                 estadoComponente.idParadaActual = mensaje.datos.paradaActual;
-                estadoComponente.tipoParadaActual = (mensaje.datos.paradaActual.startsWith('TR-') || mensaje.datos.paradaActual.includes('-TR-')) ? 'tramo' : 'parada';
+                estadoComponente.tipoParadaActual = esIdDeTramo(mensaje.datos.paradaActual) ? 'tramo' : 'parada';
 
                 logger.debug(`${logPrefix} Parada actual actualizada: ${mensaje.datos.paradaActual}`);
             }
@@ -2576,7 +2576,7 @@ try {
             const datos = mensaje?.datos || {};
             const parada_id = datos.parada_id || datos.paradaId || null;
             const tipoRecibido = datos.tipo ||
-                (parada_id && parada_id.includes('-TR-') ? 'tramo' : 'parada');
+                (esIdDeTramo(parada_id) ? 'tramo' : 'parada');
 
             if (parada_id) estadoComponente.idParadaActual = parada_id;
             estadoComponente.tipoParadaActual = tipoRecibido;

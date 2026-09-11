@@ -4844,7 +4844,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-ffc21f21945d'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-319c889ac4f7'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7742,6 +7742,7 @@ npm run test:e2e:report      # Abre el informe HTML del último test
 | `57-llegada-tramo-recorrido.spec.js` | 9 | `_acumularDistanciaRecorrida()` y el 40 % de recorrido real que exige la llegada a un tramo, ejercitado **a paso humano** (1,4 m/s, lecturas a 1 Hz, ruido determinista) — el régimen que ningún otro test cubría, ver §36.27.6 — más que estar quieto no completa y que un corte de GPS no deja el contador clavado. |
 | `58-reporte-errores-no-controlados.spec.js` | 3 | `instalarReporteErroresAlPadre()` (`js/utils.js`, §10.17): los errores no capturados y las promesas rechazadas de un hijo viajan al padre como `SISTEMA.ERROR` con código `ERROR_NO_CONTROLADO`. Cubre la instalación solo en iframe, la deduplicación por firma, el tope de 20 con su aviso, y la cola de los errores anteriores a que exista la mensajería. |
 | `59-nivel-de-log.spec.js` | 5 | El nivel de log es configurable de verdad (§22.3): `setNivel(NONE)` se aplica en vez de rechazarse (NL-1); un nivel inválido no cambia nada (NL-2); con `ERROR` solo pasan los errores (NL-3); con `NONE` no pasa nada, ni los errores (NL-4); y cambiar `CONFIG.DEBUG.NIVEL_LOG` en caliente cambia lo que sale por consola y se revierte al restaurarlo — medido por efecto observable, no comparando `getNivel()` contra el valor configurado, que hoy coincidiría solo o no (NL-5) |
+| `63-es-id-de-tramo.spec.js` | 3 | `esIdDeTramo()` (`js/utils.js`) es la única autoridad sobre "¿este id es de un tramo?". Reconoce las formas reales y rechaza paradas, referencias y lo que no sea cadena (TR-1); recorre las 846 entradas de `coordenadas-aventuras.js` y comprueba que el helper coincide con su campo `.tipo` en **todas**, y que **ninguna** empieza por `TR` — que es lo que hacía inútil a `startsWith('TR-')` (TR-2); y un tramo cuyo filtro no encuentra entrada se sigue clasificando como tramo (TR-3, el único de los cinco que era un fallo alcanzable) |
 | `62-log-seleccion-no-es-mudo.spec.js` | 3 | El envoltorio `_log` de `En-busca-del-tesoro.html` escribe de verdad —se mide **salida en consola**, no que el objeto exista, porque un envoltorio no-op también existe y también tiene los cuatro métodos (LS-1)—, obedece a `CONFIG.DEBUG.NIVEL_LOG` en las dos direcciones (LS-2), y su `.log` va a `.info` porque `console` tiene `.log` y el logger no (LS-3) |
 | `61-puzzle-p10-tipos-desde-constants.spec.js` | 4 | El puzzle de P10 (`En-busca-del-tesoro.html`) reconoce los mensajes por `TIPOS_MENSAJE.PUZZLE`, no por cadenas escritas a mano: el bloque module publica el puente `globalThis.TIPOS_MENSAJE` y el `<script>` clásico lo lee (PZ-1); un `PUZZLE.COMPLETADO`/`TIMEOUT` tipado saca el botón de continuar (PZ-2) y el formato legacy también (PZ-3); y un mensaje ajeno **sin** campo `tipo` no lo saca (PZ-4) — sin el puente, comparar contra los campos de un objeto inexistente sería comparar `undefined` con `undefined` |
 | `60-nivel-de-log-alcanza-hijos.spec.js` | 3 | El nivel alcanza también a los iframes: cada hijo publica el logger real en su propio `globalThis` — comprobado por la presencia de `setNivel`/`getNivel`, que `console` no tiene, no por que el objeto exista (NH-1); y bajar `NIVEL_LOG` a `NONE` cambia el nivel que devuelve el logger **de dentro del iframe**, no solo el del padre (NH-2). `puzzle.html` y `video-intro.html` — sub-iframes, no hijos directos — se abren en una ventana suelta y se comprueba lo mismo (NH-3): eslint no puede vigilarlos, porque el patrón `(globalThis.logger \|\| console)` no es literalmente `console`, así que este test es lo único que avisaría si volvieran a quedarse sin logger |
@@ -7968,7 +7969,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-ffc21f21945d'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-319c889ac4f7'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8177,7 +8178,7 @@ proyecto/
 ├── backend/                          ← **Vacío.** Reservado para los JSON de la API cuando exista (§10.2)
 │
 ├── tests/                            ← Tests: unitarios (Jest), E2E (Playwright), HTML manuales
-│   └── e2e/                          ← Tests Playwright — 61 specs; ver §18.3 para el listado completo y `npm run test:e2e:chromium` para el recuento actual
+│   └── e2e/                          ← Tests Playwright — 62 specs; ver §18.3 para el listado completo y `npm run test:e2e:chromium` para el recuento actual
 │
 └── docs/                             ← Esta documentación
     ├── GUIA-COMPLETA.md              ← Este documento
@@ -8655,7 +8656,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-ffc21f21945d';
+const CACHE_VERSION = 'v-319c889ac4f7';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11856,7 +11857,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-ffc21f21945d';
+const CACHE_VERSION = 'v-319c889ac4f7';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
@@ -13302,6 +13303,7 @@ Un comentario seguro y bien redactado no es prueba de nada. Estas son las formas
 | "El mensaje puede llegar antes de que exista el handler" | Medir cuándo queda registrado el handler. Los `<script type="module">` son diferidos: suele estar listo mucho antes |
 | "Este mapa/caché local hace falta para X" | Contar **lecturas**, no escrituras. Un almacén que solo se rellena no hace falta para nada |
 | "Wrapper de log para no usar `console` directamente" | Llamarlo y contar lo que sale por consola. Un envoltorio cuyos métodos no hacen nada calla al linter igual de bien que uno que funciona, y deja el subsistema entero sin diagnóstico |
+| Un `x.startsWith(PREFIJO)` / `x.endsWith(...)` sobre un identificador compuesto | Pasarle los identificadores **reales** del fichero de datos y contar cuántos acierta. Un predicado que nunca acierta no lanza: devuelve `false`, la disyunción que lo rodea sigue adelante con el otro operando, y la red de seguridad parece puesta sin estarlo. Mala señal adicional: la misma pregunta resuelta con **más de un** predicado distinto en el mismo fichero |
 
 **La regla operativa:** cuanto más convincente es el comentario, antes hay que medir lo que afirma. Un mecanismo sin explicar levanta sospechas solo; uno bien explicado se salta la revisión.
 

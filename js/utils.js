@@ -153,6 +153,26 @@ function _resolverDesdeArray(input, idsSet, resultado) {
     resultado.ids = Array.from(idsSet);
 }
 
+/**
+ * ¿Este id es de un tramo? ÚNICO sitio donde eso se decide a partir de un id.
+ *
+ * El discriminante es el segmento `-TR-`, no el principio de la cadena: los ids reales
+ * llevan delante la aventura (`Av1-TR-1`, `Av34km-TR-12`), así que ni `startsWith('TR-')`
+ * ni `startsWith('TR')` aciertan jamás — medido sobre `js/coordenadas-aventuras.js`, 0 de
+ * sus 846 ids empiezan por TR y 240 contienen `-TR-`.
+ *
+ * Un test que nunca acierta no da error: devuelve `false`, el `||` que suele rodearlo sigue
+ * adelante con el otro operando, y la red de seguridad parece puesta sin estarlo. Por eso
+ * esto es UNA función y no una comparación repetida: cuando la misma decisión se toma en
+ * ocho sitios, lo que ocurre es que unos se arreglan y otros no.
+ *
+ * Esto es solo para cuando el id es lo ÚNICO que hay. Si se dispone de la entrada real de
+ * `coordenadas-aventuras.js`, mandan su campo `.tipo` y esta función sobra.
+ */
+export function esIdDeTramo(id) {
+    return typeof id === 'string' && id.includes('-TR-');
+}
+
 export function resolverIdsParada(input) {
     const resultado = { paradaId: null, padreId: null, ids: [] };
     if (!input) return resultado;
