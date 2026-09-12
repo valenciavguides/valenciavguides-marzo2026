@@ -9239,7 +9239,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // siempre ganan (cierran cualquier otro cartel y se muestran); los 3 recordatorios
         // nunca fuerzan nada — si hay cualquier otro cartel visible, esperan a que se cierre
         // (su propio setInterval vuelve a comprobar 2s después, sin perder el aviso).
-        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto', 'cartel-aviso-progreso'];
+        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto', 'cartel-aviso-progreso', 'cartel-rescate-tramo'];
         function _ocultarCualquierCartel() {
             _TODOS_LOS_CARTELES_IDS.forEach(id => document.getElementById(id)?.remove());
         }
@@ -9595,6 +9595,76 @@ await _comprobarReanudacionAventura(logPrefix);
             }
         }
         globalThis.mostrarCartelBienvenidaParada = mostrarCartelBienvenidaParada;
+
+        /**
+         * Cartel del rescate de un tramo por TTL (§"Rescate de un tramo bloqueado").
+         *
+         * POR QUE EXISTE
+         *
+         * Cuando el barrido de TTL desbloquea un tramo cuya llegada no se pudo confirmar,
+         * el elemento se completa y salia el cartel NORMAL de compleción — el mismo que si
+         * el usuario hubiera llegado andando. El usuario no tenia forma de distinguir un
+         * rescate de una llegada real: un segundo camino silencioso, que es exactamente lo
+         * que este proyecto no admite (un plan B vale, pero tiene que ser RUIDOSO).
+         *
+         * Este cartel SUSTITUYE al de compleción en ese caso, no se suma: marcarParadaCompletada()
+         * consulta `estado._rescateTramoPendiente` y, si coincide, muestra este y no aquel.
+         *
+         * Nunca dice "ha llegado". Dice que no se pudo confirmar, que se da por completado
+         * de forma excepcional, y cuantas excepciones van de cuantas — para que el usuario
+         * sepa que es un recurso contado y no una via alternativa.
+         */
+        async function _mostrarCartelRescateTramo(nombreTramo, usadas, total) {
+            try {
+                const { TRADUCCIONES_RESCATE_TRAMO } = await import('./js/traducciones-ui.js');
+                const idioma = globalThis.idiomaSeleccionado || 'es';
+                const t = TRADUCCIONES_RESCATE_TRAMO?.[idioma] || TRADUCCIONES_RESCATE_TRAMO?.es;
+                if (!t) {
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_RESCATE_TRAMO] Traducciones no disponibles');
+                    return;
+                }
+                const _escapar = (v) => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                const mensaje = String(t.mensaje)
+                    .replace('{nombre}', _escapar(nombreTramo || ''))
+                    .replace('{usadas}', _escapar(usadas))
+                    .replace('{total}', _escapar(total));
+
+                _ocultarCualquierCartel();
+                const cartel = document.createElement('div');
+                cartel.id = 'cartel-rescate-tramo';
+                cartel.style.cssText = [
+                    'position:fixed',
+                    'top:calc(10.7vh + 10px + 0.5rem)',
+                    'left:50%',
+                    'transform:translateX(-50%)',
+                    'width:min(92vw, 30rem)',
+                    'max-width:92vw',
+                    'z-index:1000060',
+                    'background:#fff8e7',
+                    'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
+                    'border-radius:0.75rem',
+                    'box-shadow:0 0.375rem 1.25rem rgba(0,0,0,0.35)',
+                    'padding:0.75rem 2.75rem 0.75rem 1rem',
+                    'box-sizing:border-box',
+                    'font-family:Verdana,sans-serif',
+                ].join(';');
+                cartel.innerHTML = `
+                    <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="x-cerrar">X</span></button>
+                    <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${mensaje}</p>
+                `;
+                document.body.appendChild(cartel);
+                _vibrarCartel();
+
+                const cerrar = () => cartel.remove();
+                cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
+                setTimeout(cerrar, 7000);
+
+                (globalThis.logger || console).info(`[PADRE][CARTEL_RESCATE_TRAMO] Mostrado (${usadas}/${total})`);
+            } catch (error) {
+                (globalThis.logger || console).error('[PADRE][CARTEL_RESCATE_TRAMO] Error mostrando cartel:', error);
+            }
+        }
+        globalThis._mostrarCartelRescateTramo = _mostrarCartelRescateTramo;
 
         // ── Recordatorio periódico de "pulse play" — parada y tramo, mismo criterio ──
         // Se muestra solo cuando se cumplen DOS condiciones a la vez: han pasado
@@ -10774,7 +10844,17 @@ await _comprobarReanudacionAventura(logPrefix);
                             const elementosSecuencia = DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
                             const elementoSiguiente = Array.isArray(elementosSecuencia) ? elementosSecuencia[idxSiguiente] : null;
 
-                            if (elementoSiguiente?.tipo === 'tramo') {
+                            // Un tramo desbloqueado por el TTL NO usa el cartel normal: ese
+                            // mensaje dice que el elemento se completo como cualquier otro, y
+                            // no es verdad. _ejecutarBarridoTTLPending() deja la marca justo
+                            // antes de completar y aqui se consume, una sola vez.
+                            const _rescate = estado._rescateTramoPendiente;
+                            if (_rescate && _rescate.clave === idLimpio) {
+                                estado._rescateTramoPendiente = null;
+                                globalThis._mostrarCartelRescateTramo?.(
+                                    elementoCompletado?.nombre || null, _rescate.usadas, _rescate.total
+                                );
+                            } else if (elementoSiguiente?.tipo === 'tramo') {
                                 globalThis.mostrarCartelInicioTramo?.(
                                     esTramo ? 'tramo' : 'parada',
                                     elementoCompletado?.nombre || null,
@@ -14600,8 +14680,20 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 const pendings = est.pendingCompleciones;
                 if (!pendings) return;
                 const now = Date.now();
-                const MAX_SALTOS_TRAMO = 5;
-                const PROGRESO_MINIMO_ENTRE_SALTOS = 0.2;
+                // Topes del rescate, por aventura. No son un numero universal: dependen de
+                // cuanto se anda. En una ruta de ~5 km gastar 5 rescates ya es tirar la
+                // aventura que el usuario ha pagado, asi que 5 es un techo holgado. Av34km
+                // son 34 km y 239 elementos: ahi la probabilidad de topar con obras, un
+                // evento o una calle cortada es varias veces mayor, y merece mas margen.
+                //
+                // PROGRESO_MINIMO baja a la par y por una razon aritmetica, no estetica: el
+                // 20 % por defecto solo permite CINCO rescates en toda la aventura (0, 20,
+                // 40, 60 y 80 %), asi que dejar el 20 % en Av34km haria que sus 12 fueran
+                // nominales — imposibles de usar. Con el 5 % caben los 12 de verdad.
+                const LIMITES_RESCATE = { Aventura34km: { max: 12, progresoMinimo: 0.05 } };
+                const _lim = LIMITES_RESCATE[globalThis.aventuraSeleccionada] || { max: 5, progresoMinimo: 0.2 };
+                const MAX_SALTOS_TRAMO = _lim.max;
+                const PROGRESO_MINIMO_ENTRE_SALTOS = _lim.progresoMinimo;
                 for (const [key, p] of Object.entries(pendings)) {
                     if (p.tipo !== 'tramo') continue;
                     if (typeof p.ttlMs !== 'number' || (now - p.timestamp) <= p.ttlMs) continue;
@@ -14622,6 +14714,21 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                             est.tramoSkipsUsados = skipsUsados + 1;
                             est.progresoEnUltimoSkip = progresoActual;
                             cambiado = true;
+                            // Marca para que marcarParadaCompletada() muestre el cartel de
+                            // rescate en vez del de complecion normal: sin esto, el usuario
+                            // recibia el mismo mensaje que si hubiera llegado andando y no
+                            // tenia forma de saber que le acaban de gastar un rescate.
+                            //
+                            // OJO con la clave: NO vale `key` (la del pending, "padre-TR5").
+                            // marcarParadaCompletada() recibe el tramo_id e internamente hace
+                            // idLimpio = paradaId.replace(/^padre-/,''), o sea "Av1-TR-5".
+                            // Son dos identificadores distintos para el mismo elemento y no
+                            // coinciden nunca, asi que comparar contra `key` dejaba el cartel
+                            // sin disparar y en silencio: salia el normal, que es justo lo que
+                            // esto viene a evitar. Se guarda ya normalizado igual que alli.
+                            const _elemRescate = findElementoPorPadreId(key);
+                            const _claveRescate = String(_elemRescate?.tramo_id || _elemRescate?.parada_id || _elemRescate?.padreid || key).replace(/^padre-/, '').trim();
+                            est._rescateTramoPendiente = { clave: _claveRescate, usadas: est.tramoSkipsUsados, total: MAX_SALTOS_TRAMO };
                             (globalThis.logger || console).warn(`[PADRE][PENDING][TTL] Salto de seguridad ${est.tramoSkipsUsados}/${MAX_SALTOS_TRAMO} usado en tramo ${key} — llegada forzada`);
                             try { if (typeof globalThis.persistProgressState === 'function') globalThis.persistProgressState(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                         } else {

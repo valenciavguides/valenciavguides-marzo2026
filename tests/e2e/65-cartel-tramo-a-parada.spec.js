@@ -36,6 +36,13 @@ test.describe('CT — Cartel al completar un tramo seguido de parada', () => {
   });
 
   test('CT-1. El cartel de transicion sabe combinar tramo terminado + parada que empieza', async ({ page }) => {
+    // La funcion la publica el Script 1 del padre en globalThis, y en una tanda completa
+    // puede no estar todavia cuando termina FASE 1: sin esta espera, el `?.()` de abajo no
+    // llamaba a nada y el test fallaba con el cartel a null — verde en solitario, rojo en
+    // tanda, que es el patron de flake que este proyecto persigue (EJE 23).
+    await page.waitForFunction(() => typeof globalThis.mostrarCartelTransicion === 'function',
+      null, { timeout: 15_000 });
+
     // Se llama a la funcion real con la combinacion que antes no producia nadie, y se lee
     // el texto que acaba en pantalla — no el objeto de traducciones.
     const texto = await page.evaluate(async () => {
