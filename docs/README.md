@@ -31,9 +31,6 @@ Los documentos de auditoría/investigación que existieron en `docs/` (diagnóst
 
 ## 🗺️ GUÍAS ESPECÍFICAS
 
-### [brujula-y-mapa.md](brujula-y-mapa.md)
-Documentación completa del sistema de brújula y selector de mapa.
-
 ### [fonetica.md](fonetica.md)
 Guía fonética para nombres y términos del proyecto.
 
@@ -48,11 +45,8 @@ Plan detallado de infraestructura para despliegue en producción.
 docs/
 ├── GUIA-COMPLETA.md                              ← DOCUMENTO MAESTRO
 ├── README.md                                      ← Este archivo (índice)
-│
-└── GUIAS-ESPECIFICAS/
-    ├── brujula-y-mapa.md
-    ├── fonetica.md
-    └── plan-produccion-infraestructura.md
+├── fonetica.md
+└── plan-produccion-infraestructura.md
 ```
 
 ---
@@ -126,4 +120,4 @@ Para cualquier duda sobre la documentación o el proyecto:
 ---
 
 **Última revisión:** 2026-09-02  
-**Documentos activos:** `GUIA-COMPLETA.md` + 3 guías específicas + este índice
+**Documentos activos:** `GUIA-COMPLETA.md` + 2 guías específicas + este índice

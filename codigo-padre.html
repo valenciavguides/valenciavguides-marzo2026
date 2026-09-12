@@ -3615,7 +3615,7 @@
                                 // _brujulaModoActivo==='brujula-modo-seguimiento') asegura que un
                                 // timeout de una activación VIEJA no revierta una elección más
                                 // reciente si el usuario alternó rápido entre modos.
-                                // Ver docs/brujula-y-mapa.md §4.
+                                // Ver docs/GUIA-COMPLETA.md §4.6b.
                                 const idActivacion = ++_brujulaModoSeguimientoActivacionId;
                                 setTimeout(() => {
                                     if (idActivacion === _brujulaModoSeguimientoActivacionId && _brujulaModoActivo === 'brujula-modo-seguimiento' && !globalThis.funcionesMapa?.brujulaEstaActiva?.()) {

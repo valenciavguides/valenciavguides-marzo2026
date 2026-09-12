@@ -376,9 +376,9 @@ let marcadorPosicionActual = null; // Marcador para la posición GPS actual del 
 let rutasTramos = [];
 let rutasActivas = [];
 let marcadorUsuario = null;
-let deviceOrientationHeading = 0;
 let _flechaGpsAnguloAcumulado = null; // ángulo continuo sin acotar a 0-360, para que rotate() siempre gire por el camino corto
 let _flechaGpsUltimaEscritura = 0;
+let _avisadoFlechaSinBrujula = false; // el aviso de "flecha sin rumbo real" se da una vez por sesión, no en cada lectura de GPS
 let compassActiva = false;
 let _brujulaEventoActivo = null; // 'deviceorientationabsolute' o 'deviceorientation' — cuál se registró de verdad
 let _mapaInstance = null; // Instancia del mapa MapLibre
@@ -1714,8 +1714,11 @@ function actualizarOrientacionFlecha(event) {
         heading = (360 - event.alpha) % 360;
     }
     if (heading == null) return;
-    deviceOrientationHeading = heading;
-    // Rotar la flecha GPS en tiempo real sin recrear el marcador
+    // Rotar la flecha GPS en tiempo real sin recrear el marcador. El valor NO se guarda
+    // en ninguna variable de modulo: el unico estado que sobrevive entre lecturas es
+    // `_flechaGpsAnguloAcumulado`, que es el suavizado y el que lee todo lo demas. Tener
+    // ademas una copia del valor crudo daba dos fuentes para el mismo dato, y la copia
+    // no la leia nadie.
     actualizarRotacionFlechaGPS(heading);
 }
 
@@ -1741,7 +1744,7 @@ function _anguloDeltaCorto(actual, objetivo) {
  * desfase exactamente igual al bearing del mapa — en el caso límite de un
  * giro de ~180° (p.ej. reorientar el mapa hacia un punto que queda al sur),
  * se ve apuntando literalmente al lado contrario de hacia donde mira el
- * usuario. Confirmado en campo — ver docs/brujula-y-mapa.md.
+ * usuario. Confirmado en campo.
  */
 function _rumboEnPantalla(heading) {
     const bearing = (_mapaInstance && typeof _mapaInstance.getBearing === 'function') ? _mapaInstance.getBearing() : 0;
@@ -3075,9 +3078,17 @@ async function procesarPosicionGPSParaAventura(posicion) {
         // encendida en CASA en vez del 🛸 que el diseño espera ahí.
         // DEBE llamarse ANTES de enviar mensajes para que el usuario vea su posición en tiempo real
         try {
-            const heading = posicion?.coords?.heading ?? posicion?.heading ?? 0;
+            // NO se pasa `posicion.coords.heading`. Ese valor es el rumbo de
+            // DESPLAZAMIENTO (course over ground): hacia donde te mueves, no hacia donde
+            // miras — que es lo que la flecha representa. Ademas la especificacion lo deja
+            // en null cuando el dispositivo esta quieto, asi que el `?? 0` que habia aqui
+            // lo convertia en NORTE: parado leyendo el movil, la flecha afirmaba que
+            // mirabas al norte, en silencio y en cada lectura de GPS.
+            //
+            // La rotacion tiene ahora una sola fuente, la brujula, y la resuelve
+            // _htmlMarcadorUsuario() leyendo `_flechaGpsAnguloAcumulado`.
             const modoMarcador = estadoMapa.modo === MODOS.CASA ? 'casa' : 'aventura';
-            await actualizarMarcadorUsuario(latitude, longitude, heading, accuracy, modoMarcador);
+            await actualizarMarcadorUsuario(latitude, longitude, accuracy, modoMarcador);
             logger.debug(`${logPrefix} 🗺️ Marcador de usuario actualizado en mapa (${modoMarcador}): [${latitude.toFixed(6)}, ${longitude.toFixed(6)}]`);
         } catch (error_) {
             logger.warn(`${logPrefix} Error actualizando marcador de usuario:`, error_);
@@ -3529,11 +3540,9 @@ let _modoMarcadorUsuario = 'aventura';
  * divergir por mantener la plantilla duplicada en dos sitios. Mismo criterio que
  * _htmlEmojiRuta() para los 📌/🎯 de ruta, que son la otra familia de marcadores.
  * @param {string} modo - 'casa' (🛸) o 'aventura' (flecha)
- * @param {number} heading - Rumbo en grados; solo se usa como respaldo cuando la brújula
- *   no tiene todavía un ángulo suavizado acumulado
  * @returns {string}
  */
-function _htmlMarcadorUsuario(modo, heading = 0) {
+function _htmlMarcadorUsuario(modo) {
     // Obtener valores escalados según pantalla y zoom
     const iconos = getIconoEscalado();
     const tamCasa = iconos.usuarioCasa;
@@ -3569,7 +3578,21 @@ function _htmlMarcadorUsuario(modo, heading = 0) {
         // mismo valor como rotación inicial del marcador nuevo — la recreación ya no
         // interrumpe el suavizado, solo lo continúa desde donde estaba. Esto vale igual para
         // el reescalado por zoom, que reconstruye este mismo HTML sin posición GPS nueva.
-        const rotation = (compassActiva && _flechaGpsAnguloAcumulado !== null) ? _flechaGpsAnguloAcumulado : (heading || 0);
+        // UNA sola fuente para el rumbo de la flecha: la brújula. Antes el respaldo era
+        // `coords.heading` del GPS, que es otra magnitud —hacia dónde te mueves, no hacia
+        // dónde miras— y que la especificación deja en null estando quieto, así que la
+        // flecha acababa afirmando "norte" sin que nada lo dijera.
+        //
+        // Sin brújula no hay rumbo que mostrar, y eso NO se disimula: la flecha se dibuja
+        // apuntando hacia arriba en pantalla y se avisa UNA vez por sesión. Es la regla de
+        // la casa: un plan B vale, pero tiene que ser ruidoso. Quien decide qué hacer con
+        // esa situación es `brujulaEstaActiva()`, que ya revierte "Seguir mi rumbo" a
+        // "Norte fijo" en vez de dejar el menú mintiendo.
+        if (_flechaGpsAnguloAcumulado === null && !_avisadoFlechaSinBrujula) {
+            _avisadoFlechaSinBrujula = true;
+            logger.warn('[brujula] La flecha se dibuja sin rumbo real (brújula no disponible o sin lecturas todavía): apunta hacia arriba en pantalla, no hacia donde mira el usuario');
+        }
+        const rotation = _flechaGpsAnguloAcumulado ?? 0;
         const flechaBorde = Math.round(tamAventura * 0.325);  // ~13px a 40px
         const flechaInterior = Math.round(tamAventura * 0.275); // ~11px a 40px
         const flechaAltura = Math.round(tamAventura * 0.8);    // ~32px a 40px
@@ -3638,7 +3661,7 @@ function reescalarMarcadorUsuario() {
  * @param {number} accuracy - Precisión del GPS en metros
  * @param {string} modo - 'aventura' (flecha azul) o 'casa' (emoji 🛸)
  */
-export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, modo = 'aventura') {
+export function actualizarMarcadorUsuario(lat, lng, accuracy = 0, modo = 'aventura') {
     if (!_mapaInstance) {
         logger.warn('actualizarMarcadorUsuario: Mapa no inicializado');
         return null;
@@ -3667,17 +3690,17 @@ export function actualizarMarcadorUsuario(lat, lng, heading = 0, accuracy = 0, m
         // _htmlMarcadorUsuario(). El modo se guarda porque el reescalado no recibe
         // ninguna posicion GPS de la que deducirlo.
         _modoMarcadorUsuario = modo;
-        const htmlCompleto = _htmlMarcadorUsuario(modo, heading);
+        const htmlCompleto = _htmlMarcadorUsuario(modo);
         marcadorUsuarioGPS = _crearMarcadorHTML({ lat, lng }, htmlCompleto, {
             className: modo === 'casa' ? 'marcador-usuario-gps-ovni' : 'marcador-usuario-gps-flecha',
             title: modo === 'casa'
                 ? `🛸 Tu ubicación ±${Math.round(accuracy)}m`
-                : `Tu ubicación ±${Math.round(accuracy)}m (${Math.round(heading || 0)}°)`,
+                : `Tu ubicación ±${Math.round(accuracy)}m (${Math.round(_flechaGpsAnguloAcumulado ?? 0)}°)`,
             zIndex: 400  // ✅ CORREGIDO: 400 en lugar de 1000 para NO tapar iframes (z-index final: 900 < 1500)
         });
 
         const iconoLog = modo === 'casa' ? '🛸' : '➤';
-        logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, heading: ${Math.round(heading || 0)}°)`);
+        logger.debug(`Marcador ${iconoLog} actualizado en [${lat}, ${lng}] (modo: ${modo}, rumbo: ${_flechaGpsAnguloAcumulado === null ? 'sin brujula' : Math.round(_flechaGpsAnguloAcumulado) + '°'})`);
 
         // Círculo naranja 15m — zona de activación de parada.
         // Brújula activada en el mismo branch para evitar condición duplicada.

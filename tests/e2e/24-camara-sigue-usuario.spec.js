@@ -70,24 +70,24 @@ test.describe('CAM — Cámara siguiendo al usuario', () => {
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
 
       // CAM-1: seguimiento activo por defecto
-      mod.actualizarMarcadorUsuario(39.4795, -0.3758, 90, 8, 'aventura');
+      mod.actualizarMarcadorUsuario(39.4795, -0.3758, 8, 'aventura');
       const trasPrimeraPosicion = fakeMap._easeToCalls.length;
 
       // CAM-3: dragstart SIN originalEvent (programático) no debe pausar nada
       fakeMap.fire('dragstart', {});
-      mod.actualizarMarcadorUsuario(39.4796, -0.3759, 90, 8, 'aventura');
+      mod.actualizarMarcadorUsuario(39.4796, -0.3759, 8, 'aventura');
       const trasDragstartProgramatico = fakeMap._easeToCalls.length;
 
       // CAM-2: dragstart CON originalEvent (gesto real) pausa el seguimiento
       fakeMap.fire('dragstart', { originalEvent: { type: 'touchstart' } });
-      mod.actualizarMarcadorUsuario(39.4797, -0.3760, 90, 8, 'aventura');
+      mod.actualizarMarcadorUsuario(39.4797, -0.3760, 8, 'aventura');
       const trasDragstartReal = fakeMap._easeToCalls.length;
 
       // CAM-4: reactivarSeguimientoCamara() retoma Y centra de inmediato
       const antesDeReactivar = fakeMap._easeToCalls.length;
       mod.reactivarSeguimientoCamara();
       const trasReactivar = fakeMap._easeToCalls.length;
-      mod.actualizarMarcadorUsuario(39.4798, -0.3761, 90, 8, 'aventura');
+      mod.actualizarMarcadorUsuario(39.4798, -0.3761, 8, 'aventura');
       const trasReactivarYNuevaPosicion = fakeMap._easeToCalls.length;
 
       return {

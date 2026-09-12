@@ -8,8 +8,7 @@
  * Posicionado en espejo respecto a `#selector-tipo-mapa`: misma altura (`bottom`),
  * pero en el borde IZQUIERDO de la pantalla con el mismo margen que el selector
  * tiene respecto al derecho — los dos quedan a la misma altura, uno a cada lado.
- * Ver `docs/GUIA-COMPLETA.md` §4.6b y `docs/brujula-y-mapa.md` §4/§11 para el diseño
- * completo. El botón principal muestra siempre `boton-brujula.png` (imagen fija,
+ * Ver `docs/GUIA-COMPLETA.md` §4.6b y §11 para el diseño completo. El botón principal muestra siempre `boton-brujula.png` (imagen fija,
  * mismo criterio que `#selector-tipo-mapa` — ver §11) — ya NO refleja el modo activo
  * con un icono/glifo que cambia; el estado real (`_brujulaModoActivo`) es interno y
  * solo observable por sus efectos (qué función invoca, qué revierte solo con el

@@ -66,21 +66,21 @@ test.describe('CC — la cámara no persigue al usuario en modo CASA', () => {
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
 
       // CC-1 — tres posiciones en CASA
-      const marcador = await mod.actualizarMarcadorUsuario(39.4795, -0.3758, 0, 8, 'casa');
-      await mod.actualizarMarcadorUsuario(39.4796, -0.3759, 0, 8, 'casa');
-      await mod.actualizarMarcadorUsuario(39.4797, -0.3760, 0, 8, 'casa');
+      const marcador = await mod.actualizarMarcadorUsuario(39.4795, -0.3758, 8, 'casa');
+      await mod.actualizarMarcadorUsuario(39.4796, -0.3759, 8, 'casa');
+      await mod.actualizarMarcadorUsuario(39.4797, -0.3760, 8, 'casa');
       const centradosEnCasa = conCentro();
       const hayMarcador = marcador !== null && marcador !== undefined;   // CC-3
 
       // CC-4 — centrar a petición del usuario, y una posición después
       mod.reactivarSeguimientoCamara();
       const trasCentrar = conCentro();
-      await mod.actualizarMarcadorUsuario(39.4799, -0.3765, 0, 8, 'casa');
+      await mod.actualizarMarcadorUsuario(39.4799, -0.3765, 8, 'casa');
       const trasNuevaPosicionEnCasa = conCentro();
 
       // CC-2 — control: en AVENTURA sí sigue
       const antesAventura = conCentro();
-      await mod.actualizarMarcadorUsuario(39.4800, -0.3766, 0, 8, 'aventura');
+      await mod.actualizarMarcadorUsuario(39.4800, -0.3766, 8, 'aventura');
       const trasAventura = conCentro();
 
       return { centradosEnCasa, hayMarcador, trasCentrar, trasNuevaPosicionEnCasa, antesAventura, trasAventura };

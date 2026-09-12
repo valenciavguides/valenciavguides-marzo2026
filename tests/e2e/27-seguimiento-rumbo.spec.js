@@ -68,7 +68,7 @@ test.describe('SR — Seguimiento de rumbo (el mapa rota con la brújula)', () =
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
       // Crea el marcador — esto activa la brújula internamente, igual que en producción
       // la primera vez que el modo no es 'casa' (ver FB-1 en 17-flecha-brujula-continuidad).
-      globalThis.__testMarker = await mod.actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
+      globalThis.__testMarker = await mod.actualizarMarcadorUsuario(39.4790, -0.3760, 5, 'aventura');
     });
 
     // SR-1: modo desactivado por defecto — una lectura de brújula (rumbo=90, primera

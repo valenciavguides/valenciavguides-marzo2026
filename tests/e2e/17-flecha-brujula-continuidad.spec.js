@@ -62,7 +62,7 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
       // la primera vez que modo !== 'casa'). heading=0 aquí es irrelevante para este paso.
       // El elemento del marcador (stub de MapLibre) no se adjunta al document real, así
       // que se consulta vía marker.getElement(), no document.querySelector.
-      const marker1 = await actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
+      const marker1 = await actualizarMarcadorUsuario(39.4790, -0.3760, 5, 'aventura');
 
       // 2) Simula una lectura de brújula real: alpha=130° del sensor del dispositivo. Esto
       // suaviza (primera lectura: se toma directa, sin promediar) y escribe el transform del
@@ -85,7 +85,7 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
       // 3) Segunda posición GPS (el marcador se destruye y se recrea) — heading=0 (GPS poco
       // fiable, el caso típico parado o caminando despacio). Sin el fix, el nuevo elemento
       // arrancaría en rotate(0deg); con el fix, debe arrancar en el ángulo de la brújula.
-      const marker2 = await actualizarMarcadorUsuario(39.4791, -0.3761, 0, 5, 'aventura');
+      const marker2 = await actualizarMarcadorUsuario(39.4791, -0.3761, 5, 'aventura');
       const anguloTrasRecrear = marker2?.getElement()?.querySelector('.gps-arrow-heading')?.style.transform || null;
 
       return { anguloTrasCompas, anguloTrasRecrear, mismoMarker: marker1 === marker2 };
@@ -102,11 +102,10 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
     const resultado = await page.evaluate(async () => {
       const { actualizarMarcadorUsuario } = await import('/js/funciones-mapa.js');
 
-      // Se miden dos marcadores frescos (heading=0 y heading=180) en vez de mutar el
-      // transform de uno solo: `.gps-arrow-heading` lleva `transition:transform 0.3s
-      // ease-out`, así que reescribir su transform y medir en el mismo tick capturaría un
-      // estado intermedio de la animación, no el ángulo final. Un marcador recién creado
-      // no tiene transición de la que partir — su transform inicial ya es el de destino.
+      // Se miden dos marcadores frescos, uno por angulo: `.gps-arrow-heading` lleva
+      // `transition:transform 0.3s ease-out`, asi que reescribir el transform y medir en el
+      // mismo tick capturaria un fotograma intermedio. Se desactiva la transicion antes de
+      // girar (ver `girar` abajo) para medir siempre el estado final.
       const medirRect = (el) => {
         el.style.position = 'fixed';
         el.style.top = '200px';
@@ -127,11 +126,26 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
         return { rect: r, pivotReal };
       };
 
-      const marker0 = await actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
+      // La rotacion se aplica a mano sobre `.gps-arrow-heading`, que es EXACTAMENTE lo que
+      // hace produccion (actualizarRotacionFlechaGPS escribe ese mismo transform). Antes se
+      // creaban dos marcadores pasando el rumbo como tercer argumento; ese parametro ya no
+      // existe —la rotacion tiene una sola fuente, la brujula— y de todas formas este test
+      // mide GEOMETRIA, no rumbo: que el apice quede clavado en el punto GPS al girar.
+      // La transicion de 0.3s se desactiva para medir el estado final y no un fotograma.
+      const girar = (el, grados) => {
+        const h = el.querySelector('.gps-arrow-heading');
+        if (!h) return false;
+        h.style.transition = 'none';
+        h.style.transform = `translate(-50%,-50%) rotate(${grados}deg)`;
+        return true;
+      };
+
+      const marker0 = await actualizarMarcadorUsuario(39.4790, -0.3760, 5, 'aventura');
       const el0 = marker0?.getElement();
-      const marker180 = await actualizarMarcadorUsuario(39.4791, -0.3761, 180, 5, 'aventura');
+      const marker180 = await actualizarMarcadorUsuario(39.4791, -0.3761, 5, 'aventura');
       const el180 = marker180?.getElement();
       if (!el0 || !el180) return { ok: false, motivo: 'marker.getElement() no devolvió nada' };
+      if (!girar(el0, 0) || !girar(el180, 180)) return { ok: false, motivo: 'no se encontro .gps-arrow-heading' };
 
       const m0 = medirRect(el0);
       const m180 = medirRect(el180);
@@ -176,7 +190,7 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
       const { actualizarMarcadorUsuario } = await import('/js/funciones-mapa.js');
       const nombreEvento = ('ondeviceorientationabsolute' in globalThis) ? 'deviceorientationabsolute' : 'deviceorientation';
 
-      const marker = await actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
+      const marker = await actualizarMarcadorUsuario(39.4790, -0.3760, 5, 'aventura');
       if (!marker) return { ok: false, motivo: 'actualizarMarcadorUsuario no devolvió marcador' };
 
       // Caso Android, móvil sujeto en VERTICAL (beta=90°, gamma=0 — la forma real en que
@@ -246,7 +260,7 @@ test.describe('FB — Continuidad de la flecha GPS entre recreaciones del marcad
 
       const mod = await import('/js/funciones-mapa.js');
       globalThis.funcionesMapa.inicializarServicioMapa(fakeMap);
-      globalThis.__testMarker = await mod.actualizarMarcadorUsuario(39.4790, -0.3760, 0, 5, 'aventura');
+      globalThis.__testMarker = await mod.actualizarMarcadorUsuario(39.4790, -0.3760, 5, 'aventura');
     });
 
     const transformBearing0 = await page.evaluate(() => {
