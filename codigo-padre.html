@@ -10748,13 +10748,23 @@ await _comprobarReanudacionAventura(logPrefix);
                         //     dos elementos ("Ha terminado [la parada/el tramo] X — va a empezar el
                         //     tramo Y"), igual que mostrarCartelTransicion — la única diferencia
                         //     real entre los dos carteles es el aviso de la línea azul.
-                        //   - Termina un tramo y sigue una parada: mostrarCartelLlegadaParada, con
-                        //     el nombre de esa parada — un tramo se completa por audio+llegada GPS,
-                        //     nunca por un "me quedo quieto y termino" como una parada, así que su
-                        //     cartel siempre habla de "ha llegado", nunca de "ha terminado el tramo".
-                        //   - Termina una parada y sigue otra parada (o no hay siguiente, último
-                        //     elemento de la aventura): mostrarCartelTransicion, el único de los
-                        //     tres que menciona explícitamente "ha terminado X". Si no hay
+                        //   - Cualquier otro caso —termina un tramo y sigue una parada, o termina
+                        //     una parada y sigue otra parada, o no hay siguiente porque es el último
+                        //     elemento—: mostrarCartelTransicion, que nombra lo terminado Y lo que
+                        //     empieza ("Ha terminado el tramo X — va a empezar la parada Y").
+                        //
+                        //     El caso tramo→parada tenía antes su propio cartel, que decía "Ha
+                        //     llegado a la parada Y". Describía como HECHO algo que todavía no lo
+                        //     era: dentro de la app el usuario sigue en el tramo hasta que pulsa
+                        //     avanzar, así que el cartel anunciaba la llegada y acto seguido pedía
+                        //     pulsar para llegar. Se sentía como un paso de más. Nombrar los dos
+                        //     elementos, igual que hace parada→tramo, lo deja simétrico: se dice lo
+                        //     que se cierra y lo que se abre, y el botón hace exactamente eso.
+                        //
+                        //     mostrarCartelLlegadaParada SIGUE existiendo, para el único sitio donde
+                        //     "ha llegado" es literal: la llegada al punto de inicio de la aventura
+                        //     (funciones-mapa.js), donde no hay nada anterior que cerrar ni botón
+                        //     que pulsar. Si no hay
                         //     siguiente, el modal de fin de aventura (mostrarModalFinalizacion) se
                         //     encarga del resto cuando el usuario pulse avanzar de verdad y
                         //     progresarSiguienteElemento() no encuentre nada.
@@ -10770,8 +10780,6 @@ await _comprobarReanudacionAventura(logPrefix);
                                     elementoCompletado?.nombre || null,
                                     elementoSiguiente.nombre || null
                                 );
-                            } else if (esTramo && elementoSiguiente?.nombre) {
-                                globalThis.mostrarCartelLlegadaParada?.(elementoSiguiente.nombre);
                             } else if (elementoCompletado?.nombre) {
                                 globalThis.mostrarCartelTransicion?.(
                                     esTramo ? 'tramo' : 'parada', elementoCompletado.nombre,

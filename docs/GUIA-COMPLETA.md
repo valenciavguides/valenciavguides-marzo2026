@@ -1282,13 +1282,13 @@ Cinco carteles cubren las transiciones entre elementos. Cada uno corresponde a u
 
 | # | Cartel | Cuándo | `esTramo` (lo que acaba) | `elementoSiguiente?.tipo` |
 |---|--------|--------|---|---|
-| 1 | Transición (§4.7h) | Se completa el elemento actual, estando quieto | parada (o última parada de la aventura) | parada, o sin siguiente |
+| 1 | Transición (§4.7h) | Se completa el elemento actual | parada **o tramo** — el texto siempre nombra ambos | parada, o sin siguiente |
 | 2 | Inicio de tramo (§4.7i) | Se completa el elemento actual, estando quieto | parada **o** tramo — el texto siempre nombra ambos | tramo |
-| 3 | Llegada (§4.7j) | Se confirma por GPS que un tramo llegó a `.fin` | tramo | parada |
+| 3 | Llegada (§4.7j) | Se confirma por GPS la llegada al **punto de inicio de la aventura** | (n/a — no hay elemento anterior) | — |
 | 4 | Bienvenida de vuelta — tramo (§4.7k) | Se confirma por GPS que volvió a un tramo ya iniciado, tras alejarse | (n/a — no hay transición de elemento) | — |
 | 5 | Bienvenida de vuelta — parada (§4.7l) | Se confirma por GPS que volvió a una parada activa, tras alejarse | (n/a — no hay transición de elemento) | — |
 
-**Por qué la clave es "qué sigue", no "qué acaba":** la única razón para mostrar el cartel de Inicio de tramo en vez del de Transición o el de Llegada es que haya una polyline nueva que seguir — eso depende exclusivamente del tipo del elemento **siguiente**, nunca del que se acaba de completar. Por eso el cartel de Inicio de tramo (#2) dispara igual tanto si lo anterior era una parada como si era otro tramo (`tramo→tramo` existe de verdad en los datos de varias aventuras — confirmado, no es un caso teórico). El **texto**, en cambio, siempre nombra los dos elementos igual que el cartel de Transición (§4.7h) — la única diferencia real entre ambos carteles es el aviso añadido de "siga la línea azul", no si se nombra o no. Y por eso tramo→parada (#3) tiene su propio cartel distinto del genérico de transición (#1): un tramo nunca se completa "estando quieto" — se completa por **audio + llegada GPS**, y la llegada es, por construcción, un evento de posición, no de estar parado esperando. En el código, la selección exacta es:
+**Por qué la clave es "qué sigue", no "qué acaba":** la única razón para mostrar el cartel de Inicio de tramo en vez del de Transición es que haya una polyline nueva que seguir — eso depende exclusivamente del tipo del elemento **siguiente**, nunca del que se acaba de completar. Por eso el cartel de Inicio de tramo (#2) dispara igual tanto si lo anterior era una parada como si era otro tramo (`tramo→tramo` existe de verdad en los datos de varias aventuras — confirmado, no es un caso teórico). El **texto**, en cambio, siempre nombra los dos elementos igual que el cartel de Transición (§4.7h) — la única diferencia real entre ambos carteles es el aviso añadido de "siga la línea azul", no si se nombra o no. Y por eso tramo→parada (#3) tiene su propio cartel distinto del genérico de transición (#1): un tramo nunca se completa "estando quieto" — se completa por **audio + llegada GPS**, y la llegada es, por construcción, un evento de posición, no de estar parado esperando. En el código, la selección exacta es:
 
 ```javascript
 if (elementoSiguiente?.tipo === 'tramo') {
@@ -1297,8 +1297,6 @@ if (elementoSiguiente?.tipo === 'tramo') {
         elementoCompletado?.nombre || null,
         elementoSiguiente.nombre || null
     );
-} else if (esTramo && elementoSiguiente?.nombre) {
-    globalThis.mostrarCartelLlegadaParada(elementoSiguiente.nombre);
 } else if (elementoCompletado?.nombre) {
     globalThis.mostrarCartelTransicion(esTramo ? 'tramo' : 'parada', elementoCompletado.nombre, elementoSiguiente ? 'parada' : null, elementoSiguiente?.nombre || null);
 }
@@ -1350,16 +1348,17 @@ Dos iconos en ambas variantes, igual que §4.7h: avanzar (`fotoruta-A-B.png`) y 
 
 ### 4.7j. Cartel de llegada (`#cartel-llegada-parada`)
 
-**Por qué existe:** un tramo no se completa "estando quieto" — se completa por **audio + llegada GPS a `.fin`**, las dos condiciones a la vez (`intentarCompletarElemento()`, `codigo-padre.html`), sin importar en qué orden se cumplieron. No hay ningún momento de "el usuario está parado y el elemento se completa" al que enganchar el cartel de §4.7h — el momento real es siempre una confirmación GPS. Este cartel es ese momento, y es el único que dispara para tramo→parada.
+**Por qué existe:** para el punto de inicio de la aventura no hay elemento anterior cuya compleción dispare un cartel — `marcarParadaCompletada()` los dispara para todos los demás. Aquí el momento es la propia confirmación GPS, y "ha llegado" describe un hecho ya consumado: el usuario está en el sitio y no hay nada anterior que cerrar.
 
-**Disparo:** `globalThis.mostrarCartelLlegadaParada(nombreParada)`, en dos sitios distintos:
+**Por qué NO se usa para tramo→parada** (que era su otro disparador): ahí "ha llegado a la parada Y" describía como hecho algo que aún no lo era. Dentro de la app el usuario sigue en el tramo hasta que pulsa avanzar, así que el cartel anunciaba la llegada y acto seguido le pedía pulsar para llegar — se sentía como un paso de más. Ese caso usa ahora el cartel de transición (§4.7h), que nombra los dos elementos igual que ya hacía parada→tramo: se dice qué se cierra, qué se abre, y el botón hace exactamente eso.
 
-1. **Tramo → parada** (el caso normal): desde `marcarParadaCompletada()`, cuando la bifurcación de §4.7g resuelve a este cartel (`esTramo && elementoSiguiente?.tipo !== 'tramo'`) — usa `elementoSiguiente.nombre`, **no** el nombre del tramo que acaba de terminar: el usuario está físicamente en las coordenadas de la parada siguiente (el `.fin` del tramo coincide con ellas en la inmensa mayoría de los casos, ver nota más abajo), así que lo relevante para él es dónde está ahora, no de dónde viene.
-2. **El punto de inicio de la aventura** (caso especial, sin elemento anterior): llamado desde `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) cuando `siguienteParada.tipo === 'inicio'` y el GPS confirma llegada real (`llegadaDetectada`), con guard de una sola vez (`estadoMapa._cartelLlegadaInicioMostrado`, reseteado en `completarCambioParada()`). No hay ningún elemento previo cuya compleción dispare nada, así que este es el único cartel que anuncia la llegada al primer punto de la aventura (p. ej. Torres de Serranos) — y lo hace solo tras la misma confirmación GPS real que exige el resto de la familia, nunca en el instante de revelar el trazado. Solo aplica en modo AVENTURA — en CASA, `procesarPosicionGPSParaAventura()` nunca llega a esta rama. Llamada directa vía `globalThis`, no `postMessage` — mismo motivo que el sensor redundante de llegada (§25.5, §32.3): un `enviarMensaje({destino: resolverIdPadre()})` desde aquí se descartaría en silencio. Cubierto por `tests/e2e/32-llegada-inicio-gps-confirmada.spec.js` (LI-1..LI-4: lejos no dispara, cerca sí, no se re-dispara con el guard, nunca en CASA).
+**Disparo:** `globalThis.mostrarCartelLlegadaParada(nombreParada)`, en **un solo sitio**:
+
+1. **El punto de inicio de la aventura** — el único sitio donde "ha llegado" es literal, porque no hay ningún elemento anterior que cerrar ni botón que pulsar: llamado desde `procesarPosicionGPSParaAventura()` (`js/funciones-mapa.js`) cuando `siguienteParada.tipo === 'inicio'` y el GPS confirma llegada real (`llegadaDetectada`), con guard de una sola vez (`estadoMapa._cartelLlegadaInicioMostrado`, reseteado en `completarCambioParada()`). No hay ningún elemento previo cuya compleción dispare nada, así que este es el único cartel que anuncia la llegada al primer punto de la aventura (p. ej. Torres de Serranos) — y lo hace solo tras la misma confirmación GPS real que exige el resto de la familia, nunca en el instante de revelar el trazado. Solo aplica en modo AVENTURA — en CASA, `procesarPosicionGPSParaAventura()` nunca llega a esta rama. Llamada directa vía `globalThis`, no `postMessage` — mismo motivo que el sensor redundante de llegada (§25.5, §32.3): un `enviarMensaje({destino: resolverIdPadre()})` desde aquí se descartaría en silencio. Cubierto por `tests/e2e/32-llegada-inicio-gps-confirmada.spec.js` (LI-1..LI-4: lejos no dispara, cerca sí, no se re-dispara con el guard, nunca en CASA).
 
 **Contenido:** mismo estilo visual que el resto de la familia. Cuerpo de `TRADUCCIONES_LLEGADA_PARADA` (12 idiomas, clave `mensaje` con `{nombre}`) — en español: *"Ha llegado a la parada Plaza de la Crida (Puente de Serranos). Por favor, pulse el botón avanzar y pulse play para escuchar el audio relacionado con su aventura."* Dos iconos: avanzar y audio.
 
-**Sobre la coincidencia de coordenadas:** de los 239 tramos de las 7 aventuras (verificado con `calcularDistancia` sobre `js/coordenadas-aventuras.js`, comparando el `.fin` de cada tramo contra la parada que le sigue en la secuencia real, no contra la parada más cercana cualquiera), **218** coinciden exactamente (≤5m) con las coordenadas de la parada siguiente — geográficamente son el mismo sitio, así que la confirmación GPS de llegada llega casi de inmediato tras empezar a caminar el tramo. **11 excepciones reales** tienen una distancia genuina, hasta 122m — recurrente en el primer tramo de varias aventuras: `Av3-TR-1→Av3-P-1`, `Av5-TR-1→Av5-P-1`, `AvFallas-TR-1→AvFallas-P-1`, `Av34km-TR-1→Av34km-P-1`, los cuatro a 122m casi exactos (121.7m) — ahí el cartel no aparece hasta que el usuario camina esa distancia real y el GPS lo confirma, que es exactamente cuando hace falta. Los **10 tramos restantes** son tramo→tramo directo (sin parada intermedia en la secuencia) o el último tramo de la aventura — no aplica la comparación en absoluto (218+11+10=239).
+**Sobre la coincidencia de coordenadas:** de los 239 tramos de las 7 aventuras (verificado con `calcularDistancia` sobre `js/coordenadas-aventuras.js`, comparando el `.fin` de cada tramo contra la parada que le sigue en la secuencia real, no contra la parada más cercana cualquiera), **216 de los 228 seguidos de una parada** coinciden (≤5 m) con las coordenadas de esa parada — 224 de los 239 coinciden al metro — geográficamente son el mismo sitio, así que la confirmación GPS de llegada llega casi de inmediato tras empezar a caminar el tramo. **12 excepciones reales** tienen una distancia genuina, hasta 122m — recurrente en el primer tramo de varias aventuras: `Av3-TR-1→Av3-P-1`, `Av5-TR-1→Av5-P-1`, `AvFallas-TR-1→AvFallas-P-1`, `Av34km-TR-1→Av34km-P-1`, los cuatro a 122m casi exactos (121.7m) — ahí el cartel no aparece hasta que el usuario camina esa distancia real y el GPS lo confirma, que es exactamente cuando hace falta. Los **11 tramos restantes** van seguidos de otro tramo, sin parada intermedia en la secuencia — no aplica la comparación con una parada (216+12+11=239).
 
 ### 4.7k. Cartel de bienvenida de vuelta — tramo (`#cartel-bienvenida-tramo`)
 
@@ -4844,7 +4843,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-d4799a2bf3e3'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-7977aa72387c'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7969,7 +7968,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-d4799a2bf3e3'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-7977aa72387c'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8656,7 +8655,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-d4799a2bf3e3';
+const CACHE_VERSION = 'v-7977aa72387c';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -11858,7 +11857,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-d4799a2bf3e3';
+const CACHE_VERSION = 'v-7977aa72387c';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).
