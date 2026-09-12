@@ -294,7 +294,7 @@ export const DATOS_AVENTURAS = {
         tipo: "parada",
         parada: 4, // mapa número 1 (Sí, hay dos 1 en el mapa por ser el mismo monumento desde diferente perspectiva)
         mapa_numero: 1,
-        nombre: "Plaza de la crida (Puente de Serranos)",
+        nombre: "Plaza de la Crída (Puente de Serranos)",
         coordenadas: { lat: Number('39.479590'), lng: Number('-0.375830') },
         imagen: "imagenes/imagenes-aventuras/torres_de_serranos_front.jpg",
     },
@@ -1067,7 +1067,7 @@ export const DATOS_AVENTURAS = {
         tipo: "tramo",
         tramo: 21, // De mapa número 19 a mapa número 20
         mapa_numero: "19→20",
-        nombre: "Lonja entrada visitantes →  Plaza Doctor López Collado",
+        nombre: "Lonja entrada visitantes → Plaza Doctor López Collado",
         inicio: { lat: Number('39.474660'), lng: Number('-0.378340') },
         waypoints: [
             { lat: Number('39.474530'), lng: Number('-0.378190') },
@@ -4039,7 +4039,7 @@ export const DATOS_AVENTURAS = {
         id: "Av4-P-1",
         tipo: "parada",
         parada: 4, // mapa número 2
-        mapa_numero: 1,
+        mapa_numero: 2,
         nombre: "Museo de Corpus Christi (Casa de las Rocas)",
         coordenadas: { lat: Number('39.478960'), lng: Number('-0.376920') },
         imagen: "imagenes/imagenes-aventuras/casa_rocas.jpg",
