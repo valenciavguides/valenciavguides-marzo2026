@@ -681,6 +681,8 @@ const estadoComponente = {
     tipoParadaActual: null, // 'parada' o 'tramo'
     idParadaActual: null,  // 'P-X' o 'TR-X'
     toleranciaGPS: 50, // Valor de arranque, solo vigente hasta el primer ACTUALIZAR_ESTADO.
+    radioLlegada: 15,  // Radio con el que se declara la llegada — 15 m, el del circulo
+                       // naranja. Distinto de toleranciaGPS a proposito (ver funciones-mapa.js).
                        // Lo que llega después se usa SOLO en tramos (dinámico, mín. 35 m); en
                        // paradas este componente usa siempre su propio RADIO_PARADA de 15 m e
                        // ignora lo recibido — desde que funciones-mapa manda también 15 para
@@ -1453,7 +1455,7 @@ elementosDOM.btnMapaJpg?.addEventListener('click', async () => {
 // Ahora se usa ACTUALIZAR_ESTADO que incluye distancia y otros datos
 
 function _aplicarDatosEstado(datos, logPrefix) {
-    const { distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, retoActivo, ubicacionActiva, lat, lng } = datos;
+    const { distanciaAlDestino, distanciaAlCamino, recorridoSuficiente, idParada, tipoParada, toleranciaGPS, radioLlegada, retoActivo, ubicacionActiva, lat, lng } = datos;
     if (distanciaAlDestino !== undefined) estadoComponente.distanciaAlDestino = distanciaAlDestino;
     // distanciaAlCamino: distancia al punto más cercano del camino (inicio->waypoints->fin
     // en tramos), no al destino final — solo la usa verificarDistanciaYActualizarBotones()
@@ -1465,6 +1467,7 @@ function _aplicarDatosEstado(datos, logPrefix) {
     if (recorridoSuficiente !== undefined) estadoComponente.recorridoSuficiente = recorridoSuficiente;
     if (idParada !== undefined) estadoComponente.idParadaActual = idParada;
     if (tipoParada !== undefined) estadoComponente.tipoParadaActual = tipoParada;
+    if (radioLlegada !== undefined) estadoComponente.radioLlegada = radioLlegada;
     if (toleranciaGPS !== undefined) {
         estadoComponente.toleranciaGPS = toleranciaGPS;
         logger.debug(`${logPrefix} 📏 Tolerancia GPS actualizada: ${toleranciaGPS}m (${tipoParada})`);
@@ -1506,18 +1509,24 @@ function _registrarCandidataLlegada(dentroDeRadio, idParada) {
     return estadoComponente._llegadaVentana.filter(Boolean).length >= _CONFIRMACION_LLEGADA;
 }
 
-async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, recorridoSuficiente, idParada, logPrefix) {
+async function _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorridoSuficiente, idParada, logPrefix) {
+    // radioLlegada son 15 m, los mismos que una parada y los mismos que el círculo naranja
+    // que el usuario ve alrededor de su flecha. NO es toleranciaGPS: ese valor (≥35 m en
+    // tramos) está dimensionado contra el ruido del GPS y lo siguen usando los botones y el
+    // aviso de fuera de rango, pero declarar una llegada con él ponía al usuario al otro
+    // lado de la manzana. Los dos números llegan juntos en ACTUALIZAR_ESTADO.
+    //
     // recorridoSuficiente (calculada en funciones-mapa.js, ≥40% de la longitud real del
     // camino recorrida) exige haber cubierto terreno real, no solo estar cerca del destino
     // en línea recta — evita completar un tramo atravesando un obstáculo entre inicio y fin
     // sin haber caminado la ruta ni un rodeo equivalente. Si el dato no llega (undefined,
     // versión antigua del mensaje), no bloquea — solo distanciaAlDestino decide.
-    const dentroDeRadio = distanciaAlDestino <= toleranciaGPS && recorridoSuficiente !== false;
+    const dentroDeRadio = distanciaAlDestino <= radioLlegada && recorridoSuficiente !== false;
     const confirmada = _registrarCandidataLlegada(dentroDeRadio, idParada);
     if (dentroDeRadio && confirmada) {
         if (!estadoComponente._llegadaNotificada || estadoComponente._llegadaNotificada !== idParada) {
             estadoComponente._llegadaNotificada = idParada;
-            logger.info(`${logPrefix} 🎯 Llegada detectada a tramo ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${toleranciaGPS}m)`);
+            logger.info(`${logPrefix} 🎯 Llegada detectada a tramo ${idParada} (${distanciaAlDestino.toFixed(1)}m ≤ ${radioLlegada}m)`);
             await enviarMensaje({
                 tipo: TIPOS_MENSAJE.NAVEGACION.LLEGADA_DETECTADA,
                 origen: CONFIG_HIJO.IFRAME_ID,
@@ -1525,7 +1534,7 @@ async function _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, recorrid
                 datos: { paradaId: idParada, parada_id: idParada, distancia: distanciaAlDestino, tipoParada: 'tramo', timestamp: Date.now() }
             }).catch(e => logger.warn(`${logPrefix} Error notificando llegada a tramo:`, e.message));
         }
-    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > toleranciaGPS * 1.5) {
+    } else if (!dentroDeRadio && estadoComponente._llegadaNotificada === idParada && distanciaAlDestino > radioLlegada * 1.5) {
         logger.debug(`${logPrefix} 🔄 Usuario salió del rango de ${idParada}, reseteando flag de llegada`);
         estadoComponente._llegadaNotificada = null;
     }
@@ -1583,7 +1592,7 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
     const logPrefix = '[hijo2][ACTUALIZAR_ESTADO]';
     try {
         const datos = mensaje.datos;
-        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, accuracy, recorridoSuficiente } = datos;
+        const { distanciaAlDestino, idParada, tipoParada, toleranciaGPS, radioLlegada, accuracy, recorridoSuficiente } = datos;
         _aplicarDatosEstado(datos, logPrefix);
 
         // Se comprueba ANTES de la detección de llegada y de
@@ -1607,8 +1616,11 @@ registrarControladorSeguro(TIPOS_MENSAJE.NAVEGACION.ACTUALIZAR_ESTADO, async (me
         // pending.llegada=true para una parada nunca visitada de verdad (reporte de uso
         // real 2026-08-10, ver docs/GUIA-COMPLETA.md §24.0/§25.5).
         if (estadoComponente.modo === 'aventura' && typeof distanciaAlDestino === 'number' && idParada) {
-            if (tipoParada === 'tramo' && typeof toleranciaGPS === 'number') {
-                await _detectarLlegadaTramo(distanciaAlDestino, toleranciaGPS, recorridoSuficiente, idParada, logPrefix);
+            // Se exige radioLlegada, no toleranciaGPS: son dos numeros distintos y este
+            // sensor decide LLEGADA. Sin el campo no se declara ninguna — mejor no detectarla
+            // que detectarla con el radio equivocado, que es lo que pasaba antes.
+            if (tipoParada === 'tramo' && typeof radioLlegada === 'number') {
+                await _detectarLlegadaTramo(distanciaAlDestino, radioLlegada, recorridoSuficiente, idParada, logPrefix);
             } else if (tipoParada !== 'tramo') {
                 await _detectarLlegadaParada(distanciaAlDestino, idParada, logPrefix);
             }

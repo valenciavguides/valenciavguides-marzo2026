@@ -64,6 +64,30 @@ function _getLatLng(obj) {
 // mismo, así que si uno cambia el otro cambia con él.
 const RADIO_LLEGADA_PARADA_M = 15;
 
+/**
+ * Radio con el que se decide "ha llegado", en metros. SIEMPRE 15, también en tramos.
+ *
+ * POR QUÉ ES UNA FUNCIÓN APARTE DE calcularToleranciaGPS()
+ *
+ * Ese número resolvía tres decisiones distintas a la vez —revelar el trazado, avisar de
+ * "fuera de rango" y declarar la llegada—, y cada una quiere lo contrario que las otras.
+ * Contra el ruido del GPS urbano interesa un radio GRANDE, para no dar falsas alarmas; para
+ * declarar una llegada interesa PEQUEÑO, porque a 35 m en el centro histórico se está al
+ * otro lado de la manzana. Con un único valor, la llegada pagaba el radio del ruido.
+ *
+ * 15 m no es un número elegido aquí: es el radio del círculo naranja que la app YA dibuja
+ * alrededor del usuario en AVENTURA (`circuloActivacion`, más abajo), y que su propio
+ * comentario llama "zona de activación de parada". Ese círculo es el contrato visible con
+ * el usuario: si la diana está dentro, ha llegado; si está fuera, no. Declarar la llegada
+ * con otro radio convierte ese dibujo en una mentira comprobable a simple vista.
+ *
+ * `calcularToleranciaGPS()` conserva su valor dinámico y sus otros dos trabajos: lo que se
+ * envía a hijo2 para los botones y el aviso de fuera de rango. Un número, un trabajo.
+ */
+function radioLlegada() {
+    return RADIO_LLEGADA_PARADA_M;
+}
+
 function calcularToleranciaGPS(elemento) {
     if (!elemento) {
         logger.warn('⚠️ calcularToleranciaGPS: elemento no proporcionado, usando tolerancia por defecto 50m');
@@ -142,8 +166,12 @@ function verificarLlegadaADestino(posicionUsuario, elementoActual) {
         return false;
     }
 
-    const tolerancia = calcularToleranciaGPS(elementoActual);
-    
+    // Llegada = el destino cae dentro del círculo de 15 m, en paradas Y en tramos.
+    // NO se usa calcularToleranciaGPS() aquí: su valor dinámico (≥35 m en tramos) está
+    // dimensionado contra el ruido del GPS para los botones y el aviso de fuera de rango,
+    // no para declarar una llegada. Ver radioLlegada().
+    const tolerancia = radioLlegada();
+
     // Determinar coordenadas del destino.
     // 'parada' e 'inicio' (la parada 0 de cada aventura, ver coordenadas-aventuras.js)
     // comparten forma de datos: coordenadas directas en .coordenadas/.lat/.lng.
@@ -2797,8 +2825,10 @@ export function registrarManejadoresMensajes() {
     }
 }
 
-// Exportar calcularToleranciaGPS para pruebas unitarias (no rompe runtime en navegador)
-export { calcularToleranciaGPS };
+// Exportar para pruebas unitarias (no rompe runtime en navegador). radioLlegada va al
+// lado a proposito: son los dos numeros que antes eran uno solo, y un test tiene que
+// poder comprobar que siguen siendo distintos en un tramo.
+export { calcularToleranciaGPS, radioLlegada };
 
 // Registrar manejadores al cargar el módulo.
 // NOTA: funciones-mapa.js se carga vía await import() dinámico dentro de
@@ -3109,7 +3139,15 @@ async function procesarPosicionGPSParaAventura(posicion) {
                         recorridoSuficiente,
                         idParada: siguienteParada.id,
                         tipoParada: siguienteParada.tipo || 'parada',
+                        // DOS números, no uno, porque resuelven decisiones distintas:
+                        //   toleranciaGPS — dinámico (≥35 m en tramos). Botones y aviso de
+                        //     fuera de rango. Grande a propósito, para absorber el ruido.
+                        //   radioLlegada  — 15 m siempre. SOLO para declarar la llegada.
+                        //     Es el círculo naranja que el usuario ve. Ver radioLlegada().
+                        // Mandarlos juntos es lo que permite que hijo2 —el otro sensor de
+                        // llegada— mida lo mismo que este sin heredar el radio del ruido.
                         toleranciaGPS: toleranciaGPS,
+                        radioLlegada: radioLlegada(),
                         lat: latitude,
                         lng: longitude,
                         // Círculo de confianza de esta lectura (metros) — hijo2 lo compara
@@ -3323,6 +3361,7 @@ globalThis.funcionesMapa = {
     registrarManejadoresMensajes,
     limpiarPorEstado,
     calcularToleranciaGPS,
+    radioLlegada,
     verificarLlegadaADestino,
     procesarPosicionGPSParaAventura,
     manejarCambioModoMapa,
