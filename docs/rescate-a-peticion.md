@@ -3,7 +3,7 @@
 Rediseño del mecanismo de rescate: deja de dispararse solo y pasa a pedirlo el usuario.
 **Diseño cerrado y textos aprobados. Sin implementar.**
 
-Este documento reúne el porqué, el diseño acordado, los textos, los diecisiete huecos que
+Este documento reúne el porqué, el diseño acordado, los textos, los veinte huecos que
 encontró la prueba de escritorio contra el código real, y lo que quedó comprobado y limpio.
 
 ---
@@ -67,8 +67,14 @@ trampa del botón que no hace nada.
 **Se cubren también las paradas** — fuera el `continue` — **excepto el elemento de inicio**,
 porque llegar al punto de partida *es* empezar la aventura.
 
-**El tope sube a 10**, y a **25** en Aventura 34 km. Al doblar los elementos protegidos,
-doblar el tope mantiene la misma generosidad: un 15 % y un 11 % del recorrido.
+**El tope sube a 12**, y a **35** en Aventura 34 km (decisión final). Sobre elementos reales
+son un 18 % del recorrido en Aventura 1 y un 15 % en la de 34 km — parecidos entre sí y
+suficientemente pequeños como para que nadie complete una aventura a base de botón.
+
+**Al elegir otra aventura y pagar de nuevo, el contador arranca de cero.** Verificado: los
+dos caminos de «elegir otra» (`ejecutarElegirOtra()` y `_elegirOtra()`) ya ponen
+`tramoSkipsUsados` y `progresoEnUltimoSkip` a 0, y el tope se lee de la tabla de la aventura
+nueva.
 
 **El reloj no se elimina: cambia de oficio.** Deja de gastar y pasa a mostrar un cartel
 recordatorio. Baja de 10 a **8 minutos**, con repeticiones en el **10, 12 y 14**. Cuatro
@@ -89,10 +95,10 @@ llega información nueva, y arrastrar el audio anterior para encajarlo después 
 fallaría justo con el usuario ya frustrado. En un tramo, además, tuvo ocho minutos para
 escucharlo mientras estaba parado.
 
-**No hace falta que el padre le conteste al chat.** El único mensaje va de chat a padre, y
-ese sentido es un `postMessage` directo a `window.parent` que **nunca** depende de
-`iframesRegistrados` — la tabla cuyo olvido dejó el chat en español durante semanas. Todo lo
-demás (las tres pantallas) lo pinta el padre. El diseño es inmune a esa clase de fallo.
+**El sentido chat → padre no depende del registro**, pero el contrario sí. La petición es un
+`postMessage` directo a `window.parent` y nunca pasa por `iframesRegistrados`; las tres
+pantallas las pinta el padre. Pero el texto del asistente dice cuántos rescates hay en esta
+aventura, y ese número tiene que llegarle **desde el padre** — ver el hueco 18.
 
 **El botón de ubicación se apaga entre el rescate y pulsar avanzar.** En esa ventana hijo2
 sigue teniendo como actual el elemento abandonado, así que ese botón dibujaría la ruta **de
@@ -201,7 +207,7 @@ cuando está fuera de rango.
 
 ---
 
-## 4. Los diecisiete huecos
+## 4. Los veinte huecos
 
 Encontrados recorriendo el escenario paso a paso contra el código real. Ninguno estaba en el
 primer resumen de implementación.
@@ -261,6 +267,31 @@ primer resumen de implementación.
 16. **Dónde se mira el contador.** Debe mirarse **al recibir la petición**: si se mira al
     final, el usuario recorre dos confirmaciones para que le digan que no.
 
+### El número de rescates tiene que viajar al chat
+
+18. **El asistente depende de mensajes del padre, y ese sentido sí pasa por
+    `iframesRegistrados`.** El chat recibe su estado con
+    `estadoPadre = { ...estadoPadre, ...mensaje.datos }`, que el padre construye en
+    `construirEstadoChat` (idioma, aventura, nombre de la parada actual y de la siguiente).
+    El texto aprobado dice «dispone de **{total}** rescates», así que ese número hay que
+    añadirlo ahí. Es la misma tabla cuyo olvido dejó el chat en español durante semanas, y
+    **el texto tiene que degradar con dignidad si el dato no llega**: jamás mostrar un
+    `{total}` crudo en pantalla.
+
+19. **Un rescate se pierde si el usuario se aleja más de 5 km.** `DESHABILITAR btnAvanzar`
+    con `razon: 'fuera_de_zona_5km'` limpia `btnAvanzarCompletadoPorPadre`. Quien recibe un
+    rescate y luego se va a cinco kilómetros pierde el botón y tiene que volver. Aceptable
+    —a esa distancia no está bloqueado, se ha ido— pero conviene que esté escrito.
+
+### La aventura puede haber terminado
+
+20. **El tiempo puede agotarse mientras el usuario decide.** hijo1 lleva su propia cuenta
+    atrás en vivo: al llegar a cero envía `AVENTURA.TIEMPO_AGOTADO` y el padre monta un modal
+    a pantalla completa (`_hdl_AVENTURA_TIEMPO_AGOTADO`). **Regla:** si la aventura ha
+    terminado —por tiempo, por limpieza de datos o por haber pasado la semana— **no hay
+    rescate posible**. El gasto debe comprobar que la aventura sigue viva antes de conceder.
+    Es una condición, no un mecanismo.
+
 ### El iframe puede recargarse debajo
 
 17. **hijo6 se recarga a media aventura si falla el heartbeat.** Tras tres fallos —quince
@@ -278,14 +309,23 @@ Comprobado y sin trabajo pendiente:
 
 - **El botón de avanzar sobrevive al fuera de rango.** `btnAvanzarCompletadoPorPadre` gana
   sobre la distancia en cada lectura, y la desactivación por rango **no** levanta
-  `btnAvanzarDeshabilitadoExternamente`, que es el único que le ganaría.
+  `btnAvanzarDeshabilitadoExternamente`, que es el único que le ganaría. *Reverificado por un
+  segundo método —quién puede apagar el flag, en vez del orden de comprobaciones—: solo hay
+  dos `DESHABILITAR btnAvanzar`, y el de `parada_pendiente_completar` dispara al **activar**
+  la parada, antes del rescate. El otro es el de los 5 km (hueco 19).*
 - **Los carteles se dibujan sobre el asistente**: 1000060 contra 1000020. Lo acordado es el
-  comportamiento natural, no hay que forzarlo.
+  comportamiento natural, no hay que forzarlo. *Reverificado por posición en el DOM, no solo
+  comparando números: los carteles hacen `document.body.appendChild()` y el iframe del chat
+  es hijo directo de `body`, sin `transform`/`filter`/`opacity` alrededor que cree un contexto
+  de apilado. La comparación es válida.*
 - **Tras avanzar, la lógica de franjas decide sola** si toca overlay con ubicación o botón de
-  avanzar. No hay que programarlo: hay que no romperlo.
+  avanzar. No hay que programarlo: hay que no romperlo. **Con un matiz:** la distancia le
+  llega a hijo2 en cada lectura de GPS (`procesarPosicionGPSParaAventura`), así que hay hasta
+  **7 segundos** tras pulsar avanzar en los que sigue calculando con el elemento anterior.
 - **El mapa se limpia sin depender de la llegada.** `completarCambioParada()` llama a
   `limpiarPolylineNavegacion()` con un comentario que describe exactamente este caso.
-- **El temporizador de aventura solo se comprueba al restaurar sesión.**
+  *Reverificado: la llamada es **incondicional**, no está dentro de ningún `if` — no basta
+  con el comentario, que es una afirmación, no el código.*
 - **El cambio de modo no borra las fichas.**
 - **El fin de aventura se dispara al avanzar sin elemento siguiente**, así que rescatar el
   último cierra bien.
@@ -293,12 +333,23 @@ Comprobado y sin trabajo pendiente:
 
 ---
 
-> **Corrección.** «La reconexión de iframes solo corre en el arranque» figuró aquí y era
+> **Dos correcciones, con la misma forma.** «El temporizador de aventura solo se comprueba al
+> restaurar sesión» figuró aquí y era falso: se miró `verificarTimeoutAventura()` —el reloj
+> del **padre**— y se pasó por alto que **hijo1 lleva su propia cuenta atrás en vivo**. Es el
+> hueco 20.
+>
+> «La reconexión de iframes solo corre en el arranque» también figuró aquí y era
 > falso: se comprobó `intentarReconectarHijosFallidos()`, que sí es de arranque, y se pasó
 > por alto `intentarReconectarHijo()` en `js/mensajeria.js`, que corre en cualquier momento.
 > Es el hueco 17. La lección, que ya estaba escrita en la memoria del proyecto: antes de
 > refutar una teoría con una medición, comprobar **por qué camino** pasó la ejecución — un
 > síntoma que «a veces no ocurre» suele significar que hay dos caminos.
+>
+> Y el patrón concreto, que se repitió **tres veces**: se comprobó la copia del **padre** o el
+> **fichero principal**, y se pasó por alto la del **hijo** o la del **módulo importado**
+> (`intentarReconectarHijo` en mensajería; la cuenta atrás de hijo1; el `fetch` que está en
+> `feedback-forms.js` y no en `chat-hijo6.html`). En una arquitectura de seis iframes con
+> estado propio, ahí vive media aplicación.
 
 ## 6. Lo que se simplifica
 
@@ -308,6 +359,17 @@ vez, cuando guardaba la clave con prefijo `padre-` y nunca coincidía con el id 
 rescate a petición, el cartel se muestra donde el usuario pulsa: sin recados entre funciones.
 
 ---
+
+## 6b. Un riesgo de implementación: la lista del Service Worker
+
+`tools/build-sw.js` **solo recalcula `CACHE_VERSION`**. La lista de ficheros de `sw.js` es
+**manual**, y nada comprueba que esté completa. Si la implementación saca algún módulo nuevo
+y se olvida de añadirlo, el usuario sin cobertura no podrá cargarlo — que es exactamente el
+usuario para el que existe el rescate.
+
+*Comprobado de paso, y resiste: el asistente funciona sin cobertura. Sus cinco importaciones
+(`constants`, `feedback-forms`, `logger`, `traducciones-ui`, `utils`) están en la caché, y la
+única de segundo nivel también.*
 
 ## 7. La conclusión de fondo
 
@@ -319,7 +381,7 @@ informativo: si te pierdes un aviso, no pasa nada.
 El momento en que el usuario decide si gasta algo irreversible es **el primer estado de la
 app en el que interrumpir tiene un coste**. Por eso choca con todo.
 
-No son diecisiete fallos sueltos: es una **categoría nueva** en un sistema que no la
+No son veinte fallos sueltos: es una **categoría nueva** en un sistema que no la
 contemplaba. La confirmación probablemente no deba ser un cartel más, sino una pieza con sus
 propias reglas — que no se cierre sola, que no la borre nadie, que nada se le ponga encima, y
 que mientras esté viva los eventos esperen su turno.
