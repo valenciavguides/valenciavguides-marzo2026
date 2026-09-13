@@ -360,6 +360,51 @@ rescate a petición, el cartel se muestra donde el usuario pulsa: sin recados en
 
 ---
 
+## 6a. Lo que hay que reescribir de lo viejo
+
+**`42-ttl-tramo-saltos-seguridad.spec.js` hay que rehacerlo entero, no retocarlo.** Cuatro de
+sus cinco tests afirman comportamiento que desaparece:
+
+| Test | Qué afirma hoy | Al implementar |
+|---|---|---|
+| TTL-1 | Sin progreso, la llegada no se rescata | La puerta del 18 % desaparece — inválido |
+| TTL-2 | Con ≥18 %, **se rescata solo** | **Falla** |
+| TTL-3 | Con los topes gastados, no se rescata | Inválido tal cual |
+| **TTL-4** | **Una parada con TTL expirado NO recibe rescate** | **Falla — y es lo que cambiamos** |
+| TTL-5 | Fuera de AVENTURA el barrido no toca nada | Sigue valiendo |
+
+**Cuando TTL-4 falle, será la señal esperada, no una regresión.** Conviene saberlo antes para
+no perder media hora investigando un éxito.
+
+**`RT-1` de `66-rescate-tramo-ruidoso.spec.js` también cae:** afirma literalmente
+`toContain('No hemos podido confirmar')`, y el cartel pasa a decir que el rescate se ha
+utilizado. Por eso **el texto de `TRADUCCIONES_RESCATE_TRAMO` va con el cambio de mecanismo,
+no con las traducciones**: reescribirlo antes deja la tanda en rojo.
+
+### Excluir las paradas nunca fue una decisión de diseño
+
+La guía (§31.7) lo dice con todas las letras: *«Las paradas nunca reciben ningún rescate de
+este TTL — **sigue siendo tarea pendiente** diseñar algo equivalente»*. Incluirlas no
+contradice nada; cierra un hueco que la propia guía reconoce.
+
+### Y el principio ya estaba en casa
+
+El botón **⏩ de saltar reto** existe desde antes, y la guía lo describe así: *«Es un rescate
+**visible y decidido por el usuario**, no un temporizador ciego»*. Es exactamente lo que
+acordamos para la llegada. No estamos inventando una filosofía: la estamos extendiendo a
+donde faltaba.
+
+Eso deja el reparto de casos sin solapes, y **hay que preservarlo**:
+
+| Qué le pasa al usuario | Qué usa | Qué le cuesta |
+|---|---|---|
+| El reto está roto, o no quiere hacerlo | El ⏩ que ya existe | **Nada** |
+| El audio no está disponible | El botón de saltar audio | **Nada** |
+| **No puede llegar al sitio** | El rescate | **Uno de sus 12** |
+
+Cada fallo **nuestro** tiene salida gratis; solo se cobra el obstáculo del mundo real. **El
+rescate no debe ser nunca la salida de un fallo técnico propio.**
+
 ## 6b. Un riesgo de implementación: la lista del Service Worker
 
 `tools/build-sw.js` **solo recalcula `CACHE_VERSION`**. La lista de ficheros de `sw.js` es

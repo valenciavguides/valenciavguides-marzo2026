@@ -541,6 +541,114 @@ export const TRADUCCIONES_BIENVENIDA_PARADA = {
     ru: { mensaje: 'Вы снова в своём приключении. Пожалуйста, нажмите кнопку «Далее» и нажмите play, чтобы прослушать соответствующее аудио и продолжить охоту за сокровищами.' },
     uk: { mensaje: 'Ви знову у своїй пригоді. Будь ласка, натисніть кнопку «Далі» та натисніть відтворити, щоб прослухати відповідне аудіо та продовжити полювання за скарбом.' }
 };
+/**
+ * Rotulo del boton que PIDE el rescate, al final de la respuesta del asistente. Es una
+ * peticion, no una pregunta: el precio lo explica la segunda confirmacion, no este boton.
+ */
+export const TRADUCCIONES_RESCATE_BOTON_PEDIR = {
+    es: 'Tengo un problema y no puedo continuar',
+    en: 'I have a problem and cannot carry on',
+    fr: 'J’ai un problème et je ne peux pas continuer',
+    it: 'Ho un problema e non riesco a proseguire',
+    nl: 'Ik heb een probleem en kan niet verder',
+    de: 'Ich habe ein Problem und komme nicht weiter',
+    ja: '問題があり、先に進めません',
+    zh: '我遇到问题，无法继续',
+    pl: 'Mam problem i nie mogę iść dalej',
+    pt: 'Tenho um problema e não consigo continuar',
+    ru: 'У меня проблема, я не могу продолжить',
+    uk: 'У мене проблема, я не можу продовжити',
+};
+
+/**
+ * Cartel recordatorio del rescate — sale en los minutos 8, 10, 12 y 14 del reloj del
+ * elemento. Solo SEÑALA hacia el asistente de soporte: no gasta nada, no completa nada.
+ * Por eso su boton dice "ver como continuar" y no "usar un rescate".
+ *
+ * No se dice "chat" en ningun idioma: la app lo llama asistente de soporte, y hablar de
+ * un chat promete una conversacion con alguien que no existe.
+ */
+export const TRADUCCIONES_RESCATE_RECORDATORIO = {
+    es: { titulo: '¿Se ha encontrado con un obstáculo?', cuerpo: 'Consulte cómo seguir con el recorrido.', boton: 'Ver cómo continuar' },
+    en: { titulo: 'Has something blocked your way?', cuerpo: 'Here is how to carry on with the route.', boton: 'See how to continue' },
+    fr: { titulo: 'Un obstacle vous barre la route ?', cuerpo: 'Voici comment poursuivre votre parcours.', boton: 'Voir comment continuer' },
+    it: { titulo: 'Ha trovato un ostacolo?', cuerpo: 'Ecco come proseguire lungo il percorso.', boton: 'Scopri come proseguire' },
+    nl: { titulo: 'Staat er iets in de weg?', cuerpo: 'Zo kunt u verder met de route.', boton: 'Bekijk hoe u verdergaat' },
+    de: { titulo: 'Versperrt Ihnen etwas den Weg?', cuerpo: 'So können Sie Ihre Route fortsetzen.', boton: 'Weiter-Möglichkeiten ansehen' },
+    ja: { titulo: '道をふさがれていませんか？', cuerpo: 'ルートを続ける方法をご案内します。', boton: '続け方を見る' },
+    zh: { titulo: '前方遇到障碍了吗？', cuerpo: '这里有继续行程的方法。', boton: '查看如何继续' },
+    pl: { titulo: 'Coś zablokowało Panu drogę?', cuerpo: 'Oto jak kontynuować trasę.', boton: 'Zobacz, jak iść dalej' },
+    pt: { titulo: 'Encontrou algum obstáculo?', cuerpo: 'Veja como prosseguir no percurso.', boton: 'Ver como continuar' },
+    ru: { titulo: 'Что-то преградило вам путь?', cuerpo: 'Вот как можно продолжить маршрут.', boton: 'Как продолжить' },
+    uk: { titulo: 'Щось перекрило вам шлях?', cuerpo: 'Ось як продовжити маршрут.', boton: 'Як продовжити' },
+};
+
+/**
+ * PRIMERA confirmacion — filtra el toque accidental, nada mas. No habla todavia del
+ * precio: eso es trabajo de la segunda.
+ *
+ * Sus dos botones NO son "si" y "no", a proposito: si las dos pantallas tuvieran los
+ * mismos dos rotulos en el mismo sitio, el dedo aprenderia el camino y las recorreria en
+ * piloto automatico — que es justo lo que la doble confirmacion viene a evitar.
+ */
+export const TRADUCCIONES_RESCATE_CONFIRMAR_1 = {
+    es: { titulo: '¿Necesita un rescate?', cuerpo: 'Ha pulsado el botón de ayuda. Si ha sido sin querer, puede volver al recorrido sin que pase nada.', si: 'Sí, no puedo continuar', no: 'Volver al recorrido' },
+    en: { titulo: 'Do you need a rescue?', cuerpo: 'You have tapped the help button. If that was by accident, you can go straight back to the route — nothing will happen.', si: 'Yes, I cannot go on', no: 'Back to the route' },
+    fr: { titulo: 'Avez-vous besoin d’un sauvetage ?', cuerpo: 'Vous avez appuyé sur le bouton d’aide. Si c’était par mégarde, vous pouvez revenir au parcours sans aucune conséquence.', si: 'Oui, je ne peux pas continuer', no: 'Revenir au parcours' },
+    it: { titulo: 'Ha bisogno di un salvataggio?', cuerpo: 'Ha premuto il pulsante di aiuto. Se è stato per sbaglio, può tornare al percorso senza alcuna conseguenza.', si: 'Sì, non riesco a proseguire', no: 'Torna al percorso' },
+    nl: { titulo: 'Heeft u een redding nodig?', cuerpo: 'U heeft op de hulpknop gedrukt. Was dat per ongeluk? Dan kunt u zonder gevolgen terug naar de route.', si: 'Ja, ik kan niet verder', no: 'Terug naar de route' },
+    de: { titulo: 'Brauchen Sie eine Rettung?', cuerpo: 'Sie haben die Hilfe-Schaltfläche gedrückt. War das versehentlich, können Sie folgenlos zur Route zurückkehren.', si: 'Ja, ich komme nicht weiter', no: 'Zurück zur Route' },
+    ja: { titulo: 'レスキューが必要ですか？', cuerpo: 'ヘルプボタンが押されました。誤って押した場合は、そのままルートに戻っていただけます。', si: 'はい、先に進めません', no: 'ルートに戻る' },
+    zh: { titulo: '需要救援吗？', cuerpo: '您按下了帮助按钮。如果是误触，可以直接返回行程，不会有任何影响。', si: '是的，我无法继续', no: '返回行程' },
+    pl: { titulo: 'Potrzebuje Pan ratunku?', cuerpo: 'Nacisnął Pan przycisk pomocy. Jeśli stało się to przypadkiem, można bez konsekwencji wrócić do trasy.', si: 'Tak, nie mogę iść dalej', no: 'Wróć do trasy' },
+    pt: { titulo: 'Precisa de um resgate?', cuerpo: 'Carregou no botão de ajuda. Se foi sem querer, pode voltar ao percurso sem qualquer consequência.', si: 'Sim, não consigo continuar', no: 'Voltar ao percurso' },
+    ru: { titulo: 'Нужна помощь?', cuerpo: 'Вы нажали кнопку помощи. Если это вышло случайно, можно вернуться к маршруту — ничего не произойдёт.', si: 'Да, я не могу пройти', no: 'Вернуться к маршруту' },
+    uk: { titulo: 'Потрібна допомога?', cuerpo: 'Ви натиснули кнопку допомоги. Якщо це сталося випадково, можна повернутися до маршруту — нічого не станеться.', si: 'Так, я не можу пройти', no: 'Повернутися до маршруту' },
+};
+
+/**
+ * SEGUNDA confirmacion — la UNICA que gasta. Lleva el precio entero delante: que el punto
+ * se da por visitado, que el audio y los retos quedan resueltos, que esa parte de la
+ * historia se pierde, y cuantos rescates quedaran despues.
+ *
+ * {nombre} = el elemento. {restantes} y {total} = la cuenta despues de gastarlo.
+ * Cerrar por cualquier via equivale a "no".
+ */
+export const TRADUCCIONES_RESCATE_CONFIRMAR_2 = {
+    es: { titulo: 'Está a punto de usar un rescate en {nombre}.', cuerpo: 'Este punto se dará por visitado y su audio y sus retos quedarán resueltos: esa parte de la historia quedará sin descubrir y no podrá volver atrás.\n\nDespués le quedarán {restantes} de {total}.\n\n¿Seguimos adelante?', si: 'Sí', no: 'No' },
+    en: { titulo: 'You are about to use a rescue at {nombre}.', cuerpo: 'This point will count as visited and its audio and challenges as done: that part of the story will stay untold, and there is no going back.\n\nYou will have {restantes} of {total} left.\n\nShall we carry on?', si: 'Yes', no: 'No' },
+    fr: { titulo: 'Vous êtes sur le point d’utiliser un sauvetage à {nombre}.', cuerpo: 'Ce point sera considéré comme visité, son audio et ses défis comme terminés : cette partie de l’histoire restera inconnue, et il n’y aura pas de retour en arrière.\n\nIl vous en restera {restantes} sur {total}.\n\nOn continue ?', si: 'Oui', no: 'Non' },
+    it: { titulo: 'Sta per usare un salvataggio a {nombre}.', cuerpo: 'Questo punto risulterà visitato e il suo audio e le sue sfide risolti: quella parte della storia resterà da scoprire, e non si potrà tornare indietro.\n\nLe resteranno {restantes} su {total}.\n\nProseguiamo?', si: 'Sì', no: 'No' },
+    nl: { titulo: 'U staat op het punt een redding te gebruiken bij {nombre}.', cuerpo: 'Dit punt telt dan als bezocht en de audio en opdrachten als voltooid: dat deel van het verhaal blijft ongehoord, en terugdraaien kan niet.\n\nU houdt er {restantes} van {total} over.\n\nZullen we doorgaan?', si: 'Ja', no: 'Nee' },
+    de: { titulo: 'Sie sind dabei, eine Rettung bei {nombre} einzusetzen.', cuerpo: 'Dieser Punkt gilt dann als besucht, sein Audio und seine Rätsel als gelöst: Dieser Teil der Geschichte bleibt unerzählt, und rückgängig machen lässt sich das nicht.\n\nDanach bleiben Ihnen {restantes} von {total}.\n\nSollen wir fortfahren?', si: 'Ja', no: 'Nein' },
+    ja: { titulo: '{nombre} でレスキューを使おうとしています。', cuerpo: 'この地点は訪問済みとなり、音声と謎も解決済みとして扱われます。その部分の物語は語られないままとなり、元に戻すことはできません。\n\n使用後は {total} 回中 {restantes} 回が残ります。\n\n先に進みますか？', si: 'はい', no: 'いいえ' },
+    zh: { titulo: '您即将在 {nombre} 使用一次救援。', cuerpo: '该地点将计为已到访，其语音讲解与谜题也将视为完成：这一段故事将无缘听到，且无法撤销。\n\n之后您还剩 {total} 次中的 {restantes} 次。\n\n要继续吗？', si: '是', no: '否' },
+    pl: { titulo: 'Zamierza Pan użyć ratunku w punkcie {nombre}.', cuerpo: 'Ten punkt zostanie uznany za odwiedzony, a jego nagranie i zagadki za rozwiązane: ta część opowieści pozostanie nieodkryta i nie da się tego cofnąć.\n\nPozostanie Panu {restantes} z {total}.\n\nIdziemy dalej?', si: 'Tak', no: 'Nie' },
+    pt: { titulo: 'Está prestes a usar um resgate em {nombre}.', cuerpo: 'Este ponto ficará como visitado e o seu áudio e desafios como resolvidos: essa parte da história ficará por descobrir, e não há como voltar atrás.\n\nDepois ficam-lhe {restantes} de {total}.\n\nSeguimos em frente?', si: 'Sim', no: 'Não' },
+    ru: { titulo: 'Вы собираетесь использовать спасение в точке {nombre}.', cuerpo: 'Эта точка будет засчитана как посещённая, а её аудио и задания — как выполненные: эта часть истории останется нерассказанной, и вернуть её не получится.\n\nПосле этого у вас останется {restantes} из {total}.\n\nПродолжаем?', si: 'Да', no: 'Нет' },
+    uk: { titulo: 'Ви збираєтеся скористатися порятунком у точці {nombre}.', cuerpo: 'Цю точку буде зараховано як відвідану, а її аудіо та завдання — як виконані: ця частина історії залишиться нерозказаною, і повернути її не вдасться.\n\nПісля цього у вас залишиться {restantes} з {total}.\n\nРушаємо далі?', si: 'Так', no: 'Ні' },
+};
+
+/**
+ * Rescates agotados. No remite al buzon de sugerencias: es un buzon sin respuesta y
+ * ademas necesita cobertura, justo lo que puede faltarle a quien esta bloqueado. Le
+ * señala los dos mapas, que SI se le habilitan a proposito cuando esta fuera de rango.
+ */
+export const TRADUCCIONES_RESCATE_AGOTADOS = {
+    es: { titulo: 'Ha utilizado sus {total} rescates y ya no queda ninguno.', cuerpo: 'No se preocupe, aún queda mucho por descubrir. Un acceso cerrado suele abrirse al cabo de un rato, y casi siempre hay otra forma de acercarse: tiene el mapa completo y el mapa antiguo a mano para encontrarla.' },
+    en: { titulo: 'You have used all {total} of your rescues.', cuerpo: 'Not to worry — there is still plenty to discover. A closed-off street often opens up after a while, and there is nearly always another way round: the full map and the old map are right there to help you find it.' },
+    fr: { titulo: 'Vous avez utilisé vos {total} sauvetages : il n’en reste aucun.', cuerpo: 'Pas d’inquiétude, il reste beaucoup à découvrir. Un accès fermé finit souvent par rouvrir, et il existe presque toujours un autre chemin : la carte complète et la carte ancienne sont là pour vous aider à le trouver.' },
+    it: { titulo: 'Ha usato tutti i suoi {total} salvataggi.', cuerpo: 'Non si preoccupi, c’è ancora molto da scoprire. Un accesso chiuso spesso si riapre dopo un po’, e quasi sempre esiste un altro modo per avvicinarsi: ha a disposizione la mappa completa e la mappa antica per trovarlo.' },
+    nl: { titulo: 'U heeft al uw {total} reddingen gebruikt.', cuerpo: 'Geen zorgen, er valt nog genoeg te ontdekken. Een afgesloten doorgang gaat vaak na een tijdje weer open, en er is bijna altijd een andere route: de volledige kaart en de oude kaart helpen u die te vinden.' },
+    de: { titulo: 'Sie haben alle {total} Rettungen verbraucht.', cuerpo: 'Keine Sorge, es gibt noch viel zu entdecken. Ein gesperrter Zugang öffnet sich oft nach einer Weile, und fast immer gibt es einen anderen Weg: Die vollständige Karte und die alte Karte helfen Ihnen, ihn zu finden.' },
+    ja: { titulo: '{total} 回のレスキューをすべて使い切りました。', cuerpo: 'ご心配なく、まだ発見すべきことはたくさんあります。閉ざされた道はしばらくすると通れるようになることが多く、たいていは別の近づき方があります。全体地図と古地図をお使いください。' },
+    zh: { titulo: '您已用完全部 {total} 次救援。', cuerpo: '别担心，还有很多值得探索的地方。封闭的通道过一阵子往往会重新开放，而且几乎总有别的路可走：完整地图和古地图都可以帮您找到。' },
+    pl: { titulo: 'Wykorzystał Pan wszystkie {total} ratunków.', cuerpo: 'Bez obaw, wciąż jest wiele do odkrycia. Zamknięte przejście często po chwili znów się otwiera, a prawie zawsze istnieje inna droga: pełna mapa i mapa dawna pomogą ją znaleźć.' },
+    pt: { titulo: 'Utilizou os seus {total} resgates e já não resta nenhum.', cuerpo: 'Não se preocupe, ainda há muito por descobrir. Um acesso fechado costuma abrir passado algum tempo, e quase sempre há outra forma de se aproximar: tem o mapa completo e o mapa antigo à mão para a encontrar.' },
+    ru: { titulo: 'Вы израсходовали все {total} спасений.', cuerpo: 'Не волнуйтесь, впереди ещё много открытий. Перекрытый проход часто открывается через некоторое время, и почти всегда есть другой путь: полная карта и старинная карта помогут его найти.' },
+    uk: { titulo: 'Ви використали всі {total} порятунків.', cuerpo: 'Не хвилюйтеся, попереду ще багато відкриттів. Перекритий прохід часто відкривається за деякий час, і майже завжди є інший шлях: повна мапа та старовинна мапа допоможуть його знайти.' },
+};
+
 
 // Cartel de rescate de un tramo (_mostrarCartelRescateTramo, codigo-padre.html).
 // Sale cuando el TTL desbloquea un tramo cuya llegada no se pudo confirmar. NUNCA dice "ha
@@ -1025,18 +1133,18 @@ export const PREGUNTAS_CHAT = {
         uk: 'Чи можу я піти іншим шляхом, ніж зазначено на карті?',
     },
     UBIC_ATASCADO_TRAMO: {
-        es: '¿Qué pasa si me quedo atascado en un tramo y no consigo avanzar?',
-        en: "What happens if I get stuck on a segment and can't move forward?",
-        fr: 'Que se passe-t-il si je reste bloqué sur un tronçon et n\'arrive pas à avancer ?',
-        it: 'Cosa succede se resto bloccato in un tratto e non riesco ad andare avanti?',
-        nl: 'Wat gebeurt er als ik vastloop op een traject en niet verder kom?',
-        ja: '区間の途中で動けなくなってしまったらどうなりますか？',
-        de: 'Was passiert, wenn ich in einem Abschnitt hängen bleibe und nicht weiterkomme?',
-        zh: '如果我在某个路段卡住、无法继续前进怎么办？',
-        pl: 'Co się stanie, jeśli utknę na odcinku i nie mogę iść dalej?',
-        pt: 'O que acontece se eu ficar preso num troço e não conseguir avançar?',
-        ru: 'Что произойдёт, если я застряну на отрезке и не смогу двигаться дальше?',
-        uk: 'Що станеться, якщо я застрягну на відрізку і не зможу рухатися далі?',
+        es: '¿Qué ocurre si no consigo llegar a un punto y no puedo continuar?',
+        en: 'What happens if I cannot reach a point and cannot carry on?',
+        fr: 'Que se passe-t-il si je n’arrive pas à atteindre un point et que je ne peux pas continuer ?',
+        it: 'Cosa succede se non riesco a raggiungere un punto e non posso proseguire?',
+        nl: 'Wat gebeurt er als ik een punt niet kan bereiken en niet verder kan?',
+        ja: 'ある地点にたどり着けず、先に進めない場合はどうなりますか？',
+        de: 'Was passiert, wenn ich einen Punkt nicht erreichen kann und nicht weiterkomme?',
+        zh: '如果我到不了某个地点、无法继续，会怎么样？',
+        pl: 'Co się stanie, jeśli nie dotrę do punktu i nie będę mógł iść dalej?',
+        pt: 'O que acontece se não conseguir chegar a um ponto e não puder continuar?',
+        ru: 'Что делать, если я не могу добраться до точки и продолжить маршрут?',
+        uk: 'Що робити, якщо я не можу дістатися до точки й продовжити маршрут?',
     },
     UBIC_PASO_DE_LARGO: {
         es: '¿Qué ocurre si paso de largo una parada?',
@@ -1705,18 +1813,18 @@ export const RESPUESTAS_CHAT = {
         uk: 'Радимо дотримуватися офіційного маршруту. Його розроблено так, щоб забезпечити найкращі враження. Якщо ви оберете інший шлях, деякий контент може не активуватися належним чином. Радимо завжди дотримуватися зазначеного маршруту, щоб отримати максимум від відвідування.',
     }),
     UBIC_ATASCADO_TRAMO: _rChat({
-        es: '¡Tranquilidad absoluta, ya hemos contemplado esa variable! Si por obras, una calle cortada, haberse perdido o una causa similar lleva unos 10 minutos sin conseguir completar un tramo, la aplicación lo detecta y le permite continuar la aventura hasta su siguiente punto de interés, que verá reflejado en el mapa. ¡Pero atención! Esta es una ayuda pensada como último recurso, con un número limitado de usos por aventura: la propia aplicación le dirá cuántos lleva cuando ocurra. Le animamos a seguir intentando llegar siempre al punto indicado.',
-        en: "Don't worry, we've already thought of that! If roadworks, a closed street, getting lost, or something similar keeps you from completing a segment for about 10 minutes, the app detects it and lets you continue the adventure to your next point of interest, which you'll see reflected on the map. But careful: this is meant as a last resort, limited to a set number of uses per adventure, and the app will tell you how many you have used when it happens. We still encourage you to keep trying to reach the indicated point whenever possible.",
-        fr: 'Pas de panique, nous avons pensé à ce cas de figure ! Si des travaux, une rue barrée, le fait de vous être perdu ou une raison similaire vous empêchent de terminer un tronçon pendant environ 10 minutes, l\'application le détecte et vous permet de poursuivre l\'aventure jusqu\'à votre prochain point d\'intérêt, que vous verrez apparaître sur la carte. Mais attention : il s\'agit d\'une aide de dernier recours, limitée à un certain nombre d\'utilisations par aventure, et l\'application vous indiquera où vous en êtes le moment venu. Nous vous encourageons malgré tout à toujours essayer d\'atteindre le point indiqué.',
-        it: 'Tranquilli, ci abbiamo già pensato! Se lavori in corso, una strada chiusa, essersi persi o un motivo simile vi impediscono di completare un tratto per circa 10 minuti, l\'app se ne accorge e vi permette di proseguire l\'avventura fino al prossimo punto di interesse, che vedrete riportato sulla mappa. Attenzione però: è un aiuto pensato come ultima risorsa, con un numero limitato di utilizzi per avventura: sarà la stessa applicazione a dirvi a quanti siete arrivati quando succede. Vi invitiamo comunque a continuare a cercare di raggiungere sempre il punto indicato.',
-        nl: 'Geen zorgen, daar hebben we al aan gedacht! Als werkzaamheden, een afgesloten straat, verdwalen of iets dergelijks ervoor zorgt dat u zo\'n 10 minuten lang een traject niet kunt voltooien, merkt de app dit op en laat ze u verdergaan met het avontuur tot uw volgende bezienswaardigheid, die u op de kaart terugziet. Let wel op: dit is bedoeld als allerlaatste redmiddel, met een beperkt aantal keer per avontuur; de app laat u zelf weten de hoeveelste het is wanneer het gebeurt. We moedigen u toch aan om altijd te blijven proberen het aangegeven punt te bereiken.',
-        ja: 'ご安心ください、そうした事態もすでに想定済みです！工事中、通行止め、道に迷ってしまった場合など、約10分間区間を完了できない状態が続くと、アプリがそれを検知して、地図に表示される次の見どころまで冒険を進められるようにします。ただしご注意を。これはあくまで最後の手段として用意された仕組みで、1つの冒険で使える回数には限りがあります。何回目かはその都度アプリがお知らせします。可能な限り、示された地点を目指して歩き続けることをおすすめします。',
-        de: 'Keine Sorge, daran haben wir bereits gedacht! Wenn Sie einen Abschnitt aus einem Grund wie Bauarbeiten, einer gesperrten Straße oder weil Sie sich verlaufen haben etwa 10 Minuten lang nicht abschließen können, erkennt die App das und lässt Sie das Abenteuer bis zu Ihrem nächsten Sehenswürdigkeitspunkt fortsetzen, den Sie auf der Karte angezeigt bekommen. Aber Achtung: Das ist als allerletzte Hilfe gedacht, auf eine begrenzte Anzahl pro Abenteuer beschränkt — die App sagt Ihnen im Moment selbst, um das wievielte Mal es sich handelt. Wir empfehlen Ihnen trotzdem, weiterhin zu versuchen, den angegebenen Punkt zu erreichen.',
-        zh: '请放心，我们已经考虑到这种情况！如果因施工、道路封闭、迷路或类似原因，导致您大约10分钟都无法完成某个路段，应用会自动检测到，并让您继续冒险前往地图上显示的下一个目的地。但请注意：这是作为最后手段设置的帮助功能，每次冒险可使用的次数有限，发生时应用会告诉您这是第几次——我们仍然鼓励您尽量继续尝试到达指定地点。',
-        pl: 'Spokojnie, przewidzieliśmy taką sytuację! Jeśli z powodu robót drogowych, zamkniętej ulicy, zgubienia się lub podobnej przyczyny nie możesz ukończyć odcinka przez około 10 minut, aplikacja to wykrywa i pozwala kontynuować przygodę aż do kolejnego punktu zainteresowania, który zobaczysz na mapie. Uwaga jednak: to pomoc pomyślana jako ostateczność, z ograniczoną liczbę użyć na przygodę — aplikacja sama powie, który to raz, gdy do tego dojdzie. Mimo to zachęcamy, by zawsze próbować dotrzeć do wskazanego punktu.',
-        pt: 'Fique descansado, já contámos com essa possibilidade! Se obras, uma rua cortada, perder-se ou um motivo semelhante o impedirem de concluir um troço durante cerca de 10 minutos, a aplicação deteta isso e permite-lhe continuar a aventura até ao seu próximo ponto de interesse, que verá refletido no mapa. Mas atenção: esta é uma ajuda pensada como último recurso, com um número limitado de utilizações por aventura: a própria aplicação dir-lhe-á em qual vai quando acontecer. Ainda assim, encorajamo-lo a continuar sempre a tentar chegar ao ponto indicado.',
-        ru: 'Не переживайте, мы уже предусмотрели такую ситуацию! Если из-за ремонта, перекрытой улицы, того что Вы заблудились, или по другой похожей причине Вы около 10 минут не можете пройти отрезок, приложение это заметит и позволит Вам продолжить приключение до следующей точки интереса — она отобразится на карте. Но учтите: это помощь на самый крайний случай, число таких случаев за приключение ограничено, и приложение само сообщит Вам, какой это по счёту. Мы всё же советуем Вам всегда стараться дойти до нужной точки.',
-        uk: 'Не хвилюйтеся, ми вже передбачили таку ситуацію! Якщо через ремонтні роботи, перекриту вулицю, те що Ви заблукали, або з іншої схожої причини Ви приблизно 10 хвилин не можете пройти відрізок, застосунок це помітить і дозволить Вам продовжити пригоду до наступної точки інтересу — вона з\'явиться на карті. Але зважте: це допомога на крайній випадок, кількість таких випадків за пригоду обмежена, і застосунок сам повідомить Вам, який це за рахунком. Ми все одно радимо Вам завжди намагатися дійти до потрібної точки.',
+        es: 'No se preocupe, tenemos una salida preparada.\n\nEn una ciudad pasan cosas: unas obras, una calle cortada, una valla que ayer no estaba… A veces, simplemente, el camino se complica.\n\nPara estos casos existen los rescates. Un rescate le permite dejar atrás este punto y continuar hasta el siguiente, tanto si se trata de una parada como de un tramo. En esta aventura dispone de {total} rescates.\n\nUsted decide cuándo utilizarlos. Si ve que no hay forma de continuar, pulse el botón de aquí abajo y seguirá con su aventura con normalidad. Eso sí, úselos con cabeza: son contados.\n\nTenga en cuenta que, al utilizar un rescate, este punto se dará por visitado y su audio y sus retos quedarán resueltos. Es decir, esa parte de la historia quedará sin descubrir y no podrá volver atrás.\n\nPor eso, nuestro consejo es sencillo: intente llegar siempre que pueda y guarde los rescates para cuando la ciudad de verdad le cierre el paso.',
+        en: 'Not to worry — we have a way out ready for you.\n\nCities are living things: roadworks, a closed street, a fence that was not there yesterday… Sometimes the way ahead simply gets complicated.\n\nThat is what rescues are for. A rescue lets you leave the point behind and carry on to the next one, whether it is a stop or a segment. You have {total} rescues on this adventure.\n\nYou decide when to use them. If there is truly no way through, tap the button below and your adventure carries on as normal. Do use them wisely, though: they are limited.\n\nBear in mind that using a rescue marks the point as visited and its audio and challenges as done. That part of the story stays undiscovered, and there is no going back.\n\nSo our advice is simple: get there whenever you can, and save your rescues for when the city really does block your way.',
+        fr: 'Pas d’inquiétude, nous avons prévu une solution.\n\nUne ville, c’est vivant : des travaux, une rue barrée, une barrière qui n’était pas là hier… Parfois, le chemin se complique, tout simplement.\n\nC’est à cela que servent les sauvetages. Un sauvetage vous permet de laisser ce point derrière vous et de poursuivre jusqu’au suivant, qu’il s’agisse d’un arrêt ou d’un tronçon. Vous disposez de {total} sauvetages pour cette aventure.\n\nC’est vous qui décidez quand les utiliser. Si vraiment rien ne passe, appuyez sur le bouton ci-dessous et votre aventure se poursuit normalement. Utilisez-les avec discernement : ils sont comptés.\n\nSachez qu’en utilisant un sauvetage, ce point sera considéré comme visité, son audio et ses défis comme terminés. Cette partie de l’histoire restera inconnue, et il n’y aura pas de retour en arrière.\n\nNotre conseil est donc simple : allez-y chaque fois que c’est possible, et gardez vos sauvetages pour les jours où la ville vous barre vraiment la route.',
+        it: 'Non si preoccupi, abbiamo già previsto una via d’uscita.\n\nIn una città capita di tutto: lavori in corso, una strada chiusa, una transenna che ieri non c’era… A volte il cammino si complica, semplicemente.\n\nPer questo esistono i salvataggi. Un salvataggio le permette di lasciarsi alle spalle questo punto e proseguire fino al successivo, che si tratti di una tappa o di un tratto. In questa avventura ne ha {total}.\n\nÈ lei a decidere quando usarli. Se davvero non si passa, prema il pulsante qui sotto e l’avventura prosegue normalmente. Li usi però con criterio: sono contati.\n\nTenga presente che, usando un salvataggio, questo punto risulterà visitato e il suo audio e le sue sfide risolti. Quella parte della storia resterà da scoprire, e non si potrà tornare indietro.\n\nIl nostro consiglio è semplice: arrivi sul posto ogni volta che può, e conservi i salvataggi per quando la città le sbarra davvero la strada.',
+        nl: 'Geen zorgen, wij hebben een uitweg klaarstaan.\n\nEen stad leeft: wegwerkzaamheden, een afgesloten straat, een hek dat er gisteren nog niet stond… Soms wordt de weg gewoon lastig.\n\nDaarvoor zijn de reddingen. Met een redding laat u dit punt achter u en gaat u door naar het volgende, of het nu een halte of een traject is. In dit avontuur heeft u er {total}.\n\nU bepaalt zelf wanneer u ze gebruikt. Komt u er echt niet door, druk dan op de knop hieronder en uw avontuur gaat gewoon verder. Gebruik ze wel met beleid: het zijn er een beperkt aantal.\n\nHoud er rekening mee dat een redding dit punt als bezocht markeert en de audio en opdrachten als voltooid. Dat deel van het verhaal blijft onontdekt, en terugdraaien kan niet.\n\nOns advies is daarom eenvoudig: ga erheen wanneer het kan, en bewaar uw reddingen voor de momenten waarop de stad u echt de doorgang belet.',
+        ja: 'ご心配なく、逃げ道はご用意しています。\n\n街は生きものです。工事、通行止め、昨日はなかった柵——道が思わぬかたちで塞がることがあります。\n\nそんなときのための「レスキュー」です。レスキューを使うと、その地点を後にして次へ進めます。停留地点でも区間でも同じように使えます。この冒険では {total} 回ご利用いただけます。\n\nいつ使うかはお客様しだいです。どうしても進めないときは下のボタンを押してください。冒険はそのまま続きます。ただし回数は限られていますので、よくお考えのうえでお使いください。\n\nなお、レスキューを使うとその地点は訪問済みとなり、音声と謎も解決済みとして扱われます。その部分の物語は語られないままとなり、あとから戻ることはできません。\n\nですから、たどり着ける限りは足を運び、レスキューは街が本当に道を閉ざしたときのために取っておくことをおすすめします。',
+        de: 'Keine Sorge, wir haben einen Ausweg vorbereitet.\n\nEine Stadt lebt: Baustellen, eine gesperrte Straße, ein Zaun, der gestern noch nicht da war… Manchmal wird der Weg einfach schwierig.\n\nGenau dafür gibt es die Rettungen. Eine Rettung lässt Sie diesen Punkt hinter sich lassen und zum nächsten weitergehen — ganz gleich, ob es ein Halt oder eine Etappe ist. In diesem Abenteuer stehen Ihnen {total} zur Verfügung.\n\nSie entscheiden, wann Sie sie einsetzen. Wenn wirklich kein Durchkommen ist, drücken Sie die Schaltfläche unten, und Ihr Abenteuer geht ganz normal weiter. Gehen Sie aber überlegt damit um: Es sind gezählte.\n\nBeachten Sie: Mit einer Rettung gilt dieser Punkt als besucht, sein Audio und seine Rätsel als gelöst. Dieser Teil der Geschichte bleibt unentdeckt, und rückgängig machen lässt sich das nicht.\n\nUnser Rat ist deshalb einfach: Gehen Sie hin, wann immer es geht, und heben Sie sich die Rettungen für die Momente auf, in denen die Stadt Ihnen wirklich den Weg versperrt.',
+        zh: '别担心，我们早已为您备好了退路。\n\n城市是活的：施工、封路、昨天还没有的围栏……有时候，路就是走不通了。\n\n这正是「救援」的用处。使用一次救援，您就可以离开当前地点、继续前往下一个，无论那是一处停留点还是一段路程。本次冒险中您有 {total} 次。\n\n何时使用由您决定。如果确实过不去，请按下方的按钮，冒险照常继续。不过请用得明智些：次数是有限的。\n\n请注意，使用救援后，该地点将计为已到访，其语音讲解与谜题也将视为完成。这一段故事将无缘听到，并且无法撤销。\n\n所以我们的建议很简单：能走到的地方就走过去，把救援留给城市真正挡住您去路的时候。',
+        pl: 'Bez obaw, mamy przygotowane wyjście.\n\nMiasto żyje: remonty, zamknięta ulica, ogrodzenie, którego wczoraj tu nie było… Czasem droga po prostu się komplikuje.\n\nWłaśnie po to są ratunki. Ratunek pozwala zostawić ten punkt za sobą i ruszyć do następnego — niezależnie od tego, czy jest to przystanek, czy odcinek trasy. W tej przygodzie ma Pan do dyspozycji {total}.\n\nTo Pan decyduje, kiedy z nich skorzystać. Jeśli naprawdę nie da się przejść, proszę nacisnąć przycisk poniżej — przygoda potoczy się dalej normalnie. Proszę jednak używać ich z głową: jest ich ograniczona liczba.\n\nProszę pamiętać, że użycie ratunku sprawia, iż punkt zostaje uznany za odwiedzony, a jego nagranie i zagadki za rozwiązane. Ta część opowieści pozostanie nieodkryta i nie da się tego cofnąć.\n\nDlatego nasza rada jest prosta: proszę docierać na miejsce, kiedy tylko się da, a ratunki zachować na chwile, gdy miasto naprawdę zamknie Panu drogę.',
+        pt: 'Não se preocupe, temos uma saída preparada.\n\nNuma cidade acontece de tudo: obras, uma rua cortada, uma vedação que ontem não estava lá… Às vezes o caminho complica-se, simplesmente.\n\nÉ para isso que existem os resgates. Um resgate permite-lhe deixar este ponto para trás e seguir até ao seguinte, quer se trate de uma paragem ou de um troço. Nesta aventura dispõe de {total} resgates.\n\nÉ o utilizador que decide quando os usar. Se mesmo assim não houver passagem, carregue no botão aqui em baixo e a sua aventura continua normalmente. Use-os com cabeça: são contados.\n\nTenha em conta que, ao usar um resgate, este ponto fica como visitado e o seu áudio e desafios como resolvidos. Essa parte da história fica por descobrir, e não há como voltar atrás.\n\nPor isso o nosso conselho é simples: chegue lá sempre que puder e guarde os resgates para quando a cidade lhe fechar mesmo a passagem.',
+        ru: 'Не волнуйтесь, выход у нас предусмотрен.\n\nГород живёт своей жизнью: ремонт, перекрытая улица, ограждение, которого вчера не было… Иногда путь просто оказывается закрыт.\n\nИменно для таких случаев есть спасения. Спасение позволяет оставить эту точку позади и перейти к следующей — будь то остановка или участок пути. В этом приключении у вас их {total}.\n\nКогда ими воспользоваться, решаете вы. Если пройти действительно невозможно, нажмите кнопку ниже — и приключение продолжится как обычно. Но расходуйте их с умом: их число ограничено.\n\nУчтите: после спасения точка засчитывается как посещённая, а её аудио и задания — как выполненные. Эта часть истории останется нерассказанной, и вернуть её не получится.\n\nПоэтому совет простой: доходите до места всегда, когда это возможно, а спасения берегите для случаев, когда город и правда закрывает вам дорогу.',
+        uk: 'Не хвилюйтеся, вихід ми передбачили.\n\nМісто живе своїм життям: ремонт, перекрита вулиця, огорожа, якої вчора не було… Інколи шлях просто виявляється закритим.\n\nСаме для таких випадків є порятунки. Порятунок дозволяє залишити цю точку позаду й перейти до наступної — байдуже, зупинка це чи ділянка шляху. У цій пригоді їх у вас {total}.\n\nКоли ними скористатися, вирішуєте ви. Якщо пройти справді неможливо, натисніть кнопку нижче — і пригода триватиме як зазвичай. Але витрачайте їх розважливо: їхня кількість обмежена.\n\nВрахуйте: після порятунку точку зараховано як відвідану, а її аудіо та завдання — як виконані. Ця частина історії залишиться нерозказаною, і повернути її не вдасться.\n\nТому порада проста: доходьте до місця щоразу, коли це можливо, а порятунки бережіть для випадків, коли місто справді перекриває вам шлях.',
     }),
     UBIC_PASO_DE_LARGO: _rChat({
         es: '¡Tranquilidad absoluta! Puede regresar a la parada mientras la aventura permanezca activa. Cuando vuelva a entrar en su área de detección, el contenido se activará automáticamente.',
