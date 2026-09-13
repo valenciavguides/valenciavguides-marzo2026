@@ -4277,7 +4277,7 @@
             modo: { actual: null, anterior: null },
             paradaActual: null,
             // Saltos de seguridad del TTL de tramos (§31.7b) — máx. 5 por aventura, cada uno
-            // exige 20% de progreso real desde el último. Persisten en vv_progreso (a
+            // exige 18% de progreso real desde el último. Persisten en vv_progreso (a
             // diferencia de la distancia recorrida de funciones-mapa.js, que se reinicia
             // adrede al reabrir la PWA): son un límite antiabuso, no contabilidad de progreso.
             tramoSkipsUsados: 0,
@@ -10576,7 +10576,34 @@ await _comprobarReanudacionAventura(logPrefix);
 
         function _paradaConditionsMet(pending, elemento) {
             const retosIds = obtenerRetosIds(elemento);
-            const retosOk = retosIds.length === 0 || pending.reto === true || (pending.retosTotal > 0 && pending.retosCompletadosCount >= pending.retosTotal);
+
+            // Dos vias para lo mismo: la SEÑAL (`pending.reto`) y la CUENTA
+            // (`retosCompletadosCount >= retosTotal`). Hoy no pueden discrepar porque las
+            // escribe el mismo sitio en dos lineas seguidas (_retoColaCompletada), y la cola
+            // y el total salen los dos de obtenerRetosIds(elemento).
+            //
+            // POR QUE NO SE QUITA LA SEÑAL, Y POR QUE AVISA
+            //
+            // Dejar solo la cuenta seria lo "limpio", pero si algun dia se quedara corta la
+            // parada no se cerraria nunca: usuario atascado en mitad de la calle sin poder
+            // avanzar. Es peor fallo que el que se arregla.
+            //
+            // El problema de dejarlo tal cual es que la señal contesta siempre primero, asi
+            // que la cuenta no decide nada y **no puede fallar de forma visible**: si se
+            // rompiera, la parada se cerraria igual y nadie se enteraria. Y se rompera el dia
+            // que los retos crezcan — `reto_id` ya admite lista, y basta con que aparezca un
+            // reto opcional o uno que se pueda saltar para que la cuenta quede corta
+            // legitimamente mientras la señal sigue diciendo "hechos".
+            //
+            // Asi que se conservan las dos (nadie se atasca) pero la discrepancia se grita
+            // UNA vez por parada. Un camino alternativo puede existir; en silencio no.
+            const cuentaOk = pending.retosTotal > 0 && pending.retosCompletadosCount >= pending.retosTotal;
+            if (retosIds.length > 0 && pending.reto === true && !cuentaOk && !pending._avisadoRetosDiscrepan) {
+                pending._avisadoRetosDiscrepan = true;
+                (globalThis.logger || console).warn(`[PADRE][PENDINGS] La señal de retos y la cuenta NO COINCIDEN en ${elemento?.parada_id || elemento?.padreid}: señal="hechos" pero cuenta=${pending.retosCompletadosCount}/${pending.retosTotal} sobre ${retosIds.length} reto(s). La parada se cierra igual para no dejar al usuario bloqueado, pero la cuenta esta mal y hay que mirarla.`);
+            }
+
+            const retosOk = retosIds.length === 0 || pending.reto === true || cuentaOk;
             return pending.llegada && pending.audio && retosOk;
         }
 
@@ -12259,7 +12286,7 @@ await _comprobarReanudacionAventura(logPrefix);
                 // siguiente, a mitad de reproduccion. Puede pasar de verdad: el video de un
                 // tramo es la vista previa del camino, nada lo cierra al cambiar de parada
                 // (solo el boton de cerrar, Escape o un cambio de MODO via
-                // _limpiarRecursos), y la llegada a la parada siguiente la dispara el GPS
+                // limpiarRecursosPorModo), y la llegada a la parada siguiente la dispara el GPS
                 // mientras el usuario puede seguir teniendolo abierto.
                 //
                 // Se pospone en vez de precargar: no hay reintento, asi que ese tramo
@@ -14665,7 +14692,7 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
         // haber estado nunca cerca, con solo esperar (la app es una audioguía geolocalizada;
         // completar la aventura sin presencia real no es aceptable). Se rescata solo si
         // queda algún salto de seguridad disponible: máximo 5 por aventura, y cada uno exige
-        // un 20% de progreso real (sobre el total de elementos) desde el último salto usado
+        // un 18% de progreso real (sobre el total de elementos) desde el último salto usado
         // — pensado para un usuario genuinamente perdido por una causa real (obras, calle
         // cortada, un evento) que se frustraría y abandonaría la app sin ninguna salida,
         // no como forma de completar la aventura entera sin moverse.
@@ -14686,12 +14713,32 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
                 // son 34 km y 239 elementos: ahi la probabilidad de topar con obras, un
                 // evento o una calle cortada es varias veces mayor, y merece mas margen.
                 //
-                // PROGRESO_MINIMO baja a la par y por una razon aritmetica, no estetica: el
-                // 20 % por defecto solo permite CINCO rescates en toda la aventura (0, 20,
-                // 40, 60 y 80 %), asi que dejar el 20 % en Av34km haria que sus 12 fueran
-                // nominales — imposibles de usar. Con el 5 % caben los 12 de verdad.
+                // PROGRESO_MINIMO baja a la par y por una razon aritmetica, no estetica.
+                //
+                // COMO CUENTA LA PUERTA, Y POR QUE 0.18 Y NO 0.2
+                //
+                // La condicion es (progresoActual - progresoUltimoSkip) >= PROGRESO_MINIMO, y
+                // progresoUltimoSkip arranca en 0. O sea que el rescate n-esimo exige
+                // n * PROGRESO_MINIMO de progreso: el PRIMERO ya pide el minimo entero, no 0.
+                // Es lo correcto —un rescate exige haber andado algo— pero desplaza la serie
+                // un escalon respecto a lo que parece a simple vista.
+                //
+                // Y el progreso nunca llega a 1: _calcularProgresoFraccion() es
+                // indiceProgreso / elementosIDpadre.length, y el ultimo elemento tiene el
+                // indice length-1, asi que el techo real es (length-1)/length. En las seis
+                // aventuras cortas va de 0.9796 (Fallas, 49 elementos) a 0.9861 (Aventura3).
+                //
+                // Con 0.2, el quinto rescate exigia 5 * 0.2 = 1.00 exacto — justo el unico
+                // valor que esa escala no puede dar. Se prometian cinco en el cartel
+                // ("la excepcion {usadas} de {total}") y solo cuatro podian dispararse.
+                // Con 0.18 los cinco piden 0.90, que cabe en la mas corta con margen.
+                // Av34km: 12 * 0.05 = 0.60 contra un techo de 0.9958, holgado.
+                //
+                // Si se añaden elementos a una aventura el techo SUBE (mas elementos, mas
+                // cerca de 1), asi que el margen solo mejora. Lo que lo estrecharia es
+                // acortar una aventura por debajo de ~28 elementos.
                 const LIMITES_RESCATE = { Aventura34km: { max: 12, progresoMinimo: 0.05 } };
-                const _lim = LIMITES_RESCATE[globalThis.aventuraSeleccionada] || { max: 5, progresoMinimo: 0.2 };
+                const _lim = LIMITES_RESCATE[globalThis.aventuraSeleccionada] || { max: 5, progresoMinimo: 0.18 };
                 const MAX_SALTOS_TRAMO = _lim.max;
                 const PROGRESO_MINIMO_ENTRE_SALTOS = _lim.progresoMinimo;
                 for (const [key, p] of Object.entries(pendings)) {

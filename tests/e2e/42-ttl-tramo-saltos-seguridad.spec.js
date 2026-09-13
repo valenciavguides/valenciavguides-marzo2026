@@ -4,7 +4,7 @@
  * El TTL de pending (10 min por defecto, §31.7b) ya no puede forzar la llegada de un
  * tramo sin más — permitiría completar la aventura entera sin haber estado nunca cerca,
  * con solo esperar (esta app es una audioguía geolocalizada). La llegada solo se rescata
- * si queda algún salto de seguridad: máximo 5 por aventura, y cada uno exige un 20% de
+ * si queda algún salto de seguridad: máximo 5 por aventura, y cada uno exige un 18% de
  * progreso real (sobre el total de elementos) desde el último salto usado — pensado para
  * un usuario genuinamente perdido por una causa real (obras, calle cortada, un evento), no
  * como forma de avanzar sin moverse. Las paradas ya no reciben ningún rescate de este TTL.
@@ -23,7 +23,7 @@
  *   TTL-1  Tramo con TTL expirado, sin saltos disponibles (0% de progreso desde el
  *          último salto, el mínimo real): la llegada no se rescata, el audio tampoco se
  *          toca (ya no es cosa de este barrido).
- *   TTL-2  Mismo escenario pero con ≥20% de progreso real desde el último salto: la
+ *   TTL-2  Mismo escenario pero con ≥18% de progreso real desde el último salto: la
  *          llegada SÍ se rescata, tramoSkipsUsados sube a 1 y progresoEnUltimoSkip se
  *          actualiza al progreso actual; el audio sigue sin tocarse.
  *   TTL-3  Con tramoSkipsUsados ya en 5 (el máximo) y progreso de sobra: la llegada NO
@@ -80,7 +80,7 @@ test.describe('TTL — Rescate de tramos por TTL y saltos de seguridad (§31.7b)
     test.skip(!prep.tieneFuncion || !prep.totalElementos, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
     const resultado = await page.evaluate((haceMs) => {
-      globalThis.estadoPadre.indiceProgreso = 0; // 0% — igual que progresoEnUltimoSkip (0), diferencia 0% < 20%
+      globalThis.estadoPadre.indiceProgreso = 0; // 0% — igual que progresoEnUltimoSkip (0), diferencia 0% < 18%
       globalThis.estadoPadre.pendingCompleciones['padre-TR-test'] = {
         tipo: 'tramo', llegada: false, audio: false, reto: false,
         retosTotal: 0, retosCompletadosCount: 0, timestamp: Date.now() - haceMs, ttlMs: 600000,
@@ -95,12 +95,12 @@ test.describe('TTL — Rescate de tramos por TTL y saltos de seguridad (§31.7b)
     expect(resultado.skipsUsados, 'no se debe haber consumido ningún salto').toBe(0);
   });
 
-  test('TTL-2. Con ≥20% de progreso real desde el último salto: la llegada se rescata y se consume un salto', async ({ page }) => {
+  test('TTL-2. Con ≥18% de progreso real desde el último salto: la llegada se rescata y se consume un salto', async ({ page }) => {
     const prep = await prepararConAventura(page);
     test.skip(!prep.tieneFuncion || !prep.totalElementos, `Precondición no disponible: ${JSON.stringify(prep)}`);
 
     const resultado = await page.evaluate(({ haceMs, total }) => {
-      // indiceProgreso a un 25% del total — por encima del 20% mínimo exigido desde
+      // indiceProgreso a un 25% del total — por encima del 18% mínimo exigido desde
       // progresoEnUltimoSkip (0, fijado en prepararConAventura). progresoEsperado se lee
       // con la misma función que usa el barrido (_calcularProgresoFraccion), no
       // recalculado a mano en el test — evita depender de si el total de elementos que
@@ -122,9 +122,9 @@ test.describe('TTL — Rescate de tramos por TTL y saltos de seguridad (§31.7b)
       };
     }, { haceMs: HACE_15_MIN, total: prep.totalElementos });
 
-    expect(resultado.progresoEsperado, 'el progreso fijado debe superar el 20% mínimo para que el escenario tenga sentido').toBeGreaterThanOrEqual(0.2);
+    expect(resultado.progresoEsperado, 'el progreso fijado debe superar el 18% mínimo para que el escenario tenga sentido').toBeGreaterThanOrEqual(0.18);
     expect(resultado.audio, 'el audio ya no es cosa de este barrido').toBe(false);
-    expect(resultado.llegada, 'con ≥20% de progreso real, la llegada sí debe forzarse').toBe(true);
+    expect(resultado.llegada, 'con ≥18% de progreso real, la llegada sí debe forzarse').toBe(true);
     expect(resultado.skipsUsados, 'debe haberse consumido exactamente 1 salto').toBe(1);
     expect(resultado.progresoEnUltimoSkip, 'progresoEnUltimoSkip debe actualizarse al progreso actual').toBeCloseTo(resultado.progresoEsperado, 5);
   });

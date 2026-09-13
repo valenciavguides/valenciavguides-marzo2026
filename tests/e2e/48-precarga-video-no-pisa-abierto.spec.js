@@ -10,7 +10,7 @@
  * usuario tiene el vídeo de un tramo abierto le asignaba `source.src` del tramo
  * siguiente y llamaba a `load()`: le cambiaba el vídeo a mitad de reproducción.
  * Es alcanzable de verdad — nada cierra el overlay al cambiar de parada (solo el
- * botón de cerrar, Escape, o un cambio de MODO vía `_limpiarRecursos()`), y la
+ * botón de cerrar, Escape, o un cambio de MODO vía `limpiarRecursosPorModo()`), y la
  * llegada a la parada siguiente la dispara el GPS.
  *
  * NOTA de entorno: igual que 12-carga-por-parada.spec.js, se verifica observando

@@ -193,3 +193,74 @@ Párrafo `113`:
 > Desde el punto 17, en su mapa se puede entrever uno de los puntos más icónicos de Valencia.
 
 - [ ] Revisado — decisión:
+
+---
+
+## Aparte — el 5.º rescate de tramo es inalcanzable
+
+No sale del contraste de arriba, sino de repasar `js/aventuras-ID-padre.js`. Se anota aquí
+para no perderlo.
+
+Los **3 elementos de intro** de cada aventura son contenido real: la información que
+presenta `video-intro.html`, con sus propios retos (`PZ-intro`, `R1-Av<n>-<idioma>`,
+`R2-Av<n>-<idioma>`). No son elementos de relleno.
+
+Hay que separar dos cosas que en estos elementos se parecen y no son lo mismo:
+
+```json
+"numero_mapa": null,     ← null de verdad: "no tiene número de mapa". Correcto.
+"parada_id":  "null",    ← la cadena "null"
+"texto_id":   "null",    ← la cadena "null"
+"audio_id":   "null",    ← la cadena "null"
+```
+
+El `numero_mapa: null` **está bien**: la intro se ve antes de echar a andar, así que no le
+corresponde ningún pin del mapa. Es el único elemento de la app sin ubicación física, y es
+intencional.
+
+Los 504 campos son los **otros tres**, que no hablan de números de mapa sino de "no tiene
+parada / texto / audio". Ahí lo escrito es la palabra `"null"` **entre comillas**, y una
+cadena es *truthy*: un `if (!x) return` no la corta.
+
+**No es un descuido olvidado.** Hay una guarda escrita a propósito para ello en
+`js/funciones-mapa.js:1894`:
+
+> `const paradaIdEsNull = paradaId === 'null' || paradaId === null;`
+
+Alguien ya se topó con esto y lo rodeó. Convertirlo a `null` de verdad puede romper esa
+guarda, así que no es un arreglo de buscar y reemplazar.
+
+### El 5.º rescate: la causa es otra
+
+El rescate exige que el progreso haya avanzado `PROGRESO_MINIMO_ENTRE_SALTOS` (0,2) desde
+el anterior, y `progresoEnUltimoSkip` arranca en `0`. Los cinco se disparan, entonces, en:
+
+```text
+1.º  progreso ≥ 0,2
+2.º  progreso ≥ 0,4
+3.º  progreso ≥ 0,6
+4.º  progreso ≥ 0,8
+5.º  progreso ≥ 1,0     ← aquí está el problema
+```
+
+Y el progreso **nunca llega a 1,0**. `_calcularProgresoFraccion()`
+(`codigo-padre.html:4493`) es `indiceProgreso / elementosIDpadre.length`, y el último
+elemento tiene el índice `length − 1`. En Aventura 1: `67/68` = **0,985**.
+
+**`MAX_SALTOS_TRAMO × PROGRESO_MINIMO_ENTRE_SALTOS = 5 × 0,2 = 1,0`** — justo el único
+valor que esa escala no puede alcanzar. El quinto rescate no se dispara jamás en las seis
+aventuras cortas.
+
+**Los 3 elementos de intro NO son la causa**, aunque a primera vista lo parezcan. Con
+ellos, el máximo es `67/68` = 0,9853; sin ellos sería `64/65` = 0,9846. Los dos por debajo
+de 1,0: el quinto rescate seguiría sin caber. Se llevan cuatro milésimas, nada más.
+
+Aventura 34 km se libra porque `12 × 0,05 = 0,6`, que sí cabe holgadamente.
+
+### Menor, e inerte
+
+El segundo elemento de intro tiene `padreid: "padre-pre-intro2"` pero `tipo: "pre-intro1"`
+— el mismo tipo que el primero. Nadie consulta ese tipo en ningún sitio del código, así
+que hoy no hace nada.
+
+- [ ] Revisado — decisión:

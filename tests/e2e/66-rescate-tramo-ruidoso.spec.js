@@ -82,18 +82,35 @@ test.describe('RT — El rescate de un tramo se anuncia como lo que es', () => {
     expect(r.repartoConsume, 'el reparto muestra el cartel de rescate en vez del normal').toBe(true);
   });
 
-  test('RT-3. Los topes son por aventura: 5 por defecto, 12 en Av34km con 5% de progreso', async ({ page }) => {
+  test('RT-3. Los topes son por aventura, y TODOS los rescates prometidos caben de verdad', async ({ page }) => {
     // Av34km son 34 km y 239 elementos: mas recorrido, mas probabilidad de topar con algo.
-    // Y el minimo de progreso TIENE que bajar con el tope: con el 20% por defecto solo caben
-    // cinco rescates en toda la aventura (0/20/40/60/80), asi que 12 serian inalcanzables.
+    //
+    // LO QUE ESTE TEST VIGILA DE VERDAD
+    //
+    // El cartel le dice al usuario "la excepcion {usadas} de {total}", asi que {total} tiene
+    // que ser alcanzable. No lo era: la puerta es
+    // (progresoActual - progresoUltimoSkip) >= PROGRESO_MINIMO con progresoUltimoSkip a 0,
+    // o sea que el rescate n-esimo exige n * PROGRESO_MINIMO; y el progreso tiene techo en
+    // (length-1)/length, nunca 1. Con 0.2 el quinto pedia 1.00 exacto y no se disparaba
+    // jamas: la app prometia cinco y daba cuatro.
+    //
+    // La version anterior de este test hacia la cuenta con 1/PROGRESO_MINIMO — daba por
+    // hecho justo el 1.0 que no existe — asi que pasaba con el bug dentro. Ahora el techo
+    // se calcula de los DATOS REALES de cada aventura, no de una constante escrita a mano:
+    // si alguien acorta una aventura hasta que el ultimo rescate deje de caber, esto cae.
     const r = await page.evaluate(async () => {
       const txt = await (await fetch('./codigo-padre.html')).text();
       const m = txt.match(/const LIMITES_RESCATE = \{([^}]*\}[^}]*)\};/);
       const def = txt.match(/LIMITES_RESCATE\[globalThis\.aventuraSeleccionada\] \|\| \{ max: (\d+), progresoMinimo: ([\d.]+) \}/);
+      const { DATOS_PADRE } = await import('/js/aventuras-ID-padre.js');
+      // Techo real del progreso por aventura: el ultimo elemento es el indice length-1.
+      const techos = Object.fromEntries(Object.entries(DATOS_PADRE)
+        .map(([av, p]) => { const n = p.es.elementosIDpadre.length; return [av, (n - 1) / n]; }));
       return {
         bloque: m ? m[1].replace(/\s+/g, ' ').trim() : null,
         defMax: def ? Number(def[1]) : null,
         defProgreso: def ? Number(def[2]) : null,
+        techos,
       };
     });
 
@@ -102,12 +119,15 @@ test.describe('RT — El rescate de un tramo se anuncia como lo que es', () => {
     expect(r.bloque, 'de 12 rescates').toContain('max: 12');
     expect(r.bloque, 'y 5% de progreso entre ellos, o los 12 no caben').toContain('progresoMinimo: 0.05');
     expect(r.defMax, 'el resto de aventuras se quedan en 5').toBe(5);
-    expect(r.defProgreso, 'con el 20% de progreso de siempre').toBe(0.2);
 
-    // Comprobacion aritmetica de que los 12 CABEN: con 5% entre rescates, el techo teorico
-    // es 1/0.05 = 20 > 12. Con el 20% seria 5, y los 12 serian nominales.
-    expect(Math.floor(1 / 0.05), 'con 5% caben mas de 12').toBeGreaterThanOrEqual(12);
-    expect(Math.floor(1 / r.defProgreso), 'con 20% solo caben 5').toBe(5);
+    // El ultimo rescate prometido exige max * progresoMinimo. Tiene que caber bajo el techo
+    // REAL de cada aventura — esta es la comprobacion que faltaba.
+    for (const [av, techo] of Object.entries(r.techos)) {
+      const esp = av === 'Aventura34km' ? { max: 12, min: 0.05 } : { max: r.defMax, min: r.defProgreso };
+      expect(esp.max * esp.min,
+        `${av}: el rescate nº${esp.max} exige ${(esp.max * esp.min).toFixed(2)} de progreso y el techo real es ${techo.toFixed(4)}`)
+        .toBeLessThanOrEqual(techo);
+    }
   });
   test('RT-4. El barrido de TTL real gasta un rescate y saca ESE cartel, no el normal', async ({ page }) => {
     // La cadena entera, sin simular ninguna pieza: se siembra un tramo con su pending
