@@ -3,7 +3,7 @@
 Rediseño del mecanismo de rescate: deja de dispararse solo y pasa a pedirlo el usuario.
 **Diseño cerrado y textos aprobados. Sin implementar.**
 
-Este documento reúne el porqué, el diseño acordado, los textos, los veinte huecos que
+Este documento reúne el porqué, el diseño acordado, los textos, los veintitrés huecos que
 encontró la prueba de escritorio contra el código real, y lo que quedó comprobado y limpio.
 
 ---
@@ -92,8 +92,14 @@ dentro de rango. Exigir «fuera de rango» habría dejado sin cartel al caso pri
 
 **El rescate omite el audio y los retos, no los recupera.** Al saltar al punto siguiente
 llega información nueva, y arrastrar el audio anterior para encajarlo después sería frágil y
-fallaría justo con el usuario ya frustrado. En un tramo, además, tuvo ocho minutos para
-escucharlo mientras estaba parado.
+fallaría justo con el usuario ya frustrado.
+
+*Y el usuario ha tenido ocasión de escucharlo, verificado en el código:* el control de audio
+se apaga con `hayAudio = !fueraDeRango && !!audioId`. En un **tramo**, el bloqueado ante una
+valla está sobre la ruta (`distanciaAlCamino` ≈ 0), o sea **dentro** de rango: el audio le
+funciona los ocho minutos enteros. En una **parada**, queda fuera de rango solo al expirar la
+gracia, así que dispone de los **siete primeros minutos**. Pierde el audio, pero no sin haber
+tenido margen.
 
 **El sentido chat → padre no depende del registro**, pero el contrario sí. La petición es un
 `postMessage` directo a `window.parent` y nunca pasa por `iframesRegistrados`; las tres
@@ -207,7 +213,7 @@ cuando está fuera de rango.
 
 ---
 
-## 4. Los veinte huecos
+## 4. Los veintitrés huecos
 
 Encontrados recorriendo el escenario paso a paso contra el código real. Ninguno estaba en el
 primer resumen de implementación.
@@ -282,6 +288,49 @@ primer resumen de implementación.
     con `razon: 'fuera_de_zona_5km'` limpia `btnAvanzarCompletadoPorPadre`. Quien recibe un
     rescate y luego se va a cinco kilómetros pierde el botón y tiene que volver. Aceptable
     —a esa distancia no está bloqueado, se ha ido— pero conviene que esté escrito.
+
+### El gasto y su efecto no son atómicos
+
+23. **El rescate se descuenta de forma duradera, pero su efecto no.**
+    `persistProgressState()` guarda `indiceProgreso`, `paradaActual` y `tramoSkipsUsados`,
+    pero **no** `pendingCompleciones`. Así que al pulsar Sí el contador baja y se persiste al
+    instante, mientras que la marca de completado vive **solo en memoria** hasta que el
+    usuario pulsa avanzar y el índice se guarda.
+
+    En esa ventana —lo que tarde en leer el cartel y mirar alrededor— si el móvil se queda
+    sin batería, el navegador descarta la pestaña o la app se recarga, al volver **ha perdido
+    un rescate y sigue delante de la misma valla**. Pagó y no recibió nada.
+
+    **Arreglo:** descontar el rescate cuando el elemento **avanza de verdad**, no al pulsar
+    Sí. Así un fallo en medio cae del lado del usuario: conserva su rescate y vuelve a estar
+    donde estaba.
+
+### La pantalla no da para una decisión
+
+21. **El cartel de confirmación puede dejar sus botones fuera de pantalla.** Los carteles se
+    anclan arriba (`top: calc(10.7vh + 10px + 0.5rem)`) y crecen hacia abajo **sin
+    `max-height` ni `overflow`**. Los que existen se lo pueden permitir porque son cortos y
+    **ninguno lleva botones** —solo el aspa de cerrar—, y por eso **ninguno usa
+    `var(--gap-inferior)`** pese a que la regla del proyecto la exige para todo elemento
+    cercano al borde inferior. El de confirmación es el primero con texto largo **y dos
+    botones al final**: el alemán ocupa 290 caracteres. Si se sale de la pantalla, el usuario
+    no puede pulsar ni Sí ni No, y no hay scroll que lo salve. Necesita alto máximo, scroll
+    interno y safe area — las reglas responsive que el proyecto ya tiene escritas.
+
+### El audio puede seguir sonando
+
+22. **Un fin de audio tardío resucita la ficha de un elemento ya dejado atrás.**
+    `_hdl_AUDIO_FIN_REPRODUCCION` mapea el `audioId` a su elemento y hace `ensurePending()`
+    **sin comprobar que siga siendo el actual** — a diferencia de su función hermana
+    `_saltarAudioPulsado()`, que sí lo comprueba
+    (`estado.elementoActual.audio_id !== audioId → return`). La ficha renace con
+    `timestamp: Date.now()`, y a los 8 minutos el barrido ofreceria un rescate para un punto
+    que el usuario pasó hace rato.
+
+    **Hoy no es alcanzable**, y por eso nadie lo ha visto: para avanzar hay que completar, y
+    para completar el audio tiene que haber terminado. **El rescate rompe esa invariante** al
+    marcar el audio como resuelto mientras todavía suena. El arreglo es darle a esa función
+    la misma guarda que ya tiene su hermana.
 
 ### La aventura puede haber terminado
 
@@ -426,8 +475,18 @@ informativo: si te pierdes un aviso, no pasa nada.
 El momento en que el usuario decide si gasta algo irreversible es **el primer estado de la
 app en el que interrumpir tiene un coste**. Por eso choca con todo.
 
-No son veinte fallos sueltos: es una **categoría nueva** en un sistema que no la
-contemplaba. La confirmación probablemente no deba ser un cartel más, sino una pieza con sus
+No son veintitrés fallos sueltos: son **dos estados nuevos** en un sistema que no los
+contemplaba.
+
+El primero es que **algo en pantalla espera una respuesta**. Hasta ahora todo era
+informativo: los carteles se pisan, se autocierran y se apartan, las capas superiores entran
+cuando quieren, los botones se apagan por distancia, por reto o por modo. Si te pierdes un
+aviso, no pasa nada. El momento en que el usuario decide si gasta algo irreversible es el
+primero en el que interrumpir tiene un coste.
+
+El segundo es que **un elemento puede completarse sin que su audio haya terminado**. Hoy esa
+invariante se cumple siempre y es gratis, así que nadie la ha protegido — el hueco 22 es el
+primero que asoma, y conviene sospechar de cualquier otra cosa que se apoye en ella. La confirmación probablemente no deba ser un cartel más, sino una pieza con sus
 propias reglas — que no se cierre sola, que no la borre nadie, que nada se le ponga encima, y
 que mientras esté viva los eventos esperen su turno.
 
