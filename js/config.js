@@ -8,7 +8,6 @@
 
 import { MODOS, LOG_LEVELS } from './constants.js';
 
-
 /**
  * Configuración principal del sistema
  * @type {Object}
@@ -126,31 +125,6 @@ export const CONFIG = {
     },
     
     /**
-     * Configuración de la interfaz de usuario
-     */
-    UI: {
-        /** Duración de animaciones (ms) */
-        DURACION_ANIMACION: 300,
-        
-        /** Debounce para eventos de scroll (ms) */
-        DEBOUNCE_SCROLL: 100,
-        
-        /** Debounce para eventos de resize (ms) */
-        DEBOUNCE_RESIZE: 150,
-        
-        /** Tiempo mínimo de visualización de loading (ms) */
-        MIN_TIEMPO_LOADING: 500,
-        
-        /** Breakpoints responsive */
-        BREAKPOINTS: {
-            MOBILE: 480,
-            TABLET: 768,
-            DESKTOP: 1024,
-            LARGE: 1440
-        }
-    },
-    
-    /**
      * Configuración de mapa
      */
     MAPA: {
@@ -177,77 +151,6 @@ export const CONFIG = {
 
         /** Duración de animación de vuelo (ms) */
         DURACION_VUELO: 1500
-    },
-    
-    /**
-     * Configuración de aventuras
-     */
-    AVENTURAS: {
-        /** Modo por defecto */
-        MODO_DEFECTO: MODOS.CASA,
-        
-        /** Tiempo máximo de aventura (ms) */
-        TIEMPO_MAXIMO: 3600000, // 1 hora
-        
-        /** Intervalo de auto-guardado (ms) */
-        INTERVALO_AUTOGUARDADO: 60000,
-        
-        /** Número mínimo de paradas */
-        MIN_PARADAS: 3,
-        
-        /** Número máximo de paradas */
-        MAX_PARADAS: 20
-    },
-    
-    /**
-     * Configuración de retos
-     */
-    RETOS: {
-        /** Tiempo por defecto para completar reto (ms) */
-        TIEMPO_LIMITE: 300000, // 5 minutos
-        
-        /** Puntos por reto completado */
-        PUNTOS_COMPLETADO: 100,
-        
-        /** Bonus por tiempo récord */
-        BONUS_TIEMPO: 50,
-        
-        /** Penalización por pista usada */
-        PENALIZACION_PISTA: 25
-    },
-    
-    /**
-     * Configuración de almacenamiento
-     */
-    STORAGE: {
-        /** Prefijo para claves de localStorage */
-        PREFIJO: 'vvguides_',
-        
-        /** TTL por defecto para datos en caché (ms) */
-        TTL_CACHE: 86400000, // 24 horas
-        
-        /** Límite de tamaño de localStorage (bytes) */
-        LIMITE_TAMANO: 5242880 // 5MB
-    },
-    
-    /**
-     * Configuración de red
-     */
-    RED: {
-        /** Timeout para peticiones HTTP (ms) */
-        TIMEOUT_HTTP: 10000,
-        
-        /** Número de reintentos para peticiones fallidas */
-        REINTENTOS_HTTP: 2,
-        
-        /** Intervalo entre reintentos (ms) */
-        INTERVALO_REINTENTO_HTTP: 1000,
-        
-        /** URL base de la API */
-        API_BASE_URL: '',
-        
-        /** Habilitar modo offline */
-        MODO_OFFLINE: true
     },
     
     /**
