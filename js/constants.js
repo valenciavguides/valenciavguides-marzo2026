@@ -200,7 +200,16 @@ export const TIPOS_MENSAJE = {
     },
     CHAT: {
         CERRAR: 'CHAT.CERRAR',
-        ESTADO_PADRE: 'CHAT.ESTADO_PADRE'
+        ESTADO_PADRE: 'CHAT.ESTADO_PADRE',
+        /**
+         * hijo6 → padre. El usuario pide un rescate desde el asistente de soporte.
+         * Se envía con acuse (`enviarMensajeConConfirmacion`) porque su respuesta decide
+         * lo que ve a continuación: un mensaje perdido dejaría el botón mudo.
+         *
+         * El padre responde SIEMPRE con un objeto —nunca `undefined`— diciendo si puede
+         * concederse y por qué no, si no. Ver `docs/rescate-a-peticion.md`.
+         */
+        RESCATE_SOLICITADO: 'CHAT.RESCATE_SOLICITADO'
     },
     NAVEGACION_PANTALLA: 'NAVEGAR_PANTALLA'
 };

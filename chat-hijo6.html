@@ -310,6 +310,28 @@
       transition: opacity 0.15s;
     }
     #buzon-boton:active { opacity: 0.82; }
+
+    /* Botón para pedir un rescate, al final de la respuesta sobre quedarse atascado.
+       Mismo lenguaje visual que el botón del buzón —única forma de botón de texto que ya
+       existe aquí— pero a todo el ancho del panel: es una acción con consecuencias, no un
+       enlace, y conviene que se distinga de un momento a otro dentro del mismo texto. */
+    .boton-rescate {
+      display: block;
+      width: 100%;
+      margin-top: 0.7rem;
+      background: var(--color-tema);
+      color: #fff;
+      border: none;
+      border-radius: calc(var(--radio) * 0.6);
+      padding: 0.55rem 1rem;
+      font-size: clamp(13px, 3.2vmin, 15px);
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: opacity 0.15s;
+    }
+    .boton-rescate:active { opacity: 0.82; }
+    .boton-rescate[disabled] { opacity: 0.55; cursor: default; }
     #buzon-boton:disabled { opacity: 0.5; cursor: default; }
     #buzon-gracias {
       display: none;
@@ -383,7 +405,7 @@
 </script>
 
 <script type="module">
-  import { retryUntilAvailable, resolverIdPadre } from './js/utils.js';
+  import { retryUntilAvailable, resolverIdPadre, ajustarTimeoutPorConexion } from './js/utils.js';
   import { TIPOS_MENSAJE } from './js/constants.js';
   import logger from './js/logger.js';
   // Publica el logger en el globalThis de ESTE iframe. Cada iframe tiene el suyo, y el
@@ -401,6 +423,7 @@
     RESPUESTAS_CHAT,
     IDIOMAS_CHAT,
     CHAT_ABRIR_ENLACE,
+    TRADUCCIONES_RESCATE_BOTON_PEDIR,
   } from './js/traducciones-ui.js';
   import { enviarSugerencia } from './js/feedback-forms.js';
 
@@ -427,6 +450,101 @@
       );
     }
   };
+
+  /**
+   * Envío con acuse de recibo: manda el mensaje con un identificador único y espera la
+   * `SISTEMA.CONFIRMACION` que el padre devuelve con ese mismo id. Resuelve con los datos
+   * de la confirmación, o rechaza si no llega en el plazo.
+   *
+   * POR QUE HACE FALTA AQUÍ
+   *
+   * `enviarMensaje()` (arriba) es fire and forget: lanza el `postMessage` y devuelve. Si
+   * se pierde, quien lo envió no se entera y el usuario tampoco. Para un aviso da igual;
+   * para una acción del usuario que espera respuesta —pedir un rescate— es justo el botón
+   * mudo que este proyecto no quiere.
+   *
+   * TERCERA COPIA, A SABIENDAS. hijo2 y hijo4 tienen su propia versión de esto, y no hay
+   * un módulo común. Se copia para no meter la unificación en el camino crítico; el
+   * inventario completo y qué habría que revisar están en
+   * `docs/mensajeria-duplicada-en-hijos.md`.
+   *
+   * UNA DIFERENCIA DELIBERADA con las otras dos: aquí se resuelve **con los datos** de la
+   * confirmación (`resolve(event.data.datos)`), no con nada. Las otras dos hacen
+   * `resolve()` y tiran la respuesta del padre — que es precisamente lo que hace falta
+   * saber: si se concedió, si no quedaba ninguno, o si la aventura ya había terminado.
+   * Es compatible hacia atrás: quien ignore el valor sigue funcionando igual.
+   */
+  const enviarMensajeConConfirmacion = async (mensaje) => {
+    if (!globalThis.parent || globalThis.parent === globalThis) {
+      return retryUntilAvailable(
+        () => globalThis.mensajeria.enviarMensajeConConfirmacion(mensaje),
+        () => globalThis.mensajeria && globalThis.mensajeria.enviarMensajeConConfirmacion,
+        10, 500, (...a) => logger.error(...a),
+      );
+    }
+    return new Promise((resolve, reject) => {
+      const idMensaje = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      const temporizador = setTimeout(() => {
+        globalThis.removeEventListener('message', confirmListener);
+        reject(new Error('Timeout esperando confirmación'));
+      }, ajustarTimeoutPorConexion(5000));
+
+      function confirmListener(event) {
+        if (event.source !== globalThis.parent || !event.data) return;
+        if (event.data.tipo !== TIPOS_MENSAJE.SISTEMA.CONFIRMACION) return;
+        if (event.data.idOriginal !== idMensaje) return;
+        clearTimeout(temporizador);
+        globalThis.removeEventListener('message', confirmListener);
+        resolve(event.data.datos);
+      }
+      globalThis.addEventListener('message', confirmListener);
+
+      try {
+        globalThis.parent.postMessage({
+          tipo: mensaje.tipo,
+          origen: mensaje.origen || CONFIG_HIJO.IFRAME_ID,
+          destino: mensaje.destino,
+          datos: mensaje.datos,
+          timestamp: Date.now(),
+          id: idMensaje,
+          requiereConfirmacion: true,
+        }, globalThis.location.origin);
+      } catch (error_) {
+        clearTimeout(temporizador);
+        globalThis.removeEventListener('message', confirmListener);
+        reject(error_);
+      }
+    });
+  };
+
+  /**
+   * Pide un rescate al padre y devuelve su respuesta, o `null` si no llegó ninguna.
+   *
+   * Aquí NO se decide nada ni se muestra nada: el padre comprueba si puede concederse y
+   * es él quien enseña las pantallas —la confirmación, el precio, el resultado— porque
+   * sus carteles se dibujan por encima de este iframe.
+   *
+   * Se envía con acuse a propósito. Un envío sin respuesta dejaría al usuario pulsando un
+   * botón que no hace nada visible ni le explica por qué, que es justo lo que este
+   * mecanismo viene a evitar.
+   */
+  async function pedirRescate() {
+    try {
+      const respuesta = await enviarMensajeConConfirmacion({
+        tipo: TIPOS_MENSAJE.CHAT.RESCATE_SOLICITADO,
+        origen: CONFIG_HIJO.IFRAME_ID,
+        destino: resolverIdPadre(),
+        datos: {},
+      });
+      logger.info('[hijo6] Respuesta del padre a la petición de rescate:', respuesta);
+      return respuesta ?? null;
+    } catch (error_) {
+      // Sin respuesta en plazo: el usuario se ha quedado sin saber nada. Queda registrado
+      // en vez de desaparecer — un botón mudo es peor que no tener botón.
+      logger.warn('[hijo6] La petición de rescate no obtuvo respuesta:', error_ && error_.message);
+      return null;
+    }
+  }
 
   if (globalThis.registrarControladorSeguro === undefined) {
     globalThis.__CONTROLADOR_REGISTRADOS = globalThis.__CONTROLADOR_REGISTRADOS || new Set();
@@ -531,6 +649,10 @@
 
   function construirFAQ() {
     faqEl.innerHTML = '';
+    // Estado del rescate según el padre, refrescado cada vez que se abre el asistente
+    // (construirEstadoChat corre tanto en el saludo PADRE_DATOS como en cada abrirChat).
+    // Es el dato que decide si la pregunta del atasco se pinta, y con qué número.
+    const rescate = estadoPadre.rescate || null;
     for (const temaKey of ORDEN_TEMAS_CHAT) {
       const etiqueta  = TEMAS_CHAT[temaKey]?.[idioma] || TEMAS_CHAT[temaKey]?.es || temaKey;
       const claves = TEMAS_AGRUPADOS_CHAT[temaKey] || [];
@@ -546,6 +668,14 @@
       lista.className = 'preguntas-lista';
       lista.setAttribute('role', 'list');
       for (const clave of preguntasActivas) {
+        // Sin el estado del padre, la pregunta del atasco no se pinta: su texto dice
+        // "dispone de {total} rescates" y ese hueco solo lo puede rellenar el padre. Antes
+        // que enseñar la llave en crudo, se retira la pregunta entera — y se avisa, porque
+        // que falte significa que algo se ha roto antes.
+        if (clave === 'UBIC_ATASCADO_TRAMO' && !rescate) {
+          logger.error('[hijo6] El padre no ha mandado el estado del rescate: la pregunta del atasco no se muestra');
+          continue;
+        }
         const textoPregunta = PREGUNTAS_CHAT[clave]?.[idioma] || PREGUNTAS_CHAT[clave]?.es || '';
         const respuesta = RESPUESTAS_CHAT[clave]?.[idioma] || RESPUESTAS_CHAT[clave]?.es || { texto: '', enlace: null };
         const pregBtn = document.createElement('button');
@@ -556,7 +686,10 @@
         panel.className = 'respuesta-panel';
         const pTexto = document.createElement('p');
         pTexto.className = 'respuesta-texto';
-        renderTextoConImagenes(pTexto, respuesta.texto);
+        const textoRespuesta = (clave === 'UBIC_ATASCADO_TRAMO')
+          ? String(respuesta.texto ?? '').split('{total}').join(String(rescate.total))
+          : respuesta.texto;
+        renderTextoConImagenes(pTexto, textoRespuesta);
         if (respuesta.enlace) {
           const flecha = document.createElement('button');
           flecha.type = 'button';
@@ -570,6 +703,37 @@
           pTexto.appendChild(flecha);
         }
         panel.appendChild(pTexto);
+
+        // La pregunta de quedarse atascado lleva el botón que PIDE el rescate. Es una
+        // petición, no una confirmación: el precio se lo explicará el padre en su cartel,
+        // y el gasto solo ocurre si el usuario dice que sí allí.
+        //
+        // El botón SOLO se pinta si sirve de algo. Se esconde cuando un rescate no tiene
+        // sentido aquí —fuera de la aventura, en el punto de partida, o en un elemento cuya
+        // llegada ya está confirmada— porque un botón que no hace nada es peor que no tener
+        // botón.
+        //
+        // Con los rescates AGOTADOS sí se pinta, y no es una excepción caprichosa: saber que
+        // se han acabado es información real, y es lo único que hace llegar al usuario el
+        // cartel que se lo explica. Escondiéndolo también ahí, ese cartel no lo vería nadie.
+        const rescateOfrecible = rescate.puede || rescate.motivo === 'agotados';
+        if (clave === 'UBIC_ATASCADO_TRAMO' && rescateOfrecible) {
+          const btnRescate = document.createElement('button');
+          btnRescate.type = 'button';
+          btnRescate.className = 'boton-rescate';
+          btnRescate.textContent = TRADUCCIONES_RESCATE_BOTON_PEDIR[idioma] || TRADUCCIONES_RESCATE_BOTON_PEDIR.es;
+          btnRescate.addEventListener('click', async (evento) => {
+            evento.stopPropagation();
+            if (btnRescate.disabled) return;
+            btnRescate.disabled = true;            // sin esto, dos toques = dos peticiones
+            try {
+              await pedirRescate();
+            } finally {
+              btnRescate.disabled = false;
+            }
+          });
+          panel.appendChild(btnRescate);
+        }
         pregBtn.addEventListener('click', () => {
           const abierta = panel.classList.toggle('visible');
           pregBtn.setAttribute('aria-expanded', String(abierta));

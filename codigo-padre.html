@@ -1609,6 +1609,26 @@
 
                 let chatCargado = false;
 
+                // El asistente necesita DOS cosas del rescate, y las dos salen de la misma
+                // consulta: cuántos hay en esta aventura —el texto aprobado dice "dispone de
+                // {total} rescates"— y si ahora mismo se puede pedir uno, para no pintarle al
+                // usuario un botón que no haría nada.
+                //
+                // Devuelve null si _estadoRescate todavía no existe (vive en el Script 2 y se
+                // expone al arrancar) en vez de inventar números. Con null, hijo6 retira esa
+                // pregunta entera del asistente: sin el número real no puede contarla, y
+                // enseñar un "{total}" en crudo es peor que no enseñar nada.
+                function _estadoRescateParaChat() {
+                    try {
+                        const r = globalThis._estadoRescate?.();
+                        if (!r) return null;
+                        return { puede: r.puede, motivo: r.motivo, usadas: r.usadas, total: r.total, restantes: r.restantes };
+                    } catch (e) {
+                        (globalThis.logger || console).warn('[PADRE][RESCATE] No se pudo consultar el estado para el chat:', e && e.message);
+                        return null;
+                    }
+                }
+
                 function construirEstadoChat() {
                     let ep     = globalThis.estadoPadre || {};
                     let paradas = globalThis.AVENTURA_PARADAS || [];
@@ -1618,7 +1638,8 @@
                         aventura:             globalThis.aventuraSeleccionada || '',
                         paradaActualNombre:   paradas[idx]?.nombre  || '',
                         siguienteParadaNombre: paradas[idx + 1]?.nombre || '',
-                        paradasRestantes:     Math.max(0, paradas.length - 1 - idx)
+                        paradasRestantes:     Math.max(0, paradas.length - 1 - idx),
+                        rescate:              _estadoRescateParaChat()
                     };
                 }
 
@@ -4281,7 +4302,6 @@
             // diferencia de la distancia recorrida de funciones-mapa.js, que se reinicia
             // adrede al reabrir la PWA): son un límite antiabuso, no contabilidad de progreso.
             tramoSkipsUsados: 0,
-            progresoEnUltimoSkip: 0,
             mapaInicializado: false,
             paradas: [],
             inicializacionPromises: new Map(),
@@ -4453,7 +4473,6 @@
                     // contabilidad de progreso — sin persistirlo, cerrar y reabrir la PWA
                     // antes de cada salto daría saltos ilimitados en vez de 5 por aventura.
                     tramoSkipsUsados: typeof estado.tramoSkipsUsados === 'number' ? estado.tramoSkipsUsados : 0,
-                    progresoEnUltimoSkip: typeof estado.progresoEnUltimoSkip === 'number' ? estado.progresoEnUltimoSkip : 0,
                     aventura: globalThis.aventuraSeleccionada || null,
                     idioma: globalThis.idiomaSeleccionado || null,
                     timestamp: Date.now()
@@ -4567,7 +4586,6 @@
                 (globalThis.logger || console).info(`${logPrefix} tiempoRestante restaurado: ${estado.tiempoRestante}s`);
             }
             if (typeof obj.tramoSkipsUsados === 'number') estado.tramoSkipsUsados = obj.tramoSkipsUsados;
-            if (typeof obj.progresoEnUltimoSkip === 'number') estado.progresoEnUltimoSkip = obj.progresoEnUltimoSkip;
             const elementos = DATOS_PADRE[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre || [];
             if (obj.elementoActualId && Array.isArray(elementos)) {
                 const found = elementos.find(p => p.parada_id === obj.elementoActualId || p.tramo_id === obj.elementoActualId || p.padreid === obj.elementoActualId);
@@ -4831,7 +4849,6 @@
                     // tramos (§31.7b) son de ESTA aventura — sin resetearlos aquí, la próxima
                     // aventura heredaría los saltos ya gastados en la anterior.
                     estado.tramoSkipsUsados = 0;
-                    estado.progresoEnUltimoSkip = 0;
                     // paradasCompletadas es de ESTA aventura — sin resetearlo, si el usuario
                     // elige la misma aventura de nuevo, todas sus paradas aparecerían ya
                     // completadas desde el primer momento.
@@ -4947,7 +4964,6 @@
                     // tramos (§31.7b) son de ESTA aventura — sin resetearlos aquí, la próxima
                     // aventura heredaría los saltos ya gastados en la anterior.
                     estado.tramoSkipsUsados = 0;
-                    estado.progresoEnUltimoSkip = 0;
                     // paradasCompletadas es de ESTA aventura — sin resetearlo, si el usuario
                     // elige la misma aventura de nuevo, todas sus paradas aparecerían ya
                     // completadas desde el primer momento.
@@ -9239,7 +9255,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // siempre ganan (cierran cualquier otro cartel y se muestran); los 3 recordatorios
         // nunca fuerzan nada — si hay cualquier otro cartel visible, esperan a que se cierre
         // (su propio setInterval vuelve a comprobar 2s después, sin perder el aviso).
-        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto', 'cartel-aviso-progreso', 'cartel-rescate-tramo'];
+        const _TODOS_LOS_CARTELES_IDS = ['cartel-transicion', 'cartel-inicio-tramo', 'cartel-llegada-parada', 'cartel-bienvenida-tramo', 'cartel-bienvenida-parada', 'cartel-recordatorio-audio', 'cartel-recordatorio-saltar-audio', 'cartel-recordatorio-reto', 'cartel-aviso-progreso', 'cartel-recordatorio-rescate'];
         function _ocultarCualquierCartel() {
             _TODOS_LOS_CARTELES_IDS.forEach(id => document.getElementById(id)?.remove());
         }
@@ -9597,41 +9613,37 @@ await _comprobarReanudacionAventura(logPrefix);
         globalThis.mostrarCartelBienvenidaParada = mostrarCartelBienvenidaParada;
 
         /**
-         * Cartel del rescate de un tramo por TTL (§"Rescate de un tramo bloqueado").
+         * Recordatorio de que hay una salida, a los 8, 10, 12 y 14 minutos parado en el mismo
+         * punto (§3.3 de docs/rescate-a-peticion.md). No gasta nada y no decide nada: su
+         * botón abre el asistente, que es donde vive la petición de rescate. Es navegación,
+         * no una segunda puerta al gasto.
          *
-         * POR QUE EXISTE
+         * NO dice "chat" en ningún idioma: la app lo llama asistente de soporte, y prometer
+         * un chat promete una conversación que no existe.
          *
-         * Cuando el barrido de TTL desbloquea un tramo cuya llegada no se pudo confirmar,
-         * el elemento se completa y salia el cartel NORMAL de compleción — el mismo que si
-         * el usuario hubiera llegado andando. El usuario no tenia forma de distinguir un
-         * rescate de una llegada real: un segundo camino silencioso, que es exactamente lo
-         * que este proyecto no admite (un plan B vale, pero tiene que ser RUIDOSO).
+         * ES UN CARTEL QUE SE IMPONE, no de los educados. Los tres recordatorios existentes
+         * consultan _hayCartelEnPantalla() y se apartan si hay otro; el de audio reaparece
+         * cada 20 s mientras el usuario no pulse play, y el usuario atascado es justo el que
+         * no lo ha pulsado. Siendo educado, este no saldría jamás. A los ocho minutos parado,
+         * saber que hay salida importa más que "pulse play".
          *
-         * Este cartel SUSTITUYE al de compleción en ese caso, no se suma: marcarParadaCompletada()
-         * consulta `estado._rescateTramoPendiente` y, si coincide, muestra este y no aquel.
-         *
-         * Nunca dice "ha llegado". Dice que no se pudo confirmar, que se da por completado
-         * de forma excepcional, y cuantas excepciones van de cuantas — para que el usuario
-         * sepa que es un recurso contado y no una via alternativa.
+         * Lleva botón, que ningún otro cartel lleva, así que también lleva alto máximo,
+         * scroll y safe area: sin eso, en una pantalla corta el botón queda fuera.
          */
-        async function _mostrarCartelRescateTramo(nombreTramo, usadas, total) {
+        async function _mostrarCartelRecordatorioRescate() {
             try {
-                const { TRADUCCIONES_RESCATE_TRAMO } = await import('./js/traducciones-ui.js');
+                const { TRADUCCIONES_RESCATE_RECORDATORIO } = await import('./js/traducciones-ui.js');
                 const idioma = globalThis.idiomaSeleccionado || 'es';
-                const t = TRADUCCIONES_RESCATE_TRAMO?.[idioma] || TRADUCCIONES_RESCATE_TRAMO?.es;
+                const t = TRADUCCIONES_RESCATE_RECORDATORIO?.[idioma] || TRADUCCIONES_RESCATE_RECORDATORIO?.es;
                 if (!t) {
-                    (globalThis.logger || console).warn('[PADRE][CARTEL_RESCATE_TRAMO] Traducciones no disponibles');
+                    (globalThis.logger || console).warn('[PADRE][CARTEL_RECORDATORIO_RESCATE] Traducciones no disponibles');
                     return;
                 }
                 const _escapar = (v) => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-                const mensaje = String(t.mensaje)
-                    .replace('{nombre}', _escapar(nombreTramo || ''))
-                    .replace('{usadas}', _escapar(usadas))
-                    .replace('{total}', _escapar(total));
 
                 _ocultarCualquierCartel();
                 const cartel = document.createElement('div');
-                cartel.id = 'cartel-rescate-tramo';
+                cartel.id = 'cartel-recordatorio-rescate';
                 cartel.style.cssText = [
                     'position:fixed',
                     'top:calc(10.7vh + 10px + 0.5rem)',
@@ -9639,6 +9651,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     'transform:translateX(-50%)',
                     'width:min(92vw, 30rem)',
                     'max-width:92vw',
+                    'max-height:calc(100vh - 10.7vh - 10px - 0.5rem - var(--gap-inferior))',
+                    'overflow-y:auto',
                     'z-index:1000060',
                     'background:#fff8e7',
                     'border:clamp(2.5px,0.6vmin,4px) solid #FF8C00',
@@ -9650,21 +9664,30 @@ await _comprobarReanudacionAventura(logPrefix);
                 ].join(';');
                 cartel.innerHTML = `
                     <button type="button" class="btn-cerrar-overlay" title="Cerrar" style="width:2.25rem;height:2.25rem;font-size:1.1rem;top:0.4rem;right:0.4rem;"><span class="x-cerrar">X</span></button>
-                    <p style="margin:0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${mensaje}</p>
+                    <p style="margin:0 0 0.35rem 0;font-size:clamp(0.85rem,3.5vmin,1rem);color:#333;line-height:1.4;font-weight:bold;">${_escapar(t.titulo)}</p>
+                    <p style="margin:0 0 0.7rem 0;font-size:clamp(0.8rem,3.2vmin,0.95rem);color:#333;line-height:1.4;">${_escapar(t.cuerpo)}</p>
+                    <button type="button" id="btn-recordatorio-rescate" style="display:block;width:100%;padding:0.7rem;background:#2e7d32;color:#fff;border:none;border-radius:0.6rem;cursor:pointer;font-family:inherit;font-size:clamp(0.85rem,3.5vmin,1rem);font-weight:bold;touch-action:manipulation;">${_escapar(t.boton)}</button>
                 `;
                 document.body.appendChild(cartel);
                 _vibrarCartel();
 
                 const cerrar = () => cartel.remove();
                 cartel.querySelector('.btn-cerrar-overlay').onclick = cerrar;
-                setTimeout(cerrar, 7000);
+                // Abre el asistente pulsando su propio botón, que es el único camino que
+                // existe para abrirlo. Inventar aquí una segunda forma de abrirlo sería una
+                // ruta paralela que podría quedarse atrás el día que la primera cambie.
+                cartel.querySelector('#btn-recordatorio-rescate').onclick = () => {
+                    cerrar();
+                    document.getElementById('btn-chat-soporte')?.click();
+                };
+                setTimeout(cerrar, 10000);
 
-                (globalThis.logger || console).info(`[PADRE][CARTEL_RESCATE_TRAMO] Mostrado (${usadas}/${total})`);
+                (globalThis.logger || console).info('[PADRE][CARTEL_RECORDATORIO_RESCATE] Mostrado');
             } catch (error) {
-                (globalThis.logger || console).error('[PADRE][CARTEL_RESCATE_TRAMO] Error mostrando cartel:', error);
+                (globalThis.logger || console).error('[PADRE][CARTEL_RECORDATORIO_RESCATE] Error mostrando cartel:', error);
             }
         }
-        globalThis._mostrarCartelRescateTramo = _mostrarCartelRescateTramo;
+        globalThis._mostrarCartelRecordatorioRescate = _mostrarCartelRecordatorioRescate;
 
         // ── Recordatorio periódico de "pulse play" — parada y tramo, mismo criterio ──
         // Se muestra solo cuando se cumplen DOS condiciones a la vez: han pasado
@@ -10667,6 +10690,8 @@ await _comprobarReanudacionAventura(logPrefix);
                     }
                 }
 
+                _cobrarRescateSiProcede(elementoAnterior, logPrefix);
+
                 // Incrementar índice de progreso
                 estado.indiceProgreso++;
 
@@ -10871,16 +10896,15 @@ await _comprobarReanudacionAventura(logPrefix);
                             const elementosSecuencia = DATOS_PADRE?.[globalThis.aventuraSeleccionada]?.[globalThis.idiomaSeleccionado]?.elementosIDpadre;
                             const elementoSiguiente = Array.isArray(elementosSecuencia) ? elementosSecuencia[idxSiguiente] : null;
 
-                            // Un tramo desbloqueado por el TTL NO usa el cartel normal: ese
-                            // mensaje dice que el elemento se completo como cualquier otro, y
-                            // no es verdad. _ejecutarBarridoTTLPending() deja la marca justo
-                            // antes de completar y aqui se consume, una sola vez.
-                            const _rescate = estado._rescateTramoPendiente;
-                            if (_rescate && _rescate.clave === idLimpio) {
-                                estado._rescateTramoPendiente = null;
-                                globalThis._mostrarCartelRescateTramo?.(
-                                    elementoCompletado?.nombre || null, _rescate.usadas, _rescate.total
-                                );
+                            // Un punto que se deja atrás por un rescate PEDIDO no lleva cartel
+                            // ninguno: la pantalla de "rescate utilizado" ya se lo ha contado al
+                            // usuario, con su nombre y su cuenta, y con más detalle del que cabe
+                            // en un cartel. Encadenarle detrás el de transición sería contarle
+                            // dos veces lo mismo. Se consume una sola vez, igual que la marca del
+                            // barrido de aquí abajo.
+                            const _pedido = estado._rescatePeticionPendiente;
+                            if (_pedido && _pedido.clave === idLimpio) {
+                                estado._rescatePeticionPendiente = null;
                             } else if (elementoSiguiente?.tipo === 'tramo') {
                                 globalThis.mostrarCartelInicioTramo?.(
                                     esTramo ? 'tramo' : 'parada',
@@ -12180,7 +12204,7 @@ await _comprobarReanudacionAventura(logPrefix);
         // mensaje perdido (iframe momentáneamente no listo, postMessage descartado) dejaba
         // pending.audio en false para siempre, sin ninguna señal, hasta que el TTL de
         // seguridad de tramos lo rescatara a ciegas muchos minutos después (§31.7b, ya
-        // retirado para audio — ver _ejecutarBarridoTTLPending). enviarMensajeConConfirmacion
+        // retirado para audio, y hoy el barrido ya no rescata nada). enviarMensajeConConfirmacion
         // exige un ACK real de la capa de mensajería de hijo3 (automático en cuanto su
         // handler procesa el mensaje, sin que hijo3 tenga que hacer nada especial); si no
         // llega en el timeout, reintenta hasta MAX_REINTENTOS_ENVIO_AUDIO veces. Con
@@ -12611,6 +12635,16 @@ await _comprobarReanudacionAventura(logPrefix);
 
                 const paradaAnterior = estado.paradaActual;
                 _actualizarEstadoParada(paradaId, parada, estado);
+
+                // La ficha del elemento nace AQUÍ, al activarse, no cuando llega su primer
+                // evento. Nacía con la llegada, con el reto resuelto o con el fin del audio, y
+                // el usuario que se queda bloqueado sin que ninguno de los tres ocurra no tenía
+                // ficha: sin ficha no hay reloj, y sin reloj el recordatorio no salía NUNCA.
+                // Tampoco al reabrir la app, porque el audio ya había sonado y no volvería a
+                // disparar nada. Este es el instante exacto en que el elemento pasa a ser el
+                // actual, así que es el sitio donde el reloj tiene que arrancar.
+                try { ensurePending(padreIdNorm, parada.tipo === 'tramo' ? 'tramo' : 'parada'); }
+                catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
                 (globalThis.logger || console).success(`${logPrefix} Estado actualizado: ${paradaAnterior} → ${paradaId}`);
 
                 const solicitudes = {};
@@ -14698,128 +14732,553 @@ async function _hdl_SELECCION_TERMINOS_ACEPTADOS(mensaje) {
             }
         })();
 
+        /**
+         * Topes de rescate por aventura. Vivía dentro del barrido de TTL, pero la petición
+         * del usuario desde el asistente necesita los mismos números para poder decirle
+         * cuántos le quedan — y dos copias del mismo tope acabarían separándose.
+         *
+         * No son un número universal: dependen de cuánto se anda. En una ruta de ~5 km, 12
+         * rescates son en torno al 18 % de sus elementos. Av34km son 34 km y 239 elementos, y
+         * la probabilidad de topar con obras, un evento o una calle cortada es varias veces
+         * mayor: sus 35 salen a un 15 %. Parecidos entre sí, y los dos suficientemente
+         * pequeños como para que nadie complete una aventura a base de botón.
+         *
+         * Ya no hay `progresoMinimo`: era la puerta del disparo automático, que ya no existe.
+         *
+         * Devuelve siempre un objeto: una aventura sin entrada propia usa el valor por
+         * defecto, nunca `undefined`.
+         */
+        const LIMITES_RESCATE = { Aventura34km: { max: 35 } };
+        function _limitesRescateDe(aventura) {
+            return LIMITES_RESCATE[aventura] || { max: 12 };
+        }
+
+        /**
+         * ¿Puede el usuario usar un rescate AHORA MISMO? Solo responde: no gasta nada, no
+         * muestra nada y no toca ningún estado.
+         *
+         * Devuelve SIEMPRE un objeto, nunca `undefined`, y siempre con la cuenta dentro
+         * aunque la respuesta sea que no. Dos motivos:
+         *
+         *  1. Quien pregunta necesita saber POR QUÉ no puede, para decírselo al usuario.
+         *     Un botón que no hace nada es peor que no tener botón.
+         *  2. El asistente pregunta con acuse de recibo, y su lado sí exige valor de
+         *     retorno para confirmar. Un `undefined` aquí lo dejaría esperando hasta
+         *     agotar el plazo — exactamente el fallo que dio por escuchados todos los
+         *     audios sin que sonara ninguno (ver el comentario en audio-hijo3.html).
+         *
+         * `motivo` es un código estable para que el llamante elija el texto; los textos
+         * traducidos viven en js/traducciones-ui.js, no aquí.
+         */
+        function _estadoRescate() {
+            const est = getEstadoSafe() || {};
+            const { max } = _limitesRescateDe(globalThis.aventuraSeleccionada);
+            const usadas = typeof est.tramoSkipsUsados === 'number' ? est.tramoSkipsUsados : 0;
+            const base = { usadas, total: max, restantes: Math.max(0, max - usadas), elemento: null, nombre: null };
+
+            if (est.modo?.actual !== MODOS.AVENTURA) {
+                return { ...base, puede: false, motivo: 'no-aventura' };
+            }
+            const elemento = est.elementoActual;
+            if (!elemento) return { ...base, puede: false, motivo: 'sin-elemento' };
+
+            const id = elemento.parada_id || elemento.tramo_id || elemento.padreid || null;
+            const con = { ...base, elemento: id, nombre: elemento.nombre || null };
+
+            // El punto de inicio queda fuera: llegar hasta él ES empezar la aventura, y
+            // rescatarlo permitiría saltárselo sin salir de casa.
+            if (elemento.tipo === 'inicio') return { ...con, puede: false, motivo: 'es-inicio' };
+
+            // Un elemento ya completado no necesita rescate — y ofrecérselo sería cobrarle
+            // por algo que ya tiene.
+            const clave = elemento.padreid || (id ? `padre-${id}` : null);
+            const pendiente = clave ? est.pendingCompleciones?.[clave] : null;
+            if (pendiente && pendiente.llegada === true) {
+                return { ...con, puede: false, motivo: 'ya-llegado' };
+            }
+
+            if (usadas >= max) return { ...con, puede: false, motivo: 'agotados' };
+
+            return { ...con, puede: true, motivo: null };
+        }
+
         // ============================================================
-        // TTL de pending: rescata SOLO tramos bloqueados por un fallo técnico (§31.7b).
-        // Corre cada 60s, solo en modo AVENTURA (incluido AVENTURA en dev — el guard mira
-        // el modo, no el flag de dev). Las paradas ya no reciben ningún rescate de este
-        // TTL, ni audio — se dejó fuera a propósito: el mismo problema (audio/reto
-        // atascado) puede darse en paradas y tramos por igual, y arreglarlo solo aquí para
-        // tramos habría sido un parche a medias. Pendiente como tarea aparte: un rescate
-        // real para audio/reto atascado que cubra los dos tipos, no un temporizador ciego.
+        // Pantalla de decisión del rescate (§3.4 a §3.7 de docs/rescate-a-peticion.md)
+        // ============================================================
         //
-        // Para tramos: el audio se rescata siempre, sin límite — sigue siendo la garantía
-        // original contra un fallo técnico real (el audio nunca dispara su evento de fin).
-        // La llegada NUNCA se fuerza sin más — eso permitiría completar un tramo entero sin
-        // haber estado nunca cerca, con solo esperar (la app es una audioguía geolocalizada;
-        // completar la aventura sin presencia real no es aceptable). Se rescata solo si
-        // queda algún salto de seguridad disponible: máximo 5 por aventura, y cada uno exige
-        // un 18% de progreso real (sobre el total de elementos) desde el último salto usado
-        // — pensado para un usuario genuinamente perdido por una causa real (obras, calle
-        // cortada, un evento) que se frustraría y abandonaría la app sin ninguna salida,
-        // no como forma de completar la aventura entera sin moverse.
+        // NO es un cartel, y la diferencia es deliberada. Los diez carteles de la familia
+        // (§4.7g-m) comparten tres propiedades que aquí serían defectos graves:
+        //
+        //  1. Cualquier cartel de "algo acaba de pasar" llama a _ocultarCualquierCartel() y
+        //     borra los demás sin preguntar. Una transición, una llegada o una bienvenida
+        //     pueden caer justo mientras el usuario lee, y se llevarían la decisión por
+        //     delante. Por eso este id NO está en _TODOS_LOS_CARTELES_IDS.
+        //  2. Todos se autocierran (10 s; 7 s el del TTL). Ese plazo no da para leer y
+        //     decidir algo irreversible, y además un autocierre no significa nada: ni sí ni
+        //     no, un flujo colgando. Aquí solo se cierra pulsando un botón.
+        //  3. Ninguno lleva botones, así que a ninguno le hace falta alto máximo: se anclan
+        //     arriba y crecen hacia abajo sin límite. Este texto es el más largo de la app
+        //     (el alemán ronda los 290 caracteres) Y termina en botones. Sin tope de alto
+        //     los botones se salen de la pantalla y no hay forma de pulsar ni sí ni no.
+        //
+        // z-index 2000000 no es una capa nueva: es el techo que ya declaran
+        // .ventana-temporizador-padre y .ventana-listado-paradas-padre ("máximo, por encima
+        // de todo"). El pulso de valoración vive en 1900000 justo por debajo de ese techo y
+        // a propósito —ver el comentario de .pulso-valoracion-padre—, así que queda detrás
+        // solo, sin tener que tocarlo.
+        //
+        // Todas las pantallas llevan botones explícitos y no hay aspa ni cierre por el
+        // fondo: en una decisión irreversible, un toque fuera del recuadro es justo el
+        // accidente que la primera confirmación existe para filtrar.
+        const _ID_DECISION_RESCATE = 'decision-rescate';
+
+        function _escaparTextoRescate(v) {
+            return String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        /**
+         * Sustituye los marcadores del texto traducido y comprueba que no quede ninguno.
+         *
+         * Devuelve null —y avisa— si sobra algún marcador sin rellenar. El texto aprobado
+         * dice "dispone de {total} rescates", y enseñarle al usuario esa llave en crudo
+         * sería peor que no enseñarle nada: es la degradación con dignidad del hueco 18. Que
+         * el fallo sea ruidoso en el log, nunca un texto roto en pantalla.
+         */
+        function _rellenarTextoRescate(plantilla, valores, logPrefix) {
+            let txt = String(plantilla ?? '');
+            for (const [k, v] of Object.entries(valores)) {
+                txt = txt.split('{' + k + '}').join(_escaparTextoRescate(v));
+            }
+            const sobrante = txt.match(/\{[a-zA-Z_]+\}/);
+            if (sobrante) {
+                (globalThis.logger || console).error(`${logPrefix} Marcador sin rellenar en el texto: ${sobrante[0]} — no se muestra nada antes que mostrar una llave cruda`);
+                return null;
+            }
+            return txt;
+        }
+
+        /**
+         * Pinta una pantalla de decisión y espera a que el usuario pulse. Resuelve con la
+         * clave del botón pulsado.
+         *
+         * `botones` es una lista de `{ clave, rotulo, tono }`, en el orden en que se pintan.
+         * El tono solo decide el aspecto: 'seguro' es la opción que no gasta nada.
+         *
+         * El cuerpo llega ya escapado (de _rellenarTextoRescate o de _escaparTextoRescate);
+         * el título y los rótulos se escapan aquí. Los párrafos se separan por la doble
+         * línea que usan las traducciones.
+         */
+        function _mostrarDecisionRescate({ titulo, cuerpo, botones }) {
+            return new Promise((resolve) => {
+                document.getElementById(_ID_DECISION_RESCATE)?.remove();
+
+                const overlay = document.createElement('div');
+                overlay.id = _ID_DECISION_RESCATE;
+                overlay.style.cssText = [
+                    'position:fixed', 'top:0', 'left:0', 'width:100%', 'height:100%',
+                    'background:rgba(0,0,0,0.85)', 'z-index:2000000',
+                    'display:flex', 'align-items:center', 'justify-content:center',
+                    'padding:1rem', 'padding-bottom:var(--gap-inferior)',
+                    'box-sizing:border-box', 'font-family:Verdana,sans-serif',
+                ].join(';');
+
+                const parrafos = String(cuerpo ?? '').split('\n\n')
+                    .filter(p => p.trim())
+                    .map(p => '<p style="margin:0 0 0.9rem 0;">' + p.split('\n').join('<br>') + '</p>')
+                    .join('');
+
+                const htmlBotones = (botones || []).map((b) => {
+                    const estilo = b.tono === 'seguro'
+                        ? 'background:#2e7d32;color:#fff;border:none;'
+                        : 'background:transparent;color:#8a4b00;border:0.125rem solid #F28500;';
+                    return '<button type="button" data-clave="' + _escaparTextoRescate(b.clave) + '" style="' + estilo
+                        + 'display:block;width:100%;padding:0.85rem 0.75rem;border-radius:0.7rem;cursor:pointer;font-family:inherit;font-size:clamp(14px,3.5vmin,18px);font-weight:bold;touch-action:manipulation;">'
+                        + _escaparTextoRescate(b.rotulo) + '</button>';
+                }).join('');
+
+                overlay.innerHTML = '<div role="dialog" aria-modal="true" style="background:#fff8e7;border:clamp(2.5px,0.6vmin,4px) solid #F28500;border-radius:1rem;box-shadow:0 0.5rem 2rem rgba(0,0,0,0.5);width:min(95vw,30rem);max-height:100%;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;">'
+                    + '<h2 style="flex:0 0 auto;margin:0;padding:1.1rem 1.1rem 0.6rem 1.1rem;font-size:clamp(15px,4vmin,20px);color:#8a4b00;line-height:1.35;">' + _escaparTextoRescate(titulo) + '</h2>'
+                    + '<div style="flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 1.1rem;font-size:clamp(14px,3.5vmin,18px);color:#333;line-height:1.45;">' + parrafos + '</div>'
+                    + '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.6rem;padding:0.8rem 1.1rem 1.1rem 1.1rem;">' + htmlBotones + '</div>'
+                    + '</div>';
+
+                document.body.appendChild(overlay);
+
+                let resuelto = false;
+                overlay.querySelectorAll('button[data-clave]').forEach((b) => {
+                    b.addEventListener('click', () => {
+                        if (resuelto) return;
+                        resuelto = true;
+                        overlay.remove();
+                        resolve(b.dataset.clave);
+                    });
+                });
+            });
+        }
+
+        /**
+         * Las dos confirmaciones seguidas. Resuelve `true` solo si el usuario ha dicho que
+         * sí a las dos; cualquier otra cosa es que no, y no gasta nada.
+         *
+         * Las dos pantallas NO se parecen, y el orden de los botones se invierte de una a
+         * otra a propósito: la opción segura está arriba en la primera y abajo en la
+         * segunda, así que pulsar dos veces en el mismo sitio nunca llega a conceder un
+         * rescate. Es el filtro del toque accidental puesto en la geometría, no solo en el
+         * texto.
+         *
+         * Devuelve `false` sin enseñar nada si faltan las traducciones: mejor no abrir una
+         * decisión que abrirla a medias.
+         */
+        async function _pedirConfirmacionRescate(nombre, restantes, total, logPrefix) {
+            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const { TRADUCCIONES_RESCATE_CONFIRMAR_1, TRADUCCIONES_RESCATE_CONFIRMAR_2 } = await import('./js/traducciones-ui.js');
+            const t1 = TRADUCCIONES_RESCATE_CONFIRMAR_1?.[idioma] || TRADUCCIONES_RESCATE_CONFIRMAR_1?.es;
+            const t2 = TRADUCCIONES_RESCATE_CONFIRMAR_2?.[idioma] || TRADUCCIONES_RESCATE_CONFIRMAR_2?.es;
+            if (!t1 || !t2) {
+                (globalThis.logger || console).error(`${logPrefix} Traducciones de confirmación no disponibles — no se abre la decisión`);
+                return false;
+            }
+
+            const r1 = await _mostrarDecisionRescate({
+                titulo: t1.titulo,
+                cuerpo: _escaparTextoRescate(t1.cuerpo),
+                botones: [
+                    { clave: 'no', rotulo: t1.no, tono: 'seguro' },
+                    { clave: 'si', rotulo: t1.si },
+                ],
+            });
+            if (r1 !== 'si') {
+                (globalThis.logger || console).info(`${logPrefix} El usuario vuelve al recorrido en la primera confirmación`);
+                return false;
+            }
+
+            const valores = { nombre, restantes, total };
+            const titulo2 = _rellenarTextoRescate(t2.titulo, valores, logPrefix);
+            const cuerpo2 = _rellenarTextoRescate(t2.cuerpo, valores, logPrefix);
+            if (titulo2 === null || cuerpo2 === null) return false;
+
+            const r2 = await _mostrarDecisionRescate({
+                titulo: titulo2,
+                cuerpo: cuerpo2,
+                botones: [
+                    { clave: 'si', rotulo: t2.si },
+                    { clave: 'no', rotulo: t2.no, tono: 'seguro' },
+                ],
+            });
+            (globalThis.logger || console).info(`${logPrefix} Segunda confirmación: ${r2 === 'si' ? 'SÍ' : 'no'}`);
+            return r2 === 'si';
+        }
+
+        /**
+         * Pantalla de rescates agotados. No remite al buzón de sugerencias: es de una sola
+         * dirección, sin respuesta, y además necesita cobertura — justo lo que puede
+         * faltarle a quien está bloqueado. Le recuerda los dos mapas, que sí se le habilitan
+         * a propósito cuando está fuera de rango.
+         *
+         * El rótulo del botón sale de TRADUCCIONES_RESCATE_CONCEDIDO.cerrar ("Entendido" y
+         * sus doce formas): es la misma despedida y ya está traducida, así que reutilizarla
+         * evita una entrada nueva que diría exactamente lo mismo.
+         */
+        async function _mostrarRescatesAgotados(total, logPrefix) {
+            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const { TRADUCCIONES_RESCATE_AGOTADOS, TRADUCCIONES_RESCATE_CONCEDIDO } = await import('./js/traducciones-ui.js');
+            const t = TRADUCCIONES_RESCATE_AGOTADOS?.[idioma] || TRADUCCIONES_RESCATE_AGOTADOS?.es;
+            const tc = TRADUCCIONES_RESCATE_CONCEDIDO?.[idioma] || TRADUCCIONES_RESCATE_CONCEDIDO?.es;
+            if (!t || !tc) {
+                (globalThis.logger || console).error(`${logPrefix} Traducciones de "agotados" no disponibles — no se muestra nada`);
+                return;
+            }
+            const titulo = _rellenarTextoRescate(t.titulo, { total }, logPrefix);
+            if (titulo === null) return;
+            await _mostrarDecisionRescate({
+                titulo,
+                cuerpo: _escaparTextoRescate(t.cuerpo),
+                botones: [{ clave: 'cerrar', rotulo: tc.cerrar, tono: 'seguro' }],
+            });
+            (globalThis.logger || console).info(`${logPrefix} Pantalla de rescates agotados cerrada (${total}/${total})`);
+        }
+
+        /**
+         * Pantalla de rescate concedido. Nombra EL BOTÓN DE AVANZAR, no "el que
+         * corresponda": tras el rescate quedan encendidos avanzar y ubicación, y solo
+         * avanzar continúa la aventura.
+         *
+         * `usadas` es la cuenta DESPUÉS de este rescate, y hay que pasarla ya sumada. El
+         * descuento real no ocurre aquí sino cuando el elemento avanza de verdad, para que
+         * un móvil sin batería en mitad de esa ventana no le cueste un rescate al usuario a
+         * cambio de nada. Pero el usuario acaba de gastarlo y el texto tiene que decirle la
+         * verdad de lo que ha hecho, no el valor interno de un contador que aún no ha
+         * subido. El desfase solo puede caer a su favor: o avanza y la cuenta cuadra, o algo
+         * se rompe y recupera el rescate.
+         */
+        async function _mostrarRescateConcedido(nombre, usadas, total, logPrefix) {
+            const idioma = globalThis.idiomaSeleccionado || 'es';
+            const { TRADUCCIONES_RESCATE_CONCEDIDO } = await import('./js/traducciones-ui.js');
+            const t = TRADUCCIONES_RESCATE_CONCEDIDO?.[idioma] || TRADUCCIONES_RESCATE_CONCEDIDO?.es;
+            if (!t) {
+                (globalThis.logger || console).error(`${logPrefix} Traducciones de "concedido" no disponibles — el rescate ya está dado, pero el usuario no ve el aviso`);
+                return;
+            }
+            const valores = { nombre, usadas, total };
+            const titulo = _rellenarTextoRescate(t.titulo, valores, logPrefix);
+            const cuerpo = _rellenarTextoRescate(t.cuerpo, valores, logPrefix);
+            if (titulo === null || cuerpo === null) return;
+            await _mostrarDecisionRescate({
+                titulo,
+                cuerpo,
+                botones: [{ clave: 'cerrar', rotulo: t.cerrar, tono: 'seguro' }],
+            });
+            (globalThis.logger || console).info(`${logPrefix} Pantalla de rescate concedido cerrada (${usadas}/${total})`);
+        }
+
+        /**
+         * Cobra el rescate en el momento en que el elemento avanza de verdad.
+         *
+         * NO se cobra al pulsar Sí, y la razón es que el gasto y su efecto no son atómicos.
+         * persistProgressState() guarda `tramoSkipsUsados` al instante, pero NO guarda
+         * `pendingCompleciones`: la marca de completado vive solo en memoria hasta que el
+         * usuario pulsa avanzar y el índice se persiste. Cobrando al pulsar Sí, un móvil sin
+         * batería en esa ventana —lo que tarde en leer el cartel y mirar alrededor— dejaría
+         * al usuario con un rescate menos y delante de la misma valla: pagó y no recibió
+         * nada. Cobrando aquí, ese mismo fallo le devuelve el rescate y lo deja donde estaba.
+         *
+         */
+        function _cobrarRescateSiProcede(elementoQueSeDeja, logPrefix) {
+            const pendiente = estado._rescateGastoPendiente;
+            if (!pendiente) return;
+
+            const clave = elementoQueSeDeja
+                ? (elementoQueSeDeja.padreid || `padre-${elementoQueSeDeja.parada_id || elementoQueSeDeja.tramo_id}`)
+                : null;
+            if (clave !== pendiente.clave) {
+                (globalThis.logger || console).warn(`${logPrefix} Se avanza desde ${clave}, pero el rescate pendiente era de ${pendiente.clave} — no se cobra, y la marca se retira`);
+                estado._rescateGastoPendiente = null;
+                return;
+            }
+
+            estado._rescateGastoPendiente = null;
+            const usadas = (typeof estado.tramoSkipsUsados === 'number' ? estado.tramoSkipsUsados : 0) + 1;
+            estado.tramoSkipsUsados = usadas;
+            (globalThis.logger || console).info(`${logPrefix} Rescate cobrado al avanzar de verdad desde ${clave} — ${usadas} usados`);
+            try {
+                if (typeof globalThis.persistProgressState === 'function') globalThis.persistProgressState();
+            } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+        }
+
+        /**
+         * Concede el rescate: da por resuelto el elemento actual y deja al usuario listo para
+         * avanzar. Devuelve la cuenta de después, o null si al final no se concede nada.
+         *
+         * Vuelve a comprobarlo TODO antes de tocar nada. Entre el botón y el Sí final hay dos
+         * pantallas que el usuario lee sin prisa, y en ese rato pudo llegar andando, pudo
+         * completarse el elemento por su cuenta o pudo acabarse el tiempo de la aventura.
+         */
+        async function _concederRescate(elementoIdEsperado, logPrefix) {
+            const ahora = _estadoRescate();
+            if (!ahora.puede) {
+                (globalThis.logger || console).warn(`${logPrefix} Al confirmar ya no se puede conceder (${ahora.motivo}) — no se gasta nada`);
+                return null;
+            }
+            if (ahora.elemento !== elementoIdEsperado) {
+                (globalThis.logger || console).warn(`${logPrefix} El elemento cambió mientras decidía (${elementoIdEsperado} → ${ahora.elemento}) — no se concede sobre un punto distinto del prometido`);
+                return null;
+            }
+            // Si la aventura ha terminado —por tiempo o porque ya se completó— no hay rescate
+            // posible. hijo1 lleva su propia cuenta atrás en vivo y al llegar a cero el padre
+            // monta su modal, así que basta con mirar si alguno de los dos está en pantalla.
+            for (const idModal of ['modal-tiempo-agotado', 'modal-finalizacion']) {
+                if (document.getElementById(idModal)) {
+                    (globalThis.logger || console).warn(`${logPrefix} La aventura ha terminado (${idModal}) — no hay rescate posible`);
+                    return null;
+                }
+            }
+
+            const elemento = estado.elementoActual;
+            const clave = elemento.padreid || `padre-${elemento.parada_id || elemento.tramo_id}`;
+
+            // Cerrar el reto, si había uno abierto. Sin esto el usuario paga y se queda con
+            // MENOS que antes: en hijo2, `retoActivo` se comprueba ANTES que
+            // `btnAvanzarCompletadoPorPadre` y sale apagando el botón de avanzar, y la ayuda de
+            // ubicación también exige `!retoActivo`. Resultado: los dos botones apagados
+            // después de pagar. Se reutiliza el cierre normal de un reto —no un camino nuevo—,
+            // que es quien ya sabe ocultar hijo4, avisar a hijo2 y limpiar el estado de hijo4.
+            if (document.getElementById('hijo4')?.classList.contains('visible')) {
+                (globalThis.logger || console).info(`${logPrefix} Había un reto abierto: se cierra antes de conceder`);
+                await _hdl_RETO_OCULTAR({ origen: 'padre-rescate', datos: { retoId: estado.retoActual?.id || null } });
+            }
+
+            // La ficha, completa. La señal de retos y la cuenta van las dos porque
+            // _paradaConditionsMet mira las dos y grita si discrepan.
+            const pending = ensurePending(clave, elemento.tipo === 'tramo' ? 'tramo' : 'parada');
+            pending.llegada = true;
+            pending.audio = true;
+            pending.reto = true;
+            pending.retosCompletadosCount = pending.retosTotal;
+            pending.timestamp = Date.now();
+
+            estado._rescateGastoPendiente = { clave };
+            estado._rescatePeticionPendiente = { clave: String(clave).replace(/^padre-/, '').trim() };
+
+            await intentarCompletarElemento(clave);
+            (globalThis.logger || console).info(`${logPrefix} Rescate concedido en ${clave} — se cobrará al avanzar`);
+            return { nombre: ahora.nombre, usadas: ahora.usadas + 1, total: ahora.total };
+        }
+
+        /**
+         * El camino completo desde que el usuario pulsa hasta que ve el resultado.
+         *
+         * Corre SUELTO, sin que nadie lo espere: el asistente pide con acuse de recibo y el
+         * handler tiene que contestarle en el acto, no cuando el usuario termine de leer.
+         *
+         * La segunda confirmación dice "después le quedarán {restantes}", con la cuenta ya
+         * descontada: es lo que va a tener, no lo que tiene.
+         */
+        async function _flujoRescateAPeticion(estadoInicial, logPrefix) {
+            const confirmado = await _pedirConfirmacionRescate(
+                estadoInicial.nombre, estadoInicial.restantes - 1, estadoInicial.total, logPrefix,
+            );
+            if (!confirmado) return;
+
+            const concedido = await _concederRescate(estadoInicial.elemento, logPrefix);
+            if (!concedido) {
+                // Sin pantalla propia a propósito: los casos que llegan aquí —ha llegado
+                // andando, se acabó el tiempo— ya tienen su propio aviso en pantalla, y
+                // encadenarle otro encima sería ruido. El motivo queda en el log.
+                return;
+            }
+            await _mostrarRescateConcedido(concedido.nombre, concedido.usadas, concedido.total, logPrefix);
+        }
+
+        /**
+         * Handler de la petición del asistente.
+         *
+         * DEVUELVE ANTES DE ENSEÑAR NADA, y es lo importante de esta función. El asistente
+         * pregunta con acuse de recibo y se queda esperando la respuesta; si aquí se
+         * esperase a que el usuario cierre una pantalla, hijo6 agotaría su plazo mientras
+         * el usuario lee. Así que la pantalla se lanza sin esperarla y el estado se
+         * devuelve en el acto.
+         *
+         * El guard de pantalla ya abierta cubre la doble pulsación (hueco 3): dos toques
+         * seguidos abrirían dos flujos sobre el mismo elemento.
+         */
+        async function _hdl_CHAT_RESCATE_SOLICITADO(mensaje) {
+            const logPrefix = `${(CONFIG_PADRE && CONFIG_PADRE.LOG_PREFIX) || '[PADRE]'}[RESCATE]`;
+            const estadoActual = _estadoRescate();
+            (globalThis.logger || console).info(`${logPrefix} Petición desde ${mensaje?.origen || 'desconocido'}: ${estadoActual.puede ? 'disponible' : 'no disponible (' + estadoActual.motivo + ')'} — ${estadoActual.usadas}/${estadoActual.total} usados`);
+
+            if (document.getElementById(_ID_DECISION_RESCATE)) {
+                (globalThis.logger || console).warn(`${logPrefix} Ya hay una pantalla de rescate abierta — se ignora esta petición`);
+                return { ...estadoActual, atendida: false, motivoNoAtendida: 'ya-abierta' };
+            }
+
+            if (estadoActual.motivo === 'agotados') {
+                _mostrarRescatesAgotados(estadoActual.total, logPrefix)
+                    .catch(e => (globalThis.logger || console).error(`${logPrefix} Error mostrando "agotados":`, e));
+                return { ...estadoActual, atendida: true };
+            }
+
+            if (estadoActual.puede) {
+                _flujoRescateAPeticion(estadoActual, logPrefix)
+                    .catch(e => (globalThis.logger || console).error(`${logPrefix} Error en el flujo de rescate:`, e));
+                return { ...estadoActual, atendida: true };
+            }
+
+            // Los motivos que quedan —fuera de la aventura, sin elemento, en el punto de
+            // partida, o ya llegado— no tienen texto aprobado, y por eso hijo6 esconde el
+            // botón en esos casos. Llegar aquí significa que el estado cambió entre abrir el
+            // asistente y pulsar, así que el aviso queda RUIDOSO en vez de perderse.
+            (globalThis.logger || console).warn(`${logPrefix} Sin pantalla que mostrar para este caso (motivo: ${estadoActual.motivo}) — el botón no debería haberse podido pulsar`);
+            return { ...estadoActual, atendida: false, motivoNoAtendida: 'sin-pantalla' };
+        }
+
         // ============================================================
-        // Extraída a función con nombre (en vez de una arrow inline dentro del
-        // setInterval) para que los tests puedan invocar un barrido sin esperar los 60s
-        // reales del intervalo — mismo cuerpo, mismo comportamiento, expuesta en globalThis.
-        function _ejecutarBarridoTTLPending() {
+        // El reloj del rescate: avisa, no gasta (§3.3)
+        // ============================================================
+        //
+        // Este barrido gastaba rescates él solo cuando un tramo llevaba demasiado tiempo sin
+        // poder confirmar su llegada. Ya no decide nada: ahora solo recuerda que hay una
+        // salida, y quien decide es el usuario, desde el asistente.
+        //
+        // LO QUE SE FUE CON EL AUTOMATISMO:
+        //   - La puerta del 18 % de progreso. Existía para frenar un disparo automático, y sin
+        //     automatismo no frena nada; a cambio creaba una zona ciega al empezar la aventura
+        //     y la trampa de un botón que no hacía nada.
+        //   - `progresoEnUltimoSkip`, que era su contador y no lo lee ya nadie.
+        //   - `_rescateTramoPendiente`, el recado que dejaba para que marcarParadaCompletada()
+        //     supiera qué cartel mostrar. Era justo la pieza que ya falló una vez, guardando
+        //     la clave con prefijo cuando la comparación usaba el id limpio. Ahora el cartel
+        //     sale donde el usuario pulsa, sin recados entre funciones.
+        //
+        // MIRA SOLO EL ELEMENTO ACTUAL, no todas las fichas: recorrerlas todas ofrecería
+        // ayuda sobre puntos que el usuario ya dejó atrás hace rato.
+        //
+        // SIN CONDICIÓN DE DISTANCIA, y es contraintuitivo. En un tramo la franja mide la
+        // distancia AL CAMINO, y quien está bloqueado por una valla está encima del camino:
+        // para la app, dentro de rango. Exigir "fuera de rango" habría dejado sin aviso justo
+        // al caso principal.
+        //
+        // Cuatro avisos y después silencio; el asistente sigue estando ahí siempre.
+        const RECORDATORIO_RESCATE_MINUTOS = [8, 10, 12, 14];
+
+        function _ejecutarBarridoRecordatorioRescate() {
             try {
                 const est = getEstadoSafe();
                 if (est?.modo?.actual !== MODOS.AVENTURA) return;
-                const pendings = est.pendingCompleciones;
-                if (!pendings) return;
-                const now = Date.now();
-                // Topes del rescate, por aventura. No son un numero universal: dependen de
-                // cuanto se anda. En una ruta de ~5 km gastar 5 rescates ya es tirar la
-                // aventura que el usuario ha pagado, asi que 5 es un techo holgado. Av34km
-                // son 34 km y 239 elementos: ahi la probabilidad de topar con obras, un
-                // evento o una calle cortada es varias veces mayor, y merece mas margen.
-                //
-                // PROGRESO_MINIMO baja a la par y por una razon aritmetica, no estetica.
-                //
-                // COMO CUENTA LA PUERTA, Y POR QUE 0.18 Y NO 0.2
-                //
-                // La condicion es (progresoActual - progresoUltimoSkip) >= PROGRESO_MINIMO, y
-                // progresoUltimoSkip arranca en 0. O sea que el rescate n-esimo exige
-                // n * PROGRESO_MINIMO de progreso: el PRIMERO ya pide el minimo entero, no 0.
-                // Es lo correcto —un rescate exige haber andado algo— pero desplaza la serie
-                // un escalon respecto a lo que parece a simple vista.
-                //
-                // Y el progreso nunca llega a 1: _calcularProgresoFraccion() es
-                // indiceProgreso / elementosIDpadre.length, y el ultimo elemento tiene el
-                // indice length-1, asi que el techo real es (length-1)/length. En las seis
-                // aventuras cortas va de 0.9796 (Fallas, 49 elementos) a 0.9861 (Aventura3).
-                //
-                // Con 0.2, el quinto rescate exigia 5 * 0.2 = 1.00 exacto — justo el unico
-                // valor que esa escala no puede dar. Se prometian cinco en el cartel
-                // ("la excepcion {usadas} de {total}") y solo cuatro podian dispararse.
-                // Con 0.18 los cinco piden 0.90, que cabe en la mas corta con margen.
-                // Av34km: 12 * 0.05 = 0.60 contra un techo de 0.9958, holgado.
-                //
-                // Si se añaden elementos a una aventura el techo SUBE (mas elementos, mas
-                // cerca de 1), asi que el margen solo mejora. Lo que lo estrecharia es
-                // acortar una aventura por debajo de ~28 elementos.
-                const LIMITES_RESCATE = { Aventura34km: { max: 12, progresoMinimo: 0.05 } };
-                const _lim = LIMITES_RESCATE[globalThis.aventuraSeleccionada] || { max: 5, progresoMinimo: 0.18 };
-                const MAX_SALTOS_TRAMO = _lim.max;
-                const PROGRESO_MINIMO_ENTRE_SALTOS = _lim.progresoMinimo;
-                for (const [key, p] of Object.entries(pendings)) {
-                    if (p.tipo !== 'tramo') continue;
-                    if (typeof p.ttlMs !== 'number' || (now - p.timestamp) <= p.ttlMs) continue;
 
-                    let cambiado = false;
-                    // El audio ya NO se rescata aquí a ciegas — AUDIO.REPRODUCIR_REQUEST se
-                    // envía con confirmación y reintentos (_enviarAudioRequestConReintento,
-                    // ver _solicitarAudioParaParada), y un fallo real (de entrega o de
-                    // reproducción) ya muestra el botón de saltar al instante
-                    // (_marcarAudioNoDisponible) en vez de dejar pending.audio en false
-                    // durante minutos hasta que este barrido pasara por aquí.
-                    if (!p.llegada) {
-                        const skipsUsados = typeof est.tramoSkipsUsados === 'number' ? est.tramoSkipsUsados : 0;
-                        const progresoActual = (typeof globalThis._calcularProgresoFraccion === 'function') ? globalThis._calcularProgresoFraccion() : 0;
-                        const progresoUltimoSkip = typeof est.progresoEnUltimoSkip === 'number' ? est.progresoEnUltimoSkip : 0;
-                        if (skipsUsados < MAX_SALTOS_TRAMO && (progresoActual - progresoUltimoSkip) >= PROGRESO_MINIMO_ENTRE_SALTOS) {
-                            p.llegada = true;
-                            est.tramoSkipsUsados = skipsUsados + 1;
-                            est.progresoEnUltimoSkip = progresoActual;
-                            cambiado = true;
-                            // Marca para que marcarParadaCompletada() muestre el cartel de
-                            // rescate en vez del de complecion normal: sin esto, el usuario
-                            // recibia el mismo mensaje que si hubiera llegado andando y no
-                            // tenia forma de saber que le acaban de gastar un rescate.
-                            //
-                            // OJO con la clave: NO vale `key` (la del pending, "padre-TR5").
-                            // marcarParadaCompletada() recibe el tramo_id e internamente hace
-                            // idLimpio = paradaId.replace(/^padre-/,''), o sea "Av1-TR-5".
-                            // Son dos identificadores distintos para el mismo elemento y no
-                            // coinciden nunca, asi que comparar contra `key` dejaba el cartel
-                            // sin disparar y en silencio: salia el normal, que es justo lo que
-                            // esto viene a evitar. Se guarda ya normalizado igual que alli.
-                            const _elemRescate = findElementoPorPadreId(key);
-                            const _claveRescate = String(_elemRescate?.tramo_id || _elemRescate?.parada_id || _elemRescate?.padreid || key).replace(/^padre-/, '').trim();
-                            est._rescateTramoPendiente = { clave: _claveRescate, usadas: est.tramoSkipsUsados, total: MAX_SALTOS_TRAMO };
-                            (globalThis.logger || console).warn(`[PADRE][PENDING][TTL] Salto de seguridad ${est.tramoSkipsUsados}/${MAX_SALTOS_TRAMO} usado en tramo ${key} — llegada forzada`);
-                            try { if (typeof globalThis.persistProgressState === 'function') globalThis.persistProgressState(); } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
-                        } else {
-                            (globalThis.logger || console).debug(`[PADRE][PENDING][TTL] Tramo ${key} sigue sin llegada — sin salto disponible (usados ${skipsUsados}/${MAX_SALTOS_TRAMO}, progreso desde el último salto ${((progresoActual - progresoUltimoSkip) * 100).toFixed(0)}%)`);
-                        }
-                    }
-                    if (cambiado) {
-                        intentarCompletarElemento(key).catch(e => (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error:', e?.message));
-                    }
-                }
+                const elemento = est.elementoActual;
+                // El punto de inicio queda fuera por lo mismo que queda fuera del rescate:
+                // llegar hasta él ES empezar la aventura.
+                if (!elemento || elemento.tipo === 'inicio') return;
+
+                const clave = elemento.padreid || `padre-${elemento.parada_id || elemento.tramo_id}`;
+                const ficha = est.pendingCompleciones?.[clave];
+                if (!ficha || typeof ficha.timestamp !== 'number') return;
+
+                // A un punto ya resuelto no se le ofrece ayuda para salir de él.
+                if (ficha.llegada === true) return;
+
+                const minutos = (Date.now() - ficha.timestamp) / 60000;
+                const yaMostrados = typeof ficha._recordatoriosRescate === 'number' ? ficha._recordatoriosRescate : 0;
+                const tocan = RECORDATORIO_RESCATE_MINUTOS.filter(m => minutos >= m).length;
+                if (tocan <= yaMostrados) return;
+
+                // La cuenta vive en la ficha, no en una variable suelta: así se reinicia sola
+                // al cambiar de elemento, sin nada que acordarse de limpiar.
+                ficha._recordatoriosRescate = tocan;
+                (globalThis.logger || console).info(`[PADRE][RECORDATORIO_RESCATE] Aviso ${tocan}/${RECORDATORIO_RESCATE_MINUTOS.length} tras ${minutos.toFixed(1)} min parado en ${clave}`);
+                globalThis._mostrarCartelRecordatorioRescate?.();
             } catch (e) {
-                (globalThis.logger || console).debug('[PADRE][PENDING][TTL] Error en comprobación de TTL:', e?.message);
+                (globalThis.logger || console).debug('[PADRE][RECORDATORIO_RESCATE] Error:', e?.message);
             }
         }
+
+        // La petición de rescate llega del asistente (hijo6) con acuse de recibo, así que
+        // el handler DEBE devolver un valor: la mensajería del padre reenvía lo devuelto
+        // como SISTEMA.CONFIRMACION, y sin él hijo6 esperaría hasta agotar su plazo.
+        globalThis.registrarControladorSeguro(TIPOS_MENSAJE.CHAT.RESCATE_SOLICITADO, _hdl_CHAT_RESCATE_SOLICITADO, { permanente: true });
+
         try {
-            if (globalThis.window !== undefined && globalThis._ejecutarBarridoTTLPending === undefined) {
-                globalThis._ejecutarBarridoTTLPending = _ejecutarBarridoTTLPending;
+            if (globalThis.window !== undefined && globalThis._estadoRescate === undefined) {
+                globalThis._estadoRescate = _estadoRescate;
+            }
+            // Expuesta por el mismo motivo que el barrido de recordatorios: el cobro del
+            // rescate ocurre justo aquí, al avanzar de verdad, y sin poder invocar el avance
+            // no hay forma de comprobar que un fallo en la ventana entre el "Sí" y el botón
+            // le devuelve el rescate al usuario. Mismo cuerpo, mismo comportamiento.
+            if (globalThis.window !== undefined && globalThis.progresarSiguienteElemento === undefined) {
+                globalThis.progresarSiguienteElemento = progresarSiguienteElemento;
+            }
+        } catch (e) { (globalThis.logger || console).debug('[VV]:', e?.message); } // NOSONAR
+
+        try {
+            if (globalThis.window !== undefined && globalThis._ejecutarBarridoRecordatorioRescate === undefined) {
+                globalThis._ejecutarBarridoRecordatorioRescate = _ejecutarBarridoRecordatorioRescate;
             }
         } catch (e) { // NOSONAR
             (globalThis.logger || console).debug('[VV]:', e?.message);
         }
         if (!globalThis.__VV_PENDING_CLEANUP) {
-            globalThis.__VV_PENDING_CLEANUP = setInterval(_ejecutarBarridoTTLPending, 60_000);
+            globalThis.__VV_PENDING_CLEANUP = setInterval(_ejecutarBarridoRecordatorioRescate, 60_000);
         }
     </script>
 
