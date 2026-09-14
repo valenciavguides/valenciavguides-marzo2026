@@ -67,12 +67,14 @@ codigo-padre-current.html
 # Documentos de negocio — solo local, NUNCA a GitHub (infraestructura, pagos, legal/fiscal)
 docs/plan-produccion-infraestructura.md
 
-# Imágenes de contenido por idioma — fuera de git DE MOMENTO, por decisión explícita:
-# todavía no están referenciadas desde ninguna parte de la PWA, así que subirlas solo
-# añadiría peso al repositorio, y este repositorio es PÚBLICO (lo que entra en el
-# historial de git sigue siendo accesible aunque después se borre del árbol).
-# Para empezar a versionarlas, borrar estas líneas y hacer el `git add` normal.
-imagenes/01-imagenes-español/
-imagenes/02-imagenes-ingles/
-imagenes/03-imagenes-frances/
-imagenes/04-imagenes-italiano/
+# Imágenes de contenido por idioma (01 a 07) — AHORA SÍ van a git, decisión del 2026-09-14.
+# GitHub Pages es el único sitio donde se puede ver cómo se comporta esto como PWA de verdad:
+# HTTPS real, Service Worker real y tipos MIME reales. El servidor local da una imagen falsa
+# de que todo funciona, así que las imágenes tienen que estar arriba para poder probarlas.
+#
+# El peso y el historial se aceptan a sabiendas: el plan es vaciar el repositorio entero y
+# empezar de cero cuando el contenido esté terminado, así que lo que quede en el historial
+# hasta entonces da igual.
+#
+# Pendiente, acordado aparte: comprimirlas TODAS de una vez cuando estén colocadas. Hoy solo
+# la carpeta 01 está comprimida (3,4 MB); las otras seis pesan entre 16 y 20 MB cada una.
