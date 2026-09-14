@@ -13209,7 +13209,28 @@ await _comprobarReanudacionAventura(logPrefix);
                 try {
                     // Map audioId -> elemento y marcar pending.audio
                     const elementoAudio = findElementoPorAudio(audioId);
-                    if (elementoAudio) {
+
+                    // El audio que termina puede NO ser ya el del elemento activo: el usuario
+                    // pudo cambiar de punto mientras sonaba. Sin esta comprobación,
+                    // ensurePending() resucita la ficha de un elemento ya dejado atrás y le
+                    // pone el reloj a cero — y como el barrido de TTL recorre TODAS las fichas,
+                    // esa ficha zombi acaba disparando avisos para un punto por el que el
+                    // usuario ya pasó.
+                    //
+                    // Es la misma guarda que ya tiene _saltarAudioPulsado(), su función
+                    // hermana; la asimetría era un olvido, no una decisión.
+                    //
+                    // En AVENTURA cuesta llegar aquí —para avanzar hay que completar, y para
+                    // completar el audio tiene que haber terminado— pero en CASA hijo5 manda
+                    // CAMBIO_PARADA directo sin completar nada, así que basta con saltar de
+                    // parada con el audio sonando. Y las fichas no se borran al cambiar de
+                    // modo: la rancia sobreviviría al paso a AVENTURA.
+                    const esDelElementoActual = !!audioId && estado.elementoActual?.audio_id === audioId;
+                    if (elementoAudio && !esDelElementoActual) {
+                        (globalThis.logger || console).info(`${logPrefix} Fin de audio de ${audioId}, que ya no es el del elemento activo (${estado.elementoActual?.audio_id || 'ninguno'}) — no se toca su ficha`);
+                    }
+
+                    if (elementoAudio && esDelElementoActual) {
                         const clave = elementoAudio.padreid || `padre-${elementoAudio.parada_id || elementoAudio.tramo_id}`;
                         const pendingAudio = ensurePending(clave, elementoAudio.tipo || 'parada');
                         pendingAudio.audio = true;
