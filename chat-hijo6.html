@@ -434,9 +434,52 @@
       if (!tipo || typeof handler !== 'function') return;
       if (globalThis.__CONTROLADOR_REGISTRADOS.has(tipo)) return;
       globalThis.__CONTROLADOR_REGISTRADOS.add(tipo);
-      const listener = (event) => {
-        if (event.source === globalThis.parent && event.data && event.data.tipo === tipo) {
-          handler(event.data);
+      const listener = async (event) => {
+        if (event.source !== globalThis.parent || !event.data || event.data.tipo !== tipo) return;
+
+        // Auto-confirmación: hijo6 era el ÚNICO de los seis hijos que no la tenía. Su
+        // registrador tenía la misma forma que el adapter de los demás pero recortada —
+        // llamaba al handler y ahí se acababa—, así que cualquier
+        // enviarMensajeConConfirmacion() dirigido aquí nunca habría recibido su
+        // SISTEMA.CONFIRMACION: el emisor agotaría reintentos y caería por su rama de
+        // error sin que nada dijera por qué.
+        //
+        // EL CONTRATO: solo se confirma si el handler DEVUELVE un valor. Es la misma
+        // condición (`resultado !== undefined`) que usan los otros cinco, y no es un
+        // detalle: un `return` olvidado en hijo3 hizo que el padre diera por escuchados
+        // TODOS los audios sin que sonara un segundo, con el fichero presente y
+        // funcionando (ver el comentario en audio-hijo3.html).
+        //
+        // Por eso aquí, a diferencia de los otros cinco, la omisión NO es muda: si
+        // alguien pide confirmación y el handler no devuelve nada, se avisa. Un camino
+        // que no se toma puede existir, pero no en silencio.
+        let resultado;
+        try {
+          resultado = await handler(event.data);
+        } catch (error_) {
+          logger.error(`[hijo6] Error en el handler de ${tipo}:`, error_ && error_.message);
+          return;
+        }
+
+        if (!event.data.requiereConfirmacion || !event.data.id) return;
+
+        if (resultado === undefined) {
+          logger.warn(`[hijo6] Se pidió confirmación de ${tipo} pero su handler no devolvió ningún valor: no se confirma, y quien lo envió agotará sus reintentos. Si la confirmación hace falta, el handler tiene que devolver algo.`);
+          return;
+        }
+
+        try {
+          globalThis.parent.postMessage({
+            tipo: TIPOS_MENSAJE.SISTEMA.CONFIRMACION,
+            idOriginal: event.data.id,
+            origen: CONFIG_HIJO.IFRAME_ID,
+            destino: event.data.origen || 'padre',
+            timestamp: Date.now(),
+            datos: resultado,
+          }, globalThis.location.origin);
+          logger.debug(`[hijo6] Confirmación enviada para ${tipo} (${event.data.id})`);
+        } catch (error_) {
+          logger.error(`[hijo6] No se pudo enviar la confirmación de ${tipo}:`, error_ && error_.message);
         }
       };
       globalThis.addEventListener('message', listener);
