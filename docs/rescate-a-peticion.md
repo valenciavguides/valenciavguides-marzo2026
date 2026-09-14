@@ -389,12 +389,26 @@ primer resumen de implementación.
 
 ---
 
-## 4b. Lo que queda por decidir
+## 4b. El texto que señalaba al botón — resuelto
 
-**El texto del asistente apunta a un botón que puede no estar.** §3.2 dice "pulse el botón
-de aquí abajo" en los doce idiomas. Cuando el botón se esconde (hueco 24), la respuesta
-sigue visible —y hace bien, porque explica qué son los rescates— pero esa frase señala algo
-que no está. Hay que reescribirla o quitarla en los doce, y es una decisión de texto.
+§3.2 decía "pulse el botón de aquí abajo" en los doce idiomas, y ese botón se esconde cuando
+un rescate no sirve de nada (hueco 24). La respuesta seguía visible —y hace bien, porque
+explica qué son los rescates y cuántos quedan— pero esa frase señalaba un sitio vacío de la
+pantalla, sobre todo al principio de la aventura, que es cuando la gente curiosea el
+asistente.
+
+**Reescrito el párrafo 4 en los doce idiomas**, nombrando al asistente en vez de a un botón:
+
+> Usted decide cuándo utilizarlos. Cuando la ciudad le cierre el paso de verdad, este
+> asistente le abrirá camino y seguirá su aventura con normalidad. Eso sí, úselos con
+> cabeza: son limitados.
+
+El asistente sí está siempre, así que la frase vale con botón y sin él. Cada idioma encaja la
+idea en su propia sintaxis; no es la misma frase traducida palabra por palabra.
+
+**Queda una repetición que mirar:** el párrafo 6 de los doce idiomas usa la misma imagen
+("guarde los rescates para cuando la ciudad de verdad le cierre el paso"), así que ahora
+aparece dos veces en la misma respuesta, con dos párrafos de por medio.
 
 ---
 
@@ -619,5 +633,6 @@ RT-3 (los topes son por aventura y nunca `undefined`).
 
 ### Lo que sigue abierto
 
-**El texto §3.2 apunta a un botón que puede no estar** — ver §4b. Es lo único que queda, y
-es una decisión de texto.
+**La repetición entre el párrafo 4 y el 6 de §3.2** — ver §4b. Los dos usan la imagen de la
+ciudad cerrando el paso, con dos párrafos de por medio. Es lo único que queda, y es una
+decisión de texto.
