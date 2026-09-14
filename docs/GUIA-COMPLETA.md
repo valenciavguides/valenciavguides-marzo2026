@@ -4853,7 +4853,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-431d5b670717'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-f24163235f27'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -8006,7 +8006,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-431d5b670717'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-f24163235f27'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8061,6 +8061,29 @@ La aplicación está diseñada para usarse en **vertical (portrait)** en teléfo
 Con los tres a la vez, una sola decisión —"esta app se usa en vertical"— tenía **tres caminos, cada uno activo en una parte del parque de móviles**. Y tenía una consecuencia visible: en Android la pantalla no giraba, así que el overlay no llegaba a salir nunca y **`NAVEGACION.SUPRIMIR_ROTACION` no suprimía nada** — el mensaje con el que el mapa vintage pide que se le deje ver en apaisado funcionaba en iPhone y no en Android, sin que nada lo explicara. El mismo mapa, dos comportamientos según el teléfono.
 
 Con el overlay como único mecanismo, el comportamiento es idéntico en todos los móviles y la supresión funciona donde tiene que funcionar. **El precio, que conviene saber:** en Android la pantalla ahora sí gira, así que el usuario ve el aviso en vez de que no pase nada. Es un paso más de fricción a cambio de que el comportamiento sea uno y predecible.
+
+#### Las dos excepciones: los mapas vintage
+
+Tres de los mapas vintage son **horizontales** — `Av3_Mapa.jpg`, `Av4_Mapa.jpg` y
+`Av34km_Mapa.jpg` — y en vertical se ven peor. En los dos sitios donde se abren, el aviso se
+suprime mientras el mapa está en pantalla:
+
+| Dónde | Cómo lo pide |
+|---|---|
+| Pantalla de selección, al elegir aventura | `En-busca-del-tesoro.html` manda `NAVEGACION.SUPRIMIR_ROTACION` con `value: true` al abrir y `false` al cerrar |
+| Botón `btn-mapa-jpg` de hijo2, dentro de la aventura | El padre lo hace él mismo: pone `globalThis.rotationSuppressed` antes de abrir el overlay |
+
+**La restauración vive en `cerrarImagenOverlay()`**, no en el handler del mapa, porque ese es
+el **único** camino de cierre del overlay — por el aspa, por gesto o por código. Ponerla en el
+handler dejaría la supresión pegada si el usuario cerrara por cualquier otra vía, y la app se
+quedaría sin aviso el resto de la sesión **sin que nada lo delatara**. Cerrar una foto de
+monumento entra también por ahí, pero como nunca estuvo suprimido, el guard lo deja pasar.
+
+`toggleRotationMessage()` se expone en `globalThis` justamente por esto: el mapa la suprime
+desde el módulo de handlers y `cerrarImagenOverlay()` la restaura desde un script anterior.
+
+Cubierto por `MV-5` en `tests/e2e/55-mapa-vintage-resuelto-por-el-padre.spec.js`, que
+comprueba las dos mitades — que se pone **y que se quita**.
 
 **Comportamiento por tipo de dispositivo:**
 
@@ -8704,7 +8727,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-431d5b670717';
+const CACHE_VERSION = 'v-f24163235f27';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -12044,7 +12067,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-431d5b670717';
+const CACHE_VERSION = 'v-f24163235f27';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

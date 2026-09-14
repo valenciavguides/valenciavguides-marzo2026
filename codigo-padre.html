@@ -1538,16 +1538,8 @@
                 (globalThis.logger || console).info('#mapa container created successfully during early initialization');
             }
 
-            // 2. Inicializar toggleRotationMessage (antes duplicado en línea 2403)
-            if (typeof toggleRotationMessage === 'function') {
-                try {
-                    toggleRotationMessage();
-                } catch (e) {
-                    (globalThis.logger || console).warn('[PADRE] Error ejecutando toggleRotationMessage:', e);
-                }
-            }
 
-            // 4. Registrar evento de inicialización app (desde js/app.js)
+            // 2. Registrar evento de inicialización app (desde js/app.js)
             if (typeof globalThis.registrarEvento === 'function') {
                 try {
                     globalThis.registrarEvento('app_inicializada', {
@@ -1601,7 +1593,7 @@
                 if (brujulaModo) brujulaModo.style.display = hayVentanaActiva ? 'none' : 'flex';
             };
 
-            // 5. Chat de soporte (hijo6) — apertura lazy + cierre por mensaje
+            // 3. Chat de soporte (hijo6) — apertura lazy + cierre por mensaje
             (function() {
                 let btnChat    = document.getElementById('btn-chat-soporte');
                 let iframeChat = document.getElementById('hijo6-chat');
@@ -1826,6 +1818,15 @@
                 setTimeout(() => {
                     overlay.remove();
                 }, 400);
+            }
+            // Se restaura el aviso de girar el movil, que el mapa vintage suprime mientras
+            // esta abierto. Va aqui y no en el handler del mapa porque este es el UNICO camino
+            // de cierre del overlay: por el aspa, por gesto o por codigo. Cerrar una foto de
+            // monumento entra por aqui tambien, pero ahi nunca estuvo suprimido, asi que el
+            // guard lo deja pasar sin tocar nada.
+            if (globalThis.rotationSuppressed) {
+                globalThis.rotationSuppressed = false;
+                globalThis.toggleRotationMessage?.();
             }
             _galeriaEstado = { imagenes: [], indice: 0, tipo: null, mapa_numero: null };
             (globalThis.logger || console).info('Imagen overlay cerrado');
@@ -4203,6 +4204,11 @@
         }
 
         // Escuchar cambios de orientación y tamaño
+        // Expuesta porque hacen falta dos scripts para una sola cosa: el mapa vintage la
+        // suprime desde el modulo de handlers y cerrarImagenOverlay() la restaura desde un
+        // script anterior. Sin esto, el de fuera no la ve (ver CLAUDE.md, scripts separados).
+        globalThis.toggleRotationMessage = toggleRotationMessage;
+
         globalThis.addEventListener('orientationchange', toggleRotationMessage);
         globalThis.addEventListener('resize', toggleRotationMessage);
 
@@ -4222,11 +4228,11 @@
             }
         });
 
-        // OJO: hay una llamada a toggleRotationMessage() en el DOMContentLoaded temprano
-        // (script clasico, ~L1544) que NUNCA se ejecuta: esta funcion se declara dentro de
-        // este modulo y no se expone en globalThis, asi que su guarda
-        // `typeof toggleRotationMessage === 'function'` es siempre falsa desde alli. La
-        // comprobacion inicial real es la llamada de mas arriba, en este mismo modulo.
+        // La comprobacion inicial es la llamada de mas arriba, en este mismo modulo. Hubo
+        // otra en el DOMContentLoaded temprano (script clasico) que NUNCA llego a
+        // ejecutarse: esta funcion vive dentro de este modulo y no se expone en globalThis,
+        // asi que su guarda `typeof ... === 'function'` era siempre falsa desde alli, y el
+        // `if` convertia el fallo en silencio. Se elimino.
 
         // DEV MODE TOGGLE — Ctrl+Alt+clic o 5 toques en logo P1 del selector.
         // Activa/desactiva globalThis._devModeActivo. La visibilidad de hijo5
@@ -12130,11 +12136,18 @@ await _comprobarReanudacionAventura(logPrefix);
                 const url = globalThis.__vv_MAPAS_VINTAGE?.[aventura] || null;
                 (globalThis.logger || console).info(`${logPrefix} Solicitud de mapa vintage — aventura: ${aventura}, url: ${url}`);
                 if (!url) {
-                    // Normal en AventuraFallas y Aventura34km: su mapa aun no existe
-                    // (estan comentadas en js/mapa-vintage-aventuras.js).
+                    // Hoy solo le pasa a Aventura34km: su linea sigue comentada en
+                    // js/mapa-vintage-aventuras.js. No se ensena el mapa de otra aventura.
                     (globalThis.logger || console).warn(`${logPrefix} No hay mapa vintage para ${aventura}`);
                     return { exito: false, error: `Sin mapa vintage para ${aventura}` };
                 }
+                // Excepcion al "esta app se usa en vertical": los mapas vintage de
+                // Aventura3, Aventura4 y Aventura34km son HORIZONTALES, y en vertical se ven
+                // peor. Mientras el mapa esta abierto se suprime el aviso de girar, igual que
+                // ya hace la pantalla de seleccion (ver 19.7). Lo restaura cerrarImagenOverlay(),
+                // que es el unico camino de cierre del overlay.
+                globalThis.rotationSuppressed = true;
+                globalThis.toggleRotationMessage?.();
                 globalThis.mostrarImagenOverlay(url, `Mapa vintage — ${aventura || 'Aventura'}`, null, null, { objectFit: 'fill', fullHeight: true });
                 return { exito: true, url, aventura };
             } catch (error) {

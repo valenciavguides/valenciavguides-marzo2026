@@ -139,4 +139,38 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
     expect(llamadas[0].url, 'la url del mensaje no debe usarse').not.toContain('SUPLANTADA');
     expect(llamadas[0].url).toContain('imagenes-mapas-vintage');
   });
+
+  test('MV-5. El mapa vintage suprime el aviso de girar, y al cerrarlo lo devuelve', async ({ page }) => {
+    // La app se usa en vertical y un overlay lo recuerda si giras el movil. Pero los mapas
+    // vintage de Aventura3, Aventura4 y Aventura34km son HORIZONTALES: ahi girar el movil es
+    // justo lo que hay que hacer. La pantalla de seleccion ya lo tenia; el boton de dentro
+    // de la aventura no, y esta es esa excepcion.
+    //
+    // Lo que se comprueba no es el aviso en si, sino que la marca se pone Y SE QUITA. Una
+    // supresion que no se deshace deja la app sin aviso para el resto de la sesion, y eso
+    // no se nota hasta que alguien gira el movil mucho despues.
+    await prepararPadreConDatos(page);
+
+    expect(
+      await page.evaluate(() => globalThis.rotationSuppressed === true),
+      'antes de abrir nada, el aviso NO esta suprimido',
+    ).toBe(false);
+
+    await pedirMapaVintageHasta(
+      page, { accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'Aventura1' },
+      async () => (await vecesOverlay(page)) > 0, 'no se abrio el mapa vintage',
+    );
+
+    expect(
+      await page.evaluate(() => globalThis.rotationSuppressed === true),
+      'con el mapa abierto, el aviso queda suprimido',
+    ).toBe(true);
+
+    await page.evaluate(() => globalThis.cerrarImagenOverlay());
+
+    expect(
+      await page.evaluate(() => globalThis.rotationSuppressed === true),
+      'al cerrarlo, el aviso vuelve — si no, la app se queda sin el toda la sesion',
+    ).toBe(false);
+  });
 });
