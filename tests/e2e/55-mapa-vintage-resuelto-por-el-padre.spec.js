@@ -110,12 +110,14 @@ test.describe('MV — el mapa vintage lo resuelve el padre, no el hijo', () => {
     const logs = [];
     page.on('console', (m) => logs.push(m.text()));
     await prepararPadreConDatos(page);
-    // AventuraFallas está comentada en mapa-vintage-aventuras.js: su mapa no existe aún.
+    // Aventura34km sigue comentada en mapa-vintage-aventuras.js: su mapa no existe aún.
+    // Antes este caso usaba AventuraFallas, que ya tiene el suyo desde que se añadió
+    // AvFallas_Mapa.jpg — con ella el test dejaba de probar lo que dice probar.
     // Se espera al AVISO, que es la señal de que el padre ya procesó el mensaje, y solo
     // entonces se comprueba que no abrió nada. Al revés se daría por bueno un "no pasó
     // nada" que en realidad era "aún no ha pasado".
     await pedirMapaVintageHasta(
-      page, { accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'AventuraFallas' },
+      page, { accion: 'mostrar-mapa-vintage', formato: 'jpg', aventura: 'Aventura34km' },
       async () => logs.some((l) => l.includes('No hay mapa vintage')), 'no hubo aviso en consola'
     );
 

@@ -4853,7 +4853,7 @@ El SW no interviene en la comunicación postMessage entre componentes. Gestiona:
 
 - Caché Network-First del App Shell (HTML/JS/CSS/manifest)
 - Media: imágenes de aventuras y mapas vintage (Cache First + LRU-100); audios y vídeos **nunca cacheados** — siempre desde red
-- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-60556be0a360'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
+- `CACHE_VERSION` se actualiza automáticamente en cada commit que toca algún fichero del shell (valor actual: `'v-9483c7d2226b'`), vía el hook de pre-commit que instala `tools/install-hooks.js` y calcula `tools/build-sw.js` — ver §21.
 
 No emite ni recibe mensajes postMessage. No tiene handlers de mensajería del bus.
 
@@ -7204,15 +7204,38 @@ La galería que muestra imágenes de cada parada en el overlay de `codigo-padre.
 
 #### Imágenes de mapas vintage (`imagenes/imagenes-mapas-vintage/`)
 
-| Archivo | Dimensiones | Orientación |
-|---|---|---|
-| `Av1_mapa.jpg` | 1241×1755 | Vertical ✓ |
-| `Av2_Mapa.jpg` | — | Vertical ✓ |
-| `Av3_Mapa.jpg` | 1755×1241 → rotada 90° | Vertical ✓ |
-| `Av4_Mapa.jpg` | 2481×1755 → rotada 90° | Vertical ✓ |
-| `Av5_Mapa.jpg` | 2481×1755 → rotada 90° | Vertical ✓ |
+| Archivo | Dimensiones reales | Orientación | Peso |
+|---|---|---|---|
+| `Av1_mapa.jpg` | 1755×2481 | Vertical | 1,6 MB |
+| `Av2_Mapa.jpg` | 1755×2481 | Vertical | 3,6 MB |
+| `Av3_Mapa.jpg` | 1755×1241 | **Horizontal** | 1,0 MB |
+| `Av4_Mapa.jpg` | 2481×1755 | **Horizontal** | 1,8 MB |
+| `Av5_Mapa.jpg` | 1755×2481 | Vertical | 1,8 MB |
+| `AvFallas_Mapa.jpg` | 1755×2481 | Vertical | 3,7 MB |
 
-Todas las imágenes están en orientación vertical para coincidir con la ventana flotante en portrait. En `En-busca-del-tesoro.html` el overlay usa igualmente `object-fit: fill`.
+Dimensiones medidas del fichero, no supuestas. **`Av3` y `Av4` siguen siendo horizontales**: el overlay usa `object-fit: fill`, que estira la imagen hasta cubrir la ventana en lugar de recortarla, así que llenan la pantalla igual aunque su proporción no coincida.
+
+`Aventura34km` todavía no tiene mapa: su línea sigue comentada en la tabla.
+
+#### Una sola tabla decide qué mapa se enseña
+
+`js/mapa-vintage-aventuras.js` (`MAPAS_VINTAGE`) es **la única fuente** de la ruta, y la usan los dos sitios donde aparece un mapa vintage:
+
+| Quién lo enseña | Cómo llega a la ruta |
+|---|---|
+| Botón `btn-mapa-jpg` de hijo2, dentro de la aventura | hijo2 pide, el padre resuelve desde `__vv_MAPAS_VINTAGE` (§22.12) |
+| Overlay de `En-busca-del-tesoro.html`, al elegir aventura en P7 | `mostrarMapaVintage()` importa la tabla y lee la entrada |
+
+**La pantalla de selección no siempre lo hizo así, y el fallo era invisible.** Adivinaba el fichero sacando el número del nombre de la aventura (`aventura.match(/\d+/)`) y pegándolo a una plantilla. Acertaba con las cinco numeradas —por eso nadie lo vio— pero rompía con las otras dos de formas distintas:
+
+- **`AventuraFallas`** no tiene ningún dígito, así que caía en el `'1'` de reserva y enseñaba **el mapa de la Aventura 1 como si fuera el suyo**. Un mapa válido, que carga bien, sin error ni hueco: imposible de notar.
+- **`Aventura34km`** sacaba `34` y pedía un `Av34_Mapa.jpg` inexistente.
+
+Llevaba además un `onerror` que reintentaba con la otra mayúscula (`_mapa` / `_Mapa`). Era un segundo camino silencioso de los que §36.27.1 prohibe: tapaba justo el fallo que hay que ver, y **en GitHub Pages —que SÍ distingue mayúsculas, a diferencia de Windows— es donde ese fallo aparece**. Se retiró con el resto.
+
+Hoy, una aventura sin entrada en la tabla **no enseña el mapa de otra**: se registra el aviso y se continúa a P8, igual que al cerrar el overlay. Añadir la octava aventura es escribir una línea; no hay ningún patrón de nombres que respetar.
+
+Cubierto por `tests/e2e/55-mapa-vintage-resuelto-por-el-padre.spec.js`, cuyo caso MV-3 —una aventura sin mapa no abre nada— usa `Aventura34km`.
 
 ### Traducciones
 
@@ -7984,7 +8007,7 @@ La contrapartida es el caso que hay que evitar por el otro lado: el aviso pendie
 
 #### CACHE_VERSION y actualización automática
 
-`CACHE_VERSION` (actualmente `'v-60556be0a360'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
+`CACHE_VERSION` (actualmente `'v-9483c7d2226b'`, línea 91 de `sw.js`) cambia automáticamente cada vez que un commit toca algún fichero del shell, para forzar que el navegador descarte la caché antigua. `tools/build-sw.js` calcula un SHA-256 de `sw.js` (con la propia línea `CACHE_VERSION` normalizada, para no autorreferenciarse) más el contenido de cada fichero del shell (descubiertos con `ficherosDelShell()`, no la lista de `APP_SHELL` — ver §21.1), normalizando CRLF→LF antes de hashear (necesario porque este proyecto tiene `core.autocrlf=true` sin `.gitattributes` — el working tree en Windows tiene CRLF y al menos uno de esos blobs en git tiene CRLF embebido, así que sin normalizar, el modo `--staged` y el modo working tree podían dar hashes distintos para el mismo contenido); el hook de pre-commit que instala `tools/install-hooks.js` lo ejecuta en modo `--staged` (lee del índice de git, vía `git show`, no del disco) antes de cada commit, y vuelve a hacer `git add` de `sw.js`/`docs/GUIA-COMPLETA.md` si cambiaron. `npm run build:sw` lo ejecuta a mano (working tree) y `npm run dev:watch` lo recalcula en vivo mientras se desarrolla — la normalización garantiza que ambos modos coincidan siempre que el contenido no cambie de verdad. Ver §21 para el detalle completo.
 
 **Detección de actualizaciones:** `registration.update()` se llama al registrar (cada carga) y en `visibilitychange → hidden` (cada cambio de app) — ver arriba. En dev (`IS_DEV = true`, hostname `localhost`/`127.0.0.1`), todos los fetches del SW van directamente a red sin caché, garantizando que el desarrollador siempre ve la versión más reciente.
 
@@ -8671,7 +8694,7 @@ Actualmente en APP_SHELL (sw.js):
 
 ```javascript
 // sw.js línea 91 — se actualiza sola vía el hook de pre-commit, no editar a mano
-const CACHE_VERSION = 'v-60556be0a360';
+const CACHE_VERSION = 'v-9483c7d2226b';
 const CACHE_NAME = `vvguides-shell-${CACHE_VERSION}`;
 ```
 
@@ -9706,6 +9729,8 @@ A partir de ahí, la distancia se reparte en **4 franjas**, dos de ellas con mar
 
 **Por qué dos franjas tienen gracia y las otras dos no:** un desvío real y corto (recado rápido, rodeo de una calle en obras) puede alejar al usuario 50-150m de su parada/tramo sin que eso signifique que ha abandonado la aventura — penalizar al instante desincentivaría exactamente el tipo de exploración libre que la app quiere permitir. Más allá de 150m ya no es un desvío del recorrido: es mucho más probable que sea un abandono real o un error, así que ahí no tiene sentido dar margen. La gracia es más larga en "desviado" (15 min) que en "fuera" (7 min) porque un rodeo real (ir y volver por una calle paralela) tarda más en completarse que un recado junto a la parada.
 
+**Y si de verdad no puede llegar, tiene una salida que pide él.** Las cuatro franjas miden distancia, pero el caso más común de un usuario bloqueado no aparece en ninguna: unas obras, una calle cortada o una valla que ayer no estaba dejan al usuario **encima del camino** —para la app, dentro de rango— y sin forma de avanzar. A los ocho minutos parado en el mismo punto, la app le recuerda que existe el **rescate** (§25.19): lo pide desde el asistente de soporte, lo confirma dos veces, y el punto se da por visitado. No salta solo, y no depende de la distancia — por eso alcanza al caso principal, que las franjas no ven.
+
 **La ayuda (botón Ubicación + los dos mapas) nunca espera la gracia — se habilita al instante, en cualquiera de las 4 franjas.** Pedir el mapa para orientarse no tiene coste ni consecuencia, así que no hay motivo para retrasarlo aunque la restricción de vídeo/avanzar/audio/reto sí espere.
 
 **Botones de hijo2 mientras la gracia está en curso** (fuera de rango real, pero sin que la gracia de la franja haya expirado todavía — `ayudaFueraDeRangoActiva=true`, `fueraDeRangoActivo` sigue `false`):
@@ -10371,6 +10396,38 @@ Los datos no tienen espera real hasta que exista el backend, y entonces lo prime
 
 #### El camino completo
 
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant H6 as hijo6 (asistente)
+    participant P as Padre
+    participant H2 as hijo2
+
+    Note over P: barrido cada 60 s, solo el elemento actual
+    P-->>U: cartel recordatorio (min. 8, 10, 12 y 14)
+    U->>P: pulsa "Ver cómo continuar"
+    P->>H6: abre el asistente
+    P->>H6: CHAT.ESTADO_PADRE con el estado del rescate
+    Note over H6: el botón solo se pinta si sirve de algo
+    U->>H6: pulsa "Tengo un problema"
+    H6->>P: CHAT.RESCATE_SOLICITADO (con acuse)
+    P-->>H6: estado: puede, motivo, usadas, total
+    Note over P: contesta YA, sin esperar a que el usuario lea
+    P-->>U: 1.ª confirmación (filtra el toque accidental)
+    U->>P: "Sí, no puedo continuar"
+    P-->>U: 2.ª confirmación (dice el precio)
+    U->>P: "Sí"
+    Note over P: vuelve a comprobarlo TODO antes de conceder
+    P->>H2: cierra el reto y habilita avanzar
+    P-->>U: "Rescate utilizado"
+    U->>H2: pulsa avanzar
+    H2->>P: NAVEGACION.GPS.ACTIVAR
+    Note over P: AQUÍ se cobra el rescate, no antes
+```
+
+Las flechas discontinuas son lo que el usuario ve en pantalla; las sólidas, mensajes y
+pulsaciones. Paso a paso:
+
 1. **El reloj avisa.** `_ejecutarBarridoRecordatorioRescate()` (`setInterval` de 60 s en `globalThis.__VV_PENDING_CLEANUP`) mira **solo el elemento actual** y, a los **8, 10, 12 y 14 minutos** desde que se activó, muestra `cartel-recordatorio-rescate`. Cuatro avisos y después silencio. No hay condición de distancia, y es deliberado: en un tramo la franja mide `distanciaAlCamino`, y quien está bloqueado por una valla está **encima** del camino — para la app, dentro de rango. Exigir "fuera de rango" habría dejado sin aviso justo al caso principal.
 2. **El cartel abre el asistente.** Su botón (`#btn-recordatorio-rescate`) pulsa `#btn-chat-soporte`, que es el único camino que existe para abrirlo. No gasta nada: es navegación, no una segunda puerta al rescate. A diferencia de los tres recordatorios "educados" (§25.5c/d/g), este **se impone** y llama a `_ocultarCualquierCartel()`: el de audio reaparece cada 20 s mientras no se pulse play, y el usuario atascado es justo el que no lo ha pulsado — siendo educado, este no saldría jamás.
 3. **El asistente decide si enseña el botón.** `construirEstadoChat()` incluye `rescate: _estadoRescateParaChat()` —`{puede, motivo, usadas, total, restantes}`— y se refresca en cada apertura del chat. hijo6 pinta `.boton-rescate` **solo si sirve**: si un rescate no tiene sentido aquí (`no-aventura`, `sin-elemento`, `es-inicio`, `ya-llegado`) el botón no se pinta, porque un botón que no hace nada es peor que no tener botón. **Con los rescates agotados sí se pinta**, y no es una excepción caprichosa: es lo único que hace llegar al usuario el cartel que se lo explica.
@@ -10380,6 +10437,41 @@ Los datos no tienen espera real hasta que exista el backend, y entonces lo prime
 7. **Cierra el reto si lo había.** Reutiliza `_hdl_RETO_OCULTAR()`. Sin esto el usuario paga y se queda con **menos** que antes: en hijo2, `retoActivo` se comprueba **antes** que `btnAvanzarCompletadoPorPadre` y sale apagando el botón de avanzar, y la ayuda de ubicación también exige `!retoActivo`.
 8. **Completa el punto y lo anuncia.** Rellena la ficha (`llegada`, `audio`, `reto` y la cuenta de retos) y llama a `intentarCompletarElemento()`. La marca `estado._rescatePeticionPendiente` hace que `marcarParadaCompletada()` **no** saque el cartel de transición normal: la pantalla de "rescate utilizado" ya se lo ha contado con más detalle, y encadenar los dos sería contarlo dos veces.
 9. **El usuario pulsa avanzar.** No hay avance automático: le da sensación de control sobre su aventura.
+
+#### Cuándo se ve el botón, y qué decide el padre
+
+`_estadoRescate()` devuelve **siempre** un objeto, nunca `undefined`, y siempre con la
+cuenta dentro aunque la respuesta sea que no: quien pregunta necesita saber POR QUÉ no
+puede, para poder decírselo al usuario.
+
+```mermaid
+flowchart TD
+    A[El asistente pregunta por el estado] --> B{¿modo AVENTURA?}
+    B -- no --> N1[no-aventura]
+    B -- si --> C{¿hay elemento activo?}
+    C -- no --> N2[sin-elemento]
+    C -- si --> D{¿es el punto de inicio?}
+    D -- si --> N3[es-inicio]
+    D -- no --> E{¿llegada ya confirmada?}
+    E -- si --> N4[ya-llegado]
+    E -- no --> F{¿quedan rescates?}
+    F -- no --> G[agotados]
+    F -- si --> H[puede: true]
+    N1 --> X[hijo6 ESCONDE el boton]
+    N2 --> X
+    N3 --> X
+    N4 --> X
+    G --> Y[hijo6 SI pinta el boton]
+    H --> Y
+    Y --> Z[Dos confirmaciones y concesion]
+    G --> W[Cartel: se le acabaron]
+```
+
+**Los cuatro motivos de la izquierda esconden el botón** porque un rescate ahí no haría
+nada, y un botón que no hace nada es peor que no tener botón. **`agotados` es la excepción
+deliberada**: el botón se pinta igual, porque es lo único que hace llegar al usuario el
+cartel que le explica que se le han acabado. Escondiéndolo también ahí, ese texto no lo
+leería nadie nunca.
 
 #### El cobro va diferido, y es lo que protege al usuario
 
@@ -11942,7 +12034,7 @@ Timeout configurado en **30 000 ms** (30 s) para `crearPromiseHijoListo`. Los di
 **Archivo:** `sw.js` línea 91
 
 ```js
-const CACHE_VERSION = 'v-60556be0a360';
+const CACHE_VERSION = 'v-9483c7d2226b';
 ```
 
 El valor se actualiza solo, vía el hook de pre-commit (`tools/install-hooks.js` + `tools/build-sw.js`) — ver §21.1 para el mecanismo completo (algoritmo SHA-256, por qué lee del índice de git y no del disco, idempotencia).

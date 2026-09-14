@@ -2214,21 +2214,37 @@
     // ============================================================
     // P5→P6: MOSTRAR/CERRAR MAPA VINTAGE DE LA AVENTURA
     // ============================================================
-    function mostrarMapaVintage() {
+    async function mostrarMapaVintage() {
       const overlay = document.getElementById('mapa-vintage-overlay');
       const img = document.getElementById('mapa-vintage-img');
       if (!overlay || !img) return;
       
       const aventura = aventuraSeleccionada || 'Aventura1';
-      const num = aventura.match(/\d+/)?.[0] || '1';
-      // Intentar ambas variantes: Av1_mapa.jpg vs Av2_Mapa.jpg
-      const rutaMapa = `imagenes/imagenes-mapas-vintage/Av${num}_${num === '1' ? 'mapa' : 'Mapa'}.jpg`;
+      // La ruta sale de la MISMA tabla que usa el botón de mapa vintage dentro de la
+      // aventura (js/mapa-vintage-aventuras.js, §22.12). Antes se adivinaba sacando el
+      // número del nombre de la aventura, y fallaba EN SILENCIO: `AventuraFallas` no tiene
+      // ningún dígito, así que caía en el '1' de reserva y enseñaba el mapa de la Aventura 1
+      // como si fuera el suyo — un mapa que carga bien, sin error ni hueco, imposible de
+      // notar. `Aventura34km` sacaba "34" y pedía un Av34_Mapa.jpg que no existe.
+      //
+      // El truco acertaba con las cinco aventuras numeradas, y por eso nadie lo vio: exige
+      // que toda aventura lleve un número en el nombre Y que ese número pegado a la
+      // plantilla dé el nombre exacto del fichero. La tabla no exige ninguna de las dos.
+      let rutaMapa = null;
+      try {
+        const { MAPAS_VINTAGE } = await import('./js/mapa-vintage-aventuras.js');
+        rutaMapa = MAPAS_VINTAGE[aventura] || null;
+      } catch (error) {
+        _log.error('[SELECCION] No se pudo cargar la tabla de mapas vintage:', error?.message);
+      }
+      if (!rutaMapa) {
+        // Una aventura sin mapa no enseña el de otra: se sigue adelante, como al cerrarlo.
+        _log.warn('[SELECCION] No hay mapa vintage para', aventura, '— se continúa sin mostrarlo');
+        void mostrar(8);
+        return;
+      }
       
       img.src = rutaMapa;
-      img.onerror = function() {
-        const rutaAlt = `imagenes/imagenes-mapas-vintage/Av${num}_${num === '1' ? 'Mapa' : 'mapa'}.jpg`;
-        img.src = rutaAlt;
-      };
       overlay.style.display = 'flex';
       try { globalThis.parent.postMessage({ tipo: 'NAVEGACION.SUPRIMIR_ROTACION', origen: globalThis.name || 'seleccion', value: true }, globalThis.location.origin); } catch { /* cross-origin postMessage: error ignorado intencionalmente */ }
       _log.info('[SELECCION] Mapa vintage mostrado:', rutaMapa);
