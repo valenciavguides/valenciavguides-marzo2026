@@ -28,7 +28,7 @@
  *   - _enviarAudioRequestConReintento(): AUDIO.REPRODUCIR_REQUEST ahora exige confirmación
  *     real de hijo3 (enviarMensajeConConfirmacion) y reintenta hasta MAX_REINTENTOS_ENVIO_AUDIO
  *     veces antes de rendirse — sustituye al rescate ciego por TTL que existía para el
- *     audio de tramos (ver 42-ttl-tramo-saltos-seguridad.spec.js, ya no rescata audio).
+ *     audio de tramos (el barrido de 60 s ya no rescata nada, solo recuerda: §25.19).
  *
  * Fixture real usada (Aventura1, parada Av1-P-1): en español el fichero existe
  * (audio-Av1-P-1-es); en inglés el audio_id existe pero el campo file está vacío

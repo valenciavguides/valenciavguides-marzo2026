@@ -96,6 +96,11 @@ test.describe('FA — El fin de audio solo toca la ficha de su propio elemento a
     await injectInitSpy(page);
     await stubCDNResources(page);
     await gotoAndWaitForFase1(page);
+    // Esperar a que el padre publique su estado. Sin esto el test toca `globalThis.estado`
+    // antes de que exista y revienta con "Cannot read properties of undefined", de forma
+    // intermitente: fallaba en chromium y pixel5 y pasaba en firefox y iphone12, que es la
+    // firma de una carrera, no de un defecto del codigo.
+    await page.waitForFunction(() => !!globalThis.estado, null, { timeout: 15_000 });
   });
 
   test('FA-1. El fin del audio de un elemento que ya no es el actual NO crea su ficha', async ({ page }) => {
