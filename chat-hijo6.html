@@ -924,7 +924,19 @@
     logger.debug('[hijo6] CHAT.ESTADO_PADRE recibido — actualizando estado');
     if (mensaje.datos) {
       estadoPadre = { ...estadoPadre, ...mensaje.datos };
+      // El `else` es la red de seguridad, y aquí importa más que en PADRE_DATOS: este
+      // mensaje llega en CADA apertura del asistente y es el que trae el estado del rescate
+      // — si el botón se pinta y con qué número. Quien reconstruye el FAQ es
+      // actualizarIdioma(), así que sin idioma no se reconstruiría nada y el botón se
+      // quedaría con el estado de la apertura anterior: visible cuando no debe, o escondido
+      // cuando hace falta, y en silencio.
+      //
+      // Hoy no puede pasar (construirEstadoChat() siempre manda idioma, con 'es' como último
+      // recurso), pero PADRE_DATOS ya tenía esta rama y este handler no: dos caminos casi
+      // iguales con distinta garantía es justo la forma del fallo que dejó el chat en
+      // español durante semanas.
       if (mensaje.datos.idioma) actualizarIdioma(mensaje.datos.idioma);
+      else construirFAQ();
     }
   });
 
