@@ -5,7 +5,6 @@
   "start_url": "/codigo-padre.html",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#ff8c00",
   "theme_color": "#ff8c00",
   "lang": "es",

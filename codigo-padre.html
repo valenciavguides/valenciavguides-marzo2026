@@ -4152,59 +4152,36 @@
         const esMovil = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         // Detección estricta de móvil (NO tablet, NO escritorio)
-        function esTelefonoMovilRobusto() {
-            const ua = navigator.userAgent || navigator.vendor || globalThis.opera;
-            // Detecta móviles típicos, NO tablets, NO escritorio
-            // Android solo si tiene "Mobile", NO iPad, NO tablet Android
-            // iPhone y móviles Windows también detectados
-            return /Android.*Mobile|iPhone|iPod|IEMobile|Windows Phone|Opera Mini/i.test(ua);
-        }
-
         // ============================================================
-        // BLOQUEO DE ORIENTACIÓN EN TELÉFONOS MÓVILES (NO TABLETS)
+        // ORIENTACIÓN: un solo camino, el aviso a pantalla completa
         // ============================================================
-        // Usar la función robusta
-        const esTelefonoMovil = esTelefonoMovilRobusto();
+        //
+        // Aquí había además un `screen.orientation.lock('portrait')` que intentaba bloquear
+        // físicamente el móvil en vertical, con reintento tras el primer clic. Se retira, y
+        // no por no funcionar: **funciona solo a veces**, y eso era el problema.
+        //
+        // En Android con la PWA instalada el candado agarra, así que la pantalla no gira y
+        // el aviso no llega a salir nunca. En iPhone falla siempre — el propio código ya lo
+        // reconocía en su mensaje de error — y ahí el aviso era quien hacía el trabajo.
+        //
+        // O sea: dos caminos para una sola decisión ("esta app se usa en vertical"), cada uno
+        // activo en una mitad de los móviles. La consecuencia visible era que
+        // NAVEGACION.SUPRIMIR_ROTACION —el mensaje con el que el mapa vintage pide que se le
+        // deje ver en apaisado— **no hacía nada en Android**: no había ningún aviso que
+        // suprimir, porque la pantalla ni siquiera giraba. El mismo mapa se comportaba
+        // distinto según el teléfono, sin que nada lo explicara.
+        //
+        // Con el aviso como único mecanismo, el comportamiento es idéntico en todos los
+        // móviles y la supresión funciona donde tiene que funcionar.
+        //
+        // Se va con él `esTelefonoMovilRobusto()`, que era una copia local de
+        // `esTelefonoMovil()` de js/device-detection.js y solo usaba el candado.
+        // toggleRotationMessage() siempre usó la del módulo, así que no se entera.
 
-        if (esTelefonoMovil) {
-            (globalThis.logger || console).info('📱 Teléfono móvil detectado. Intentando bloquear orientación...');
-            (globalThis.logger || console).info('Screen orientation API disponible:', !!screen.orientation);
-            (globalThis.logger || console).info('Lock method disponible:', !!(screen.orientation && screen.orientation.lock));
-
-            if (screen.orientation && screen.orientation.lock) {
-                // Intentar bloquear a portrait inmediatamente (puede fallar sin interacción)
-                screen.orientation.lock('portrait').then(function() {
-                    (globalThis.logger || console).info('✅ Orientación bloqueada exitosamente a portrait');
-                }).catch(function(error) {
-                    (globalThis.logger || console).warn('⚠️ Bloqueo de orientación falló inicialmente:', error.message);
-                    // Si falla, intentar después del primer click del usuario
-                    document.addEventListener('click', function() {
-                        (globalThis.logger || console).info('👆 Primer click detectado, intentando bloquear orientación...');
-                        screen.orientation.lock('portrait').then(function() {
-                            (globalThis.logger || console).info('✅ Orientación bloqueada después de interacción');
-                        }).catch(function(error) {
-                            (globalThis.logger || console).error('❌ Bloqueo de orientación falló después de click:', error.message);
-                            (globalThis.logger || console).info('💡 Nota: Algunos navegadores (especialmente iOS) no permiten bloquear orientación desde web apps');
-                        });
-                    }, { once: true });
-                });
-            } else {
-                (globalThis.logger || console).warn('❌ API screen.orientation.lock no disponible en este navegador');
-                (globalThis.logger || console).info('💡 Alternativas: Usar CSS @media queries para adaptar la UI a landscape');
-            }
-
-            // El aviso de rotación (mostrar/ocultar #rotation-message) lo gestiona
-            // toggleRotationMessage(), registrada en orientationchange/resize más abajo.
-
-            // También verificar orientación inicial
-            if (globalThis.innerHeight < globalThis.innerWidth && globalThis.innerWidth < 1000) {
-                // Probablemente landscape en móvil
-                (globalThis.logger || console).info('📱 Orientación inicial parece landscape en teléfono móvil');
-                toggleRotationMessage();
-            }
-        } else {
-            (globalThis.logger || console).info('💻 Dispositivo no móvil (desktop/tablet/laptop) - no se intenta bloquear orientación');
-        }
+        // Comprobación inicial: la app puede abrirse ya en apaisado, y entonces nadie habría
+        // disparado orientationchange. No hace falta preguntar si es un teléfono —
+        // toggleRotationMessage() ya lo comprueba antes de enseñar nada.
+        toggleRotationMessage();
 
         // Función para mostrar/ocultar mensaje de rotación
         function toggleRotationMessage() {
@@ -4245,7 +4222,11 @@
             }
         });
 
-        // toggleRotationMessage se ejecutará en el DOMContentLoaded unificado
+        // OJO: hay una llamada a toggleRotationMessage() en el DOMContentLoaded temprano
+        // (script clasico, ~L1544) que NUNCA se ejecuta: esta funcion se declara dentro de
+        // este modulo y no se expone en globalThis, asi que su guarda
+        // `typeof toggleRotationMessage === 'function'` es siempre falsa desde alli. La
+        // comprobacion inicial real es la llamada de mas arriba, en este mismo modulo.
 
         // DEV MODE TOGGLE — Ctrl+Alt+clic o 5 toques en logo P1 del selector.
         // Activa/desactiva globalThis._devModeActivo. La visibilidad de hijo5

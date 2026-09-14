@@ -94,9 +94,11 @@ test.describe('Globals requeridas tras FASE 1', () => {
 
   test('1f. globalThis.esTelefonoMovil existe (booleano o función)', async ({ page }) => {
     const type = await page.evaluate(() => typeof globalThis.esTelefonoMovil);
-    // El script inline define esTelefonoMovil como booleano (resultado de esTelefonoMovilRobusto())
-    // mientras que device-detection.js lo define como función.
-    // Ambas formas son válidas; lo que importa es que exista.
+    // Hoy es una FUNCION, la de device-detection.js. Se admite tambien booleano porque el
+    // script inline llego a definirlo asi, con el resultado de una copia local de la
+    // deteccion que vivía junto al bloqueo de orientacion: los dos se retiraron al dejar el
+    // overlay #rotation-message como unico mecanismo (§19.7).
+    // Lo que importa aqui es que exista, no de cual de los dos venga.
     expect(['boolean', 'function']).toContain(type);
   });
 
