@@ -406,9 +406,10 @@ asistente.
 El asistente sí está siempre, así que la frase vale con botón y sin él. Cada idioma encaja la
 idea en su propia sintaxis; no es la misma frase traducida palabra por palabra.
 
-**Queda una repetición que mirar:** el párrafo 6 de los doce idiomas usa la misma imagen
-("guarde los rescates para cuando la ciudad de verdad le cierre el paso"), así que ahora
-aparece dos veces en la misma respuesta, con dos párrafos de por medio.
+**La imagen se repite, y se deja a propósito.** El párrafo 6 de los doce idiomas ya usaba la
+misma ("guarde los rescates para cuando la ciudad de verdad le cierre el paso"), así que
+ahora aparece dos veces con dos párrafos de por medio. Decisión del usuario: se queda tal
+cual — el párrafo 6 remacha el 4 como consejo final.
 
 ---
 
@@ -633,6 +634,6 @@ RT-3 (los topes son por aventura y nunca `undefined`).
 
 ### Lo que sigue abierto
 
-**La repetición entre el párrafo 4 y el 6 de §3.2** — ver §4b. Los dos usan la imagen de la
-ciudad cerrando el paso, con dos párrafos de por medio. Es lo único que queda, y es una
-decisión de texto.
+Nada. El último punto abierto —la frase que señalaba al botón— se cerró reescribiendo el
+párrafo 4 en los doce idiomas (§4b), y la repetición que eso dejó entre los párrafos 4 y 6
+se deja a propósito.
